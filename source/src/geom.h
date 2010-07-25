@@ -4,24 +4,12 @@
 // http://www.mceniry.net/papers/Fast%20Inverse%20Square%20Root.pdf
 // http://en.wikipedia.org/wiki/Fast_inverse_square_root
 
-inline float fInvSqrt (float x)
-{
-    union
-    {
-        int d;
-        float f;
-    } u;
-
-    u.f = x;
-    u.d = 0x5f3759df - (u.d >> 1);
-//     return u.f; // ultra-fast, about 3.5% of error
-    return 0.5f * u.f * ( 3.00175f - x * u.f * u.f ); // about 0.1% of error
-}
-
-inline float fSqrt (float x)
-{
-    return x * fInvSqrt(x);
-}
+#define UFINVSQRT  union { int d; float f; } u; u.f = x; u.d = 0x5f3759df - (u.d >> 1)
+inline float ufInvSqrt (float x) { UFINVSQRT; return u.f; } // about 3.5% of error
+inline float fInvSqrt (float x) { UFINVSQRT; return 0.5f * u.f * ( 3.00175f - x * u.f * u.f ); } // about 0.1% of error
+inline float fSqrt (float x) { return x * fInvSqrt(x); }
+inline float ufSqrt (float x) { return x * ufInvSqrt(x); }
+#undef UFINVSQRT
 
 struct vec
 {
@@ -60,6 +48,7 @@ struct vec
     vec &normalize() { div(magnitude()); return *this; }
 
     float fmag() const { return fSqrt(squaredlen()); }
+    float ufmag() const { return ufSqrt(squaredlen()); }
 
     float dist(const vec &e) const { vec t; return dist(e, t); }
     float dist(const vec &e, vec &t) const { t = *this; t.sub(e); return t.magnitude(); }
