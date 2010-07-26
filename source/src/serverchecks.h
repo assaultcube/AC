@@ -116,9 +116,9 @@ inline void addpt(client *c, int points) {
 #define HTFLCOVPT     cnumber*3                    // player covered the flag keeper (htf)
 #define COVERPT       cnumber*2                    // player covered teammate
 #define DEATHPT      -4                            // player died
-#define BONUSPT       target->state.points/100     // bonus (for killing high level enemies :: beware with exponential behavior!)
-#define FLBONUSPT   2*target->state.points/100     // bonus if flag team mode
-#define TMBONUSPT   3*target->state.points/100     // bonus if team mode (to give some extra reward for playing tdm modes)
+#define BONUSPT       target->state.points/400     // bonus (for killing high level enemies :: beware with exponential behavior!)
+#define FLBONUSPT     target->state.points/300     // bonus if flag team mode
+#define TMBONUSPT     target->state.points/200     // bonus if team mode (to give some extra reward for playing tdm modes)
 #define HTFFRAGPT     cnumber/2                    // player frags while carrying the flag
 #define CTFFRAGPT   2*cnumber                      // player frags the flag stealer
 #define FRAGPT        10                           // player frags (normal)

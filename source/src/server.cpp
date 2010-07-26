@@ -2841,9 +2841,8 @@ void process(ENetPacket *packet, int sender, int chan)
                 }
                 seteventmillis(shot.shot);
                 shot.shot.gun = getint(p);
-//                 loopk(3) shot.shot.from[k] = getint(p)/DMF;
-                loopk(3) { shot.shot.from[k] = cl->state.o.v[k] + ( k == 2 ? (((cl->f>>7)&1)?2.2f:4.2f) : 0); /*getint(p);*/}
-                loopk(3) shot.shot.to[k] = getint(p)/DMF;
+                loopk(3) { shot.shot.from[k] = cl->state.o.v[k] + ( k == 2 ? (((cl->f>>7)&1)?2.2f:4.2f) : 0); }
+                loopk(3) { float v = getint(p)/DMF; shot.shot.to[k] = v < 0.0f ? 0.0f : v; }
                 int hits = getint(p);
                 loopk(hits)
                 {
