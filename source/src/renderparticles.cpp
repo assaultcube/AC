@@ -571,17 +571,20 @@ void particle_splash(int type, int num, int fade, const vec &p)
     }
 }
 
+VARP(maxtrail, 1, 500, 10000);
+
 void particle_trail(int type, int fade, const vec &s, const vec &e)
 {
     vec v;
-    float d = e.dist(s, v); 
-    v.div(d*2+0.1f);
+    float d = e.dist(s, v);
+    int steps = clamp(int(d*2), 1, maxtrail);
+    v.div(steps);
     vec p = s;
-    loopi((int)d*2)
+    loopi(steps)
     {
         p.add(v);
-        vec d((float)(rnd(11)-5), (float)(rnd(11)-5), (float)(rnd(11)-5));
-        newparticle(p, d, rnd(fade)+fade, type);
+        vec tmp((float)(rnd(11)-5), (float)(rnd(11)-5), (float)(rnd(11)-5));
+        newparticle(p, tmp, rnd(fade)+fade, type);
     }
 }
 
