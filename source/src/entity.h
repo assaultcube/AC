@@ -3,7 +3,7 @@ enum                            // static entity types
     NOTUSED = 0,                // entity slot not in use in map
     LIGHT,                      // lightsource, attr1 = radius, attr2 = intensity
     PLAYERSTART,                // attr1 = angle, attr2 = team
-    I_CLIPS, I_AMMO, I_GRENADE, 
+    I_CLIPS, I_AMMO, I_GRENADE,
 	I_HEALTH, I_HELMET, I_ARMOUR, I_AKIMBO,
 	// helmet : 2010may16 -> mapversion:8
     MAPMODEL,                   // attr1 = angle, attr2 = idx
@@ -241,7 +241,7 @@ public:
             case I_AMMO: { return ammostats[primary]; }
             case I_GRENADE: return ammostats[GUN_GRENADE];
             case I_AKIMBO: return ammostats[GUN_AKIMBO];
-            case I_HEALTH: 
+            case I_HEALTH:
             case I_HELMET:
             case I_ARMOUR:
                 return powerupstats[type-I_HEALTH];
@@ -283,7 +283,7 @@ public:
             case I_GRENADE: additem(ammostats[GUN_GRENADE], mag[GUN_GRENADE]); break;
             case I_HEALTH: additem(powerupstats[type-I_HEALTH], health); break;
 			case I_HELMET:
-            case I_ARMOUR: 
+            case I_ARMOUR:
 				additem(powerupstats[type-I_HEALTH], armour); break;
             case I_AKIMBO:
                 akimbo = true;
@@ -575,3 +575,5 @@ public:
     void onmoved(const vec &dist);
 };
 
+enum {MD_FRAGS = 0, MD_DEATHS, END_MDS};
+struct medalsst {bool assigned; int cn; int item;};

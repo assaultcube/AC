@@ -532,7 +532,6 @@ void damageblend(int n)
     damageblendmillis += n*damagescreenfactor;
 }
 
-VAR(interms,0,0,1);
 void drawmedals(float x, float y, int col, int row, Texture *tex)
 {
     if(tex)
@@ -543,25 +542,38 @@ void drawmedals(float x, float y, int col, int row, Texture *tex)
         glPopAttrib();
     }
 }
+const char *medal_str[] =
+{
+    "Best Fragger", "Dude that dies a lot"
+}; //just some medals string tests, nothing serious
+extern bool medals_arrived;
+extern medalsst a_medals[END_MDS];
 void drawscores()
 {
-    glPushAttrib(GL_COLOR_BUFFER_BIT);
+    static float time=0;
+    if(!medals_arrived) {time=0; return;} else if(time > 5){time=0; medals_arrived=0;}
     static Texture *tex = NULL;
     if(!tex) tex = textureload("packages/misc/nice_medals.png", 4);
-    static float time=0;
-    if(!interms && time != 0.0f) time=0.0f;
-    if(!interms /*&& !multiplayer(false)*/) return;
     time+=((float)(curtime))/1000;
     float vw=VIRTW*7/4,vh=VIRTH*7/4;
+    glPushAttrib(GL_COLOR_BUFFER_BIT);
     glLoadIdentity();
 	glOrtho(0, vw, vh, 0, -1, 1);
     int left = vw/4, top = vh/4;
     blendbox(left, top, left*3, top*3, true, -1);
     top+=10;left+=10;const float txtdx=160,txtdy=30,medalsdy=130;
     glColor4f(1,1,1,1);
-    if(time > 0.3) {drawmedals(left, top, 0, 0, tex); draw_textf("TEST WRITING!!", left+txtdx, top+txtdy); top+=medalsdy;}
-    if(time > 0.6) {drawmedals(left, top, 0, 1, tex); draw_textf("TEST WRITING!!", left+txtdx, top+txtdy); top+=medalsdy;}
-    if(time > 0.9) {drawmedals(left, top, 0, 2, tex); draw_textf("TEST WRITING!!", left+txtdx, top+txtdy); top+=medalsdy;}
+    float desttime=0;
+    loopi(END_MDS) {
+        if(a_medals[i].assigned) {
+            desttime+=0.3;
+            if(time < desttime) continue;
+            drawmedals(left, top, 0, 0, tex);
+            playerent *mpl = a_medals[i].cn == getclientnum() ? player1 : getclient(a_medals[i].cn);
+            draw_textf("%s %s: %d", left+txtdx, top+txtdy, medal_str[i], mpl->name, a_medals[i].item); top+=medalsdy;
+        }
+    }
+
     glPopAttrib();
 }
 

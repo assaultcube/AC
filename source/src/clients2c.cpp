@@ -303,7 +303,8 @@ void showhudextras(char hudextras, char value){
 int lastspawn = 0;
 
 VAR(voicecomsounds, 0, 1, 2);
-
+bool medals_arrived=0;
+medalsst a_medals[END_MDS];
 void parsemessages(int cn, playerent *d, ucharbuf &p)
 {
     static char text[MAXTRANS];
@@ -676,7 +677,15 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                     }
                 } else {
                     int medals = getint(p);
-                    loopi(medals) { getint(p); getint(p); getint(p); }
+                    if(medals > 0) {
+//                         medals_arrived=1;
+                        loopi(medals) {
+                            int mcn=getint(p); int mtype=getint(p); int mitem=getint(p);
+                            a_medals[mtype].assigned=1;
+                            a_medals[mtype].cn=mcn;
+                            a_medals[mtype].item=mitem;
+                        }
+                    }
                 }
                 break;
             }
