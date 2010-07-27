@@ -2957,8 +2957,8 @@ void process(ENetPacket *packet, int sender, int chan)
                 int usefactor = q.getbits(2) + 7;
                 int xt = q.getbits(usefactor + 4);
                 int yt = q.getbits(usefactor + 4);
-                cl->y = q.getbits(9);
-                cl->p = q.getbits(8);
+                cl->y = (q.getbits(9)*360)/512;
+                cl->p = ((q.getbits(8)-128)*90)/127;
                 if(!q.getbits(1)) q.getbits(6);
                 if(!q.getbits(1)) q.getbits(4 + 4 + 4);
                 cl->f = q.getbits(8);
