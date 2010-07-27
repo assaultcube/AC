@@ -482,7 +482,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
     bool collided = false;
     vec oldorigin = pl->o;
 
-    f(!editfly) loopi(moveres)                                // discrete steps collision detection & sliding
+    if(!editfly) loopi(moveres)                                // discrete steps collision detection & sliding
     {
         const float f = 1.0f/moveres;
 
