@@ -43,7 +43,7 @@ inline float fCos(float x) { x *= 0.636619772f; FCOS; }
 inline float fSin(float x) { x *= 0.636619772f; x -= 1.0f; FCOS; }
 #undef FCOS
 
-inline float ufS2C(float x) { x *= x; return x > 1.0f ? 0.0f : ufSqrt(1.0f - x); }
+inline float ufS2C(float x) { x *= x; return x < 1.0f ? ufSqrt(1.0f - x) : 0.0f; }
 
 struct vec
 {
