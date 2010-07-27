@@ -2983,8 +2983,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     cl->position.setsize(0);
                     while(curmsg<p.length()) cl->position.add(p.buf[curmsg++]);
                 }
-                if(maplayout && !m_demo && !m_coop) checkclientpos(cl);
-                checkmove(cl);
+                if(!m_demo && !m_coop) checkmove(cl);
                 break;
             }
 

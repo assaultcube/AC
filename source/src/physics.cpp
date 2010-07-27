@@ -384,11 +384,11 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         d.x += (float)(pl->strafe*cosf(RAD*(pl->yaw-180)));
         d.y += (float)(pl->strafe*sinf(RAD*(pl->yaw-180)));
 
-	    pl->vel.mul(fpsfric-1);   // slowly apply friction and direction to velocity, gives a smooth movement
-	    pl->vel.add(d);
-	    pl->vel.div(fpsfric);
+        pl->vel.mul(fpsfric-1);   // slowly apply friction and direction to velocity, gives a smooth movement
+        pl->vel.add(d);
+        pl->vel.div(fpsfric);
         d = pl->vel;
-	    d.mul(speed);
+        d.mul(speed);
 
         if(editfly)                // just apply velocity
         {
@@ -414,9 +414,9 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
             {
                 if(pl->onladder)
                 {
-			        const float climbspeed = 1.0f;
+                    const float climbspeed = 1.0f;
 
-			        if(pl->type==ENT_BOT) pl->vel.z = climbspeed; // bots climb upwards only
+                    if(pl->type==ENT_BOT) pl->vel.z = climbspeed; // bots climb upwards only
                     else if(pl->type==ENT_PLAYER)
                     {
                         if(((playerent *)pl)->k_up) pl->vel.z = climbspeed;
@@ -482,7 +482,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
     bool collided = false;
     vec oldorigin = pl->o;
 
-	if(!editfly) loopi(moveres)                                // discrete steps collision detection & sliding
+    f(!editfly) loopi(moveres)                                // discrete steps collision detection & sliding
     {
         const float f = 1.0f/moveres;
 
