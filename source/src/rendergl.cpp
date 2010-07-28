@@ -719,7 +719,6 @@ VARFP(minimapres, 7, 9, 10, clearminimap());
 void drawminimap(int w, int h)
 {
     if(!minimapdirty) return;
-
     int size = 1<<minimapres, sizelimit = min(hwtexsize, min(w, h));
     while(size > sizelimit) size /= 2;
     if(size!=minimaplastsize && minimaptex)
@@ -733,66 +732,57 @@ void drawminimap(int w, int h)
         createtexture(minimaptex, size, size, NULL, 3, false, false, GL_RGB);
         minimaplastsize = size;
     }
-
     minimap = true;
-
     disableraytable();
-
     physent *oldcam = camera1;
     physent minicam;
     camera1 = &minicam;
     camera1->type = ENT_CAMERA;
-    camera1->o.x = camera1->o.y = ssize/2;
-    camera1->o.z = 128;
+    camera1->o.x = mapdims[0] + mapdims[4]/2;
+    camera1->o.y = mapdims[1] + mapdims[5]/2;
+    int gdim = max(mapdims[4], mapdims[5]);
+    if(!gdim) gdim = ssize/2;
+    float md = (float)gdim;
+    float dd = 1.0f / ( ssize / md );
+    camera1->o.z = 96 * dd;
     camera1->pitch = -90;
     camera1->yaw = 0;
-
-    glViewport(0, 0, size, size);
+    int orthd = 2 + 2*dd + gdim/2; // +2-4 for clean border if map goes even to the edge.
+    // this does not avoid possible data corruption on windowed runs :-/ - the issue seems to lie with the window lying outside the desktop edges - at least that was the case for me (flowtron)
+    glViewport(0, 0, size, size); // !not wsize here
     glClearDepth(0.0);
-    glClearColor(0, 0, 0, 1);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+    glClearColor(0, 0, 0, 0);//1);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT); // stencil added 2010jul22
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(-ssize/2, ssize/2, -ssize/2, ssize/2, 0, 256);
+    glOrtho(-orthd, orthd, -orthd, orthd, 0, 128);
     glScalef(1, -1, 1);
     glMatrixMode(GL_MODELVIEW);
-
     glCullFace(GL_BACK);
     glDisable(GL_FOG);
     glEnable(GL_TEXTURE_2D);
-
     transplayer();
-
     resetcubes();
-
     render_world(camera1->o.x, camera1->o.y, camera1->o.z, 1.0f,
             (int)camera1->yaw, (int)camera1->pitch, 90.0f, 90.0f, size, size);
-
     setupstrips();
-
     setuptmu(0, "T * P x 2");
     glDepthFunc(GL_ALWAYS);
     renderstrips();
     glDepthFunc(GL_LESS);
     rendermapmodels();
-    renderentities();
+    //renderentities();// IMHO better done by radar itself, if at all
     resettmu(0);
-
     float hf = hdr.waterlevel-0.3f;
     renderwater(hf, 0, 0);
-
     camera1 = oldcam;
     minimap = false;
-
     glBindTexture(GL_TEXTURE_2D, minimaptex);
     glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, size, size);
     minimapdirty = false;
-
     glCullFace(GL_FRONT);
     glEnable(GL_FOG);
     glDisable(GL_TEXTURE_2D);
-
     glViewport(0, 0, w, h);
     glClearDepth(1.0);
 }
