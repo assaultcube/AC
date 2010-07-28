@@ -368,7 +368,7 @@ void hit(int damage, playerent *d, playerent *at, const vec &vel, int gun, bool 
         else
         {
             h.dir = ivec(int(vel.x*DNF), int(vel.y*DNF), int(vel.z*DNF));
-            damageeffect(damage, d);
+//             damageeffect(damage, d);
             audiomgr.playsound(S_PAIN1+rnd(5), d);
         }
     }
