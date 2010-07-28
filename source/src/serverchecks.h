@@ -530,7 +530,7 @@ inline void checkclientpos(client *cl)
 inline int check_pdist(client *c, float & dist) // pick up distance
 {
     // ping 1000ms at max velocity can produce an error of 20 cubes
-    float delay = 9.0f + (float)c->ping * 0.02f; // at ping 100, delay = 11
+    float delay = 9.0f + (float)c->ping * 0.02f + (float)c->spj * 0.025f; // at pj/ping 40/100, delay = 12
     if ( dist > delay )
     {
         if ( dist < 1.5f * delay ) return 1;
