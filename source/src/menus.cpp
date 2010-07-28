@@ -894,27 +894,9 @@ void menuitemmapload(char *name, char *text)
 {
     if(!lastmenu) return;
     string caction;
-	string title;
-	if(text[0]!='\0') formatstring(title)("%s", text);
-	else formatstring(title)("%s", name);
-    if(strcmp(name,text)==0)
-	{
-		formatstring(caction)("map %s", name);
-	}
-    else
-	{
-		defformatstring(jac)("ac_%s", text);
-		if(strcmp(jac,name)==0)
-		{
-			formatstring(caction)("map %s", name);
-		}
-		else
-		{
-			copystring(caction, text);
-		}
-	}
-    defformatstring(fullp2m)("packages/maps/%s.cgz", name);
-    lastmenu->items.add(new mitemmapload(lastmenu, newstring(name), newstring(title), newstring(caction), NULL, NULL, NULL));
+	if(!text || text[0]=='\0') formatstring(caction)("map %s", name);
+	else formatstring(caction)("%s", text);
+    lastmenu->items.add(new mitemmapload(lastmenu, newstring(name), newstring(name), newstring(caction), NULL, NULL, NULL));
 }
 
 void menuitemtextinput(char *text, char *value, char *action, char *hoveraction, char *maxchars)
