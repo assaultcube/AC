@@ -5174,6 +5174,16 @@ correctly (use "1" as a placeholder if needed).
 <value token="N" description="CHAR" minValue="0" maxValue="255" defaultValue="46" />
 	</variable>
 
+	<variable name="showmapbackdrop">
+<description>change wether to have a see-through map overview, or render it on a black backdrop</description>
+<value token="B" description="on/off" minValue="0" maxValue="1" defaultValue="1" />
+	</variable>
+
+	<variable name="radarheight">
+<description>change at what height you are floating in the radar-view</description>
+<value token="H" description="height" minValue="20" maxValue="70" defaultValue="35" />
+	</variable>
+
 	<command name="showedithide">
 <description>shows the settings of edithide (sparklies)</description>
 
