@@ -107,7 +107,7 @@ void quicknadethrow(bool on)
         if(player1->weapons[GUN_GRENADE]->mag > 0)
         {
             if(player1->weaponsel->type != GUN_GRENADE) selectweapon(player1->weapons[GUN_GRENADE]);
-            if(player1->weaponsel->type == GUN_GRENADE || quicknade_hold ) attack(true);
+            if(player1->weaponsel->type == GUN_GRENADE || quicknade_hold) attack(true); // TODO: use a flag for all weapons to shoot (only action?) once they've successfully reloaded or been switched to. Would need to get purged at appropriate time too.
         }
     }
     else
