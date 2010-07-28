@@ -1542,7 +1542,7 @@ int calcscores() // skill eval
     loopv(clients) if(clients[i]->type!=ST_EMPTY)
     {
         clientstate &cs = clients[i]->state;
-        sum += clients[i]->at3_score = cs.points > 0 ? sqrt((float)cs.points) : -sqrt((float)-cs.points);
+        sum += clients[i]->at3_score = cs.points > 0 ? ufSqrt((float)cs.points) : -ufSqrt((float)-cs.points);
 /*        sum += clients[i]->at3_score = (cs.frags * 100) / (cs.deaths ? cs.deaths : 1)
                                      + (cs.flagscore < 3 ? fp12 * cs.flagscore : 2 * fp12 + fp3 * (cs.flagscore - 2));*/
     }
@@ -1591,6 +1591,7 @@ bool balanceteams(int ftr)  // pro vs noobs never more
 {
     if(mastermode != MM_OPEN || totalclients < 3 ) return true;
     int tsize[2] = {0, 0}, tscore[2] = {0, 0};
+    int totalscore = 0, nplayers = 0;
 
     loopv(clients) if(clients[i]->type!=ST_EMPTY)
     {
@@ -1602,12 +1603,14 @@ bool balanceteams(int ftr)  // pro vs noobs never more
             tsize[c->team]++;
             c->eff_score = c->state.points * 60 * 1000 / time; // effective score per minute, thanks to wtfthisgame for the nice idea
             tscore[c->team] += c->eff_score;
+            nplayers++;
+            totalscore += c->state.points;
         }
     }
 
     int h = 0, l = 1;
     if ( tscore[1] > tscore[0] ) { h = 1; l = 0; }
-    if ( 2 * tscore[h] < 3 * tscore[l] || tscore[l] + tscore[l] < totalclients * 100 ) return true;
+    if ( 2 * tscore[h] < 3 * tscore[l] || totalscore < nplayers * 100 ) return true;
     if ( tscore[h] > 3 * tscore[l] && tscore[h] > 50 * totalclients )
     {
 //        sendf(-1, 1, "ri2", SV_SERVERMODE, sendservermode(false) | AT_SHUFFLE);
