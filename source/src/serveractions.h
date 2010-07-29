@@ -84,7 +84,8 @@ struct mapaction : serveraction
             mapok = ( ms != NULL && mapisok(ms) && mode != GMODE_COOPEDIT) || ( mode == GMODE_COOPEDIT && !readonlymap(maploc) );
             if(!mapok)
             {
-                if(notify) sendservmsg("the server does not have/support this map", caller);
+                defformatstring(msg)("%s", ms ? "Sorry, but this map does not satisfy some quality requisites to be played in MultiPlayer Mode" : "the server does not have this map" );
+                if(notify) sendservmsg(msg, caller);
             }
             else
             { // check, if map supports mode
