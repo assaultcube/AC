@@ -2409,7 +2409,7 @@ int checktype(int type, client *cl)
                         SV_CALLVOTESUC, SV_CALLVOTEERR, SV_VOTERESULT,
                         SV_SETTEAM, SV_TEAMDENY, SV_SERVERMODE, SV_WHOISINFO,
                         SV_SENDDEMOLIST, SV_SENDDEMO, SV_DEMOPLAYBACK,
-                        SV_CLIENT };
+                        SV_CLIENT, SV_HUDEXTRAS, SV_POINTS };
     // only allow edit messages in coop-edit mode
     static int edittypes[] = { SV_EDITENT, SV_EDITH, SV_EDITT, SV_EDITS, SV_EDITD, SV_EDITE, SV_NEWMAP };
     if(cl)
@@ -2847,16 +2847,17 @@ void process(ENetPacket *packet, int sender, int chan)
                 loopk(3) { shot.shot.from[k] = cl->state.o.v[k] + ( k == 2 ? (((cl->f>>7)&1)?2.2f:4.2f) : 0); }
                 loopk(3) { float v = getint(p)/DMF; shot.shot.to[k] = v < 0.0f ? 0.0f : v; }
                 int hits = getint(p);
+                int tcn = -1;
                 loopk(hits)
                 {
                     gameevent &hit = cl->addevent();
                     hit.type = GE_HIT;
-                    hit.hit.target = getint(p);
+                    tcn = hit.hit.target = getint(p);
                     hit.hit.lifesequence = getint(p);
                     hit.hit.info = getint(p);
                     loopk(3) hit.hit.dir[k] = getint(p)/DNF;
                 }
-                if(!m_demo && !m_coop) checkshoot(sender, shot, hits);
+                if(!m_demo && !m_coop) checkshoot(sender, shot, hits, tcn);
                 break;
             }
 

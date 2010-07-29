@@ -588,11 +588,11 @@ inline void checkmove (client *cl)
     return;
 }
 
-inline void checkshoot (int & cn, gameevent & shot, int & hits)
+inline void checkshoot (int & cn, gameevent & shot, int & hits, int & tcn)
 {
 
 #ifdef ACAC
-    s_engine(cn, shot, hits);
+    s_engine(cn, shot, hits, tcn);
 #endif
     return;
 }

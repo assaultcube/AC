@@ -91,6 +91,7 @@ struct vec
     float magnitudexy() const { return sqrtf(x*x + y*y); }
 
     float fmagxy() const { return fSqrt(x*x + y*y); }
+    float ufmagxy() const { return ufSqrt(x*x + y*y); }
 
     bool reject(const vec &o, float max) const { return x>o.x+max || x<o.x-max || y>o.y+max || y<o.y-max; }
 
