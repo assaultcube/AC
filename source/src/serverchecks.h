@@ -582,6 +582,7 @@ inline void checkmove (client *cl)
     {
         cl->spawnp = cl->state.o;
         cl->upspawnp = true;
+        cl->spj = cl->ldt = 40;
     }
 
     return;
