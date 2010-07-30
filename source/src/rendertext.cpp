@@ -112,7 +112,7 @@ extern int shdsize, outline, win32msg;
 #define BMASK 0x00ff0000
 #define AMASK 0xff000000
 #endif
-
+/*
 // ringbuf for utf8 character storage
 struct charringbuf : ringbuf<font::utf8charinfo, 32>
 {
@@ -128,6 +128,7 @@ struct charringbuf : ringbuf<font::utf8charinfo, 32>
         return -1;
     }
 };
+
 
 TTF_Font *ttffont = NULL;
 font utf8font;
@@ -237,7 +238,7 @@ font::charinfo *loadchar(int code)
 	idx = utf8chars.findbycharcode(code);
 	return &utf8chars[idx];
 }
-
+*/
 int draw_char(font &f, font::charinfo &info, int charcode, int x, int y)
 {
 	// fixme
@@ -259,6 +260,7 @@ int draw_char(font &f, font::charinfo &info, int charcode, int x, int y)
     return info.w;
 }
 
+/*
 // fixme
 font::charinfo &getcharinfo(int c)
 {
@@ -267,12 +269,12 @@ font::charinfo &getcharinfo(int c)
 		font::charinfo &info = curfont->chars[c-curfont->skip];
 		return info;
 	}
-	else
-	{
-		font::charinfo &info = *loadchar(c);
-		return info;
-	}
+	//else { font::charinfo &info = *loadchar(c); return info; }
+	//return NULL;
+	font::charinfo &info = curfont->chars[0]; // 0 || (FONTCHARS-1)
+    return info;
 }
+*/
 
 static int draw_char(int c, int x, int y)
 {
@@ -282,6 +284,7 @@ static int draw_char(int c, int x, int y)
 
 		return draw_char(*curfont, info, c, x, y);
 	}
+	/*
 	else
 	{
 		// fixme
@@ -291,6 +294,8 @@ static int draw_char(int c, int x, int y)
 
 		return draw_char(utf8font, info, c, x, y);
 	}
+	*/
+	return 0;
 }
 
 
@@ -327,30 +332,30 @@ static void text_color(char c, char *stack, int size, int &sp, bvec color, int a
             case 'D':color = bvec( 0xF8, 0x98, 0x4E); break;   //
 
             case 'E':color = bvec( 0xFF, 0xFF, 0xB7); break;   // yellow set
-            case 'F':color = bvec( 0xCC, 0xCC, 0x33); break;   //            
+            case 'F':color = bvec( 0xCC, 0xCC, 0x33); break;   //
             case 'G':color = bvec( 0x66, 0x66, 0x33); break;   //
             case 'H':color = bvec( 0xCC, 0xFC, 0x58); break;   //
-            
+
             case 'I':color = bvec( 0xB7, 0xFF, 0xB7); break;   // green set
             case 'J':color = bvec( 0x33, 0xCC, 0x33); break;   //
             case 'K':color = bvec( 0x33, 0x66, 0x33); break;   //
             case 'L':color = bvec( 0x3F, 0xFF, 0x98); break;   //
-                        
+
             case 'M':color = bvec( 0xB7, 0xFF, 0xFF); break;   // cyan set
             case 'N':color = bvec( 0x33, 0xCC, 0xCC); break;   //
             case 'O':color = bvec( 0x33, 0x66, 0x66); break;   //
             case 'P':color = bvec( 0x4F, 0xCC, 0xF8); break;   //
-            
+
             case 'Q':color = bvec( 0xB7, 0xB7, 0xFF); break;   // blue set
-            case 'R':color = bvec( 0x33, 0x33, 0xCC); break;   //            
+            case 'R':color = bvec( 0x33, 0x33, 0xCC); break;   //
             case 'S':color = bvec( 0x33, 0x33, 0x66); break;   //
             case 'T':color = bvec( 0xA0, 0x49, 0xFF); break;   //
-            
+
             case 'U':color = bvec( 0xFF, 0xB7, 0xFF); break;   // magenta set
             case 'V':color = bvec( 0xCC, 0x33, 0xCC); break;   //
             case 'W':color = bvec( 0x66, 0x33, 0x66); break;   //
             case 'X':color = bvec( 0xFF, 0x01, 0xD5); break;   //
-            
+
             case 'Y':color = bvec( 0xC7, 0xD1, 0xE2); break;   // lt gray
             case 'Z':color = bvec( 0x32, 0x32, 0x32); break;   // dark gray
             // white (provided color): everything else
@@ -512,12 +517,12 @@ void text_bounds(const char *str, int &width, int &height, int maxwidth)
 /** This is the 1.0.4 function
     It will substituted by draw_text_wip
     I am putting this temporarily here because it is impossible to test without colours : Brahma */
-void draw_text(const char *str, int left, int top, int r, int g, int b, int a, int cursor, int maxwidth) 
+void draw_text(const char *str, int left, int top, int r, int g, int b, int a, int cursor, int maxwidth)
 {
 #define TEXTINDEX(idx) if(idx == cursor) { cx = x; cy = y; cc = str[idx]; }
 #define TEXTTAB(idx) TEXTGETCOLUMN
 #define TEXTWHITE(idx)
-#define TEXTLINE(idx) 
+#define TEXTLINE(idx)
 #define TEXTCOLOR(idx) text_color(str[idx], colorstack, sizeof(colorstack), colorpos, color, a);
 #define TEXTCHAR(idx) x += draw_char(c, left+x, top+y)+1;
 #define TEXTWORD TEXTWORDSKELETON
@@ -547,7 +552,8 @@ void draw_text(const char *str, int left, int top, int r, int g, int b, int a, i
 #undef TEXTWORD
 }
 
-/** WIP ALERT */
+/* WIP ALERT */
+/*
 void draw_text_wip(const char *str, int left, int top, int r, int g, int b, int a, int cursor, int maxwidth)
 {
     char colorstack[10];
@@ -705,10 +711,10 @@ void draw_text_wip(const char *str, int left, int top, int r, int g, int b, int 
         rendercursor(left+cx, top+cy, cw);
     }
 }
-
+*/
 void reloadfonts()
 {
-	createutf8charset();
+	//createutf8charset();
 
     enumerate(fonts, font, f,
         if(!reloadtexture(*f.tex)) fatal("failed to reload font texture");

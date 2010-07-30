@@ -19,12 +19,14 @@ MV=mv
 ifneq (,$(findstring MINGW,$(PLATFORM)))
 WINDRES= windres
 CLIENT_INCLUDES= $(INCLUDES) -I../include
-CLIENT_LIBS= -mwindows -L../lib -lSDL -lSDL_image -lSDL_ttf -lzdll -lopengl32 -lenet -lOpenAL32 -llibvorbisfile -ljpeg -llibintl -lws2_32 -lwinmm
+# -lSDL_ttf 
+CLIENT_LIBS= -mwindows -L../lib -lSDL -lSDL_image -lzdll -lopengl32 -lenet -lOpenAL32 -llibvorbisfile -ljpeg -llibintl -lws2_32 -lwinmm
 else
 USRLIB=$(shell if [ -e /usr/lib64 ]; then echo "/usr/lib64"; else echo "/usr/lib"; fi)
 override CXXFLAGS+= -rdynamic
 CLIENT_INCLUDES= $(INCLUDES) -I/usr/include `sdl-config --cflags` -idirafter ../include
-CLIENT_LIBS= -L../enet/.libs -lenet -L$(USRLIB) `sdl-config --libs` -lSDL_image -lSDL_ttf -lz -lGL -lopenal -lvorbisfile -ljpeg
+# -lSDL_ttf 
+CLIENT_LIBS= -L../enet/.libs -lenet -L$(USRLIB) `sdl-config --libs` -lSDL_image -lz -lGL -lopenal -lvorbisfile -ljpeg
 endif
 
 CLIENT_OBJS= \
