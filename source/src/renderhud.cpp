@@ -398,7 +398,9 @@ vec getradarpos()
 }
 
 VAR(showmapbackdrop, 0, 1, 1);
-VAR(radarheight, 20, 35, 70);
+VAR(radarheight, 11, 35, 100);
+VAR(showradarvalues, 0, 0, 1); // DEBUG
+VAR(radarfactor, 0, 0, 2000);
 void drawradar(playerent *p, int w, int h)
 {
     int gdim = max(mapdims[4], mapdims[5]);
@@ -493,14 +495,24 @@ void drawradar(playerent *p, int w, int h)
     }
     else
     {
+        extern int minimaplastsize;
         vec centerpos(VIRTW-halfviewsize-72, halfviewsize+64, 0); // x-72, y+64 is a good position (w/ teamhud on)
         glTranslatef(centerpos.x, centerpos.y, 0);
         glRotatef(-camera1->yaw, 0, 0, 1);
         glTranslatef(-halfviewsize, -halfviewsize, 0);
         vec rtr = vec(offx - mapdims[0], offy - mapdims[1], 0);
-        int d2s = 5 * ( gdim*radarheight/100.0f ) / 6; // 3/4 is too low
-        float f2m = (3.0f*gdim)/(4.0f*radarheight);
+        float d2s = (5.0f * (gdim/(minimaplastsize/4.0f)) * (radarheight/radarviewsize)*minimaplastsize)/6.0f;
+        float f2m = radarfactor?radarfactor/100.0f:((((radarviewsize*minimaplastsize)/gdim)/radarheight)/10.0f);
         vec usecenter = vec(p->o).add(rtr);
+        if(showradarvalues)
+        {
+            conoutf("gdim: %d : rh: %d", gdim, radarheight);
+            conoutf("rvs: %.2f : ics: %.2f : mmls: %d", radarviewsize, iconsize, minimaplastsize);
+            conoutf("offd: %d [%d:%d]", offd, offx, offy);
+            conoutf("RTR: %.2f %.2f", rtr.x, rtr.y);
+            conoutf("D2S: %.2f : F2M: %.2f", d2s, f2m);
+            showradarvalues = 0;
+        }
         glDisable(GL_BLEND);
         circle(minimaptex, halfviewsize, halfviewsize, halfviewsize, usecenter.x/gdim, usecenter.y/gdim, radarheight/100.0f);
         glTranslatef(halfviewsize, halfviewsize, 0);
@@ -535,12 +547,26 @@ void drawradar(playerent *p, int w, int h)
                 bool isok = pos.magnitude() < d2s;
                 if(isok)
                 {
-                    pos.mul(f2m); // this gives "nearly" the right position, there's some fluctuation at higher distances :-/
-                    drawradarent(pos.x, pos.y, 0/*camera1->yaw*/, m_ktf ? 2 : f.team, 3, iconsize, false); // draw bases
+                    pos.mul(f2m);
+                    drawradarent(pos.x, pos.y, 0/*camera1->yaw*/, m_ktf ? 2 : f.team, 3, iconsize, false); // draw bases [circle doesn't need rotating]
                     if(f.state!=CTFF_STOLEN && !(m_ktf && f.state == CTFF_IDLE))
                     {
-                        cpos.mul(f2m);//gdim/radarheight);
-                        drawradarent(cpos.x, cpos.y, camera1->yaw, 3, m_ktf ? 2 : f.team, iconsize, false); // draw on entitiy pos
+                        /*
+                        // flag icons are drawn a little too soon (depending on camera1->yaw and radarheight) .. ac_arid is the worst (going from RVSF to CLA)
+                        // but all these calculations barely improve on it - and mostly cause the flag to be drawn "too late" which is probably MORE irritating
+                        bool flag2 = true;
+                        if(radarheight<50)
+                        {
+                            float vf = 0.025f/(radarheight*radarheight/1000.0f);//float vf = 0.5f/(100.0f/(1.0f*radarheight));
+                            float nc2s = d2s - d2s*vf;
+                            if(cpos.magnitude() >= nc2s) flag2 = false;
+                        }
+                        */
+                        if(flag2)
+                        {
+                            cpos.mul(f2m); // these can be drawn slightly outside the radar-eyecandy .. only at low radarheight.
+                            drawradarent(cpos.x, cpos.y, camera1->yaw, 3, m_ktf ? 2 : f.team, iconsize, false); // draw on entitiy pos
+                        }
                     }
                 }
                 if(m_ktf && f.state == CTFF_IDLE) continue;
