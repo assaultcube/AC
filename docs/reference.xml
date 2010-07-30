@@ -1114,6 +1114,7 @@
 				<command name="getdemo">
 					<arguments>
 						<argument token="X" description="number in list"/>
+						<argument token="P" description="subpath (optional)"/>
 					</arguments>
 					<references>
 						<identifierReference identifier="listdemos"/>
