@@ -397,10 +397,11 @@ vec getradarpos()
     return vec(VIRTW-10-VIRTH/28-overlaysize, 10+VIRTH/52, 0);
 }
 
-VAR(showmapbackdrop, 0, 1, 1);
-VAR(radarheight, 11, 35, 100);
+VARP(showmapbackdrop, 0, 2, 2);
+VARP(showmapbackdroptransparency, 0, 75, 100);
+VARP(radarheight, 11, 35, 100);
 VAR(showradarvalues, 0, 0, 1); // DEBUG
-VAR(radarfactor, 0, 0, 2000);
+VAR(radarfactor, 0, 0, 2000); // DEBUG
 void drawradar(playerent *p, int w, int h)
 {
     int gdim = max(mapdims[4], mapdims[5]);
@@ -421,9 +422,10 @@ void drawradar(playerent *p, int w, int h)
         if(showmapbackdrop)
         {
             glDisable(GL_TEXTURE_2D);
+            if(showmapbackdrop==2) glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE_MINUS_SRC_COLOR);
             loopi(2)
             {
-                int cg = i?0:64;
+                int cg = i?(showmapbackdrop==2?((int)(255*(100-showmapbackdroptransparency)/100.0f)):0):(showmapbackdrop==2?((int)(255*(100-showmapbackdroptransparency)/100.0f)):64);
                 int co = i?0:4;
                 glColor3ub(cg, cg, cg);
                 glBegin(GL_QUADS);
