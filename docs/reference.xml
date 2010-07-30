@@ -3275,11 +3275,6 @@ It may also be viewed as the speed at wich the console text dissapears.
         <description>Sets the icon size of the players shown in the radar and the minimap.</description>
         <value token="V" description="" minValue="1" maxValue="64" defaultValue="4"/>
 	</variable>
-
-	<variable name="radarres">
-        <description>Sets the map area size or zoom level shown in the radar.</description>
-        <value token="V" description="" minValue="10" maxValue="1024" defaultValue="64"/>
-	</variable>
     
 	</identifiers>
 </section>
@@ -5154,8 +5149,13 @@ correctly (use "1" as a placeholder if needed).
 	</variable>
 
 	<variable name="showmapbackdrop">
-<description>change wether to have a see-through map overview, or render it on a black backdrop</description>
-<value token="B" description="on/off" minValue="0" maxValue="1" defaultValue="1" />
+<description>change wether to have a see-through map overview (0), or render it on a black backdrop (1) or a combination of both (2)</description>
+<value token="B" description="backdrop-style" minValue="0" maxValue="2" defaultValue="2" />
+	</variable>
+
+	<variable name="showmapbackdroptransparency">
+<description></description>
+<value token="T" description="transparency" minValue="0" maxValue="100" defaultValue="75" />
 	</variable>
 
 	<variable name="radarheight">

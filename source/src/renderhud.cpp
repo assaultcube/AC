@@ -7,8 +7,6 @@ void drawicon(Texture *tex, float x, float y, float s, int col, int row, float t
     if(tex && tex->xs == tex->ys) quad(tex->id, x, y, s, ts*col, ts*row, ts);
 }
 
-//VARP(transparency, 0, 1, 1); // ft: 2010jun12 : seems it's not needed - the opaque/orig items.png works with it on or off - delete if no graphics guy has any objection
-
 inline void turn_on_transparency()
 {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -81,7 +79,6 @@ VARP(crosshairteamsign, 0, 1, 1);
 VARP(hideradar, 0, 0, 1);
 VARP(hidecompass, 0, 0, 1);
 VARP(hideteam, 0, 0, 1);
-VARP(radarres, 10, 64, 1024);
 VARP(radarentsize, 4, 16, 64);
 VARP(hidectfhud, 0, 0, 1);
 VARP(hidevote, 0, 0, 2);
