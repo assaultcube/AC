@@ -1,15 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <?xml-stylesheet type="text/xsl" href="transformations/cuberef2xhtml.xslt"?>
-					<cuberef 
-						xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-						xmlns="http://cubers.net/Schemas/CubeRef" 
-						name="AssaultCube Reference" 
-						version="v1.0" 
-						xsi:schemaLocation="http://cubers.net/Schemas/CubeRef schemas/cuberef.xsd">
-				<description>This reference describes the commands and variables available in AssaultCube.</description>
-				<sections sort="true">
+<cuberef 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns="http://cubers.net/Schemas/CubeRef" 
+	name="AssaultCube Reference" 
+	version="v1.0" 
+	xsi:schemaLocation="http://cubers.net/Schemas/CubeRef schemas/cuberef.xsd">
 
-		<section name="CubeScript" sortindex="00">
+	<description>This reference describes the commands and variables available in AssaultCube.</description>
+	<sections sort="true">
+
+	<section name="CubeScript" sortindex="00">
 	<description>This section describes identifiers that are closely related to the CubeScript language.</description>
 	<identifiers sort="true">
 	<command name="&lt;f">
@@ -2415,6 +2416,13 @@ Use this clip type to clip visible obstacles like fences or the gas tank. If you
 </arguments>
 	</command>
 
+	<command name="ambientsoundvol">
+        <description>Deletes the entity closest to the player</description>
+        <remarks>
+        <remark>hotkey x</remark>
+        </remarks>
+	</command>
+
 	<command name="newent plclip">
 <description>Adds a player clip entity.</description>
 <remarks>
@@ -3183,289 +3191,321 @@ It may also be viewed as the speed at wich the console text dissapears.
 	</variable>
 
 	<variable name="aboveheadiconfadetime">
-<value token="V" description="" minValue="1" maxValue="10000" defaultValue="2000"/>
+        <description>Time in milliseconds before the abovehead dissapears.</description>
+        <value token="V" description="" minValue="1" maxValue="10000" defaultValue="2000"/>
 	</variable>
 
 	<variable name="hideconsole">
-<value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
+        <description>Turns on or off the display of console text.</description>
+        <value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
 	</variable>
 
 	<variable name="hidehudequipment">
-<value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
+        <description>Turns on or off the display of equipement icons.</description>
+        <value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
 	</variable>
 
 	<variable name="hidehudmsgs">
-<value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
+        <description>Turns on or off the display of messages at the bottom of the screen.</description>
+        <value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
 	</variable>
 
 	<variable name="hidespecthud">
-<value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
+        <description>Turns on or off the display of spectator staus.</description>
+        <value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
 	</variable>
 
 	<variable name="hidectfhud">
-<value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
+        <description>Turns on or off the display of flag icons.</description>
+        <value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
 	</variable>
 
 	<variable name="hideteam">
-<value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
+        <description>Turns on or off the display of local player team icons.</description>
+        <value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
 	</variable>
 
 	<variable name="hideradar">
-<value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
+        <description>Turns on or off the display of the on-screen radar.</description>
+        <value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
 	</variable>
 
 	<variable name="hidevote">
-<value token="V" description="" minValue="0" maxValue="2" defaultValue="0"/>
+        <description>Turns on or off the display of vote icons.</description>
+        <value token="V" description="" minValue="0" maxValue="2" defaultValue="0"/>
 	</variable>
 
 	<variable name="hudgun">
-<value token="V" description="" minValue="0" maxValue="1" defaultValue="1"/>
+        <description>Turns on or off the display of the current selected gun.</description>
+        <value token="V" description="" minValue="0" maxValue="1" defaultValue="1"/>
 	</variable>
 
 	<variable name="showstats">
-<description>Turns on/off display of FPS/rendering statistics on the HUD.</description>
-<value token="N" description="0: Show no stats, 1: Only show FPS stats, 2: Show all stats" minValue="0" maxValue="2" defaultValue="1"/>
+        <description>Turns on/off display of FPS/rendering statistics on the HUD.</description>
+        <value token="N" description="0: Show no stats, 1: Only show FPS stats, 2: Show all stats" minValue="0" maxValue="2" defaultValue="1"/>
 	</variable>
 
 	<variable name="recoiltest">
-<value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
+        <description>.</description>
+        <value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
 	</variable>
 
 	<variable name="maxrecoil">
-<value token="V" description="" minValue="0" maxValue="1000" defaultValue="1000"/>
+        <description>.</description>
+        <value token="V" description="" minValue="0" maxValue="1000" defaultValue="1000"/>
 	</variable>
 
 	<variable name="recoilbackfade">
-<value token="V" description="" minValue="0" maxValue="1000" defaultValue="100"/>
+        <value token="V" description="" minValue="0" maxValue="1000" defaultValue="100"/>
 	</variable>
 
 	<variable name="recoilbase">
-<value token="V" description="" minValue="0" maxValue="1000" defaultValue="40"/>
+        <value token="V" description="" minValue="0" maxValue="1000" defaultValue="40"/>
 	</variable>
 
 	<variable name="recoilincrease">
-<value token="V" description="" minValue="1" maxValue="10" defaultValue="2"/>
+        <value token="V" description="" minValue="1" maxValue="10" defaultValue="2"/>
 	</variable>
 
 	<variable name="swaymovediv">
-<value token="V" description="" minValue="1" maxValue="1000" defaultValue="200"/>
+        <value token="V" description="" minValue="1" maxValue="1000" defaultValue="200"/>
 	</variable>
 
 	<variable name="swayspeeddiv">
-<value token="V" description="" minValue="1" maxValue="1000" defaultValue="105"/>
+        <value token="V" description="" minValue="1" maxValue="1000" defaultValue="105"/>
 	</variable>
 
 	<variable name="swayupmovediv">
-<value token="V" description="" minValue="1" maxValue="1000" defaultValue="200"/>
+        <value token="V" description="" minValue="1" maxValue="1000" defaultValue="200"/>
 	</variable>
 
 	<variable name="swayupspeeddiv">
-<value token="V" description="" minValue="1" maxValue="1000" defaultValue="105"/>
+        <value token="V" description="" minValue="1" maxValue="1000" defaultValue="105"/>
 	</variable>
 
-	<variable name="crosshairteamsign">
-<value token="V" description="" minValue="0" maxValue="1" defaultValue="1"/>
+    <variable name="crosshairteamsign">
+        <description>Turns on/off display of team warning crosshair.</description>
+        <value token="V" description="" minValue="0" maxValue="1" defaultValue="1"/>
 	</variable>
 
 	<variable name="damageindicatoralpha">
-<value token="V" description="" minValue="1" maxValue="100" defaultValue="50"/>
+        <description>Set the level of transparency of the damage indicator, 0 = is fully transparent, 100 = totaly solid.</description>
+        <value token="V" description="" minValue="1" maxValue="100" defaultValue="50"/>
 	</variable>
 
 	<variable name="damageindicatordist">
-<value token="V" description="" minValue="0" maxValue="10000" defaultValue="500"/>
+        <description>Sets the separation of the arrows in the damage indicator.</description>
+        <value token="V" description="" minValue="0" maxValue="10000" defaultValue="500"/>
 	</variable>
 
 	<variable name="damageindicatorsize">
-<value token="V" description="" minValue="0" maxValue="10000" defaultValue="200"/>
+        <description>Sets the size of the damage indicator.</description>
+        <value token="V" description="" minValue="0" maxValue="10000" defaultValue="200"/>
 	</variable>
 
 	<variable name="damageindicatortime">
-<value token="V" description="" minValue="1" maxValue="10000" defaultValue="1000"/>
+        <description>Sets how long the damage indicator stays on screen.</description>
+        <value token="V" description="" minValue="1" maxValue="10000" defaultValue="1000"/>
 	</variable>
 
 	<variable name="crosshairsize">
-<description>Sets the size of your crosshair.</description>
-<remarks>
-<remark>
-The crosshair is turned off entirely if the size is set to 0.
-</remark>
-</remarks>
-<value token="N" description="the crosshair size" minValue="0" maxValue="50" defaultValue="15"/>
+        <description>Sets the size of your crosshair.</description>
+        <remarks>
+        <remark>
+            The crosshair is turned off entirely if the size is set to 0.
+        </remark>
+        </remarks>
+        <value token="N" description="the crosshair size" minValue="0" maxValue="50" defaultValue="15"/>
 	</variable>
 
 	<variable name="crosshairfx">
-<description>Turns on or off crosshair effects.</description>
-<remarks>
-<remark>
-When on, the crosshair will go grey when the weapon is reloading, orange when health is 50 or red when is 25.
-</remark>
-</remarks>
-<value token="B" description="Turns the effects on (1) or off (0)" minValue="0" maxValue="1" defaultValue="1"/>
+        <description>Turns on or off crosshair effects.</description>
+        <remarks>
+        <remark>
+            When on, the crosshair will go grey when the weapon is reloading, orange when health is 50 or red when is 25.
+        </remark>
+        </remarks>
+        <value token="B" description="Turns the effects on (1) or off (0)" minValue="0" maxValue="1" defaultValue="1"/>
 	</variable>
 
 	<variable name="nosway">
-<value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
+        <value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
 	</variable>
 
 	<variable name="radarentsize">
-<value token="V" description="" minValue="1" maxValue="64" defaultValue="4"/>
+        <description>Sets the icon size of the players shown in the radar and the minimap.</description>
+        <value token="V" description="" minValue="1" maxValue="64" defaultValue="4"/>
 	</variable>
 
 	<variable name="radarres">
-<value token="V" description="" minValue="1" maxValue="1024" defaultValue="64"/>
+        <description>Sets the map area size or zoom level shown in the radar.</description>
+        <value token="V" description="" minValue="10" maxValue="1024" defaultValue="64"/>
 	</variable>
+    
+	</identifiers>
+</section>
 
-		</identifiers>
-			</section>
-
-			<section name="Visuals" sortindex="05">
-		<description>This section describes identifiers to configure the visuals.</description>
-		<identifiers>
-	<command name="resetgl"/>
+	<section name="Visuals" sortindex="05">
+	<description>This section describes identifiers to configure the visuals.</description>
+	<identifiers>
+	
+    <command name="resetgl">
+         <description>Resets the OpenGL rendering settings</description>
+    </command>
+    
 	<command name="screenres">
-<arguments>
-<argument token="W" description="width"/>
-<argument token="H" description="height"/>
-</arguments>
+        <description>Changes the screen resolution, available only for LINUX</description>
+        <arguments>
+        <argument token="W" description="width"/>
+        <argument token="H" description="height"/>
+        </arguments>
 	</command>
 
 	<command name="glext">
-<description>checks for the searchstring in all loaded extensions</description>
-<arguments>
-<argument token="E" description="extension"/>
-</arguments>
-<examples>
-<example>
-<code><![CDATA[if (glext shadow_funcs) [echo you have shadow functionality] [echo no shadows for you]]]></code>
-</example>
-</examples>
+        <description>checks for the searchstring in all loaded extensions</description>
+        <arguments>
+            <argument token="E" description="extension"/>
+        </arguments>
+        <examples>
+        <example>
+            <code><![CDATA[if (glext shadow_funcs) [echo you have shadow functionality] [echo no shadows for you]]]></code>
+        </example>
+        </examples>
 	</command>
 
 	<command name="fpsrange">
-<arguments>
-<argument token="A" description="min"/>
-<argument token="B" description="max"/>
-</arguments>
+         <description>(descripton unavailable)</description>
+        <arguments>
+            <argument token="A" description="min" defaultValue="30"/>
+            <argument token="B" description="max" defaultValue="40"/>
+        </arguments>
 	</command>
 
 	<variable name="skyclip">
-<value token="V" description="" minValue="0" maxValue="1" defaultValue="1"/>
+        <value token="V" description="" minValue="0" maxValue="1" defaultValue="1"/>
 	</variable>
 
 	<variable name="shadowcasters">
-<value token="V" description="" minValue="1" maxValue="0" defaultValue="0"/>
+        <value token="V" description="" minValue="1" maxValue="0" defaultValue="0"/>
 	</variable>
 
 	<variable name="shadowclip">
-<value token="V" description="" minValue="0" maxValue="1" defaultValue="1"/>
+        <value token="V" description="" minValue="0" maxValue="1" defaultValue="1"/>
 	</variable>
 
 	<variable name="shadowtile">
-<value token="V" description="" minValue="0" maxValue="1" defaultValue="1"/>
+        <value token="V" description="" minValue="0" maxValue="1" defaultValue="1"/>
 	</variable>
 
 	<variable name="ati_mda_bug">
-<value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
+        <value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
 	</variable>
 
 	<variable name="dbgpos">
-<description>Displays local player's current x,y,z position in map, showstats 1 must be enabled.</description>
-<value token="V" description="display current position" minValue="0" maxValue="1" defaultValue="0"/>
+        <description>Displays local player's current x,y,z position in map, showstats 1 must be enabled.</description>
+        <value token="V" description="display current position" minValue="0" maxValue="1" defaultValue="0"/>
 	</variable>
 
 	<variable name="dbgmbatch">
-<value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
+        <value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
 	</variable>
 
 	<variable name="dbgstenc">
-<value token="V" description="" minValue="0" maxValue="2" defaultValue="0"/>
+        <value token="V" description="" minValue="0" maxValue="2" defaultValue="0"/>
 	</variable>
 
 	<variable name="dbgtiles">
-<value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
+        <value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
 	</variable>
 
 	<variable name="dbgvlight">
-<value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
+        <value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
 	</variable>
 
 	<variable name="stencilbits">
-<value token="V" description="" minValue="0" maxValue="32" defaultValue="0"/>
+        <value token="V" description="" minValue="0" maxValue="32" defaultValue="0"/>
 	</variable>
 
 	<variable name="stencilshadow">
-<value token="V" description="" minValue="0" maxValue="100" defaultValue="40"/>
+	   <description>Sets the transparency/opacity level of stencil shadows.</description>
+        <value token="V" description="" minValue="0" maxValue="100" defaultValue="40"/>
 	</variable>
 
 	<variable name="depthoffset">
-<value token="V" description="" defaultValue="0.005f"/>
+        <value token="V" description="" defaultValue="0.005f"/>
 	</variable>
 
 	<variable name="polygonoffsetfactor">
-<value token="V" description="" defaultValue="-3.0f"/>
+        <value token="V" description="" defaultValue="-3.0f"/>
 	</variable>
 
 	<variable name="polygonoffsetunits">
-<value token="V" description="" defaultValue="-3.0f"/>
+        <value token="V" description="" defaultValue="-3.0f"/>
 	</variable>
 
 	<variable name="dynshadowdecay">
-<value token="V" description="" minValue="0" maxValue="3000" defaultValue="1000"/>
+        <value token="V" description="" minValue="0" maxValue="3000" defaultValue="1000"/>
 	</variable>
 
 	<variable name="dynshadowquad">
-<value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
+        <value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
 	</variable>
 
 	<variable name="fullbrightlevel">
-<value token="V" description="" minValue="0" maxValue="255" defaultValue="176"/>
+	   <description>Sets the level of brightness to use when using the command "/fullbright 1".</description>
+        <value token="V" description="" minValue="0" maxValue="255" defaultValue="176"/>
 	</variable>
 
 	<command name="fovcompat">
-<description>Sets the field of view (fov) based on the rules of AC v0.93</description>
-<remarks>
-<remark>
-This command is supplied for backward compatibility.
-</remark>
-</remarks>
-<arguments>
-<argument token="A" description="FOV degree" valueNotes=""/>
-</arguments>
+        <description>Sets the field of view (fov) based on the rules of AC v0.93</description>
+        <remarks>
+        <remark>
+            This command is supplied for backward compatibility.
+        </remark>
+        </remarks>
+        <arguments>
+            <argument token="A" description="FOV degree" valueNotes=""/>
+        </arguments>
 	</command>
 
 	<command name="font">
-<arguments>
-<argument token="A" description="" valueNotes="value"/>
-</arguments>
+	   <description>Loads an image to be used as a text font.</description>
+        <arguments>
+            <argument token="A" description="Check font.cfg for examples of use" valueNotes="value"/>
+        </arguments>
 	</command>
 
 	<command name="fontchar">
-<arguments>
-<argument token="A" description="" valueNotes="value"/>
-</arguments>
+	   <description>Especify a region of an image to be used as a font character.</description>
+        <arguments>
+            <argument token="A" description="Check font.cfg for examples of use" valueNotes="value"/>
+        </arguments>
 	</command>
 
 	<command name="setfont">
-<description>Changes the current font.</description>
-<arguments>
-<argument token="N" description="Font name" valueNotes="name of the font"/>
-</arguments>
+        <description>Changes the current font.</description>
+        <arguments>
+            <argument token="N" description="Font name" valueNotes="name of the font"/>
+        </arguments>
 	</command>
 
 	<variable name="fov">
-<description>Sets the field of view (fov).</description>
-<value token="N" description="the FOV value" minValue="75" maxValue="120" defaultValue="90"/>
+        <description>Sets the field of view (fov).</description>
+        <value token="N" description="the FOV value" minValue="75" maxValue="120" defaultValue="90"/>
 	</variable>
 
 	<variable name="aboveheadiconsize">
-<value token="V" description="" minValue="0" maxValue="1000" defaultValue="50"/>
+        <description>Sets the size for the icon shown above a player using comunications voices.</description>
+        <value token="V" description="" minValue="0" maxValue="1000" defaultValue="50"/>
 	</variable>
 
 	<variable name="bloodttl">
-<value token="V" description="" minValue="0" maxValue="30000" defaultValue="10000"/>
+        <description>Sets the amount of time in milliseconds that blood is displayed on the ground.</description>
+        <value token="V" description="" minValue="0" maxValue="30000" defaultValue="10000"/>
 	</variable>
 
 	<variable name="blood">
+	<description>Turn on and off the display of blood.</description>
 <value token="V" description="" minValue="0" maxValue="1" defaultValue="1"/>
 	</variable>
 
@@ -5186,6 +5226,7 @@ correctly (use "1" as a placeholder if needed).
 
 	<command name="showedithide">
 <description>shows the settings of edithide (sparklies)</description>
+	</command>
 
 	<command name="setedithide">
 <description>hides the list of entity types you set. pass 1 for light, 2 for spawn, or use "playerstart".</description>
@@ -5217,6 +5258,6 @@ correctly (use "1" as a placeholder if needed).
 		</identifiers>
 			</section>
 
-				</sections>
-					</cuberef>
+	</sections>
+</cuberef>
 
