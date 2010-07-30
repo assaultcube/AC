@@ -441,6 +441,14 @@ void save_world(char *mname)
     conoutf("wrote map file %s", cgzname);
 }
 
+void showmapdims()
+{
+    conoutf("  min X|Y: %3d : %3d", mapdims[0], mapdims[1]);
+    conoutf("  max X|Y: %3d : %3d", mapdims[2], mapdims[3]);
+    conoutf("delta X|Y: %3d : %3d", mapdims[4], mapdims[5]);
+}
+COMMAND(showmapdims, ARG_NONE);
+
 extern void preparectf(bool cleanonly = false);
 int numspawn[3], maploaded = 0, numflagspawn[2];
 VAR(curmaprevision, 1, 0, 0);
