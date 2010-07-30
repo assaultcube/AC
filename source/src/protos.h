@@ -327,7 +327,7 @@ extern void getmap();
 extern void newteam(char *name);
 extern bool securemapcheck(const char *map, bool msg = true);
 extern void sendintro();
-extern void getdemo(int i);
+extern void getdemo(char *idx, char *dsp);
 extern void listdemos();
 
 // clientgame
