@@ -81,7 +81,7 @@ VARP(crosshairteamsign, 0, 1, 1);
 VARP(hideradar, 0, 0, 1);
 VARP(hidecompass, 0, 0, 1);
 VARP(hideteam, 0, 0, 1);
-VARP(radarres, 1, 64, 1024);
+VARP(radarres, 10, 64, 1024);
 VARP(radarentsize, 4, 16, 64);
 VARP(hidectfhud, 0, 0, 1);
 VARP(hidevote, 0, 0, 2);
