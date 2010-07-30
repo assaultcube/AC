@@ -734,6 +734,8 @@ void crouch(bool on)
     player1->trycrouch = on;
 }
 
+
+
 COMMAND(backward, ARG_DOWN);
 COMMAND(forward, ARG_DOWN);
 COMMAND(left, ARG_DOWN);
@@ -760,6 +762,88 @@ FVARP(mfilter, 0.0f, 0.0f, 6.0f);
 VARP(autoscopesens, 0, 0, 1);
 float fdx = 0, fdy = 0;
 
+
+float testsens=0;
+bool senst=0;
+void tsens(int x)
+{
+    static bool highlock=0,lowlock=0;
+    static float sensn=0,sensl=0,sensh=0;
+    if (x == SDLK_3 || x == SDLK_4)
+    {
+        if (x == SDLK_3) //high sens
+        {
+            lowlock=1;
+            if (highlock)
+            {
+                sensl=sensn;
+                sensn=(sensh+sensl)/2.0f;
+            }
+            else
+            {
+                sensl=sensn;
+                sensn=sensh;
+                sensh=sensn*2.0f;
+            }
+        }
+        if (x == SDLK_4) //low sens
+        {
+            highlock=1;
+            if (lowlock)
+            {
+                sensh=sensn;
+                sensn=(sensh+sensl)/2.0f;
+            }
+            else
+            {
+                sensh=sensn;
+                sensn=sensl;
+                sensl=sensn/2.0f;
+            }
+        }
+        conoutf("--- \f0you choose: %s sens",x==SDLK_3?"high":"low");
+        testsens=sensn;
+    }
+    if (x == SDLK_2)
+    {
+        testsens=sensl;
+        conoutf("--- \f0You are now trying the lower sens.");
+    }
+    if (x == SDLK_1)
+    {
+        testsens=sensh;
+        conoutf("--- \f0You are now trying the higher sens.");
+    }
+    if (x==-1000)
+    {
+        sensh=sensitivity*2.0f;
+        sensl=sensitivity/2.0f;
+        sensn=sensitivity;
+    }
+    if (sensh/sensn <= 1.04f || x == SDLK_5)
+    {
+        senst=0;
+        if(sensh/sensn <= 1.04f) {
+            conoutf("--- \f0Sensitivity Training Ended. happy fragging.");
+            sensitivity=sensn;
+        } else {
+            conoutf("--- \f0Sensitivity Training Stopped. ");
+        }
+        highlock=lowlock=0;
+        sensn=sensl=sensh=0;
+        testsens=0;
+    }
+}
+void findsens()
+{
+    senst=1;
+    tsens(-1000);
+    testsens=sensitivity;
+    conoutf("--- \f0Sensitivity Training Started.");
+}
+COMMAND(findsens,ARG_NONE);
+
+
 inline bool zooming(playerent *plx) { return (plx->weaponsel->type == GUN_SNIPER && ((sniperrifle *)plx->weaponsel)->scoped); }
 
 void mousemove(int odx, int ody)
@@ -776,7 +860,7 @@ void mousemove(int odx, int ody)
     }
 
     float cursens = sensitivity;
-
+    if(senst) {cursens=testsens;}
     if(mouseaccel && curtime && (dx || dy)) cursens += 0.02 * mouseaccel * sqrtf(dx*dx + dy*dy)/curtime;
     cursens /= 33.0f*sensitivityscale;
 

@@ -735,7 +735,19 @@ void checkinput()
 
             case SDL_KEYDOWN:
             case SDL_KEYUP:
-                keypress(event.key.keysym.sym, event.key.state==SDL_PRESSED, event.key.keysym.unicode, event.key.keysym.mod);
+                extern bool senst;
+                if (event.key.keysym.sym <= SDLK_5 && event.key.keysym.sym >= SDLK_1 && senst)
+                {
+                    if (event.key.state==SDL_PRESSED)
+                    {
+                        extern void tsens(int x);
+                        tsens(event.key.keysym.sym);
+                    }
+                }
+                else
+                {
+                    keypress(event.key.keysym.sym, event.key.state==SDL_PRESSED, event.key.keysym.unicode, event.key.keysym.mod);
+                }
                 break;
 
             case SDL_ACTIVEEVENT:
