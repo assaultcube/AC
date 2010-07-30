@@ -561,12 +561,12 @@ void drawradar(playerent *p, int w, int h)
                             float nc2s = d2s - d2s*vf;
                             if(cpos.magnitude() >= nc2s) flag2 = false;
                         }
-                        */
                         if(flag2)
                         {
+                        */
                             cpos.mul(f2m); // these can be drawn slightly outside the radar-eyecandy .. only at low radarheight.
                             drawradarent(cpos.x, cpos.y, camera1->yaw, 3, m_ktf ? 2 : f.team, iconsize, false); // draw on entitiy pos
-                        }
+                        //}
                     }
                 }
                 if(m_ktf && f.state == CTFF_IDLE) continue;
