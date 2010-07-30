@@ -178,6 +178,11 @@ const char *getalias(const char *name)
     ident *i = idents->access(name);
     return i && i->type==ID_ALIAS ? i->action : NULL;
 }
+void _getalias(char *name)
+{
+    result(getalias(name)?getalias(name):"");
+}
+COMMANDN(getalias, _getalias, ARG_1STR);
 
 bool addcommand(const char *name, void (*fun)(), int narg)
 {
