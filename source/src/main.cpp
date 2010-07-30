@@ -29,6 +29,8 @@ VAR(resetcfg, 0, 0, 1);
 
 void quit()                     // normal exit
 {
+    const char *onquit = getalias("onQuit");
+    if(onquit && onquit[0]) { execute(onquit); alias("onQuit", ""); }
     extern void writeinitcfg();
     writeinitcfg();
     writeservercfg();
