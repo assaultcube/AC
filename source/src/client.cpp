@@ -624,8 +624,12 @@ void deleteservermap(char *mapname)
     addmsg(SV_REMOVEMAP, "rs", name);
 }
 
-void getdemo(int i)
+string demosubpath;
+void getdemo(char *idx, char *dsp)
 {
+    int i = atoi(idx);
+    if(dsp && dsp[0]) formatstring(demosubpath)("%s/", dsp);
+    else copystring(demosubpath, "");
     if(i<=0) conoutf(_("getting demo..."));
     else conoutf(_("getting demo %d..."), i);
     addmsg(SV_GETDEMO, "ri", i);
@@ -642,5 +646,5 @@ COMMAND(getmap, ARG_NONE);
 COMMAND(deleteservermap, ARG_1STR);
 COMMAND(resetsecuremaps, ARG_NONE);
 COMMAND(securemap, ARG_1STR);
-COMMAND(getdemo, ARG_1INT);
+COMMAND(getdemo, ARG_2STR);
 COMMAND(listdemos, ARG_NONE);

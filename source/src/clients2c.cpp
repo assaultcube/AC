@@ -1199,7 +1199,9 @@ void receivefile(uchar *data, int len)
         case SV_SENDDEMO:
         {
             getstring(text, p);
-            defformatstring(fname)("demos/%s.dmo", text);
+            extern string demosubpath;
+            defformatstring(fname)("demos/%s%s.dmo", demosubpath, text);
+            copystring(demosubpath, "");
             data += strlen(text);
             int demosize = getint(p);
             if(p.remaining() < demosize)
