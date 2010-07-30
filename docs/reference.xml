@@ -18,7 +18,7 @@
 	<description>This reference describes the commands and variables available in AssaultCube.</description>
 	<!--
 		Sections are: CubeScript, General, Game modes, Editing, Gameplay, Visuals, Head-up display,
-			Sound, Menus, Ingame reference, server commands.
+			Sound, Menus, Ingame reference, server commands, Game modes, Editing configs.
 	-->
 	<sections sort="true">
 	
@@ -996,962 +996,918 @@
 		</section>
 		<!-- General Section ends -->
 			
-			<!-- Gameplay Section starts -->
-			<section name="Gameplay" sortindex="02">
-		<description>This section describes gameplay related identifiers.</description>
-		<identifiers sort="true">
-	<command name="shiftweapon">
-<description>shifts your selected weapon by a given delta. By default the mouse-wheel shifts one up or down according to your scroll direction.</description>
-<defaultKeys>
-<key alias="MOUSE4" description="cycle one up"/>
-<key alias="MOUSE5" description="cycle one down"/>
-</defaultKeys>
-<arguments>
-<argument token="D" description="delta" valueNotes="-N..-1,+1..N"/>
-</arguments>
-	</command>
+		<!-- Gameplay Section starts -->
+		<section name="Gameplay" sortindex="02">
+			<description>This section describes gameplay related identifiers.</description>
+			<identifiers sort="true">
 
-	<command name="setscope">
-<description>will display a scope for the sniper-rifle. used in the zoom-script (config/scripts.cfg [l. 92ff "alias zoom"]</description>
-<arguments>
-<argument token="Y" description="scope on?" valueNotes="0||1"/>
-</arguments>
-	</command>
+				<command name="shiftweapon">
+					<description>shifts your selected weapon by a given delta. By default the mouse-wheel shifts one up or down according to your scroll direction.</description>
+					<defaultKeys>
+						<key alias="MOUSE4" description="cycle one up"/>
+						<key alias="MOUSE5" description="cycle one down"/>
+					</defaultKeys>
+					<arguments>
+						<argument token="D" description="delta" valueNotes="-N..-1,+1..N"/>
+					</arguments>
+				</command>
 
-	<command name="togglespect">
-<description>cycles through all available spectator modes. Follow-1stPerson, Follow-3rdPerson, Follow-3rdPerson-transparent and Fly.</description>
-<defaultKeys>
-<key alias="SPACE" description="cycle spectator modes"/>
-</defaultKeys>
-	</command>
+				<command name="setscope">
+					<description>will display a scope for the sniper-rifle. used in the zoom-script (config/scripts.cfg [l. 92ff "alias zoom"]</description>
+					<arguments>
+						<argument token="Y" description="scope on?" valueNotes="0||1"/>
+					</arguments>
+				</command>
 
-	<command name="whois">
-<description>get the IP address of a given clientnumber - only admins get shown the last octet</description>
-<arguments>
-<argument token="C" description="clientnum"/>
-</arguments>
-	</command>
+				<command name="togglespect">
+					<description>cycles through all available spectator modes. Follow-1stPerson, Follow-3rdPerson, Follow-3rdPerson-transparent and Fly.</description>
+					<defaultKeys>
+						<key alias="SPACE" description="cycle spectator modes"/>
+					</defaultKeys>
+				</command>
 
-	<command name="vote">
-<description>agree or disagree to the currently running vote</description>
-<arguments>
-<argument token="V" description="vote value" valueNotes="1 (yes) OR 2 (no)"/>
-</arguments>
-<defaultKeys>
-<key alias="F1" description="votes YES"/>
-<key alias="F2" description="votes NO"/>
-</defaultKeys>
-	</command>
+				<command name="whois">
+					<description>get the IP address of a given clientnumber - only admins get shown the last octet</description>
+					<arguments>
+						<argument token="C" description="clientnum"/>
+					</arguments>
+				</command>
 
-	<command name="voicecom">
-<arguments>
-<argument token="S" description="sound" valueNotes="must be a registered voicecom-sound"/>
-<argument token="T" description="text"/>
-</arguments>
-<defaultKeys>
-<key alias="V" description="opens the voicecom menu, use number keys for your choice"/>
-</defaultKeys>
-	</command>
+				<command name="vote">
+					<description>agree or disagree to the currently running vote</description>
+					<arguments>
+						<argument token="V" description="vote value" valueNotes="1 (yes) OR 2 (no)"/>
+					</arguments>
+					<defaultKeys>
+						<key alias="F1" description="votes YES"/>
+						<key alias="F2" description="votes NO"/>
+					</defaultKeys>
+				</command>
 
-	<command name="mapname">
-<description>returns the mapname</description>
-	</command>
+				<command name="voicecom">
+					<arguments>
+						<argument token="S" description="sound" valueNotes="must be a registered voicecom-sound"/>
+						<argument token="T" description="text"/>
+					</arguments>
+					<defaultKeys>
+						<key alias="V" description="opens the voicecom menu, use number keys for your choice"/>
+					</defaultKeys>
+				</command>
 
-	<command name="mapsize">
-<description>outputs the mapsize.</description>
-	</command>
+				<command name="mapname">
+					<description>returns the mapname</description>
+				</command>
 
-	<command name="loadcrosshair">
-<description>Loads a crosshair for a specific weapon of - if the weapon argument is omitted or &lt;0 - for all weapons.</description>
-<arguments>
-<argument token="I" description="image"/>
-<argument token="W" description="weapon" valueNotes="-1,0..7"/>
-</arguments>
-	</command>
+				<command name="mapsize">
+					<description>outputs the mapsize.</description>
+				</command>
 
-	<command name="idlebots">
-	<description>Enables or disables the processing of the bots artificial intelligence</description>
-<arguments>
-<argument token="T" description="off OR on" valueNotes="0||1"/>
-</arguments>
-	  <examples>
-		<example>
-			<code><![CDATA[idlebots 1]]></code>
-<explanation>Will make the bots stand still.</explanation>
-		</example>
-		<example>
-			<code><![CDATA[idlebots 0]]></code>
-<explanation>Will enable the bots to move and shoot.</explanation>
-		</example>
-	  </examples>
-	</command>
+				<command name="loadcrosshair">
+					<description>Loads a crosshair for a specific weapon of - if the weapon argument is omitted or &lt;0 - for all weapons.</description>
+					<arguments>
+						<argument token="I" description="image"/>
+						<argument token="W" description="weapon" valueNotes="-1,0..7"/>
+					</arguments>
+				</command>
 
-	<command name="kickallbots">
-	<description>Kicks all bots out of the current game.</description>
-<arguments>
-<argument token="" description="this command does not take any arguments" valueNotes="none"/>
-</arguments>
-	</command>
+				<command name="idlebots">
+					<description>Enables or disables the processing of the bots artificial intelligence</description>
+					<arguments>
+						<argument token="T" description="off OR on" valueNotes="0||1"/>
+					</arguments>
+					<examples>
+					<example>
+						<code><![CDATA[idlebots 1]]></code>
+						<explanation>Will make the bots stand still.</explanation>
+					</example>
+					<example>
+						<code><![CDATA[idlebots 0]]></code>
+						<explanation>Will enable the bots to move and shoot.</explanation>
+					</example>
+					</examples>
+				</command>
 
-	<command name="kickbot">
-	<description>Kicks the bot with the given name out of the current game.</description>
-		<arguments>
-			<argument token="N" description="botname" valueNotes="name of the bot to kick."/>
-		</arguments>
-		<examples>
-			<example>
-				<code><![CDATA[kickbot Robbie]]></code>
-				<explanation>Will make the bot named "Robbie" dissapear from the current game.</explanation>
-		</example>
-	  </examples>
-	</command>
+				<command name="kickallbots">
+					<description>Kicks all bots out of the current game.</description>
+					<arguments>
+						<argument token="" description="this command does not take any arguments" valueNotes="none"/>
+					</arguments>
+				</command>
 
-	<command name="lanconnect"/>
-	<command name="listdemos"/>
-	<command name="getdemo">
-<arguments>
-<argument token="X" description="number in list"/>
-</arguments>
-<references>
-<identifierReference identifier="listdemos"/>
-</references>
-	</command>
+				<command name="kickbot">
+					<description>Kicks the bot with the given name out of the current game.</description>
+					<arguments>
+						<argument token="N" description="botname" valueNotes="name of the bot to kick."/>
+					</arguments>
+					<examples>
+					<example>
+						<code><![CDATA[kickbot Robbie]]></code>
+						<explanation>Will make the bot named "Robbie" dissapear from the current game.</explanation>
+					</example>
+					</examples>
+				</command>
 
-	<command name="dropflag"/>
-	<command name="drawbeamtobots">
-<description>Draws a shooting line in the direction of all available bots.</description>
-<arguments>
-<argument token="" description="this command does not take any arguments" valueNotes="none"/>
-</arguments>
-<remarks>
-<remark>This is a debugging command and only works for single player modes.</remark>
-</remarks>
-	</command>
+				<command name="lanconnect"/>
 
-	<command name="crouch"/>
-	<command name="addbot">
-<description>add a bot for a given team with a given skill calling him a given name.</description>
-<arguments>
-<argument token="T" description="team" valueNotes="RVSF or CLA"/>
-<argument token="S" description="skill" valueNotes="best, good, medium, worse OR bad"/>
-<argument token="N" description="name" valueNotes="name for the bot"/>
-</arguments>
-<remarks>
-<remark>This command only works for single player modes.</remark>
-</remarks>
-<examples>
-<example>
-<code><![CDATA[addbot RVSF medium Robbie]]></code>
-<explanation>Will add a bot named Robbie with a medium skill level to the RVSF team.</explanation>
-</example>
-</examples>
-	</command>
+				<command name="listdemos"/>
 
-	<command name="addnbot">
-<description>will add a given count of bots for the given team with the given skill and select random names for them.</description>
-<arguments>
-<argument token="C" description="count" valueNotes="how many bots to add"/>
-<argument token="T" description="team" valueNotes="RVSF or CLA"/>
-<argument token="S" description="skill" valueNotes="best, good, medium, worse OR bad"/>
-</arguments>
-<remarks>
-<remark>This command only works for single player modes.</remark>
-<remark>The name of the bots will be selected randomly.</remark>
-</remarks>
-<examples>
-<example>
-<code><![CDATA[addnbot 2 CLA bad]]></code>
-<explanation>Will add 2 bots with a bad skill level to the CLA team.</explanation>
-</example>
-</examples>
-	</command>
+				<command name="getdemo">
+					<arguments>
+						<argument token="X" description="number in list"/>
+					</arguments>
+					<references>
+						<identifierReference identifier="listdemos"/>
+					</references>
+				</command>
 
-	<command name="botskill">
-<description>changes the skill level for the given bot.</description>
-<arguments>
-<argument token="N" description="botname" valueNotes="the name of the bot"/>
-<argument token="S" description="botskill" valueNotes="best, good, medium, worse OR bad"/>
-</arguments>
-<examples>
-<example>
-<code><![CDATA[botskill Robbie best]]></code>
-<explanation>Changes the previous bot skill level of the bot named Robbie to a 'best' skill level.</explanation>
-</example>
-</examples>
-	</command>
+				<command name="dropflag"/>
 
-	<command name="botskillall">
-<description>changes the skill level for all bots.</description>
-<arguments>
-<argument token="S" description="botskill" valueNotes="best, good, medium, worse OR bad"/>
-</arguments>
-<examples>
-<example>
-<code><![CDATA[botskillall worse]]></code>
-<explanation>Changes the previous bot skill level for all bots to a 'worse' skill level.</explanation>
-</example>
-</examples>
-	</command>
+				<command name="drawbeamtobots">
+					<description>Draws a shooting line in the direction of all available bots.</description>
+					<arguments>
+						<argument token="" description="this command does not take any arguments" valueNotes="none"/>
+					</arguments>
+					<remarks>
+						<remark>This is a debugging command and only works for single player modes.</remark>
+					</remarks>
+				</command>
 
-	<command name="botsshoot">
-<description>Enables or disables the ability of the bots to fire their weapons</description>
-<arguments>
-<argument token="T" description="shooting bots?" valueNotes="0||1"/>
-</arguments>
-<examples>
-<example>
-<code><![CDATA[botsshoot 0]]></code>
-<explanation>Bots won't shoot.</explanation>
-</example>
-</examples>
-	</command>
+				<command name="crouch"/>
 
-	<command name="changefollowplayer">
-<arguments>
-<argument token="D" description="delta" valueNotes="how many players to shift +/-"/>
-</arguments>
-	</command>
+				<command name="addbot">
+					<description>add a bot for a given team with a given skill calling him a given name.</description>
+					<arguments>
+						<argument token="T" description="team" valueNotes="RVSF or CLA"/>
+						<argument token="S" description="skill" valueNotes="best, good, medium, worse OR bad"/>
+						<argument token="N" description="name" valueNotes="name for the bot"/>
+					</arguments>
+					<remarks>
+						<remark>This command only works for single player modes.</remark>
+					</remarks>
+					<examples>
+					<example>
+						<code><![CDATA[addbot RVSF medium Robbie]]></code>
+						<explanation>Will add a bot named Robbie with a medium skill level to the RVSF team.</explanation>
+					</example>
+					</examples>
+				</command>
 
-	<command name="alive">
-<description>Returns 1 if the local player is alive.</description>
-<examples>
-<example>
-<code><![CDATA[echo (alive)]]></code>
-<explanation>Output: 1</explanation>
-</example>
-</examples>
-	</command>
+				<command name="addnbot">
+					<description>will add a given count of bots for the given team with the given skill and select random names for them.</description>
+					<arguments>
+						<argument token="C" description="count" valueNotes="how many bots to add"/>
+						<argument token="T" description="team" valueNotes="RVSF or CLA"/>
+						<argument token="S" description="skill" valueNotes="best, good, medium, worse OR bad"/>
+					</arguments>
+					<remarks>
+						<remark>This command only works for single player modes.</remark>
+						<remark>The name of the bots will be selected randomly.</remark>
+					</remarks>
+					<examples>
+					<example>
+						<code><![CDATA[addnbot 2 CLA bad]]></code>
+						<explanation>Will add 2 bots with a bad skill level to the CLA team.</explanation>
+					</example>
+					</examples>
+				</command>
 
-	<command name="curmap">
-<description>Returns the current map being played.</description>
-<remarks>
-<remark>If you pass it a non-zero value, the result will be path-less.</remark>
-</remarks>
-<examples>
-<example>
-<code><![CDATA[echo playing: (curmap) vote for: (curmap 1)]]></code>
-<explanation>
-output: playing maps/ac_complex vote for: ac_complex
-</explanation>
-</example>
-</examples>
-<references>
-<identifierReference identifier="curmode"/>
-<identifierReference identifier="map"/>
-<identifierReference identifier="mode"/>
-</references>
-<arguments>
-<argument token="I" description="clean" valueNotes="0, 1"/>
-</arguments>
-	</command>
+				<command name="botskill">
+					<description>changes the skill level for the given bot.</description>
+					<arguments>
+						<argument token="N" description="botname" valueNotes="the name of the bot"/>
+						<argument token="S" description="botskill" valueNotes="best, good, medium, worse OR bad"/>
+					</arguments>
+					<examples>
+					<example>
+						<code><![CDATA[botskill Robbie best]]></code>
+						<explanation>Changes the previous bot skill level of the bot named Robbie to a 'best' skill level.</explanation>
+					</example>
+					</examples>
+				</command>
 
-	<command name="curmode">
-<description>Returns the mode number for the current game.</description>
-<references>
-<identifierReference identifier="curmap"/>
-<identifierReference identifier="map"/>
-<identifierReference identifier="mode"/>
-</references>
-	</command>
+				<command name="botskillall">
+					<description>changes the skill level for all bots.</description>
+					<arguments>
+						<argument token="S" description="botskill" valueNotes="best, good, medium, worse OR bad"/>
+					</arguments>
+					<examples>
+					<example>
+						<code><![CDATA[botskillall worse]]></code>
+						<explanation>Changes the previous bot skill level for all bots to a 'worse' skill level.</explanation>
+					</example>
+					</examples>
+				</command>
 
-	<variable name="curmaprevision">
-<description>Current map revision number.</description>
-<value  description="-" minValue="1" maxValue="0" defaultValue="1" readOnly="true"/>
-	</variable>
+				<command name="botsshoot">
+					<description>Enables or disables the ability of the bots to fire their weapons</description>
+					<arguments>
+						<argument token="T" description="shooting bots?" valueNotes="0||1"/>
+					</arguments>
+					<examples>
+					<example>
+						<code><![CDATA[botsshoot 0]]></code>
+						<explanation>Bots won't shoot.</explanation>
+					</example>
+					</examples>
+				</command>
 
-	<command name="curmodeattr">
-<description>Checks the current game mode for certain attributes.</description>
-<arguments>
-<argument token="A" description="attribute name"/>
-</arguments>
-<remarks>
-<remark>
-Possible attributes are: team, arena, flag and bot.
-</remark>
-</remarks>
-	</command>
+				<command name="changefollowplayer">
+					<arguments>
+						<argument token="D" description="delta" valueNotes="how many players to shift +/-"/>
+					</arguments>
+				</command>
 
-	<command name="getclientmode">
-<description>Returns the current game mode number.</description>
-	</command>
+				<command name="alive">
+					<description>Returns 1 if the local player is alive.</description>
+					<examples>
+					<example>
+						<code><![CDATA[echo (alive)]]></code>
+						<explanation>Output: 1</explanation>
+					</example>
+					</examples>
+				</command>
 
-	<command name="curmastermode">
-<description>Returns the current mastermode</description>
-	</command>
+				<command name="curmap">
+					<description>Returns the current map being played.</description>
+					<remarks>
+						<remark>If you pass it a non-zero value, the result will be path-less.</remark>
+					</remarks>
+					<examples>
+					<example>
+						<code><![CDATA[echo playing: (curmap) vote for: (curmap 1)]]></code>
+						<explanation>output: playing maps/ac_complex vote for: ac_complex</explanation>
+					</example>
+					</examples>
+					<references>
+						<identifierReference identifier="curmode"/>
+						<identifierReference identifier="map"/>
+						<identifierReference identifier="mode"/>
+					</references>
+					<arguments>
+						<argument token="I" description="clean" valueNotes="0, 1"/>
+					</arguments>
+				</command>
 
-	<command name="currentprimary">
-<description>Returns the weapon-index the local player currently has selected as primary.</description>
-<remarks>
-<remark>This is not the same as curweapon - which could be a grenade or the knife.</remark>
-</remarks>
-<references>
-<identifierReference identifier="nextprimary"/>
-<identifierReference identifier="curweapon"/>
-<identifierReference identifier="prevweapon"/>
-<identifierReference identifier="weapon"/>
-<identifierReference identifier="magcontent"/>
-<identifierReference identifier="magreserve"/>
-</references>
-	</command>
+				<command name="curmode">
+					<description>Returns the mode number for the current game.</description>
+					<references>
+						<identifierReference identifier="curmap"/>
+						<identifierReference identifier="map"/>
+						<identifierReference identifier="mode"/>
+					</references>
+				</command>
 
-	<command name="currole">
-<description>Returns 1 if the local player has admin privileges, 0 otherwise.</description>
-<references>
-<identifierReference identifier="setadmin"/>
-<identifierReference identifier="connectadmin"/>
-</references>
-	</command>
+				<variable name="curmaprevision">
+					<description>Current map revision number.</description>
+					<value  description="-" minValue="1" maxValue="0" defaultValue="1" readOnly="true"/>
+				</variable>
 
-	<command name="curserver">
-<description>Returns information on the current server - if you're connected to one.</description>
-<remarks>
-<remark>If I is 0 (omitted or any other value than the ones below) you will get a string with 'IP PORT'</remark>
-<remark>If I is 1,2 or 3 you will get the IP, HostName or port respectively.</remark>
-<remark>If I is 4 you get a string representing the current state of the peer - usually this should be 'connected'.</remark>
-</remarks>
-<arguments>
-<argument token="I" description="info" valueNotes="0, 1, 2, 3 or 4"/>
-</arguments>
-<examples>
-<example>
-<code><![CDATA[echo [I am (curserver 4) to (curserver 2)]]]></code>
-<explanation>Output: I am connected to ctf-only.assault-servers.net</explanation>
-</example>
-<example>
-<code>
+				<command name="curmodeattr">
+					<description>Checks the current game mode for certain attributes.</description>
+					<arguments>
+						<argument token="A" description="attribute name"/>
+					</arguments>
+					<remarks>
+					<remark>Possible attributes are: team, arena, flag and bot.</remark>
+					</remarks>
+				</command>
+
+				<command name="getclientmode">
+					<description>Returns the current game mode number.</description>
+				</command>
+
+				<command name="curmastermode">
+					<description>Returns the current mastermode</description>
+				</command>
+
+				<command name="currentprimary">
+					<description>Returns the weapon-index the local player currently has selected as primary.</description>
+					<remarks>
+						<remark>This is not the same as curweapon - which could be a grenade or the knife.</remark>
+					</remarks>
+					<references>
+						<identifierReference identifier="nextprimary"/>
+						<identifierReference identifier="curweapon"/>
+						<identifierReference identifier="prevweapon"/>
+						<identifierReference identifier="weapon"/>
+						<identifierReference identifier="magcontent"/>
+						<identifierReference identifier="magreserve"/>
+					</references>
+				</command>
+
+				<command name="currole">
+					<description>Returns 1 if the local player has admin privileges, 0 otherwise.</description>
+					<references>
+						<identifierReference identifier="setadmin"/>
+						<identifierReference identifier="connectadmin"/>
+					</references>
+				</command>
+
+				<command name="curserver">
+					<description>Returns information on the current server - if you're connected to one.</description>
+					<remarks>
+						<remark>If I is 0 (omitted or any other value than the ones below) you will get a string with 'IP PORT'</remark>
+						<remark>If I is 1,2 or 3 you will get the IP, HostName or port respectively.</remark>
+						<remark>If I is 4 you get a string representing the current state of the peer - usually this should be 'connected'.</remark>
+					</remarks>
+					<arguments>
+						<argument token="I" description="info" valueNotes="0, 1, 2, 3 or 4"/>
+					</arguments>
+					<examples>
+					<example>
+						<code><![CDATA[echo [I am (curserver 4) to (curserver 2)]]]></code>
+						<explanation>Output: I am connected to ctf-only.assault-servers.net</explanation>
+					</example>
+					<example>
+					<code>
 <![CDATA[last_server = ""
-remember_server = [
-if (strcmp (curserver 4) "connected")
-[
-last_server = (curserver 0)
-echo "I'm remembering:" $last_server
-] [
-echo "you are not 'connected' - you" (concatword "are '" (curserver 4) "' !")
-]
-]
-bind PRINT [
-if (strcmp $last_server "") [
-remember_server
-] [
-say (concat "^L2I was just ^Lfon^L3" $last_server)
-last_server = ""
-]
-]]]>
-</code>
-<explanation>This will either remember or retrieve the last server you pressed the PrintScreen-key on.</explanation>
-</example>
-</examples>
-	</command>
+remember_server = [ if (strcmp (curserver 4) "connected")
+	[ last_server = (curserver 0) echo "I'm remembering:" $last_server ]
+	[ echo "you are not 'connected' - you" (concatword "are '" (curserver 4) "' !") ] ]
 
-	<command name="curteam">
-<description>Returns 1 if the local player is on the RVSF team, 0 if on CLA.</description>
-<references>
-<identifierReference identifier="team"/>
-<identifierReference identifier="skin"/>
-</references>
-	</command>
+bind PRINT [ if (strcmp $last_server "") [ remember_server ]
+	[ say (concat "^L2I was just ^Lfon^L3" $last_server) last_server = "" ] ]]]>
+					</code>
+						<explanation>This will either remember or retrieve the last server you pressed the PrintScreen-key on.</explanation>
+					</example>
+					</examples>
+				</command>
 
-	<command name="curweapon">
-<description>Returns the weapon-index the local player is currently holding.</description>
-<references>
-<identifierReference identifier="currentprimary"/>
-<identifierReference identifier="nextprimary"/>
-<identifierReference identifier="prevweapon"/>
-<identifierReference identifier="weapon"/>
-<identifierReference identifier="magcontent"/>
-<identifierReference identifier="magreserve"/>
-</references>
-	</command>
+				<command name="curteam">
+					<description>Returns 1 if the local player is on the RVSF team, 0 if on CLA.</description>
+					<references>
+						<identifierReference identifier="team"/>
+						<identifierReference identifier="skin"/>
+					</references>
+				</command>
 
-	<command name="prevweapon">
-<description>Returns the weapon-index the local player was previously holding.</description>
-<references>
-<identifierReference identifier="currentprimary"/>
-<identifierReference identifier="nextprimary"/>
-<identifierReference identifier="curweapon"/>
-<identifierReference identifier="weapon"/>
-<identifierReference identifier="magcontent"/>
-<identifierReference identifier="magreserve"/>
-</references>
-	</command>
+				<command name="curweapon">
+					<description>Returns the weapon-index the local player is currently holding.</description>
+					<references>
+						<identifierReference identifier="currentprimary"/>
+						<identifierReference identifier="nextprimary"/>
+						<identifierReference identifier="prevweapon"/>
+						<identifierReference identifier="weapon"/>
+						<identifierReference identifier="magcontent"/>
+						<identifierReference identifier="magreserve"/>
+					</references>
+				</command>
 
-	<variable name="hidecustomskins">
-<value token="B" description="" minValue="0" maxValue="1" defaultValue="0"/>
-	</variable>
+				<command name="prevweapon">
+					<description>Returns the weapon-index the local player was previously holding.</description>
+					<references>
+						<identifierReference identifier="currentprimary"/>
+						<identifierReference identifier="nextprimary"/>
+						<identifierReference identifier="curweapon"/>
+						<identifierReference identifier="weapon"/>
+						<identifierReference identifier="magcontent"/>
+						<identifierReference identifier="magreserve"/>
+					</references>
+				</command>
 
-	<variable name="mdldyncache">
-<value token="V" description="" minValue="1" maxValue="32" defaultValue="2"/>
-	</variable>
+				<variable name="hidecustomskins">
+					<value token="B" description="" minValue="0" maxValue="1" defaultValue="0"/>
+				</variable>
 
-	<variable name="mdlstatcache">
-<value token="V" description="" minValue="1" maxValue="32" defaultValue="1"/>
-	</variable>
+				<variable name="mdldyncache">
+					<value token="V" description="" minValue="1" maxValue="32" defaultValue="2"/>
+				</variable>
 
-	<command name="map">
-<description>Loads up a map in the gamemode set previously by the 'mode' command.</description>
-<remarks>
-<remark>
-If connected to a multiplayer server, it votes to load the map (others will have to type "map M" as well
-to agree with loading this map). To vote for a map with a specific mode, set the mode before you issue the map command.
-</remark>
-<remark>
-A map given as "blah" refers to "packages/maps/blah.cgz", "mypackage/blah" refers to "packages/mypackage/blah.cgz".
-At every map load, "config/default_map_settings.cfg" is loaded which sets up all texture definitions, etc. Everything
-defined there can be overridden per package or per map by creating a "mapname.cfg" which
-contains whatever you want to do differently from the default.
-</remark>
-<remark>
-When the map finishes it will load the next map when one is defined, otherwise it reloads the current map.
-You can define what map follows a particular map by making an alias like (in the map script): alias nextmap_blah1 blah2
-(loads "blah2" after "blah1").
-</remark>
-</remarks>
-<arguments>
-<argument token="M" description="Name of the map to load" valueNotes="string"/>
-</arguments>
-	</command>
+				<variable name="mdlstatcache">
+					<value token="V" description="" minValue="1" maxValue="32" defaultValue="1"/>
+				</variable>
 
-	<command name="nextprimary">
-<description>Returns the primary weapon on next respawn.</description>
-<arguments>
-<argument token="A" description="weapon id" valueNotes="value"/>
-</arguments>
-	</command>
+				<command name="map">
+					<description>Loads up a map in the gamemode set previously by the 'mode' command.</description>
+					<remarks>
+					<remark>
+						If connected to a multiplayer server, it votes to load the map (others will have to type "map M" as well
+						to agree with loading this map). To vote for a map with a specific mode, set the mode before you issue the map command.
+					</remark>
+					<remark>
+						A map given as "blah" refers to "packages/maps/blah.cgz", "mypackage/blah" refers to "packages/mypackage/blah.cgz".
+						At every map load, "config/default_map_settings.cfg" is loaded which sets up all texture definitions, etc. Everything
+						defined there can be overridden per package or per map by creating a "mapname.cfg" which
+						contains whatever you want to do differently from the default.
+					</remark>
+					<remark>
+						When the map finishes it will load the next map when one is defined, otherwise it reloads the current map.
+						You can define what map follows a particular map by making an alias like (in the map script): alias nextmap_blah1 blah2
+						(loads "blah2" after "blah1").
+					</remark>
+					</remarks>
+					<arguments>
+						<argument token="M" description="Name of the map to load" valueNotes="string"/>
+					</arguments>
+				</command>
 
-	<command name="reload">
-<description>Reloads the weapon.</description>
-<arguments>
-<argument token="A" description="" valueNotes="value"/>
-</arguments>
-	</command>
+				<command name="nextprimary">
+					<description>Returns the primary weapon on next respawn.</description>
+					<arguments>
+						<argument token="A" description="weapon id" valueNotes="value"/>
+					</arguments>
+				</command>
 
-	<command name="skin">
-<description>
-Determines the skin of the current player.
-</description>
-<remarks>
-<remark>
-See the player model folder for the according skin-id.
-</remark>
-</remarks>
-<arguments>
-<argument token="N" description="skin id" valueNotes="value"/>
-</arguments>
-	</command>
+				<command name="reload">
+					<description>Reloads the weapon.</description>
+					<arguments>
+						<argument token="A" description="" valueNotes="value"/>
+					</arguments>
+				</command>
 
-	<command name="skin_cla">
-<description>Choose skin when playing for team CLA.</description>
-<arguments>
-<argument token="N" description="skin id"/>
-</arguments>
-	</command>
+				<command name="skin">
+					<description>Determines the skin of the current player.</description>
+					<remarks>
+						<remark>See the player model folder for the according skin-id.</remark>
+					</remarks>
+					<arguments>
+						<argument token="N" description="skin id" valueNotes="value"/>
+					</arguments>
+				</command>
 
-	<command name="skin_rvsf">
-<description>Choose skin when playing for team RVSF.</description>
-<arguments>
-<argument token="N" description="skin id"/>
-</arguments>
-	</command>
+				<command name="skin_cla">
+					<description>Choose skin when playing for team CLA.</description>
+					<arguments>
+						<argument token="N" description="skin id"/>
+					</arguments>
+				</command>
 
-	<command name="name">
-<description>Sets the nick name for the local player.</description>
-<arguments>
-<argument token="N" description="the name"/>
-</arguments>
-	</command>
+				<command name="skin_rvsf">
+					<description>Choose skin when playing for team RVSF.</description>
+					<arguments>
+						<argument token="N" description="skin id"/>
+					</arguments>
+				</command>
 
-	<command name="say">
-<description>Outputs text to other players.</description>
-<remarks>
-<remark>
-If the text begins with a percent character (%),
-only team mates will receive the message.
-</remark>
-</remarks>
-<arguments>
-	<variableArgument token="S..." description="the text"/>
-</arguments>
-	</command>
+				<command name="name">
+					<description>Sets the nick name for the local player.</description>
+					<arguments>
+						<argument token="N" description="the name"/>
+					</arguments>
+				</command>
 
-	<command name="ignore">
-<description>Ignore a player.</description>
-<arguments>
-<argument token="A" description="client number"/>
-</arguments>
-<remarks>
-<remark>
-You won't see any further game chat or hear any more voice com messages from that player.
-</remark>
-</remarks>
-	</command>
+				<command name="say">
+					<description>Outputs text to other players.</description>
+					<remarks>
+					<remark>
+						If the text begins with a percent character (%),
+						only team mates will receive the message.
+					</remark>
+					</remarks>
+					<arguments>
+						<variableArgument token="S..." description="the text"/>
+					</arguments>
+				</command>
 
-	<command name="listignored">
-<description>Print a list of all players that you are currently ignoring.</description>
-	</command>
+				<command name="ignore">
+					<description>Ignore a player.</description>
+					<arguments>
+						<argument token="A" description="client number"/>
+					</arguments>
+					<remarks>
+						<remark>You won't see any further game chat or hear any more voice com messages from that player.</remark>
+					</remarks>
+				</command>
 
-	<command name="clearignored">
-<description>Clear list of ignored players.</description>
-<arguments>
-<argument token="A" description="optional client number"/>
-</arguments>
-<remarks>
-<remark>
-Omit the client number to clear the whole list.
-</remark>
-</remarks>
-	</command>
+				<command name="listignored">
+					<description>Print a list of all players that you are currently ignoring.</description>
+				</command>
 
-	<command name="muteplayer">
-<description>Mute a player</description>
-<arguments>
-<argument token="A" description="client number"/>
-</arguments>
-<remarks>
-<remark>
-You won't hear any further voice com messages from that player.
-</remark>
-</remarks>
-	</command>
+				<command name="clearignored">
+					<description>Clear list of ignored players.</description>
+					<arguments>
+						<argument token="A" description="optional client number"/>
+					</arguments>
+					<remarks>
+						<remark>Omit the client number to clear the whole list.</remark>
+					</remarks>
+				</command>
 
-	<command name="clearmuted">
-<description>Clear list of muted players.</description>
-<arguments>
-<argument token="A" description="optional client number"/>
-</arguments>
-<remarks>
-<remark>
-Omit the client number to clear the whole list.
-</remark>
-</remarks>
-	</command>
+				<command name="muteplayer">
+					<description>Mute a player</description>
+					<arguments>
+						<argument token="A" description="client number"/>
+					</arguments>
+					<remarks>
+						<remark>You won't hear any further voice com messages from that player.</remark>
+					</remarks>
+				</command>
 
-	<command name="listmuted">
-<description>Print a list of all players that you have muted.</description>
-	</command>
+				<command name="clearmuted">
+					<description>Clear list of muted players.</description>
+					<arguments>
+						<argument token="A" description="optional client number"/>
+					</arguments>
+					<remarks>
+						<remark>Omit the client number to clear the whole list.</remark>
+					</remarks>
+				</command>
 
-	<command name="me">
-<description>Action chat message.</description>
-<arguments>
-	<variableArgument token="..." description="..."/>
-</arguments>
-	</command>
+				<command name="listmuted">
+					<description>Print a list of all players that you have muted.</description>
+				</command>
 
-	<command name="saycommand">
-<description>
-Puts a prompt on screen.
-</description>
-<remarks>
-<remark>
-this puts a prompt on screen that you can type into,
-and will capture all keystrokes until you press return (or ESC to cancel).
-If what you typed started with a "/", the rest of it will be executed as a command,
-otherwise its something you "say" to all players.
-</remark>
-</remarks>
-<defaultKeys>
-<key alias="T" description="opens empty prompt"/>
-<key alias="BACKQUOTE" name="`" description="opens a command prompt /"/>
-<key alias="TAB" description="autocompletes commands/variables/aliases"/>
-<key alias="UP" description="browse command history forwards"/>
-<key alias="DOWN" description="browse command history backwards"/>
-</defaultKeys>
-<arguments>
-	<variableArgument token="S..." description="the text to display in the prompt" optional="true"/>
-</arguments>
-<references>
-<identifierReference identifier="complete"/>
-<identifierReference identifier="listcomplete"/>
-<identifierReference identifier="inputcommand"/>
-</references>
-	</command>
+				<command name="me">
+					<description>Action chat message.</description>
+					<arguments>
+						<variableArgument token="..." description="..."/>
+					</arguments>
+				</command>
 
-	<command name="inputcommand">
-<description>Makes an input perform a certain command.</description>
-<arguments>
-<argument token="I" description="input"/>
-<argument token="C" description="command"/>
-<argument token="P" description="prompt"/>
-</arguments>
-<references>
-<identifierReference identifier="complete"/>
-<identifierReference identifier="listcomplete"/>
-<identifierReference identifier="saycommand"/>
-</references>
-<examples>
-</examples>
-	</command>
+				<command name="saycommand">
+					<description>Puts a prompt on screen.</description>
+					<remarks>
+					<remark>
+						this puts a prompt on screen that you can type into,
+						and will capture all keystrokes until you press return (or ESC to cancel).
+						If what you typed started with a "/", the rest of it will be executed as a command,
+						otherwise its something you "say" to all players.
+					</remark>
+					</remarks>
+					<defaultKeys>
+						<key alias="T" description="opens empty prompt"/>
+						<key alias="BACKQUOTE" name="`" description="opens a command prompt /"/>
+						<key alias="TAB" description="autocompletes commands/variables/aliases"/>
+						<key alias="UP" description="browse command history forwards"/>
+						<key alias="DOWN" description="browse command history backwards"/>
+					</defaultKeys>
+					<arguments>
+					<variableArgument token="S..." description="the text to display in the prompt" optional="true"/>
+					</arguments>
+					<references>
+						<identifierReference identifier="complete"/>
+						<identifierReference identifier="listcomplete"/>
+						<identifierReference identifier="inputcommand"/>
+					</references>
+				</command>
 
-	<command name="complete">
-<arguments>
-<argument token="C" description="command" valueNotes="any command or alias"/>
-<argument token="P" description="path" valueNotes="path to search"/>
-<argument token="E" description="extension" valueNotes="extension to match"/>
-</arguments>
-<remarks>
-<remark>The completion will work on the first word of your console input.</remark>
-</remarks>
-<examples>
-<example>
-<code><![CDATA[complete demo "demos" dmo]]></code>
-<explanation>If you enter "/demo " and press TAB you will cycle through all available demos.</explanation>
-</example>
-<example>
-<code><![CDATA[alias mapcomplete [complete $arg1 "packages/maps" cgz]]]></code>
-<explanation>helper alias for quickly adding complete-definitions for all gamemodes - see config/script.cfg (below "Auto-Completions")</explanation>
-</example>
-</examples>
-<references>
-<identifierReference identifier="saycommand"/>
-<identifierReference identifier="listcomplete"/>
-</references>
-	</command>
+				<command name="inputcommand">
+					<description>Makes an input perform a certain command.</description>
+					<arguments>
+						<argument token="I" description="input"/>
+						<argument token="C" description="command"/>
+						<argument token="P" description="prompt"/>
+					</arguments>
+					<references>
+						<identifierReference identifier="complete"/>
+						<identifierReference identifier="listcomplete"/>
+						<identifierReference identifier="saycommand"/>
+					</references>
+					<examples>
+					</examples>
+				</command>
 
-	<command name="listcomplete">
-<argument token="A" description="" valueNotes="value"/>
-<references>
-<identifierReference identifier="saycommand"/>
-<identifierReference identifier="complete"/>
-</references>
-	</command>
+				<command name="complete">
+					<arguments>
+						<argument token="C" description="command" valueNotes="any command or alias"/>
+						<argument token="P" description="path" valueNotes="path to search"/>
+						<argument token="E" description="extension" valueNotes="extension to match"/>
+					</arguments>
+					<remarks>
+						<remark>The completion will work on the first word of your console input.</remark>
+					</remarks>
+					<examples>
+					<example>
+						<code><![CDATA[complete demo "demos" dmo]]></code>
+						<explanation>If you enter "/demo " and press TAB you will cycle through all available demos.</explanation>
+					</example>
+					<example>
+						<code><![CDATA[alias mapcomplete [complete $arg1 "packages/maps" cgz]]]></code>
+						<explanation>helper alias for quickly adding complete-definitions for all gamemodes - see config/script.cfg (below "Auto-Completions")</explanation>
+					</example>
+					</examples>
+					<references>
+						<identifierReference identifier="saycommand"/>
+						<identifierReference identifier="listcomplete"/>
+					</references>
+				</command>
 
-	<command name="nickcomplete">
-<argument token="C" description="command" valueNotes="any command or alias"/>
-<description>adds a command to complete nicknames on</description>
-<remarks>
-<remark>your own nick will be ignored</remark>
-</remarks>
-<examples>
-<example>
-<code><![CDATA[nickgreet = [ say (concat "Hello," (concatword $arg1 "!")) ]; nickcomplete nickgreet]]></code>
-<explanation>with this you can enter "/nickgreet " and cycle via TAB to the nickname you want to greet.</explanation>
-</example>
-</examples>
-<references>
-<identifierReference identifier="complete"/>
-</references>
-	</command>
+				<command name="listcomplete">
+					<argument token="A" description="" valueNotes="value"/>
+					<references>
+						<identifierReference identifier="saycommand"/>
+						<identifierReference identifier="complete"/>
+					</references>
+				</command>
 
-	<command name="connect">
-<description>
-Connects to a server.
-</description>
-<remarks>
-<remark>
-If the server name is omitted, the client will try to connect to an available server in the LAN.
-If the port is omitted or set to 0, the default port will be used.
-</remark>
-</remarks>
-<examples>
-<example>
-<code><![CDATA[connect 127.0.0.1 555 myServerPassword]]></code>
-</example>
-</examples>
-<references>
-<identifierReference identifier="connectadmin"/>
-</references>
-<arguments>
-<argument token="N" description="the address of the server (hostname or IP)" optional="true"/>
-<argument token="O" description="the port" optional="true"/>
-<argument token="P" description="the server password" optional="true"/>
-</arguments>
-	</command>
+				<command name="nickcomplete">
+					<argument token="C" description="command" valueNotes="any command or alias"/>
+					<description>adds a command to complete nicknames on</description>
+					<remarks>
+						<remark>your own nick will be ignored</remark>
+					</remarks>
+					<examples>
+					<example>
+						<code><![CDATA[nickgreet = [ say (concat "Hello," (concatword $arg1 "!")) ]; nickcomplete nickgreet]]></code>
+						<explanation>with this you can enter "/nickgreet " and cycle via TAB to the nickname you want to greet.</explanation>
+					</example>
+					</examples>
+					<references>
+						<identifierReference identifier="complete"/>
+					</references>
+				</command>
 
-	<command name="connectadmin">
-<description>Connects to a server and tries to claim admin state.</description>
-<remarks>
-<remark>
-This command will connect to a server just like the command 'connect' and
-try to claim admin state. If the specified password is correct, the admin
-will be able to connect even if he is locked out by ban, private master mode or taken client slots.
-If successfully connected, bans assigned to the admin's host will be removed automatically. If all
-client slots are taken a random client will be kicked to let the admin in.
-</remark>
-<remark>
-If the server name ist omitted, the client will try to connect to an available server in the LAN.
-If the port is omitted or set to 0, the default port will be used.
-</remark>
-</remarks>
-<examples>
-<example>
-<code><![CDATA[connectadmin 127.0.0.1 777 myAdminPassword]]></code>
-<explanation>connect as admin on port 777 of localhost</explanation>
-</example>
-<example>
-<code><![CDATA[connectadmin "" 0 myAdminPassword]]></code>
-<explanation>will try to connect to a LAN server on the default port as admin with the given password of "myAdminPassword".</explanation>
-</example>
-</examples>
-<references>
-<identifierReference identifier="currole"/>
-<identifierReference identifier="connect"/>
-</references>
-<arguments>
-<argument token="N" description="the address of the server (hostname or IP)" optional="true"/>
-<argument token="O" description="the port" optional="true"/>
-<argument token="P" description="the admin password"/>
-</arguments>
-	</command>
+				<command name="connect">
+					<description>Connects to a server.</description>
+					<remarks>
+					<remark>
+						If the server name is omitted, the client will try to connect to an available server in the LAN.
+						If the port is omitted or set to 0, the default port will be used.
+					</remark>
+					</remarks>
+					<examples>
+					<example>
+						<code><![CDATA[connect 127.0.0.1 555 myServerPassword]]></code>
+					</example>
+					</examples>
+					<references>
+						<identifierReference identifier="connectadmin"/>
+					</references>
+					<arguments>
+						<argument token="N" description="the address of the server (hostname or IP)" optional="true"/>
+						<argument token="O" description="the port" optional="true"/>
+						<argument token="P" description="the server password" optional="true"/>
+					</arguments>
+				</command>
 
-	<command name="disconnect">
-<description>Leaves a server.</description>
-	</command>
+				<command name="connectadmin">
+					<description>Connects to a server and tries to claim admin state.</description>
+					<remarks>
+					<remark>
+						This command will connect to a server just like the command 'connect' and
+						try to claim admin state. If the specified password is correct, the admin
+						will be able to connect even if he is locked out by ban, private master mode or taken client slots.
+						If successfully connected, bans assigned to the admin's host will be removed automatically. If all
+						client slots are taken a random client will be kicked to let the admin in.
+					</remark>
+					<remark>
+						If the server name ist omitted, the client will try to connect to an available server in the LAN.
+						If the port is omitted or set to 0, the default port will be used.
+					</remark>
+					</remarks>
+					<examples>
+					<example>
+						<code><![CDATA[connectadmin 127.0.0.1 777 myAdminPassword]]></code>
+						<explanation>connect as admin on port 777 of localhost</explanation>
+					</example>
+					<example>
+						<code><![CDATA[connectadmin "" 0 myAdminPassword]]></code>
+						<explanation>will try to connect to a LAN server on the default port as admin with the given password of "myAdminPassword".</explanation>
+					</example>
+					</examples>
+					<references>
+						<identifierReference identifier="currole"/>
+						<identifierReference identifier="connect"/>
+					</references>
+					<arguments>
+						<argument token="N" description="the address of the server (hostname or IP)" optional="true"/>
+						<argument token="O" description="the port" optional="true"/>
+						<argument token="P" description="the admin password"/>
+				</arguments>
+				</command>
 
-	<command name="team">
-<description>Sets the team for the local player.</description>
-<examples>
-<example>
-<code><![CDATA[team CLA]]></code>
-</example>
-</examples>
-<arguments>
-<argument token="S" description="the team name" valueNotes="either CLA or RVSF"/>
-</arguments>
-	</command>
+				<command name="disconnect">
+					<description>Leaves a server.</description>
+				</command>
 
-	<command name="benchme">
-<description>Move from active team to spectator during match.</description>
-	</command>
+				<command name="team">
+					<description>Sets the team for the local player.</description>
+					<examples>
+					<example>
+						<code><![CDATA[team CLA]]></code>
+					</example>
+					</examples>
+					<arguments>
+						<argument token="S" description="the team name" valueNotes="either CLA or RVSF"/>
+					</arguments>
+				</command>
 
-	<command name="modconnect">
-<description>Connect to a modded server.</description>
-<arguments>
-<argument token="A" description="IP"/>
-<argument token="B" description="port"/>
-<argument token="C" description="password"/>
-</arguments>
-<remarks>
-<remark>
-The modified server needs to use the original client-server protocol. The protocol version number
-will be the negated value of an unmodded server.
-</remark>
-</remarks>
-	</command>
+				<command name="benchme">
+					<description>Move from active team to spectator during match.</description>
+				</command>
 
-	<command name="modconnectadmin">
-<description>Connect to a modded server and claim admin.</description>
-<arguments>
-<argument token="A" description="IP"/>
-<argument token="B" description="port"/>
-<argument token="C" description="admin password"/>
-</arguments>
-<remarks>
-<remark>
-The modified server needs to use the original client-server protocol. The protocol version number
-will be the negated value of an unmodded server.
-</remark>
-</remarks>
-	</command>
+				<command name="modconnect">
+					<description>Connect to a modded server.</description>
+					<arguments>
+						<argument token="A" description="IP"/>
+						<argument token="B" description="port"/>
+						<argument token="C" description="password"/>
+						</arguments>
+					<remarks>
+					<remark>
+						The modified server needs to use the original client-server protocol. The protocol version number
+						will be the negated value of an unmodded server.
+					</remark>
+					</remarks>
+				</command>
 
-	<command name="modlanconnect">
-<description>Connect to a modified LAN server.</description>
-<remarks>
-<remark>
-The modified server needs to use the original client-server protocol. The protocol version number
-will be the negated value of an unmodded server.
-</remark>
-</remarks>
-	</command>
+				<command name="modconnectadmin">
+					<description>Connect to a modded server and claim admin.</description>
+					<arguments>
+						<argument token="A" description="IP"/>
+						<argument token="B" description="port"/>
+						<argument token="C" description="admin password"/>
+					</arguments>
+					<remarks>
+					<remark>
+						The modified server needs to use the original client-server protocol. The protocol version number
+						will be the negated value of an unmodded server.
+					</remark>
+					</remarks>
+				</command>
 
-	<command name="showscores">
-<description>Shows or hides the scores.</description>
-<defaultKeys>
-<key alias="TAB"/>
-</defaultKeys>
-	</command>
+				<command name="modlanconnect">
+					<description>Connect to a modified LAN server.</description>
+					<remarks>
+					<remark>
+						The modified server needs to use the original client-server protocol. The protocol version number
+						will be the negated value of an unmodded server.
+					</remark>
+					</remarks>
+				</command>
 
-	<command name="weapon">
-<description>Changes the weapon.</description>
-<arguments>
-<argument token="N" description="the weapon number" valueNotes="0 (knife), 1 (pistol), 2 (shotgun), 3 (sub), 4 (sniper), 5 (assault), 6 (grenades)"/>
-</arguments>
-	</command>
+				<command name="showscores">
+					<description>Shows or hides the scores.</description>
+					<defaultKeys>
+						<key alias="TAB"/>
+					</defaultKeys>
+				</command>
 
-	<command name="magcontent">
-<description>Returns contents of current magazine.</description>
-<remarks>
-<remark>A knife will always return 1.</remark>
-<remark>Weapons that aren't available will return -1.</remark>
-</remarks>
-<examples>
-<example>
-<code>
+				<command name="weapon">
+					<description>Changes the weapon.</description>
+					<arguments>
+						<argument token="N" description="the weapon number" valueNotes="0 (knife), 1 (pistol), 2 (shotgun), 3 (sub), 4 (sniper), 5 (assault), 6 (grenades)"/>
+					</arguments>
+				</command>
+
+				<command name="magcontent">
+					<description>Returns contents of current magazine.</description>
+					<remarks>
+						<remark>A knife will always return 1.</remark>
+						<remark>Weapons that aren't available will return -1.</remark>
+					</remarks>
+					<examples>
+					<example>
+					<code>
 <![CDATA[wnames = "Knife Pistol Shotgun Sub Sniper Assault Grenades"
 numtwo = [ if (< $arg1 10) [ result (concatword 0 $arg1) ] [ result $arg1 ] ]
 ammoinfo = [
-loop w (listlen $wnames) [
-mc = (magcontent $w)
-mr = (magreserve $w)
-mt = (+ $mr $mc)
-if (> $mt 0) [ echo (numtwo $mc) "/" (numtwo $mr) ":" (at $wnames $w) ]
+	loop w (listlen $wnames) [
+		mc = (magcontent $w)
+		mr = (magreserve $w)
+		mt = (+ $mr $mc)
+		if (> $mt 0) [ echo (numtwo $mc) "/" (numtwo $mr) ":" (at $wnames $w) ]
+	]
 ]
-]
+				
 Output:
 01 / 01 : Knife
 08 / 64 : Pistol
 30 / 60 : Sub]]>
-</code>
-</example>
-</examples>
-<references>
-<identifierReference identifier="curweapon"/>
-<identifierReference identifier="currentprimary"/>
-<identifierReference identifier="nextprimary"/>
-<identifierReference identifier="prevweapon"/>
-<identifierReference identifier="weapon"/>
-<identifierReference identifier="magreserve"/>
-</references>
-<arguments>
-<argument token="N" description="the weapon number" valueNotes="0 (knife), 1 (pistol), 2 (shotgun), 3 (sub), 4 (sniper), 5 (assault), 6 (grenades)"/>
-</arguments>
-	</command>
+					</code>
+					</example>
+					</examples>
+					<references>
+						<identifierReference identifier="curweapon"/>
+						<identifierReference identifier="currentprimary"/>
+						<identifierReference identifier="nextprimary"/>
+						<identifierReference identifier="prevweapon"/>
+						<identifierReference identifier="weapon"/>
+						<identifierReference identifier="magreserve"/>
+					</references>
+					<arguments>
+						<argument token="N" description="the weapon number" valueNotes="0 (knife), 1 (pistol), 2 (shotgun), 3 (sub), 4 (sniper), 5 (assault), 6 (grenades)"/>
+					</arguments>
+				</command>
 
-	<command name="magreserve">
-<description>Returns contents of magazine reserve.</description>
-<references>
-<identifierReference identifier="curweapon"/>
-<identifierReference identifier="currentprimary"/>
-<identifierReference identifier="nextprimary"/>
-<identifierReference identifier="prevweapon"/>
-<identifierReference identifier="weapon"/>
-<identifierReference identifier="magcontent"/>
-</references>
-<arguments>
-<argument token="N" description="the weapon number" valueNotes="0 (knife), 1 (pistol), 2 (shotgun), 3 (sub), 4 (sniper), 5 (assault), 6 (grenades)"/>
-</arguments>
-	</command>
+				<command name="magreserve">
+					<description>Returns contents of magazine reserve.</description>
+					<references>
+						<identifierReference identifier="curweapon"/>
+						<identifierReference identifier="currentprimary"/>
+						<identifierReference identifier="nextprimary"/>
+						<identifierReference identifier="prevweapon"/>
+						<identifierReference identifier="weapon"/>
+						<identifierReference identifier="magcontent"/>
+					</references>
+					<arguments>
+						<argument token="N" description="the weapon number" valueNotes="0 (knife), 1 (pistol), 2 (shotgun), 3 (sub), 4 (sniper), 5 (assault), 6 (grenades)"/>
+					</arguments>
+				</command>
 
-	<command name="getmap">
-<description>Retrieves the last map that was sent to the server using 'sendmap'.</description>
-<references>
-<identifierReference identifier="sendmap"/>
-</references>
-	</command>
+				<command name="getmap">
+					<description>Retrieves the last map that was sent to the server using 'sendmap'.</description>
+					<references>
+						<identifierReference identifier="sendmap"/>
+					</references>
+				</command>
 
-	<command name="spectatemode">
-<description>
-Toggle into spectator mode - only possible when you're dead!
-</description>
-<defaultKeys>
-<key alias="SPACE" description="switch spectator mode"/>
-<key alias="MOUSE4" description="next player"/>
-<key alias="MOUSE5" description="previous player"/>
-</defaultKeys>
-	</command>
+				<command name="spectatemode">
+					<description>Toggle into spectator mode - only possible when you're dead!</description>
+					<defaultKeys>
+						<key alias="SPACE" description="switch spectator mode"/>
+						<key alias="MOUSE4" description="next player"/>
+						<key alias="MOUSE5" description="previous player"/>
+					</defaultKeys>
+				</command>
 
-	<command name="stopdemo">
-<description>
-Stops any demo recording or playback.
-</description>
-	</command>
+				<command name="stopdemo">
+					<description>Stops any demo recording or playback.</description>
+				</command>
 
-	<command name="watchingdemo">
-<description>
-Returns 1 when the current game is being played from a demo, else 0.
-</description>
-<examples>
-<example>
-<code><![CDATA[echo I am (at [not now] (watchingdemo)) watching a demo. "so, are you?"]]></code>
-</example>
-</examples>
-<return token="B" description="truth value"/>
-	</command>
+				<command name="watchingdemo">
+					<description>Returns 1 when the current game is being played from a demo, else 0.</description>
+					<examples>
+					<example>
+						<code><![CDATA[echo I am (at [not now] (watchingdemo)) watching a demo. "so, are you?"]]></code>
+					</example>
+					</examples>
+					<return token="B" description="truth value"/>
+				</command>
 
-	<command name="suicide">
-<description>
-Kills your player. You will lose 1 frag point and gain 1 death point when using this command.
-</description>
-	</command>
+				<command name="suicide">
+					<description>Kills your player. You will lose 1 frag point and gain 1 death point when using this command.</description>
+				</command>
 
-	<command name="demo">
-<description>Plays a recorded demo.</description>
-<remarks>
-<remark>
-Playback is interpolated for the player whose perspective you view.
-</remark>
-</remarks>
-<arguments>
-<argument token="S" description="the demo name"/>
-</arguments>
-	</command>
+				<command name="demo">
+					<description>Plays a recorded demo.</description>
+					<remarks>
+						<remark>Playback is interpolated for the player whose perspective you view.</remark>
+					</remarks>
+					<arguments>
+						<argument token="S" description="the demo name"/>
+					</arguments>
+				</command>
 
-	<variable name="xhairwpsel">
-<description>
-Determines if bot waypoints should be selected/placed using the crosshair or by the nearest location to your player.
-</description>
-<value token="V" description="Note: This is turned on by default." minValue="0" maxValue="1" defaultValue="1"/>
-	</variable>
+				<variable name="xhairwpsel">
+					<description>Determines if bot waypoints should be selected/placed using the crosshair or by the nearest location to your player.</description>
+					<value token="V" description="Note: This is turned on by default." minValue="0" maxValue="1" defaultValue="1"/>
+				</variable>
 
-	<variable name="minutesremaining">
-<description>Returns the remaining minutes of the currently played game. READ ONLY</description>
-	</variable>
+				<variable name="minutesremaining">
+					<description>Returns the remaining minutes of the currently played game. READ ONLY</description>
+				</variable>
 
-	<variable name="paused">
-<description>
-Determines if the game should be paused.
-</description>
-<value token="B" description="pause game" minValue="0" maxValue="1" defaultValue="0"/>
-	</variable>
+				<variable name="paused">
+					<description>Determines if the game should be paused.</description>
+					<value token="B" description="pause game" minValue="0" maxValue="1" defaultValue="0"/>
+				</variable>
 
-	<variable name="autoreload">
-<description>Indicates if the weapons should be reloaded automatically.</description>
-<value token="B" description="the autoreload state" minValue="0" maxValue="1" defaultValue="1" valueNotes="on (1), off (0)"/>
-	</variable>
+				<variable name="autoreload">
+					<description>Indicates if the weapons should be reloaded automatically.</description>
+					<value token="B" description="the autoreload state" minValue="0" maxValue="1" defaultValue="1" valueNotes="on (1), off (0)"/>
+				</variable>
 
-	<variable name="scopefov">
-<description>
-Determines the FOV when scoping.
-</description>
-<references>
-<identifierReference identifier="fov"/>
-</references>
-<value token="V" description="" minValue="5" maxValue="50" defaultValue="50"/>
-	</variable>
+				<variable name="scopefov">
+					<description>Determines the FOV when scoping.</description>
+					<references>
+						<identifierReference identifier="fov"/>
+					</references>
+					<value token="V" description="" minValue="5" maxValue="50" defaultValue="50"/>
+				</variable>
 
-	<variable name="showmap">
-<description>
-Determines if the mini-map should be shown on screen.
-</description>
-<value token="B" description="show mini-map" minValue="0" maxValue="1" defaultValue="0"/>
-	</variable>
+				<variable name="showmap">
+					<description>Determines if the mini-map should be shown on screen.</description>
+					<value token="B" description="show mini-map" minValue="0" maxValue="1" defaultValue="0"/>
+				</variable>
 
-	<variable name="showscoresondeath">
-<description>
-Determines if scores should be shown on death.
-</description>
-<value token="V" description="" minValue="0" maxValue="1" defaultValue="1"/>
-	</variable>
+				<variable name="showscoresondeath">
+					<description>Determines if scores should be shown on death.</description>
+					<value token="V" description="" minValue="0" maxValue="1" defaultValue="1"/>
+				</variable>
 
-	<variable name="footsteps">
-<description>Indicates if the footsteps sound should be played</description>
-<value token="B" description="enable footsteps" minValue="0" maxValue="1" defaultValue="1" valueNotes="1 (true), 0 (false)"/>
-	</variable>
+				<variable name="footsteps">
+					<description>Indicates if the footsteps sound should be played</description>
+					<value token="B" description="enable footsteps" minValue="0" maxValue="1" defaultValue="1" valueNotes="1 (true), 0 (false)"/>
+				</variable>
 
-	<variable name="localfootsteps">
-<description>Indicates if the footsteps sound for the local player should be played</description>
-<value token="B" description="enable footsteps" minValue="0" maxValue="1" defaultValue="1" valueNotes="1 (true), 0 (false)"/>
-	</variable>
+				<variable name="localfootsteps">
+					<description>Indicates if the footsteps sound for the local player should be played</description>
+					<value token="B" description="enable footsteps" minValue="0" maxValue="1" defaultValue="1" valueNotes="1 (true), 0 (false)"/>
+				</variable>
 
-	<variable name="footstepalign">
-<description>Maximum time span between player animation and the playback of the footstep sound</description>
-<remarks>
-<remark>
-If the footstep sound would be played immediately when entering the radius of the other player, it would
-not be synchronous to the player model animation.
-</remark>
-</remarks>
-<value token="T" description="time span" minValue="5" maxValue="4000" defaultValue="15"/>
-	</variable>
+				<variable name="footstepalign">
+					<description>Maximum time span between player animation and the playback of the footstep sound</description>
+					<remarks>
+					<remark>
+						If the footstep sound would be played immediately when entering the radius of the other player, it would
+						not be synchronous to the player model animation.
+					</remark>
+					</remarks>
+					<value token="T" description="time span" minValue="5" maxValue="4000" defaultValue="15"/>
+				</variable>
 
-	<variable name="gamespeed">
-<description>Sets the gamespeed in percent.</description>
-<remarks>
-<remark>This does not work in multiplayer. For entertainment purposes only :)</remark>
-</remarks>
-<value token="N" description="the game speed" minValue="10" maxValue="1000" defaultValue="100"/>
-	</variable>
+				<variable name="gamespeed">
+					<description>Sets the gamespeed in percent.</description>
+					<remarks>
+						<remark>This does not work in multiplayer. For entertainment purposes only :)</remark>
+					</remarks>
+					<value token="N" description="the game speed" minValue="10" maxValue="1000" defaultValue="100"/>
+				</variable>
 
-		</identifiers>
-			</section>
+			</identifiers>
+		</section>
+		<!-- Gameplay Section ends -->
 
 			<section name="Editing" sortindex="09">
 		<identifiers sort="true">
@@ -4052,7 +4008,7 @@ The name, description and remarks are included in the search.
 <description>Writes out a base XML documentation reference containing templates for the builtin identifiers.</description>
 <remarks>
 <remark>
-The generated reference is written to "config/autogenerated_base_reference.xml" by default.
+The generated reference is written to "docs/autogenerated_base_reference.xml" by default.
 The three arguments can be changed later on in the generated XML document.
 </remark>
 </remarks>
