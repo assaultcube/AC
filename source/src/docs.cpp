@@ -296,7 +296,7 @@ void docwriteref(int allidents, const char *ref, const char *schemalocation, con
     {
         f->printf("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n");
         f->printf("<?xml-stylesheet type=\"text/xsl\" href=\"%s\"?>\n", transformation && strlen(transformation) ? transformation : "transformations/cuberef2xhtml.xslt");
-        f->printf("<cuberef name=\"%s\" version=\"v0.1\" xsi:schemaLocation=\"%s\" xmlns=\"http://cubers.net/Schemas/CubeRef\">\n", ref && strlen(ref) ? ref : "Unnamed Reference", schemalocation && strlen(schemalocation) ? schemalocation : "http://cubers.net/Schemas/CubeRef schemas/cuberef.xsd");
+        f->printf("<cuberef xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" name=\"%s\" version=\"v0.1\" xsi:schemaLocation=\"%s\" xmlns=\"http://cubers.net/Schemas/CubeRef\">\n", ref && strlen(ref) ? ref : "Unnamed Reference", schemalocation && strlen(schemalocation) ? schemalocation : "http://cubers.net/Schemas/CubeRef schemas/cuberef.xsd");
         f->printf("\t%s\n", desc);
         f->printf("\t<sections>\n");
         f->printf("\t\t<section name=\"Main\">\n");
