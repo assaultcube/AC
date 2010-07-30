@@ -129,7 +129,7 @@ Name "AssaultCube"
 VAR StartMenuFolder
 OutFile "AssaultCube_${AC_FULLVERSION}.exe"
 InstallDir "$PROGRAMFILES\${AC_FULLNAMESAVE}"
-InstallDirRegKey HKLM "Software\${AC_FULLNAMESAVE}" ""
+InstallDirRegKey HKLM "Software\${AC_SHORTNAME}" ""
 RequestExecutionLevel admin  ; require admin in vista/7
 
 ; Interface Configuration
@@ -153,7 +153,7 @@ Page custom InstallationTypePage
 !insertmacro MUI_PAGE_COMPONENTS
 !insertmacro MUI_PAGE_DIRECTORY
 !define MUI_STARTMENUPAGE_REGISTRY_ROOT "HKLM"
-!define MUI_STARTMENUPAGE_REGISTRY_KEY "Software\${AC_FULLNAMESAVE}"
+!define MUI_STARTMENUPAGE_REGISTRY_KEY "Software\${AC_SHORTNAME}\${AC_FULLVERSION}"
 !define MUI_STARTMENUPAGE_REGISTRY_VALUENAME "start_menu"
 !insertmacro MUI_PAGE_STARTMENU Application $StartMenuFolder
 !insertmacro MUI_PAGE_INSTFILES
@@ -519,8 +519,9 @@ Section "AssaultCube ${AC_FULLVERSION}" AC
 
     File /r ac\*.*
 
-    WriteRegStr HKLM "Software\${AC_FULLNAMESAVE}" "" $INSTDIR
-    WriteRegStr HKLM "Software\${AC_FULLNAMESAVE}" "version" ${AC_FULLVERSIONINT}
+    WriteRegStr HKLM "Software\${AC_SHORTNAME}" "" $INSTDIR
+	WriteRegStr HKLM "Software\${AC_SHORTNAME}\${AC_FULLVERSION}" "" $INSTDIR
+    WriteRegStr HKLM "Software\${AC_SHORTNAME}\${AC_FULLVERSION}" "version" ${AC_FULLVERSIONINT}
 
     ; Create uninstaller
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_FULLNAMESAVE}" "DisplayName" "${AC_FULLNAME}"
@@ -625,8 +626,8 @@ Section "Uninstall"
     ; delete reg keys
     
     DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_FULLNAMESAVE}"
-    DeleteRegKey HKLM "SOFTWARE\${AC_FULLNAMESAVE}"
-    DeleteRegKey /ifempty HKLM "SOFTWARE\${AC_FULLNAMESAVE}"
+    DeleteRegKey HKLM "SOFTWARE\${AC_SHORTNAME}\${AC_FULLVERSION}"
+    DeleteRegKey /ifempty HKLM "SOFTWARE\${AC_SHORTNAME}"
     
 SectionEnd
 
