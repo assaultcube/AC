@@ -81,7 +81,7 @@ struct mapaction : serveraction
             bool notify = valid_client(caller);
             int maploc = MAP_NOTFOUND;
             mapstats *ms = map[0] ? getservermapstats(map, false, &maploc) : NULL;
-            mapok = ms != NULL && ( mapisok(ms) || mode == GMODE_COOPEDIT ) && !readonlymap(maploc);
+            mapok = ms != NULL && ( mapisok(ms) || ( mode == GMODE_COOPEDIT && !readonlymap(maploc) ) );
             if(!mapok)
             {
                 defformatstring(msg)("%s", ms ? ( readonlymap(maploc) ? "this map cannot be coopedited in this server" : "sorry, but this map does not satisfy some quality requisites to be played in MultiPlayer Mode" ) : "the server does not have this map" );
