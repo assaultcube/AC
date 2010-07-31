@@ -134,6 +134,8 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
         if (testlayout)
         {
             maplayout_factor = testlayout_factor;
+            extern int maplayoutssize;
+            maplayoutssize = 1 << testlayout_factor;
             int layoutsize = 1 << (testlayout_factor * 2);
             maplayout = new char[layoutsize + 256];
             memcpy(maplayout, testlayout, layoutsize * sizeof(char));

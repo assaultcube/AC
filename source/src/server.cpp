@@ -49,7 +49,7 @@ static int interm = 0, minremain = 0, gamemillis = 0, gamelimit = 0, /*lmsitemty
 mapstats smapstats;
 vector<server_entity> sents;
 char *maplayout = NULL, *testlayout = NULL;
-int maplayout_factor, testlayout_factor;
+int maplayout_factor, testlayout_factor, maplayoutssize;
 servermapbuffer mapbuffer;
 
 // cmod
