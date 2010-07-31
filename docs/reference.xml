@@ -28,460 +28,460 @@
 			
 			<identifiers sort="true">
 			
-			<command name="&lt;f">
-				<description>Determines if a floating-point value is smaller than a second floating-point value.</description>
-				<return token="F" description="(true)1||0(false)"/>
-				<arguments>
-					<argument token="A" description="the first value"/>
-					<argument token="B" description="the second value"/>
-				</arguments>
-			</command>
+				<command name="&lt;f">
+					<description>Determines if a floating-point value is smaller than a second floating-point value.</description>
+					<return token="F" description="(true)1||0(false)"/>
+					<arguments>
+						<argument token="A" description="the first value"/>
+						<argument token="B" description="the second value"/>
+					</arguments>
+				</command>
 
-			<command name="&lt;=f">
-				<description>Determines if a floating-point value is less than or equal to a second floating-point value.</description>
-				<return token="F" description="(true)1||0(false)"/>
-				<arguments>
-					<argument token="A" description="the first value"/>
-					<argument token="B" description="the second value"/>
-				</arguments>
-			</command>
+				<command name="&lt;=f">
+					<description>Determines if a floating-point value is less than or equal to a second floating-point value.</description>
+					<return token="F" description="(true)1||0(false)"/>
+					<arguments>
+						<argument token="A" description="the first value"/>
+						<argument token="B" description="the second value"/>
+					</arguments>
+				</command>
 
-			<command name="=f">
-				<description>Determines if a floating-point value is equal to a second floating-point value.</description>
-				<return token="F" description="(true)1||0(false)"/>
-				<arguments>
-					<argument token="A" description="the first value"/>
-					<argument token="B" description="the second value"/>
-				</arguments>
-			</command>
+				<command name="=f">
+					<description>Determines if a floating-point value is equal to a second floating-point value.</description>
+					<return token="F" description="(true)1||0(false)"/>
+					<arguments>
+						<argument token="A" description="the first value"/>
+						<argument token="B" description="the second value"/>
+					</arguments>
+				</command>
 
-			<command name="&gt;f">
-				<description>Determines if a floating-point value is greater than a second floating-point value.</description>
-				<return token="F" description="(true)1||0(false)"/>
-				<arguments>
-					<argument token="A" description="the first value"/>
-					<argument token="B" description="the second value"/>
-				</arguments>
-			</command>
+				<command name="&gt;f">
+					<description>Determines if a floating-point value is greater than a second floating-point value.</description>
+					<return token="F" description="(true)1||0(false)"/>
+					<arguments>
+						<argument token="A" description="the first value"/>
+						<argument token="B" description="the second value"/>
+					</arguments>
+				</command>
 
-			<command name="&gt;=f">
-				<description>Determines if a floating-point value is greater than or equal to a second floating-point value.</description>
-				<return token="F" description="(true)1||0(false)"/>
-				<arguments>
-					<argument token="A" description="the first value"/>
-					<argument token="B" description="the second value"/>
-				</arguments>
-			</command>
+				<command name="&gt;=f">
+					<description>Determines if a floating-point value is greater than or equal to a second floating-point value.</description>
+					<return token="F" description="(true)1||0(false)"/>
+					<arguments>
+						<argument token="A" description="the first value"/>
+						<argument token="B" description="the second value"/>
+					</arguments>
+				</command>
 
-			<command name="!=f">
-				<description>Determines if a floating-point value is not equal to a second floating-point value.</description>
-				<return token="F" description="(true)1||0(false)"/>
-				<arguments>
-					<argument token="A" description="the first value"/>
-					<argument token="B" description="the second value"/>
-				</arguments>
-			</command>
+				<command name="!=f">
+					<description>Determines if a floating-point value is not equal to a second floating-point value.</description>
+					<return token="F" description="(true)1||0(false)"/>
+					<arguments>
+						<argument token="A" description="the first value"/>
+						<argument token="B" description="the second value"/>
+					</arguments>
+				</command>
 
-			<command name="result">
-				<description>sets the result value of a CubeScript block</description>
-				<arguments>
-					<argument token="R" description="the result"/>
-				</arguments>
-			</command>
+				<command name="result">
+					<description>sets the result value of a CubeScript block</description>
+					<arguments>
+						<argument token="R" description="the result"/>
+					</arguments>
+				</command>
 
-			<command name="push">
+				<command name="push">
+					<arguments>
+						<argument token="N" description="alias name"/>
+						<argument token="A" description="action"/>
+					</arguments>
+					<references>
+						<identifierReference identifier="pop"/>
+					</references>
+				</command>
+
+				<command name="modf">
+					<description>Performs a floating-point modulo operation.</description>
+					<arguments>
+						<argument token="A" description="the dividend"/>
+						<argument token="B" description="the divisor"/>
+					</arguments>
+					<return token="F" description="the modulo value"/>
+					<examples>
+					<example>
+						<code><![CDATA[echo (modf 7.5 12.5)]]></code>
+						<explanation>Output: 7.5</explanation>
+					</example>
+					<example>
+						<code><![CDATA[echo (modf 17.5 12.5)]]></code>
+						<explanation>Output: 5.0</explanation>
+					</example>
+					</examples>
+				</command>
+
+				<command name="pop">
 				<arguments>
-					<argument token="N" description="alias name"/>
-					<argument token="A" description="action"/>
+					<argument token="A" description="alias"/>
 				</arguments>
 				<references>
-					<identifierReference identifier="pop"/>
+					<identifierReference identifier="push"/>
 				</references>
-			</command>
+				</command>
 
-			<command name="modf">
-				<description>Performs a floating-point modulo operation.</description>
-				<arguments>
-					<argument token="A" description="the dividend"/>
-					<argument token="B" description="the divisor"/>
-				</arguments>
-				<return token="F" description="the modulo value"/>
-				<examples>
-				<example>
-					<code><![CDATA[echo (modf 7.5 12.5)]]></code>
-					<explanation>Output: 7.5</explanation>
-				</example>
-				<example>
-					<code><![CDATA[echo (modf 17.5 12.5)]]></code>
-					<explanation>Output: 5.0</explanation>
-				</example>
-				</examples>
-			</command>
+				<command name="+">
+					<description>Performs an addition.</description>
+					<remarks>
+					<remark>
+						Example: echo the sum of x and y is (+ $x $y)
+					</remark>
+					</remarks>
+					<arguments>
+						<argument token="A" description="the first summand"/>
+						<argument token="B" description="the second summand"/>
+					</arguments>
+					<return token="N" description="the sum"/>
+				</command>
 
-			<command name="pop">
-			<arguments>
-				<argument token="A" description="alias"/>
-			</arguments>
-			<references>
-				<identifierReference identifier="push"/>
-			</references>
-			</command>
+				<command name="-">
+					<description>Performs a subtraction.</description>
+					<arguments>
+						<argument token="A" description="the minuend"/>
+						<argument token="B" description="the subtrahend"/>
+					</arguments>
+					<return token="N" description="the difference"/>
+				</command>
 
-			<command name="+">
-				<description>Performs an addition.</description>
-				<remarks>
-				<remark>
-					Example: echo the sum of x and y is (+ $x $y)
-				</remark>
-				</remarks>
-				<arguments>
-					<argument token="A" description="the first summand"/>
-					<argument token="B" description="the second summand"/>
-				</arguments>
-				<return token="N" description="the sum"/>
-			</command>
+				<command name="-f">
+					<description>Subtracts two floating-point numbers.</description>
+					<arguments>
+						<argument token="A" description="the minuend" valueNotes="float"/>
+						<argument token="B" description="the subtrahend" valueNotes="float"/>
+					</arguments>
+					<return token="F" description="the difference"/>
+				</command>
 
-			<command name="-">
-				<description>Performs a subtraction.</description>
-				<arguments>
-					<argument token="A" description="the minuend"/>
-					<argument token="B" description="the subtrahend"/>
-				</arguments>
-				<return token="N" description="the difference"/>
-			</command>
+				<command name="+f">
+					<description>Adds up two floating-point numbers.</description>
+					<arguments>
+						<argument token="A" description="the first summand" valueNotes="float"/>
+						<argument token="B" description="the second summand" valueNotes="float"/>
+					</arguments>
+					<return token="F" description="the sum"/>
+				</command>
 
-			<command name="-f">
-				<description>Subtracts two floating-point numbers.</description>
-				<arguments>
-					<argument token="A" description="the minuend" valueNotes="float"/>
-					<argument token="B" description="the subtrahend" valueNotes="float"/>
-				</arguments>
-				<return token="F" description="the difference"/>
-			</command>
+				<command name="*">
+					<description>Performs a multiplication.</description>
+					<arguments>
+						<argument token="A" description="the multiplicand"/>
+						<argument token="B" description="the multiplier"/>
+					</arguments>
+					<return token="N" description="the product"/>
+				</command>
 
-			<command name="+f">
-				<description>Adds up two floating-point numbers.</description>
-				<arguments>
-					<argument token="A" description="the first summand" valueNotes="float"/>
-					<argument token="B" description="the second summand" valueNotes="float"/>
-				</arguments>
-				<return token="F" description="the sum"/>
-			</command>
+				<command name="div">
+					<description>Performs an integer division.</description>
+					<arguments>
+						<argument token="A" description="the dividend"/>
+						<argument token="B" description="the divisor"/>
+					</arguments>
+					<return token="N" description="the quotient (integer)"/>
+				</command>
 
-			<command name="*">
-				<description>Performs a multiplication.</description>
-				<arguments>
-					<argument token="A" description="the multiplicand"/>
-					<argument token="B" description="the multiplier"/>
-				</arguments>
-				<return token="N" description="the product"/>
-			</command>
+				<command name="divf">
+					<description>Performs a division with floating-point precision.</description>
+					<arguments>
+						<argument token="A" description="" valueNotes="the dividend"/>
+						<argument token="B" description="" valueNotes="the divisor"/>
+					</arguments>
+					<return token="F" description="the quotient (floating-point)"/>
+				</command>
 
-			<command name="div">
-				<description>Performs an integer division.</description>
-				<arguments>
-					<argument token="A" description="the dividend"/>
-					<argument token="B" description="the divisor"/>
-				</arguments>
-				<return token="N" description="the quotient (integer)"/>
-			</command>
+				<command name="mod">
+					<description>Performs a modulo operation.</description>
+					<arguments>
+						<argument token="A" description="the dividend"/>
+						<argument token="B" description="the divisor"/>
+					</arguments>
+					<return token="N" description="the modulo value"/>
+				</command>
 
-			<command name="divf">
-				<description>Performs a division with floating-point precision.</description>
-				<arguments>
-					<argument token="A" description="" valueNotes="the dividend"/>
-					<argument token="B" description="" valueNotes="the divisor"/>
-				</arguments>
-				<return token="F" description="the quotient (floating-point)"/>
-			</command>
+				<command name="=">
+					<description>Determines if two values are equal.</description>
+					<arguments>
+						<argument token="A" description="first value"/>
+						<argument token="B" description="second value"/>
+					</arguments>
+					<return token="N" description="the equality" valueNotes="1 (equal) or 0 (not equal)"/>
+					<examples>
+					<example>
+						<code><![CDATA[echo there are only (concatword (= 1 1) (= 1 0)) types of people in the world]]></code>
+						<explanation>Output: there are only 10 types of people in the world</explanation>
+					</example>
+					</examples>
+				</command>
 
-			<command name="mod">
-				<description>Performs a modulo operation.</description>
-				<arguments>
-					<argument token="A" description="the dividend"/>
-					<argument token="B" description="the divisor"/>
-				</arguments>
-				<return token="N" description="the modulo value"/>
-			</command>
+				<command name="!=">
+					<description>Determines if two values are not equal.</description>
+					<arguments>
+						<argument token="A" description="first value"/>
+						<argument token="B" description="second value"/>
+					</arguments>
+					<return token="N" description="the inequality" valueNotes="1 (not equal) or 0 (equal)"/>
+				</command>
 
-			<command name="=">
-				<description>Determines if two values are equal.</description>
-				<arguments>
-					<argument token="A" description="first value"/>
-					<argument token="B" description="second value"/>
-				</arguments>
-				<return token="N" description="the equality" valueNotes="1 (equal) or 0 (not equal)"/>
-				<examples>
-				<example>
-					<code><![CDATA[echo there are only (concatword (= 1 1) (= 1 0)) types of people in the world]]></code>
-					<explanation>Output: there are only 10 types of people in the world</explanation>
-				</example>
-				</examples>
-			</command>
+				<command name="&lt;">
+					<description>Determines if a value is smaller than a second value.</description>
+					<arguments>
+						<argument token="A" description="the first value"/>
+						<argument token="B" description="the second value"/>
+					</arguments>
+					<return token="N" description="the comparison" valueNotes="1 (smaller) or 0 (not smaller)"/>
+				</command>
 
-			<command name="!=">
-				<description>Determines if two values are not equal.</description>
-				<arguments>
-					<argument token="A" description="first value"/>
-					<argument token="B" description="second value"/>
-				</arguments>
-				<return token="N" description="the inequality" valueNotes="1 (not equal) or 0 (equal)"/>
-			</command>
+				<command name="&gt;">
+					<description>Determines if a value is bigger than a second value.</description>
+					<arguments>
+						<argument token="A" description="the first value"/>
+						<argument token="B" description="the second value"/>
+					</arguments>
+					<return token="N" description="the comparison" valueNotes="1 (bigger) or 0 (not bigger)"/>
+				</command>
 
-			<command name="&lt;">
-				<description>Determines if a value is smaller than a second value.</description>
-				<arguments>
-					<argument token="A" description="the first value"/>
-					<argument token="B" description="the second value"/>
-				</arguments>
-				<return token="N" description="the comparison" valueNotes="1 (smaller) or 0 (not smaller)"/>
-			</command>
+				<command name="&lt;=">
+					<description>Determines if a values is less than or equal than a second value.</description>
+					<arguments>
+						<argument token="A" description="the first value"/>
+						<argument token="B" description="the second value"/>
+					</arguments>
+				</command>
 
-			<command name="&gt;">
-				<description>Determines if a value is bigger than a second value.</description>
-				<arguments>
-					<argument token="A" description="the first value"/>
-					<argument token="B" description="the second value"/>
-				</arguments>
-				<return token="N" description="the comparison" valueNotes="1 (bigger) or 0 (not bigger)"/>
-			</command>
+				<command name="&gt;=">
+					<description>Determines if a values is greater than or equal than a second value.</description>
+					<arguments>
+						<argument token="A" description="the first value"/>
+						<argument token="B" description="the second value"/>
+					</arguments>
+				</command>
 
-			<command name="&lt;=">
-				<description>Determines if a values is less than or equal than a second value.</description>
-				<arguments>
-					<argument token="A" description="the first value"/>
-					<argument token="B" description="the second value"/>
-				</arguments>
-			</command>
+				<command name="&amp;&amp;">
+					<description>logical AND.</description>
+					<examples>
+					<example>
+						<code><![CDATA[echo (&& 1 1)]]></code>
+						<explanation>Output: 1</explanation>
+					</example>
+					<example>
+						<code><![CDATA[echo (&& 1 0)]]></code>
+						<explanation>Output: 0</explanation>
+					</example>
+					</examples>
+					<arguments>
+						<argument token="A" description="first value"/>
+						<argument token="B" description="second value"/>
+					</arguments>
+					<return token="N" description="A AND B"/>
+				</command>
 
-			<command name="&gt;=">
-				<description>Determines if a values is greater than or equal than a second value.</description>
-				<arguments>
-					<argument token="A" description="the first value"/>
-					<argument token="B" description="the second value"/>
-				</arguments>
-			</command>
+				<command name="||">
+					<description>logical OR.</description>
+					<examples>
+					<example>
+						<code><![CDATA[echo (|| 1 0)]]></code>
+						<explanation>
+							output: 1
+						</explanation>
+					</example>
+					<example>
+						<code><![CDATA[echo (|| 0 0)]]></code>
+						<explanation>
+							output: 0
+						</explanation>
+					</example>
+					</examples>
+					<arguments>
+						<argument token="A" description="first value"/>
+						<argument token="B" description="second value"/>
+					</arguments>
+					<return token="N" description="A OR B"/>
+				</command>
 
-			<command name="&amp;&amp;">
-				<description>logical AND.</description>
-				<examples>
-				<example>
-					<code><![CDATA[echo (&& 1 1)]]></code>
-					<explanation>Output: 1</explanation>
-				</example>
-				<example>
-					<code><![CDATA[echo (&& 1 0)]]></code>
-					<explanation>Output: 0</explanation>
-				</example>
-				</examples>
-				<arguments>
-					<argument token="A" description="first value"/>
-					<argument token="B" description="second value"/>
-				</arguments>
-				<return token="N" description="A AND B"/>
-			</command>
+				<command name="!">
+					<description>Performs a negation.</description>
+					<arguments>
+						<argument token="A" description="argument"/>
+					</arguments>
+				</command>
 
-			<command name="||">
-				<description>logical OR.</description>
-				<examples>
-				<example>
-					<code><![CDATA[echo (|| 1 0)]]></code>
-					<explanation>
-						output: 1
-					</explanation>
-				</example>
-				<example>
-					<code><![CDATA[echo (|| 0 0)]]></code>
-					<explanation>
-						output: 0
-					</explanation>
-				</example>
-				</examples>
-				<arguments>
-					<argument token="A" description="first value"/>
-					<argument token="B" description="second value"/>
-				</arguments>
-				<return token="N" description="A OR B"/>
-			</command>
+				<command name="*f">
+					<description>Performs a floating point multiplication.</description>
+					<arguments>
+						<argument token="A" description="the multiplicand"/>
+						<argument token="B" description="the multiplier"/>
+					</arguments>
+					<return token="N" description="the product"/>
+				</command>
 
-			<command name="!">
-				<description>Performs a negation.</description>
-				<arguments>
-					<argument token="A" description="argument"/>
-				</arguments>
-			</command>
+				<command name="rnd">
+					<description>Random value</description>
+					<arguments>
+						<argument token="A" description="The upper limit of the random value" valueNotes=""/>
+					</arguments>
+					<return token="R" description="The random value" valueNotes="larger or equal 0 and smaller than A"/>
+				</command>
 
-			<command name="*f">
-				<description>Performs a floating point multiplication.</description>
-				<arguments>
-					<argument token="A" description="the multiplicand"/>
-					<argument token="B" description="the multiplier"/>
-				</arguments>
-				<return token="N" description="the product"/>
-			</command>
+				<command name="strcmp">
+					<description>Determines if two strings are equal.</description>
+					<arguments>
+						<argument token="A" description="the first string"/>
+						<argument token="B" description="the second string"/>
+					</arguments>
+					<return token="N" description="the equality" valueNotes="1 (equal) or 0 (unequal)"/>
+				</command>
 
-			<command name="rnd">
-				<description>Random value</description>
-				<arguments>
-					<argument token="A" description="The upper limit of the random value" valueNotes=""/>
-				</arguments>
-				<return token="R" description="The random value" valueNotes="larger or equal 0 and smaller than A"/>
-			</command>
+				<command name="if">
+					<description>Controls the script flow based on a boolean expression.</description>
+					<examples>
+					<example>
+						<code><![CDATA[if (> $x 10) [ echo x is bigger than 10 ] [ echo x too small ]]]></code>
+					</example>
+					</examples>
+					<arguments>
+						<argument token="cond" description="the condition" valueNotes="0 (false) or anything else (true)"/>
+						<argument token="true" description="the body to execute if the condition is true"/>
+						<argument token="false" description="the body to execute if the condition is false"/>
+					</arguments>
+				</command>
 
-			<command name="strcmp">
-				<description>Determines if two strings are equal.</description>
-				<arguments>
-					<argument token="A" description="the first string"/>
-					<argument token="B" description="the second string"/>
-				</arguments>
-				<return token="N" description="the equality" valueNotes="1 (equal) or 0 (unequal)"/>
-			</command>
+				<command name="loop">
+					<description>Loops the specified body.</description>
+					<remarks>
+						<remark>This command sets the alias you choose, as first argument, from 0 to N-1 for every iteration.</remark>
+					</remarks>
+					<examples>
+					<example>
+						<code><![CDATA[loop i 10 [ echo $i ]]]></code>
+					</example>
+					</examples>
+					<arguments>
+						<argument token="V" description="the alias used as counter"/>
+						<argument token="N" description="the amount of loops"/>
+						<argument token="body" description="the body to execute on each iteration"/>
+					</arguments>
+				</command>
 
-			<command name="if">
-				<description>Controls the script flow based on a boolean expression.</description>
-				<examples>
-				<example>
-					<code><![CDATA[if (> $x 10) [ echo x is bigger than 10 ] [ echo x too small ]]]></code>
-				</example>
-				</examples>
-				<arguments>
-					<argument token="cond" description="the condition" valueNotes="0 (false) or anything else (true)"/>
-					<argument token="true" description="the body to execute if the condition is true"/>
-					<argument token="false" description="the body to execute if the condition is false"/>
-				</arguments>
-			</command>
+				<command name="while">
+					<description>Loops the specified body while the condition evaluates to true.</description>
+					<remarks>
+					<remark>
+						This command sets the alias "i" from 0 to N-1 for every iteration.
+						Note that the condition here has to have [], otherwise it would only be evaluated once.
+					</remark>
+					</remarks>
+					<examples>
+					<example>
+						<code><![CDATA[alias i 0; while [ (< $i 10) ] [ echo $i; alias i (+ $i 1) ]]]></code>
+					</example>
+					</examples>
+					<arguments>
+						<argument token="cond" description="the condition" valueNotes="0 (false) or anything else (true)"/>
+						<argument token="body" description="the body to execute on each iteration"/>
+					</arguments>
+				</command>
 
-			<command name="loop">
-				<description>Loops the specified body.</description>
-				<remarks>
-					<remark>This command sets the alias you choose, as first argument, from 0 to N-1 for every iteration.</remark>
-				</remarks>
-				<examples>
-				<example>
-					<code><![CDATA[loop i 10 [ echo $i ]]]></code>
-				</example>
-				</examples>
-				<arguments>
-					<argument token="V" description="the alias used as counter"/>
-					<argument token="N" description="the amount of loops"/>
-					<argument token="body" description="the body to execute on each iteration"/>
-				</arguments>
-			</command>
+				<command name="concat">
+					<description>Concatenates multiple strings with spaces inbetween.</description>
+					<examples>
+					<example>
+						<code><![CDATA[alias a "hello"; echo (concat $a "world")]]></code>
+						<explanation>output: hello world</explanation>
+					</example>
+					</examples>
+					<arguments>
+						<argument token="S" description="the first string"/>
+						<variableArgument token="..." description="collection of strings to concatenate"/>
+					</arguments>
+					<return token="R" description="The newly created string"/>
+				</command>
 
-			<command name="while">
-				<description>Loops the specified body while the condition evaluates to true.</description>
-				<remarks>
-				<remark>
-					This command sets the alias "i" from 0 to N-1 for every iteration.
-					Note that the condition here has to have [], otherwise it would only be evaluated once.
-				</remark>
-				</remarks>
-				<examples>
-				<example>
-					<code><![CDATA[alias i 0; while [ (< $i 10) ] [ echo $i; alias i (+ $i 1) ]]]></code>
-				</example>
-				</examples>
-				<arguments>
-					<argument token="cond" description="the condition" valueNotes="0 (false) or anything else (true)"/>
-					<argument token="body" description="the body to execute on each iteration"/>
-				</arguments>
-			</command>
+				<command name="concatword">
+					<description>Concatenates multiple strings.</description>
+					<remarks>
+						<remark>The newly created string is saved to the alias 's'.</remark>
+					</remarks>
+					<examples>
+					<example>
+						<code><![CDATA[alias a "Cube"; echo (concatword $a "Script")]]></code>
+						<explanation>output: CubeScript</explanation>
+					</example>
+					</examples>
+					<arguments>
+						<argument token="S" description="the first string"/>
+						<variableArgument token="..." description="collection of strings to concatenate"/>
+					</arguments>
+					<return token="R" description="The newly created string"/>
+				</command>
 
-			<command name="concat">
-				<description>Concatenates multiple strings with spaces inbetween.</description>
-				<examples>
-				<example>
-					<code><![CDATA[alias a "hello"; echo (concat $a "world")]]></code>
-					<explanation>output: hello world</explanation>
-				</example>
-				</examples>
-				<arguments>
-					<argument token="S" description="the first string"/>
-					<variableArgument token="..." description="collection of strings to concatenate"/>
-				</arguments>
-				<return token="R" description="The newly created string"/>
-			</command>
+				<command name="at">
+					<description>Grabs a word out of a string.</description>
+					<examples>
+					<example>
+						<code><![CDATA[echo (at "zero one two three" 2)]]></code>
+						<explanation>output: two</explanation>
+					</example>
+					</examples>
+					<arguments>
+						<argument token="S" description="the string"/>
+						<argument token="N" description="the index of the word"/>
+					</arguments>
+					<return token="W" description="the word from the specified idex"/>
+				</command>
 
-			<command name="concatword">
-				<description>Concatenates multiple strings.</description>
-				<remarks>
-					<remark>The newly created string is saved to the alias 's'.</remark>
-				</remarks>
-				<examples>
-				<example>
-					<code><![CDATA[alias a "Cube"; echo (concatword $a "Script")]]></code>
-					<explanation>output: CubeScript</explanation>
-				</example>
-				</examples>
-				<arguments>
-					<argument token="S" description="the first string"/>
-					<variableArgument token="..." description="collection of strings to concatenate"/>
-				</arguments>
-				<return token="R" description="The newly created string"/>
-			</command>
+				<command name="listlen">
+					<description>returns the element count of the given list.</description>
+					<arguments>
+						<argument token="L" description="the list"/>
+					</arguments>
+				</command>
 
-			<command name="at">
-				<description>Grabs a word out of a string.</description>
-				<examples>
-				<example>
-					<code><![CDATA[echo (at "zero one two three" 2)]]></code>
-					<explanation>output: two</explanation>
-				</example>
-				</examples>
-				<arguments>
-					<argument token="S" description="the string"/>
-					<argument token="N" description="the index of the word"/>
-				</arguments>
-				<return token="W" description="the word from the specified idex"/>
-			</command>
+				<command name="findlist">
+					<description>Searches a list for a specified value.</description>
+					<arguments>
+						<argument token="L" description="the list"/>
+						<argument token="I" description="the item to find"/>
+					</arguments>
+					<return token="I" description="the index of the item in the list"/>
+				</command>
 
-			<command name="listlen">
-				<description>returns the element count of the given list.</description>
-				<arguments>
-					<argument token="L" description="the list"/>
-				</arguments>
-			</command>
+				<command name="sleep">
+					<description>Executes a command after specified time period.</description>
+					<examples>
+					<example>
+						<code><![CDATA[sleep 1000 [ echo foo ]]]></code>
+						<explanation>Prints 'foo' to the screen after 1 second.</explanation>
+					</example>
+					</examples>
+					<arguments>
+						<argument token="N" description="the amount of milliseconds"/>
+						<argument token="C" description="the command to execute"/>
+					</arguments>
+				</command>
 
-			<command name="findlist">
-				<description>Searches a list for a specified value.</description>
-				<arguments>
-					<argument token="L" description="the list"/>
-					<argument token="I" description="the item to find"/>
-				</arguments>
-				<return token="I" description="the index of the item in the list"/>
-			</command>
+				<variable name="numargs">
+					<description>The number of arguments passed to the current alias</description>
+					<value token="V" description="numargs" minValue="0" maxValue="25" defaultValue="0" readOnly="true"/>
+				</variable>
 
-			<command name="sleep">
-				<description>Executes a command after specified time period.</description>
-				<examples>
-				<example>
-					<code><![CDATA[sleep 1000 [ echo foo ]]]></code>
-					<explanation>Prints 'foo' to the screen after 1 second.</explanation>
-				</example>
-				</examples>
-				<arguments>
-					<argument token="N" description="the amount of milliseconds"/>
-					<argument token="C" description="the command to execute"/>
-				</arguments>
-			</command>
-
-			<variable name="numargs">
-				<description>The number of arguments passed to the current alias</description>
-				<value token="V" description="numargs" minValue="0" maxValue="25" defaultValue="0" readOnly="true"/>
-			</variable>
-
-			<command name="format">
-				<arguments>
-					<argument token="F" description="format" valueNotes="use %1..%9 for the values"/>
-					<argument token="V" description="value(s)"/>
-				</arguments>
-				<examples>
-				<example>
-					<code><![CDATA[echo (format "%1 bottles of %2 on the %3, %1 bottles of %2!" 99 beer wall)]]></code>
-					<explanation>output: 99 bottles of beer on the wall, 99 bottles of beer!</explanation>
-				</example>
-				</examples>
-			</command>
+				<command name="format">
+					<arguments>
+						<argument token="F" description="format" valueNotes="use %1..%9 for the values"/>
+						<argument token="V" description="value(s)"/>
+					</arguments>
+					<examples>
+					<example>
+						<code><![CDATA[echo (format "%1 bottles of %2 on the %3, %1 bottles of %2!" 99 beer wall)]]></code>
+						<explanation>output: 99 bottles of beer on the wall, 99 bottles of beer!</explanation>
+					</example>
+					</examples>
+				</command>
 
 			</identifiers>
 		</section>
@@ -490,507 +490,507 @@
 		<!-- General Section Starts -->
 		<section name="General" sortindex="01">
 			<description>This section describes general identifiers.</description>
-			<identifiers sort="true">
-			
-			<variable name="autoscreenshot">
-				<description>Toggle for taking an automatic screenshot during intermission.</description>
-				<value token="B" description="0=Off, 1=On" minValue="0" maxValue="1" defaultValue="1"/>
-			</variable>
+				<identifiers sort="true">
+				
+				<variable name="autoscreenshot">
+					<description>Toggle for taking an automatic screenshot during intermission.</description>
+					<value token="B" description="0=Off, 1=On" minValue="0" maxValue="1" defaultValue="1"/>
+				</variable>
 
-			<variable name="screenshottype">
-				<description>Toggle format of screenshot image. Your choice is for BMP (0) or JPEG (1).</description>
-				<value token="T" description="0=BMP, 1=JPEG" minValue="0" maxValue="1" defaultValue="1"/>
-			</variable>
+				<variable name="screenshottype">
+					<description>Toggle format of screenshot image. Your choice is for BMP (0) or JPEG (1).</description>
+					<value token="T" description="0=BMP, 1=JPEG" minValue="0" maxValue="1" defaultValue="1"/>
+				</variable>
 
-			<variable name="jpegquality">
-				<description>Sets the JPEG screenshot image quality.</description>
-				<remarks>
-					<remark>The image quality is set by it's compression level, a value of 10 sets maximum compression and a small file size but results in a bad quality image</remark>
-					<remark>while a value of 100 results in a large file but gives the best quality image.</remark>
-				</remarks>
-				<value token="N" description="Compression level" minValue="10" maxValue="100" defaultValue="70" />
-			</variable>
+				<variable name="jpegquality">
+					<description>Sets the JPEG screenshot image quality.</description>
+					<remarks>
+						<remark>The image quality is set by it's compression level, a value of 10 sets maximum compression and a small file size but results in a bad quality image</remark>
+						<remark>while a value of 100 results in a large file but gives the best quality image.</remark>
+					</remarks>
+					<value token="N" description="Compression level" minValue="10" maxValue="100" defaultValue="70" />
+				</variable>
 
-			<command name="soundtest">
-				<description>Plays all hardcoded sounds in order.</description>
-			</command>
+				<command name="soundtest">
+					<description>Plays all hardcoded sounds in order.</description>
+				</command>
 
-			<command name="writecfg">
-				<description>writes current configuration to config/saved.cfg - automatic on quit</description>
-			</command>
+				<command name="writecfg">
+					<description>writes current configuration to config/saved.cfg - automatic on quit</description>
+				</command>
 
-			<command name="registermusic">
-				<description>registers a track as music - the first three tracks have special meaning. Track #1 is for "flag grab" the second and third are used as "last minute" tracks.</description>
-				<arguments>
-					<argument token="M" description="music file"/>
-				</arguments>
-			</command>
+				<command name="registermusic">
+					<description>registers a track as music - the first three tracks have special meaning. Track #1 is for "flag grab" the second and third are used as "last minute" tracks.</description>
+					<arguments>
+						<argument token="M" description="music file"/>
+					</arguments>
+				</command>
 
-			<command name="echo">
-				<arguments>
-					<argument token="L" description="List of strings"/>
-				</arguments>
-			</command>
+				<command name="echo">
+					<arguments>
+						<argument token="L" description="List of strings"/>
+					</arguments>
+				</command>
 
-			<command name="debugargs">
-				<description>Dump all command arguments to STDOUT</description>
-				<arguments>
-					<variableArgument token="..." description="..."/>
-				</arguments>
-			</command>
+				<command name="debugargs">
+					<description>Dump all command arguments to STDOUT</description>
+					<arguments>
+						<variableArgument token="..." description="..."/>
+					</arguments>
+				</command>
 
-			<command name="clearservers">
-			</command>
-			
-			<variable name="browsefiledesc">
-				<description>Toggles getting descriptive text from CGZ or DMO files in menudirlist.</description>
-				<value token="B" description="" minValue="0" maxValue="1" defaultValue="1"/>
-				<references>
-					<identifierReference identifier="menudirlist"/>
-				</references>
-			</variable>
+				<command name="clearservers">
+				</command>
+				
+				<variable name="browsefiledesc">
+					<description>Toggles getting descriptive text from CGZ or DMO files in menudirlist.</description>
+					<value token="B" description="" minValue="0" maxValue="1" defaultValue="1"/>
+					<references>
+						<identifierReference identifier="menudirlist"/>
+					</references>
+				</variable>
 
-			<variable name="physinterp">
-				<description>Toggles physics interpolation.</description>
-				<value token="B" description="" minValue="0" maxValue="1" defaultValue="1"/>
-			</variable>
+				<variable name="physinterp">
+					<description>Toggles physics interpolation.</description>
+					<value token="B" description="" minValue="0" maxValue="1" defaultValue="1"/>
+				</variable>
 
-			<command name="menudirlist">
-				<description>create a menu listing of files from a path and perform an action on them when clicked.</description>
-				<remarks>
-					<remark>use this inside menu definitions, almost always as the only command of that menu.</remark>
-					<remark>compare the usage inside config/menus.cfg</remark>
-				</remarks>
-				<arguments>
-					<argument token="" description=""/>
-				</arguments>
-				<examples>
-				<example>
-					<code><![CDATA[menudirlist "packages/maps" "cgz" "map $arg1"]]></code>
-					<explanation>will create a list of maps and load them when clicked</explanation>
-				</example>
-				</examples>
-				<references>
-					<identifierReference identifier="newmenu"/>
-					<identifierReference identifier="browsefiledesc"/>
-				</references>
-			</command>
+				<command name="menudirlist">
+					<description>create a menu listing of files from a path and perform an action on them when clicked.</description>
+					<remarks>
+						<remark>use this inside menu definitions, almost always as the only command of that menu.</remark>
+						<remark>compare the usage inside config/menus.cfg</remark>
+					</remarks>
+					<arguments>
+						<argument token="" description=""/>
+					</arguments>
+					<examples>
+					<example>
+						<code><![CDATA[menudirlist "packages/maps" "cgz" "map $arg1"]]></code>
+						<explanation>will create a list of maps and load them when clicked</explanation>
+					</example>
+					</examples>
+					<references>
+						<identifierReference identifier="newmenu"/>
+						<identifierReference identifier="browsefiledesc"/>
+					</references>
+				</command>
 
-			<command name="toggleconsole">
-				<description>Toggles the console.</description>
-			</command>
+				<command name="toggleconsole">
+					<description>Toggles the console.</description>
+				</command>
 
-			<command name="jump">
-				<description>Triggers a jump.</description>
-				<remarks>
-					<remark>default keys: space and right mouse.</remark>
-				</remarks>
-			</command>
+				<command name="jump">
+					<description>Triggers a jump.</description>
+					<remarks>
+						<remark>default keys: space and right mouse.</remark>
+					</remarks>
+				</command>
 
-			<command name="updatefrommaster">
-				<description>Contacts the masterserver and adds any new servers to the server list.</description>
-				<remarks>
-					<remark>The servers are written to the config/servers.cfg file. This menu can be reached through the Multiplayer menu.</remark>
-				</remarks>
-				<arguments>
-					<argument token="B" description="force update" valueNotes="0 (delayed), 1 (immediate)"/>
-				</arguments>
-			</command>
+				<command name="updatefrommaster">
+					<description>Contacts the masterserver and adds any new servers to the server list.</description>
+					<remarks>
+						<remark>The servers are written to the config/servers.cfg file. This menu can be reached through the Multiplayer menu.</remark>
+					</remarks>
+					<arguments>
+						<argument token="B" description="force update" valueNotes="0 (delayed), 1 (immediate)"/>
+					</arguments>
+				</command>
 
-			<command name="millis">
-				<description>Returns the number of milliseconds since engine start.</description>
-				<examples>
-				<example>
-					<code><![CDATA[echo (millis)]]></code>
-				</example>
-				</examples>
-				<return token="N" description="the milliseconds"/>
-			</command>
+				<command name="millis">
+					<description>Returns the number of milliseconds since engine start.</description>
+					<examples>
+					<example>
+						<code><![CDATA[echo (millis)]]></code>
+					</example>
+					</examples>
+					<return token="N" description="the milliseconds"/>
+				</command>
 
-			<command name="systime">
-				<description>seconds since the epoch (00:00:00 UTC on January 1, 1970)</description>
-				<examples>
-				<example>
-					<code><![CDATA[echo (systime)]]></code>
-				</example>
-				</examples>
-			</command>
+				<command name="systime">
+					<description>seconds since the epoch (00:00:00 UTC on January 1, 1970)</description>
+					<examples>
+					<example>
+						<code><![CDATA[echo (systime)]]></code>
+					</example>
+					</examples>
+				</command>
 
-			<command name="timestamp">
-				<description>a list of values for current time</description>
-				<remarks>
-					<remark>format: YYYY mm dd HH MM SS</remark>
-				</remarks>
-				<examples>
-				<example>
-					<code><![CDATA[echo (timestamp) "2008 08 08 08 08 08"]]></code>
-				</example>
-				<example>
-					<code><![CDATA[echo (timestamp) "2063 04 05 12 00 00"]]></code>
-				</example>
-				<example>
-					<code><![CDATA[echo (at (timestamp) 0) (at (timestamp) 2) (at (timestamp) 1) "2063 05 04"]]></code>
-				</example>
-				</examples>
-			</command>
+				<command name="timestamp">
+					<description>a list of values for current time</description>
+					<remarks>
+						<remark>format: YYYY mm dd HH MM SS</remark>
+					</remarks>
+					<examples>
+					<example>
+						<code><![CDATA[echo (timestamp) "2008 08 08 08 08 08"]]></code>
+					</example>
+					<example>
+						<code><![CDATA[echo (timestamp) "2063 04 05 12 00 00"]]></code>
+					</example>
+					<example>
+						<code><![CDATA[echo (at (timestamp) 0) (at (timestamp) 2) (at (timestamp) 1) "2063 05 04"]]></code>
+					</example>
+					</examples>
+				</command>
 
-			<command name="datestring">
-				<description>representation of date</description>
-				<remarks>
-					<remark>format: Www Mmm dd hh:mm:ss yyyy</remark>
-					<remark>Use timestamp to create your own formatting.</remark>
-				</remarks>
-				<examples>
-				<example>
-					<code><![CDATA[echo (datestring) "Sat Jun  7 17:08:35 2008"]]></code>
-				</example>
-				</examples>
-			</command>
+				<command name="datestring">
+					<description>representation of date</description>
+					<remarks>
+						<remark>format: Www Mmm dd hh:mm:ss yyyy</remark>
+						<remark>Use timestamp to create your own formatting.</remark>
+					</remarks>
+					<examples>
+					<example>
+						<code><![CDATA[echo (datestring) "Sat Jun  7 17:08:35 2008"]]></code>
+					</example>
+					</examples>
+				</command>
 
-			<command name="timestring">
-				<description>the current time in (H)H:MM:SS format</description>
-				<examples>
-				<example>
-					<code><![CDATA[echo (timestring) "12:34:56"]]></code>
-				</example>
-				<example>
-					<code><![CDATA[echo (timestring) "1:02:03"]]></code>
-				</example>
-				</examples>
-			</command>
+				<command name="timestring">
+					<description>the current time in (H)H:MM:SS format</description>
+					<examples>
+					<example>
+						<code><![CDATA[echo (timestring) "12:34:56"]]></code>
+					</example>
+					<example>
+						<code><![CDATA[echo (timestring) "1:02:03"]]></code>
+					</example>
+					</examples>
+				</command>
 
-			<command name="bind">
-				<description>Binds a key to a command.</description>
-				<remarks>
-				<remark>
-					To find out what key names and their default bindings are, look at config/keymap.cfg,
-					then add bind commands to your autoexec.cfg.
-				</remark>
-				</remarks>
-				<arguments>
-					<argument token="K" description="the key to bind" valueNotes="string"/>
-					<argument token="A" description="the command" valueNotes="string, usually an alias"/>
-				</arguments>
-			</command>
+				<command name="bind">
+					<description>Binds a key to a command.</description>
+					<remarks>
+					<remark>
+						To find out what key names and their default bindings are, look at config/keymap.cfg,
+						then add bind commands to your autoexec.cfg.
+					</remark>
+					</remarks>
+					<arguments>
+						<argument token="K" description="the key to bind" valueNotes="string"/>
+						<argument token="A" description="the command" valueNotes="string, usually an alias"/>
+					</arguments>
+				</command>
 
-			<command name="onrelease">
-				<description>Executes a command on the release of a key/button.</description>
-				<remarks>
-					<remark>This command must be placed in an action in a bind or in an alias in a bind.</remark>
-				</remarks>
-				<examples>
-				<example>
-					<code><![CDATA[bind CTRL [ echo "key pressed"; onrelease [ echo "key released" ] ]]]></code>
-				</example>
-				</examples>
-				<references>
-					<identifierReference identifier="bind"/>
-				</references>
-				<arguments>
-					<argument token="A" description="the command"/>
-				</arguments>
-			</command>
+				<command name="onrelease">
+					<description>Executes a command on the release of a key/button.</description>
+					<remarks>
+						<remark>This command must be placed in an action in a bind or in an alias in a bind.</remark>
+					</remarks>
+					<examples>
+					<example>
+						<code><![CDATA[bind CTRL [ echo "key pressed"; onrelease [ echo "key released" ] ]]]></code>
+					</example>
+					</examples>
+					<references>
+						<identifierReference identifier="bind"/>
+					</references>
+					<arguments>
+						<argument token="A" description="the command"/>
+					</arguments>
+				</command>
 
-			<command name="alias">
-				<description>Binds a name to commands.</description>
-				<arguments>
-					<argument token="N" description="the name of the alias" valueNotes="string, must not contain '$'"/>
-					<argument token="A" description="the commands" valueNotes="string"/>
-				</arguments>
-				<examples>
-				<example>
-					<code><![CDATA[alias myalias [ echo "hello world"; alias myalias [ echo "I already said hello" ] ]]]></code>
-					<explanation>It is possible to re-bind an alias, even during its evaluation.</explanation>
-				</example>
-				<example>
-					<code><![CDATA[test = [ echo "successful" ]]]></code>
-					<explanation>There is also the shorthand version of defining an alias via the "="-sign.</explanation>
-				</example>
-				</examples>
-			</command>
+				<command name="alias">
+					<description>Binds a name to commands.</description>
+					<arguments>
+						<argument token="N" description="the name of the alias" valueNotes="string, must not contain '$'"/>
+						<argument token="A" description="the commands" valueNotes="string"/>
+					</arguments>
+					<examples>
+					<example>
+						<code><![CDATA[alias myalias [ echo "hello world"; alias myalias [ echo "I already said hello" ] ]]]></code>
+						<explanation>It is possible to re-bind an alias, even during its evaluation.</explanation>
+					</example>
+					<example>
+						<code><![CDATA[test = [ echo "successful" ]]]></code>
+						<explanation>There is also the shorthand version of defining an alias via the "="-sign.</explanation>
+					</example>
+					</examples>
+				</command>
 
-			<command name="quit">
-				<description>Quits the game without asking.</description>
-			</command>
+				<command name="quit">
+					<description>Quits the game without asking.</description>
+				</command>
 
-			<command name="forward">
-				<description>Moves the player forward.</description>
-				<remarks>
-					<remark>default keys: W and Up Arrow</remark>
-				</remarks>
-			</command>
+				<command name="forward">
+					<description>Moves the player forward.</description>
+					<remarks>
+						<remark>default keys: W and Up Arrow</remark>
+					</remarks>
+				</command>
 
-			<command name="backward">
-				<description>Moves the player backward.</description>
-				<remarks>
-					<remark>default keys: S and Down Arrow</remark>
-				</remarks>
-			</command>
+				<command name="backward">
+					<description>Moves the player backward.</description>
+					<remarks>
+						<remark>default keys: S and Down Arrow</remark>
+					</remarks>
+				</command>
 
-			<command name="left">
-				<description>Moves the player left.</description>
-				<remarks>
-					<remark>default keys: A and Left Arrow</remark>
-				</remarks>
-			</command>
+				<command name="left">
+					<description>Moves the player left.</description>
+					<remarks>
+						<remark>default keys: A and Left Arrow</remark>
+					</remarks>
+				</command>
 
-			<command name="right">
-				<description>Moves the player right.</description>
-				<remarks>
-					<remark>default keys: D and Right Arrow</remark>
-				</remarks>
-			</command>
+				<command name="right">
+					<description>Moves the player right.</description>
+					<remarks>
+						<remark>default keys: D and Right Arrow</remark>
+					</remarks>
+				</command>
 
-			<command name="attack">
-				<description>Fires the current weapon.</description>
-				<remarks>
-					<remark>default: left mouse button</remark>
-				</remarks>
-			</command>
+				<command name="attack">
+					<description>Fires the current weapon.</description>
+					<remarks>
+						<remark>default: left mouse button</remark>
+					</remarks>
+				</command>
 
-			<command name="invmouse">
-				<description>Sets mouse to "flight sim" mode.</description>
-				<arguments>
-					<argument token="B" description="sets invmouse" valueNotes="0 (off), else (on)"/>
-				</arguments>
-			</command>
+				<command name="invmouse">
+					<description>Sets mouse to "flight sim" mode.</description>
+					<arguments>
+						<argument token="B" description="sets invmouse" valueNotes="0 (off), else (on)"/>
+					</arguments>
+				</command>
 
-			<command name="screenshot">
-				<description>Takes a screenshot.</description>
-				<remarks>
-				<remark>
-					Screenshots are saved to "screenshots/screenshotN.bmp",
-					where N is the number of milliseconds since the game was launched.
-				</remark>
-				</remarks>
-				<defaultKeys>
-					<key alias="F12"/>
-				</defaultKeys>
-			</command>
+				<command name="screenshot">
+					<description>Takes a screenshot.</description>
+					<remarks>
+					<remark>
+						Screenshots are saved to "screenshots/screenshotN.bmp",
+						where N is the number of milliseconds since the game was launched.
+					</remark>
+					</remarks>
+					<defaultKeys>
+						<key alias="F12"/>
+					</defaultKeys>
+				</command>
 
-			<command name="exec">
-				<description>Executes all commands in a specified config file.</description>
-				<arguments>
-					<argument token="C" description="the config file"/>
-				</arguments>
-			</command>
+				<command name="exec">
+					<description>Executes all commands in a specified config file.</description>
+					<arguments>
+						<argument token="C" description="the config file"/>
+					</arguments>
+				</command>
 
-			<command name="keymap">
-				<description>Sets up the keymap for the specified key.</description>
-				<remarks>
-					<remark>You should never have to use this command manually, use "bind" instead.</remark>
-				</remarks>
-				<references>
-					<identifierReference identifier="bind"/>
-				</references>
-				<arguments>
-					<argument token="K" description="the key to map"/>
-					<argument token="N" description="the name for the key"/>
-					<argument token="A" description="the default action"/>
-				</arguments>
-			</command>
+				<command name="keymap">
+					<description>Sets up the keymap for the specified key.</description>
+					<remarks>
+						<remark>You should never have to use this command manually, use "bind" instead.</remark>
+					</remarks>
+					<references>
+						<identifierReference identifier="bind"/>
+					</references>
+					<arguments>
+						<argument token="K" description="the key to map"/>
+						<argument token="N" description="the name for the key"/>
+						<argument token="A" description="the default action"/>
+					</arguments>
+				</command>
 
-			<command name="sensitivity">
-				<description>Sets the mouse sensitivity.</description>
-				<arguments>
-					<argument token="S" description="the sensitivity" valueNotes="floating-point"/>
-				</arguments>
-			</command>
+				<command name="sensitivity">
+					<description>Sets the mouse sensitivity.</description>
+					<arguments>
+						<argument token="S" description="the sensitivity" valueNotes="floating-point"/>
+					</arguments>
+				</command>
 
-			<command name="addserver">
-				<description>Adds a server to the list of server to query in the server list menu.</description>
-				<arguments>
-					<argument token="S" description="the address of the server (hostname or IP)"/>
-					<argument token="P" description="the port"/>
-				</arguments>
-			</command>
+				<command name="addserver">
+					<description>Adds a server to the list of server to query in the server list menu.</description>
+					<arguments>
+						<argument token="S" description="the address of the server (hostname or IP)"/>
+						<argument token="P" description="the port"/>
+					</arguments>
+				</command>
 
-			<command name="resetsecuremaps">
-				<description>Clears the list of secured maps.</description>
-				<references>
-					<identifierReference identifier="securemap"/>
-				</references>
-			</command>
+				<command name="resetsecuremaps">
+					<description>Clears the list of secured maps.</description>
+					<references>
+						<identifierReference identifier="securemap"/>
+					</references>
+				</command>
 
-			<command name="securemap">
-				<description>Adds a map to the list of secured maps.</description>
-				<remarks>
-					<remark>Secured maps can not be overwritten by the commands sendmap and getmap.</remark>
-				</remarks>
-				<references>
-					<identifierReference identifier="resetsecuremaps"/>
-					<identifierReference identifier="sendmap"/>
-					<identifierReference identifier="getmap"/>
-				</references>
-				<arguments>
-					<argument token="S" description="the name of the map"/>
-				</arguments>
-			</command>
+				<command name="securemap">
+					<description>Adds a map to the list of secured maps.</description>
+					<remarks>
+						<remark>Secured maps can not be overwritten by the commands sendmap and getmap.</remark>
+					</remarks>
+					<references>
+						<identifierReference identifier="resetsecuremaps"/>
+						<identifierReference identifier="sendmap"/>
+						<identifierReference identifier="getmap"/>
+					</references>
+					<arguments>
+						<argument token="S" description="the name of the map"/>
+					</arguments>
+				</command>
 
-			<variable name="networkdebug">
-				<description>Enables output of processed network packets.</description>
-				<remarks>
-					<remark>This variable only has an effect if the client binary is compiled in debug mode.</remark>
-				</remarks>
-				<value token="B" description="enable network debugging" minValue="0" maxValue="1" defaultValue="0"/>
-			</variable>
+				<variable name="networkdebug">
+					<description>Enables output of processed network packets.</description>
+					<remarks>
+						<remark>This variable only has an effect if the client binary is compiled in debug mode.</remark>
+					</remarks>
+					<value token="B" description="enable network debugging" minValue="0" maxValue="1" defaultValue="0"/>
+				</variable>
 
-			<variable name="autogetmap">
-				<description>Determines if the current played map should be automatically downloaded if it is not available locally.</description>
-				<value token="B" description="enable auto map download" minValue="0" maxValue="1" defaultValue="1"/>
-			</variable>
+				<variable name="autogetmap">
+					<description>Determines if the current played map should be automatically downloaded if it is not available locally.</description>
+					<value token="B" description="enable auto map download" minValue="0" maxValue="1" defaultValue="1"/>
+				</variable>
 
-			<variable name="autogetnewmaprevisions">
-				<description>Automatically get new map revisions from the server.</description>
-				<value token="N" description="0: no, 1: yes" minValue="0" maxValue="1" defaultValue="0" />
-			</variable>
+				<variable name="autogetnewmaprevisions">
+					<description>Automatically get new map revisions from the server.</description>
+					<value token="N" description="0: no, 1: yes" minValue="0" maxValue="1" defaultValue="0" />
+				</variable>
 
-			<variable name="clockerror">
-				<description>Sets the correction value for clockfix.</description>
-				<remarks>
-					<remark>Engine source-code snippet (main.cpp): if(clockfix) millis = int(millis*(double(clockerror)/1000000));</remark>
-				</remarks>
-				<references>
-					<identifierReference identifier="clockfix"/>
-				</references>
-				<value token="V" description="correction value" minValue="990000" maxValue="1010000" defaultValue="1000000"/>
-			</variable>
+				<variable name="clockerror">
+					<description>Sets the correction value for clockfix.</description>
+					<remarks>
+						<remark>Engine source-code snippet (main.cpp): if(clockfix) millis = int(millis*(double(clockerror)/1000000));</remark>
+					</remarks>
+					<references>
+						<identifierReference identifier="clockfix"/>
+					</references>
+					<value token="V" description="correction value" minValue="990000" maxValue="1010000" defaultValue="1000000"/>
+				</variable>
 
-			<variable name="clockfix">
-				<description>Enables correction of the system clock.</description>
-				<references>
-					<identifierReference identifier="clockerror"/>
-				</references>
-				<value token="B" description="enable correction" minValue="0" maxValue="1" defaultValue="0"/>
-			</variable>
+				<variable name="clockfix">
+					<description>Enables correction of the system clock.</description>
+					<references>
+						<identifierReference identifier="clockerror"/>
+					</references>
+					<value token="B" description="enable correction" minValue="0" maxValue="1" defaultValue="0"/>
+				</variable>
 
-			<variable name="dbgts">
-				<description>Enable triangle debug.</description>
-				<remarks>
-					<remark>Prints details while connecting triangles of 3d models.</remark>
-				</remarks>
-				<value token="B" description="triangle debug" minValue="0" maxValue="1" defaultValue="0"/>
-			</variable>
+				<variable name="dbgts">
+					<description>Enable triangle debug.</description>
+					<remarks>
+						<remark>Prints details while connecting triangles of 3d models.</remark>
+					</remarks>
+					<value token="B" description="triangle debug" minValue="0" maxValue="1" defaultValue="0"/>
+				</variable>
 
-			<variable name="maxfps">
-				<description>Limits the FPS (frames per second) of the game.</description>
-				<value token="V" description="maximum FPS" minValue="0" maxValue="200" defaultValue="200"/>
-			</variable>
+				<variable name="maxfps">
+					<description>Limits the FPS (frames per second) of the game.</description>
+					<value token="V" description="maximum FPS" minValue="0" maxValue="200" defaultValue="200"/>
+				</variable>
 
-			<variable name="maxtmus">
-				<description>Gets the maximum number of supported textures when performing multitexturing.</description>
-				<value token="V" description="max. number of textures" minValue="1" maxValue="0" defaultValue="0" readOnly="true"/>
-			</variable>
+				<variable name="maxtmus">
+					<description>Gets the maximum number of supported textures when performing multitexturing.</description>
+					<value token="V" description="max. number of textures" minValue="1" maxValue="0" defaultValue="0" readOnly="true"/>
+				</variable>
 
-			<variable name="minlod">
-				<description>Minimal level of detail.</description>
-				<value token="V" description="" minValue="25" maxValue="250" defaultValue="60"/>
-			</variable>
+				<variable name="minlod">
+					<description>Minimal level of detail.</description>
+					<value token="V" description="" minValue="25" maxValue="250" defaultValue="60"/>
+				</variable>
 
-			<variable name="modeacronyms">
-				<description>Toggles use of acronyms instead of full modenames in the serverbrowser.</description>
-				<value token="B" description="" minValue="0" maxValue="1" defaultValue="0"/>
-			</variable>
+				<variable name="modeacronyms">
+					<description>Toggles use of acronyms instead of full modenames in the serverbrowser.</description>
+					<value token="B" description="" minValue="0" maxValue="1" defaultValue="0"/>
+				</variable>
 
-			<variable name="resetbinds">
-				<description>Resets all binds back to their default values.</description>
-				<remarks>
-				<remark>
-					This command executes the file /config/resetbinds.cfg which will bind all keys to the values specified in that
-					file, thus resetting the binds to their default values.
-				</remark>
-				</remarks>
-			</variable>
+				<variable name="resetbinds">
+					<description>Resets all binds back to their default values.</description>
+					<remarks>
+					<remark>
+						This command executes the file /config/resetbinds.cfg which will bind all keys to the values specified in that
+						file, thus resetting the binds to their default values.
+					</remark>
+					</remarks>
+				</variable>
 
-			<variable name="changeteam">
-				<description>Swaps your player to the enemy team.</description>
-			</variable>
+				<variable name="changeteam">
+					<description>Swaps your player to the enemy team.</description>
+				</variable>
 
-			<variable name="resetcfg">
-				<description>Determines if all settings should be reset when the game quits.</description>
-				<remarks>
-				<remark>
-					It is recommended to quit the game immediately after enabling this setting. Note that the reset happens
-					only once as the value of this variable is reset as well.
-				</remark>
-				</remarks>
-				<references>
-				<identifierReference identifier="quit"/>
-				</references>
-				<value token="B" description="enable reset" minValue="0" maxValue="1" defaultValue="0"/>
-			</variable>
+				<variable name="resetcfg">
+					<description>Determines if all settings should be reset when the game quits.</description>
+					<remarks>
+					<remark>
+						It is recommended to quit the game immediately after enabling this setting. Note that the reset happens
+						only once as the value of this variable is reset as well.
+					</remark>
+					</remarks>
+					<references>
+					<identifierReference identifier="quit"/>
+					</references>
+					<value token="B" description="enable reset" minValue="0" maxValue="1" defaultValue="0"/>
+				</variable>
 
-			<variable name="smoothdist">
-				<description>Determines the valid distance when extrapolating a players position.</description>
-				<value token="V" description="distance" minValue="0" maxValue="16" defaultValue="8"/>
-			</variable>
+				<variable name="smoothdist">
+					<description>Determines the valid distance when extrapolating a players position.</description>
+					<value token="V" description="distance" minValue="0" maxValue="16" defaultValue="8"/>
+				</variable>
 
-			<variable name="smoothmove">
-				<description>Determines the speed when extrapolating a players position.</description>
-				<value token="V" description="movement speed" minValue="0" maxValue="100" defaultValue="75"/>
-			</variable>
+				<variable name="smoothmove">
+					<description>Determines the speed when extrapolating a players position.</description>
+					<value token="V" description="movement speed" minValue="0" maxValue="100" defaultValue="75"/>
+				</variable>
 
-			<variable name="throttle_accel">
-				<description>Determines how fast network throttling accelerates.</description>
-				<references>
-					<identifierReference identifier="throttle_accel"/>
-					<identifierReference identifier="throttle_decel"/>
-				</references>
-				<value token="V" description="acceleration" minValue="0" maxValue="32" defaultValue="2"/>
-			</variable>
+				<variable name="throttle_accel">
+					<description>Determines how fast network throttling accelerates.</description>
+					<references>
+						<identifierReference identifier="throttle_accel"/>
+						<identifierReference identifier="throttle_decel"/>
+					</references>
+					<value token="V" description="acceleration" minValue="0" maxValue="32" defaultValue="2"/>
+				</variable>
 
-			<variable name="throttle_decel">
-				<description>Determines how fast network throttling decelerates.</description>
-				<references>
-					<identifierReference identifier="throttle_accel"/>
-					<identifierReference identifier="throttle_interval"/>
-				</references>
-				<value token="V" description="deceleration" minValue="0" maxValue="32" defaultValue="2"/>
-			</variable>
+				<variable name="throttle_decel">
+					<description>Determines how fast network throttling decelerates.</description>
+					<references>
+						<identifierReference identifier="throttle_accel"/>
+						<identifierReference identifier="throttle_interval"/>
+					</references>
+					<value token="V" description="deceleration" minValue="0" maxValue="32" defaultValue="2"/>
+				</variable>
 
-			<variable name="throttle_interval">
-				<description>Determines the interval of re-evaluating network throttling.</description>
-				<references>
-					<identifierReference identifier="throttle_accel"/>
-					<identifierReference identifier="throttle_decel"/>
-				</references>
-				<value token="V" description="interval" minValue="0" maxValue="30" defaultValue="5" valueNotes="seconds"/>
-			</variable>
+				<variable name="throttle_interval">
+					<description>Determines the interval of re-evaluating network throttling.</description>
+					<references>
+						<identifierReference identifier="throttle_accel"/>
+						<identifierReference identifier="throttle_decel"/>
+					</references>
+					<value token="V" description="interval" minValue="0" maxValue="30" defaultValue="5" valueNotes="seconds"/>
+				</variable>
 
-			<variable name="tsswap">
-				<description>Swaps vertices of model triangles.</description>
-				<value token="V" description="" minValue="0" maxValue="1" defaultValue="1"/>
-			</variable>
+				<variable name="tsswap">
+					<description>Swaps vertices of model triangles.</description>
+					<value token="V" description="" minValue="0" maxValue="1" defaultValue="1"/>
+				</variable>
 
-			<variable name="version">
-				<description>Gets an integer representing the game version. READ ONLY</description>
-				<remarks>
-					<remark>As example, version 1.0 is represented as value 1000.</remark>
-				</remarks>
-			</variable>
+				<variable name="version">
+					<description>Gets an integer representing the game version. READ ONLY</description>
+					<remarks>
+						<remark>As example, version 1.0 is represented as value 1000.</remark>
+					</remarks>
+				</variable>
 
-			<variable name="gamemode">
-				<description>Holds the current game mode. READ ONLY</description>
-				<examples>
-				<example>
-					<code><![CDATA[echo $gamemode]]></code>
-					<explanation>Output: 5</explanation>
-				</example>
-				</examples>
-				<references>
-				<identifierReference identifier="mode"/>
-				</references>
-			</variable>
+				<variable name="gamemode">
+					<description>Holds the current game mode. READ ONLY</description>
+					<examples>
+					<example>
+						<code><![CDATA[echo $gamemode]]></code>
+						<explanation>Output: 5</explanation>
+					</example>
+					</examples>
+					<references>
+					<identifierReference identifier="mode"/>
+					</references>
+				</variable>
 
-			<variable name="connected">
-				<description>Indicates if a connection to a server exists.</description>
-				<value token="B" description="the connection state" valueNotes="1 (connected), 0 (disconnected)" minValue="0" maxValue="1" defaultValue="0"/>
-			</variable>
+				<variable name="connected">
+					<description>Indicates if a connection to a server exists.</description>
+					<value token="B" description="the connection state" valueNotes="1 (connected), 0 (disconnected)" minValue="0" maxValue="1" defaultValue="0"/>
+				</variable>
 
-			<variable name="maxroll">
-				<description>Sets the maximum value the display will roll on strafing.</description>
-				<value token="N" description="the roll value" minValue="0" maxValue="20" defaultValue="0"/>
-			</variable>
+				<variable name="maxroll">
+					<description>Sets the maximum value the display will roll on strafing.</description>
+					<value token="N" description="the roll value" minValue="0" maxValue="20" defaultValue="0"/>
+				</variable>
 
 			</identifiers>
 		</section>
@@ -1109,7 +1109,12 @@
 
 				<command name="lanconnect"/>
 
-				<command name="listdemos"/>
+				<command name="listdemos">
+					<description>Get the game demos listing from the server we are currently connected.</description>
+					<references>
+						<identifierReference identifier="getdemo"/>
+					</references>
+				</command>
 
 				<command name="getdemo">
 					<arguments>
@@ -1121,7 +1126,9 @@
 					</references>
 				</command>
 
-				<command name="dropflag"/>
+				<command name="dropflag">
+					<description>Drops the enemy flag.</description>
+				</command>
 
 				<command name="drawbeamtobots">
 					<description>Draws a shooting line in the direction of all available bots.</description>
@@ -3038,11 +3045,13 @@ Output:
 				</variable>
 
 				<variable name="hidecompass">
-					<value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
+					<description>Turns on/off the radar compass</description>
+					<value token="V" description="enable/disable radar compass" minValue="0" maxValue="1" defaultValue="0"/>
 				</variable>
 
 				<variable name="hidedamageindicator">
-					<value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
+					<description>Turns on/off the damage indicator</description>
+					<value token="V" description="enable/disable damage indicator" minValue="0" maxValue="1" defaultValue="0"/>
 				</variable>
 
 				<variable name="hidebigmenuimages">
@@ -3067,7 +3076,7 @@ Output:
 						It may also be viewed as the speed at wich the console text dissapears.
 					</remark>
 					</remarks>
-						<value token="V" description="" minValue="0" maxValue="60" defaultValue="20"/>
+						<value token="V" description="time before text rollout" minValue="0" maxValue="60" defaultValue="20"/>
 				</variable>
 
 				<variable name="maxcon">
@@ -3103,53 +3112,53 @@ Output:
 				</variable>
 
 				<variable name="aboveheadiconfadetime">
-					<description>Time in milliseconds before the abovehead dissapears.</description>
-					<value token="V" description="" minValue="1" maxValue="10000" defaultValue="2000"/>
+					<description>Time in milliseconds before the abovehead icon dissapears.</description>
+					<value token="V" description="abovehead icon display time" minValue="1" maxValue="10000" defaultValue="2000"/>
 				</variable>
 
 				<variable name="hideconsole">
 					<description>Turns on or off the display of console text.</description>
-					<value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
+					<value token="V" description="enable/disable console text" minValue="0" maxValue="1" defaultValue="0"/>
 				</variable>
 
 				<variable name="hidehudequipment">
 					<description>Turns on or off the display of equipement icons.</description>
-					<value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
+					<value token="V" description="enable/disable equipement icons" minValue="0" maxValue="1" defaultValue="0"/>
 				</variable>
 
 				<variable name="hidehudmsgs">
 					<description>Turns on or off the display of messages at the bottom of the screen.</description>
-					<value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
+					<value token="V" description="enable/disable messages" minValue="0" maxValue="1" defaultValue="0"/>
 				</variable>
 
 				<variable name="hidespecthud">
 					<description>Turns on or off the display of spectator staus.</description>
-					<value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
+					<value token="V" description="enable/disable spectator status" minValue="0" maxValue="1" defaultValue="0"/>
 				</variable>
 
 				<variable name="hidectfhud">
 					<description>Turns on or off the display of flag icons.</description>
-					<value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
+					<value token="V" description="enable/disable flag icons" minValue="0" maxValue="1" defaultValue="0"/>
 				</variable>
 
 				<variable name="hideteam">
 					<description>Turns on or off the display of local player team icons.</description>
-					<value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
+					<value token="V" description="enable/disable team icons" minValue="0" maxValue="1" defaultValue="0"/>
 				</variable>
 
 				<variable name="hideradar">
 					<description>Turns on or off the display of the on-screen radar.</description>
-					<value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
+					<value token="V" description="enable/disable radar" minValue="0" maxValue="1" defaultValue="0"/>
 				</variable>
 
 				<variable name="hidevote">
 					<description>Turns on or off the display of vote icons.</description>
-					<value token="V" description="" minValue="0" maxValue="2" defaultValue="0"/>
+					<value token="V" description="enable/disable vote info" minValue="0" maxValue="2" defaultValue="0"/>
 				</variable>
 
 				<variable name="hudgun">
 					<description>Turns on or off the display of the current selected gun.</description>
-					<value token="V" description="" minValue="0" maxValue="1" defaultValue="1"/>
+					<value token="V" description="show/hide guns 3D models" minValue="0" maxValue="1" defaultValue="1"/>
 				</variable>
 
 				<variable name="showstats">
@@ -3195,29 +3204,29 @@ Output:
 					<value token="V" description="" minValue="1" maxValue="1000" defaultValue="105"/>
 				</variable>
 
-			    <variable name="crosshairteamsign">
+				<variable name="crosshairteamsign">
 					<description>Turns on/off display of team warning crosshair.</description>
-					<value token="V" description="" minValue="0" maxValue="1" defaultValue="1"/>
+					<value token="V" description="enable/disable warning crosshair" minValue="0" maxValue="1" defaultValue="1"/>
 				</variable>
 
 				<variable name="damageindicatoralpha">
 					<description>Set the level of transparency of the damage indicator, 0 = is fully transparent, 100 = totaly solid.</description>
-					<value token="V" description="" minValue="1" maxValue="100" defaultValue="50"/>
+					<value token="V" description="damage indicator alpha value" minValue="1" maxValue="100" defaultValue="50"/>
 				</variable>
 
 				<variable name="damageindicatordist">
 					<description>Sets the separation of the arrows in the damage indicator.</description>
-					<value token="V" description="" minValue="0" maxValue="10000" defaultValue="500"/>
+					<value token="V" description="damage indicator separation size" minValue="0" maxValue="10000" defaultValue="500"/>
 				</variable>
 
 				<variable name="damageindicatorsize">
 					<description>Sets the size of the damage indicator.</description>
-					<value token="V" description="" minValue="0" maxValue="10000" defaultValue="200"/>
+					<value token="V" description="damage indicator icon size" minValue="0" maxValue="10000" defaultValue="200"/>
 				</variable>
 
 				<variable name="damageindicatortime">
 					<description>Sets how long the damage indicator stays on screen.</description>
-					<value token="V" description="" minValue="1" maxValue="10000" defaultValue="1000"/>
+					<value token="V" description="damage indicator display time" minValue="1" maxValue="10000" defaultValue="1000"/>
 				</variable>
 
 				<variable name="crosshairsize">
@@ -3246,7 +3255,7 @@ Output:
 
 				<variable name="radarentsize">
 					<description>Sets the icon size of the players shown in the radar and the minimap.</description>
-					<value token="V" description="" minValue="1" maxValue="64" defaultValue="4"/>
+					<value token="V" description="size of icons inside radar" minValue="1" maxValue="64" defaultValue="4"/>
 				</variable>
 		    
 			</identifiers>
@@ -3337,7 +3346,7 @@ Output:
 
 				<variable name="stencilshadow">
 					<description>Sets the transparency/opacity level of stencil shadows.</description>
-					<value token="V" description="" minValue="0" maxValue="100" defaultValue="40"/>
+					<value token="V" description="Alpha level" minValue="0" maxValue="100" defaultValue="40"/>
 				</variable>
 
 				<variable name="depthoffset">
@@ -3362,7 +3371,7 @@ Output:
 
 				<variable name="fullbrightlevel">
 					<description>Sets the level of brightness to use when using the command "/fullbright 1".</description>
-					<value token="V" description="" minValue="0" maxValue="255" defaultValue="176"/>
+					<value token="V" description="Light intensity level" minValue="0" maxValue="255" defaultValue="176"/>
 				</variable>
 
 				<command name="fovcompat">
@@ -3403,17 +3412,17 @@ Output:
 
 				<variable name="aboveheadiconsize">
 					<description>Sets the size for the icon shown above a player using comunications voices.</description>
-					<value token="V" description="" minValue="0" maxValue="1000" defaultValue="50"/>
+					<value token="V" description="Icon size" minValue="0" maxValue="1000" defaultValue="50"/>
 				</variable>
 
 				<variable name="bloodttl">
 					<description>Sets the amount of time in milliseconds that blood is displayed on the ground.</description>
-					<value token="V" description="" minValue="0" maxValue="30000" defaultValue="10000"/>
+					<value token="V" description="Blood display time" minValue="0" maxValue="30000" defaultValue="10000"/>
 				</variable>
 
 				<variable name="blood">
 					<description>Turn on and off the display of blood.</description>
-					<value token="V" description="" minValue="0" maxValue="1" defaultValue="1"/>
+					<value token="V" description="Enable/Disable blood" minValue="0" maxValue="1" defaultValue="1"/>
 				</variable>
 
 				<variable name="gibnum">
@@ -3537,11 +3546,13 @@ Output:
 				</variable>
 
 				<variable name="waterreflect">
-					<value token="V" description="" minValue="0" maxValue="1" defaultValue="1"/>
+					<description>Turns on/off the reflections in the water surface.</description>
+					<value token="V" description="enable/disable water reflections" minValue="0" maxValue="1" defaultValue="1"/>
 				</variable>
 
 				<variable name="waterrefract">
-					<value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
+					<description>Turns on/off water refractions.</description>
+					<value token="V" description="enable/disable water refractions" minValue="0" maxValue="1" defaultValue="0"/>
 				</variable>
 
 				<variable name="shotlinettl">
@@ -3613,7 +3624,8 @@ Output:
 				</variable>
 
 				<variable name="spectfov">
-					<value token="V" description="" minValue="5" maxValue="120" defaultValue="120"/>
+					<description>Specifies the Field Of View when in spectating/ghost mode.</description>
+					<value token="V" description="Spectate FOV size" minValue="5" maxValue="120" defaultValue="120"/>
 				</variable>
 
 				<variable name="hwtexsize">
@@ -3629,11 +3641,13 @@ Output:
 				</variable>
 
 				<variable name="bulletholettl">
-					<value token="V" description="" minValue="0" maxValue="30000" defaultValue="10000"/>
+					<description>Specifies how long (in milliseconds) to display bullet holes.</description>
+					<value token="V" description="Bullethole display time" minValue="0" maxValue="30000" defaultValue="10000"/>
 				</variable>
 
 				<variable name="bullethole">
-					<value token="V" description="" minValue="0" maxValue="1" defaultValue="1"/>
+					<description>Turns on/off the display of bullet holes</description>
+					<value token="V" description="Enable/Disable bullet holes" minValue="0" maxValue="1" defaultValue="1"/>
 				</variable>
 
 				<variable name="particlesize">
@@ -3864,7 +3878,7 @@ Output:
 					<remarks>
 						<remark>An argument represents either a command argument or a variable value.</remark>
 					<remark>
-							The last argument of an identifier can be flagged as variable-length
+						The last argument of an identifier can be flagged as variable-length
 						to indicate that it represents an unknown number of arguments.
 					</remark>
 					</remarks>
@@ -4007,7 +4021,7 @@ Output:
 			</description>
 			<identifiers sort="true">
 
-			<command name="serverdesc">
+				<command name="serverdesc">
 					<description>
 						If the server was run with -n1 and -n2 arguments (prefix and suffix of descriptive title)
 						a serveradmin can set a user-defined server description with this command, if it wasn't this command results
@@ -4289,7 +4303,7 @@ Output:
 		<section name="Game modes" sortindex="04">
 			<identifiers sort="true">
 
-			<command name="gamemodedesc">
+				<command name="gamemodedesc">
 					<arguments>
 						<argument token="M" description="mode" valueNotes="integer"/>
 						<argument token="D" description="description" valueNotes="string"/>
@@ -4509,7 +4523,7 @@ Output:
 			</description>
 			<identifiers sort="true">
 
-			<command name="md2anim">
+				<command name="md2anim">
 					<arguments>
 						<argument token="A" description="anim"/>
 						<argument token="F" description="frame"/>
@@ -4856,7 +4870,7 @@ Output:
 			<description>This section describes identifiers that are not documented yet, but you may try to help us there.</description>
 			<identifiers sort="true">
 
-			<command name="addzip">
+				<command name="addzip">
 					<description>TODO: Description</description>
 					<arguments>
   						<argument token="A" description="TODO"/>
