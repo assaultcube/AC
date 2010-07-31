@@ -1910,406 +1910,398 @@ Output:
 		</section>
 		<!-- Gameplay Section ends -->
 
-			<section name="Editing" sortindex="09">
+		<!-- Editing Section starts -->
+		<section name="Editing" sortindex="09">
 		<identifiers sort="true">
-	<command name="togglegrap">
-<description>Will toggle the focus of the mouse in game. Normally you can use your mouse to look around, when you type this command your mouse cursor is visible and can be used as normally. This is only useful when you run cube windowed, of course.</description>
-	</command>
+	
+		<command name="togglegrap">
+			<description>Will toggle the focus of the mouse in game. Normally you can use your mouse to look around, when you type this command your mouse cursor is visible and can be used as normally. This is only useful when you run cube windowed, of course.</description>
+		</command>
 
-	<command name="getentattr">
-<argument token="A" description="attribute" valueNotes="0..3"/>
-	</command>
+		<command name="getentattr">
+			<argument token="A" description="attribute" valueNotes="0..3"/>
+		</command>
 
-	<command name="getenttype"/>
-	<command name="edittag">
-<arguments>
-<argument token="T" description="tag" valueNotes="integer value"/>
-</arguments>
-	</command>
+		<command name="getenttype"/>
+		
+		<command name="edittag">
+			<arguments>
+				<argument token="T" description="tag" valueNotes="integer value"/>
+			</arguments>
+		</command>
 
-	<command name="setjumpwp">
-<references>
-<identifierReference identifier="unsetjumpwp"/>
-</references>
-	</command>
+		<command name="setjumpwp">
+			<references>
+				<identifierReference identifier="unsetjumpwp"/>
+			</references>
+		</command>
 
-	<command name="unsetjumpwp">
-<references>
-<identifierReference identifier="setjumpwp"/>
-</references>
-	</command>
+		<command name="unsetjumpwp">
+			<references>
+			<identifierReference identifier="setjumpwp"/>
+			</references>
+		</command>
 
-	<command name="wpclear"/>
-	<command name="wpflood"/>
-	<command name="wpinfo">
-<description>makes waypoints visible and either turns on or off the waypoint information display.</description>
-<arguments>
-<argument token="Y" description="show info?" valueNotes="0||1"/>
-</arguments>
-	</command>
+		<command name="wpclear"/>
+		<command name="wpflood"/>
+		<command name="wpinfo">
+			<description>makes waypoints visible and either turns on or off the waypoint information display.</description>
+			<arguments>
+				<argument token="Y" description="show info?" valueNotes="0||1"/>
+			</arguments>
+		</command>
 
-	<command name="wpload"/>
-	<command name="wpsave"/>
-	<command name="wpvisible">
-<arguments>
-<argument token="V" description="visible" valueNotes="0||1"/>
-</arguments>
-	</command>
+		<command name="wpload"/>
+		<command name="wpsave"/>
+		<command name="wpvisible">
+			<arguments>
+				<argument token="V" description="visible" valueNotes="0||1"/>
+			</arguments>
+		</command>
 
-	<command name="setwpyaw">
-<description>takes the current player yaw for the current waypoint</description>
-	</command>
+		<command name="setwpyaw">
+			<description>takes the current player yaw for the current waypoint</description>
+		</command>
 
-	<command name="telebot">
-	<description>teletransports the bot with the lowest connection number to you current position.</description>
-<arguments>
-<argument token="" description="this command does not take any arguments" valueNotes="none"/>
-</arguments>
-	  <remarks>
-		<remark>This is a debugging command and only works for single player modes.</remark>
-	  </remarks>
-	</command>
+		<command name="telebot">
+			<description>teletransports the bot with the lowest connection number to you current position.</description>
+			<arguments>
+				<argument token="" description="this command does not take any arguments" valueNotes="none"/>
+			</arguments>
+			<remarks>
+			<remark>This is a debugging command and only works for single player modes.</remark>
+			</remarks>
+		</command>
 
-	<command name="togglebotview">
-<description>When used you will see what the bot sees. Type it again (with or without name) to return to the game(you will respawn).</description>
-<arguments>
-<argument token="N" description="botname" valueNotes="the name of the bot"/>
-</arguments>
-	</command>
+		<command name="togglebotview">
+			<description>When used you will see what the bot sees. Type it again (with or without name) to return to the game(you will respawn).</description>
+			<arguments>
+				<argument token="N" description="botname" valueNotes="the name of the bot"/>
+			</arguments>
+		</command>
 
-	<command name="testvisible">
-<arguments>
-<argument token="D" description="direction" valueNotes="0..5 for Forward, Backward, Left, Right, Up AND Down"/>
-</arguments>
-	</command>
+		<command name="testvisible">
+			<arguments>
+				<argument token="D" description="direction" valueNotes="0..5 for Forward, Backward, Left, Right, Up AND Down"/>
+			</arguments>
+		</command>
 
-	<command name="addpath1way1"/>
-	<command name="addpath1way2"/>
-	<command name="addpath2way1"/>
-	<command name="addpath2way2"/>
-	<command name="addwp">
-<argument token="A" description="autoconnect" valueNotes="0||1"/>
-	</command>
+		<command name="addpath1way1"/>
+		<command name="addpath1way2"/>
+		<command name="addpath2way1"/>
+		<command name="addpath2way2"/>
+		<command name="addwp">
+			<argument token="A" description="autoconnect" valueNotes="0||1"/>
+		</command>
 
-	<command name="autowp">
-<argument token="O" description="on" valueNotes="0||1"/>
-	</command>
+		<command name="autowp">
+			<argument token="O" description="on" valueNotes="0||1"/>
+		</command>
 
-	<command name="delpath1way1"/>
-	<command name="delpath1way2"/>
-	<command name="delpath2way1"/>
-	<command name="delpath2way2"/>
-	<command name="delwp"/>
-	<command name="applymapsoundchanges">
-<description>during map editing, drop all mapsounds so they can be re-added</description>
-	</command>
+		<command name="delpath1way1"/>
+		<command name="delpath1way2"/>
+		<command name="delpath2way1"/>
+		<command name="delpath2way2"/>
+		<command name="delwp"/>
+		<command name="applymapsoundchanges">
+			<description>during map editing, drop all mapsounds so they can be re-added</description>
+		</command>
 
-	<variable name="editing">
-<value token="V" description="" minValue="1" maxValue="0" defaultValue="0"/>
-	</variable>
+		<variable name="editing">
+			<value token="V" description="" minValue="1" maxValue="0" defaultValue="0"/>
+		</variable>
 
-	<command name="edittoggle">
-<description><![CDATA[switches between map edit mode and normal.]]></description>
-<remarks>
-<remark>
-In map edit mode you can select bits of the map by clicking or dragging your crosshair on the floor
-or ceiling (using the "attack" identifier, normally MOUSE1), then use the identifiers below to
-modify the selection. While in edit mode, normal physics and collision don't apply (clips), and key repeat is ON.
-Note that if you fly outside the map, cube still renders the world as if you were standing on the floor
-directly below the camera.
-</remark>
-<remark>
-Hotkey E
-</remark>
-</remarks>
-<references>
-<identifierReference name="select" identifier="select"/>
-<!-- broken : was wiki.cubers.net before, but still <webReference name="The Editing Mode" url="http://assault.cubers.net/wiki/EditingMode"/> -->
-</references>
-	</command>
+		<command name="edittoggle">
+			<description><![CDATA[switches between map edit mode and normal.]]></description>
+			<remarks>
+			<remark>
+				In map edit mode you can select bits of the map by clicking or dragging your crosshair on the floor
+				or ceiling (using the "attack" identifier, normally MOUSE1), then use the identifiers below to
+				modify the selection. While in edit mode, normal physics and collision don't apply (clips), and key repeat is ON.
+				Note that if you fly outside the map, cube still renders the world as if you were standing on the floor
+				directly below the camera.
+			</remark>
+			<remark>Hotkey E</remark>
+			</remarks>
+			<references>
+				<identifierReference name="select" identifier="select"/>
+				<!-- broken : was wiki.cubers.net before, but still <webReference name="The Editing Mode" url="http://assault.cubers.net/wiki/EditingMode"/> -->
+			</references>
+		</command>
 
-	<command name="edittex">
-<description><![CDATA[Changes the texture on current selection by browsing through a list of textures directly shown on the cubes.]]></description>
-<remarks>
-<remark>
-Default keys are the six keys above the cursor keys, which each 2 of them cycle one type (and numpad 7/4 for upper).
-</remark>
-<remark>
-The way this works is slightly strange at first, but allows for very fast texture assignment. All textures are in 3 individual lists for each type (both wall kinds treated the same), and each time a texture is used, it is moved to the top of the list. So after a bit of editing, all your most frequently used textures will come first when pressing these keys, and the most recently used texture is set immediately when you press the forward key for the type. These lists are saved with the map. make a selection (including wall bits) and press these keys to get a feel for what they do.
-</remark>
-</remarks>
-<arguments>
-<argument token="T" description="an integer denoting the type" valueNotes="0 (floor), 1 (lower or wall), 2 (ceiling), 3 (upper wall)"/>
-<argument token="D" description="the direction you want to cycle the textures in" valueNotes="1 (forwards), -1 (backwards)"/>
-</arguments>
-	</command>
+		<command name="edittex">
+			<description><![CDATA[Changes the texture on current selection by browsing through a list of textures directly shown on the cubes.]]></description>
+			<remarks>
+			<remark>
+				Default keys are the six keys above the cursor keys, which each 2 of them cycle one type (and numpad 7/4 for upper).
+			</remark>
+			<remark>
+				The way this works is slightly strange at first, but allows for very fast texture assignment. All textures are in 3 individual lists for each type (both wall kinds treated the same), and each time a texture is used, it is moved to the top of the list. So after a bit of editing, all your most frequently used textures will come first when pressing these keys, and the most recently used texture is set immediately when you press the forward key for the type. These lists are saved with the map. make a selection (including wall bits) and press these keys to get a feel for what they do.
+			</remark>
+			</remarks>
+			<arguments>
+				<argument token="T" description="an integer denoting the type" valueNotes="0 (floor), 1 (lower or wall), 2 (ceiling), 3 (upper wall)"/>
+				<argument token="D" description="the direction you want to cycle the textures in" valueNotes="1 (forwards), -1 (backwards)"/>
+			</arguments>
+		</command>
 
-	<command name="editheight">
-<description><![CDATA[Changes the height of the current selection.]]></description>
-<remarks>
-<remark>
-Default keys are [ and ] for floor level, and o/p for ceiling.
-</remark>
-</remarks>
-<arguments>
-<argument token="T" description="an integer denoting the type" valueNotes="0 (floor), 2 (ceiling)"/>
-<argument token="D" description="the delta value to move it in" valueNotes="1 (forwards), -1 (backwards)"/>
-</arguments>
-	</command>
+		<command name="editheight">
+			<description><![CDATA[Changes the height of the current selection.]]></description>
+			<remarks>
+			<remark>Default keys are [ and ] for floor level, and o/p for ceiling.</remark>
+			</remarks>
+			<arguments>
+				<argument token="T" description="an integer denoting the type" valueNotes="0 (floor), 2 (ceiling)"/>
+				<argument token="D" description="the delta value to move it in" valueNotes="1 (forwards), -1 (backwards)"/>
+			</arguments>
+		</command>
 
-	<command name="solid">
-<description>makes the current selection all solid (i.e. wall) or all non-solid.</description>
-<remarks>
-<remark>
-This operation retains floor/ceiling heights/textures while swapping between the two. Default keys f and g respectively.
-</remark>
-</remarks>
-<arguments>
-<argument token="B" description="an integer denoting the solid-ness" valueNotes="0 (non-solid), 1..* (solid)"/>
-</arguments>
-	</command>
+		<command name="solid">
+			<description>makes the current selection all solid (i.e. wall) or all non-solid.</description>
+			<remarks>
+			<remark>
+				This operation retains floor/ceiling heights/textures while swapping between the two. Default keys f and g respectively.
+			</remark>
+			</remarks>
+			<arguments>
+			<argument token="B" description="an integer denoting the solid-ness" valueNotes="0 (non-solid), 1..* (solid)"/>
+			</arguments>
+		</command>
 
-	<command name="equalize">
-<description>Levels the floor/ceiling of the selection.</description>
-<remarks>
-<remark>
-default keys , and .
-</remark>
-</remarks>
-<arguments>
-<argument token="T" description="an integer denoting the type" valueNotes="0 (floor), 2 (ceiling)"/>
-</arguments>
-	</command>
+		<command name="equalize">
+			<description>Levels the floor/ceiling of the selection.</description>
+			<remarks>
+				<remark>default keys , and .</remark>
+			</remarks>
+			<arguments>
+				<argument token="T" description="an integer denoting the type" valueNotes="0 (floor), 2 (ceiling)"/>
+			</arguments>
+		</command>
 
-	<command name="heightfield">
-<description>Marks the current selection as a heightfield.</description>
-<remarks>
-<remark>
-marks the current selection as a heightfield, with T being floor or ceiling, as above.
-A surface marked as heightfield will use the vdelta values (see below) of its 4 corners to create a sloped surface.
-To mark a heightfield as normal again (ignoring vdelta values, set or not) use "solid 0".
-Default keys are h (floor) and i (ceiling).
-</remark>
-<remark>
-Heightfields should be made the exact size that is needed, not more not less.
-The most important reason for this is that cube automatically generates "caps" (side-faces for heightfields)
-only on the borders of the heightfield. This also means if you have 2 independent heightfields accidentally
-touch each other, you will not get correct caps. Also, a heightfield is slightly slower to render than a
-non-heightfield floor or ceiling. Last but not least, a heightfield should have all the same baseheight
-(i.e. the height determined by a normal editheight operation) to get correct results.
-</remark>
-</remarks>
-<references>
-<identifierReference name="vdelta" identifier="vdelta"/>
-</references>
-<arguments>
-<argument token="T" description="an integer denoting the type" valueNotes="0 (floor), 2 (ceiling)"/>
-</arguments>
-	</command>
+		<command name="heightfield">
+			<description>Marks the current selection as a heightfield.</description>
+			<remarks>
+			<remark>
+				marks the current selection as a heightfield, with T being floor or ceiling, as above.
+				A surface marked as heightfield will use the vdelta values (see below) of its 4 corners to create a sloped surface.
+				To mark a heightfield as normal again (ignoring vdelta values, set or not) use "solid 0".
+				Default keys are h (floor) and i (ceiling).
+			</remark>
+			<remark>
+				Heightfields should be made the exact size that is needed, not more not less.
+				The most important reason for this is that cube automatically generates "caps" (side-faces for heightfields)
+				only on the borders of the heightfield. This also means if you have 2 independent heightfields accidentally
+				touch each other, you will not get correct caps. Also, a heightfield is slightly slower to render than a
+				non-heightfield floor or ceiling. Last but not least, a heightfield should have all the same baseheight
+				(i.e. the height determined by a normal editheight operation) to get correct results.
+			</remark>
+			</remarks>
+			<references>
+				<identifierReference name="vdelta" identifier="vdelta"/>
+			</references>
+			<arguments>
+				<argument token="T" description="an integer denoting the type" valueNotes="0 (floor), 2 (ceiling)"/>
+			</arguments>
+		</command>
 
-	<command name="vdelta">
-<description>changes the vdelta value of the current selection</description>
-<remarks>
-<remark>
-Note that unlike all other editing functions, this function doesn't affect a cube, but its top-left vertex
-(market by the dot in the editing cursor). So to edit a N * M heightfield, you will likely have to edit
-the vdelta of (N+1) * (M+1) cubes, i.e. you have to select 1 row and 1 column more in the opposite direction
-of the red dot to affect all the vertices of a heightfield of a given size (try it, it makes sense :)
-</remark>
-<remark>
-A floor delta offsets vertices to beneath the level set by editheight (and a ceil delta to above). Delta offsets have a precision of a quarter of a unit, however you should use non-unitsize vertices only to touch other such vertices. Default keys are 8 and 9 to decrease/increase the vdelta.
-</remark>
-</remarks>
-<arguments>
-<argument token="N" description="vdelta value"/>
-</arguments>
-	</command>
+		<command name="vdelta">
+			<description>changes the vdelta value of the current selection</description>
+			<remarks>
+			<remark>
+				Note that unlike all other editing functions, this function doesn't affect a cube, but its top-left vertex
+				(market by the dot in the editing cursor). So to edit a N * M heightfield, you will likely have to edit
+				the vdelta of (N+1) * (M+1) cubes, i.e. you have to select 1 row and 1 column more in the opposite direction
+				of the red dot to affect all the vertices of a heightfield of a given size (try it, it makes sense :)
+			</remark>
+			<remark>
+				A floor delta offsets vertices to beneath the level set by editheight (and a ceil delta to above). Delta offsets have a precision of a quarter of a unit, however you should use non-unitsize vertices only to touch other such vertices. Default keys are 8 and 9 to decrease/increase the vdelta.
+			</remark>
+			</remarks>
+			<arguments>
+				<argument token="N" description="vdelta value"/>
+			</arguments>
+		</command>
 
-	<command name="corner">
-<description>Makes the current selection into a "corner".</description>
-<remarks>
-<remark>
-Currently there is only one type of corner (a 45 degree one), only works on a single unit (cube) at a time.
-It can be positioned either next to 2 solid walls or
-in the middle of 2 higher floorlevels and 2 lower ones forming a diagonal (and similar with ceiling).
-</remark>
-<remark>
-In both cases, the corner will orient itself automatically depending on its neighbours, behaviour with other
-configurations than the 2 above is unspecified. Since the latter configuration generates possibly 2 floor and
-2 ceiling levels, up to 4 textures are used: for example for the 2 floors the higher one will of the cube
-itself, and the lower one of a neighbouring low cube. You can make bigger corners at once by
-issuing "corner" on grid aligned 2x2/4x4/8x8 selections, with equal size solid blocks next to them.
-</remark>
-</remarks>
-<defaultKeys>
-<key alias="K"/>
-</defaultKeys>
-	</command>
+		<command name="corner">
+			<description>Makes the current selection into a "corner".</description>
+			<remarks>
+			<remark>
+				Currently there is only one type of corner (a 45 degree one), only works on a single unit (cube) at a time.
+				It can be positioned either next to 2 solid walls or
+				in the middle of 2 higher floorlevels and 2 lower ones forming a diagonal (and similar with ceiling).
+			</remark>
+			<remark>
+				In both cases, the corner will orient itself automatically depending on its neighbours, behaviour with other
+				configurations than the 2 above is unspecified. Since the latter configuration generates possibly 2 floor and
+				2 ceiling levels, up to 4 textures are used: for example for the 2 floors the higher one will of the cube
+				itself, and the lower one of a neighbouring low cube. You can make bigger corners at once by
+				issuing "corner" on grid aligned 2x2/4x4/8x8 selections, with equal size solid blocks next to them.
+			</remark>
+			</remarks>
+			<defaultKeys>
+				<key alias="K"/>
+			</defaultKeys>
+		</command>
 
-	<command name="undo">
-<description>Multi-level undo of any of the changes caused by editing operations</description>
-<remarks>
-<remark>hotkey u</remark>
-</remarks>
-	</command>
+		<command name="undo">
+			<description>Multi-level undo of any of the changes caused by editing operations</description>
+			<remarks>
+				<remark>hotkey u</remark>
+			</remarks>
+		</command>
 
-	<command name="undomegs">
-<description>Sets the number of megabytes used for the undo buffer.</description>
-<remarks>
-<remark>
-undo's work for any size areas, so the amount of undo steps per megabyte is more for small areas
-than for big ones (a megabyte fits 280 undo steps on a 16x16 area, but only 4 steps on a 128x128 area).
-</remark>
-</remarks>
-<arguments>
-<argument token="N" description="number of megabytes, default is 1" valueNotes="integer"/>
-</arguments>
-	</command>
+		<command name="undomegs">
+			<description>Sets the number of megabytes used for the undo buffer.</description>
+			<remarks>
+			<remark>
+				undo's work for any size areas, so the amount of undo steps per megabyte is more for small areas
+				than for big ones (a megabyte fits 280 undo steps on a 16x16 area, but only 4 steps on a 128x128 area).
+			</remark>
+			</remarks>
+			<arguments>
+				<argument token="N" description="number of megabytes, default is 1" valueNotes="integer"/>
+			</arguments>
+		</command>
 
-	<command name="copy">
-<description>Copies the current selection into a buffer.</description>
-<remarks>
-<remark>hotkey c</remark>
-</remarks>
-	</command>
+		<command name="copy">
+			<description>Copies the current selection into a buffer.</description>
+			<remarks>
+				<remark>hotkey c</remark>
+			</remarks>
+		</command>
 
-	<command name="paste">
-<description>Pastes a previously copied selection.</description>
-<remarks>
-<remark>
-To paste a selection back requires a same size selection at the destination location. If it is not the same
-size the selection will be resized automatically prior to the paste operation (with the red dot as anchor),
-which is easier for large selections.
-</remark>
-<remark>
-hotkey v
-</remark>
-</remarks>
-	</command>
+		<command name="paste">
+			<description>Pastes a previously copied selection.</description>
+			<remarks>
+			<remark>
+				To paste a selection back requires a same size selection at the destination location. If it is not the same
+				size the selection will be resized automatically prior to the paste operation (with the red dot as anchor),
+				which is easier for large selections.
+			</remark>
+			<remark>hotkey v</remark>
+			</remarks>
+		</command>
 
-	<command name="replace">
-<description>Repeats the last texture edit throughout the map.</description>
-<remarks>
-<remark>
-The way it works is intuitive: simply edit any texture anywhere, then using "replace" will replace
-all textures throughout the map in the same way (taking into account whether it was a floor/wall/ceil/upper too).
-If the there was more than one "old" texture in your selection, the one nearest to the red dot is used.
-This operation can't be undone.
-</remark>
-</remarks>
-	</command>
+		<command name="replace">
+			<description>Repeats the last texture edit throughout the map.</description>
+			<remarks>
+			<remark>
+				The way it works is intuitive: simply edit any texture anywhere, then using "replace" will replace
+				all textures throughout the map in the same way (taking into account whether it was a floor/wall/ceil/upper too).
+				If the there was more than one "old" texture in your selection, the one nearest to the red dot is used.
+				This operation can't be undone.
+			</remark>
+			</remarks>
+		</command>
 
-	<command name="newent">
-<description>Adds a new entity</description>
-<remarks>
-<remark>
-(x,y) is determined by the current selection (the red dot corner) and z by the camera height, of said type. Type is a string giving the type of entity, such as "light", and may optionally take values (depending on the entity).
-</remark>
-</remarks>
-<arguments>
-<argument token="type" description="the entity type" valueNotes="light, sound, clip, plclip, playerstart, pistol, ammobox, grenades, health, armour, akimbo, mapmodel, ladder, ctf-flag, helmet"/>
-<argument token="value1" description="see newent 'type'"/>
-<argument token="value2" description="see newent 'type'"/>
-<argument token="value3" description="see newent 'type'"/>
-<argument token="value4" description="see newent 'type'"/>
-</arguments>
-	</command>
+		<command name="newent">
+			<description>Adds a new entity</description>
+			<remarks>
+			<remark>
+				(x,y) is determined by the current selection (the red dot corner) and z by the camera height, of said type.
+				Type is a string giving the type of entity, such as "light", and may optionally take values (depending on the entity).
+			</remark>
+			</remarks>
+			<arguments>
+				<argument token="type" description="the entity type" valueNotes="light, sound, clip, plclip, playerstart, pistol, ammobox, grenades, health, armour, akimbo, mapmodel, ladder, ctf-flag, helmet"/>
+				<argument token="value1" description="see newent 'type'"/>
+				<argument token="value2" description="see newent 'type'"/>
+				<argument token="value3" description="see newent 'type'"/>
+				<argument token="value4" description="see newent 'type'"/>
+			</arguments>
+		</command>
 
-	<command name="newent light">
-<description>Adds a new light entity</description>
-<remarks>
-<remark>
-if only argument R is specified, it is interpreted as brightness for white light.
-</remark>
-</remarks>
-<arguments>
-<argument token="radius" description="the light radius" valueNotes="1..32"/>
-<argument token="R" description="red colour component. see remarks below." valueNotes="1..255"/>
-<argument token="G" description="green colour component" valueNotes="1..255"/>
-<argument token="B" description="blue colour component" valueNotes="1..255"/>
-</arguments>
-	</command>
+		<command name="newent light">
+			<description>Adds a new light entity</description>
+			<remarks>
+				<remark>if only argument R is specified, it is interpreted as brightness for white light.</remark>
+			</remarks>
+			<arguments>
+				<argument token="radius" description="the light radius" valueNotes="1..32"/>
+				<argument token="R" description="red colour component. see remarks below." valueNotes="1..255"/>
+				<argument token="G" description="green colour component" valueNotes="1..255"/>
+				<argument token="B" description="blue colour component" valueNotes="1..255"/>
+			</arguments>
+		</command>
 
-	<command name="newent playerstart">
-<description>Adds a new spawn spot.</description>
-<remarks>
-<remark>The yaw is taken from the current camera yaw.</remark>
-</remarks>
-	</command>
+		<command name="newent playerstart">
+			<description>Adds a new spawn spot.</description>
+			<remarks>
+				<remark>The yaw is taken from the current camera yaw.</remark>
+			</remarks>
+		</command>
 
-	<command name="newent ammobox">
-<description>Adds a new ammo box item.</description>
-	</command>
+		<command name="newent ammobox">
+			<description>Adds a new ammo box item.</description>
+		</command>
 
-	<command name="newent pistol">
-<description>Adds a pistol magazine item.</description>
-	</command>
+		<command name="newent pistol">
+			<description>Adds a pistol magazine item.</description>
+		</command>
 
-	<command name="newent grenades">
-<description>Adds a new grenades item.</description>
-	</command>
+		<command name="newent grenades">
+			<description>Adds a new grenades item.</description>
+		</command>
 
-	<command name="newent health">
-<description>Adds a new health item.</description>
-	</command>
+		<command name="newent health">
+			<description>Adds a new health item.</description>
+		</command>
 
-	<command name="newent armour">
-<description>Adds a new armour item.</description>
-	</command>
+		<command name="newent armour">
+			<description>Adds a new armour item.</description>
+		</command>
 
-	<command name="newent helmet">
-<description>Adds a new helmet item.</description>
-	</command>
+		<command name="newent helmet">
+			<description>Adds a new helmet item.</description>
+		</command>
 
-	<command name="newent akimbo">
-<description>Adds a new akimbo item.</description>
-	</command>
+		<command name="newent akimbo">
+			<description>Adds a new akimbo item.</description>
+		</command>
 
-	<command name="newent mapmodel">
-<description>Adds a map model to the map (i.e. a rendered md2/md3 model which you collide against but has no behaviour or movement)</description>
-<remarks>
-<remark>
-The mapmodel identifier is the desired map model which is defined by the 'mapmodel' command. The order in which
-the mapmodel is placed in the map config file defines the mapmodel identifier.
-The map texture refers to a texture which is defined by the 'texture' command, if omitted the
-models default skin will be used. The 'mapmodel' and 'texture' commands are placed in the map config normally.
-Mapmodels are more expensive than normal map geometry, so do not use insane amounts of them to replace normal geometry.
-</remark>
-</remarks>
-<arguments>
-<argument token="N" description="The mapmodel identifier" valueNotes="Integer"/>
-<argument token="Z" description="Extra elevation above ground" valueNotes="Integer"/>
-<argument token="T" description="The map texture to use (optional)" valueNotes="Integer"/>
-</arguments>
-	</command>
+		<command name="newent mapmodel">
+			<description>Adds a map model to the map (i.e. a rendered md2/md3 model which you collide against but has no behaviour or movement)</description>
+			<remarks>
+			<remark>
+				The mapmodel identifier is the desired map model which is defined by the 'mapmodel' command. The order in which
+				the mapmodel is placed in the map config file defines the mapmodel identifier.
+				The map texture refers to a texture which is defined by the 'texture' command, if omitted the
+				models default skin will be used. The 'mapmodel' and 'texture' commands are placed in the map config normally.
+				Mapmodels are more expensive than normal map geometry, so do not use insane amounts of them to replace normal geometry.
+			</remark>
+			</remarks>
+			<arguments>
+				<argument token="N" description="The mapmodel identifier" valueNotes="Integer"/>
+				<argument token="Z" description="Extra elevation above ground" valueNotes="Integer"/>
+				<argument token="T" description="The map texture to use (optional)" valueNotes="Integer"/>
+			</arguments>
+		</command>
 
-	<command name="newent ctf-flag">
-<description>Adds a CTF flag entity.</description>
-<remarks>
-<remark>
-Note that this entity is only rendered as flag if the current game mode is CTF.
-</remark>
-</remarks>
-<arguments>
-<argument token="T" description="denotes the flag's team" valueNotes="0 (CLA), 1 (RVSF)"/>
-</arguments>
-	</command>
+		<command name="newent ctf-flag">
+			<description>Adds a CTF flag entity.</description>
+			<remarks>
+				<remark>Note that this entity is only rendered as flag if the current game mode is CTF.</remark>
+			</remarks>
+			<arguments>
+				<argument token="T" description="denotes the flag's team" valueNotes="0 (CLA), 1 (RVSF)"/>
+			</arguments>
+		</command>
 
-	<command name="newent ladder">
-<description>Adds a ladder entity.</description>
-<remarks>
-<remark>
-Note that this entity is used for physics only, to create a visual ladder you
-will need to add a mapmodel entity too.
-</remark>
-</remarks>
-<references>
-<identifierReference name="newent mapmodel" identifier="newent mapmodel"/>
-</references>
-<arguments>
-<argument token="H" description="the height of the ladder" valueNotes="integer"/>
-</arguments>
-	</command>
+		<command name="newent ladder">
+			<description>Adds a ladder entity.</description>
+			<remarks>
+			<remark>
+				Note that this entity is used for physics only, to create a visual ladder you
+				will need to add a mapmodel entity too.
+			</remark>
+			</remarks>
+			<references>
+				<identifierReference name="newent mapmodel" identifier="newent mapmodel"/>
+			</references>
+			<arguments>
+				<argument token="H" description="the height of the ladder" valueNotes="integer"/>
+			</arguments>
+		</command>
 
 	<command name="newent sound">
 <description>Adds a sound entity.</description>
