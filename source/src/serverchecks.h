@@ -1,4 +1,3 @@
-
 inline bool is_lagging(client *cl)
 {
     return ( cl->spj > 55 || cl->ping > 500 || cl->ldt > 80 ); // do not change this except if you really know what are you doing
@@ -7,6 +6,24 @@ inline bool is_lagging(client *cl)
 inline float pow2(float x)
 {
     return x*x;
+}
+
+inline bool outside_border(vec &po)
+{
+    return (po.x < 0 || po.y < 0 || po.x >= maplayoutssize || po.y >= maplayoutssize);
+}
+
+inline void checkclientpos(client *cl)
+{
+    vec &po = cl->state.o;
+    if( outside_border(po) || maplayout[((int) po.x) + (((int) po.y) << maplayout_factor)] > po.z + 3)
+    {
+        if(gamemillis > 10000 && (servmillis - cl->connectmillis) > 10000) cl->mapcollisions++;
+        if(cl->mapcollisions && !(cl->mapcollisions % 25))
+        {
+            logline(ACLOG_INFO, "[%s] %s is colliding with the map", cl->hostname, cl->name);
+        }
+    }
 }
 
 #define POW2XY(A,B) (pow2(A.x-B.x)+pow2(A.y-B.y))
@@ -509,21 +526,6 @@ void check_ffire (client *target, client *actor, int damage)
         defformatstring(msg)("%s %s", actor->name, "did excessive friendly fire");
         sendservmsg(msg);
         disconnect_client(actor->clientnum, DISC_FFIRE);
-    }
-}
-
-inline void checkclientpos(client *cl)
-{
-    vec &po = cl->state.o;
-    int ls = (1 << maplayout_factor) - 1;
-
-    if(po.x < 0 || po.y < 0 || po.x > ls || po.y > ls || maplayout[((int) po.x) + (((int) po.y) << maplayout_factor)] > po.z + 3)
-    {
-        if(gamemillis > 10000 && (servmillis - cl->connectmillis) > 10000) cl->mapcollisions++;
-        if(cl->mapcollisions && !(cl->mapcollisions % 25))
-        {
-            logline(ACLOG_INFO, "[%s] %s is colliding with the map", cl->hostname, cl->name);
-        }
     }
 }
 
