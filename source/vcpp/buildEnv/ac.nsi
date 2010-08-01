@@ -116,12 +116,11 @@ FunctionEnd
 SetCompressor /SOLID lzma
 
 !define CURPATH "C:\Users\sebastian\Desktop\AssaultCube1.1_NSIS\ac\source\vcpp\buildEnv" ; CHANGE ME
-!define AC_VERSION "v1.1"
-!define AC_FULLVERSION "v1.1.0"
-!define AC_FULLVERSIONINT "1.1.0"
+!define AC_FULLVERSION "v1.1.0.0"
+!define AC_FULLVERSIONINT "1.1.0.0"
 !define AC_SHORTNAME "AssaultCube"
-!define AC_FULLNAME "AssaultCube v1.1"
-!define AC_FULLNAMESAVE "AssaultCube_v1.1"
+!define AC_FULLNAME "AssaultCube v1.1.0.0"
+!define AC_FULLNAMESAVE "AssaultCube_v1.1.0.0"
 !define AC_MAJORVERSIONINT 1
 !define AC_MINORVERSIONINT 1
 
@@ -532,7 +531,7 @@ Section "AssaultCube ${AC_FULLVERSION}" AC
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_FULLNAMESAVE}" "URLInfoAbout" "http://assault.cubers.net"
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_FULLNAMESAVE}" "URLUpdateInfo" "http://assault.cubers.net/download.html"
 
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_FULLNAMESAVE}" "DisplayVersion" "${AC_VERSION}"
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_FULLNAMESAVE}" "DisplayVersion" "${AC_FULLVERSION}"
     WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_FULLNAMESAVE}" "VersionMajor" ${AC_MAJORVERSIONINT}
     WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_FULLNAMESAVE}" "VersionMinor" ${AC_MINORVERSIONINT}
 
