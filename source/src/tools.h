@@ -87,6 +87,7 @@ static inline float round(float x) { return floor(x + 0.5f); }
 #ifndef __GNUC__
 #pragma warning (3: 4189)       // local variable is initialized but not referenced
 #pragma warning (disable: 4244) // conversion from 'int' to 'float', possible loss of data
+#pragma warning (disable: 4267) // conversion from 'size_t' to 'int', possible loss of data
 #pragma warning (disable: 4355) // 'this' : used in base member initializer list
 #pragma warning (disable: 4996) // 'strncpy' was declared deprecated
 #endif
