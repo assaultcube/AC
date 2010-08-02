@@ -9,6 +9,7 @@ void drawicon(Texture *tex, float x, float y, float s, int col, int row, float t
 
 inline void turn_on_transparency()
 {
+    glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glColor4ub(255, 255, 255, 255);
 }
@@ -19,10 +20,8 @@ void drawequipicon(float x, float y, int col, int row, float blend)
     if(!tex) tex = textureload("packages/misc/items.png", 4);
     if(tex)
     {
-        //if(blend||transparency) glEnable(GL_BLEND); if(transparency)
         turn_on_transparency();
         drawicon(tex, x, y, 120, col, row, 1/4.0f);
-        //if(blend||transparency)
         glDisable(GL_BLEND);
     }
 }
