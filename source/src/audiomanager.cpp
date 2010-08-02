@@ -409,9 +409,9 @@ void voicecom(char *sound, char *text)
     {
         defformatstring(soundpath)("voicecom/%s", sound);
         int s = audiomgr.findsound(soundpath, 0, gamesounds);
-        if(s < 0 || s < S_AFFIRMATIVE || s > S_NICESHOT) return;
+        if(s < 0 || s < S_AFFIRMATIVE || s > S_AWESOME) return;
         audiomgr.playsound(s, SP_HIGH);
-        if(s == S_NICESHOT) // public
+        if(s >= S_NICESHOT) // public
         {
             addmsg(SV_VOICECOM, "ri", s);
             toserver(text);
