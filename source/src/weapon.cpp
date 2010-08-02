@@ -1083,7 +1083,7 @@ void sniperrifle::attackfx(const vec &from, const vec &to, int millis)
 bool sniperrifle::reload()
 {
     bool r = weapon::reload();
-    if(owner==player1 && r) { scoped = false; player1->scoping = false; /*addmsg(SV_SCOPE, "ri2", lastmillis, 0);*/ }
+    if(owner==player1 && r) { scoped = false; player1->scoping = false; }
     return r;
 }
 
@@ -1102,9 +1102,9 @@ int sniperrifle::dynspread()
 }
 float sniperrifle::dynrecoil() { return scoped && lastmillis - scoped_since > SCOPESETTLETIME ? info.recoil / 3 : info.recoil; }
 bool sniperrifle::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
-void sniperrifle::onselecting() { weapon::onselecting(); scoped = false; player1->scoping = false; /*addmsg(SV_SCOPE, "ri2", lastmillis, 0);*/ }
-void sniperrifle::ondeselecting() { scoped = false; player1->scoping = false; /*addmsg(SV_SCOPE, "ri2", lastmillis, 0);*/ }
-void sniperrifle::onownerdies() { scoped = false; player1->scoping = false; /*addmsg(SV_SCOPE, "ri2", lastmillis, 0);*/ }
+void sniperrifle::onselecting() { weapon::onselecting(); scoped = false; player1->scoping = false; }
+void sniperrifle::ondeselecting() { scoped = false; player1->scoping = false; }
+void sniperrifle::onownerdies() { scoped = false; player1->scoping = false; }
 void sniperrifle::renderhudmodel() { if(!scoped) weapon::renderhudmodel(); }
 
 void sniperrifle::renderaimhelp(bool teamwarning)
@@ -1118,12 +1118,7 @@ void sniperrifle::setscope(bool enable)
     if(this == owner->weaponsel && !reloading && owner->state == CS_ALIVE)
     {
         if(scoped == false && enable == true) scoped_since = lastmillis;
-        if(player1 == owner && enable != scoped) player1->scoping = enable /*addmsg(SV_SCOPE, "ri2", lastmillis, enable)*/;
-		// 2010 MAY 17 : flowtron:
-		// if(watching_demo) we might need to ignore some messages
-		// e.g. I got one where I pressed SCOPE during the auto-reload -
-		// that makes it pop up during playback, but not during actual gametime
-		// since then reloading was true - seems it isn't during playback - test, verify, correct bug .. test, verify .. commit
+        if(player1 == owner && enable != scoped) player1->scoping = enable;
         scoped = enable;
     }
 }

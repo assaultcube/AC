@@ -1107,80 +1107,6 @@ void arenacheck()
     if(autoteam && m_teammode) refillteams(true);
 }
 
-//#define LMS_CLEARATROUNDSTART
-//#define LMS_ITEMMAXAGE 2
-
-/*void lmscheck() // spawn random item class once per round
-{
-    const int types[] = { I_CLIPS, I_AMMO, I_GRENADE, I_GRENADE, I_HEALTH, I_HELMET, I_ARMOUR, I_AKIMBO }, types_n = sizeof(types) / sizeof(types[0]);  // double probability for grenades ;)
-    static bool cleared = false, announced = false, spawned = false;
-#ifndef LMS_CLEARATROUNDSTART
-    static int lasttypes[LMS_ITEMMAXAGE + 1] = { NOTUSED };
-#endif
-    if(!m_lms || !numactiveclients()) return;
-    if(arenaround || !arenaroundstartmillis) // during intermission:
-    {
-        cleared = false;
-        arenaroundstartmillis |= 1;
-    }
-    else if(gamemillis - arenaroundstartmillis < 5 * 1000) // at round start: clear remaining items from former rounds
-    {
-        if(!cleared)
-        {
-#ifdef LMS_CLEARATROUNDSTART
-            loopv(sents) sents[i].spawned = sents[i].legalpickup = false;
-            sendf(-1, 1, "riii", SV_LMSITEM, LMSITEM_CLEAR, NOTUSED);
-#else
-            bool doclear = lasttypes[LMS_ITEMMAXAGE] != NOTUSED;
-            loopv(sents)
-            {
-                if(!sents[i].spawned || (doclear && lasttypes[LMS_ITEMMAXAGE] == sents[i].type) > 2) sents[i].spawned = sents[i].legalpickup = false;
-                else sents[i].legalpickup = sents[i].spawned;
-            }
-            if(doclear) sendf(-1, 1, "riii", SV_LMSITEM, LMSITEM_CLEAR, lasttypes[LMS_ITEMMAXAGE]);
-#endif
-            announced = false;
-            spawned = false;
-        }
-        cleared = true;
-    }
-    else if(gamemillis - arenaroundstartmillis < 15 * 1000) // 5 seconds after round start: announce item class
-    {
-        if(!announced)
-        {
-            int avail = 0;
-            loopi(types_n) if(smapstats.entcnt[types[i]]) avail++;
-            int pick = rnd(avail + avail / 2 + 1);
-            lmsitemtype = NOTUSED;
-            if(pick < avail)
-            {
-                loopi(types_n) if(smapstats.entcnt[types[i]] && !pick--) lmsitemtype = types[i];
-            }
-            if(avail) sendf(-1, 1, "riii", SV_LMSITEM, LMSITEM_ANNOUNCE, lmsitemtype);
-#ifndef LMS_CLEARATROUNDSTART
-            for(int i = LMS_ITEMMAXAGE - 1; i >= 0; i--) lasttypes[i + 1] = lasttypes[i] == lmsitemtype ? NOTUSED : lasttypes[i];
-            lasttypes[0] = lmsitemtype;
-#endif
-        }
-        announced = true;
-        cleared = false;
-    }
-    else  // 15 seconds after round start: spawn items
-    {
-        if(!spawned && lmsitemtype != NOTUSED)
-        {
-#ifdef LMS_CLEARATROUNDSTART
-            loopv(sents) sents[i].spawned = sents[i].legalpickup = sents[i].type == lmsitemtype;
-#else
-            loopv(sents) if(sents[i].type == lmsitemtype) sents[i].spawned = sents[i].legalpickup = true;
-#endif
-            sendf(-1, 1, "riii", SV_LMSITEM, LMSITEM_SPAWN, lmsitemtype);
-            logline(ACLOG_INFO, "spawned all \"%s\" items", entnames[lmsitemtype]);
-        }
-        spawned = true;
-    }
-}*/
-
 #define SPAMREPEATINTERVAL  20   // detect doubled lines only if interval < 20 seconds
 #define SPAMMAXREPEAT       3    // 4th time is SPAM
 #define SPAMCHARPERMINUTE   220  // good typist
@@ -1537,15 +1463,11 @@ bool updateclientteam(int cln, int newteam, int ftr)
 
 int calcscores() // skill eval
 {
-/*    int fp12 = (m_ctf || m_htf) ? 55 : 33;
-    int fp3 = (m_ctf || m_htf) ? 25 : 15;*/
     int sum = 0;
     loopv(clients) if(clients[i]->type!=ST_EMPTY)
     {
         clientstate &cs = clients[i]->state;
         sum += clients[i]->at3_score = cs.points > 0 ? ufSqrt((float)cs.points) : -ufSqrt((float)-cs.points);
-/*        sum += clients[i]->at3_score = (cs.frags * 100) / (cs.deaths ? cs.deaths : 1)
-                                     + (cs.flagscore < 3 ? fp12 * cs.flagscore : 2 * fp12 + fp3 * (cs.flagscore - 2));*/
     }
     return sum;
 }
@@ -2900,12 +2822,8 @@ void process(ENetPacket *packet, int sender, int chan)
                 break;
             }
 
-            case SV_SCOPE:
+            case SV_SCOPE: // FIXME remove in the next protocol change
             {
-                gameevent &scoping = cl->addevent();
-                scoping.type = GE_SCOPING;
-                seteventmillis(scoping.scoping);
-                scoping.scoping.scoped = getint(p)!=0;
                 break;
             }
 
