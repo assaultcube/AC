@@ -2580,7 +2580,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 /* spam filter */
                 if ( servmillis > cl->mute ) // client is not muted
                 {
-                    if( s < S_AFFIRMATIVE || s > S_AWESOME ) cl->mute = servmillis + 10000; // vc is invalid
+                    if( s < S_AFFIRMATIVE || s >= S_NULL ) cl->mute = servmillis + 10000; // vc is invalid
                     else if ( cl->lastvc + 4000 < servmillis ) { if ( cl->spam > 0 ) cl->spam -= (servmillis - cl->lastvc) / 4000; } // no vc in the last 4 seconds
                     else cl->spam++; // the guy is spamming
                     if ( cl->spam < 0 ) cl->spam = 0;

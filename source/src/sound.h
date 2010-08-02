@@ -30,7 +30,7 @@ enum
     S_MENUSELECT, S_MENUENTER,
     S_UNDERWATER,
     S_TINNITUS,
-
+// begin: voicecoms
     S_AFFIRMATIVE,
     S_ALLRIGHTSIR,
     S_COMEONMOVE,
@@ -55,14 +55,18 @@ enum
     S_THERESNOWAYSIR,
     S_WEDIDIT,
     S_YES,
-    S_UNDERWAY,
-    S_ONTHEMOVE,
+    S_ONTHEMOVE1,
+    S_ONTHEMOVE2,
     S_GOTURBACK,
-    S_INPOSITION,
+    S_GOTUCOVERED,
+    S_INPOSITION1,
+    S_INPOSITION2,
     S_REPORTIN,
     S_NICESHOT, // begin: public
-    S_THANKS,
-    S_AWESOME,
+    S_THANKS1,
+    S_THANKS2,
+    S_AWESOME1,
+    S_AWESOME2,
     S_NULL
 };
 
