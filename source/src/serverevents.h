@@ -89,9 +89,9 @@ void processevent(client *c, pickupevent &e)
     serverpickup(e.ent, c->clientnum);
 }
 
-void processevent(client *c, scopeevent &e)
+void processevent(client *c, scopeevent &e) // FIXME remove in the next protocol change
 {
-	clientstate &gs = c->state;
+    clientstate &gs = c->state;
     if(!gs.isalive(gamemillis)/* || e.gun!=GUN_SNIPER*/) return; // currently we check the gun on the client-side only
     gs.scoped = e.scoped;
     sendf(-1, 1, "ri3", SV_SCOPE, c->clientnum, gs.scoped);

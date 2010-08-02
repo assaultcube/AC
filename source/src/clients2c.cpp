@@ -631,20 +631,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 break;
             }
 
-            case SV_SCOPE:
+            case SV_SCOPE: // FIXME remove in the next protocol change
             {
                 int cn = getint(p), val = getint(p);
-                playerent *p = cn==getclientnum() ? player1 : getclient(cn);
-                if(!p || p==player1) break;
-                if(p->weaponsel->type != GUN_SNIPER)
-                {
-                    /* The change weapon and the scope informations may exchange due to lag */
-                    /* So, I do not think this break is necessary... */
-//                     conoutf(_("bad scope-message for %s"), p->name);
-                    break;
-                }
-                sniperrifle *sr = (sniperrifle *)p->weaponsel;
-                sr->setscope(val!=0);
                 break;
             }
 
