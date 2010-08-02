@@ -629,12 +629,11 @@ void weapon::renderstats()
     }
 }
 
-VAR(recoiltest, 0, 0, 1); // DISABLE ON RELEASE
-//int recoiltest = 0;
 
-VAR(recoilincrease, 1, 2, 10);
-VAR(recoilbase, 0, 40, 1000);
-VAR(maxrecoil, 0, 1000, 1000);
+static int recoiltest = 0;//VAR(recoiltest, 0, 0, 1); // DISABLE ON RELEASE
+static int recoilincrease = 2; //VAR(recoilincrease, 1, 2, 10);
+static int recoilbase = 40;//VAR(recoilbase, 0, 40, 1000);
+static int maxrecoil = 1000;//VAR(maxrecoil, 0, 1000, 1000);
 
 void weapon::attackphysics(vec &from, vec &to) // physical fx to the owner
 {
