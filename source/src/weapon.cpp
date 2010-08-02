@@ -612,7 +612,7 @@ bool weapon::reload()
     return true;
 }
 
-VAR(oldfashionedgunstats, 0, 0, 1);
+VARP(oldfashionedgunstats, 0, 0, 1);
 
 void weapon::renderstats()
 {
