@@ -55,7 +55,14 @@ enum
     S_THERESNOWAYSIR,
     S_WEDIDIT,
     S_YES,
-    S_NICESHOT,
+    S_UNDERWAY,
+    S_ONTHEMOVE,
+    S_GOTURBACK,
+    S_INPOSITION,
+    S_REPORTIN,
+    S_NICESHOT, // begin: public
+    S_THANKS,
+    S_AWESOME,
     S_NULL
 };
 
