@@ -1355,6 +1355,7 @@ void checkitemspawns(int diff)
 void serverdamage(client *target, client *actor, int damage, int gun, bool gib, const vec &hitpush = vec(0, 0, 0))
 {
     if (!m_demo && !m_coop && !validdamage(target, actor, damage, gun, gib)) return;
+    if ( m_arena && gun == GUN_GRENADE && arenaroundstartmillis + 2000 > gamemillis && target != actor ) return;
     clientstate &ts = target->state;
     ts.dodamage(damage);
     actor->state.damage += damage != 1000 ? damage : 0;
@@ -1857,6 +1858,7 @@ void startgame(const char *newname, int newmode, int newtime, bool notify)
         }
         mapbuffer.setrevision();
         logline(ACLOG_INFO, "Map height density information for %s: H = %.2f V = %d, A = %d and MA = %d", smapname, Mheight, Mvolume, Marea, Mopen);
+        items_blocked = false;
     }
     else if(isdedicated) sendservmsg("\f3server error: map not found - please start another map or send this map to the server");
     if(notify)
@@ -2656,7 +2658,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 /* spam filter */
                 if ( servmillis > cl->mute ) // client is not muted
                 {
-                    if( s < S_AFFIRMATIVE || s > S_NICESHOT ) cl->mute = servmillis + 10000; // vc is invalid
+                    if( s < S_AFFIRMATIVE || s > S_AWESOME ) cl->mute = servmillis + 10000; // vc is invalid
                     else if ( cl->lastvc + 4000 < servmillis ) { if ( cl->spam > 0 ) cl->spam -= (servmillis - cl->lastvc) / 4000; } // no vc in the last 4 seconds
                     else cl->spam++; // the guy is spamming
                     if ( cl->spam < 0 ) cl->spam = 0;

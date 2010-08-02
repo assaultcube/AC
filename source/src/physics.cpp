@@ -801,7 +801,7 @@ void tsens(int x)
                 sensl=sensn/2.0f;
             }
         }
-        conoutf("--- \f0you choose: %s sens",x==SDLK_3?"high":"low");
+        conoutf("--- \f0you choose: the %s sens",x==SDLK_3?"higher":"lower");
         testsens=sensn;
     }
     if (x == SDLK_2)
@@ -827,7 +827,7 @@ void tsens(int x)
             conoutf("--- \f0Sensitivity Training Ended. happy fragging.");
             sensitivity=sensn;
         } else {
-            conoutf("--- \f0Sensitivity Training Stopped. ");
+            conoutf("--- \f0Sensitivity Training Stopped.");
         }
         highlock=lowlock=0;
         sensn=sensl=sensh=0;
@@ -861,13 +861,13 @@ void mousemove(int odx, int ody)
 
     float cursens = sensitivity;
     if(senst) {cursens=testsens;}
-    if(mouseaccel && curtime && (dx || dy)) cursens += 0.02 * mouseaccel * sqrtf(dx*dx + dy*dy)/curtime;
+    if(mouseaccel && curtime && (dx || dy)) cursens += 0.02f * mouseaccel * sqrtf(dx*dx + dy*dy)/curtime;
     cursens /= 33.0f*sensitivityscale;
 
     if( zooming(player1) )
     {
         extern float fov; extern int scopefov;
-        cursens *= autoscopesens ? (((float)scopefov)/fov) : scopesensscale;
+        cursens *= autoscopesens ? ((float)scopefov*0.66f/fov) : scopesensscale;
     }
 
     camera1->yaw += dx*cursens;
