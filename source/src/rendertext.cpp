@@ -241,11 +241,12 @@ font::charinfo *loadchar(int code)
 */
 int draw_char(font &f, font::charinfo &info, int charcode, int x, int y)
 {
+/*
 	// fixme
     glEnd();
     glBindTexture(GL_TEXTURE_2D, f.tex->id);
     glBegin(GL_QUADS);
-
+*/
     float tc_left    = (info.x + f.offsetx) / float(f.tex->xs);
     float tc_top     = (info.y + f.offsety) / float(f.tex->ys);
     float tc_right   = (info.x + info.w + f.offsetw) / float(f.tex->xs);
