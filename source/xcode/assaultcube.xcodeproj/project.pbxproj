@@ -29,14 +29,12 @@
 		9EB8171C11ED9AEF00799589 /* Ogg.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9EB8171411ED9AEF00799589 /* Ogg.framework */; };
 		9EB8171D11ED9AEF00799589 /* SDL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9EB8171511ED9AEF00799589 /* SDL.framework */; };
 		9EB8171E11ED9AEF00799589 /* SDL_image.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9EB8171611ED9AEF00799589 /* SDL_image.framework */; };
-		9EB8172011ED9AEF00799589 /* SDL_ttf.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9EB8171811ED9AEF00799589 /* SDL_ttf.framework */; };
 		9EB8172111ED9AEF00799589 /* Vorbis.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9EB8171911ED9AEF00799589 /* Vorbis.framework */; };
 		9EB8179311ED9EDF00799589 /* INTL.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9EB8171211ED9AEF00799589 /* INTL.framework */; };
 		9EB8179411ED9EDF00799589 /* JPEG.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9EB8171311ED9AEF00799589 /* JPEG.framework */; };
 		9EB8179511ED9EDF00799589 /* Ogg.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9EB8171411ED9AEF00799589 /* Ogg.framework */; };
 		9EB8179611ED9EDF00799589 /* SDL.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9EB8171511ED9AEF00799589 /* SDL.framework */; };
 		9EB8179711ED9EDF00799589 /* SDL_image.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9EB8171611ED9AEF00799589 /* SDL_image.framework */; };
-		9EB8179911ED9EDF00799589 /* SDL_ttf.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9EB8171811ED9AEF00799589 /* SDL_ttf.framework */; };
 		9EB8179A11ED9EDF00799589 /* Vorbis.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9EB8171911ED9AEF00799589 /* Vorbis.framework */; };
 		9EB8181D11EDA56D00799589 /* assaultcube.icns in Resources */ = {isa = PBXBuildFile; fileRef = 9EB817DE11EDA3A300799589 /* assaultcube.icns */; };
 		9EB8188511EDACDB00799589 /* assaultcube.icns in Resources */ = {isa = PBXBuildFile; fileRef = 9EB817DE11EDA3A300799589 /* assaultcube.icns */; };
@@ -124,7 +122,6 @@
 				9EB8179511ED9EDF00799589 /* Ogg.framework in CopyFiles */,
 				9EB8179611ED9EDF00799589 /* SDL.framework in CopyFiles */,
 				9EB8179711ED9EDF00799589 /* SDL_image.framework in CopyFiles */,
-				9EB8179911ED9EDF00799589 /* SDL_ttf.framework in CopyFiles */,
 				9EB8179A11ED9EDF00799589 /* Vorbis.framework in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -167,7 +164,6 @@
 		9EB8171411ED9AEF00799589 /* Ogg.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Ogg.framework; path = Frameworks/Ogg.framework; sourceTree = "<group>"; };
 		9EB8171511ED9AEF00799589 /* SDL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL.framework; path = Frameworks/SDL.framework; sourceTree = "<group>"; };
 		9EB8171611ED9AEF00799589 /* SDL_image.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL_image.framework; path = Frameworks/SDL_image.framework; sourceTree = "<group>"; };
-		9EB8171811ED9AEF00799589 /* SDL_ttf.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL_ttf.framework; path = Frameworks/SDL_ttf.framework; sourceTree = "<group>"; };
 		9EB8171911ED9AEF00799589 /* Vorbis.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Vorbis.framework; path = Frameworks/Vorbis.framework; sourceTree = "<group>"; };
 		9EB817DE11EDA3A300799589 /* assaultcube.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = assaultcube.icns; sourceTree = "<group>"; };
 		9EB8183711EDA6EE00799589 /* assaultcube.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = assaultcube.plist; sourceTree = "<group>"; };
@@ -275,7 +271,6 @@
 				9EB8172111ED9AEF00799589 /* Vorbis.framework in Frameworks */,
 				9EB8171D11ED9AEF00799589 /* SDL.framework in Frameworks */,
 				9EB8171E11ED9AEF00799589 /* SDL_image.framework in Frameworks */,
-				9EB8172011ED9AEF00799589 /* SDL_ttf.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -313,7 +308,6 @@
 				9EB8171911ED9AEF00799589 /* Vorbis.framework */,
 				9EB8171511ED9AEF00799589 /* SDL.framework */,
 				9EB8171611ED9AEF00799589 /* SDL_image.framework */,
-				9EB8171811ED9AEF00799589 /* SDL_ttf.framework */,
 				1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */,
 				B9FA3B7C0DD9E6E400581F8D /* OpenAL.framework */,
 				B2F67ED704C74A3F00A80002 /* OpenGL.framework */,
