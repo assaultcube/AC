@@ -1,2 +1,2 @@
-mingw32-make PLATFORM=MINGW MV=rename RM=del %*
+mingw32-make PLATFORM=MINGW MV=copy RM=del %*
 PAUSE
