@@ -850,6 +850,7 @@ int main(int argc, char **argv)
                     	printf("%d\n", PROTOCOL_VERSION);
                     	quitdirectly = true;
                     }
+                    else conoutf("\f3unknown commandline switch: %s", argv[i]);
                     break;
                 case 'd': dedicated = true; break;
                 case 't': fullscreen = atoi(a); break;
@@ -861,9 +862,9 @@ int main(int argc, char **argv)
                 case 'a': fsaa = atoi(a); break;
                 case 'v': vsync = atoi(a); break;
                 case 'e': initscript = &argv[i][2]; break;
-                default:  conoutf("unknown commandline option");
+                default:  conoutf("\f3unknown commandline option: -%c", argv[i][1]);
             }
-            else conoutf("unknown commandline argument");
+            else conoutf("\f3unknown commandline argument: %c", argv[i][0]);
         }
     }
 	if(quitdirectly) return EXIT_SUCCESS;
