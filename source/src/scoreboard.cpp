@@ -265,7 +265,7 @@ void renderscores(void *menu, bool init)
             string text;
             filtertext(text, s->sdesc);
             for(char *p = text; (p = strchr(p, '\"')); *p++ = ' ');
-            text[38] = '\0'; // serverbrowser has less room - +8 chars here
+            text[30] = '\0'; // serverbrowser has less room - +8 chars here - 2010AUG03 - seems it was too much, falling back to 30 (for now): TODO get real width of menu as reference-width.
             concatformatstring(serverline, "%s:%d %s", s->name, s->port, text);
         }
     }
