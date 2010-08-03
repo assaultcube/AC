@@ -54,7 +54,7 @@ struct vec
         int i[3];
     };
 
-    vec() {}
+    vec() {x=y=z=0;}
     vec(float a, float b, float c) : x(a), y(b), z(c) {}
     vec(float *v) : x(v[0]), y(v[1]), z(v[2]) {}
 
