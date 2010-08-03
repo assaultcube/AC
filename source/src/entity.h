@@ -4,8 +4,8 @@ enum                            // static entity types
     LIGHT,                      // lightsource, attr1 = radius, attr2 = intensity
     PLAYERSTART,                // attr1 = angle, attr2 = team
     I_CLIPS, I_AMMO, I_GRENADE,
-	I_HEALTH, I_HELMET, I_ARMOUR, I_AKIMBO,
-	// helmet : 2010may16 -> mapversion:8
+    I_HEALTH, I_HELMET, I_ARMOUR, I_AKIMBO,
+                                // helmet : 2010may16 -> mapversion:8
     MAPMODEL,                   // attr1 = angle, attr2 = idx
     CARROT,                     // attr1 = tag, attr2 = type
     LADDER,

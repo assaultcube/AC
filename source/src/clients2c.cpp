@@ -633,7 +633,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
             case SV_SCOPE: // FIXME remove in the next protocol change
             {
-                int cn = getint(p), val = getint(p);
+                getint(p);
+                getint(p);
                 break;
             }
 

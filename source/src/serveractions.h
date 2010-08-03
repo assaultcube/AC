@@ -50,6 +50,47 @@ bool mapisok(mapstats *ms)
         FlagFlag = pow2(fl[0].x - fl[1].x) + pow2(fl[0].y - fl[1].y);
     }
     else FlagFlag = MINFF * 1000; // the map has no flags
+
+    for (int i = 0; i < ms->hdr.numents; i++)
+    {
+        int v = ms->enttypes[i];
+        if (v < I_CLIPS || v > I_AKIMBO) continue;
+        short *p = &ms->entposs[i*3];
+        float density = 0, hdensity = 0;
+        for(int j = 0; j < ms->hdr.numents; j++)
+        {
+            int w = ms->enttypes[j];
+            if (w < I_CLIPS || w > I_AKIMBO || i == j) continue;
+            short *q = &ms->entposs[j*3];
+            float r2 = 0;
+            loopk(3){ r2 += (p[k]-q[k])*(p[k]-q[k]); }
+            if ( r2 == 0.0f ) return false;
+            r2 = 1/r2;
+            if (r2 < 0.0025f) continue;
+            if (w != v)
+            {
+                hdensity += r2;
+                continue;
+            }
+            density += r2;
+        }
+/*        if (hdensity > 0.0f) { logline(ACLOG_INFO, "ITEM CHECK H %s %f", entnames[v], hdensity); }
+        if (density > 0.0f) { logline(ACLOG_INFO, "ITEM CHECK D %s %f", entnames[v], density); }*/
+        if ( hdensity > 0.5f ) return false;
+        if (v==I_HEALTH)
+        {
+            if( density > 0.24f ) return false;
+        }
+        else if (v==I_GRENADE)
+        {
+            if( density > 0.005f ) return false;
+        }
+        else
+        {
+            if( density > 0.04f ) return false;
+        }
+
+    }
     return Mheight < MAXMHEIGHT && (Mopen = checkarea(testlayout_factor, testlayout)) < MAXMAREA && FlagFlag > MINFF;
 }
 
@@ -84,7 +125,7 @@ struct mapaction : serveraction
             mapok = ms != NULL && ( (mode != GMODE_COOPEDIT && mapisok(ms)) || (mode == GMODE_COOPEDIT && !readonlymap(maploc)) );
             if(!mapok)
             {
-                defformatstring(msg)("%s", ms ? ( readonlymap(maploc) ? "this map cannot be coopedited in this server" : "sorry, but this map does not satisfy some quality requisites to be played in MultiPlayer Mode" ) : "the server does not have this map" );
+                defformatstring(msg)("%s", ms ? ( mode == GMODE_COOPEDIT ? "this map cannot be coopedited in this server" : "sorry, but this map does not satisfy some quality requisites to be played in MultiPlayer Mode" ) : "the server does not have this map" );
                 if(notify) sendservmsg(msg, caller);
             }
             else

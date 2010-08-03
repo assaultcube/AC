@@ -74,45 +74,45 @@ struct mapstats
         } \
         if(headr.version<6  && strncmp(headr.head,"CUBE",4)==0)  /* only render lights, pl starts and map models on old maps // <6 was <MAPVERSION but we're now at #7 (flowtron) */ \
         { \
-        		switch(e.type) \
-        		{ \
-        			case 1: /* old light */ \
-        				e.type=LIGHT; \
-        				break; \
-        			case 2: /* old player start */ \
-        				e.type=PLAYERSTART; \
-        				break; \
-        			case 3: \
-        		        case 4: \
-        			case 5: \
-        			case 6: \
-        				e.type=I_AMMO; \
-        				break; \
-        			case 7: /* old health */ \
-        				e.type=I_HEALTH; \
-        				break; \
-        			case 8: /* old boost */ \
-        				e.type=I_HEALTH; \
-        				break; \
-        			case 9: /* armour */ \
-        			    e.type=I_HELMET; \
-        			    break; \
-        			case 10: /* armor */ \
-        				e.type=I_ARMOUR; \
-        				break; \
-        			case 11: /* quad */ \
-        				e.type=I_AKIMBO; \
-        				break; \
-        			case 14: /* old map model */ \
-        				e.type=MAPMODEL; \
-        				break; \
-        			default: \
-        				e.type=NOTUSED; \
-        		} \
+            switch(e.type) \
+            { \
+                case 1: /* old light */ \
+                    e.type=LIGHT; \
+                    break; \
+                case 2: /* old player start */ \
+                    e.type=PLAYERSTART; \
+                    break; \
+                case 3: \
+                case 4: \
+                case 5: \
+                case 6: \
+                    e.type=I_AMMO; \
+                    break; \
+                case 7: /* old health */ \
+                    e.type=I_HEALTH; \
+                    break; \
+                case 8: /* old boost */ \
+                    e.type=I_HEALTH; \
+                    break; \
+                case 9: /* armour */ \
+                    e.type=I_HELMET; \
+                    break; \
+                case 10: /* armor */ \
+                    e.type=I_ARMOUR; \
+                    break; \
+                case 11: /* quad */ \
+                    e.type=I_AKIMBO; \
+                    break; \
+                case 14: /* old map model */ \
+                    e.type=MAPMODEL; \
+                    break; \
+                default: \
+                    e.type=NOTUSED; \
+            } \
         } \
-		if(headr.version>=6 && headr.version<8) { \
-			if( e.type >= I_HELMET && e.type < (MAXENTTYPES - 1) ) { e.type += 1; } \
-		}
+        if(headr.version>=6 && headr.version<8) { \
+            if( e.type >= I_HELMET && e.type < (MAXENTTYPES - 1) ) { e.type += 1; } \
+        }
 
 #define SWS(w,x,y,s) (&(w)[((y)<<(s))+(x)])
 #define SW(w,x,y) SWS(w,x,y,sfactor)
