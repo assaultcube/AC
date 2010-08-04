@@ -1,0 +1,60 @@
+wind			Original recording  by "Bahutan"
+
+night_crickets
+cavedrip		Original recordings by "acclivity"
+
+water			Original recording  by "ignotus"
+distant_cars		Original recordings by "fresco" and "WIM"
+
+hum02			Original recording  by "dommygee"
+hum01                    
+
+----- Toca's seamless loops -----
+t_hum01			Original recording  by "mwl500"
+t_hum02			Original recording  by "fonogeno"
+t_hum03			Original recording  by "livindead"
+t_hum04			Original recording  by "NoiseCollector"
+t_vent01		Original recording  by "droboide"
+t_vent02		Original recording  by "nicStage"
+t_water01		Original recording  by "acclivity"
+t_aircond		Original recording  by "Syna Max"
+t_dogs01		Original recording  by "ermine"
+t_compressor		Original recording  by "ReWired"
+t_helicopter		Original recording  by "nofeedbak"
+t_wind			Original recording  by "vuzz"
+t_waterdrip		Original recording  by "mich3d"
+t_sludge		Original recording  by "Rhedcerulean"
+
+
+
+All these works are licensed:
+
+http://creativecommons.org/licenses/sampling+/1.0/
+
+Downloaded from 
+
+freesound.iua.upf.edu
+
+________________________________________________________________
+
+The following files were created from source material downloaded
+from www.soundsnap.com and edited into seamless loops by Toca.
+
+t_crow
+t_radio_comms
+t_radio_static
+t_static02
+t_static01
+t_night02
+t_water_owl
+t_night01
+t_night_dog
+t_keyboard.ogg
+t_factory01.ogg
+t_vents.ogg
+t_waterfront.ogg
+
+warningalarm01
+
+
+http://www.soundsnap.com/licence

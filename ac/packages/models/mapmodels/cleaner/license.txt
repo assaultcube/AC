@@ -1,0 +1,18 @@
+2010-05-18
+==========
+All mapmodels in sub-folders:
+	* minecart
+	* rails
+
+... are originally by Sitters:
+	- http://www.md2.sitters-electronics.nl/index.htm
+... and have been remodelled to fit AssaultCube by Cleaner:
+	- http://akimbo.in/forum/
+	- http://assault.cubers.net/forum/user-420.html
+	- http://forums.des-clan.net/
+
+License, as from http://www.md2.sitters-electronics.nl:
+-------------------------------------------------------
+You may use all these objects for free.
+The 3D models have a licence under GNU and CC_attribution /by.
+Please contact me if there is anything wrong with the models, Links or maps....
