@@ -2371,7 +2371,6 @@ void process(ENetPacket *packet, int sender, int chan)
             filtertext(text, text, 0, MAXNAMELEN);
             if(!text[0]) copystring(text, "unarmed");
             copystring(cl->name, text, MAXNAMELEN+1);
-
             getstring(text, p);
             copystring(cl->pwd, text);
             getstring(text, p);
@@ -2421,7 +2420,7 @@ void process(ENetPacket *packet, int sender, int chan)
             }
             else if(scl.serverpassword[0] && !(srvprivate || srvfull || banned))
             { // server password required
-                if(!strcmp(genpwdhash(cl->name, scl.serverpassword, cl->salt), text))
+                if(!strcmp(genpwdhash(cl->name, scl.serverpassword, cl->salt), cl->pwd))
                 {
                     cl->isauthed = true;
                     logline(ACLOG_INFO, "[%s] %s client logged in (using serverpassword)%s", cl->hostname, cl->name, tags);
