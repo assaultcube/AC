@@ -1337,7 +1337,7 @@ void updatefrommaster(int force)
     retrieveservers(data);
 
     if(data.empty()) {
-        conoutf("Master server not replying. \f1Get more info in http://assault.cubers.net");
+        conoutf("Master server not replying. \f1Get more information at http://masterserver.cubers.net/");
     }
     else
     {
