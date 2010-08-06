@@ -79,37 +79,42 @@ COMMAND(showedithide, ARG_NONE);
 
 void setedithide(char *text) // FIXME: human indexing inside
 {
-    //int lop = 0;
     eh_ents.setsize(0);
-    const char *s = strtok(text, " ");
-    do
-    {
-        bool k = false;
-        int sn = -1;
-        int tn = atoi(s);
-        loopi(MAXENTTYPES) if(!strcmp(entnames[i], s)) sn = i;
-        if(sn!=-1) { loopv(eh_ents) { if(eh_ents[i]==sn) { k = true; } } }
-        else sn = tn;
-        if(!k) { if(sn>0 && sn<MAXENTTYPES) eh_ents.add(sn); }
-        s = strtok(NULL, " ");
-    }
-    while(s);
+	if(text && text[0] != '\0')
+	{
+		const char *s = strtok(text, " ");
+		do
+		{
+			bool k = false;
+			int sn = -1;
+			int tn = atoi(s);
+			loopi(MAXENTTYPES) if(!strcmp(entnames[i], s)) sn = i;
+			if(sn!=-1) { loopv(eh_ents) { if(eh_ents[i]==sn) { k = true; } } }
+			else sn = tn;
+			if(!k) { if(sn>0 && sn<MAXENTTYPES) eh_ents.add(sn); }
+			s = strtok(NULL, " ");
+		}
+		while(s);
+	}
 }
 COMMAND(setedithide, ARG_CONC);
 
 void seteditshow(char *just)
 {
     eh_ents.setsize(0);
-    const char *s = strtok(just, " ");
-    int sn = -1;
-    int tn = atoi(s);
-    loopi(MAXENTTYPES) if(!strcmp(entnames[i], s)) sn = i;
-    if(sn==-1) sn = tn;
-    loopi(MAXENTTYPES-1)
-    {
-        int j = i+1;
-        if(j!=sn) eh_ents.add(j);
-    }
+	if(just && just[0] != '\0')
+	{
+		const char *s = strtok(just, " ");
+		int sn = -1;
+		int tn = atoi(s);
+		loopi(MAXENTTYPES) if(!strcmp(entnames[i], s)) sn = i;
+		if(sn==-1) sn = tn;
+		loopi(MAXENTTYPES-1)
+		{
+			int j = i+1;
+			if(j!=sn) eh_ents.add(j);
+		}
+	}
 }
 COMMAND(seteditshow, ARG_1STR);
 
