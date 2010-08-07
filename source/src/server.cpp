@@ -45,7 +45,8 @@ bool custom_servdesc = false;
 // current game
 string smapname, nextmapname;
 int smode = 0, nextgamemode;
-static int interm = 0, minremain = 0, gamemillis = 0, gamelimit = 0, /*lmsitemtype = 0,*/ nextsendscore = 0;
+int interm = 0;
+static int minremain = 0, gamemillis = 0, gamelimit = 0, /*lmsitemtype = 0,*/ nextsendscore = 0;
 mapstats smapstats;
 vector<server_entity> sents;
 char *maplayout = NULL, *testlayout = NULL;
