@@ -970,7 +970,12 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				    if(pl)
 				    {
 					    pl->clientrole = r;
-                        if(pl->name[0]) conoutf(_("%s claimed %s status"), pl == player1 ? _("you") : colorname(pl), r == CR_ADMIN ? "admin" : "master");
+                        if(pl->name[0])
+                        {
+                            // two messages required to allow for proper german translation - is there a better way to do it?
+                            if(pl==player1) conoutf(_("you claimed %s status"), r == CR_ADMIN ? "admin" : "master");
+                            else conoutf(_("%s claimed %s status"), colorname(pl), r == CR_ADMIN ? "admin" : "master");
+                        }
 				    }
 			    }
 			    break;
