@@ -87,6 +87,7 @@ bool requestmasterf(const char *fmt, ...)
 }
 
 extern void processmasterinput(const char *cmd, int cmdlen, const char *args);
+extern bool msreg;
 
 void processmasterinput()
 {
@@ -105,7 +106,10 @@ void processmasterinput()
         if(!strncmp(input, "failreg", cmdlen))
             logline(ACLOG_WARNING, "master server registration failed: %s", args);
         else if(!strncmp(input, "succreg", cmdlen))
+        {
+            msreg = false;
             logline(ACLOG_INFO, "master server registration succeeded");
+        }
         else processmasterinput(input, cmdlen, args);
 
         masterinpos = end - masterin.getbuf();
@@ -162,7 +166,7 @@ extern char *global_name;
 // send alive signal to masterserver every hour of uptime
 static inline void updatemasterserver(int millis, int port)
 {
-    if(!lastupdatemaster || millis-lastupdatemaster>60*60*1000)
+    if(!lastupdatemaster || millis-lastupdatemaster>40*60*1000)
     {
         char servername[30]; memset(servername,'\0',30); filtertext(servername,global_name,-1,20);
         if(mastername[0]) requestmasterf("regserv %d %s %d\n", port, servername[0] ? servername : "noname", AC_VERSION);
