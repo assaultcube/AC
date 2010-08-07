@@ -87,7 +87,6 @@ bool requestmasterf(const char *fmt, ...)
 }
 
 extern void processmasterinput(const char *cmd, int cmdlen, const char *args);
-extern bool msreg;
 
 void processmasterinput()
 {
@@ -107,7 +106,6 @@ void processmasterinput()
             logline(ACLOG_WARNING, "master server registration failed: %s", args);
         else if(!strncmp(input, "succreg", cmdlen))
         {
-            msreg = false;
             logline(ACLOG_INFO, "master server registration succeeded");
         }
         else processmasterinput(input, cmdlen, args);
@@ -162,7 +160,7 @@ void flushmasterinput()
 }
 
 extern char *global_name;
-extern int interm
+extern int interm;
 
 // send alive signal to masterserver after 40 minutes of uptime and during an intermission (so theoretically <= 1 hour) - after 1 hour at the latest.
 static inline void updatemasterserver(int millis, int port)
