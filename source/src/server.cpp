@@ -56,6 +56,7 @@ servermapbuffer mapbuffer;
 char *global_name;
 int totalclients = 0;
 int cn2boot;
+int servertime = 0, serverlagged = 0;
 
 bool valid_client(int cn)
 {
@@ -3398,6 +3399,8 @@ void linequalitystats(int elapsed)
     }
 }
 
+bool msreg = true;
+
 void serverslice(uint timeout)   // main server update, called from cube main loop in sp, or dedicated server loop
 {
     static int msend = 0, mrec = 0, csend = 0, crec = 0, mnum = 0, cnum = 0;
@@ -3410,6 +3413,8 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
     int diff = nextmillis - servmillis;
     gamemillis += diff;
     servmillis = nextmillis;
+    servertime = ((diff + 3 * servertime)>>2);
+    if (servertime > 40) serverlagged = servmillis;
 
     if(m_demo) readdemo();
 
@@ -3455,6 +3460,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
         loggamestatus("game finished");
         if(demorecord) enddemorecord();
         interm = nextsendscore = 0;
+        msreg = true;
 
         //start next game
         if(nextmapname[0]) startgame(nextmapname, nextgamemode);
@@ -3466,7 +3472,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 
     if(!isdedicated) return;     // below is network only
 
-    serverms(smode, numclients(), minremain, smapname, servmillis, serverhost->address, &mnum, &msend, &mrec, &cnum, &csend, &crec, SERVER_PROTOCOL_VERSION);
+    if (msreg || !totalclients) serverms(smode, numclients(), minremain, smapname, servmillis, serverhost->address, &mnum, &msend, &mrec, &cnum, &csend, &crec, SERVER_PROTOCOL_VERSION);
 
     if(autoteam && m_teammode && !m_arena && !interm && servmillis - lastfillup > 5000 && refillteams()) lastfillup = servmillis;
 
