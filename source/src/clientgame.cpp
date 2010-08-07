@@ -216,6 +216,7 @@ ICOMMANDF(skin, ARG_1EST, (char *s) { return _setskin(s, player1->team); });
 
 int curteam() { return player1->team; }
 int currole() { return player1->clientrole; }
+int curmode() { return gamemode; }
 int curmastermode() { return servstate.mastermode; }
 void curmap(int cleaned) { result(cleaned ? behindpath(getclientmap()) : getclientmap()); }
 
@@ -233,6 +234,7 @@ COMMANDN(name, newname, ARG_1STR);
 COMMAND(benchme, ARG_NONE);
 COMMAND(curteam, ARG_IVAL);
 COMMAND(currole, ARG_IVAL);
+COMMAND(curmode, ARG_IVAL);
 COMMAND(curmastermode, ARG_IVAL);
 COMMAND(getclientmode, ARG_IVAL);
 COMMAND(curmodeattr, ARG_1EST);
