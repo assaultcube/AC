@@ -264,9 +264,10 @@ void renderscores(void *menu, bool init)
             // but we might want to consider wrapping the bottom-line to accomodate longer descriptions - to a limit.
             string text;
             filtertext(text, s->sdesc);
-            for(char *p = text; (p = strchr(p, '\"')); *p++ = ' ');
-            text[30] = '\0'; // serverbrowser has less room - +8 chars here - 2010AUG03 - seems it was too much, falling back to 30 (for now): TODO get real width of menu as reference-width.
+            //for(char *p = text; (p = strchr(p, '\"')); *p++ = ' ');
+            //text[30] = '\0'; // serverbrowser has less room - +8 chars here - 2010AUG03 - seems it was too much, falling back to 30 (for now): TODO get real width of menu as reference-width. FIXME: cutoff
             concatformatstring(serverline, "%s:%d %s", s->name, s->port, text);
+            //printf("SERVERLINE: %s\n", serverline);
         }
     }
 

@@ -831,6 +831,15 @@ void menuheader(void *menu, char *header, char *footer)
     m.header = header && header[0] ? header : NULL;
     m.footer = footer && footer[0] ? footer : NULL;
 }
+void lastmenu_header(char *header, char *footer)
+{
+    if(lastmenu)
+    {
+        menuheader(lastmenu, newstring(header), newstring(footer));
+    }
+    else conoutf("no last menu to apply to");
+}
+COMMANDN(menuheader, lastmenu_header, ARG_2STR);
 
 void menufont(void *menu, const char *usefont)
 {
@@ -1004,8 +1013,8 @@ bool menukey(int code, bool isdown, int unicode, SDLMod mod)
     {
         bool hasdesc = false;
         loopv(curmenu->items) if(curmenu->items[i]->getdesc()) { hasdesc = true; break;}
-        int pagesize = MAXMENU - (curmenu->header ? 2 : 0) - (curmenu->footer || hasdesc ? 2 : 0);
-
+        //int pagesize = MAXMENU - (curmenu->header ? 2 : 0) - (curmenu->footer || hasdesc ? 2 : 0); // FIXME: footer-length
+        int pagesize = MAXMENU - (curmenu->header ? 2 : 0) - (curmenu->footer ? (curmenu->footlen?(curmenu->footlen+1):2) : (hasdesc ? 2 : 0)); // FIXME: footer-length
         switch(code)
         {
             case SDLK_PAGEUP: menusel -= pagesize; break;
@@ -1192,7 +1201,18 @@ void gmenu::init()
             else if(!strcmp(dirlist->ext, "cgz") /*&& (fileexists(jpgname, "r") || findfile(jpgname, "r") != jpgname)*/)
             {
                 //items.add(new mitemimage(this, newstring(jpgname), f, newstring(dirlist->action), NULL, NULL, d));
-                defformatstring(fullname)("%s%s%s", dirlist->dir[0]?dirlist->dir:"", dirlist->dir[0]?"/":"", f);
+                int diroffset = 0;
+                if(dirlist->dir[0])
+                {
+                    unsigned int ddsl = strlen("packages/");
+                    if(strlen(dirlist->dir)>ddsl)
+                    {
+                        string prefix;
+                        copystring(prefix, dirlist->dir, ddsl+1);
+                        if(!strcmp(prefix,"packages/")) diroffset = ddsl;
+                    }
+                }
+                defformatstring(fullname)("%s%s%s", dirlist->dir[0]?dirlist->dir+diroffset:"", dirlist->dir[0]?"/":"", f);
                 defformatstring(caction)("map %s", fullname);
                 defformatstring(title)("%s", d[0]!='\0'?d:f);
                 items.add(new mitemmapload(this, newstring(fullname), newstring(title), newstring(caction), NULL, NULL, NULL));
@@ -1228,7 +1248,8 @@ void gmenu::render()
             if(x>w) w = x;
         }
     }
-    int hitems = (header ? 2 : 0) + (footer || hasdesc ? 2 : 0),
+    //int hitems = (header ? 2 : 0) + (footer || hasdesc ? 2 : 0), // FIXME: footer-length
+    int hitems = (header ? 2 : 0) + (footer ? (footlen?(footlen+1):2) : (hasdesc ? 2 : 0)),
         pagesize = MAXMENU - hitems,
         offset = menusel - (menusel%pagesize),
         mdisp = min(items.length(), pagesize),
@@ -1266,9 +1287,44 @@ void gmenu::render()
     {
         y += ((mdisp-cdisp)+1)*step;
         if(!hasdesc)
-            draw_text(footer, x, y);
+        {
+            footlen = 0;
+            if(text_width(footer)>w)
+            {
+                int tflo = 0;
+                int cflw = 0;
+                unsigned int cflc = 0;
+                string pofl;
+                string bufl;
+                bool keepon = true;
+                while(keepon)
+                {
+                    while(cflw<w && cflc<strlen(footer))
+                    {
+                        cflc++;
+                        formatstring(bufl)("%s", footer+tflo);
+                        copystring(pofl, bufl, cflc-tflo);
+                        cflw = text_width(pofl);
+                    }
+                    if(cflc<=strlen(footer))
+                    {
+                        if(cflc==strlen(footer) || cflc>=MAXSTRLEN) keepon = false;
+                        cflc--;
+                        cflw = 0;
+                        formatstring(bufl)("%s", footer+tflo);
+                        copystring(pofl, bufl, cflc-tflo);
+                        draw_text(pofl, x, y);
+                        y+=step;
+                        tflo = cflc-1;
+                        footlen++;
+                    }
+                }
+            }
+            else draw_text(footer, x, y);
+        }
         else if(items.inrange(menusel) && items[menusel]->getdesc())
             draw_text(items[menusel]->getdesc(), x, y);
+
     }
     if(usefont) popfont(); // setfont("default");
 }
