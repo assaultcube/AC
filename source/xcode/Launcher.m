@@ -18,8 +18,9 @@
 
 #define kMaxDisplays	16
 
-//If you make a MOD then please change this, the bundle indentifier, the file extensions (.ogz, .dmo), and the url registration.
-#define kSAUERBRATEN @"assaultcube"
+//If you make a MOD then please change this, the bundle indentifier, the file extensions (.cgz, .dmo), and the url registration.
+#define kASSAULTCUBE @"assaultcube"
+#define kUSERCONFGIDIR @"assaultcube_1.1"
 
 //tab names, i.e. image names (text is localised)
 #define tkMAIN @"Main"
@@ -33,7 +34,7 @@
 - (NSString*)expand {
     NSMutableString *str = [NSMutableString string];
     [str setString:self];
-    [str replaceOccurrencesOfString:@":s" withString:kSAUERBRATEN options:0 range:NSMakeRange(0, [str length])]; 
+    [str replaceOccurrencesOfString:@":s" withString:kASSAULTCUBE options:0 range:NSMakeRange(0, [str length])]; 
     return str;
 }
 @end
@@ -71,7 +72,7 @@
     [path release];
     [super dealloc];
 }
-- (NSString*)path { return (demo ? [NSString stringWithFormat:@"-xdemo \"%@\"", path] : path); } // minor hack
+- (NSString*)path { return (demo ? [NSString stringWithFormat:@"--loaddemo=%@", path] : path); } // minor hack
 - (NSString*)name { return [path lastPathComponent]; }
 - (NSImage*)image 
 { 
@@ -234,7 +235,7 @@ static int numberForKey(CFDictionaryRef desc, CFStringRef key)
 }
 
 
-/* directory where user files are kept - typically /Users/<name>/Application Support/sauerbraten */
+/* directory where user files are kept - typically /Users/<name>/Application Support/assaultcube_major.minor */
 + (NSString*)userdir 
 {
     FSRef folder;
@@ -243,7 +244,7 @@ static int numberForKey(CFDictionaryRef desc, CFStringRef key)
         CFURLRef url = CFURLCreateFromFSRef(kCFAllocatorDefault, &folder);
         path = [(NSURL *)url path];
         CFRelease(url);
-        path = [path stringByAppendingPathComponent:kSAUERBRATEN];
+        path = [path stringByAppendingPathComponent:kUSERCONFGIDIR];
         NSFileManager *fm = [NSFileManager defaultManager];
         if(![fm fileExistsAtPath:path]) [fm createDirectoryAtPath:path attributes:nil]; //ensure it exists    
     }
@@ -457,8 +458,7 @@ static int numberForKey(CFDictionaryRef desc, CFStringRef key)
 
 /*
  * nil will just launch the fps game
- * "-rpg" will launch the rpg demo
- * "-x.." will launch and run commands
+ * "-e.." will launch and run commands
  * otherwise we are specifying a map to play
  */
 - (BOOL)playFile:(id)filename 
@@ -468,21 +468,42 @@ static int numberForKey(CFDictionaryRef desc, CFStringRef key)
     NSArray *res = [[resolutions titleOfSelectedItem] componentsSeparatedByString:@" x "];	
     NSMutableArray *args = [NSMutableArray array];
 
-	[args addObject:[NSString stringWithFormat:@"--home=%@", [Launcher userdir]]];
-	[args addObject:@"--init"];
+    [args addObject:[NSString stringWithFormat:@"--home=%@", [Launcher userdir]]];
+    [args addObject:@"--init"];
 
     [args addObject:[NSString stringWithFormat:@"-w%@", [res objectAtIndex:0]]];
     [args addObject:[NSString stringWithFormat:@"-h%@", [res objectAtIndex:1]]];
     [args addObject:@"-z32"]; //otherwise seems to have a fondness to use -z16 which looks crap
-	
-    if([defs integerForKey:dkFULLSCREEN] == 0)
-		[args addObject:@"-t0"];
-	else
-		[args addObject:@"-t1"];		
     [args addObject:[NSString stringWithFormat:@"-a%d", [defs integerForKey:dkFSAA]]];
-   
-	if ([stencil state] == NSOnState)	[args addObject:@"-s8"];
+
+    if([defs integerForKey:dkFULLSCREEN] == 0)
+        [args addObject:@"-t0"];
+    else
+        [args addObject:@"-t1"];
+
+    if ([stencil state] == NSOnState)
+        [args addObject:@"-s8"];
+
+    NSMutableArray *cmds = [NSMutableArray array];
+
+    if(filename) 
+    {
+        if([filename hasPrefix:@"-e"])
+            [cmds addObject:[filename substringFromIndex:2]];
+        if([filename hasPrefix:@"--loaddemo"])
+            [args addObject:filename];
+        else
+            [args addObject:[NSString stringWithFormat:@"--loadmap=%@", filename]];
+    }
     
+    if([cmds count] > 0) 
+    {
+        NSString *script = [cmds objectAtIndex:0];
+        int i;
+        for(i = 1; i < [cmds count]; i++) script = [NSString stringWithFormat:@"%@;%@", script, [cmds objectAtIndex:i]];
+        [args addObject:[NSString stringWithFormat:@"-e%@", script]];
+    }
+
     NSEnumerator *e = [[[defs nonNullStringForKey:dkADVANCEDOPTS] componentsSeparatedByString:@" "] objectEnumerator];
     NSString *opt;
     while(opt = [e nextObject]) if([opt length] != 0) [args addObject:opt]; //skip empty ones 
@@ -534,7 +555,7 @@ static int numberForKey(CFDictionaryRef desc, CFStringRef key)
     [self initToolBar];
     [window setBackgroundColor:[NSColor colorWithDeviceRed:0.90 green:0.90 blue:0.90 alpha:1.0]]; //Apples 'mercury' crayon color
 
-    //from the plist we determine that dmo->Viewer, and ogz->Editor 
+    //from the plist we determine that dmo->Viewer, and cgz->Editor 
     fileRoles = [[NSMutableDictionary dictionary] retain];
     NSEnumerator *types = [[[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleDocumentTypes"] objectEnumerator];
     NSDictionary *type;
@@ -593,7 +614,7 @@ static int numberForKey(CFDictionaryRef desc, CFStringRef key)
     [self killServer];
 }
 
-//we register 'ogz' and 'dmo' as doc types
+//we register 'cgz' and 'dmo' as doc types
 - (BOOL)application:(NSApplication *)theApplication openFile:(NSString *)filename 
 {
     NSString *role = [fileRoles objectForKey:[filename pathExtension]];
@@ -603,12 +624,15 @@ static int numberForKey(CFDictionaryRef desc, CFStringRef key)
     int i;
     for(i = 0; i < 2; i++) {
         NSString *pkg = (i == 0) ? [Launcher cwd] : [Launcher userdir];
-        if(!demo) pkg = [pkg stringByAppendingPathComponent:@"packages"];
+        if(!demo) pkg = [pkg stringByAppendingPathComponent:@"packages/maps/"];            
         if([filename hasPrefix:pkg])
-            return [self playFile:(demo ? [NSString stringWithFormat:@"-xdemo \"%@\"", filename] : filename)];
+        {
+            filename = [filename lastPathComponent]; //chop off extension
+            return [self playFile:(demo ? [NSString stringWithFormat:@"--loaddemo=%@", filename] : filename)];
+        }
     }
     NSBeginCriticalAlertSheet(
-        [NSLocalizedString(@"FileAlertMesg", @"") expand], NSLocalizedString(@"Ok", @""), NSLocalizedString(@"Cancel", @""), nil,
+        [NSLocalizedString(@"FileAlertTitle", @"") expand], NSLocalizedString(@"Ok", @""), NSLocalizedString(@"Cancel", @""), nil,
         window, self, @selector(openPackageFolder:returnCode:contextInfo:), nil, nil,
         [NSLocalizedString(@"FileAlertMesg", @"") expand]);
     return NO;
@@ -620,12 +644,12 @@ static int numberForKey(CFDictionaryRef desc, CFStringRef key)
     [self openUserdir:nil]; 
 }
 
-//we register 'sauerbraten' as a url scheme
+//we register 'assaultcube' as a url scheme
 - (void)getUrl:(NSAppleEventDescriptor *)event withReplyEvent:(NSAppleEventDescriptor *)replyEvent
 {
     NSURL *url = [NSURL URLWithString:[[event paramDescriptorForKeyword:keyDirectObject] stringValue]];
     if(!url) return;
-    [self playFile:[NSString stringWithFormat:@"-xconnect %@", [url host]]]; 
+    [self playFile:[NSString stringWithFormat:@"-econnect %@", [url host]]]; 
 }
 
 #pragma mark interface actions
