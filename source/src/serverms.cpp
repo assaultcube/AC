@@ -161,11 +161,12 @@ void flushmasterinput()
 
 extern char *global_name;
 extern int interm;
+extern int totalclients;
 
 // send alive signal to masterserver after 40 minutes of uptime and during an intermission (so theoretically <= 1 hour) - after 1 hour at the latest.
 static inline void updatemasterserver(int millis, int port)
 {
-    if(!lastupdatemaster || ((millis-lastupdatemaster)>40*60*1000 && interm) || (millis-lastupdatemaster)>60*60*1000)
+    if(!lastupdatemaster || ((millis-lastupdatemaster)>40*60*1000 && (interm || !totalclients)))
     {
         char servername[30]; memset(servername,'\0',30); filtertext(servername,global_name,-1,20);
         if(mastername[0]) requestmasterf("regserv %d %s %d\n", port, servername[0] ? servername : "noname", AC_VERSION);
