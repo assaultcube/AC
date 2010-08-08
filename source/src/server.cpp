@@ -2947,17 +2947,17 @@ void process(ENetPacket *packet, int sender, int chan)
                     reject = "server incoming achieved its limits";
                     sendservmsg("\f3server does not support more incomings: limit achieved", sender);
                 }
-                else if(mp == MAP_NOTFOUND && !strchr(scl.mapperm, 'c') && cl->role < CR_ADMIN) // default: only admins can create maps
+                else if(mp == MAP_NOTFOUND && !strchr(scl.mapperm, 'C') && cl->role < CR_ADMIN) // default: only admins can create maps
                 {
                     reject = "no permission for initial upload";
                     sendservmsg("\f3initial map upload rejected: you need to be admin", sender);
                 }
-                else if(mp == MAP_TEMP && revision >= mapbuffer.revision && !strchr(scl.mapperm, 'u') && cl->role < CR_ADMIN) // default: only admins can update maps
+                else if(mp == MAP_TEMP && revision >= mapbuffer.revision && !strchr(scl.mapperm, 'U') && cl->role < CR_ADMIN) // default: only admins can update maps
                 {
                     reject = "no permission to update";
                     sendservmsg("\f3map update rejected: you need to be admin", sender);
                 }
-                else if(mp == MAP_TEMP && revision < mapbuffer.revision && !strchr(scl.mapperm, 'r') && cl->role < CR_ADMIN) // default: only admins can revert maps to older revisions
+                else if(mp == MAP_TEMP && revision < mapbuffer.revision && !strchr(scl.mapperm, 'R') && cl->role < CR_ADMIN) // default: only admins can revert maps to older revisions
                 {
                     reject = "no permission to revert revision";
                     sendservmsg("\f3map revert to older revision rejected: you need to be admin to upload an older map", sender);
