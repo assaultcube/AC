@@ -60,24 +60,26 @@ int wizardmain(int argc, char **argv)
         return EXIT_FAILURE;
     }
 
-	printf("AssaultCube Server Wizard\n\n");
-    printf("You can now specify some optional server settings.\n"
-           "The default settings will be used if you decide to leave the fields empty.\n"
-           "If you're not sure: leave the field empty.\n"
-           "See README.html for a description of the settings.\n\n");
+    printf("The AssaultCube Server Wizard\n\n");
+    printf("Before setting up a new server, please ensure you've read the rules at\n"
+           "\t\t\thttp://masterserver.cubers.net/rules.html\n\n");
+    printf("Now to specify some optional settings for your server.\n"
+           "The default settings will be used if you leave the fields blank.\n"
+           "If you're unsure about what to specify for the settings, leave the field blank.\n"
+           "Read http://assault.cubers.net/docs/commandline.html for a description of these settings.\n\n");
 
     vector<char> argstr;
-    readarg(argstr, "server description", "-n");
-    readarg(argstr, "message of the day", "-o");
-    readarg(argstr, "max clients", "-c");
-	readarg(argstr, "admin password", "-x");
-	readarg(argstr, "player password", "-p");
-	readarg(argstr, "server port", "-f");
+    readarg(argstr, "Server description", "-n");
+    readarg(argstr, "Message of the day", "-o");
+    readarg(argstr, "Maximum clients (No more than 20 allowed!)", "-c");
+	readarg(argstr, "Administrator password", "-x");
+	readarg(argstr, "Player password", "-p");
+	readarg(argstr, "Server port", "-f");
     string ispub = "";
-    readarg("public server (Yes|no)", ispub, sizeof(ispub));
+    readarg("Public server (Yes/No)?", ispub, sizeof(ispub));
     if(toupper(ispub[0]) == 'N') addarg(argstr, "-m");
     string cmds = "";
-    readarg("additional command-line parameters", cmds, sizeof(cmds));
+    readarg("Additional server switches", cmds, sizeof(cmds));
     if(cmds[0]) addarg(argstr, cmds);
 #ifdef WIN32
 
@@ -107,7 +109,7 @@ int wizardmain(int argc, char **argv)
     fclose(script);
 
     printf("Done\n\n");
-    printf("Note: You can start %s directly the next time you want to use this configuration again.\n\n", outfile);
+    printf("Note: You can start %s directly the next time you want to use the same configuration to start the server.\n\n", outfile);
 
 #ifdef WIN32
 
@@ -166,7 +168,7 @@ int wizardmain(int argc, char **argv)
 
 #endif
 
-	printf("Press Enter to start the server now\n");
+	printf("Please press ENTER now, to start your server.\n");
     fgetc(stdin);
 	printf("Starting the AC server ...\n");
     argstr.insert(0, relpath, strlen(relpath));
