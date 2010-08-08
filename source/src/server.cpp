@@ -2411,7 +2411,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 logline(ACLOG_INFO, "[%s] '%s' matches nickname blacklist line %d%s", cl->hostname, cl->name, bl, tags);
                 disconnect_client(sender, DISC_BADNICK);
             }
-            else if(passwords.check(cl->name, cl->pwd, cl->salt, &pd, cl->peer->address.host) && (!pd.denyadmin || (banned && !srvfull && !srvprivate))) // pass admins always through
+            else if(passwords.check(cl->name, cl->pwd, cl->salt, &pd, (cl->type==ST_TCPIP ? cl->peer->address.host : 0)) && (!pd.denyadmin || (banned && !srvfull && !srvprivate))) // pass admins always through
             { // admin (or deban) password match
                 cl->isauthed = true;
                 if(!pd.denyadmin && wantrole == CR_ADMIN) clientrole = CR_ADMIN;

@@ -312,7 +312,7 @@ struct client                   // server side version of "dynent" type
 
     void reset()
     {
-        name[0] = demoflags = 0;
+        name[0] = pwd[0] = demoflags = 0;
         bottomRTT = ping = 9999;
         team = TEAM_SPECT;
         state.state = CS_SPECTATE;
