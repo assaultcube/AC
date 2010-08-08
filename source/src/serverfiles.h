@@ -629,6 +629,9 @@ struct pwddetail
     bool denyadmin;    // true: connect only
 };
 
+int passtime = 0, passtries = 0;
+enet_uint32 passguy = 0;
+
 struct serverpasswords : serverconfigfile
 {
     vector<pwddetail> adminpwds;
@@ -688,9 +691,21 @@ struct serverpasswords : serverconfigfile
         logline(ACLOG_INFO,"read %d admin passwords from '%s'", adminpwds.length() - staticpasses, filename);
     }
 
-    bool check(const char *name, const char *pwd, int salt, pwddetail *detail = NULL)
+    bool check(const char *name, const char *pwd, int salt, pwddetail *detail = NULL, enet_uint32 address = 0)
     {
         bool found = false;
+        if (address && passguy == address)
+        {
+            if (passtime + 1000 > servmillis || ( passtries > 10 && passtime + 10000 > servmillis ))
+            {
+                passtime = servmillis;
+                return false;
+            }
+            passtries++;
+        }
+        passtries = 0;
+        passtime = servmillis;
+        passguy = address;
         loopv(adminpwds)
         {
             if(!strcmp(genpwdhash(name, adminpwds[i].pwd, salt), pwd))
