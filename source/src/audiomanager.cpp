@@ -399,18 +399,17 @@ void audiomanager::writesoundconfig(stream *f)
     loopv(gamesounds) if(gamesounds[i].muted) f->printf("mutesound %d\n", i);
 }
 
-
-
 void voicecom(char *sound, char *text)
 {
     if(!sound || !sound[0]) return;
     static int last = 0;
     if(!last || lastmillis-last > 2000)
     {
+        extern int voicecomsounds;
         defformatstring(soundpath)("voicecom/%s", sound);
         int s = audiomgr.findsound(soundpath, 0, gamesounds);
         if(s < 0 || s < S_AFFIRMATIVE || s >= S_NULL) return;
-        audiomgr.playsound(s, SP_HIGH);
+        if(voicecomsounds>0) audiomgr.playsound(s, SP_HIGH);
         if(s >= S_NICESHOT) // public
         {
             addmsg(SV_VOICECOM, "ri", s);
@@ -428,16 +427,12 @@ void voicecom(char *sound, char *text)
 
 COMMAND(voicecom, ARG_2STR);
 
-
-
 void soundtest()
 {
     loopi(S_NULL) audiomgr.playsound(i, rnd(SP_HIGH+1));
 }
 
 COMMAND(soundtest, ARG_NONE);
-
-
 
 // sound configuration
 
@@ -464,9 +459,6 @@ void soundconfig::ondetach()
 }
 
 vector<soundconfig> gamesounds, mapsounds;
-
-
-
 
 void audiomanager::detachsounds(playerent *owner)
 {
