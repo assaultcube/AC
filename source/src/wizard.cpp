@@ -61,26 +61,35 @@ int wizardmain(int argc, char **argv)
     }
 
     printf("The AssaultCube Server Wizard\n\n");
-    printf("Before setting up a new server, please ensure you've read the rules at\n"
-           "\t\t\thttp://masterserver.cubers.net/rules.html\n\n");
+    printf("Before setting up a new server, please ensure you've read the rules at:\n"
+           "\thttp://masterserver.cubers.net/rules.html\n\n");
+    printf("You will also need to ensure that the UDP port you choose is open.\n"
+           "Whatever port you choose, you will need to forward that port, plus one port after that.\n"
+           "If you're having issues, use and forward the default ports 28763 and 28764\n"
+           "Use http://www.portforward.com for guidance.\n\n");
     printf("Now to specify some optional settings for your server.\n"
            "The default settings will be used if you leave the fields blank.\n"
-           "If you're unsure about what to specify for the settings, leave the field blank.\n"
+           "If you're unsure about what to specify for the settings, leave the field blank.\n\n"
            "Read http://assault.cubers.net/docs/commandline.html for a description of these settings.\n\n");
 
     vector<char> argstr;
     readarg(argstr, "Server description", "-n");
     readarg(argstr, "Message of the day", "-o");
     readarg(argstr, "Maximum clients (No more than 20 allowed!)", "-c");
-	readarg(argstr, "Administrator password", "-x");
-	readarg(argstr, "Player password", "-p");
-	readarg(argstr, "Server port", "-f");
+    readarg(argstr, "Administrator password", "-x");
+    readarg(argstr, "Server port", "-f");
+
+    printf("\nPrivate server settings:\n"
+           "------------------------\n");
     string ispub = "";
     readarg("Public server (Yes/No)?", ispub, sizeof(ispub));
     if(toupper(ispub[0]) == 'N') addarg(argstr, "-m");
     string cmds = "";
-    readarg("Additional server switches", cmds, sizeof(cmds));
+    readarg(argstr, "Player password", "-p");
+
+    readarg("\nAdditional server switches", cmds, sizeof(cmds));
     if(cmds[0]) addarg(argstr, cmds);
+
 #ifdef WIN32
 
     string wsname = "", wsdisplayname = "";
@@ -168,7 +177,7 @@ int wizardmain(int argc, char **argv)
 
 #endif
 
-	printf("Please press ENTER now, to start your server.\n");
+	printf("Please press ENTER now to start your server...\n");
     fgetc(stdin);
 	printf("Starting the AC server ...\n");
     argstr.insert(0, relpath, strlen(relpath));
