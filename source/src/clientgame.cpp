@@ -1261,6 +1261,7 @@ void *kickmenu = NULL, *banmenu = NULL, *forceteammenu = NULL, *giveadminmenu = 
 
 void refreshsopmenu(void *menu, bool init)
 {
+    //TODO: add a text-field for giving a reason
     menureset(menu);
     mlines.shrink(0);
     mlines.reserve(players.length());
@@ -1268,6 +1269,7 @@ void refreshsopmenu(void *menu, bool init)
     {
         mline &m = mlines.add();
         copystring(m.name, colorname(players[i]));
+        //formatstring(m.cmd)("%s %d%s", menu==kickmenu ? "kick" : (menu==banmenu ? "ban" : (menu==forceteammenu ? "forceteam" : "giveadmin")), i, (menu==kickmenu||menu==banmenu)?" NONE":"");
         formatstring(m.cmd)("%s %d", menu==kickmenu ? "kick" : (menu==banmenu ? "ban" : (menu==forceteammenu ? "forceteam" : "giveadmin")), i);
         menumanual(menu, m.name, m.cmd);
     }
