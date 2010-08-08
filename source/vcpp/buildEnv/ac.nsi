@@ -116,11 +116,11 @@ FunctionEnd
 SetCompressor /SOLID lzma
 
 !define CURPATH "C:\Users\sebastian\Desktop\AssaultCube1.1_NSIS\ac\source\vcpp\buildEnv" ; CHANGE ME
-!define AC_FULLVERSION "v1.1.0.0"
-!define AC_FULLVERSIONINT "1.1.0.0"
+!define AC_FULLVERSION "v1.1.0.1"
+!define AC_FULLVERSIONINT "1.1.0.1"
 !define AC_SHORTNAME "AssaultCube"
-!define AC_FULLNAME "AssaultCube v1.1.0.0"
-!define AC_FULLNAMESAVE "AssaultCube_v1.1.0.0"
+!define AC_FULLNAME "AssaultCube v1.1.0.1"
+!define AC_FULLNAMESAVE "AssaultCube_v1.1.0.1"
 !define AC_MAJORVERSIONINT 1
 !define AC_MINORVERSIONINT 1
 
