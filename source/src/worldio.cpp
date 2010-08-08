@@ -185,7 +185,7 @@ uchar *readmcfggz(char *name, int *size, int *sizegz)
 
 VAR(advancemaprevision, 1, 1, 100);
 
-void checkmapdependencies(bool silent = false) // find required MediaPack (s) for current map
+void checkmapdependencies(bool silent = false, bool details = false) // find required MediaPack (s) for current map
 {
     if(!silent) conoutf("checking map dependencies");
     static hashtable<const char *, int> mufpaths;
@@ -325,7 +325,7 @@ void checkmapdependencies(bool silent = false) // find required MediaPack (s) fo
                             if(!usethis)
                             {
                                 formatstring(reqmpak)("%s%s%s", reqmpak, reqmpak[0]=='\0'?"":",", mpdefs[j]);
-                                if(++usedmpaks > 0) usethis = true;
+                                if(++usedmpaks > 0) { usethis = true; conoutf("http://www.26things.com/mrx/get.php?mpid=%s", mpdefs[j]); }
                                 if(usedmpaks>25) conoutf("this map requires too many mediapacks."); // even if silent == true
                             }
                         }
@@ -335,14 +335,19 @@ void checkmapdependencies(bool silent = false) // find required MediaPack (s) fo
         }
     }
     idx = -1;
-    if(!silent)
+    if(!silent && details)
     {
-        enumeratek(mufpaths, const char *, key, idx++; if(packn[idx]!=0) conoutf("%3d: %s : %d : %s", idx, key, packn[idx], packn[idx]==0?"release":(packn[idx]<0?"LOCAL":mpdefs[packn[idx]-1])); );
+        conoutf("mediapack details:");
+        // packn[idx]==0?"release":
+        enumeratek(mufpaths, const char *, key, idx++; if(packn[idx]!=0) conoutf("%3d: %s : %d : %s", idx, key, packn[idx], packn[idx]<0?"LOCAL":mpdefs[packn[idx]-1]); );
     }
-    conoutf("this map requires the following %d mediapack%s: %s", usedmpaks, usedmpaks==1?"":"s", reqmpak);
+    if(usedmpaks>0) conoutf("this map requires the following %d mediapack%s: %s", usedmpaks, usedmpaks==1?"":"s", reqmpak);
+    else conoutf("this map does not appear to use any mediapacks.");
     enumeratek(mufpaths, const char *, key, mufpaths.remove(key)); // don't report false positives next time round
 }
-COMMAND(checkmapdependencies, ARG_NONE);
+void wrapCMD(int i) { checkmapdependencies(false, i!=0); }
+//COMMAND(checkmapdependencies, ARG_NONE); // for some reason this still results in silent==true - WTF? It used to work with the _proper_ default.
+COMMANDN(checkmapdependencies, wrapCMD, ARG_1INT);
 
 void save_world(char *mname)
 {
@@ -500,7 +505,11 @@ bool load_world(char *mname)        // still supports all map formats that have 
     if(hdr.version<7) hdr.mediareq[0] = '\0';
     else
     {
-        if(hdr.mediareq[0]) conoutf("this map requires the following mediapacks: %s", hdr.mediareq); // TODO: check for client meeting these requirements - hint: listfiles
+        if(hdr.mediareq[0])
+        {
+            conoutf("this map requires the following mediapacks: %s", hdr.mediareq); // TODO: check for client meeting these requirements - hint: listfiles
+            conoutf("to get a set of URLs to download them please run \f2checkmapdependencies\f5 manually.");
+        }
         //else conoutf("this map works with the vanilla release");
         // TODO: output the requirements into a file for easy user-retrieval & -action - needs a base-URL where we will hold the mediapacks
     }
