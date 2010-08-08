@@ -1901,12 +1901,12 @@ void sendserveropinfo(int receiver)
 
 struct voteinfo
 {
-    bool boot;
+    int boot;
     int owner, callmillis, result, num, type;
     char text[MAXTRANS];
     serveraction *action;
 
-    voteinfo() : boot(false), owner(0), callmillis(0), result(VOTE_NEUTRAL), action(NULL) {}
+    voteinfo() : boot(0), owner(0), callmillis(0), result(VOTE_NEUTRAL), action(NULL) {}
     ~voteinfo() { delete action; }
 
     void end(int result)
@@ -2010,7 +2010,9 @@ bool scallvote(voteinfo *v, ENetPacket *msg) // true if a regular vote was calle
     else if( v->type == SA_MAP && v->num >= GMODE_NUM && map_queued ) error = VOTEE_NEXT;
     else if( c->role == CR_DEFAULT && v->action->isdisabled() ) error = VOTEE_DISABLED;
     else if( (c->lastvotecall && servmillis - c->lastvotecall < 60*1000 && c->role != CR_ADMIN && numclients()>1) || c->nvotes > 3 ) error = VOTEE_MAX;
-    else if( v->boot && c->role < roleconf('W') && !is_lagging(b) && !b->mute && b->spamcount < 2 ) {
+    else if( ( ( v->boot == 1 && c->role < roleconf('w') ) || ( v->boot == 2 && c->role < roleconf('X') ) )
+                  && !is_lagging(b) && !b->mute && b->spamcount < 2 )
+    {
         /** not same team, with low ratio, not lagging, and not spamming... so, why to kick? */
         if ( !isteam(c->team, b->team) && b->state.frags < ( b->state.deaths > 0 ? b->state.deaths : 1 ) * 3 ) error = VOTEE_WEAK;
         /** same team, with low tk, not lagging, and not spamming... so, why to kick? */
@@ -2409,7 +2411,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 logline(ACLOG_INFO, "[%s] '%s' matches nickname blacklist line %d%s", cl->hostname, cl->name, bl, tags);
                 disconnect_client(sender, DISC_BADNICK);
             }
-            else if(passwords.check(cl->name, text, cl->salt, &pd) && (!pd.denyadmin || (banned && !srvfull && !srvprivate))) // pass admins always through
+            else if(passwords.check(cl->name, cl->pwd, cl->salt, &pd, cl->peer->address.host) && (!pd.denyadmin || (banned && !srvfull && !srvprivate))) // pass admins always through
             { // admin (or deban) password match
                 cl->isauthed = true;
                 if(!pd.denyadmin && wantrole == CR_ADMIN) clientrole = CR_ADMIN;
@@ -3051,7 +3053,7 @@ void process(ENetPacket *packet, int sender, int chan)
             case SV_CALLVOTE:
             {
                 voteinfo *vi = new voteinfo;
-                vi->boot = false;
+                vi->boot = 0;
                 vi->type = getint(p);
                 switch(vi->type)
                 {
@@ -3074,7 +3076,7 @@ void process(ENetPacket *packet, int sender, int chan)
                         strncpy(vi->text,text,MAXTRANS-1);
                         filtertext(text, text);
                         vi->action = new kickaction(cn2boot, newstring(text));
-                        vi->boot = true;
+                        vi->boot = 1;
                         break;
                     }
                     case SA_BAN:
@@ -3084,7 +3086,7 @@ void process(ENetPacket *packet, int sender, int chan)
                         strncpy(vi->text,text,MAXTRANS-1);
                         filtertext(text, text);
                         vi->action = new banaction(cn2boot, newstring(text));
-                        vi->boot = true;
+                        vi->boot = 2;
                         break;
                     }
                     case SA_REMBANS:
