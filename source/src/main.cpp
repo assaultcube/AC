@@ -267,7 +267,6 @@ void jpeg_screenshot(const char *imagepath, bool mapshot = false)
 
     if(mapshot)
     {
-        //conoutf("not implemented yet");
         extern GLuint minimaptex;
         if(minimaptex)
         {
@@ -807,6 +806,8 @@ int main(int argc, char **argv)
     bool dedicated = false;
     bool quitdirectly = false;
     char *initscript = NULL;
+    char *initdemo = NULL;
+    const char *initmap = "ac_shine";
 
     pushscontext(IEXC_CFG);
 
@@ -849,6 +850,14 @@ int main(int argc, char **argv)
                     {
                     	printf("%d\n", PROTOCOL_VERSION);
                     	quitdirectly = true;
+                    }
+                    else if(!strncmp(argv[i], "--loadmap=", 10))
+                    {
+                        initmap = &argv[i][10];
+                    }
+                    else if(!strncmp(argv[i], "--loaddemo=", 11))
+                    {
+                        initdemo = &argv[i][11];
                     }
                     else conoutf("\f3unknown commandline switch: %s", argv[i]);
                     break;
@@ -996,7 +1005,16 @@ int main(int argc, char **argv)
 
 	initlog("localconnect");
 	extern string clientmap;
-	copystring(clientmap, "ac_shine"); // was: ac_complex for 1.0, ac_shine for 1.1, ..
+
+	if(initdemo)
+	{
+	    extern int gamemode;
+	    gamemode = -1;
+	    copystring(clientmap, initdemo);
+	}
+	else
+        copystring(clientmap, initmap); // ac_complex for 1.0, ac_shine for 1.1, ..
+
 	localconnect();
 
 	if(initscript) execute(initscript);

@@ -1737,87 +1737,94 @@ float Mheight = 0;
 
 void startgame(const char *newname, int newmode, int newtime, bool notify)
 {
-    if(!newname || !*newname || newmode == GMODE_DEMO) fatal("startgame() abused");
-    bool lastteammode = m_teammode;
-    resetserver(newname, newmode, newtime);   // beware: may clear *newname
-
-    if(custom_servdesc && findcnbyaddress(&servdesc_caller) < 0)
+    if(!newname || !*newname || (newmode == GMODE_DEMO && isdedicated)) fatal("startgame() abused");
+    if(newmode == GMODE_DEMO)
     {
-        updatesdesc(NULL);
+        startdemoplayback(newname);
+    }
+    else
+    {
+        bool lastteammode = m_teammode;
+        resetserver(newname, newmode, newtime);   // beware: may clear *newname
+
+        if(custom_servdesc && findcnbyaddress(&servdesc_caller) < 0)
+        {
+            updatesdesc(NULL);
+            if(notify)
+            {
+                sendservmsg("server description reset to default");
+                logline(ACLOG_INFO, "server description reset to '%s'", servdesc_current);
+            }
+        }
+
+        int maploc = MAP_VOID;
+        mapstats *ms = getservermapstats(smapname, isdedicated, &maploc);
+        mapbuffer.clear();
+        if(isdedicated && distributablemap(maploc)) mapbuffer.load();
+        if(ms)
+        {
+            smapstats = *ms;
+            loopi(2)
+            {
+                sflaginfo &f = sflaginfos[i];
+                if(smapstats.flags[i] == 1)    // don't check flag positions, if there is more than one flag per team
+                {
+                    short *fe = smapstats.entposs + smapstats.flagents[i] * 3;
+                    f.x = *fe;
+                    fe++;
+                    f.y = *fe;
+                }
+                else f.x = f.y = -1;
+            }
+            entity e;
+            loopi(smapstats.hdr.numents)
+            {
+                e.type = smapstats.enttypes[i];
+                e.transformtype(smode);
+                server_entity se = { e.type, false, false, false, 0, smapstats.entposs[i * 3], smapstats.entposs[i * 3 + 1]};
+                sents.add(se);
+                if(e.fitsmode(smode)) sents[i].spawned = sents[i].legalpickup = true;
+                sents[i].twice = false;
+            }
+            mapbuffer.setrevision();
+            logline(ACLOG_INFO, "Map height density information for %s: H = %.2f V = %d, A = %d and MA = %d", smapname, Mheight, Mvolume, Marea, Mopen);
+            items_blocked = false;
+        }
+        else if(isdedicated) sendservmsg("\f3server error: map not found - please start another map or send this map to the server");
         if(notify)
         {
-            sendservmsg("server description reset to default");
-            logline(ACLOG_INFO, "server description reset to '%s'", servdesc_current);
+            // change map
+            sendf(-1, 1, "risiii", SV_MAPCHANGE, smapname, smode, mapbuffer.available(), mapbuffer.revision);
+            if(smode>1 || (smode==0 && numnonlocalclients()>0)) sendf(-1, 1, "ri2", SV_TIMEUP, minremain);
         }
-    }
-
-    int maploc = MAP_VOID;
-    mapstats *ms = getservermapstats(smapname, isdedicated, &maploc);
-    mapbuffer.clear();
-    if(isdedicated && distributablemap(maploc)) mapbuffer.load();
-    if(ms)
-    {
-        smapstats = *ms;
-        loopi(2)
+        defformatstring(gsmsg)("Game start: %s on %s, %d players, %d minutes, mastermode %d, ", modestr(smode), smapname, numclients(), minremain, mastermode);
+        if(mastermode == MM_MATCH) concatformatstring(gsmsg, "teamsize %d, ", matchteamsize);
+        if(ms) concatformatstring(gsmsg, "(map rev %d/%d, %s, 'getmap' %sprepared)", smapstats.hdr.maprevision, smapstats.cgzsize, maplocstr[maploc], mapbuffer.available() ? "" : "not ");
+        else concatformatstring(gsmsg, "error: failed to preload map (map: %s)", maplocstr[maploc]);
+        logline(ACLOG_INFO, "\n%s", gsmsg);
+        if(m_arena) distributespawns();
+        if(notify)
         {
-            sflaginfo &f = sflaginfos[i];
-            if(smapstats.flags[i] == 1)    // don't check flag positions, if there is more than one flag per team
+            // shuffle if previous mode wasn't a team-mode
+            if(m_teammode)
             {
-                short *fe = smapstats.entposs + smapstats.flagents[i] * 3;
-                f.x = *fe;
-                fe++;
-                f.y = *fe;
+                if(!lastteammode)
+                    shuffleteams(FTR_INFO);
+                else if(autoteam)
+                    refillteams(true, FTR_INFO);
             }
-            else f.x = f.y = -1;
+            // prepare spawns; players will spawn, once they've loaded the correct map
+            loopv(clients) if(clients[i]->type!=ST_EMPTY)
+            {
+                client *c = clients[i];
+                c->mapchange();
+                forcedeath(c);
+            }
         }
-        entity e;
-        loopi(smapstats.hdr.numents)
-        {
-            e.type = smapstats.enttypes[i];
-            e.transformtype(smode);
-            server_entity se = { e.type, false, false, false, 0, smapstats.entposs[i * 3], smapstats.entposs[i * 3 + 1]};
-            sents.add(se);
-            if(e.fitsmode(smode)) sents[i].spawned = sents[i].legalpickup = true;
-            sents[i].twice = false;
-        }
-        mapbuffer.setrevision();
-        logline(ACLOG_INFO, "Map height density information for %s: H = %.2f V = %d, A = %d and MA = %d", smapname, Mheight, Mvolume, Marea, Mopen);
-        items_blocked = false;
+        if(numnonlocalclients() > 0) setupdemorecord();
+        if(notify && m_ktf) sendflaginfo();
+        if(notify) senddisconnectedscores(-1);
     }
-    else if(isdedicated) sendservmsg("\f3server error: map not found - please start another map or send this map to the server");
-    if(notify)
-    {
-        // change map
-        sendf(-1, 1, "risiii", SV_MAPCHANGE, smapname, smode, mapbuffer.available(), mapbuffer.revision);
-        if(smode>1 || (smode==0 && numnonlocalclients()>0)) sendf(-1, 1, "ri2", SV_TIMEUP, minremain);
-    }
-    defformatstring(gsmsg)("Game start: %s on %s, %d players, %d minutes, mastermode %d, ", modestr(smode), smapname, numclients(), minremain, mastermode);
-    if(mastermode == MM_MATCH) concatformatstring(gsmsg, "teamsize %d, ", matchteamsize);
-    if(ms) concatformatstring(gsmsg, "(map rev %d/%d, %s, 'getmap' %sprepared)", smapstats.hdr.maprevision, smapstats.cgzsize, maplocstr[maploc], mapbuffer.available() ? "" : "not ");
-    else concatformatstring(gsmsg, "error: failed to preload map (map: %s)", maplocstr[maploc]);
-    logline(ACLOG_INFO, "\n%s", gsmsg);
-    if(m_arena) distributespawns();
-    if(notify)
-    {
-        // shuffle if previous mode wasn't a team-mode
-        if(m_teammode)
-        {
-            if(!lastteammode)
-                shuffleteams(FTR_INFO);
-            else if(autoteam)
-                refillteams(true, FTR_INFO);
-        }
-        // prepare spawns; players will spawn, once they've loaded the correct map
-        loopv(clients) if(clients[i]->type!=ST_EMPTY)
-        {
-            client *c = clients[i];
-            c->mapchange();
-            forcedeath(c);
-        }
-    }
-    if(numnonlocalclients() > 0) setupdemorecord();
-    if(notify && m_ktf) sendflaginfo();
-    if(notify) senddisconnectedscores(-1);
 }
 
 struct gbaninfo
