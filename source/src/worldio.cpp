@@ -325,7 +325,7 @@ void checkmapdependencies(bool silent = false, bool details = false) // find req
                             if(!usethis)
                             {
                                 formatstring(reqmpak)("%s%s%s", reqmpak, reqmpak[0]=='\0'?"":",", mpdefs[j]);
-                                if(++usedmpaks > 0) { usethis = true; conoutf("http://www.26things.com/mrx/get.php?mpid=%s", mpdefs[j]); }
+                                if(++usedmpaks > 0) usethis = true; // these packs are already on the system
                                 if(usedmpaks>25) conoutf("this map requires too many mediapacks."); // even if silent == true
                             }
                         }
@@ -342,7 +342,20 @@ void checkmapdependencies(bool silent = false, bool details = false) // find req
         enumeratek(mufpaths, const char *, key, idx++; if(packn[idx]!=0) conoutf("%3d: %s : %d : %s", idx, key, packn[idx], packn[idx]<0?"LOCAL":mpdefs[packn[idx]-1]); );
     }
     if(usedmpaks>0) conoutf("this map requires the following %d mediapack%s: %s", usedmpaks, usedmpaks==1?"":"s", reqmpak);
-    else conoutf("this map does not appear to use any mediapacks.");
+    else
+    {
+        if(hdr.mediareq[0] && !silent)
+        {
+            char sep[] = ",";
+            char *pch;
+            pch = strtok (hdr.mediareq,sep);
+            while (pch != NULL)
+            {
+                conoutf("http://www.26things.com/mrx/get.php?mpid=%s", pch);
+                pch = strtok (NULL, sep);
+            }
+        }
+    }
     enumeratek(mufpaths, const char *, key, mufpaths.remove(key)); // don't report false positives next time round
 }
 void wrapCMD(int i) { checkmapdependencies(false, i!=0); }
