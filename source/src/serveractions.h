@@ -250,7 +250,7 @@ struct banaction : playeraction
     banaction(int cn, char *reason) : playeraction(cn)
     {
         wasvalid = false;
-        role = roleconf('B');
+        role = roleconf('b');
         if(isvalid() && strlen(reason) > 3)
         {
             wasvalid = true;
