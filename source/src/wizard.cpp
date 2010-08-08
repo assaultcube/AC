@@ -83,7 +83,7 @@ int wizardmain(int argc, char **argv)
            "------------------------\n");
     string ispub = "";
     readarg("Public server (Yes/No)?", ispub, sizeof(ispub));
-    if(toupper(ispub[0]) == 'N') addarg(argstr, "-m");
+    if(toupper(ispub[0]) == 'N') addarg(argstr, "-mlocalhost");
     string cmds = "";
     readarg(argstr, "Player password", "-p");
 
