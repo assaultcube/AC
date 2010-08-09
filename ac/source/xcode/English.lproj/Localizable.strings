@@ -1,0 +1,21 @@
+/* note ':s' becomes 'assaultcube' */
+
+/* tabs */
+"Main" = "Main";
+"Keys" = "Keys";
+"Server" = "Server";
+
+"Ok" = "Ok";
+"Cancel" = "Cancel";
+"Start" = "Start";
+"Stop" = "Stop";
+"ServerAlertMesg" = "Error - Can't launch server";
+
+"ClientAlertTitle" = "Can't start :s";
+"ClientAlertMesg" = "Try moving the game folder contain :s so that the path doesn't contain weird characters, or start :s manually.";
+
+"InitAlertTitle" = "Invalid installation";
+"InitAlertMesg" = "Cannot find game data and executable";
+
+"FileAlertTitle" = "Invalid file location";                                     
+"FileAlertMesg" = "Can only load files that are within the :s home or the original :s package folder. Do you want to show this folder?";                   

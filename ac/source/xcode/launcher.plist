@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDocumentTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>dmo</string>
+			</array>
+			<key>CFBundleTypeIconFile</key>
+			<string>map.icns</string>
+			<key>CFBundleTypeName</key>
+			<string>AssaultCube demo</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>LSTypeIsPackage</key>
+			<false/>
+			<key>NSPersistentStoreTypeKey</key>
+			<string>Binary</string>
+		</dict>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>cgz</string>
+			</array>
+			<key>CFBundleTypeIconFile</key>
+			<string>map.icns</string>
+			<key>CFBundleTypeName</key>
+			<string>AssaultCube map</string>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>LSTypeIsPackage</key>
+			<false/>
+			<key>NSPersistentStoreTypeKey</key>
+			<string>Binary</string>
+		</dict>
+	</array>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>English</string>
+	<key>CFBundleExecutable</key>
+	<string>launcher</string>
+	<key>CFBundleIconFile</key>
+	<string>assaultcube</string>
+	<key>CFBundleIdentifier</key>
+	<string>assaultcube</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleSignature</key>
+	<string>????</string>
+	<key>CFBundleVersion</key>
+	<string>1.1.x.x</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>AssaultCubeServer</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>assaultcube</string>
+			</array>
+		</dict>
+	</array>
+	<key>NSMainNibFile</key>
+	<string>MainMenu</string>
+	<key>NSPrincipalClass</key>
+	<string>NSApplication</string>
+</dict>
+</plist>
