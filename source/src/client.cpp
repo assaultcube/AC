@@ -152,6 +152,19 @@ void modlanconnect()
     connectserv_(NULL);
 }
 
+void whereami()
+{
+    conoutf("you are at (%.2f,%.2f)",player1->o.x,player1->o.y);
+}
+
+void go_to(char *x, char *y)
+{
+    if ( player1->state != CS_EDITING ) return;
+    player1->newpos.x=(float)atoi(x);
+    player1->newpos.y=(float)atoi(y);
+    conoutf("you are going to (%.2f,%.2f)",(float)atoi(x),(float)atoi(y));
+}
+
 void disconnect(int onlyclean, int async)
 {
     bool cleanup = onlyclean!=0;
@@ -260,6 +273,8 @@ COMMANDN(modconnect, modconnectserv, ARG_3STR);
 COMMAND(modconnectadmin, ARG_3STR);
 COMMAND(modlanconnect, ARG_NONE);
 COMMANDN(disconnect, trydisconnect, ARG_NONE);
+COMMAND(whereami, ARG_NONE);
+COMMAND(go_to, ARG_2STR);
 
 void cleanupclient()
 {

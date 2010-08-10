@@ -64,7 +64,7 @@ bool mapisok(mapstats *ms)
             short *q = &ms->entposs[j*3];
             float r2 = 0;
             loopk(3){ r2 += (p[k]-q[k])*(p[k]-q[k]); }
-            if ( r2 == 0.0f ) return false;
+            if ( r2 == 0.0f ) { logline(ACLOG_INFO, "Items too close %s %s (%hd,%hd)", entnames[v], entnames[w],p[0],p[1]); return false; }
             r2 = 1/r2;
             if (r2 < 0.0025f) continue;
             if (w != v)
@@ -76,20 +76,20 @@ bool mapisok(mapstats *ms)
         }
 /*        if (hdensity > 0.0f) { logline(ACLOG_INFO, "ITEM CHECK H %s %f", entnames[v], hdensity); }
         if (density > 0.0f) { logline(ACLOG_INFO, "ITEM CHECK D %s %f", entnames[v], density); }*/
-        if ( hdensity > 0.5f ) return false;
-        if (v==I_HEALTH)
+        if ( hdensity > 0.5f ) { logline(ACLOG_INFO, "Items too close %s %.2f (%hd,%hd)", entnames[v],hdensity,p[0],p[1]); return false; }
+        switch(v)
         {
-            if( density > 0.24f ) return false;
+#define LOGTHISSWITCH(X) if( density > X ) { logline(ACLOG_INFO, "Items too close %s %.2f (%hd,%hd)", entnames[v],density,p[0],p[1]); return false; }
+            case I_CLIPS:
+            case I_HEALTH: LOGTHISSWITCH(0.24f); break;
+            case I_AMMO: LOGTHISSWITCH(0.04f); break;
+            case I_HELMET: LOGTHISSWITCH(0.02f); break;
+            case I_ARMOUR:
+            case I_GRENADE:
+            case I_AKIMBO: LOGTHISSWITCH(0.005f); break;
+            default: break;
+#undef LOGTHISSWITCH
         }
-        else if (v==I_GRENADE)
-        {
-            if( density > 0.005f ) return false;
-        }
-        else
-        {
-            if( density > 0.04f ) return false;
-        }
-
     }
     return Mheight < MAXMHEIGHT && (Mopen = checkarea(testlayout_factor, testlayout)) < MAXMAREA && FlagFlag > MINFF;
 }

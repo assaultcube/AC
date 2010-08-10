@@ -736,19 +736,19 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     bool menu = menuvisible();
     bool command = getcurcommand() ? true : false;
     if((p->state==CS_ALIVE || p->state==CS_EDITING) && !p->weaponsel->reloading)
-	{
-		bool drawteamwarning = crosshairteamsign && targetplayer && isteam(targetplayer->team, p->team) && targetplayer->state==CS_ALIVE;
-		p->weaponsel->renderaimhelp(drawteamwarning);
-	}
+    {
+        bool drawteamwarning = crosshairteamsign && targetplayer && isteam(targetplayer->team, p->team) && targetplayer->state==CS_ALIVE;
+        p->weaponsel->renderaimhelp(drawteamwarning);
+    }
 
     drawdmgindicator();
 
     if(p->state==CS_ALIVE && !hidehudequipment) drawequipicons(p);
 
+    if(/*!menu &&*/ (!hideradar || showmap)) drawradar(p, w, h);
     if(!editmode)
     {
         glMatrixMode(GL_MODELVIEW);
-        if(/*!menu &&*/ (!hideradar || showmap)) drawradar(p, w, h);
         if(!hideteam && m_teammode) drawteamicons(w, h);
         glMatrixMode(GL_PROJECTION);
     }
