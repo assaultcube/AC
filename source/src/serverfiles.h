@@ -696,16 +696,24 @@ struct serverpasswords : serverconfigfile
         bool found = false;
         if (address && passguy == address)
         {
-            if (passtime + 1000 > servmillis || ( passtries > 10 && passtime + 10000 > servmillis ))
+            if (passtime + 3000 > servmillis || ( passtries > 5 && passtime + 10000 > servmillis ))
             {
+                passtries++;
                 passtime = servmillis;
                 return false;
             }
+            else
+            {
+                if ( passtime + 60000 < servmillis ) passtries = 0;
+            }
             passtries++;
         }
-        passtries = 0;
-        passtime = servmillis;
+        else
+        {
+            passtries = 0;
+        }
         passguy = address;
+        passtime = servmillis;
         loopv(adminpwds)
         {
             if(!strcmp(genpwdhash(name, adminpwds[i].pwd, salt), pwd))

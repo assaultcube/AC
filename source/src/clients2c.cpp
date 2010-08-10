@@ -367,18 +367,18 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             {
                 playerent *d = getclient(getint(p));
                 if(d) d->lastvoicecom = lastmillis;
+                int t = getint(p);
                 if(!d || !(d->muted || d->ignored))
                 {
-                    int t = getint(p);
                     if ( voicecomsounds == 1 || (voicecomsounds == 2 && m_teammode) ) audiomgr.playsound(t, SP_HIGH);
                 }
                 break;
             }
             case SV_VOICECOM:
             {
+                int t = getint(p);
                 if(!d || !(d->muted || d->ignored))
                 {
-                    int t = getint(p);
                     if ( voicecomsounds == 1 ) audiomgr.playsound(t, SP_HIGH);
                 }
                 if(d) d->lastvoicecom = lastmillis;
