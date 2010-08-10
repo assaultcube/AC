@@ -4,7 +4,6 @@
 #include "bot/bot.h"
 
 int nextmode = 0;   // nextmode becomes gamemode after next map load
-int mapdims[6];     // min/max X/Y and delta X/Y
 VAR(gamemode, 1, 0, 0);
 VARP(modeacronyms, 0, 1, 1);
 
