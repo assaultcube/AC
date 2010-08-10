@@ -459,6 +459,7 @@ void save_world(char *mname)
     conoutf("wrote map file %s", cgzname);
 }
 
+int mapdims[6];     // min/max X/Y and delta X/Y
 void showmapdims()
 {
     conoutf("  min X|Y: %3d : %3d", mapdims[0], mapdims[1]);
