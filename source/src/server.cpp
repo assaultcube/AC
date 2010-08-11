@@ -1337,7 +1337,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
         target->position.setsize(0);
         ts.state = CS_DEAD;
         ts.lastdeath = gamemillis;
-        if(!suic) logline(ACLOG_INFO, "[%s] %s %s%s %s", actor->hostname, actor->name, gib ? (gun==GUN_GRENADE?"splattered":"gibbed") : "fragged", tk ? " his teammate" : "", target->name);
+        if(!suic) logline(ACLOG_INFO, "[%s] %s %s%s %s", actor->hostname, actor->name, gib ? gib_message(gun) : "fragged", tk ? " his teammate" : "", target->name);
         if(m_flags && targethasflag >= 0)
         {
             if(m_ctf)

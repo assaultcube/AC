@@ -651,7 +651,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 if(!target || !actor) break;
                 target->armour = armour;
                 target->health = health;
-                dodamage(damage, target, actor, type==SV_GIBDAMAGE, false);
+                dodamage(damage, target, actor, -1, type==SV_GIBDAMAGE, false);
                 break;
             }
 

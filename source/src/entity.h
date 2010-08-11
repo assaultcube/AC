@@ -52,7 +52,6 @@ enum { GUN_KNIFE = 0, GUN_PISTOL, GUN_RIFLE, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIPER
 
 struct itemstat { int add, start, max, sound; };
 extern itemstat ammostats[NUMGUNS];
-
 extern itemstat powerupstats[I_ARMOUR-I_HEALTH+1];
 
 struct guninfo { string modelname; short sound, reload, reloadtime, attackdelay, damage, projspeed, part, spread, recoil, magsize, mdl_kick_rot, mdl_kick_back, recoilincrease, recoilbase, maxrecoil, recoilbackfade, pushfactor; bool isauto; };
@@ -237,8 +236,8 @@ public:
     {
         switch(type)
         {
-            case I_CLIPS: { return ammostats[GUN_PISTOL]; }
-            case I_AMMO: { return ammostats[primary]; }
+            case I_CLIPS: return ammostats[GUN_PISTOL];
+            case I_AMMO: return ammostats[primary];
             case I_GRENADE: return ammostats[GUN_GRENADE];
             case I_AKIMBO: return ammostats[GUN_AKIMBO];
             case I_HEALTH:
@@ -282,9 +281,9 @@ public:
             case I_AMMO: additem(ammostats[primary], ammo[primary]); break;
             case I_GRENADE: additem(ammostats[GUN_GRENADE], mag[GUN_GRENADE]); break;
             case I_HEALTH: additem(powerupstats[type-I_HEALTH], health); break;
-			case I_HELMET:
+            case I_HELMET:
             case I_ARMOUR:
-				additem(powerupstats[type-I_HEALTH], armour); break;
+                additem(powerupstats[type-I_HEALTH], armour); break;
             case I_AKIMBO:
                 akimbo = true;
                 mag[GUN_AKIMBO] = guns[GUN_AKIMBO].magsize;
@@ -469,7 +468,6 @@ public:
         extern int lastmillis;
         weaponsel->ondeselecting();
         weaponchanging = lastmillis;
-        prevweaponsel = weaponsel;
         nextweaponsel = w;
         w->onselecting();
     }
@@ -513,10 +511,10 @@ enum { CTFF_INBASE = 0, CTFF_STOLEN, CTFF_DROPPED, CTFF_IDLE };
 
 struct flaginfo
 {
-	int team;
+    int team;
     entity *flagent;
-	int actor_cn;
-	playerent *actor;
+    int actor_cn;
+    playerent *actor;
     vec pos;
     int state; // one of CTFF_*
     bool ack;
@@ -577,3 +575,15 @@ public:
 
 enum {MD_FRAGS = 0, MD_DEATHS, END_MDS};
 struct medalsst {bool assigned; int cn; int item;};
+
+inline const char * gib_message(int gun)
+{
+    switch (gun)
+    {
+        case GUN_KNIFE: return "knifed";
+        case GUN_SNIPER: return "headshotted";
+        case GUN_SHOTGUN: return "splattered";
+        case GUN_GRENADE:
+        default: return "gibbed";
+    }
+}
