@@ -419,10 +419,15 @@ void fixresizedscreen()
 #endif
 }
 
-FVARP(fov, 75, 90, 120);
-VARP(scopefov, 5, 50, 60);
+float scopesensfunc = 0.4663077f
+void scopefunc();
+FVARFP(fov, 75, 90, 120, scopefunc());
+VARFP(scopefov, 5, 50, 60, scopefunc());
 VARP(spectfov, 5, 110, 120);
-
+void scopefunc()
+{
+    scopesensfunc = tan(((float)scopefov)*0.5f*RAD)/tan(fov*0.5f*RAD);
+}
 
 // map old fov values to new ones
 void fovcompat(int oldfov)

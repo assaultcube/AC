@@ -766,10 +766,8 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
     glLoadIdentity();
     glOrtho(0, VIRTW*2, VIRTH*2, 0, -1, 1);
-    extern bool senst;
-    if(senst) {
-        draw_textf("\fJSensitivity Training (hotkeys):\n\fE1. try High Sens.\n2. try Low Sens.\n\fJafter trying both choose the one you liked most:\fE\n3. choose: High Sens.\n4. choose: Low Sens.\n\fIrepeat the steps above until the training stops.\n\f35. Stop Training.", VIRTW/4, VIRTH/3);
-    }
+    extern int tsens(int x);
+    tsens(-2000);
 
     if(!hideconsole) renderconsole();
     if(showstats)
