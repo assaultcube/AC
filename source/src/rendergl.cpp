@@ -419,7 +419,7 @@ void fixresizedscreen()
 #endif
 }
 
-float scopesensfunc = 0.4663077f
+float scopesensfunc = 0.4663077f;
 void scopefunc();
 FVARFP(fov, 75, 90, 120, scopefunc());
 VARFP(scopefov, 5, 50, 60, scopefunc());
