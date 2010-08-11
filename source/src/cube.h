@@ -52,7 +52,7 @@ extern int verbose;
 
 #include "protos.h"				// external function decls
 
-#define AC_VERSION 1101
+#define AC_VERSION 1102
 #define AC_MASTER_URI "assault.cubers.net"
 #define AC_MASTER_PORT 28760
 #define MAXCL 20

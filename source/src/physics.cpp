@@ -760,65 +760,95 @@ VARP(invmouse, 0, 0, 1);
 FVARP(mouseaccel, 0, 0, 1000);
 FVARP(mfilter, 0.0f, 0.0f, 6.0f);
 VARP(autoscopesens, 0, 0, 1);
-float fdx = 0, fdy = 0;
-
-
 float testsens=0;
 bool senst=0;
-void tsens(int x)
+int tsens(int x)
 {
     static bool highlock=0,lowlock=0;
+    static bool hightry=0,lowtry=0;
     static float sensn=0,sensl=0,sensh=0;
+    static int nstep=1;
+    if (x==-2000) {  // RENDERING PART!!!
+        if(senst) {
+        draw_textf(
+        "\fJSensitivity Training (hotkeys):\n\fE1. try High Sens. %s\n2. try Low Sens. %s\n\fJ%s :"
+        "\fE\n3. choose: High Sens.\n4. choose: Low Sens.\n\fIrepeat the steps above until the training stops.\n\f35. Stop Training.",
+        VIRTW/4  , VIRTH/3,
+        hightry?"(TRYED)":"" , lowtry?"(TRYED)":"",
+        hightry&&lowtry?"after trying both choose the one you liked most":"now you can choose the sensitivity you preferred");
+        glPushMatrix(); glScalef(2,2,2);
+        draw_textf("step: \f0%d",VIRTW/2  , VIRTH/3*2,nstep);
+        glPopMatrix();
+        }
+    return 0;
+    }
     if (x == SDLK_3 || x == SDLK_4)
     {
-        if (x == SDLK_3) //high sens
-        {
-            lowlock=1;
-            if (highlock)
-            {
-                sensl=sensn;
-                sensn=(sensh+sensl)/2.0f;
+        if(!hightry || !lowtry) {
+            if(!hightry && !lowtry) {
+                conoutf("--- \f3ERROR:\f0before choosing a sensitivity, first try both higher and lower sens.");
+            } else {
+                conoutf("--- \f3ERROR:\f0try the %s%ser sensitivity too.",hightry?"":"high",lowtry?"":"low");
             }
-            else
+        } else {
+            if (x == SDLK_3) //high sens
             {
-                sensl=sensn;
-                sensn=sensh;
-                sensh=sensn*2.0f;
+                lowlock=1;
+                if (highlock)
+                {
+                    sensl=sensn;
+                    sensn=(sensh+sensl)/2.0f;
+                }
+                else
+                {
+                    sensl=sensn;
+                    sensn=sensh;
+                    sensh=sensn*2.0f;
+                }
             }
+            if (x == SDLK_4) //low sens
+            {
+                highlock=1;
+                if (lowlock)
+                {
+                    sensh=sensn;
+                    sensn=(sensh+sensl)/2.0f;
+                }
+                else
+                {
+                    sensh=sensn;
+                    sensn=sensl;
+                    sensl=sensn/2.0f;
+                }
+            }
+            if(sensh/sensn > 1.04f) {
+            conoutf("--- \f0you choose: the %ser sensitivity.",x==SDLK_3?"higher":"lower");
+            conoutf("--- \f0repeat previous steps by trying both higher and lower sens and then by choosing the one you like most.");
+            hudoutf("next step!");
+            nstep++;
+            }
+            testsens=sensn;
+            hightry=lowtry=0;
         }
-        if (x == SDLK_4) //low sens
-        {
-            highlock=1;
-            if (lowlock)
-            {
-                sensh=sensn;
-                sensn=(sensh+sensl)/2.0f;
-            }
-            else
-            {
-                sensh=sensn;
-                sensn=sensl;
-                sensl=sensn/2.0f;
-            }
-        }
-        conoutf("--- \f0you choose: the %s sens",x==SDLK_3?"higher":"lower");
-        testsens=sensn;
+
     }
     if (x == SDLK_2)
     {
         testsens=sensl;
-        conoutf("--- \f0You are now trying the lower sens.");
+        conoutf("--- \f0You are now %strying the lower sensitivity.",lowtry?"re-":""); lowtry=1;
     }
     if (x == SDLK_1)
     {
         testsens=sensh;
-        conoutf("--- \f0You are now trying the higher sens.");
+        conoutf("--- \f0You are now %strying the higher sensitivity.",hightry?"re-":""); hightry=1;
     }
     if (x==-1000)
     {
-        sensh=sensitivity*2.0f;
-        sensl=sensitivity/2.0f;
-        sensn=sensitivity;
+        float factor=rnd(800)+600;
+        factor/=1000;
+        sensh=sensitivity*factor*2.0f;
+        sensl=sensitivity*factor/2.0f;
+        sensn=sensitivity*factor;
     }
     if (sensh/sensn <= 1.04f || x == SDLK_5)
     {
@@ -829,17 +859,22 @@ void tsens(int x)
         } else {
             conoutf("--- \f0Sensitivity Training Stopped.");
         }
-        highlock=lowlock=0;
+        hightry=lowtry=highlock=lowlock=0;
         sensn=sensl=sensh=0;
         testsens=0;
+        nstep=1;
     }
+return 0;
 }
 void findsens()
 {
-    senst=1;
-    tsens(-1000);
-    testsens=sensitivity;
-    conoutf("--- \f0Sensitivity Training Started.");
+    if(!watchingdemo) {
+        senst=1;
+        tsens(-1000);
+        testsens=sensitivity;
+        conoutf("--- \f0Sensitivity Training Started.");
+        return;
+    }
 }
 COMMAND(findsens,ARG_NONE);
 
@@ -848,9 +883,8 @@ inline bool zooming(playerent *plx) { return (plx->weaponsel->type == GUN_SNIPER
 
 void mousemove(int odx, int ody)
 {
-    if(intermission) return;
-    if(player1->isspectating() && player1->spectatemode==SM_FOLLOW1ST) return;
-
+    static float fdx = 0, fdy = 0;
+    if(intermission || (player1->isspectating() && player1->spectatemode==SM_FOLLOW1ST)) return;
     float dx = odx, dy = ody;
     if(mfilter > 0.0f)
     {
@@ -858,7 +892,6 @@ void mousemove(int odx, int ody)
         dx = fdx = dx * ( 1.0f - k ) + fdx * k;
         dy = fdy = dy * ( 1.0f - k ) + fdy * k;
     }
-
     float cursens = sensitivity;
     if(senst) {cursens=testsens;}
     if(mouseaccel && curtime && (dx || dy)) cursens += 0.02f * mouseaccel * sqrtf(dx*dx + dy*dy)/curtime;
@@ -866,8 +899,8 @@ void mousemove(int odx, int ody)
 
     if( zooming(player1) )
     {
-        extern float fov; extern int scopefov;
-        cursens *= autoscopesens ? ((float)scopefov*0.66f/fov) : scopesensscale;
+        extern float scopesensfunc;
+        cursens *= autoscopesens ? scopesensfunc : scopesensscale;
     }
 
     camera1->yaw += dx*cursens;

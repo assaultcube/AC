@@ -701,6 +701,16 @@ void exec(const char *cfgfile)
     if(!execfile(cfgfile)) conoutf("could not read \"%s\"", cfgfile);
 }
 
+void execdir(const char *dir)
+{
+        vector<char *> files;
+        listfiles(dir, "cfg", files);
+        loopv(files) {
+        defformatstring(d)("%s/%s.cfg",dir,files[i]);
+        exec(d);
+        }
+}
+COMMAND(execdir,ARG_1STR);
 // below the commands that implement a small imperative language. thanks to the semantics of
 // () and [] expressions, any control construct can be defined trivially.
 

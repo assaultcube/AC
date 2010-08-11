@@ -739,7 +739,7 @@ void checkinput()
                 {
                     if (event.key.state==SDL_PRESSED)
                     {
-                        extern void tsens(int x);
+                        extern int tsens(int x);
                         tsens(event.key.keysym.sym);
                     }
                 }
@@ -876,212 +876,212 @@ int main(int argc, char **argv)
             else conoutf("\f3unknown commandline argument: %c", argv[i][0]);
         }
     }
-	if(quitdirectly) return EXIT_SUCCESS;
+    if(quitdirectly) return EXIT_SUCCESS;
 
-	i18nmanager i18n("AC", path("packages/locale", true));
+    i18nmanager i18n("AC", path("packages/locale", true));
 
-	initing = NOT_INITING;
+    initing = NOT_INITING;
 
-	initlog("sdl");
-	int par = 0;
-	#ifdef _DEBUG
-	par = SDL_INIT_NOPARACHUTE;
-	#endif
-	if(SDL_Init(SDL_INIT_TIMER|SDL_INIT_VIDEO|par)<0) fatal("Unable to initialize SDL");
+    initlog("sdl");
+    int par = 0;
+#ifdef _DEBUG
+    par = SDL_INIT_NOPARACHUTE;
+#endif
+    if(SDL_Init(SDL_INIT_TIMER|SDL_INIT_VIDEO|par)<0) fatal("Unable to initialize SDL");
 
-	#if 0
-	if(highprocesspriority) setprocesspriority(true);
-	#endif
+#if 0
+    if(highprocesspriority) setprocesspriority(true);
+#endif
 
-        if (!dedicated) initlog("net");
-	if(enet_initialize()<0) fatal("Unable to initialise network module");
+    if (!dedicated) initlog("net");
+    if(enet_initialize()<0) fatal("Unable to initialise network module");
 
-        if (!dedicated) initclient();
+    if (!dedicated) initclient();
         //FIXME the server executed in this way does not catch the SIGTERM or ^C
-	initserver(dedicated,argc,argv);  // never returns if dedicated
+    initserver(dedicated,argc,argv);  // never returns if dedicated
 
-	initlog("world");
-	empty_world(7, true);
+    initlog("world");
+    empty_world(7, true);
 
-	initlog("video: sdl");
-	if(SDL_InitSubSystem(SDL_INIT_VIDEO)<0) fatal("Unable to initialize SDL Video");
+    initlog("video: sdl");
+    if(SDL_InitSubSystem(SDL_INIT_VIDEO)<0) fatal("Unable to initialize SDL Video");
 
-	initlog("video: mode");
-	int usedcolorbits = 0, useddepthbits = 0, usedfsaa = 0;
-	setupscreen(usedcolorbits, useddepthbits, usedfsaa);
+    initlog("video: mode");
+    int usedcolorbits = 0, useddepthbits = 0, usedfsaa = 0;
+    setupscreen(usedcolorbits, useddepthbits, usedfsaa);
 
     // no more TTF ATM.
-	//initlog("font");
-	//initfont();
+    //initlog("font");
+    //initfont();
 
-	initlog("video: misc");
-	SDL_WM_SetCaption("AssaultCube", NULL);
-	keyrepeat(false);
-	SDL_ShowCursor(0);
+    initlog("video: misc");
+    SDL_WM_SetCaption("AssaultCube", NULL);
+    keyrepeat(false);
+    SDL_ShowCursor(0);
 
-	initlog("gl");
-	gl_checkextensions();
-	gl_init(scr_w, scr_h, usedcolorbits, useddepthbits, usedfsaa);
+    initlog("gl");
+    gl_checkextensions();
+    gl_init(scr_w, scr_h, usedcolorbits, useddepthbits, usedfsaa);
 
-	notexture = noworldtexture = textureload("packages/misc/notexture.jpg");
-	if(!notexture) fatal("could not find core textures (hint: run AssaultCube from the parent of the bin directory)");
+    notexture = noworldtexture = textureload("packages/misc/notexture.jpg");
+    if(!notexture) fatal("could not find core textures (hint: run AssaultCube from the parent of the bin directory)");
 
-	initlog("console");
-	persistidents = false;
-	if(!execfile("config/font.cfg")) fatal("cannot find default font definitions");
-	if(!execfile("config/mono.cfg")) fatal("cannot find default font definitions");
-	if(!setfont("mono")) fatal("no mono font specified");
-	if(!setfont("default")) fatal("no default font specified");
+    initlog("console");
+    persistidents = false;
+    if(!execfile("config/font.cfg")) fatal("cannot find default font definitions");
+    if(!execfile("config/mono.cfg")) fatal("cannot find default font definitions");
+    if(!setfont("mono")) fatal("no mono font specified");
+    if(!setfont("default")) fatal("no default font specified");
 
-	loadingscreen();
+    loadingscreen();
 
-	particleinit();
+    particleinit();
 
-	initlog("sound");
-	audiomgr.initsound();
+    initlog("sound");
+    audiomgr.initsound();
 
-	initlog("cfg");
-	extern void *scoremenu, *teammenu, *ctfmenu, *servmenu, *searchmenu, *serverinfomenu, *kickmenu, *banmenu, *forceteammenu, *giveadminmenu, *docmenu, *applymenu;
+    initlog("cfg");
+    extern void *scoremenu, *teammenu, *ctfmenu, *servmenu, *searchmenu, *serverinfomenu, *kickmenu, *banmenu, *forceteammenu, *giveadminmenu, *docmenu, *applymenu;
     scoremenu = addmenu("score", "columns", false, renderscores, NULL, false, true);
     teammenu = addmenu("team score", "columns", false, renderscores, NULL, false, true);
     ctfmenu = addmenu("ctf score", "columns", false, renderscores, NULL, false, true);
     reorderscorecolumns();
-	servmenu = addmenu("server", NULL, true, refreshservers, serverskey);
-	searchmenu = addmenu("search", NULL, true, refreshservers, serverskey);
-	serverinfomenu = addmenu("serverinfo", NULL, true, refreshservers, serverinfokey);
-	kickmenu = addmenu("kick player", NULL, true, refreshsopmenu);
-	banmenu = addmenu("ban player", NULL, true, refreshsopmenu);
-	forceteammenu = addmenu("force team", NULL, true, refreshsopmenu);
-	giveadminmenu = addmenu("give admin", NULL, true, refreshsopmenu);
-	docmenu = addmenu("reference", NULL, true, renderdocmenu);
-	applymenu = addmenu("apply", "apply changes now?", true, refreshapplymenu);
+    servmenu = addmenu("server", NULL, true, refreshservers, serverskey);
+    searchmenu = addmenu("search", NULL, true, refreshservers, serverskey);
+    serverinfomenu = addmenu("serverinfo", NULL, true, refreshservers, serverinfokey);
+    kickmenu = addmenu("kick player", NULL, true, refreshsopmenu);
+    banmenu = addmenu("ban player", NULL, true, refreshsopmenu);
+    forceteammenu = addmenu("force team", NULL, true, refreshsopmenu);
+    giveadminmenu = addmenu("give admin", NULL, true, refreshsopmenu);
+    docmenu = addmenu("reference", NULL, true, renderdocmenu);
+    applymenu = addmenu("apply", "apply changes now?", true, refreshapplymenu);
 
-	exec("config/scontext.cfg");
-	exec("config/locale.cfg");
-	exec("config/keymap.cfg");
-	exec("config/menus.cfg");
-	exec("config/scripts.cfg");
-	exec("config/prefabs.cfg");
-	exec("config/sounds.cfg");
-	exec("config/securemaps.cfg");
-	exec("config/admin.cfg");
-	execfile("config/servers.cfg");
-	persistidents = true;
+    exec("config/scontext.cfg");
+    exec("config/locale.cfg");
+    exec("config/keymap.cfg");
+    exec("config/menus.cfg");
+    exec("config/scripts.cfg");
+    exec("config/prefabs.cfg");
+    exec("config/sounds.cfg");
+    exec("config/securemaps.cfg");
+    exec("config/admin.cfg");
+    execfile("config/servers.cfg");
+    persistidents = true;
 
-	static char resdata[] = { 112, 97, 99, 107, 97, 103, 101, 115, 47, 116, 101, 120, 116, 117, 114, 101, 115, 47, 107, 117, 114, 116, 47, 107, 108, 105, 116, 101, 50, 46, 106, 112, 103, 0 };
-	stream *f = opengzfile(resdata, "rb");
-	if(f)
-	{
-		int n = f->getlil<int>();
-		loopi(n)
-		{
-			string s;
-			f->read(s, sizeof(string));
-			enet_uint32 c = f->getlil<enet_uint32>();
-			setresdata(s, c);
-		}
+    static char resdata[] = { 112, 97, 99, 107, 97, 103, 101, 115, 47, 116, 101, 120, 116, 117, 114, 101, 115, 47, 107, 117, 114, 116, 47, 107, 108, 105, 116, 101, 50, 46, 106, 112, 103, 0 };
+    stream *f = opengzfile(resdata, "rb");
+    if(f)
+    {
+        int n = f->getlil<int>();
+        loopi(n)
+        {
+            string s;
+            f->read(s, sizeof(string));
+            enet_uint32 c = f->getlil<enet_uint32>();
+            setresdata(s, c);
+        }
         delete f;
-	}
+    }
 
-	initing = INIT_LOAD;
-	if(!execfile("config/saved.cfg"))
-	{
-		exec("config/defaults.cfg");
-		firstrun = true;
-	}
-	execfile("config/autoexec.cfg");
-	execute("addallfavcatmenus");  // exec here, to add all categories (including those defined in autoexec.cfg)
-	initing = NOT_INITING;
+    initing = INIT_LOAD;
+    if(!execfile("config/saved.cfg"))
+    {
+        exec("config/defaults.cfg");
+        firstrun = true;
+    }
+    execfile("config/autoexec.cfg");
+    execute("addallfavcatmenus");  // exec here, to add all categories (including those defined in autoexec.cfg)
+    initing = NOT_INITING;
 
-	initlog("models");
-	preload_playermodels();
-	preload_hudguns();
-	preload_entmodels();
+    initlog("models");
+    preload_playermodels();
+    preload_hudguns();
+    preload_entmodels();
 
-	initlog("docs");
-	persistidents = false;
-	execfile("config/docs.cfg");
-	persistidents = true;
+    initlog("docs");
+    persistidents = false;
+    execfile("config/docs.cfg");
+    persistidents = true;
 
-	initlog("localconnect");
-	extern string clientmap;
+    initlog("localconnect");
+    extern string clientmap;
 
-	if(initdemo)
-	{
-	    extern int gamemode;
-	    gamemode = -1;
-	    copystring(clientmap, initdemo);
-	}
-	else
-        copystring(clientmap, initmap); // ac_complex for 1.0, ac_shine for 1.1, ..
+    if(initdemo)
+    {
+        extern int gamemode;
+        gamemode = -1;
+        copystring(clientmap, initdemo);
+    }
+    else
+    copystring(clientmap, initmap); // ac_complex for 1.0, ac_shine for 1.1, ..
 
-	localconnect();
+    localconnect();
 
-	if(initscript) execute(initscript);
+    if(initscript) execute(initscript);
 
-	initlog("mainloop");
+    initlog("mainloop");
 
-	inputgrab(grabinput = true);
+    inputgrab(grabinput = true);
 
-	inmainloop = true;
+    inmainloop = true;
 #ifdef _DEBUG
-	int lastflush = 0;
+    int lastflush = 0;
 #endif
-	for(;;)
-	{
-		static int frames = 0;
-		static float fps = 10.0f;
-		int millis = SDL_GetTicks() - clockrealbase;
-		if(clockfix) millis = int(millis*(double(clockerror)/1000000));
-		millis += clockvirtbase;
-		if(millis<totalmillis) millis = totalmillis;
-		limitfps(millis, totalmillis);
-		int elapsed = millis-totalmillis;
-		if(multiplayer(false)) curtime = elapsed;
-		else
-		{
-			static int timeerr = 0;
-			int scaledtime = elapsed*gamespeed + timeerr;
-			curtime = scaledtime/100;
-			timeerr = scaledtime%100;
-			if(paused) curtime = 0;
-		}
-		lastmillis += curtime;
-		totalmillis = millis;
+    for(;;)
+    {
+        static int frames = 0;
+        static float fps = 10.0f;
+        int millis = SDL_GetTicks() - clockrealbase;
+        if(clockfix) millis = int(millis*(double(clockerror)/1000000));
+        millis += clockvirtbase;
+        if(millis<totalmillis) millis = totalmillis;
+        limitfps(millis, totalmillis);
+        int elapsed = millis-totalmillis;
+        if(multiplayer(false)) curtime = elapsed;
+        else
+        {
+            static int timeerr = 0;
+            int scaledtime = elapsed*gamespeed + timeerr;
+            curtime = scaledtime/100;
+            timeerr = scaledtime%100;
+            if(paused) curtime = 0;
+        }
+        lastmillis += curtime;
+        totalmillis = millis;
 
-		checkinput();
+        checkinput();
 
-		if(lastmillis) updateworld(curtime, lastmillis);
+        if(lastmillis) updateworld(curtime, lastmillis);
 
-		if(needsautoscreenshot) showscores(true);
+        if(needsautoscreenshot) showscores(true);
 
-		serverslice(0);
+        serverslice(0);
 
-		if(elapsed) fps = (1000.0f/elapsed+fps*10)/11; // avoid DIV-by-0
-		frames++;
+        if(elapsed) fps = (1000.0f/elapsed+fps*10)/11; // avoid DIV-by-0
+        frames++;
 
-		audiomgr.updateaudio();
+        audiomgr.updateaudio();
 
-		computeraytable(camera1->o.x, camera1->o.y, dynfov());
-		if(frames>3 && !minimized)
-		{
-			gl_drawframe(screen->w, screen->h, fps<lowfps ? fps/lowfps : (fps>highfps ? fps/highfps : 1.0f), fps);
-			if(frames>4) SDL_GL_SwapBuffers();
-		}
+        computeraytable(camera1->o.x, camera1->o.y, dynfov());
+        if(frames>3 && !minimized)
+        {
+            gl_drawframe(screen->w, screen->h, fps<lowfps ? fps/lowfps : (fps>highfps ? fps/highfps : 1.0f), fps);
+            if(frames>4) SDL_GL_SwapBuffers();
+        }
 
-		if(needsautoscreenshot) makeautoscreenshot();
+        if(needsautoscreenshot) makeautoscreenshot();
 
 #ifdef _DEBUG
-		if(millis>lastflush+60000) { fflush(stdout); lastflush = millis; }
+        if(millis>lastflush+60000) { fflush(stdout); lastflush = millis; }
 #endif
-	}
+    }
 
-	quit();
+    quit();
     return EXIT_SUCCESS;
 
-    #if defined(WIN32) && !defined(_DEBUG) && !defined(__GNUC__)
+#if defined(WIN32) && !defined(_DEBUG) && !defined(__GNUC__)
     } __except(stackdumper(0, GetExceptionInformation()), EXCEPTION_CONTINUE_SEARCH) { return 0; }
-    #endif
+#endif
 }
 
 VAR(version, 1, AC_VERSION, 0);
