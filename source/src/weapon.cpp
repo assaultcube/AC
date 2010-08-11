@@ -23,8 +23,9 @@ void checkweaponswitch()
         addmsg(SV_WEAPCHANGE, "ri", player1->weaponsel->type);
         player1->weaponchanging = 0;
     }
-    else if(timeprogress>weapon::weaponchangetime/2)
+    else if(timeprogress>(weapon::weaponchangetime>>1) && player1->weaponsel != player1->nextweaponsel)
     {
+        player1->prevweaponsel = player1->weaponsel;
         player1->weaponsel = player1->nextweaponsel;
     }
 }
@@ -349,7 +350,7 @@ void hit(int damage, playerent *d, playerent *at, const vec &vel, int gun, bool 
 //         lasthit = lastmillis;
 //     }
 
-    if(!m_mp(gamemode)) dodamage(damage, d, at, gib);
+    if(!m_mp(gamemode)) dodamage(damage, d, at, gun, gib);
     else
     {
         hitmsg &h = hits.add();
@@ -369,7 +370,7 @@ void hit(int damage, playerent *d, playerent *at, const vec &vel, int gun, bool 
         {
             h.dir = ivec(int(vel.x*DNF), int(vel.y*DNF), int(vel.z*DNF));
 //             damageeffect(damage, d);
-            audiomgr.playsound(S_PAIN1+rnd(5), d);
+//             audiomgr.playsound(S_PAIN1+rnd(5), d);
         }
     }
 }
@@ -944,11 +945,13 @@ void grenades::dropnade()
     thrownade(n);
 }
 
+VARP(xpos2, 0, 920, 3000); // REMOVE
+
 void grenades::renderstats()
 {
     char gunstats[64];
     sprintf(gunstats, "%i", mag);
-    draw_text(gunstats, 690, 827);
+    draw_text(gunstats, xpos2, 827);
 }
 
 bool grenades::selectable() { return weapon::selectable() && state != GST_INHAND && mag; }

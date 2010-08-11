@@ -203,7 +203,7 @@ void drawcrosshair(playerent *p, int n, color *c, float size)
         }
     }
     float s = size>0 ? size : (float)crosshairsize;
-	float chsize = s * (p->weaponsel->type==GUN_ASSAULT && p->weaponsel->shots > 3 ? 1.4f : 1.0f) * (n==CROSSHAIR_TEAMMATE ? 2.0f : 1.0f);
+    float chsize = s * (p->weaponsel->type==GUN_ASSAULT && p->weaponsel->shots > 3 ? 1.4f : 1.0f) * (n==CROSSHAIR_TEAMMATE ? 2.0f : 1.0f);
     glBegin(GL_TRIANGLE_STRIP);
     glTexCoord2f(0, 0); glVertex2f(VIRTW/2 - chsize, VIRTH/2 - chsize);
     glTexCoord2f(1, 0); glVertex2f(VIRTW/2 + chsize, VIRTH/2 - chsize);
@@ -268,6 +268,8 @@ void drawdmgindicator()
     glEnable(GL_TEXTURE_2D);
 }
 
+VARP(xpos1, 0, 1700, 3000);  // REMOVE
+
 void drawequipicons(playerent *p)
 {
     glDisable(GL_BLEND);
@@ -277,14 +279,15 @@ void drawequipicons(playerent *p)
     // health & armor
     if(p->armour) drawequipicon(620, 1650, (p->armour-1)/25, 2, false);
     drawequipicon(20, 1650, 2, 3, (p->state!=CS_DEAD && p->health<=20 && !m_osok));
+    if(p->mag[GUN_GRENADE]) drawequipicon(xpos1, 1650, 3, 1, false);
 
     // weapons
-	int c = p->weaponsel->type, r = 0;
+    int c = p->weaponsel->type != GUN_GRENADE ? p->weaponsel->type : p->prevweaponsel->type, r = 0;
     if(c==GUN_AKIMBO || c==GUN_CPISTOL) c = GUN_PISTOL; // same icon for akimb & pistol
-    if(c==GUN_GRENADE) c--; // FIXME
     if(c>3) { c -= 4; r = 1; }
 
-	if(p->weaponsel && p->weaponsel->type>=GUN_KNIFE && p->weaponsel->type<NUMGUNS) drawequipicon(1220, 1650, c, r, (!p->weaponsel->mag && p->weaponsel->type != GUN_KNIFE && p->weaponsel->type != GUN_GRENADE));
+    if(p->weaponsel && p->weaponsel->type>=GUN_KNIFE && p->weaponsel->type<NUMGUNS)
+        drawequipicon(1220, 1650, c, r, (!p->weaponsel->mag && p->weaponsel->type != GUN_KNIFE && p->weaponsel->type != GUN_GRENADE));
     glEnable(GL_BLEND);
 }
 
@@ -893,12 +896,12 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     if(!hidespecthud && spectating && player1->spectatemode!=SM_DEATHCAM)
     {
         glLoadIdentity();
-		glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
-		const char *specttext = "GHOST [free]";//SPECTATING";
-		if(player1->team == TEAM_SPECT) specttext = "GHOST";
-		else if(player1->team == TEAM_CLA_SPECT) specttext = "[CLA]";
-		else if(player1->team == TEAM_RVSF_SPECT) specttext = "[RVSF]";
-		draw_text(specttext, VIRTW/40, VIRTH/10*7);
+        glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
+        const char *specttext = "GHOST [free]";//SPECTATING";
+        if(player1->team == TEAM_SPECT) specttext = "GHOST";
+        else if(player1->team == TEAM_CLA_SPECT) specttext = "[CLA]";
+        else if(player1->team == TEAM_RVSF_SPECT) specttext = "[RVSF]";
+        draw_text(specttext, VIRTW/40, VIRTH/10*7);
         if(player1->spectatemode==SM_FOLLOW1ST || player1->spectatemode==SM_FOLLOW3RD || player1->spectatemode==SM_FOLLOW3RD_TRANSPARENT)
         {
             if(players.inrange(player1->followplayercn) && players[player1->followplayercn])
@@ -922,7 +925,9 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             if(p->weaponsel && p->weaponsel->type>=GUN_KNIFE && p->weaponsel->type<NUMGUNS)
             {
                 glMatrixMode(GL_MODELVIEW);
-                p->weaponsel->renderstats();
+                if (p->weaponsel->type!=GUN_GRENADE) p->weaponsel->renderstats();
+                else p->prevweaponsel->renderstats();
+                if(p->mag[GUN_GRENADE]) p->weapons[GUN_GRENADE]->renderstats();
                 glMatrixMode(GL_PROJECTION);
             }
             popfont();

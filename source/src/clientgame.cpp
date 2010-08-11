@@ -634,7 +634,7 @@ VARP(hitsound, 0, 0, 1);
 
 // damage arriving from the network, monsters, yourself, all ends up here.
 
-void dodamage(int damage, playerent *pl, playerent *actor, bool gib, bool local)
+void dodamage(int damage, playerent *pl, playerent *actor, int gun, bool gib, bool local)
 {
     if(pl->state != CS_ALIVE || intermission) return;
 
@@ -647,7 +647,11 @@ void dodamage(int damage, playerent *pl, playerent *actor, bool gib, bool local)
         lasthit = lastmillis;
     }
 
-    damageeffect(damage, pl);
+    if (pl != player1)
+    {
+        damageeffect(damage, pl);
+        audiomgr.playsound(S_PAIN1+rnd(5), pl);
+    }
 
     if(local) damage = pl->dodamage(damage);
     else if(actor==player1) return;
@@ -659,7 +663,7 @@ void dodamage(int damage, playerent *pl, playerent *actor, bool gib, bool local)
         pl->damageroll(damage);
     }
 
-    if(pl->health<=0) { if(local) dokill(pl, actor, gib, actor->weaponsel->type); }
+    if(pl->health<=0) { if(local) dokill(pl, actor, gib, gun >= 0 ? gun : actor->weaponsel->type); }
     else if(pl==player1) audiomgr.playsound(S_PAIN6, SP_HIGH);
     else audiomgr.playsound(S_PAIN1+rnd(5), pl);
 }
@@ -671,7 +675,7 @@ void dokill(playerent *pl, playerent *act, bool gib, int gun)
     string pname, aname, death;
     copystring(pname, pl==player1 ? "you" : colorname(pl));
     copystring(aname, act==player1 ? "you" : colorname(act));
-    copystring(death, gib ? "gibbed" : "fragged");
+    copystring(death, gib ? gib_message(gun) : "fragged");
     void (*outf)(const char *s, ...) = (pl == player1 || act == player1) ? hudoutf : conoutf;
 
     if(pl==act)
