@@ -802,7 +802,7 @@ struct servercommandline
 {
     int uprate, serverport, syslogfacility, filethres, syslogthres, maxdemos, maxclients, kickthreshold, banthreshold, verbose, incoming_limit, afk_limit, ban_time;
     const char *ip, *master, *logident, *serverpassword, *adminpasswd, *demopath, *maprot, *pwdfile, *blfile, *nbfile, *infopath, *motdpath, *forbidden;
-    bool logtimestamp;
+    bool logtimestamp, demo_interm;
     string motd, servdesc_full, servdesc_pre, servdesc_suf, voteperm, mapperm;
     int clfilenesting;
     vector<const char *> adminonlymaps;
@@ -812,7 +812,7 @@ struct servercommandline
                             ip(""), master(NULL), logident(""), serverpassword(""), adminpasswd(""), demopath(""),
                             maprot("config/maprot.cfg"), pwdfile("config/serverpwd.cfg"), blfile("config/serverblacklist.cfg"), nbfile("config/nicknameblacklist.cfg"),
                             infopath("config/serverinfo"), motdpath("config/motd"), forbidden("config/forbidden.cfg"),
-                            logtimestamp(false),
+                            logtimestamp(false), demo_interm(false),
                             clfilenesting(0)
     {
         motd[0] = servdesc_full[0] = servdesc_pre[0] = servdesc_suf[0] = voteperm[0] = mapperm[0] = '\0';
@@ -860,7 +860,14 @@ struct servercommandline
             case 'y': if(ai < 0) banthreshold = ai; break;
             case 'x': adminpasswd = a; break;
             case 'p': serverpassword = a; break;
-            case 'D': if(ai > 0) maxdemos = ai; break;
+            case 'D':
+            {
+                if(arg[2]=='I')
+                {
+                    demo_interm = true;
+                }
+                else if(ai > 0) maxdemos = ai; break;
+            }
             case 'W': demopath = a; break;
             case 'r': maprot = a; break;
             case 'X': pwdfile = a; break;
