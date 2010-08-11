@@ -102,7 +102,7 @@ struct mapaction : serveraction
     void perform()
     {
         if (queue) return;
-        if(isdedicated && numclients() > 2 && smode >= 0 && smode != 1 && gamemillis > gamelimit/4)
+        if(isdedicated && numclients() > 2 && smode >= 0 && smode != 1 && ( gamemillis > gamelimit/4 || scl.demo_interm ))
         {
             forceintermission = true;
             nextgamemode = mode;

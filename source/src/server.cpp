@@ -566,8 +566,15 @@ static void cleardemos(int n)
     }
 }
 
+bool sending_demo = false;
+
 void senddemo(int cn, int num)
 {
+    if(scl.demo_interm && (!interm || totalclients > 2))
+    {
+        sendservmsg("\f3sorry, but this server only sends demos at intermission.\n wait the end of this game, please", cn);
+        return;
+    }
     if(!num) num = demofiles.length();
     if(!demofiles.inrange(num-1))
     {
@@ -579,6 +586,7 @@ void senddemo(int cn, int num)
         }
         return;
     }
+    if (interm) sending_demo = true;
     demofile &d = demofiles[num-1];
     packetbuf p(MAXTRANS + d.len, ENET_PACKET_FLAG_RELIABLE);
     putint(p, SV_SENDDEMO);
@@ -3254,7 +3262,7 @@ void checkintermission()
 {
     if(minremain>0)
     {
-        minremain = gamemillis>=gamelimit || forceintermission ? 0 : (gamelimit - gamemillis + 60000 - 1)/60000;
+        minremain = (gamemillis>=gamelimit || forceintermission) ? 0 : (gamelimit - gamemillis + 60000 - 1)/60000;
         sendf(-1, 1, "ri2", SV_TIMEUP, minremain);
     }
     if(!interm && minremain<=0) interm = gamemillis+10000;
@@ -3463,8 +3471,9 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
     if(forceintermission || ((smode>1 || (gamemode==0 && nonlocalclients)) && gamemillis-diff>0 && gamemillis/60000!=(gamemillis-diff)/60000))
         checkintermission();
     if(m_demo && !demoplayback) maprot.restart();
-    else if(interm && gamemillis>interm)
+    else if(interm && ( (scl.demo_interm && sending_demo) ? gamemillis>(interm<<1) : gamemillis>interm ) )
     {
+        sending_demo = false;
         loggamestatus("game finished");
         if(demorecord) enddemorecord();
         interm = nextsendscore = 0;

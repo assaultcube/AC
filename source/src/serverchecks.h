@@ -1,6 +1,6 @@
 inline bool is_lagging(client *cl)
 {
-    return ( cl->spj > 55 || cl->ping > 500 || cl->ldt > 80 ); // do not change this except if you really know what are you doing
+    return ( cl->spj > 50 || cl->ping > 500 || cl->ldt > 80 ); // do not change this except if you really know what are you doing
 }
 
 inline float pow2(float x)
@@ -196,7 +196,9 @@ inline int minhits2combo(int gun)
     {
         case GUN_SUBGUN:
         case GUN_AKIMBO:
+            return 4;
         case GUN_GRENADE:
+        case GUN_ASSAULT:
             return 3;
         default:
             return 2;
