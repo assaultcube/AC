@@ -409,7 +409,6 @@ extern const char *asciiscores(bool destjpg = false);
 extern void consolescores();
 
 // world
-extern int mapdims[6];
 extern void setupworld(int factor);
 extern bool worldbordercheck(int x1, int x2, int y1, int y2, int z1, int z2);
 extern bool empty_world(int factor, bool force);
@@ -569,6 +568,7 @@ extern bool addscorchmark(vec &o, float radius = 7);
 extern void render_particles(int time, int typemask = ~0);
 
 // worldio
+extern int mapdims[6];
 extern const char *setnames(const char *name);
 extern void save_world(char *fname);
 extern bool load_world(char *mname);
