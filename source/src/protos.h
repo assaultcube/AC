@@ -332,7 +332,6 @@ extern void getdemo(char *idx, char *dsp);
 extern void listdemos();
 
 // clientgame
-extern int mapdims[6];
 extern flaginfo flaginfos[2];
 extern int sessionid;
 extern bool watchingdemo;
@@ -410,6 +409,7 @@ extern const char *asciiscores(bool destjpg = false);
 extern void consolescores();
 
 // world
+extern int mapdims[6];
 extern void setupworld(int factor);
 extern bool worldbordercheck(int x1, int x2, int y1, int y2, int z1, int z2);
 extern bool empty_world(int factor, bool force);
