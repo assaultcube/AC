@@ -167,72 +167,72 @@ const char *screenshotpath(const char *imagepath, const char *suffix)
 
 struct jpegscreenshotdest : jpeg_destination_mgr
 {
-	JOCTET buf[4096];
-	stream *file;
+    JOCTET buf[4096];
+    stream *file;
 
-	void reset()
-	{
-		next_output_byte = buf;
-	    free_in_buffer = sizeof(buf);
-	}
+    void reset()
+    {
+        next_output_byte = buf;
+        free_in_buffer = sizeof(buf);
+    }
 
-	void flush(bool full)
-	{
-		file->write(buf, int(sizeof(buf) - (full ? 0 : free_in_buffer)));
-		reset();
-	}
+    void flush(bool full)
+    {
+        file->write(buf, int(sizeof(buf) - (full ? 0 : free_in_buffer)));
+        reset();
+    }
 
-	static void inithandler(j_compress_ptr cinfo)
-	{
-		((jpegscreenshotdest *)cinfo->dest)->reset();
-	}
+    static void inithandler(j_compress_ptr cinfo)
+    {
+        ((jpegscreenshotdest *)cinfo->dest)->reset();
+    }
 
-	static void termhandler(j_compress_ptr cinfo)
-	{
-		((jpegscreenshotdest *)cinfo->dest)->flush(false);
-	}
+    static void termhandler(j_compress_ptr cinfo)
+    {
+        ((jpegscreenshotdest *)cinfo->dest)->flush(false);
+    }
 
-	static boolean flushhandler(j_compress_ptr cinfo)
-	{
-		((jpegscreenshotdest *)cinfo->dest)->flush(true);
-		return TRUE;
-	}
+    static boolean flushhandler(j_compress_ptr cinfo)
+    {
+        ((jpegscreenshotdest *)cinfo->dest)->flush(true);
+        return TRUE;
+    }
 
-	jpegscreenshotdest(stream *file) : file(file)
-	{
-		init_destination = inithandler;
-		empty_output_buffer = flushhandler;
-		term_destination = termhandler;
-	}
+    jpegscreenshotdest(stream *file) : file(file)
+    {
+        init_destination = inithandler;
+        empty_output_buffer = flushhandler;
+        term_destination = termhandler;
+    }
 };
 
 struct jpegscreenshoterror : jpeg_error_mgr
 {
     jmp_buf restore;
 
-	static void exithandler(j_common_ptr cinfo)
-	{
-		longjmp(((jpegscreenshoterror *)cinfo->err)->restore, 1);
-	}
+    static void exithandler(j_common_ptr cinfo)
+    {
+        longjmp(((jpegscreenshoterror *)cinfo->err)->restore, 1);
+    }
 
-	static void messagehandler(j_common_ptr cinfo)
-	{
-		char buf[JMSG_LENGTH_MAX];
-		(*cinfo->err->format_message)(cinfo, buf);
-		conoutf("jpeg library error: %s", buf);
-	}
+    static void messagehandler(j_common_ptr cinfo)
+    {
+        char buf[JMSG_LENGTH_MAX];
+        (*cinfo->err->format_message)(cinfo, buf);
+        conoutf("jpeg library error: %s", buf);
+    }
 
-	jpegscreenshoterror()
-	{
-		jpeg_std_error(this);
-		error_exit = exithandler;
-		output_message = messagehandler;
-	}
+    jpegscreenshoterror()
+    {
+        jpeg_std_error(this);
+        error_exit = exithandler;
+        output_message = messagehandler;
+    }
 
-	bool failed()
-	{
-		return setjmp(restore) != 0;
-	}
+    bool failed()
+    {
+        return setjmp(restore) != 0;
+    }
 };
 
 void jpeg_screenshot(const char *imagepath, bool mapshot = false)
@@ -241,27 +241,27 @@ void jpeg_screenshot(const char *imagepath, bool mapshot = false)
     int iw = mapshot?minimaplastsize:screen->w;
     int ih = mapshot?minimaplastsize:screen->h;
     const char *filename = screenshotpath(imagepath, "jpg");
-	stream *file = openfile(screenshotpath(imagepath, "jpg"), "wb");
-	if(!file) { conoutf("failed to create: %s", filename); return; }
+    stream *file = openfile(screenshotpath(imagepath, "jpg"), "wb");
+    if(!file) { conoutf("failed to create: %s", filename); return; }
 
     int row_stride = 3*iw;
     uchar *pixels = new uchar[row_stride*ih];
 
     jpeg_compress_struct cinfo;
-	jpegscreenshoterror jerr;
+    jpegscreenshoterror jerr;
 
     cinfo.err = &jerr;
-	if(jerr.failed())
-	{
-	    jpeg_destroy_compress(&cinfo);
-		delete[] pixels;
-		delete file;
-		return;
-	}
+    if(jerr.failed())
+    {
+        jpeg_destroy_compress(&cinfo);
+        delete[] pixels;
+        delete file;
+        return;
+    }
 
     jpeg_create_compress(&cinfo);
-	jpegscreenshotdest dest(file);
-	cinfo.dest = &dest;
+    jpegscreenshotdest dest(file);
+    cinfo.dest = &dest;
     //jpeg_stdio_dest(&cinfo, jpegfile);
 
 
@@ -350,14 +350,14 @@ void bmp_screenshot(const char *imagepath, bool mapshot = false)
         dst += image->pitch;
     }
     delete[] tmp;
-	const char *filename = screenshotpath(imagepath, "bmp");
-	stream *file = openfile(filename, "wb");
-	if(!file) conoutf("failed to create: %s", filename);
-	else
-	{
-		SDL_SaveBMP_RW(image, file->rwops(), 1);
-		delete file;
-	}
+    const char *filename = screenshotpath(imagepath, "bmp");
+    stream *file = openfile(filename, "wb");
+    if(!file) conoutf("failed to create: %s", filename);
+    else
+    {
+        SDL_SaveBMP_RW(image, file->rwops(), 1);
+        delete file;
+    }
     SDL_FreeSurface(image);
 }
 
@@ -772,7 +772,7 @@ void checkinput()
 
             case SDL_MOUSEBUTTONDOWN:
             case SDL_MOUSEBUTTONUP:
-                if(lasttype==event.type && lastbut==event.button.button) break; // why?? get event twice without it
+                if(lasttype==event.type && lastbut==event.button.button) break;
                 keypress(-event.button.button, event.button.state!=0, 0);
                 lasttype = event.type;
                 lastbut = event.button.button;
