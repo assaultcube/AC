@@ -97,23 +97,23 @@ void shiftweapon(int s)
     else if(player1->isspectating()) updatefollowplayer(s);
 }
 
-bool quicknade = false;
+bool quicknade = false, nadeattack = false;
 VARP(quicknade_hold, 0, 0, 1);
 
 void quicknadethrow(bool on)
 {
-    if(player1->state != CS_ALIVE || ( player1->attacking && player1->weaponsel->type != GUN_GRENADE )) return;
+    if(player1->state != CS_ALIVE) return;
     if(on)
     {
-        if(player1->weapons[GUN_GRENADE]->mag > 0)
+        if(player1->weapons[GUN_GRENADE]->mag > 0 && !player1->attacking)
         {
             if(player1->weaponsel->type != GUN_GRENADE) selectweapon(player1->weapons[GUN_GRENADE]);
-            if(player1->weaponsel->type == GUN_GRENADE || quicknade_hold) attack(true);
+            if(player1->weaponsel->type == GUN_GRENADE || quicknade_hold) { player1->attacking = true; nadeattack = true; }
         }
     }
-    else
+    else if (nadeattack)
     {
-        attack(false);
+        nadeattack = player1->attacking = false;
         if(player1->weaponsel->type == GUN_GRENADE) quicknade = true;
     }
 }
