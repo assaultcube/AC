@@ -89,10 +89,10 @@ CLIENT_PCH= cube.h.gch
 
 ifneq (,$(findstring MINGW,$(PLATFORM)))
 SERVER_INCLUDES= -DSTANDALONE $(INCLUDES) -I../include
-SERVER_LIBS= -L../lib -lzdll -lenet -llibintl -lws2_32 -lwinmm -lSDL
+SERVER_LIBS= -L../lib -lzdll -lenet -llibintl -lws2_32 -lwinmm
 else
 SERVER_INCLUDES= -DSTANDALONE $(INCLUDES)
-SERVER_LIBS= -L../enet/.libs -lenet -lz `sdl-config --libs`
+SERVER_LIBS= -L../enet/.libs -lenet -lz
 endif
 
 SERVER_OBJS= \
