@@ -151,7 +151,7 @@ void renderscore(playerent *d)
         strncpy(lagping,"SPECT",5);
         lagping[5]='\0';
     }
-    else if ( d->state==CS_LAGGED )
+    else if ( d->state==CS_LAGGED || (d->ping > 999 && d->plag > 99) )
     {
         strncpy(lagping,"LAG",3);
         lagping[3]='\0';

@@ -613,13 +613,13 @@ void drawradar(playerent *p, int w, int h)
     }
 }
 
-void drawteamicons(int w, int h)
+void drawteamicons(int w, int h, bool spect)
 {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glColor3f(1, 1, 1);
     static Texture *icons = NULL;
     if(!icons) icons = textureload("packages/misc/teamicons.png", 3);
-    quad(icons->id, VIRTW-VIRTH/12-10, 10, VIRTH/12, team_base(player1->team) ? 0.5f : 0, 0, 0.49f, 1.0f);
+    quad(icons->id, VIRTW-VIRTH/12-10, 10, VIRTH/12, team_base(spect ? players[player1->followplayercn]->team : player1->team) ? 0.5f : 0, 0, 0.49f, 1.0f);
 }
 
 int damageblendmillis = 0;
@@ -746,11 +746,14 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
     if(p->state==CS_ALIVE && !hidehudequipment) drawequipicons(p);
 
+    bool is_spect = (( player1->spectatemode==SM_FOLLOW1ST || player1->spectatemode==SM_FOLLOW3RD || player1->spectatemode==SM_FOLLOW3RD_TRANSPARENT ) && 
+            players.inrange(player1->followplayercn) && players[player1->followplayercn]);
+
     if(/*!menu &&*/ (!hideradar || showmap)) drawradar(p, w, h);
     if(!editmode)
     {
         glMatrixMode(GL_MODELVIEW);
-        if(!hideteam && m_teammode) drawteamicons(w, h);
+        if(!hideteam && m_teammode) drawteamicons(w, h, is_spect);
         glMatrixMode(GL_PROJECTION);
     }
 
@@ -877,7 +880,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     if(!hidespecthud && !menu && p->state==CS_DEAD && p->spectatemode<=SM_DEATHCAM)
     {
         glLoadIdentity();
-		glOrtho(0, VIRTW*3/2, VIRTH*3/2, 0, -1, 1);
+        glOrtho(0, VIRTW*3/2, VIRTH*3/2, 0, -1, 1);
         const int left = (VIRTW*3/2)*6/8, top = (VIRTH*3/2)*3/4;
         draw_textf("SPACE to change view", left, top);
         draw_textf("SCROLL to change player", left, top+80);
@@ -900,13 +903,10 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         else if(player1->team == TEAM_CLA_SPECT) specttext = "[CLA]";
         else if(player1->team == TEAM_RVSF_SPECT) specttext = "[RVSF]";
         draw_text(specttext, VIRTW/40, VIRTH/10*7);
-        if(player1->spectatemode==SM_FOLLOW1ST || player1->spectatemode==SM_FOLLOW3RD || player1->spectatemode==SM_FOLLOW3RD_TRANSPARENT)
+        if(is_spect)
         {
-            if(players.inrange(player1->followplayercn) && players[player1->followplayercn])
-            {
-                defformatstring(name)("Player %s", players[player1->followplayercn]->name);
-                draw_text(name, VIRTW/40, VIRTH/10*8);
-            }
+            defformatstring(name)("Player %s", players[player1->followplayercn]->name);
+            draw_text(name, VIRTW/40, VIRTH/10*8);
         }
     }
 
