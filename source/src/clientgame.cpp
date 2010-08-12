@@ -600,7 +600,7 @@ bool tryrespawn()
     }
     else if(spawnpermission > SP_OK_NUM)
     {
-         hudeditf(HUDMSG_TIMER, "\f%s", spawnpermission == SP_WRONGMAP ? "3You have to be on the correct map to spawn. Type /getmap" : "4Awaiting permission to spawn. Don\'t panic!");
+         hudeditf(HUDMSG_TIMER, "\f%s", (spawnpermission == SP_WRONGMAP || m_coop) ? "3You have to be on the correct map to spawn. Type /getmap" : "4Awaiting permission to spawn. Don\'t panic!");
     }
     else if(player1->state==CS_DEAD)
     {
