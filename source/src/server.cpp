@@ -1915,8 +1915,9 @@ struct voteinfo
     int owner, callmillis, result, num, type;
     char text[MAXTRANS];
     serveraction *action;
+    bool gonext;
 
-    voteinfo() : boot(0), owner(0), callmillis(0), result(VOTE_NEUTRAL), action(NULL) {}
+    voteinfo() : boot(0), owner(0), callmillis(0), result(VOTE_NEUTRAL), action(NULL), gonext(false) {}
     ~voteinfo() { delete action; }
 
     void end(int result)
@@ -2001,6 +2002,7 @@ void scallvoteerr(voteinfo *v, int error)
 }
 
 bool map_queued = false;
+void callvotepacket (int, voteinfo *);
 
 bool scallvote(voteinfo *v, ENetPacket *msg) // true if a regular vote was called
 {
@@ -2042,13 +2044,15 @@ bool scallvote(voteinfo *v, ENetPacket *msg) // true if a regular vote was calle
             nextgamemode = v->num-GMODE_NUM;
             copystring(nextmapname, v->text);
         }
-        sendpacket(-1, 1, msg, v->owner);
-        scallvotesuc(v);
+        if (!v->gonext) sendpacket(-1, 1, msg, v->owner); // FIXME in fact, all votes should go to the server, registered, and then go back to the clients
+        else callvotepacket (-1, v);                      // also, no vote should exclude the caller... these would provide many code advantages/facilities
+        scallvotesuc(v);                                  // but we cannot change the vote system now for compatibility issues... so, TODO
         return true;
     }
 }
 
-void callvotepacket (int cn) { // FIXME, it would be far smart if the msg buffer from SV_CALLVOTE was simply saved
+void callvotepacket (int cn, voteinfo *v = curvote)
+{ // FIXME, it would be far smart if the msg buffer from SV_CALLVOTE was simply saved
     int n_yes = 0, n_no = 0;
     loopv(clients) if(clients[i]->type!=ST_EMPTY)
     {
@@ -2058,31 +2062,31 @@ void callvotepacket (int cn) { // FIXME, it would be far smart if the msg buffer
 
     packetbuf q(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
     putint(q, SV_CALLVOTE);
-        putint(q, -1);
-        putint(q, curvote->owner);
-        putint(q, n_yes);
-        putint(q, n_no);
-    putint(q, curvote->type);
-    switch(curvote->type)
+    putint(q, -1);
+    putint(q, v->owner);
+    putint(q, n_yes);
+    putint(q, n_no);
+    putint(q, v->type);
+    switch(v->type)
     {
         case SA_KICK:
         case SA_BAN:
-            putint(q, curvote->num);
-            sendstring(curvote->text, q);
+            putint(q, v->num);
+            sendstring(v->text, q);
             break;
         case SA_MAP:
-            sendstring(curvote->text, q);
-            putint(q, curvote->num);
+            sendstring(v->text, q);
+            putint(q, v->num);
             break;
         case SA_SERVERDESC:
-            sendstring(curvote->text, q);
+            sendstring(v->text, q);
             break;
         case SA_STOPDEMO:
         case SA_REMBANS:
         case SA_SHUFFLETEAMS:
             break;
         default:
-            putint(q, curvote->num);
+            putint(q, v->num);
             break;
     }
     sendpacket(cn, 1, q.finalize());
@@ -3071,12 +3075,27 @@ void process(ENetPacket *packet, int sender, int chan)
                     {
                         getstring(text, p);
                         filtertext(text, text);
-                        strncpy(vi->text,text,MAXTRANS-1);
                         int mode = getint(p);
-                        vi->num = mode;
+                        vi->gonext = text[0]=='+' && text[1]=='1';
+                        if (vi->gonext)
+                        {
+                            int ccs = mode ? maprot.next(false,false) : maprot.get_next();
+                            configset *c = maprot.get(ccs);
+                            if(c)
+                            {
+                                strcpy(vi->text,c->mapname);
+                                mode = vi->num = c->mode;
+                            }
+                            else fatal("unable to get next map in maprot");
+                        }
+                        else
+                        {
+                            strncpy(vi->text,text,MAXTRANS-1);
+                            vi->num = mode;
+                        }
                         int qmode = (mode >= GMODE_NUM ? mode - GMODE_NUM : mode);
                         if(mode==GMODE_DEMO) vi->action = new demoplayaction(newstring(text));
-                        else vi->action = new mapaction(newstring(text), qmode, sender, qmode!=mode);
+                        else vi->action = new mapaction(newstring(vi->text), qmode, sender, qmode!=mode);
                         break;
                     }
                     case SA_KICK:
@@ -3483,6 +3502,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
         //start next game
         if(nextmapname[0]) startgame(nextmapname, nextgamemode);
         else maprot.next();
+        nextmapname[0] = '\0';
         map_queued = false;
     }
 

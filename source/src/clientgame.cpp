@@ -12,7 +12,7 @@ flaginfo flaginfos[2];
 void mode(int n)
 {
     nextmode = n;
-	if(m_mp(n) || !multiplayer()) addmsg(SV_GAMEMODE, "ri", n);
+    if(m_mp(n) || !multiplayer()) addmsg(SV_GAMEMODE, "ri", n);
 }
 COMMAND(mode, ARG_1INT);
 
@@ -1137,8 +1137,8 @@ int vote(int v)
     putint(p, SV_VOTE);
     putint(p, v);
     sendpackettoserv(1, p.finalize());
-	// flowtron : 2008 11 06 : I don't think the following comments are still current
-	if(!curvote) { /*printf(":: curvote vanished!\n");*/ return 0; } // flowtron - happens when I call "/stopdemo"! .. seems the map-load happens in-between
+    // flowtron : 2008 11 06 : I don't think the following comments are still current
+    if(!curvote) { /*printf(":: curvote vanished!\n");*/ return 0; } // flowtron - happens when I call "/stopdemo"! .. seems the map-load happens in-between
     curvote->stats[v]++;
     curvote->localplayervoted = true;
     return 1;
@@ -1213,6 +1213,18 @@ void setnext(char *arg1, char *arg2)
 
 }
 COMMAND(setnext, ARG_2STR);
+
+void gonext(char *arg1)
+{
+    if(calledvote || !multiplayer(false)) return;
+    packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
+    putint(p, SV_CALLVOTE);
+    putint(p, SA_MAP);
+    sendstring("+1", p);
+    putint(p, atoi(arg1));
+    sendpackettoserv(1, p.finalize());
+}
+COMMAND(gonext, ARG_1STR);
 
 COMMANDN(callvote, scallvote, ARG_3STR); //fixme,ah
 COMMAND(vote, ARG_1EXP);
