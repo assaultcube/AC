@@ -570,7 +570,9 @@ bool sending_demo = false;
 
 void senddemo(int cn, int num)
 {
-    if(scl.demo_interm && (!interm || totalclients > 2))
+    client *cl = cn>=0 ? clients[cn] : NULL;
+    bool is_admin = (cl && cl->role == CR_ADMIN);
+    if(scl.demo_interm && (!interm || totalclients > 2) && !is_admin)
     {
         sendservmsg("\f3sorry, but this server only sends demos at intermission.\n wait the end of this game, please", cn);
         return;
@@ -1350,7 +1352,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
         // don't issue respawn yet until DEATHMILLIS has elapsed
         // ts.respawn();
 
-        if(isdedicated && actor->type == ST_TCPIP)
+        if(isdedicated && actor->type == ST_TCPIP && tk)
         {
             if( actor->state.frags < scl.banthreshold ||
                 /** teamkilling more than 6 (defaults), more than 2 per minute and less than 4 frags per tk */
