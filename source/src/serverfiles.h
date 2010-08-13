@@ -327,6 +327,19 @@ struct servermaprot : serverconfigfile
     }
 
     configset *current() { return configsets.inrange(curcfgset) ? &configsets[curcfgset] : NULL; }
+    configset *get(int ccs) { return configsets.inrange(ccs) ? &configsets[ccs] : NULL; }
+    int get_next()
+    {
+        int ccs = curcfgset;
+        while(!strcmp(configsets[curcfgset].mapname,configsets[ccs].mapname))
+        {
+            ccs++;
+            if(!configsets.inrange(ccs)) ccs=0;
+            if (ccs == curcfgset) break;
+        }
+        curcfgset = ccs;
+        return ccs;
+    }
 };
 
 // serverblacklist.cfg

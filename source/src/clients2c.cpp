@@ -1069,6 +1069,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                     n_no = getint(p);
                     type = getint(p);
                 }
+                if (type == SA_MAP && d == NULL) d = player1;      // gonext uses this
                 if( type < 0 || type >= SA_NUM || !d ) return;
                 votedisplayinfo *v = NULL;
                 string a;
@@ -1110,6 +1111,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                     loopi(n_yes) votecount(VOTE_YES);
                     loopi(n_no) votecount(VOTE_NO);
                 }
+                extern int vote(int);
+                if (d == player1) vote(VOTE_YES);
                 break;
             }
 
