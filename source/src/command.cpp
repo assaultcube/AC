@@ -898,7 +898,7 @@ void writecfg()
     stream *f = openfile(path("config/saved.cfg", true), "w");
     if(!f) return;
     f->printf("// automatically written on exit, DO NOT MODIFY\n// delete this file to have defaults.cfg overwrite these settings\n// modify settings in game, or put settings in autoexec.cfg to override anything\n\n");
-    f->printf("name %s\n", player1->name);
+    f->printf("name \"%s\"\n", player1->name);
     extern const char *crosshairnames[CROSSHAIR_NUM];
     extern Texture *crosshairs[CROSSHAIR_NUM];
     loopi(CROSSHAIR_NUM) if(crosshairs[i] && crosshairs[i]!=notexture)
