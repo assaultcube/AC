@@ -909,6 +909,8 @@ void writecfg()
     }
     extern int lowfps, highfps;
     f->printf("fpsrange %d %d\n", lowfps, highfps);
+    extern string myfont;
+    f->printf("setfont %s\n", myfont);
     f->printf("\n");
     audiomgr.writesoundconfig(f);
     f->printf("\n");
