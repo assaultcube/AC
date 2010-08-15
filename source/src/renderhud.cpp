@@ -394,7 +394,7 @@ vec getradarpos()
     return vec(VIRTW-10-VIRTH/28-overlaysize, 10+VIRTH/52, 0);
 }
 
-VARP(showmapbackdrop, 0, 2, 2);
+VARP(showmapbackdrop, 0, 0, 2);
 VARP(showmapbackdroptransparency, 0, 75, 100);
 VARP(radarheight, 11, 35, 100);
 VAR(showradarvalues, 0, 0, 1); // DEBUG

@@ -5104,7 +5104,7 @@ Output:
 
 				<variable name="showmapbackdrop">
 					<description>change wether to have a see-through map overview (0), or render it on a black backdrop (1) or a combination of both (2)</description>
-					<value token="B" description="backdrop-style" minValue="0" maxValue="2" defaultValue="2" />
+					<value token="B" description="backdrop-style" minValue="0" maxValue="2" defaultValue="0" />
 				</variable>
 
 				<variable name="showmapbackdroptransparency">
