@@ -56,6 +56,12 @@ COMMANDN(font, newfont, ARG_8STR);
 COMMAND(fontchar, ARG_4INT);
 COMMAND(fontskip, ARG_1INT);
 
+string myfont;
+void newsetfont(const char *name)
+{
+    if ( setfont(name) ) copystring(myfont,name);
+}
+
 bool setfont(const char *name)
 {
     font *f = fonts.access(name);
@@ -63,7 +69,7 @@ bool setfont(const char *name)
     curfont = f;
     return true;
 }
-COMMAND(setfont, ARG_1STR);
+COMMANDN(setfont, newsetfont, ARG_1STR);
 
 font *getfont(const char *name)
 {
