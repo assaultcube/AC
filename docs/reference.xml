@@ -3663,6 +3663,17 @@ Output:
 				<variable name="mergestrips">
 					<value token="V" description="" minValue="0" maxValue="1" defaultValue="1"/>
 				</variable>
+				<variable name="gibsgore">
+					<value token="N" description="" minValue="0" maxValue="4" defaultValue="1" values=""/>
+					<description>Adjusts gib/gibnum/gibspeed/gibttl variables collectively.</description>
+					<arguments>
+						<argument valueNotes="0 - Off"/>
+						<argument valueNotes="1 - Default/Normal values"/>
+						<argument valueNotes="2 - Good"/>
+						<argument valueNotes="3 - Messy"/>
+						<argument valueNotes="4 - Unrealistic"/>
+					</arguments>
+				</variable>
 
 			</identifiers>
 		</section>
