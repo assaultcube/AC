@@ -20,11 +20,18 @@
 					<Add option="-fsigned-char" />
 					<Add option="-fomit-frame-pointer" />
 				</Compiler>
+				<MakeCommands>
+					<Build command="cd ../src;$make -f $makefile $target" />
+					<CompileFile command="$make -f $makefile $file" />
+					<Clean command="cd ../src;$make -f $makefile clean" />
+					<DistClean command="$make -f $makefile distclean$target" />
+				</MakeCommands>
 			</Target>
 			<Target title="install">
 				<Option output="AssaultCube" prefix_auto="1" extension_auto="1" />
-				<Option type="0" />
+				<Option type="1" />
 				<Option compiler="gcc" />
+				<Option use_console_runner="0" />
 				<MakeCommands>
 					<Build command="cd ../src/;$make -f $makefile install" />
 					<CompileFile command="cd ../src/;$make -f $makefile $file" />
@@ -139,6 +146,9 @@
 		<Unit filename="../src/console.h">
 			<Option target="default" />
 		</Unit>
+		<Unit filename="../src/crypto.cpp" />
+		<Unit filename="../src/crypto_tools.cpp" />
+		<Unit filename="../src/crypto_tools.h" />
 		<Unit filename="../src/cube.h">
 			<Option compile="1" />
 			<Option weight="0" />
@@ -174,6 +184,7 @@
 		<Unit filename="../src/main.cpp">
 			<Option target="default" />
 		</Unit>
+		<Unit filename="../src/master.cpp" />
 		<Unit filename="../src/md2.h">
 			<Option target="default" />
 		</Unit>
