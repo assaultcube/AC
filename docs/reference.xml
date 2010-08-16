@@ -4414,13 +4414,36 @@ Output:
 						<wikiReference article="Gamemodes"/>
 						<identifierReference identifier="map"/>
 						<identifierReference identifier="gamemode"/>
+<identifierReference identifier="tdm"/>
+<identifierReference identifier="coop"/>
+<identifierReference identifier="dm"/>
+<!--<identifierReference identifier="survivor"/>-->
+<identifierReference identifier="ts"/>
+<identifierReference identifier="ctf"/>
+<identifierReference identifier="pf"/>
+<!-- 
+<identifierReference identifier="btdm"/>
+<identifierReference identifier="bdm"/>
+-->
+<identifierReference identifier="lss"/>
+<identifierReference identifier="osok"/>
+<identifierReference identifier="tosok"/>
+<identifierReference identifier="htf"/>
+<identifierReference identifier="tktf"/>
+<identifierReference identifier="ktf"/>
 					</references>
 					<remarks>
 						<remark>You will need to define mode before loading the map or it will stay as the last mode played.</remark>
+						<remark>There are many aliases for you to use instead of remembering the numeric mapping.</remark>
 					</remarks>
 					<arguments>
 						<argument token="N" description="The mode number" valueNotes="0..15"/>
 					</arguments>
+					<examples>
+						<example><code><![CDATA[mode 7;map ac_complex;echo "Bot Team Deathmatch on ac_complex"]]></code></example>
+						<example><code><![CDATA[mode 8;map ac_mines;echo "Bot Deathmatch on ac_mines"]]></code></example>
+						<example><code><![CDATA[mode 5;map ac_shine;echo "CTF @ ac_shine"]]></code></example>
+					</examples>
 				</command>
 
 				<command name="osok">
