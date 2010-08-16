@@ -2032,7 +2032,7 @@ Output:
 					</remarks>
 					<references>
 						<identifierReference name="select" identifier="select"/>
-						<!-- broken : was wiki.cubers.net before, but still <webReference name="The Editing Mode" url="http://assault.cubers.net/wiki/EditingMode"/> -->
+						<wikiReference article="Coopedit"/>
 					</references>
 				</command>
 
@@ -4411,6 +4411,7 @@ Output:
 				<command name="mode">
 					<description>Sets the gameplay mode to N for the next map loaded.</description>
 					<references>
+						<wikiReference article="Gamemodes"/>
 						<identifierReference identifier="map"/>
 						<identifierReference identifier="gamemode"/>
 					</references>
@@ -4418,23 +4419,7 @@ Output:
 						<remark>You will need to define mode before loading the map or it will stay as the last mode played.</remark>
 					</remarks>
 					<arguments>
-						<argument token="N" description="The mode number"/>
-						<argument valueNotes="0 - Team Deathmatch"/>
-						<argument valueNotes="1 - Co-op edit"/>
-						<argument valueNotes="2 - Deathmatch"/>
-						<argument valueNotes="3 - Survivor"/>
-						<argument valueNotes="4 - Team Survivor"/>
-						<argument valueNotes="5 - Capture the Flag"/>
-						<argument valueNotes="6 - Pistol Frenzy"/>
-						<argument valueNotes="7 - Bot Team Deathmatch"/>
-						<argument valueNotes="8 - Bot Deathmatch"/>
-						<argument valueNotes="9 - Last Swiss Standing"/>
-						<argument valueNotes="10 - One Shot, One Kill"/>
-						<argument valueNotes="11 - Team One Shot, One Kill"/>
-						<argument valueNotes="12 - Bot One Shot, One Kill"/>
-						<argument valueNotes="13 - Hunt the Flag"/>
-						<argument valueNotes="14 - Team Keep the Flag"/>
-						<argument valueNotes="15 - Keep the Flag"/>
+						<argument token="N" description="The mode number" valueNotes="0..15"/>
 					</arguments>
 				</command>
 
