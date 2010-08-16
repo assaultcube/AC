@@ -258,7 +258,8 @@ struct client                   // server side version of "dynent" type
     int mapcollisions, farpickups;
     enet_uint32 bottomRTT;
     medals md;
-    bool upspawnp, lag;
+    bool upspawnp;
+    int lag;
     vec spawnp;
     int nvotes;
     int input, inputmillis;
@@ -295,7 +296,8 @@ struct client                   // server side version of "dynent" type
         at3_lastforce = eff_score = 0;
         mapcollisions = farpickups = 0;
         md.reset();
-        upspawnp = lag = false;
+        upspawnp = false;
+        lag = 0;
         spawnp = vec(-1e10f, -1e10f, -1e10f);
         lmillis = ldt = spj = 0;
         ffire = 0;

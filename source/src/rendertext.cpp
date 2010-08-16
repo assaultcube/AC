@@ -56,7 +56,7 @@ COMMANDN(font, newfont, ARG_8STR);
 COMMAND(fontchar, ARG_4INT);
 COMMAND(fontskip, ARG_1INT);
 
-string myfont;
+string myfont = "default";
 void newsetfont(const char *name)
 {
     if ( setfont(name) ) copystring(myfont,name);
