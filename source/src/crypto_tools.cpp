@@ -1,5 +1,6 @@
 #include <time.h>
 #include "crypto_tools.h"
+#include "cube.h"
 
 ////////////////////////// crypto rand ////////////////////////////////////////
 
