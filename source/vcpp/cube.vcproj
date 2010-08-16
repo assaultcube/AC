@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="cube"
 	ProjectGUID="{1FAF5BB4-C49A-4124-9F23-188528BAE7C8}"
 	RootNamespace="cube"
@@ -550,6 +550,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\crypto_tools.h"
+				>
+			</File>
+			<File
 				RelativePath="..\src\cube.h"
 				>
 			</File>
@@ -559,10 +563,6 @@
 			</File>
 			<File
 				RelativePath="..\src\geom.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\hash.h"
 				>
 			</File>
 			<File
@@ -1364,6 +1364,14 @@
 						Name="VCCLCompilerTool"
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\src\crypto.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\crypto_tools.cpp"
+				>
 			</File>
 			<File
 				RelativePath=".\cube.rc"
