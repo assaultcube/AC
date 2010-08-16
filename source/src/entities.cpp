@@ -102,19 +102,19 @@ COMMAND(setedithide, ARG_CONC);
 void seteditshow(char *just)
 {
     eh_ents.setsize(0);
-	if(just && just[0] != '\0')
-	{
-		const char *s = strtok(just, " ");
-		int sn = -1;
-		int tn = atoi(s);
-		loopi(MAXENTTYPES) if(!strcmp(entnames[i], s)) sn = i;
-		if(sn==-1) sn = tn;
-		loopi(MAXENTTYPES-1)
-		{
-			int j = i+1;
-			if(j!=sn) eh_ents.add(j);
-		}
-	}
+    if(just && just[0] != '\0')
+    {
+        const char *s = strtok(just, " ");
+        int sn = -1;
+        int tn = atoi(s);
+        loopi(MAXENTTYPES) if(!strcmp(entnames[i], s)) sn = i;
+        if(sn==-1) sn = tn;
+        loopi(MAXENTTYPES-1)
+        {
+            int j = i+1;
+            if(j!=sn) eh_ents.add(j);
+        }
+    }
 }
 COMMAND(seteditshow, ARG_1STR);
 
@@ -241,7 +241,7 @@ void trypickup(int n, playerent *d)
     switch(e.type)
     {
         default:
-            if( d->canpickup(e.type) && lastmillis > e.lastmillis + 100 && lastmillis > lastspawn + 500 )
+            if( d->canpickup(e.type) && lastmillis > e.lastmillis + 250 && lastmillis > lastspawn + 500 )
             {
                 if(d->type==ENT_PLAYER) addmsg(SV_ITEMPICKUP, "ri", n);
                 else if(d->type==ENT_BOT && serverpickup(n, -1)) pickupeffects(n, d);
