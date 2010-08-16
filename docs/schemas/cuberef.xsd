@@ -34,7 +34,7 @@
   
   <xs:simpleType name="urlType">
     <xs:restriction base="xs:string">
-      <xs:maxLength value="64">
+      <xs:maxLength value="256">
       </xs:maxLength>
     </xs:restriction>
   </xs:simpleType>
