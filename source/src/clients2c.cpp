@@ -631,12 +631,31 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 break;
             }
 
-            case SV_SCOPE: // FIXME remove in the next protocol change
+            // for AUTH:
+            case SV_AUTHREQ:
             {
-                getint(p);
-                getint(p);
+                extern int autoauth;
+                getstring(text, p);
+                if(autoauth && text[0] && tryauth(text)) conoutf("server requested authkey \"%s\"", text);
                 break;
             }
+
+            case SV_AUTHCHAL:
+            {
+                getstring(text, p);
+                authkey *a = findauthkey(text);
+                uint id = (uint)getint(p);
+                getstring(text, p);
+                if(a && a->lastauth && lastmillis - a->lastauth < 60*1000)
+                {
+                    vector<char> buf;
+                    answerchallenge(a->key, text, buf);
+                    //conoutf("answering %u, challenge %s with %s", id, text, buf.getbuf());
+                    addmsg(SV_AUTHANS, "rsis", a->desc, id, buf.getbuf());
+                }
+                break;
+            }
+            // :for AUTH
 
             case SV_GIBDAMAGE:
             case SV_DAMAGE:

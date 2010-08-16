@@ -1,4 +1,5 @@
 #include "cube.h"
+#include "crypto_tools.h"
 #include <signal.h>
 #include <enet/time.h>
 
@@ -7,6 +8,7 @@
 #define CLIENT_TIME (3*60*1000)
 #define AUTH_TIME (60*1000)
 #define AUTH_LIMIT 100
+#define AUTH_THROTTLE 1000
 #define CLIENT_LIMIT 8192
 #define DUP_LIMIT 16
 #define PING_TIME 3000
@@ -15,6 +17,31 @@
 #define SERVER_LIMIT (10*1024)
 
 FILE *logfile = NULL;
+
+// for AUTH:
+struct userinfo
+{
+    char *name;
+    void *pubkey;
+};
+hashtable<char *, userinfo> users;
+
+void adduser(char *name, char *pubkey)
+{
+    name = newstring(name);
+    userinfo &u = users[name];
+    u.name = name;
+    u.pubkey = parsepubkey(pubkey);
+}
+COMMAND(adduser, ARG_2STR);
+
+void clearusers()
+{
+    enumerate(users, userinfo, u, { delete[] u.name; freepubkey(u.pubkey); });
+    users.clear();
+}
+COMMAND(clearusers, ARG_NONE);
+// :for AUTH
 
 struct baninfo
 {
@@ -74,6 +101,15 @@ bool checkban(vector<baninfo> &bans, enet_uint32 host)
     return false;
 }
 
+// for AUTH:
+struct authreq
+{
+    enet_uint32 reqtime;
+    uint id;
+    void *answer;
+};
+// :for AUTH
+
 struct gameserver
 {
     ENetAddress address;
@@ -124,9 +160,11 @@ struct client
     int inputpos, outputpos;
     enet_uint32 connecttime, lastinput;
     int servport;
+    enet_uint32 lastauth; // for AUTH
+    vector<authreq> authreqs; // for AUTH
     bool shouldpurge;
 
-    client() : message(NULL), inputpos(0), outputpos(0), servport(-1), shouldpurge(false) {}
+    client() : message(NULL), inputpos(0), outputpos(0), servport(-1), lastauth(0), shouldpurge(false) {}
 };
 vector<client *> clients;
 
@@ -254,7 +292,7 @@ void gengbanlist()
     loopv(gbans)
     {
         baninfo &b = gbans[i];
-        l->buf.put(cmd, printban(b, &cmd[cmdlen]) - cmd); 
+        l->buf.put(cmd, printban(b, &cmd[cmdlen]) - cmd);
         l->buf.add('\n');
     }
     if(gbanlists.length() && gbanlists.last()->equals(*l))
@@ -273,7 +311,7 @@ void gengbanlist()
     loopv(clients)
     {
         client &c = *clients[i];
-        if(c.servport >= 0 && !c.message) 
+        if(c.servport >= 0 && !c.message)
         {
             c.message = l;
             c.message->refs++;
@@ -417,6 +455,94 @@ void messagebuf::purge()
     }
 }
 
+// for AUTH:
+void purgeauths(client &c)
+{
+    int expired = 0;
+    loopv(c.authreqs)
+    {
+        if(ENET_TIME_DIFFERENCE(servtime, c.authreqs[i].reqtime) >= AUTH_TIME)
+        {
+            outputf(c, "failauth %u\n", c.authreqs[i].id);
+            freechallenge(c.authreqs[i].answer);
+            expired = i + 1;
+        }
+        else break;
+    }
+    if(expired > 0) c.authreqs.remove(0, expired);
+}
+
+void reqauth(client &c, uint id, char *name)
+{
+    if(ENET_TIME_DIFFERENCE(servtime, c.lastauth) < AUTH_THROTTLE)
+        return;
+
+    c.lastauth = servtime;
+
+    purgeauths(c);
+
+    time_t t = time(NULL);
+    char *ct = ctime(&t);
+    if(ct)
+    {
+        char *newline = strchr(ct, '\n');
+        if(newline) *newline = '\0';
+    }
+    string ip;
+    if(enet_address_get_host_ip(&c.address, ip, sizeof(ip)) < 0) copystring(ip, "-");
+    conoutf("%s: attempting \"%s\" as %u from %s", ct ? ct : "-", name, id, ip);
+
+    userinfo *u = users.access(name);
+    if(!u)
+    {
+        outputf(c, "failauth %u\n", id);
+        return;
+    }
+
+    if(c.authreqs.length() >= AUTH_LIMIT)
+    {
+        outputf(c, "failauth %u\n", c.authreqs[0].id);
+        freechallenge(c.authreqs[0].answer);
+        c.authreqs.remove(0);
+    }
+
+    authreq &a = c.authreqs.add();
+    a.reqtime = servtime;
+    a.id = id;
+    uint seed[3] = { starttime, servtime, randomMT() };
+    static vector<char> buf;
+    buf.setsize(0);
+    a.answer = genchallenge(u->pubkey, seed, sizeof(seed), buf);
+
+    outputf(c, "chalauth %u %s\n", id, buf.getbuf());
+}
+
+void confauth(client &c, uint id, const char *val)
+{
+    purgeauths(c);
+
+    loopv(c.authreqs) if(c.authreqs[i].id == id)
+    {
+        string ip;
+        if(enet_address_get_host_ip(&c.address, ip, sizeof(ip)) < 0) copystring(ip, "-");
+        if(checkchallenge(val, c.authreqs[i].answer))
+        {
+            outputf(c, "succauth %u\n", id);
+            conoutf("succeeded %u from %s", id, ip);
+        }
+        else
+        {
+            outputf(c, "failauth %u\n", id);
+            conoutf("failed %u from %s", id, ip);
+        }
+        freechallenge(c.authreqs[i].answer);
+        c.authreqs.remove(i--);
+        return;
+    }
+    outputf(c, "failauth %u\n", id);
+}
+// :for AUTH
+
 bool checkclientinput(client &c)
 {
     if(c.inputpos<0) return true;
@@ -425,6 +551,9 @@ bool checkclientinput(client &c)
     {
         *end++ = '\0';
         c.lastinput = servtime;
+
+        uint id; // for AUTH
+        string user, val; // for AUTH
 
         int port;
         if(!strncmp(c.input, "list", 4) && (!c.input[4] || isspace(c.input[4])))
@@ -448,6 +577,16 @@ bool checkclientinput(client &c)
                 addgameserver(c);
             }
         }
+        // for AUTH:
+        else if(sscanf(c.input, "reqauth %u %100s", &id, user) == 2)
+        {
+            reqauth(c, id, user);
+        }
+        else if(sscanf(c.input, "confauth %u %100s", &id, val) == 2)
+        {
+            confauth(c, id, val);
+        }
+		// :for AUTH
         c.inputpos = &c.input[c.inputpos] - end;
         memmove(c.input, end, c.inputpos);
 
@@ -518,9 +657,9 @@ void checkclients()
                 {
                     if(c.output.length()) c.output.setsize(0);
                     else
-                    { 
+                    {
                         c.message->purge();
-                        c.message = NULL; 
+                        c.message = NULL;
                     }
                     c.outputpos = 0;
                     if(!c.message && c.output.empty() && c.shouldpurge)

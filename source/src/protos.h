@@ -32,6 +32,25 @@ struct color
     color(float r, float g, float b, float a) : r(r), g(g), b(b), alpha(a) {}
 };
 
+struct authkey // for AUTH
+{
+    char *name, *key, *desc;
+    int lastauth;
+
+    authkey(const char *name, const char *key, const char *desc)
+        : name(newstring(name)), key(newstring(key)), desc(newstring(desc)),
+          lastauth(0)
+    {
+    }
+
+    ~authkey()
+    {
+        DELETEA(name);
+        DELETEA(key);
+        DELETEA(desc);
+    }
+};
+
 // console
 extern void keypress(int code, bool isdown, int cooked, SDLMod mod = KMOD_NONE);
 extern int rendercommand(int x, int y, int w);
@@ -330,6 +349,14 @@ extern bool securemapcheck(const char *map, bool msg = true);
 extern void sendintro();
 extern void getdemo(char *idx, char *dsp);
 extern void listdemos();
+// for AUTH:
+extern bool tryauth(const char *desc);
+extern authkey *findauthkey(const char *desc);
+
+// serverms
+bool requestmasterf(const char *fmt, ...); // for AUTH et al
+//moving to server.cpp seems a bad idea.
+// :for AUTH
 
 // clientgame
 extern flaginfo flaginfos[2];
@@ -668,6 +695,17 @@ extern void toggledoc();
 extern void scrolldoc(int i);
 extern int stringsort(const char **a, const char **b);
 #endif
+
+// crypto // for AUTH
+extern void genprivkey(const char *seed, vector<char> &privstr, vector<char> &pubstr);
+extern bool hashstring(const char *str, char *result, int maxlen);
+const char *genpwdhash(const char *name, const char *pwd, int salt);
+extern void answerchallenge(const char *privstr, const char *challenge, vector<char> &answerstr);
+extern void *parsepubkey(const char *pubstr);
+extern void freepubkey(void *pubkey);
+extern void *genchallenge(void *pubkey, const void *seed, int seedlen, vector<char> &challengestr);
+extern void freechallenge(void *answer);
+extern bool checkchallenge(const char *answerstr, void *correct);
 
 // console
 extern void conoutf(const char *s, ...);

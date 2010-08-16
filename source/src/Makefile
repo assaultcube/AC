@@ -30,6 +30,7 @@ CLIENT_LIBS= -L../enet/.libs -lenet -L$(USRLIB) `sdl-config --libs` -lSDL_image 
 endif
 
 CLIENT_OBJS= \
+	crypto.o \
 	audiomanager.o \
 	client.o \
 	clientgame.o \
@@ -56,9 +57,9 @@ CLIENT_OBJS= \
 	rendertext.o \
 	rndmap.o \
 	scoreboard.o \
+	serverms.o \
 	server.o \
 	serverbrowser.o \
-	serverms.o \
 	shadow.o \
 	sound.o \
 	soundlocation.o \
@@ -96,16 +97,19 @@ SERVER_LIBS= -L../enet/.libs -lenet -lz
 endif
 
 SERVER_OBJS= \
+	crypto-standalone.o \
 	log-standalone.o \
 	protocol-standalone.o \
-	server-standalone.o \
 	serverms-standalone.o \
+	server-standalone.o \
 	stream-standalone.o \
 	tools-standalone.o \
 	wizard-standalone.o
 MASTER_OBJS= \
+	crypto-standalone.o \
 	stream-standalone.o \
 	command-standalone.o \
+	crypto_tools-standalone.o \
 	master-standalone.o
 
 ifeq ($(PLATFORM),SunOS)
@@ -192,7 +196,7 @@ depend:
 	makedepend -a -o-standalone.o -Y -I. $(subst -standalone.o,.cpp,$(filter-out $(SERVER_OBJS), $(MASTER_OBJS)))
 
 # DO NOT DELETE
-
+crypto.o: cube.h protos.h
 audiomanager.o: cube.h platform.h tools.h geom.h model.h protocol.h sound.h
 audiomanager.o: weapon.h entity.h world.h i18n.h command.h vote.h console.h
 audiomanager.o: protos.h
@@ -243,7 +247,7 @@ physics.o: weapon.h entity.h world.h i18n.h command.h vote.h console.h
 physics.o: protos.h
 protocol.o: cube.h platform.h tools.h geom.h model.h protocol.h sound.h
 protocol.o: weapon.h entity.h world.h i18n.h command.h vote.h console.h
-protocol.o: protos.h hash.h
+protocol.o: protos.h
 rendercubes.o: cube.h platform.h tools.h geom.h model.h protocol.h sound.h
 rendercubes.o: weapon.h entity.h world.h i18n.h command.h vote.h console.h
 rendercubes.o: protos.h
@@ -357,7 +361,7 @@ log-standalone.o: weapon.h entity.h world.h i18n.h command.h vote.h console.h
 log-standalone.o: protos.h
 protocol-standalone.o: cube.h platform.h tools.h geom.h model.h protocol.h
 protocol-standalone.o: sound.h weapon.h entity.h world.h i18n.h command.h
-protocol-standalone.o: vote.h console.h protos.h hash.h
+protocol-standalone.o: vote.h console.h protos.h
 server-standalone.o: cube.h platform.h tools.h geom.h model.h protocol.h
 server-standalone.o: sound.h weapon.h entity.h world.h i18n.h command.h
 server-standalone.o: vote.h console.h protos.h server.h servercontroller.h
@@ -365,6 +369,8 @@ server-standalone.o: serverfiles.h serverevents.h serveractions.h serverchecks.h
 serverms-standalone.o: cube.h platform.h tools.h geom.h model.h protocol.h
 serverms-standalone.o: sound.h weapon.h entity.h world.h i18n.h command.h
 serverms-standalone.o: vote.h console.h protos.h
+crypto-standalone.o: cube.h protos.h
+crypto_tools-standalone.o: crypto_tools.h
 stream-standalone.o: cube.h platform.h tools.h geom.h model.h protocol.h
 stream-standalone.o: sound.h weapon.h entity.h world.h i18n.h command.h
 stream-standalone.o: vote.h console.h protos.h
@@ -378,4 +384,4 @@ command-standalone.o: sound.h weapon.h entity.h world.h i18n.h command.h
 command-standalone.o: vote.h console.h protos.h
 master-standalone.o: cube.h platform.h tools.h geom.h model.h protocol.h
 master-standalone.o: sound.h weapon.h entity.h world.h i18n.h command.h
-master-standalone.o: vote.h console.h protos.h
+master-standalone.o: vote.h console.h protos.h crypto_tools.h
