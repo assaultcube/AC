@@ -1,7 +1,6 @@
 // misc useful functions used by the server
 
 #include "cube.h"
-#include "hash.h"
 
 #ifdef _DEBUG
 bool protocoldbg = false;
@@ -320,7 +319,7 @@ static const int msgsizes[] =               // size inclusive message token, 0 f
 {
     SV_SERVINFO, 5, SV_WELCOME, 2, SV_INITCLIENT, 0, SV_POS, 0, SV_POSC, 0, SV_POSN, 0, SV_TEXT, 0, SV_TEAMTEXT, 0, SV_TEXTME, 0, SV_TEAMTEXTME, 0,
     SV_SOUND, 2, SV_VOICECOM, 2, SV_VOICECOMTEAM, 2, SV_CDIS, 2,
-    SV_SHOOT, 0, SV_EXPLODE, 0, SV_SUICIDE, 1, SV_AKIMBO, 2, SV_RELOAD, 3, SV_SCOPE, 3,
+    SV_SHOOT, 0, SV_EXPLODE, 0, SV_SUICIDE, 1, SV_AKIMBO, 2, SV_RELOAD, 3, SV_AUTHREQ, 0, SV_AUTHTRY, 0, SV_AUTHANS, 0, SV_AUTHCHAL, 0,
     SV_GIBDIED, 5, SV_DIED, 5, SV_GIBDAMAGE, 6, SV_DAMAGE, 6, SV_HITPUSH, 6, SV_SHOTFX, 6, SV_THROWNADE, 8,
     SV_TRYSPAWN, 1, SV_SPAWNSTATE, 23, SV_SPAWN, 3, SV_SPAWNDENY, 2, SV_FORCEDEATH, 2, SV_RESUME, 0,
     SV_DISCSCORES, 0, SV_TIMEUP, 2, SV_EDITENT, 10, SV_ITEMACC, 2,
@@ -354,15 +353,4 @@ int msgsizelookup(int msg)
     }
     return msg >= 0 && msg < SV_NUM ? sizetable[msg] : -1;
 }
-
-const char *genpwdhash(const char *name, const char *pwd, int salt)
-{
-    static string temp;
-    formatstring(temp)("%s %d %s %s %d", pwd, salt, name, pwd, abs(PROTOCOL_VERSION));
-    tiger::hashval hash;
-    tiger::hash((uchar *)temp, (int)strlen(temp), hash);
-    formatstring(temp)("%llx %llx %llx", hash.chunks[0], hash.chunks[1], hash.chunks[2]);
-    return temp;
-}
-
 

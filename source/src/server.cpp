@@ -2092,6 +2092,7 @@ void callvotepacket (int cn, voteinfo *v = curvote)
     sendpacket(cn, 1, q.finalize());
 }
 
+// TODO: use AUTH code
 void changeclientrole(int client, int role, char *pwd, bool force)
 {
     pwddetail pd;
@@ -2170,6 +2171,66 @@ void disconnect_client(int n, int reason)
     if(curvote) curvote->evaluate();
     if(*scoresaved && mastermode == MM_MATCH) senddisconnectedscores(-1);
 }
+
+// for AUTH:
+client *findauth(uint id)
+{
+    loopv(clients) if(clients[i]->authreq == id) return clients[i];
+    return NULL;
+}
+
+void authfailed(uint id)
+{
+    client *cl = findauth(id);
+    if(!cl) return;
+    cl->authreq = 0;
+}
+
+void authsucceeded(uint id)
+{
+    client *cl = findauth(id);
+    if(!cl) return;
+    cl->authreq = 0;
+    //setmaster(cl, true, "", ci->authname);//TODO? compare to sauerbraten
+}
+
+void authchallenged(uint id, const char *val)
+{
+    client *cl = findauth(id);
+    if(!cl) return;
+    sendf(cl->clientnum, 1, "risis", SV_AUTHCHAL, "", id, val);
+}
+
+uint nextauthreq = 0;
+
+void tryauth(client *cl, const char *user)
+{
+    extern bool requestmasterf(const char *fmt, ...);
+    if(!nextauthreq) nextauthreq = 1;
+    cl->authreq = nextauthreq++;
+    filtertext(cl->authname, user, false, 100);
+    if(!requestmasterf("reqauth %u %s\n", cl->authreq, cl->authname))
+    {
+        cl->authreq = 0;
+        sendf(cl->clientnum, 1, "ris", SV_SERVMSG, "not connected to authentication server");
+    }
+}
+
+void answerchallenge(client *cl, uint id, char *val)
+{
+    if(cl->authreq != id) return;
+    extern bool requestmasterf(const char *fmt, ...);
+    for(char *s = val; *s; s++)
+    {
+        if(!isxdigit(*s)) { *s = '\0'; break; }
+    }
+    if(!requestmasterf("confauth %u %s\n", id, val))
+    {
+        cl->authreq = 0;
+        sendf(cl->clientnum, 1, "ris", SV_SERVMSG, "not connected to authentication server");
+    }
+}
+// :for AUTH
 
 void sendwhois(int sender, int cn)
 {
@@ -2846,10 +2907,26 @@ void process(ENetPacket *packet, int sender, int chan)
                 break;
             }
 
-            case SV_SCOPE: // FIXME remove in the next protocol change
+            // for AUTH:
+            case SV_AUTHTRY:
             {
+                string desc, name;
+                getstring(desc, p, sizeof(desc)); // unused for now
+                getstring(name, p, sizeof(name));
+                if(!desc[0]) tryauth(cl, name);
                 break;
             }
+
+            case SV_AUTHANS:
+            {
+                string desc, ans;
+                getstring(desc, p, sizeof(desc)); // unused for now
+                uint id = (uint)getint(p);
+                getstring(ans, p, sizeof(ans));
+                if(!desc[0]) answerchallenge(cl, id, ans);
+                break;
+            }
+            // :for AUTH
 
             case SV_PING:
                 sendf(sender, 1, "ii", SV_PONG, getint(p));
@@ -3748,11 +3825,13 @@ void localconnect()
 
 void processmasterinput(const char *cmd, int cmdlen, const char *args)
 {
+    uint id;
     string val;
-    if(!strncmp(cmd, "cleargbans", cmdlen))
-        cleargbans();
-    else if(sscanf(cmd, "addgban %s", val) == 1)
-        addgban(val);
+    if(sscanf(cmd, "failauth %u", &id) == 1) authfailed(id);
+    else if(sscanf(cmd, "succauth %u", &id) == 1) authsucceeded(id);
+    else if(sscanf(cmd, "chalauth %u %s", &id, val) == 2) authchallenged(id, val);
+    else if(!strncmp(cmd, "cleargbans", cmdlen)) cleargbans();
+    else if(sscanf(cmd, "addgban %s", val) == 1) addgban(val);
 }
 
 string server_name = "unarmed server";

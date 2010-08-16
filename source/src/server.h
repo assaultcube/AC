@@ -255,6 +255,8 @@ struct client                   // server side version of "dynent" type
     int spawnperm, spawnpermsent;
     int salt;
     string pwd;
+    uint authreq; // for AUTH
+    string authname; // for AUTH
     int mapcollisions, farpickups;
     enet_uint32 bottomRTT;
     medals md;
@@ -329,6 +331,7 @@ struct client                   // server side version of "dynent" type
         saychars = 0;
         spawnindex = -1;
         spectcn = FPCN_VOID;
+        authreq = 0; // for AUTH
         mapchange();
         freshgame = false;         // don't spawn into running games
         mute = spam = lastvc = badspeech = badmillis = nvotes = 0;
@@ -400,7 +403,7 @@ const char *messagenames[SV_NUM] =
 {
     "SV_SERVINFO", "SV_WELCOME", "SV_INITCLIENT", "SV_POS", "SV_POSC", "SV_POSN", "SV_TEXT", "SV_TEAMTEXT", "SV_TEXTME", "SV_TEAMTEXTME",
     "SV_SOUND", "SV_VOICECOM", "SV_VOICECOMTEAM", "SV_CDIS",
-    "SV_SHOOT", "SV_EXPLODE", "SV_SUICIDE", "SV_AKIMBO", "SV_RELOAD", "SV_SCOPE",
+    "SV_SHOOT", "SV_EXPLODE", "SV_SUICIDE", "SV_AKIMBO", "SV_RELOAD", "SV_AUTHREQ", "SV_AUTHTRY", "SV_AUTHANS", "SV_AUTHCHAL",
     "SV_GIBDIED", "SV_DIED", "SV_GIBDAMAGE", "SV_DAMAGE", "SV_HITPUSH", "SV_SHOTFX", "SV_THROWNADE",
     "SV_TRYSPAWN", "SV_SPAWNSTATE", "SV_SPAWN", "SV_SPAWNDENY", "SV_FORCEDEATH", "SV_RESUME",
     "SV_DISCSCORES", "SV_TIMEUP", "SV_EDITENT", "SV_ITEMACC",
@@ -425,9 +428,9 @@ const char *messagenames[SV_NUM] =
 
 const char *entnames[MAXENTTYPES] =
 {
-    "none?", 
+    "none?",
 	"light", "playerstart",	"pistol", "ammobox","grenades",
-    "health", "helmet", "armour", "akimbo", 
+    "health", "helmet", "armour", "akimbo",
     "mapmodel", "trigger", "ladder", "ctf-flag", "sound", "clip", "plclip"
 };
 

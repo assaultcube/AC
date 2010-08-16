@@ -154,15 +154,17 @@ void modlanconnect()
 
 void whereami()
 {
-    conoutf("you are at (%.2f,%.2f)",player1->o.x,player1->o.y);
+    conoutf("you are at (%.2f,%.2f)", player1->o.x, player1->o.y);
 }
 
 void go_to(char *x, char *y)
 {
-    if ( player1->state != CS_EDITING ) return;
-    player1->newpos.x=(float)atoi(x);
-    player1->newpos.y=(float)atoi(y);
-    conoutf("you are going to (%.2f,%.2f)",(float)atoi(x),(float)atoi(y));
+    if(player1->state != CS_EDITING) return;
+    float fx = 1.0f * atoi(x);
+    float fy = 1.0f * atoi(y);
+    player1->newpos.x = fx;
+    player1->newpos.y = fy;
+    conoutf("you are going to (%.2f; %.2f)", fx, fy);
 }
 
 void disconnect(int onlyclean, int async)
@@ -567,6 +569,69 @@ void gets2c()           // get updates from the server
             break;
     }
 }
+
+// for AUTH:
+vector<authkey *> authkeys;
+
+VARP(autoauth, 0, 1, 1);
+
+authkey *findauthkey(const char *desc)
+{
+    loopv(authkeys) if(!strcmp(authkeys[i]->desc, desc) && !strcmp(authkeys[i]->name, player1->name)) return authkeys[i];
+    loopv(authkeys) if(!strcmp(authkeys[i]->desc, desc)) return authkeys[i];
+    return NULL;
+}
+
+void addauthkey(const char *name, const char *key, const char *desc)
+{
+    loopvrev(authkeys) if(!strcmp(authkeys[i]->desc, desc) && !strcmp(authkeys[i]->name, name)) delete authkeys.remove(i);
+    if(name[0] && key[0]) authkeys.add(new authkey(name, key, desc));
+}
+
+bool _hasauthkey(const char *name, const char *desc)
+{
+    if(!name[0] && !desc[0]) return authkeys.length() > 0;
+    loopvrev(authkeys) if(!strcmp(authkeys[i]->desc, desc) && !strcmp(authkeys[i]->name, name)) return true;
+    return false;
+}
+
+void genauthkey(const char *secret)
+{
+    if(!secret[0]) { conoutf("you must specify a secret password"); return; }
+    vector<char> privkey, pubkey;
+    genprivkey(secret, privkey, pubkey);
+    conoutf("private key: %s", privkey.getbuf());
+    conoutf("public key: %s", pubkey.getbuf());
+}
+
+void saveauthkeys()
+{
+    stream *f = openfile("config/auth.cfg", "w");
+    if(!f) { conoutf("failed to open config/auth.cfg for writing"); return; }
+    loopv(authkeys)
+    {
+        authkey *a = authkeys[i];
+        f->printf("authkey \"%s\" \"%s\" \"%s\"\n", a->name, a->key, a->desc);
+    }
+    conoutf("saved authkeys to config/auth.cfg");
+    delete f;
+}
+
+bool tryauth(const char *desc)
+{
+    authkey *a = findauthkey(desc);
+    if(!a) return false;
+    a->lastauth = lastmillis;
+    addmsg(SV_AUTHTRY, "rss", a->desc, a->name);
+    return true;
+}
+
+COMMANDN(authkey, addauthkey, ARG_3STR);
+ICOMMANDF(hasauthkey, ARG_2EST, (char *name, char *desc) { return (_hasauthkey(name, desc) ? 1 : 0); });
+COMMAND(genauthkey, ARG_1STR);
+COMMAND(saveauthkeys, ARG_NONE);
+ICOMMANDF(auth, ARG_1EST, (char *desc) { return tryauth(desc); });
+// :for AUTH
 
 // sendmap/getmap commands, should be replaced by more intuitive map downloading
 
