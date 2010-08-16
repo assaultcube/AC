@@ -229,7 +229,7 @@ public:
     bool akimbo;
     int ammo[NUMGUNS], mag[NUMGUNS], gunwait[NUMGUNS];
 
-    playerstate() : primary(GUN_ASSAULT), nextprimary(GUN_ASSAULT) {}
+    playerstate() : armour(0), primary(GUN_ASSAULT), nextprimary(GUN_ASSAULT), akimbo(false) {}
     virtual ~playerstate() {}
 
     itemstat &itemstats(int type)
