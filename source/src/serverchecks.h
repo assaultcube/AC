@@ -108,11 +108,20 @@ int checkarea(int maplayout_factor, char *maplayout) {
 This part is related to medals system. WIP
  */
 
-inline void addpt(client *c, int points) {
+const char * medal_messages[] = { "defended the flag", "covered the flag stealer", "defended the dropped flag", "covered the flag keeper", "covered teammate" };
+enum { CTFLDEF, CTFLCOV, HTFLDEF, HTFLCOV, COVER, MEDALMESSAGENUM };
+inline void print_medal_messages(client *c, int n)
+{
+    if (n<0 || n>=MEDALMESSAGENUM) return;
+    logline(ACLOG_VERBOSE, "[%s] %s %s", c->hostname, c->name, medal_messages[n]);
+}
+
+inline void addpt(client *c, int points, int n = -1) {
     c->state.points += points;
     c->md.dpt += points;
     c->md.updated = true;
     c->md.upmillis = gamemillis + 240; // about 2 AR shots
+    print_medal_messages(c,n);
 }
 
 /** cnumber is the number of players in the game, at a max value of 12 */
@@ -364,14 +373,16 @@ int FlagFlag = MINFF * 1000;
 
 float a2c = 0, c2t = 0, a2t = 0; // distances: actor to covered, covered to target and actor to target
 
-inline void testcover(int msg, int factor, client *actor)
+inline bool testcover(int msg, int factor, client *actor)
 {
     if ( a2c < COVERDIST && c2t < COVERDIST && a2t < COVERDIST )
     {
         sendf(actor->clientnum, 1, "ri2", SV_HUDEXTRAS, msg);
         addpt(actor, factor);
         actor->md.ncovers++;
+        return true;
     }
+    return false;
 }
 
 #define CALCCOVER(C) \
@@ -404,13 +415,13 @@ void checkcover (client *target, client *actor)
             if ( f.state == CTFF_INBASE )
             {
                 CALCCOVER(f);
-                testcover(HE_FLAGDEFENDED, CTFLDEFPT, actor);
+                if ( testcover(HE_FLAGDEFENDED, CTFLDEFPT, actor) ) print_medal_messages(actor,CTFLDEF);
             }
             if ( of.state == CTFF_STOLEN && actor->clientnum != of.actor_cn )
             {
                 covered = true; coverid = of.actor_cn;
                 CALCCOVER(clients[of.actor_cn]->state.o);
-                testcover(HE_FLAGCOVERED, CTFLCOVPT, actor);
+                if ( testcover(HE_FLAGCOVERED, CTFLCOVPT, actor) ) print_medal_messages(actor,CTFLCOV);
             }
         }
         else if ( m_htf )
@@ -422,13 +433,13 @@ void checkcover (client *target, client *actor)
                     struct { short x, y; } nf;
                     nf.x = f.pos[0]; nf.y = f.pos[1];
                     CALCCOVER(nf);
-                    testcover(HE_FLAGDEFENDED, HTFLDEFPT, actor);
+                    if ( testcover(HE_FLAGDEFENDED, HTFLDEFPT, actor) ) print_medal_messages(actor,HTFLDEF);
                 }
                 if ( f.state == CTFF_STOLEN )
                 {
                     covered = true; coverid = f.actor_cn;
                     CALCCOVER(clients[f.actor_cn]->state.o);
-                    testcover(HE_FLAGCOVERED, HTFLCOVPT, actor);
+                    if ( testcover(HE_FLAGCOVERED, HTFLCOVPT, actor) ) print_medal_messages(actor,HTFLCOV);
                 }
             }
         }
@@ -437,7 +448,7 @@ void checkcover (client *target, client *actor)
     if ( !(covered && actor->md.linked==coverid) && validlink(actor,actor->md.linked) )
     {
         CALCCOVER(clients[actor->md.linked]->state.o);
-        testcover(HE_COVER, COVERPT, actor);
+        if ( testcover(HE_COVER, COVERPT, actor) ) print_medal_messages(actor,COVER);
     }
 
 }
