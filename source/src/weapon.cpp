@@ -515,12 +515,19 @@ void shorten(vec &from, vec &to, vec &target)
     target.sub(from).normalize().mul(from.dist(to)).add(from);
 }
 
+struct hitweap
+{
+    int hits,shots;
+    hitweap() {hits=shots=0;}
+};
+hitweap accuracym[NUMGUNS];
+
 void raydamage(vec &from, vec &to, playerent *d)
 {
     int dam = d->weaponsel->info.damage;
     int hitzone = -1;
     playerent *o = NULL;
-
+    bool hitted=false;
     if(d->weaponsel->type==GUN_SHOTGUN)
     {
         uint done = 0;
@@ -542,6 +549,7 @@ void raydamage(vec &from, vec &to, playerent *d)
                 else raysleft = true;
             }
             if(hitrays) hitpush(hitrays*dam, o, d, from, to, d->weaponsel->type, hitrays == SGRAYS, hitrays);
+            if(d==player1 && hitrays) hitted=true;
             if(!raysleft) break;
         }
     }
@@ -549,17 +557,86 @@ void raydamage(vec &from, vec &to, playerent *d)
     {
         bool gib = false;
         if(d->weaponsel->type==GUN_KNIFE) gib = true;
-    	else if(d==player1 && d->weaponsel->type==GUN_SNIPER && hitzone==2)
+        else if(d==player1 && d->weaponsel->type==GUN_SNIPER && hitzone==2)
         {
             dam *= 3;
             gib = true;
         }
 
         hitpush(dam, o, d, from, to, d->weaponsel->type, gib, gib ? 1 : 0);
+        if(d==player1) hitted=true;
         shorten(from, o->o, to);
+    }
+
+    if(d==player1)
+    {
+        if(hitted) accuracym[d->weaponsel->type].hits++;
+        accuracym[d->weaponsel->type].shots++;
     }
 }
 
+const char *weapstr(unsigned int i)
+{
+    switch (i)
+    {
+    case GUN_AKIMBO:
+        return "Akimbo";
+    case GUN_PISTOL:
+        return "Pistol";
+    case GUN_ASSAULT:
+        return "MTP-57";
+    case GUN_SUBGUN:
+        return "A-ARD/10";
+    case GUN_SNIPER:
+        return "AD-81 SR";
+    case GUN_SHOTGUN:
+        return "V-19 SG";
+    case GUN_KNIFE:
+        return "Knife";
+    case GUN_RIFLE:
+        return "TMP-M&A CB";
+    }
+    return "x";
+}
+
+VARP(accuracy,0,0,1);
+
+void r_accuracy()
+{
+    if(!accuracy) return;
+    vector <char*>lines;
+    float acc;
+    int rows=0, cols=0;
+    float x_offset = curfont->defaultw, y_offset = 3*VIRTH/2, spacing = curfont->defaultw*2;
+    loopi(NUMGUNS)
+    {
+        if(i == GUN_CPISTOL || i == GUN_GRENADE || !accuracym[i].shots) continue;
+        rows+=1;
+        acc = 100.0f*(float)accuracym[i].hits/(float)accuracym[i].shots;
+        defformatstring(x)("\f0%s: \f5%.1f%s  (%d/%d)",weapstr(i),acc,"%",accuracym[i].hits,accuracym[i].shots);
+        cols=max(cols,(int)strlen(x));
+        lines.add(newstring(x));
+    }
+    if(rows<1) return;
+    blendbox(x_offset, y_offset, spacing+x_offset+curfont->defaultw*cols, spacing+y_offset+curfont->defaulth*rows, true, -1);
+    int x=0;
+    loopv(lines)
+    {
+        char *line = lines[i];
+        draw_textf(line,spacing*0.5+x_offset,spacing*0.5+y_offset+x*curfont->defaulth);
+        x++;
+    }
+}
+
+void accuracyreset()
+{
+    loopi(NUMGUNS)
+    {
+        accuracym[i].hits=accuracym[i].shots=0;
+    }
+    conoutf("Accuracy resetted.");
+}
+COMMAND(accuracyreset,ARG_NONE);
 // weapon
 
 weapon::weapon(class playerent *owner, int type) : type(type), owner(owner), info(guns[type]),

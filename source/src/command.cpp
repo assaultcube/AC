@@ -165,6 +165,41 @@ void setsvar(const char *name, const char *str, bool dofunc)
     *id->storage.s = exchangestr(*id->storage.s, str);
     if(dofunc && id->fun) ((void (__cdecl *)())id->fun)();            // call trigger function if available
 }
+void plusmin_eq(const char *name, const char *str,bool addsub)
+{
+    if(!name[0] || !str[0]) return;
+    ident *b = idents->access(name);
+    if(b) {
+        _GETVAR(id, b->type, name, );
+        if(b->type == ID_FVAR)  {*id->storage.f = clamp(*id->storage.f+(addsub?(float)atof(str):-(float)atof(str)), id->minvalf, id->maxvalf); }
+        if(b->type == ID_VAR)  {*id->storage.i = clamp(*id->storage.i+(addsub?(int)ATOI(str):-(int)ATOI(str)), id->minval, id->maxval);     }
+        #define stringtypes(storagep,itype) \
+        if(b->type == itype)  {\
+            float f=atof(storagep);int i=ATOI(storagep);float fstr=atof(str);int istr=ATOI(str);\
+            if(f > (float)i || fstr > (float)istr) { \
+                formatstring(storagep)("%f",f+(addsub?fstr:-fstr));\
+            } else { \
+                formatstring(storagep)("%d",i+(addsub?istr:-istr));\
+            }\
+        }
+
+        stringtypes(id->action,ID_ALIAS)
+        stringtypes(*id->storage.s,ID_SVAR)
+        if(id->fun && (b->type == ID_VAR || b->type == ID_FVAR || b->type == ID_SVAR)) ((void (__cdecl *)())id->fun)();
+    } else {
+        conoutf("ident called '%s' is inexistant.",name);
+    }
+}
+void pluseq(const char *name, const char *str)
+{
+    plusmin_eq(name,str,1);
+}
+COMMANDN(+=,pluseq,ARG_2STR);
+void mineq(const char *name, const char *str)
+{
+    plusmin_eq(name,str,0);
+}
+COMMANDN(-=,mineq,ARG_2STR);
 int getvar(const char *name)
 {
     GETVAR(id, name, 0);
@@ -263,7 +298,8 @@ char *conc(char **w, int n, bool space)
     {
         strcat(r, w[i]);  // make string-list out of all arguments
         if(i==n-1) break;
-        if(space) strcat(r, " ");
+        bool col = w[i][0] == '\f' && w[i][2] == '\0';
+        if(space && !col) strcat(r, " ");
     }
     return r;
 }
@@ -703,11 +739,13 @@ void exec(const char *cfgfile)
 
 void execdir(const char *dir)
 {
-        vector<char *> files;
-        listfiles(dir, "cfg", files);
-        loopv(files) {
-        defformatstring(d)("%s/%s.cfg",dir,files[i]);
-        exec(d);
+        if(dir[0]) {
+            vector<char *> files;
+            listfiles(dir, "cfg", files);
+            loopv(files) {
+            defformatstring(d)("%s/%s.cfg",dir,files[i]);
+            exec(d);
+            }
         }
 }
 COMMAND(execdir,ARG_1STR);
@@ -842,7 +880,14 @@ void findlist(char *s, char *key)
 {
     intret(find(s, key));
 }
-
+void colora(char *s)
+{
+    if(s[0] && s[1]=='\0') {
+    defformatstring(x)("\f%c",s[0]);
+    commandret = newstring(x);
+    }
+}
+COMMANDN(c, colora, ARG_1STR);
 COMMANDN(loop, loopa, ARG_3STR);
 COMMANDN(while, whilea, ARG_2STR);
 COMMANDN(if, ifthen, ARG_3STR);
@@ -860,11 +905,15 @@ int mul(int a, int b)   { return a*b; }            COMMANDN(*, mul, ARG_2EXP);
 int sub(int a, int b)   { return a-b; }            COMMANDN(-, sub, ARG_2EXP);
 int div_(int a, int b)  { return b ? a/b : 0; }    COMMANDN(div, div_, ARG_2EXP);
 int mod_(int a, int b)   { return b ? a%b : 0; }    COMMANDN(mod, mod_, ARG_2EXP);
+int pow_(int a, int b)   { return pow(a,b); }    COMMANDN(pow, pow_, ARG_2EXP);
+int sqrt_(int a)   { return a>0 ? sqrt(a) : 0; }    COMMANDN(sqrt, sqrt_, ARG_1EXP);
 float addf(float a, float b)   { return a+b; }            COMMANDN(+f, addf, ARG_2EXPF);
 float mulf(float a, float b)   { return a*b; }            COMMANDN(*f, mulf, ARG_2EXPF);
 float subf(float a, float b)   { return a-b; }            COMMANDN(-f, subf, ARG_2EXPF);
 float divf_(float a, float b)  { return b ? a/b : 0; }    COMMANDN(divf, divf_, ARG_2EXPF);
 float modf_(float a, float b)   { return b ? fmod(a, b) : 0; }    COMMANDN(modf, modf_, ARG_2EXPF);
+float powf_(float a, float b)   { return pow(a,b); }    COMMANDN(powf, powf_, ARG_2EXPF);
+float sqrtf_(float a)   { return a>0 ? sqrt(a) : 0; }    COMMANDN(sqrtf, sqrtf_, ARG_1EXPF);
 int not_(int a) { return (int)(!a); }              COMMANDN(!, not_, ARG_1EXP);
 int equal(int a, int b) { return (int)(a==b); }    COMMANDN(=, equal, ARG_2EXP);
 int notequal(int a, int b) { return (int)(a!=b); } COMMANDN(!=, notequal, ARG_2EXP);

@@ -350,6 +350,7 @@ void c2skeepalive()
 }
 
 extern string masterpwd;
+bool sv_pos = true;
 
 void c2sinfo(playerent *d)                  // send update to the server
 {
@@ -446,7 +447,7 @@ void c2sinfo(playerent *d)                  // send update to the server
 
         if(sendmapidenttoserver) // new map
         {
-            spawnallitems();
+//             spawnallitems();      this was the worst idea ever, wrong command in the wrong place
             p.reliable();
             putint(p, SV_MAPIDENT);
             putint(p, maploaded);

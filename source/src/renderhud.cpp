@@ -746,7 +746,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
     if(p->state==CS_ALIVE && !hidehudequipment) drawequipicons(p);
 
-    bool is_spect = (( player1->spectatemode==SM_FOLLOW1ST || player1->spectatemode==SM_FOLLOW3RD || player1->spectatemode==SM_FOLLOW3RD_TRANSPARENT ) && 
+    bool is_spect = (( player1->spectatemode==SM_FOLLOW1ST || player1->spectatemode==SM_FOLLOW3RD || player1->spectatemode==SM_FOLLOW3RD_TRANSPARENT ) &&
             players.inrange(player1->followplayercn) && players[player1->followplayercn]);
 
     if(/*!menu &&*/ (!hideradar || showmap)) drawradar(p, w, h);
@@ -772,7 +772,8 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     glOrtho(0, VIRTW*2, VIRTH*2, 0, -1, 1);
     extern int tsens(int x);
     tsens(-2000);
-
+    extern void r_accuracy();
+    r_accuracy();
     if(!hideconsole) renderconsole();
     if(showstats)
     {
