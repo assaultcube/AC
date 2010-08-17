@@ -161,7 +161,7 @@ COMMANDN(docsection, adddocsection, ARG_1STR);
 COMMANDN(docident, adddocident, ARG_2STR);
 COMMANDN(docargument, adddocargument, ARG_4STR);
 COMMANDN(docremark, adddocremark, ARG_1STR);
-//COMMANDN(docref, adddocref, ARG_3STR); // FIXME (this thing is crashing in win32)
+COMMANDN(docref, adddocref, ARG_4STR);
 COMMANDN(docexample, adddocexample, ARG_2STR);
 COMMANDN(dockey, adddockey, ARG_3STR);
 
