@@ -652,8 +652,8 @@ int weapon::flashtime() const { return max((int)info.attackdelay, 120)/4; }
 void weapon::sendshoot(vec &from, vec &to)
 {
     if(owner!=player1) return;
+    owner->shoot = true;
     addmsg(SV_SHOOT, "ri2i3iv", lastmillis, owner->weaponsel->type,
-//            (int)(from.x*DMF), (int)(from.y*DMF), (int)(from.z*DMF),
            (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF),
            hits.length(), hits.length()*sizeof(hitmsg)/sizeof(int), hits.getbuf());
 }
@@ -1093,7 +1093,6 @@ bool gun::attack(vec &targ)
     mag--;
 
     sendshoot(from, to);
-    owner->shoot = true;
     return true;
 }
 
@@ -1384,14 +1383,14 @@ int knife::flashtime() const { return 0; }
 bool knife::attack(vec &targ)
 {
     int attackmillis = lastmillis-owner->lastaction;
-	if(attackmillis<gunwait) return false;
+    if(attackmillis<gunwait) return false;
     gunwait = reloading = 0;
 
     if(!owner->attacking) return false;
     updatelastaction(owner);
 
     owner->lastattackweapon = this;
-	owner->attacking = false;
+    owner->attacking = false;
 
     vec from = owner->o;
     vec to = targ;

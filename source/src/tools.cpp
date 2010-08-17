@@ -25,8 +25,9 @@ const char *numtime()
 }
 
 extern char *maplayout, *testlayout;
-extern int maplayout_factor, testlayout_factor, Mvolume, Marea;
+extern int maplayout_factor, testlayout_factor, Mvolume, Marea, Mopen;
 extern float Mheight;
+extern int checkarea(int, char *);
 
 mapstats *loadmapstats(const char *filename, bool getlayout)
 {
@@ -126,7 +127,11 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
             t = c;
         }
         if(fail) { DELETEA(testlayout); }
-        else Mheight = Marea ? (float)Mvolume/Marea : 0;
+        else
+        {
+            Mheight = Marea ? (float)Mvolume/Marea : 0;
+            Mopen = checkarea(testlayout_factor, testlayout);
+        }
     }
     if(getlayout)
     {

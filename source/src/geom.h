@@ -26,6 +26,11 @@ inline float fACos( float x )
 }
 #undef UFINVSQRT
 
+inline float pow2(float x)
+{
+    return x*x;
+}
+
 // Fast Cosine
 // inspired after http://www.devmaster.net/forums/showthread.php?t=5784
 #define FCOS \

@@ -3,11 +3,6 @@ inline bool is_lagging(client *cl)
     return ( cl->spj > 50 || cl->ping > 500 || cl->ldt > 80 ); // do not change this except if you really know what are you doing
 }
 
-inline float pow2(float x)
-{
-    return x*x;
-}
-
 inline bool outside_border(vec &po)
 {
     return (po.x < 0 || po.y < 0 || po.x >= maplayoutssize || po.y >= maplayoutssize);
@@ -36,22 +31,22 @@ inline void checkclientpos(client *cl)
 
 //FIXME
 /* There are smarter ways to implement this function, but must probably they will be very complex */
-int getmaxarea(int inversed_x, int inversed_y, int transposed, int maplayout_factor, char *maplayout)
+int getmaxarea(int inversed_x, int inversed_y, int transposed, int ml_factor, char *ml)
 {
-    int ls = (1 << maplayout_factor);
+    int ls = (1 << ml_factor);
     int xi = 0, oxi = 0, xf = 0, oxf = 0, yi = 0, yf = 0, fx = 0, fy = 0;
     int area = 0, maxarea = 0;
     bool sav_x = false, sav_y = false;
 
-    if (transposed) fx = maplayout_factor;
-    else fy = maplayout_factor;
+    if (transposed) fx = ml_factor;
+    else fy = ml_factor;
 
     // walk on x for each y
     for ( int y = (inversed_y ? ls-1 : 0); (inversed_y ? y >= 0 : y < ls); (inversed_y ? y-- : y++) ) {
 
     /* Analyzing each cube of the line */
         for ( int x = (inversed_x ? ls-1 : 0); (inversed_x ? x >= 0 : x < ls); (inversed_x ? x-- : x++) ) {
-            if ( maplayout[ ( x << fx ) + ( y << fy ) ] != 127 ) {      // if it is not solid
+            if ( ml[ ( x << fx ) + ( y << fy ) ] != 127 ) {      // if it is not solid
                 if ( sav_x ) {                                          // if the last cube was saved
                     xf = x;                                             // new end for this line
                 }
@@ -95,7 +90,8 @@ int getmaxarea(int inversed_x, int inversed_y, int transposed, int maplayout_fac
     return maxarea;
 }
 
-int checkarea(int maplayout_factor, char *maplayout) {
+int checkarea(int maplayout_factor, char *maplayout)
+{
     int area = 0, maxarea = 0;
     for (int i=0; i < 8; i++) {
         area = getmaxarea((i & 1),(i & 2),(i & 4), maplayout_factor, maplayout);
@@ -368,8 +364,6 @@ void computeteamwork(int team, int exclude) // testing
         }
     }
 }
-
-int FlagFlag = MINFF * 1000;
 
 float a2c = 0, c2t = 0, a2t = 0; // distances: actor to covered, covered to target and actor to target
 
