@@ -905,14 +905,14 @@ int mul(int a, int b)   { return a*b; }            COMMANDN(*, mul, ARG_2EXP);
 int sub(int a, int b)   { return a-b; }            COMMANDN(-, sub, ARG_2EXP);
 int div_(int a, int b)  { return b ? a/b : 0; }    COMMANDN(div, div_, ARG_2EXP);
 int mod_(int a, int b)   { return b ? a%b : 0; }    COMMANDN(mod, mod_, ARG_2EXP);
-int pow_(int a, int b)   { return pow(a,b); }    COMMANDN(pow, pow_, ARG_2EXP);
+// int pow_(int a, int b)   { return pow(a,b); }    COMMANDN(pow, pow_, ARG_2EXP); // never use pow
 int sqrt_(int a)   { return a>0 ? sqrt(a) : 0; }    COMMANDN(sqrt, sqrt_, ARG_1EXP);
 float addf(float a, float b)   { return a+b; }            COMMANDN(+f, addf, ARG_2EXPF);
 float mulf(float a, float b)   { return a*b; }            COMMANDN(*f, mulf, ARG_2EXPF);
 float subf(float a, float b)   { return a-b; }            COMMANDN(-f, subf, ARG_2EXPF);
 float divf_(float a, float b)  { return b ? a/b : 0; }    COMMANDN(divf, divf_, ARG_2EXPF);
 float modf_(float a, float b)   { return b ? fmod(a, b) : 0; }    COMMANDN(modf, modf_, ARG_2EXPF);
-float powf_(float a, float b)   { return pow(a,b); }    COMMANDN(powf, powf_, ARG_2EXPF);
+// float powf_(float a, float b)   { return pow(a,b); }    COMMANDN(powf, powf_, ARG_2EXPF);  // never use pow
 float sqrtf_(float a)   { return a>0 ? sqrt(a) : 0; }    COMMANDN(sqrtf, sqrtf_, ARG_1EXPF);
 int not_(int a) { return (int)(!a); }              COMMANDN(!, not_, ARG_1EXP);
 int equal(int a, int b) { return (int)(a==b); }    COMMANDN(=, equal, ARG_2EXP);
