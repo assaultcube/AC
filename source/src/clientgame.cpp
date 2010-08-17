@@ -877,8 +877,6 @@ void startmap(const char *name, bool reset)   // called just after a map load
         }
     }
 
-    resetspawns(); // double check
-
     // run once
     if(firstrun)
     {
