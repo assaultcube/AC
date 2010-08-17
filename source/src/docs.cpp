@@ -130,7 +130,7 @@ void adddocremark(char *remark)
     lastident->remarks.add(newstring(remark));
 }
 
-void adddocref(char *name, char *ident, char *url, char *article)
+void adddocref(char *name, char *ident, char *url, char *article) // FIXME... someone, please :P
 {
     if(!lastident || !name) return;
     docref &r = lastident->references.add();
@@ -161,7 +161,7 @@ COMMANDN(docsection, adddocsection, ARG_1STR);
 COMMANDN(docident, adddocident, ARG_2STR);
 COMMANDN(docargument, adddocargument, ARG_4STR);
 COMMANDN(docremark, adddocremark, ARG_1STR);
-COMMANDN(docref, adddocref, ARG_3STR);
+//COMMANDN(docref, adddocref, ARG_3STR); // FIXME (this thing is crashing in win32)
 COMMANDN(docexample, adddocexample, ARG_2STR);
 COMMANDN(dockey, adddockey, ARG_3STR);
 

@@ -1745,6 +1745,13 @@ void startdemoplayback(const char *newname)
 int Mvolume, Marea, Mopen = 0;
 float Mheight = 0;
 
+inline void send_item_list(packetbuf &p)
+{
+    putint(p, SV_ITEMLIST);
+    loopv(sents) if(sents[i].spawned) putint(p, i);
+    putint(p, -1);
+}
+
 void startgame(const char *newname, int newmode, int newtime, bool notify)
 {
     if(!newname || !*newname || (newmode == GMODE_DEMO && isdedicated)) fatal("startgame() abused");
@@ -1806,6 +1813,9 @@ void startgame(const char *newname, int newmode, int newtime, bool notify)
             // change map
             sendf(-1, 1, "risiii", SV_MAPCHANGE, smapname, smode, mapbuffer.available(), mapbuffer.revision);
             if(smode>1 || (smode==0 && numnonlocalclients()>0)) sendf(-1, 1, "ri2", SV_TIMEUP, minremain);
+            packetbuf q(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
+            send_item_list(q);
+            sendpacket(-1, 1, q.finalize());
         }
         defformatstring(gsmsg)("Game start: %s on %s, %d players, %d minutes, mastermode %d, ", modestr(smode), smapname, numclients(), minremain, mastermode);
         if(mastermode == MM_MATCH) concatformatstring(gsmsg, "teamsize %d, ", matchteamsize);
@@ -2334,12 +2344,7 @@ void welcomepacket(packetbuf &p, int n)
             putint(p, SV_TIMEUP);
             putint(p, minremain);
         }
-        if(numcl>0)
-        {
-            putint(p, SV_ITEMLIST);
-            loopv(sents) if(sents[i].spawned) putint(p, i);
-            putint(p, -1);
-        }
+        send_item_list(p);
         if(m_flags) loopi(2) putflaginfo(p, i);
     }
     savedscore *sc = NULL;

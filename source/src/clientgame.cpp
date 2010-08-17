@@ -850,7 +850,6 @@ void startmap(const char *name, bool reset)   // called just after a map load
     else kickallbots();
     // End add by Rick
     clearbounceents();
-    resetspawns();
     preparectf(!m_flags);
     suicided = -1;
     spawncycle = -1;
@@ -874,9 +873,11 @@ void startmap(const char *name, bool reset)   // called just after a map load
         loopv(gmdescs) if(gmdescs[i].mode == gamemode)
         {
             //conoutf(_("%c1%s"), CC, gmdescs[i].desc); // 3rd useless call to translation - these should be translated inside the cube-script-definition
-			conoutf("\f1%s", gmdescs[i].desc);
+            conoutf("\f1%s", gmdescs[i].desc);
         }
     }
+
+    resetspawns(); // double check
 
     // run once
     if(firstrun)
