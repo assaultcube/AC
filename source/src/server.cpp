@@ -1527,6 +1527,7 @@ bool balanceteams(int ftr)  // pro vs noobs never more
     if(mastermode != MM_OPEN || totalclients < 3 ) return true;
     int tsize[2] = {0, 0}, tscore[2] = {0, 0};
     int totalscore = 0, nplayers = 0;
+    int flagmult = (m_ctf ? 20 : (m_htf ? 10 : 5));
 
     loopv(clients) if(clients[i]->type!=ST_EMPTY)
     {
@@ -1536,7 +1537,9 @@ bool balanceteams(int ftr)  // pro vs noobs never more
             int time = servmillis - c->connectmillis + 5000;
             if ( time > gamemillis ) time = gamemillis + 5000;
             tsize[c->team]++;
-            c->eff_score = c->state.points * 60 * 1000 / time; // effective score per minute, thanks to wtfthisgame for the nice idea
+            // effective score per minute, thanks to wtfthisgame for the nice idea
+            // in a normal game, normal players will do 500 points in 10 minutes
+            c->eff_score = c->state.points * 60 * 1000 / time + c->state.points / 10 + c->state.flagscore * flagmult;
             tscore[c->team] += c->eff_score;
             nplayers++;
             totalscore += c->state.points;
@@ -1741,9 +1744,6 @@ void startdemoplayback(const char *newname)
     resetserver(newname, GMODE_DEMO, -1);
     setupdemoplayback();
 }
-
-int Mvolume, Marea, Mopen = 0;
-float Mheight = 0;
 
 inline void send_item_list(packetbuf &p)
 {

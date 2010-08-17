@@ -272,6 +272,7 @@ struct client                   // server side version of "dynent" type
     float dda, tr, sda;
     int ps, ph, tcn, bdt, pws;
     float pr;
+    int yls, pls, tls;
 
     gameevent &addevent()
     {
@@ -312,6 +313,7 @@ struct client                   // server side version of "dynent" type
         ps = ph = bdt = pws = 0;
         tcn = -1;
         pr = 0.0f;
+        yls = pls = tls = 0;
     }
 
     void reset()

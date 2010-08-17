@@ -92,6 +92,18 @@ void pop(const char *name)
 
 COMMAND(push, ARG_2STR);
 COMMAND(pop, ARG_1STR);
+void delalias(const char *name)
+{
+    ident *id = idents->access(name);
+    if(!id || id->type != ID_ALIAS) return;
+    if(contextisolated[execcontext] && execcontext > id->context)
+    {
+        conoutf("cannot remove alias %s in this execution context", id->name);
+        return;
+    }
+    idents->remove(name);
+}
+COMMAND(delalias, ARG_1STR);
 
 void alias(const char *name, const char *action)
 {
@@ -117,6 +129,11 @@ void alias(const char *name, const char *action)
 
 COMMAND(alias, ARG_2STR);
 
+void checkalias(const char *name)
+{
+    intret(getalias(name)?1:0);
+}
+COMMAND(checkalias, ARG_1STR);
 // variable's and commands are registered through globals, see cube.h
 
 int variable(const char *name, int minval, int cur, int maxval, int *storage, void (*fun)(), bool persist)
@@ -165,14 +182,20 @@ void setsvar(const char *name, const char *str, bool dofunc)
     *id->storage.s = exchangestr(*id->storage.s, str);
     if(dofunc && id->fun) ((void (__cdecl *)())id->fun)();            // call trigger function if available
 }
+
 void plusmin_eq(const char *name, const char *str,bool addsub)
 {
     if(!name[0] || !str[0]) return;
     ident *b = idents->access(name);
     if(b) {
-        _GETVAR(id, b->type, name, );
-        if(b->type == ID_FVAR)  {*id->storage.f = clamp(*id->storage.f+(addsub?(float)atof(str):-(float)atof(str)), id->minvalf, id->maxvalf); }
-        if(b->type == ID_VAR)  {*id->storage.i = clamp(*id->storage.i+(addsub?(int)ATOI(str):-(int)ATOI(str)), id->minval, id->maxval);     }
+        if(!allowidentaccess(b))
+        {
+            conoutf("not allowed in this execution context: %s", b->name);
+            return;
+        }
+
+        if(b->type == ID_FVAR)  {*b->storage.f = clamp(*b->storage.f+(addsub?(float)atof(str):-(float)atof(str)), b->minvalf, b->maxvalf); }
+        if(b->type == ID_VAR)  {*b->storage.i = clamp(*b->storage.i+(addsub?(int)ATOI(str):-(int)ATOI(str)), b->minval, b->maxval);     }
         #define stringtypes(storagep,itype) \
         if(b->type == itype)  {\
             float f=atof(storagep);int i=ATOI(storagep);float fstr=atof(str);int istr=ATOI(str);\
@@ -183,9 +206,10 @@ void plusmin_eq(const char *name, const char *str,bool addsub)
             }\
         }
 
-        stringtypes(id->action,ID_ALIAS)
-        stringtypes(*id->storage.s,ID_SVAR)
-        if(id->fun && (b->type == ID_VAR || b->type == ID_FVAR || b->type == ID_SVAR)) ((void (__cdecl *)())id->fun)();
+        stringtypes(b->action,ID_ALIAS)
+        stringtypes(*b->storage.s,ID_SVAR)
+        #undef stringtypes
+        if(b->fun && (b->type == ID_VAR || b->type == ID_FVAR || b->type == ID_SVAR)) ((void (__cdecl *)())b->fun)();
     } else {
         conoutf("ident called '%s' is inexistant.",name);
     }

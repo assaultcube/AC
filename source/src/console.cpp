@@ -104,14 +104,19 @@ void clientlogf(const char *s, ...)
     }
     while(p);
 }
-
+SVAR(conline,"n/a");
 void conoutf(const char *s, ...)
 {
     defvformatstring(sf, s, s);
     clientlogf("%s", sf);
     con.addline(sf);
+    delete[] conline; conline=newstring(sf);
 }
-
+void strstra(const char *a,const char *b) {
+    intret(strstr(a,b)?1:0);
+    return;
+}
+COMMANDN(strstr,strstra,ARG_2STR);
 /** This is the 1.0.4 function
     It will substituted by rendercommand_wip
     I am putting this temporarily here because it is very difficult to chat in game with the current cursor behavior,
@@ -214,7 +219,11 @@ void bindk(const char *key, const char *action)
     if(!km) { conoutf("unknown key \"%s\"", key); return; }
     bindkey(km, action);
 }
-
+void keybind(const char *key)
+{
+    keym *km = findbind(key);
+    result(km->action);
+}
 bool bindc(int code, const char *action)
 {
     keym *km = findbindc(code);
@@ -223,7 +232,7 @@ bool bindc(int code, const char *action)
 }
 
 COMMANDN(bind, bindk, ARG_2STR);
-
+COMMAND(keybind, ARG_1STR);
 struct releaseaction
 {
     keym *key;
