@@ -147,7 +147,6 @@ void setprocesspriority(bool high)
 }
 #endif
 
-VARP(screenshottype, 0, 1, 1);
 VARP(jpegquality, 10, 70, 100);
 
 const char *screenshotpath(const char *imagepath, const char *suffix)
@@ -361,10 +360,160 @@ void bmp_screenshot(const char *imagepath, bool mapshot = false)
     SDL_FreeSurface(image);
 }
 
+VARP(pngcompress, 0, 9, 9);
+
+void writepngchunk(stream *f, const char *type, uchar *data = NULL, uint len = 0)
+{
+    f->putbig<uint>(len);
+    f->write(type, 4);
+    f->write(data, len);
+
+    uint crc = crc32(0, Z_NULL, 0);
+    crc = crc32(crc, (const Bytef *)type, 4);
+    if(data) crc = crc32(crc, data, len);
+    f->putbig<uint>(crc);
+}
+
+int save_png(const char *filename, SDL_Surface *image)
+{
+    uchar *data = (uchar *)image->pixels;
+    int iw = image->w, ih = image->h, pitch = image->pitch;
+    
+    stream *f = openfile(filename, "wb");
+    if(!f) { conoutf("could not write to %s", filename); return -1; }
+    
+    uchar signature[] = { 137, 80, 78, 71, 13, 10, 26, 10 };
+    f->write(signature, sizeof(signature));
+
+    struct pngihdr
+    {
+        uint width, height;
+        uchar bitdepth, colortype, compress, filter, interlace;
+    } ihdr = { bigswap<uint>(iw), bigswap<uint>(ih), 8, 2, 0, 0, 0 };
+    writepngchunk(f, "IHDR", (uchar *)&ihdr, 13);
+
+    int idat = f->tell();
+    uint len = 0;
+    f->write("\0\0\0\0IDAT", 8);
+    uint crc = crc32(0, Z_NULL, 0);
+    crc = crc32(crc, (const Bytef *)"IDAT", 4);
+
+    z_stream z;
+    z.zalloc = NULL;
+    z.zfree = NULL;
+    z.opaque = NULL;
+
+    if(deflateInit(&z, pngcompress) != Z_OK)
+        goto error;
+
+    uchar buf[1<<12];
+    z.next_out = (Bytef *)buf;
+    z.avail_out = sizeof(buf);
+
+    loopi(ih)
+    {
+        uchar filter = 0;
+        loopj(2)
+        {
+            z.next_in = j ? (Bytef *)data + i*pitch : (Bytef *)&filter;
+            z.avail_in = j ? iw*3 : 1;
+            while(z.avail_in > 0)
+            {
+                if(deflate(&z, Z_NO_FLUSH) != Z_OK) goto cleanuperror;
+                #define FLUSHZ do { \
+                    int flush = sizeof(buf) - z.avail_out; \
+                    crc = crc32(crc, buf, flush); \
+                    len += flush; \
+                    f->write(buf, flush); \
+                    z.next_out = (Bytef *)buf; \
+                    z.avail_out = sizeof(buf); \
+                } while(0)
+                FLUSHZ;
+            }
+        }
+    }
+
+    for(;;)
+    {
+        int err = deflate(&z, Z_FINISH);
+        if(err != Z_OK && err != Z_STREAM_END) goto cleanuperror;
+        FLUSHZ;
+        if(err == Z_STREAM_END) break;
+    }
+
+    deflateEnd(&z);
+
+    f->seek(idat, SEEK_SET);
+    f->putbig<uint>(len);
+    f->seek(0, SEEK_END);
+    f->putbig<uint>(crc);
+
+    writepngchunk(f, "IEND");
+
+    delete f;
+    return 0;
+
+cleanuperror:
+    deflateEnd(&z);
+
+error:
+    delete f;
+
+    conoutf("failed saving png to %s", filename);
+    return -1;
+}
+
+void png_screenshot(const char *imagepath, bool mapshot = false)
+{
+    extern int minimaplastsize;
+    int iw = mapshot?minimaplastsize:screen->w;
+    int ih = mapshot?minimaplastsize:screen->h;
+    
+    SDL_Surface *image = creatergbsurface(iw, ih);
+    if(!image) return;
+
+    uchar *tmp = new uchar[iw*ih*3];
+    uchar *dst = (uchar *)image->pixels;
+
+    if(mapshot)
+    {
+        extern GLuint minimaptex;
+        if(minimaptex)
+        {
+            glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+            glBindTexture(GL_TEXTURE_2D, minimaptex);
+            glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, tmp);
+        }
+        else
+        {
+            conoutf("no mapshot prepared!");
+            return;
+        }
+    }
+    else
+    {
+        glPixelStorei(GL_PACK_ALIGNMENT, 1);
+        glReadPixels(0, 0, iw, ih, GL_RGB, GL_UNSIGNED_BYTE, tmp);
+    }
+    loopi(ih)
+    {
+        memcpy(dst, &tmp[3*iw*(ih-i-1)], 3*iw);
+        dst += image->pitch;
+    }
+    delete[] tmp;
+    
+    const char *filename = screenshotpath(imagepath, "png");
+    if(save_png(filename, image/*, iw, ih*/) < 0) conoutf("\f3Error saving png file");
+   
+    SDL_FreeSurface(image);
+}
+
+VARP(screenshottype, 0, 1, 2);
 void screenshot(const char *imagepath)
 {
     switch(screenshottype)
     {
+        case 2:  png_screenshot(imagepath,false); break;
         case 1: jpeg_screenshot(imagepath,false); break;
         case 0:
         default: bmp_screenshot(imagepath,false); break;
@@ -376,6 +525,7 @@ void mapshot()
     string suffix;
     switch(screenshottype)
     {
+        case 2: copystring(suffix, "png"); break;
         case 1: copystring(suffix, "jpg"); break;
         case 0:
         default: copystring(suffix, "bmp"); break;
@@ -383,6 +533,7 @@ void mapshot()
     defformatstring(buf)("screenshots/mapshot_%s_%s.%s", behindpath(getclientmap()), timestring(), suffix);
     switch(screenshottype)
     {
+        case 2: png_screenshot(buf,true); break;
         case 1: jpeg_screenshot(buf,true); break;
         case 0:
         default: bmp_screenshot(buf,true); break;
@@ -892,7 +1043,7 @@ int main(int argc, char **argv)
 #if 0
     if(highprocesspriority) setprocesspriority(true);
 #endif
-
+ 
     if (!dedicated) initlog("net");
     if(enet_initialize()<0) fatal("Unable to initialise network module");
 
@@ -1086,4 +1237,3 @@ int main(int argc, char **argv)
 }
 
 VAR(version, 1, AC_VERSION, 0);
-
