@@ -81,7 +81,10 @@ struct vec
     vec &sub(const vec &o) { x -= o.x; y -= o.y; z -= o.z; return *this; }
 
     float squaredlen() const { return x*x + y*y + z*z; }
+    float sqrxy() const { return x*x + y*y; }
+
     float dot(const vec &o) const { return x*o.x + y*o.y + z*o.z; }
+    float dotxy(const vec &o) const { return x*o.x + y*o.y; }
 
     float magnitude() const { return sqrtf(squaredlen()); }
     vec &normalize() { div(magnitude()); return *this; }
@@ -101,6 +104,7 @@ struct vec
     bool reject(const vec &o, float max) const { return x>o.x+max || x<o.x-max || y>o.y+max || y<o.y-max; }
 
     vec &cross(const vec &a, const vec &b) { x = a.y*b.z-a.z*b.y; y = a.z*b.x-a.x*b.z; z = a.x*b.y-a.y*b.x; return *this; }
+    float cxy(const vec &a) { return x*a.y-y*a.x; }
 
     void rotate_around_z(float angle) { *this = vec(cosf(angle)*x-sinf(angle)*y, cosf(angle)*y+sinf(angle)*x, z); }
     void rotate_around_x(float angle) { *this = vec(x, cosf(angle)*y-sinf(angle)*z, cosf(angle)*z+sinf(angle)*y); }
