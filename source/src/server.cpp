@@ -1533,7 +1533,7 @@ bool balanceteams(int ftr)  // pro vs noobs never more
     if(mastermode != MM_OPEN || totalclients < 3 ) return true;
     int tsize[2] = {0, 0}, tscore[2] = {0, 0};
     int totalscore = 0, nplayers = 0;
-    int flagmult = (m_ctf ? 20 : (m_htf ? 10 : 5));
+    int flagmult = (m_ctf ? 25 : (m_htf ? 12 : 6));
 
     loopv(clients) if(clients[i]->type!=ST_EMPTY)
     {
@@ -1545,7 +1545,7 @@ bool balanceteams(int ftr)  // pro vs noobs never more
             tsize[c->team]++;
             // effective score per minute, thanks to wtfthisgame for the nice idea
             // in a normal game, normal players will do 500 points in 10 minutes
-            c->eff_score = c->state.points * 60 * 1000 / time + c->state.points / 10 + c->state.flagscore * flagmult;
+            c->eff_score = c->state.points * 60 * 1000 / time + c->state.points / 8 + c->state.flagscore * flagmult;
             tscore[c->team] += c->eff_score;
             nplayers++;
             totalscore += c->state.points;

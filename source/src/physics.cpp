@@ -76,9 +76,10 @@ physent *hitplayer = NULL;
 bool plcollide(physent *d, physent *o, float &headspace, float &hi, float &lo)          // collide with physent
 {
     if(o->state!=CS_ALIVE || !o->cancollide) return false;
-    const float r = o->radius+d->radius, dx = o->o.x-d->o.x, dy = o->o.y-d->o.y;
+    const float r = o->radius+d->radius;
+    const vec dr = vec(o->o.x-d->o.x,o->o.y-d->o.y,0);
     const float deyeheight = d->eyeheight, oeyeheight = o->eyeheight;
-    if(d->type==ENT_PLAYER && o->type==ENT_PLAYER ? dx*dx + dy*dy < r*r : fabs(dx)<r && fabs(dy)<r)
+    if((d->type==ENT_PLAYER && o->type==ENT_PLAYER ? dr.sqrxy() < r*r : fabs(dr.x)<r && fabs(dr.y)<r) && dr.dotxy(d->vel) >= 0.0f)
     {
         if(d->o.z-deyeheight<o->o.z-oeyeheight) { if(o->o.z-oeyeheight<hi) hi = o->o.z-oeyeheight-1; }
         else if(o->o.z+o->aboveeye>lo) lo = o->o.z+o->aboveeye+1;
@@ -162,7 +163,7 @@ bool objcollide(physent *d, const vec &objpos, float objrad, float objheight) //
 // drop & rise are supplied by the physics below to indicate gravity/push for current mini-timestep
 static int cornersurface = 0;
 
-bool collide(physent *d, bool spawn, float drop, float rise, int level)
+bool collide(physent *d, bool spawn, float drop, float rise, int level) // levels 1 = map, 2 = players, 4 = models, default: 1+2+4
 {
     cornersurface = 0;
     const float fx1 = d->o.x-d->radius;     // figure out integer cube rectangle this entity covers in map
@@ -523,38 +524,53 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
             pl->o.z -= f*d.z;
             break;
         }
-        if(pl->type==ENT_PLAYER && hitplayer)
+        if(pl->type!=ENT_BOUNCE && hitplayer)
         {
-            float dx = hitplayer->o.x-pl->o.x, dy = hitplayer->o.y-pl->o.y,
-                  push = (dx*d.x + dy*d.y)/max(dx*dx + dy*dy, 1e-3f),
-                  px = fabs(f*push*dx*10.0f), py = fabs(f*push*dy*10.0f);
-            physent *hp = hitplayer;
-            pl->o.x -= px*d.x;
-            pl->o.y -= py*d.y;
-            bool plc = collide(pl, false, drop, rise, 2);
-            if( !collide(pl, false, drop, rise, 5) && ( !plc || (plc && push < 0 && hp==hitplayer) ) ) continue;
-            hitplayer->vel.add(d);       // this works fine in singleplayer, and we need to test it better in multiplayer
-            pl->o.x += px*d.x;
-            pl->o.y += py*d.y;
+            vec dr(hitplayer->o.x-pl->o.x,hitplayer->o.y-pl->o.y,0);
+            float dist = dr.ufmagxy(),
+                  push = (dist > 0.1f ? dr.dotxy(d)*1.1f/dist : dr.dotxy(d) * 11.0f);
+
+            pl->o.x -= f*d.x*push;
+            pl->o.y -= f*d.y*push;
+            if(i==0 && pl->type==ENT_BOT) pl->yaw += (dr.cxy(d)>0 ? 2:-2); // force the bots to change direction
+            if( !collide(pl, false, drop, rise) ) continue;
+            pl->o.x += f*d.x*push;
+            pl->o.y += f*d.y*push;
         }
-        // player stuck, try slide along y axis
-        pl->o.x -= f*d.x;
-        if(!collide(pl, false, drop, rise))
+        if (cornersurface)
         {
-            d.x = 0;
-            if(pl->type==ENT_BOUNCE) { pl->vel.x = -pl->vel.x; pl->vel.mul(0.7f); }
-            continue;
+            float ct2f = (cornersurface == 2 ? -1.0 : 1.0);
+            float diag = f*d.ufmagxy()*2;
+            vec vd = vec((d.y*ct2f+d.x >= 0.0f ? diag : -diag), (d.x*ct2f+d.y >= 0.0f ? diag : -diag), 0);
+            pl->o.x -= f*d.x;
+            pl->o.y -= f*d.y;
+
+            pl->o.x += vd.x;
+            pl->o.y += vd.y;
+            if(!collide(pl, false, drop, rise))
+            {
+                d.x = vd.x; d.y = vd.y;
+                continue;
+            }
+            pl->o.x -= vd.x;
+            pl->o.y -= vd.y;
         }
-        pl->o.x += f*d.x;
-//         still stuck, try x axis
-        pl->o.y -= f*d.y;
-        if(!collide(pl, false, drop, rise))
+        else
         {
-            d.y = 0;
-            if(pl->type==ENT_BOUNCE) { pl->vel.y = -pl->vel.y; pl->vel.mul(0.7f); }
-            continue;
+#define WALKALONGAXIS(x,y) \
+            pl->o.x -= f*d.x; \
+            if(!collide(pl, false, drop, rise)) \
+            { \
+                d.x = 0; \
+                if(pl->type==ENT_BOUNCE) { pl->vel.x = -pl->vel.x; pl->vel.mul(0.7f); } \
+                continue; \
+            } \
+            pl->o.x += f*d.x;
+            // player stuck, try slide along y axis
+            WALKALONGAXIS(x,y);
+            // still stuck, try x axis
+            WALKALONGAXIS(y,x);
         }
-        pl->o.y += f*d.y;
 //         try just dropping down
         pl->o.x -= f*d.x;
         pl->o.y -= f*d.y;
