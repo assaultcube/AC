@@ -571,6 +571,7 @@ void gets2c()           // get updates from the server
 }
 
 // for AUTH:
+/*
 vector<authkey *> authkeys;
 
 VARP(autoauth, 0, 1, 1);
@@ -631,6 +632,7 @@ ICOMMANDF(hasauthkey, ARG_2EST, (char *name, char *desc) { return (_hasauthkey(n
 COMMAND(genauthkey, ARG_1STR);
 COMMAND(saveauthkeys, ARG_NONE);
 ICOMMANDF(auth, ARG_1EST, (char *desc) { return tryauth(desc); });
+*/
 // :for AUTH
 
 // sendmap/getmap commands, should be replaced by more intuitive map downloading

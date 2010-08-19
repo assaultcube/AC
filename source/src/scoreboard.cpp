@@ -184,7 +184,9 @@ void renderscore(playerent *d)
     }
 }
 
-void renderteamscore(teamscore *t)
+int totalplayers = 0;
+
+int renderteamscore(teamscore *t)
 {
     if(!scorelines.empty()) // space between teams
     {
@@ -192,7 +194,8 @@ void renderteamscore(teamscore *t)
         space.s[0] = 0;
     }
     sline &line = scorelines.add();
-    defformatstring(plrs)("(%d %s)", t->teammembers.length(), t->teammembers.length() == 1 ? "player" : "players");
+    int n = t->teammembers.length();
+    defformatstring(plrs)("(%d %s)", n, n == 1 ? "player" : "players");
 //     float ratio = SCORERATIO(t->frags, t->deaths);
     switch(orderscorecolumns)
     {
@@ -213,6 +216,7 @@ void renderteamscore(teamscore *t)
     static color teamcolors[2] = { color(1.0f, 0, 0, 0.2f), color(0, 0, 1.0f, 0.2f) };
     line.bgcolor = &teamcolors[team_base(t->team)];
     loopv(t->teammembers) renderscore(t->teammembers[i]);
+    return n;
 }
 
 extern bool watchingdemo;
@@ -227,7 +231,8 @@ void renderscores(void *menu, bool init)
 
     vector<playerent *> scores;
     if(!watchingdemo) scores.add(player1);
-    loopv(players) if(players[i]) scores.add(players[i]);
+    totalplayers = 1;
+    loopv(players) if(players[i]) { scores.add(players[i]); totalplayers++; }
     scores.sort(scorecmp);
     discscores.sort(discscorecmp);
 
@@ -356,8 +361,8 @@ const char *asciiscores(bool destjpg)
         if(s)
         {
             string sdesc;
-			filtertext(sdesc, s->sdesc, 1);
-			formatstring(text)(", %s:%d %s", s->name, s->port, sdesc);
+            filtertext(sdesc, s->sdesc, 1);
+            formatstring(text)(", %s:%d %s", s->name, s->port, sdesc);
             addstr(buf, text);
         }
     }

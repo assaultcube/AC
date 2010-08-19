@@ -360,9 +360,16 @@ bool stream::getline(char *str, int len)
     return true;
 }
 
+#ifdef __linux__
+#include <sys/statvfs.h>
+#define MINFSSIZE 50000000              // 50MB
+#endif
+
 struct filestream : stream
 {
     FILE *file;
+    u_long      f_frsize;
+    fsblkcnt_t  f_bavail;
 
     filestream() : file(NULL) {}
     ~filestream() { close(); }
@@ -371,6 +378,18 @@ struct filestream : stream
     {
         if(file) return false;
         file = fopen(name, mode);
+#ifdef __linux__
+        struct statvfs buf;
+        if(file && strchr(mode,'w'))
+        {
+            int fail = fstatvfs(fileno(file), &buf);
+            if (fail || buf.f_frsize * (buf.f_bavail / 1000) < MINFSSIZE)
+            {
+                close();
+                return false;
+            }
+        }
+#endif
         return file!=NULL;
     }
 
