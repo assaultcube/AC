@@ -368,8 +368,6 @@ bool stream::getline(char *str, int len)
 struct filestream : stream
 {
     FILE *file;
-    u_long      f_frsize;
-    fsblkcnt_t  f_bavail;
 
     filestream() : file(NULL) {}
     ~filestream() { close(); }
