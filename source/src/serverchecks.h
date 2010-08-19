@@ -606,6 +606,15 @@ inline void checkshoot (int & cn, gameevent & shot, int & hits, int & tcn)
     return;
 }
 
+inline void checkweapon (int & type, int & var)
+{
+
+#ifdef ACAC
+    w_engine(type,var);
+#endif
+    return;
+}
+
 bool validdamage (client *&target, client *&actor, int &damage, int &gun, bool &gib)
 {
 #ifdef ACAC

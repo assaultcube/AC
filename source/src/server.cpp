@@ -2736,6 +2736,7 @@ void process(ENetPacket *packet, int sender, int chan)
             {
                 int gunselect = getint(p);
                 if(gunselect<0 || gunselect>=NUMGUNS || gunselect == GUN_CPISTOL) break;
+                if(!m_demo && !m_coop) checkweapon(type,gunselect);
                 cl->state.gunselect = gunselect;
                 QUEUE_MSG;
                 break;
