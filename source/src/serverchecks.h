@@ -623,3 +623,12 @@ bool validdamage (client *&target, client *&actor, int &damage, int &gun, bool &
     return true;
 }
 
+inline void checkmessage (client *c, int type)
+{
+
+#ifdef ACAC
+    p_engine(c,type);
+#endif
+    return;
+}
+

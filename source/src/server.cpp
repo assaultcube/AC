@@ -2587,6 +2587,7 @@ void process(ENetPacket *packet, int sender, int chan)
         else protocoldebug(false);
         #endif
 
+        checkmessage(cl,type);
         switch(type)
         {
             case SV_TEAMTEXTME:
