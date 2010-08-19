@@ -463,7 +463,7 @@ void enddemorecord()
     demofile &d = demofiles.add();
     formatstring(d.info)("%s: %s, %s, %.2f%s", asctime(), modestr(gamemode), smapname, len > 1024*1024 ? len/(1024*1024.f) : len/1024.0f, len > 1024*1024 ? "MB" : "kB");
     //formatstring(d.file)("%s_%s_%s", timestring(), behindpath(smapname), modestr(gamemode, true)); // 20100522_10.08.48_ac_mines_DM.dmo
-	formatstring(d.file)(  "%s_%s_%s", modestr(gamemode, true), behindpath(smapname), timestring( true, "%Y.%m.%d_%H%M")); // DM_ac_mines.2010.05.22_1008.dmo
+    formatstring(d.file)(  "%s_%s_%s", modestr(gamemode, true), behindpath(smapname), timestring( true, "%Y.%m.%d_%H%M")); // DM_ac_mines.2010.05.22_1008.dmo
     if(mr) { concatformatstring(d.info, ", %d mr", mr); concatformatstring(d.file, "_%dmr", mr); }
     defformatstring(msg)("Demo \"%s\" recorded\nPress F10 to download it from the server..", d.info);
     sendservmsg(msg);
@@ -1964,7 +1964,7 @@ struct voteinfo
         if( ( servmillis - callmillis > 10*1000 && stats[VOTE_YES] - stats[VOTE_NO] > 0.34f*total && totalclients > 4 ) ||
               stats[VOTE_YES] > requiredcount*total || admin || adminvote == VOTE_YES )
             end(VOTE_YES);
-        else if(forceend || !valid_client(owner) || stats[VOTE_NO] > requiredcount * total ||
+        else if(forceend || !valid_client(owner) || (boot && !valid_client(boot)) ||
                 stats[VOTE_NO] >= stats[VOTE_YES]+stats[VOTE_NEUTRAL] || adminvote == VOTE_NO)
             end(VOTE_NO);
         else return;
@@ -2181,7 +2181,8 @@ void disconnect_client(int n, int reason)
     if(*scoresaved && mastermode == MM_MATCH) senddisconnectedscores(-1);
 }
 
-// for AUTH:
+// for AUTH: WIP
+/*
 client *findauth(uint id)
 {
     loopv(clients) if(clients[i]->authreq == id) return clients[i];
@@ -2239,6 +2240,7 @@ void answerchallenge(client *cl, uint id, char *val)
         sendf(cl->clientnum, 1, "ris", SV_SERVMSG, "not connected to authentication server");
     }
 }
+*/
 // :for AUTH
 
 void sendwhois(int sender, int cn)
@@ -2911,6 +2913,7 @@ void process(ENetPacket *packet, int sender, int chan)
             }
 
             // for AUTH:
+            /*
             case SV_AUTHTRY:
             {
                 string desc, name;
@@ -2927,6 +2930,15 @@ void process(ENetPacket *packet, int sender, int chan)
                 uint id = (uint)getint(p);
                 getstring(ans, p, sizeof(ans));
                 if(!desc[0]) answerchallenge(cl, id, ans);
+                break;
+            }
+            */
+
+            case SV_AUTHT:
+            {
+/*                int n = getint(p);
+                loopi(n) getint(p);*/
+                if (cl) disconnect_client(cl->clientnum, DISC_TAGT); // remove this in the future, when auth is complete
                 break;
             }
             // :for AUTH
@@ -3828,12 +3840,13 @@ void localconnect()
 
 void processmasterinput(const char *cmd, int cmdlen, const char *args)
 {
-    uint id;
+// AUTH WiP
+//     uint id; 
     string val;
-    if(sscanf(cmd, "failauth %u", &id) == 1) authfailed(id);
+/*    if(sscanf(cmd, "failauth %u", &id) == 1) authfailed(id);
     else if(sscanf(cmd, "succauth %u", &id) == 1) authsucceeded(id);
     else if(sscanf(cmd, "chalauth %u %s", &id, val) == 2) authchallenged(id, val);
-    else if(!strncmp(cmd, "cleargbans", cmdlen)) cleargbans();
+    else*/ if(!strncmp(cmd, "cleargbans", cmdlen)) cleargbans();
     else if(sscanf(cmd, "addgban %s", val) == 1) addgban(val);
 }
 

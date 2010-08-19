@@ -527,8 +527,8 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         if(pl->type!=ENT_BOUNCE && hitplayer)
         {
             vec dr(hitplayer->o.x-pl->o.x,hitplayer->o.y-pl->o.y,0);
-            float dist = dr.ufmagxy(),
-                  push = (dist > 0.1f ? dr.dotxy(d)*1.1f/dist : dr.dotxy(d) * 11.0f);
+            float invdist = ufInvSqrt(dr.sqrxy()),
+                  push = (invdist < 10.0f ? dr.dotxy(d)*1.1f*invdist : dr.dotxy(d) * 11.0f);
 
             pl->o.x -= f*d.x*push;
             pl->o.y -= f*d.y*push;

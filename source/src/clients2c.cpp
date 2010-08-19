@@ -631,7 +631,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 break;
             }
 
-            // for AUTH:
+            // for AUTH: WIP
+            /*
             case SV_AUTHREQ:
             {
                 extern int autoauth;
@@ -655,6 +656,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 }
                 break;
             }
+            */
             // :for AUTH
 
             case SV_GIBDAMAGE:
