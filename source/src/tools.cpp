@@ -24,6 +24,8 @@ const char *numtime()
     return numt;
 }
 
+int mapdims[6];     // min/max X/Y and delta X/Y
+
 extern char *maplayout, *testlayout;
 extern int maplayout_factor, testlayout_factor, Mvolume, Marea, Mopen;
 extern float Mheight;
@@ -144,6 +146,22 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
             int layoutsize = 1 << (testlayout_factor * 2);
             maplayout = new char[layoutsize + 256];
             memcpy(maplayout, testlayout, layoutsize * sizeof(char));
+
+            loopk(4) mapdims[k] = k < 2 ? maplayoutssize : 0;
+            loopk(layoutsize) if (testlayout[k] != 127)
+            {
+                int cwx = k%maplayoutssize,
+                cwy = k/maplayoutssize;
+                if(cwx < mapdims[0]) mapdims[0] = cwx;
+                if(cwy < mapdims[1]) mapdims[1] = cwy;
+                if(cwx > mapdims[2]) mapdims[2] = cwx;
+                if(cwy > mapdims[3]) mapdims[3] = cwy;
+            }
+            loopk(2) mapdims[k+4] = mapdims[k+2] - mapdims[k];
+/*            printf("  min X|Y: %3d : %3d\n", mapdims[0], mapdims[1]);
+            printf("  max X|Y: %3d : %3d\n", mapdims[2], mapdims[3]);
+            printf("delta X|Y: %3d : %3d\n", mapdims[4], mapdims[5]);
+            fflush(stdout);*/
         }
     }
     delete f;

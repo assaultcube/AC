@@ -459,7 +459,7 @@ void save_world(char *mname)
     conoutf("wrote map file %s", cgzname);
 }
 
-int mapdims[6];     // min/max X/Y and delta X/Y
+extern int mapdims[6];     // min/max X/Y and delta X/Y
 void showmapdims()
 {
     conoutf("  min X|Y: %3d : %3d", mapdims[0], mapdims[1]);
@@ -478,8 +478,8 @@ extern float Mh;
 
 bool load_world(char *mname)        // still supports all map formats that have existed since the earliest cube betas!
 {
-	stopwatch watch;
-	watch.start();
+    stopwatch watch;
+    watch.start();
 
     advancemaprevision = 1;
     setnames(mname);
@@ -536,7 +536,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
         f->read(&e, sizeof(persistent_entity));
         lilswap((short *)&e, 4);
         e.spawned = false;
-		TRANSFORMOLDENTITIES(hdr)
+        TRANSFORMOLDENTITIES(hdr)
         if(e.type == PLAYERSTART && (e.attr2 == 0 || e.attr2 == 1 || e.attr2 == 100))
         {
             if(e.attr2 == 100)
@@ -556,9 +556,9 @@ bool load_world(char *mname)        // still supports all map formats that have 
     Mv = Ma = 0;
 
     if(!mapinfo.numelems || (mapinfo.access(mname) && !cmpf(cgzname, mapinfo[mname]))) world = (sqr *)ents.getbuf();
-	c2skeepalive();
-	char texuse[256];
-	loopi(256) texuse[i] = 0;
+    c2skeepalive();
+    char texuse[256];
+    loopi(256) texuse[i] = 0;
     sqr *t = NULL;
     loopk(cubicsize)
     {
@@ -658,27 +658,15 @@ bool load_world(char *mname)        // still supports all map formats that have 
     Mh = Ma ? (float)Mv/Ma : 0;
     if(f) delete f;
     c2skeepalive();
-    int cwx, cwy;
     loopk(4) mapdims[k] = k < 2 ? ssize : 0;
-    loopk(cubicsize)
+    loopk(cubicsize) if (world[k].type != SOLID)
     {
-        switch(world[k].type)
-        {
-            case CORNER:
-            case FHF:
-            case CHF:
-            case SPACE:
-            case SEMISOLID:
-            {
-                cwx = k%ssize;
-                cwy = k/ssize;
-                if(cwx < mapdims[0]) mapdims[0] = cwx;
-                if(cwy < mapdims[1]) mapdims[1] = cwy;
-                if(cwx > mapdims[2]) mapdims[2] = cwx;
-                if(cwy > mapdims[3]) mapdims[3] = cwy;
-            }
-            default: break;
-        }
+        int cwx = k%ssize,
+            cwy = k/ssize;
+        if(cwx < mapdims[0]) mapdims[0] = cwx;
+        if(cwy < mapdims[1]) mapdims[1] = cwy;
+        if(cwx > mapdims[2]) mapdims[2] = cwx;
+        if(cwy > mapdims[3]) mapdims[3] = cwy;
     }
     loopk(2) mapdims[k+4] = mapdims[k+2] - mapdims[k];
     calclight();
