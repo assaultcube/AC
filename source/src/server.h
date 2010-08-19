@@ -273,6 +273,7 @@ struct client                   // server side version of "dynent" type
     int ps, ph, tcn, bdt, pws;
     float pr;
     int yls, pls, tls;
+    int bs, bt, blg;
 
     gameevent &addevent()
     {
@@ -339,6 +340,7 @@ struct client                   // server side version of "dynent" type
         mute = spam = lastvc = badspeech = badmillis = nvotes = 0;
         input = inputmillis = 0;
         wn = -1;
+        bs = bt = blg = 0;
     }
 
     void zap()
