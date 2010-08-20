@@ -24,6 +24,8 @@
 		665CDD180AFE7ED80030D605 /* botmanager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 665CDCE60AFE7ED80030D605 /* botmanager.cpp */; };
 		66899E700C1485E200927C34 /* ConsoleView.m in Sources */ = {isa = PBXBuildFile; fileRef = 66899E6E0C1485E200927C34 /* ConsoleView.m */; };
 		66899E770C14862300927C34 /* macutils.mm in Sources */ = {isa = PBXBuildFile; fileRef = 66899E760C14862300927C34 /* macutils.mm */; };
+		9E595539121EA8E9005ED5F7 /* crypto.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9E595536121EA8E9005ED5F7 /* crypto.cpp */; };
+		9E59553A121EA8E9005ED5F7 /* crypto_tools.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9E595537121EA8E9005ED5F7 /* crypto_tools.cpp */; };
 		9EAE4C10120F2F370041E6E4 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 9EAE4BD8120F2D0A0041E6E4 /* Localizable.strings */; };
 		9EB8171A11ED9AEF00799589 /* INTL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9EB8171211ED9AEF00799589 /* INTL.framework */; };
 		9EB8171B11ED9AEF00799589 /* JPEG.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9EB8171311ED9AEF00799589 /* JPEG.framework */; };
@@ -159,6 +161,9 @@
 		66899EA90C14887F00927C34 /* Keys.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; path = Keys.gif; sourceTree = "<group>"; };
 		66899EAA0C14887F00927C34 /* Main.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; path = Main.gif; sourceTree = "<group>"; };
 		66899EAB0C14887F00927C34 /* Server.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; path = Server.gif; sourceTree = "<group>"; };
+		9E595536121EA8E9005ED5F7 /* crypto.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = crypto.cpp; sourceTree = "<group>"; };
+		9E595537121EA8E9005ED5F7 /* crypto_tools.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = crypto_tools.cpp; sourceTree = "<group>"; };
+		9E595538121EA8E9005ED5F7 /* crypto_tools.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = crypto_tools.h; sourceTree = "<group>"; };
 		9EAE4BD9120F2D0A0041E6E4 /* English */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/Localizable.strings; sourceTree = "<group>"; };
 		9EB8171211ED9AEF00799589 /* INTL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = INTL.framework; path = Frameworks/INTL.framework; sourceTree = "<group>"; };
 		9EB8171311ED9AEF00799589 /* JPEG.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JPEG.framework; path = Frameworks/JPEG.framework; sourceTree = "<group>"; };
@@ -184,7 +189,6 @@
 		B914CE4C11CAC42F009BA307 /* entities.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = entities.cpp; sourceTree = "<group>"; };
 		B914CE4D11CAC42F009BA307 /* entity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = entity.h; sourceTree = "<group>"; };
 		B914CE4E11CAC42F009BA307 /* geom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = geom.h; sourceTree = "<group>"; };
-		B914CE4F11CAC42F009BA307 /* hash.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = hash.h; sourceTree = "<group>"; };
 		B914CE5011CAC42F009BA307 /* hudgun.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = hudgun.h; sourceTree = "<group>"; };
 		B914CE5111CAC42F009BA307 /* i18n.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = i18n.cpp; sourceTree = "<group>"; };
 		B914CE5211CAC42F009BA307 /* i18n.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = i18n.h; sourceTree = "<group>"; };
@@ -409,13 +413,15 @@
 				B914CE4611CAC42F009BA307 /* command.h */,
 				B914CE4711CAC42F009BA307 /* console.cpp */,
 				B914CE4811CAC42F009BA307 /* console.h */,
+				9E595536121EA8E9005ED5F7 /* crypto.cpp */,
+				9E595537121EA8E9005ED5F7 /* crypto_tools.cpp */,
+				9E595538121EA8E9005ED5F7 /* crypto_tools.h */,
 				B914CE4911CAC42F009BA307 /* cube.h */,
 				B914CE4A11CAC42F009BA307 /* docs.cpp */,
 				B914CE4B11CAC42F009BA307 /* editing.cpp */,
 				B914CE4C11CAC42F009BA307 /* entities.cpp */,
 				B914CE4D11CAC42F009BA307 /* entity.h */,
 				B914CE4E11CAC42F009BA307 /* geom.h */,
-				B914CE4F11CAC42F009BA307 /* hash.h */,
 				B914CE5011CAC42F009BA307 /* hudgun.h */,
 				B914CE5111CAC42F009BA307 /* i18n.cpp */,
 				B914CE5211CAC42F009BA307 /* i18n.h */,
@@ -671,6 +677,8 @@
 				B914CEDB11CAC42F009BA307 /* worldrender.cpp in Sources */,
 				B914CEDC11CAC42F009BA307 /* zip.cpp in Sources */,
 				B9EF952411CEE3D300B773C1 /* i18n.cpp in Sources */,
+				9E595539121EA8E9005ED5F7 /* crypto.cpp in Sources */,
+				9E59553A121EA8E9005ED5F7 /* crypto_tools.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
