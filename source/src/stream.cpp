@@ -381,7 +381,10 @@ struct filestream : stream
         if(file && strchr(mode,'w'))
         {
             int fail = fstatvfs(fileno(file), &buf);
-            if (fail || buf.f_frsize * (buf.f_bavail / 1000) < MINFSSIZE)
+#ifndef STANDALONE
+//             if(!fail) conoutf("file test %lu %lu %lu",buf.f_frsize,buf.f_bsize, buf.f_bavail);
+#endif
+            if (fail || buf.f_frsize * buf.f_bavail < MINFSSIZE)
             {
                 close();
                 return false;
@@ -711,7 +714,13 @@ stream *openrawfile(const char *filename, const char *mode)
 #endif
     if(!found) return NULL;
     filestream *file = new filestream;
-    if(!file->open(found, mode)) { delete file; return NULL; }
+    if(!file->open(found, mode))
+    {
+#ifndef STANDALONE
+//         conoutf("file failure! %s",filename);
+#endif
+        delete file; return NULL;
+    }
     return file;
 }
 
