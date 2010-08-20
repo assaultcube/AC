@@ -122,7 +122,7 @@ struct md3 : vertmodel
                 m.tcverts = new tcvert[m.numverts];
                 f->seek(mesh_offset + mheader.ofs_uv , SEEK_SET); 
                 f->read(m.tcverts, 2*sizeof(float)*m.numverts); // read the UV data
-                lilswap((float *)m.tcverts, sizeof(float)*2*m.numverts);
+                lilswap(&m.tcverts[0].u, 2*m.numverts);
                 
                 m.verts = new vec[numframes*m.numverts + 1];
                 f->seek(mesh_offset + mheader.ofs_vertices, SEEK_SET); 
