@@ -1226,7 +1226,7 @@ int spawntime(int type)
         case I_GRENADE: sec = np + 5; break;
         case I_HEALTH: sec = np*5; break;
         case I_HELMET:
-        case I_ARMOUR: sec = 20; break;
+        case I_ARMOUR: sec = 25; break;
         case I_AKIMBO: sec = 60; break;
     }
     return sec*1000;
@@ -3650,6 +3650,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
                 c.peer = event.peer;
                 c.peer->data = (void *)(size_t)c.clientnum;
                 c.connectmillis = servmillis;
+                c.state.state = CS_SPECTATE;
                 c.salt = rand()*((servmillis%1000)+1);
                 char hn[1024];
                 copystring(c.hostname, (enet_address_get_host_ip(&c.peer->address, hn, sizeof(hn))==0) ? hn : "unknown");

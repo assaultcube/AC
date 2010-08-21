@@ -172,10 +172,10 @@ void parsepositions(ucharbuf &p)
             loopi(3)
             {
                 float dr = o.v[i] - d->o.v[i] + ( i == 2 ? d->eyeheight : 0);
-                if ( !dr ) d->vel.v[i] *= 0.7;
-                else if ( d->vel.v[i] ) d->vel.v[i] = dr * 0.1 + d->vel.v[i] * 0.9;
+                if ( !dr ) d->vel.v[i] = 0.0f;
+                else if ( d->vel.v[i] ) d->vel.v[i] = dr * 0.05f + d->vel.v[i] * 0.95f;
                 d->vel.v[i] += vel.v[i];
-                if ( i==2 && d->onfloor && d->vel.v[i] < 0 ) d->vel.v[i] = 0;
+                if ( i==2 && d->onfloor && d->vel.v[i] < 0.0f ) d->vel.v[i] = 0.0f;
             }
             d->o = o;
             d->o.z += d->eyeheight;
