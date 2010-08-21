@@ -7,7 +7,7 @@
 -->
 
 <!--<?xml-stylesheet type="text/xsl" href="transformations/cuberef2cubescript.xslt"?>-->
-<?xml-stylesheet type="text/xsl" href="transformations/cuberef2xhtml.xslt"?>
+<?xml-stylesheet type="text/xsl" href="transformations/cuberef2xhtml.xslt"?>  
 
 <cuberef 
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
@@ -498,8 +498,8 @@
 				</variable>
 
 				<variable name="screenshottype">
-					<description>Toggle format of screenshot image. Your choice is for BMP (0) or JPEG (1).</description>
-					<value token="T" description="0=BMP, 1=JPEG" minValue="0" maxValue="1" defaultValue="1"/>
+					<description>Toggle format of screenshot image. Your choice is for BMP (0), JPEG (1) or PNG (2).</description>
+					<value token="T" description="0=BMP, 1=JPEG, 2=PNG" minValue="0" maxValue="2" defaultValue="1"/>
 				</variable>
 
 				<variable name="jpegquality">
@@ -511,7 +511,15 @@
 					<value token="N" description="Compression level" minValue="10" maxValue="100" defaultValue="70" />
 				</variable>
 
-				<command name="soundtest">
+				<variable name="pngcompress">
+					<description>Sets the PNG screenshot file compression.</description>
+					<remarks>
+						<remark>A value of 9 sets maximum data compression and a smaller file size while a value of 0 results in a large file image, quality is always the same since PNG its a loosless format.</remark>
+					</remarks>
+					<value token="N" description="Compression level" minValue="0" maxValue="9" defaultValue="9" />
+				</variable>
+                
+                <command name="soundtest">
 					<description>Plays all hardcoded sounds in order.</description>
 				</command>
 
