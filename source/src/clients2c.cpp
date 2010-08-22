@@ -632,7 +632,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             }
 
             // for AUTH: WIP
-            /*
+
             case SV_AUTHREQ:
             {
                 extern int autoauth;
@@ -656,7 +656,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 }
                 break;
             }
-            */
+
             // :for AUTH
 
             case SV_GIBDAMAGE:
@@ -937,29 +937,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 else if(alive==player1) hudoutf(_("you are the survivor!"));
                 else hudoutf(_("%s is the survivor!"), colorname(alive));
                 arenaintermission = lastmillis;
-                break;
-            }
-
-            case SV_LMSITEM:
-            {
-                const char *names[] = { "no items", "pistol clips", "ammoboxes", "grenades", "health packs", "helmet", "armour", "akimbo" };
-                const int types[] = { NOTUSED, I_CLIPS, I_AMMO, I_GRENADE, I_HEALTH, I_HELMET, I_ARMOUR, I_AKIMBO }, types_n = sizeof(types) / sizeof(types[0]);
-                int cmd = getint(p), typ = getint(p);
-                int n = 0;
-                loopi(types_n) if(typ == types[i]) n = i;
-                switch(cmd)
-                {
-                    case LMSITEM_CLEAR:
-                        resetspawns(n > 0 ? typ : -1);
-                        break;
-                    case LMSITEM_ANNOUNCE:
-                        hudoutf("%s will spawn%s", names[n], typ != NOTUSED ? " in 10 seconds" : ""); // sound?
-                        break;
-                    case LMSITEM_SPAWN:
-                        loopv(ents) if(ents[i].type == typ) setspawn(i, true);
-                        hudonlyf("\f3%s spawned", names[n]); // sound?
-                        break;
-                }
                 break;
             }
 
