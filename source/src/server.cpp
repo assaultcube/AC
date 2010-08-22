@@ -1925,8 +1925,9 @@ struct voteinfo
     char text[MAXTRANS];
     serveraction *action;
     bool gonext;
+    enet_uint32 host;
 
-    voteinfo() : boot(0), owner(0), callmillis(0), result(VOTE_NEUTRAL), action(NULL), gonext(false) {}
+    voteinfo() : boot(0), owner(0), callmillis(0), result(VOTE_NEUTRAL), action(NULL), gonext(false), host(0) {}
     ~voteinfo() { delete action; }
 
     void end(int result)
@@ -1961,13 +1962,16 @@ struct voteinfo
         bool admin = clients[owner]->role==CR_ADMIN || (!isdedicated && clients[owner]->type==ST_LOCAL);
         int total = stats[VOTE_NO]+stats[VOTE_YES]+stats[VOTE_NEUTRAL];
         const float requiredcount = 0.51f;
-        if( ( servmillis - callmillis > 10*1000 && stats[VOTE_YES] - stats[VOTE_NO] > 0.34f*total && totalclients > 4 ) ||
-              stats[VOTE_YES] > requiredcount*total || admin || adminvote == VOTE_YES )
-            end(VOTE_YES);
-        else if(forceend || !valid_client(owner) || (boot && !valid_client(boot)) ||
-                stats[VOTE_NO] >= stats[VOTE_YES]+stats[VOTE_NEUTRAL] || adminvote == VOTE_NO)
-            end(VOTE_NO);
+        bool min_time = servmillis - callmillis > 10*1000;
+#define yes_condition ((min_time && stats[VOTE_YES] - stats[VOTE_NO] > 0.34f*total && totalclients > 4) || stats[VOTE_YES] > requiredcount*total)
+#define no_condition (forceend || !valid_client(owner) || stats[VOTE_NO] >= stats[VOTE_YES]+stats[VOTE_NEUTRAL] || adminvote == VOTE_NO)
+#define boot_condition (!boot || (boot && valid_client(num) && clients[num]->peer->address.host == host))
+        if( (yes_condition || admin || adminvote == VOTE_YES) && boot_condition ) end(VOTE_YES);
+        else if( no_condition || (min_time && !boot_condition)) end(VOTE_NO);
         else return;
+#undef boot_condition
+#undef no_condition
+#undef yes_condition
     }
 };
 
@@ -2018,13 +2022,14 @@ bool scallvote(voteinfo *v, ENetPacket *msg) // true if a regular vote was calle
     int area = isdedicated ? EE_DED_SERV : EE_LOCAL_SERV;
     int error = -1;
     client *c = clients[v->owner], *b = ( v->boot ? clients[cn2boot] : NULL );
+    v->host = v->boot ? b->peer->address.host : 0;
 
     int time = servmillis - c->lastvotecall;
     if ( c->nvotes > 0 && time > 4*60*1000 ) c->nvotes -= time/(4*60*1000);
     if ( c->nvotes < 0 || c->role == CR_ADMIN ) c->nvotes = 0;
     c->nvotes++;
 
-    if( !v || !v->isvalid() || (v->boot && !b) ) error = VOTEE_INVALID;
+    if( !v || !v->isvalid() || (v->boot && (!b || cn2boot == v->owner) ) ) error = VOTEE_INVALID;
     else if( v->action->role > c->role ) error = VOTEE_PERMISSION;
     else if( !(area & v->action->area) ) error = VOTEE_AREA;
     else if( curvote && curvote->result==VOTE_NEUTRAL ) error = VOTEE_CUR;
@@ -2182,7 +2187,7 @@ void disconnect_client(int n, int reason)
 }
 
 // for AUTH: WIP
-/*
+
 client *findauth(uint id)
 {
     loopv(clients) if(clients[i]->authreq == id) return clients[i];
@@ -2240,7 +2245,7 @@ void answerchallenge(client *cl, uint id, char *val)
         sendf(cl->clientnum, 1, "ris", SV_SERVMSG, "not connected to authentication server");
     }
 }
-*/
+
 // :for AUTH
 
 void sendwhois(int sender, int cn)
@@ -2416,11 +2421,11 @@ int checktype(int type, client *cl)
     if(type < 0 || type >= SV_NUM) return -1;
     // server only messages
     static int servtypes[] = { SV_SERVINFO, SV_WELCOME, SV_INITCLIENT, SV_POSN, SV_CDIS, SV_GIBDIED, SV_DIED,
-                        SV_GIBDAMAGE, SV_DAMAGE, SV_HITPUSH, SV_SHOTFX,
+                        SV_GIBDAMAGE, SV_DAMAGE, SV_HITPUSH, SV_SHOTFX, SV_AUTHREQ, SV_AUTHCHAL,
                         SV_SPAWNSTATE, SV_SPAWNDENY, SV_FORCEDEATH, SV_RESUME,
                         SV_DISCSCORES, SV_TIMEUP, SV_ITEMACC, SV_MAPCHANGE, SV_ITEMSPAWN, SV_PONG,
                         SV_SERVMSG, SV_ITEMLIST, SV_FLAGINFO, SV_FLAGMSG, SV_FLAGCNT,
-                        SV_ARENAWIN, SV_LMSITEM, SV_SERVOPINFO,
+                        SV_ARENAWIN, SV_SERVOPINFO,
                         SV_CALLVOTESUC, SV_CALLVOTEERR, SV_VOTERESULT,
                         SV_SETTEAM, SV_TEAMDENY, SV_SERVERMODE, SV_WHOISINFO,
                         SV_SENDDEMOLIST, SV_SENDDEMO, SV_DEMOPLAYBACK,
@@ -2915,7 +2920,7 @@ void process(ENetPacket *packet, int sender, int chan)
             }
 
             // for AUTH:
-            /*
+
             case SV_AUTHTRY:
             {
                 string desc, name;
@@ -2934,13 +2939,13 @@ void process(ENetPacket *packet, int sender, int chan)
                 if(!desc[0]) answerchallenge(cl, id, ans);
                 break;
             }
-            */
+
 
             case SV_AUTHT:
             {
 /*                int n = getint(p);
                 loopi(n) getint(p);*/
-                if (cl) disconnect_client(cl->clientnum, DISC_TAGT); // remove this in the future, when auth is complete
+//                 if (cl) disconnect_client(cl->clientnum, DISC_TAGT); // remove this in the future, when auth is complete
                 break;
             }
             // :for AUTH
@@ -3844,12 +3849,12 @@ void localconnect()
 void processmasterinput(const char *cmd, int cmdlen, const char *args)
 {
 // AUTH WiP
-//     uint id; 
+    uint id; 
     string val;
-/*    if(sscanf(cmd, "failauth %u", &id) == 1) authfailed(id);
+    if(sscanf(cmd, "failauth %u", &id) == 1) authfailed(id);
     else if(sscanf(cmd, "succauth %u", &id) == 1) authsucceeded(id);
     else if(sscanf(cmd, "chalauth %u %s", &id, val) == 2) authchallenged(id, val);
-    else*/ if(!strncmp(cmd, "cleargbans", cmdlen)) cleargbans();
+    else if(!strncmp(cmd, "cleargbans", cmdlen)) cleargbans();
     else if(sscanf(cmd, "addgban %s", val) == 1) addgban(val);
 }
 

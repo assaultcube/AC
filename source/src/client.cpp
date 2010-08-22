@@ -278,6 +278,13 @@ COMMANDN(disconnect, trydisconnect, ARG_NONE);
 COMMAND(whereami, ARG_NONE);
 COMMAND(go_to, ARG_2STR);
 
+void current_version(char *text)
+{
+    int version = atoi(text);
+    if (version < AC_VERSION) conoutf("UPDATE YOUR CLIENT\ngo to %s for more information",AC_MASTER_URI);
+}
+COMMAND(current_version, ARG_1STR);
+
 void cleanupclient()
 {
     abortconnect();
@@ -571,7 +578,7 @@ void gets2c()           // get updates from the server
 }
 
 // for AUTH:
-/*
+
 vector<authkey *> authkeys;
 
 VARP(autoauth, 0, 1, 1);
@@ -632,7 +639,7 @@ ICOMMANDF(hasauthkey, ARG_2EST, (char *name, char *desc) { return (_hasauthkey(n
 COMMAND(genauthkey, ARG_1STR);
 COMMAND(saveauthkeys, ARG_NONE);
 ICOMMANDF(auth, ARG_1EST, (char *desc) { return tryauth(desc); });
-*/
+
 // :for AUTH
 
 // sendmap/getmap commands, should be replaced by more intuitive map downloading
