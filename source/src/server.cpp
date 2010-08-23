@@ -3308,9 +3308,10 @@ void process(ENetPacket *packet, int sender, int chan)
                     // description: writes a custom string to the server log
                     // access:      requires admin privileges
                     // usage:       /serverextension driAn::writelog "your log message here.."
+                    // note:	    There is a 49 character limit. The server will ignore messages with 50+ characters.
 
                     getstring(text, p, n);
-                    if(valid_client(sender) && clients[sender]->role==CR_ADMIN) logline(ACLOG_INFO, "%s", text);
+                    if(valid_client(sender) && clients[sender]->role==CR_ADMIN) logline(ACLOG_INFO, "[%s] %s writes to log: %s", cl->hostname, cl->name, text);
                 }
                 else if(!strcmp(ext, "set::teamsize"))
                 {
