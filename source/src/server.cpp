@@ -3311,7 +3311,11 @@ void process(ENetPacket *packet, int sender, int chan)
                     // note:	    There is a 49 character limit. The server will ignore messages with 50+ characters.
 
                     getstring(text, p, n);
-                    if(valid_client(sender) && clients[sender]->role==CR_ADMIN) logline(ACLOG_INFO, "[%s] %s writes to log: %s", cl->hostname, cl->name, text);
+                    if(valid_client(sender) && clients[sender]->role==CR_ADMIN)
+                    {
+                        logline(ACLOG_INFO, "[%s] %s writes to log: %s", cl->hostname, cl->name, text);
+                        sendservmsg("your message has been logged", sender);
+                    }
                 }
                 else if(!strcmp(ext, "set::teamsize"))
                 {
