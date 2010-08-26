@@ -131,9 +131,10 @@ COMMAND(alias, ARG_2STR);
 
 void checkalias(const char *name)
 {
-    intret(getalias(name)?1:0);
+    intret(getalias(name) ? 1 : 0);
 }
 COMMAND(checkalias, ARG_1STR);
+
 // variable's and commands are registered through globals, see cube.h
 
 int variable(const char *name, int minval, int cur, int maxval, int *storage, void (*fun)(), bool persist)
@@ -183,47 +184,92 @@ void setsvar(const char *name, const char *str, bool dofunc)
     if(dofunc && id->fun) ((void (__cdecl *)())id->fun)();            // call trigger function if available
 }
 
-void plusmin_eq(const char *name, const char *str,bool addsub)
+void modifyvar(const char *name, const char *arg, char op)
 {
-    if(!name[0] || !str[0]) return;
-    ident *b = idents->access(name);
-    if(b) {
-        if(!allowidentaccess(b))
-        {
-            conoutf("not allowed in this execution context: %s", b->name);
-            return;
-        }
-
-        if(b->type == ID_FVAR)  {*b->storage.f = clamp(*b->storage.f+(addsub?(float)atof(str):-(float)atof(str)), b->minvalf, b->maxvalf); }
-        if(b->type == ID_VAR)  {*b->storage.i = clamp(*b->storage.i+(addsub?(int)ATOI(str):-(int)ATOI(str)), b->minval, b->maxval);     }
-        #define stringtypes(storagep,itype) \
-        if(b->type == itype)  {\
-            float f=atof(storagep);int i=ATOI(storagep);float fstr=atof(str);int istr=ATOI(str);\
-            if(f > (float)i || fstr > (float)istr) { \
-                formatstring(storagep)("%f",f+(addsub?fstr:-fstr));\
-            } else { \
-                formatstring(storagep)("%d",i+(addsub?istr:-istr));\
-            }\
-        }
-
-        stringtypes(b->action,ID_ALIAS)
-        stringtypes(*b->storage.s,ID_SVAR)
-        #undef stringtypes
-        if(b->fun && (b->type == ID_VAR || b->type == ID_FVAR || b->type == ID_SVAR)) ((void (__cdecl *)())b->fun)();
-    } else {
-        conoutf("ident called '%s' is inexistant.",name);
+    ident *id = idents->access(name);
+    if(!id) return;
+    if(!allowidentaccess(id))
+    {
+        conoutf("not allowed in this execution context: %s", id->name);
+        return;
     }
+    int val = 0;
+    switch(id->type)
+    {
+        case ID_VAR: val = *id->storage.i; break;
+        case ID_FVAR: val = int(*id->storage.f); break;
+        case ID_SVAR: val = ATOI(*id->storage.s); break;
+        case ID_ALIAS: val = ATOI(id->action); break;
+    }
+    int argval = ATOI(arg);
+    switch(op)  
+    {
+        case '+': val += argval; break;
+        case '-': val -= argval; break;
+        case '*': val *= argval; break;
+        case '/': val /= argval; break;
+    }
+    switch(id->type)
+    {
+        case ID_VAR: *id->storage.i = clamp(val, id->minval, id->maxval); break;
+        case ID_FVAR: *id->storage.f = clamp((float)val, id->minvalf, id->maxvalf); break;
+        case ID_SVAR: { string str; itoa(str, val); *id->storage.s = exchangestr(*id->storage.s, str); break; }
+        case ID_ALIAS: { string str; itoa(str, val); alias(name, str); return; }
+        default: return;
+    }
+    ((void (__cdecl *)())id->fun)();
 }
-void pluseq(const char *name, const char *str)
+
+void modifyfvar(const char *name, const char *arg, char op)
 {
-    plusmin_eq(name,str,1);
+    ident *id = idents->access(name);
+    if(!id) return;
+    if(!allowidentaccess(id))
+    {
+        conoutf("not allowed in this execution context: %s", id->name);
+        return;
+    }
+    float val = 0;
+    switch(id->type)
+    {
+        case ID_VAR: val = *id->storage.i; break;
+        case ID_FVAR: val = *id->storage.f; break;
+        case ID_SVAR: val = atof(*id->storage.s); break;
+        case ID_ALIAS: val = atof(id->action); break;
+    }
+    float argval = atof(arg);
+    switch(op)  
+    {
+        case '+': val += argval; break;
+        case '-': val -= argval; break;
+        case '*': val *= argval; break;
+        case '/': val /= argval; break;
+    }
+    switch(id->type)
+    {
+        case ID_VAR: *id->storage.i = clamp((int)val, id->minval, id->maxval); break;
+        case ID_FVAR: *id->storage.f = clamp(val, id->minvalf, id->maxvalf); break;
+        case ID_SVAR: *id->storage.s = exchangestr(*id->storage.s, floatstr(val)); break;
+        case ID_ALIAS: alias(name, floatstr(val)); return;
+        default: return;
+    }
+    ((void (__cdecl *)())id->fun)();
 }
-COMMANDN(+=,pluseq,ARG_2STR);
-void mineq(const char *name, const char *str)
-{
-    plusmin_eq(name,str,0);
-}
-COMMANDN(-=,mineq,ARG_2STR);
+
+void addeq(char *name, char *arg) { modifyvar(name, arg, '+'); }
+void subeq(char *name, char *arg) { modifyvar(name, arg, '-'); }
+void muleq(char *name, char *arg) { modifyvar(name, arg, '*'); }
+void addeqf(char *name, char *arg) { modifyfvar(name, arg, '+'); }
+void subeqf(char *name, char *arg) { modifyfvar(name, arg, '-'); }
+void muleqf(char *name, char *arg) { modifyfvar(name, arg, '*'); }
+
+COMMANDN(+=, addeq, ARG_2STR);
+COMMANDN(-=, subeq, ARG_2STR);
+COMMANDN(*=, muleq, ARG_2STR);
+COMMANDN(+=f, addeqf, ARG_2STR);
+COMMANDN(-=f, subeqf, ARG_2STR);
+COMMANDN(*=f, muleqf, ARG_2STR);
+
 int getvar(const char *name)
 {
     GETVAR(id, name, 0);
@@ -239,7 +285,8 @@ const char *getalias(const char *name)
 }
 void _getalias(char *name)
 {
-    result(getalias(name)?getalias(name):"");
+    const char *action = getalias(name);
+    result(action ? action : "");
 }
 COMMANDN(getalias, _getalias, ARG_1STR);
 
