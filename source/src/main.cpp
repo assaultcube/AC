@@ -147,8 +147,6 @@ void setprocesspriority(bool high)
 }
 #endif
 
-VARP(jpegquality, 10, 70, 100);
-
 const char *screenshotpath(const char *imagepath, const char *suffix)
 {
     static string buf;
@@ -164,6 +162,54 @@ const char *screenshotpath(const char *imagepath, const char *suffix)
     return buf;
 }
 
+void bmp_screenshot(const char *imagepath, bool mapshot = false)
+{
+    extern int minimaplastsize;
+    int iw = mapshot?minimaplastsize:screen->w;
+    int ih = mapshot?minimaplastsize:screen->h;
+    SDL_Surface *image = creatergbsurface(iw, ih);
+    if(!image) return;
+    uchar *tmp = new uchar[iw*ih*3];
+    uchar *dst = (uchar *)image->pixels;
+    if(mapshot)
+    {
+        extern GLuint minimaptex;
+        if(minimaptex)
+        {
+            glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+            glBindTexture(GL_TEXTURE_2D, minimaptex);
+            glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, tmp);
+        }
+        else
+        {
+            conoutf("no mapshot prepared!");
+            return;
+        }
+    }
+    else
+    {
+        glPixelStorei(GL_PACK_ALIGNMENT, 1);
+        glReadPixels(0, 0, iw, ih, GL_RGB, GL_UNSIGNED_BYTE, tmp); //screen->w//screen->h
+    }
+    loopi(ih)
+    {
+        memcpy(dst, &tmp[3*iw*(ih-i-1)], 3*iw);
+        dst += image->pitch;
+    }
+    delete[] tmp;
+    const char *filename = screenshotpath(imagepath, "bmp");
+    stream *file = openfile(filename, "wb");
+    if(!file) conoutf("failed to create: %s", filename);
+    else
+    {
+        SDL_SaveBMP_RW(image, file->rwops(), 1);
+        delete file;
+    }
+    SDL_FreeSurface(image);
+}
+
+VARP(jpegquality, 10, 70, 100);
+/*
 struct jpegscreenshotdest : jpeg_destination_mgr
 {
     JOCTET buf[4096];
@@ -234,38 +280,38 @@ struct jpegscreenshoterror : jpeg_error_mgr
     }
 };
 
-void jpeg_screenshot(const char *imagepath, bool mapshot = false)
+void jpeg_screenshot_____(const char *imagepath, bool mapshot = false)
 {
     extern int minimaplastsize;
     int iw = mapshot?minimaplastsize:screen->w;
     int ih = mapshot?minimaplastsize:screen->h;
     const char *filename = screenshotpath(imagepath, "jpg");
-    stream *file = openfile(screenshotpath(imagepath, "jpg"), "wb");
-    if(!file) { conoutf("failed to create: %s", filename); return; }
+	stream *file = openfile(screenshotpath(imagepath, "jpg"), "wb");
+	if(!file) { conoutf("failed to create: %s", filename); return; }
 
     int row_stride = 3*iw;
     uchar *pixels = new uchar[row_stride*ih];
 
     jpeg_compress_struct cinfo;
-    jpegscreenshoterror jerr;
+	jpegscreenshoterror jerr;
 
     cinfo.err = &jerr;
-    if(jerr.failed())
-    {
-        jpeg_destroy_compress(&cinfo);
-        delete[] pixels;
-        delete file;
-        return;
-    }
+	if(jerr.failed())
+	{
+	    jpeg_destroy_compress(&cinfo);
+		delete[] pixels;
+		delete file;
+		return;
+	}
 
     jpeg_create_compress(&cinfo);
-    jpegscreenshotdest dest(file);
-    cinfo.dest = &dest;
+	jpegscreenshotdest dest(file);
+	cinfo.dest = &dest;
     //jpeg_stdio_dest(&cinfo, jpegfile);
-
 
     if(mapshot)
     {
+        //conoutf("not implemented yet");
         extern GLuint minimaptex;
         if(minimaptex)
         {
@@ -312,16 +358,28 @@ void jpeg_screenshot(const char *imagepath, bool mapshot = false)
     delete[] pixels;
 	delete file;
 }
+*/
 
-void bmp_screenshot(const char *imagepath, bool mapshot = false)
+#include "jpegenc.h"
+
+int save_jpeg(const char *filename, uchar *pixels, int iw, int ih, int jpegquality)
+{
+    jpegenc *jpegencoder = new jpegenc;
+	if(jpegencoder->encode(filename, (colorRGB *)pixels, iw, ih, jpegquality) < 0) return -1;
+
+    conoutf("writing to file: %s", filename);
+	delete jpegencoder;
+	return 0;
+}
+
+void jpeg_screenshot(const char *imagepath, bool mapshot = false)
 {
     extern int minimaplastsize;
     int iw = mapshot?minimaplastsize:screen->w;
     int ih = mapshot?minimaplastsize:screen->h;
-    SDL_Surface *image = creatergbsurface(iw, ih);
-    if(!image) return;
-    uchar *tmp = new uchar[iw*ih*3];
-    uchar *dst = (uchar *)image->pixels;
+    
+    uchar *pixels = new uchar[3*iw*ih];
+
     if(mapshot)
     {
         extern GLuint minimaptex;
@@ -329,35 +387,33 @@ void bmp_screenshot(const char *imagepath, bool mapshot = false)
         {
             glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
             glBindTexture(GL_TEXTURE_2D, minimaptex);
-            glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, tmp);
+            glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, pixels);
         }
         else
         {
             conoutf("no mapshot prepared!");
+            delete[] pixels;
             return;
         }
     }
     else
     {
         glPixelStorei(GL_PACK_ALIGNMENT, 1);
+        glReadPixels(0, 0, iw, ih, GL_BGR, GL_UNSIGNED_BYTE, pixels);
+    }
 
-        glReadPixels(0, 0, iw, ih, GL_RGB, GL_UNSIGNED_BYTE, tmp); //screen->w//screen->h
-    }
-    loopi(ih)
-    {
-        memcpy(dst, &tmp[3*iw*(ih-i-1)], 3*iw);
-        dst += image->pitch;
-    }
-    delete[] tmp;
-    const char *filename = screenshotpath(imagepath, "bmp");
-    stream *file = openfile(filename, "wb");
-    if(!file) conoutf("failed to create: %s", filename);
-    else
-    {
-        SDL_SaveBMP_RW(image, file->rwops(), 1);
-        delete file;
-    }
-    SDL_FreeSurface(image);
+	int stride = 3*iw;
+	GLubyte *swapline = (GLubyte *) malloc(stride);
+	for(int row = 0; row < ih/2; row++) {
+		memcpy(swapline, pixels + row * stride, stride);
+		memcpy(pixels + row * stride, pixels + (ih - row - 1) * stride, stride);
+		memcpy(pixels + (ih - row -1) * stride, swapline, stride);
+	}
+    
+    const char *filename = screenshotpath(imagepath, "jpg");
+    if(save_jpeg(filename, pixels, iw, ih, jpegquality) < 0) conoutf("\f3Error saving jpeg file");
+    
+	delete[] pixels;
 }
 
 VARP(pngcompress, 0, 9, 9);
@@ -459,7 +515,6 @@ cleanuperror:
 error:
     delete f;
 
-    conoutf("failed saving png to %s", filename);
     return -1;
 }
 
@@ -503,7 +558,7 @@ void png_screenshot(const char *imagepath, bool mapshot = false)
     delete[] tmp;
     
     const char *filename = screenshotpath(imagepath, "png");
-    if(save_png(filename, image/*, iw, ih*/) < 0) conoutf("\f3Error saving png file");
+    if(save_png(filename, image) < 0) conoutf("\f3Error saving png file");
    
     SDL_FreeSurface(image);
 }
