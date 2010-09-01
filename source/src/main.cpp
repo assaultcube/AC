@@ -387,7 +387,7 @@ void jpeg_screenshot(const char *imagepath, bool mapshot = false)
         {
             glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
             glBindTexture(GL_TEXTURE_2D, minimaptex);
-            glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, pixels);
+            glGetTexImage(GL_TEXTURE_2D, 0, GL_BGR, GL_UNSIGNED_BYTE, pixels);
         }
         else
         {
@@ -400,16 +400,17 @@ void jpeg_screenshot(const char *imagepath, bool mapshot = false)
     {
         glPixelStorei(GL_PACK_ALIGNMENT, 1);
         glReadPixels(0, 0, iw, ih, GL_BGR, GL_UNSIGNED_BYTE, pixels);
+        int stride = 3*iw;
+        
+        GLubyte *swapline = (GLubyte *) malloc(stride);
+        for(int row = 0; row < ih/2; row++)
+        {
+		  memcpy(swapline, pixels + row * stride, stride);
+		  memcpy(pixels + row * stride, pixels + (ih - row - 1) * stride, stride);
+		  memcpy(pixels + (ih - row -1) * stride, swapline, stride);
+        }
     }
-
-	int stride = 3*iw;
-	GLubyte *swapline = (GLubyte *) malloc(stride);
-	for(int row = 0; row < ih/2; row++) {
-		memcpy(swapline, pixels + row * stride, stride);
-		memcpy(pixels + row * stride, pixels + (ih - row - 1) * stride, stride);
-		memcpy(pixels + (ih - row -1) * stride, swapline, stride);
-	}
-    
+ 
     const char *filename = screenshotpath(imagepath, "jpg");
     if(save_jpeg(filename, pixels, iw, ih, jpegquality) < 0) conoutf("\f3Error saving jpeg file");
     
