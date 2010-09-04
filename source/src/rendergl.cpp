@@ -752,9 +752,9 @@ void drawminimap(int w, int h)
     camera1->o.z = 96 * dd;
     camera1->pitch = -90;
     camera1->yaw = 0;
-    int orthd = 4 /*+ 2*dd*/ + gdim/2; // +2-4 for clean border if map goes even to the edge. - ac_iceroad still has a bug though @ "2 + 2*dd +" - "4 +" seems better.
+    int orthd = 2 /*+ 2*dd*/ + gdim/2; // +2-4 for clean border if map goes even to the edge. - ac_iceroad still has a bug though @ "2 + 2*dd +" - "4 +" seems better.
     // this does not avoid possible data corruption on windowed runs :-/ - the issue seems to lie with the window lying outside the desktop edges - at least that was the case for me (flowtron)
-    glViewport(0, 0, size, size); // !not wsize here
+    glViewport(0, 0, size-(size/orthd), size-(size/orthd)); // !not wsize here
     glClearDepth(0.0);
     glClearColor(0, 0, 0, 0);//1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT); // stencil added 2010jul22

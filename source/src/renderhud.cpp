@@ -405,7 +405,9 @@ void drawradar(playerent *p, int w, int h)
     float radarviewsize = showmap?3*min(VIRTW,VIRTH)/4:min(VIRTW,VIRTH)/5;
     float halfviewsize = radarviewsize/2.0f;
     float iconsize = (showmap?radarentsize/4:radarentsize)/(float)gdim*radarviewsize;
-    float coordtrans =  showmap?radarviewsize/gdim:1;
+    int orthd = 2 + (gdim-2)/2;
+    int displace = radarviewsize/orthd;
+    float coordtrans =  showmap?(radarviewsize-displace)/(gdim+3):1;
     int offd = (abs(mapdims[5]-mapdims[4])/2)*coordtrans;
     if(!gdim) { gdim = ssize/2; offd = 0; }
     int offx = gdim==mapdims[5]?offd:0;
@@ -443,7 +445,7 @@ void drawradar(playerent *p, int w, int h)
         vec mdd(mapdims[0], mapdims[1], 0);
         vec cod(offx, offy, 0);
         vec ppv = vec(p->o).sub(mdd).mul(coordtrans).add(cod);
-        drawradarent(ppv.x, ppv.y, p->yaw, p->state==CS_ALIVE ? (isattacking(p) ? 2 : 0) : 1, 2, iconsize, isattacking(p), "%s", colorname(p)); // local player
+        drawradarent(ppv.x+displace, ppv.y+displace, p->yaw, p->state==CS_ALIVE ? (isattacking(p) ? 2 : 0) : 1, 2, iconsize, isattacking(p), "%s", colorname(p)); // local player
         loopv(players) // other players
         {
             playerent *pl = players[i];
