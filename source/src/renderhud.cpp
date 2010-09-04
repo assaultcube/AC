@@ -452,7 +452,7 @@ void drawradar(playerent *p, int w, int h)
             if(!pl || pl==p) continue;
             if(!isteam(p->team, pl->team)) continue;
             vec rtmp = vec(pl->o).sub(mdd).mul(coordtrans).add(cod);
-            drawradarent(rtmp.x, rtmp.y, pl->yaw, pl->state==CS_ALIVE ? (isattacking(pl) ? 2 : 0) : 1, team_base(pl->team), iconsize, isattacking(pl), "%s", colorname(pl));
+            drawradarent(rtmp.x+displace, rtmp.y+displace, pl->yaw, pl->state==CS_ALIVE ? (isattacking(pl) ? 2 : 0) : 1, team_base(pl->team), iconsize, isattacking(pl), "%s", colorname(pl));
         }
         if(m_flags)
         {
@@ -466,10 +466,10 @@ void drawradar(playerent *p, int w, int h)
                 if(e->x == -1 && e-> y == -1) continue; // flagdummies
                 vec pos = vec(e->x, e->y, 0).sub(mdd).mul(coordtrans).add(cod);
                 vec cpos(pos.x + 16.0f, pos.y - 16.0f, 0);
-                drawradarent(pos.x, pos.y, camera1->yaw, m_ktf ? 2 : f.team, 3, iconsize, false); // draw bases
+                drawradarent(pos.x+displace, pos.y+displace, camera1->yaw, m_ktf ? 2 : f.team, 3, iconsize, false); // draw bases
                 if(f.state!=CTFF_STOLEN && !(m_ktf && f.state == CTFF_IDLE))
                 {
-                    drawradarent(cpos.x, cpos.y, 0, 3, m_ktf ? 2 : f.team, iconsize, false); // draw on entitiy pos
+                    drawradarent(cpos.x+displace, cpos.y+displace, 0, 3, m_ktf ? 2 : f.team, iconsize, false); // draw on entitiy pos
                 }
                 if(m_ktf && f.state == CTFF_IDLE) continue;
                 if(f.state==CTFF_STOLEN)
@@ -484,7 +484,7 @@ void drawradar(playerent *p, int w, int h)
                         if(tm)
                         {
                             apos.sub(mdd).mul(coordtrans).add(cod);
-                            drawradarent(apos.x, apos.y, 0, 3, m_ktf ? 2 : f.team, iconsize, true); // draw near flag thief
+                            drawradarent(apos.x+displace, apos.y+displace, 0, 3, m_ktf ? 2 : f.team, iconsize, true); // draw near flag thief
                         }
                     }
                 }
