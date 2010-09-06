@@ -217,7 +217,7 @@ void modifyvar(const char *name, const char *arg, char op)
         case ID_ALIAS: { string str; itoa(str, val); alias(name, str); return; }
         default: return;
     }
-    ((void (__cdecl *)())id->fun)();
+    if(id->fun) ((void (__cdecl *)())id->fun)();
 }
 
 void modifyfvar(const char *name, const char *arg, char op)
@@ -253,7 +253,7 @@ void modifyfvar(const char *name, const char *arg, char op)
         case ID_ALIAS: alias(name, floatstr(val)); return;
         default: return;
     }
-    ((void (__cdecl *)())id->fun)();
+    if(id->fun) ((void (__cdecl *)())id->fun)();
 }
 
 void addeq(char *name, char *arg) { modifyvar(name, arg, '+'); }
