@@ -79,10 +79,14 @@ void correctsel()                                       // ensures above invaria
     if(sel.xs<=0 || sel.ys<=0) selset = false;
 }
 
-bool noteditmode()
+bool noteditmode(const char* func)
 {
     correctsel();
-    if(!editmode) conoutf("this function is only allowed in edit mode");
+    if(!editmode)
+    {
+        if(func && func[0]!='\0') conoutf("\f4[\f3%s\f4]\f5 is only allowed in edit mode", func);
+        else conoutf("this function is only allowed in edit mode");
+    }
     return !editmode;
 }
 
@@ -92,9 +96,9 @@ bool noselection()
     return !selset;
 }
 
-#define EDITSEL   if(noteditmode() || noselection()) return;
-#define EDITSELMP if(noteditmode() || noselection() || multiplayer()) return;
-#define EDITMP    if(noteditmode() || multiplayer()) return;
+#define EDITSEL   if(noteditmode("EDITSEL") || noselection()) return;
+#define EDITSELMP if(noteditmode("EDITSELMP") || noselection() || multiplayer()) return;
+#define EDITMP    if(noteditmode("EDITMP") || multiplayer()) return;
 
 void selectpos(int x, int y, int xs, int ys)
 {
@@ -470,7 +474,7 @@ void perlin(int scale, int seed, int psize)
 VARF(fullbright, 0, 0, 1,
     if(fullbright)
     {
-        if(noteditmode()) return;
+        if(noteditmode("fullbright")) return;
         fullbrightlight();
     }
     else calclight();
