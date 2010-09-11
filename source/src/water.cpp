@@ -4,7 +4,7 @@ int wx1, wy1, wx2, wy2;
 float wsx1, wsy1, wsx2, wsy2;
 
 VARP(watersubdiv, 1, 4, 64);
-VARF(waterlevel, -128, -128, 127, if(!noteditmode()) hdr.waterlevel = waterlevel);
+VARF(waterlevel, -128, -128, 127, if(!noteditmode("waterlevel")) hdr.waterlevel = waterlevel);
 
 void setwatercolor(const char *r, const char *g, const char *b, const char *a)
 {
@@ -84,7 +84,7 @@ void setprojtexmatrix()
 void setupmultitexrefract(GLuint reflecttex, GLuint refracttex)
 {
     setuptmu(0, "K , T @ Ka");
-    
+
     colortmu(0, hdr.watercolor[0]/255.0f, hdr.watercolor[1]/255.0f, hdr.watercolor[2]/255.0f, hdr.watercolor[3]/255.0f);
 
     glBindTexture(GL_TEXTURE_2D, refracttex);
@@ -92,9 +92,9 @@ void setupmultitexrefract(GLuint reflecttex, GLuint refracttex)
 
     glActiveTexture_(GL_TEXTURE1_ARB);
     glEnable(GL_TEXTURE_2D);
-    
+
     setuptmu(1, "P , T @ C~a");
-   
+
     glBindTexture(GL_TEXTURE_2D, reflecttex);
     setprojtexmatrix();
 
@@ -104,7 +104,7 @@ void setupmultitexrefract(GLuint reflecttex, GLuint refracttex)
 void setupmultitexreflect(GLuint reflecttex)
 {
     setuptmu(0, "T , K @ Ca", "Ka * P~a");
-    
+
     float a = hdr.watercolor[3]/255.0f;
     colortmu(0, hdr.watercolor[0]/255.0f*a, hdr.watercolor[1]/255.0f*a, hdr.watercolor[2]/255.0f*a, 1.0f-a);
 
@@ -116,9 +116,9 @@ void cleanupmultitex(GLuint reflecttex, GLuint refracttex)
 {
     resettmu(0);
     glLoadIdentity();
-   
+
     if(refracttex)
-    { 
+    {
         glActiveTexture_(GL_TEXTURE1_ARB);
         glDisable(GL_TEXTURE_2D);
         resettmu(1);
@@ -133,7 +133,7 @@ VARP(mtwater, 0, 1, 1);
 int renderwater(float hf, GLuint reflecttex, GLuint refracttex)
 {
     if(wx1<0) return nquads;
-    
+
     wx1 -= wx1%watersubdiv;
     wy1 -= wy1%watersubdiv;
 
@@ -143,7 +143,7 @@ int renderwater(float hf, GLuint reflecttex, GLuint refracttex)
     {
         if(refracttex)
         {
-            setupmultitexrefract(reflecttex, refracttex);        
+            setupmultitexrefract(reflecttex, refracttex);
             renderwaterstrips(vertwmtc, hf, t);
         }
         else
@@ -157,11 +157,11 @@ int renderwater(float hf, GLuint reflecttex, GLuint refracttex)
             glDepthMask(GL_TRUE);
         }
         cleanupmultitex(reflecttex, refracttex);
-        
+
         return nquads;
     }
 
-    if(!refracttex) 
+    if(!refracttex)
     {
         glDisable(GL_TEXTURE_2D);
         glEnable(GL_BLEND);
@@ -175,7 +175,7 @@ int renderwater(float hf, GLuint reflecttex, GLuint refracttex)
         {
             glColor4ubv(hdr.watercolor);
             renderwaterstrips(vertw, hf, t);
-        
+
             glEnable(GL_TEXTURE_2D);
         }
 
@@ -184,7 +184,7 @@ int renderwater(float hf, GLuint reflecttex, GLuint refracttex)
         glBindTexture(GL_TEXTURE_2D, refracttex ? refracttex : reflecttex);
     }
 
-    if(refracttex) 
+    if(refracttex)
     {
         glColor3f(1, 1, 1);
         renderwaterstrips(vertwt, hf, t);
@@ -205,7 +205,7 @@ int renderwater(float hf, GLuint reflecttex, GLuint refracttex)
 
     glDisable(GL_BLEND);
     if(!refracttex) glDepthMask(GL_TRUE);
-   
+
     return nquads;
 }
 
@@ -246,7 +246,7 @@ void calcwaterscissor()
             sy2 = max(sy2, y);
         }
     }
-    if(sx1 >= sx2 || sy1 >= sy2) 
+    if(sx1 >= sx2 || sy1 >= sy2)
     {
         sx1 = sy1 = -1;
         sx2 = sy2 = 1;

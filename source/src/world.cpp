@@ -130,7 +130,7 @@ COMMAND(closestenttype, ARG_1STR);
 
 int closestent()        // used for delent and edit mode ent display
 {
-    if(noteditmode()) return -1;
+    if(noteditmode("closestent")) return -1;
     int best = -1, bcnt = 0;
     float bdist = 99999;
     loopj(3)
@@ -297,7 +297,7 @@ COMMAND(entset, ARG_5STR);
 void clearents(char *name)
 {
     int type = findtype(name);
-    if(noteditmode() || multiplayer()) return;
+    if(noteditmode("clearents") || multiplayer()) return;
     loopv(ents)
     {
         entity &e = ents[i];
@@ -357,7 +357,7 @@ void nextplayerstart(char *type)
 {
     static int cycle = -1;
 
-    if(noteditmode()) return;
+    if(noteditmode("nextplayerstart")) return;
     cycle = type[0] ? findentity(PLAYERSTART, cycle + 1, atoi(type)) : findentity(PLAYERSTART, cycle + 1);
     if(cycle >= 0)
     {
@@ -419,7 +419,7 @@ bool worldbordercheck(int x1, int x2, int y1, int y2, int z1, int z2)  // check 
 
 bool empty_world(int factor, bool force)    // main empty world creation routine, if passed factor -1 will enlarge old world by 1, factor -2 will shrink old world by 1
 {
-    if(!force && noteditmode()) return false;
+    if(!force && noteditmode("empty world")) return false;
     if(factor == -2 && !worldbordercheck(ssize/4 + MINBORD, ssize/4 + MINBORD, ssize/4 + MINBORD, ssize/4 + MINBORD, 0, 0)) { conoutf("map does not fit into smaller world"); return false; }
     block *ow = NULL, be = { 0, 0, ssize, ssize }, bs = { ssize/4, ssize/4, ssize/2, ssize/2 };
     int oldfactor = sfactor;

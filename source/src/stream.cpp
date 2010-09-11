@@ -190,7 +190,7 @@ void sethomedir(const char *dir)
     clientlogf("Using home directory: %s", tmpdir);
 #endif
 
-    if(fixpackagedir(tmpdir) > 0) 
+    if(fixpackagedir(tmpdir) > 0)
     {
         copystring(homedir, tmpdir);
         createdir(homedir);
@@ -381,9 +381,6 @@ struct filestream : stream
         if(file && strchr(mode,'w'))
         {
             int fail = fstatvfs(fileno(file), &buf);
-#ifndef STANDALONE
-//             if(!fail) conoutf("file test %lu %lu %lu",buf.f_frsize,buf.f_bsize, buf.f_bavail);
-#endif
             if (fail || buf.f_frsize * buf.f_bavail < MINFSSIZE)
             {
                 close();

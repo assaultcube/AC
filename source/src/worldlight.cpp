@@ -158,12 +158,12 @@ void fullbrightlight(int level)
     lastcalclight = totalmillis;
 }
 
-VARF(ambient, 0, 0, 0xFFFFFF, if(!noteditmode()) { hdr.ambient = ambient; calclight(); });
+VARF(ambient, 0, 0, 0xFFFFFF, if(!noteditmode("ambient")) { hdr.ambient = ambient; calclight(); });
 
 void calclight()
 {
 	bvec acol((hdr.ambient>>16)&0xFF, (hdr.ambient>>8)&0xFF, hdr.ambient&0xFF);
-	if(!acol.x && !acol.y) 
+	if(!acol.x && !acol.y)
     {
         if(!acol.z) acol.z = 10;
         acol.x = acol.y = acol.z;
