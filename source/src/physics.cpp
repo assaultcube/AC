@@ -783,6 +783,7 @@ VARP(invmouse, 0, 0, 1);
 FVARP(mouseaccel, 0, 0, 1000);
 FVARP(mfilter, 0.0f, 0.0f, 6.0f);
 VARP(autoscopesens, 0, 0, 1);
+
 float testsens=0;
 bool senst=0;
 int tsens(int x)
@@ -889,6 +890,7 @@ int tsens(int x)
     }
 return 0;
 }
+
 void findsens()
 {
     if(!watchingdemo) {
@@ -900,7 +902,6 @@ void findsens()
     }
 }
 COMMAND(findsens,ARG_NONE);
-
 
 inline bool zooming(playerent *plx) { return (plx->weaponsel->type == GUN_SNIPER && ((sniperrifle *)plx->weaponsel)->scoped); }
 
@@ -957,3 +958,32 @@ void entinmap(physent *d)    // brute force but effective way to find a free spa
     conoutf(_("can't find entity spawn spot! (%d, %d)"), d->o.x, d->o.y);
 }
 
+void vecfromyawpitch(float yaw, float pitch, int move, int strafe, vec &m)
+{
+    if(move)
+    {
+        m.x = move*-sinf(RAD*yaw);
+        m.y = move*cosf(RAD*yaw);
+    }
+    else m.x = m.y = 0;
+
+    if(pitch)
+    {
+        m.x *= cosf(RAD*pitch);
+        m.y *= cosf(RAD*pitch);
+        m.z = move*sinf(RAD*pitch);
+    }
+    else m.z = 0;
+
+    if(strafe)
+    {
+        m.x += strafe*cosf(RAD*yaw);
+        m.y += strafe*sinf(RAD*yaw);
+    }
+}
+
+void vectoyawpitch(const vec &v, float &yaw, float &pitch)
+{
+    yaw = -atan2(v.x, v.y)/RAD;
+    pitch = asin(v.z/v.magnitude())/RAD;
+}

@@ -544,7 +544,8 @@ extern void editequalisexy(bool isfloor, block &sel);
 extern void edittypexy(int type, block &sel);
 extern void edittexxy(int type, int t, block &sel);
 extern void editheightxy(bool isfloor, int amount, block &sel);
-extern bool noteditmode();
+//extern bool noteditmode();
+extern bool noteditmode(const char* func = NULL);
 extern void pruneundos(int maxremain = 0);
 
 // renderhud
@@ -618,6 +619,8 @@ extern void updatecrouch(playerent *p, bool on);
 extern bool objcollide(physent *d, const vec &objpos, float objrad, float objheight);
 extern bool collide(physent *d, bool spawn = false, float drop = 0, float rise = 0, int level = 7);
 extern void attack(bool on);
+extern void vecfromyawpitch(float yaw, float pitch, int move, int strafe, vec &m);
+extern void vectoyawpitch(const vec &v, float &yaw, float &pitch);
 
 // sound
 /*

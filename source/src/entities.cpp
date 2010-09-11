@@ -118,15 +118,47 @@ void seteditshow(char *just)
 }
 COMMAND(seteditshow, ARG_1STR);
 
+void renderentarrow(const entity &e, const vec &dir, float radius)
+{
+    if(radius <= 0) return;
+    float arrowsize = min(radius/8, 0.5f);
+    vec epos(e.x, e.y, e.z);
+    vec target = vec(dir).mul(radius).add(epos), arrowbase = vec(dir).mul(radius - arrowsize).add(epos), spoke;
+    spoke.orthogonal(dir);
+    spoke.normalize();
+    spoke.mul(arrowsize);
+    glDisable(GL_TEXTURE_2D); // this disables reaction to light, but also emphasizes shadows .. a nice effect, but should be independent
+    glDisable(GL_CULL_FACE);
+    glLineWidth(3);
+    glBegin(GL_LINES);
+    glVertex3fv(epos.v);
+    glVertex3fv(target.v);
+    glEnd();
+    glBegin(GL_TRIANGLE_FAN);
+    glVertex3fv(target.v);
+    loopi(5)
+    {
+        vec p(spoke);
+        p.rotate(2*M_PI*i/4.0f, dir);
+        p.add(arrowbase);
+        glVertex3fv(p.v);
+    }
+    glEnd();
+    glLineWidth(1);
+    glEnable(GL_CULL_FACE);
+    glEnable(GL_TEXTURE_2D);
+}
+
 void renderentities()
 {
+    int closest = editmode ? closestent() : -1;
     if(editmode && !reflecting && !refracting && !stenciling)
     {
         static int lastsparkle = 0;
         if(lastmillis - lastsparkle >= 20)
         {
             lastsparkle = lastmillis - (lastmillis%20);
-            int closest = closestent();
+            // closest see above
             loopv(ents)
             {
                 entity &e = ents[i];
@@ -170,6 +202,21 @@ void renderentities()
                     ce.attr4 = mmi.h;
                     renderclip(ce);
                 }
+            }
+        }
+        if(editmode && i==closest && !stenciling)//closest see above
+        {
+            switch(e.type)
+            {
+                case PLAYERSTART:
+                {
+                    glColor3f(0, 1, 1);
+                    vec dir;
+                    vecfromyawpitch(e.attr1, 0, -1, 0, dir);
+                    renderentarrow(e, dir, 4);
+                    glColor3f(1, 1, 1);
+                }
+                default: break;
             }
         }
     }
