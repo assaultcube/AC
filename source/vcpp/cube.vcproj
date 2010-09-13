@@ -719,10 +719,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\docs\cuberef.txt"
-				>
-			</File>
-			<File
 				RelativePath="..\..\docs\package_copyrights.txt"
 				>
 			</File>
@@ -732,10 +728,6 @@
 			</File>
 			<File
 				RelativePath="..\..\docs\reference.xml"
-				>
-			</File>
-			<File
-				RelativePath="..\roadmap.txt"
 				>
 			</File>
 			<File
