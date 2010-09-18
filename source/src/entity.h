@@ -329,11 +329,23 @@ public:
     // just subtract damage here, can set death, etc. later in code calling this
     int dodamage(int damage)
     {
-        /* 4-level armor - continous approach: 28%, 32%, 36%, 40% */
-        int ad = damage * ( 2400 + 16 * armour ) / 10000; // let armour absorb when possible
-        if(ad>armour) ad = armour;
-        armour -= ad;
-        damage -= ad;
+        /* 4-level armor - continous approach: 16%, 33%, 37%, 41% */
+		int armoursection = 0;
+		int ad = damage;
+		if(armour > 25) armoursection = 1;
+		if(armour > 50) armoursection = 2;
+		if(armour > 75) armoursection = 3;
+		switch(armoursection)
+		{
+			case 0: ad = (int) (16.0f/25.0f * armour); break;			// 16
+			case 1: ad = (int) (17.0f/25.0f * armour) - 1; break;		// 33
+			case 2: ad = (int) (4.0f/25.0f * armour) + 25; break; 		// 37
+			case 3: ad = (int) (4.0f/25.0f * armour) + 25; break; 		// 41
+			default: break;
+		}
+		int rd = ad * damage/100.0f;
+        armour -= rd;
+        damage -= rd;
         health -= damage;
         return damage;
     }
