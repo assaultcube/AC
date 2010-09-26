@@ -83,12 +83,10 @@ struct servermapbuffer  // sending of maps between clients
         bool written = false;
 
         if(!nmapname[0] || nmapsize <= 0 || ncfgsizegz < 0 || nmapsize + ncfgsizegz > MAXMAPSENDSIZE || ncfgsize > MAXCFGFILESIZE) return false;  // malformed: probably modded client
+        int cfgsize = ncfgsize;
         if(smode == GMODE_COOPEDIT && !strcmp(nmapname, behindpath(smapname)))
         { // update mapbuffer only in coopedit mode (and on same map)
             copystring(mapname, nmapname);
-            cgzsize = nmapsize;
-            cfgsize = ncfgsize;
-            cfgsizegz = ncfgsizegz;
             datasize = nmapsize + ncfgsizegz;
             revision = 0;
             DELETEA(data);
