@@ -168,7 +168,33 @@ void renderentities()
                 if(ice) continue;
                 vec v(e.x, e.y, e.z);
                 if(vec(v).sub(camera1->o).dot(camdir) < 0) continue;
-                particle_splash(i == closest ? 12 : 2, 2, 40, v);
+                //particle_splash(i == closest ? 12 : 2, 2, 40, v);
+                int sc = 17; // "carrot" (orange) - entity slot currently unused, possibly "reserved"
+                if(i==closest)
+                {
+                    sc = 2;
+                }
+                else switch(e.type)
+                {
+                    case LIGHT : sc = 12; break; // white
+                    case PLAYERSTART: sc = 13; break; // green
+                    case I_CLIPS:
+                    case I_AMMO:
+                    case I_GRENADE: sc = 14; break; // red
+                    case I_HEALTH:
+                    case I_HELMET:
+                    case I_ARMOUR:
+                    case I_AKIMBO: sc = 15; break; // yellow
+                    case MAPMODEL:
+                    case SOUND: sc = 16; break; // magenta
+                    case LADDER:
+                    case CLIP:
+                    case PLCLIP: sc = 18; break; // grey
+                    case CTF_FLAG: sc = 19; break; // turquoise
+                    default: break;
+                }
+                //particle_splash(sc, i==closest?6:2, i==closest?120:40, v);
+                particle_splash(sc, 2, 40, v);
             }
         }
     }
