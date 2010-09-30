@@ -529,8 +529,8 @@ void check_ffire (client *target, client *actor, int damage)
     if ( mastermode != MM_OPEN ) return;
     actor->ffire += damage;
     if ( actor->ffire > 300 && actor->ffire * 600 > gamemillis) {
-        logline(ACLOG_INFO, "[%s] %s %s", actor->hostname, actor->name, "is being kicked due to excessive friendly fire");
-        defformatstring(msg)("%s %s", actor->name, "did excessive friendly fire");
+        logline(ACLOG_INFO, "[%s] %s %s", actor->hostname, actor->name, "kicked for excessive friendly fire");
+        defformatstring(msg)("%s %s", actor->name, "kicked for excessive friendly fire");
         sendservmsg(msg);
         disconnect_client(actor->clientnum, DISC_FFIRE);
     }
