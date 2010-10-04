@@ -361,6 +361,9 @@ bool requestmasterf(const char *fmt, ...); // for AUTH et al
 // clientgame
 extern flaginfo flaginfos[2];
 extern int sessionid;
+extern int gametimecurrent;
+extern int gametimemaximum;
+extern int lastgametimeupdate;
 extern bool watchingdemo;
 struct serverstate { int autoteam; int mastermode; int matchteamsize; void reset() { autoteam = mastermode = matchteamsize = 0; }};
 extern struct serverstate servstate;
@@ -381,7 +384,7 @@ extern int getclientmode();
 extern void zapplayer(playerent *&d);
 extern playerent *getclient(int cn);
 extern playerent *newclient(int cn);
-extern void timeupdate(int timeremain);
+extern void timeupdate(int milliscur, int millismax); // was (int timeremain);
 extern void respawnself();
 extern void setskin(playerent *pl, int skin, int team = -1);
 extern void callvote(int type, char *arg1 = NULL, char *arg2 = NULL);

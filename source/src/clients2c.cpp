@@ -540,6 +540,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 loopi(NUMGUNS) s->ammo[i] = getint(p);
                 loopi(NUMGUNS) s->mag[i] = getint(p);
                 s->state = CS_SPAWNING;
+                if(s->lifesequence==0) s->resetstats(); //NEW
                 break;
             }
 
@@ -580,7 +581,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 addmsg(SV_SPAWN, "rii", player1->lifesequence, player1->weaponsel->type);
                 player1->weaponswitch(player1->primweap);
                 player1->weaponchanging -= weapon::weaponchangetime/2;
-
+                if(player1->lifesequence==0) player1->resetstats(); //NEW
                 break;
             }
 
@@ -604,6 +605,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                     s->lastattackweapon = s->weapons[gun];
                     s->weapons[gun]->attackfx(from, to, -1);
                 }
+                s->pstatshots[gun]++; //NEW
                 break;
             }
 
@@ -664,6 +666,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             {
                 int tcn = getint(p),
                     acn = getint(p),
+                    gun = getint(p),
                     damage = getint(p),
                     armour = getint(p),
                     health = getint(p);
@@ -673,6 +676,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 target->armour = armour;
                 target->health = health;
                 dodamage(damage, target, actor, -1, type==SV_GIBDAMAGE, false);
+                actor->pstatdamage[gun]+=damage; //NEW //FIXME - no gun info provided, can we fix that?
                 break;
             }
 
@@ -756,6 +760,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                         d->armour = armour;
                         memcpy(d->ammo, ammo, sizeof(ammo));
                         memcpy(d->mag, mag, sizeof(mag));
+                        if(d->lifesequence==0) d->resetstats(); //NEW
                     }
                 }
                 break;
@@ -863,8 +868,12 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 break;
 
             case SV_TIMEUP:
-                timeupdate(getint(p));
+            {
+                int curgamemillis = getint(p);
+                int curgamelimit = getint(p);
+                timeupdate(curgamemillis, curgamelimit);
                 break;
+            }
 
             case SV_WEAPCHANGE:
             {
