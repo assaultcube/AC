@@ -228,9 +228,12 @@ public:
     int gunselect;
     bool akimbo;
     int ammo[NUMGUNS], mag[NUMGUNS], gunwait[NUMGUNS];
+    int pstatshots[NUMGUNS], pstatdamage[NUMGUNS];
 
     playerstate() : armour(0), primary(GUN_ASSAULT), nextprimary(GUN_ASSAULT), akimbo(false) {}
     virtual ~playerstate() {}
+
+    void resetstats() { loopi(NUMGUNS) pstatshots[i] = pstatdamage[i] = 0; }
 
     itemstat &itemstats(int type)
     {

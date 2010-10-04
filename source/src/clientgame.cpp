@@ -243,6 +243,15 @@ VARP(autoscreenshot, 0, 0, 1);
 
 void deathstate(playerent *pl)
 {
+    /*
+    TODO:FIXME: talk to DES|V-Man about passing arguments
+    if(pl==player1)
+    {
+        // execute ondeath event
+        const char *ondeath = getalias("ondeath");
+        if(ondeath && ondeath[0]) { addsleep(0, ondeath); }
+    }
+    */
     pl->state = CS_DEAD;
     pl->spectatemode = SM_DEATHCAM;
     pl->respawnoffset = pl->lastpain = lastmillis;
@@ -278,6 +287,7 @@ void spawnstate(playerent *d)              // reset player state not persistent 
         setscope(false);
         setburst(false);
     }
+    if(d->deaths==0) d->resetstats(); //NEW
 }
 
 playerent *newplayerent()                 // create a new blank player
@@ -636,6 +646,15 @@ VARP(hitsound, 0, 0, 1);
 
 void dodamage(int damage, playerent *pl, playerent *actor, int gun, bool gib, bool local)
 {
+    /*
+    TODO:FIXME: talk to DES|V-Man about passing arguments
+    // execute ondamage event
+    if(pl==player1)
+    {
+        const char *ondamage = getalias("ondamage");
+        if(ondamage && ondamage[0]) { addsleep(0, ondamage); }
+    }
+    */
     if(pl->state != CS_ALIVE || intermission) return;
 
     pl->respawnoffset = pl->lastpain = lastmillis;
@@ -708,12 +727,66 @@ void dokill(playerent *pl, playerent *act, bool gib, int gun)
     audiomgr.playsound(S_DIE1+rnd(2), pl);
 }
 
-VAR(minutesremaining, 1, 0, 0);
-
-void timeupdate(int timeremain)
+void pstat_score(int cn)
 {
-    minutesremaining = timeremain;
-    if(!timeremain)
+    if(intermission)
+    {
+        string scorestring;
+        int p_flags = 0;
+        int p_frags = 0;
+        int p_deaths = 0;
+        int p_points = 0;
+        playerent *pl = cn==player1->clientnum?player1:getclient(cn);
+        if(pl)
+        {
+            p_flags = pl->flagscore;
+            p_frags = pl->frags;
+            p_deaths = pl->deaths;
+            p_points = pl->points;
+        }
+        formatstring(scorestring)("%d %d %d %d %d %s", p_flags, p_frags, p_deaths, p_points, pl ? pl->team : -1, pl ? pl->name : "\"\"");
+        result(scorestring);
+    }
+    else result("0 0 0 0 -1 \"\"");
+}
+COMMAND(pstat_score, ARG_1INT);
+
+void pstat_weap(int cn)
+{
+    if(intermission)
+    {
+        string wbuf;
+        defformatstring(weapstring)("");
+        playerent *pl = cn==player1->clientnum?player1:getclient(cn);
+        loopi(NUMGUNS)
+        {
+            if(pl) formatstring(wbuf)("%s%s%d %d", weapstring, strlen(weapstring)?" ":"", pl->pstatshots[i], pl->pstatdamage[i]);
+            else formatstring(wbuf)("%s%s0 0", weapstring, strlen(weapstring)?" ":"");
+            copystring(weapstring, wbuf);
+        }
+        result(weapstring);
+    }
+    else
+    {
+        defformatstring(weapstring)("");
+        loopi(NUMGUNS) { defformatstring(wbuf)("%s%s0 0", weapstring, strlen(weapstring)?" ":""); copystring(weapstring, wbuf); }
+        result(weapstring);
+    }
+}
+COMMAND(pstat_weap, ARG_1INT);
+
+VAR(minutesremaining, 1, 0, 0);
+VAR(gametimecurrent, 1, 0, 0);
+VAR(gametimemaximum, 1, 0, 0);
+int lastgametimeupdate = 0;
+void timeupdate(int milliscur, int millismax)
+{
+    lastgametimeupdate = lastmillis;
+    gametimecurrent = milliscur;
+    gametimemaximum = millismax;
+    int millisremaining = gametimemaximum - gametimecurrent;
+    minutesremaining = ceil((1.0f*millisremaining)/60000.0f);
+    if(!millisremaining)
     {
         intermission = true;
         extern bool needsautoscreenshot;
@@ -727,8 +800,9 @@ void timeupdate(int timeremain)
     }
     else
     {
-        conoutf(_("time remaining: %d minutes"), timeremain);
-        if(timeremain==1)
+        extern int clockdisplay; // only output to console if no hud-clock is being shown
+        if(clockdisplay==0) conoutf(_("time remaining: %d minutes"), minutesremaining);
+        if(millisremaining==60000)
         {
             audiomgr.musicsuggest(M_LASTMINUTE1 + rnd(2), 70*1000, true);
             hudoutf("1 minute left!");
