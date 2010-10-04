@@ -1303,7 +1303,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
     clientstate &ts = target->state;
     ts.dodamage(damage);
     actor->state.damage += damage != 1000 ? damage : 0;
-    sendf(-1, 1, "ri6", gib ? SV_GIBDAMAGE : SV_DAMAGE, target->clientnum, actor->clientnum, damage, ts.armour, ts.health);
+    sendf(-1, 1, "ri7", gib ? SV_GIBDAMAGE : SV_DAMAGE, target->clientnum, actor->clientnum, gun, damage, ts.armour, ts.health);
     if(target!=actor){
         checkcombo (target, actor, damage, gun);
         if(!hitpush.iszero())
@@ -1811,7 +1811,7 @@ void startgame(const char *newname, int newmode, int newtime, bool notify)
         {
             // change map
             sendf(-1, 1, "risiii", SV_MAPCHANGE, smapname, smode, mapbuffer.available(), mapbuffer.revision);
-            if(smode>1 || (smode==0 && numnonlocalclients()>0)) sendf(-1, 1, "ri2", SV_TIMEUP, minremain);
+            if(smode>1 || (smode==0 && numnonlocalclients()>0)) sendf(-1, 1, "ri3", SV_TIMEUP, gamemillis, gamelimit);
         }
         packetbuf q(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
         send_item_list(q); // always send the item list when a game starts
@@ -2348,7 +2348,9 @@ void welcomepacket(packetbuf &p, int n)
         if(smode>1 || (smode==0 && numnonlocalclients()>0))
         {
             putint(p, SV_TIMEUP);
-            putint(p, minremain);
+            putint(p, (gamemillis>=gamelimit || forceintermission) ? gamelimit : gamemillis);
+            putint(p, gamelimit);
+            //putint(p, minremain*60);
         }
         send_item_list(p); // this includes the flags
     }
@@ -3388,7 +3390,7 @@ void checkintermission()
     if(minremain>0)
     {
         minremain = (gamemillis>=gamelimit || forceintermission) ? 0 : (gamelimit - gamemillis + 60000 - 1)/60000;
-        sendf(-1, 1, "ri2", SV_TIMEUP, minremain);
+        sendf(-1, 1, "ri3", SV_TIMEUP, (gamemillis>=gamelimit || forceintermission) ? gamelimit : gamemillis, gamelimit);
     }
     if(!interm && minremain<=0) interm = gamemillis+10000;
     forceintermission = false;
@@ -3812,7 +3814,7 @@ void extinfo_teamscorebuf(ucharbuf &p)
 {
     putint(p, m_teammode ? EXT_ERROR_NONE : EXT_ERROR);
     putint(p, gamemode);
-    putint(p, minremain);
+    putint(p, minremain); // possible TODO: use gamemillis, gamelimit here too?
     if(!m_teammode) return;
 
     int teamsizes[TEAM_NUM] = { 0 }, fragscores[TEAM_NUM] = { 0 }, flagscores[TEAM_NUM] = { 0 };
@@ -3854,7 +3856,7 @@ void localconnect()
 void processmasterinput(const char *cmd, int cmdlen, const char *args)
 {
 // AUTH WiP
-    uint id; 
+    uint id;
     string val;
     if(sscanf(cmd, "failauth %u", &id) == 1) authfailed(id);
     else if(sscanf(cmd, "succauth %u", &id) == 1) authsucceeded(id);

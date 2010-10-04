@@ -682,6 +682,7 @@ void drawscores()
     glPopAttrib();
 }
 
+VARP(clockdisplay,0,0,2);
 VARP(dbgpos,0,0,1);
 void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwater)
 {
@@ -841,6 +842,25 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             defformatstring(c_val)("fps %d", curfps);
             draw_text(c_val, VIRTW*2 - ( text_width(c_val) + FONTH ), VIRTH*2 - 3*FONTH/2);
         }
+    }
+    if(!intermission && clockdisplay!=0)
+    {
+        string gtime;
+        int cssec = (gametimecurrent+(lastmillis-lastgametimeupdate))/1000;
+        int gtsec = cssec%60;
+        int gtmin = cssec/60;
+        if(clockdisplay==1)
+        {
+            int gtmax = gametimemaximum/60000;
+            gtmin = gtmax - gtmin;
+            if(gtsec!=0)
+            {
+                gtmin -= 1;
+                gtsec = 60 - gtsec;
+            }
+        }
+        formatstring(gtime)("%02d:%02d", gtmin, gtsec);
+        draw_text(gtime, (2*VIRTW - text_width(gtime))/2, 2);
     }
 
     if(hidevote < 2 && multiplayer(false))
