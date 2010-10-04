@@ -202,7 +202,7 @@ void modifyvar(const char *name, const char *arg, char op)
         case ID_ALIAS: val = ATOI(id->action); break;
     }
     int argval = ATOI(arg);
-    switch(op)  
+    switch(op)
     {
         case '+': val += argval; break;
         case '-': val -= argval; break;
@@ -238,7 +238,7 @@ void modifyfvar(const char *name, const char *arg, char op)
         case ID_ALIAS: val = atof(id->action); break;
     }
     float argval = atof(arg);
-    switch(op)  
+    switch(op)
     {
         case '+': val += argval; break;
         case '-': val -= argval; break;
@@ -413,6 +413,7 @@ vector<long long> seer_t2; // timestamp of last n3 (10) level-2 calls
 char *executeret(const char *p)                            // all evaluation happens here, recursively
 {
 	bool noproblem = true;
+#if 0
 	if(execcontext>IEXC_CFG) // only PROMPT and MAP-CFG are checked for this, fooling with core/cfg at your own risk!
 	{
 		seer_count++;
@@ -426,13 +427,13 @@ char *executeret(const char *p)                            // all evaluation hap
 			if(lc<=seer_t1.length())
 			{
 				int dt = seer_t1[seer_index] - seer_t1[lc];
-				if(abs(dt)<2) 
+				if(abs(dt)<2)
 				{
 					conoutf("SCRIPT EXECUTION warning [%d:%s]", &p, p);
 					seer_t2.add(seer_t1[seer_index]);
 					if(seer_t2.length() >= 10)
 					{
-						if(seer_t2[0] == seer_t2.last()) 
+						if(seer_t2[0] == seer_t2.last())
 						{
 							conoutf("SCRIPT EXECUTION in danger of crashing the client - dropping script [%s].", p);
 							noproblem = false;
@@ -446,6 +447,7 @@ char *executeret(const char *p)                            // all evaluation hap
 			seer_count = 0;
 		}
 	}
+#endif
     const int MAXWORDS = 25;                    // limit, remove
     char *w[MAXWORDS];
     char *retval = NULL;
