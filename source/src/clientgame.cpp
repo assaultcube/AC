@@ -188,7 +188,8 @@ void newteam(char *name)
         if(nt == player1->team) return; // same team
         if(!team_isvalid(nt)) { conoutf(_("%c3\"%s\" is not a valid team name (try CLA, RVSF or SPECTATOR)"), CC, name); return; }
         if(team_isspect(nt) && player1->state != CS_DEAD) { conoutf(_("you need to be dead to become spectator")); return; }
-        addmsg(SV_SWITCHTEAM, "ri", nt);
+        if(player1->state == CS_EDITING) conoutf(_("you can't change team while editing"));
+        else addmsg(SV_SWITCHTEAM, "ri", nt);
     }
     else conoutf(_("your team is: %s"), team_string(player1->team));
 }
