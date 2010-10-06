@@ -1995,8 +1995,60 @@ Output:
 
 				<variable name="minutesremaining">
 					<description>Returns the remaining minutes of the currently played game. READ ONLY</description>
+					<references>
+						<identifierReference identifier="gametimecurrent"/>
+						<identifierReference identifier="gametimemaximum"/>
+						<identifierReference identifier="lastgametimeupdate"/>
+						<identifierReference identifier="millis"/>
+					</references>
 				</variable>
 
+				<variable name="gametimecurrent">
+					<description>Returns the time (in milliseconds) of the currently played game. READ ONLY</description>
+					<examples>
+					<example>
+						<code><![CDATA[showtime = [
+	if (> $lastgametimeupdate 0) [
+		gmr = (- $gametimemaximum (+ $gametimecurrent (- (millis) $lastgametimeupdate)))
+		gsr = (div $gmr 1000)
+		gts = (mod $gsr 60)
+		if (< $gts 10) [ gts = (concatword 0 $gts) ] [ ]
+		gtm = (div $gsr 60)
+		if (< $gtm 10) [ gtm = (concatword 0 $gtm) ] [ ]
+		echo (concatword $gtm : $gts) remaining 
+	] [
+		echo gametime not updated yet
+	]
+]]]></code>
+					</example>
+					</examples>
+					<references>
+						<identifierReference identifier="minutesremaining"/>
+						<identifierReference identifier="gametimemaximum"/>
+						<identifierReference identifier="lastgametimeupdate"/>
+						<identifierReference identifier="millis"/>
+					</references>
+				</variable>
+
+				<variable name="gametimemaximum">
+					<description>Returns the maximum time (in milliseconds) of the currently played game. READ ONLY</description>
+					<references>
+						<identifierReference identifier="minutesremaining"/>
+						<identifierReference identifier="gametimecurrent"/>
+						<identifierReference identifier="lastgametimeupdate"/>
+						<identifierReference identifier="millis"/>
+					</references>
+				</variable>
+
+				<variable name="lastgametimeupdate">
+					<description>Returns the last time (in milliseconds) the gametime was updated. READ ONLY</description>
+					<references>
+						<identifierReference identifier="minutesremaining"/>
+						<identifierReference identifier="gametimecurrent"/>
+						<identifierReference identifier="gametimemaximum"/>
+						<identifierReference identifier="millis"/>
+					</references>
+				</variable>
 				<variable name="paused">
 					<description>Determines if the game should be paused.</description>
 					<value token="B" description="pause game" minValue="0" maxValue="1" defaultValue="0"/>

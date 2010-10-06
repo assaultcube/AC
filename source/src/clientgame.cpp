@@ -778,7 +778,8 @@ COMMAND(pstat_weap, ARG_1INT);
 VAR(minutesremaining, 1, 0, 0);
 VAR(gametimecurrent, 1, 0, 0);
 VAR(gametimemaximum, 1, 0, 0);
-int lastgametimeupdate = 0;
+VAR(lastgametimeupdate, 1, 0, 0);
+
 void timeupdate(int milliscur, int millismax)
 {
     lastgametimeupdate = lastmillis;
@@ -939,6 +940,7 @@ void startmap(const char *name, bool reset)   // called just after a map load
     intermission = false;
     showscores(false);
     minutesremaining = -1;
+	lastgametimeupdate = 0;
     arenaintermission = 0;
     bool noflags = (m_ctf || m_ktf) && (!numflagspawn[0] || !numflagspawn[1]);
     if(*clientmap) conoutf(_("game mode is \"%s\"%s"), modestr(gamemode, modeacronyms > 0), noflags ? " - \f2but there are no flag bases on this map" : "");
