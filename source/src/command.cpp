@@ -405,11 +405,13 @@ void floatret(float v)
 
 void result(const char *s) { commandret = newstring(s); }
 
+#if 0
 // seer : script evaluation excessive recursion
 static int seer_count = 0; // count calls to executeret, check time every n1 (100) calls
 static int seer_index = -1; // position in timestamp vector
 vector<long long> seer_t1; // timestamp of last n2 (10) level-1 calls
 vector<long long> seer_t2; // timestamp of last n3 (10) level-2 calls
+#endif
 char *executeret(const char *p)                            // all evaluation happens here, recursively
 {
 	bool noproblem = true;
