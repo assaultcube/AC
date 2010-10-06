@@ -619,6 +619,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 d->lastaction = lastmillis;
                 d->lastattackweapon = d->weapons[GUN_GRENADE];
                 if(d->weapons[GUN_GRENADE]) d->weapons[GUN_GRENADE]->attackfx(from, to, nademillis);
+				if(d!=player1) d->pstatshots[GUN_GRENADE]++; //NEW
                 break;
             }
 
@@ -676,7 +677,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 target->armour = armour;
                 target->health = health;
                 dodamage(damage, target, actor, -1, type==SV_GIBDAMAGE, false);
-                actor->pstatdamage[gun]+=damage; //NEW //FIXME - no gun info provided, can we fix that?
+                actor->pstatdamage[gun]+=damage; //NEW
                 break;
             }
 
