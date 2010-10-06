@@ -171,7 +171,7 @@
   <xs:complexType name="exampleType">
     <xs:sequence>
       <xs:element name="code" type="codeType" minOccurs="1" maxOccurs="1"/>
-      <xs:element name="explanation" type="descriptionType" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="explanation" type="descriptionType" minOccurs="0" maxOccurs="unbounded"/>
     </xs:sequence>
   </xs:complexType>
 
@@ -198,6 +198,7 @@
     <xs:sequence>
       <xs:element name="command" type="commandType" minOccurs="0" maxOccurs="unbounded"/>
       <xs:element name="variable" type="variableType" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="scriptalias" type="scriptaliasType" minOccurs="0" maxOccurs="unbounded"/>
     </xs:sequence>
     <xs:attribute name="sort" type="xs:boolean" default="true"/>
   </xs:complexType>
@@ -219,6 +220,13 @@
         <xs:sequence>
           <xs:element name="value" type="intVariableValueDescriptionType" minOccurs="1" maxOccurs="1"/>
         </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="scriptaliasType">
+    <xs:complexContent>
+      <xs:extension base="identifierType">
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
