@@ -1009,6 +1009,139 @@
 			<description>This section describes gameplay related identifiers.</description>
 			<identifiers sort="true">
 
+				<scriptalias name="start_intermission">
+					<description>If this alias exists it will be run when the game reaches intermission.</description>
+					<examples>
+					<example>
+						<code><![CDATA[
+start_intermission = [
+	echo "INTERMISSION - STATISTICS TIME"
+	loop p 255 [
+		pn = (findpn $p)
+		if (strcmp $pn "") [ ] [ 
+			echo (concatword Player $p ":") (pstat_score $p) ":" (pstat_weap $p)
+		]
+	]
+	echo "------------------------------"
+]
+						]]></code>
+						<explanation>This will output the full statistics line for all players.</explanation>
+					</example>
+					</examples>
+					<references>
+					  <identifierReference identifier="pstat_score"/>
+					  <identifierReference identifier="pstat_weap"/>
+					</references>
+				</scriptalias>
+
+				<scriptalias name="mapstartonce">
+					<description>If this alias exists it will be run when the game starts a new map, then it is deleted.</description>
+					<examples>
+					<example>
+						<code><![CDATA[
+mapstartonce = [
+	echo "------------------------------"
+]
+						]]></code>
+						<explanation>This will output the string and override any other actions that might've been defined.</explanation>
+					</example>
+					<example>
+						<code><![CDATA[
+addOnLoadOnce [
+	echo "------------------------------"
+]
+						]]></code>
+						<explanation>This will output the string after any previously defined actions have run.</explanation>
+					</example>
+					</examples>
+					<references>
+					  <identifierReference identifier="add2alias"/>
+					  <identifierReference identifier="mapstartalways"/>
+					</references>
+				</scriptalias>
+
+				<scriptalias name="mapstartalways">
+					<description>If this alias exists it will be run every time the game starts a new map.</description>
+					<examples>
+					<example>
+						<code><![CDATA[
+mapstartalways = [
+	echo "------------------------------"
+]
+						]]></code>
+						<explanation>This will output the string and override any other actions that might've been defined.</explanation>
+					</example>
+					<example>
+						<code><![CDATA[
+addOnLoadAlways [
+	echo "------------------------------"
+]
+						]]></code>
+						<explanation>This will output the string after any previously defined actions have run.</explanation>
+					</example>
+					</examples>
+					<references>
+					  <identifierReference identifier="add2alias"/>
+					  <identifierReference identifier="mapstartonce"/>
+					</references>
+				</scriptalias>
+
+				<scriptalias name="add2alias">
+				  <description>This will append the passed 2nd argument to any existing content of the alias named in the 1st argument. Several popular aliases have predefined shortcuts using this scriptalias: addOnQuit, addOnLoadOnce, addOnLoadAlways. Check config/scripts.cfg for possible omissions in that list.</description>
+   				  <examples>
+					<example>
+						<code><![CDATA[
+foo = "one"
+add2alias foo two
+echo foo
+						]]></code>
+						<explanation>Output: one two</explanation>
+						<explanation>This will output the string and override any other actions that might've been defined.</explanation>
+					</example>
+					</examples>
+				</scriptalias>
+
+				<command name="pstat_score">
+					<description>Returns the score statistics for the player with the given clientnumber.</description>
+					<arguments>
+						<argument token="C" description="client" valueNotes="0..N"/>
+					</arguments>
+					<examples>
+					<example>
+						<code><![CDATA[
+echo (pstat_score 0)
+						]]></code>
+						<explanation>Output: 0 5 3 43 1 unarmed</explanation>
+						<explanation>The output is a list of FLAGS, FRAGS, DEATHS, POINTS, TEAM, and NAME.</explanation>
+					</example>
+					</examples>
+					<references>
+					  <identifierReference identifier="start_intermission"/>
+					  <identifierReference identifier="pstat_weap"/>
+					</references>
+				</command>
+
+				<command name="pstat_weap">
+					<description>Returns the shot statistics for the player with the given clientnumber.</description>
+					<arguments>
+						<argument token="C" description="client" valueNotes="0..N"/>
+					</arguments>
+					<examples>
+					<example>
+						<code><![CDATA[
+echo (pstat_weap 0)
+						]]></code>
+						<explanation>Output: 0 0 0 0 0 0 0 0 0 0 1 240 15 312 0 0 3 112 0 0</explanation>
+						<explanation>The output is a list of tuples for all weapons, SHOTS-FIRED and DAMAGE-DEALT for each.</explanation>
+					</example>
+					</examples>
+					<references>
+					  <identifierReference identifier="start_intermission"/>
+					  <identifierReference identifier="pstat_score"/>
+					  <identifierReference identifier="weapon"/>
+					</references>
+				</command>
+
 				<command name="shiftweapon">
 					<description>shifts your selected weapon by a given delta. By default the mouse-wheel shifts one up or down according to your scroll direction.</description>
 					<defaultKeys>
@@ -3001,6 +3134,14 @@ Output:
 		<section name="Head-Up Display" sortindex="06">
 			<description>This section describes the identifiers to configure the head-up display (HUD).</description>
 				<identifiers>
+
+				<variable name="clockdisplay">
+					<description>Sets the display mode for the HUD clock.</description>
+					<remarks>
+						<remark>The clock shows game-time, it is either off (0) or counts backward (1) or forward (2).</remark>
+					</remarks>
+					<value token="D" description="display mode" minValue="0" maxValue="2" defaultValue="0"/>
+				</variable>
 
 				<command name="clearminimap">
 					<description>Recreates the minimap for the current map.</description>
