@@ -656,6 +656,7 @@ void weapon::sendshoot(vec &from, vec &to)
     addmsg(SV_SHOOT, "ri2i3iv", lastmillis, owner->weaponsel->type,
            (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF),
            hits.length(), hits.length()*sizeof(hitmsg)/sizeof(int), hits.getbuf());
+	player1->pstatshots[player1->weaponsel->type]++; //NEW
 }
 
 bool weapon::modelattacking()
@@ -862,6 +863,7 @@ void grenadeent::activate(const vec &from, const vec &to)
                (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF),
                0);
         audiomgr.playsound(S_GRENADEPULL, SP_HIGH);
+  		player1->pstatshots[GUN_GRENADE]++; //NEW
     }
 }
 
