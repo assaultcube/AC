@@ -79,7 +79,7 @@ void processevent(client *c, shotevent &e)
 
 void processevent(client *c, suicideevent &e)
 {
-    serverdamage(c, c, 1000, GUN_KNIFE, false);
+    serverdamage(c, c, INT_MAX, GUN_KNIFE, false);
 }
 
 void processevent(client *c, pickupevent &e)

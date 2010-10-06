@@ -332,6 +332,13 @@ public:
     // just subtract damage here, can set death, etc. later in code calling this
     int dodamage(int damage)
     {
+        if(damage == INT_MAX)
+        {
+            damage = health;
+            armour = health = 0;
+            return damage;
+        }
+
         /* 4-level armor - continous approach: 16%, 33%, 37%, 41% */
 		int armoursection = 0;
 		int ad = damage;

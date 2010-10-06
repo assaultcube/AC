@@ -1302,16 +1302,20 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
     if ( m_arena && gun == GUN_GRENADE && arenaroundstartmillis + 2000 > gamemillis && target != actor ) return;
     clientstate &ts = target->state;
     ts.dodamage(damage);
-    actor->state.damage += damage != 1000 ? damage : 0;
-    sendf(-1, 1, "ri7", gib ? SV_GIBDAMAGE : SV_DAMAGE, target->clientnum, actor->clientnum, gun, damage, ts.armour, ts.health);
-    if(target!=actor){
-        checkcombo (target, actor, damage, gun);
-        if(!hitpush.iszero())
+    if(damage < INT_MAX)
+    {
+        actor->state.damage += damage;
+        sendf(-1, 1, "ri7", gib ? SV_GIBDAMAGE : SV_DAMAGE, target->clientnum, actor->clientnum, gun, damage, ts.armour, ts.health);
+        if(target!=actor)
         {
-            vec v(hitpush);
-            if(!v.iszero()) v.normalize();
-            sendf(target->clientnum, 1, "ri6", SV_HITPUSH, gun, damage,
-                  int(v.x*DNF), int(v.y*DNF), int(v.z*DNF));
+            checkcombo (target, actor, damage, gun);
+            if(!hitpush.iszero())
+            {
+                vec v(hitpush);
+                if(!v.iszero()) v.normalize();
+                sendf(target->clientnum, 1, "ri6", SV_HITPUSH, gun, damage,
+                      int(v.x*DNF), int(v.y*DNF), int(v.z*DNF));
+            }
         }
     }
     if(ts.health<=0)
