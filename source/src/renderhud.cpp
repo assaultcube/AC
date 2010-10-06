@@ -843,7 +843,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             draw_text(c_val, VIRTW*2 - ( text_width(c_val) + FONTH ), VIRTH*2 - 3*FONTH/2);
         }
     }
-    if(!intermission && clockdisplay!=0)
+    if(!intermission && clockdisplay!=0 && lastgametimeupdate!=0)
     {
         string gtime;
         int cssec = (gametimecurrent+(lastmillis-lastgametimeupdate))/1000;
