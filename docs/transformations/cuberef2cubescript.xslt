@@ -109,7 +109,7 @@
           <xsl:text>[</xsl:text>
           <xsl:value-of select="normalize-space(t:code)"/>
           <xsl:text>] [</xsl:text>
-          <xsl:value-of select="normalize-space(t:explanation)"/>
+          <xsl:value-of select="normalize-space(t:explanation)"/><!-- FIXME: will only use the 1st explanation (2010oct06:flowtron) -->
           <xsl:text>];</xsl:text>
           <xsl:value-of select="$newline"/>
         </xsl:for-each>

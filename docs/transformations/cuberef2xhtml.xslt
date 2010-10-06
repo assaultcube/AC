@@ -273,9 +273,11 @@
                                 <xsl:value-of select="t:code"/>
                               </div>
                               <xsl:if test="t:explanation">
+                                <xsl:for-each select="t:explanation">
                                 <div class="exampleExplanation">
-                                  <xsl:value-of select="t:explanation"/>
+                                  <xsl:value-of select="."/>
                                 </div>
+								</xsl:for-each>
                               </xsl:if>
                             </p>
                           </xsl:for-each>
