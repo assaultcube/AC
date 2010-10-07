@@ -339,8 +339,8 @@ public:
             return damage;
         }
 
-        /* 4-level armor - semi-continous approach: 16%, 33%, 34.5%, 36% */
-        int ad = armour > 25 ? damage * ( 3000 + 6 * armour ) / 10000 : ( damage * 16 ) / 100;
+        /* 4-level armor - semi-continous approach: 16%, 33%, 37%, 41% */
+        int ad = armour > 25 ? damage * ( 2500 + 16 * armour ) / 10000 : ( damage * 16 ) / 100;
         if(ad>armour) ad = armour;
         armour -= ad;
         damage -= ad;
