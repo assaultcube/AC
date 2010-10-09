@@ -2878,7 +2878,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 break;
             }
 
-            case SV_EXPLODE:
+            case SV_EXPLODE: // Brahma says: FIXME handle explosion by location and deal damage from server
             {
                 gameevent &exp = cl->addevent();
                 exp.type = GE_EXPLODE;
