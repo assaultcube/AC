@@ -399,7 +399,7 @@ msgstr "Die Bots haben die Runde gewonnen!"
 
 #: clients2c.cpp:1046
 msgid "the enemy"
-msgstr "gegnerischen"
+msgstr "m gegnerischen"
 
 #: clients2c.cpp:943
 msgid "the round is over! next round in 5 seconds..."
@@ -408,7 +408,7 @@ msgstr "Die Runde ist vorueber! Naechste Runde in 5 Sekunden..."
 #: clients2c.cpp:1046
 #, c-format
 msgid "the server forced %s to %s team"
-msgstr "Der Server zwang %s zum Team %s"
+msgstr "Der Server zwang %s zu%s Team"
 
 #: clients2c.cpp:1045
 #, c-format
@@ -468,7 +468,7 @@ msgstr "Du bist jetzt im Team %s"
 
 #: clients2c.cpp:1046
 msgid "your"
-msgstr "Deinem"
+msgstr " Deinem"
 
 #: clientgame.cpp:170
 #, c-format
