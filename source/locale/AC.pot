@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-08-08 00:37+0200\n"
+"POT-Creation-Date: 2010-10-09 19:21+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -24,7 +24,7 @@ msgstr ""
 msgid "editing in multiplayer requires coopedit mode (1)"
 msgstr ""
 
-#: client.cpp:68 client.cpp:203
+#: client.cpp:68 client.cpp:218
 msgid "aborting connection attempt"
 msgstr ""
 
@@ -48,98 +48,102 @@ msgstr ""
 msgid "%c2could %c3not connect%c2 to server"
 msgstr ""
 
-#: client.cpp:174
+#: client.cpp:189
 msgid "disconnected"
 msgstr ""
 
-#: client.cpp:209
+#: client.cpp:224
 msgid "not connected"
 msgstr ""
 
-#: client.cpp:212 client.cpp:527
+#: client.cpp:227 client.cpp:551
 msgid "attempting to disconnect..."
 msgstr ""
 
-#: client.cpp:499
+#: client.cpp:523
 msgid "attempting to connect..."
 msgstr ""
 
-#: client.cpp:504 client.cpp:540
+#: client.cpp:528 client.cpp:564
 #, c-format
 msgid "%c3could not connect to server"
 msgstr ""
 
-#: client.cpp:517
+#: client.cpp:541
 msgid "connected to server"
 msgstr ""
 
-#: client.cpp:545
+#: client.cpp:569
 #, c-format
 msgid "%c3server network error, disconnecting (%s) ..."
 msgstr ""
 
-#: client.cpp:567
+#: client.cpp:656
 #, c-format
 msgid "%c3map %s is secured, you can not send, receive or overwrite it"
 msgstr ""
 
-#: client.cpp:595
+#: client.cpp:684
 #, c-format
 msgid "map %s is too large to send"
 msgstr ""
 
-#: client.cpp:609
+#: client.cpp:698
 #, c-format
 msgid "sending map %s to server..."
 msgstr ""
 
-#: client.cpp:614
+#: client.cpp:703
 msgid "requesting map from server..."
 msgstr ""
 
-#: client.cpp:633
+#: client.cpp:722
 msgid "getting demo..."
 msgstr ""
 
-#: client.cpp:634
+#: client.cpp:723
 #, c-format
 msgid "getting demo %d..."
 msgstr ""
 
-#: client.cpp:640
+#: client.cpp:729
 msgid "listing demos..."
 msgstr ""
 
-#: clientgame.cpp:124
+#: clientgame.cpp:123
 #, c-format
 msgid "ignored players: %s"
 msgstr ""
 
-#: clientgame.cpp:125
+#: clientgame.cpp:124
 msgid "no players ignored."
 msgstr ""
 
-#: clientgame.cpp:145
+#: clientgame.cpp:144
 #, c-format
 msgid "muted players: %s"
 msgstr ""
 
-#: clientgame.cpp:146
+#: clientgame.cpp:145
 msgid "no players muted."
 msgstr ""
 
-#: clientgame.cpp:171
+#: clientgame.cpp:170
 #, c-format
 msgid "your name is: %s"
 msgstr ""
 
-#: clientgame.cpp:190
+#: clientgame.cpp:189
 #, c-format
 msgid "%c3\"%s\" is not a valid team name (try CLA, RVSF or SPECTATOR)"
 msgstr ""
 
-#: clientgame.cpp:191
+#: clientgame.cpp:190
 msgid "you need to be dead to become spectator"
+msgstr ""
+
+#: clientgame.cpp:191
+msgid "you can't change team while editing"
 msgstr ""
 
 #: clientgame.cpp:194
@@ -147,63 +151,63 @@ msgstr ""
 msgid "your team is: %s"
 msgstr ""
 
-#: clientgame.cpp:719
+#: clientgame.cpp:797
 msgid "intermission:"
 msgstr ""
 
-#: clientgame.cpp:720
+#: clientgame.cpp:798
 msgid "game has ended!"
 msgstr ""
 
-#: clientgame.cpp:727
+#: clientgame.cpp:806
 #, c-format
 msgid "time remaining: %d minutes"
 msgstr ""
 
-#: clientgame.cpp:797
+#: clientgame.cpp:876
 #, c-format
 msgid "%c3invalid ctf-flag entity (%i)"
 msgstr ""
 
-#: clientgame.cpp:868
+#: clientgame.cpp:947
 #, c-format
 msgid "game mode is \"%s\"%s"
 msgstr ""
 
-#: clientgame.cpp:1097
+#: clientgame.cpp:1176
 #, c-format
 msgid "%c3invalid vote"
 msgstr ""
 
-#: clientgame.cpp:1119
+#: clientgame.cpp:1198
 #, c-format
 msgid "%c3invalid reason"
 msgstr ""
 
-#: clientgame.cpp:1132
+#: clientgame.cpp:1211
 #, c-format
 msgid "%c3you voted already"
 msgstr ""
 
-#: clientgame.cpp:1149
+#: clientgame.cpp:1228
 #, c-format
 msgid "%s called a vote: %s"
 msgstr ""
 
-#: clientgame.cpp:1165
+#: clientgame.cpp:1244
 #, c-format
 msgid "%c3could not vote: %s"
 msgstr ""
 
-#: clientgame.cpp:1176
+#: clientgame.cpp:1255
 msgid "failed"
 msgstr ""
 
-#: clientgame.cpp:1176
+#: clientgame.cpp:1255
 msgid "passed"
 msgstr ""
 
-#: clientgame.cpp:1176
+#: clientgame.cpp:1255
 #, c-format
 msgid "vote %s"
 msgstr ""
@@ -258,140 +262,140 @@ msgstr ""
 msgid "player %s disconnected"
 msgstr ""
 
-#: clients2c.cpp:552
+#: clients2c.cpp:553
 msgid "map deemed unplayable - fix it before you can spawn"
 msgstr ""
 
-#: clients2c.cpp:576
+#: clients2c.cpp:577
 msgid "new round starting... fight!"
 msgstr ""
 
-#: clients2c.cpp:804
+#: clients2c.cpp:831
 #, c-format
 msgid "%s enlarged the map to size %d"
 msgstr ""
 
-#: clients2c.cpp:804
+#: clients2c.cpp:831
 #, c-format
 msgid "%s started a new map of size %d"
 msgstr ""
 
-#: clients2c.cpp:912
+#: clients2c.cpp:943
 msgid "the round is over! next round in 5 seconds..."
 msgstr ""
 
-#: clients2c.cpp:913
+#: clients2c.cpp:944
 msgid "the bots have won the round!"
 msgstr ""
 
-#: clients2c.cpp:914
+#: clients2c.cpp:945
 msgid "everyone died!"
 msgstr ""
 
-#: clients2c.cpp:915
+#: clients2c.cpp:946
 #, c-format
 msgid "team %s has won the round!"
 msgstr ""
 
-#: clients2c.cpp:916
+#: clients2c.cpp:947
 msgid "you are the survivor!"
 msgstr ""
 
-#: clients2c.cpp:917
+#: clients2c.cpp:948
 #, c-format
 msgid "%s is the survivor!"
 msgstr ""
 
-#: clients2c.cpp:976
+#: clients2c.cpp:984
 #, c-format
 msgid "you claimed %s status"
 msgstr ""
 
-#: clients2c.cpp:977
+#: clients2c.cpp:985
 #, c-format
 msgid "%s claimed %s status"
 msgstr ""
 
-#: clients2c.cpp:989
+#: clients2c.cpp:997
 #, c-format
 msgid "you can't change to team %s"
 msgstr ""
 
-#: clients2c.cpp:993
+#: clients2c.cpp:1001
 msgid "active"
 msgstr ""
 
-#: clients2c.cpp:993
+#: clients2c.cpp:1001
 msgid "spectate"
 msgstr ""
 
-#: clients2c.cpp:993
+#: clients2c.cpp:1001
 #, c-format
 msgid "you can't change to %s mode"
 msgstr ""
 
-#: clients2c.cpp:1020
+#: clients2c.cpp:1028
 #, c-format
 msgid "you're now in team %s"
 msgstr ""
 
-#: clients2c.cpp:1023
+#: clients2c.cpp:1031
 #, c-format
 msgid "the server forced you to team %s"
 msgstr ""
 
-#: clients2c.cpp:1034
+#: clients2c.cpp:1042
 #, c-format
 msgid "player %s switched to team %s"
 msgstr ""
 
-#: clients2c.cpp:1037
+#: clients2c.cpp:1045
 #, c-format
 msgid "the server forced %s to team %s"
 msgstr ""
 
-#: clients2c.cpp:1038
+#: clients2c.cpp:1046
 msgid "the enemy"
 msgstr ""
 
-#: clients2c.cpp:1038
+#: clients2c.cpp:1046
 #, c-format
 msgid "the server forced %s to %s team"
 msgstr ""
 
-#: clients2c.cpp:1038
+#: clients2c.cpp:1046
 msgid "your"
 msgstr ""
 
-#: clients2c.cpp:1045
+#: clients2c.cpp:1053
 #, c-format
 msgid "%s changed to active play"
 msgstr ""
 
-#: clients2c.cpp:1045
+#: clients2c.cpp:1053
 msgid "you"
 msgstr ""
 
-#: clients2c.cpp:1145
+#: clients2c.cpp:1156
 msgid "no demos available"
 msgstr ""
 
-#: clients2c.cpp:1211
+#: clients2c.cpp:1222
 #, c-format
 msgid "failed writing to \"%s\""
 msgstr ""
 
-#: clients2c.cpp:1214
+#: clients2c.cpp:1225
 #, c-format
 msgid "received demo \"%s\""
 msgstr ""
 
-#: clients2c.cpp:1223
+#: clients2c.cpp:1234
 #, c-format
 msgid "received map \"%s\" from server, reloading.."
 msgstr ""
 
-#: clients2c.cpp:1230
+#: clients2c.cpp:1241
 #, c-format
 msgid "map %s is too large to receive"
 msgstr ""
@@ -437,7 +441,7 @@ msgstr ""
 msgid "..restart AssaultCube for this setting to take effect"
 msgstr ""
 
-#: physics.cpp:901
+#: physics.cpp:958
 #, c-format
 msgid "can't find entity spawn spot! (%d, %d)"
 msgstr ""
