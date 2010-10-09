@@ -11,8 +11,8 @@ const char *entmdlnames[] =
 
 void renderent(entity &e)
 {
-    /* FIXME: if the item list change, this "e.twice?5:0" will be messed, but it is useless to provide a general fix for now */
-    const char *mdlname = entmdlnames[e.type-I_CLIPS+(e.twice&&e.type==I_GRENADE?5:0)];
+    /* FIXME: if the item list change, this hack will be messed */
+    const char *mdlname = entmdlnames[e.type-I_CLIPS+(m_lss && e.type==I_GRENADE ? 5:0)];
     float z = (float)(1+sinf(lastmillis/100.0f+e.x+e.y)/20),
           yaw = lastmillis/10.0f;
     rendermodel(mdlname, ANIM_MAPMODEL|ANIM_LOOP|ANIM_DYNALLOC, 0, 0, vec(e.x, e.y, z+S(e.x, e.y)->floor+e.attr1), yaw, 0);
@@ -285,6 +285,7 @@ void pickupeffects(int n, playerent *d)
     e.spawned = false;
     if(!d) return;
     d->pickup(e.type);
+    if (m_lss && e.type == I_GRENADE) d->pickup(e.type); // get 2
     itemstat &is = d->itemstats(e.type);
     if(d!=player1 && d->type!=ENT_BOT) return;
     if(&is)
@@ -417,14 +418,13 @@ void spawnallitems()            // spawns items locally
     loopv(ents) if(ents[i].fitsmode(gamemode) || (multiplayer(false) && gamespeed!=100 && (i=-1)))
     {
         ents[i].spawned = true;
-        ents[i].twice = false;
         ents[i].lastmillis = lastmillis;
     }
 }
 
 void resetspawns(int type)
 {
-    loopv(ents) if(type < 0 || type == ents[i].type) ents[i].twice = ents[i].spawned = false;
+    loopv(ents) if(type < 0 || type == ents[i].type) ents[i].spawned = false;
     if(m_noitemsnade || m_pistol)
     {
         loopv(ents) ents[i].transformtype(gamemode);
@@ -435,7 +435,6 @@ void setspawn(int i, bool on)
 {
     if(ents.inrange(i))
     {
-        ents[i].twice = (ents[i].type == I_GRENADE && ents[i].spawned && on ? true : false);
         ents[i].spawned = on;
         if (on) ents[i].lastmillis = lastmillis; // to control trypickup spam
     }

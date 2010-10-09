@@ -31,15 +31,15 @@ struct persistent_entity        // map entity
 
 struct entity : persistent_entity
 {
-    bool spawned, twice;               //the dynamic states of a map entity
+    bool spawned;               //the dynamic states of a map entity
     int lastmillis;
-    entity(short x, short y, short z, uchar type, short attr1, uchar attr2, uchar attr3, uchar attr4) : persistent_entity(x, y, z, type, attr1, attr2, attr3, attr4), spawned(false), twice(false) {}
+    entity(short x, short y, short z, uchar type, short attr1, uchar attr2, uchar attr3, uchar attr4) : persistent_entity(x, y, z, type, attr1, attr2, attr3, attr4), spawned(false) {}
     entity() {}
     bool fitsmode(int gamemode) { return !m_noitems && isitem(type) && !(m_noitemsnade && type!=I_GRENADE) && !(m_pistol && type==I_AMMO); }
     void transformtype(int gamemode)
     {
         if(m_noitemsnade && type==I_CLIPS) type = I_GRENADE;
-        else if(m_pistol && type==I_AMMO) type = I_CLIPS;
+        else if(m_pistol && ( type==I_AMMO || type==I_GRENADE )) type = I_CLIPS;
     }
 };
 
