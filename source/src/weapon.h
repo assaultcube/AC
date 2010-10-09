@@ -52,7 +52,7 @@ struct weapon
 
 class grenadeent;
 
-enum { GST_NONE, GST_INHAND, GST_THROWING };
+enum { GST_NONE = 0, GST_INHAND, GST_THROWING };
 
 struct grenades : weapon
 {

@@ -799,7 +799,7 @@ bool weapon::valid(int id) { return id>=0 && id<NUMGUNS; }
 
 // grenadeent
 
-enum { NS_NONE, NS_ACTIVATED = 0, NS_THROWED, NS_EXPLODED };
+enum { NS_NONE, NS_ACTIVATED = 0, NS_THROWN, NS_EXPLODED };
 
 grenadeent::grenadeent (playerent *owner, int millis)
 {
@@ -822,7 +822,7 @@ grenadeent::~grenadeent()
 
 void grenadeent::explode()
 {
-    if(nadestate!=NS_ACTIVATED && nadestate!=NS_THROWED ) return;
+    if(nadestate!=NS_ACTIVATED && nadestate!=NS_THROWN ) return;
     nadestate = NS_EXPLODED;
     static vec n(0,0,0);
     hits.setsize(0);
@@ -870,7 +870,7 @@ void grenadeent::activate(const vec &from, const vec &to)
 void grenadeent::_throw(const vec &from, const vec &vel)
 {
     if(nadestate!=NS_ACTIVATED) return;
-    nadestate = NS_THROWED;
+    nadestate = NS_THROWN;
     this->vel = vel;
     this->o = from;
     this->resetinterp();
@@ -896,7 +896,7 @@ void grenadeent::moveoutsidebbox(const vec &direction, playerent *boundingbox)
 }
 
 void grenadeent::destroy() { explode(); }
-bool grenadeent::applyphysics() { return nadestate==NS_THROWED; }
+bool grenadeent::applyphysics() { return nadestate==NS_THROWN; }
 
 void grenadeent::oncollision()
 {

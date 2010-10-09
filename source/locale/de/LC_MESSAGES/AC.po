@@ -234,7 +234,8 @@ msgstr "Verbindung getrennt"
 #: client.cpp:25
 msgid "editing in multiplayer requires coopedit mode (1)"
 msgstr ""
-"Editieren im Mehrspieler-Modus setzt den Coopedit-Spielmodus (1) voraus"
+"Editieren im Mehrspieler-Modus setzt den Coopedit-"
+"Spielmodus (1) voraus"
 
 #: clients2c.cpp:945
 msgid "everyone died!"
