@@ -24,6 +24,11 @@ void processevent(client *c, explodeevent &e)
         if(j<i) continue;
 
         int damage = int(guns[e.gun].damage*(1-h.dist/EXPDAMRAD));
+        bool chk_gun = e.gun==GUN_GRENADE;
+        bool chk_dir = h.dir[0]+h.dir[1]+h.dir[2]==0;
+        bool chk_dst = h.dist < 2.0f;
+        bool chk_cnr = c->clientnum == target->clientnum;
+        if(chk_gun && chk_dir && chk_dst && chk_cnr) damage = INT_MAX; // nade suicide
         serverdamage(target, c, damage, e.gun, true, h.dir);
     }
 }
