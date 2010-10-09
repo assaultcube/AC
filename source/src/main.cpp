@@ -377,7 +377,7 @@ void jpeg_screenshot(const char *imagepath, bool mapshot = false)
     extern int minimaplastsize;
     int iw = mapshot?minimaplastsize:screen->w;
     int ih = mapshot?minimaplastsize:screen->h;
-    
+
     uchar *pixels = new uchar[3*iw*ih];
 
     if(mapshot)
@@ -401,7 +401,7 @@ void jpeg_screenshot(const char *imagepath, bool mapshot = false)
         glPixelStorei(GL_PACK_ALIGNMENT, 1);
         glReadPixels(0, 0, iw, ih, GL_BGR, GL_UNSIGNED_BYTE, pixels);
         int stride = 3*iw;
-        
+
         GLubyte *swapline = (GLubyte *) malloc(stride);
         for(int row = 0; row < ih/2; row++)
         {
@@ -410,10 +410,10 @@ void jpeg_screenshot(const char *imagepath, bool mapshot = false)
 		  memcpy(pixels + (ih - row -1) * stride, swapline, stride);
         }
     }
- 
+
     const char *filename = screenshotpath(imagepath, "jpg");
     if(save_jpeg(filename, pixels, iw, ih, jpegquality) < 0) conoutf("\f3Error saving jpeg file");
-    
+
 	delete[] pixels;
 }
 
@@ -435,10 +435,10 @@ int save_png(const char *filename, SDL_Surface *image)
 {
     uchar *data = (uchar *)image->pixels;
     int iw = image->w, ih = image->h, pitch = image->pitch;
-    
+
     stream *f = openfile(filename, "wb");
     if(!f) { conoutf("could not write to %s", filename); return -1; }
-    
+
     uchar signature[] = { 137, 80, 78, 71, 13, 10, 26, 10 };
     f->write(signature, sizeof(signature));
 
@@ -524,7 +524,7 @@ void png_screenshot(const char *imagepath, bool mapshot = false)
     extern int minimaplastsize;
     int iw = mapshot?minimaplastsize:screen->w;
     int ih = mapshot?minimaplastsize:screen->h;
-    
+
     SDL_Surface *image = creatergbsurface(iw, ih);
     if(!image) return;
 
@@ -557,10 +557,10 @@ void png_screenshot(const char *imagepath, bool mapshot = false)
         dst += image->pitch;
     }
     delete[] tmp;
-    
+
     const char *filename = screenshotpath(imagepath, "png");
     if(save_png(filename, image) < 0) conoutf("\f3Error saving png file");
-   
+
     SDL_FreeSurface(image);
 }
 
@@ -998,6 +998,23 @@ static void clockreset() { clockrealbase = SDL_GetTicks(); clockvirtbase = total
 VARFP(clockerror, 990000, 1000000, 1010000, clockreset());
 VARFP(clockfix, 0, 0, 1, clockreset());
 
+const char *rndmapname()
+{
+    // "ac_depot_classic",
+    static const char * const mapnames[] = {
+        "ac_aqueous",  "ac_arabian",  "ac_arctic",  "ac_arid", "ac_complex",
+        "ac_depot",  "ac_desert",  "ac_desert2", "ac_desert3",  "ac_douze",
+        "ac_elevation",  "ac_gothic",  "ac_iceroad",  "ac_ingress", "ac_keller",
+        "ac_mines",  "ac_outpost",  "ac_power",  "ac_rattrap",  "ac_scaffold",
+        "ac_shine",  "ac_snow",  "ac_sunset",  "ac_toxic",  "ac_urban",
+        "ac_werk",
+    };
+    srand(time(NULL));
+    int l = sizeof(mapnames)/sizeof(mapnames[0]);
+    int n = rnd(l);
+    return mapnames[n];
+}
+
 int main(int argc, char **argv)
 {
     extern struct servercommandline scl;
@@ -1014,7 +1031,8 @@ int main(int argc, char **argv)
     bool quitdirectly = false;
     char *initscript = NULL;
     char *initdemo = NULL;
-    const char *initmap = "ac_shine";
+
+    const char *initmap = rndmapname();
 
     pushscontext(IEXC_CFG);
 
@@ -1099,7 +1117,7 @@ int main(int argc, char **argv)
 #if 0
     if(highprocesspriority) setprocesspriority(true);
 #endif
- 
+
     if (!dedicated) initlog("net");
     if(enet_initialize()<0) fatal("Unable to initialise network module");
 
