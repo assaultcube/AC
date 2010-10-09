@@ -574,7 +574,7 @@ void spawnplayer(playerent *d)
 {
     d->respawn();
     d->spawnstate(gamemode);
-    d->state = d==player1 && editmode ? CS_EDITING : CS_ALIVE;
+    d->state = CS_ALIVE;//TESTING:avoid being stuck in editmode// (d==player1 && editmode) ? CS_EDITING : CS_ALIVE;
     findplayerstart(d);
 }
 

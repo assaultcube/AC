@@ -35,7 +35,11 @@ VAR(editing, 1, 0, 0);
 void toggleedit(bool force)
 {
     if(player1->state==CS_DEAD) return;                   // do not allow dead players to edit to avoid state confusion
-    if(!force && !editmode && !allowedittoggle()) return; // not in most multiplayer modes
+    if(!force && !editmode && !allowedittoggle())
+    {
+        if(player1->state==CS_EDITING) player1->state = CS_ALIVE; //TESTING: avoid being stuck in editmode
+        return; // not in most multiplayer modes
+    }
     if(!(editmode = !editmode))
     {
         entinmap(player1);                                // find spawn closest to current floating pos

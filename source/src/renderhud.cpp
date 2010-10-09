@@ -920,7 +920,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     {
         glLoadIdentity();
         glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
-        const char *specttext = "GHOST [free]";//SPECTATING";
+        const char *specttext = "GHOST";
         if(player1->team == TEAM_SPECT) specttext = "GHOST";
         else if(player1->team == TEAM_CLA_SPECT) specttext = "[CLA]";
         else if(player1->team == TEAM_RVSF_SPECT) specttext = "[RVSF]";
