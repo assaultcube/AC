@@ -828,8 +828,7 @@ void grenadeent::explode()
     hits.setsize(0);
     splash();
     if(local)
-        addmsg(SV_EXPLODE, "ri3iv", lastmillis, GUN_GRENADE, millis, // fixme
-            hits.length(), hits.length()*sizeof(hitmsg)/sizeof(int), hits.getbuf());
+        addmsg(SV_EXPLODE, "ri3iv", lastmillis, GUN_GRENADE, millis, hits.length(), hits.length()*sizeof(hitmsg)/sizeof(int), hits.getbuf());
     audiomgr.playsound(S_FEXPLODE, &o);
 }
 
