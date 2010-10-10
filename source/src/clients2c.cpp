@@ -37,6 +37,7 @@ bool changemapserv(char *name, int mode, int download, int revision)        // f
         if(!name[0] || !load_world(name)) empty_world(0, true);
         return true;
     }
+    else if(player1->state==CS_EDITING) { /*conoutf("SANITY drop from EDITING");*/ toggleedit(true); } // fix stuck-in-editmode bug
     bool loaded = load_world(name);
     if(download > 0)
     {
