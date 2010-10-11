@@ -362,16 +362,6 @@ void jpeg_screenshot_____(const char *imagepath, bool mapshot = false)
 
 #include "jpegenc.h"
 
-int save_jpeg(const char *filename, uchar *pixels, int iw, int ih, int jpegquality)
-{
-    jpegenc *jpegencoder = new jpegenc;
-	if(jpegencoder->encode(filename, (colorRGB *)pixels, iw, ih, jpegquality) < 0) return -1;
-
-    conoutf("writing to file: %s", filename);
-	delete jpegencoder;
-	return 0;
-}
-
 void jpeg_screenshot(const char *imagepath, bool mapshot = false)
 {
     extern int minimaplastsize;
@@ -405,16 +395,20 @@ void jpeg_screenshot(const char *imagepath, bool mapshot = false)
         GLubyte *swapline = (GLubyte *) malloc(stride);
         for(int row = 0; row < ih/2; row++)
         {
-		  memcpy(swapline, pixels + row * stride, stride);
-		  memcpy(pixels + row * stride, pixels + (ih - row - 1) * stride, stride);
-		  memcpy(pixels + (ih - row -1) * stride, swapline, stride);
+            memcpy(swapline, pixels + row * stride, stride);
+            memcpy(pixels + row * stride, pixels + (ih - row - 1) * stride, stride);
+            memcpy(pixels + (ih - row -1) * stride, swapline, stride);
         }
     }
 
-    const char *filename = screenshotpath(imagepath, "jpg");
-    if(save_jpeg(filename, pixels, iw, ih, jpegquality) < 0) conoutf("\f3Error saving jpeg file");
+    const char *filename = findfile(screenshotpath(imagepath, "jpg"), "wb");
+    conoutf("writing to file: %s", filename);
 
-	delete[] pixels;
+    jpegenc *jpegencoder = new jpegenc;
+    jpegencoder->encode(filename, (colorRGB *)pixels, iw, ih, jpegquality);
+    delete jpegencoder;
+
+    delete[] pixels;
 }
 
 VARP(pngcompress, 0, 9, 9);
