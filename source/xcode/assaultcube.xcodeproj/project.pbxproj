@@ -28,13 +28,11 @@
 		9E59553A121EA8E9005ED5F7 /* crypto_tools.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9E595537121EA8E9005ED5F7 /* crypto_tools.cpp */; };
 		9EAE4C10120F2F370041E6E4 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 9EAE4BD8120F2D0A0041E6E4 /* Localizable.strings */; };
 		9EB8171A11ED9AEF00799589 /* INTL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9EB8171211ED9AEF00799589 /* INTL.framework */; };
-		9EB8171B11ED9AEF00799589 /* JPEG.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9EB8171311ED9AEF00799589 /* JPEG.framework */; };
 		9EB8171C11ED9AEF00799589 /* Ogg.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9EB8171411ED9AEF00799589 /* Ogg.framework */; };
 		9EB8171D11ED9AEF00799589 /* SDL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9EB8171511ED9AEF00799589 /* SDL.framework */; };
 		9EB8171E11ED9AEF00799589 /* SDL_image.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9EB8171611ED9AEF00799589 /* SDL_image.framework */; };
 		9EB8172111ED9AEF00799589 /* Vorbis.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9EB8171911ED9AEF00799589 /* Vorbis.framework */; };
 		9EB8179311ED9EDF00799589 /* INTL.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9EB8171211ED9AEF00799589 /* INTL.framework */; };
-		9EB8179411ED9EDF00799589 /* JPEG.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9EB8171311ED9AEF00799589 /* JPEG.framework */; };
 		9EB8179511ED9EDF00799589 /* Ogg.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9EB8171411ED9AEF00799589 /* Ogg.framework */; };
 		9EB8179611ED9EDF00799589 /* SDL.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9EB8171511ED9AEF00799589 /* SDL.framework */; };
 		9EB8179711ED9EDF00799589 /* SDL_image.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9EB8171611ED9AEF00799589 /* SDL_image.framework */; };
@@ -120,7 +118,6 @@
 			dstSubfolderSpec = 10;
 			files = (
 				9EB8179311ED9EDF00799589 /* INTL.framework in CopyFiles */,
-				9EB8179411ED9EDF00799589 /* JPEG.framework in CopyFiles */,
 				9EB8179511ED9EDF00799589 /* Ogg.framework in CopyFiles */,
 				9EB8179611ED9EDF00799589 /* SDL.framework in CopyFiles */,
 				9EB8179711ED9EDF00799589 /* SDL_image.framework in CopyFiles */,
@@ -166,7 +163,6 @@
 		9E595538121EA8E9005ED5F7 /* crypto_tools.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = crypto_tools.h; sourceTree = "<group>"; };
 		9EAE4BD9120F2D0A0041E6E4 /* English */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/Localizable.strings; sourceTree = "<group>"; };
 		9EB8171211ED9AEF00799589 /* INTL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = INTL.framework; path = Frameworks/INTL.framework; sourceTree = "<group>"; };
-		9EB8171311ED9AEF00799589 /* JPEG.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JPEG.framework; path = Frameworks/JPEG.framework; sourceTree = "<group>"; };
 		9EB8171411ED9AEF00799589 /* Ogg.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Ogg.framework; path = Frameworks/Ogg.framework; sourceTree = "<group>"; };
 		9EB8171511ED9AEF00799589 /* SDL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL.framework; path = Frameworks/SDL.framework; sourceTree = "<group>"; };
 		9EB8171611ED9AEF00799589 /* SDL_image.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL_image.framework; path = Frameworks/SDL_image.framework; sourceTree = "<group>"; };
@@ -174,6 +170,7 @@
 		9EB817DE11EDA3A300799589 /* assaultcube.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = assaultcube.icns; sourceTree = "<group>"; };
 		9EB8183711EDA6EE00799589 /* assaultcube.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = assaultcube.plist; sourceTree = "<group>"; };
 		9EB8183811EDA6EE00799589 /* launcher.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = launcher.plist; sourceTree = "<group>"; };
+		9EFB9B6E12634B1600FCE687 /* jpegenc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jpegenc.h; sourceTree = "<group>"; };
 		B2F67ED704C74A3F00A80002 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = /System/Library/Frameworks/OpenGL.framework; sourceTree = "<absolute>"; };
 		B914CE3F11CAC42F009BA307 /* audiomanager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = audiomanager.cpp; sourceTree = "<group>"; };
 		B914CE4011CAC42F009BA307 /* client.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = client.cpp; sourceTree = "<group>"; };
@@ -271,7 +268,6 @@
 				B9FA3B7D0DD9E6E400581F8D /* OpenAL.framework in Frameworks */,
 				B94198C409207E810029DAD1 /* OpenGL.framework in Frameworks */,
 				9EB8171A11ED9AEF00799589 /* INTL.framework in Frameworks */,
-				9EB8171B11ED9AEF00799589 /* JPEG.framework in Frameworks */,
 				9EB8171C11ED9AEF00799589 /* Ogg.framework in Frameworks */,
 				9EB8172111ED9AEF00799589 /* Vorbis.framework in Frameworks */,
 				9EB8171D11ED9AEF00799589 /* SDL.framework in Frameworks */,
@@ -308,7 +304,6 @@
 			isa = PBXGroup;
 			children = (
 				9EB8171211ED9AEF00799589 /* INTL.framework */,
-				9EB8171311ED9AEF00799589 /* JPEG.framework */,
 				9EB8171411ED9AEF00799589 /* Ogg.framework */,
 				9EB8171911ED9AEF00799589 /* Vorbis.framework */,
 				9EB8171511ED9AEF00799589 /* SDL.framework */,
@@ -425,6 +420,7 @@
 				B914CE5011CAC42F009BA307 /* hudgun.h */,
 				B914CE5111CAC42F009BA307 /* i18n.cpp */,
 				B914CE5211CAC42F009BA307 /* i18n.h */,
+				9EFB9B6E12634B1600FCE687 /* jpegenc.h */,
 				B914CE5311CAC42F009BA307 /* log.cpp */,
 				B914CE5411CAC42F009BA307 /* main.cpp */,
 				B914CE5611CAC42F009BA307 /* md2.h */,
