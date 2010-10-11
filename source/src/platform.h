@@ -45,9 +45,9 @@
 #ifndef STANDALONE
     #include <SDL.h>
     #include <SDL_image.h>
-	//#include <SDL_ttf.h>
+    //#include <SDL_ttf.h>
 
-	#include <utf8.h>
+    #include <utf8.h>
 
     #define GL_GLEXT_LEGACY
     #define __glext_h__
@@ -59,13 +59,11 @@
 
     #ifdef __APPLE__
         #include "INTL/libintl.h"
-        #include "JPEG/jpeglib.h"
         #include "OpenAL/al.h"
         #include "OpenAL/alc.h"
         #include "Vorbis/vorbisfile.h"
     #else
         #include <libintl.h>
-        #include <jpeglib.h>
         #include "AL/al.h"
         #include "AL/alc.h"
         #include "vorbis/vorbisfile.h"
