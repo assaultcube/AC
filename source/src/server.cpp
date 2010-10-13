@@ -1529,7 +1529,7 @@ bool balanceteams(int ftr)  // pro vs noobs never more
     if(mastermode != MM_OPEN || totalclients < 3 ) return true;
     int tsize[2] = {0, 0}, tscore[2] = {0, 0};
     int totalscore = 0, nplayers = 0;
-    int flagmult = (m_ctf ? 25 : (m_htf ? 12 : 6));
+    int flagmult = (m_ctf ? 50 : (m_htf ? 25 : 12));
 
     loopv(clients) if(clients[i]->type!=ST_EMPTY)
     {
@@ -1541,7 +1541,7 @@ bool balanceteams(int ftr)  // pro vs noobs never more
             tsize[c->team]++;
             // effective score per minute, thanks to wtfthisgame for the nice idea
             // in a normal game, normal players will do 500 points in 10 minutes
-            c->eff_score = c->state.points * 60 * 1000 / time + c->state.points / 8 + c->state.flagscore * flagmult;
+            c->eff_score = c->state.points * 60 * 1000 / time + c->state.points / 6 + c->state.flagscore * flagmult;
             tscore[c->team] += c->eff_score;
             nplayers++;
             totalscore += c->state.points;
@@ -1551,7 +1551,7 @@ bool balanceteams(int ftr)  // pro vs noobs never more
     int h = 0, l = 1;
     if ( tscore[1] > tscore[0] ) { h = 1; l = 0; }
     if ( 2 * tscore[h] < 3 * tscore[l] || totalscore < nplayers * 100 ) return true;
-    if ( tscore[h] > 3 * tscore[l] && tscore[h] > 50 * totalclients )
+    if ( tscore[h] > 3 * tscore[l] && tscore[h] > 150 * nplayers )
     {
 //        sendf(-1, 1, "ri2", SV_SERVERMODE, sendservermode(false) | AT_SHUFFLE);
         shuffleteams();
@@ -1692,11 +1692,11 @@ bool refillteams(bool now, int ftr)  // force only minimal amounts of players
     }
     if(diffnum < 2)
     {
-        if ( ( gamemillis - lastbalance ) > waitbalance && ( gamelimit - gamemillis ) > 4 * 60 * 1000 )
+        if ( ( gamemillis - lastbalance ) > waitbalance && ( gamelimit - gamemillis ) > 4*60*1000 )
         {
             if ( balanceteams (ftr) )
             {
-                waitbalance = 2 * 60 * 1000;
+                waitbalance = 2 * 60 * 1000 + gamemillis / 3;
                 switched = true;
             }
             else waitbalance = 20 * 1000;
