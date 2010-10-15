@@ -602,8 +602,8 @@ inline const char * gib_message(int gun)
 {
     switch (gun)
     {
-        case GUN_KNIFE: return "knifed";
-        case GUN_SNIPER: return "headshotted";
+        case GUN_KNIFE: return "slashed";
+        case GUN_SNIPER: return "headshot";
         case GUN_SHOTGUN: return "splattered";
         case GUN_GRENADE:
         default: return "gibbed";
