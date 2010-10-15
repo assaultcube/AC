@@ -702,12 +702,12 @@ void dokill(playerent *pl, playerent *act, bool gib, int gun)
         outf("\f2%s suicided%s", pname, pl==player1 ? "!" : "");
     else if(isteam(pl->team, act->team))
     {
-        if(pl==player1) outf("\f2you got %s by teammate %s", death, aname);
+        if(pl==player1) outf("\f2you were %s by teammate %s", death, aname);
         else outf("%s%s %s teammate %s", act==player1 ? "\f3" : "\f2", aname, death, pname);
     }
     else
     {
-        if(pl==player1) outf("\f2you got %s by %s", death, aname);
+        if(pl==player1) outf("\f2you were %s by %s", death, aname);
         else outf("\f2%s %s %s", aname, death, pname);
     }
 
@@ -1009,11 +1009,11 @@ void flagmsg(int flag, int message, int actor, int flagtime)
             audiomgr.playsound(S_FLAGPICKUP, SP_HIGHEST);
             if(firstperson)
             {
-                hudoutf("\f2you got the %sflag", m_ctf ? "enemy " : "");
+                hudoutf("\f2you have the %sflag", m_ctf ? "enemy " : "");
                 audiomgr.musicsuggest(M_FLAGGRAB, m_ctf ? 90*1000 : 900*1000, true);
                 musicplaying = flag;
             }
-            else hudoutf("\f2%s%s got %s flag", flagteam, colorname(act), teamstr);
+            else hudoutf("\f2%s%s have %s flag", flagteam, colorname(act), teamstr);
             break;
         case FM_LOST:
         case FM_DROP:
