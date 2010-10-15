@@ -1013,7 +1013,7 @@ void flagmsg(int flag, int message, int actor, int flagtime)
                 audiomgr.musicsuggest(M_FLAGGRAB, m_ctf ? 90*1000 : 900*1000, true);
                 musicplaying = flag;
             }
-            else hudoutf("\f2%s%s have %s flag", flagteam, colorname(act), teamstr);
+            else hudoutf("\f2%s%s has %s flag", flagteam, colorname(act), teamstr);
             break;
         case FM_LOST:
         case FM_DROP:
