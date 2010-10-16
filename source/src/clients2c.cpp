@@ -967,28 +967,28 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 break;
             }
 
-		    case SV_SERVOPINFO:
-		    {
+            case SV_SERVOPINFO:
+            {
                 loopv(players) { if(players[i]) players[i]->clientrole = CR_DEFAULT; }
-			    player1->clientrole = CR_DEFAULT;
+                player1->clientrole = CR_DEFAULT;
 
-			    int cl = getint(p), r = getint(p);
-			    if(cl >= 0 && r >= 0)
-			    {
-				    playerent *pl = (cl == getclientnum() ? player1 : newclient(cl));
-				    if(pl)
-				    {
-					    pl->clientrole = r;
+                int cl = getint(p), r = getint(p);
+                if(cl >= 0 && r >= 0)
+                {
+                    playerent *pl = (cl == getclientnum() ? player1 : newclient(cl));
+                    if(pl)
+                    {
+                        pl->clientrole = r;
                         if(pl->name[0])
                         {
                             // two messages required to allow for proper german translation - is there a better way to do it?
                             if(pl==player1) conoutf(_("you claimed %s status"), r == CR_ADMIN ? "admin" : "master");
                             else conoutf(_("%s claimed %s status"), colorname(pl), r == CR_ADMIN ? "admin" : "master");
                         }
-				    }
-			    }
-			    break;
-		    }
+                    }
+                }
+                break;
+            }
 
             case SV_TEAMDENY:
             {
@@ -999,7 +999,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 }
                 else
                 {
-					conoutf(_("you can't change to %s mode"), team_isspect(t) ? _("spectate") : _("active"));
+                    conoutf(_("you can't change to %s mode"), team_isspect(t) ? _("spectate") : _("active"));
                 }
                 break;
             }

@@ -1397,7 +1397,7 @@ void updatesdesc(const char *newdesc, ENetAddress *caller = NULL)
 int canspawn(client *c)   // beware: canspawn() doesn't check m_arena!
 {
     if(!c || c->type == ST_EMPTY || !c->isauthed || !team_isvalid(c->team) ||
-        (servmillis - c->connectmillis < 5000 && gamemillis > 10000 && totalclients > 3) ) return -1;
+        (servmillis - c->connectmillis < 5000 + c->state.reconnections && gamemillis > 10000 && totalclients > 3) ) return -1;
     if(!c->isonrightmap) return SP_WRONGMAP;
     if(mastermode == MM_MATCH && matchteamsize)
     {
@@ -2159,6 +2159,7 @@ void disconnect_client(int n, int reason)
     if(!clients.inrange(n) || clients[n]->type!=ST_TCPIP) return;
     sdropflag(n);
     client &c = *clients[n];
+    if (c.state.state == CS_ALIVE) c.state.lastdisc = servmillis;
     const char *scoresaved = "";
     if(c.haswelcome)
     {
@@ -2287,6 +2288,7 @@ bool restorescore(client &c)
     {
         sc->restore(c.state);
         sc->valid = false;
+        if ( c.connectmillis - sc->lastdisc < 5000 && (++c.state.reconnections >= 3) ) c.state.deaths++;
         return true;
     }
     return false;
@@ -2718,6 +2720,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     forcedeath(cl);
                     logline(ACLOG_INFO, "[%s] %s is on the wrong map: revision %d/%d", cl->hostname, cl->name, rev, gzs);
                     cl->loggedwrongmap = true;
+                    sendf(sender, 1, "rii", SV_SPAWNDENY, SP_WRONGMAP);
                 }
                 QUEUE_MSG;
                 break;
