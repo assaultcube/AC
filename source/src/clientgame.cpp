@@ -603,6 +603,18 @@ bool bad_map() // this function makes a pair with good_map from clients2c
     return (gamemode != GMODE_COOPEDIT && ( Mh >= MAXMHEIGHT || MA >= MAXMAREA ));
 }
 
+
+inline const char * spawn_message()
+{
+    if (spawnpermission == SP_WRONGMAP)
+    {
+        if (securemapcheck(getclientmap())) return "3The server has a different version for this secured map!! Impossible to spawn or getmap!!\nCheck if your client or the server is outdated.";
+        else return "3You have to be on the correct map to spawn. Type /getmap";
+    }
+    else if (m_coop) return "3Type /getmap or send a new map to the server and vote it";
+    else return "4Awaiting permission to spawn. Don\'t panic!";
+}
+
 bool tryrespawn()
 {
     if ( m_mp(gamemode) && bad_map() )
@@ -611,9 +623,9 @@ bool tryrespawn()
     }
     else if(spawnpermission > SP_OK_NUM)
     {
-         hudeditf(HUDMSG_TIMER, "\f%s", (spawnpermission == SP_WRONGMAP || m_coop) ? "3You have to be on the correct map to spawn. Type /getmap" : "4Awaiting permission to spawn. Don\'t panic!");
+        hudeditf(HUDMSG_TIMER, "\f%s", spawn_message());
     }
-    else if(player1->state==CS_DEAD)
+    else if(player1->state==CS_DEAD || player1->state==CS_SPECTATE)
     {
         if(team_isspect(player1->team))
         {

@@ -370,14 +370,8 @@ void save_world(char *mname)
     toptimize();
     setnames(mname);
     backup(cgzname, bakname);
-    // MediaPacks (flowtron) 2009oct07
-	//  	- check map dependencies and
-	// 		  set the appropriate value (NULL, "-1" or "A,B,C,...")
-	//  	  in the header
     checkmapdependencies(true);
     copystring(hdr.mediareq, reqmpak, 128);
-	//  	?? output? IIRC I did some somewhere .. 2010apr02
-    //  	:: -- - MediaPack - -- --- ----
     stream *f = opengzfile(cgzname, "wb");
     if(!f) { conoutf("could not write map to %s", cgzname); return; }
     hdr.version = MAPVERSION;
