@@ -1,14 +1,14 @@
 Packaging AssaultCube:
 
-1. fresh cvs checkout (Don't start AC afterwards to avoid any changes)
+1. fresh svn checkout (Don't start AC afterwards to avoid any changes)
 2. delete config/saved.cfg if existent
 3. make sure config/servers.cfg is empty
 4. delete contents of folder screenshots/
 5. delete contents of folder demos/
-6. delete the whole source/ folder (Does not apply to Linux, as the Linux packages comes with full source)
+6. delete the whole source/ folder
 7. delete the whole docs/autogen/ folder
-8. Copy shadow files (.dat) from another working AC installation (CVS) into the freshly exported directory
+8. Copy shadow files (.dat) from another working AC installation (SVN) into the freshly exported directory
 9. Delete the bin_*/ folders that are not needed by your platform
-10.Package AC (.exe/.tgz/etc) and name it like AssaultCube_vMAJOR.MINOR.FORMAT on Windows this could be AssaultCube_v1.0.exe
+10.Package AC (.exe/.tgz/etc) and name it like AssaultCube_vMAJOR.MINOR.BUILD.REVISION.FORMAT on Windows this could be AssaultCube_v1.0.0.0.exe
 
 This steps can be automatized, see source\vcpp\buildEnv\*.bat for examples.
