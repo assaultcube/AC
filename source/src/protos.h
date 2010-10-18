@@ -920,6 +920,7 @@ struct servercommandline
             case 'I': infopath = a; break;
             case 'o': filterrichtext(motd, a); break;
             case 'O': motdpath = a; break;
+            case 'g': forbidden = a; break;
             case 'n':
             {
                 char *t = servdesc_full;
