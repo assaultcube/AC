@@ -4,26 +4,9 @@ Please respect the authors reserved rights and permissions.
 
 
 ------------MAPS----------------------
-
-ac_complex	- Copyright © 2004-2006 by makkE (makk_e@web.de).
-ac_mines	- Copyright © 2004-2006 by makkE (makk_e@web.de).
-ac_depot	- Copyright © 2004-2006 by MitaMAN.
-ac_desert	- Copyright © 2004-2006 by makkE (makk_e@web.de) and Arghvark.
-ac_desert2	- By Nieb
-ac_snow		- By daMfr0
-ac_power	- By wotwot
-ac_elevation	- By A&D_Shadow
-ac_toxic	- © Copyright 2007-2008 by RandumIdiot (http://www.ri-ac.co.nr). Detailed copyright info for
-                  this map: packages/maps/readme_ac_toxic.txt
-ac_urban	- By Archangel, with help from RandumIdiot. 
-Mr.Floppy  	- Map: ac_keller, plus textures.
-DogDancing 	- Map: ac_shine, ac_scaffold, plus textures.
-R4zor 		- Map: ac_sunset
-KC 		- Map: ac_arctic 
-
-The included maps remain intellectual property of their respective creators. Mapmessages upon load may 
-provide further detail. 
-
+Check comments inside the *.cfg file included with the map for copyright information.
+The included maps remain intellectual property of their respective creators. 
+Mapmessages upon load may provide further detail.
 
 ------------MODELS--------------------
 
