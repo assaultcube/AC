@@ -798,9 +798,8 @@ void timeupdate(int milliscur, int millismax)
     lastgametimeupdate = lastmillis;
     gametimecurrent = milliscur;
     gametimemaximum = millismax;
-    int millisremaining = gametimemaximum - gametimecurrent;
-    minutesremaining = ceil((1.0f*millisremaining)/60000.0f);
-    if(!millisremaining)
+    minutesremaining = (gametimemaximum - gametimecurrent + 60000 - 1) / 60000;
+    if(!minutesremaining)
     {
         intermission = true;
         extern bool needsautoscreenshot;
@@ -810,17 +809,17 @@ void timeupdate(int milliscur, int millismax)
         conoutf(_("game has ended!"));
         consolescores();
         showscores(true);
-		if(identexists("start_intermission")) execute("start_intermission");
+        if(identexists("start_intermission")) execute("start_intermission");
     }
     else
     {
         extern int clockdisplay; // only output to console if no hud-clock is being shown
-        if(clockdisplay==0) conoutf(_("time remaining: %d minutes"), minutesremaining);
-        if(millisremaining==60000)
+        if(minutesremaining==1)
         {
             audiomgr.musicsuggest(M_LASTMINUTE1 + rnd(2), 70*1000, true);
             hudoutf("1 minute left!");
         }
+        else if(clockdisplay==0) conoutf(_("time remaining: %d minutes"), minutesremaining);
     }
 }
 
@@ -953,7 +952,7 @@ void startmap(const char *name, bool reset)   // called just after a map load
     intermission = false;
     showscores(false);
     minutesremaining = -1;
-	lastgametimeupdate = 0;
+    lastgametimeupdate = 0;
     arenaintermission = 0;
     bool noflags = (m_ctf || m_ktf) && (!numflagspawn[0] || !numflagspawn[1]);
     if(*clientmap) conoutf(_("game mode is \"%s\"%s"), modestr(gamemode, modeacronyms > 0), noflags ? " - \f2but there are no flag bases on this map" : "");
