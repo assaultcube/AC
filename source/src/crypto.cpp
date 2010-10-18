@@ -146,14 +146,6 @@ namespace tiger
         while(j < 56) temp[j++] = 0;
         *(chunk *)(temp+56) = (chunk)length<<3;
         compress((chunk *)temp, val.chunks);
-        if(!*(const uchar *)&islittleendian)
-        {
-            loopk(3)
-            {
-                uchar *c = &val.bytes[k*sizeof(chunk)];
-                loopl(sizeof(chunk)/2) swap(c[l], c[sizeof(chunk)-1-l]);
-            }
-        }
     }
 }
 
