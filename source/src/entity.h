@@ -482,7 +482,7 @@ public:
         curskin = nextskin[team_base(team)];
     }
 
-    void selectweapon(int w) { prevweaponsel = weaponsel = weapons[(gunselect = w)]; }
+    void selectweapon(int w) { if (weaponsel) prevweaponsel = weaponsel; weaponsel = weapons[(gunselect = w)]; if (!prevweaponsel) prevweaponsel = weaponsel; }
     void setprimary(int w) { primweap = weapons[(primary = w)]; }
     void setnextprimary(int w) { nextprimweap = weapons[(nextprimary = w)]; }
     bool isspectating() { return state==CS_SPECTATE || (state==CS_DEAD && spectatemode > SM_NONE); }

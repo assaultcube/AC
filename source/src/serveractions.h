@@ -181,8 +181,8 @@ struct banaction : playeraction
     bool wasvalid;
     void perform()
     {
-        ban b = { address, servmillis+20*60*1000 };
-		bans.add(b);
+        ban b = { address, servmillis+scl.ban_time };
+        bans.add(b);
         disconnect(DISC_MBAN);
     }
     virtual bool isvalid() { return wasvalid || playeraction::isvalid(); }

@@ -1363,7 +1363,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
                   actor->state.teamkills * 30 * 1000 > gamemillis &&
                   actor->state.frags < 4 * actor->state.teamkills ) )
             {
-                ban b = { actor->peer->address, servmillis+20*60*1000 };
+                ban b = { actor->peer->address, servmillis+scl.ban_time };
                 bans.add(b);
                 disconnect_client(actor->clientnum, DISC_AUTOBAN);
             }
