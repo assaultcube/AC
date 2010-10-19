@@ -938,7 +938,7 @@ void showmapstats()
     conoutf("\f2Map Quality Stats");
     conoutf("  The mean height is: %.2f", Mh);
     if (MA) conoutf("  The max area is: %d", MA);
-    if (m_flags && F2F < 1000) conoutf("  Flag-to-flag distance is: %d", F2F);
+    if (m_flags && F2F < 1000) conoutf("  Flag-to-flag distance is: %d", (int)fSqrt(F2F));
     if (item_fail) conoutf("  There are one or more items too close to each other in this map");
 }
 COMMAND(showmapstats, ARG_NONE);
