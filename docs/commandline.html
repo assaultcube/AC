@@ -22,9 +22,9 @@
             </h1>
             <p>
                 When launching AssaultCube you can pass &quot;switches&quot; to
-				allow different settings to occur on startup. 
-				Depending on your operating system there would be a different 
-				commandline-script or launcher to use (see below).
+                allow different settings to occur on startup. 
+                Depending on your operating system there would be a different 
+                commandline-script or launcher to use (see below).
                 <br clear="none" /><b>Note:</b> Some of these options can be changed in-game
                 through the menus without the need to manually edit the script file.
             </p>
@@ -193,8 +193,8 @@
                     </td>
                     <td>
                         Sets the client to update itself against masterserver M. 
-                        M is the base url of the master server and has to end in a / and without a 
-                        http:// prefix, the default is masterserver.cubers.net/cgi-bin/AssaultCube.pl/
+                        M is the base url of the master server, 
+                        the default is -massault.cubers.net
                     </td>
                 </tr>
                 <tr>
@@ -203,7 +203,7 @@
                     </td>
                     <td>
                         Executes the command C at startup (i.e. -e"say hello"). Look into the 
-						<a href="reference.xml" shape="rect">reference</a> for all possible commands.
+                        <a href="reference.xml" shape="rect">reference</a> for all possible commands.
                     </td>
                 </tr>
                 <tr>
@@ -214,6 +214,22 @@
                         Executes the init script before starting the graphics
                         and sound subsystems (recommended). By default the script <i>config/init.cfg</i>
                         is used, but you can override this setting by using <i>--init=yourfile.cfg</i>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="text-align: center;vertical-align: top">
+                        <span class="codecommandline">--version</span>
+                    </td>
+                    <td>
+                        Prints out the version of AssaultCube (i.e. 1.103). After submitting this switch the game will not start.
+                    </td>
+                </tr>
+                <tr>
+                    <td style="text-align: center;vertical-align: top">
+                        <span class="codecommandline">--protocol</span>
+                    </td>
+                    <td>
+                        Prints out the protocol of AssaultCube (i.e.  1132). After submitting this switch the game will not start.
                     </td>
                 </tr>
                 <tr>
@@ -233,6 +249,22 @@
                     <td>
                         Specifies the home directory for the user profile, AssaultCube will write 
                         custom settings and files to this directory (recommended).
+                    </td>
+                </tr>
+                <tr>
+                    <td style="text-align: center;vertical-align: top">
+                        <span class="codecommandline">--loadmap=</span>FILE
+                    </td>
+                    <td>
+                        Initializes the game with the given map (i.e. <i>--loadmap="ac_desert"</i>).
+                    </td>
+                </tr>
+                <tr>
+                    <td style="text-align: center;vertical-align: top">
+                        <span class="codecommandline">--loaddemo=</span>FILE
+                    </td>
+                    <td>
+                        Playbacks the given demo file at startup (i.e. <i>--loaddemo="LSS_ac_desert_2010.10.17_1750_4mr"</i>).
                     </td>
                 </tr>
                 <tr>
@@ -482,6 +514,15 @@
                 </tr>
                 <tr>
                     <td style="text-align: center;vertical-align: top">
+                        <span class="codecommandline">-g</span>f
+                    </td>
+                    <td>
+                        Sets the forbidden words file. The default is
+                        <span class="code">-gconfig/forbidden.cfg</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="text-align: center;vertical-align: top">
                         <span class="codecommandline">-I</span>f
                     </td>
                     <td>
@@ -535,6 +576,14 @@
                 </tr>
                 <tr>
                     <td style="text-align: center;vertical-align: top">
+                        <span class="codecommandline">-kB</span>N
+                    </td>
+                    <td>
+                        Sets the minutes a banned player will stay banned on the server (default: 20).
+                    </td>
+                </tr>
+                <tr>
+                    <td style="text-align: center;vertical-align: top">
                         <span class="codecommandline">-y</span>N
                     </td>
                     <td>
@@ -582,7 +631,7 @@
                         only admins can change autoteam. The '-P' parameter can be used several times on the commandline.
                         For example, '-Pb -Pm -PA' is equivalent to '-PbmA'.
                         The default settings are: "fkBMasRCDEw".
-         </td>
+                    </td>
                 </tr> 
                 <tr>
                     <td style="text-align: center;vertical-align: top">
@@ -592,7 +641,7 @@
                         Restricts voting for a map/mode to admins. Mapname and modenumber (if
                         specified) are separated by '#'. This switch can be used several times.
                         Example: -Aac_desert#13
-         </td>
+                    </td>
                 </tr>
                 <tr>
                     <td style="text-align: center;vertical-align: top">
@@ -613,20 +662,29 @@
                         <td>revert existing map to older revision</td></tr>
                         <tr><td>d</td>
                         <td>delete map (default: no one can)</td></tr>
-          </table>
+                        </table>
                         For example: -MCuD enables updating maps for normal players but
                         only admins can create or delete maps. The '-M' parameter can be used several times on the commandline.
-                        For example, '-MCb -Mu -MD' is equivalent to '-MCuD'.
+                        For example, '-MC -Mu -MD' is equivalent to '-MCuD'.
                         The default settings are: "CRU".<br clear="none" />
                         Note: Only maps in the 'incoming' folder are affected. Maps in 'official' and 'servermaps' are treated <i>read only</i>.
-         </td>
-                </tr> 
+                    </td>
+                </tr>
+                <tr>
+                    <td style="text-align: center;vertical-align: top">
+                        <span class="codecommandline">-Z</span>i
+                    </td>
+                    <td>
+                        Sets the incoming limit of maps in MegaBytes being sent to the server. If the the size of all maps in the 'incoming' 
+                        folder exceeds this limit new maps will be rejected (default: -Z10).
+                    </td>
+                </tr>
                 <tr>
                     <td style="text-align: center;vertical-align: top">
                         <span class="codecommandline">-D</span>n
                     </td>
                     <td>
-                      Sets the maximum number of recorded demos to be held in server RAM.
+                        Sets the maximum number of recorded demos to be held in server RAM.
                         Every game will be recorded. The recorded demos will be held in RAM. By default, up to 5 demos will be kept.
                         To disable automatic demo recording, set the number to 0.
                         The oldest demo will be deleted automatically if necessary, to allow recording of further demos.
@@ -639,7 +697,7 @@
                         <span class="codecommandline">-D</span>I
                     </td>
                     <td>
-                      Limit the demo downloading to intermission (it doubles the intermission time if someone is downloading a demo).
+                        Limit the demo downloading to intermission (it doubles the intermission time if someone is downloading a demo).
                     </td>
                 </tr>
                 <tr>
@@ -648,12 +706,12 @@
                     </td>
                     <td>
                         Sets a path (and optional filename prefix) to write all recorded demos to. The example
-            <span class="code">-Wserverdemos/mydemo</span> would save all demos to the directory
-            'serverdemos' and prefix the filenames with 'mydemo'. The filename will contain the (optional)
-            prefix, the (encoded) time, game mode and map. To set a path without filename prefix, use
-            <span class="code">-Wpath/</span>. A prefix without path can be set by <span class="code">
-            -Wprefix</span>. The server owner has to take precautions that the demo files don't fill up the
-            filesystem - especially, if permanent demo recording is also enabled (switch '-D').
+                        <span class="code">-Wserverdemos/mydemo</span> would save all demos to the directory
+                        'serverdemos' and prefix the filenames with 'mydemo'. The filename will contain the (optional)
+                        prefix, the (encoded) time, game mode and map. To set a path without filename prefix, use
+                        <span class="code">-Wpath/</span>. A prefix without path can be set by <span class="code">
+                        -Wprefix</span>. The server owner has to take precautions that the demo files don't fill up the
+                        filesystem - especially, if permanent demo recording is also enabled (switch '-D').
                     </td>
                 </tr> 
                 <tr>
@@ -673,7 +731,7 @@
                     <td>
                         Reads commandline arguments from a file. For example, 
                         <span class="code">-Cconfig/servercmdline.txt</span> will read arguments from that file.
-            Only one parameter per line is allowed. Empty lines, and any text after '//' will be ignored.
+                        Only one parameter per line is allowed. Empty lines, and any text after '//' will be ignored.
                         The file is only read once at server startup; changing the file's content will not affect a running server.
                         See config/servercmdline.txt for additional info. No file is read by default.
                     </td>
