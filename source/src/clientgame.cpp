@@ -927,6 +927,21 @@ void resetmap(bool mrproper)
 
 int suicided = -1;
 extern bool good_map();
+extern bool item_fail;
+extern int MA, F2F;
+extern float Mh;
+
+VARP(mapstats_hud, 0, 0, 1);
+
+void showmapstats()
+{
+    conoutf("\f2Map Quality Stats");
+    conoutf("  The mean height is: %.2f", Mh);
+    if (MA) conoutf("  The max area is: %d", MA);
+    if (m_flags && F2F < 1000) conoutf("  Flag-to-flag distance is: %d", F2F);
+    if (item_fail) conoutf("  There are one or more items too close to each other in this map");
+}
+COMMAND(showmapstats, ARG_NONE);
 
 void startmap(const char *name, bool reset)   // called just after a map load
 {
@@ -944,6 +959,7 @@ void startmap(const char *name, bool reset)   // called just after a map load
     if(m_valid(gamemode) && !m_mp(gamemode)) respawnself();
     else findplayerstart(player1);
     if(good_map()==MAP_IS_BAD) conoutf(_("You cannot play in this map due to quality requisites. Please, report this incident."));
+    if (mapstats_hud) showmapstats();
 
     if(!reset) return;
 

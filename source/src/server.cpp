@@ -2838,7 +2838,7 @@ void process(ENetPacket *packet, int sender, int chan)
             }
             case SV_SPECTCN:
                 cl->spectcn = getint(p);
-                logline(ACLOG_DEBUG, "[%s] %s is now spectating cn %d", cl->hostname, cl->name, cl->spectcn); // FIXME: comment out later
+//                 logline(ACLOG_DEBUG, "[%s] %s is now spectating cn %d", cl->hostname, cl->name, cl->spectcn); // FIXME: comment out later
                 QUEUE_MSG;
                 break;
 
