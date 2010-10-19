@@ -334,7 +334,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 int mycn = getint(p), prot = getint(p);
                 if(prot!=CUR_PROTOCOL_VERSION && !(watchingdemo && prot == -PROTOCOL_VERSION))
                 {
-                    conoutf(_("%c3you are using a different game protocol (you: %d, server: %d)"), CC, CUR_PROTOCOL_VERSION, prot);
+                    conoutf(_("%c3incompatible game protocol (local protocol: %d :: server protocol: %d)"), CC, CUR_PROTOCOL_VERSION, prot);
+		    conoutf("\f3if this occurs a lot, obtain an upgrade from \f1http://assault.cubers.net");
                     if(watchingdemo) conoutf("breaking loop : \f3this demo is using a different protocol\f5 : end it now!"); // SVN-WiP-bug: causes endless retry loop else!
                     else disconnect();
                     return;
