@@ -243,12 +243,13 @@ char *mlayout = NULL;
 int Mv = 0, Ma = 0; // moved up:, MA = 0;
 float Mh = 0;
 extern int connected;
+int map_quality = MAP_IS_EDITABLE;
 
-bool good_map()
+bool good_map() // call this function only at startmap
 {
-    if (!connected || gamemode == GMODE_COOPEDIT) return true;
-    bool checked = (MA==0) ? ((MA = checkarea(sfactor, mlayout)) < MAXMAREA && Mh < MAXMHEIGHT) : true;
-    return checked;
+    map_quality = ((MA = checkarea(sfactor, mlayout)) < MAXMAREA && Mh < MAXMHEIGHT) ? MAP_IS_GOOD : MAP_IS_BAD;
+    if ( (!connected || gamemode == GMODE_COOPEDIT) && map_quality == MAP_IS_BAD ) map_quality = MAP_IS_EDITABLE;
+    return map_quality;
 }
 
 VARP(hudextras, 0, 0, 3);
@@ -549,7 +550,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             case SV_SPAWNSTATE:
             {
 
-                if ( !good_map() )
+                if ( map_quality == MAP_IS_BAD )
                 {
                     loopi(6+2*NUMGUNS) getint(p);
                     conoutf(_("map deemed unplayable - fix it before you can spawn"));

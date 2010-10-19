@@ -237,6 +237,9 @@ float Mheight = 0;
 
 bool mapisok(mapstats *ms)
 {
+    if ( Mheight > MAXMHEIGHT ) { logline(ACLOG_INFO, "MAP CHECK FAIL: The overall ceil height is too high (%d cubes)", Mheight); return false; }
+    if ( Mopen > MAXMAREA ) { logline(ACLOG_INFO, "MAP CHECK FAIL: There is a big open area in this (hint: use more solid walls)", Mheight); return false; }
+
     if ( ms->hasflags ) // Check if flags are ok
     {
         struct { short x, y; } fl[2];
@@ -253,6 +256,8 @@ bool mapisok(mapstats *ms)
     }
     else FlagFlag = MINFF * 1000; // the map has no flags
 
+    if ( FlagFlag < MINFF ) { logline(ACLOG_INFO, "MAP CHECK FAIL: The flags are too close to each other"); return false; }
+
     for (int i = 0; i < ms->hdr.numents; i++)
     {
         int v = ms->enttypes[i];
@@ -266,7 +271,7 @@ bool mapisok(mapstats *ms)
             short *q = &ms->entposs[j*3];
             float r2 = 0;
             loopk(3){ r2 += (p[k]-q[k])*(p[k]-q[k]); }
-            if ( r2 == 0.0f ) { logline(ACLOG_INFO, "Items too close %s %s (%hd,%hd)", entnames[v], entnames[w],p[0],p[1]); return false; }
+            if ( r2 == 0.0f ) { logline(ACLOG_INFO, "MAP CHECK FAIL: Items too close %s %s (%hd,%hd)", entnames[v], entnames[w],p[0],p[1]); return false; }
             r2 = 1/r2;
             if (r2 < 0.0025f) continue;
             if (w != v)
@@ -278,10 +283,10 @@ bool mapisok(mapstats *ms)
         }
 /*        if (hdensity > 0.0f) { logline(ACLOG_INFO, "ITEM CHECK H %s %f", entnames[v], hdensity); }
         if (density > 0.0f) { logline(ACLOG_INFO, "ITEM CHECK D %s %f", entnames[v], density); }*/
-        if ( hdensity > 0.5f ) { logline(ACLOG_INFO, "Items too close %s %.2f (%hd,%hd)", entnames[v],hdensity,p[0],p[1]); return false; }
+        if ( hdensity > 0.5f ) { logline(ACLOG_INFO, "MAP CHECK FAIL: Items too close %s %.2f (%hd,%hd)", entnames[v],hdensity,p[0],p[1]); return false; }
         switch(v)
         {
-#define LOGTHISSWITCH(X) if( density > X ) { logline(ACLOG_INFO, "Items too close %s %.2f (%hd,%hd)", entnames[v],density,p[0],p[1]); return false; }
+#define LOGTHISSWITCH(X) if( density > X ) { logline(ACLOG_INFO, "MAP CHECK FAIL: Items too close %s %.2f (%hd,%hd)", entnames[v],density,p[0],p[1]); return false; }
             case I_CLIPS:
             case I_HEALTH: LOGTHISSWITCH(0.24f); break;
             case I_AMMO: LOGTHISSWITCH(0.04f); break;
@@ -293,7 +298,7 @@ bool mapisok(mapstats *ms)
 #undef LOGTHISSWITCH
         }
     }
-    return Mheight < MAXMHEIGHT && Mopen < MAXMAREA && FlagFlag > MINFF;
+    return true;
 }
 
 struct servermaprot : serverconfigfile

@@ -16,6 +16,8 @@ enum                            // static entity types
     MAXENTTYPES
 };
 
+enum {MAP_IS_BAD, MAP_IS_EDITABLE, MAP_IS_GOOD};
+
 extern const char *entnames[MAXENTTYPES];
 #define isitem(i) ((i) >= I_CLIPS && (i) <= I_AKIMBO)
 
