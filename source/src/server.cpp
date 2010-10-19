@@ -735,7 +735,8 @@ bool flagdistance(sflaginfo &f, int cn)
             v.x = f.pos[0]; v.y = f.pos[1];
             break;
     }
-    if(v.x < 0) return true;
+    bool lagging = (c.ping < 1000 && c.spj < 100);
+    if(v.x < 0 && !lagging) return true;
     float dist = c.state.o.dist(v);
     int pdist = check_pdist(&c,dist);
     if(pdist)
@@ -745,7 +746,7 @@ bool flagdistance(sflaginfo &f, int cn)
                 c.hostname, c.name, (pdist==2?"tried to touch":"touched"), team_string(&f == sflaginfos + 1), dist, c.farpickups);
         if (pdist==2) return false;
     }
-    return true;
+    return lagging ? false : true; // today I found a lag hacker :: Brahma, 19-oct-2010... lets test it a bit
 }
 
 void sendflaginfo(int flag = -1, int cn = -1)
