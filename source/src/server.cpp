@@ -1108,7 +1108,6 @@ void arenacheck()
     {
         client &c = *clients[i];
         if(c.type==ST_EMPTY || !c.isauthed || !c.isonrightmap || team_isspect(c.team)) continue; /// TODO: simplify the team/state sysmtem, it is not smart to have SPECTATE in both, for example
-        logline(ACLOG_INFO,"[%s] %s is here", c.hostname, c.name);
         if (c.state.lastspawn < 0 && (c.state.state==CS_DEAD || c.state.state==CS_SPECTATE))
         {
             dead = true;
