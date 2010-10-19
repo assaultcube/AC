@@ -93,6 +93,7 @@ int getmaxarea(int inversed_x, int inversed_y, int transposed, int ml_factor, ch
 int checkarea(int maplayout_factor, char *maplayout)
 {
     int area = 0, maxarea = 0;
+    if (!maplayout) { printf("WARNING: there is no maplayout to read in checkarea!"); return 0; }
     for (int i=0; i < 8; i++) {
         area = getmaxarea((i & 1),(i & 2),(i & 4), maplayout_factor, maplayout);
         if ( area > maxarea ) maxarea = area;

@@ -603,7 +603,6 @@ bool bad_map() // this function makes a pair with good_map from clients2c
     return (gamemode != GMODE_COOPEDIT && ( Mh >= MAXMHEIGHT || MA >= MAXMAREA ));
 }
 
-
 inline const char * spawn_message()
 {
     if (spawnpermission == SP_WRONGMAP)
@@ -927,6 +926,7 @@ void resetmap(bool mrproper)
 }
 
 int suicided = -1;
+extern bool good_map();
 
 void startmap(const char *name, bool reset)   // called just after a map load
 {
@@ -943,6 +943,7 @@ void startmap(const char *name, bool reset)   // called just after a map load
     lasthit = 0;
     if(m_valid(gamemode) && !m_mp(gamemode)) respawnself();
     else findplayerstart(player1);
+    if(good_map()==MAP_IS_BAD) conoutf(_("You cannot play in this map due to quality requisites. Please, report this incident."));
 
     if(!reset) return;
 
@@ -956,6 +957,7 @@ void startmap(const char *name, bool reset)   // called just after a map load
     arenaintermission = 0;
     bool noflags = (m_ctf || m_ktf) && (!numflagspawn[0] || !numflagspawn[1]);
     if(*clientmap) conoutf(_("game mode is \"%s\"%s"), modestr(gamemode, modeacronyms > 0), noflags ? " - \f2but there are no flag bases on this map" : "");
+
     if(multiplayer(false) || m_botmode)
     {
         loopv(gmdescs) if(gmdescs[i].mode == gamemode)
