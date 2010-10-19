@@ -252,17 +252,17 @@ bool good_map() // call this function only at startmap
 {
     if (mlayout) MA = checkarea(sfactor, mlayout);
 
+    F2F = 1000 * MINFF;
     if(m_flags)
     {
         flaginfo &f0 = flaginfos[0];
         flaginfo &f1 = flaginfos[1];
 #define DIST(x) (f0.pos.x - f1.pos.x)
-        F2F = (!numflagspawn[0] || !numflagspawn[1]) ? 1000 * MINFF : (int) fSqrt(DIST(x)*DIST(x)+DIST(y)*DIST(y));
+        F2F = (!numflagspawn[0] || !numflagspawn[1]) ? 1000 * MINFF : DIST(x)*DIST(x)+DIST(y)*DIST(y);
 #undef DIST
     }
 
     item_fail = false;
-
     loopv(ents)
     {
         entity &e1 = ents[i];
