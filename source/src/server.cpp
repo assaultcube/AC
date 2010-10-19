@@ -735,7 +735,7 @@ bool flagdistance(sflaginfo &f, int cn)
             v.x = f.pos[0]; v.y = f.pos[1];
             break;
     }
-    bool lagging = (c.ping < 1000 && c.spj < 100);
+    bool lagging = (c.ping > 1000 || c.spj > 100);
     if(v.x < 0 && !lagging) return true;
     float dist = c.state.o.dist(v);
     int pdist = check_pdist(&c,dist);
