@@ -11,8 +11,8 @@ location::location(int sound, const worldobjreference &r, int priority) : cfg(NU
     vector<soundconfig> &sounds = (r.type==worldobjreference::WR_ENTITY ? mapsounds : gamesounds);
     if(!sounds.inrange(sound)) 
     { 
-        if (warn_about_unregistered_sound) conoutf("you have at least one unregistered sound: %d", sound);
-        warn_about_unregistered_sound = false; // warn just once... how people are able to have this issue?!
+        if (warn_about_unregistered_sound) conoutf("\f3ERROR: this map contains an unregistered ambient sound (sound ID# %d)", sound); 
+        warn_about_unregistered_sound = false; // don't spam the console, warn just once... how people are able to have this issue?!
         stale = true;
         return;
     }
@@ -283,7 +283,7 @@ void locvector::forcepitch(float pitch)
     }
 }
 
-// delete all sounds except world-neutral sounds like GUI/notifacation
+// delete all sounds except world-neutral sounds like GUI/notification
 void locvector::deleteworldobjsounds()
 {
     loopv(*this)
