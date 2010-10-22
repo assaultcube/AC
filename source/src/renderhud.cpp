@@ -775,7 +775,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     extern int tsens(int x);
     tsens(-2000);
     extern void r_accuracy();
-    r_accuracy();
+    if (!is_spect) r_accuracy();
     if(!hideconsole) renderconsole();
     if(showstats)
     {

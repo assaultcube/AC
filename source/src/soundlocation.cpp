@@ -5,14 +5,17 @@
 #define DEBUGCOND (audiodebug==1)
 
 VARP(gainscale, 1, 90, 100);
-bool warn_about_unregistered_sound = true;
+int warn_about_unregistered_sound = 0;
 location::location(int sound, const worldobjreference &r, int priority) : cfg(NULL), src(NULL), ref(NULL), stale(false), playmillis(0)
 {
     vector<soundconfig> &sounds = (r.type==worldobjreference::WR_ENTITY ? mapsounds : gamesounds);
     if(!sounds.inrange(sound)) 
     { 
-        if (warn_about_unregistered_sound) conoutf("you have at least one unregistered sound: %d", sound);
-        warn_about_unregistered_sound = false; // warn just once... how people are able to have this issue?!
+        if (lastmillis - warn_about_unregistered_sound > 60 * 1000) // every minute
+        {
+            conoutf("you have at least one unregistered sound: %d", sound);
+            warn_about_unregistered_sound = lastmillis;
+        }
         stale = true;
         return;
     }
