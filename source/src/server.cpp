@@ -1398,7 +1398,8 @@ void updatesdesc(const char *newdesc, ENetAddress *caller = NULL)
 int canspawn(client *c)   // beware: canspawn() doesn't check m_arena!
 {
     if(!c || c->type == ST_EMPTY || !c->isauthed || !team_isvalid(c->team) ||
-        (servmillis - c->connectmillis < 5000 + c->state.reconnections && gamemillis > 10000 && totalclients > 3) ) return -1;
+        (servmillis - c->connectmillis < 1000 + c->state.reconnections * 2000 &&
+            gamemillis > 10000 && totalclients > 3 && !team_isspect(c->team)) ) return SP_OK_NUM; // equivalent to SP_DENY
     if(!c->isonrightmap) return SP_WRONGMAP;
     if(mastermode == MM_MATCH && matchteamsize)
     {
@@ -2160,7 +2161,7 @@ void disconnect_client(int n, int reason)
     if(!clients.inrange(n) || clients[n]->type!=ST_TCPIP) return;
     sdropflag(n);
     client &c = *clients[n];
-    if (c.state.state == CS_ALIVE) c.state.lastdisc = servmillis;
+    c.state.lastdisc = servmillis;
     const char *scoresaved = "";
     if(c.haswelcome)
     {
@@ -2289,7 +2290,8 @@ bool restorescore(client &c)
     {
         sc->restore(c.state);
         sc->valid = false;
-        if ( c.connectmillis - sc->lastdisc < 5000 && (++c.state.reconnections >= 3) ) c.state.deaths++;
+        if ( c.connectmillis - c.state.lastdisc < 5000 ) c.state.reconnections++;
+        else if ( c.state.reconnections ) c.state.reconnections--;
         return true;
     }
     return false;
@@ -2807,13 +2809,16 @@ void process(ENetPacket *packet, int sender, int chan)
             }
 
             case SV_TRYSPAWN:
-                if(team_isspect(cl->team) && canspawn(cl) < SP_OK_NUM)
+            {
+                int sp = canspawn(cl);
+                if(team_isspect(cl->team) && sp < SP_OK_NUM)
                 {
                     updateclientteam(sender, TEAM_ANYACTIVE, FTR_PLAYERWISH);
+                    sp = canspawn(cl);
                 }
-                if( !m_arena && canspawn(cl) < SP_OK_NUM && gamemillis > cl->state.lastspawn + 1000 ) sendspawn(cl);
+                if( !m_arena && sp < SP_OK_NUM && gamemillis > cl->state.lastspawn + 1000 ) sendspawn(cl);
                 break;
-
+            }
             case SV_SPAWN:
             {
                 int ls = getint(p), gunselect = getint(p);
