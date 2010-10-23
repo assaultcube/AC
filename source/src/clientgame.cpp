@@ -618,6 +618,8 @@ inline const char * spawn_message()
     // in large, friendly letters.
 }
 
+int waiting_permission = 0;
+
 bool tryrespawn()
 {
     if ( m_mp(gamemode) && bad_map() )
@@ -647,7 +649,12 @@ bool tryrespawn()
                     else lastspawnattempt = lastmillis;
                     return false;
                 }
-                respawnself();
+                if (lastmillis > waiting_permission)
+                {
+                    waiting_permission = lastmillis + 1000;
+                    respawnself();
+                }
+                else hudeditf(HUDMSG_TIMER, "\f%s", spawn_message());
                 return true;
             }
             else lastspawnattempt = lastmillis;
