@@ -168,7 +168,7 @@ struct kickaction : playeraction
     {
         wasvalid = false;
         role = roleconf('k');
-        if(isvalid() && strlen(reason) > 3)
+        if(isvalid() && strlen(reason) > 3 && valid_client(cn))
         {
             wasvalid = true;
             formatstring(desc)("kick player %s, reason: %s", clients[cn]->name, reason);
