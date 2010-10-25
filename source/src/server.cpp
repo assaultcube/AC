@@ -2016,10 +2016,11 @@ void callvotepacket (int, voteinfo *);
 
 bool scallvote(voteinfo *v, ENetPacket *msg) // true if a regular vote was called
 {
+    if (!v) return false;
     int area = isdedicated ? EE_DED_SERV : EE_LOCAL_SERV;
     int error = -1;
-    client *c = clients[v->owner], *b = ( v->boot ? clients[cn2boot] : NULL );
-    v->host = v->boot ? b->peer->address.host : 0;
+    client *c = clients[v->owner], *b = ( v->boot && valid_client(cn2boot) ? clients[cn2boot] : NULL );
+    v->host = v->boot && b ? b->peer->address.host : 0;
 
     int time = servmillis - c->lastvotecall;
     if ( c->nvotes > 0 && time > 4*60*1000 ) c->nvotes -= time/(4*60*1000);
