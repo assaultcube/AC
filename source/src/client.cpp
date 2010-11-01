@@ -61,18 +61,20 @@ void abortconnect()
 
 void connectserv_(const char *servername, const char *serverport = NULL, const char *password = NULL, int role = CR_DEFAULT)
 {
+    const char *defaultport = "28763";
+    if (!serverport) serverport = defaultport;
     extern void enddemoplayback();
     if(watchingdemo) enddemoplayback();
+
     if(connpeer)
     {
         conoutf(_("aborting connection attempt"));
         abortconnect();
     }
-
     connectrole = role;
     copystring(clientpassword, password ? password : "");
-
     ENetAddress address;
+
     int p = 0;
     if(serverport && serverport[0]) p = atoi(serverport);
     address.port = p > 0 ? p : CUBE_DEFAULT_SERVER_PORT;
