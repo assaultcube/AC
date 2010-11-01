@@ -1098,7 +1098,7 @@ int main(int argc, char **argv)
                 case 'e': initscript = &argv[i][2]; break;
                 default:  conoutf("\f3unknown commandline option: -%c", argv[i][1]);
             }
-            else if(!strncmp(argv[i], "assaultcube://", 13)) // browser direct connection
+            else if(!strncmp(argv[i], "assaultcube://", 14)) // browser direct connection
             {
                 const char *c = &argv[i][14], *p = c;
                 int len = 0;
@@ -1108,8 +1108,8 @@ int main(int argc, char **argv)
                 strncpy(servername,p,len);
                 servername[len] = '\0';
                 direct_connect = true;
-                c++;
-                if (*c!='?') continue;
+                if (*c) c++;
+                if (!*c || *c!='?') continue;
                 c++;
                 if (!strncmp(c, "port=", 5))
                 {
