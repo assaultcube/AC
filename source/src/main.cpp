@@ -10,8 +10,8 @@ void cleanup(char *msg)         // single program exit point;
         audiomgr.soundcleanup();
         cleanupserver();
 
-		extern void setdefaultgamma();
-		setdefaultgamma();
+        extern void setdefaultgamma();
+        setdefaultgamma();
     }
     SDL_ShowCursor(1);
     if(msg)
@@ -286,27 +286,27 @@ void jpeg_screenshot_____(const char *imagepath, bool mapshot = false)
     int iw = mapshot?minimaplastsize:screen->w;
     int ih = mapshot?minimaplastsize:screen->h;
     const char *filename = screenshotpath(imagepath, "jpg");
-	stream *file = openfile(screenshotpath(imagepath, "jpg"), "wb");
-	if(!file) { conoutf("failed to create: %s", filename); return; }
+    stream *file = openfile(screenshotpath(imagepath, "jpg"), "wb");
+    if(!file) { conoutf("failed to create: %s", filename); return; }
 
     int row_stride = 3*iw;
     uchar *pixels = new uchar[row_stride*ih];
 
     jpeg_compress_struct cinfo;
-	jpegscreenshoterror jerr;
+    jpegscreenshoterror jerr;
 
     cinfo.err = &jerr;
-	if(jerr.failed())
-	{
-	    jpeg_destroy_compress(&cinfo);
-		delete[] pixels;
-		delete file;
-		return;
-	}
+    if(jerr.failed())
+    {
+        jpeg_destroy_compress(&cinfo);
+        delete[] pixels;
+        delete file;
+        return;
+    }
 
     jpeg_create_compress(&cinfo);
-	jpegscreenshotdest dest(file);
-	cinfo.dest = &dest;
+    jpegscreenshotdest dest(file);
+    cinfo.dest = &dest;
     //jpeg_stdio_dest(&cinfo, jpegfile);
 
     if(mapshot)
@@ -356,7 +356,7 @@ void jpeg_screenshot_____(const char *imagepath, bool mapshot = false)
     jpeg_destroy_compress(&cinfo);
 
     delete[] pixels;
-	delete file;
+    delete file;
 }
 */
 
@@ -646,7 +646,7 @@ VARFP(gamma, 30, 100, 300,
 
 void setdefaultgamma()
 {
-	SDL_SetGamma(1, 1, 1);
+    SDL_SetGamma(1, 1, 1);
 }
 
 void resetgamma()
@@ -1068,13 +1068,13 @@ int main(int argc, char **argv)
                     }
                     else if(!strcmp(argv[i], "--version"))
                     {
-                    	printf("%.3f\n", AC_VERSION/1000.0f);
-                    	quitdirectly = true;
+                        printf("%.3f\n", AC_VERSION/1000.0f);
+                        quitdirectly = true;
                     }
                     else if(!strcmp(argv[i], "--protocol"))
                     {
-                    	printf("%d\n", PROTOCOL_VERSION);
-                    	quitdirectly = true;
+                        printf("%d\n", PROTOCOL_VERSION);
+                        quitdirectly = true;
                     }
                     else if(!strncmp(argv[i], "--loadmap=", 10))
                     {
@@ -1102,35 +1102,37 @@ int main(int argc, char **argv)
             {
                 const char *c = &argv[i][14], *p = c;
                 int len = 0;
-                while (*c && *c!='/') { len++; c++; }
+                while (*c && *c!='/' && *c!='?') { len++; c++; }
                 if (!len) { conoutf("\f3bad commandline syntax", argv[i]); continue; }
                 if (!servername) servername = new char[len+1];
                 strncpy(servername,p,len);
                 servername[len] = '\0';
                 direct_connect = true;
-                if (*c) c++;
+                if (*c && *c=='/') c++;
                 if (!*c || *c!='?') continue;
-                c++;
-                if (!strncmp(c, "port=", 5))
+                do
                 {
-                    c += 5; p = c; len = 0;
-                    while (*c && *c!='&') { len++; c++; }
-                    if (serverport) delete [] serverport;
-                    serverport = new char[len+1];
-                    strncpy(serverport,p,len);
-                    serverport[len] = '\0';
-                    if (*c!='&') continue;
-                    c++;
-                }
-                if (!strncmp(c, "password=", 9))
-                {
-                    c += 9; p = c; len = 0;
-                    while (*c && *c!='/') { len++; c++; }
-                    if (password) delete [] password;
-                    password = new char[len+1];
-                    strncpy(password,p,len);
-                    password[len] = '\0';
-                }
+                    if (*c) c++;
+                    if (!strncmp(c, "port=", 5))
+                    {
+                        c += 5; p = c; len = 0;
+                        while (*c && *c!='&' && *c!='/') { len++; c++; }
+                        if (serverport) delete [] serverport;
+                        serverport = new char[len+1];
+                        strncpy(serverport, p, len);
+                        serverport[len] = '\0';
+                    }
+                    else if (!strncmp(c, "password=", 9))
+                    {
+                        c += 9; p = c; len = 0;
+                        while (*c && *c!='&' && *c!='/') { len++, c++; }
+                        if (password) delete [] password;
+                        password = new char[len+1];
+                        strncpy(password, p, len);
+                        password[len] = '\0';
+                    }
+                    else break;
+                } while (*c && *c=='&' && *c!='/');
             }
             else conoutf("\f3unknown commandline argument: %c", argv[i][0]);
         }
