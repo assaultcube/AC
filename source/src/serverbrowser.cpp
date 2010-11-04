@@ -1268,12 +1268,18 @@ void clearservers()
 
 #define RETRIEVELIMIT 20000
 extern char *global_name;
-bool cllock = true;
+bool cllock = true, clfail = false;
 
 void retrieveservers(vector<char> &data)
 {
     ENetSocket sock = connectmaster();
-    if(sock == ENET_SOCKET_NULL) return;
+    if(sock == ENET_SOCKET_NULL)
+    {
+        conoutf("Master server is not replying.");
+        clfail = true;
+        return;
+    }
+    clfail = false;
 
     extern string mastername;
     defformatstring(text)("retrieving servers from %s... (esc to abort)", mastername);
@@ -1336,8 +1342,10 @@ void updatefrommaster(int force)
     vector<char> data;
     retrieveservers(data);
 
-    if(data.empty()) {
-        conoutf("Master server not replying. \f1Get more information at http://masterserver.cubers.net/");
+    if(data.empty())
+    {
+        if (!clfail) conoutf("Master server is not replying. \f1Get more information at http://masterserver.cubers.net/");
+        cllock = !clfail;
     }
     else
     {
@@ -1358,7 +1366,6 @@ void updatefrommaster(int force)
             execute(data.getbuf());
             if(curserver) addserver(curname, curport, curweight);
         }
-
         lastupdate = totalmillis;
     }
 }
