@@ -9,6 +9,8 @@ ENetHost *clienthost = NULL;
 ENetPeer *curpeer = NULL, *connpeer = NULL;
 int connmillis = 0, connattempts = 0, discmillis = 0;
 bool watchingdemo = false;
+extern bool clfail, cllock;
+extern int searchlan;
 
 int getclientnum() { return player1 ? player1->clientnum : -1; }
 
@@ -65,6 +67,7 @@ void connectserv_(const char *servername, const char *serverport = NULL, const c
     if (!serverport) serverport = defaultport;
     extern void enddemoplayback();
     if(watchingdemo) enddemoplayback();
+    if(!clfail && cllock && searchlan<2) return;
 
     if(connpeer)
     {
