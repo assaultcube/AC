@@ -228,16 +228,15 @@ http://www.gnu.org/licenses/gpl-2.0.txt
 
 ------------MUSIC---------------------
 
-..packages/audio/songs/ac.ogg
+../packages/audio/songs/ac.ogg
 
 End-of-match music: © 2005 Dietmar Pier, created for AssaultCube, all rights reserved.
  - cube.dietmarpier.de
 _____________________________________________________________________________________________________________
 
-..packages/audio/songs/pingpong/
+../packages/audio/songs/pingpong/
 
-PingPong: These tracks are by Lukas Zapletal & Ludek Horacek (pingpong)
-http://tanecni-olomouc.cz/ping-pong/
+Please read ../packages/audio/songs/pingpong/license.txt for more information.
 
 
 ------------OTHER LICENSES------------
