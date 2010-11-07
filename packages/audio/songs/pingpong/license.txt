@@ -1,0 +1,19 @@
+﻿Ping_Pong_-_Headshot.ogg
+Ping_Pong_-_Kamikadze.ogg
+
+By Lukas Zapletal (lzap@seznam.cz) and Ludek Horacek (ludek.horacek@worldonline.cz) of "Team Ping-Pong".
+
+These soundtracks are licensed under the "OpenMusic License".
+You should assume that this is the "yellow" license that does not allow commerical 
+redistribution unless you can contact the original authors to specify otherwise.
+
+The "Yellow OpenMusic License" is available here: http://openmusic.linuxtag.org/yellow.html
+
+THE ALBUM IS PROVIDED "AS IS" AND ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, 
+BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A 
+PARTICULAR PURPOSE ARE DISCLAIMED.
+
+These soundtracks were originally from here: http://tanecni-olomouc.cz/ping-pong/releases.html
+
+This link has since become out-dated, but can still be found at archive.org:
+	http://web.archive.org/web/20050829161023/tanecni-olomouc.cz/ping-pong/releases.html
