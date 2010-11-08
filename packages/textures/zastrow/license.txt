@@ -14,9 +14,10 @@ without this "info.txt" file.  Thanks if you link to my main page, but
 please don't link to the files directly.  Thanks, have fun! ;)
 
 
-These images were originally from: http://www.newlogicmedia.com/subverse/
-That link and Zastrow's email address have since become out-dated.
+These images were originally extracted from:
+	http://www.newlogicmedia.com/subverse/sub_crates_v2.zip
 
+That link and Zastrow's email address have since become out-dated.
 You can still find his old website at archive.org:
 	http://web.archive.org/web/20020602020919/http://www.newlogicmedia.com/subverse/
 
