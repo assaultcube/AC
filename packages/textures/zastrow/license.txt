@@ -1,0 +1,22 @@
+2wood_crate_02.jpg  3wood_crate_02.jpg  wood_crate_12.jpg
+2wood_crate_03.jpg  3wood_crate_03.jpg  wood_crate_02.jpg
+2wood_crate_10.jpg  3wood_crate_10.jpg  wood_crate_03.jpg
+2wood_crate_12.jpg  3wood_crate_12.jpg  wood_crate_10.jpg
+
+© Copyright 2003, Chris "subverse" Zastrow.
+
+These images have been used with the permission stated below:
+=============================================================
+Greetings from the dark underworld of texture art.  Thank you for giving my
+textures a try.  If you'd like to use these textures commercially, please 
+contact me via email.  Please do not alter these images, or distribute them 
+without this "info.txt" file.  Thanks if you link to my main page, but 
+please don't link to the files directly.  Thanks, have fun! ;)
+
+
+These images were originally from: http://www.newlogicmedia.com/subverse/
+That link and Zastrow's email address have since become out-dated.
+
+You can still find his old website at archive.org:
+	http://web.archive.org/web/20020602020919/http://www.newlogicmedia.com/subverse/
+
