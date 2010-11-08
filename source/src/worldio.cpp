@@ -264,7 +264,7 @@ void checkmapdependencies(bool silent = false, bool details = false) // find req
         else if(mapsounds[i].buf && mapsounds[i].buf->name)
         {
             used++;
-            USEFILENAME("packages/audio/sounds/%s", mapsounds[i].buf->name, msuse[i]);
+            USEFILENAME("packages/audio/%s", mapsounds[i].buf->name, msuse[i]);
         }
     }
     if(!silent) conoutf("used: %d mapsound slots", used);
@@ -805,7 +805,7 @@ void listmapdependencies(char *mapname)  // print map dependencies to file
             else if(mapsounds[i].buf && mapsounds[i].buf->name)
             {
                 used++;
-                ADDFILENAME("packages/audio/sounds/%s", mapsounds[i].buf->name, msuse[i]);
+                ADDFILENAME("packages/audio/%s", mapsounds[i].buf->name, msuse[i]);
                 f->printf("      mapsound slot %3d used %4d times, \"%s\"\n", i, msuse[i], fullname);
             }
         }

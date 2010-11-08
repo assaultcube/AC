@@ -266,7 +266,7 @@ bool sbuffer::load()
         string filepath;
         loopi(sizeof(exts)/sizeof(exts[0]))
         {
-            formatstring(filepath)("packages/audio/sounds/%s%s", name, exts[i]);
+            formatstring(filepath)("packages/audio/%s%s", name, exts[i]);
             stream *f = openfile(path(filepath), "rb");
             if(!f) continue;
 
