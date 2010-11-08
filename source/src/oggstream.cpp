@@ -115,7 +115,7 @@ bool oggstream::open(const char *f)
 
     loopi(sizeof(exts)/sizeof(exts[0]))
     {
-        formatstring(filepath)("packages/audio/songs/%s%s", f, exts[i]);
+        formatstring(filepath)("packages/audio/soundtracks/%s%s", f, exts[i]);
         ::stream *file = openfile(path(filepath), "rb");
         if(!file) continue;
 
