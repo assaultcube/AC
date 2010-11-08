@@ -3,6 +3,10 @@ NOTED) OR it will tell you the place to find the licenses for works within Assau
 Please respect the authors reserved rights and permissions.
 
 
+PLEASE, check any folder containing media for a "license" or "readme" file and use that for 
+information about licensing, etc...
+
+
 ------------MAPS----------------------
 Check comments inside the *.cfg file included with the map for copyright information.
 The included maps remain intellectual property of their respective creators. 
@@ -205,13 +209,7 @@ MitaMAN for gathering resources).
 
 Note: Shame on me I didn't keep track of my exact sources here. If you recognize any sound or components of a 
 sound that has copyright issues, please contact me so I can solve it. Thanks, makkE. 
-_____________________________________________________________________________________________________________
 
-..packages/audio/sounds/misc/vote
-
-Sounds by "wildweasel"
-
-These works are licensed under a Creative Commons Sampling Plus 1.0 License.
 _____________________________________________________________________________________________________________
 
 ..packages/audio/sounds/player/gib.wav
@@ -225,18 +223,6 @@ ________________________________________________________________________________
 
 These sounds are from OpenArena and are licensed under the terms of the GNU General Public License (GPL)
 http://www.gnu.org/licenses/gpl-2.0.txt
-
-------------MUSIC---------------------
-
-../packages/audio/songs/ac.ogg
-
-End-of-match music: © 2005 Dietmar Pier, created for AssaultCube, all rights reserved.
- - cube.dietmarpier.de
-_____________________________________________________________________________________________________________
-
-../packages/audio/songs/pingpong/
-
-Please read ../packages/audio/songs/pingpong/license.txt for more information.
 
 
 ------------OTHER LICENSES------------

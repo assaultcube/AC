@@ -1,0 +1,29 @@
+vote_call.ogg is sourced from "cardlock-open.wav".
+	(Available from: http://www.freesound.org/samplesViewSingle.php?id=39028)
+
+vote_fail.ogg is sourced from "Dsswtchx1.wav".
+	(Available from: http://www.freesound.org/samplesViewSingle.php?id=39022)
+
+vote_pass.ogg is sourced from "Dsswtch1.wav".
+	(Available from: http://www.freesound.org/samplesViewSingle.php?id=39021)
+
+All created by wildweasel (http://www.freesound.org/usersViewSingle.php?id=54676)
+
+
+These sounds are licensed under a "Creative Commons Sampling Plus 1.0" License:
+	http://creativecommons.org/licenses/sampling+/1.0/
+
+This means you are free:
+    * To sample, mash-up, or otherwise creatively transform this work for 
+      commercial or noncommercial purposes.
+    * To perform, display, and distribute copies of this whole work for 
+      noncommercial purposes (e.g., file-sharing or noncommercial webcasting).
+
+Under the following conditions:
+    * You must attribute the work in the manner specified by the author or licensor 
+      (but not in any way that suggests that they endorse you or your use of the work).
+    * You may not use this work to advertise for or promote anything but the work you create from it.
+    * For any reuse or distribution, you must make clear to others the license terms of this work.
+    * In no way are any of the following rights affected by the above:
+	o Your fair dealing or fair use rights, or other applicable copyright exceptions and limitations;
+	o Rights other persons may have either in the work itself or in how the work is used, such as publicity or privacy rights.
