@@ -1790,6 +1790,12 @@ void startgame(const char *newname, int newmode, int newtime, bool notify)
                 }
                 else f.x = f.y = -1;
             }
+            if (smapstats.flags[0] == 1 && smapstats.flags[1] == 1)
+            {
+                sflaginfo &f0 = sflaginfos[0], &f1 = sflaginfos[1];
+                FlagFlag = pow2(f0.x - f1.x) + pow2(f0.y - f1.y);
+                coverdist = FlagFlag > 6 * COVERDIST ? COVERDIST : FlagFlag / 6;
+            }
             entity e;
             loopi(smapstats.hdr.numents)
             {
