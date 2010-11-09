@@ -752,8 +752,8 @@ void dokill(playerent *pl, playerent *act, bool gib, int gun)
 
 void pstat_score(int cn)
 {
-    if(intermission)
-    {
+    /*if(intermission)
+    {*/
         string scorestring;
         int p_flags = 0;
         int p_frags = 0;
@@ -769,15 +769,15 @@ void pstat_score(int cn)
         }
         formatstring(scorestring)("%d %d %d %d %d %s", p_flags, p_frags, p_deaths, p_points, pl ? pl->team : -1, pl ? pl->name : "\"\"");
         result(scorestring);
-    }
-    else result("0 0 0 0 -1 \"\"");
+    /*}
+    else result("0 0 0 0 -1 \"\"");*/
 }
 COMMAND(pstat_score, ARG_1INT);
 
 void pstat_weap(int cn)
 {
-    if(intermission)
-    {
+    /*if(intermission)
+    {*/
         string wbuf;
         defformatstring(weapstring)("");
         playerent *pl = cn==player1->clientnum?player1:getclient(cn);
@@ -788,13 +788,13 @@ void pstat_weap(int cn)
             copystring(weapstring, wbuf);
         }
         result(weapstring);
-    }
+    /*}
     else
     {
         defformatstring(weapstring)("");
         loopi(NUMGUNS) { defformatstring(wbuf)("%s%s0 0", weapstring, strlen(weapstring)?" ":""); copystring(weapstring, wbuf); }
         result(weapstring);
-    }
+    }*/
 }
 COMMAND(pstat_weap, ARG_1INT);
 
