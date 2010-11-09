@@ -1268,7 +1268,7 @@ void clearservers()
 
 #define RETRIEVELIMIT 20000
 extern char *global_name;
-bool cllock = true, clfail = false;
+bool cllock = false, clfail = false;
 
 void retrieveservers(vector<char> &data)
 {
@@ -1337,6 +1337,7 @@ VARP(masterupdatefrequency, 1, 60*60, 24*60*60);
 void updatefrommaster(int force)
 {
     static int lastupdate = 0;
+    if(lastupdate==0) cllock = true;
     if(!force && lastupdate && totalmillis-lastupdate<masterupdatefrequency*1000) return;
 
     vector<char> data;
