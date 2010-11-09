@@ -147,8 +147,8 @@ inline void addpt(client *c, int points, int n = -1) {
 #define HEADSHOTPT    15                           // player gibs with head shot
 #define KNIFEPT       20                           // player gibs with the knife
 #define SHOTGPT       12                           // player gibs with the shotgun
-#define TKPT         -10                           // player tks
-#define FLAGTKPT     -(10+cnumber)                 // player tks the flag keeper/stealer
+#define TKPT         -20                           // player tks
+#define FLAGTKPT     -2*(10+cnumber)               // player tks the flag keeper/stealer
 
 void flagpoints (client *c, int message)
 {
@@ -268,6 +268,7 @@ void checkcombo (client *target, client *actor, int damage, int gun)
 
 #define COVERDIST 2000 // about 45 cubes
 #define REPLYDIST 8000 // about 90 cubes
+float coverdist = COVERDIST;
 
 int checkteamrequests(int sender)
 {
@@ -369,7 +370,7 @@ float a2c = 0, c2t = 0, a2t = 0; // distances: actor to covered, covered to targ
 
 inline bool testcover(int msg, int factor, client *actor)
 {
-    if ( a2c < COVERDIST && c2t < COVERDIST && a2t < COVERDIST )
+    if ( a2c < coverdist && c2t < coverdist && a2t < coverdist )
     {
         sendf(actor->clientnum, 1, "ri2", SV_HUDEXTRAS, msg);
         addpt(actor, factor);
