@@ -159,9 +159,9 @@ Texture *crosshairs[CROSSHAIR_NUM] = { NULL }; // weapon specific crosshairs
 
 Texture *loadcrosshairtexture(const char *c)
 {
-    defformatstring(p)("packages/misc/crosshairs/%s", c);
+    defformatstring(p)("packages/crosshairs/%s", c);
     Texture *crosshair = textureload(p, 3);
-    if(crosshair==notexture) crosshair = textureload("packages/misc/crosshairs/default.png", 3);
+    if(crosshair==notexture) crosshair = textureload("packages/crosshairs/default.png", 3);
     return crosshair;
 }
 
