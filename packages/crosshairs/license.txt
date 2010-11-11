@@ -5,9 +5,9 @@ default.png  teammate.png  wide.png
 dot.png      red_dot.png   x-dot.png
 
 
-Crosshairs by Topher (Death Illustrated):
+Crosshairs by Christopher "Topher" Crossen (Death Illustrated):
 	(http://webpages.charter.net/crossen2798/di/)
-=====================================================
+===============================================================
 lines.png  tri_dot.png  o_x.png
 tri.png    o.png        o_dot.png  
 
