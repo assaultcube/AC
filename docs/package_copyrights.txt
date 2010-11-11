@@ -29,13 +29,8 @@ EXCEPT:
  - blood.png = Copyright © Shane Nieb
  - scope.png = By Attila "Antiklimax" Feher, 2008.
 
-Files in: packages/misc/crosshairs
- - Mostly by makkE. 
-
-packages/misc/crosshairs/o.png
-			 o_dot.png
-			 o_x.png
- - By: Topher of Death Illustrated team. Permission to use given by Pushplay (Thanks!!) 
+packages/misc/crosshairs/*
+	Please read the "license.txt" file inside this folder.
 
 File: packages/misc/bullethole.png
  - Made by leileilol of OpenArena (licensed under GPL)
@@ -212,14 +207,12 @@ sound that has copyright issues, please contact me so I can solve it. Thanks, ma
 
 _____________________________________________________________________________________________________________
 
-..packages/audio/sounds/player/gib.wav
+..packages/audio/player/gib.ogg
+	Please read "gib.ogg_license.txt" for more information.
 
-This sound is from the game tremoulous, licensed under the CREATIVE COMMONS ATTRIBUTION-SHAREALIKE 2.5 
-LICENSE. Please read http://creativecommons.org/licenses/by-sa/2.5/ to learn more about this license. The 
-full license text is contained in the file named CC.
 ____________________________________________________________________________________________________________
 
-..packages/audio/sounds/weapon/ric*.wav
+..packages/audio/weapon/ric*.wav
 
 These sounds are from OpenArena and are licensed under the terms of the GNU General Public License (GPL)
 http://www.gnu.org/licenses/gpl-2.0.txt
