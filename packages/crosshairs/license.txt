@@ -8,8 +8,8 @@ dot.png      red_dot.png   x-dot.png
 Crosshairs by Topher (Death Illustrated):
 	(http://webpages.charter.net/crossen2798/di/)
 =====================================================
-lines.png  oct_dot.png  oct.png    tri_dot.png
-tri.png    o.png        o_dot.png  o_x.png
+lines.png  tri_dot.png  o_x.png
+tri.png    o.png        o_dot.png  
 
 
 All of these crosshairs are licensed under "Attribution-ShareAlike 2.0 Generic" Creative Commons.
