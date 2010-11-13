@@ -9,6 +9,8 @@ ENetHost *clienthost = NULL;
 ENetPeer *curpeer = NULL, *connpeer = NULL;
 int connmillis = 0, connattempts = 0, discmillis = 0;
 bool watchingdemo = false;
+extern bool clfail, cllock;
+extern int searchlan;
 
 int getclientnum() { return player1 ? player1->clientnum : -1; }
 
@@ -61,18 +63,21 @@ void abortconnect()
 
 void connectserv_(const char *servername, const char *serverport = NULL, const char *password = NULL, int role = CR_DEFAULT)
 {
+    const char *defaultport = "28763";
+    if (!serverport) serverport = defaultport;
     extern void enddemoplayback();
     if(watchingdemo) enddemoplayback();
+    if(!clfail && cllock && searchlan<2) return;
+
     if(connpeer)
     {
         conoutf(_("aborting connection attempt"));
         abortconnect();
     }
-
     connectrole = role;
     copystring(clientpassword, password ? password : "");
-
     ENetAddress address;
+
     int p = 0;
     if(serverport && serverport[0]) p = atoi(serverport);
     address.port = p > 0 ? p : CUBE_DEFAULT_SERVER_PORT;

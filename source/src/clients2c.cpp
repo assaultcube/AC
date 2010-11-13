@@ -240,15 +240,72 @@ void parsepositions(ucharbuf &p)
 
 extern int checkarea(int maplayout_factor, char *maplayout);
 char *mlayout = NULL;
-int Mv = 0, Ma = 0; // moved up:, MA = 0;
+int Mv = 0, Ma = 0, F2F = 1000 * MINFF; // moved up:, MA = 0;
 float Mh = 0;
 extern int connected;
+extern bool noflags;
+bool item_fail = false;
+int map_quality = MAP_IS_EDITABLE;
 
-bool good_map()
+/// TODO: many functions and variables are redundant between client and server... someone should redo the entire server code and unify client and server.
+bool good_map() // call this function only at startmap
 {
-    if (!connected || gamemode == GMODE_COOPEDIT) return true;
-    bool checked = (MA==0) ? ((MA = checkarea(sfactor, mlayout)) < MAXMAREA && Mh < MAXMHEIGHT) : true;
-    return checked;
+    if (mlayout) MA = checkarea(sfactor, mlayout);
+
+    F2F = 1000 * MINFF;
+    if(m_flags)
+    {
+        flaginfo &f0 = flaginfos[0];
+        flaginfo &f1 = flaginfos[1];
+#define DIST(x) (f0.pos.x - f1.pos.x)
+        F2F = (!numflagspawn[0] || !numflagspawn[1]) ? 1000 * MINFF : DIST(x)*DIST(x)+DIST(y)*DIST(y);
+#undef DIST
+    }
+
+    item_fail = false;
+    loopv(ents)
+    {
+        entity &e1 = ents[i];
+        if (e1.type < I_CLIPS || e1.type > I_AKIMBO) continue;
+        float density = 0, hdensity = 0;
+        loopvj(ents)
+        {
+            entity &e2 = ents[j];
+            if (e2.type < I_CLIPS || e2.type > I_AKIMBO || i == j) continue;
+#define DIST(x) (e1.x - e2.x)
+#define DIST_ATT ((e1.z + e1.attr1) - (e2.z + e2.attr1))
+            float r2 = DIST(x)*DIST(x) + DIST(y)*DIST(y) + DIST_ATT*DIST_ATT;
+#undef DIST_ATT
+#undef DIST
+            if ( r2 == 0.0f ) { conoutf("\f3MAP CHECK FAIL: Items too close %s %s (%hd,%hd)", entnames[e1.type], entnames[e2.type],e1.x,e1.y); item_fail = true; break; }
+            r2 = 1/r2;
+            if (r2 < 0.0025f) continue;
+            if (e1.type != e2.type)
+            {
+                hdensity += r2;
+                continue;
+            }
+            density += r2;
+        }
+        if ( hdensity > 0.5f ) { conoutf("\f3MAP CHECK FAIL: Items too close %s %.2f (%hd,%hd)", entnames[e1.type],hdensity,e1.x,e1.y); item_fail = true; break; }
+        switch(e1.type)
+        {
+#define LOGTHISSWITCH(X) if( density > X ) { conoutf("\f3MAP CHECK FAIL: Items too close %s %.2f (%hd,%hd)", entnames[e1.type],density,e1.x,e1.y); item_fail = true; break; }
+            case I_CLIPS:
+            case I_HEALTH: LOGTHISSWITCH(0.24f); break;
+            case I_AMMO: LOGTHISSWITCH(0.04f); break;
+            case I_HELMET: LOGTHISSWITCH(0.02f); break;
+            case I_ARMOUR:
+            case I_GRENADE:
+            case I_AKIMBO: LOGTHISSWITCH(0.005f); break;
+            default: break;
+#undef LOGTHISSWITCH
+        }
+    }
+
+    map_quality = (!item_fail && F2F > MINFF && MA < MAXMAREA && Mh < MAXMHEIGHT) ? MAP_IS_GOOD : MAP_IS_BAD;
+    if ( (!connected || gamemode == GMODE_COOPEDIT) && map_quality == MAP_IS_BAD ) map_quality = MAP_IS_EDITABLE;
+    return map_quality;
 }
 
 VARP(hudextras, 0, 0, 3);
@@ -334,7 +391,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 int mycn = getint(p), prot = getint(p);
                 if(prot!=CUR_PROTOCOL_VERSION && !(watchingdemo && prot == -PROTOCOL_VERSION))
                 {
-                    conoutf(_("%c3you are using a different game protocol (you: %d, server: %d)"), CC, CUR_PROTOCOL_VERSION, prot);
+                    conoutf(_("%c3incompatible game protocol (local protocol: %d :: server protocol: %d)"), CC, CUR_PROTOCOL_VERSION, prot);
+		    conoutf("\f3if this occurs a lot, obtain an upgrade from \f1http://assault.cubers.net");
                     if(watchingdemo) conoutf("breaking loop : \f3this demo is using a different protocol\f5 : end it now!"); // SVN-WiP-bug: causes endless retry loop else!
                     else disconnect();
                     return;
@@ -548,7 +606,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             case SV_SPAWNSTATE:
             {
 
-                if ( !good_map() )
+                if ( map_quality == MAP_IS_BAD )
                 {
                     loopi(6+2*NUMGUNS) getint(p);
                     conoutf(_("map deemed unplayable - fix it before you can spawn"));
@@ -967,28 +1025,28 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 break;
             }
 
-		    case SV_SERVOPINFO:
-		    {
+            case SV_SERVOPINFO:
+            {
                 loopv(players) { if(players[i]) players[i]->clientrole = CR_DEFAULT; }
-			    player1->clientrole = CR_DEFAULT;
+                player1->clientrole = CR_DEFAULT;
 
-			    int cl = getint(p), r = getint(p);
-			    if(cl >= 0 && r >= 0)
-			    {
-				    playerent *pl = (cl == getclientnum() ? player1 : newclient(cl));
-				    if(pl)
-				    {
-					    pl->clientrole = r;
+                int cl = getint(p), r = getint(p);
+                if(cl >= 0 && r >= 0)
+                {
+                    playerent *pl = (cl == getclientnum() ? player1 : newclient(cl));
+                    if(pl)
+                    {
+                        pl->clientrole = r;
                         if(pl->name[0])
                         {
                             // two messages required to allow for proper german translation - is there a better way to do it?
                             if(pl==player1) conoutf(_("you claimed %s status"), r == CR_ADMIN ? "admin" : "master");
                             else conoutf(_("%s claimed %s status"), colorname(pl), r == CR_ADMIN ? "admin" : "master");
                         }
-				    }
-			    }
-			    break;
-		    }
+                    }
+                }
+                break;
+            }
 
             case SV_TEAMDENY:
             {
@@ -999,7 +1057,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 }
                 else
                 {
-					conoutf(_("you can't change to %s mode"), team_isspect(t) ? _("spectate") : _("active"));
+                    conoutf(_("you can't change to %s mode"), team_isspect(t) ? _("spectate") : _("active"));
                 }
                 break;
             }

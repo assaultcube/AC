@@ -613,11 +613,12 @@ void r_accuracy()
         if(i == GUN_CPISTOL || i == GUN_GRENADE || !accuracym[i].shots) continue;
         rows+=1;
         acc = 100.0f*(float)accuracym[i].hits/(float)accuracym[i].shots;
-        defformatstring(x)("\f0%s: \f5%.1f%s  (%d/%d)",weapstr(i),acc,"%",accuracym[i].hits,accuracym[i].shots);
+        defformatstring(x)("\f5%5.1f%s (%3d/%3d) :\f0%s",acc,"%",accuracym[i].hits,accuracym[i].shots,weapstr(i));
         cols=max(cols,(int)strlen(x));
         lines.add(newstring(x));
     }
     if(rows<1) return;
+    cols++;
     blendbox(x_offset, y_offset, spacing+x_offset+curfont->defaultw*cols, spacing+y_offset+curfont->defaulth*rows, true, -1);
     int x=0;
     loopv(lines)

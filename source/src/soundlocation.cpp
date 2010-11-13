@@ -5,17 +5,22 @@
 #define DEBUGCOND (audiodebug==1)
 
 VARP(gainscale, 1, 90, 100);
-
+int warn_about_unregistered_sound = 0;
 location::location(int sound, const worldobjreference &r, int priority) : cfg(NULL), src(NULL), ref(NULL), stale(false), playmillis(0)
 {
     vector<soundconfig> &sounds = (r.type==worldobjreference::WR_ENTITY ? mapsounds : gamesounds);
     if(!sounds.inrange(sound)) 
     { 
-        conoutf("unregistered sound: %d", sound);
+        if (lastmillis - warn_about_unregistered_sound > 30 * 1000) // delay message to every 30 secs so console is not spammed.
+        {
+            // occurs when a map contains an ambient sound entity, but sound entity is not found in map cfg file.
+            conoutf("\f3ERROR: this map contains at least one unregistered ambient sound (sound entity# %d)", sound);
+            warn_about_unregistered_sound = lastmillis;
+        }
         stale = true;
         return;
     }
-    
+
     // get sound config
     cfg = &sounds[sound];
     cfg->onattach();
@@ -282,7 +287,7 @@ void locvector::forcepitch(float pitch)
     }
 }
 
-// delete all sounds except world-neutral sounds like GUI/notifacation
+// delete all sounds except world-neutral sounds like GUI/notification
 void locvector::deleteworldobjsounds()
 {
     loopv(*this)

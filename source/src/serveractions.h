@@ -61,7 +61,7 @@ struct mapaction : serveraction
             bool notify = valid_client(caller);
             int maploc = MAP_NOTFOUND;
             mapstats *ms = map[0] ? getservermapstats(map, false, &maploc) : NULL;
-            mapok = ms != NULL && ( (mode != GMODE_COOPEDIT && mapisok(ms)) || (mode == GMODE_COOPEDIT && !readonlymap(maploc)) );
+            mapok = (ms != NULL) && ( (mode != GMODE_COOPEDIT && mapisok(ms)) || (mode == GMODE_COOPEDIT && !readonlymap(maploc)) );
             if(!mapok)
             {
                 defformatstring(msg)("%s", ms ? ( mode == GMODE_COOPEDIT ? "this map cannot be coopedited in this server" : "sorry, but this map does not satisfy some quality requisites to be played in MultiPlayer Mode" ) : "the server does not have this map" );
@@ -168,7 +168,7 @@ struct kickaction : playeraction
     {
         wasvalid = false;
         role = roleconf('k');
-        if(isvalid() && strlen(reason) > 3)
+        if(isvalid() && strlen(reason) > 3 && valid_client(cn))
         {
             wasvalid = true;
             formatstring(desc)("kick player %s, reason: %s", clients[cn]->name, reason);
@@ -181,8 +181,8 @@ struct banaction : playeraction
     bool wasvalid;
     void perform()
     {
-        ban b = { address, servmillis+20*60*1000 };
-		bans.add(b);
+        ban b = { address, servmillis+scl.ban_time };
+        bans.add(b);
         disconnect(DISC_MBAN);
     }
     virtual bool isvalid() { return wasvalid || playeraction::isvalid(); }

@@ -16,6 +16,8 @@ enum                            // static entity types
     MAXENTTYPES
 };
 
+enum {MAP_IS_BAD, MAP_IS_EDITABLE, MAP_IS_GOOD};
+
 extern const char *entnames[MAXENTTYPES];
 #define isitem(i) ((i) >= I_CLIPS && (i) <= I_AKIMBO)
 
@@ -480,7 +482,7 @@ public:
         curskin = nextskin[team_base(team)];
     }
 
-    void selectweapon(int w) { prevweaponsel = weaponsel = weapons[(gunselect = w)]; }
+    void selectweapon(int w) { if (weaponsel) prevweaponsel = weaponsel; weaponsel = weapons[(gunselect = w)]; if (!prevweaponsel) prevweaponsel = weaponsel; }
     void setprimary(int w) { primweap = weapons[(primary = w)]; }
     void setnextprimary(int w) { nextprimweap = weapons[(nextprimary = w)]; }
     bool isspectating() { return state==CS_SPECTATE || (state==CS_DEAD && spectatemode > SM_NONE); }
@@ -602,8 +604,8 @@ inline const char * gib_message(int gun)
 {
     switch (gun)
     {
-        case GUN_KNIFE: return "knifed";
-        case GUN_SNIPER: return "headshotted";
+        case GUN_KNIFE: return "slashed";
+        case GUN_SNIPER: return "headshot";
         case GUN_SHOTGUN: return "splattered";
         case GUN_GRENADE:
         default: return "gibbed";

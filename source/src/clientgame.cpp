@@ -603,6 +603,23 @@ bool bad_map() // this function makes a pair with good_map from clients2c
     return (gamemode != GMODE_COOPEDIT && ( Mh >= MAXMHEIGHT || MA >= MAXMAREA ));
 }
 
+inline const char * spawn_message()
+{
+    if (spawnpermission == SP_WRONGMAP)
+    {
+        if (securemapcheck(getclientmap())) return "3The server has a different version for this secured map!!\nImpossible to spawn or getmap!!\nCheck if your client or the server is outdated.";
+        else return "3You have to be on the correct map to spawn.\nType /getmap";
+    }
+    else if (m_coop) return "3Type /getmap or send a new map to the server and vote it";
+    else return "4Awaiting permission to spawn.\n\f2DON\'T PANIC!";
+
+    // Despite its many glaring (and occasionally fatal) inaccuracies, AssaultCube itself has outsold the 
+    // Encyclopedia Galactica because it is slightly cheaper, and because it has the words "Don't Panic" 
+    // in large, friendly letters.
+}
+
+int waiting_permission = 0;
+
 bool tryrespawn()
 {
     if ( m_mp(gamemode) && bad_map() )
@@ -611,9 +628,9 @@ bool tryrespawn()
     }
     else if(spawnpermission > SP_OK_NUM)
     {
-         hudeditf(HUDMSG_TIMER, "\f%s", (spawnpermission == SP_WRONGMAP || m_coop) ? "3You have to be on the correct map to spawn. Type /getmap" : "4Awaiting permission to spawn. Don\'t panic!");
+        hudeditf(HUDMSG_TIMER, "\f%s", spawn_message());
     }
-    else if(player1->state==CS_DEAD)
+    else if(player1->state==CS_DEAD || player1->state==CS_SPECTATE)
     {
         if(team_isspect(player1->team))
         {
@@ -632,7 +649,12 @@ bool tryrespawn()
                     else lastspawnattempt = lastmillis;
                     return false;
                 }
-                respawnself();
+                if (lastmillis > waiting_permission)
+                {
+                    waiting_permission = lastmillis + 1000;
+                    respawnself();
+                }
+                else hudeditf(HUDMSG_TIMER, "\f%s", spawn_message());
                 return true;
             }
             else lastspawnattempt = lastmillis;
@@ -702,12 +724,12 @@ void dokill(playerent *pl, playerent *act, bool gib, int gun)
         outf("\f2%s suicided%s", pname, pl==player1 ? "!" : "");
     else if(isteam(pl->team, act->team))
     {
-        if(pl==player1) outf("\f2you got %s by teammate %s", death, aname);
+        if(pl==player1) outf("\f2you were %s by teammate %s", death, aname);
         else outf("%s%s %s teammate %s", act==player1 ? "\f3" : "\f2", aname, death, pname);
     }
     else
     {
-        if(pl==player1) outf("\f2you got %s by %s", death, aname);
+        if(pl==player1) outf("\f2you were %s by %s", death, aname);
         else outf("\f2%s %s %s", aname, death, pname);
     }
 
@@ -730,8 +752,8 @@ void dokill(playerent *pl, playerent *act, bool gib, int gun)
 
 void pstat_score(int cn)
 {
-    if(intermission)
-    {
+    /*if(intermission)
+    {*/
         string scorestring;
         int p_flags = 0;
         int p_frags = 0;
@@ -747,15 +769,15 @@ void pstat_score(int cn)
         }
         formatstring(scorestring)("%d %d %d %d %d %s", p_flags, p_frags, p_deaths, p_points, pl ? pl->team : -1, pl ? pl->name : "\"\"");
         result(scorestring);
-    }
-    else result("0 0 0 0 -1 \"\"");
+    /*}
+    else result("0 0 0 0 -1 \"\"");*/
 }
 COMMAND(pstat_score, ARG_1INT);
 
 void pstat_weap(int cn)
 {
-    if(intermission)
-    {
+    /*if(intermission)
+    {*/
         string wbuf;
         defformatstring(weapstring)("");
         playerent *pl = cn==player1->clientnum?player1:getclient(cn);
@@ -766,13 +788,13 @@ void pstat_weap(int cn)
             copystring(weapstring, wbuf);
         }
         result(weapstring);
-    }
+    /*}
     else
     {
         defformatstring(weapstring)("");
         loopi(NUMGUNS) { defformatstring(wbuf)("%s%s0 0", weapstring, strlen(weapstring)?" ":""); copystring(weapstring, wbuf); }
         result(weapstring);
-    }
+    }*/
 }
 COMMAND(pstat_weap, ARG_1INT);
 
@@ -783,12 +805,12 @@ VAR(lastgametimeupdate, 1, 0, 0);
 
 void timeupdate(int milliscur, int millismax)
 {
+	if( lastmillis - lastgametimeupdate < 1000 ) return; // avoid double-output, but possibly omit new message if joined 1s before server switches to next minute
     lastgametimeupdate = lastmillis;
     gametimecurrent = milliscur;
     gametimemaximum = millismax;
-    int millisremaining = gametimemaximum - gametimecurrent;
-    minutesremaining = ceil((1.0f*millisremaining)/60000.0f);
-    if(!millisremaining)
+    minutesremaining = (gametimemaximum - gametimecurrent + 60000 - 1) / 60000;
+    if(!minutesremaining)
     {
         intermission = true;
         extern bool needsautoscreenshot;
@@ -798,17 +820,17 @@ void timeupdate(int milliscur, int millismax)
         conoutf(_("game has ended!"));
         consolescores();
         showscores(true);
-		if(identexists("start_intermission")) execute("start_intermission");
+        if(identexists("start_intermission")) execute("start_intermission");
     }
     else
     {
         extern int clockdisplay; // only output to console if no hud-clock is being shown
-        if(clockdisplay==0) conoutf(_("time remaining: %d minutes"), minutesremaining);
-        if(millisremaining==60000)
+        if(minutesremaining==1)
         {
             audiomgr.musicsuggest(M_LASTMINUTE1 + rnd(2), 70*1000, true);
             hudoutf("1 minute left!");
         }
+        else if(clockdisplay==0) conoutf(_("time remaining: %d minutes"), minutesremaining);
     }
 }
 
@@ -916,6 +938,22 @@ void resetmap(bool mrproper)
 }
 
 int suicided = -1;
+extern bool good_map();
+extern bool item_fail;
+extern int MA, F2F;
+extern float Mh;
+
+VARP(mapstats_hud, 0, 0, 1);
+
+void showmapstats()
+{
+    conoutf("\f2Map Quality Stats");
+    conoutf("  The mean height is: %.2f", Mh);
+    if (MA) conoutf("  The max area is: %d", MA);
+    if (m_flags && F2F < 1000) conoutf("  Flag-to-flag distance is: %d", (int)fSqrt(F2F));
+    if (item_fail) conoutf("  There are one or more items too close to each other in this map");
+}
+COMMAND(showmapstats, ARG_NONE);
 
 void startmap(const char *name, bool reset)   // called just after a map load
 {
@@ -932,6 +970,8 @@ void startmap(const char *name, bool reset)   // called just after a map load
     lasthit = 0;
     if(m_valid(gamemode) && !m_mp(gamemode)) respawnself();
     else findplayerstart(player1);
+    if(good_map()==MAP_IS_BAD) conoutf(_("You cannot play in this map due to quality requisites. Please, report this incident."));
+    if (mapstats_hud) showmapstats();
 
     if(!reset) return;
 
@@ -941,10 +981,11 @@ void startmap(const char *name, bool reset)   // called just after a map load
     intermission = false;
     showscores(false);
     minutesremaining = -1;
-	lastgametimeupdate = 0;
+    lastgametimeupdate = 0;
     arenaintermission = 0;
     bool noflags = (m_ctf || m_ktf) && (!numflagspawn[0] || !numflagspawn[1]);
     if(*clientmap) conoutf(_("game mode is \"%s\"%s"), modestr(gamemode, modeacronyms > 0), noflags ? " - \f2but there are no flag bases on this map" : "");
+
     if(multiplayer(false) || m_botmode)
     {
         loopv(gmdescs) if(gmdescs[i].mode == gamemode)
@@ -1009,11 +1050,11 @@ void flagmsg(int flag, int message, int actor, int flagtime)
             audiomgr.playsound(S_FLAGPICKUP, SP_HIGHEST);
             if(firstperson)
             {
-                hudoutf("\f2you got the %sflag", m_ctf ? "enemy " : "");
+                hudoutf("\f2you have the %sflag", m_ctf ? "enemy " : "");
                 audiomgr.musicsuggest(M_FLAGGRAB, m_ctf ? 90*1000 : 900*1000, true);
                 musicplaying = flag;
             }
-            else hudoutf("\f2%s%s got %s flag", flagteam, colorname(act), teamstr);
+            else hudoutf("\f2%s%s has %s flag", flagteam, colorname(act), teamstr);
             break;
         case FM_LOST:
         case FM_DROP:

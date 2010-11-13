@@ -10,8 +10,8 @@ void cleanup(char *msg)         // single program exit point;
         audiomgr.soundcleanup();
         cleanupserver();
 
-		extern void setdefaultgamma();
-		setdefaultgamma();
+        extern void setdefaultgamma();
+        setdefaultgamma();
     }
     SDL_ShowCursor(1);
     if(msg)
@@ -286,27 +286,27 @@ void jpeg_screenshot_____(const char *imagepath, bool mapshot = false)
     int iw = mapshot?minimaplastsize:screen->w;
     int ih = mapshot?minimaplastsize:screen->h;
     const char *filename = screenshotpath(imagepath, "jpg");
-	stream *file = openfile(screenshotpath(imagepath, "jpg"), "wb");
-	if(!file) { conoutf("failed to create: %s", filename); return; }
+    stream *file = openfile(screenshotpath(imagepath, "jpg"), "wb");
+    if(!file) { conoutf("failed to create: %s", filename); return; }
 
     int row_stride = 3*iw;
     uchar *pixels = new uchar[row_stride*ih];
 
     jpeg_compress_struct cinfo;
-	jpegscreenshoterror jerr;
+    jpegscreenshoterror jerr;
 
     cinfo.err = &jerr;
-	if(jerr.failed())
-	{
-	    jpeg_destroy_compress(&cinfo);
-		delete[] pixels;
-		delete file;
-		return;
-	}
+    if(jerr.failed())
+    {
+        jpeg_destroy_compress(&cinfo);
+        delete[] pixels;
+        delete file;
+        return;
+    }
 
     jpeg_create_compress(&cinfo);
-	jpegscreenshotdest dest(file);
-	cinfo.dest = &dest;
+    jpegscreenshotdest dest(file);
+    cinfo.dest = &dest;
     //jpeg_stdio_dest(&cinfo, jpegfile);
 
     if(mapshot)
@@ -356,7 +356,7 @@ void jpeg_screenshot_____(const char *imagepath, bool mapshot = false)
     jpeg_destroy_compress(&cinfo);
 
     delete[] pixels;
-	delete file;
+    delete file;
 }
 */
 
@@ -646,7 +646,7 @@ VARFP(gamma, 30, 100, 300,
 
 void setdefaultgamma()
 {
-	SDL_SetGamma(1, 1, 1);
+    SDL_SetGamma(1, 1, 1);
 }
 
 void resetgamma()
@@ -1009,6 +1009,8 @@ const char *rndmapname()
     return mapnames[n];
 }
 
+extern void connectserv(char *, char *, char *);
+
 int main(int argc, char **argv)
 {
     extern struct servercommandline scl;
@@ -1025,6 +1027,10 @@ int main(int argc, char **argv)
     bool quitdirectly = false;
     char *initscript = NULL;
     char *initdemo = NULL;
+    bool direct_connect = false;               // to connect via assaultcube:// browser switch
+    char *servername = NULL,
+        *serverport = NULL,
+        *password = NULL;
 
     const char *initmap = rndmapname();
 
@@ -1062,13 +1068,13 @@ int main(int argc, char **argv)
                     }
                     else if(!strcmp(argv[i], "--version"))
                     {
-                    	printf("%.3f\n", AC_VERSION/1000.0f);
-                    	quitdirectly = true;
+                        printf("%.3f\n", AC_VERSION/1000.0f);
+                        quitdirectly = true;
                     }
                     else if(!strcmp(argv[i], "--protocol"))
                     {
-                    	printf("%d\n", PROTOCOL_VERSION);
-                    	quitdirectly = true;
+                        printf("%d\n", PROTOCOL_VERSION);
+                        quitdirectly = true;
                     }
                     else if(!strncmp(argv[i], "--loadmap=", 10))
                     {
@@ -1091,6 +1097,42 @@ int main(int argc, char **argv)
                 case 'v': vsync = atoi(a); break;
                 case 'e': initscript = &argv[i][2]; break;
                 default:  conoutf("\f3unknown commandline option: -%c", argv[i][1]);
+            }
+            else if(!strncmp(argv[i], "assaultcube://", 14)) // browser direct connection
+            {
+                const char *c = &argv[i][14], *p = c;
+                int len = 0;
+                while (*c && *c!='/' && *c!='?') { len++; c++; }
+                if (!len) { conoutf("\f3bad commandline syntax", argv[i]); continue; }
+                if (!servername) servername = new char[len+1];
+                strncpy(servername,p,len);
+                servername[len] = '\0';
+                direct_connect = true;
+                if (*c && *c=='/') c++;
+                if (!*c || *c!='?') continue;
+                do
+                {
+                    if (*c) c++;
+                    if (!strncmp(c, "port=", 5))
+                    {
+                        c += 5; p = c; len = 0;
+                        while (*c && *c!='&' && *c!='/') { len++; c++; }
+                        if (serverport) delete [] serverport;
+                        serverport = new char[len+1];
+                        strncpy(serverport, p, len);
+                        serverport[len] = '\0';
+                    }
+                    else if (!strncmp(c, "password=", 9))
+                    {
+                        c += 9; p = c; len = 0;
+                        while (*c && *c!='&' && *c!='/') { len++, c++; }
+                        if (password) delete [] password;
+                        password = new char[len+1];
+                        strncpy(password, p, len);
+                        password[len] = '\0';
+                    }
+                    else break;
+                } while (*c && *c=='&' && *c!='/');
             }
             else conoutf("\f3unknown commandline argument: %c", argv[i][0]);
         }
@@ -1294,6 +1336,11 @@ int main(int argc, char **argv)
 #ifdef _DEBUG
         if(millis>lastflush+60000) { fflush(stdout); lastflush = millis; }
 #endif
+        if (direct_connect)
+        {
+            direct_connect = false;
+            connectserv(servername, serverport, password);
+        }
     }
 
     quit();

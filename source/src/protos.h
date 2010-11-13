@@ -864,10 +864,11 @@ struct servercommandline
 
     bool checkarg(const char *arg)
     {
-        if(arg[0] != '-' || arg[1] == '\0') return false;
+        if(!strncmp(arg, "assaultcube://", 13)) return false;
+        else if(arg[0] != '-' || arg[1] == '\0') return false;
         const char *a = arg + 2 + strspn(arg + 2, " ");
         int ai = atoi(a);
-		// client: dtwhzbsave
+        // client: dtwhzbsave
         switch(arg[1])
         { // todo: gjlqEGHJQUYZ
             case 'u': uprate = ai; break;
@@ -920,6 +921,7 @@ struct servercommandline
             case 'I': infopath = a; break;
             case 'o': filterrichtext(motd, a); break;
             case 'O': motdpath = a; break;
+            case 'g': forbidden = a; break;
             case 'n':
             {
                 char *t = servdesc_full;

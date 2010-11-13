@@ -735,7 +735,8 @@ bool flagdistance(sflaginfo &f, int cn)
             v.x = f.pos[0]; v.y = f.pos[1];
             break;
     }
-    if(v.x < 0) return true;
+    bool lagging = (c.ping > 1000 || c.spj > 100);
+    if(v.x < 0 && !lagging) return true;
     float dist = c.state.o.dist(v);
     int pdist = check_pdist(&c,dist);
     if(pdist)
@@ -745,7 +746,7 @@ bool flagdistance(sflaginfo &f, int cn)
                 c.hostname, c.name, (pdist==2?"tried to touch":"touched"), team_string(&f == sflaginfos + 1), dist, c.farpickups);
         if (pdist==2) return false;
     }
-    return true;
+    return lagging ? false : true; // today I found a lag hacker :: Brahma, 19-oct-2010... lets test it a bit
 }
 
 void sendflaginfo(int flag = -1, int cn = -1)
@@ -1106,16 +1107,16 @@ void arenacheck()
     loopv(clients)
     {
         client &c = *clients[i];
-        if(c.type==ST_EMPTY || !c.isauthed || !c.isonrightmap || team_isspect(c.team)) continue;
-        if(c.state.state==CS_ALIVE || (c.state.state==CS_DEAD && c.state.lastspawn>=0))
-        {
-            if(!alive) alive = &c;
-            else if(!m_teammode || alive->team != c.team) return;
-        }
-        else if(c.state.state==CS_DEAD)
+        if(c.type==ST_EMPTY || !c.isauthed || !c.isonrightmap || team_isspect(c.team)) continue; /// TODO: simplify the team/state sysmtem, it is not smart to have SPECTATE in both, for example
+        if (c.state.lastspawn < 0 && (c.state.state==CS_DEAD || c.state.state==CS_SPECTATE))
         {
             dead = true;
             lastdeath = max(lastdeath, c.state.lastdeath);
+        }
+        else if(c.state.state==CS_ALIVE)
+        {
+            if(!alive) alive = &c;
+            else if(!m_teammode || alive->team != c.team) return;
         }
     }
 
@@ -1362,7 +1363,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
                   actor->state.teamkills * 30 * 1000 > gamemillis &&
                   actor->state.frags < 4 * actor->state.teamkills ) )
             {
-                ban b = { actor->peer->address, servmillis+20*60*1000 };
+                ban b = { actor->peer->address, servmillis+scl.ban_time };
                 bans.add(b);
                 disconnect_client(actor->clientnum, DISC_AUTOBAN);
             }
@@ -1397,7 +1398,8 @@ void updatesdesc(const char *newdesc, ENetAddress *caller = NULL)
 int canspawn(client *c)   // beware: canspawn() doesn't check m_arena!
 {
     if(!c || c->type == ST_EMPTY || !c->isauthed || !team_isvalid(c->team) ||
-        (servmillis - c->connectmillis < 5000 && gamemillis > 10000 && totalclients > 3) ) return -1;
+        (servmillis - c->connectmillis < 1000 + c->state.reconnections * 2000 &&
+            gamemillis > 10000 && totalclients > 3 && !team_isspect(c->team)) ) return SP_OK_NUM; // equivalent to SP_DENY
     if(!c->isonrightmap) return SP_WRONGMAP;
     if(mastermode == MM_MATCH && matchteamsize)
     {
@@ -1529,7 +1531,7 @@ bool balanceteams(int ftr)  // pro vs noobs never more
     if(mastermode != MM_OPEN || totalclients < 3 ) return true;
     int tsize[2] = {0, 0}, tscore[2] = {0, 0};
     int totalscore = 0, nplayers = 0;
-    int flagmult = (m_ctf ? 25 : (m_htf ? 12 : 6));
+    int flagmult = (m_ctf ? 50 : (m_htf ? 25 : 12));
 
     loopv(clients) if(clients[i]->type!=ST_EMPTY)
     {
@@ -1541,7 +1543,7 @@ bool balanceteams(int ftr)  // pro vs noobs never more
             tsize[c->team]++;
             // effective score per minute, thanks to wtfthisgame for the nice idea
             // in a normal game, normal players will do 500 points in 10 minutes
-            c->eff_score = c->state.points * 60 * 1000 / time + c->state.points / 8 + c->state.flagscore * flagmult;
+            c->eff_score = c->state.points * 60 * 1000 / time + c->state.points / 6 + c->state.flagscore * flagmult;
             tscore[c->team] += c->eff_score;
             nplayers++;
             totalscore += c->state.points;
@@ -1551,7 +1553,7 @@ bool balanceteams(int ftr)  // pro vs noobs never more
     int h = 0, l = 1;
     if ( tscore[1] > tscore[0] ) { h = 1; l = 0; }
     if ( 2 * tscore[h] < 3 * tscore[l] || totalscore < nplayers * 100 ) return true;
-    if ( tscore[h] > 3 * tscore[l] && tscore[h] > 50 * totalclients )
+    if ( tscore[h] > 3 * tscore[l] && tscore[h] > 150 * nplayers )
     {
 //        sendf(-1, 1, "ri2", SV_SERVERMODE, sendservermode(false) | AT_SHUFFLE);
         shuffleteams();
@@ -1692,11 +1694,11 @@ bool refillteams(bool now, int ftr)  // force only minimal amounts of players
     }
     if(diffnum < 2)
     {
-        if ( ( gamemillis - lastbalance ) > waitbalance && ( gamelimit - gamemillis ) > 4 * 60 * 1000 )
+        if ( ( gamemillis - lastbalance ) > waitbalance && ( gamelimit - gamemillis ) > 4*60*1000 )
         {
             if ( balanceteams (ftr) )
             {
-                waitbalance = 2 * 60 * 1000;
+                waitbalance = 2 * 60 * 1000 + gamemillis / 3;
                 switched = true;
             }
             else waitbalance = 20 * 1000;
@@ -1787,6 +1789,12 @@ void startgame(const char *newname, int newmode, int newtime, bool notify)
                     f.y = *fe;
                 }
                 else f.x = f.y = -1;
+            }
+            if (smapstats.flags[0] == 1 && smapstats.flags[1] == 1)
+            {
+                sflaginfo &f0 = sflaginfos[0], &f1 = sflaginfos[1];
+                FlagFlag = pow2(f0.x - f1.x) + pow2(f0.y - f1.y);
+                coverdist = FlagFlag > 6 * COVERDIST ? COVERDIST : FlagFlag / 6;
             }
             entity e;
             loopi(smapstats.hdr.numents)
@@ -2014,10 +2022,11 @@ void callvotepacket (int, voteinfo *);
 
 bool scallvote(voteinfo *v, ENetPacket *msg) // true if a regular vote was called
 {
+    if (!v) return false;
     int area = isdedicated ? EE_DED_SERV : EE_LOCAL_SERV;
     int error = -1;
-    client *c = clients[v->owner], *b = ( v->boot ? clients[cn2boot] : NULL );
-    v->host = v->boot ? b->peer->address.host : 0;
+    client *c = clients[v->owner], *b = ( v->boot && valid_client(cn2boot) ? clients[cn2boot] : NULL );
+    v->host = v->boot && b ? b->peer->address.host : 0;
 
     int time = servmillis - c->lastvotecall;
     if ( c->nvotes > 0 && time > 4*60*1000 ) c->nvotes -= time/(4*60*1000);
@@ -2159,6 +2168,7 @@ void disconnect_client(int n, int reason)
     if(!clients.inrange(n) || clients[n]->type!=ST_TCPIP) return;
     sdropflag(n);
     client &c = *clients[n];
+    c.state.lastdisc = servmillis;
     const char *scoresaved = "";
     if(c.haswelcome)
     {
@@ -2287,6 +2297,8 @@ bool restorescore(client &c)
     {
         sc->restore(c.state);
         sc->valid = false;
+        if ( c.connectmillis - c.state.lastdisc < 5000 ) c.state.reconnections++;
+        else if ( c.state.reconnections ) c.state.reconnections--;
         return true;
     }
     return false;
@@ -2718,6 +2730,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     forcedeath(cl);
                     logline(ACLOG_INFO, "[%s] %s is on the wrong map: revision %d/%d", cl->hostname, cl->name, rev, gzs);
                     cl->loggedwrongmap = true;
+                    sendf(sender, 1, "rii", SV_SPAWNDENY, SP_WRONGMAP);
                 }
                 QUEUE_MSG;
                 break;
@@ -2803,13 +2816,16 @@ void process(ENetPacket *packet, int sender, int chan)
             }
 
             case SV_TRYSPAWN:
-                if(team_isspect(cl->team) && canspawn(cl) < SP_OK_NUM)
+            {
+                int sp = canspawn(cl);
+                if(team_isspect(cl->team) && sp < SP_OK_NUM)
                 {
                     updateclientteam(sender, TEAM_ANYACTIVE, FTR_PLAYERWISH);
+                    sp = canspawn(cl);
                 }
-                if( !m_arena && canspawn(cl) < SP_OK_NUM && gamemillis > cl->state.lastspawn + 1000 ) sendspawn(cl);
+                if( !m_arena && sp < SP_OK_NUM && gamemillis > cl->state.lastspawn + 1000 ) sendspawn(cl);
                 break;
-
+            }
             case SV_SPAWN:
             {
                 int ls = getint(p), gunselect = getint(p);
@@ -2834,7 +2850,7 @@ void process(ENetPacket *packet, int sender, int chan)
             }
             case SV_SPECTCN:
                 cl->spectcn = getint(p);
-                logline(ACLOG_DEBUG, "[%s] %s is now spectating cn %d", cl->hostname, cl->name, cl->spectcn); // FIXME: comment out later
+//                 logline(ACLOG_DEBUG, "[%s] %s is now spectating cn %d", cl->hostname, cl->name, cl->spectcn); // FIXME: comment out later
                 QUEUE_MSG;
                 break;
 
@@ -3877,7 +3893,7 @@ void initserver(bool dedicated, int argc, char **argv)
                 case 'S': service = a; break;
                 default: break; /*printf("WARNING: unknown commandline option\n");*/ // less warnings
             }
-            else printf("WARNING: unknown commandline argument\n");
+            else if (strncmp(argv[i], "assaultcube://", 13)) printf("WARNING: unknown commandline argument\n");
         }
     }
 
