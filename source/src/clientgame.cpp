@@ -805,6 +805,7 @@ VAR(lastgametimeupdate, 1, 0, 0);
 
 void timeupdate(int milliscur, int millismax)
 {
+	if( lastmillis - lastgametimeupdate < 1000 ) return; // avoid double-output, but possibly omit new message if joined 1s before server switches to next minute
     lastgametimeupdate = lastmillis;
     gametimecurrent = milliscur;
     gametimemaximum = millismax;
