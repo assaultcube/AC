@@ -919,16 +919,15 @@ void mousemove(int odx, int ody)
     float cursens = sensitivity;
     if(senst) {cursens=testsens;}
     if(mouseaccel && curtime && (dx || dy)) cursens += 0.02f * mouseaccel * sqrtf(dx*dx + dy*dy)/curtime;
-    cursens /= 33.0f*sensitivityscale;
-
     if( zooming(player1) )
     {
         extern float scopesensfunc;
         cursens *= autoscopesens ? scopesensfunc : scopesensscale;
     }
-
-    camera1->yaw += dx*cursens;
-    camera1->pitch -= dy*cursens*(invmouse ? -1 : 1);
+    float sensfactor = 33.0f*sensitivityscale; // the line below causes a changed value during scoping. example for 30-mickeys: AC-1.0 => 1.4272 and AC-1.1 => 1.410
+    //cursens /= 33.0f*sensitivityscale; // now it will be back to the original values
+    camera1->yaw += dx*cursens/sensfactor;
+    camera1->pitch -= dy*cursens*(invmouse ? -1 : 1)/sensfactor;
     fixcamerarange();
     if(camera1!=player1 && player1->spectatemode!=SM_DEATHCAM)
     {
