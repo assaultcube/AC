@@ -660,9 +660,13 @@ bool securemapcheck(const char *map, bool msg)
     {
         if(msg)
         {
-        conoutf(_("%c3%s is a secured map, you CAN\'T send, receive or overwrite it"), CC, map);
-        if(connected) conoutf(_("%c3you or the server are running an outdated game, check for updates at %c1http://assault.cubers.net/download.html"), CC, CC);
-        return true;
+            conoutf(_("%c4%s%c3 is a secured map, you CAN\'T send, receive or overwrite it"), CC, map, CC);
+            if(connected)
+            {
+                conoutf(_("%c3if you get this error alot you or the server may be running an outdated game"), CC);
+                conoutf(_("%c3you may check for updates at %c1http://assault.cubers.net/download.html"), CC, CC);
+            }
+            return true;
         }
     }
     return false;
