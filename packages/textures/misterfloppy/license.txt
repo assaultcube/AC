@@ -1,10 +1,6 @@
 Files within this folder and all subfolders are by:
 	Carlo "Mr.Floppy" Fischer (cf1984@live.de)
 
-Additional to this, files in the "hanging_ladder" folder:
-	* Thanks to Boeufmironton who provided the original concept.
-	* Thanks to makkE for the textures, and additional model changes
-	  and providing these under the CC-BY-SA license too.
 
 They are all licensed under "Attribution-ShareAlike 2.0 Generic" Creative Commons:
 	http://creativecommons.org/licenses/by-sa/2.0/
