@@ -1,9 +1,13 @@
 greybricks.jpg is originally by CGTextures.com and is sourced from:
 	http://www.cgtextures.com/login.php?&texid=2725&destination=texview.php?id=2725
 
-It has used under a complex license, to which we've been able to adhere:
+It has been used under a complex license, to which we've been able to adhere:
 	http://www.cgtextures.com/content.php?action=license
 
-The image has been reprocessed by Toca, and due to the restrictiveness of the license
+This image has been reprocessed by Toca, and due to the restrictiveness of the license
 above, redistribution has been allowed under those same license terms.
 
+
+To comply with their license, we have included the following text in this file:
+	One or more textures on this 3D model have been created with images from CGTextures.com.
+	These images may not be redistributed by default, please visit www.cgtextures.com for more information.
