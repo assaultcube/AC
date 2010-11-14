@@ -1,6 +1,6 @@
 License:
 
-The installer script if free to use for any other purpose. However you MUST NOT make
+The installer script is free to use for any other purpose. However you MUST NOT make
 your installer look like an official AssaultCube release, therefore DO NOT use the 
 official AssaultCube media to redistribute your own work.
 
