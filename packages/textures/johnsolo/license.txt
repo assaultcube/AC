@@ -1,8 +1,11 @@
-All files in this folder are from: http://www.johnsolo.net/tex/tex.php
+Files within this folder are by: 
+		John "SoLo" Susek (john@johnsolo.net)
 
+These files were originally available from:
+		http://www.johnsolo.net/tex/tex.php
 
-License:
---------
-Important! If you want to use any textures for your mod or project, e-mail me so I can send you the 
-uncompressed .tga files. The images here are compressed heavily for presentation on the web. I have 
-also been asked about licensing on the textures. Consider them free to use for all non-commercial purposes.
+They were licensed as below:
+============================
+I have also been asked about licensing on the textures. 
+Consider them free to use for all non-commercial purposes. 
+Please just credit me in your documentation or somewhere on your website. 
