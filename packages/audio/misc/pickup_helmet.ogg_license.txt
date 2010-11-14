@@ -1,8 +1,11 @@
-pickup_armour.ogg is sourced from:
-	http://www.freesound.org/samplesViewSingle.php?id=20712
+pickup_helmet.ogg is sourced from:
+	http://www.freesound.org/samplesViewSingle.php?id=96137
 
-Originally created by destron (http://www.freesound.org/usersViewSingle.php?id=104634)
-   ... and reprocessed for AssaultCube by RandumKiwi.
+Originally created by BMacZero (http://www.freesound.org/usersViewSingle.php?id=1554918)
+Then, reprocessed for AssaultCube by RandumKiwi.
+
+You can find an original *.wav file of RandumKiwi's reprocessing here:
+	http://actiongame.svn.sourceforge.net/viewvc/actiongame/branches/mediasources/helmet_thudthud.wav?view=log
 
 This sound is licensed under a "Creative Commons Sampling Plus 1.0" License:
 	http://creativecommons.org/licenses/sampling+/1.0/
