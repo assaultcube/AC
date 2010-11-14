@@ -248,6 +248,7 @@
 		<Unit filename="../src/server.cpp">
 			<Option target="default" />
 		</Unit>
+		<Unit filename="../src/server.h" />
 		<Unit filename="../src/serveractions.h">
 			<Option target="default" />
 		</Unit>
