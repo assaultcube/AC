@@ -607,12 +607,13 @@ inline const char * spawn_message()
 {
     if (spawnpermission == SP_WRONGMAP)
     {
-        if (securemapcheck(getclientmap())) return "3The server has a different version for this secured map!!\nImpossible to spawn or getmap!!\nCheck if your client or the server is outdated.";
-        else return "3You have to be on the correct map to spawn.\nType /getmap";
+        // Don't use "/n" within these messages. If you do, the words won't align to the middle of the screen.
+        if (securemapcheck(getclientmap())) 
+        return "3Server will NOT allow spawning or getmap!";   // Also see client.cpp which has a conoutf message
+        else return "3You must be on the correct map to spawn. Type /getmap to download it.";
     }
-    else if (m_coop) return "3Type /getmap or send a new map to the server and vote it";
-    else return "4Awaiting permission to spawn.\n\f2DON\'T PANIC!";
-
+    else if (m_coop) return "3Type /getmap or send a map and vote for it to start co-op edit.";
+    else return "4Awaiting permission to spawn. \f2DON\'T PANIC!";
     // Despite its many glaring (and occasionally fatal) inaccuracies, AssaultCube itself has outsold the 
     // Encyclopedia Galactica because it is slightly cheaper, and because it has the words "Don't Panic" 
     // in large, friendly letters.
