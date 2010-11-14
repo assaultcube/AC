@@ -108,7 +108,6 @@ Function SplitFirstStrPart
   Exch $R0 ;first
 FunctionEnd
 
-
 ; CONFIGURATION
 
 ; general
@@ -116,11 +115,11 @@ FunctionEnd
 SetCompressor /SOLID lzma
 
 !define CURPATH "C:\Users\sebastian\Desktop\AssaultCube1.1_NSIS\ac\source\vcpp\buildEnv" ; CHANGE ME
-!define AC_FULLVERSION "v1.1.0.3"
-!define AC_FULLVERSIONINT "1.1.0.3"
+!define AC_FULLVERSION "v1.1.0.4"
+!define AC_FULLVERSIONINT "1.1.0.4"
 !define AC_SHORTNAME "AssaultCube"
-!define AC_FULLNAME "AssaultCube v1.1.0.3"
-!define AC_FULLNAMESAVE "AssaultCube_v1.1.0.3"
+!define AC_FULLNAME "AssaultCube v1.1.0.4"
+!define AC_FULLNAMESAVE "AssaultCube_v1.1.0.4"
 !define AC_MAJORVERSIONINT 1
 !define AC_MINORVERSIONINT 1
 
@@ -281,10 +280,10 @@ Var IMAGE
 
 Function .onInit
 
-	InitPluginsDir
-	File /oname=$TEMP\welcome.bmp "${CURPATH}\welcome.bmp"
-	
-	!insertmacro MUI_INSTALLOPTIONS_EXTRACT_AS "InstallTypes.ini" "InstallTypes.ini"
+    InitPluginsDir
+    File /oname=$TEMP\welcome.bmp "${CURPATH}\welcome.bmp"
+
+    !insertmacro MUI_INSTALLOPTIONS_EXTRACT_AS "InstallTypes.ini" "InstallTypes.ini"
 
 FunctionEnd
 
@@ -358,87 +357,87 @@ FunctionEnd
 
 Function WelcomePage
 
-	nsDialogs::Create /NOUNLOAD 1044
-	Pop $DIALOG
+    nsDialogs::Create /NOUNLOAD 1044
+    Pop $DIALOG
 
-	nsDialogs::CreateControl /NOUNLOAD STATIC ${WS_VISIBLE}|${WS_CHILD}|${WS_CLIPSIBLINGS}|${SS_BITMAP} 0 0 0 109u 193u ""
-	Pop $IMAGECTL
+    nsDialogs::CreateControl /NOUNLOAD STATIC ${WS_VISIBLE}|${WS_CHILD}|${WS_CLIPSIBLINGS}|${SS_BITMAP} 0 0 0 109u 193u ""
+    Pop $IMAGECTL
 
-	StrCpy $0 $TEMP\welcome.bmp
-	System::Call 'user32::LoadImage(i 0, t r0, i ${IMAGE_BITMAP}, i 0, i 0, i ${LR_LOADFROMFILE}) i.s'
-	Pop $IMAGE
-	
-	SendMessage $IMAGECTL ${STM_SETIMAGE} ${IMAGE_BITMAP} $IMAGE
+    StrCpy $0 $TEMP\welcome.bmp
+    System::Call 'user32::LoadImage(i 0, t r0, i ${IMAGE_BITMAP}, i 0, i 0, i ${LR_LOADFROMFILE}) i.s'
+    Pop $IMAGE
 
-	nsDialogs::CreateControl /NOUNLOAD STATIC ${WS_VISIBLE}|${WS_CHILD}|${WS_CLIPSIBLINGS} 0 120u 10u -130u 20u "Welcome to the AssaultCube Setup Wizard"
-	Pop $HEADLINE
+    SendMessage $IMAGECTL ${STM_SETIMAGE} ${IMAGE_BITMAP} $IMAGE
 
-	SendMessage $HEADLINE ${WM_SETFONT} $HEADLINE_FONT 0
+    nsDialogs::CreateControl /NOUNLOAD STATIC ${WS_VISIBLE}|${WS_CHILD}|${WS_CLIPSIBLINGS} 0 120u 10u -130u 20u "Welcome to the AssaultCube Setup Wizard"
+    Pop $HEADLINE
 
-	nsDialogs::CreateControl /NOUNLOAD STATIC ${WS_VISIBLE}|${WS_CHILD}|${WS_CLIPSIBLINGS} 0 120u 32u -130u -32u "This wizard will guide you through the installation of AssaultCube.$\r$\n$\r$\nIt is recommended that you close all other applications before starting Setup. This will make it possible to update relevant system files without having to reboot your computer.$\r$\n$\r$\nClick next to continue."
-	Pop $TEXT
+    SendMessage $HEADLINE ${WM_SETFONT} $HEADLINE_FONT 0
 
-	SetCtlColors $DIALOG "" 0xffffff
-	SetCtlColors $HEADLINE "" 0xffffff
-	SetCtlColors $TEXT "" 0xffffff
+    nsDialogs::CreateControl /NOUNLOAD STATIC ${WS_VISIBLE}|${WS_CHILD}|${WS_CLIPSIBLINGS} 0 120u 32u -130u -32u "This wizard will guide you through the installation of AssaultCube.$\r$\n$\r$\nIt is recommended that you close all other applications before starting Setup. This will make it possible to update relevant system files without having to reboot your computer.$\r$\n$\r$\nClick next to continue."
+    Pop $TEXT
 
-	Call HideControls
+    SetCtlColors $DIALOG "" 0xffffff
+    SetCtlColors $HEADLINE "" 0xffffff
+    SetCtlColors $TEXT "" 0xffffff
 
-	nsDialogs::Show
+    Call HideControls
 
-	Call ShowControls
+    nsDialogs::Show
 
-	System::Call gdi32::DeleteObject(i$IMAGE)
-	
-	# MessageBox MB_OK "This is a TEST BUILD, do NOT redistribute this file! This is NOT a final release!"
+    Call ShowControls
+
+    System::Call gdi32::DeleteObject(i$IMAGE)
+
+    # MessageBox MB_OK "This is a TEST BUILD, do NOT redistribute this file! This is NOT a final release!"
 
 FunctionEnd
 
 Function FinishPage
 
-	nsDialogs::Create /NOUNLOAD 1044
-	Pop $DIALOG
+    nsDialogs::Create /NOUNLOAD 1044
+    Pop $DIALOG
 
-	nsDialogs::CreateControl /NOUNLOAD STATIC ${WS_VISIBLE}|${WS_CHILD}|${WS_CLIPSIBLINGS}|${SS_BITMAP} 0 0 0 109u 193u ""
-	Pop $IMAGECTL
+    nsDialogs::CreateControl /NOUNLOAD STATIC ${WS_VISIBLE}|${WS_CHILD}|${WS_CLIPSIBLINGS}|${SS_BITMAP} 0 0 0 109u 193u ""
+    Pop $IMAGECTL
 
-	StrCpy $0 $TEMP\welcome.bmp
-	System::Call 'user32::LoadImage(i 0, t r0, i ${IMAGE_BITMAP}, i 0, i 0, i ${LR_LOADFROMFILE}) i.s'
-	Pop $IMAGE
-	
-	SendMessage $IMAGECTL ${STM_SETIMAGE} ${IMAGE_BITMAP} $IMAGE
+    StrCpy $0 $TEMP\welcome.bmp
+    System::Call 'user32::LoadImage(i 0, t r0, i ${IMAGE_BITMAP}, i 0, i 0, i ${LR_LOADFROMFILE}) i.s'
+    Pop $IMAGE
 
-	nsDialogs::CreateControl /NOUNLOAD STATIC ${WS_VISIBLE}|${WS_CHILD}|${WS_CLIPSIBLINGS} 0 120u 10u -130u 20u "Completing the AssaultCube Setup Wizard"
-	Pop $HEADLINE
+    SendMessage $IMAGECTL ${STM_SETIMAGE} ${IMAGE_BITMAP} $IMAGE
 
-	SendMessage $HEADLINE ${WM_SETFONT} $HEADLINE_FONT 0
+    nsDialogs::CreateControl /NOUNLOAD STATIC ${WS_VISIBLE}|${WS_CHILD}|${WS_CLIPSIBLINGS} 0 120u 10u -130u 20u "Completing the AssaultCube Setup Wizard"
+    Pop $HEADLINE
 
-	nsDialogs::CreateControl /NOUNLOAD STATIC ${WS_VISIBLE}|${WS_CHILD}|${WS_CLIPSIBLINGS} 0 120u 32u -130u -32u "AssaultCube has been installed on your computer.$\r$\n$\r$\nClick Finish to close this wizard."
-	Pop $TEXT
+    SendMessage $HEADLINE ${WM_SETFONT} $HEADLINE_FONT 0
 
-	SetCtlColors $DIALOG "" 0xffffff
-	SetCtlColors $HEADLINE "" 0xffffff
-	SetCtlColors $TEXT "" 0xffffff
+    nsDialogs::CreateControl /NOUNLOAD STATIC ${WS_VISIBLE}|${WS_CHILD}|${WS_CLIPSIBLINGS} 0 120u 32u -130u -32u "AssaultCube has been installed on your computer.$\r$\n$\r$\nClick Finish to close this wizard."
+    Pop $TEXT
 
-	Call HideControls
+    SetCtlColors $DIALOG "" 0xffffff
+    SetCtlColors $HEADLINE "" 0xffffff
+    SetCtlColors $TEXT "" 0xffffff
 
-	nsDialogs::Show
+    Call HideControls
 
-	Call ShowControls
+    nsDialogs::Show
 
-	System::Call gdi32::DeleteObject(i$IMAGE)
+    Call ShowControls
+
+    System::Call gdi32::DeleteObject(i$IMAGE)
 
 FunctionEnd
 
 Function DisableMultiuserOption
 
-        !insertmacro MUI_INSTALLOPTIONS_WRITE "InstallTypes.ini" "Field 2" "Flags" "DISABLED"	
-        !insertmacro MUI_INSTALLOPTIONS_WRITE "InstallTypes.ini" "Field 4" "Flags" "DISABLED"
-        
-        ; fix currently selected option
-        !insertmacro MUI_INSTALLOPTIONS_WRITE "InstallTypes.ini" "Field 2" "State" "0"	
-        !insertmacro MUI_INSTALLOPTIONS_WRITE "InstallTypes.ini" "Field 1" "State" "1"
-        
+    !insertmacro MUI_INSTALLOPTIONS_WRITE "InstallTypes.ini" "Field 2" "Flags" "DISABLED"	
+    !insertmacro MUI_INSTALLOPTIONS_WRITE "InstallTypes.ini" "Field 4" "Flags" "DISABLED"
+
+    ; fix currently selected option
+    !insertmacro MUI_INSTALLOPTIONS_WRITE "InstallTypes.ini" "Field 2" "State" "0"	
+    !insertmacro MUI_INSTALLOPTIONS_WRITE "InstallTypes.ini" "Field 1" "State" "1"
+
 FunctionEnd
 
 
@@ -449,10 +448,10 @@ Function InstallationTypePage
     ReadRegStr $0 HKCU "Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders" "Personal"
     StrCmp $0 "" nohome hashome
     nohome:
-    
-        Call DisableMultiuserOption ; not present, disable option
+
+    Call DisableMultiuserOption ; not present, disable option
         goto homecheckdone
-            
+
     hashome: 
     homecheckdone:
     
@@ -584,6 +583,15 @@ Section "Desktop Shortcuts" DESKSHORTCUTS
 
 SectionEnd
 
+Section "Register URL protocol" REGISTERURL
+
+    WriteRegStr HKCR "assaultcube" "" "${AC_SHORTNAME}"
+    WriteRegStr HKCR "assaultcube" "URL Protocol" ""
+    WriteRegStr HKCR "assaultcube\DefaultIcon" "" '"$INSTDIR\bin_win32\ac_client.exe"'
+    WriteRegStr HKCR "assaultcube\shell\open\command" "" '"cmd.exe" /C cd "$INSTDIR" & "assaultcube.bat" "%1"'
+
+SectionEnd
+
 Section "-Debug Helper Library"
 
     GetVersion::WindowsVersion
@@ -627,6 +635,7 @@ Section "Uninstall"
     DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_FULLNAMESAVE}"
     DeleteRegKey HKLM "SOFTWARE\${AC_SHORTNAME}\${AC_FULLVERSION}"
     DeleteRegKey /ifempty HKLM "SOFTWARE\${AC_SHORTNAME}"
+    DeleteRegKey HKCR "assaultcube"
     
 SectionEnd
 
@@ -638,5 +647,6 @@ SectionEnd
     !insertmacro MUI_DESCRIPTION_TEXT ${AC} "Installs the required AssaultCube core files"
     !insertmacro MUI_DESCRIPTION_TEXT ${OAL} "Installs a sound library for 3D audio"
     !insertmacro MUI_DESCRIPTION_TEXT ${DESKSHORTCUTS} "Creates shortcuts on your Desktop"
+    !insertmacro MUI_DESCRIPTION_TEXT ${REGISTERURL} "Registers the assaultcube:// protocol"
 
 !insertmacro MUI_FUNCTION_DESCRIPTION_END

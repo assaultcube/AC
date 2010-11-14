@@ -1,6 +1,0 @@
-This directory is required to fool apache.
-
-The masterserver http handler dispatches requests matching *.do
-However apache always checks if the requested file/dir actually exists,
-if not the request is being aborted. Therefore we need this directory
-to ensure that the request reaches our http handler.
