@@ -2064,7 +2064,7 @@ Output:
 					<references>
 						<identifierReference identifier="fov"/>
 					</references>
-					<value token="V" description="" minValue="5" maxValue="50" defaultValue="50"/>
+					<value token="V" description="" minValue="5" maxValue="60" defaultValue="50"/>
 				</variable>
 
 				<variable name="showmap">
