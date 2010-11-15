@@ -1,8 +1,25 @@
-2010-05-18
-==========
-These textures originally by Jamz.
-They are free for use as long the original author (Jamz) is credited.
+Files within this folder were originally by:
+	James "jamz" Harris (jamz@26things.com)
 
-Jamz:	http://assault.cubers.net/forum/user-1225.html
+They are licensed under "Creative Commons Attribution-ShareAlike 3.0 Unported" license:
+	http://creativecommons.org/licenses/by-sa/3.0/
 
+This means you are free to share, copy, distribute and transmit the work and to remix or adapt the work.
+
+Under the following conditions:
+    * Attribution - You must attribute the work in the manner specified by the author or licensor 
+                    (but not in any way that suggests that they endorse you or your use of the work).
+    * Share Alike - If you alter, transform, or build upon this work, you may distribute the resulting
+		    work only under the same or similar license to this one.
+
+With the understanding that:
+    * Waiver	    - Any of the above conditions can be waived if you get permission from the copyright holder.
+    * Public Domain - Where the work or any of its elements is in the public domain under applicable law,
+                      that status is in no way affected by the license.
+    * Other Rights  - In no way are any of the following rights affected by the license:
+          o Your fair dealing or fair use rights, or other applicable copyright exceptions and limitations;
+          o The author's moral rights;
+          o Rights other persons may have either in the work itself or in how the work is used,
+            such as publicity or privacy rights.
+    * Notice — For any reuse or distribution, you must make clear to others the license terms of this work.
 
