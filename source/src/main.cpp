@@ -1028,9 +1028,7 @@ int main(int argc, char **argv)
     char *initscript = NULL;
     char *initdemo = NULL;
     bool direct_connect = false;               // to connect via assaultcube:// browser switch
-    char *servername = NULL,
-        *serverport = NULL,
-        *password = NULL;
+    string servername, serverport, password;
 
     const char *initmap = rndmapname();
 
@@ -1102,37 +1100,30 @@ int main(int argc, char **argv)
             {
                 const char *c = &argv[i][14], *p = c;
                 int len = 0;
-                while (*c && *c!='/' && *c!='?') { len++; c++; }
-                if (!len) { conoutf("\f3bad commandline syntax", argv[i]); continue; }
-                if (!servername) servername = new char[len+1];
-                strncpy(servername,p,len);
-                servername[len] = '\0';
+                servername[0] = serverport[0] = password[0] = '\0';
+                while(*c && *c!='/' && *c!='?') { len++; c++; }
+                if(!len) { conoutf("\f3bad commandline syntax", argv[i]); continue; }
+                copystring(servername, p, min(len+1, MAXSTRLEN));
                 direct_connect = true;
-                if (*c && *c=='/') c++;
-                if (!*c || *c!='?') continue;
+                if(*c && *c=='/') c++;
+                if(!*c || *c!='?') continue;
                 do
                 {
-                    if (*c) c++;
-                    if (!strncmp(c, "port=", 5))
+                    if(*c) c++;
+                    if(!strncmp(c, "port=", 5))
                     {
                         c += 5; p = c; len = 0;
-                        while (*c && *c!='&' && *c!='/') { len++; c++; }
-                        if (serverport) delete [] serverport;
-                        serverport = new char[len+1];
-                        strncpy(serverport, p, len);
-                        serverport[len] = '\0';
+                        while(*c && *c!='&' && *c!='/') { len++; c++; }
+                        if(len) copystring(serverport, p, min(len+1, MAXSTRLEN));
                     }
-                    else if (!strncmp(c, "password=", 9))
+                    else if(!strncmp(c, "password=", 9))
                     {
                         c += 9; p = c; len = 0;
-                        while (*c && *c!='&' && *c!='/') { len++, c++; }
-                        if (password) delete [] password;
-                        password = new char[len+1];
-                        strncpy(password, p, len);
-                        password[len] = '\0';
+                        while(*c && *c!='&' && *c!='/') { len++, c++; }
+                        if(len) copystring(password, p, min(len+1, MAXSTRLEN));
                     }
                     else break;
-                } while (*c && *c=='&' && *c!='/');
+                } while(*c && *c=='&' && *c!='/');
             }
             else conoutf("\f3unknown commandline argument: %c", argv[i][0]);
         }
