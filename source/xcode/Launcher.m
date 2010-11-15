@@ -308,19 +308,27 @@ static int numberForKey(CFDictionaryRef desc, CFStringRef key)
     [dict setObject:@"" forKey:@"name"]; //ensure these entries are never nil
     [dict setObject:@"" forKey:@"team"]; 
     
-    NSString *files[] = {@"config.cfg", @"autoexec.cfg"};
+    NSMutableArray *lines = [NSMutableArray array];
+    NSString *files[] = {@"config/saved.cfg", @"config/autoexec.cfg"};
+
     int i;
     for(i = 0; i < sizeof(files)/sizeof(NSString*); i++) 
     {
         NSString *file = [Launcher userdir];
         file = [file stringByAppendingPathComponent:files[i]];
         
-        NSArray *lines = [[NSString stringWithContentsOfFile:file] componentsSeparatedByString:@"\n"];
+        [lines addObjectsFromArray:[[NSString stringWithContentsOfFile:file] componentsSeparatedByString:@"\n"]];
         
-        if(i==0 && !lines)  // ugh - special case when first run...
-        { 
-            file = [[Launcher cwd] stringByAppendingPathComponent:@"config/defaults.cfg"];
-            lines = [[NSString stringWithContentsOfFile:file] componentsSeparatedByString:@"\n"];
+        if(i==0 && ![lines count])  // ugh - special case when first run...
+        {
+            NSString *defaultfiles[] = {@"config/defaults.cfg", @"config/resetbinds.cfg"};
+            
+            int j;
+            for(j = 0; j < sizeof(defaultfiles)/sizeof(NSString*); j++)
+            {
+                file = [[Launcher cwd] stringByAppendingPathComponent:defaultfiles[j]];
+                [lines addObjectsFromArray:[[NSString stringWithContentsOfFile:file] componentsSeparatedByString:@"\n"]];
+            }
         }
 		
         NSString *line; 
@@ -490,10 +498,15 @@ static int numberForKey(CFDictionaryRef desc, CFStringRef key)
     {
         if([filename hasPrefix:@"-e"])
             [cmds addObject:[filename substringFromIndex:2]];
-        if([filename hasPrefix:@"--loaddemo"])
+        if([filename hasPrefix:[NSString stringWithFormat:@"%@://", kASSAULTCUBE]])
             [args addObject:filename];
         else
-            [args addObject:[NSString stringWithFormat:@"--loadmap=%@", filename]];
+        {
+            if([filename hasPrefix:@"--loaddemo"])
+                [args addObject:filename];
+            else
+                [args addObject:[NSString stringWithFormat:@"--loadmap=%@", filename]];
+        }
     }
     
     if([cmds count] > 0) 
@@ -577,13 +590,12 @@ static int numberForKey(CFDictionaryRef desc, CFStringRef key)
         //need to flush lurking config files - they're automatically generated, so no big deal...
         NSString *dir = [Launcher userdir];
         [fm removeFileAtPath:[dir stringByAppendingPathComponent:@"init.cfg"] handler:nil];
-        [fm removeFileAtPath:[dir stringByAppendingPathComponent:@"config.cfg"] handler:nil];
+        [fm removeFileAtPath:[dir stringByAppendingPathComponent:@"saved.cfg"] handler:nil];
     }
     [defs setObject:appVersion forKey:dkVERSION];
     
     NSDictionary *dict = [self readConfigFiles];
     [keys addObjects:[self getKeys:dict]];
-    
     	
     [self initMaps];
     [self initResolutions];
@@ -649,7 +661,8 @@ static int numberForKey(CFDictionaryRef desc, CFStringRef key)
 {
     NSURL *url = [NSURL URLWithString:[[event paramDescriptorForKeyword:keyDirectObject] stringValue]];
     if(!url) return;
-    [self playFile:[NSString stringWithFormat:@"-econnect %@", [url host]]]; 
+    [self playFile:[[event paramDescriptorForKeyword:keyDirectObject] stringValue]]; //use the game internal parser
+    //[self playFile:[NSString stringWithFormat:@"-econnect %@", [url host]]]; 
 }
 
 #pragma mark interface actions
@@ -681,8 +694,9 @@ static int numberForKey(CFDictionaryRef desc, CFStringRef key)
 
         int clients = [defs integerForKey:dkMAXCLIENTS];
         if (clients > 0) [args addObject:[NSString stringWithFormat:@"-c%d", clients]];
-        
-        [args addObject:[NSString stringWithFormat:@"--home%@", [Launcher userdir]]];
+
+        //server doesn't support --home 
+        //[args addObject:[NSString stringWithFormat:@"--home%@", [Launcher userdir]]];
         
         [self launchGame:args];
     } 
@@ -692,11 +706,6 @@ static int numberForKey(CFDictionaryRef desc, CFStringRef key)
 { 
     [window makeFirstResponder:window]; //ensure fields are exited and committed
     [self playFile:nil]; 
-}
-
-- (IBAction)playRpg:(id)sender 
-{ 
-    [self playFile:@"-rpg"]; 
 }
 
 - (IBAction)playMap:(id)sender
