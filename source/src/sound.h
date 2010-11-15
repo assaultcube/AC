@@ -1,7 +1,9 @@
 // hardcoded sounds, defined in sounds.cfg
 
+
 enum
-{
+{	// To avoid a lot of work, possible bugs and allow backward compatibility for players own custom
+	// cfg files, it's best not to change the listed sound order, instead, just add to it.
     S_JUMP = 0,
     S_SOFTLAND, S_HARDLAND,
     S_BULLETAIR1, S_BULLETAIR2, S_BULLETHIT, S_BULLETWATERHIT,
@@ -13,8 +15,7 @@ enum
     S_SNIPER, S_RSNIPER,
     S_ASSAULT, S_RASSAULT,
     S_ITEMAMMO, S_ITEMHEALTH,
-    S_ITEMARMOUR, S_ITEMHELMET,
-    S_ITEMAKIMBO,
+    S_ITEMARMOUR, S_ITEMAKIMBO,
     S_NOAMMO, S_AKIMBOOUT,
     S_PAIN1, S_PAIN2, S_PAIN3, S_PAIN4, S_PAIN5, S_PAIN6,
     S_DIE1, S_DIE2,
@@ -68,6 +69,7 @@ enum
     S_THANKS2,
     S_AWESOME1,
     S_AWESOME2,
+    S_ITEMHELMET,	// begin: Sounds for AssaultCube v1.1.0.4 onwards
     S_NULL
 };
 
