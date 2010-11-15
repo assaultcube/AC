@@ -31,8 +31,6 @@
 
 - (IBAction)multiplayerAction:(id)sender;
 
-- (IBAction)playRpg:(id)sender;
-
 - (IBAction)playMap:(id)sender;
 
 - (IBAction)openUserdir:(id)sender;
