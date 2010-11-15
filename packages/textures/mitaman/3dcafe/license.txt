@@ -1,0 +1,76 @@
+Files within this folder were originally by:
+			3DCAFE (www.3dcafe.com)
+
+These files were then modified to fit AssaultCube and added to the game by:
+	Mike "MitaMAN" Poeschl (mitaman1@optonline.net)
+
+door07.jpg (and door07_a.jpg) were once available from:
+	http://www.3dcafe.com/textures/door07.jpg
+This link has since become out-dated, but can still be found at archive.org:	
+	http://web.archive.org/web/20030102035450/3dcafe.com/textures/door07.jpg
+
+door12.jpg was once available from:
+	http://www.3dcafe.com/textures/door12.jpg
+This link has since become out-dated, but can still be found at archive.org:
+	http://web.archive.org/web/20030102052454/3dcafe.com/textures/door12.jpg
+
+objects09_a.jpg was once available from:
+	http://www.3dcafe.com/textures/objects09.jpg
+This link has since become out-dated, but can still be found at archive.org:
+	http://web.archive.org/web/20021113133847/3dcafe.com/textures/objects09.jpg
+
+door10.jpg (and door10_a.jpg) were once available from:
+	http://www.3dcafe.com/textures/door10.jpg
+This link has since become out-dated, but can still be found at archive.org:
+	http://web.archive.org/web/20030102044337/3dcafe.com/textures/door10.jpg
+
+objects08.jpg was once available from:
+	http://www.3dcafe.com/textures/objects08.jpg
+This link has since become out-dated, but can still be found at archive.org:
+	http://web.archive.org/web/20021220125911/3dcafe.com/textures/objects08.jpg
+
+door15.jpg was once available from:
+	http://www.3dcafe.com/textures/door15.jpg
+This link has since become out-dated, but can still be found at archive.org:
+	http://web.archive.org/web/20030102062102/3dcafe.com/textures/door15.jpg
+
+stone18.jpg was once available from:
+	http://www.3dcafe.com/textures/stone18.jpg
+This link has since become out-dated, but can still be found at archive.org:
+	http://web.archive.org/web/20031129202349/www.3dcafe.com/textures/stone18.jpg
+
+
+These textures are made available under their license terms, which was once available from:
+	http://www.3dcafe.com/asp/license.asp
+This link has since become out-dated, but can still be found at archive.org:
+	http://web.archive.org/web/20030624081448/3dcafe.com/asp/license.asp
+
+A copy of this license is provided below:
+=========================================
+3DCAFE, and all its contents, is copyrighted by Platinum Pictures Multimedia, Inc.,
+(referred herein as "Platinum Pictures"). All of the models/texture maps/software
+(referred herein as "datasets") available on 3DCAFE for download may be used royalty-free
+for your own usage. 
+
+If any of the datasets available on 3DCAFE are to be used commercially, or altered in
+anyway to be used commercially, you must give proper and visible credit in your commercial
+product, (i.e., Models (Textures) provided by 3DCAFE.COM). Also, these datasets may not be
+sold individually or included in, or sold as, or provided for free in, a collection of any
+kind including collections available on CD-ROM, BBS, FTP, WWW, IRC or any other electronic
+transfer methods without prior written permission from Platinum Pictures and from the 
+authors/artists whom created these models. 
+
+By using any of 3DCAFE's datasets, or by advancing further within this site, you and your
+company explicitly agree with these terms and conditions.
+
+By sending us your geometry, images and/or any kind of works of authorship confirms that
+you and/or your company willingly and fully grant Platinum Pictures the rights to distribute
+the submitted works without compensation unless otherwise agreed upon by Platinum Pictures
+and the submitter in writing.
+
+Platinum Pictures makes no warranties, express or implied, and disclaim any warranty or
+merchantability or fitness for a particular purpose.
+
+Neither Platinum Pictures nor its business partners shall be liable for any indirect,
+incidental or consequential damages (including but not limited to lost profits) incurred from
+the use or inability to use the models and software available on 3DCAFE.
