@@ -10,6 +10,7 @@ del /Q %acdir%\screenshots\*
 
 rem purge demo directory
 del /Q %acdir%\demos\*
+copy /Y %workingacdir%\demos\tutorial_demo.dmo %acdir%\demos\tutorial_demo.dmo
 
 rem remove linux stuff
 del %acdir%\*.sh
@@ -32,7 +33,7 @@ copy /Y %workingacdir%\packages\models\pickups\health\shadows.dat %acdir%\packag
 copy /Y %workingacdir%\packages\models\pickups\helmet\shadows.dat %acdir%\packages\models\pickups\helmet\shadows.dat
 copy /Y %workingacdir%\packages\models\pickups\kevlar\shadows.dat %acdir%\packages\models\pickups\kevlar\shadows.dat
 copy /Y %workingacdir%\packages\models\pickups\nade\shadows.dat %acdir%\packages\models\pickups\nade\shadows.dat
-copy /Y %workingacdir%\packages\models\pickups\pistolclips\shadows.dat %acdir%\packages\pickups\pistolclips\shadows.dat
+copy /Y %workingacdir%\packages\models\pickups\pistolclips\shadows.dat %acdir%\packages\models\pickups\pistolclips\shadows.dat
 copy /Y %workingacdir%\packages\models\weapons\assault\world\shadows.dat %acdir%\packages\models\weapons\assault\world\shadows.dat
 copy /Y %workingacdir%\packages\models\weapons\grenade\static\shadows.dat %acdir%\packages\models\weapons\grenade\static\shadows.dat
 copy /Y %workingacdir%\packages\models\weapons\grenade\world\shadows.dat %acdir%\packages\models\weapons\grenade\world\shadows.dat
