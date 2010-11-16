@@ -286,7 +286,7 @@ COMMAND(go_to, ARG_2STR);
 void current_version(char *text)
 {
     int version = atoi(text);
-    if (version < AC_VERSION) conoutf("UPDATE YOUR CLIENT\ngo to %s for more information",AC_MASTER_URI);
+    if (version && AC_VERSION<version) conoutf("UPDATE YOUR CLIENT\ngo to %s for more information",AC_MASTER_URI);
 }
 COMMAND(current_version, ARG_1STR);
 
