@@ -22,4 +22,4 @@ When adding an "official" map, follow this to-do list after fixing the map up.
   8)  Add new mapmodels to the editing menu.
   9)  Update the maprot.
   10) Create bot waypoints.
-
+  11) Create a "preview" for the map.
