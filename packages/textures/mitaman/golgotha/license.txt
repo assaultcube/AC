@@ -1,0 +1,35 @@
+Files within this folder were originally by:
+		Crack dot Com (The Golgotha Team)
+
+According to Golgotha's credits, these textures were most likely created by Kevin Tyler, 
+Stephen Wilson or Johnathan Clark:
+	http://web.archive.org/web/20041019082122/jonathanclark.com/golgotha/credits.html
+
+These files were then modified to fit AssaultCube and added to the game by:
+	Mike "MitaMAN" Poeschl (mitaman1@optonline.net)
+
+Read Wikipedia for more information about the fate of Golgotha:
+	http://en.wikipedia.org/wiki/Golgotha_%28computer_game%29
+
+The last available archive of their website can be found here:
+	http://web.archive.org/web/20041015081823/jonathanclark.com/golgotha/
+
+
+These textures are free, released into the public domain by the since-abandoned "Golgotha" 
+computer game, which means they can be used for just about anything.
+You can read more about it being free, to the public domain below. This excerpt was taken from:
+	http://web.archive.org/web/20031009012921/jonathanclark.com/golgotha/free.html
+
+
+Is everything free?
+===================
+YES! Free as in "free beer" and free as in "free speech." You can do anything you like with 
+the source, graphics, music, and level files, including: sell it, include parts or all of 
+it in your project, post it, copy it, and change it to your heart's content. The only 
+restrictions lay in the code which we did not write and therefore do not own (i.e. the MP3
+decoder code ). The author of MPG123 allows free use of that code for non profit use.
+
+This code and data is "public domain" not to be confused with code released under a license
+such GPL. GPL sets limits on what you can do the code and conditions on it's use and we do not.
+
+The trademarks "Crack dot Com" and "Golgotha" remain the property of crack.com.
