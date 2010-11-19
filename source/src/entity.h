@@ -332,7 +332,7 @@ public:
         if(m_lms) // Survivor && Team-Survivor : 2010nov19
         {
             health = 100;
-            armour = 100
+            armour = 100;
             ammo[GUN_GRENADE] = 2;
         }
     }
