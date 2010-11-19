@@ -1132,7 +1132,7 @@ bool shotgun::attack(vec &targ)
 	if(1==0)conoutf("shotgun:attack(%.2f, %.2f, %.2f)", targ.x, targ.y, targ.z); // 2010nov19
     vec from = owner->o;
     from.z -= weaponbeloweye;
-    createrays(from, targ, false); // force: false^=check-PLAYER-attacking-FLAG new:2010nov19
+    createrays(from, targ, false); // force: false^=check-PLAYER-attacking-FLAG new:2010nov19 // TODO make check here not in createrays
     return gun::attack(targ);
 }
 
