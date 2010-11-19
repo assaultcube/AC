@@ -316,7 +316,7 @@ public:
 
         if(!m_nopistol)
         {
-            ammo[GUN_PISTOL] = ammostats[GUN_PISTOL].max-magsize(GUN_PISTOL);
+            ammo[GUN_PISTOL] = ammostats[GUN_PISTOL].start-magsize(GUN_PISTOL);//ammostats[GUN_PISTOL].max-magsize(GUN_PISTOL);
             mag[GUN_PISTOL] = magsize(GUN_PISTOL);
         }
 
