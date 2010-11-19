@@ -526,6 +526,9 @@ struct hitweap
 };
 hitweap accuracym[NUMGUNS];
 
+int timer4subgunDMGalt = 0;
+bool flag4subgunDMGalt = true;
+
 void raydamage(vec &from, vec &to, playerent *d)
 {
     int dam = d->weaponsel->info.damage;
@@ -560,13 +563,13 @@ void raydamage(vec &from, vec &to, playerent *d)
     else if((o = intersectclosest(from, to, d, hitzone)))
     {
         bool gib = false;
-        if(d->weaponsel->type==GUN_KNIFE) gib = true;
-        else if(d==player1 && d->weaponsel->type==GUN_SNIPER && hitzone==2)
+        switch(d->weaponsel->type)
         {
-            dam *= 3;
-            gib = true;
+            case GUN_KNIFE: gib = true; break;
+            case GUN_SNIPER: if(d==player1 && hitzone==2) { dam *= 3; gib = true; }; break;
+            case GUN_SUBGUN: if(flag4subgunDMGalt) dam +=1; break;
+            default: break;
         }
-// TODO: also use + flag-4-subgunDMGalt in case the weapon IS a subgun
         hitpush(dam, o, d, from, to, d->weaponsel->type, gib, gib ? 1 : 0);
         if(d==player1) hitted=true;
         shorten(from, o->o, to);
@@ -1066,12 +1069,8 @@ bool gun::attack(vec &targ)
     if(!owner->attacking)
     {
         shots = 0;
-        /*
-TODO:
-check if timer-4-subgunDMGalt >= 750 ms
-  if so, then set flag-4-subgunDMGalt to 0
-else set timer to lastmillis
-        */
+        if(lastmillis-timer4subgunDMGalt>=750) flag4subgunDMGalt = true; // 1st shot 16, 2nd 15, .. reset on "end burst" (timed)
+        if(!timer4subgunDMGalt) timer4subgunDMGalt = lastmillis;
         checkautoreload();
         return false;
     }
@@ -1089,7 +1088,7 @@ else set timer to lastmillis
 
     owner->lastattackweapon = this;
 	shots++;
-	// TODO: ( flag-4-subgunDMGalt + 1 ) % 2
+	flag4subgunDMGalt != flag4subgunDMGalt;
 
 	if(!info.isauto) owner->attacking = false;
 
