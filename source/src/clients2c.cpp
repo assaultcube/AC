@@ -656,7 +656,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 playerent *s = getclient(scn);
                 if(!s || !weapon::valid(gun)) break;
                 loopk(3) from[k] = s->o.v[k];
-                if(gun==GUN_SHOTGUN) createrays(from, to);
+                if(gun==GUN_SHOTGUN) createrays(from, to, true); // force - new:2010nov19
                 s->lastaction = lastmillis;
                 s->mag[gun]--;
                 if(s->weapons[gun])

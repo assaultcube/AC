@@ -143,17 +143,21 @@ void tryreload(playerent *p)
 void selfreload() { tryreload(player1); }
 COMMANDN(reload, selfreload, ARG_NONE);
 
-void createrays(vec &from, vec &to)             // create random spread of rays for the shotgun
+void createrays(vec &from, vec &to, bool force = false)             // create random spread of rays for the shotgun
 {
-    float f = to.dist(from)*SGSPREAD/1000;
-    loopi(SGRAYS)
-    {
-        #define RNDD (rnd_2x(51)-50)*f   // With this (rnd_2x in place of rnd) the spread does not change, but there will be more shots in the middle area
-        vec r(RNDD, RNDD, RNDD);
-        sg[i] = to;
-        sg[i].add(r);
-        #undef RNDD
-    }
+	if( force || player1->attacking )
+	{
+		float f = to.dist(from)*SGSPREAD/1000;
+		if(1==0)conoutf("shotgun distance: %.2f", f); // DEBUG 2010nov19
+		loopi(SGRAYS)
+		{
+			#define RNDD (rnd_2x(51)-50)*f   // With this (rnd_2x in place of rnd) the spread does not change, but there will be more shots in the middle area
+			vec r(RNDD, RNDD, RNDD);
+			sg[i] = to;
+			sg[i].add(r);
+			#undef RNDD
+		}
+	}
 }
 
 static inline bool intersectbox(const vec &o, const vec &rad, const vec &from, const vec &to, vec *end) // if lineseg hits entity bounding box
@@ -562,7 +566,7 @@ void raydamage(vec &from, vec &to, playerent *d)
             dam *= 3;
             gib = true;
         }
-
+// TODO: also use + flag-4-subgunDMGalt in case the weapon IS a subgun
         hitpush(dam, o, d, from, to, d->weaponsel->type, gib, gib ? 1 : 0);
         if(d==player1) hitted=true;
         shorten(from, o->o, to);
@@ -1052,6 +1056,7 @@ gun::gun(playerent *owner, int type) : weapon(owner, type) {}
 
 bool gun::attack(vec &targ)
 {
+    if(1==0)conoutf("gun::attack(%.2f, %.2f, %.2f)", targ.x, targ.y, targ.z);//DEBUG 2010nov19
     int attackmillis = lastmillis-owner->lastaction;
     if(timebalance < gunwait) attackmillis += timebalance;
     if(attackmillis<gunwait) return false;
@@ -1061,6 +1066,12 @@ bool gun::attack(vec &targ)
     if(!owner->attacking)
     {
         shots = 0;
+        /*
+TODO:
+check if timer-4-subgunDMGalt >= 750 ms
+  if so, then set flag-4-subgunDMGalt to 0
+else set timer to lastmillis
+        */
         checkautoreload();
         return false;
     }
@@ -1078,6 +1089,7 @@ bool gun::attack(vec &targ)
 
     owner->lastattackweapon = this;
 	shots++;
+	// TODO: ( flag-4-subgunDMGalt + 1 ) % 2
 
 	if(!info.isauto) owner->attacking = false;
 
@@ -1117,9 +1129,10 @@ shotgun::shotgun(playerent *owner) : gun(owner, GUN_SHOTGUN) {}
 
 bool shotgun::attack(vec &targ)
 {
+	if(1==0)conoutf("shotgun:attack(%.2f, %.2f, %.2f)", targ.x, targ.y, targ.z); // 2010nov19
     vec from = owner->o;
     from.z -= weaponbeloweye;
-    createrays(from, targ);
+    createrays(from, targ, false); // force: false^=check-PLAYER-attacking-FLAG new:2010nov19
     return gun::attack(targ);
 }
 
@@ -1142,7 +1155,7 @@ bool shotgun::selectable() { return weapon::selectable() && !m_noprimary && this
 
 subgun::subgun(playerent *owner) : gun(owner, GUN_SUBGUN) {}
 bool subgun::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
-int subgun::dynspread() { return min(info.spread + 10 * shots, 80); }
+int subgun::dynspread() { return shots > 2 ? 70 : ( info.spread + ( shots > 0 ? ( shots == 1 ? 5 : 10 ) : 0 ) ); } // CHANGED: 2010nov19 was: min(info.spread + 10 * shots, 80)
 
 
 // sniperrifle
@@ -1384,6 +1397,7 @@ int knife::flashtime() const { return 0; }
 
 bool knife::attack(vec &targ)
 {
+    if(1==0)conoutf("knife::attack(%.2f, %.2f, %.2f)", targ.x, targ.y, targ.z);//DEBUG 2010nov19
     int attackmillis = lastmillis-owner->lastaction;
     if(attackmillis<gunwait) return false;
     gunwait = reloading = 0;
