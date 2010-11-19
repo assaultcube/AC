@@ -208,7 +208,8 @@ void bmp_screenshot(const char *imagepath, bool mapshot = false)
     SDL_FreeSurface(image);
 }
 
-VARP(jpegquality, 10, 70, 100);
+// best: 100 - good: 85 [default] - bad: 70 - terrible: 50
+VARP(jpegquality, 10, 85, 100);
 /*
 struct jpegscreenshotdest : jpeg_destination_mgr
 {
