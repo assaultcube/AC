@@ -1,8 +1,5 @@
-pickup_armour.ogg is sourced from:
-	http://www.freesound.org/samplesViewSingle.php?id=20712
-
-Originally created by destron (http://www.freesound.org/usersViewSingle.php?id=104634)
-   ... and reprocessed for AssaultCube by RandumKiwi.
+pickup_armour.ogg is created originally by:
+	Markus "makkE" Bekel
 
 This sound is licensed under a "Creative Commons Sampling Plus 1.0" License:
 	http://creativecommons.org/licenses/sampling+/1.0/
