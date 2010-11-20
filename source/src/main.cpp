@@ -1018,10 +1018,16 @@ void connectprotocol(char *protocolstring, string &servername, string &serverpor
     int len = 0;
     direct_connect = false;
     servername[0] = serverport[0] = password[0] = '\0';
-    while(*c && *c!='/' && *c!='?') { len++; c++; }
+    while(*c && *c!='/' && *c!='?' && *c!=':') { len++; c++; }
     if(!len) { conoutf("\f3bad commandline syntax", protocolstring); return; }
     copystring(servername, p, min(len+1, MAXSTRLEN));
     direct_connect = true;
+    if(*c && *c==':')
+    {
+        c++; p = c; len = 0;
+        while(*c && *c!='/' && *c!='?') { len++; c++; }
+        if(len) copystring(serverport, p, min(len+1, MAXSTRLEN));
+    }
     if(*c && *c=='/') c++;
     if(!*c || *c!='?') return;
     do
