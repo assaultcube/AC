@@ -1088,7 +1088,7 @@ bool gun::attack(vec &targ)
 
     owner->lastattackweapon = this;
 	shots++;
-	flag4subgunDMGalt != flag4subgunDMGalt;
+	flag4subgunDMGalt = !flag4subgunDMGalt;
 
 	if(!info.isauto) owner->attacking = false;
 
