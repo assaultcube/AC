@@ -1012,6 +1012,37 @@ const char *rndmapname()
 
 extern void connectserv(char *, char *, char *);
 
+void connectprotocol(char *protocolstring, string &servername, string &serverport, string &password, bool &direct_connect)
+{
+    const char *c = &protocolstring[14], *p = c;
+    int len = 0;
+    direct_connect = false;
+    servername[0] = serverport[0] = password[0] = '\0';
+    while(*c && *c!='/' && *c!='?') { len++; c++; }
+    if(!len) { conoutf("\f3bad commandline syntax", protocolstring); return; }
+    copystring(servername, p, min(len+1, MAXSTRLEN));
+    direct_connect = true;
+    if(*c && *c=='/') c++;
+    if(!*c || *c!='?') return;
+    do
+    {
+        if(*c) c++;
+        if(!strncmp(c, "port=", 5))
+        {
+            c += 5; p = c; len = 0;
+            while(*c && *c!='&' && *c!='/') { len++; c++; }
+            if(len) copystring(serverport, p, min(len+1, MAXSTRLEN));
+        }
+        else if(!strncmp(c, "password=", 9))
+        {
+            c += 9; p = c; len = 0;
+            while(*c && *c!='&' && *c!='/') { len++, c++; }
+            if(len) copystring(password, p, min(len+1, MAXSTRLEN));
+        }
+        else break;
+    } while(*c && *c=='&' && *c!='/');
+}
+
 int main(int argc, char **argv)
 {
     extern struct servercommandline scl;
@@ -1099,32 +1130,7 @@ int main(int argc, char **argv)
             }
             else if(!strncmp(argv[i], "assaultcube://", 14)) // browser direct connection
             {
-                const char *c = &argv[i][14], *p = c;
-                int len = 0;
-                servername[0] = serverport[0] = password[0] = '\0';
-                while(*c && *c!='/' && *c!='?') { len++; c++; }
-                if(!len) { conoutf("\f3bad commandline syntax", argv[i]); continue; }
-                copystring(servername, p, min(len+1, MAXSTRLEN));
-                direct_connect = true;
-                if(*c && *c=='/') c++;
-                if(!*c || *c!='?') continue;
-                do
-                {
-                    if(*c) c++;
-                    if(!strncmp(c, "port=", 5))
-                    {
-                        c += 5; p = c; len = 0;
-                        while(*c && *c!='&' && *c!='/') { len++; c++; }
-                        if(len) copystring(serverport, p, min(len+1, MAXSTRLEN));
-                    }
-                    else if(!strncmp(c, "password=", 9))
-                    {
-                        c += 9; p = c; len = 0;
-                        while(*c && *c!='&' && *c!='/') { len++, c++; }
-                        if(len) copystring(password, p, min(len+1, MAXSTRLEN));
-                    }
-                    else break;
-                } while(*c && *c=='&' && *c!='/');
+                connectprotocol(argv[i], servername, serverport, password, direct_connect);
             }
             else conoutf("\f3unknown commandline argument: %c", argv[i][0]);
         }
