@@ -779,6 +779,8 @@ void fixcamerarange(physent *cam)
 FVARP(sensitivity, 1e-3f, 3.0f, 1000.0f);
 FVARP(scopesensscale, 1e-3f, 0.5f, 1000.0f);
 FVARP(sensitivityscale, 1e-3f, 1, 1000);
+FVARP(scopesens, 0, 0, 1000);
+VARP(scopesensfeel, 0, 0, 1);
 VARP(invmouse, 0, 0, 1);
 FVARP(mouseaccel, 0, 0, 1000);
 FVARP(mfilter, 0.0f, 0.0f, 6.0f);
@@ -916,18 +918,37 @@ void mousemove(int odx, int ody)
         dx = fdx = dx * ( 1.0f - k ) + fdx * k;
         dy = fdy = dy * ( 1.0f - k ) + fdy * k;
     }
+    extern float scopesensfunc;
     float cursens = sensitivity;
     if(senst) {cursens=testsens;}
     if(mouseaccel && curtime && (dx || dy)) cursens += 0.02f * mouseaccel * sqrtf(dx*dx + dy*dy)/curtime;
-    if( zooming(player1) )
+    if(scopesens==0 || !zooming(player1))
     {
-        extern float scopesensfunc;
-        cursens *= autoscopesens ? scopesensfunc : scopesensscale;
+        if(scopesensfeel)
+        {
+            // AC 1.1
+            cursens /= 33.0f*sensitivityscale;
+            if( zooming(player1) ) { cursens *= autoscopesens ? scopesensfunc : scopesensscale; }
+            camera1->yaw += dx*cursens;
+            camera1->pitch -= dy*cursens*(invmouse ? -1 : 1);
+        }
+        else
+        {
+            // AC 1.0
+            if( zooming(player1) ) { cursens *= autoscopesens ? scopesensfunc : scopesensscale; }
+            float sensfactor = 33.0f*sensitivityscale;
+            camera1->yaw += dx*cursens/sensfactor;
+            camera1->pitch -= dy*cursens*(invmouse ? -1 : 1)/sensfactor;
+        }
     }
-    float sensfactor = 33.0f*sensitivityscale; // the line below causes a changed value during scoping. example for 30-mickeys: AC-1.0 => 1.4272 and AC-1.1 => 1.410
-    //cursens /= 33.0f*sensitivityscale; // now it will be back to the original values
-    camera1->yaw += dx*cursens/sensfactor;
-    camera1->pitch -= dy*cursens*(invmouse ? -1 : 1)/sensfactor;
+    else
+    {
+        // user provided value
+        float sensfactor = 33.0f*sensitivityscale;
+        camera1->yaw += dx*scopesens/sensfactor;
+        camera1->pitch -= dy*scopesens*(invmouse ? -1 : 1)/sensfactor;
+    }
+
     fixcamerarange();
     if(camera1!=player1 && player1->spectatemode!=SM_DEATHCAM)
     {
