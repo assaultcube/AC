@@ -468,7 +468,7 @@ void audiomanager::detachsounds(playerent *owner)
 }
 
 
-VARP(maxsoundsatonce, 0, 10, 100);
+VARP(maxsoundsatonce, 0, 32, 100);
 
 location *audiomanager::_playsound(int n, const worldobjreference &r, int priority, float offset, bool loop)
 {
