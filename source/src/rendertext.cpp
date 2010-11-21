@@ -323,7 +323,7 @@ static void text_color(char c, char *stack, int size, int &sp, bvec color, int a
         {
             case '0': color = bvec( 2,  255,  128 ); break;   // green: player talk
             case '1': color = bvec( 96,  160, 255 ); break;   // blue: team chat
-            case '2': color = bvec( 230, 230,  20 ); break;   // yellow: gameplay action messages, only actions done by players
+            case '2': color = bvec( 255, 192,  64 ); break;   // yellow: gameplay action messages, only actions done by players - 230 230 20 too bright
             case '3': color = bvec( 255,  64,  64 ); break;   // red: important errors and notes
             case '4': color = bvec( 128, 128, 128 ); break;   // gray
             case '5': color = bvec( 255, 255, 255 ); break;   // white
