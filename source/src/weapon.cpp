@@ -570,7 +570,8 @@ void raydamage(vec &from, vec &to, playerent *d)
             case GUN_SUBGUN: if(flag4subgunDMGalt) dam +=1; break;
             default: break;
         }
-        hitpush(dam, o, d, from, to, d->weaponsel->type, gib, gib ? 1 : 0);
+        bool info = gib || (GUN_SUBGUN && flag4subgunDMGalt);
+        hitpush(dam, o, d, from, to, d->weaponsel->type, gib, info ? 1 : 0);
         if(d==player1) hitted=true;
         shorten(from, o->o, to);
     }
@@ -1225,7 +1226,7 @@ bool rifle::selectable() { return weapon::selectable() && !m_noprimary && this =
 
 assaultrifle::assaultrifle(playerent *owner) : gun(owner, GUN_ASSAULT) {}
 
-int assaultrifle::dynspread() { return shots > 3 ? info.spread * 3 : info.spread; }
+int assaultrifle::dynspread() { return shots > 3 ? 60 : ( info.spread + ( shots > 0 ? ( shots == 1 ? 5 : 15 ) : 0 }
 float assaultrifle::dynrecoil() { return info.recoil + (rnd(8)*-0.01f); }
 bool assaultrifle::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
 
