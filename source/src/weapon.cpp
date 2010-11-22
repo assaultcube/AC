@@ -1226,7 +1226,7 @@ bool rifle::selectable() { return weapon::selectable() && !m_noprimary && this =
 
 assaultrifle::assaultrifle(playerent *owner) : gun(owner, GUN_ASSAULT) {}
 
-int assaultrifle::dynspread() { return shots > 3 ? 60 : ( info.spread + ( shots > 0 ? ( shots == 1 ? 5 : 15 ) : 0 }
+int assaultrifle::dynspread() { return shots > 3 ? 60 : ( info.spread + ( shots > 0 ? ( shots == 1 ? 5 : 15 ) : 0 ) ); }
 float assaultrifle::dynrecoil() { return info.recoil + (rnd(8)*-0.01f); }
 bool assaultrifle::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
 
