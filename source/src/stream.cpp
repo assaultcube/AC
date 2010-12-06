@@ -251,6 +251,7 @@ bool listdir(const char *dir, const char *ext, vector<char *> &files)
         do {
             files.add(newstring(FindFileData.cFileName, (int)strlen(FindFileData.cFileName) - extsize));
         } while(FindNextFile(Find, &FindFileData));
+        FindClose(Find);
         return true;
     }
     #else
