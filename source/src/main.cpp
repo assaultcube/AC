@@ -595,8 +595,13 @@ bool needsautoscreenshot = false;
 
 void makeautoscreenshot()
 {
-    needsautoscreenshot = false;
-    screenshot(NULL);
+    extern void *scoremenu, *teammenu, *ctfmenu, *curmenu;
+    bool scoresee = (curmenu == scoremenu || curmenu == teammenu || curmenu == ctfmenu);
+    if(scoresee)
+    {
+        needsautoscreenshot = false;
+        screenshot(NULL);
+    }
 }
 
 COMMAND(screenshot, ARG_1STR);
