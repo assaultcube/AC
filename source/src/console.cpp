@@ -23,7 +23,7 @@ struct console : consolebuffer<cline>
     void toggleconsole()
     {
         if(!fullconsole) fullconsole = altconsize ? 1 : 2;
-        else fullconsole = ++fullconsole % 3;
+        else fullconsole = (fullconsole + 1) % 3;
     }
 
     void addline(const char *sf) { consolebuffer<cline>::addline(sf, totalmillis); }
