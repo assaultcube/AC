@@ -3261,23 +3261,18 @@ Output:
 				</variable>
 
 				<variable name="oldfashionedgunstats">
-					<description>Show ammo stats like in 1.0</description>
+					<description>Shows ammo statistics like version 1.0</description>
 					<value token="N" description="0: new, 1: old" minValue="0" maxValue="1" defaultValue="0" />
 				</variable>
 
 				<variable name="righthanded">
-					<description>Choose player hand to carry the weapon.</description>
+					<description>Choose whether the players hand carrying the weapon appears as right or left handed.</description>
 					<value token="N" description="0: lefty, 1: righty" minValue="0" maxValue="1" defaultValue="1" />
 				</variable>
 
 				<variable name="confade">
-					<description>Sets how many seconds before the console text rolls up.</description>
-					<remarks>
-					<remark>
-						It may also be viewed as the speed at wich the console text dissapears.
-					</remark>
-					</remarks>
-						<value token="V" description="time before text rollout" minValue="0" maxValue="60" defaultValue="20"/>
+					<description>Sets how many seconds before the console text rolls (disappears) up the screen.</description>
+					<value token="V" description="time before the text rolls up" minValue="0" maxValue="60" defaultValue="20"/>
 				</variable>
 
 				<variable name="maxcon">
