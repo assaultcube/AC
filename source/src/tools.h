@@ -58,8 +58,8 @@ static inline T min(T a, T b)
 static inline float round(float x) { return floor(x + 0.5f); }
 
 #define clamp(a,b,c) (max(b, min(a, c)))
-#define rnd(max) (rand()%(max))
-#define rnd_2x(max) (rand()%(max)+rand()%(max))
+#define rnd(x) ((int)(randomMT()&0xFFFFFF)%(x))
+#define rndscale(x) (float((randomMT()&0xFFFFFF)*double(x)/double(0xFFFFFF)))
 #define detrnd(s, x) ((int)(((((uint)(s))*1103515245+12345)>>16)%(x)))
 
 #define loop(v,m) for(int v = 0; v<int(m); v++)
@@ -913,6 +913,8 @@ extern enet_uint32 adler(unsigned char *data, size_t len);
 extern void endianswap(void *, int, int);
 extern bool isbigendian();
 extern void strtoupper(char *t, const char *s = NULL);
+extern void seedMT(uint seed);
+extern uint randomMT(void);
 
 struct iprange { enet_uint32 lr, ur; };
 extern const char *atoip(const char *s, enet_uint32 *ip);

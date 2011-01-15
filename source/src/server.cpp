@@ -1015,7 +1015,7 @@ void distributeteam(int team)
         if(team == 100 || team == clients[i]->team)
         {
             tdistrib.add(i);
-            clients[i]->at3_score = rand();
+            clients[i]->at3_score = rnd(0x1000000);
         }
     }
     tdistrib.sort(cmpscore); // random player order
@@ -1023,7 +1023,7 @@ void distributeteam(int team)
     loopi(numsp)
     {
         ti.index = i;
-        ti.value = rand();
+        ti.value = rnd(0x1000000);
         sdistrib.add(ti);
     }
     sdistrib.sort(cmptwoint); // random spawn order
@@ -3674,7 +3674,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
                 c.peer->data = (void *)(size_t)c.clientnum;
                 c.connectmillis = servmillis;
                 c.state.state = CS_SPECTATE;
-                c.salt = rand()*((servmillis%1000)+1);
+                c.salt = rnd(0x1000000)*((servmillis%1000)+1);
                 char hn[1024];
                 copystring(c.hostname, (enet_address_get_host_ip(&c.peer->address, hn, sizeof(hn))==0) ? hn : "unknown");
                 logline(ACLOG_INFO,"[%s] client connected", c.hostname);
@@ -3912,7 +3912,6 @@ void initserver(bool dedicated, int argc, char **argv)
     if ( strlen(scl.servdesc_full) ) global_name = scl.servdesc_full;
     else global_name = server_name;
 
-    srand(time(NULL));
     smapname[0] = '\0';
 
     string identity;
