@@ -1009,7 +1009,6 @@ const char *rndmapname()
         "ac_shine",  "ac_snow",  "ac_sunset",  "ac_toxic",  "ac_urban",
         "ac_werk",
     };
-    srand(time(NULL));
     int l = sizeof(mapnames)/sizeof(mapnames[0]);
     int n = rnd(l);
     return mapnames[n];

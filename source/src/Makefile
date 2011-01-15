@@ -109,7 +109,6 @@ MASTER_OBJS= \
 	crypto-standalone.o \
 	stream-standalone.o \
 	command-standalone.o \
-	crypto_tools-standalone.o \
 	master-standalone.o
 
 ifeq ($(PLATFORM),SunOS)
@@ -196,7 +195,10 @@ depend:
 	makedepend -a -o-standalone.o -Y -I. $(subst -standalone.o,.cpp,$(filter-out $(SERVER_OBJS), $(MASTER_OBJS)))
 
 # DO NOT DELETE
-crypto.o: cube.h protos.h
+
+crypto.o: cube.h platform.h tools.h geom.h model.h protocol.h sound.h
+crypto.o: weapon.h entity.h world.h i18n.h command.h vote.h console.h
+crypto.o: protos.h
 audiomanager.o: cube.h platform.h tools.h geom.h model.h protocol.h sound.h
 audiomanager.o: weapon.h entity.h world.h i18n.h command.h vote.h console.h
 audiomanager.o: protos.h
@@ -230,7 +232,7 @@ i18n.o: entity.h world.h i18n.h command.h vote.h console.h protos.h
 log.o: cube.h platform.h tools.h geom.h model.h protocol.h sound.h weapon.h
 log.o: entity.h world.h i18n.h command.h vote.h console.h protos.h
 main.o: cube.h platform.h tools.h geom.h model.h protocol.h sound.h weapon.h
-main.o: entity.h world.h i18n.h command.h vote.h console.h protos.h
+main.o: entity.h world.h i18n.h command.h vote.h console.h protos.h jpegenc.h
 menus.o: cube.h platform.h tools.h geom.h model.h protocol.h sound.h weapon.h
 menus.o: entity.h world.h i18n.h command.h vote.h console.h protos.h
 oggstream.o: cube.h platform.h tools.h geom.h model.h protocol.h sound.h
@@ -272,16 +274,16 @@ rndmap.o: protos.h
 scoreboard.o: cube.h platform.h tools.h geom.h model.h protocol.h sound.h
 scoreboard.o: weapon.h entity.h world.h i18n.h command.h vote.h console.h
 scoreboard.o: protos.h
-server.o: cube.h platform.h tools.h geom.h model.h protocol.h sound.h
-server.o: weapon.h entity.h world.h i18n.h command.h vote.h console.h
-server.o: protos.h server.h servercontroller.h serverfiles.h serverevents.h
-server.o: serveractions.h serverchecks.h
-serverbrowser.o: cube.h platform.h tools.h geom.h model.h protocol.h sound.h
-serverbrowser.o: weapon.h entity.h world.h i18n.h command.h vote.h console.h
-serverbrowser.o: protos.h
 serverms.o: cube.h platform.h tools.h geom.h model.h protocol.h sound.h
 serverms.o: weapon.h entity.h world.h i18n.h command.h vote.h console.h
 serverms.o: protos.h
+server.o: cube.h platform.h tools.h geom.h model.h protocol.h sound.h
+server.o: weapon.h entity.h world.h i18n.h command.h vote.h console.h
+server.o: protos.h server.h servercontroller.h serverfiles.h serverchecks.h
+server.o: serverevents.h serveractions.h
+serverbrowser.o: cube.h platform.h tools.h geom.h model.h protocol.h sound.h
+serverbrowser.o: weapon.h entity.h world.h i18n.h command.h vote.h console.h
+serverbrowser.o: protos.h
 shadow.o: cube.h platform.h tools.h geom.h model.h protocol.h sound.h
 shadow.o: weapon.h entity.h world.h i18n.h command.h vote.h console.h
 shadow.o: protos.h
@@ -307,7 +309,9 @@ weapon.o: cube.h platform.h tools.h geom.h model.h protocol.h sound.h
 weapon.o: weapon.h entity.h world.h i18n.h command.h vote.h console.h
 weapon.o: protos.h bot/bot.h bot/bot_util.h bot/bot_waypoint.h bot/ac_bot.h
 weapon.o: hudgun.h
-wizard.o: platform.h
+wizard.o: cube.h platform.h tools.h geom.h model.h protocol.h sound.h
+wizard.o: weapon.h entity.h world.h i18n.h command.h vote.h console.h
+wizard.o: protos.h
 world.o: cube.h platform.h tools.h geom.h model.h protocol.h sound.h weapon.h
 world.o: entity.h world.h i18n.h command.h vote.h console.h protos.h
 world.o: bot/bot.h bot/bot_util.h bot/bot_waypoint.h bot/ac_bot.h
@@ -356,32 +360,36 @@ bot/ac_bot_ai.o: bot/ac_bot.h
 cube.h.gch: platform.h tools.h geom.h model.h protocol.h sound.h weapon.h
 cube.h.gch: entity.h world.h i18n.h command.h vote.h console.h protos.h
 
+crypto-standalone.o: cube.h platform.h tools.h geom.h model.h protocol.h
+crypto-standalone.o: sound.h weapon.h entity.h world.h i18n.h command.h
+crypto-standalone.o: vote.h console.h protos.h
 log-standalone.o: cube.h platform.h tools.h geom.h model.h protocol.h sound.h
 log-standalone.o: weapon.h entity.h world.h i18n.h command.h vote.h console.h
 log-standalone.o: protos.h
 protocol-standalone.o: cube.h platform.h tools.h geom.h model.h protocol.h
 protocol-standalone.o: sound.h weapon.h entity.h world.h i18n.h command.h
 protocol-standalone.o: vote.h console.h protos.h
-server-standalone.o: cube.h platform.h tools.h geom.h model.h protocol.h
-server-standalone.o: sound.h weapon.h entity.h world.h i18n.h command.h
-server-standalone.o: vote.h console.h protos.h server.h servercontroller.h
-server-standalone.o: serverfiles.h serverevents.h serveractions.h serverchecks.h
 serverms-standalone.o: cube.h platform.h tools.h geom.h model.h protocol.h
 serverms-standalone.o: sound.h weapon.h entity.h world.h i18n.h command.h
 serverms-standalone.o: vote.h console.h protos.h
-crypto-standalone.o: cube.h protos.h
-crypto_tools-standalone.o: crypto_tools.h
+server-standalone.o: cube.h platform.h tools.h geom.h model.h protocol.h
+server-standalone.o: sound.h weapon.h entity.h world.h i18n.h command.h
+server-standalone.o: vote.h console.h protos.h server.h servercontroller.h
+server-standalone.o: serverfiles.h serverchecks.h serverevents.h
+server-standalone.o: serveractions.h
 stream-standalone.o: cube.h platform.h tools.h geom.h model.h protocol.h
 stream-standalone.o: sound.h weapon.h entity.h world.h i18n.h command.h
 stream-standalone.o: vote.h console.h protos.h
 tools-standalone.o: cube.h platform.h tools.h geom.h model.h protocol.h
 tools-standalone.o: sound.h weapon.h entity.h world.h i18n.h command.h vote.h
 tools-standalone.o: console.h protos.h
-wizard-standalone.o: platform.h
+wizard-standalone.o: cube.h platform.h tools.h geom.h model.h protocol.h
+wizard-standalone.o: sound.h weapon.h entity.h world.h i18n.h command.h
+wizard-standalone.o: vote.h console.h protos.h
 
 command-standalone.o: cube.h platform.h tools.h geom.h model.h protocol.h
 command-standalone.o: sound.h weapon.h entity.h world.h i18n.h command.h
 command-standalone.o: vote.h console.h protos.h
 master-standalone.o: cube.h platform.h tools.h geom.h model.h protocol.h
 master-standalone.o: sound.h weapon.h entity.h world.h i18n.h command.h
-master-standalone.o: vote.h console.h protos.h crypto_tools.h
+master-standalone.o: vote.h console.h protos.h

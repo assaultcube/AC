@@ -1,5 +1,4 @@
 #include "cube.h"
-#include "crypto_tools.h"
 #include <signal.h>
 #include <enet/time.h>
 

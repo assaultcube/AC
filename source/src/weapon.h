@@ -128,6 +128,7 @@ struct rifle : gun
 struct shotgun : gun
 {
     shotgun(playerent *owner);
+    void attackphysics(vec &from, vec &to);
     bool attack(vec &targ);
     void attackfx(const vec &from, const vec &to, int millis);
     bool selectable();

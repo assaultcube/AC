@@ -143,20 +143,17 @@ void tryreload(playerent *p)
 void selfreload() { tryreload(player1); }
 COMMANDN(reload, selfreload, ARG_NONE);
 
-void createrays(vec &from, vec &to, bool force = false)             // create random spread of rays for the shotgun
+void createrays(vec &from, vec &to)             // create random spread of rays for the shotgun
 {
-	if( force || player1->attacking )
+	float f = to.dist(from)*SGSPREAD/1000;
+	if(1==0)conoutf("shotgun distance: %.2f", f); // DEBUG 2010nov19
+	loopi(SGRAYS)
 	{
-		float f = to.dist(from)*SGSPREAD/1000;
-		if(1==0)conoutf("shotgun distance: %.2f", f); // DEBUG 2010nov19
-		loopi(SGRAYS)
-		{
-			#define RNDD (rnd_2x(51)-50)*f   // With this (rnd_2x in place of rnd) the spread does not change, but there will be more shots in the middle area
-			vec r(RNDD, RNDD, RNDD);
-			sg[i] = to;
-			sg[i].add(r);
-			#undef RNDD
-		}
+		#define RNDD (rndscale(100)-50)*f
+		vec r(RNDD, RNDD, RNDD);
+		sg[i] = to;
+		sg[i].add(r);
+		#undef RNDD
 	}
 }
 
@@ -1127,12 +1124,15 @@ void gun::checkautoreload() { if(autoreload && owner==player1 && !mag) reload();
 
 shotgun::shotgun(playerent *owner) : gun(owner, GUN_SHOTGUN) {}
 
+void shotgun::attackphysics(vec &from, vec &to)
+{
+    createrays(from, to);
+    gun::attackphysics(from, to);
+}
+
 bool shotgun::attack(vec &targ)
 {
 	if(1==0)conoutf("shotgun:attack(%.2f, %.2f, %.2f)", targ.x, targ.y, targ.z); // 2010nov19
-    vec from = owner->o;
-    from.z -= weaponbeloweye;
-    createrays(from, targ, false); // force: false^=check-PLAYER-attacking-FLAG new:2010nov19 // TODO make check here not in createrays
     return gun::attack(targ);
 }
 
