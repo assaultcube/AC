@@ -65,10 +65,12 @@ Texture *notexture = NULL, *noworldtexture = NULL;
 hashtable<char *, Texture> textures;
 
 VAR(hwtexsize, 1, 0, 0);
+VAR(hwmaxaniso, 1, 0, 0);
 VARFP(maxtexsize, 0, 0, 1<<12, initwarning("texture quality", INIT_LOAD));
 VARFP(texreduce, -1, 0, 3, initwarning("texture quality", INIT_LOAD));
 VARFP(trilinear, 0, 1, 1, initwarning("texture filtering", INIT_LOAD));
 VARFP(bilinear, 0, 1, 1, initwarning("texture filtering", INIT_LOAD));
+VARFP(aniso, 0, 0, 16, initwarning("texture filtering", INIT_LOAD));
 
 int formatsize(GLenum format)
 {
@@ -126,6 +128,7 @@ void uploadtexture(GLenum target, GLenum internal, int tw, int th, GLenum format
         buf = new uchar[tw*th*bpp];
         scaletexture((uchar *)pixels, pw, ph, bpp, buf, tw, th);
     }
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     for(int level = 0;; level++)
     {
         uchar *src = buf ? buf : (uchar *)pixels;
@@ -139,30 +142,13 @@ void uploadtexture(GLenum target, GLenum internal, int tw, int th, GLenum format
     }
     if(buf) delete[] buf;
 }
-void check_anisotropy()
-{
-    float largest_supported_anisotropy;
-    glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &largest_supported_anisotropy);
-    conoutf("your card reports: %3.1f as max anisotropy value", largest_supported_anisotropy);
-}
-COMMAND(check_anisotropy, ARG_NONE);
 
-VARP(anisotropy, 0, 0, 16);
 void createtexture(int tnum, int w, int h, void *pixels, int clamp, bool mipmap, bool canreduce, GLenum format)
 {
     glBindTexture(GL_TEXTURE_2D, tnum);
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, clamp&1 ? GL_CLAMP_TO_EDGE : GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, clamp&2 ? GL_CLAMP_TO_EDGE : GL_REPEAT);
-    switch(anisotropy)
-    {
-        case 1:
-        case 2:
-        case 4:
-        case 8:
-        case 16: glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropy); break;
-        default: break;
-    }
+    if(hasAF && min(aniso, hwmaxaniso) > 0 && mipmap) glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, min(aniso, hwmaxaniso));
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, bilinear ? GL_LINEAR : GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
         mipmap ?
