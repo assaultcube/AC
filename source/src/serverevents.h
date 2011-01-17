@@ -57,7 +57,7 @@ void processevent(client *c, shotevent &e)
         case GUN_GRENADE: gs.grenades.add(e.id); break;
         default:
         {
-            int totalrays = 0, maxrays = e.gun==GUN_SHOTGUN ? SGRAYS : 1;
+            int totalrays = 0, maxrays = e.gun==GUN_SHOTGUN ? SGMAXDMGABS: 1;
             for(int i = 1; i<c->events.length() && c->events[i].type==GE_HIT; i++)
             {
                 hitevent &h = c->events[i].hit;

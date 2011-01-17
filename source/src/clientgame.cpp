@@ -590,7 +590,7 @@ void respawnself()
         spawnplayer(player1);
         player1->lifesequence++;
         player1->weaponswitch(player1->primweap);
-        player1->weaponchanging -= weapon::weaponchangetime/2;
+        player1->weaponchanging -= player1->weapons[player1->gunselect]->weaponchangetime/2; // 2011jan16:ft: for a little no-shoot after spawn
     }
 }
 
@@ -608,14 +608,14 @@ inline const char * spawn_message()
     if (spawnpermission == SP_WRONGMAP)
     {
         // Don't use "/n" within these messages. If you do, the words won't align to the middle of the screen.
-        if (securemapcheck(getclientmap())) 
+        if (securemapcheck(getclientmap()))
         return "3Server will NOT allow spawning or getmap!";   // Also see client.cpp which has a conoutf message
         else return "3You must be on the correct map to spawn. Type /getmap to download it.";
     }
     else if (m_coop) return "3Type /getmap or send a map and vote for it to start co-op edit.";
     else return "4Awaiting permission to spawn. \f2DON\'T PANIC!";
-    // Despite its many glaring (and occasionally fatal) inaccuracies, AssaultCube itself has outsold the 
-    // Encyclopedia Galactica because it is slightly cheaper, and because it has the words "Don't Panic" 
+    // Despite its many glaring (and occasionally fatal) inaccuracies, AssaultCube itself has outsold the
+    // Encyclopedia Galactica because it is slightly cheaper, and because it has the words "Don't Panic"
     // in large, friendly letters.
 }
 
