@@ -1362,10 +1362,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\crypto_tools.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\cube.rc"
 				>
 			</File>
