@@ -160,7 +160,7 @@ void createtexture(int tnum, int w, int h, void *pixels, int clamp, bool mipmap,
         case 2:
         case 4:
         case 8:
-        case 16: glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, aniso); break;
+        case 16: glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropy); break;
         default: break;
     }
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, bilinear ? GL_LINEAR : GL_NEAREST);
