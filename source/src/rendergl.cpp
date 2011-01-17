@@ -3,7 +3,7 @@
 #include "cube.h"
 #include "bot/bot.h"
 
-bool hasTE = false, hasMT = false, hasMDA = false, hasDRE = false, hasstencil = false, hasST2 = false, hasSTW = false, hasSTS = false;
+bool hasTE = false, hasMT = false, hasMDA = false, hasDRE = false, hasstencil = false, hasST2 = false, hasSTW = false, hasSTS = false, hasAF;
 
 // GL_ARB_multitexture
 PFNGLACTIVETEXTUREARBPROC       glActiveTexture_   = NULL;
@@ -89,6 +89,14 @@ void gl_checkextensions()
     }
 
     if(strstr(exts, "GL_EXT_stencil_wrap")) hasSTW = true;
+
+    if(strstr(exts, "GL_EXT_texture_filter_anisotropic"))
+    {
+       GLint val;
+       glGetIntegerv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &val);
+       hwmaxaniso = val;
+       hasAF = true;
+    }
 
     if(!strstr(exts, "GL_ARB_fragment_program"))
     {

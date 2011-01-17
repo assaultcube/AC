@@ -46,7 +46,7 @@ extern int stenciling, stencilshadow;
 extern bool intermission;
 extern int arenaintermission;
 extern hashtable<char *, enet_uint32> mapinfo;
-extern int hwtexsize;
+extern int hwtexsize, hwmaxaniso;
 extern int numspawn[3], maploaded, numflagspawn[2];
 extern int verbose;
 
