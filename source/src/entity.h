@@ -49,6 +49,13 @@ enum { GUN_KNIFE = 0, GUN_PISTOL, GUN_RIFLE, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIPER
 #define reloadable_gun(g) (g != GUN_KNIFE && g != GUN_GRENADE)
 
 #define SGRAYS 21
+// WIP shotty
+#define SGMAXDMGABS 105
+#define SGMAXDMGLOC 84
+#define SGBONUSDIST 60
+#define SGSEGDMG_O 3
+#define SGSEGDMG_M 4
+#define SGSEGDMG_C 5
 #define SGSPREAD 2.25
 #define EXPDAMRAD 10
 
@@ -472,7 +479,8 @@ public:
         lastaction = 0;
         lastattackweapon = NULL;
         attacking = false;
-        weaponchanging = 0;
+        extern int lastmillis;
+        weaponchanging = lastmillis - weapons[gunselect]->weaponchangetime/2; // 2011jan16:ft: for a little no-shoot after spawn
         resetspec();
         eardamagemillis = 0;
         eyeheight = maxeyeheight;

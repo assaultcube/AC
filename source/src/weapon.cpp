@@ -6,7 +6,11 @@
 
 VARP(autoreload, 0, 1, 1);
 VARP(akimboendaction, 0, 0, 2); // 0: stay with pistol, 1: back to primary, 2: grenade - all fallback to previous one w/o ammo for target
-vec sg[SGRAYS];
+struct sgray {
+    int ds; // damage flag: outer, medium, center: SGSEGDMG_*
+    vec rv; // ray vector
+};
+sgray sgr[SGRAYS*3];
 
 void updatelastaction(playerent *d)
 {
@@ -143,18 +147,41 @@ void tryreload(playerent *p)
 void selfreload() { tryreload(player1); }
 COMMANDN(reload, selfreload, ARG_NONE);
 
-void createrays(vec &from, vec &to)             // create random spread of rays for the shotgun
+void createrays(vec &from, vec &to) // create random spread of rays for the shotgun
 {
-	float f = to.dist(from)*SGSPREAD/1000;
-	if(1==0)conoutf("shotgun distance: %.2f", f); // DEBUG 2010nov19
-	loopi(SGRAYS)
-	{
-		#define RNDD (rndscale(100)-50)*f
-		vec r(RNDD, RNDD, RNDD);
-		sg[i] = to;
-		sg[i].add(r);
-		#undef RNDD
-	}
+    // 2011jan17:ft: once this basic approach has been agreed upon this function should be optimized
+    vec dir = vec(from).sub(to);
+    float f = dir.magnitude() / 10.0f;
+    dir.normalize();
+    vec spoke;
+    spoke.orthogonal(dir);
+    spoke.normalize();
+    spoke.mul(f);
+    int circseg = -1;
+    loopk(3)
+    loopi(SGRAYS)
+    {
+        circseg = k;
+        int j = k * SGRAYS;
+        sgr[j+i].ds = k==0 ? SGSEGDMG_O : (k==1? SGSEGDMG_M: SGSEGDMG_C);
+        vec p(spoke);
+        float base = 3.14f;
+        int wrange = 50;
+        switch(sgr[j+i].ds)
+        {
+            case SGSEGDMG_O:  base = 1.35f; wrange = 40; break;
+            case SGSEGDMG_M:  base = 0.50f; wrange = 85; break;
+            case SGSEGDMG_C:
+            default:          base = 0.00f; wrange = 50; break;
+        }
+        int rndmul = rnd(wrange);
+        p.mul( base + rndmul/100.0f );
+        int rnddir = rnd(15);
+        p.rotate( 2*M_PI/SGRAYS * i + rnddir , dir );
+        vec rray = vec(to);
+        rray.add(p);
+        sgr[j+i].rv = rray;
+    }
 }
 
 static inline bool intersectbox(const vec &o, const vec &rad, const vec &from, const vec &to, vec *end) // if lineseg hits entity bounding box
@@ -536,25 +563,76 @@ void raydamage(vec &from, vec &to, playerent *d)
     bool hitted=false;
     if(d->weaponsel->type==GUN_SHOTGUN)
     {
-        playerent *hits[SGRAYS];
-        loopi(SGRAYS)
+
+
+        uint done = 0;
+        playerent *cl = NULL;
+        vec dir(from);
+        dir.sub(to).normalize();
+		vec spoke;
+		spoke.orthogonal(dir);
+		spoke.normalize().mul(0.2f);
+		sgray tbp[SGRAYS*3];
+		loopk(3)
+		loop(r, SGRAYS)
+		{
+		    int j = k * SGRAYS;
+            vec p(spoke);
+            int rndmul = rnd(5);
+		    p.mul( 0.25 + rndmul/10.0f );
+		    int rndjit = rnd(360);
+            p.rotate( 2*M_PI/360 * rndjit, dir );
+		    tbp[j+r].rv = from;
+		    if(sgr[j+r].ds != SGSEGDMG_C) tbp[j+r].rv.add(p);
+		}
+        for(;;)
         {
-            if((hits[i] = intersectclosest(from, sg[i], d, dist, hitzone)))
-                shorten(from, sg[i], dist); 
-        }
-        loopi(SGRAYS) if(hits[i])
-        {
-            o = hits[i];
-            hits[i] = NULL;
-            int numhits = 1;
-            for(int j = i+1; j < SGRAYS; j++) if(hits[j] == o)
+            bool raysleft = false;
+            int hitrays_o = 0;
+            int hitrays_m = 0;
+            int hitrays_c = 0;
+            o = NULL;
+            loopk(3)
             {
-                hits[j] = NULL;
-                numhits++;
+                done = 0;
+                loop(r, SGRAYS)
+                {
+                    int j = k * SGRAYS;
+                    if((done&(1<<r))==0 && (cl = intersectclosest(tbp[j+r].rv, sgr[j+r].rv, d, dist, hitzone)))
+                    {
+                        if(!o || o==cl)
+                        {
+                            switch(sgr[j+r].ds)
+                            {
+                                case SGSEGDMG_O: hitrays_o++; break;
+                                case SGSEGDMG_M: hitrays_m++; break;
+                                case SGSEGDMG_C: hitrays_c++; break;
+                                default: break;
+                            }
+                            o = cl;
+                            done |= 1<<r;
+                            shorten(tbp[j+r].rv, sgr[j+r].rv, dist);
+                        }
+                        else raysleft = true;
+                    }
+                }
             }
-            hitpush(numhits*dam, o, d, from, to, d->weaponsel->type, numhits == SGRAYS, numhits);
-            if(d==player1) hitted = true;
+            int hitrays = hitrays_o + hitrays_m + hitrays_c;
+            int dmgtotal = SGSEGDMG_O * hitrays_o + SGSEGDMG_M * hitrays_m + SGSEGDMG_C * hitrays_c;
+            int dmgrealt = dmgtotal / 3; // needs to possibly factorize the ray-segments seperately - but always: dmgrealt <= SGMAXDMG(ABS) !!
+            float d2o = SGBONUSDIST;
+            if(o) d2o = vec(from).sub(o->o).magnitude();
+            if(d2o <= (SGBONUSDIST/10.0f) && hitrays)
+            {
+                dmgrealt += (SGMAXDMGABS-SGMAXDMGLOC);
+                dmgrealt = min(dmgrealt, SGMAXDMGABS); // maximum damage of the shotgun
+            }
+            if(hitrays) hitpush( dmgrealt, o, d, from, to, d->weaponsel->type, hitrays == SGMAXDMGABS, dmgrealt);
+            if(d==player1 && hitrays) hitted=true;
+            if(!raysleft) break;
         }
+
+
     }
     else if((o = intersectclosest(from, to, d, dist, hitzone)))
     {
@@ -566,7 +644,7 @@ void raydamage(vec &from, vec &to, playerent *d)
             case GUN_SUBGUN: if(flag4subgunDMGalt) dam +=1; break;
             default: break;
         }
-        bool info = gib || (GUN_SUBGUN && flag4subgunDMGalt);
+        bool info = gib || (d->weaponsel->type==GUN_SUBGUN && flag4subgunDMGalt);
         hitpush(dam, o, d, from, to, d->weaponsel->type, gib, info ? 1 : 0);
         if(d==player1) hitted=true;
         shorten(from, to, dist);
@@ -1066,8 +1144,11 @@ bool gun::attack(vec &targ)
     if(!owner->attacking)
     {
         shots = 0;
-        if(lastmillis-timer4subgunDMGalt>=750) flag4subgunDMGalt = true; // 1st shot 16, 2nd 15, .. reset on "end burst" (timed)
-        if(!timer4subgunDMGalt) timer4subgunDMGalt = lastmillis;
+        if(type==GUN_SUBGUN)
+        {
+            if(lastmillis-timer4subgunDMGalt>=750) flag4subgunDMGalt = true; // 1st shot 16, 2nd 15, .. reset on "end burst" (timed)
+            if(!timer4subgunDMGalt) timer4subgunDMGalt = lastmillis;
+        }
         checkautoreload();
         return false;
     }
@@ -1085,7 +1166,7 @@ bool gun::attack(vec &targ)
 
     owner->lastattackweapon = this;
 	shots++;
-	flag4subgunDMGalt = !flag4subgunDMGalt;
+	if(type==GUN_SUBGUN) flag4subgunDMGalt = !flag4subgunDMGalt;
 
 	if(!info.isauto) owner->attacking = false;
 
@@ -1131,17 +1212,20 @@ void shotgun::attackphysics(vec &from, vec &to)
 
 bool shotgun::attack(vec &targ)
 {
-	if(1==0)conoutf("shotgun:attack(%.2f, %.2f, %.2f)", targ.x, targ.y, targ.z); // 2010nov19
     return gun::attack(targ);
 }
 
 void shotgun::attackfx(const vec &from, const vec &to, int millis)
 {
-    loopi(SGRAYS) particle_splash(0, 5, 200, sg[i]);
+    loopi(SGRAYS) particle_splash(0, 5, 200, sgr[i].rv);
     if(addbullethole(owner, from, to))
     {
-        int holes = 3+rnd(5);
-        loopi(holes) addbullethole(owner, from, sg[i], 0, false);
+        loopk(3)
+        {
+            int holes = 1+rnd(3);
+            loopi(holes) addbullethole(owner, from, sgr[k*SGRAYS+i].rv, 0, false);
+        }
+
     }
     adddynlight(owner, from, 4, 100, 50, 96, 80, 64);
     attacksound();
