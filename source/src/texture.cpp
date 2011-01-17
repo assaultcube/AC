@@ -143,7 +143,7 @@ void check_anisotropy()
 {
     float largest_supported_anisotropy;
     glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &largest_supported_anisotropy);
-    conoutf("your card reports: %3.1f as max ansiotropy value", largest_supported_anisotropy);
+    conoutf("your card reports: %3.1f as max anisotropy value", largest_supported_anisotropy);
 }
 COMMAND(check_anisotropy, ARG_NONE);
 
