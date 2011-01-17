@@ -1286,7 +1286,7 @@ echo (pstat_weap 0)
 				<command name="addbot">
 					<description>add a bot for a given team with a given skill calling him a given name.</description>
 					<arguments>
-						<argument token="T" description="team" valueNotes="RVSF or CLA"/>
+						<argument token="T" description="team" valueNotes="RVSF or CLA"/><!-- ??  or SPECTATOR  ?? -->
 						<argument token="S" description="skill" valueNotes="best, good, medium, worse OR bad"/>
 						<argument token="N" description="name" valueNotes="name for the bot"/>
 					</arguments>
@@ -1305,7 +1305,7 @@ echo (pstat_weap 0)
 					<description>will add a given count of bots for the given team with the given skill and select random names for them.</description>
 					<arguments>
 						<argument token="C" description="count" valueNotes="how many bots to add"/>
-						<argument token="T" description="team" valueNotes="RVSF or CLA"/>
+						<argument token="T" description="team" valueNotes="RVSF or CLA"/><!-- ?? or SPECTATOR ?? -->
 						<argument token="S" description="skill" valueNotes="best, good, medium, worse OR bad"/>
 					</arguments>
 					<remarks>
@@ -1483,7 +1483,7 @@ bind PRINT [ if (strcmp $last_server "") [ remember_server ]
 				</command>
 
 				<command name="curteam">
-					<description>Returns 1 if the local player is on the RVSF team, 0 if on CLA.</description>
+					<description>Returns 1 if the local player is on the RVSF team, 0 if on CLA. If the player is in SPECTATOR it returns 2.</description>
 					<references>
 						<identifierReference identifier="team"/>
 						<identifierReference identifier="skin"/>
@@ -1827,7 +1827,7 @@ bind PRINT [ if (strcmp $last_server "") [ remember_server ]
 					</example>
 					</examples>
 					<arguments>
-						<argument token="S" description="the team name" valueNotes="either CLA or RVSF"/>
+						<argument token="S" description="the team name" valueNotes="either CLA or RVSF or SPECTATOR"/>
 					</arguments>
 				</command>
 
