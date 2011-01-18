@@ -49,7 +49,6 @@ enum { GUN_KNIFE = 0, GUN_PISTOL, GUN_RIFLE, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIPER
 #define reloadable_gun(g) (g != GUN_KNIFE && g != GUN_GRENADE)
 
 #define SGRAYS 21
-// WIP shotty
 #define SGMAXDMGABS 105
 #define SGMAXDMGLOC 84
 #define SGBONUSDIST 60
@@ -619,7 +618,7 @@ inline const char * gib_message(int gun)
     switch (gun)
     {
         case GUN_KNIFE: return "slashed";
-        case GUN_SNIPER: return "headshot";
+        case GUN_SNIPER: return "sniped"; // alternative: "eliminated"; // 2011jan17:ft: "headshot" is not an action, it's a noun, headshotted is not a word.
         case GUN_SHOTGUN: return "splattered";
         case GUN_GRENADE:
         default: return "gibbed";
