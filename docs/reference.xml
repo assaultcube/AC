@@ -1100,6 +1100,37 @@ echo foo
 					</example>
 					</examples>
 				</scriptalias>
+				
+				<scriptalias name="onDeathSelf">
+				  <description>This will be executed each time the player dies.</description>
+				</scriptalias>
+
+				<scriptalias name="onDeathOther">
+				  <description>This will be executed each time another player dies.</description>
+				</scriptalias>
+
+				<scriptalias name="onSpawnSelf">
+				  <description>This will be executed each time the player spawns.</description>
+				</scriptalias>
+
+				<scriptalias name="onSpawnOther">
+				  <description>This will be executed each time another player spawns.</description>
+				</scriptalias>
+				
+				<variable name="positiontype">
+					<description>Whether the values returned by <b>getposition</b> are integers (0) or floating-point numbers (1).</description>
+					<value token="T" description="" minValue="0" maxValue="1" defaultValue="0"/>
+					<references>
+					  <identifierReference identifier="getposition"/>
+					</references>
+				</variable>
+
+				<command name="getposition">
+					<description>Returns the coordinates of the player as a list of 3 integers or floating-point values - X, Y and Z.</description>
+					<references>
+					  <identifierReference identifier="positiontype"/>
+					</references>
+				</command>
 
 				<command name="pstat_score">
 					<description>Returns the score statistics for the player with the given clientnumber.</description>
