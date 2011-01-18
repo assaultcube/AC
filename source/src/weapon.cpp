@@ -627,7 +627,7 @@ void raydamage(vec &from, vec &to, playerent *d)
                 dmgrealt += (SGMAXDMGABS-SGMAXDMGLOC);
                 dmgrealt = min(dmgrealt, SGMAXDMGABS); // maximum damage of the shotgun
             }
-            if(hitrays) hitpush( dmgrealt, o, d, from, to, d->weaponsel->type, hitrays == SGMAXDMGABS, dmgrealt);
+            if(hitrays) hitpush( dmgrealt, o, d, from, to, d->weaponsel->type, dmgrealt == SGMAXDMGABS, dmgrealt);
             if(d==player1 && hitrays) hitted=true;
             if(!raysleft) break;
         }
@@ -1134,7 +1134,6 @@ gun::gun(playerent *owner, int type) : weapon(owner, type) {}
 
 bool gun::attack(vec &targ)
 {
-    if(1==0)conoutf("gun::attack(%.2f, %.2f, %.2f)", targ.x, targ.y, targ.z);//DEBUG 2010nov19
     int attackmillis = lastmillis-owner->lastaction;
     if(timebalance < gunwait) attackmillis += timebalance;
     if(attackmillis<gunwait) return false;
@@ -1480,7 +1479,6 @@ int knife::flashtime() const { return 0; }
 
 bool knife::attack(vec &targ)
 {
-    if(1==0)conoutf("knife::attack(%.2f, %.2f, %.2f)", targ.x, targ.y, targ.z);//DEBUG 2010nov19
     int attackmillis = lastmillis-owner->lastaction;
     if(attackmillis<gunwait) return false;
     gunwait = reloading = 0;
@@ -1538,7 +1536,7 @@ void shoot(playerent *p, vec &targ)
         weap->attack(targ);
         loopi(NUMGUNS)
         {
-            weapon *bweap = player1->weapons[i];
+            weapon *bweap = p->weapons[i];
             if(bweap != weap && bweap->busy()) bweap->attack(targ);
         }
     }
