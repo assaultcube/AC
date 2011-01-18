@@ -682,6 +682,16 @@ void drawscores()
     glPopAttrib();
 }
 
+VARP(positiontype, 0, 0, 1); // integer (0) or float (1) return values?
+void getposition()
+{
+    string poslist;
+    if(positiontype) formatstring(poslist)("%.2f %.2f %.2f", player1->o.x, player1->o.y, player1->o.z );
+    else formatstring(poslist)("%d %d %d", player1->o.x*DNF, player1->o.y*DNF, player1->o.z*DNF );
+    result(poslist);
+}
+COMMAND(getposition, ARG_NONE);
+
 VARP(clockdisplay,0,0,2);
 VARP(dbgpos,0,0,1);
 void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwater)
@@ -764,12 +774,6 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     if(command) commandh -= rendercommand(20, 1570, VIRTW);
     else if(infostr) draw_text(infostr, 20, 1570);
     else if(targetplayer) draw_text(colorname(targetplayer), 20, 1570);
-//     if(targetplayer && targetplayer->weaponsel->type == GUN_SNIPER) // flowtron: for debugging ATM
-//     {
-//         sniperrifle *sr = (sniperrifle *)targetplayer->weaponsel;
-//         if(sr->scoped) draw_textf("\f2SCOPED", 20, 1570 - 2*FONTH);
-//     }
-
     glLoadIdentity();
     glOrtho(0, VIRTW*2, VIRTH*2, 0, -1, 1);
     extern int tsens(int x);
