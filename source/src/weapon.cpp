@@ -563,76 +563,55 @@ void raydamage(vec &from, vec &to, playerent *d)
     bool hitted=false;
     if(d->weaponsel->type==GUN_SHOTGUN)
     {
-
-
-        uint done = 0;
-        playerent *cl = NULL;
-        vec dir(from);
-        dir.sub(to).normalize();
-		vec spoke;
-		spoke.orthogonal(dir);
-		spoke.normalize().mul(0.2f);
-		sgray tbp[SGRAYS*3];
-		loopk(3)
-		loop(r, SGRAYS)
-		{
-		    int j = k * SGRAYS;
-            vec p(spoke);
-            int rndmul = rnd(5);
-		    p.mul( 0.25 + rndmul/10.0f );
-		    int rndjit = rnd(360);
-            p.rotate( 2*M_PI/360 * rndjit, dir );
-		    tbp[j+r].rv = from;
-		    if(sgr[j+r].ds != SGSEGDMG_C) tbp[j+r].rv.add(p);
-		}
-        for(;;)
+        playerent *hits[3*SGRAYS];
+        loopk(3)
+        loopi(SGRAYS)
         {
-            bool raysleft = false;
-            int hitrays_o = 0;
-            int hitrays_m = 0;
-            int hitrays_c = 0;
-            o = NULL;
-            loopk(3)
+            int h = k*SGRAYS + i;
+            if((hits[h] = intersectclosest(from, sgr[h].rv, d, dist, hitzone)))
+                shorten(from, sgr[h].rv, dist);
+        }
+        loopk(3)
+        loopi(SGRAYS)
+        {
+            int h = k*SGRAYS + i;
+            if(hits[h])
             {
-                done = 0;
-                loop(r, SGRAYS)
+                o = hits[h];
+                hits[h] = NULL;
+                int numhits_o, numhits_m, numhits_c;
+                numhits_o = numhits_m = numhits_c = 0;
+                switch(sgr[h].ds)
                 {
-                    int j = k * SGRAYS;
-                    if((done&(1<<r))==0 && (cl = intersectclosest(tbp[j+r].rv, sgr[j+r].rv, d, dist, hitzone)))
+                    case SGSEGDMG_O: numhits_o++; break;
+                    case SGSEGDMG_M: numhits_m++; break;
+                    case SGSEGDMG_C: numhits_c++; break;
+                    default: break;
+                }
+                for(int j = i+1; j < 3*SGRAYS; j++) if(hits[j] == o)
+                {
+                    hits[j] = NULL;
+                    switch(sgr[j].ds)
                     {
-                        if(!o || o==cl)
-                        {
-                            switch(sgr[j+r].ds)
-                            {
-                                case SGSEGDMG_O: hitrays_o++; break;
-                                case SGSEGDMG_M: hitrays_m++; break;
-                                case SGSEGDMG_C: hitrays_c++; break;
-                                default: break;
-                            }
-                            o = cl;
-                            done |= 1<<r;
-                            shorten(tbp[j+r].rv, sgr[j+r].rv, dist);
-                        }
-                        else raysleft = true;
+                        case SGSEGDMG_O: numhits_o++; break;
+                        case SGSEGDMG_M: numhits_m++; break;
+                        case SGSEGDMG_C: numhits_c++; break;
+                        default: break;
                     }
                 }
+                int numhits = numhits_o + numhits_m + numhits_c;
+                int dmgreal = (SGSEGDMG_O * numhits_o + SGSEGDMG_M * numhits_m + SGSEGDMG_C * numhits_c)/3;
+                float d2o = SGBONUSDIST;
+                if(o) d2o = vec(from).sub(o->o).magnitude();
+                if(d2o <= (SGBONUSDIST/10.0f) && numhits)
+                {
+                    dmgreal += (SGMAXDMGABS-SGMAXDMGLOC);
+                    dmgreal = min(dmgreal, SGMAXDMGABS);
+                }
+                if(numhits) hitpush( dmgreal, o, d, from, to, d->weaponsel->type, dmgreal == SGMAXDMGABS, dmgreal);
+                if(d==player1) hitted = true;
             }
-            int hitrays = hitrays_o + hitrays_m + hitrays_c;
-            int dmgtotal = SGSEGDMG_O * hitrays_o + SGSEGDMG_M * hitrays_m + SGSEGDMG_C * hitrays_c;
-            int dmgrealt = dmgtotal / 3; // needs to possibly factorize the ray-segments seperately - but always: dmgrealt <= SGMAXDMG(ABS) !!
-            float d2o = SGBONUSDIST;
-            if(o) d2o = vec(from).sub(o->o).magnitude();
-            if(d2o <= (SGBONUSDIST/10.0f) && hitrays)
-            {
-                dmgrealt += (SGMAXDMGABS-SGMAXDMGLOC);
-                dmgrealt = min(dmgrealt, SGMAXDMGABS); // maximum damage of the shotgun
-            }
-            if(hitrays) hitpush( dmgrealt, o, d, from, to, d->weaponsel->type, dmgrealt == SGMAXDMGABS, dmgrealt);
-            if(d==player1 && hitrays) hitted=true;
-            if(!raysleft) break;
         }
-
-
     }
     else if((o = intersectclosest(from, to, d, dist, hitzone)))
     {
