@@ -244,15 +244,8 @@ VARP(autoscreenshot, 0, 0, 1);
 
 void deathstate(playerent *pl)
 {
-    /*
-    TODO:FIXME: talk to DES|V-Man about passing arguments
-    if(pl==player1)
-    {
-        // execute ondeath event
-        const char *ondeath = getalias("ondeath");
-        if(ondeath && ondeath[0]) { addsleep(0, ondeath); }
-    }
-    */
+    if(pl==player1) { if(identexists("onDeathSelf")) execute("onDeathSelf"); }
+    else { if(identexists("onDeathOther")) execute("onDeathOther"); }
     pl->state = CS_DEAD;
     pl->spectatemode = SM_DEATHCAM;
     pl->respawnoffset = pl->lastpain = lastmillis;
@@ -295,8 +288,8 @@ playerent *newplayerent()                 // create a new blank player
 {
     playerent *d = new playerent;
     d->lastupdate = totalmillis;
-	setskin(d, rnd(6));
-	weapon::equipplayer(d); // flowtron : avoid overwriting d->spawnstate(gamemode) stuff from the following line (this used to be called afterwards)
+    setskin(d, rnd(6));
+    weapon::equipplayer(d); // flowtron : avoid overwriting d->spawnstate(gamemode) stuff from the following line (this used to be called afterwards)
     spawnstate(d);
     return d;
 }
@@ -306,8 +299,8 @@ botent *newbotent()                 // create a new blank player
     botent *d = new botent;
     d->lastupdate = totalmillis;
     setskin(d, rnd(6));
-    spawnstate(d);
     weapon::equipplayer(d);
+    spawnstate(d); // move like above
     loopv(players) if(i!=getclientnum() && !players[i])
     {
         players[i] = d;
@@ -576,6 +569,8 @@ void spawnplayer(playerent *d)
     d->spawnstate(gamemode);
     d->state = (d==player1 && editmode) ? CS_EDITING : CS_ALIVE;
     findplayerstart(d);
+    if(d==player1) { if(identexists("onSpawnSelf")) execute("onSpawnSelf"); }
+    else { if(identexists("onSpawnOther")) execute("onSpawnOther"); }
 }
 
 void respawnself()
