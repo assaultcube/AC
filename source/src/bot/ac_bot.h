@@ -37,7 +37,18 @@ public:
 };
 
 inline void AddScreenText(const char *t, ...) {} // UNDONE
-inline void AddDebugText(const char *t, ...) {} // UNDONE
+inline void AddDebugText(const char *t, ...)
+{
+#ifdef _DEBUG
+    va_list v;
+    va_start(v, t);
+    conoutf(t,v);
+    va_end(v);
+#endif
+}
+
+
+
 
 #endif
 

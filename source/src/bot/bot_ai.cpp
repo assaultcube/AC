@@ -20,7 +20,7 @@ vec CBot::GetEnemyPos(playerent *d)
      // Aim offset idea by botman
      vec o = d->o, offset;
      float flDist = GetDistance(d->o), flScale;
-     
+
      if (WeaponInfoTable[m_pMyEnt->gunselect].eWeaponType == TYPE_ROCKET)
      {
           // Bot is using a rocket launcher, aim at enemy feet?
@@ -42,7 +42,7 @@ vec CBot::GetEnemyPos(playerent *d)
                     }
                }
           }
-          
+
           if (m_pBotSkill->bCanPredict)
           {
                // How higher the skill, how further the bot predicts
@@ -59,7 +59,7 @@ vec CBot::GetEnemyPos(playerent *d)
                o = PredictPos(o, d->vel, flPredictTime);
           }
      }
-          
+
      if (flDist > 60.0f)
           flScale = 1.0f;
      else if (flDist > 6.0f)
@@ -71,7 +71,7 @@ vec CBot::GetEnemyPos(playerent *d)
      {
      case 0:
           // no offset
-          offset.x = 0;  
+          offset.x = 0;
           offset.y = 0;
           offset.z = 0;
           break;
@@ -100,20 +100,20 @@ vec CBot::GetEnemyPos(playerent *d)
           offset.z = RandomFloat(-35, 35) * flScale;
           break;
      }
-     
+
      o.add(offset);
      return o;
-}    
+}
 
 bool CBot::FindEnemy(void)
 {
      // UNDONE: Enemies are now only scored on their distance
-          
-     if (m_pMyEnt->enemy) // Bot already has an enemy 
+
+     if (m_pMyEnt->enemy) // Bot already has an enemy
      {
           // Check if the enemy is still in game
           bool found = IsInGame(m_pMyEnt->enemy);
-          
+
           // Check if the enemy is still ingame, still alive, not joined my team and is visible
           if (found && !isteam(m_pMyEnt->team, m_pMyEnt->enemy->team))
           {
@@ -123,50 +123,50 @@ bool CBot::FindEnemy(void)
                     m_pPrevEnemy = m_pMyEnt->enemy;
           }
           else
-               m_pMyEnt->enemy = NULL;               
+               m_pMyEnt->enemy = NULL;
      }
-     
+
      if (m_iEnemySearchDelay > lastmillis) return (m_pMyEnt->enemy!=NULL);
-     
+
      m_pMyEnt->enemy = NULL;
-          
+
      // Add enemy searchy delay
      float MinDelay = m_pBotSkill->flMinEnemySearchDelay;
      float MaxDelay = m_pBotSkill->flMaxEnemySearchDelay;
      m_iEnemySearchDelay = lastmillis + int(RandomFloat(MinDelay, MaxDelay) * 1000.0f);
-     
+
      playerent *pNewEnemy = NULL, *d = NULL;
      float flDist, flNearestDist = 99999.9f;
      short EnemyVal, BestEnemyVal = -100;
-     
+
           // First loop through all players
           loopv(players)
           {
                d = players[i]; // Handy shortcut
-          
+
                if (d == m_pMyEnt || !d || isteam(d->team, m_pMyEnt->team) || (d->state != CS_ALIVE))
                     continue;
-          
+
                // Check if the enemy is visible
                if(!IsInFOV(d) || !IsVisible(d))
                     continue;
-          
+
                flDist = GetDistance(d->o);
                EnemyVal = 1;
-          
+
                if (flDist < flNearestDist)
                {
                     EnemyVal+=2;
                     flNearestDist = flDist;
                }
-               
+
                if (EnemyVal > BestEnemyVal)
                {
                     pNewEnemy = d;
                     BestEnemyVal = EnemyVal;
                }
           }
-         
+
           // Then examine the local player
           if (player1 && !isteam(player1->team, m_pMyEnt->team) &&
               (player1->state == CS_ALIVE))
@@ -176,37 +176,37 @@ bool CBot::FindEnemy(void)
                {
                     flDist = GetDistance(player1->o);
                     EnemyVal = 1;
-          
+
                     if (flDist < flNearestDist)
                     {
                          EnemyVal+=2;
                          flNearestDist = flDist;
                     }
-               
+
                     if (EnemyVal > BestEnemyVal)
                     {
                          pNewEnemy = player1;
                          BestEnemyVal = EnemyVal;
                     }
                }
-          }    
+          }
      //}
-          
+
      if (pNewEnemy)
      {
           if (!m_pMyEnt->enemy) // Add shoot delay if new enemy is found
           {
                float flMinShootDelay = m_pBotSkill->flMinAttackDelay;
                float flMaxShootDelay = m_pBotSkill->flMaxAttackDelay;
-               
+
                m_iShootDelay = lastmillis + int(RandomFloat(flMinShootDelay,
                                                 flMaxShootDelay) * 1000.0f);
           }
-     
+
           if ((m_pMyEnt->enemy != pNewEnemy) && m_pMyEnt->enemy)
                m_pPrevEnemy = m_pMyEnt->enemy;
-               
-          m_pMyEnt->enemy = pNewEnemy;          
+
+          m_pMyEnt->enemy = pNewEnemy;
           return true;
      }
 
@@ -216,90 +216,90 @@ bool CBot::FindEnemy(void)
 bool CBot::CheckHunt(void)
 {
      if (!BotManager.BotsShoot()) return false;
-     
+
      if (m_pHuntTarget) // Bot already has an enemy to hunt
      {
           // Check if the enemy is still in game
           bool found = IsInGame(m_pHuntTarget);
-          
+
           // Check if the enemy is still ingame, still alive, not joined my team and is visible
           if (found && !isteam(m_pMyEnt->team, m_pHuntTarget->team))
           {
                if ((m_pHuntTarget->state == CS_ALIVE) && IsReachable(m_vHuntLocation))
                     return true;
           }
-          else     
-               m_pHuntTarget = NULL;               
+          else
+               m_pHuntTarget = NULL;
      }
-     
+
      if (m_iHuntDelay > lastmillis) return (m_pHuntTarget!=NULL);
-     
+
      if (m_vHuntLocation!=g_vecZero)
           m_vPrevHuntLocation = m_vHuntLocation;
-          
+
      m_pHuntTarget = NULL;
      m_vHuntLocation = g_vecZero;
-          
+
      // Add enemy hunt search delay
      m_iHuntDelay = lastmillis + 1500;
-          
+
      playerent *pNewEnemy = NULL, *d = NULL;
      float flDist, flNearestDist = 99999.9f, flNearestOldPosDistToEnemy = 99999.9f;
      float flNearestOldPosDistToBot = 99999.9f;
      short EnemyVal, BestEnemyVal = -100;
      vec BestOldPos;
-     
+
           // First loop through all players
           loopv(players)
           {
                d = players[i]; // Handy shortcut
-          
+
                if (d == m_pMyEnt || !d || isteam(d->team, m_pMyEnt->team) || (d->state != CS_ALIVE))
                     continue;
-          
+
                flDist = GetDistance(d->o);
-               
+
                if (flDist > 250.0f) continue;
-               
+
                EnemyVal = 1;
-          
+
                if (flDist < flNearestDist)
                {
                     EnemyVal+=2;
                     flNearestDist = flDist;
                }
-               
+
                if (d == m_pPrevEnemy)
                     EnemyVal+=2;
-                    
+
                if (EnemyVal < BestEnemyVal) continue;
-               
+
                vec bestfromenemy = g_vecZero, bestfrombot = g_vecZero;
                flNearestOldPosDistToEnemy = flNearestOldPosDistToBot = 9999.9f;
-               
+
                // Check previous locations of enemy
                for (int j=0;j<d->history.size();j++)
                {
                     const vec &v = d->history.getpos(j);
                     if (v==m_vPrevHuntLocation) continue;
-                    
+
                     flDist = GetDistance(d->o, v);
-                    
+
                     if ((flDist < flNearestOldPosDistToEnemy) && IsReachable(v))
                     {
                          flNearestOldPosDistToEnemy = flDist;
                          bestfromenemy = v;
                     }
                }
-               
+
                // Check previous locations of bot hisself
                for (int j=0;j<m_pMyEnt->history.size();j++)
                {
                     const vec &v = m_pMyEnt->history.getpos(j);
                     if (v==m_vPrevHuntLocation) continue;
-                    
+
                     flDist = GetDistance(v);
-                    
+
                     if ((flDist < flNearestOldPosDistToBot) && ::IsVisible(d->o, v) &&
                          IsReachable(v))
                     {
@@ -307,19 +307,19 @@ bool CBot::CheckHunt(void)
                          bestfrombot = v;
                     }
                }
-                                             
+
                if (bestfromenemy!=g_vecZero)
-               {                    
+               {
                     pNewEnemy = d;
                     BestEnemyVal = EnemyVal;
-                    BestOldPos = bestfromenemy;                   
+                    BestOldPos = bestfromenemy;
                }
                else if (bestfrombot!=g_vecZero)
-               {                    
+               {
                     pNewEnemy = d;
                     BestEnemyVal = EnemyVal;
                     BestOldPos = bestfrombot;
-               }               
+               }
 
           // Then examine the local player
           if (player1 && !isteam(player1->team, m_pMyEnt->team) &&
@@ -327,45 +327,45 @@ bool CBot::CheckHunt(void)
           {
                d = player1;
                EnemyVal = 1;
-          
+
                if (flDist < flNearestDist)
                {
                     EnemyVal+=2;
                     flNearestDist = flDist;
                }
-               
+
                if (d == m_pPrevEnemy)
                     EnemyVal+=2;
-                    
+
                if (EnemyVal >= BestEnemyVal)
-               {    
-                    BestEnemyVal = EnemyVal;           
+               {
+                    BestEnemyVal = EnemyVal;
                     vec bestfromenemy = g_vecZero, bestfrombot = g_vecZero;
                     flNearestOldPosDistToEnemy = flNearestOldPosDistToBot = 9999.9f;
-               
+
                     // Check previous locations of enemy
                     for (int j=0;j<d->history.size();j++)
                     {
                          const vec &v = d->history.getpos(j);
                          if (v==m_vPrevHuntLocation) continue;
-                    
+
                          flDist = GetDistance(d->o, v);
-                    
+
                          if ((flDist < flNearestOldPosDistToEnemy) && IsReachable(v))
                          {
                               flNearestOldPosDistToEnemy = flDist;
                               bestfromenemy = v;
                          }
                     }
-               
+
                     // Check previous locations of bot hisself
                     for (int j=0;j<m_pMyEnt->history.size();j++)
                     {
                          const vec &v = m_pMyEnt->history.getpos(j);
                          if (v==m_vPrevHuntLocation) continue;
-                    
+
                          flDist = GetDistance(v);
-                    
+
                          if ((flDist < flNearestOldPosDistToBot) && ::IsVisible(d->o, v) &&
                              IsReachable(v))
                          {
@@ -373,37 +373,37 @@ bool CBot::CheckHunt(void)
                               bestfrombot = v;
                          }
                     }
-                                             
+
                     if (bestfromenemy!=g_vecZero)
-                    {                    
+                    {
                          pNewEnemy = d;
                          BestEnemyVal = EnemyVal;
-                         BestOldPos = bestfromenemy;                   
+                         BestOldPos = bestfromenemy;
                     }
                     else if (bestfrombot!=g_vecZero)
-                    {                    
+                    {
                          pNewEnemy = d;
                          BestEnemyVal = EnemyVal;
                          BestOldPos = bestfrombot;
-                    }               
-               }    
+                    }
+               }
           }
      }
-     
+
      if (pNewEnemy)
      {
           if (!m_pHuntTarget) // Add shoot delay if new enemy is found
           {
                float flMinShootDelay = m_pBotSkill->flMinAttackDelay;
                float flMaxShootDelay = m_pBotSkill->flMaxAttackDelay;
-               
+
                m_iShootDelay = lastmillis + int(RandomFloat(flMinShootDelay,
                                                 flMaxShootDelay) * 1000.0f);
           }
-     
+
           if (m_vHuntLocation!=g_vecZero)
                m_vPrevHuntLocation = m_vHuntLocation;
-          
+
           m_pHuntTarget = pNewEnemy;
           m_vHuntLocation = BestOldPos;
           m_fPrevHuntDist = 0.0f;
@@ -420,24 +420,24 @@ bool CBot::HuntEnemy(void)
           SetMoveDir(m_iMoveDir, false);
           return true;
      }
-     
+
      m_iCombatNavTime = m_iMoveDir = 0;
-     
+
      bool bDone = false, bNew = false;
      float flDist = GetDistance(m_vHuntLocation);
-     
+
      if (flDist <= 3.0f)
           bDone = true;
-          
+
      if ((m_fPrevHuntDist > 0.0) && (flDist > m_fPrevHuntDist))
           bDone = true;
-          
+
      m_fPrevHuntDist = flDist;
-     
+
      if ((m_iHuntPlayerUpdateTime < lastmillis) || bDone)
      {
           m_iHuntPlayerUpdateTime = lastmillis + 1250;
-               
+
           short BestPosIndexFromEnemy = -1, BestPosIndexFromBot = -1,  j;
           float NearestDistToEnemy = 9999.9f, NearestDistToBot = 9999.9f;
 
@@ -445,15 +445,15 @@ bool CBot::HuntEnemy(void)
           for (j=0;j<m_pHuntTarget->history.size();j++)
           {
                const vec &OldPos = m_pHuntTarget->history.getpos(j);
-                         
+
                if (bDone && m_vHuntLocation==OldPos)
                     continue;
-               
+
                if (GetDistance(OldPos) > 250.0f)
                     continue;
-                    
+
                flDist = GetDistance(m_pHuntTarget->o, OldPos);
-                    
+
                if ((flDist < NearestDistToEnemy) && (IsReachable(OldPos)))
                {
                     NearestDistToEnemy = flDist;
@@ -461,20 +461,20 @@ bool CBot::HuntEnemy(void)
                     break;
                }
           }
-          
+
           // Check previous locations of bot
           for (j=0;j<m_pMyEnt->history.size();j++)
           {
                const vec &OldPos = m_pMyEnt->history.getpos(j);
-                         
+
                if (bDone && m_vHuntLocation==OldPos)
                     continue;
-               
+
                if (GetDistance(OldPos) > 25.0f)
                     continue;
-                    
+
                flDist = GetDistance(OldPos);
-                    
+
                if ((flDist < NearestDistToBot) && ::IsVisible(m_pHuntTarget->o, OldPos) &&
                    (IsReachable(OldPos)))
                {
@@ -483,7 +483,7 @@ bool CBot::HuntEnemy(void)
                     break;
                }
           }
-          
+
           if (BestPosIndexFromEnemy > -1)
           {
                m_vPrevHuntLocation = m_vHuntLocation;
@@ -497,9 +497,9 @@ bool CBot::HuntEnemy(void)
                m_vHuntLocation = m_pMyEnt->history.getpos(BestPosIndexFromEnemy);
                bNew = true;
                m_fPrevHuntDist = 0.0f;
-          }          
+          }
      }
-     
+
      if (!bNew) // Check if current location is still reachable
      {
           if (bDone || !IsReachable(m_vHuntLocation))
@@ -514,20 +514,20 @@ bool CBot::HuntEnemy(void)
      }
      else
           condebug("New hunt pos");
-          
+
      // Aim to position
      //AimToVec(m_vHuntLocation);
-                    
+
      int iMoveDir = GetDirection(GetViewAngles(), m_pMyEnt->o, m_vHuntLocation);
-                                        
+
      if (iMoveDir != DIR_NONE)
      {
           m_iMoveDir = iMoveDir;
           m_iCombatNavTime = lastmillis + 125;
      }
-     
+
      bool aimtopos = true;
-     
+
      if ((lastmillis - m_iSawEnemyTime) > 1500)
      {
           if (m_iLookAroundDelay < lastmillis)
@@ -553,12 +553,12 @@ bool CBot::HuntEnemy(void)
                     m_iLookAroundTime = lastmillis + RandomLong(2200, 3200);
           }
      }
-     
+
      if (aimtopos)
           AimToVec(m_vHuntLocation);
-     
+
      debugbeam(m_pMyEnt->o, m_vHuntLocation);
-     
+
      if (m_fYawToTurn <= 25.0f)
           m_iHuntLastTurnLessTime = lastmillis;
 
@@ -588,11 +588,11 @@ bool CBot::HuntEnemy(void)
                     {
                          if (flHeightDiff <= JUMP_HEIGHT)
                          {
-#ifndef RELEASE_BUILD                    
+#ifndef RELEASE_BUILD
                               char sz[64];
                               sprintf(sz, "OldPos z diff: %f", m_vHuntLocation.z-m_pMyEnt->o.z);
                               condebug(sz);
-#endif                         
+#endif
                               // Jump if close to pos and the pos is high
                               m_pMyEnt->jumpnext = true;
                          }
@@ -600,7 +600,7 @@ bool CBot::HuntEnemy(void)
                               bToHigh = true;
                     }
                }
-                    
+
                if (bToHigh)
                {
                     m_pHuntTarget = NULL;
@@ -609,23 +609,40 @@ bool CBot::HuntEnemy(void)
                     m_fPrevHuntDist = 0.0f;
                     m_iHuntDelay = lastmillis + 3500;
                     return false;
-               }                                        
+               }
           }
      }
-     
+
      return true;
-}             
-     
+}
+
+void CBot::CheckWeaponSwitch()
+{
+    if(!m_pMyEnt->weaponchanging) return;
+    int timeprogress = lastmillis-m_pMyEnt->weaponchanging;
+    if(timeprogress>weapon::weaponchangetime)
+    {
+        if(m_pMyEnt->weaponsel!=NULL) addmsg(SV_WEAPCHANGE, "ri", m_pMyEnt->weaponsel->type); // 2011jan17:ft: message possibly not needed in a local game!?!
+        m_pMyEnt->weaponchanging = 0;
+    }
+    else if(timeprogress>(weapon::weaponchangetime>>1) && m_pMyEnt->weaponsel != m_pMyEnt->nextweaponsel)
+    {
+        m_pMyEnt->prevweaponsel = m_pMyEnt->weaponsel;
+        if(m_pMyEnt->nextweaponsel==NULL) m_pMyEnt->weaponsel = m_pMyEnt->weaponsel; // just keep using this weapon - next spawn will assign a new random weapon!
+        else  m_pMyEnt->weaponsel = m_pMyEnt->nextweaponsel;
+    }
+}
+
 void CBot::ShootEnemy()
 {
      if(!m_pMyEnt->enemy) return;
-         
+
      m_iSawEnemyTime = lastmillis;
-          
+
      // Aim to enemy
      vec enemypos = GetEnemyPos(m_pMyEnt->enemy);
      AimToVec(enemypos);
-     
+
      // Time to shoot?
      if (m_iShootDelay < lastmillis)
      //if ((lastmillis-m_pMyEnt->lastaction) >= m_pMyEnt->gunwait)
@@ -637,50 +654,50 @@ void CBot::ShootEnemy()
                {
                     float yawtoturn = fabs(WrapYZAngle(m_pMyEnt->yaw - m_pMyEnt->targetyaw));
                     float pitchtoturn = fabs(WrapYZAngle(m_pMyEnt->pitch - m_pMyEnt->targetpitch));
-               
+
                     if ((yawtoturn > 5) || (pitchtoturn > 15)) // UNDONE: Should be skill based
                          return;
                }
 
                float flDist = GetDistance(enemypos);
-               
+
                // Check if bot is in fire range
                if ((flDist < WeaponInfoTable[m_pMyEnt->gunselect].flMinFireDistance) ||
                    (flDist > WeaponInfoTable[m_pMyEnt->gunselect].flMaxFireDistance))
                     return;
-                    
+
                // Now shoot!
                m_pMyEnt->attacking = true;
-               
+
                // Get the position the bot is aiming at
                vec forward, right, up, dest;
                traceresult_s tr;
-               
+
                AnglesToVectors(GetViewAngles(), forward, right, up);
-               
+
                dest = m_pMyEnt->o;
                forward.mul(1000);
                dest.add(forward);
-               
+
                TraceLine(m_pMyEnt->o, dest, m_pMyEnt, false, &tr);
                debugbeam(m_pMyEnt->o, tr.end);
-               
-               // Shoot 
+
+               // Shoot
                shoot(m_pMyEnt, tr.end);
-               
+
                // Add shoot delay
-               m_iShootDelay = lastmillis + GetShootDelay();               
+               m_iShootDelay = lastmillis + GetShootDelay();
           }
-          ChoosePreferredWeapon(); 
+          ChoosePreferredWeapon();
      }
-#ifndef RELEASE_BUILD     
+#ifndef RELEASE_BUILD
      else
      {
           char sz[64];
           sprintf(sz, "shootdelay: %d\n", (m_iShootDelay-lastmillis));
           AddDebugText(sz);
      }
-#endif     
+#endif
 }
 
 bool CBot::ChoosePreferredWeapon()
@@ -688,21 +705,21 @@ bool CBot::ChoosePreferredWeapon()
      TMultiChoice<int> WeaponChoices;
      short sWeaponScore;
      float flDist = GetDistance(m_pMyEnt->enemy->o);
-     
+
      if ((m_iChangeWeaponDelay > lastmillis) && (m_pMyEnt->ammo[m_pMyEnt->gunselect]))
      {
           if ((WeaponInfoTable[m_pMyEnt->gunselect].eWeaponType != TYPE_MELEE) || (flDist <= 3.5f))
                return true;
      }
-            
+
      // Choose a weapon
      for(int i=0;i<MAX_WEAPONS;i++)
      {
           // If no ammo for this weapon, skip it
           if (m_pMyEnt->ammo[i] == 0) continue;
-          
+
           sWeaponScore = 5; // Minimal score for a weapon
-          
+
           if ((flDist >= WeaponInfoTable[i].flMinDesiredDistance) &&
               (flDist <= WeaponInfoTable[i].flMaxDesiredDistance))
           {
@@ -712,18 +729,18 @@ bool CBot::ChoosePreferredWeapon()
           else if ((flDist < WeaponInfoTable[i].flMinFireDistance) ||
                    (flDist > WeaponInfoTable[i].flMaxFireDistance))
                continue; // Wrong distance for this weapon
-               
+
           // The ideal distance would be between the Min and Max desired distance.
           // Score on the difference of the avarage of the Min and Max desired distance.
           float flAvarage = (WeaponInfoTable[i].flMinDesiredDistance +
                              WeaponInfoTable[i].flMaxDesiredDistance) / 2.0f;
           float flIdealDiff = fabs(flDist - flAvarage);
-          
+
           if (flIdealDiff < 0.5f) // Close to ideal distance
                sWeaponScore += 4;
           else if (flIdealDiff <= 1.0f)
                sWeaponScore += 2;
-               
+
           // Now rate the weapon on available ammo...
           if (WeaponInfoTable[i].sMinDesiredAmmo > 0)
           {
@@ -731,7 +748,7 @@ bool CBot::ChoosePreferredWeapon()
                float flDesiredPercent = (float(m_pMyEnt->ammo[i]) /
                                          float(WeaponInfoTable[i].sMinDesiredAmmo)) *
                                          100.0f;
-                                         
+
                if (flDesiredPercent >= 400.0f)
                     sWeaponScore += 4;
                else if (flDesiredPercent >= 200.0f)
@@ -739,10 +756,10 @@ bool CBot::ChoosePreferredWeapon()
                else if (flDesiredPercent >= 100.0f)
                     sWeaponScore += 1;
           }
-          
+
           WeaponChoices.Insert(i, sWeaponScore);
-     }   
-     
+     }
+
      int WeaponSelect;
      if (WeaponChoices.GetSelection(WeaponSelect))
      {
@@ -752,17 +769,17 @@ bool CBot::ChoosePreferredWeapon()
                              m_pBotSkill->sShootAtFeetWithRLPercent));
           return SelectGun(WeaponSelect);
      }
-     
+
      return false;
 }
-     
+
 int CBot::GetShootDelay()
 {
      // UNDONE
      if ((WeaponInfoTable[m_pMyEnt->gunselect].eWeaponType == TYPE_MELEE) ||
          (WeaponInfoTable[m_pMyEnt->gunselect].eWeaponType == TYPE_AUTO))
           return m_pMyEnt->gunwait[m_pMyEnt->gunselect];
-     
+
      float flMinShootDelay = m_pBotSkill->flMinAttackDelay;
      float flMaxShootDelay = m_pBotSkill->flMaxAttackDelay;
      return max(m_pMyEnt->gunwait[m_pMyEnt->gunselect], int(RandomFloat(flMinShootDelay, flMaxShootDelay) * 1000.0f));
@@ -780,13 +797,13 @@ void CBot::MainAI()
 {
      // Default bots will run forward
      m_pMyEnt->move = 1;
-        
+
      // Default bots won't strafe
      m_pMyEnt->strafe = 0;
-        
+
      if (!BotManager.BotsShoot() && m_pMyEnt->enemy)
           m_pMyEnt->enemy = NULL; // Clear enemy when bots may not shoot
-             
+
      if (m_bGoToDebugGoal) // For debugging the waypoint navigation
      {
           if (!HeadToGoal())
@@ -800,16 +817,16 @@ void CBot::MainAI()
      if (BotManager.BotsShoot() && FindEnemy()) // Combat
      {
           AddDebugText("has enemy");
-                    
+
           // Shoot at enemy
           ShootEnemy();
-          
+
           if (m_eCurrentBotState != STATE_ENEMY)
           {
                m_vGoal = g_vecZero;
                ResetWaypointVars();
           }
-               
+
           m_eCurrentBotState = STATE_ENEMY;
           if (!CheckJump())
                DoCombatNav();
@@ -821,7 +838,7 @@ void CBot::MainAI()
           m_eCurrentBotState = STATE_HUNT;
      }
      // Heading to an interesting entity(ammo, armour etc)
-     else if (CheckItems()) 
+     else if (CheckItems())
      {
 		  CheckReload();
           AddDebugText("has ent");
@@ -829,7 +846,7 @@ void CBot::MainAI()
      }
      else if (m_classicsp && DoSPStuff()) // Home to goal, find/follow friends etc.
      {
-		  
+
           AddDebugText("SP stuff");
           m_eCurrentBotState = STATE_SP;
      }
@@ -841,15 +858,15 @@ void CBot::MainAI()
                m_vGoal = g_vecZero;
                ResetWaypointVars();
           }
-          
+
           m_eCurrentBotState = STATE_NORMAL;
           bool bDoNormalNav = true;
-                    
+
           AddDebugText("normal nav");
-          
+
           // Make sure the bot looks straight forward and not up or down
           m_pMyEnt->pitch = 0;
-          
+
           // if it is time to look for a waypoint AND if there are waypoints in this
           // level...
           if (WaypointClass.m_iWaypointCount >= 1)
@@ -872,7 +889,7 @@ void CBot::MainAI()
                          }
                          else
                               ResetWaypointVars();
-                         
+
                          m_iLookForWaypointTime = lastmillis + 250;
                     }
                }
@@ -880,14 +897,14 @@ void CBot::MainAI()
                {
                     bDoNormalNav = !HeadToWaypoint();
                     if (bDoNormalNav)
-                         ResetWaypointVars();                    
+                         ResetWaypointVars();
                     AddDebugText("Using wps for nav");
                }
           }
-          
+
           // If nothing special, do regular (waypointless) navigation
           if(bDoNormalNav)
-          {    
+          {
                // Is the bot underwater?
                if (UnderWater(m_pMyEnt->o) && WaterNav())
                {
@@ -897,27 +914,27 @@ void CBot::MainAI()
                else if (m_iCheckEnvDelay < lastmillis)
                {
                     if (m_vWaterGoal!=g_vecZero) m_vWaterGoal = g_vecZero;
-                    
+
                     // Check for stuck and strafe
                     if (UnderWater(m_pMyEnt->o) || !CheckStuck())
                     {
                          // Only do this when the bot is underwater or when the bot isn't stuck
-                         
+
                          // Check field of view (FOV)
                          CheckFOV();
                     }
                }
-                         
+
                // Check if the bot has to strafe
                CheckStrafe();
-               
+
                m_pMyEnt->move = 1;
-          }         
+          }
      }
 }
 
 void CBot::DoCombatNav()
-{          
+{
      if (m_iCombatNavTime > lastmillis)
      {
           // If bot has a lower skill and has to turn much, wait
@@ -931,7 +948,7 @@ void CBot::DoCombatNav()
           }
           return;
      }
-     
+
      if (m_bCombatJump)
      {
           m_pMyEnt->jumpnext = true;
@@ -939,7 +956,7 @@ void CBot::DoCombatNav()
           m_iCombatJumpDelay = lastmillis + RandomLong(1500, 2800);
           return;
      }
-     
+
      m_iMoveDir = DIR_NONE;
 
      // Check if bot is on top of his enemy
@@ -951,7 +968,7 @@ void CBot::DoCombatNav()
           // Try to get off him!
           condebug("On enemy!");
           TMultiChoice<int> AwayDirChoices;
-          
+
           if (IsVisible(LEFT, 4.0f, false))
                AwayDirChoices.Insert(LEFT);
           if (IsVisible(RIGHT, 4.0f, false))
@@ -960,7 +977,7 @@ void CBot::DoCombatNav()
                AwayDirChoices.Insert(FORWARD);
           if (IsVisible(BACKWARD, 4.0f, false))
                AwayDirChoices.Insert(BACKWARD);
-          
+
           int iDir;
           if (AwayDirChoices.GetSelection(iDir))
           {
@@ -968,7 +985,7 @@ void CBot::DoCombatNav()
                m_iCombatNavTime = lastmillis + 500;
           }
      }
-     
+
      float flDist = GetDistance(m_pMyEnt->enemy->o);
 
      // Check for nearby items?
@@ -977,7 +994,7 @@ void CBot::DoCombatNav()
      {
           m_iCheckEntsDelay = lastmillis + 125;
           bool bSearchItems = false;
-          
+
           if (m_pTargetEnt)
           {
                // Bot has already found an entity, still valid?
@@ -986,7 +1003,7 @@ void CBot::DoCombatNav()
                if ((GetDistance(v) > 25.0f) || !IsVisible(m_pTargetEnt))
                     m_pTargetEnt = NULL;
           }
-          
+
           if (!m_pTargetEnt && (m_iCheckEntsDelay <= lastmillis))
           {
                if (WeaponInfoTable[m_pMyEnt->gunselect].eWeaponType == TYPE_MELEE)
@@ -994,22 +1011,22 @@ void CBot::DoCombatNav()
                else
                     bSearchItems = (m_pMyEnt->ammo[m_pMyEnt->gunselect] <=
                                     WeaponInfoTable[m_pMyEnt->gunselect].sMinDesiredAmmo);
-               
+
                if (bSearchItems)
                     m_pTargetEnt = SearchForEnts(false, 25.0f, 1.0f);
           }
-                    
+
           if (m_pTargetEnt)
           {
                condebug("Combat ent");
                vec v(m_pTargetEnt->x, m_pTargetEnt->y,
                          S(m_pTargetEnt->x, m_pTargetEnt->y)->floor+m_pMyEnt->eyeheight);
-               
+
                debugbeam(m_pMyEnt->o, v);
 
                float flHeightDiff = v.z - m_pMyEnt->o.z;
                bool bToHigh = false;
-               
+
                // Check he height for this ent
                if (Get2DDistance(v) <= 2.0f)
                {
@@ -1017,51 +1034,51 @@ void CBot::DoCombatNav()
                     {
                          if (flHeightDiff <= JUMP_HEIGHT)
                          {
-#ifndef RELEASE_BUILD                    
+#ifndef RELEASE_BUILD
                               char sz[64];
                               sprintf(sz, "Ent z diff: %f", v.z-m_pMyEnt->o.z);
                               condebug(sz);
-#endif                         
+#endif
                               m_pMyEnt->jumpnext = true; // Jump if close to ent and the ent is high
                          }
                          else
                               bToHigh = true;
                     }
                }
-                    
+
                if (!bToHigh)
-               {              
+               {
                     int iMoveDir = GetDirection(GetViewAngles(), m_pMyEnt->o, v);
-                                             
+
                     if (iMoveDir != DIR_NONE)
                     {
                          m_iMoveDir = iMoveDir;
                          m_iCombatNavTime = lastmillis + RandomLong(125, 250);
                     }
-                              
+
                     // Check if bot needs to jump over something
                     vec from = m_pMyEnt->o;
                     from.z -= 1.0f;
                     if (!IsVisible(from, iMoveDir, 3.0f, false))
                          m_pMyEnt->jumpnext = true;
-                         
+
                     return;
-               }          
+               }
           }
      }
-               
+
      // High skill and enemy is close?
      if ((m_sSkillNr <= 1) && (m_fYawToTurn < 80.0f) && (flDist <= 20.0f) &&
          (m_iCombatJumpDelay < lastmillis))
      {
           // Randomly jump a bit, to avoid some basic firepower ;)
-          
+
           // How lower the distance to the enemy, how higher the chance for a jump
           short sJumpPercent = (100 - ((short)flDist * 8));
           if (RandomLong(1, 100) <= sJumpPercent)
           {
                // Choose a nice direction to jump to
-               
+
                // Is the enemy close?
                if ((GetDistance(m_pMyEnt->enemy->o) <= 4.0f) ||
                    (WeaponInfoTable[m_pMyEnt->gunselect].eWeaponType == TYPE_MELEE))
@@ -1072,7 +1089,7 @@ void CBot::DoCombatNav()
                }
                else if (WeaponInfoTable[m_pMyEnt->gunselect].eWeaponType != TYPE_MELEE)// else jump to a random direction
                {
-                    /* 
+                    /*
                          Directions to choose:
                          - Forward-right
                          - Right
@@ -1081,14 +1098,14 @@ void CBot::DoCombatNav()
                          - Backward-left
                          - Left
                          - Forward-left
-                         
+
                     */
-                    
+
                     TMultiChoice<int> JumpDirChoices;
                     short sForwardScore = ((flDist > 8.0f) || (flDist < 4.0f)) ? 20 : 10;
                     short sBackwardScore = (flDist <= 6.0f) ? 20 : 10;
                     short sStrafeScore = (flDist < 6.0f) ? 20 : 10;
-                    
+
                     if (IsVisible((FORWARD | LEFT), 4.0f, false))
                          JumpDirChoices.Insert((FORWARD | LEFT), sForwardScore);
                     if (IsVisible((FORWARD | RIGHT), 4.0f, false))
@@ -1103,7 +1120,7 @@ void CBot::DoCombatNav()
                          JumpDirChoices.Insert(LEFT, sStrafeScore);
                     if (IsVisible(RIGHT, 4.0f, false))
                          JumpDirChoices.Insert(RIGHT, sStrafeScore);
-                    
+
                     int JumpDir;
                     if (JumpDirChoices.GetSelection(JumpDir))
                     {
@@ -1112,7 +1129,7 @@ void CBot::DoCombatNav()
                          m_bCombatJump = true;
                     }
                }
-               
+
                if (m_bCombatJump)
                {
                     m_iCombatNavTime = lastmillis + RandomLong(125, 250);
@@ -1120,12 +1137,12 @@ void CBot::DoCombatNav()
                }
           }
      }
-     
+
      if (WeaponInfoTable[m_pMyEnt->gunselect].eWeaponType == TYPE_MELEE)
           return; // Simply walk towards enemy if using a melee type
-     
+
      flDist = Get2DDistance(m_pMyEnt->enemy->o);
-     
+
      // Out of desired range for current weapon?
      if ((flDist <= WeaponInfoTable[m_pMyEnt->gunselect].flMinDesiredDistance) ||
          (flDist >= WeaponInfoTable[m_pMyEnt->gunselect].flMaxDesiredDistance))
@@ -1138,36 +1155,36 @@ void CBot::DoCombatNav()
           {
                m_iMoveDir = BACKWARD;
           }
-     
+
           vec src, forward, right, up, dest, MyAngles = GetViewAngles(), o = m_pMyEnt->o;
           traceresult_s tr;
-     
+
           // Is it furthest or farthest? bleh
           float flFurthestDist = 0;
           int bestdir = -1, dir = 0;
           bool moveback = (m_pMyEnt->move == -1);
-     
+
           for(int j=-45;j<=45;j+=45)
           {
                src = MyAngles;
                src.y = WrapYZAngle(src.y + j);
                src.x = 0.0f;
-          
+
                // If we're moving backwards, trace backwards
                if (moveback)
                     src.y = WrapYZAngle(src.y + 180);
-          
+
                AnglesToVectors(src, forward, right, up);
-          
+
                dest = o;
                forward.mul(40);
                dest.add(forward);
-          
+
                TraceLine(o, dest, m_pMyEnt, false, &tr);
-          
+
                //debugbeam(origin, end);
                flDist = GetDistance(tr.end);
-          
+
                if (flFurthestDist < flDist)
                {
                     flFurthestDist = flDist;
@@ -1175,7 +1192,7 @@ void CBot::DoCombatNav()
                }
                dir++;
           }
-     
+
           switch(bestdir)
           {
           case 0:
@@ -1191,7 +1208,7 @@ void CBot::DoCombatNav()
                     m_iMoveDir |= RIGHT; // Strafe right
                break;
           }
-          
+
           if (m_iMoveDir != DIR_NONE)
           {
                SetMoveDir(m_iMoveDir, false);
@@ -1203,41 +1220,41 @@ void CBot::DoCombatNav()
           traceresult_s tr;
           vec angles, end, forward, right, up;
           TMultiChoice<int> StrafeDirChoices;
-          
+
           // Check the left side...
           angles = GetViewAngles();
           angles.y = WrapYZAngle(angles.y - 75.0f); // Not 90 degrees because the bot
                                                     // doesn't strafe in a straight line
                                                     // (aims still to enemy).
-          
+
           AnglesToVectors(angles, forward, right, up);
           end = m_pMyEnt->o;
           forward.mul(15.0f);
           end.add(forward);
-          
+
           TraceLine(m_pMyEnt->o, end, m_pMyEnt, true, &tr);
           StrafeDirChoices.Insert(LEFT, (int)GetDistance(m_pMyEnt->o, tr.end));
-          
+
           // Check the right side...
           angles = GetViewAngles();
           angles.y = WrapYZAngle(angles.y + 75.0f); // Not 90 degrees because the bot
                                                     // doesn't strafe in a straight line
                                                     // (aims still to enemy).
-          
+
           AnglesToVectors(angles, forward, right, up);
           end = m_pMyEnt->o;
           forward.mul(15.0f);
           end.add(forward);
-          
+
           TraceLine(m_pMyEnt->o, end, m_pMyEnt, true, &tr);
           StrafeDirChoices.Insert(RIGHT, (int)GetDistance(m_pMyEnt->o, tr.end));
-     
+
           int StrafeDir;
           if (StrafeDirChoices.GetSelection(StrafeDir))
           {
                m_iMoveDir = StrafeDir;
                SetMoveDir(StrafeDir, false);
-               m_iCombatNavTime = lastmillis + RandomLong(1500, 3000);               
+               m_iCombatNavTime = lastmillis + RandomLong(1500, 3000);
           }
      }
      else // Bot can't circle strafe(low skill), just stand still
@@ -1251,9 +1268,9 @@ bool CBot::CheckStuck()
 
      if ((m_vGoal!=g_vecZero) && (GetDistance(m_vGoal) < 2.0f))
           return false;
-                    
+
      bool IsStuck = false;
-     
+
      vec CurPos = m_pMyEnt->o, PrevPos = m_vPrevOrigin;
      CurPos.z = PrevPos.z = 0;
      // Did the bot hardly move the last frame?
@@ -1275,37 +1292,37 @@ bool CBot::CheckStuck()
           m_bStuck = false;
           m_iStuckTime = 0;
      }
-     
-     if (IsStuck)          
+
+     if (IsStuck)
      {
-#ifndef RELEASE_BUILD     
+#ifndef RELEASE_BUILD
           char msg[64];
           sprintf(msg, "stuck (%f)", GetDistance(m_vPrevOrigin));
           condebug(msg);
 #endif
-          
+
           m_bStuck = false;
           m_iStuckTime = 0;
-          
+
           // Crap bot is stuck, lets just try some random things
-                        
+
           // Check if the bot can turn around
           vec src = GetViewAngles();
           src.x = 0;
           vec forward, right, up, dir, dest;
           traceresult_s tr;
-          
+
           AnglesToVectors(src, forward, right, up);
-          
+
           // Check the left side...
           dir = right;
           dest = m_pMyEnt->o;
           dir.mul(3);
           dest.sub(dir);
-          
+
           TraceLine(m_pMyEnt->o, dest, m_pMyEnt, false, &tr);
           //debugbeam(m_pMyEnt->o, end);
-          
+
           if (!tr.collided)
           {
                // Bot can turn left, do so
@@ -1313,16 +1330,16 @@ bool CBot::CheckStuck()
                m_iStuckCheckDelay = m_iCheckEnvDelay = lastmillis + 500;
                return true;
           }
-          
+
           // Check the right side...
           dir = right;
           dest = m_pMyEnt->o;
           dir.mul(3);
           dest.add(dir);
-          
+
           TraceLine(m_pMyEnt->o, dest, m_pMyEnt, true, &tr);
           //debugbeam(m_pMyEnt->o, end);
-          
+
           if (!tr.collided)
           {
                // Bot can turn right, do so
@@ -1330,16 +1347,16 @@ bool CBot::CheckStuck()
                m_iStuckCheckDelay = m_iCheckEnvDelay = lastmillis + 500;
                return true;
           }
-          
+
           // Check if bot can turn 180 degrees
           dir = forward;
           dest = m_pMyEnt->o;
           dir.mul(3);
           dest.add(dir);
-          
+
           TraceLine(m_pMyEnt->o, dest, m_pMyEnt, true, &tr);
           //debugbeam(m_pMyEnt->o, end);
-          
+
           if (!tr.collided)
           {
                // Bot can turn around, do so
@@ -1347,9 +1364,9 @@ bool CBot::CheckStuck()
                m_iStuckCheckDelay = m_iCheckEnvDelay = lastmillis + 500;
                return true;
           }
-          
+
           // Bleh bot couldn't turn, lets just randomly jump :|
-          
+
           condebug("Randomly avoiding stuck...");
           if (RandomLong(0, 2) == 0)
                m_pMyEnt->jumpnext = true;
@@ -1357,7 +1374,7 @@ bool CBot::CheckStuck()
                m_pMyEnt->targetyaw = WrapYZAngle(m_pMyEnt->yaw + RandomLong(60, 160));
           return true;
      }
-     
+
      return false;
 }
 
@@ -1366,13 +1383,13 @@ bool CBot::CheckJump()
 {
      bool bHasGoal = m_vGoal!=g_vecZero;
      float flGoalDist = (bHasGoal) ? GetDistance(m_vGoal) : 0.0f;
-     
+
 //     if ((bHasGoal) && (flGoalDist < 2.0f))
   //        return false; UNDONE?
-          
+
      vec start = m_pMyEnt->o;
      float flTraceDist = 3.0f;
-     
+
      if (bHasGoal && (flGoalDist < flTraceDist))
           flTraceDist = flGoalDist;
 
@@ -1393,22 +1410,22 @@ bool CBot::CheckJump()
      {
           // Check if something is blocking at feet height, so the bot can jump over it
           start.z -= 1.7f;
-          
+
           // Trace was blocked?
           if (!IsVisible(start, FORWARD, flTraceDist, false))
           {
                //debugbeam(start, end);
-          
+
                // Jump
                debugnav("Low wall");
                m_pMyEnt->jumpnext = true;
                return true;
           }
      }
-     
+
      return false; // Bot didn't had to jump(or couldn't)
 }
-     
+
 bool CBot::CheckStrafe()
 {
      if (m_iStrafeTime >= lastmillis)
@@ -1416,19 +1433,19 @@ bool CBot::CheckStrafe()
           SetMoveDir(m_iMoveDir, true);
           return true;
      }
-     
+
      if (m_iStrafeCheckDelay >= lastmillis)
           return false;
-          
+
      // Check for near walls
      traceresult_s tr;
      vec from = m_pMyEnt->o, to, forward, right, up, dir;
      float flLeftDist = -1.0f, flRightDist = -1.0f;
      bool bStrafe = false;
      int iStrafeDir = DIR_NONE;
-     
+
      AnglesToVectors(GetViewAngles(), forward, right, up);
-     
+
      // Check for a near left wall
      to = from;
      dir = right;
@@ -1438,7 +1455,7 @@ bool CBot::CheckStrafe()
      if (tr.collided)
           flLeftDist = GetDistance(from, tr.end);
      //debugbeam(m_pMyEnt->o, to);
-          
+
      // Check for a near right wall
      to = from;
      dir = right;
@@ -1448,12 +1465,12 @@ bool CBot::CheckStrafe()
      if (tr.collided)
           flRightDist = GetDistance(from, tr.end);
      //debugbeam(m_pMyEnt->o, to);
-     
+
      if ((flLeftDist == -1.0f) && (flRightDist == -1.0f))
      {
           dir = right;
           dir.mul(m_pMyEnt->radius);
-          
+
           // Check left
           from = m_pMyEnt->o;
           from.sub(dir);
@@ -1466,7 +1483,7 @@ bool CBot::CheckStrafe()
           if (IsVisible(from, FORWARD, 3.0f, false, &flRightDist))
                flRightDist = -1.0f;
      }
-          
+
      if ((flLeftDist != -1.0f) && (flRightDist != -1.0f))
      {
           if (flLeftDist < flRightDist)
@@ -1503,7 +1520,7 @@ bool CBot::CheckStrafe()
           bStrafe = true;
           iStrafeDir = LEFT;
      }
-     
+
      if (bStrafe)
      {
           SetMoveDir(iStrafeDir, true);
@@ -1523,33 +1540,33 @@ void CBot::CheckFOV()
      float flDist, flFurthestDist = 0;
      bool WallLeft = false;
      traceresult_s tr;
-     
+
      //origin.z -= 1.5; // Slightly under eye level
-             
+
      // Scan 90 degrees FOV
      for(int angle=-45;angle<=45;angle+=5)
      {
           src = MyAngles;
           src.y = WrapYZAngle(src.y + angle);
-          
+
           AnglesToVectors(src, forward, right, up);
-          
+
           dest = origin;
           forward.mul(40);
           dest.add(forward);
-          
+
           TraceLine(origin, dest, m_pMyEnt, false, &tr);
-          
+
           //debugbeam(origin, end);
           flDist = GetDistance(tr.end);
-          
+
           if (flFurthestDist < flDist)
           {
                flFurthestDist = flDist;
                best = tr.end;
           }
      }
-     
+
      if (best.x && best.y && best.z)
      {
           AimToVec(best);
@@ -1557,9 +1574,9 @@ void CBot::CheckFOV()
           MyAngles.x = m_pMyEnt->targetpitch;
           MyAngles.y = m_pMyEnt->targetyaw;
      }
-     
+
      float flNearestHitDist = GetDistance(best);
-     
+
      if (!UnderWater(m_pMyEnt->o) && m_pMyEnt->onfloor)
      {
           // Check if a near wall is blocking and we can jump over it
@@ -1568,18 +1585,18 @@ void CBot::CheckFOV()
                // Check if the bot can jump over it
                src = MyAngles;
                src.x = 0;
-     
+
                AnglesToVectors(src, forward, right, up);
-     
+
                vec start = origin;
                start.z += 2.0f;
                dest = start;
                forward.mul(6);
                dest.add(forward);
-          
+
                TraceLine(start, dest, m_pMyEnt, false, &tr);
                //debugbeam(start, end);
-     
+
                if (!tr.collided)
                {
                     // Jump
@@ -1594,22 +1611,22 @@ void CBot::CheckFOV()
                // Check if something is blocking below us, so the bot can jump over it
                src = MyAngles;
                src.x = 0;
-     
+
                AnglesToVectors(src, forward, right, up);
-     
+
                vec start = origin;
                start.z -= 1.7f;
                dest = start;
                forward.mul(4);
                dest.add(forward);
-          
+
                TraceLine(start, dest, m_pMyEnt, false, &tr);
-     
+
                // Trace was blocked?
                if (tr.collided)
                {
                     //debugbeam(start, end);
-          
+
                     // Jump
                     debugnav("Low wall");
                     m_pMyEnt->jumpnext = true;
@@ -1617,18 +1634,18 @@ void CBot::CheckFOV()
                     return;
                }
           }
-          
+
           // Check if the bot is going to fall...
           src = MyAngles;
           src.x = 0.0f;
           AnglesToVectors(src, forward, right, up);
-     
+
           dest = origin;
           forward.mul(3.0f);
           dest.add(forward);
-     
+
           TraceLine(origin, dest, m_pMyEnt, false, &tr);
-     
+
           int cx = int(tr.end.x), cy = int(tr.end.y);
           short CubesInWater=0;
           for(int x=cx-1;x<=(cx+1);x++)
@@ -1648,7 +1665,7 @@ void CBot::CheckFOV()
                          if (CubesInWater > 2) turn = true; // Always avoid water
                          if (!tr.collided && RandomLong(0, 1))
                               turn = true; // Randomly avoid a fall
-          
+
                          if (turn)
                          {
                               m_pMyEnt->targetyaw = WrapYZAngle(m_pMyEnt->yaw + 180);
@@ -1660,32 +1677,32 @@ void CBot::CheckFOV()
                }
           }
      }
-     
+
      // Is the bot about to head a corner?
      if (flNearestHitDist <= 4.0f)
      {
           src = MyAngles;
           src.y = WrapYZAngle(src.y - 45.0f);
           AnglesToVectors(src, forward, right, up);
-     
+
           dest = origin;
           forward.mul(4.0f);
           dest.add(forward);
-          
+
           TraceLine(origin, dest, m_pMyEnt, false, &tr);
-     
+
           WallLeft = (tr.collided);
-     
+
           src = MyAngles;
           src.y += WrapYZAngle(src.y + 45.0f);
           AnglesToVectors(src, forward, right, up);
-     
+
           dest = origin;
           forward.mul(4.0f);
           dest.add(forward);
-          
+
           TraceLine(origin, dest, m_pMyEnt, false, &tr);
-     
+
           if (WallLeft && tr.collided)
           {
                // We're about to hit a corner, turn away
@@ -1701,34 +1718,34 @@ void CBot::CheckFOV()
 bool CBot::WaterNav()
 {
      const int iSearchRange = 4;
-     
+
      if (m_vWaterGoal==g_vecZero)
      {
           AddDebugText("WaterNav");
           // Find the nearest and reachable cube which isn't underwater
-          
+
           int cx = int(m_pMyEnt->o.x);
           int cy = int(m_pMyEnt->o.y);
           float flNearestDist = 9999.0f, flDist;
-          
+
           if (OUTBORD(cx, cy)) return false;
-                   
+
           // Check all cubes in range...
           for (int x=(cx-iSearchRange);x<=(cx+iSearchRange);x++)
           {
                for (int y=(cy-iSearchRange);y<=(cy+iSearchRange);y++)
                {
                     sqr *s = S(x, y);
-          
+
                     if (SOLID(s)) continue;
                     if ((x==cx) && (y==cy)) continue;
-               
+
                     vec v(x, y, GetCubeFloor(x, y));
-                    
+
                     if (UnderWater(v)) continue; // Skip, cube is underwater
-                    
+
                     if (hdr.waterlevel < (v.z - 2.0f)) continue; // Cube is too high
-                    
+
                     // Check if the bot 'can fit' on the cube(no near obstacles)
                     bool small_ = false;
 
@@ -1744,7 +1761,7 @@ bool CBot::WaterNav()
                                    small_=true;
                                    break;
                               }
-                         
+
                               if ((a >= (x-1)) && (a <= (x+1)) && (b >= (y-1)) && (b <= (y+1)))
                               {
                                    if ((v2.z) < (v.z-2.0f))
@@ -1753,7 +1770,7 @@ bool CBot::WaterNav()
                                         break;
                                    }
                               }
-                         
+
                               traceresult_s tr;
                               TraceLine(v, v2, NULL, false, &tr);
                               if (tr.collided)
@@ -1769,7 +1786,7 @@ bool CBot::WaterNav()
                          debugbeam(m_pMyEnt->o, v);
                          continue;
                     }
-                    
+
                     // Okay, cube is valid.
                     flDist = GetDistance(v);
                     if (flDist < flNearestDist)
@@ -1780,7 +1797,7 @@ bool CBot::WaterNav()
                }
           }
      }
-     
+
      if (m_vWaterGoal!=g_vecZero)
      {
           AddDebugText("WaterNav");
@@ -1792,22 +1809,22 @@ bool CBot::WaterNav()
                m_pMyEnt->jumpnext = true;
           return true;
      }
-          
+
      return false;
 }
-          
+
 bool CBot::CheckItems()
-{          
+{
      if (!m_pCurrentGoalWaypoint && !CheckJump() && CheckStuck())
      {
-          // Don't check for ents a while when stuck                   
+          // Don't check for ents a while when stuck
           m_iCheckEntsDelay = lastmillis + RandomLong(1000, 2000);
           return false;
      }
-     
+
      if (m_vGoal==g_vecZero)
           m_pTargetEnt = NULL;
- 
+
      if (!m_pTargetEnt)
      {
           if (m_iCheckEntsDelay > lastmillis)
@@ -1818,22 +1835,22 @@ bool CBot::CheckItems()
                m_iCheckEntsDelay = lastmillis + RandomLong(2500, 5000);
           }
      }
-                  
+
      if (m_pTargetEnt)
      {
           if (HeadToTargetEnt())
                return true;
      }
-     
+
      if (m_eCurrentBotState == STATE_ENT)
      {
           ResetWaypointVars();
           m_vGoal = g_vecZero;
           m_pTargetEnt = NULL;
      }
-     
+
      return false;
-}          
+}
 
 bool CBot::InUnreachableList(entity *e)
 {
@@ -1862,7 +1879,7 @@ bool CBot::IsReachable(vec to, float flMaxHeight)
                // Look if bot can 'fit trough'
                vec src = from, forward, right, up;
                AnglesToVectors(GetViewAngles(), forward, right, up);
-               
+
                // Trace from 1 cube to the left
                vec temp = right;
                temp.mul(1.0f);
@@ -1872,7 +1889,7 @@ bool CBot::IsReachable(vec to, float flMaxHeight)
                // Trace from 1 cube to the right
                src.add(temp);
                if (!::IsVisible(src, to)) return false;
-                              
+
                if (UnderWater(from) && UnderWater(to))
                {
                     // No need to worry about heights in water
@@ -1899,7 +1916,7 @@ bool CBot::IsReachable(vec to, float flMaxHeight)
                // check if distance to ground increases more than jump height
                // at points between from and to...
 
-               vec v_temp = to; 
+               vec v_temp = to;
                v_temp.sub(from);
                vec v_direction = Normalize(v_temp);  // 1 unit long
                vec v_check = from;
@@ -1954,21 +1971,21 @@ void CBot::HearSound(int n, vec *o)
 {
      // Has the bot already an enemy?
      if (m_pMyEnt->enemy) return;
-     
+
 
 	 //fixmebot
-     // Is the sound not interesting?  
+     // Is the sound not interesting?
 	 if(n == S_DIE1 || n == S_DIE2) return;
 
-     int soundvol = m_pBotSkill->iMaxHearVolume - 
+     int soundvol = m_pBotSkill->iMaxHearVolume -
                             (int)(GetDistance(*o)*3*m_pBotSkill->iMaxHearVolume/255);
-          
+
      if (soundvol == 0) return;
-          
+
      // Look who made the sound(check for the nearest enemy)
      float flDist, flNearestDist = 3.0f; // Range of 3 units
      playerent *pNearest = NULL;
-     
+
           // Check all players first
           loopv(players)
           {
@@ -1977,7 +1994,7 @@ void CBot::HearSound(int n, vec *o)
                if (d == m_pMyEnt || !d || (d->state != CS_ALIVE) ||
                    isteam(m_pMyEnt->team, d->team))
                     continue;
-          
+
                flDist = GetDistance(*o, d->o);
                if ((flDist < flNearestDist) && IsVisible(d))
                {
@@ -1985,7 +2002,7 @@ void CBot::HearSound(int n, vec *o)
                     flNearestDist = flDist;
                }
           }
-    
+
           // Check local player
           if (player1 && (player1->state == CS_ALIVE) &&
               !isteam(m_pMyEnt->team, player1->team))
@@ -1995,20 +2012,20 @@ void CBot::HearSound(int n, vec *o)
                {
                     pNearest = player1;
                     flNearestDist = flDist;
-               }    
+               }
           }
-     
+
      if (pNearest)
      {
           if (m_pMyEnt->enemy != pNearest)
                m_iShootDelay = lastmillis + GetShootDelay(); // Add shoot delay when new enemy found
 
-          m_pMyEnt->enemy = pNearest;               
+          m_pMyEnt->enemy = pNearest;
      }
 }
 
 bool CBot::IsInFOV(const vec &o)
-{              
+{
      vec v2, forward, right, up;
      float flDot;
 
@@ -2019,10 +2036,10 @@ bool CBot::IsInFOV(const vec &o)
      v2.z = 0.0f; // Make 2D
      v2 = Normalize(v2);
      forward.z = 0; // Make 2D
-          
+
      flDot = v2.dot(forward);
 
      return(flDot >= 0.5f); // sin2(0.5) == 60 degrees FOV
 }
-     
+
 // Code of CBot - End
