@@ -50,61 +50,51 @@ void CBotManager::Init()
 
 void CBotManager::Think()
 {
-     if (m_bInit)
-     {
-          Init();
-          m_bInit = false;
-     }
+    if (m_bInit)
+    {
+        Init();
+        m_bInit = false;
+    }
+    if (m_pBotToView) ViewBot();
+    AddDebugText("m_sMaxAStarBots: %d", m_sMaxAStarBots);
+    AddDebugText("m_sCurrentTriggerNr: %d", m_sCurrentTriggerNr);
+    short x, y;
+    WaypointClass.GetNodeIndexes(player1->o, &x, &y);
+    AddDebugText("x: %d y: %d", x, y);
 
-     if (m_pBotToView)
-          ViewBot();
+    m_iFrameTime = lastmillis - m_iPrevTime;
+    if (m_iFrameTime > 250) m_iFrameTime = 250;
+    m_iPrevTime = lastmillis;
 
-     AddDebugText("m_sMaxAStarBots: %d", m_sMaxAStarBots);
-     AddDebugText("m_sCurrentTriggerNr: %d", m_sCurrentTriggerNr);
-     short x, y;
-     WaypointClass.GetNodeIndexes(player1->o, &x, &y);
-     AddDebugText("x: %d y: %d", x, y);
-
-     m_iFrameTime = lastmillis - m_iPrevTime;
-     if (m_iFrameTime > 250) m_iFrameTime = 250;
-     m_iPrevTime = lastmillis;
-
-     // Is it time to re-add bots?
-     if ((m_fReAddBotDelay < lastmillis) && (m_fReAddBotDelay != -1.0f))
-     {
-          while(m_StoredBots.Empty() == false)
-          {
-               CStoredBot *pStoredBot = m_StoredBots.Pop();
-               ReAddBot(pStoredBot);
-               delete pStoredBot;
-          }
-
-          m_fReAddBotDelay = -1.0f;
-     }
-
-     // If this is a ded server check if there are any players, if not bots should be idle
-     if (dedserv)
-     {
-          bool botsbeidle = true;
-          loopv(players)
-          {
-               if (players[i] && (players[i]->state != CS_DEDHOST)) { botsbeidle = false; break; }
-          }
-
-          if (botsbeidle) return;
-     }
-
-     // Let all bots 'think'
-     loopv(bots)
-     {
-          if (!bots[i])
-               continue;
-
-          if (bots[i]->pBot)
-               bots[i]->pBot->Think();
-          else
-               condebug("Error: pBot == NULL in bot ent\n");
-     }
+    // Is it time to re-add bots?
+    if ((m_fReAddBotDelay < lastmillis) && (m_fReAddBotDelay != -1.0f))
+    {
+        while(m_StoredBots.Empty() == false)
+        {
+            CStoredBot *pStoredBot = m_StoredBots.Pop();
+            ReAddBot(pStoredBot);
+            delete pStoredBot;
+        }
+        m_fReAddBotDelay = -1.0f;
+    }
+    // If this is a ded server check if there are any players, if not bots should be idle
+    if (dedserv)
+    {
+        bool botsbeidle = true;
+        loopv(players) { if (players[i] && (players[i]->state != CS_DEDHOST)) { botsbeidle = false; break; } }
+        if (botsbeidle) return;
+    }
+    // Let all bots 'think'
+    loopv(bots)
+    {
+        if (!bots[i]) continue;
+        if (bots[i]->pBot)
+        {
+            bots[i]->pBot->CheckWeaponSwitch(); // 2011jan17:ft: fix non-shooting bots
+            bots[i]->pBot->Think();
+        }
+        else condebug("Error: pBot == NULL in bot ent\n");
+    }
 }
 
 void CBotManager::LoadBotNamesFile()
@@ -894,72 +884,60 @@ void CBotManager::PickNextTrigger()
 
 botent *CBotManager::CreateBot(const char *team, const char *skill, const char *name)
 {
-     if (m_bInit)
-     {
-          Init();
-          m_bInit = false;
-     }
+    if (m_bInit)
+    {
+        Init();
+        m_bInit = false;
+    }
 
      botent *m = newbotent();
      if (!m) return NULL;
-	 loopi(NUMGUNS) m->ammo[i] = m->mag[i] = 0;
+     loopi(NUMGUNS) m->ammo[i] = m->mag[i] = 0;
      m->lifesequence = 0;
-	 setskin(m, rnd(6));
+     setskin(m, rnd(6));
      // Create new bot class, dependand on the current mod
 #if defined VANILLA_CUBE
-     m->pBot = new CCubeBot;
+    m->pBot = new CCubeBot;
 #elif defined AC_CUBE
-     m->pBot = new CACBot;
+    m->pBot = new CACBot;
 #else
-     #error "Unsupported mod!"
+    #error "Unsupported mod!"
 #endif
-     m->type = ENT_BOT;
-     m->pBot->m_pMyEnt = m;
-     m->pBot->m_iLastBotUpdate = 0;
-     m->pBot->m_bSendC2SInit = false;
+    m->type = ENT_BOT;
+    m->pBot->m_pMyEnt = m;
+    m->pBot->m_iLastBotUpdate = 0;
+    m->pBot->m_bSendC2SInit = false;
 
-     if (name && *name)
-          copystring(m->name, name, 16);
-     else
-          copystring(m->name, BotManager.GetBotName(), 16);
+    if (name && *name) copystring(m->name, name, 16);
+    else copystring(m->name, BotManager.GetBotName(), 16);
 
-     const char *tempteam = team && *team && strcmp(team, "random") ? team : BotManager.GetBotTeam();
-     m->team = TEAM_SPECT;
-     loopi(TEAM_NUM) if(!strcmp(teamnames[i], tempteam)) { m->team = i; break; }
+    const char *tempteam = team && *team && strcmp(team, "random") ? team : BotManager.GetBotTeam();
+    m->team = TEAM_SPECT;
+    loopi(TEAM_NUM) if(!strcmp(teamnames[i], tempteam)) { m->team = i; break; }
 
-     if (skill && *skill && strcmp(skill, "random"))
-     {
-          if (!strcasecmp(skill, "best"))
-               m->pBot->m_sSkillNr = 0;
-          else if (!strcasecmp(skill, "good"))
-               m->pBot->m_sSkillNr = 1;
-          else if (!strcasecmp(skill, "medium"))
-               m->pBot->m_sSkillNr = 2;
-          else if (!strcasecmp(skill, "worse"))
-               m->pBot->m_sSkillNr = 3;
-          else if (!strcasecmp(skill, "bad"))
-               m->pBot->m_sSkillNr = 4;
-          else
-          {
-               conoutf("Wrong skill specified. Should be best, good, medium, "
-                       "worse or bad");
-               conoutf("Using default skill instead...");
-               m->pBot->m_sSkillNr = BotManager.m_sBotSkill;
-          }
-     }
-     else // No skill specified, use default
-          m->pBot->m_sSkillNr = BotManager.m_sBotSkill;
-
-     m->pBot->m_pBotSkill = &BotManager.m_BotSkills[m->pBot->m_sSkillNr];
-
-     // Sync waypoints
-     m->pBot->SyncWaypoints();
-
-     m->pBot->Spawn();
-
-     bots.add(m);
-
-     return m;
+    if (skill && *skill && strcmp(skill, "random"))
+    {
+        if (!strcasecmp(skill, "best")) m->pBot->m_sSkillNr = 0;
+        else if (!strcasecmp(skill, "good")) m->pBot->m_sSkillNr = 1;
+        else if (!strcasecmp(skill, "medium")) m->pBot->m_sSkillNr = 2;
+        else if (!strcasecmp(skill, "worse")) m->pBot->m_sSkillNr = 3;
+        else if (!strcasecmp(skill, "bad")) m->pBot->m_sSkillNr = 4;
+        else
+        {
+            conoutf("Wrong skill specified. Should be best, good, medium, "
+                     "worse or bad");
+            conoutf("Using default skill instead...");
+            m->pBot->m_sSkillNr = BotManager.m_sBotSkill;
+        }
+    }
+    else // No skill specified, use default
+    m->pBot->m_sSkillNr = BotManager.m_sBotSkill;
+    m->pBot->m_pBotSkill = &BotManager.m_BotSkills[m->pBot->m_sSkillNr];
+    // Sync waypoints
+    m->pBot->SyncWaypoints();
+    m->pBot->Spawn();
+    bots.add(m);
+    return m;
 }
 
 bool botmode()
@@ -973,19 +951,12 @@ bool botmode()
 
 void addbot(char *arg1, char *arg2, char *arg3)
 {
-	if(!botmode()) return;
+    if(!botmode()) return;
     conoutf("Creating bot...\n");
     botent *b = BotManager.CreateBot(arg1, arg2, arg3);
-
-    if (b)
-        conoutf("connected: %s", b->name);
-    else
-    {
-        conoutf("Error: Couldn't create bot!");
-        return;
-    }
+    if (b) conoutf("connected: %s", b->name);
+    else { conoutf("Error: Couldn't create bot!"); return; }
 }
-
 COMMAND(addbot, ARG_3STR);
 
 void addnbot(char *arg1, char *arg2, char *arg3)
@@ -1001,7 +972,6 @@ void addnbot(char *arg1, char *arg2, char *arg3)
          i--;
      }
 }
-
 COMMAND(addnbot, ARG_3STR);
 
 void botsshoot(int Shoot)
