@@ -451,6 +451,15 @@ const char *entnames[MAXENTTYPES] =
 
 itemstat ammostats[NUMGUNS] =
 {
+// =================================
+// | EAPP = Extra ammo per-pickup  |
+// | AQOS = Ammo quantity on spawn |
+// | MAR  = Maximum ammo reserve   |
+// =================================
+// Note: MAR does not include bullets currently in magazine
+//       to find maximum ammo quantity, add magsize to MAR.
+
+//  EAPP  AQOS  MAR
     {  1,  1,   1,  S_ITEMAMMO  },   // knife dummy
     { 20, 60, 100,  S_ITEMAMMO  },   // pistol : CHANGED since 1.1.0.4 2010nov19
     { 15, 30,  30,  S_ITEMAMMO  },   // rifle
