@@ -1219,10 +1219,11 @@ void sendvoicecomteam(int sound, int sender)
 int spawntime(int type)
 {
     int np = numclients();
-    np = np<3 ? 4 : (np>4 ? 2 : 3);         // spawn times are dependent on number of players
+    np = np<3 ? 4 : (np>4 ? 2 : 3);	// Some spawn times are dependent on the number of players.
     int sec = 0;
     switch(type)
     {
+	// Please update ./ac_website/htdocs/docs/introduction.html if these times change.
         case I_CLIPS:
         case I_AMMO: sec = np*2; break;
         case I_GRENADE: sec = np + 5; break;

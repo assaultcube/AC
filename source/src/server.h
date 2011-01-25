@@ -450,6 +450,7 @@ const char *entnames[MAXENTTYPES] =
 };
 
 // see entity.h:61: struct itemstat { int add, start, max, sound; };
+// Please update ./ac_website/htdocs/docs/introduction.html if these figures change.
 itemstat ammostats[NUMGUNS] =
 {
     {  1,  1,   1,  S_ITEMAMMO  },   // knife dummy
@@ -473,6 +474,7 @@ itemstat powerupstats[I_ARMOUR-I_HEALTH+1] =
 
 guninfo guns[NUMGUNS] =
 {
+    // Please update ./ac_website/htdocs/docs/introduction.html if these figures change.
     //mKR: mdl_kick_rot && mKB: mdl_kick_back
     //reI: recoilincrease && reB: recoilbase && reM: maxrecoil && reF: recoilbackfade
     //pFX: pushfactor
