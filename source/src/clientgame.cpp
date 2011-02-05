@@ -245,7 +245,7 @@ VARP(autoscreenshot, 0, 0, 1);
 void deathstate(playerent *pl)
 {
     if(pl==player1) { if(identexists("onDeathSelf")) execute("onDeathSelf"); }
-    else { if(identexists("onDeathOther")) execute("onDeathOther"); }
+    else { if(identexists("onDeathOther")) { defformatstring(argsVt)("%s %d", "onDeathOther", pl->clientnum); execute(argsVt); } }
     pl->state = CS_DEAD;
     pl->spectatemode = SM_DEATHCAM;
     pl->respawnoffset = pl->lastpain = lastmillis;
@@ -281,7 +281,7 @@ void spawnstate(playerent *d)              // reset player state not persistent 
         setscope(false);
         setburst(false);
     }
-    if(d->deaths==0) d->resetstats(); //NEW
+	if(d->deaths==0) d->resetstats();
 }
 
 playerent *newplayerent()                 // create a new blank player
@@ -559,8 +559,9 @@ void findplayerstart(playerent *d, bool mapcenter, int arenaspawn)
         d->o.x = d->o.y = (float)ssize/2;
         d->o.z = 4;
     }
-
     entinmap(d);
+    if(d==player1) { if(identexists("onSpawnSelf")) execute("onSpawnSelf 0"); }
+	else { if(identexists("onSpawnOther")) { defformatstring(argsVt)("%s %d", "onSpawnOther", d->clientnum); execute(argsVt); } }
 }
 
 void spawnplayer(playerent *d)
@@ -569,8 +570,6 @@ void spawnplayer(playerent *d)
     d->spawnstate(gamemode);
     d->state = (d==player1 && editmode) ? CS_EDITING : CS_ALIVE;
     findplayerstart(d);
-    if(d==player1) { if(identexists("onSpawnSelf")) execute("onSpawnSelf"); }
-    else { if(identexists("onSpawnOther")) execute("onSpawnOther"); }
 }
 
 void respawnself()
@@ -1209,6 +1208,8 @@ void callvote(int type, char *arg1, char *arg2)
                 break;
         }
         sendpackettoserv(1, p.finalize());
+		defformatstring(runas)("%s %d %d [%s] [%s]", "onCallVote", type, -1, arg1, arg2);
+		execute(runas);
     }
     else conoutf(_("%c3invalid vote"), CC);
 }
@@ -1505,6 +1506,26 @@ COMMAND(changefollowplayer, ARG_1INT);
 
 int isalive() { return player1->state==CS_ALIVE ? 1 : 0; }
 COMMANDN(alive, isalive, ARG_IVAL);
+
+VARP(positiontype, 0, 1, 1); // integer (0) or float (1) return values?
+void getposition(int dim)
+{
+    string posr; //posr[0] = '\0';
+    formatstring(posr)("?");
+    float cv = 0;
+    switch(dim)
+    {
+        case 0: cv = player1->o.x; break;
+        case 1: cv = player1->o.y; break;
+        case 2: cv = player1->o.z; break;
+        case 3: cv = player1->yaw; break;
+        default: break;
+    }
+    if(positiontype) formatstring(posr)("%.2f", cv);
+    else formatstring(posr)("%d", (int)(cv*100));
+    result(posr);
+}
+COMMAND(getposition, ARG_1INT);
 
 void serverextension(char *ext, char *args)
 {
