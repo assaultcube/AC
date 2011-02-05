@@ -8,7 +8,8 @@
 #include "server.h"
 #include "servercontroller.h"
 #include "serverfiles.h"
-
+// 2011feb05:ft: quitproc
+#include "signal.h"
 // config
 servercontroller *svcctrl = NULL;
 servercommandline scl;
@@ -461,14 +462,22 @@ void enddemorecord()
     }
     int mr = gamemillis >= gamelimit ? 0 : (gamelimit - gamemillis + 60000 - 1)/60000;
     demofile &d = demofiles.add();
-    //flowtron 2010oct10 suggests : formatstring(d.info)("%s, %s, %.2f%s", modestr(gamemode), smapname, len > 1024*1024 ? len/(1024*1024.f) : len/1024.0f, len > 1024*1024 ? "MB" : "kB"); // the datetime bit is pretty useless in the servmesg, no?!
+
+    //2010oct10:ft: suggests : formatstring(d.info)("%s, %s, %.2f%s", modestr(gamemode), smapname, len > 1024*1024 ? len/(1024*1024.f) : len/1024.0f, len > 1024*1024 ? "MB" : "kB"); // the datetime bit is pretty useless in the servmesg, no?!
     formatstring(d.info)("%s: %s, %s, %.2f%s", asctime(), modestr(gamemode), smapname, len > 1024*1024 ? len/(1024*1024.f) : len/1024.0f, len > 1024*1024 ? "MB" : "kB");
-    //formatstring(d.file)("%s_%s_%s", timestring(), behindpath(smapname), modestr(gamemode, true)); // 20100522_10.08.48_ac_mines_DM.dmo
-    formatstring(d.file)(  "%s_%s_%s", modestr(gamemode, true), behindpath(smapname), timestring( true, "%Y.%m.%d_%H%M")); // DM_ac_mines.2010.05.22_1008.dmo
     if(mr) { concatformatstring(d.info, ", %d mr", mr); concatformatstring(d.file, "_%dmr", mr); }
     defformatstring(msg)("Demo \"%s\" recorded\nPress F10 to download it from the server..", d.info);
     sendservmsg(msg);
     logline(ACLOG_INFO, "Demo \"%s\" recorded.", d.info);
+
+	// 2011feb05:ft: previously these two static formatstrings were used ..
+    //formatstring(d.file)("%s_%s_%s", timestring(), behindpath(smapname), modestr(gamemode, true)); // 20100522_10.08.48_ac_mines_DM.dmo
+    //formatstring(d.file)("%s_%s_%s", modestr(gamemode, true), behindpath(smapname), timestring( true, "%Y.%m.%d_%H%M")); // DM_ac_mines.2010.05.22_1008.dmo
+	// .. now we use client-side parseable fileattribs
+    int mPLAY = gamemillis >= gamelimit ? gamelimit/1000 : gamemillis/1000;
+    int mDROP = gamemillis >= gamelimit ? 0 : (gamelimit - gamemillis)/1000;
+    formatstring(d.file)( "%d:%d:%d:%s:%s", gamemode, mPLAY, mDROP, numtime(), behindpath(smapname) );
+
     d.data = new uchar[len];
     d.len = len;
     demotmp->read(d.data, len);
@@ -575,7 +584,7 @@ void senddemo(int cn, int num)
     bool is_admin = (cl && cl->role == CR_ADMIN);
     if(scl.demo_interm && (!interm || totalclients > 2) && !is_admin)
     {
-        sendservmsg("\f3sorry, but this server only sends demos at intermission.\n wait the end of this game, please", cn);
+        sendservmsg("\f3sorry, but this server only sends demos at intermission.\n wait for the end of this game, please", cn);
         return;
     }
     if(!num) num = demofiles.length();
@@ -3879,6 +3888,11 @@ void processmasterinput(const char *cmd, int cmdlen, const char *args)
 
 string server_name = "unarmed server";
 
+void quitproc(int param)
+{
+	exit(EXIT_SUCCESS); // this triggers any "atexit"-calls
+}
+
 void initserver(bool dedicated, int argc, char **argv)
 {
     const char *service = NULL;
@@ -3892,7 +3906,7 @@ void initserver(bool dedicated, int argc, char **argv)
             {
                 case '-': break;
                 case 'S': service = a; break;
-                default: break; /*printf("WARNING: unknown commandline option\n");*/ // less warnings
+                default: break; /*printf("WARNING: unknown commandline option\n");*/ // less warnings - 2011feb05:ft: who disabled this - I think this should be on - more warnings == more clarity
             }
             else if (strncmp(argv[i], "assaultcube://", 13)) printf("WARNING: unknown commandline argument\n");
         }
@@ -3960,8 +3974,10 @@ void initserver(bool dedicated, int argc, char **argv)
         #ifdef WIN32
         SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
         #endif
+        signal(SIGHUP, quitproc);
+        signal(SIGINT, quitproc);
         logline(ACLOG_INFO, "dedicated server started, waiting for clients...");
-        logline(ACLOG_INFO, "Ctrl-C to exit");
+        logline(ACLOG_INFO, "Ctrl-C to exit"); // this will now actually call the atexit-hooks below - thanks to SIGINT hooked above - noticed and signal-code-docs found by SKB:2011feb05:ft:
         atexit(enet_deinitialize);
         atexit(cleanupserver);
         enet_time_set(0);
