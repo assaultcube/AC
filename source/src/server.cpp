@@ -3718,6 +3718,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 
 void cleanupserver()
 {
+	printf("CLEANUPSERVER\n"); // DEBUG
     if(serverhost) { enet_host_destroy(serverhost); serverhost = NULL; }
     if(svcctrl)
     {
@@ -3890,7 +3891,9 @@ string server_name = "unarmed server";
 
 void quitproc(int param)
 {
-	exit(EXIT_SUCCESS); // this triggers any "atexit"-calls
+	printf("param: %d\n", param); // DEBUG
+	// this triggers any "atexit"-calls:
+	exit(param == 2 ? EXIT_SUCCESS : EXIT_FAILURE); // 3 is the only reply on Win32 apparently, SIGINT == 2 == Ctrl-C
 }
 
 void initserver(bool dedicated, int argc, char **argv)
@@ -3974,8 +3977,16 @@ void initserver(bool dedicated, int argc, char **argv)
         #ifdef WIN32
         SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
         #endif
-        signal(SIGHUP, quitproc);
-        signal(SIGINT, quitproc);
+        // kill -2 / Ctrl-C - see http://msdn.microsoft.com/en-us/library/xdkz3x12%28v=VS.100%29.aspx (or VS-2008?) for caveat (seems not to pertain to AC - 2011feb05:ft)
+        if (signal(SIGINT, quitproc) == SIG_ERR) logline(ACLOG_INFO, "Cannot handle SIGINT!");
+        // kill -15 / probably process-manager on Win32 *shrug*
+        if (signal(SIGTERM, quitproc) == SIG_ERR) logline(ACLOG_INFO, "Cannot handle SIGTERM!");
+		#ifdef __GNUC__
+		// kill -1
+        if (signal(SIGHUP, quitproc) == SIG_ERR) logline(ACLOG_INFO, "Cannot handle SIGHUP!");
+        // kill -9 is uncatchable - http://en.wikipedia.org/wiki/SIGKILL
+        //if (signal(SIGKILL, quitproc) == SIG_ERR) logline(ACLOG_INFO, "Cannot handle SIGKILL!");
+		#endif
         logline(ACLOG_INFO, "dedicated server started, waiting for clients...");
         logline(ACLOG_INFO, "Ctrl-C to exit"); // this will now actually call the atexit-hooks below - thanks to SIGINT hooked above - noticed and signal-code-docs found by SKB:2011feb05:ft:
         atexit(enet_deinitialize);
