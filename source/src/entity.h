@@ -354,8 +354,8 @@ public:
         }
 
         // 4-level armour - tiered approach: 16%, 33%, 37%, 41%
-	// Please update ./ac_website/htdocs/docs/introduction.html if this changes.
-		int armoursection = 0;
+        // Please update ./ac_website/htdocs/docs/introduction.html if this changes.
+        int armoursection = 0;
 		int ad = damage;
 		if(armour > 25) armoursection = 1;
 		if(armour > 50) armoursection = 2;
@@ -368,11 +368,11 @@ public:
 			case 3: ad = (int) (4.0f/25.0f * armour) + 25; break; 		// 41
 			default: break;
 		}
-		int rd = ad * damage/100.0f;
-        armour -= rd;
-        damage -= rd;
-        health -= damage;
-        return damage;
+		int rd = (int) (ad * damage/100.0f);
+		armour -= rd;
+		damage -= rd;
+		health -= damage;
+		return damage;
     }
 };
 
