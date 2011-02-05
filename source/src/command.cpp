@@ -1213,15 +1213,20 @@ void timestring_()
 }
 
 int millis_() { extern int totalmillis; return totalmillis; }
+void strlen_(char *s) { string r; formatstring(r)("%d", strlen(s)); result(r); }
+void l0(int p, int v) { string f; string r; formatstring(f)("%%0%dd", p); formatstring(r)(f, v); result(r); }
 
 COMMANDN(millis, millis_, ARG_IVAL);
+COMMANDN(strlen, strlen_, ARG_1STR);
+COMMAND(l0, ARG_2INT);
 COMMAND(systime, ARG_NONE);
 COMMANDN(timestamp, timestamp_, ARG_NONE);
 COMMAND(datestring, ARG_NONE);
 COMMANDN(timestring, timestring_, ARG_NONE);
 
-void currentserver(int i)
+const char *currentserver(int i, bool internal) // = false)
 {
+    static string curSRVinfo;
 	// using the curpeer directly we can get the info of our currently connected server
 	string r;
 	r[0] = '\0';
@@ -1266,7 +1271,16 @@ void currentserver(int i)
                     copystring(r, statenames[curpeer->state]);
 				break; // 5 == Connected (compare ../enet/include/enet/enet.h +165)
 			}
-	     	default: // was HOST:PORT & IP - but as speed-up just IP & PORT
+			// CAUTION: the following are only filled if the serverbrowser was used or the scoreboard shown
+			// SERVERNAME
+			case 5: { serverinfo *si = getconnectedserverinfo(); if(si) copystring(r, si->name); break; }
+			// DESCRIPTION (3)
+			case 6: { serverinfo *si = getconnectedserverinfo(); if(si) copystring(r, si->sdesc); break; }
+			case 7: { serverinfo *si = getconnectedserverinfo(); if(si) copystring(r, si->description); break; }
+			// CAUTION: the following is only the last full-description _seen_ in the serverbrowser!
+			case 8: { serverinfo *si = getconnectedserverinfo(); if(si) copystring(r, si->full); break; }
+			// just IP & PORT as default response - always available, no lookup-delay either
+	     	default:
 			{
                 uchar *ip = (uchar *)&curpeer->address.host;
 				formatstring(r)("%d.%d.%d.%d %d", ip[0], ip[1], ip[2], ip[3], curpeer->address.port);
@@ -1274,7 +1288,9 @@ void currentserver(int i)
 			}
 		}
 	}
-	result(r);
+	if(!internal) result(r);
+	copystring(curSRVinfo, r);
+	return curSRVinfo;
 }
 
 COMMANDN(curserver, currentserver, ARG_1INT);
