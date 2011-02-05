@@ -781,6 +781,7 @@ void resetgl()
     reloadfonts();
     reloadtextures();
     c2skeepalive();
+    drawscope(true); // 2011feb05:ft: preload scope.png
     preload_playermodels();
     c2skeepalive();
     preload_hudguns();

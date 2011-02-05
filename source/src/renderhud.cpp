@@ -87,11 +87,11 @@ VARP(hideconsole, 0, 0, 1);
 VARP(hidespecthud, 0, 0, 1);
 VAR(showmap, 0, 0, 1);
 
-void drawscope()
+void drawscope(bool preload)
 {
     static Texture *scopetex = NULL;
     if(!scopetex) scopetex = textureload("packages/misc/scope.png", 3);
-
+	if(preload) return;
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glBindTexture(GL_TEXTURE_2D, scopetex->id);
     glColor3ub(255, 255, 255);
@@ -681,16 +681,6 @@ void drawscores()
 
     glPopAttrib();
 }
-
-VARP(positiontype, 0, 0, 1); // integer (0) or float (1) return values?
-void getposition()
-{
-    string poslist;
-    if(positiontype) formatstring(poslist)("%.2f %.2f %.2f", player1->o.x, player1->o.y, player1->o.z );
-    else formatstring(poslist)("%d %d %d", player1->o.x*DNF, player1->o.y*DNF, player1->o.z*DNF );
-    result(poslist);
-}
-COMMAND(getposition, ARG_NONE);
 
 VARP(clockdisplay,0,0,2);
 VARP(dbgpos,0,0,1);
