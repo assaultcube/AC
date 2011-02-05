@@ -360,6 +360,24 @@ void showhudextras(char hudextras, char value){
 
 int lastspawn = 0;
 
+void onCallVote(int type, int vcn, char *text, char *a)
+{
+	if(identexists("onCallVote"))
+	{
+		defformatstring(runas)("%s %d %d [%s] [%s]", "onCallVote", type, vcn, text, a);
+		execute(runas);
+	}
+}
+
+void onChangeVote(int mod, int id)
+{
+	if(identexists("onChangeVote"))
+	{
+		defformatstring(runas)("%s %d %d", "onChangeVote", mod, id);
+		execute(runas);
+	}
+}
+
 VAR(voicecomsounds, 0, 1, 2);
 bool medals_arrived=0;
 medalsst a_medals[END_MDS];
@@ -1161,6 +1179,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                         getstring(text, p);
                         filtertext(text, text);
                         v = newvotedisplayinfo(d, type, text, NULL);
+
                         break;
                     case SA_STOPDEMO:
                     case SA_REMBANS:
@@ -1173,31 +1192,47 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                         break;
                 }
                 displayvote(v);
+                onCallVote(type, vcn, text, a);
                 if (vcn >= 0)
                 {
-                    loopi(n_yes) votecount(VOTE_YES);
-                    loopi(n_no) votecount(VOTE_NO);
-                }
+                	loopi(n_yes) votecount(VOTE_YES);
+                	loopi(n_no) votecount(VOTE_NO);
+				}
                 extern int vote(int);
                 if (d == player1) vote(VOTE_YES);
                 break;
             }
 
             case SV_CALLVOTESUC:
-                callvotesuc();
-                break;
+			{
+				callvotesuc();
+				onChangeVote( 0, -1);
+				break;
+			}
 
             case SV_CALLVOTEERR:
-                callvoteerr(getint(p));
+			{
+				int errn = getint(p);
+                callvoteerr(errn);
+				onChangeVote( 1, errn);
                 break;
+			}
 
             case SV_VOTE:
-                votecount(getint(p));
+			{
+				int vote = getint(p);
+                votecount(vote);
+				onChangeVote( 2, vote);
                 break;
+			}
 
             case SV_VOTERESULT:
-                voteresult(getint(p));
+			{
+				int vres = getint(p);
+                voteresult(vres);
+				onChangeVote( 3, vres);
                 break;
+			}
 
             case SV_WHOISINFO:
             {
@@ -1216,7 +1251,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 else loopi(demos)
                 {
                     getstring(text, p);
-                    conoutf("%d. %s", i+1, text); // i18n for this?? there's tons of other strings that NEED it, not this. (said flowtron: 2010jul13)
+                    conoutf("%d. %s", i+1, text);
                 }
                 break;
             }
@@ -1252,6 +1287,121 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
     #endif
 }
 
+#define DEFDEMOFILEFMT "%w_%h_%n_%Mmin_%G"
+#define DEFDEMOTIMEFMT "%Y%m%d_%H%M"
+
+string demofilenameformat = DEFDEMOFILEFMT;
+void setDemoFilenameFormat(char *fmt)
+{
+    if(fmt && fmt[0]!='\0')
+    {
+        copystring(demofilenameformat, fmt);
+    } else copystring(demofilenameformat, DEFDEMOFILEFMT); // reset to default if passed empty string - or should we output the current value in this case?
+}
+COMMANDN(demonameformat, setDemoFilenameFormat, ARG_1STR);
+
+string demotimestampformat = DEFDEMOTIMEFMT;
+void setDemoTimestampFormat(char *fmt)
+{
+    if(fmt && fmt[0]!='\0')
+    {
+        copystring(demofilenameformat, fmt);
+    } else copystring(demofilenameformat, DEFDEMOTIMEFMT); // reset to default if passed empty string - or should we output the current value in this case?
+}
+COMMANDN(demotimeformat, setDemoTimestampFormat, ARG_1STR);
+
+void getdemonameformat() { result(demofilenameformat); } COMMAND(getdemonameformat, ARG_NONE);
+void getdemotimeformat() { result(demotimestampformat); } COMMAND(getdemotimeformat, ARG_NONE);
+
+const char *getDemoFilename(int gmode, int mplay, int mdrop, int tstamp, char *srvmap)
+{
+    // we use the following internal mapping of formatchars:
+    // %g : gamemode (int)      %G : gamemode (chr)             %F : gamemode (full)
+    // %m : minutes remaining   %M : minutes played
+    // %s : seconds remaining   %S : seconds played
+    // %h : IP of server        %H : hostname of server         (%N : title of server (really???))
+    // %n : mapName
+    // %w : timestamp "when"
+    static string dmofn;
+    int cc = 0;
+    int mc = strlen(demofilenameformat);
+    while(cc<mc)
+    {
+        switch(demofilenameformat[cc])
+        {
+            case '%':
+            {
+                if(cc<(mc-1))
+                {
+                    string cfspp;
+                    switch(demofilenameformat[cc+1])
+                    {
+                        case 'F': formatstring(cfspp)("%s", fullmodestr(gmode)); break;
+                        case 'g': formatstring(cfspp)("%d", gmode); break;
+                        case 'G': formatstring(cfspp)("%s", acronymmodestr(gmode)); break;
+                        case 'h': formatstring(cfspp)("%s", currentserver(1, true)); break;
+                        case 'H': formatstring(cfspp)("%s", currentserver(2, true)); break;
+                        case 'm': formatstring(cfspp)("%d", mdrop/60); break;
+                        case 'M': formatstring(cfspp)("%d", mplay/60); break;
+                        case 'n': formatstring(cfspp)("%s", srvmap); break;
+                        case 's': formatstring(cfspp)("%d", mdrop); break;
+                        case 'S': formatstring(cfspp)("%d", mplay); break;
+                        case 'w': formatstring(cfspp)("%s", timestring(true, demotimestampformat)); break;
+                        default: conoutf("bad formatstring: demonameformat @ %d", cc); cc-=1; break; // don't drop the bad char
+                    }
+                    defformatstring(fsbuf)("%s%s", dmofn, cfspp);
+                    copystring(dmofn, fsbuf);
+                }
+                else
+                {
+                    conoutf("trailing %%-sign in demonameformat"); // use COMMAND-name here
+                }
+                cc+=1;
+                break;
+            }
+            default:
+            {
+                defformatstring(fsbuf)("%s%c", dmofn, demofilenameformat[cc]);
+                copystring(dmofn, fsbuf);
+                break;
+            }
+        }
+        cc+=1;
+    }
+    return dmofn;
+}
+
+const char *parseDemoFilename(char *srvfinfo)
+{
+    int gmode = 0; //-314;
+    int mplay = 0;
+    int mdrop = 0;
+    int stamp = 0;
+    string srvmap;
+    if(srvfinfo && srvfinfo[0])
+    {
+        int fip = 0;
+        char sep[] = ":";
+        char *pch;
+        pch = strtok (srvfinfo,sep);
+        while (pch != NULL && fip < 4)
+        {
+            fip++;
+            switch(fip)
+            {
+                case 1: gmode = atoi(pch); break;
+                case 2: mplay = atoi(pch); break;
+                case 3: mdrop = atoi(pch); break;
+                case 4: stamp = atoi(pch); break;
+                default: break;
+            }
+            pch = strtok (NULL, sep);
+        }
+        copystring(srvmap, pch);
+    }
+    return getDemoFilename(gmode, mplay, mdrop, stamp, srvmap);
+}
+
 void receivefile(uchar *data, int len)
 {
 	static char text[MAXTRANS];
@@ -1265,7 +1415,8 @@ void receivefile(uchar *data, int len)
         {
             getstring(text, p);
             extern string demosubpath;
-            defformatstring(fname)("demos/%s%s.dmo", demosubpath, text);
+			defformatstring(demofn)("%s", parseDemoFilename(text));
+            defformatstring(fname)("demos/%s%s.dmo", demosubpath, demofn);
             copystring(demosubpath, "");
             data += strlen(text);
             int demosize = getint(p);
