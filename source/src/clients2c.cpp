@@ -1309,7 +1309,7 @@ void setDemoTimestampFormat(char *fmt)
     } else copystring(demofilenameformat, DEFDEMOTIMEFMT); // reset to default if passed empty string - or should we output the current value in this case?
 }
 COMMANDN(demotimeformat, setDemoTimestampFormat, ARG_1STR);
-
+VARP(demotimelocal, 0, 0, 1);
 void getdemonameformat() { result(demofilenameformat); } COMMAND(getdemonameformat, ARG_NONE);
 void getdemotimeformat() { result(demotimestampformat); } COMMAND(getdemotimeformat, ARG_NONE);
 
@@ -1346,7 +1346,14 @@ const char *getDemoFilename(int gmode, int mplay, int mdrop, int tstamp, char *s
                         case 'n': formatstring(cfspp)("%s", srvmap); break;
                         case 's': formatstring(cfspp)("%d", mdrop); break;
                         case 'S': formatstring(cfspp)("%d", mplay); break;
-                        case 'w': formatstring(cfspp)("%s", timestring(true, demotimestampformat)); break;
+                        case 'w':
+                        {
+                        	time_t t = tstamp;
+                        	struct tm * timeinfo;
+                        	timeinfo = demotimelocal ? localtime(&t) : gmtime (&t);
+                        	strftime(cfspp, sizeof(string) - 1, demotimestampformat, timeinfo);
+                        	break;
+                        }
                         default: conoutf("bad formatstring: demonameformat @ %d", cc); cc-=1; break; // don't drop the bad char
                     }
                     defformatstring(fsbuf)("%s%s", dmofn, cfspp);

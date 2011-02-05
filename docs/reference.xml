@@ -5246,6 +5246,11 @@ Output:
 					  <webReference url="http://www.cplusplus.com/reference/clibrary/ctime/strftime/" name="C++-Reference"/>
 					</references>
 				</command>
+				<variable name="demotimelocal">
+					<description>use localtime (1) or GMT (0)?</description>
+					<value token="B" description="BOOL" minValue="0" maxValue="1" defaultValue="0" />
+				</variable>
+
 
 				<variable name="popdeadplayers">
 					<description>make dead players instantly pop out of existence, instead of falling over and sinking into the ground.</description>
