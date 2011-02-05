@@ -5243,7 +5243,7 @@ Output:
 					  <identifierReference identifier="getdemotimeformat"/>
 					  <identifierReference identifier="getdemonameformat"/>
 					  <identifierReference identifier="demonameformat"/>
-					  <webReference url="http://www.cplusplus.com/reference/clibrary/ctime/strftime/" />
+					  <webReference url="http://www.cplusplus.com/reference/clibrary/ctime/strftime/" name="C++-Reference"/>
 					</references>
 				</command>
 
