@@ -1489,9 +1489,10 @@ echo (pstat_weap 0)
 						<remark>If I is 0 (omitted or any other value than the ones below) you will get a string with 'IP PORT'</remark>
 						<remark>If I is 1,2 or 3 you will get the IP, HostName or port respectively.</remark>
 						<remark>If I is 4 you get a string representing the current state of the peer - usually this should be 'connected'.</remark>
+						<remark>FIXME:TODO: 5=SERVERNAME, 6,7=description, 8=serverbrowser-line -- these are to be handled with caution, sometimes empty, #8 will be outdated w/o serverbrowser open.</remark>
 					</remarks>
 					<arguments>
-						<argument token="I" description="info" valueNotes="0, 1, 2, 3 or 4"/>
+						<argument token="I" description="info" valueNotes="0, 1, 2, 3, 4, 5, 6, 7, 8"/>
 					</arguments>
 					<examples>
 					<example>
@@ -5115,6 +5116,141 @@ Output:
 		<section name="TODO" sortindex="99">
 			<description>This section describes identifiers that are not documented yet, but you may try to help us there.</description>
 			<identifiers sort="true">
+
+				<scriptalias name="onDeathOther">
+					<description>If this alias exists it will be run every time anybody but yourself dies.</description>
+					<references>
+					  <identifierReference identifier="onDeathSelf"/>
+					  <identifierReference identifier="onSpawnOther"/>
+					  <identifierReference identifier="onSpawnSelf"/>
+					</references>
+				</scriptalias>
+				<scriptalias name="onDeathSelf">
+					<description>If this alias exists it will be run every time you yourself die.</description>
+					<references>
+					  <identifierReference identifier="onDeathOther"/>
+					  <identifierReference identifier="onSpawnOther"/>
+					  <identifierReference identifier="onSpawnSelf"/>
+					</references>
+				</scriptalias>
+				<scriptalias name="onSpawnOther">
+					<description>If this alias exists it will be run every time anybody but yourself spawns.</description>
+					<references>
+					  <identifierReference identifier="onDeathOther"/>
+					  <identifierReference identifier="onDeathSelf"/>
+					  <identifierReference identifier="onSpawnSelf"/>
+					</references>
+				</scriptalias>
+				<scriptalias name="onSpawnSelf">
+					<description>If this alias exists it will be run every time you yourself spawn.</description>
+					<references>
+					  <identifierReference identifier="onDeathOther"/>
+					  <identifierReference identifier="onDeathSelf"/>
+					  <identifierReference identifier="onSpawnOther"/>
+					</references>
+				</scriptalias>
+
+				<scriptalias name="onCallVote">
+					<description>If this alias exists it will be run every time a vote is called.</description>
+					<references>
+					  <identifierReference identifier="onChangeVote"/>
+					</references>
+				</scriptalias>
+				<scriptalias name="onChangeVote">
+					<description>If this alias exists it will be run every time a vote is changed.</description>
+					<references>
+					  <identifierReference identifier="onCallVote"/>
+					</references>
+				</scriptalias>
+
+				<command name="getposition">
+					<description>Get information about your place in the world. Dimension: 0123 => XYZ and yaw</description>
+					<arguments>
+  						<argument token="D" description="DIMENSION"/>
+					</arguments>
+					<references>
+					  <identifierReference identifier="positiontype"/>
+					</references>
+				</command>
+				<variable name="positiontype">
+					<description>0: int, 1: float</description>
+					<value token="T" description="TYPE" minValue="0" maxValue="1" defaultValue="1" />
+					<references>
+					  <identifierReference identifier="getposition"/>
+					</references>
+				</variable>
+
+				<command name="strlen">
+					<description>length of string S</description>
+					<arguments>
+  						<argument token="S" description="STRING"/>
+					</arguments>
+				</command>
+
+				<command name="l0">
+					<description>leading zeros for the number V to make it W chars wide</description>
+					<arguments>
+  						<argument token="W" description="WIDTH"/>
+  						<argument token="V" description="VALUE"/>
+					</arguments>
+				</command>
+
+				<command name="getdemonameformat">
+					<description>returns the currently used formatstring for demo filenames</description>
+					<references>
+					  <identifierReference identifier="getdemotimeformat"/>
+					  <identifierReference identifier="demotimeformat"/>
+					  <identifierReference identifier="demonameformat"/>
+					</references>
+				</command>
+				<command name="getdemotimeformat">
+					<description>returns the currently used formatstring for demo timestamp</description>
+					<references>
+					  <identifierReference identifier="demotimeformat"/>
+					  <identifierReference identifier="getdemonameformat"/>
+					  <identifierReference identifier="demonameformat"/>
+					</references>
+				</command>
+				<command name="demonameformat">
+					<description>set the formatstring for demo filenames - default: TODO (when stable)</description>
+					<arguments>
+  						<argument token="S" description="STRING"/>
+					</arguments>
+					<remarks>
+						<remark>we use the following internal mapping of formatchars:</remark>
+						<remark>%g : gamemode (int)      %G : gamemode (chr)             %F : gamemode (full)</remark>
+						<remark>%m : minutes remaining   %M : minutes played</remark>
+						<remark>%s : seconds remaining   %S : seconds played</remark>
+						<remark>%h : IP of server        %H : hostname of server         (%N : title of server (really???))</remark>
+						<remark>%n : mapName</remark>
+						<remark>%w : timestamp "when"</remark>
+					</remarks>
+					<references>
+					  <identifierReference identifier="getdemotimeformat"/>
+					  <identifierReference identifier="demotimeformat"/>
+					  <identifierReference identifier="getdemonameformat"/>
+					</references>
+				</command>
+				<command name="demotimeformat">
+					<description>set the formatstring for demo timestamp - default: TODO (when stable)</description>
+					<arguments>
+  						<argument token="S" description="STRING"/>
+					</arguments>
+					<remarks>
+						<remark>same as strftime() - see http://www.cplusplus.com/reference/clibrary/ctime/strftime/ for details</remark>
+					</remarks>
+					<references>
+					  <identifierReference identifier="getdemotimeformat"/>
+					  <identifierReference identifier="getdemonameformat"/>
+					  <identifierReference identifier="demonameformat"/>
+					  <webReference url="http://www.cplusplus.com/reference/clibrary/ctime/strftime/" />
+					</references>
+				</command>
+
+				<variable name="popdeadplayers">
+					<description>make dead players instantly pop out of existence, instead of falling over and sinking into the ground.</description>
+					<value token="B" description="BOOL" minValue="0" maxValue="1" defaultValue="0" />
+				</variable>
 
 				<command name="addzip">
 					<description>TODO: Description</description>
