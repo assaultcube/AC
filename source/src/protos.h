@@ -252,7 +252,7 @@ extern void gl_drawframe(int w, int h, float changelod, float curfps);
 extern void clearminimap();
 extern void rendercursor(int x, int y, int w);
 extern void renderaboveheadicon(playerent *p);
-extern void drawscope();
+extern void drawscope(bool preload = false);
 extern float dynfov();
 extern void damageblend(int n);
 
@@ -349,7 +349,8 @@ extern bool securemapcheck(const char *map, bool msg = true);
 extern void sendintro();
 extern void getdemo(char *idx, char *dsp);
 extern void listdemos();
-// for AUTH:
+extern const char *acronymmodestr(int n);
+extern const char *fullmodestr(int n);
 extern bool tryauth(const char *desc);
 extern authkey *findauthkey(const char *desc);
 
@@ -753,6 +754,7 @@ extern void pushscontext(int newcontext);
 extern int popscontext();
 extern int curscontext();
 extern int execcontext;
+extern const char *currentserver(int i, bool internal = false); // 2011feb05:ft: exposed
 
 // server
 extern int modeacronyms;
