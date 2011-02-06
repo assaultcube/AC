@@ -183,7 +183,7 @@ multiplayer:
 - vote: either explain it or make it easier.. generally make a multiplayer connect walkthru
 - rethink map get? make it even easier???
 - locking of in-progress games
-- when switching to map that player doesnt have... something better should happen than keep him in old map with floating players
+- when switching to map that player doesnt have... something better should happen than keep them in old map with floating players
 - capture the chicken mode? other different DM modes? domination? holy wars?
 - teamplay scores don't record frags of disconnected players
 - teamplay binds

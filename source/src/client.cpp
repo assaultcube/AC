@@ -286,7 +286,7 @@ COMMAND(go_to, ARG_2STR);
 void current_version(char *text)
 {
     int version = atoi(text);
-    if (version && AC_VERSION<version) conoutf("UPDATE YOUR CLIENT\ngo to %s for more information",AC_MASTER_URI);
+    if (version && AC_VERSION<version) conoutf("YOUR VERSION OF ASSAULTCUBE IS OUTDATED\!\nYOU MUST UPDATE ASSAULTCUBE\nplease visit %s for more information",AC_MASTER_URI);
 }
 COMMAND(current_version, ARG_1STR);
 
@@ -660,7 +660,7 @@ bool securemapcheck(const char *map, bool msg)
     {
         if(msg)
         {
-            conoutf(_("%c4%s%c3 is a secured map, you CAN\'T send, receive or overwrite it"), CC, map, CC);
+            conoutf(_("map %c4%s%c3 is secured, this means you CAN\'T send, receive or overwrite it"), CC, map, CC);
             if(connected)
             {
                 conoutf(_("%c3if you get this error alot you or the server may be running an outdated game"), CC);
