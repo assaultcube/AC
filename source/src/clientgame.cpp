@@ -187,8 +187,8 @@ void newteam(char *name)
         int nt = teamatoi(name);
         if(nt == player1->team) return; // same team
         if(!team_isvalid(nt)) { conoutf(_("%c3\"%s\" is not a valid team name (try CLA, RVSF or SPECTATOR)"), CC, name); return; }
-        if(team_isspect(nt) && player1->state != CS_DEAD) { conoutf(_("you\'ll need to be in a \"dead\" state to become a spectator")); return; }
-        if(player1->state == CS_EDITING) conoutf(_("you can\'t change team while editing"));
+        if(team_isspect(nt) && player1->state != CS_DEAD) { conoutf(_("you'll need to be in a \"dead\" state to become a spectator")); return; }
+        if(player1->state == CS_EDITING) conoutf(_("you can't change team while editing"));
         else addmsg(SV_SWITCHTEAM, "ri", nt);
     }
     else conoutf(_("your team is: %s"), team_string(player1->team));
@@ -607,7 +607,7 @@ inline const char * spawn_message()
         else return "3You must be on the correct map to spawn. Type /getmap to download it.";
     }
     else if (m_coop) return "3Type /getmap or send a map and vote for it to start co-op edit.";
-    else return "4Awaiting permission to spawn. \f2DON\'T PANIC!";
+    else return "4Awaiting permission to spawn. \f2DON'T PANIC!";
     // Despite its many glaring (and occasionally fatal) inaccuracies, AssaultCube itself has outsold the
     // Encyclopedia Galactica because it is slightly cheaper, and because it has the words "Don't Panic"
     // in large, friendly letters.
