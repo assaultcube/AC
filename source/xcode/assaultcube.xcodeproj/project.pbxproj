@@ -25,7 +25,6 @@
 		66899E700C1485E200927C34 /* ConsoleView.m in Sources */ = {isa = PBXBuildFile; fileRef = 66899E6E0C1485E200927C34 /* ConsoleView.m */; };
 		66899E770C14862300927C34 /* macutils.mm in Sources */ = {isa = PBXBuildFile; fileRef = 66899E760C14862300927C34 /* macutils.mm */; };
 		9E595539121EA8E9005ED5F7 /* crypto.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9E595536121EA8E9005ED5F7 /* crypto.cpp */; };
-		9E59553A121EA8E9005ED5F7 /* crypto_tools.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9E595537121EA8E9005ED5F7 /* crypto_tools.cpp */; };
 		9EAE4C10120F2F370041E6E4 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 9EAE4BD8120F2D0A0041E6E4 /* Localizable.strings */; };
 		9EB8171A11ED9AEF00799589 /* INTL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9EB8171211ED9AEF00799589 /* INTL.framework */; };
 		9EB8171C11ED9AEF00799589 /* Ogg.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9EB8171411ED9AEF00799589 /* Ogg.framework */; };
@@ -159,7 +158,6 @@
 		66899EAA0C14887F00927C34 /* Main.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; path = Main.gif; sourceTree = "<group>"; };
 		66899EAB0C14887F00927C34 /* Server.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; path = Server.gif; sourceTree = "<group>"; };
 		9E595536121EA8E9005ED5F7 /* crypto.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = crypto.cpp; sourceTree = "<group>"; };
-		9E595537121EA8E9005ED5F7 /* crypto_tools.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = crypto_tools.cpp; sourceTree = "<group>"; };
 		9E595538121EA8E9005ED5F7 /* crypto_tools.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = crypto_tools.h; sourceTree = "<group>"; };
 		9EAE4BD9120F2D0A0041E6E4 /* English */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/Localizable.strings; sourceTree = "<group>"; };
 		9EB8171211ED9AEF00799589 /* INTL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = INTL.framework; path = Frameworks/INTL.framework; sourceTree = "<group>"; };
@@ -409,7 +407,6 @@
 				B914CE4711CAC42F009BA307 /* console.cpp */,
 				B914CE4811CAC42F009BA307 /* console.h */,
 				9E595536121EA8E9005ED5F7 /* crypto.cpp */,
-				9E595537121EA8E9005ED5F7 /* crypto_tools.cpp */,
 				9E595538121EA8E9005ED5F7 /* crypto_tools.h */,
 				B914CE4911CAC42F009BA307 /* cube.h */,
 				B914CE4A11CAC42F009BA307 /* docs.cpp */,
@@ -674,7 +671,6 @@
 				B914CEDC11CAC42F009BA307 /* zip.cpp in Sources */,
 				B9EF952411CEE3D300B773C1 /* i18n.cpp in Sources */,
 				9E595539121EA8E9005ED5F7 /* crypto.cpp in Sources */,
-				9E59553A121EA8E9005ED5F7 /* crypto_tools.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
