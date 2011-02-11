@@ -48,7 +48,7 @@
         </title>
         <meta http-equiv="content-type" content="application/xhtml+xml;charset=utf-8" />
         <link rel="stylesheet" href="styles/cuberef.css"/>
-        <link rel="shortcut icon" href="pics/favicon.ico" /> 
+        <link rel="shortcut icon" href="images/favicon.ico" /> 
       </head>
 
       <body>
@@ -59,7 +59,7 @@
         <div id="main">
 
           <div id="logo">
-            <img src="pics/head.gif" alt="AssaultCube logo" />
+            <img src="images/head.gif" alt="AssaultCube logo" />
           </div>
 
           <!-- reference title -->
