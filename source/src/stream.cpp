@@ -622,9 +622,15 @@ struct gzstream : stream
 
     bool seek(long offset, int whence)
     {
-        if(writing || !reading || whence == SEEK_END) return false;
+        if(writing || !reading) return false;
 
-        if(whence == SEEK_CUR) offset += zfile.total_out;
+        if(whence == SEEK_END)
+        {
+            uchar skip[512];
+            while(read(skip, sizeof(skip)) == sizeof(skip));
+            return !offset;
+        }
+        else if(whence == SEEK_CUR) offset += zfile.total_out;
 
         if(offset >= (int)zfile.total_out) offset -= zfile.total_out;
         else if(offset < 0 || !file->seek(headersize, SEEK_SET)) return false;
