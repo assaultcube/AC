@@ -83,9 +83,7 @@ CLIENT_OBJS= \
 	bot/bot_waypoint.o \
 	bot/ac_bot.o \
 	bot/ac_bot_ai.o 
-ifneq (,$(findstring MINGW,$(PLATFORM)))
-CLIENT_OBJS+= ../vcpp/SDL_win32_main.o
-endif
+
 CLIENT_PCH= cube.h.gch
 
 ifneq (,$(findstring MINGW,$(PLATFORM)))
@@ -146,9 +144,6 @@ $(SERVER_OBJS): CXXFLAGS += $(SERVER_INCLUDES)
 $(filter-out $(SERVER_OBJS),$(MASTER_OBJS)): CXXFLAGS += $(SERVER_INCLUDES)
 
 ifneq (,$(findstring MINGW,$(PLATFORM)))
-../vcpp/%.o:
-	$(CXX) $(CXXFLAGS) -c -o $@ $(subst .o,.c,$@) 
-
 client: $(CLIENT_OBJS)
 	$(WINDRES) -I ../vcpp -i ../vcpp/cube.rc -J rc -o ../vcpp/cube.res -O coff 
 	$(CXX) $(CXXFLAGS) -o ../../bin_win32/ac_client.exe ../vcpp/cube.res $(CLIENT_OBJS) $(CLIENT_LIBS)
