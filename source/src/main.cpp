@@ -1049,6 +1049,45 @@ void connectprotocol(char *protocolstring, string &servername, string &serverpor
     } while(*c && *c=='&' && *c!='/');
 }
 
+#ifdef WIN32
+static char *parsecommandline(const char *src, vector<char *> &args)
+{
+    char *buf = new char[strlen(src) + 1], *dst = buf;
+    for(;;)
+    {
+        while(isspace(*src)) src++;
+        if(!*src) break;
+        args.add(dst);
+        do
+        {
+            while(*src && *src != '"' && !isspace(*src)) *dst++ = *src++;
+            if(*src == '"') for(;;)
+            {
+                for(++src; *src && *src != '"';) *dst++ = *src++;
+                if(!*src) break;
+                if(src[-1] != '\\') { src++; break; }
+                dst[-1] = '"';
+            }
+        } while(*src && *src != '"' && !isspace(*src));
+        *dst++ = '\0';
+    }
+    args.add(NULL);
+    return buf;
+}
+
+
+int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int sw)
+{
+    vector<char *> args;
+    char *buf = parsecommandline(GetCommandLine(), args);
+    SDL_SetModuleHandle(hInst);
+    int status = SDL_main(args.length()-1, args.getbuf());
+    delete[] buf;
+    exit(status);
+    return 0;
+}
+#endif
+
 int main(int argc, char **argv)
 {
     extern struct servercommandline scl;
