@@ -1,1 +1,1 @@
-%programfiles%\doxygen\bin\doxygen.exe Doxyfile
+"%programfiles%\doxygen\bin\doxygen.exe" Doxyfile
