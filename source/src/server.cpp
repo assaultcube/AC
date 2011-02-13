@@ -3981,7 +3981,7 @@ void initserver(bool dedicated, int argc, char **argv)
         if (signal(SIGINT, quitproc) == SIG_ERR) logline(ACLOG_INFO, "Cannot handle SIGINT!");
         // kill -15 / probably process-manager on Win32 *shrug*
         if (signal(SIGTERM, quitproc) == SIG_ERR) logline(ACLOG_INFO, "Cannot handle SIGTERM!");
-		#ifdef __GNUC__
+		#ifndef WIN32
 		// kill -1
         if (signal(SIGHUP, quitproc) == SIG_ERR) logline(ACLOG_INFO, "Cannot handle SIGHUP!");
         // kill -9 is uncatchable - http://en.wikipedia.org/wiki/SIGKILL
