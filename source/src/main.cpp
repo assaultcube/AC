@@ -1058,17 +1058,12 @@ static char *parsecommandline(const char *src, vector<char *> &args)
         while(isspace(*src)) src++;
         if(!*src) break;
         args.add(dst);
-        do
+        for(bool quoted = false; *src && (quoted || !isspace(*src)); src++)
         {
-            while(*src && *src != '"' && !isspace(*src)) *dst++ = *src++;
-            if(*src == '"') for(;;)
-            {
-                for(++src; *src && *src != '"';) *dst++ = *src++;
-                if(!*src) break;
-                if(src[-1] != '\\') { src++; break; }
-                dst[-1] = '"';
-            }
-        } while(*src && *src != '"' && !isspace(*src));
+            if(*src != '"') *dst++ = *src;
+            else if(dst > buf && src[-1] == '\\') dst[-1] = '"';
+            else quoted = !quoted;
+        }
         *dst++ = '\0';
     }
     args.add(NULL);
