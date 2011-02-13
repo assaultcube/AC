@@ -1,4 +1,3 @@
-//CXX=g++-gcc-4.2.3
 CXXFLAGS= -O3 -fomit-frame-pointer
 override CXXFLAGS+= -Wall -fsigned-char
 
