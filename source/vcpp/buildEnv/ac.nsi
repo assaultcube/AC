@@ -477,16 +477,16 @@ Function InstallationTypePage
     
     ; set up GUI
     
-	!insertmacro MUI_HEADER_TEXT "Installation Type" "Select the installation type" 
-	!insertmacro MUI_INSTALLOPTIONS_DISPLAY "InstallTypes.ini"
+    !insertmacro MUI_HEADER_TEXT "Installation Type" "Select the installation type" 
+    !insertmacro MUI_INSTALLOPTIONS_DISPLAY "InstallTypes.ini"
     
-	Pop $HWND
+    Pop $HWND
 
-	GetDlgItem $1 $HWNDPARENT 1
-	EnableWindow $1 0
+    GetDlgItem $1 $HWNDPARENT 1
+    EnableWindow $1 0
 
-	!insertmacro MUI_INSTALLOPTIONS_SHOW
-	Pop $0
+    !insertmacro MUI_INSTALLOPTIONS_SHOW
+    Pop $0
 
 FunctionEnd
 
@@ -501,8 +501,7 @@ Function ConfigureWithoutAppdata
     ; configure ac without home dir
     
     FileOpen $9 "$INSTDIR\AssaultCube.bat" w
-    FileWrite $9 "bin_win32\ac_client.exe --init %1 %2 %3 %4 %5$\r$\n"
-    FileWrite $9 "pause$\r$\n"
+    FileWrite $9 "start bin_win32\ac_client.exe --init %1 %2 %3 %4 %5$\r$\n"
     FileClose $9
 
 FunctionEnd
@@ -518,7 +517,7 @@ Section "AssaultCube ${AC_FULLVERSION}" AC
     File /r ac\*.*
 
     WriteRegStr HKLM "Software\${AC_SHORTNAME}" "" $INSTDIR
-	WriteRegStr HKLM "Software\${AC_SHORTNAME}\${AC_FULLVERSION}" "" $INSTDIR
+    WriteRegStr HKLM "Software\${AC_SHORTNAME}\${AC_FULLVERSION}" "" $INSTDIR
     WriteRegStr HKLM "Software\${AC_SHORTNAME}\${AC_FULLVERSION}" "version" ${AC_FULLVERSIONINT}
 
     ; Create uninstaller
@@ -558,13 +557,12 @@ Section "AssaultCube ${AC_FULLVERSION}" AC
 
     ; set up ac dir config
     
-	!insertmacro MUI_INSTALLOPTIONS_READ $R0 "InstallTypes.ini" "Field 1" "State"
-	!insertmacro MUI_INSTALLOPTIONS_READ $R1 "InstallTypes.ini" "Field 2" "State"
-	
-	StrCmp $R0 "1" 0 appdatadone
-	    Call ConfigureWithoutAppdata
-	appdatadone:
-	
+    !insertmacro MUI_INSTALLOPTIONS_READ $R0 "InstallTypes.ini" "Field 1" "State"
+    !insertmacro MUI_INSTALLOPTIONS_READ $R1 "InstallTypes.ini" "Field 2" "State"
+    
+    StrCmp $R0 "1" 0 appdatadone
+        Call ConfigureWithoutAppdata
+    appdatadone:
 
 SectionEnd
 
