@@ -378,7 +378,7 @@ void onChangeVote(int mod, int id)
 	}
 }
 
-VAR(voicecomsounds, 0, 1, 2);
+VARP(voicecomsounds, 0, 1, 2);
 bool medals_arrived=0;
 medalsst a_medals[END_MDS];
 void parsemessages(int cn, playerent *d, ucharbuf &p)

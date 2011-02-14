@@ -158,7 +158,8 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
                 if(cwy > mapdims[3]) mapdims[3] = cwy;
             }
             loopk(2) mapdims[k+4] = mapdims[k+2] - mapdims[k];
-/*            printf("  min X|Y: %3d : %3d\n", mapdims[0], mapdims[1]);
+/* TODO: 2011feb11:ft: make use of this better method to deal with the map-quality-checks
+            printf("  min X|Y: %3d : %3d\n", mapdims[0], mapdims[1]);
             printf("  max X|Y: %3d : %3d\n", mapdims[2], mapdims[3]);
             printf("delta X|Y: %3d : %3d\n", mapdims[4], mapdims[5]);
             fflush(stdout);*/
