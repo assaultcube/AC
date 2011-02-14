@@ -1251,8 +1251,7 @@ int vote(int v)
     putint(p, SV_VOTE);
     putint(p, v);
     sendpackettoserv(1, p.finalize());
-    // flowtron : 2008 11 06 : I don't think the following comments are still current
-    if(!curvote) { /*printf(":: curvote vanished!\n");*/ return 0; } // flowtron - happens when I call "/stopdemo"! .. seems the map-load happens in-between
+    if(!curvote) return 0;
     curvote->stats[v]++;
     curvote->localplayervoted = true;
     return 1;
