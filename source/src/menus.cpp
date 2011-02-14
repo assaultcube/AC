@@ -381,17 +381,17 @@ struct mitemmaploadmanual : mitemmanual
                 copystring(mapname, filename);
             }
             formatstring(cgzpath)("packages/%s", pakname);
-            char *d = getfiledesc(cgzpath, filename, "cgz");
+            char *d = getfiledesc(cgzpath, mapname, "cgz");
             if( d ) { formatstring(maptitle)("%s", d[0] ? d : "-n/a-"); }
             else
             {
                 copystring(pakname, "maps/official");
                 formatstring(cgzpath)("packages/%s", pakname);
-                char *d = getfiledesc("packages/maps/official", filename, "cgz");
+                char *d = getfiledesc("packages/maps/official", mapname, "cgz");
                 if( d ) { formatstring(maptitle)("%s", d[0] ? d : "-n/a-"); }
-                else formatstring(maptitle)("-n/a-:%s", filename);
+                else formatstring(maptitle)("-n/a-:%s", mapname);
             }
-            defformatstring(p2p)("%s/preview/%s.jpg", cgzpath, filename);
+            defformatstring(p2p)("%s/preview/%s.jpg", cgzpath, mapname);
             silent_texture_load = true;
             image = textureload(p2p, 3);
             if(image==notexture) image = textureload("packages/misc/nopreview.jpg", 3);
@@ -431,7 +431,7 @@ struct mitemmaploadmanual : mitemmanual
                 glEnd();
                 xtraverts += 4;
                 glEnable(GL_BLEND);
-                if(maptitle[0])
+                if(maptitle[0]) // 2011feb09:ft: TODO - this would be better as bottom line in the menu, just need to ensure it doesn't make the menu change width all the time!
                 {
 					int mlil = maploaditemlength;
 					string showt;
