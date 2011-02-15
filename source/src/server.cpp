@@ -23,6 +23,7 @@ serverinfofile infofiles;
 // server state
 bool isdedicated = false;
 ENetHost *serverhost = NULL;
+
 int nextstatus = 0, servmillis = 0, lastfillup = 0;
 
 vector<client *> clients;
@@ -2611,7 +2612,7 @@ void process(ENetPacket *packet, int sender, int chan)
         else protocoldebug(false);
         #endif
 
-        checkmessage(cl,type);
+        type = checkmessage(cl,type);
         switch(type)
         {
             case SV_TEAMTEXTME:
@@ -2836,6 +2837,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 if( !m_arena && sp < SP_OK_NUM && gamemillis > cl->state.lastspawn + 1000 ) sendspawn(cl);
                 break;
             }
+
             case SV_SPAWN:
             {
                 int ls = getint(p), gunselect = getint(p);
@@ -2858,6 +2860,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 });
                 break;
             }
+
             case SV_SPECTCN:
                 cl->spectcn = getint(p);
 //                 logline(ACLOG_DEBUG, "[%s] %s is now spectating cn %d", cl->hostname, cl->name, cl->spectcn); // FIXME: comment out later
@@ -3321,7 +3324,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 getstring(text, p, 64);
                 char *ext = text;   // extension specifier in the form of OWNER::EXTENSION, see sample below
                 int n = getint(p);  // length of data after the specifier
-                if(n > 50) return;
+                if(n < 0 || n > 50) return;
 
                 // sample
                 if(!strcmp(ext, "driAn::writelog"))
@@ -3718,7 +3721,6 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 
 void cleanupserver()
 {
-	printf("CLEANUPSERVER\n"); // DEBUG
     if(serverhost) { enet_host_destroy(serverhost); serverhost = NULL; }
     if(svcctrl)
     {
@@ -3891,7 +3893,6 @@ string server_name = "unarmed server";
 
 void quitproc(int param)
 {
-	printf("param: %d\n", param); // DEBUG
 	// this triggers any "atexit"-calls:
 	exit(param == 2 ? EXIT_SUCCESS : EXIT_FAILURE); // 3 is the only reply on Win32 apparently, SIGINT == 2 == Ctrl-C
 }
