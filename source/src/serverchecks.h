@@ -30,7 +30,7 @@ inline void checkclientpos(client *cl)
 #define MINELINE 50
 
 //FIXME
-/* There are smarter ways to implement this function, but must probably they will be very complex */
+/* There are smarter ways to implement this function, but most probably they will be very complex */
 int getmaxarea(int inversed_x, int inversed_y, int transposed, int ml_factor, char *ml)
 {
     int ls = (1 << ml_factor);
@@ -150,7 +150,7 @@ inline void addpt(client *c, int points, int n = -1) {
 #define TKPT         -20                           // player tks
 #define FLAGTKPT     -2*(10+cnumber)               // player tks the flag keeper/stealer
 
-void flagpoints (client *c, int message)
+void flagpoints(client *c, int message)
 {
     float distance = 0;
     int cnumber = totalclients < 13 ? totalclients : 12;
@@ -210,7 +210,7 @@ inline int minhits2combo(int gun)
     }
 }
 
-void checkcombo (client *target, client *actor, int damage, int gun)
+void checkcombo(client *target, client *actor, int damage, int gun)
 {
     int diffhittime = servmillis - actor->md.lasthit;
     actor->md.lasthit = servmillis;
@@ -385,13 +385,13 @@ inline bool testcover(int msg, int factor, client *actor)
     c2t = POW2XY(C,target->state.o);\
     a2t = POW2XY(actor->state.o,target->state.o)
 
-bool validlink (client *actor, int cn)
+bool validlink(client *actor, int cn)
 {
     return actor->md.linked >= 0 && actor->md.linked == cn && gamemillis < actor->md.linkmillis && valid_client(actor->md.linked);
 }
 
 /** WIP */
-void checkcover (client *target, client *actor)
+void checkcover(client *target, client *actor)
 {
     int team = actor->team;
     int oteam = team_opposite(team);
@@ -451,7 +451,7 @@ void checkcover (client *target, client *actor)
 #undef CALCCOVER
 
 /** WiP */
-void checkfrag (client *target, client *actor, int gun, bool gib)
+void checkfrag(client *target, client *actor, int gun, bool gib)
 {
     int targethasflag = clienthasflag(target->clientnum);
     int actorhasflag = clienthasflag(actor->clientnum);
@@ -522,10 +522,10 @@ void check_afk()
     }
 }
 
-/** This function counts how much non-killing-damage the player does in the teammates
+/** This function counts how much non-killing-damage the player does to any teammates
     The damage limit is 100 hp per minute, which is about 2 tks per minute in a normal game
     In normal games, the players go over 6 tks only in the worst cases */
-void check_ffire (client *target, client *actor, int damage)
+void check_ffire(client *target, client *actor, int damage)
 {
     if ( mastermode != MM_OPEN ) return;
     actor->ffire += damage;
@@ -568,7 +568,7 @@ This part is here for compatibility purposes.
 If you know nothing about these detections, please, just ignore it.
 */
 
-inline void checkmove (client *cl)
+inline void checkmove(client *cl)
 {
     cl->ldt = gamemillis - cl->lmillis;
     cl->lmillis = gamemillis;
@@ -598,25 +598,23 @@ inline void checkmove (client *cl)
     return;
 }
 
-inline void checkshoot (int & cn, gameevent & shot, int & hits, int & tcn)
+inline void checkshoot(int & cn, gameevent & shot, int & hits, int & tcn)
 {
-
 #ifdef ACAC
     s_engine(cn, shot, hits, tcn);
 #endif
     return;
 }
 
-inline void checkweapon (int & type, int & var)
+inline void checkweapon(int & type, int & var)
 {
-
 #ifdef ACAC
     w_engine(type,var);
 #endif
     return;
 }
 
-bool validdamage (client *&target, client *&actor, int &damage, int &gun, bool &gib)
+bool validdamage(client *&target, client *&actor, int &damage, int &gun, bool &gib)
 {
 #ifdef ACAC
     if (!d_engine(target, actor, damage, gun, gib)) return false;
@@ -624,12 +622,11 @@ bool validdamage (client *&target, client *&actor, int &damage, int &gun, bool &
     return true;
 }
 
-inline void checkmessage (client *c, int type)
+inline int checkmessage(client *c, int type)
 {
-
 #ifdef ACAC
-    p_engine(c,type);
+    type = p_engine(c,type);
 #endif
-    return;
+    return type;
 }
 
