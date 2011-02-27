@@ -600,7 +600,7 @@ extern bool addscorchmark(vec &o, float radius = 7);
 extern void render_particles(int time, int typemask = ~0);
 
 // worldio
-extern int mapdims[6];
+extern int mapdims[8];
 extern const char *setnames(const char *name);
 extern void save_world(char *fname);
 extern bool load_world(char *mname);
