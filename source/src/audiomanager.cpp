@@ -402,6 +402,7 @@ void audiomanager::writesoundconfig(stream *f)
 void voicecom(char *sound, char *text)
 {
     if(!sound || !sound[0]) return;
+	if(!text || !text[0]) return;
     static int last = 0;
     if(!last || lastmillis-last > 2000)
     {
