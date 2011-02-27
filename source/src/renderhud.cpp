@@ -396,18 +396,18 @@ vec getradarpos()
 
 VARP(showmapbackdrop, 0, 0, 2);
 VARP(showmapbackdroptransparency, 0, 75, 100);
-VARP(radarheight, 0, 50, 1000);//-1000, 50, 1000);
+VARP(radarheight, 5, 50, 500); // testing: 0, 50, 1000 // release: 5, 50, 500
 VAR(showradarvalues, 0, 0, 1); // DEBUG
-VAR(radarfactor, 0, 0, 2000); // DEBUG
-void drawradar(playerent *p, int w, int h)
+
+void drawradar_showmap(playerent *p, int w, int h)
 {
-    int gdim = max(mapdims[4], mapdims[5]);
-    float radarviewsize = showmap?3*min(VIRTW,VIRTH)/4:min(VIRTW,VIRTH)/5;
+	int gdim = max(mapdims[4], mapdims[5]);
+    float radarviewsize = 3*min(VIRTW,VIRTH)/4;
     float halfviewsize = radarviewsize/2.0f;
-    float iconsize = (showmap?radarentsize/4:radarentsize)/(float)gdim*radarviewsize;
-    int orthd = 2 + (gdim-2)/2;
+    float iconsize = (radarentsize/4)/(float)gdim*radarviewsize;
+    int orthd = gdim/2;
     int displace = radarviewsize/orthd;
-    float coordtrans =  showmap?(radarviewsize-displace)/(gdim+3):1;
+    float coordtrans = (radarviewsize-displace)/(gdim+3);
     int offd = (abs(mapdims[5]-mapdims[4])/2)*coordtrans;
     if(!gdim) { gdim = ssize/2; offd = 0; }
     int offx = gdim==mapdims[5]?offd:0;
@@ -415,203 +415,213 @@ void drawradar(playerent *p, int w, int h)
     glColor3f(1.0f, 1.0f, 1.0f);
     glPushMatrix();
     extern GLuint minimaptex;
-    if(showmap)
-    {
-        vec centerpos(VIRTW/2 , VIRTH/2, 0.0f);
-        if(showmapbackdrop)
-        {
-            glDisable(GL_TEXTURE_2D);
-            if(showmapbackdrop==2) glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE_MINUS_SRC_COLOR);
-            loopi(2)
-            {
-                int cg = i?(showmapbackdrop==2?((int)(255*(100-showmapbackdroptransparency)/100.0f)):0):(showmapbackdrop==2?((int)(255*(100-showmapbackdroptransparency)/100.0f)):64);
-                int co = i?0:4;
-                glColor3ub(cg, cg, cg);
-                glBegin(GL_QUADS);
-                glVertex2f( centerpos.x - halfviewsize - co, centerpos.y + halfviewsize + co);
-                glVertex2f( centerpos.x + halfviewsize + co, centerpos.y + halfviewsize + co);
-                glVertex2f( centerpos.x + halfviewsize + co, centerpos.y - halfviewsize - co);
-                glVertex2f( centerpos.x - halfviewsize - co, centerpos.y - halfviewsize - co);
-                glEnd();
-            }
-            glColor3ub(255,255,255);
-            glEnable(GL_TEXTURE_2D);
-        }
-        glTranslatef(centerpos.x - halfviewsize, centerpos.y - halfviewsize , 0);
-        glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_COLOR);
-        quad(minimaptex, 0, 0, radarviewsize, 0.0f, 0.0f, 1.0f);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glDisable(GL_BLEND);
-        vec mdd(mapdims[0], mapdims[1], 0);
-        vec cod(offx, offy, 0);
-        vec ppv = vec(p->o).sub(mdd).mul(coordtrans).add(cod);
-        drawradarent(ppv.x+displace, ppv.y+displace, p->yaw, p->state==CS_ALIVE ? (isattacking(p) ? 2 : 0) : 1, 2, iconsize, isattacking(p), "%s", colorname(p)); // local player
-        loopv(players) // other players
-        {
-            playerent *pl = players[i];
-            if(!pl || pl==p) continue;
-            if(!isteam(p->team, pl->team)) continue;
-            vec rtmp = vec(pl->o).sub(mdd).mul(coordtrans).add(cod);
-            drawradarent(rtmp.x+displace, rtmp.y+displace, pl->yaw, pl->state==CS_ALIVE ? (isattacking(pl) ? 2 : 0) : 1, team_base(pl->team), iconsize, isattacking(pl), "%s", colorname(pl));
-        }
-        if(m_flags)
-        {
-            glColor4f(1.0f, 1.0f, 1.0f, (sinf(lastmillis / 100.0f) + 1.0f) / 2.0f);
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-            loopi(2) // flag items
-            {
-                flaginfo &f = flaginfos[i];
-                entity *e = f.flagent;
-                if(!e) continue;
-                if(e->x == -1 && e-> y == -1) continue; // flagdummies
-                vec pos = vec(e->x, e->y, 0).sub(mdd).mul(coordtrans).add(cod);
-                vec cpos(pos.x + 16.0f, pos.y - 16.0f, 0);
-                drawradarent(pos.x+displace, pos.y+displace, camera1->yaw, m_ktf ? 2 : f.team, 3, iconsize, false); // draw bases
-                if(f.state!=CTFF_STOLEN && !(m_ktf && f.state == CTFF_IDLE))
-                {
-                    drawradarent(cpos.x+displace, cpos.y+displace, 0, 3, m_ktf ? 2 : f.team, iconsize, false); // draw on entitiy pos
-                }
-                if(m_ktf && f.state == CTFF_IDLE) continue;
-                if(f.state==CTFF_STOLEN)
-                {
-                    vec apos(1.6f, -1.6f, 0);
-                    if(f.actor)
-                    {
-                        apos.add(f.actor->o);
-                        bool tm = i != team_base(p->team);
-                        if(m_htf) tm = !tm;
-                        else if(m_ktf) tm = true;
-                        if(tm)
-                        {
-                            apos.sub(mdd).mul(coordtrans).add(cod);
-                            drawradarent(apos.x+displace, apos.y+displace, 0, 3, m_ktf ? 2 : f.team, iconsize, true); // draw near flag thief
-                        }
-                    }
-                }
-            }
-        }
+	vec centerpos(VIRTW/2 , VIRTH/2, 0.0f);
+	if(showmapbackdrop)
+	{
+		glDisable(GL_TEXTURE_2D);
+		if(showmapbackdrop==2) glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE_MINUS_SRC_COLOR);
+		loopi(2)
+		{
+			int cg = i?(showmapbackdrop==2?((int)(255*(100-showmapbackdroptransparency)/100.0f)):0):(showmapbackdrop==2?((int)(255*(100-showmapbackdroptransparency)/100.0f)):64);
+			int co = i?0:4;
+			glColor3ub(cg, cg, cg);
+			glBegin(GL_QUADS);
+			glVertex2f( centerpos.x - halfviewsize - co, centerpos.y + halfviewsize + co);
+			glVertex2f( centerpos.x + halfviewsize + co, centerpos.y + halfviewsize + co);
+			glVertex2f( centerpos.x + halfviewsize + co, centerpos.y - halfviewsize - co);
+			glVertex2f( centerpos.x - halfviewsize - co, centerpos.y - halfviewsize - co);
+			glEnd();
+		}
+		glColor3ub(255,255,255);
+		glEnable(GL_TEXTURE_2D);
+	}
+	glTranslatef(centerpos.x - halfviewsize, centerpos.y - halfviewsize , 0);
+	glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_COLOR);
+	quad(minimaptex, 0, 0, radarviewsize, 0.0f, 0.0f, 1.0f);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glDisable(GL_BLEND);
+	vec mdd(mapdims[0], mapdims[1], 0);
+	vec cod(offx+0.5f, offy+0.5f, 0);
+	vec ppv = vec(p->o).sub(mdd).mul(coordtrans).add(cod);
+	drawradarent(ppv.x+displace, ppv.y+displace, p->yaw, p->state==CS_ALIVE ? (isattacking(p) ? 2 : 0) : 1, 2, iconsize, isattacking(p), "%s", colorname(p)); // local player
+	loopv(players) // other players
+	{
+		playerent *pl = players[i];
+		if(!pl || pl==p) continue;
+		if(!isteam(p->team, pl->team)) continue;
+		vec rtmp = vec(pl->o).sub(mdd).mul(coordtrans).add(cod);
+		drawradarent(rtmp.x+displace, rtmp.y+displace, pl->yaw, pl->state==CS_ALIVE ? (isattacking(pl) ? 2 : 0) : 1, team_base(pl->team), iconsize, isattacking(pl), "%s", colorname(pl));
+	}
+	if(m_flags)
+	{
+		glColor4f(1.0f, 1.0f, 1.0f, (sinf(lastmillis / 100.0f) + 1.0f) / 2.0f);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		loopi(2) // flag items
+		{
+			flaginfo &f = flaginfos[i];
+			entity *e = f.flagent;
+			if(!e) continue;
+			if(e->x == -1 && e-> y == -1) continue; // flagdummies
+			vec pos = vec(e->x, e->y, 0).sub(mdd).mul(coordtrans).add(cod);
+			vec cpos = vec(f.pos.x, f.pos.y, f.pos.z).sub(mdd).mul(coordtrans).add(cod);
+			drawradarent(pos.x+displace, pos.y+displace, camera1->yaw, m_ktf ? 2 : f.team, 3, iconsize, false); // draw bases
+			if(f.state!=CTFF_STOLEN && !(m_ktf && f.state == CTFF_IDLE))
+			{
+				drawradarent(cpos.x+displace, cpos.y+displace, 0, 3, m_ktf ? 2 : f.team, iconsize, false); // draw on entity pos
+			}
+			if(m_ktf && f.state == CTFF_IDLE) continue;
+			if(f.state==CTFF_STOLEN)
+			{
+				float d2c = 1.6f * radarentsize/16.0f;
+				vec apos(d2c, -d2c, 0);
+				if(f.actor)
+				{
+					apos.add(f.actor->o);
+					bool tm = i != team_base(p->team);
+					if(m_htf) tm = !tm;
+					else if(m_ktf) tm = true;
+					if(tm)
+					{
+						apos.sub(mdd).mul(coordtrans).add(cod);
+						drawradarent(apos.x+displace, apos.y+displace, 0, 3, m_ktf ? 2 : f.team, iconsize, true); // draw near flag thief
+					}
+				}
+			}
+		}
+	}
+	glEnable(GL_BLEND);
+	glPopMatrix();
+}
 
-        glEnable(GL_BLEND);
-        glPopMatrix();
-    }
-    else
-    {
-        extern int minimaplastsize;
-        vec centerpos(VIRTW-halfviewsize-72, halfviewsize+64, 0); // x-72, y+64 is a good position (w/ teamhud on)
-        glTranslatef(centerpos.x, centerpos.y, 0);
-        glRotatef(-camera1->yaw, 0, 0, 1);
-        glTranslatef(-halfviewsize, -halfviewsize, 0);
-        vec rtr = vec(offx - mapdims[0], offy - mapdims[1], 0);
-        //int mhh = gdim % 86;
-        //int nhh = 86 * (1 + (gdim/86));
-        //if(nhh<86) nhh = 86; if(nhh>344) nhh = 344;
-        float rhc = 50 * gdim/344;
-        float rh0 = 30 * (344-gdim)/172.0f;
-        // ac_arid:    gdim:118 ==> rh0 = 39.390, rhc = 17.150 :: [..]
-        // ac_iceroad: gdim:243 ==> rh0 = 35.319, rhc = 17.610 :: [..]
-        //radarheight/10.0f;
-        //float rrh = (1.0f*gdim)/7.0f + (1.0f*radarheight)/20.0f;
-        float usp = rhc * ( 2 * ( radarheight - 50 ) ) / 100.0f;
-        float rrh = rh0 + usp;
-        // ATM rrh:100 on shine is rrh:-100 on iceroad - so .. ..
-        float d2s = (5.0f * (gdim/(minimaplastsize/4.0f)) * (rrh/radarviewsize)*minimaplastsize)/6.0f;
-        float f2m = radarfactor?radarfactor/100.0f:((((radarviewsize*minimaplastsize)/gdim)/rrh)/10.0f);
-        vec usecenter = vec(p->o).add(rtr);
-        if(showradarvalues)
-        {
-            conoutf("dCPL: c:%.2f : 0:%.2f : u:%.2f", rhc, rh0, usp);
-            conoutf("gdim: %d : rh: %d:%.2f", gdim, radarheight, rrh);
-            conoutf("rvs: %.2f : ics: %.2f : mmls: %d", radarviewsize, iconsize, minimaplastsize);
-            conoutf("offd: %d [%d:%d]", offd, offx, offy);
-            conoutf("RTR: %.2f %.2f", rtr.x, rtr.y);
-            conoutf("D2S: %.2f : F2M: %.2f", d2s, f2m);
-            showradarvalues = 0;
-        }
-        glDisable(GL_BLEND);
-        circle(minimaptex, halfviewsize, halfviewsize, halfviewsize, usecenter.x/gdim, usecenter.y/gdim, rrh/100.0f);
-        glTranslatef(halfviewsize, halfviewsize, 0);
-        drawradarent(0, 0, p->yaw, p->state==CS_ALIVE ? (isattacking(p) ? 2 : 0) : 1, 2, iconsize, isattacking(p), "%s", colorname(p)); // local player
-        loopv(players) // other players
-        {
-            playerent *pl = players[i];
-            if(!pl || pl==p) continue;
-            if(!isteam(p->team, pl->team)) continue;
-            vec rtmp = vec(pl->o).add(rtr).sub(usecenter);
-            bool isok = rtmp.magnitude() < d2s;
-            if(isok)
-            {
-                rtmp.mul(f2m);
-                drawradarent(rtmp.x, rtmp.y, pl->yaw, pl->state==CS_ALIVE ? (isattacking(pl) ? 2 : 0) : 1, team_base(pl->team), iconsize, isattacking(pl), "%s", colorname(pl));
-            }
-        }
-        if(m_flags)
-        {
-            glColor4f(1.0f, 1.0f, 1.0f, (sinf(lastmillis / 100.0f) + 1.0f) / 2.0f);
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-            loopi(2) // flag items
-            {
-                flaginfo &f = flaginfos[i];
-                entity *e = f.flagent;
-                if(!e) continue;
-                if(e->x == -1 && e-> y == -1) continue; // flagdummies
-                vec pos = vec(e->x, e->y, 0).add(rtr).sub(usecenter);
-                vec cpos(rrh/10.0f, -rrh/10.0f, 0);
-                cpos.rotate_around_z(camera1->yaw*RAD);
-                cpos.add(pos);
-                bool isok = pos.magnitude() < d2s;
-                if(isok)
-                {
-                    pos.mul(f2m);
-                    drawradarent(pos.x, pos.y, 0/*camera1->yaw*/, m_ktf ? 2 : f.team, 3, iconsize, false); // draw bases [circle doesn't need rotating]
-                    if(f.state!=CTFF_STOLEN && !(m_ktf && f.state == CTFF_IDLE))
-                    {
-                            cpos.mul(f2m); // these can be drawn slightly outside the radar-eyecandy .. only at low radarheight.
-                            drawradarent(cpos.x, cpos.y, camera1->yaw, 3, m_ktf ? 2 : f.team, iconsize, false); // draw on entitiy pos
-                    }
-                }
-                if(m_ktf && f.state == CTFF_IDLE) continue;
-                if(f.state==CTFF_STOLEN)
-                {
-                    vec apos(0.4f, -0.4f, 0);
-                    if(f.actor)
-                    {
-                        apos.add(f.actor->o);
-                        bool tm = i != team_base(p->team);
-                        if(m_htf) tm = !tm;
-                        else if(m_ktf) tm = true;
-                        if(tm)
-                        {
-                            apos.add(rtr).sub(usecenter);
-                            bool isok = apos.magnitude() < d2s;
-                            if(isok)
-                            {
-                                apos.mul(f2m);
-                                drawradarent(apos.x, apos.y, camera1->yaw, 3, m_ktf ? 2 : f.team, iconsize, true); // draw near flag thief
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        glEnable(GL_BLEND);
-        glPopMatrix();
-        // eye candy:
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glColor3f(1, 1, 1);
-        static Texture *bordertex = NULL;
-        if(!bordertex) bordertex = textureload("packages/misc/compass-base.png", 3);
-        quad(bordertex->id, centerpos.x-halfviewsize-16, centerpos.y-halfviewsize-16, radarviewsize+32, 0, 0, 1, 1);
-        if(!hidecompass)
-        {
-            static Texture *compasstex = NULL;
-            if(!compasstex) compasstex = textureload("packages/misc/compass-rose.png", 3);
-            glPushMatrix();
-            glTranslatef(centerpos.x, centerpos.y, 0);
-            glRotatef(-camera1->yaw, 0, 0, 1);
-            quad(compasstex->id, -halfviewsize-8, -halfviewsize-8, radarviewsize+16, 0, 0, 1, 1);
-            glPopMatrix();
-        }
-    }
+void drawradar_vicinity(playerent *p, int w, int h)
+{
+    extern GLuint minimaptex;
+	//extern int minimaplastsize;
+	int gdim = max(mapdims[4], mapdims[5]);
+    float radarviewsize = min(VIRTW,VIRTH)/5;
+    float halfviewsize = radarviewsize/2.0f;
+    float iconsize = radarentsize/(float)gdim*radarviewsize;
+	float scaler = gdim/100.0f;
+	float scaleh = radarheight/(2.0f*gdim);
+	float scaled = radarviewsize/float(radarheight);
+    float offd = abs(mapdims[5]-mapdims[4])/2.0f;
+    if(!gdim) { gdim = ssize/2; offd = 0; }
+    float offx = gdim==mapdims[5]?offd:0;
+    float offy = gdim==mapdims[4]?offd:0;
+	vec rtr = vec(mapdims[0]-offx, mapdims[1]-offy, 0);
+	vec rsd = vec(mapdims[0]+mapdims[4]/2, mapdims[1]+mapdims[5]/2, 0);
+	float d2s = radarheight/2.0f;
+	glColor3f(1.0f, 1.0f, 1.0f);
+    glPushMatrix();
+	vec centerpos(VIRTW-halfviewsize-72, halfviewsize+64, 0); 
+	glTranslatef(centerpos.x, centerpos.y, 0);
+	glRotatef(-camera1->yaw, 0, 0, 1);
+	glTranslatef(-halfviewsize, -halfviewsize, 0);
+	vec d4rc = vec(p->o).sub(rsd).normalize().mul(scaler);
+	vec usecenter = vec(p->o).sub(rtr).sub(d4rc);
+	if(showradarvalues)
+	{
+		conoutf("vicinity @ gdim = %d", gdim);
+		conoutf("offd: %.2f [%.2f:%.2f]", offd, offx, offy);
+		conoutf("RTR: %.2f %.2f", rtr.x, rtr.y);
+		conoutf("RSD: %.2f %.2f", rsd.x, rsd.y);
+		conoutf("P.O: %.2f %.2f", p->o.x, p->o.y);
+		conoutf("U4C: %.2f %.2f | %.2f %.2f", usecenter.x, usecenter.y, usecenter.x/gdim, usecenter.y/gdim);
+		//showradarvalues = 0;
+	}
+	glDisable(GL_BLEND);
+	circle(minimaptex, halfviewsize, halfviewsize, halfviewsize, usecenter.x/(float)gdim, usecenter.y/(float)gdim, scaleh, 31);
+	glTranslatef(halfviewsize, halfviewsize, 0);
+	drawradarent(0, 0, p->yaw, p->state==CS_ALIVE ? (isattacking(p) ? 2 : 0) : 1, 2, iconsize, isattacking(p), "%s", colorname(p)); // local player
+	loopv(players) // other players
+	{
+		playerent *pl = players[i];
+		if(!pl || pl==p) continue;
+		if(!isteam(p->team, pl->team)) continue;
+		vec rtmp = vec(pl->o).sub(p->o);
+		bool isok = rtmp.magnitude() < d2s;
+		if(isok)
+		{
+			rtmp.mul(scaled);
+			drawradarent(rtmp.x, rtmp.y, pl->yaw, pl->state==CS_ALIVE ? (isattacking(pl) ? 2 : 0) : 1, team_base(pl->team), iconsize, isattacking(pl), "%s", colorname(pl));
+		}
+	}
+	if(m_flags)
+	{
+		glColor4f(1.0f, 1.0f, 1.0f, (sinf(lastmillis / 100.0f) + 1.0f) / 2.0f);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		loopi(2) // flag items
+		{
+			flaginfo &f = flaginfos[i];
+			entity *e = f.flagent;
+			if(!e) continue;
+			if(e->x == -1 && e-> y == -1) continue; // flagdummies
+			vec pos = vec(e->x, e->y, 0).sub(p->o);
+			vec cpos = vec(f.pos.x, f.pos.y, f.pos.z).sub(p->o);
+			//if(showradarvalues) { conoutf("dist2F[%d]: %.2f|%.2f || %.2f|%.2f", i, pos.x, pos.y, cpos.x, cpos.y); }
+			if(pos.magnitude() < d2s)
+			{
+				pos.mul(scaled);
+				drawradarent(pos.x, pos.y, 0, m_ktf ? 2 : f.team, 3, iconsize, false); // draw bases [circle doesn't need rotating]
+			}
+			if(f.state!=CTFF_STOLEN && !(m_ktf && f.state == CTFF_IDLE))
+			{
+				if(cpos.magnitude() < d2s)
+				{
+					cpos.mul(scaled);
+					drawradarent(cpos.x, cpos.y, camera1->yaw, 3, m_ktf ? 2 : f.team, iconsize, false); // draw on entity pos
+				}
+			}
+			if(m_ktf && f.state == CTFF_IDLE) continue;
+			if(f.state==CTFF_STOLEN)
+			{
+				float d2c = 1.6f * radarentsize/16.0f;
+				vec apos(d2c, -d2c, 0);
+				if(f.actor)
+				{
+					apos.add(f.actor->o);
+					bool tm = i != team_base(p->team);
+					if(m_htf) tm = !tm;
+					else if(m_ktf) tm = true;
+					if(tm)
+					{
+						apos.sub(p->o);
+						if(apos.magnitude() < d2s)
+						{
+							apos.mul(scaled);
+							drawradarent(apos.x, apos.y, camera1->yaw, 3, m_ktf ? 2 : f.team, iconsize, true); // draw near flag thief
+						}
+					}
+				}
+			}
+		}
+	}
+	showradarvalues = 0; // DEBUG - also see two bits commented-out above
+	glEnable(GL_BLEND);
+	glPopMatrix();
+	// eye candy:
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glColor3f(1, 1, 1);
+	static Texture *bordertex = NULL;
+	if(!bordertex) bordertex = textureload("packages/misc/compass-base.png", 3);
+	quad(bordertex->id, centerpos.x-halfviewsize-16, centerpos.y-halfviewsize-16, radarviewsize+32, 0, 0, 1, 1);
+	if(!hidecompass)
+	{
+		static Texture *compasstex = NULL;
+		if(!compasstex) compasstex = textureload("packages/misc/compass-rose.png", 3);
+		glPushMatrix();
+		glTranslatef(centerpos.x, centerpos.y, 0);
+		glRotatef(-camera1->yaw, 0, 0, 1);
+		quad(compasstex->id, -halfviewsize-8, -halfviewsize-8, radarviewsize+16, 0, 0, 1, 1);
+		glPopMatrix();
+	}
+
+}
+
+void drawradar(playerent *p, int w, int h)
+{
+	if(showmap) drawradar_showmap(p,w,h);
+	else drawradar_vicinity(p,w,h);
 }
 
 void drawteamicons(int w, int h, bool spect)
@@ -826,12 +836,14 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         {
             if(dbgpos)
             {
-                defformatstring(o_x)("pos x %03.1f", player1->o.x);
-                draw_text(o_x, VIRTW*2 - ( text_width(o_x) + FONTH ), VIRTH*2 - 9*FONTH/2);
-                defformatstring(o_y)("pos y %03.1f", player1->o.y);
-                draw_text(o_y, VIRTW*2 - ( text_width(o_y) + FONTH ), VIRTH*2 - 7*FONTH/2);
-                defformatstring(o_z)("pos z %03.1f", player1->o.z);
-                draw_text(o_z, VIRTW*2 - ( text_width(o_z) + FONTH ), VIRTH*2 - 5*FONTH/2);
+				pushfont("mono");
+                defformatstring(o_x)("%05.2f X", player1->o.x);
+                draw_text(o_x, VIRTW*2 - ( text_width(o_x) + FONTH ), VIRTH*2 - 10*FONTH/2);
+                defformatstring(o_y)("%05.2f Y", player1->o.y);
+                draw_text(o_y, VIRTW*2 - ( text_width(o_y) + FONTH ), VIRTH*2 - 8*FONTH/2);
+                defformatstring(o_z)("%05.2f Z", player1->o.z);
+                draw_text(o_z, VIRTW*2 - ( text_width(o_z) + FONTH ), VIRTH*2 - 6*FONTH/2);
+				popfont();
             }
             defformatstring(c_val)("fps %d", curfps);
             draw_text(c_val, VIRTW*2 - ( text_width(c_val) + FONTH ), VIRTH*2 - 3*FONTH/2);

@@ -728,7 +728,6 @@ void clearminimap()
 
 COMMAND(clearminimap, ARG_NONE);
 VARFP(minimapres, 7, 9, 10, clearminimap());
-
 void drawminimap(int w, int h)
 {
     if(!minimapdirty) return;
@@ -757,18 +756,17 @@ void drawminimap(int w, int h)
     if(!gdim) gdim = ssize/2;
     float md = (float)gdim;
     float dd = 1.0f / ( ssize / md );
-    camera1->o.z = 96 * dd;
+    camera1->o.z = mapdims[7] + 1;
     camera1->pitch = -90;
     camera1->yaw = 0;
-    int orthd = 2 /*+ 2*dd*/ + gdim/2; // +2-4 for clean border if map goes even to the edge. - ac_iceroad still has a bug though @ "2 + 2*dd +" - "4 +" seems better.
-    // this does not avoid possible data corruption on windowed runs :-/ - the issue seems to lie with the window lying outside the desktop edges - at least that was the case for me (flowtron)
-    glViewport(0, 0, size-(size/orthd), size-(size/orthd)); // !not wsize here
+    int orthd = 2 + gdim/2;
+	glViewport(2, 2, size-2, size-2); // !not wsize here
     glClearDepth(0.0);
-    glClearColor(0, 0, 0, 0);//1);
+    glClearColor(0, 0, 0, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT); // stencil added 2010jul22
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(-orthd, orthd, -orthd, orthd, 0, 128);
+    glOrtho(-orthd, orthd, -orthd, orthd, 0, (mapdims[7]-mapdims[6])+2); // depth of map +2 covered
     glScalef(1, -1, 1);
     glMatrixMode(GL_MODELVIEW);
     glCullFace(GL_BACK);

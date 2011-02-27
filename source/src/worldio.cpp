@@ -454,12 +454,12 @@ void save_world(char *mname)
     conoutf("wrote map file %s", cgzname);
 }
 
-extern int mapdims[6];     // min/max X/Y and delta X/Y
+extern int mapdims[8];     // min/max X/Y and delta X/Y and min-floor/max-ceil
 void showmapdims()
 {
-    conoutf("  min X|Y: %3d : %3d", mapdims[0], mapdims[1]);
-    conoutf("  max X|Y: %3d : %3d", mapdims[2], mapdims[3]);
-    conoutf("delta X|Y: %3d : %3d", mapdims[4], mapdims[5]);
+    conoutf("  min X|Y|Z: %3d : %3d : %3d", mapdims[0], mapdims[1], mapdims[6]);
+    conoutf("  max X|Y|Z: %3d : %3d : %3d", mapdims[2], mapdims[3], mapdims[7]);
+    conoutf("delta X|Y|Z: %3d : %3d : %3d", mapdims[4], mapdims[5], mapdims[7]-mapdims[6]);
 }
 COMMAND(showmapdims, ARG_NONE);
 
@@ -653,7 +653,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
     Mh = Ma ? (float)Mv/Ma : 0;
     if(f) delete f;
     c2skeepalive();
-    loopk(4) mapdims[k] = k < 2 ? ssize : 0;
+    loopk(8) mapdims[k] = k < 2 ? ssize : 0;
     loopk(cubicsize) if (world[k].type != SOLID)
     {
         int cwx = k%ssize,
@@ -662,8 +662,11 @@ bool load_world(char *mname)        // still supports all map formats that have 
         if(cwy < mapdims[1]) mapdims[1] = cwy;
         if(cwx > mapdims[2]) mapdims[2] = cwx;
         if(cwy > mapdims[3]) mapdims[3] = cwy;
+        if(world[k].floor != -128 && world[k].floor < mapdims[6]) mapdims[6] = world[k].floor;
+        if(world[k].ceil  > mapdims[7]) mapdims[7] = world[k].ceil;
+
     }
-    loopk(2) mapdims[k+4] = mapdims[k+2] - mapdims[k];
+    loopk(2) mapdims[k+4] = mapdims[k+2] + 1 - mapdims[k]; // 8..15 ^= 8 cubes - minimal X/Y == 2 - != 0 !!
     calclight();
     conoutf("read map %s rev %d (%d milliseconds)", cgzname, hdr.maprevision, watch.stop());
     conoutf("%s", hdr.maptitle);

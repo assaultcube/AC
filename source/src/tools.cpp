@@ -24,7 +24,7 @@ const char *numtime()
     return numt;
 }
 
-int mapdims[6];     // min/max X/Y and delta X/Y
+int mapdims[8];     // min/max X/Y and delta X/Y and min/max Z
 
 extern char *maplayout, *testlayout;
 extern int maplayout_factor, testlayout_factor, Mvolume, Marea, Mopen;
@@ -74,6 +74,8 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
         entposs[i * 3] = e.x; entposs[i * 3 + 1] = e.y; entposs[i * 3 + 2] = e.z + e.attr1;
     }
     DELETEA(testlayout);
+	int minfloor = 0;
+	int maxceil = 0;
     if(s.hdr.sfactor <= LARGEST_FACTOR && s.hdr.sfactor >= SMALLEST_FACTOR)
     {
         testlayout_factor = s.hdr.sfactor;
@@ -110,6 +112,8 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
                     if(floor >= ceil && ceil > -128) floor = ceil - 1;  // for pre 12_13
                     diff = ceil - floor;
                     if(type == FHF) floor = -128;
+					if(floor!=-128 && floor<minfloor) minfloor = floor;
+					if(ceil>maxceil) maxceil = ceil;
                     f->getchar(); f->getchar();
                     if(s.hdr.version>=2) f->getchar();
                     if(s.hdr.version>=5) f->getchar();
@@ -147,7 +151,7 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
             maplayout = new char[layoutsize + 256];
             memcpy(maplayout, testlayout, layoutsize * sizeof(char));
 
-            loopk(4) mapdims[k] = k < 2 ? maplayoutssize : 0;
+            loopk(8) mapdims[k] = k < 2 ? maplayoutssize : 0;
             loopk(layoutsize) if (testlayout[k] != 127)
             {
                 int cwx = k%maplayoutssize,
@@ -158,11 +162,8 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
                 if(cwy > mapdims[3]) mapdims[3] = cwy;
             }
             loopk(2) mapdims[k+4] = mapdims[k+2] - mapdims[k];
-/* TODO: 2011feb11:ft: make use of this better method to deal with the map-quality-checks
-            printf("  min X|Y: %3d : %3d\n", mapdims[0], mapdims[1]);
-            printf("  max X|Y: %3d : %3d\n", mapdims[2], mapdims[3]);
-            printf("delta X|Y: %3d : %3d\n", mapdims[4], mapdims[5]);
-            fflush(stdout);*/
+			mapdims[6] = minfloor;
+			mapdims[7] = maxceil;
         }
     }
     delete f;
