@@ -3,11 +3,13 @@
 #include "cube.h"
 
 int VIRTW;
-
+bool ignoreblinkingbit = false; // for remote-n-temp override of '\fb'
 static hashtable<const char *, font> fonts;
 static font *fontdef = NULL;
 
 font *curfont = NULL;
+
+VARP(allowblinkingtext, 0, 0, 1); // if you're so inclined
 
 void newfont(char *name, char *tex, char *defaultw, char *defaulth, char *offsetx, char *offsety, char *offsetw, char *offseth)
 {
@@ -317,7 +319,7 @@ static void text_color(char c, char *stack, int size, int &sp, bvec color, int a
     else
     {
         if(c=='r') c = stack[(sp > 0) ? --sp : sp]; // restore color
-        else if(c == 'b') stack[sp] *= -1;
+        else if(c == 'b') { if(allowblinkingtext && !ignoreblinkingbit) stack[sp] *= -1; } // blinking text - only if allowed
         else stack[sp] = c;
         switch(abs(stack[sp]))
         {
