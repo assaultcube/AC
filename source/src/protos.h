@@ -143,13 +143,13 @@ struct gmenu
     bool (__cdecl *keyfunc)(void *, int, bool, int);
     char *initaction;
     char *usefont;
-
+	bool allowblink;
     const char *mdl;
     int anim, rotspeed, scale;
     int footlen;
     mdirlist *dirlist;
 
-    gmenu() : name(0), title(0), header(0), footer(0), initaction(0), usefont(0), mdl(0), footlen(0), dirlist(0) {}
+    gmenu() : name(0), title(0), header(0), footer(0), initaction(0), usefont(0), allowblink(0), mdl(0), footlen(0), dirlist(0) {}
     virtual ~gmenu()
     {
         DELETEA(name);
@@ -521,6 +521,7 @@ struct font
 #define PIXELTAB (10*curfont->defaultw)
 
 extern int VIRTW; // virtual screen size for text & HUD
+extern bool ignoreblinkingbit;
 extern font *curfont;
 
 extern void initfont();

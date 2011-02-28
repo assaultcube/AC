@@ -790,6 +790,7 @@ void *addmenu(const char *name, const char *title, bool allowinput, void (__cdec
     menu.keyfunc = keyfunc;
     menu.initaction = NULL;
     menu.usefont = NULL;
+	menu.allowblink = false;
     menu.dirlist = NULL;
     menu.forwardkeys = forwardkeys;
     lastmenu = &menu;
@@ -855,6 +856,13 @@ void setmenufont(char *usefont)
 {
     if(!lastmenu) return;
     menufont(lastmenu, usefont);
+}
+
+void setmenublink(int truth)
+{
+	if(!lastmenu) return;
+	gmenu &m = *(gmenu *)lastmenu;
+	m.allowblink = truth != 0;
 }
 
 void menuinit(char *initaction)
@@ -992,6 +1000,7 @@ COMMAND(chmenumdl, ARG_6STR);
 COMMANDN(showmenu, showmenu_, ARG_1STR);
 COMMAND(closemenu, ARG_1STR);
 COMMANDN(menufont, setmenufont, ARG_1STR);
+COMMANDN(menucanblink, setmenublink, ARG_1INT);
 COMMAND(menuinit, ARG_1STR);
 COMMAND(menuinitselection, ARG_1INT);
 COMMAND(menuselection, ARG_2STR);
@@ -1225,7 +1234,9 @@ void gmenu::init()
 
 void gmenu::render()
 {
+	extern bool ignoreblinkingbit;
     if(usefont) pushfont(usefont);
+	if(!allowblink) ignoreblinkingbit = true; 
     const char *t = title;
     if(!t)
     {
@@ -1327,6 +1338,7 @@ void gmenu::render()
 
     }
     if(usefont) popfont(); // setfont("default");
+	ignoreblinkingbit = false;
 }
 
 void gmenu::renderbg(int x1, int y1, int x2, int y2, bool border)
