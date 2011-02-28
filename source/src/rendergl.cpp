@@ -754,8 +754,6 @@ void drawminimap(int w, int h)
     camera1->o.y = mapdims[1] + mapdims[5]/2;
     int gdim = max(mapdims[4], mapdims[5]);
     if(!gdim) gdim = ssize/2;
-    float md = (float)gdim;
-    float dd = 1.0f / ( ssize / md );
     camera1->o.z = mapdims[7] + 1;
     camera1->pitch = -90;
     camera1->yaw = 0;

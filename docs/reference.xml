@@ -5309,6 +5309,27 @@ Output:
 					</arguments>
 				</command>
 
+				<command name="menucanblink">
+					<description>for toggling on the ability for menutext to have the blinking bit set. The global setting of 'allowblinkingtext' overrides this</description>
+					<arguments>
+  						<argument token="T" description="0 || !=0"/>
+					</arguments>
+					<references>
+					  <identifierReference identifier="allowblinkingtext"/>
+					</references>
+				</command>
+				
+				<command name="allowblinkingtext">
+					<description>for toggling on the ability for any text to have the blinking bit set.</description>
+					<arguments>
+  						<argument token="T" description="TOGGLE" minValue="0" maxValue="1" defaultValue="0"/>
+					</arguments>
+					<references>
+					  <identifierReference identifier="menucanblink"/>
+					</references>
+				</command>
+
+
 				<command name="menuitemmapload">
 					<description>a menuitem that loads a map, displays the title and the preview or a default image</description>
 					<arguments>
