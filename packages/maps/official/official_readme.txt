@@ -15,8 +15,7 @@ When adding an "official" map, follow this to-do list after fixing the map up.
   3)  "Normalise" the maps map-message.
   4)  Add map to the map menu, and the CTF map menu if applicable.
   5)  Add to "securemaps.cfg".
-  6)  Add authors (plus texture/skymap/model/etc authors) to the readme.
-      Remember to do this in the menus.cfg "credits" too.
+  6)  Add authors (plus texture/skymap/model/etc authors) to team.html in the readme.
   7)  Add new textures/models/skymaps/etc to default_map_settings.cfg as comments.
       If you added a skymap, add it to the "test skymaps" menu also.
   8)  Add new mapmodels to the editing menu.
