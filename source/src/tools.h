@@ -134,16 +134,11 @@ struct stringformatter
 
 inline char *strcaps(const char *s, bool on)
 {
-    int (*caps)(int t) = (on ? toupper : tolower);
-    static char r[128];
-    char *c = (char *)s, *o = r;
-    int n = 0;
-    while( *c!='\0' && n < 127)
-    {
-        *o = caps(*c);
-        n++; o++; c++;
-    }
-    *o='\0';
+    static string r;
+    char *o = r;
+    if(on) while(*s && o < &r[sizeof(r)-1]) *o++ = toupper(*s++);
+    else while(*s && o < &r[sizeof(r)-1]) *o++ = tolower(*s++);
+    *o = '\0';
     return r;
 }
 
@@ -216,7 +211,7 @@ struct databuf
 
     const T &get()
     {
-        static T overreadval;
+        static T overreadval = 0;
         if(len<maxlen) return buf[len++];
         flags |= OVERREAD;
         return overreadval;
