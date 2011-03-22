@@ -4,10 +4,10 @@ S.A.S. (Special Air Service) plug-in Quake 2 playermodel by:
 			http://www.daz-art.com/
 
 Then used with permission and modifications made for AssaultCube by:
-			Markus "makkE" Bekel
+		Markus "makkE" Bekel (makk_e@web.de)
 
-These were based on the British Special Air Service (an anti-terrorist force).
-Originally created as the official playermodel for the UK Quake 2 clan: Minor Threat.
+Darren modelled these off the British Special Air Service (an anti-terrorist force).
+It was originally created as the official playermodel for the UK Quake 2 clan: Minor Threat.
 
 TOOLS USED BY DARREN:
  * 3D Studio MAX (modelling & animation).
@@ -18,11 +18,18 @@ TOOLS USED BY DARREN:
 
 DARRENS CREDITS:
  * id Software.
- * Npherno (for the awesome NST).
- * Phillip Martin (for the equally essential Q2modeller).
+ * NPherno (for the awesome NPherno's Skin Tool).
+ * Phillip Martin (for the equally essential Q2 Modeller).
  * The boys at PlanetQuake.gamespy.com/quake2/
 
 LICENSE:
    Please consult Darren "HitmanDaz[MT]" Pattenden (d_pattenden@hotmail.com)
    if you wish to use this model for anything other than personal use.
+
+SPECIAL NOTES:
+   Use the "skin.jpg" file in this folder if you wish to make derivative playermodel 
+   skins for personal use, as this file is the original (though optimised) skin file.
+
+   Please read http://assault.cubers.net/docs/playerskins.html before editing a skin for
+   personal use to find out how best to implement your new playermodel skin in-game.
 
