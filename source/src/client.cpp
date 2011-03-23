@@ -660,7 +660,7 @@ bool securemapcheck(const char *map, bool msg)
     {
         if(msg)
         {
-            conoutf(_("map %c4%s%c3 is secured, this means you CAN'T send, receive or overwrite it"), CC, map, CC);
+            conoutf(_("%c3map %c4%s%c3 is secured, this means you CAN'T send, receive or overwrite it"), CC, CC, map, CC);
             if(connected)
             {
                 conoutf(_("%c3if you get this error alot you or the server may be running an outdated game"), CC);
