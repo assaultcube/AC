@@ -43,16 +43,16 @@ x86_64)
   ;;
 esac
 
-if [ -x ${CUBE_DIR}/bin_unix/native_server ]
+if [ -x "${CUBE_DIR}/bin_unix/native_server" ]
 then
   SYSTEM_NAME=native_
   MACHINE_NAME=
 fi
 
-if [ -x ${CUBE_DIR}/bin_unix/${SYSTEM_NAME}${MACHINE_NAME}server ]
+if [ -x "${CUBE_DIR}/bin_unix/${SYSTEM_NAME}${MACHINE_NAME}server" ]
 then
-  cd ${CUBE_DIR}
-  exec ${CUBE_DIR}/bin_unix/${SYSTEM_NAME}${MACHINE_NAME}server ${CUBE_OPTIONS} ${CUBE_OPTIONFILE} "$@"
+  cd "${CUBE_DIR}"
+  exec "${CUBE_DIR}/bin_unix/${SYSTEM_NAME}${MACHINE_NAME}server" "${CUBE_OPTIONS}" "${CUBE_OPTIONFILE}" "$@"
 else
   echo "Your platform does not have a pre-compiled Cube server."
   echo "Please follow the following steps to build a native server:"
