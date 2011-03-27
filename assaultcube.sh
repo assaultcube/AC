@@ -3,7 +3,7 @@
 #CUBE_DIR=~/cube
 #CUBE_DIR=/usr/local/cube
 #CUBE_DIR=./
-CUBE_DIR=$(dirname $(readlink -f "${0}"))
+CUBE_DIR=$(dirname "$(readlink -f "${0}")")
 
 # CUBE_OPTIONS contains any command line options you would like to start Cube with.
 #CUBE_OPTIONS="-f"
@@ -43,16 +43,16 @@ x86_64)
   ;;
 esac
 
-if [ -x ${CUBE_DIR}/bin_unix/native_client ]
+if [ -x "${CUBE_DIR}/bin_unix/native_client" ]
 then
   SYSTEM_NAME=native_
   MACHINE_NAME=
 fi
 
-if [ -x ${CUBE_DIR}/bin_unix/${SYSTEM_NAME}${MACHINE_NAME}client ]
+if [ -x "${CUBE_DIR}/bin_unix/${SYSTEM_NAME}${MACHINE_NAME}client" ]
 then
-  cd ${CUBE_DIR}
-  exec ${CUBE_DIR}/bin_unix/${SYSTEM_NAME}${MACHINE_NAME}client ${CUBE_OPTIONS} "$@" 
+  cd "${CUBE_DIR}"
+  exec "${CUBE_DIR}/bin_unix/${SYSTEM_NAME}${MACHINE_NAME}client" ${CUBE_OPTIONS} "$@" 
 else
   echo "Your platform does not have a pre-compiled Cube client."
   echo "Please follow the following steps to build a native client:"
