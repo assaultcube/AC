@@ -82,6 +82,11 @@
           //    5  do not write to the log
 // -A     // Restricts voting for a map/mode to admins. This switch can be used several times. 
 
+// these switches control the naming of demos (see -W) 
+// --demofilenameformat="%Mmin_%G_%w_%H_%n" // default: "%w_%h_%n_%Mmin_%G"
+// --demotimestampformat="%H%M_%Y%m%d"      // default: "%Y%m%d_%H%M"
+// --demotimelocal=1                        // default: 0
+
 // don't use these switches, unless you really know what you're doing:
 
 // -u     // uprate
