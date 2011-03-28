@@ -349,8 +349,6 @@ extern bool securemapcheck(const char *map, bool msg = true);
 extern void sendintro();
 extern void getdemo(char *idx, char *dsp);
 extern void listdemos();
-extern const char *acronymmodestr(int n);
-extern const char *fullmodestr(int n);
 extern bool tryauth(const char *desc);
 extern authkey *findauthkey(const char *desc);
 
@@ -704,6 +702,10 @@ extern void scrolldoc(int i);
 extern int stringsort(const char **a, const char **b);
 #endif
 
+// protocol [client and server]
+extern const char *acronymmodestr(int n);
+extern const char *fullmodestr(int n);
+
 // crypto // for AUTH
 extern void genprivkey(const char *seed, vector<char> &privstr, vector<char> &pubstr);
 extern bool hashstring(const char *str, char *result, int maxlen);
@@ -819,7 +821,8 @@ struct demoheader
     char desc[DHDR_DESCCHARS];
     char plist[DHDR_PLISTCHARS];
 };
-
+#define DEFDEMOFILEFMT "%w_%h_%n_%Mmin_%G"
+#define DEFDEMOTIMEFMT "%Y%m%d_%H%M"
 // logging
 
 enum { ACLOG_DEBUG = 0, ACLOG_VERBOSE, ACLOG_INFO, ACLOG_WARNING, ACLOG_ERROR, ACLOG_NUM };
@@ -847,15 +850,15 @@ struct serverconfigfile
 
 struct servercommandline
 {
-    int uprate, serverport, syslogfacility, filethres, syslogthres, maxdemos, maxclients, kickthreshold, banthreshold, verbose, incoming_limit, afk_limit, ban_time;
-    const char *ip, *master, *logident, *serverpassword, *adminpasswd, *demopath, *maprot, *pwdfile, *blfile, *nbfile, *infopath, *motdpath, *forbidden;
+    int uprate, serverport, syslogfacility, filethres, syslogthres, maxdemos, maxclients, kickthreshold, banthreshold, verbose, incoming_limit, afk_limit, ban_time, demotimelocal;
+    const char *ip, *master, *logident, *serverpassword, *adminpasswd, *demopath, *maprot, *pwdfile, *blfile, *nbfile, *infopath, *motdpath, *forbidden, *demofilenameformat, *demotimestampformat;
     bool logtimestamp, demo_interm;
     string motd, servdesc_full, servdesc_pre, servdesc_suf, voteperm, mapperm;
     int clfilenesting;
     vector<const char *> adminonlymaps;
 
     servercommandline() :   uprate(0), serverport(CUBE_DEFAULT_SERVER_PORT), syslogfacility(6), filethres(-1), syslogthres(-1), maxdemos(5),
-                            maxclients(DEFAULTCLIENTS), kickthreshold(-5), banthreshold(-6), verbose(0), incoming_limit(10), afk_limit(45000), ban_time(20*60*1000),
+                            maxclients(DEFAULTCLIENTS), kickthreshold(-5), banthreshold(-6), verbose(0), incoming_limit(10), afk_limit(45000), ban_time(20*60*1000), demotimelocal(0),
                             ip(""), master(NULL), logident(""), serverpassword(""), adminpasswd(""), demopath(""),
                             maprot("config/maprot.cfg"), pwdfile("config/serverpwd.cfg"), blfile("config/serverblacklist.cfg"), nbfile("config/nicknameblacklist.cfg"),
                             infopath("config/serverinfo"), motdpath("config/motd"), forbidden("config/forbidden.cfg"),
@@ -863,6 +866,8 @@ struct servercommandline
                             clfilenesting(0)
     {
         motd[0] = servdesc_full[0] = servdesc_pre[0] = servdesc_suf[0] = voteperm[0] = mapperm[0] = '\0';
+        demofilenameformat = DEFDEMOFILEFMT;
+        demotimestampformat = DEFDEMOTIMEFMT;
     }
 
     bool checkarg(const char *arg)
@@ -874,6 +879,22 @@ struct servercommandline
         // client: dtwhzbsave
         switch(arg[1])
         { // todo: gjlqEGHJQUYZ
+        	case '-':
+                    if(!strncmp(arg, "--demofilenameformat=", 21))
+                    {
+                        demofilenameformat = arg+21;
+                    }
+                    else if(!strncmp(arg, "--demotimestampformat=", 22))
+                    {
+                        demotimestampformat = arg+22;
+                    }
+                    else if(!strncmp(arg, "--demotimelocal=", 16))
+                    {
+                    	int ai = atoi(arg+16);
+                        demotimelocal = ai == 0 ? 0 : 1;
+                    }
+                    else return false;
+                    break;
             case 'u': uprate = ai; break;
             case 'f': if(ai > 0 && ai < 65536) serverport = ai; break;
             case 'i': ip     = a; break;

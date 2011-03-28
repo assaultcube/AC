@@ -436,6 +436,109 @@ void recordpacket(int chan, ENetPacket *packet)
     if(recordpackets) writedemo(chan, packet->data, (int)packet->dataLength);
 }
 
+#ifdef STANDALONE
+const char *currentserver(int i, bool internal) // = false) | ignored in standalone-version!
+{
+	static string curSRVinfo;
+	string r;
+	r[0] = '\0';
+	switch(i)
+	{
+		case 1: { copystring(r, scl.ip[0] ? scl.ip : "local"); break; } // IP
+		case 2: { copystring(r, scl.logident[0] ? scl.logident : "local"); break; } // HOST
+		case 3: { formatstring(r)("%d", scl.serverport); break; } // PORT
+		// the following are used by a client, a server will simply return empty strings for them
+		case 4:
+		case 5:
+		case 6:
+		case 7:
+		case 8:
+		{
+			break;
+		}
+		default:
+		{
+
+			formatstring(r)("%s %d", scl.ip[0] ? scl.ip : "local", scl.serverport);
+			break;
+		}
+	}
+	copystring(curSRVinfo, r);
+	return curSRVinfo;
+}
+#endif
+
+// these are actually the values used by the client, the server ones are in "scl".
+string demofilenameformat = DEFDEMOFILEFMT;
+string demotimestampformat = DEFDEMOTIMEFMT;
+int demotimelocal = 0;
+
+const char *getDemoFilename(int gmode, int mplay, int mdrop, int tstamp, char *srvmap)
+{
+    // we use the following internal mapping of formatchars:
+    // %g : gamemode (int)      %G : gamemode (chr)             %F : gamemode (full)
+    // %m : minutes remaining   %M : minutes played
+    // %s : seconds remaining   %S : seconds played
+    // %h : IP of server        %H : hostname of server
+    // %n : mapName
+    // %w : timestamp "when"
+    static string dmofn;
+    int cc = 0;
+    int mc = strlen(demofilenameformat);
+
+    while(cc<mc)
+    {
+        switch(demofilenameformat[cc])
+        {
+            case '%':
+            {
+                if(cc<(mc-1))
+                {
+                    string cfspp;
+                    switch(demofilenameformat[cc+1])
+                    {
+                        case 'F': formatstring(cfspp)("%s", fullmodestr(gmode)); break;
+                        case 'g': formatstring(cfspp)("%d", gmode); break;
+                        case 'G': formatstring(cfspp)("%s", acronymmodestr(gmode)); break;
+                        case 'h': formatstring(cfspp)("%s", currentserver(1, true)); break; // client/server have different implementations
+                        case 'H': formatstring(cfspp)("%s", currentserver(2, true)); break; // client/server have different implementations
+                        case 'm': formatstring(cfspp)("%d", mdrop/60); break;
+                        case 'M': formatstring(cfspp)("%d", mplay/60); break;
+                        case 'n': formatstring(cfspp)("%s", srvmap); break;
+                        case 's': formatstring(cfspp)("%d", mdrop); break;
+                        case 'S': formatstring(cfspp)("%d", mplay); break;
+                        case 'w':
+                        {
+                        	time_t t = tstamp;
+                        	struct tm * timeinfo;
+                        	timeinfo = demotimelocal ? localtime(&t) : gmtime (&t);
+                        	strftime(cfspp, sizeof(string) - 1, demotimestampformat, timeinfo);
+                        	break;
+                        }
+                        default: logline(ACLOG_INFO, "bad formatstring: demonameformat @ %d", cc); cc-=1; break; // don't drop the bad char
+                    }
+                    defformatstring(fsbuf)("%s%s", dmofn, cfspp);
+                    copystring(dmofn, fsbuf);
+                }
+                else
+                {
+                    logline(ACLOG_INFO, "trailing %%-sign in demonameformat");
+                }
+                cc+=1;
+                break;
+            }
+            default:
+            {
+                defformatstring(fsbuf)("%s%c", dmofn, demofilenameformat[cc]);
+                copystring(dmofn, fsbuf);
+                break;
+            }
+        }
+        cc+=1;
+    }
+    return dmofn;
+}
+
 void enddemorecord()
 {
     if(!demorecord) return;
@@ -477,7 +580,12 @@ void enddemorecord()
 	// .. now we use client-side parseable fileattribs
     int mPLAY = gamemillis >= gamelimit ? gamelimit/1000 : gamemillis/1000;
     int mDROP = gamemillis >= gamelimit ? 0 : (gamelimit - gamemillis)/1000;
-    formatstring(d.file)( "%d:%d:%d:%s:%s", gamemode, mPLAY, mDROP, numtime(), behindpath(smapname) );
+    int iTIME = time(NULL);
+    const char *mTIME = numtime();
+    const char *sMAPN = behindpath(smapname);
+    string iMAPN;
+    copystring(iMAPN, sMAPN);
+    formatstring(d.file)( "%d:%d:%d:%s:%s", gamemode, mPLAY, mDROP, mTIME, iMAPN);
 
     d.data = new uchar[len];
     d.len = len;
@@ -486,7 +594,7 @@ void enddemorecord()
     demotmp = NULL;
     if(scl.demopath[0])
     {
-        formatstring(msg)("%s%s.dmo", scl.demopath, d.file);
+        formatstring(msg)("%s%s.dmo", scl.demopath, getDemoFilename(gamemode, mPLAY, mDROP, iTIME, iMAPN)); //d.file);
         path(msg);
         stream *demo = openfile(msg, "wb");
         if(demo)
@@ -2222,6 +2330,9 @@ void authsucceeded(uint id)
     client *cl = findauth(id);
     if(!cl) return;
     cl->authreq = 0;
+	logline(ACLOG_INFO, "player authenticated: %s", cl->name);
+	defformatstring(auth4u)("player authenticated: %s", cl->name);
+	sendf(-1, 1, "ris", SV_SERVMSG, auth4u);
     //setmaster(cl, true, "", ci->authname);//TODO? compare to sauerbraten
 }
 

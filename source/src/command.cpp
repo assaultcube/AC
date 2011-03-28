@@ -1224,7 +1224,7 @@ COMMANDN(timestamp, timestamp_, ARG_NONE);
 COMMAND(datestring, ARG_NONE);
 COMMANDN(timestring, timestring_, ARG_NONE);
 
-const char *currentserver(int i, bool internal) // = false)
+const char *currentserver(int i, bool internal) // = false) [client version]
 {
     static string curSRVinfo;
 	// using the curpeer directly we can get the info of our currently connected server
