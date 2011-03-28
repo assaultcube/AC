@@ -664,19 +664,9 @@ VARP(hitsound, 0, 0, 1);
 
 void dodamage(int damage, playerent *pl, playerent *actor, int gun, bool gib, bool local)
 {
-    /*
-    TODO:FIXME: talk to DES|V-Man about passing arguments
-    // execute ondamage event
-    if(pl==player1)
-    {
-        const char *ondamage = getalias("ondamage");
-        if(ondamage && ondamage[0]) { addsleep(0, ondamage); }
-    }
-    */
-    if(pl->state != CS_ALIVE || intermission) return;
-
-    pl->respawnoffset = pl->lastpain = lastmillis;
-
+	if(pl->state != CS_ALIVE || intermission) return;
+	pl->respawnoffset = pl->lastpain = lastmillis;
+	// could the author of the FIXME below please elaborate what's to fix?! (ft:2011mar28)
 //    playerent *h = local ? player1 : updatefollowplayer(0);
     if(/*actor==h && pl!=actor*/ actor == player1 && pl!=actor ) // FIXME
     {
@@ -1208,8 +1198,11 @@ void callvote(int type, char *arg1, char *arg2)
                 break;
         }
         sendpackettoserv(1, p.finalize());
-		defformatstring(runas)("%s %d %d [%s] [%s]", "onCallVote", type, -1, arg1, arg2);
-		execute(runas);
+		if(identexists("onCallVote"))
+		{
+			defformatstring(runas)("%s %d %d [%s] [%s]", "onCallVote", type, -1, arg1, arg2);
+			execute(runas);
+		}
     }
     else conoutf(_("%c3invalid vote"), CC);
 }

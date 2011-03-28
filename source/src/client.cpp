@@ -619,15 +619,19 @@ void genauthkey(const char *secret)
 
 void saveauthkeys()
 {
-    stream *f = openfile("config/auth.cfg", "w");
-    if(!f) { conoutf("failed to open config/auth.cfg for writing"); return; }
-    loopv(authkeys)
-    {
-        authkey *a = authkeys[i];
-        f->printf("authkey \"%s\" \"%s\" \"%s\"\n", a->name, a->key, a->desc);
-    }
-    conoutf("saved authkeys to config/auth.cfg");
-    delete f;
+	if(authkeys.length())
+	{
+		stream *f = openfile("config/auth.cfg", "w");
+		if(!f) { conoutf("failed to open config/auth.cfg for writing"); return; }
+		loopv(authkeys)
+		{
+			authkey *a = authkeys[i];
+			f->printf("authkey \"%s\" \"%s\" \"%s\"\n", a->name, a->key, a->desc);
+		}
+		conoutf("saved authkeys to config/auth.cfg");
+		delete f;
+	}
+	else conoutf("you need to use 'addauthkey USER KEY DESC' first; one DESC 'public', one DESC empty(=private)");
 }
 
 bool tryauth(const char *desc)
