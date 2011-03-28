@@ -172,7 +172,7 @@ void renderentities()
                 int sc = 17; // "carrot" (orange) - entity slot currently unused, possibly "reserved"
                 if(i==closest)
                 {
-                    sc = 2;
+                    sc = 2; // blue
                 }
                 else switch(e.type)
                 {
