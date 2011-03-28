@@ -1287,96 +1287,34 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
     #endif
 }
 
-#define DEFDEMOFILEFMT "%w_%h_%n_%Mmin_%G"
-#define DEFDEMOTIMEFMT "%Y%m%d_%H%M"
-
-string demofilenameformat = DEFDEMOFILEFMT;
 void setDemoFilenameFormat(char *fmt)
 {
+	extern string demofilenameformat;
     if(fmt && fmt[0]!='\0')
     {
         copystring(demofilenameformat, fmt);
     } else copystring(demofilenameformat, DEFDEMOFILEFMT); // reset to default if passed empty string - or should we output the current value in this case?
 }
 COMMANDN(demonameformat, setDemoFilenameFormat, ARG_1STR);
-
-string demotimestampformat = DEFDEMOTIMEFMT;
 void setDemoTimestampFormat(char *fmt)
 {
+	extern string demotimestampformat;
     if(fmt && fmt[0]!='\0')
     {
-        copystring(demofilenameformat, fmt);
-    } else copystring(demofilenameformat, DEFDEMOTIMEFMT); // reset to default if passed empty string - or should we output the current value in this case?
+        copystring(demotimestampformat, fmt);
+    } else copystring(demotimestampformat, DEFDEMOTIMEFMT); // reset to default if passed empty string - or should we output the current value in this case?
 }
 COMMANDN(demotimeformat, setDemoTimestampFormat, ARG_1STR);
-VARP(demotimelocal, 0, 0, 1);
-void getdemonameformat() { result(demofilenameformat); } COMMAND(getdemonameformat, ARG_NONE);
-void getdemotimeformat() { result(demotimestampformat); } COMMAND(getdemotimeformat, ARG_NONE);
-
-const char *getDemoFilename(int gmode, int mplay, int mdrop, int tstamp, char *srvmap)
+void setDemoTimeLocal(int truth)
 {
-    // we use the following internal mapping of formatchars:
-    // %g : gamemode (int)      %G : gamemode (chr)             %F : gamemode (full)
-    // %m : minutes remaining   %M : minutes played
-    // %s : seconds remaining   %S : seconds played
-    // %h : IP of server        %H : hostname of server         (%N : title of server (really???))
-    // %n : mapName
-    // %w : timestamp "when"
-    static string dmofn;
-    int cc = 0;
-    int mc = strlen(demofilenameformat);
-    while(cc<mc)
-    {
-        switch(demofilenameformat[cc])
-        {
-            case '%':
-            {
-                if(cc<(mc-1))
-                {
-                    string cfspp;
-                    switch(demofilenameformat[cc+1])
-                    {
-                        case 'F': formatstring(cfspp)("%s", fullmodestr(gmode)); break;
-                        case 'g': formatstring(cfspp)("%d", gmode); break;
-                        case 'G': formatstring(cfspp)("%s", acronymmodestr(gmode)); break;
-                        case 'h': formatstring(cfspp)("%s", currentserver(1, true)); break;
-                        case 'H': formatstring(cfspp)("%s", currentserver(2, true)); break;
-                        case 'm': formatstring(cfspp)("%d", mdrop/60); break;
-                        case 'M': formatstring(cfspp)("%d", mplay/60); break;
-                        case 'n': formatstring(cfspp)("%s", srvmap); break;
-                        case 's': formatstring(cfspp)("%d", mdrop); break;
-                        case 'S': formatstring(cfspp)("%d", mplay); break;
-                        case 'w':
-                        {
-                        	time_t t = tstamp;
-                        	struct tm * timeinfo;
-                        	timeinfo = demotimelocal ? localtime(&t) : gmtime (&t);
-                        	strftime(cfspp, sizeof(string) - 1, demotimestampformat, timeinfo);
-                        	break;
-                        }
-                        default: conoutf("bad formatstring: demonameformat @ %d", cc); cc-=1; break; // don't drop the bad char
-                    }
-                    defformatstring(fsbuf)("%s%s", dmofn, cfspp);
-                    copystring(dmofn, fsbuf);
-                }
-                else
-                {
-                    conoutf("trailing %%-sign in demonameformat"); // use COMMAND-name here
-                }
-                cc+=1;
-                break;
-            }
-            default:
-            {
-                defformatstring(fsbuf)("%s%c", dmofn, demofilenameformat[cc]);
-                copystring(dmofn, fsbuf);
-                break;
-            }
-        }
-        cc+=1;
-    }
-    return dmofn;
+	extern int demotimelocal;
+	demotimelocal = truth == 0 ? 0 : 1;
 }
+COMMANDN(demotimelocal, setDemoTimeLocal, ARG_1INT);
+void getdemonameformat() { extern string demofilenameformat; result(demofilenameformat); } COMMAND(getdemonameformat, ARG_NONE);
+void getdemotimeformat() { extern string demotimestampformat; result(demotimestampformat); } COMMAND(getdemotimeformat, ARG_NONE);
+int getdemotimelocal() { extern int demotimelocal; return demotimelocal; } COMMAND(getdemotimelocal, ARG_1EXP);
+
 
 const char *parseDemoFilename(char *srvfinfo)
 {
@@ -1406,6 +1344,7 @@ const char *parseDemoFilename(char *srvfinfo)
         }
         copystring(srvmap, pch);
     }
+    extern const char *getDemoFilename(int gmode, int mplay, int mdrop, int tstamp, char *srvmap);
     return getDemoFilename(gmode, mplay, mdrop, stamp, srvmap);
 }
 
