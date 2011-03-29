@@ -337,6 +337,34 @@
 					<return token="N" description="the equality" valueNotes="1 (equal) or 0 (unequal)"/>
 				</command>
 
+				<command name="strcpy">
+					<description>Copys a substring out of the original.</description>
+					<arguments>
+						<argument token="S" description="the original string"/>
+						<argument token="A" description="start position"/>
+						<argument token="B" description="end position"/>
+					</arguments>
+					<return token="S" description="the substring" />
+					<remarks>
+						<remark>Character indexes begins at 0. The end position is the char that is not included anymore.</remark>
+					</remarks>
+					<examples>
+					<example>
+						<code><![CDATA[echo (strcpy abcdefgh 2 5)
+						cde]]></code>
+					</example>
+					<example>
+						<code><![CDATA[echo (strcpy abcdefgh 2 3)
+						c]]></code>
+					</example>
+					<example>
+						<code><![CDATA[echo (strcpy abcdefgh 2)
+						cdefgh]]></code>
+					</example>
+
+					</examples>
+				</command>
+
 				<command name="if">
 					<description>Controls the script flow based on a boolean expression.</description>
 					<examples>
