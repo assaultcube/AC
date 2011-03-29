@@ -2402,6 +2402,16 @@ Output:
 					</remarks>
 				</command>
 
+				<command name="copyent">
+					<description>Copies the current closest entity into a buffer.</description>
+					<remarks>
+						<remark>Only works while in edit mode.</remark>
+					</remarks>
+					<references>
+						<identifierReference name="pasteent" identifier="pasteent" />
+					</references>
+				</command>
+
 				<command name="paste">
 					<description>Pastes a previously copied selection.</description>
 					<remarks>
@@ -2412,6 +2422,16 @@ Output:
 					</remark>
 					<remark>hotkey v</remark>
 					</remarks>
+				</command>
+
+				<command name="pasteent">
+					<description>Pastes a previously copied entity.</description>
+					<remarks>
+						<remark>Only works while in edit mode.</remark>
+					</remarks>
+					<references>
+						<identifierReference name="copyent" identifier="copyent" />
+					</references>
 				</command>
 
 				<command name="replace">
