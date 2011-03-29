@@ -146,7 +146,7 @@ UninstallIcon "${CURPATH}\icon.ico"
 ; Pages
 
 Page custom WelcomePage
-!insertmacro MUI_PAGE_LICENSE "${CURPATH}\License.txt"
+!insertmacro MUI_PAGE_LICENSE "${CURPATH}\mui_page_license.txt"
 Page custom InstallationTypePage
 !insertmacro MUI_PAGE_COMPONENTS
 !insertmacro MUI_PAGE_DIRECTORY
