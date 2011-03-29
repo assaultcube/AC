@@ -337,7 +337,7 @@
 					<return token="N" description="the equality" valueNotes="1 (equal) or 0 (unequal)"/>
 				</command>
 
-				<command name="strcpy">
+				<command name="substr">
 					<description>Copys a substring out of the original.</description>
 					<arguments>
 						<argument token="S" description="the original string"/>
@@ -350,15 +350,15 @@
 					</remarks>
 					<examples>
 					<example>
-						<code><![CDATA[echo (strcpy abcdefgh 2 5)
+						<code><![CDATA[echo (substr abcdefgh 2 5)
 						cde]]></code>
 					</example>
 					<example>
-						<code><![CDATA[echo (strcpy abcdefgh 2 3)
+						<code><![CDATA[echo (substr abcdefgh 2 3)
 						c]]></code>
 					</example>
 					<example>
-						<code><![CDATA[echo (strcpy abcdefgh 2)
+						<code><![CDATA[echo (substr abcdefgh 2)
 						cdefgh]]></code>
 					</example>
 
