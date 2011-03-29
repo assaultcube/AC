@@ -1,0 +1,4 @@
+header.bmp is © copyright by:
+	Markus "makkE" Bekel (makk_e@web.de)
+
+All rights reserved.

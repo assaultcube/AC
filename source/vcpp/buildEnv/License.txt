@@ -1,12 +1,15 @@
-AssaultCube is FREEWARE, you may freely distribute the AssaultCube installer/archive unmodified on any media. You may re-compress using different archival formats (i.e. zip/tgz/rpm/deb/dmg), any changes beyond that require explicit permission.
+AssaultCube is FREEWARE. By downloading the AssaultCube package(s) you agree that you may freely use and redistribute the AssaultCube package(s) UNMODIFIED (the AssaultCube package(s) can be originally found at http://sourceforge.net/projects/actiongame/files/ or downloaded with an SVN client from https://actiongame.svn.sourceforge.net/svnroot/actiongame) on any media, subject to the following licensing conditions:
 
-AssaultCube is distributed WITHOUT WARRANTY, you may use it for any purpose as long as you do not blame us for any damages incurred.
+    * AssaultCube is provided "as-is", without any express or implied warranty.
+      In no event will the authors be held liable for any damages arising from the use of AssaultCube.
+    * You MAY NOT use AssaultCube for ANY commercial purposes.
+    * You may re-compress the AssaultCube package(s) using different archival formats (i.e. zip/tgz/rpm/deb/dmg).
+      Any other changes beyond this, require EXPLICIT permission.
+    * The origin of AssaultCube, or its package(s) must not be misrepresented.
+      You must not claim that you created AssaultCube or any of the original AssaultCube package(s).
+    * You must not modify AssaultCube for the purposes of gaining an unfair advantage over others and you must not redistribute these modifications in any form, including, but not limited to videos, text and software.
 
-This game consists of many different packages with different licenses. The ENTIRE AssaultCube package MAY be redistributed as mentioned above. But if you wish to redistribute/use/modify it in a different way you will need to adhere to the licenses for the packages that you are using.
+PLEASE NOTE: This license is for the entire UNMODIFIED AssaultCube package(s). You may choose to disect, and use or redistribute, etc. pieces of AssaultCube, instead of the entire package(s) if you wish. HOWEVER, you must adhere to the license specified for that particular data. If no license is specified, you MUST assume that the data is COPYRIGHT and you are NOT allowed to redistribute that data outside of an UNMODIFIED AssaultCube package(s). 
 
-This is where you can find some of these licenses:
-
-    * docs/package_copyrights.txt
-    * source/README.txt
-    * source/README_CUBEENGINE.txt
+For more information, please see: http://assault.cubers.net/docs/license.html
 
