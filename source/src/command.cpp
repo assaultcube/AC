@@ -1214,7 +1214,7 @@ void timestring_()
 
 int millis_() { extern int totalmillis; return totalmillis; }
 void strlen_(char *s) { string r; formatstring(r)("%d", strlen(s)); result(r); }
-void strcpy_(char *s, char *a, char *b)
+void substr_(char *s, char *a, char *b)
 {
 	int ia = atoi(a);
 	int ib = atoi(b);
@@ -1233,7 +1233,7 @@ void l0(int p, int v) { string f; string r; formatstring(f)("%%0%dd", p); format
 
 COMMANDN(millis, millis_, ARG_IVAL);
 COMMANDN(strlen, strlen_, ARG_1STR);
-COMMANDN(strcpy, strcpy_, ARG_3STR);
+COMMANDN(substr, substr_, ARG_3STR);
 COMMAND(l0, ARG_2INT);
 COMMAND(systime, ARG_NONE);
 COMMANDN(timestamp, timestamp_, ARG_NONE);
