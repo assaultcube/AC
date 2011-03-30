@@ -351,9 +351,19 @@
 					</arguments>
 					<return token="N" description="the equality" valueNotes="1 (equal) or 0 (unequal)"/>
 				</command>
+        
+        <command name="strlen">
+					<description>Returns the length (in characters, including whitespace) of string S.</description>
+					<arguments>
+  						<argument token="S" description="STRING"/>
+					</arguments>
+          <references>
+            <identifierReference identifier="substr"/>
+          </references>
+				</command>
 
 				<command name="substr">
-					<description>Copys a substring out of the original.</description>
+					<description>Copies a substring out of the original.</description>
 					<arguments>
 						<argument token="S" description="the original string"/>
 						<argument token="A" description="start position"/>
@@ -376,8 +386,10 @@
 						<code><![CDATA[echo (substr abcdefgh 2)
 						cdefgh]]></code>
 					</example>
-
-					</examples>
+          </examples>
+          <references>
+            <identifierReference identifier="strlen"/>
+          </references>
 				</command>
 
 				<command name="if">
@@ -5260,13 +5272,6 @@ Output:
 					  <identifierReference identifier="getposition"/>
 					</references>
 				</variable>
-
-				<command name="strlen">
-					<description>length of string S</description>
-					<arguments>
-  						<argument token="S" description="STRING"/>
-					</arguments>
-				</command>
 
 				<command name="l0">
 					<description>leading zeros for the number V to make it W chars wide</description>
