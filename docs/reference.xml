@@ -3725,7 +3725,7 @@ Output:
         
         <variable name="gib">
 					<description>Enables or disables the gib animation entirely.</description>
-					<value token="B" description="on OR off" minValue="0" maxValue="1" defaultValue="1" valueNotes="0 (false), 1 (true)" />
+					<value token="B" description="off OR on" minValue="0" maxValue="1" defaultValue="1" valueNotes="0 (false), 1 (true)" />
           <references>
             <identifierReference identifier="gibnum"/>
             <identifierReference identifier="gibspeed"/>
@@ -5466,7 +5466,7 @@ Output:
 				</variable>
 
 				<variable name="applydialog">
-					<description>do you <i>reall</i> want to quit?</description>
+					<description>do you <i>really</i> want to quit?</description>
 					<value token="N" description="TODO" minValue="0" maxValue="1" defaultValue="1" />
 				</variable>
 
