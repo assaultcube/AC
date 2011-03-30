@@ -354,7 +354,13 @@
         
         <command name="strlen">
 					<description>Returns the length (in characters, including whitespace) of string S.</description>
-					<arguments>
+					<examples>
+          <example>
+            <code><![CDATA[echo (strlen "Hello world!")]]></code>
+            <explanation>Output: 12</explanation>
+          </example>
+          </examples>
+          <arguments>
   						<argument token="S" description="STRING"/>
 					</arguments>
           <references>
@@ -494,6 +500,20 @@
 					<description>returns the element count of the given list.</description>
 					<arguments>
 						<argument token="L" description="the list"/>
+					</arguments>
+				</command>
+        
+        <command name="findcn">
+					<description>find client number (cn)</description>
+					<arguments>
+  						<argument token="N" description="NAME"/>
+					</arguments>
+				</command>
+
+				<command name="findpn">
+					<description>find player name</description>
+					<arguments>
+  						<argument token="C" description="CLIENTNUM"/>
 					</arguments>
 				</command>
 
@@ -3440,6 +3460,22 @@ Output:
 					<description>Turns on or off the display of messages at the bottom of the screen.</description>
 					<value token="V" description="enable/disable messages" minValue="0" maxValue="1" defaultValue="0"/>
 				</variable>
+        
+        <variable name="hudextras">
+					<description>Shows extra gameplay messages on certain events if connected to a server.</description>
+					<value token="N" description="TODO" minValue="0" maxValue="3" defaultValue="0"/>
+          <arguments>
+            <argument valueNotes="0 (off)"/>
+            <argument valueNotes="1 (show extra messages in the console)"/>
+            <argument valueNotes="2 (show extra messages in the console and on the HUD)"/>
+            <argument valueNotes="3 (SPAM extra messages in the console and on the HUD)"/>
+          </arguments>
+          <references>
+            <identifierReference identifier="consize"/>
+            <identifierReference identifier="hideconsole"/>
+            <identifierReference identifier="hidehudmsgs"/>
+          </references>
+        </variable>
 
 				<variable name="hidespecthud">
 					<description>Turns on or off the display of spectator staus.</description>
@@ -3566,6 +3602,23 @@ Output:
 				<variable name="radarentsize">
 					<description>Sets the icon size of the players shown in the radar and the minimap.</description>
 					<value token="V" description="size of icons inside radar" minValue="1" maxValue="64" defaultValue="4"/>
+				</variable>
+        
+        <variable name="cncolumncolor">
+					<description>colour of CN column in scoreboard</description>
+					<value token="N" description="TODO" minValue="0" maxValue="9" defaultValue="5" />
+          <arguments>
+            <argument valueNotes="0 (green)"/>
+            <argument valueNotes="1 (blue)"/>
+            <argument valueNotes="2 (yellow)"/>
+            <argument valueNotes="3 (red)"/>
+            <argument valueNotes="4 (gray)"/>
+            <argument valueNotes="5 (white, default)"/>
+            <argument valueNotes="6 (dark brown)"/>
+            <argument valueNotes="7 (dark red)"/>
+            <argument valueNotes="8 (purple)"/>
+            <argument valueNotes="9 (orange)"/>
+          </arguments>
 				</variable>
 		    
 			</identifiers>
@@ -5356,20 +5409,6 @@ Output:
 					<description>Find what media the map depends on, this is used for mediapack providers.</description>
 				</command>
 
-				<command name="findcn">
-					<description>find client number (cn)</description>
-					<arguments>
-  						<argument token="N" description="NAME"/>
-					</arguments>
-				</command>
-
-				<command name="findpn">
-					<description>find player name</description>
-					<arguments>
-  						<argument token="C" description="CLIENTNUM"/>
-					</arguments>
-				</command>
-
 				<command name="fontskip">
 					<description>At what char does the definition proceed?</description>
 					<arguments>
@@ -5480,11 +5519,6 @@ Output:
 					<value token="N" description="TODO" minValue="0" maxValue="1" defaultValue="0" />
 				</variable>
 
-				<variable name="cncolumncolor">
-					<description>colour of CN column in scoreboard</description>
-					<value token="N" description="TODO" minValue="0" maxValue="9" defaultValue="5" />
-				</variable>
-
 				<variable name="damagescreen">
 					<description>show the blood-spat overlay when receiving damage?</description>
 					<value token="N" description="TODO" minValue="0" maxValue="1" defaultValue="1" />
@@ -5505,10 +5539,7 @@ Output:
 					<value token="N" description="TODO" minValue="0" maxValue="1000" defaultValue="125" />
 				</variable>
 
-				<variable name="hudextras">
-					<description>TODO</description>
-					<value token="N" description="TODO" minValue="0" maxValue="3" defaultValue="0" />
-				</variable>
+				
 
 				<variable name="interms">
 					<description>TODO</description>
