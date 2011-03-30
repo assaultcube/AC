@@ -90,10 +90,18 @@
 				</command>
 
 				<command name="push">
+          <description>Temporarily redefines the value of an alias.</description>
 					<arguments>
 						<argument token="N" description="alias name"/>
 						<argument token="A" description="action"/>
 					</arguments>
+          <examples>
+          <example>
+            <code><![CDATA[p = 1; push p 2; echo $p]]></code>
+            <explanation>Output: 2
+            </explanation>
+          </example>
+          </examples>
 					<references>
 						<identifierReference identifier="pop"/>
 					</references>
@@ -119,12 +127,19 @@
 				</command>
 
 				<command name="pop">
-				<arguments>
-					<argument token="A" description="alias"/>
-				</arguments>
-				<references>
-					<identifierReference identifier="push"/>
-				</references>
+          <description>Resets a previously pushed alias to it's original value.</description>
+          <arguments>
+            <argument token="A" description="alias"/>
+          </arguments>
+          <examples>
+          <example>
+            <code><![CDATA[pop p; echo $p]]></code>
+            <explanation>Output: 1</explanation>
+          </example>
+          </examples>
+          <references>
+            <identifierReference identifier="push"/>
+          </references>
 				</command>
 
 				<command name="+">
@@ -2141,8 +2156,8 @@ Output:
 					<description>Indicates if the footsteps sound should be played</description>
 					<value token="B" description="enable footsteps" minValue="0" maxValue="1" defaultValue="1" valueNotes="1 (true), 0 (false)"/>
 				</variable>
-
-				<variable name="localfootsteps">
+        
+        <variable name="localfootsteps">
 					<description>Indicates if the footsteps sound for the local player should be played</description>
 					<value token="B" description="enable footsteps" minValue="0" maxValue="1" defaultValue="1" valueNotes="1 (true), 0 (false)"/>
 				</variable>
@@ -2156,6 +2171,13 @@ Output:
 					</remark>
 					</remarks>
 					<value token="T" description="time span" minValue="5" maxValue="4000" defaultValue="15"/>
+				</variable>
+        
+        <variable name="hitsound">
+					<description>Plays a sound upon every successful hit if enabled.</description>
+					<value token="B" description="off OR on" minValue="0" maxValue="1" defaultValue="0" valueNotes="1 (true), 0 (false)" />
+          <identifierReference identifier="audio"/>
+          <identifierReference identifier="soundvol"/>
 				</variable>
 
 				<variable name="gamespeed">
@@ -3699,6 +3721,17 @@ Output:
 				<variable name="blood">
 					<description>Turn on and off the display of blood.</description>
 					<value token="V" description="Enable/Disable blood" minValue="0" maxValue="1" defaultValue="1"/>
+				</variable>
+        
+        <variable name="gib">
+					<description>Enables or disables the gib animation entirely.</description>
+					<value token="B" description="on OR off" minValue="0" maxValue="1" defaultValue="1" valueNotes="0 (false), 1 (true)" />
+          <references>
+            <identifierReference identifier="gibnum"/>
+            <identifierReference identifier="gibspeed"/>
+            <identifierReference identifier="gibsgore"/>
+            <identifierReference identifier="gibttl"/>
+          </references>
 				</variable>
 
 				<variable name="gibnum">
@@ -5465,16 +5498,6 @@ Output:
 				<variable name="damagescreenfade">
 					<description>if overlay of blood-spat, at what speed does it fade</description>
 					<value token="N" description="TODO" minValue="0" maxValue="1000" defaultValue="125" />
-				</variable>
-
-				<variable name="gib">
-					<description>TODO</description>
-					<value token="N" description="TODO" minValue="0" maxValue="1" defaultValue="1" />
-				</variable>
-
-				<variable name="hitsound">
-					<description>TODO</description>
-					<value token="N" description="TODO" minValue="0" maxValue="1" defaultValue="0" />
 				</variable>
 
 				<variable name="hudextras">
