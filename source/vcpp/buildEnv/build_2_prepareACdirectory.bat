@@ -1,3 +1,4 @@
+@echo off
 set acdir=ac
 set workingacdir=..\..\..\
 
