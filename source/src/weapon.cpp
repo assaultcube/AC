@@ -1113,8 +1113,8 @@ gun::gun(playerent *owner, int type) : weapon(owner, type) {}
 
 bool gun::attack(vec &targ)
 {
-    int attackmillis = lastmillis-owner->lastaction;
-    if(attackmillis<gunwait) return false;
+    int attackmillis = lastmillis-owner->lastaction - gunwait;
+    if(attackmillis<0) return false;
     gunwait = reloading = 0;
 
     if(!owner->attacking)
@@ -1129,7 +1129,7 @@ bool gun::attack(vec &targ)
         return false;
     }
 
-    attackmillis = lastmillis - min(attackmillis - gunwait, curtime);
+    attackmillis = lastmillis - min(attackmillis, curtime);
     updatelastaction(owner, attackmillis);
     if(!mag)
     {
@@ -1308,8 +1308,8 @@ int burstshots = 0;
 
 bool cpistol::attack(vec &targ) // modded from gun::attack // FIXME
 {
-    int attackmillis = lastmillis-owner->lastaction;
-    if(attackmillis<gunwait) return false;
+    int attackmillis = lastmillis-owner->lastaction - gunwait;
+    if(attackmillis<0) return false;
     gunwait = reloading = 0;
 
     if (bursting) burst = true;
@@ -1321,7 +1321,7 @@ bool cpistol::attack(vec &targ) // modded from gun::attack // FIXME
         return false;
     }
 
-    attackmillis = lastmillis - min(attackmillis - gunwait, curtime);
+    attackmillis = lastmillis - min(attackmillis, curtime);
     updatelastaction(owner, attackmillis);
     if(!mag)
     {
@@ -1456,13 +1456,13 @@ int knife::flashtime() const { return 0; }
 
 bool knife::attack(vec &targ)
 {
-    int attackmillis = lastmillis-owner->lastaction;
-    if(attackmillis<gunwait) return false;
+    int attackmillis = lastmillis-owner->lastaction - gunwait;
+    if(attackmillis<0) return false;
     gunwait = reloading = 0;
 
     if(!owner->attacking) return false;
 
-    attackmillis = lastmillis - min(attackmillis - gunwait, curtime);
+    attackmillis = lastmillis - min(attackmillis, curtime);
     updatelastaction(owner, attackmillis);
 
     owner->lastattackweapon = this;
