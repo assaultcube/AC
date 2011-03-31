@@ -95,9 +95,9 @@ bool noselection()
     return !selset;
 }
 
-#define EDITSEL   if(noteditmode("EDITSEL") || noselection()) return;
-#define EDITSELMP if(noteditmode("EDITSELMP") || noselection() || multiplayer()) return;
-#define EDITMP    if(noteditmode("EDITMP") || multiplayer()) return;
+#define EDITSEL   if(noteditmode("EDITSEL") || noselection()) return
+#define EDITSELMP if(noteditmode("EDITSELMP") || noselection() || multiplayer()) return
+#define EDITMP    if(noteditmode("EDITMP") || multiplayer()) return
 
 void selectpos(int x, int y, int xs, int ys)
 {
@@ -252,6 +252,20 @@ void paste()
     blockpaste(*copybuf);
 }
 
+// Count the walls of type "type" contained in the current selection
+int countwalls(int type)
+{
+	int counter = 0;
+	EDITSELMP 0;
+	if(type < 0 || type >= MAXTYPE)
+	{
+		conoutf("invalid type");
+		return 0;
+	}
+	loopselxy(if(s->type==type) counter++)
+	return counter;
+}
+ 
 void tofronttex()                                       // maintain most recently used of the texture lists when applying texture
 {
     loopi(3)
@@ -595,3 +609,4 @@ COMMAND(perlin, ARG_3INT);
 COMMAND(movemap, ARG_3INT);
 COMMAND(selectionrotate, ARG_1INT);
 COMMAND(selectionflip, ARG_1STR);
+COMMAND(countwalls, ARG_1EXP);

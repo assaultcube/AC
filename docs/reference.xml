@@ -2435,6 +2435,8 @@ Output:
 					</arguments>
 				</command>
 
+        
+
 				<command name="equalize">
 					<description>Levels the floor/ceiling of the selection.</description>
 					<remarks>
@@ -2558,6 +2560,19 @@ Output:
 					<remark>hotkey v</remark>
 					</remarks>
 				</command>
+                
+                <command name="countwalls">
+                    <description>Returns the number of solid walls contained into the current selection.</description>
+                    <arguments>
+                        <argument token="T" description="the integer of type of the walls you want to count" valueNotes=" 0 (solid), 1 (corner), 2 (floor heightfield), 3 (ceil heightfield), 4 (empty cube), 5 (semi solid)" />
+                    </arguments>
+                  <examples>
+                    <example>
+                      <code><![CDATA[echo (concat "The selection contains " (countwalls 0) "solid wall(s)")]]></code>
+                      <explanation>Output: The selection contains 3 solid wall(s)</explanation>
+                    </example>
+                  </examples>
+                </command>
 
 				<command name="pasteent">
 					<description>Pastes a previously copied entity.</description>
