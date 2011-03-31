@@ -797,7 +797,35 @@
 						<argument token="K" description="the key to bind" valueNotes="string"/>
 						<argument token="A" description="the command" valueNotes="string, usually an alias"/>
 					</arguments>
+          <references>
+            <identifierReference identifier="megabind"/>
+            <identifierReference identifier="onrelease"/>
+          </references>
 				</command>
+        
+        <command name="megabind">
+          <description>Binds a key to many different actions depending on the current game state.</description>
+          <examples>
+            <example>
+              <code><![CDATA[megabind F9 [echo Demo!] [echo Editing or coop!] [echo Connected!] [echo Bots!] [echo Other!]]]></code>
+            </example>
+          </examples>
+          <arguments>
+            <argument token="K" description="the key to bind" valueNotes="string"/>
+            <argument token="D" description="body of code to execute if watching a demo" valueNotes="a body of code"/>
+            <argument token="E" description="body of code to execute if editing or in coop-edit mode" valueNotes="a body of code"/>
+            <argument token="C" description="body of code to execute if connected to a server" valueNotes="a body of code"/>
+            <argument token="B" description="body of code to execute if in a bot mode" valueNotes="a body of code"/>
+            <argument token="O" description="body of code to execute if none of the other arguments have been met" valueNotes="a body of code"/>
+          </arguments>
+          <remarks>
+            <remark>This command requires 6 arguments, no more no less. Use an empty set of brackets [] for any of the arguments that you want to "do nothing".</remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="bind"/>
+            <identifierReference identifier="onrelease"/>
+          </references>
+        </command>
 
 				<command name="onrelease">
 					<description>Executes a command on the release of a key/button.</description>
@@ -811,6 +839,7 @@
 					</examples>
 					<references>
 						<identifierReference identifier="bind"/>
+            <identifierReference identifier="megabind"/>
 					</references>
 					<arguments>
 						<argument token="A" description="the command"/>
@@ -4186,7 +4215,7 @@ Output:
             </example>
           </examples>
 					<arguments>
-  						<argument token="A" description="sound id" valueNotes="See /config/sounds.cfg for valid sound id's."/>
+  						<argument token="A" description="sound ID" valueNotes="See /config/sounds.cfg for valid sound ID's."/>
 					</arguments>
           <references>
             <identifierReference identifier="mutesound"/>
