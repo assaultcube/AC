@@ -12,10 +12,10 @@ struct sgray {
 };
 sgray sgr[SGRAYS*3];
 
-void updatelastaction(playerent *d)
+void updatelastaction(playerent *d, int millis = lastmillis)
 {
-    loopi(NUMGUNS) d->weapons[i]->updatetimers();
-    d->lastaction = lastmillis;
+    loopi(NUMGUNS) d->weapons[i]->updatetimers(millis);
+    d->lastaction = millis;
 }
 
 void checkweaponswitch()
@@ -711,11 +711,11 @@ const float weapon::weaponbeloweye = 0.2f;
 
 int weapon::flashtime() const { return max((int)info.attackdelay, 120)/4; }
 
-void weapon::sendshoot(vec &from, vec &to)
+void weapon::sendshoot(vec &from, vec &to, int millis)
 {
     if(owner!=player1) return;
     owner->shoot = true;
-    addmsg(SV_SHOOT, "ri2i3iv", lastmillis, owner->weaponsel->type,
+    addmsg(SV_SHOOT, "ri2i3iv", millis, owner->weaponsel->type,
            (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF),
            hits.length(), hits.length()*sizeof(hitmsg)/sizeof(int), hits.getbuf());
 	player1->pstatshots[player1->weaponsel->type]++; //NEW
@@ -821,9 +821,9 @@ void weapon::renderhudmodel(int lastaction, int index)
     rendermodel(path, wm.anim|ANIM_DYNALLOC|(righthanded==index ? ANIM_MIRROR : 0)|(emit ? ANIM_PARTICLE : 0), 0, -1, wm.pos, player1->yaw+90, player1->pitch+wm.k_rot, 40.0f, wm.basetime, NULL, NULL, 1.28f);
 }
 
-void weapon::updatetimers()
+void weapon::updatetimers(int millis)
 {
-    if(gunwait) gunwait = max(gunwait - (lastmillis-owner->lastaction), 0);
+    if(gunwait) gunwait = max(gunwait - (millis-owner->lastaction), 0);
 }
 
 void weapon::onselecting()
@@ -1114,9 +1114,7 @@ gun::gun(playerent *owner, int type) : weapon(owner, type) {}
 bool gun::attack(vec &targ)
 {
     int attackmillis = lastmillis-owner->lastaction;
-    if(timebalance < gunwait) attackmillis += timebalance;
     if(attackmillis<gunwait) return false;
-    timebalance = gunwait ? attackmillis - gunwait : 0;
     gunwait = reloading = 0;
 
     if(!owner->attacking)
@@ -1131,7 +1129,8 @@ bool gun::attack(vec &targ)
         return false;
     }
 
-    updatelastaction(owner);
+    attackmillis = lastmillis - min(attackmillis - gunwait, curtime);
+    updatelastaction(owner, attackmillis);
     if(!mag)
     {
         audiomgr.playsoundc(S_NOAMMO);
@@ -1161,7 +1160,7 @@ bool gun::attack(vec &targ)
     gunwait = info.attackdelay;
     mag--;
 
-    sendshoot(from, to);
+    sendshoot(from, to, attackmillis);
     return true;
 }
 
@@ -1310,9 +1309,7 @@ int burstshots = 0;
 bool cpistol::attack(vec &targ) // modded from gun::attack // FIXME
 {
     int attackmillis = lastmillis-owner->lastaction;
-    if(timebalance < gunwait) attackmillis += timebalance;
     if(attackmillis<gunwait) return false;
-    timebalance = gunwait ? attackmillis - gunwait : 0;
     gunwait = reloading = 0;
 
     if (bursting) burst = true;
@@ -1324,7 +1321,8 @@ bool cpistol::attack(vec &targ) // modded from gun::attack // FIXME
         return false;
     }
 
-    updatelastaction(owner);
+    attackmillis = lastmillis - min(attackmillis - gunwait, curtime);
+    updatelastaction(owner, attackmillis);
     if(!mag)
     {
         audiomgr.playsoundc(S_NOAMMO);
@@ -1367,7 +1365,7 @@ bool cpistol::attack(vec &targ) // modded from gun::attack // FIXME
     }
     mag--;
 
-    sendshoot(from, to);
+    sendshoot(from, to, attackmillis);
     return true;
 }
 
@@ -1438,7 +1436,7 @@ void akimbo::onselecting()
 }
 
 bool akimbo::selectable() { return weapon::selectable() && !m_nopistol && owner->akimbo; }
-void akimbo::updatetimers() { weapon::updatetimers(); /*loopi(2) akimbolastaction[i] = lastmillis;*/ }
+void akimbo::updatetimers(int millis) { weapon::updatetimers(millis); /*loopi(2) akimbolastaction[i] = millis;*/ }
 void akimbo::reset() { akimbolastaction[0] = akimbolastaction[1] = akimbomillis = akimboside = 0; }
 
 void akimbo::renderhudmodel()
@@ -1463,7 +1461,9 @@ bool knife::attack(vec &targ)
     gunwait = reloading = 0;
 
     if(!owner->attacking) return false;
-    updatelastaction(owner);
+
+    attackmillis = lastmillis - min(attackmillis - gunwait, curtime);
+    updatelastaction(owner, attackmillis);
 
     owner->lastattackweapon = this;
     owner->attacking = false;
@@ -1483,7 +1483,7 @@ bool knife::attack(vec &targ)
     hits.setsize(0);
     raydamage(from, to, owner);
     attackfx(from, to, 0);
-    sendshoot(from, to);
+    sendshoot(from, to, attackmillis);
     gunwait = info.attackdelay;
     return true;
 }
