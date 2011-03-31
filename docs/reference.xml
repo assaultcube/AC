@@ -345,12 +345,39 @@
 
 				<command name="strcmp">
 					<description>Determines if two strings are equal.</description>
+          <examples>
+            <example>
+              <code><![CDATA[if (strcmp yes yes) [echo the two strings are equal] [echo the two strings are not equal]]]></code>
+              <explanation>Output: the two strings are equal</explanation>
+            </example>
+          </examples>
 					<arguments>
 						<argument token="A" description="the first string"/>
 						<argument token="B" description="the second string"/>
 					</arguments>
 					<return token="N" description="the equality" valueNotes="1 (equal) or 0 (unequal)"/>
+          <references>
+            <identifierReference identifier="strstr"/>
+          </references>
 				</command>
+        
+        <command name="strstr">
+          <description>Determines if string B was found in string A.</description>
+          <examples>
+            <example>
+              <code><![CDATA[if (strstr "Hello world!" Hello) [echo found Hello in Hello world!] [echo did not find Hello in Hello world!]]]></code>
+              <explanation>Output: found Hello in Hello world!</explanation>
+            </example>
+          </examples>
+          <arguments>
+            <argument token="A" description="the first string"/>
+            <argument token="B" description="the second string"/>
+          </arguments>
+          <return token="N" description="the truth value" valueNotes="0 (false), 1 (true)"/>
+          <references>
+            <identifierReference identifier="strcmp"/>
+          </references>
+        </command>
         
         <command name="strlen">
 					<description>Returns the length (in characters, including whitespace) of string S.</description>
@@ -557,6 +584,22 @@
 					</example>
 					</examples>
 				</command>
+        
+        <command name="c">
+          <description>Adds color to a string.</description>
+          <examples>
+          <example>
+            <code><![CDATA[echo (c 3)Hello (c 0)world!]]></code>
+            <explanation>Output: a red "Hello" and a green "world!"</explanation>
+          </example>
+          </examples>
+          <arguments>
+            <argument token="N" description="color id" valueNotes="0 min, 9 max"/>
+          </arguments>
+          <references>
+            <identifierReference identifier="cncolumncolor"/>
+          </references>
+        </command>
 
 			</identifiers>
 		</section>
@@ -1300,6 +1343,16 @@ echo (pstat_weap 0)
 						<key alias="V" description="opens the voicecom menu, use number keys for your choice"/>
 					</defaultKeys>
 				</command>
+        
+        <variable name="voicecomsounds">
+					<description>Enables or disables voicecom audio.</description>
+					<value token="N" description="voicecom sounds" minValue="0" maxValue="2" defaultValue="1" />
+          <arguments>
+            <argument valueNotes="0 (off)"/>
+            <argument valueNotes="1 (always play voicecom audio)"/>
+            <argument valueNotes="2 (only play voicecom audio from you and your teammates)"/>
+          </arguments>
+				</variable>
 
 				<command name="mapname">
 					<description>returns the mapname</description>
@@ -3316,8 +3369,8 @@ Output:
 		</section>
 		<!-- Menus Section Ends -->
 
-		<!-- Head-Up Display Section Starts -->
-		<section name="Head-Up Display" sortindex="06">
+		<!-- Heads-Up Display Section Starts -->
+		<section name="Heads-Up Display" sortindex="06">
 			<description>This section describes the identifiers to configure the head-up display (HUD).</description>
 				<identifiers>
 
@@ -3463,7 +3516,7 @@ Output:
         
         <variable name="hudextras">
 					<description>Shows extra gameplay messages on certain events if connected to a server.</description>
-					<value token="N" description="TODO" minValue="0" maxValue="3" defaultValue="0"/>
+					<value token="N" description="enable/disable extra gameplay messages" minValue="0" maxValue="3" defaultValue="0"/>
           <arguments>
             <argument valueNotes="0 (off)"/>
             <argument valueNotes="1 (show extra messages in the console)"/>
@@ -3606,7 +3659,7 @@ Output:
         
         <variable name="cncolumncolor">
 					<description>colour of CN column in scoreboard</description>
-					<value token="N" description="TODO" minValue="0" maxValue="9" defaultValue="5" />
+					<value token="N" description="color" minValue="0" maxValue="9" defaultValue="5" />
           <arguments>
             <argument valueNotes="0 (green)"/>
             <argument valueNotes="1 (blue)"/>
@@ -4100,12 +4153,30 @@ Output:
 				<command name="mutesound">
 					<description>Mute a specific game sound.</description>
 					<references>
+            <identifierReference identifier="soundmuted"/>
 						<identifierReference identifier="unmuteallsounds"/>
 					</references>
 					<arguments>
 						<argument token="N" description="ID of the sound to mute" valueNotes="see config/sounds.cfg, starting at ID 0"/>
 						<argument token="A" description="audible?" valueNotes="(mute) 0 || 1 (unmute)"/>
 					</arguments>
+				</command>
+        
+        <command name="soundmuted">
+					<description>Returns 1 if sound A is muted, else 0.</description>
+          <examples>
+            <example>
+              <code><![CDATA[mutesound 5; if (soundmuted 5) [echo Sound 5 is muted!] [echo Sound 5 is not muted!]]]></code>
+              <explanation>Output: Sound 5 is muted!</explanation>
+            </example>
+          </examples>
+					<arguments>
+  						<argument token="A" description="sound id" valueNotes="See /config/sounds.cfg for valid sound id's."/>
+					</arguments>
+          <references>
+            <identifierReference identifier="mutesound"/>
+						<identifierReference identifier="unmuteallsounds"/>
+					</references>
 				</command>
 
 				<command name="unmuteallsounds">
@@ -5454,7 +5525,6 @@ Output:
 					</references>
 				</command>
 
-
 				<command name="menuitemmapload">
 					<description>a menuitem that loads a map, displays the title and the preview or a default image</description>
 					<arguments>
@@ -5486,13 +5556,6 @@ Output:
 				</command>
 
 				<command name="setwptriggernr">
-					<description>TODO: Description</description>
-					<arguments>
-  						<argument token="A" description="TODO"/>
-					</arguments>
-				</command>
-
-				<command name="soundmuted">
 					<description>TODO: Description</description>
 					<arguments>
   						<argument token="A" description="TODO"/>
@@ -5538,8 +5601,6 @@ Output:
 					<description>if overlay of blood-spat, at what speed does it fade</description>
 					<value token="N" description="TODO" minValue="0" maxValue="1000" defaultValue="125" />
 				</variable>
-
-				
 
 				<variable name="interms">
 					<description>TODO</description>
@@ -5605,12 +5666,6 @@ Output:
 					<description>TODO</description>
 					<value token="N" description="TODO" minValue="16" maxValue="64" defaultValue="32" />
 				</variable>
-
-				<variable name="voicecomsounds">
-					<description>TODO</description>
-					<value token="N" description="TODO" minValue="0" maxValue="2" defaultValue="1" />
-				</variable>
-
 
 				<variable name="maploaditemlength">
 					<description>change at what position to truncate the map title string</description>
