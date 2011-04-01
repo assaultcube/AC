@@ -600,6 +600,24 @@
             <identifierReference identifier="cncolumncolor"/>
           </references>
         </command>
+        
+        <command name="l0">
+					<description>leading zeros for the number V to make it W chars wide</description>
+          <examples>
+            <example>
+              <code><![CDATA[echo (l0 5 1000)]]></code>
+              <explanation>Output: 01000</explanation>
+            </example>
+            <example>
+              <code><![CDATA[echo (l0 3 1000)]]></code>
+              <explanation>Output: 1000</explanation>
+            </example>
+          </examples>
+					<arguments>
+  						<argument token="W" description="WIDTH"/>
+  						<argument token="V" description="VALUE"/>
+					</arguments>
+				</command>
 
 			</identifiers>
 		</section>
@@ -619,6 +637,19 @@
 					<description>Toggle format of screenshot image. Your choice is for BMP (0), JPEG (1) or PNG (2).</description>
 					<value token="T" description="0=BMP, 1=JPEG, 2=PNG" minValue="0" maxValue="2" defaultValue="1"/>
 				</variable>
+        
+        <command name="getscrext">
+          <description>Returns the file extension of the client's current screenshottype setting.</description>
+          <examples>
+            <example>
+              <code><![CDATA[echo (getscrext)]]></code>
+              <explanation>Example output: .jpg</explanation>
+            </example>
+          </examples>
+          <references>
+            <identifierReference identifier="screenshottype"/>
+          </references>
+        </command>
 
 				<variable name="jpegquality">
 					<description>Sets the JPEG screenshot image quality.</description>
@@ -921,6 +952,10 @@
 					<defaultKeys>
 						<key alias="F12"/>
 					</defaultKeys>
+				</command>
+        
+        <command name="mapshot">
+					<description>save an image of the entire radar-overview of the map.</description>
 				</command>
 
 				<command name="exec">
@@ -1230,6 +1265,52 @@ addOnLoadAlways [
 					<references>
 					  <identifierReference identifier="add2alias"/>
 					  <identifierReference identifier="mapstartonce"/>
+					</references>
+				</scriptalias>
+        
+        <scriptalias name="onDeathOther">
+					<description>If this alias exists it will be run every time anybody but yourself dies.</description>
+					<references>
+					  <identifierReference identifier="onDeathSelf"/>
+					  <identifierReference identifier="onSpawnOther"/>
+					  <identifierReference identifier="onSpawnSelf"/>
+					</references>
+				</scriptalias>
+				<scriptalias name="onDeathSelf">
+					<description>If this alias exists it will be run every time you yourself die.</description>
+					<references>
+					  <identifierReference identifier="onDeathOther"/>
+					  <identifierReference identifier="onSpawnOther"/>
+					  <identifierReference identifier="onSpawnSelf"/>
+					</references>
+				</scriptalias>
+				<scriptalias name="onSpawnOther">
+					<description>If this alias exists it will be run every time anybody but yourself spawns.</description>
+					<references>
+					  <identifierReference identifier="onDeathOther"/>
+					  <identifierReference identifier="onDeathSelf"/>
+					  <identifierReference identifier="onSpawnSelf"/>
+					</references>
+				</scriptalias>
+				<scriptalias name="onSpawnSelf">
+					<description>If this alias exists it will be run every time you yourself spawn.</description>
+					<references>
+					  <identifierReference identifier="onDeathOther"/>
+					  <identifierReference identifier="onDeathSelf"/>
+					  <identifierReference identifier="onSpawnOther"/>
+					</references>
+				</scriptalias>
+
+				<scriptalias name="onCallVote">
+					<description>If this alias exists it will be run every time a vote is called.</description>
+					<references>
+					  <identifierReference identifier="onChangeVote"/>
+					</references>
+				</scriptalias>
+				<scriptalias name="onChangeVote">
+					<description>If this alias exists it will be run every time a vote is changed.</description>
+					<references>
+					  <identifierReference identifier="onCallVote"/>
 					</references>
 				</scriptalias>
 
@@ -5378,52 +5459,6 @@ Output:
 			<description>This section describes identifiers that are not documented yet, but you may try to help us there.</description>
 			<identifiers sort="true">
 
-				<scriptalias name="onDeathOther">
-					<description>If this alias exists it will be run every time anybody but yourself dies.</description>
-					<references>
-					  <identifierReference identifier="onDeathSelf"/>
-					  <identifierReference identifier="onSpawnOther"/>
-					  <identifierReference identifier="onSpawnSelf"/>
-					</references>
-				</scriptalias>
-				<scriptalias name="onDeathSelf">
-					<description>If this alias exists it will be run every time you yourself die.</description>
-					<references>
-					  <identifierReference identifier="onDeathOther"/>
-					  <identifierReference identifier="onSpawnOther"/>
-					  <identifierReference identifier="onSpawnSelf"/>
-					</references>
-				</scriptalias>
-				<scriptalias name="onSpawnOther">
-					<description>If this alias exists it will be run every time anybody but yourself spawns.</description>
-					<references>
-					  <identifierReference identifier="onDeathOther"/>
-					  <identifierReference identifier="onDeathSelf"/>
-					  <identifierReference identifier="onSpawnSelf"/>
-					</references>
-				</scriptalias>
-				<scriptalias name="onSpawnSelf">
-					<description>If this alias exists it will be run every time you yourself spawn.</description>
-					<references>
-					  <identifierReference identifier="onDeathOther"/>
-					  <identifierReference identifier="onDeathSelf"/>
-					  <identifierReference identifier="onSpawnOther"/>
-					</references>
-				</scriptalias>
-
-				<scriptalias name="onCallVote">
-					<description>If this alias exists it will be run every time a vote is called.</description>
-					<references>
-					  <identifierReference identifier="onChangeVote"/>
-					</references>
-				</scriptalias>
-				<scriptalias name="onChangeVote">
-					<description>If this alias exists it will be run every time a vote is changed.</description>
-					<references>
-					  <identifierReference identifier="onCallVote"/>
-					</references>
-				</scriptalias>
-
 				<command name="getposition">
 					<description>Get information about your place in the world. Dimension: 0123 => XYZ and yaw</description>
 					<arguments>
@@ -5440,14 +5475,6 @@ Output:
 					  <identifierReference identifier="getposition"/>
 					</references>
 				</variable>
-
-				<command name="l0">
-					<description>leading zeros for the number V to make it W chars wide</description>
-					<arguments>
-  						<argument token="W" description="WIDTH"/>
-  						<argument token="V" description="VALUE"/>
-					</arguments>
-				</command>
 
 				<command name="getdemonameformat">
 					<description>returns the currently used formatstring for demo filenames</description>
@@ -5536,10 +5563,6 @@ Output:
 					<arguments>
   						<argument token="M" description="I18Nmessage"/>
 					</arguments>
-				</command>
-
-				<command name="mapshot">
-					<description>save an image of the entire radar-overview of the map.</description>
 				</command>
 
 				<command name="menufont">
