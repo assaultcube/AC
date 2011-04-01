@@ -636,6 +636,9 @@
 				<variable name="screenshottype">
 					<description>Toggle format of screenshot image. Your choice is for BMP (0), JPEG (1) or PNG (2).</description>
 					<value token="T" description="0=BMP, 1=JPEG, 2=PNG" minValue="0" maxValue="2" defaultValue="1"/>
+          <references>
+            <identifierReference identifier="getscrext"/>
+          </references>
 				</variable>
         
         <command name="getscrext">
@@ -2341,6 +2344,11 @@ Output:
 					<description>Determines if the mini-map should be shown on screen.</description>
 					<value token="B" description="show mini-map" minValue="0" maxValue="1" defaultValue="0"/>
 				</variable>
+        
+        <variable name="showmapbackdrop">
+					<description>change wether to have a see-through map overview (0), or render it on a black backdrop (1) or a combination of both (2)</description>
+					<value token="B" description="backdrop-style" minValue="0" maxValue="2" defaultValue="0" />
+				</variable>
 
 				<variable name="showscoresondeath">
 					<description>Determines if scores should be shown on death.</description>
@@ -2381,6 +2389,16 @@ Output:
 						<remark>This does not work in multiplayer. For entertainment purposes only :)</remark>
 					</remarks>
 					<value token="N" description="the game speed" minValue="10" maxValue="1000" defaultValue="100"/>
+				</variable>
+        
+        <variable name="akimboendaction">
+					<description>Sets the behavior of weapon switching upon akimbo expiration.</description>
+					<value token="N" description="akimbo end action" minValue="0" maxValue="2" defaultValue="0" />
+          <arguments>
+            <argument valueNotes="0 (none)"/>
+            <argument valueNotes="1 (switch to primary)"/>
+            <argument valueNotes="2 (switch to grenades, else switch to primary)"/>
+          </arguments>
 				</variable>
 
 			</identifiers>
@@ -3295,6 +3313,10 @@ Output:
 					</references>
 					<value token="N" description="the brightness of the scene" minValue="1" maxValue="100" defaultValue="4"/>
 				</variable>
+        
+        <command name="checkmapdependencies">
+					<description>Find what media the map depends on, this is used for mediapack providers.</description>
+				</command>
 
 			</identifiers>
 		</section>
@@ -3798,10 +3820,20 @@ Output:
             <argument valueNotes="9 (orange)"/>
           </arguments>
 				</variable>
+        
+        <variable name="orderscorecolumns">
+					<description>Show the client number column on the scoreboard first?</description>
+					<value token="N" description="cn column order" minValue="0" maxValue="1" defaultValue="0" valueNotes="0 (false), 1 (true)" />
+				</variable>
+        
+        <variable name="radarheight">
+					<description>change at what height you are floating in the radar-view</description>
+					<value token="H" description="height" minValue="20" maxValue="70" defaultValue="35" />
+				</variable>
 		    
 			</identifiers>
 		</section>
-		<!-- Head-Up Display Section ends -->
+		<!-- Heads-Up Display Section ends -->
 
 		<!-- Visuals Section Starts -->
 		<section name="Visuals" sortindex="05">
@@ -4225,6 +4257,36 @@ Output:
 						<argument valueNotes="3 - Messy"/>
 						<argument valueNotes="4 - Unrealistic"/>
 					</arguments>
+				</variable>
+        
+        <variable name="damagescreen">
+					<description>show the blood-spat overlay when receiving damage?</description>
+					<value token="N" description="damagescreen" minValue="0" maxValue="1" defaultValue="1" valueNotes="0 (false), 1 (true)" />
+				</variable>
+        
+        <variable name="damagescreenalpha">
+					<description>if overlay of blood-spat, at what blending (transparency) level?</description>
+					<value token="N" description="damagescreen transparency" minValue="1" maxValue="100" defaultValue="45" />
+				</variable>
+        
+        <variable name="damagescreenfactor">
+					<description>if overlay of blood-spat, use which factor?</description>
+					<value token="N" description="damagescreen factor" minValue="1" maxValue="100" defaultValue="7" />
+				</variable>
+
+				<variable name="damagescreenfade">
+					<description>if overlay of blood-spat, at what speed does it fade?</description>
+					<value token="N" description="damagescreen fade" minValue="0" maxValue="1000" defaultValue="125" />
+				</variable>
+        
+        <variable name="popdeadplayers">
+					<description>make dead players instantly pop out of existence, instead of falling over and sinking into the ground.</description>
+					<value token="B" description="BOOL" minValue="0" maxValue="1" defaultValue="0" />
+				</variable>
+        
+        <variable name="maploaditemlength">
+					<description>change at what position to truncate the map title string</description>
+					<value token="N" description="chars" minValue="0" maxValue="255" defaultValue="46" />
 				</variable>
 
 			</identifiers>
@@ -5468,6 +5530,7 @@ Output:
 					  <identifierReference identifier="positiontype"/>
 					</references>
 				</command>
+        
 				<variable name="positiontype">
 					<description>0: int, 1: float</description>
 					<value token="T" description="TYPE" minValue="0" maxValue="1" defaultValue="1" />
@@ -5484,6 +5547,7 @@ Output:
 					  <identifierReference identifier="demonameformat"/>
 					</references>
 				</command>
+        
 				<command name="getdemotimeformat">
 					<description>returns the currently used formatstring for demo timestamp</description>
 					<references>
@@ -5492,6 +5556,7 @@ Output:
 					  <identifierReference identifier="demonameformat"/>
 					</references>
 				</command>
+        
 				<command name="demonameformat">
 					<description>set the formatstring for demo filenames - default: TODO (when stable)</description>
 					<arguments>
@@ -5512,6 +5577,7 @@ Output:
 					  <identifierReference identifier="getdemonameformat"/>
 					</references>
 				</command>
+        
 				<command name="demotimeformat">
 					<description>set the formatstring for demo timestamp - default: TODO (when stable)</description>
 					<arguments>
@@ -5527,14 +5593,9 @@ Output:
 					  <webReference url="http://www.cplusplus.com/reference/clibrary/ctime/strftime/" name="C++-Reference"/>
 					</references>
 				</command>
+        
 				<variable name="demotimelocal">
 					<description>use localtime (1) or GMT (0)?</description>
-					<value token="B" description="BOOL" minValue="0" maxValue="1" defaultValue="0" />
-				</variable>
-
-
-				<variable name="popdeadplayers">
-					<description>make dead players instantly pop out of existence, instead of falling over and sinking into the ground.</description>
 					<value token="B" description="BOOL" minValue="0" maxValue="1" defaultValue="0" />
 				</variable>
 
@@ -5545,10 +5606,6 @@ Output:
   						<argument token="B" description="TODO"/>
   						<argument token="C" description="TODO"/>
 					</arguments>
-				</command>
-
-				<command name="checkmapdependencies">
-					<description>Find what media the map depends on, this is used for mediapack providers.</description>
 				</command>
 
 				<command name="fontskip">
@@ -5629,11 +5686,6 @@ Output:
 					</arguments>
 				</command>
 
-				<variable name="akimboendaction">
-					<description>0: none, 1: switch to primary?, 2: switch to nades?-before-switch to primary?</description>
-					<value token="N" description="TODO" minValue="0" maxValue="2" defaultValue="0" />
-				</variable>
-
 				<variable name="ambient">
 					<description>TODO</description>
 					<value token="N" description="TODO" minValue="0" maxValue="16777215" defaultValue="0" />
@@ -5647,26 +5699,6 @@ Output:
 				<variable name="autoscopesens">
 					<description>TODO</description>
 					<value token="N" description="TODO" minValue="0" maxValue="1" defaultValue="0" />
-				</variable>
-
-				<variable name="damagescreen">
-					<description>show the blood-spat overlay when receiving damage?</description>
-					<value token="N" description="TODO" minValue="0" maxValue="1" defaultValue="1" />
-				</variable>
-
-				<variable name="damagescreenalpha">
-					<description>if overlay of blood-spat, at what blending (transparency) level?</description>
-					<value token="N" description="TODO" minValue="1" maxValue="100" defaultValue="45" />
-				</variable>
-
-				<variable name="damagescreenfactor">
-					<description>if overlay of blood-spat, use which factor</description>
-					<value token="N" description="TODO" minValue="1" maxValue="100" defaultValue="7" />
-				</variable>
-
-				<variable name="damagescreenfade">
-					<description>if overlay of blood-spat, at what speed does it fade</description>
-					<value token="N" description="TODO" minValue="0" maxValue="1000" defaultValue="125" />
 				</variable>
 
 				<variable name="interms">
@@ -5699,11 +5731,6 @@ Output:
 					<value token="N" description="TODO" minValue="0,0" maxValue="1000,0" defaultValue="0,0" />
 				</variable>
 
-				<variable name="orderscorecolumns">
-					<description>variants of ordering CN first or not in scoreboard</description>
-					<value token="N" description="TODO" minValue="0" maxValue="1" defaultValue="0" />
-				</variable>
-
 				<variable name="scopesensscale">
 					<description>TODO</description>
 					<value token="N" description="TODO" minValue="0,001" maxValue="1000,0" defaultValue="0,5" />
@@ -5734,24 +5761,9 @@ Output:
 					<value token="N" description="TODO" minValue="16" maxValue="64" defaultValue="32" />
 				</variable>
 
-				<variable name="maploaditemlength">
-					<description>change at what position to truncate the map title string</description>
-					<value token="N" description="CHAR" minValue="0" maxValue="255" defaultValue="46" />
-				</variable>
-
-				<variable name="showmapbackdrop">
-					<description>change wether to have a see-through map overview (0), or render it on a black backdrop (1) or a combination of both (2)</description>
-					<value token="B" description="backdrop-style" minValue="0" maxValue="2" defaultValue="0" />
-				</variable>
-
 				<variable name="showmapbackdroptransparency">
 					<description></description>
 					<value token="T" description="transparency" minValue="0" maxValue="100" defaultValue="75" />
-				</variable>
-
-				<variable name="radarheight">
-					<description>change at what height you are floating in the radar-view</description>
-					<value token="H" description="height" minValue="20" maxValue="70" defaultValue="35" />
 				</variable>
 
 				<command name="showedithide">
