@@ -1214,20 +1214,21 @@ void timestring_()
 
 int millis_() { extern int totalmillis; return totalmillis; }
 void strlen_(char *s) { string r; formatstring(r)("%d", strlen(s)); result(r); }
-void substr_(char *s, char *a, char *b)
+void substr_(char *fs, char *pa, char *pb)
 {
-	int ia = atoi(a);
-	int ib = atoi(b);
-	string q;
-	string r;
-	r[0] = '\0';
+	int ia = atoi(pa);
+	int ib = atoi(pb);
+	string subq;
+	string subr;
+	subr[0] = '\0';
 	if(ia>=0)
 	{
-		if(ib<=0 && ib>=strlen(s)) ib = strlen(s)-1;
-		copystring(q,  s + ia);
-		strncpy(r, q, ib - ia);
+		if(ib<=0 || ib>=(int)strlen(fs)) ib = strlen(fs);
+		copystring(subq,  fs + ia);
+		strncpy(subr, subq, ib - ia);
 	}
-	result(r);
+	subr[ib-ia] = '\0';
+	result(subr);
 }
 void l0(int p, int v) { string f; string r; formatstring(f)("%%0%dd", p); formatstring(r)(f, v); result(r); }
 
