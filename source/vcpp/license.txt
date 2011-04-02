@@ -1,10 +1,32 @@
-The "header.bmp" logo was gifted to Rabid Viper Productions from Lewis Communications.
-They allowed us to use and re-license it freely, in any way we wish.
+Quick installation notes for the "./buildEnv" folder:
 
-Some minor modifications were made and we now allow redistribution under the 
+	* Install a command-line SVN client, then include it in your
+	  system path variable.
+	* Edit the SVN commands and set your own username.
+	* Install NSIS.
+	* Edit ac.nsi and fix the CURPATH variable.
+
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+It should be noted, that the new AssaultCube logos/icon files were gifted to
+Rabid Viper Productions from Lewis Communications. They allowed us to use and
+re-license it freely, in any way we wish.
+
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+Files within this folder and in subsequent sub-folders, EXCEPT image files are
+licensed with the following:
+
+	You are free to use these files for any other purpose.
+
+	However, you MUST NOT use the work(s) to misrepresent the origin of
+	AssaultCube, or create an installer that looks similar to an official
+	AssaultCube release, or claim that you created AssaultCube or any of the
+	original AssaultCube package(s).
+
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+ALL IMAGE FILES within this folder and in subsequent sub-folders are licensed under the 
 "Attribution-NonCommercial-ShareAlike 3.0 Unported" Creative Commons
 (http://creativecommons.org/licenses/by-nc-sa/3.0/), with the additional clause, that
-you may not use it to misrepresent the origin of AssaultCube, or claim that you
+you may not use them to misrepresent the origin of AssaultCube, or claim that you
 created AssaultCube or any of the original AssaultCube package(s).
 
 This means you are free to share, copy, distribute, transmit and/or remix/adapt the
@@ -33,4 +55,3 @@ With the understanding that:
             used, such as publicity or privacy rights.
     * Notice - For any reuse or distribution, you must make clear to others the license
                terms of this work. The best way to do this is with a link to this web page.
-
