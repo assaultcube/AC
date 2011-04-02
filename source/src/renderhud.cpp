@@ -78,7 +78,7 @@ VARP(crosshairteamsign, 0, 1, 1);
 VARP(hideradar, 0, 0, 1);
 VARP(hidecompass, 0, 0, 1);
 VARP(hideteam, 0, 0, 1);
-VARP(radarentsize, 4, 16, 64);
+VARP(radarentsize, 4, 12, 64);
 VARP(hidectfhud, 0, 0, 1);
 VARP(hidevote, 0, 0, 2);
 VARP(hidehudmsgs, 0, 0, 1);
@@ -396,7 +396,7 @@ vec getradarpos()
 
 VARP(showmapbackdrop, 0, 0, 2);
 VARP(showmapbackdroptransparency, 0, 75, 100);
-VARP(radarheight, 5, 50, 500); // testing: 0, 50, 1000 // release: 5, 50, 500
+VARP(radarheight, 5, 150, 500); // testing: 0, 50, 1000 // release: 5, 150, 500
 VAR(showradarvalues, 0, 0, 1); // DEBUG
 
 void drawradar_showmap(playerent *p, int w, int h)
@@ -404,7 +404,7 @@ void drawradar_showmap(playerent *p, int w, int h)
 	int gdim = max(mapdims[4], mapdims[5]);
     float radarviewsize = 3*min(VIRTW,VIRTH)/4;
     float halfviewsize = radarviewsize/2.0f;
-    float iconsize = (radarentsize/4)/(float)gdim*radarviewsize;
+    float iconsize = radarentsize/0.2f;
     int orthd = gdim/2;
     int displace = radarviewsize/orthd;
     float coordtrans = (radarviewsize-displace)/(gdim+3);
@@ -500,7 +500,7 @@ void drawradar_vicinity(playerent *p, int w, int h)
 	int gdim = max(mapdims[4], mapdims[5]);
     float radarviewsize = min(VIRTW,VIRTH)/5;
     float halfviewsize = radarviewsize/2.0f;
-    float iconsize = radarentsize/(float)gdim*radarviewsize;
+    float iconsize = radarentsize/0.4f; // Gibstick suggested: radarentsize*radarviewsize*0.015
 	float scaler = gdim/100.0f;
 	float scaleh = radarheight/(2.0f*gdim);
 	float scaled = radarviewsize/float(radarheight);
@@ -521,7 +521,7 @@ void drawradar_vicinity(playerent *p, int w, int h)
 	vec usecenter = vec(p->o).sub(rtr).sub(d4rc);
 	if(showradarvalues)
 	{
-		conoutf("vicinity @ gdim = %d", gdim);
+		conoutf("vicinity @ gdim = %d | scaleh = %.2f", gdim, scaleh);
 		conoutf("offd: %.2f [%.2f:%.2f]", offd, offx, offy);
 		conoutf("RTR: %.2f %.2f", rtr.x, rtr.y);
 		conoutf("RSD: %.2f %.2f", rsd.x, rsd.y);
@@ -550,6 +550,7 @@ void drawradar_vicinity(playerent *p, int w, int h)
 	{
 		glColor4f(1.0f, 1.0f, 1.0f, (sinf(lastmillis / 100.0f) + 1.0f) / 2.0f);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		float d2c = 1.6f * radarentsize/16.0f;
 		loopi(2) // flag items
 		{
 			flaginfo &f = flaginfos[i];
@@ -568,14 +569,14 @@ void drawradar_vicinity(playerent *p, int w, int h)
 			{
 				if(cpos.magnitude() < d2s)
 				{
-					cpos.mul(scaled);
+					cpos.mul(scaled);//.add(vec(d2c,-d2c,0));
+					//cpos.mul(scaled).add(vec(4*d2c,-4*d2c,0));
 					drawradarent(cpos.x, cpos.y, camera1->yaw, 3, m_ktf ? 2 : f.team, iconsize, false); // draw on entity pos
 				}
 			}
 			if(m_ktf && f.state == CTFF_IDLE) continue;
 			if(f.state==CTFF_STOLEN)
 			{
-				float d2c = 1.6f * radarentsize/16.0f;
 				vec apos(d2c, -d2c, 0);
 				if(f.actor)
 				{
