@@ -1,10 +1,10 @@
-The "header.bmp" logo was gifted to Rabid Viper Productions from Lewis Communications.
+The "startscreen.png" logo was gifted to Rabid Viper Productions from Lewis Communications.
 They allowed us to use and re-license it freely, in any way we wish.
 
 Some minor modifications were made and we now allow redistribution under the 
 "Attribution-NonCommercial-ShareAlike 3.0 Unported" Creative Commons
 (http://creativecommons.org/licenses/by-nc-sa/3.0/), with the additional clause, that
- you may not use it to misrepresent the origin of AssaultCube, or claim that you
+you may not use it to misrepresent the origin of AssaultCube, or claim that you
 created AssaultCube or any of the original AssaultCube package(s).
 
 This means you are free to share, copy, distribute, transmit and/or remix/adapt the
