@@ -617,6 +617,20 @@
   						<argument token="V" description="VALUE"/>
 					</arguments>
 				</command>
+        
+        <command name="add2list">
+          <description>Appends a new element to a list.</description>
+          <examples>
+            <example>
+              <code><![CDATA[tmp_list = []; add2list tmp_list Hello; add2list tmp_list world!; echo $tmp_list]]></code>
+              <explanation>Output: Hello world!</explanation>
+            </example>
+          </examples>
+          <arguments>
+            <argument token="A" description="the alias (list) to add to"/>
+            <argument token="E" description="the new element to add"/>
+          </arguments>
+        </command>
 
 			</identifiers>
 		</section>
@@ -4228,6 +4242,38 @@ Output:
 					</remarks>
 					<value token="N" description="the gamma value" minValue="30" maxValue="300" defaultValue="100"/>
 				</variable>
+        
+        <variable name="dyngamma">
+          <description>Enables or disables the per official map dynamic gamma system.</description>
+          <examples>
+            <example>
+              <code><![CDATA[dyngamma = 0]]></code>
+              <explanation>Output: disables the system</explanation>
+            </example>
+            <example>
+              <code><![CDATA[dyngamma = 1]]></code>
+              <explanation>Output: enables the system</explanation>
+            </example>
+          </examples>
+          <references>
+            <identifierReference identifier="gamma"/>
+            <identifierReference identifier="setgamma"/>
+          </references>
+        </variable>
+        
+        <command name="setgamma">
+          <description>Sets the current map's default dynamic gamma.</description>
+          <arguments>
+            <argument token="G" description="the gamma value" minValue="30" maxValue="300" defaultValue="100"/>
+          </arguments>
+          <remarks>
+            <remark>The setting will take affect automatically if dyngamma is enabled, upon future loads of that map. This command only works on official maps!</remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="dyngamma"/>
+            <identifierReference identifier="gamma"/>
+          </references>
+        </command>
 
 				<variable name="lighterror">
 					<description>Allows to finetune the amount of "error" the mipmapper/stripifier allow themselves for changing lightlevels.</description>
