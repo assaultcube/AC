@@ -692,6 +692,10 @@ void drawscores()
     glPopAttrib();
 }
 
+string enginestateinfo = "";
+void CSgetEngineState() { result(enginestateinfo); }
+COMMANDN(getEngineState, CSgetEngineState, ARG_NONE);
+
 VARP(clockdisplay,0,0,2);
 VARP(dbgpos,0,0,1);
 void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwater)
@@ -781,6 +785,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     extern void r_accuracy();
     if (!is_spect) r_accuracy();
     if(!hideconsole) renderconsole();
+	formatstring(enginestateinfo)("%d %d %d %d %d", curfps, lod_factor(), nquads, curvert, xtraverts);
     if(showstats)
     {
         if(showstats==2)

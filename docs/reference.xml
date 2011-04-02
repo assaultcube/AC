@@ -90,18 +90,17 @@
 				</command>
 
 				<command name="push">
-          <description>Temporarily redefines the value of an alias.</description>
+					<description>Temporarily redefines the value of an alias.</description>
 					<arguments>
 						<argument token="N" description="alias name"/>
 						<argument token="A" description="action"/>
 					</arguments>
-          <examples>
-          <example>
-            <code><![CDATA[p = 1; push p 2; echo $p]]></code>
-            <explanation>Output: 2
-            </explanation>
-          </example>
-          </examples>
+					<examples>
+						<example>
+							<code><![CDATA[p = 1; push p 2; echo $p]]></code>
+							<explanation>Output: 2</explanation>
+						</example>
+					</examples>
 					<references>
 						<identifierReference identifier="pop"/>
 					</references>
@@ -1019,6 +1018,25 @@
 					<arguments>
 						<argument token="S" description="the name of the map"/>
 					</arguments>
+				</command>
+
+				<command name="getEngineState">
+					<description>Returns a list of values describing the current engine (rendering) state.</description>
+					<remarks>
+						<remark>It will only be filled after the first frame was drawn.</remark>
+						<remark>The list is: FPS LOD WQD WVT EVT</remark>
+						<remark>FPS = Frames Per Second</remark>
+						<remark>LOD = Level Of Detail</remark>
+						<remark>WQD = World QuaD Count</remark>
+						<remark>WVT = World VerTex Count </remark>
+						<remark>EVT = Extra VerTex Count (HUD &amp; menu)</remark>
+					</remarks>
+					<examples>
+						<example>
+						<code><![CDATA[echo (getEngineState)
+						]]></code>
+						</example>
+					</examples>
 				</command>
 
 				<variable name="networkdebug">
