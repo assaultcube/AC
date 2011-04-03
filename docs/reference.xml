@@ -4917,6 +4917,13 @@ Output:
 						<argument token="CN" description="The player to assign to a team" valueNotes="Client number"/>
 					</arguments>
 				</command>
+        
+        <command name="forceme">
+          <description>Calls a vote to forceteam yourself to the enemy team.</description>
+          <references>
+            <identifierReference identifier="forceteam"/>
+          </references>
+        </command>
 
 				<command name="giveadmin">
 					<description>Gives admin state to the specified player.</description>
