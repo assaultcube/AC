@@ -1937,6 +1937,26 @@ bind PRINT [ if (strcmp $last_server "") [ remember_server ]
 						<remark>You won't see any further game chat or hear any more voice com messages from that player.</remark>
 					</remarks>
 				</command>
+        
+        <command name="ignoreall">
+          <description>Ignores all players currently on the server.</description>
+          <references>
+            <identifierReference identifier="ignore"/>
+            <identifierReference identifier="clearignored"/>
+            <identifierReference identifier="listignored"/>
+            <identifierReference identifier="unignoreall"/>
+          </references>
+        </command>
+        
+        <command name="unignoreall">
+          <description>Un-ignores all players currently on the server.</description>
+          <references>
+            <identifierReference identifier="ignore"/>
+            <identifierReference identifier="clearignored"/>
+            <identifierReference identifier="listignored"/>
+            <identifierReference identifier="ignoreall"/>
+          </references>
+        </command>
 
 				<command name="listignored">
 					<description>Print a list of all players that you are currently ignoring.</description>
