@@ -341,6 +341,15 @@
 					</arguments>
 					<return token="R" description="The random value" valueNotes="larger or equal 0 and smaller than A"/>
 				</command>
+        
+        <command name="rrnd">
+					<description>Ranged random value</description>
+					<arguments>
+						<argument token="A" description="the lowest value to return" valueNotes=""/>
+            <argument token="B" description="the upper limit of the random value" valueNotes=""/>
+					</arguments>
+					<return token="R" description="The random value" valueNotes="larger or equal to A and smaller than B"/>
+				</command>
 
 				<command name="strcmp">
 					<description>Determines if two strings are equal.</description>
@@ -3396,6 +3405,37 @@ Output:
         <command name="checkmapdependencies">
 					<description>Find what media the map depends on, this is used for mediapack providers.</description>
 				</command>
+        
+        <command name="genhex">
+          <description>Randomly generates a valid hexadecimal color value.</description>
+          <examples>
+            <example>
+              <code><![CDATA[fogcolour (genhex)]]></code>
+              <explanation>Example output: Trying hexadecimal color: 0x2FCAF1</explanation>
+            </example>
+          </examples>
+          <references>
+						<identifierReference identifier="fog"/>
+            <identifierReference identifier="fogcolour"/>
+					</references>
+        </command>
+        
+        <command name="genwc">
+          <description>Randomly generates a valid watercolour value.</description>
+          <examples>
+            <example>
+              <code><![CDATA[genwc]]></code>
+              <explanation>Example output: Trying water color: 2 17 29</explanation>
+            </example>
+          </examples>
+          <remarks>
+            <remark>You must be in edit-mode for this command to function.</remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="genhex"/>
+            <identifierReference identifier="watercolour"/>
+          </references>
+        </command>
 
 			</identifiers>
 		</section>
@@ -5459,20 +5499,6 @@ Output:
 						<argument token="C" description="The colour" valueNotes="Hexadecimal colour, default is 0x8099B3"/>
 					</arguments>
 				</command>
-        
-        <command name="genhex">
-          <description>Randomly generates a valid hexadecimal color value.</description>
-          <examples>
-            <example>
-              <code><![CDATA[fogcolour (genhex)]]></code>
-              <explanation>Example output: Trying hexadecimal color: 0x2FCAF1</explanation>
-            </example>
-          </examples>
-          <references>
-						<identifierReference identifier="fog"/>
-            <identifierReference identifier="fogcolour"/>
-					</references>
-        </command>
 
 				<command name="loadnotexture">
 					<description>Binds a texture to be used if a slot couldn't be loaded with a given textures path.</description>
