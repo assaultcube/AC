@@ -19,6 +19,7 @@ servernickblacklist nickblacklist;
 serverforbiddenlist forbiddenlist;
 serverpasswords passwords;
 serverinfofile infofiles;
+killmessagesfile killmessages;
 
 // server state
 bool isdedicated = false;
@@ -1461,7 +1462,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
         target->position.setsize(0);
         ts.state = CS_DEAD;
         ts.lastdeath = gamemillis;
-        if(!suic) logline(ACLOG_INFO, "[%s] %s %s%s %s", actor->hostname, actor->name, gib ? gib_message(gun) : "fragged", tk ? " their teammate" : "", target->name);
+        if(!suic) logline(ACLOG_INFO, "[%s] %s %s%s %s", actor->hostname, actor->name, killmessage(gun), tk ? " their teammate" : "", target->name);
         if(m_flags && targethasflag >= 0)
         {
             if(m_ctf)
@@ -3560,6 +3561,7 @@ void rereadcfgs(void)
     nickblacklist.read();
     forbiddenlist.read();
     passwords.read();
+	killmessages.read();
 }
 
 void loggamestatus(const char *reason)
@@ -4069,6 +4071,7 @@ void initserver(bool dedicated, int argc, char **argv)
         ipblacklist.init(scl.blfile);
         nickblacklist.init(scl.nbfile);
         forbiddenlist.init(scl.forbidden);
+		killmessages.init(scl.killmessages);
         infofiles.init(scl.infopath, scl.motdpath);
         infofiles.getinfo("en"); // cache 'en' serverinfo
         logline(ACLOG_VERBOSE, "holding up to %d recorded demos in memory", scl.maxdemos);

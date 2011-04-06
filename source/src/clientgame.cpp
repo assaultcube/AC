@@ -695,6 +695,41 @@ void dodamage(int damage, playerent *pl, playerent *actor, int gun, bool gib, bo
     else audiomgr.playsound(S_PAIN1+rnd(5), pl);
 }
 
+void setkillmessage(int gun, bool gib, const char *message)
+{
+	if(gun < 0 || gun >= NUMGUNS)
+	{
+		conoutf("invalid gun specified");
+		return;
+	}
+	if(strlen(message)==0)
+	{
+		conoutf("invalid message");
+		return;
+	}
+	if(strlen(message)>MAXKILLMSGLEN)
+	{
+		conoutf("message is too long (max len is %i)", MAXKILLMSGLEN);
+		return;
+	}
+	
+	if(gib) formatstring(gibmessages[gun])("%s", message);
+	else    formatstring(fragmessages[gun])("%s", message);
+}
+
+void fragmessage(const char *gun, const char *message)
+{
+	setkillmessage(atoi(gun), false, message);
+}
+
+void gibmessage(const char *gun, const char *message)
+{
+	setkillmessage(atoi(gun), true, message);
+}
+
+COMMAND(fragmessage, ARG_2STR);
+COMMAND(gibmessage, ARG_2STR);
+
 void dokill(playerent *pl, playerent *act, bool gib, int gun)
 {
     if(pl->state!=CS_ALIVE || intermission) return;
@@ -702,7 +737,8 @@ void dokill(playerent *pl, playerent *act, bool gib, int gun)
     string pname, aname, death;
     copystring(pname, pl==player1 ? "you" : colorname(pl));
     copystring(aname, act==player1 ? "you" : colorname(act));
-    copystring(death, gib ? gib_message(gun) : "fragged");
+	copystring(death, killmessage(gun, gib));
+	copystring(death, killmessage(gun, gib));
     void (*outf)(const char *s, ...) = (pl == player1 || act == player1) ? hudoutf : conoutf;
 
     if(pl==act)
