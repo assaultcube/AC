@@ -351,7 +351,8 @@ void checkmapdependencies(bool silent = false, bool details = false) // find req
             pch = strtok (hdr.mediareq,sep);
             while (pch != NULL)
             {
-                conoutf("http://www.26things.com/mrx/get.php?mpid=%s", pch);
+                conoutf("http://assault.cubers.net/cgi/mediapack.do?mpid=%s", pch);
+                //conoutf("http://www.26things.com/mrx/get.php?mpid=%s", pch);
                 pch = strtok (NULL, sep);
             }
         }
