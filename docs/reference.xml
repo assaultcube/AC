@@ -4367,14 +4367,14 @@ Output:
           <description>set the frag message corresponding to a weapon (appearing on the hud or in server logs)</description>
           <arguments>
             <argument token="G" description="the integer of the gun" valueNotes=" 0 = knife, etc." />
-            <argument token="M" description="the message you want to appear" valueNotes="ex : subgunned" />
+            <argument token="M" description="the message you want to appear" valueNotes="ex : sniped" />
           </arguments>
           <examples>
             <example>
               <code>fragmessage 5 sniped // set "sniped" message for frags with sniper. </code>
               <explanation>
              It will display "you sniped unarmed" on the hud when you frag unarmed with sniper.
-             In server logs you will get "[127.0.0.1] killer subgunned unarmed".</explanation>
+             In server logs you will get "[127.0.0.1] killer sniped unarmed".</explanation>
             </example>
           </examples>
           <remarks>
