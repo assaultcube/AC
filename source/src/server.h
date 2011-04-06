@@ -499,9 +499,3 @@ const char *teamnames_s[TEAM_NUM+1] = {"CLA", "RVSF", "CSPC", "RSPC", "SPEC", "v
 // default messages are hardcoded ! (in case there's a problem with cfgs)
 char fragmessages[NUMGUNS][MAXKILLMSGLEN] = { "", "busted", "shredded", "peppered", "sprayed", "punctured", "picked off", "busted", "", "busted" };
 char gibmessages[NUMGUNS][MAXKILLMSGLEN] = { "slashed", "", "", "splattered", "", "headshot", "", "", "gibbed", "" }; 
-
-inline char *killmessage(int gun, bool gib = false)
-{
-	if(gib) return gibmessages[gun];
-	else    return fragmessages[gun];
-}

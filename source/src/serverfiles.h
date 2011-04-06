@@ -905,8 +905,7 @@ struct killmessagesfile : serverconfigfile
 			l = p; p += strlen(p) + 1;
             l = strtok(l, sep);
 			
-			
-			char *message = "";
+			char *message;
             if(l)
             {
                 s = strtok(NULL, sep);
