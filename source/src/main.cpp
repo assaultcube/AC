@@ -1108,6 +1108,7 @@ int main(int argc, char **argv)
     exec("config/scontext.cfg");
     exec("config/locale.cfg");
     exec("config/keymap.cfg");
+	exec("config/killmessages.cfg");
     exec("config/menus.cfg");
     exec("config/scripts.cfg");
     exec("config/prefabs.cfg");
