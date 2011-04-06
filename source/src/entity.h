@@ -617,9 +617,13 @@ struct medalsst {bool assigned; int cn; int item;};
 #define MAXKILLMSGLEN 16
 extern char fragmessages[NUMGUNS][MAXKILLMSGLEN];
 extern char gibmessages[NUMGUNS][MAXKILLMSGLEN];
-extern inline char *killmessage(int gun, bool gib);
+inline char *killmessage(int gun, bool gib = false)
+{
+	if(gib) return gibmessages[gun];
+	else    return fragmessages[gun];
+}
 
-// deprecated ?!
+// TODO : remove when custom kill messages feature is finished (2011apr06,lucas)
 inline const char * gib_message(int gun)
 {
     switch (gun)
