@@ -887,3 +887,85 @@ struct serverinfofile
         return getinfocache(motdbase, "en");
     }
 };
+
+struct killmessagesfile : serverconfigfile
+{
+	void init(const char *name) { serverconfigfile::init(name); }
+	void read()
+	{
+		if(getfilesize(filename) == filelen) return;
+        if(!load()) return;
+
+        char *l, *s, *p = buf;
+		const char *sep = " \"";
+		int line = 0;
+        logline(ACLOG_VERBOSE,"reading kill messages file '%s'", filename);
+        while(p < buf + filelen)
+		{
+			l = p; p += strlen(p) + 1;
+            l = strtok(l, sep);
+			
+			
+			char *message = "";
+            if(l)
+            {
+                s = strtok(NULL, sep);
+				if(s && (!strcmp(l, "fragmessage") || !strcmp(l, "gibmessage")))
+                {
+					int errors = 0;
+                    int gun = atoi(s);
+					
+                    s += strlen(s) + 1;
+					while(s[0] == ' ') s++;
+					int hasquotes = strspn(s, "\"");
+					s += hasquotes;
+                    message = s;
+					// TODO : what's following is too much complicated for nothing. 
+					// it has to remove ending char (space, or quote if there was a first quote)
+					char endingchar = ' ';
+					char *end;
+					
+					if(hasquotes) endingchar = '"';
+					
+					end = strchr(message, endingchar);
+
+					if(end) message[end-message] = '\0';
+					else
+					{
+						if(hasquotes)
+						{
+							logline(ACLOG_INFO, " error in line %i, ending quote missing (%s)", line, message);
+							errors++;
+						}
+					}
+					
+					if(gun < 0 || gun >= NUMGUNS)
+					{
+						logline(ACLOG_INFO, " error in line %i, invalid gun : %i", line, gun);
+						errors++;
+					}
+					if(strlen(message)>MAXKILLMSGLEN)
+					{
+						logline(ACLOG_INFO, " error in line %i, too long message : string length is %i, max allowed i %i", line, strlen(message), MAXKILLMSGLEN);
+						errors++;
+					}
+					if(!errors)
+					{
+						if(!strcmp(l, "fragmessage"))
+						{
+							formatstring(fragmessages[gun])("%s", message);
+							logline(ACLOG_VERBOSE, " added msg '%s' for frags with weapon %i ", message, gun);
+						}
+						else
+						{
+							formatstring(gibmessages[gun])("%s", message);
+							logline(ACLOG_VERBOSE, " added msg '%s' for gibs with weapon %i ", message, gun);
+						}
+					}
+                    s = NULL;
+					line++;
+				}
+			}
+		}
+	}
+};

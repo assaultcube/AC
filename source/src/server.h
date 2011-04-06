@@ -495,3 +495,13 @@ guninfo guns[NUMGUNS] =
 const char *teamnames[TEAM_NUM+1] = {"CLA", "RVSF", "CLA-SPECT", "RVSF-SPECT", "SPECTATOR", "void"};
 const char *teamnames_s[TEAM_NUM+1] = {"CLA", "RVSF", "CSPC", "RSPC", "SPEC", "void"};
 
+// for both client and server
+// default messages are hardcoded ! (in case there's a problem with cfgs)
+char fragmessages[NUMGUNS][MAXKILLMSGLEN] = { "", "busted", "shredded", "peppered", "sprayed", "punctured", "picked off", "busted", "", "busted" };
+char gibmessages[NUMGUNS][MAXKILLMSGLEN] = { "slashed", "", "", "splattered", "", "headshot", "", "", "gibbed", "" }; 
+
+inline char *killmessage(int gun, bool gib = false)
+{
+	if(gib) return gibmessages[gun];
+	else    return fragmessages[gun];
+}

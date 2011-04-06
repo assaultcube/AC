@@ -614,6 +614,12 @@ public:
 enum {MD_FRAGS = 0, MD_DEATHS, END_MDS};
 struct medalsst {bool assigned; int cn; int item;};
 
+#define MAXKILLMSGLEN 16
+extern char fragmessages[NUMGUNS][MAXKILLMSGLEN];
+extern char gibmessages[NUMGUNS][MAXKILLMSGLEN];
+extern inline char *killmessage(int gun, bool gib);
+
+// deprecated ?!
 inline const char * gib_message(int gun)
 {
     switch (gun)
