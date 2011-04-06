@@ -738,7 +738,6 @@ void dokill(playerent *pl, playerent *act, bool gib, int gun)
     copystring(pname, pl==player1 ? "you" : colorname(pl));
     copystring(aname, act==player1 ? "you" : colorname(act));
 	copystring(death, killmessage(gun, gib));
-	copystring(death, killmessage(gun, gib));
     void (*outf)(const char *s, ...) = (pl == player1 || act == player1) ? hudoutf : conoutf;
 
     if(pl==act)
