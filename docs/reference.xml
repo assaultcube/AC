@@ -1381,6 +1381,7 @@ echo foo
         
         <scriptalias name="addOnQuit">
           <description>Execute a command or block of code on quit.</description>
+          <value token="A" description="the command or block of code to execute"/>
           <references>
             <identifierReference identifier="addListOnQuit"/>
           </references>
