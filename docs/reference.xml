@@ -7,13 +7,13 @@
 -->
 
 <!--<?xml-stylesheet type="text/xsl" href="transformations/cuberef2cubescript.xslt"?>-->
-<?xml-stylesheet type="text/xsl" href="transformations/cuberef2xhtml.xslt"?>  
+<?xml-stylesheet type="text/xsl" href="transformations/cuberef2xhtml.xslt"?>
 
-<cuberef 
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-	xmlns="http://cubers.net/Schemas/CubeRef" 
-	name="AssaultCube Reference" 
-	version="v1.0" 
+<cuberef
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://cubers.net/Schemas/CubeRef"
+	name="AssaultCube Reference"
+	version="v1.0"
 	xsi:schemaLocation="http://cubers.net/Schemas/CubeRef schemas/cuberef.xsd">
 	<description>This reference describes the commands and variables available in AssaultCube.</description>
 	<!--
@@ -359,7 +359,7 @@
             <identifierReference identifier="strstr"/>
           </references>
 				</command>
-        
+
         <command name="strstr">
           <description>Determines if string B was found in string A.</description>
           <examples>
@@ -377,7 +377,7 @@
             <identifierReference identifier="strcmp"/>
           </references>
         </command>
-        
+
         <command name="strlen">
 					<description>Returns the length (in characters, including whitespace) of string S.</description>
 					<examples>
@@ -528,7 +528,7 @@
 						<argument token="L" description="the list"/>
 					</arguments>
 				</command>
-        
+
         <command name="findcn">
 					<description>find client number (cn)</description>
 					<arguments>
@@ -583,7 +583,7 @@
 					</example>
 					</examples>
 				</command>
-        
+
         <command name="c">
           <description>Adds color to a string.</description>
           <examples>
@@ -599,7 +599,7 @@
             <identifierReference identifier="cncolumncolor"/>
           </references>
         </command>
-        
+
         <command name="l0">
 					<description>leading zeros for the number V to make it W chars wide</description>
           <examples>
@@ -617,7 +617,7 @@
   						<argument token="V" description="VALUE"/>
 					</arguments>
 				</command>
-        
+
         <command name="add2list">
           <description>Appends a new element to a list.</description>
           <examples>
@@ -653,7 +653,7 @@
             <identifierReference identifier="getscrext"/>
           </references>
 				</variable>
-        
+
         <command name="getscrext">
           <description>Returns the file extension of the client's current screenshottype setting.</description>
           <examples>
@@ -684,7 +684,7 @@
 					</remarks>
 					<value token="N" description="Compression level" minValue="0" maxValue="9" defaultValue="9" />
 				</variable>
-                
+
                 <command name="soundtest">
 					<description>Plays all hardcoded sounds in order.</description>
 				</command>
@@ -850,7 +850,7 @@
             <identifierReference identifier="onrelease"/>
           </references>
 				</command>
-        
+
         <command name="megabind">
           <description>Binds a key to many different actions depending on the current game state.</description>
           <examples>
@@ -970,7 +970,7 @@
 						<key alias="F12"/>
 					</defaultKeys>
 				</command>
-        
+
         <command name="mapshot">
 					<description>save an image of the entire radar-overview of the map.</description>
 				</command>
@@ -1117,7 +1117,7 @@
 					<description>Toggles use of acronyms instead of full modenames in the serverbrowser.</description>
 					<value token="B" description="" minValue="0" maxValue="1" defaultValue="0"/>
 				</variable>
-        
+
         <variable name="getmodeacr">
           <description>Returns the current game mode's acronym.</description>
           <examples>
@@ -1250,7 +1250,7 @@ start_intermission = [
 	echo "INTERMISSION - STATISTICS TIME"
 	loop p 255 [
 		pn = (findpn $p)
-		if (strcmp $pn "") [ ] [ 
+		if (strcmp $pn "") [ ] [
 			echo (concatword Player $p ":") (pstat_score $p) ":" (pstat_weap $p)
 		]
 	]
@@ -1317,7 +1317,7 @@ addOnLoadAlways [
 					  <identifierReference identifier="mapstartonce"/>
 					</references>
 				</scriptalias>
-        
+
         <scriptalias name="onDeathOther">
 					<description>If this alias exists it will be run every time anybody but yourself dies.</description>
 					<references>
@@ -1378,7 +1378,7 @@ echo foo
 					</example>
 					</examples>
 				</scriptalias>
-        
+
         <scriptalias name="addOnQuit">
           <description>Execute a command or block of code on quit.</description>
           <value token="A" description="the command or block of code to execute"/>
@@ -1386,7 +1386,7 @@ echo foo
             <identifierReference identifier="addListOnQuit"/>
           </references>
         </scriptalias>
-        
+
         <scriptalias name="addListOnQuit">
           <description>Deletes a list of aliases (from saved.cfg) on quit.</description>
           <examples>
@@ -1525,7 +1525,7 @@ echo (pstat_weap 0)
 						<key alias="V" description="opens the voicecom menu, use number keys for your choice"/>
 					</defaultKeys>
 				</command>
-        
+
         <variable name="voicecomsounds">
 					<description>Enables or disables voicecom audio.</description>
 					<value token="N" description="voicecom sounds" minValue="0" maxValue="2" defaultValue="1" />
@@ -2357,7 +2357,7 @@ Output:
 		if (< $gts 10) [ gts = (concatword 0 $gts) ] [ ]
 		gtm = (div $gsr 60)
 		if (< $gtm 10) [ gtm = (concatword 0 $gtm) ] [ ]
-		echo (concatword $gtm : $gts) remaining 
+		echo (concatword $gtm : $gts) remaining
 	] [
 		echo gametime not updated yet
 	]
@@ -2413,7 +2413,7 @@ Output:
 					<description>Determines if the mini-map should be shown on screen.</description>
 					<value token="B" description="show mini-map" minValue="0" maxValue="1" defaultValue="0"/>
 				</variable>
-        
+
         <variable name="showmapbackdrop">
 					<description>change wether to have a see-through map overview (0), or render it on a black backdrop (1) or a combination of both (2)</description>
 					<value token="B" description="backdrop-style" minValue="0" maxValue="2" defaultValue="0" />
@@ -2428,7 +2428,7 @@ Output:
 					<description>Indicates if the footsteps sound should be played</description>
 					<value token="B" description="enable footsteps" minValue="0" maxValue="1" defaultValue="1" valueNotes="1 (true), 0 (false)"/>
 				</variable>
-        
+
         <variable name="localfootsteps">
 					<description>Indicates if the footsteps sound for the local player should be played</description>
 					<value token="B" description="enable footsteps" minValue="0" maxValue="1" defaultValue="1" valueNotes="1 (true), 0 (false)"/>
@@ -2444,7 +2444,7 @@ Output:
 					</remarks>
 					<value token="T" description="time span" minValue="5" maxValue="4000" defaultValue="15"/>
 				</variable>
-        
+
         <variable name="hitsound">
 					<description>Plays a sound upon every successful hit if enabled.</description>
 					<value token="B" description="off OR on" minValue="0" maxValue="1" defaultValue="0" valueNotes="1 (true), 0 (false)" />
@@ -2459,7 +2459,7 @@ Output:
 					</remarks>
 					<value token="N" description="the game speed" minValue="10" maxValue="1000" defaultValue="100"/>
 				</variable>
-        
+
         <variable name="akimboendaction">
 					<description>Sets the behavior of weapon switching upon akimbo expiration.</description>
 					<value token="N" description="akimbo end action" minValue="0" maxValue="2" defaultValue="0" />
@@ -2632,7 +2632,7 @@ Output:
 					</arguments>
 				</command>
 
-        
+
 
 				<command name="equalize">
 					<description>Levels the floor/ceiling of the selection.</description>
@@ -2757,7 +2757,7 @@ Output:
 					<remark>hotkey v</remark>
 					</remarks>
 				</command>
-                
+
         <command name="countwalls">
             <description>Returns the number of solid walls contained into the current selection.</description>
             <arguments>
@@ -3382,7 +3382,7 @@ Output:
 					</references>
 					<value token="N" description="the brightness of the scene" minValue="1" maxValue="100" defaultValue="4"/>
 				</variable>
-        
+
         <command name="checkmapdependencies">
 					<description>Find what media the map depends on, this is used for mediapack providers.</description>
 				</command>
@@ -3679,7 +3679,7 @@ Output:
 				</variable>
 
 				<variable name="maxcon">
-					<description>Sets the total number of text lines from the console to store as history.</description>        
+					<description>Sets the total number of text lines from the console to store as history.</description>
 					<value token="V" description="" minValue="10" maxValue="1000" defaultValue="200"/>
 				</variable>
 
@@ -3729,7 +3729,7 @@ Output:
 					<description>Turns on or off the display of messages at the bottom of the screen.</description>
 					<value token="V" description="enable/disable messages" minValue="0" maxValue="1" defaultValue="0"/>
 				</variable>
-        
+
         <variable name="hudextras">
 					<description>Shows extra gameplay messages on certain events if connected to a server.</description>
 					<value token="N" description="enable/disable extra gameplay messages" minValue="0" maxValue="3" defaultValue="0"/>
@@ -3872,7 +3872,7 @@ Output:
 					<description>Sets the icon size of the players shown in the radar and the minimap.</description>
 					<value token="V" description="size of icons inside radar" minValue="1" maxValue="64" defaultValue="4"/>
 				</variable>
-        
+
         <variable name="cncolumncolor">
 					<description>colour of CN column in scoreboard</description>
 					<value token="N" description="color" minValue="0" maxValue="9" defaultValue="5" />
@@ -3889,17 +3889,17 @@ Output:
             <argument valueNotes="9 (orange)"/>
           </arguments>
 				</variable>
-        
+
         <variable name="orderscorecolumns">
 					<description>Show the client number column on the scoreboard first?</description>
 					<value token="N" description="cn column order" minValue="0" maxValue="1" defaultValue="0" valueNotes="0 (false), 1 (true)" />
 				</variable>
-        
+
         <variable name="radarheight">
 					<description>change at what height you are floating in the radar-view</description>
 					<value token="H" description="height" minValue="20" maxValue="70" defaultValue="35" />
 				</variable>
-		    
+		
 			</identifiers>
 		</section>
 		<!-- Heads-Up Display Section ends -->
@@ -4066,7 +4066,7 @@ Output:
 					<description>Turn on and off the display of blood.</description>
 					<value token="V" description="Enable/Disable blood" minValue="0" maxValue="1" defaultValue="1"/>
 				</variable>
-        
+
         <variable name="gib">
 					<description>Enables or disables the gib animation entirely.</description>
 					<value token="B" description="off OR on" minValue="0" maxValue="1" defaultValue="1" valueNotes="0 (false), 1 (true)" />
@@ -4264,7 +4264,7 @@ Output:
 					</remarks>
 					<value token="N" description="the gamma value" minValue="30" maxValue="300" defaultValue="100"/>
 				</variable>
-        
+
         <variable name="dyngamma">
           <description>Enables or disables the per official map dynamic gamma system.</description>
           <examples>
@@ -4282,14 +4282,25 @@ Output:
             <identifierReference identifier="setgamma"/>
           </references>
         </variable>
-        
+
         <command name="setgamma">
           <description>Sets the current map's default dynamic gamma.</description>
+          <examples>
+            <example>
+              <code>ofc_gamma_list = [175 225 150 120 ...]</code>
+              <explanation>
+                Sets your custom gamma values for the per official map dynamic gamma system. If you are going to use this method,
+                you MUST include values for every existing official map. The list must be alphabetical and be the exact length of
+                the number of currrent official maps. Hint: use "echo $defaultmaps" and "echo (listlen $defaultmaps)".
+              </explanation>
+            </example>
+          </examples>
           <arguments>
             <argument token="G" description="the gamma value" minValue="30" maxValue="300" defaultValue="100"/>
           </arguments>
           <remarks>
             <remark>The setting will take affect automatically if dyngamma is enabled, upon future loads of that map. This command only works on official maps!</remark>
+            <remark>Rather than manually loading each official map and setting it's default gamma with this command, the entire list can be initialized via your autoexec.cfg like so:</remark>
           </remarks>
           <references>
             <identifierReference identifier="dyngamma"/>
@@ -4359,17 +4370,17 @@ Output:
 						<argument valueNotes="4 - Unrealistic"/>
 					</arguments>
 				</variable>
-        
+
         <variable name="damagescreen">
 					<description>show the blood-spat overlay when receiving damage?</description>
 					<value token="N" description="damagescreen" minValue="0" maxValue="1" defaultValue="1" valueNotes="0 (false), 1 (true)" />
 				</variable>
-        
+
         <variable name="damagescreenalpha">
 					<description>if overlay of blood-spat, at what blending (transparency) level?</description>
 					<value token="N" description="damagescreen transparency" minValue="1" maxValue="100" defaultValue="45" />
 				</variable>
-        
+
         <variable name="damagescreenfactor">
 					<description>if overlay of blood-spat, use which factor?</description>
 					<value token="N" description="damagescreen factor" minValue="1" maxValue="100" defaultValue="7" />
@@ -4379,7 +4390,7 @@ Output:
 					<description>if overlay of blood-spat, at what speed does it fade?</description>
 					<value token="N" description="damagescreen fade" minValue="0" maxValue="1000" defaultValue="125" />
 				</variable>
-        
+
         <variable name="popdeadplayers">
 					<description>make dead players instantly pop out of existence, instead of falling over and sinking into the ground.</description>
 					<value token="B" description="BOOL" minValue="0" maxValue="1" defaultValue="0" />
@@ -4414,7 +4425,7 @@ Output:
             </remark>
           </remarks>
         </command>
-        
+
         <variable name="maploaditemlength">
 					<description>change at what position to truncate the map title string</description>
 					<value token="N" description="chars" minValue="0" maxValue="255" defaultValue="46" />
@@ -4479,7 +4490,7 @@ Output:
 						<argument token="A" description="audible?" valueNotes="(mute) 0 || 1 (unmute)"/>
 					</arguments>
 				</command>
-        
+
         <command name="soundmuted">
 					<description>Returns 1 if sound A is muted, else 0.</description>
           <examples>
@@ -4969,7 +4980,7 @@ Output:
 						<argument token="CN" description="The player to assign to a team" valueNotes="Client number"/>
 					</arguments>
 				</command>
-        
+
         <command name="forceme">
           <description>Calls a vote to forceteam yourself to the enemy team.</description>
           <references>
@@ -5191,7 +5202,7 @@ Output:
 						<identifierReference identifier="ts"/>
 						<identifierReference identifier="ctf"/>
 						<identifierReference identifier="pf"/>
-						<!-- 
+						<!--
 						<identifierReference identifier="btdm"/>
 						<identifierReference identifier="bdm"/>
 						-->
@@ -5668,7 +5679,7 @@ Output:
 					  <identifierReference identifier="positiontype"/>
 					</references>
 				</command>
-        
+
 				<variable name="positiontype">
 					<description>0: int, 1: float</description>
 					<value token="T" description="TYPE" minValue="0" maxValue="1" defaultValue="1" />
@@ -5685,7 +5696,7 @@ Output:
 					  <identifierReference identifier="demonameformat"/>
 					</references>
 				</command>
-        
+
 				<command name="getdemotimeformat">
 					<description>returns the currently used formatstring for demo timestamp</description>
 					<references>
@@ -5694,7 +5705,7 @@ Output:
 					  <identifierReference identifier="demonameformat"/>
 					</references>
 				</command>
-        
+
 				<command name="demonameformat">
 					<description>set the formatstring for demo filenames - default: TODO (when stable)</description>
 					<arguments>
@@ -5715,7 +5726,7 @@ Output:
 					  <identifierReference identifier="getdemonameformat"/>
 					</references>
 				</command>
-        
+
 				<command name="demotimeformat">
 					<description>set the formatstring for demo timestamp - default: TODO (when stable)</description>
 					<arguments>
@@ -5731,7 +5742,7 @@ Output:
 					  <webReference url="http://www.cplusplus.com/reference/clibrary/ctime/strftime/" name="C++-Reference"/>
 					</references>
 				</command>
-        
+
 				<variable name="demotimelocal">
 					<description>use localtime (1) or GMT (0)?</description>
 					<value token="B" description="BOOL" minValue="0" maxValue="1" defaultValue="0" />
