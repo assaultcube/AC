@@ -1378,6 +1378,27 @@ echo foo
 					</example>
 					</examples>
 				</scriptalias>
+        
+        <scriptalias name="addOnQuit">
+          <description>Execute a command or block of code on quit.</description>
+          <references>
+            <identifierReference identifier="addListOnQuit"/>
+          </references>
+        </scriptalias>
+        
+        <scriptalias name="addListOnQuit">
+          <description>Deletes a list of aliases (from saved.cfg) on quit.</description>
+          <examples>
+            <example>
+              <code><![CDATA[addListOnQuit "a b c"]]></code>
+              <explanation>Deletes aliases a, b, and c from existance and saved.cfg upon quit.</explanation>
+            </example>
+          </examples>
+          <value token="L" description="the list of aliases to delete"/>
+          <references>
+            <identifierReference identifier="addOnQuit"/>
+          </references>
+        </scriptalias>
 				
 				<scriptalias name="onDeathSelf">
 				  <description>This will be executed each time the player dies.</description>
