@@ -697,19 +697,15 @@ void dodamage(int damage, playerent *pl, playerent *actor, int gun, bool gib, bo
 
 void setkillmessage(int gun, bool gib, const char *message)
 {
+	if(!message || !*message)
+	{
+		result(killmessage(gun, gib));
+		return;
+	}
+
 	if(gun < 0 || gun >= NUMGUNS)
 	{
 		conoutf("invalid gun specified");
-		return;
-	}
-	if(strlen(message)==0)
-	{
-		conoutf("invalid message");
-		return;
-	}
-	if(strlen(message)>MAXKILLMSGLEN)
-	{
-		conoutf("message is too long (max len is %i)", MAXKILLMSGLEN);
 		return;
 	}
 	
