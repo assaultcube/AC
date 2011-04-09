@@ -619,6 +619,8 @@ extern char fragmessages[NUMGUNS][MAXKILLMSGLEN];
 extern char gibmessages[NUMGUNS][MAXKILLMSGLEN];
 inline char *killmessage(int gun, bool gib = false)
 {
+	if(gun<0 || gun>=NUMGUNS) return "";
+
 	if(gib) return gibmessages[gun];
 	else    return fragmessages[gun];
 }
