@@ -850,10 +850,10 @@ const char *rndmapname()
     static const char * const mapnames[] = {
         "ac_aqueous",  "ac_arabian",  "ac_arctic",  "ac_arid", "ac_complex",
         "ac_depot",  "ac_desert",  "ac_desert2", "ac_desert3",  "ac_douze",
-        "ac_elevation",  "ac_gothic",  "ac_iceroad",  "ac_ingress", "ac_keller",
-        "ac_mines",  "ac_outpost",  "ac_power",  "ac_rattrap",  "ac_scaffold",
-        "ac_shine",  "ac_snow",  "ac_sunset",  "ac_toxic",  "ac_urban",
-        "ac_werk",
+        "ac_edifice",  "ac_elevation",  "ac_gothic",  "ac_iceroad",  "ac_industrial",
+        "ac_ingress",  "ac_keller",  "ac_mines",  "ac_outpost",  "ac_power",
+        "ac_rattrap",  "ac_scaffold",  "ac_shine",  "ac_snow",  "ac_stellar",
+        "ac_sunset",  "ac_toxic",  "ac_urban",  "ac_werk",
     };
     int l = sizeof(mapnames)/sizeof(mapnames[0]);
     int n = rnd(l);
