@@ -10,8 +10,8 @@ void cleanup(char *msg)         // single program exit point;
         audiomgr.soundcleanup();
         cleanupserver();
 
-        extern void setdefaultgamma();
-        setdefaultgamma();
+        extern void cleargamma();
+        cleargamma();
     }
     SDL_ShowCursor(1);
     if(msg)
@@ -485,26 +485,25 @@ void setresdata(char *s, enet_uint32 c)
 
 COMMAND(screenres, ARG_2INT);
 
+static int curgamma = 100;
 VARFP(gamma, 30, 100, 300,
 {
+    if(gamma == curgamma) return;
+    curgamma = gamma;
     float f = gamma/100.0f;
-    if(SDL_SetGamma(f,f,f)==-1)
-    {
-        conoutf("Could not set gamma (card/driver doesn't support it?)");
-        conoutf("sdl: %s", SDL_GetError());
-    }
+    if(SDL_SetGamma(f,f,f)==-1) conoutf("Could not set gamma: %s", SDL_GetError());
 });
 
-void setdefaultgamma()
+void cleargamma()
 {
-    SDL_SetGamma(1, 1, 1);
+    if(curgamma != 100) SDL_SetGamma(1, 1, 1);
 }
 
-void resetgamma()
+void restoregamma()
 {
-    float f = gamma/100.0f;
-    if(f==1) return;
-    setdefaultgamma();
+    if(curgamma == 100) return;
+    float f = curgamma/100.0f;
+    SDL_SetGamma(1, 1, 1);
     SDL_SetGamma(f, f, f);
 }
 
@@ -626,7 +625,7 @@ void resetgl()
         fatal("failed to reload core texture");
     loadingscreen();
     c2skeepalive();
-    resetgamma();
+    restoregamma();
     c2skeepalive();
     reloadfonts();
     reloadtextures();
