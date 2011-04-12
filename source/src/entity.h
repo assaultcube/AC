@@ -617,23 +617,11 @@ struct medalsst {bool assigned; int cn; int item;};
 #define MAXKILLMSGLEN 16
 extern char fragmessages[NUMGUNS][MAXKILLMSGLEN];
 extern char gibmessages[NUMGUNS][MAXKILLMSGLEN];
-inline char *killmessage(int gun, bool gib = false)
+
+inline const char *killmessage(int gun, bool gib = false)
 {
 	if(gun<0 || gun>=NUMGUNS) return "";
 
 	if(gib) return gibmessages[gun];
 	else    return fragmessages[gun];
-}
-
-// TODO : remove when custom kill messages feature is finished (2011apr06,lucas)
-inline const char * gib_message(int gun)
-{
-    switch (gun)
-    {
-        case GUN_KNIFE: return "slashed";
-        case GUN_SNIPER: return "sniped"; // alternative: "eliminated"; // 2011jan17:ft: "headshot" is not an action, it's a noun, headshotted is not a word.
-        case GUN_SHOTGUN: return "splattered";
-        case GUN_GRENADE:
-        default: return "gibbed";
-    }
 }
