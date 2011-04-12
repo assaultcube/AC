@@ -135,7 +135,7 @@ struct servermapbuffer  // sending of maps between clients
 // provide maps by the server
 
 enum { MAP_NOTFOUND = 0, MAP_TEMP, MAP_CUSTOM, MAP_LOCAL, MAP_OFFICIAL, MAP_VOID };
-const char * const maplocstr[] = { "not found", "temporary", "custom", "local", "official", "void" };
+static const char * const maplocstr[] = { "not found", "temporary", "custom", "local", "official", "void" };
 #define readonlymap(x) ((x) >= MAP_CUSTOM)
 #define distributablemap(x) ((x) == MAP_TEMP || (x) == MAP_CUSTOM)
 
