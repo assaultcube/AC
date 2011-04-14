@@ -296,7 +296,6 @@ void audiomanager::updateplayerfootsteps(playerent *p)
     if(!p) return;
 
     const int footstepradius = 20;
-    static float lastoffset = 0;
 
     // find existing footstep sounds
     physentreference ref(p);
@@ -319,8 +318,6 @@ void audiomanager::updateplayerfootsteps(playerent *p)
             location *l = locs[i];
             if(!l) continue;
             if(l->playmillis+minplaytime>totalmillis) continue; // tolerate short interruptions by enforcing a minimal playtime
-            lastoffset = l->offset(); // save last offset
-            DEBUGVAR(lastoffset);
             l->drop();
         }
     }
