@@ -116,7 +116,8 @@ bool mmcollide(physent *d, float &hi, float &lo)           // collide with a map
     loopv(ents)
     {
         entity &e = ents[i];
-        if(e.type==CLIP || (e.type == PLCLIP && d->type == ENT_PLAYER))
+        // if(e.type==CLIP || (e.type == PLCLIP && d->type == ENT_PLAYER))
+        if (e.type==CLIP || (e.type == PLCLIP && (d->type == ENT_BOT || d->type == ENT_PLAYER))) // don't allow bots to hack themselves into plclips - Bukz 2011/04/14
         {
             if(fabs(e.x-d->o.x) < e.attr2 + d->radius && fabs(e.y-d->o.y) < e.attr3 + d->radius)
             {
