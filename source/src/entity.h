@@ -617,7 +617,6 @@ struct medalsst {bool assigned; int cn; int item;};
 #define MAXKILLMSGLEN 16
 extern char fragmessages[NUMGUNS][MAXKILLMSGLEN];
 extern char gibmessages[NUMGUNS][MAXKILLMSGLEN];
-
 inline const char *killmessage(int gun, bool gib = false)
 {
 	if(gun<0 || gun>=NUMGUNS) return "";

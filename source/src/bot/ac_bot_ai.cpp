@@ -102,7 +102,7 @@ entity *CACBot::SearchForEnts(bool bUseWPs, float flRange, float flMaxHeight)
           - distance
      */
 
-     float flNearestDist = 9999, flDist;
+     float flDist;
      entity *pNewTargetEnt = NULL;
      waypoint_s *pWptNearBot = NULL, *pBestWpt = NULL;
      short sScore, sHighestScore = 0;
@@ -216,7 +216,6 @@ entity *CACBot::SearchForEnts(bool bUseWPs, float flRange, float flMaxHeight)
                     pBestWpt = NULL; // Best ent so far doesn't need any waypoints
 
                sHighestScore = sScore;
-               flNearestDist = flDist;
                pNewTargetEnt = &ents[i];
           }
      }

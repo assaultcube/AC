@@ -34,7 +34,7 @@ inline void checkclientpos(client *cl)
 int getmaxarea(int inversed_x, int inversed_y, int transposed, int ml_factor, char *ml)
 {
     int ls = (1 << ml_factor);
-    int xi = 0, oxi = 0, xf = 0, oxf = 0, yi = 0, yf = 0, fx = 0, fy = 0;
+    int xi = 0, oxi = 0, xf = 0, oxf = 0, fx = 0, fy = 0;
     int area = 0, maxarea = 0;
     bool sav_x = false, sav_y = false;
 
@@ -65,7 +65,6 @@ int getmaxarea(int inversed_x, int inversed_y, int transposed, int ml_factor, ch
             if ( sav_y ) {                                              // if the last line was saved
                 if ( 2*oxi + MINELINE < 2*xf &&
                      2*xi + MINELINE < 2*oxf ) {                        // if the last line intersect this one
-                    yf = y;                                             // new end of area
                     area += xf - xi;
                 } else {
                     oxi = xi;                                           // new area vertices
@@ -75,7 +74,6 @@ int getmaxarea(int inversed_x, int inversed_y, int transposed, int ml_factor, ch
             else {
                 oxi = xi;
                 oxf = xf;
-                yi = y;                                                 // new begin of area
                 sav_y = true;                                           // accumulating lines from now
             }
         } else {

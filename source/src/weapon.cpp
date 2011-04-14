@@ -157,11 +157,9 @@ void createrays(vec &from, vec &to) // create random spread of rays for the shot
     spoke.orthogonal(dir);
     spoke.normalize();
     spoke.mul(f);
-    int circseg = -1;
     loopk(3)
     loopi(SGRAYS)
     {
-        circseg = k;
         int j = k * SGRAYS;
         sgr[j+i].ds = k==0 ? SGSEGDMG_O : (k==1? SGSEGDMG_M: SGSEGDMG_C);
         vec p(spoke);

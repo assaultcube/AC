@@ -709,8 +709,8 @@ void setkillmessage(int gun, bool gib, const char *message)
 		return;
 	}
 	
-	if(gib) formatstring(gibmessages[gun])("%s", message);
-	else    formatstring(fragmessages[gun])("%s", message);
+	if(gib) copystring(gibmessages[gun], message, sizeof(gibmessages[gun]));
+	else    copystring(fragmessages[gun], message, sizeof(fragmessages[gun]));
 }
 
 void fragmessage(const char *gun, const char *message)
