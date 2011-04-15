@@ -40,8 +40,12 @@ struct mapaction : serveraction
     bool mapok, queue;
     void perform()
     {
-        if (queue) return;
-        if(isdedicated && numclients() > 2 && smode >= 0 && smode != 1 && ( gamemillis > gamelimit/4 || scl.demo_interm ))
+        if(queue)
+        {
+            nextgamemode = mode;
+            copystring(nextmapname, map);
+        }
+        else if(isdedicated && numclients() > 2 && smode >= 0 && smode != 1 && ( gamemillis > gamelimit/4 || scl.demo_interm ))
         {
             forceintermission = true;
             nextgamemode = mode;
@@ -106,6 +110,7 @@ struct mapaction : serveraction
         else mapok = true;
         area |= EE_LOCAL_SERV; // local too
         formatstring(desc)("load map '%s' in mode '%s'", map, modestr(mode));
+        if(q) concatstring(desc, " (in the next game)");
     }
     ~mapaction() { DELETEA(map); }
 };

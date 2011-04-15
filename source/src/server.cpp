@@ -2176,12 +2176,7 @@ bool scallvote(voteinfo *v, ENetPacket *msg) // true if a regular vote was calle
     }
     else
     {
-        if ( v->type == SA_MAP && v->num >= GMODE_NUM )
-        {
-            map_queued = true;
-            nextgamemode = v->num-GMODE_NUM;
-            copystring(nextmapname, v->text);
-        }
+        if ( v->type == SA_MAP && v->num >= GMODE_NUM ) map_queued = true;
         if (!v->gonext) sendpacket(-1, 1, msg, v->owner); // FIXME in fact, all votes should go to the server, registered, and then go back to the clients
         else callvotepacket (-1, v);                      // also, no vote should exclude the caller... these would provide many code advantages/facilities
         scallvotesuc(v);                                  // but we cannot change the vote system now for compatibility issues... so, TODO
