@@ -1,26 +1,0 @@
-Colouring server descriptions & MOTD's requires the "line feed" 
-control character ("\f" which has the ASCII-code of 12) plus a 
-corresponding number which will define which colour you want.
-
-You can also change colours in-game by pressing CTRL and L and 
-then the corresponding number (see below).
-
-Stated below are the colours available:
---------------------------------------
-
-0
-	-- This is green.
-1
-	-- This is blue.
-2
-	-- This is gold.
-3
-	-- This is red.
-4
-	-- This is gray.
-5
-	-- This is white.
-6
-	-- This is brown.
-7
-	-- This is dark red.

@@ -1,4 +1,4 @@
-// extended serverinfo file
+// message of the day file
 // ========================
 // WARNING: You can NOT use CubeScript in here!!
 //
@@ -6,9 +6,15 @@
 // Comments are removed, also leading and trailing blanks and empty lines.
 //
 // Don't use more than 80 characters per line. You can use colors and TABs.
-// The available colors are: 0: green, 1: blue, 2: yellow, 3: red, 4: gray, 5: white, 6: dark brown, 7: dark red
+// Color usage: \f plus a corresponding number/character.
+// The available colors are: 0: green, 1: blue, 2: yellow, 3: red, 4: gray, 5: white,
+//                           6: dark brown, 7: dark red, 8: magenta, 9: orange,
+//                           A-D: red set, E-H: yellow set, I-L: green set,
+//                           M-P: cyan set, Q-T: blue set, U-X: magenta set
+//                           Y: light gray, Z: dark gray
 //
 // Example:
-//     BobsInstagibServer \f3play nicely!
+//     BobsInstagibServer \f3play nicely!\n
+//     Coloring a motd is fun: \f0Green\f5 and another \fLgreen\f5 from the set.\n
 //     contact me at a@b.c
 
