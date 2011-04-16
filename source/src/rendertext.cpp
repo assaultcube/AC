@@ -124,7 +124,7 @@ extern int shdsize, outline, win32msg;
 // ringbuf for utf8 character storage
 struct charringbuf : ringbuf<font::utf8charinfo, 32>
 {
-	// find by character code
+    // find by character code
     int findbycharcode(int code)
     {
         loopi(len)
@@ -190,7 +190,7 @@ void createutf8charset()
 
             SDL_Surface *fontsurface = TTF_RenderUTF8_Blended(ttffont, u, color);
 
-			// update row/column info
+            // update row/column info
             if(posx + fontsurface->w > charsetsurface->w)
             {
                 posx = 0;
@@ -199,11 +199,11 @@ void createutf8charset()
             if(posy + fontsurface->h > charsetsurface->h)
                 break;
 
-			// blit onto charset
+            // blit onto charset
             SDL_SetAlpha(fontsurface, 0, 0);
             blitsurface(charsetsurface, fontsurface, posx, posy);
 
-			// update charinfo properties
+            // update charinfo properties
             charinfo.x = posx;
             charinfo.y = posy;
             charinfo.w = fontsurface->w;
@@ -215,8 +215,8 @@ void createutf8charset()
 
         utf8font.tex = createtexturefromsurface("utf8charset", charsetsurface);
 
-		//extern void savepng(SDL_Surface *s, const char *name);
-		//savepng(t, "font.png");
+        //extern void savepng(SDL_Surface *s, const char *name);
+        //savepng(t, "font.png");
 
         SDL_FreeSurface(charsetsurface);
     }
@@ -224,33 +224,33 @@ void createutf8charset()
 
 void addutf8char(int code)
 {
-	// add to buf
-	font::utf8charinfo charinfo;
-	charinfo.code = code;
+    // add to buf
+    font::utf8charinfo charinfo;
+    charinfo.code = code;
     charinfo.x = charinfo.y = charinfo.w = charinfo.h = 0;
-	utf8chars.add(charinfo);
+    utf8chars.add(charinfo);
 
-	// update charset
-	createutf8charset();
+    // update charset
+    createutf8charset();
 }
 
 font::charinfo *loadchar(int code)
 {
-	int idx = utf8chars.findbycharcode(code);
-	if(idx >= 0)
-		return &utf8chars[idx];
+    int idx = utf8chars.findbycharcode(code);
+    if(idx >= 0)
+        return &utf8chars[idx];
 
-	// add
-	addutf8char(code);
+    // add
+    addutf8char(code);
 
-	idx = utf8chars.findbycharcode(code);
-	return &utf8chars[idx];
+    idx = utf8chars.findbycharcode(code);
+    return &utf8chars[idx];
 }
 */
 int draw_char(font &f, font::charinfo &info, int charcode, int x, int y)
 {
 /*
-	// fixme
+    // fixme
     glEnd();
     glBindTexture(GL_TEXTURE_2D, f.tex->id);
     glBegin(GL_QUADS);
@@ -273,38 +273,38 @@ int draw_char(font &f, font::charinfo &info, int charcode, int x, int y)
 // fixme
 font::charinfo &getcharinfo(int c)
 {
-	if(curfont->chars.inrange(c-curfont->skip))
-	{
-		font::charinfo &info = curfont->chars[c-curfont->skip];
-		return info;
-	}
-	//else { font::charinfo &info = *loadchar(c); return info; }
-	//return NULL;
-	font::charinfo &info = curfont->chars[0]; // 0 || (FONTCHARS-1)
+    if(curfont->chars.inrange(c-curfont->skip))
+    {
+        font::charinfo &info = curfont->chars[c-curfont->skip];
+        return info;
+    }
+    //else { font::charinfo &info = *loadchar(c); return info; }
+    //return NULL;
+    font::charinfo &info = curfont->chars[0]; // 0 || (FONTCHARS-1)
     return info;
 }
 */
 
 static int draw_char(int c, int x, int y)
 {
-	if(curfont->chars.inrange(c-curfont->skip))
-	{
-		font::charinfo &info = curfont->chars[c-curfont->skip];
+    if(curfont->chars.inrange(c-curfont->skip))
+    {
+        font::charinfo &info = curfont->chars[c-curfont->skip];
 
-		return draw_char(*curfont, info, c, x, y);
-	}
-	/*
-	else
-	{
-		// fixme
-		glEnd();
-		font::charinfo &info = *loadchar(c);
-		glBegin(GL_QUADS);
+        return draw_char(*curfont, info, c, x, y);
+    }
+    /*
+    else
+    {
+        // fixme
+        glEnd();
+        font::charinfo &info = *loadchar(c);
+        glBegin(GL_QUADS);
 
-		return draw_char(utf8font, info, c, x, y);
-	}
-	*/
-	return 0;
+        return draw_char(utf8font, info, c, x, y);
+    }
+    */
+    return 0;
 }
 
 
@@ -723,7 +723,7 @@ void draw_text_wip(const char *str, int left, int top, int r, int g, int b, int 
 */
 void reloadfonts()
 {
-	//createutf8charset();
+    //createutf8charset();
 
     enumerate(fonts, font, f,
         if(!reloadtexture(*f.tex)) fatal("failed to reload font texture");

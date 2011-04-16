@@ -143,7 +143,7 @@ struct gmenu
     bool (__cdecl *keyfunc)(void *, int, bool, int);
     char *initaction;
     char *usefont;
-	bool allowblink;
+    bool allowblink;
     const char *mdl;
     int anim, rotspeed, scale;
     int footlen;
@@ -501,10 +501,10 @@ struct font
         short x, y, w, h;
     };
 
-	struct utf8charinfo : charinfo
-	{
-		int code;
-	};
+    struct utf8charinfo : charinfo
+    {
+        int code;
+    };
 
     char *name;
     Texture *tex;
@@ -879,7 +879,7 @@ struct servercommandline
         // client: dtwhzbsave
         switch(arg[1])
         { // todo: gjlqGHJQUYZ
-        	case '-':
+            case '-':
                     if(!strncmp(arg, "--demofilenameformat=", 21))
                     {
                         demofilenameformat = arg+21;
@@ -890,7 +890,7 @@ struct servercommandline
                     }
                     else if(!strncmp(arg, "--demotimelocal=", 16))
                     {
-                    	int ai = atoi(arg+16);
+                        int ai = atoi(arg+16);
                         demotimelocal = ai == 0 ? 0 : 1;
                     }
                     else return false;
@@ -942,7 +942,7 @@ struct servercommandline
             case 'X': pwdfile = a; break;
             case 'B': blfile = a; break;
             case 'K': nbfile = a; break;
-			case 'E': killmessages = a; break;
+            case 'E': killmessages = a; break;
             case 'I': infopath = a; break;
             case 'o': filterrichtext(motd, a); break;
             case 'O': motdpath = a; break;
