@@ -3402,6 +3402,23 @@ Output:
         <command name="checkmapdependencies">
 					<description>Find what media the map depends on, this is used for mediapack providers.</description>
 				</command>
+        
+        <variable name="old_editbinds">
+          <description>Enables or disables the old editing binds.</description>
+          <examples>
+            <example>
+              <code><![CDATA[old_editbinds = 0]]></code>
+              <explanation>disables the old editing binds</explanation>
+            </example>
+            <example>
+              <code><![CDATA[old_editbinds = 1]]></code>
+              <explanation>enables the old editing binds</explanation>
+            </example>
+          </examples>
+          <remarks>
+            <remark>If disabled, an updated editing binds system is used, see the comments in "/config/resetbinds.cfg" for more info.</remark>
+          </remarks>
+        </variable>
 
 			</identifiers>
 		</section>
