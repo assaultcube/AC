@@ -10,7 +10,12 @@ i18nmanager::i18nmanager(const char *domain, const char *basepath) : domain(doma
 	textdomain(domain);
 	bind_textdomain_codeset(domain, "UTF-8"); // we use the utf-8 charset only
 
-	printf("current locale: %s\n", locale);
+	char lang[3];
+	copystring(lang, locale, 3);
+	filterlang(lang, lang);
+	alias("LANG", lang);
+
+	printf("current locale: %s (%s)\n", locale, lang);
 }
 
 // export gettext to cubescript
