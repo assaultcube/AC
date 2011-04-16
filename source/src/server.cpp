@@ -440,32 +440,31 @@ void recordpacket(int chan, ENetPacket *packet)
 #ifdef STANDALONE
 const char *currentserver(int i, bool internal) // = false) | ignored in standalone-version!
 {
-	static string curSRVinfo;
-	string r;
-	r[0] = '\0';
-	switch(i)
-	{
-		case 1: { copystring(r, scl.ip[0] ? scl.ip : "local"); break; } // IP
-		case 2: { copystring(r, scl.logident[0] ? scl.logident : "local"); break; } // HOST
-		case 3: { formatstring(r)("%d", scl.serverport); break; } // PORT
-		// the following are used by a client, a server will simply return empty strings for them
-		case 4:
-		case 5:
-		case 6:
-		case 7:
-		case 8:
-		{
-			break;
-		}
-		default:
-		{
-
-			formatstring(r)("%s %d", scl.ip[0] ? scl.ip : "local", scl.serverport);
-			break;
-		}
-	}
-	copystring(curSRVinfo, r);
-	return curSRVinfo;
+    static string curSRVinfo;
+    string r;
+    r[0] = '\0';
+    switch(i)
+    {
+        case 1: { copystring(r, scl.ip[0] ? scl.ip : "local"); break; } // IP
+        case 2: { copystring(r, scl.logident[0] ? scl.logident : "local"); break; } // HOST
+        case 3: { formatstring(r)("%d", scl.serverport); break; } // PORT
+        // the following are used by a client, a server will simply return empty strings for them
+        case 4:
+        case 5:
+        case 6:
+        case 7:
+        case 8:
+        {
+            break;
+        }
+        default:
+        {
+            formatstring(r)("%s %d", scl.ip[0] ? scl.ip : "local", scl.serverport);
+            break;
+        }
+    }
+    copystring(curSRVinfo, r);
+    return curSRVinfo;
 }
 #endif
 
@@ -575,10 +574,10 @@ void enddemorecord()
     sendservmsg(msg);
     logline(ACLOG_INFO, "Demo \"%s\" recorded.", d.info);
 
-	// 2011feb05:ft: previously these two static formatstrings were used ..
+    // 2011feb05:ft: previously these two static formatstrings were used ..
     //formatstring(d.file)("%s_%s_%s", timestring(), behindpath(smapname), modestr(gamemode, true)); // 20100522_10.08.48_ac_mines_DM.dmo
     //formatstring(d.file)("%s_%s_%s", modestr(gamemode, true), behindpath(smapname), timestring( true, "%Y.%m.%d_%H%M")); // DM_ac_mines.2010.05.22_1008.dmo
-	// .. now we use client-side parseable fileattribs
+    // .. now we use client-side parseable fileattribs
     int mPLAY = gamemillis >= gamelimit ? gamelimit/1000 : gamemillis/1000;
     int mDROP = gamemillis >= gamelimit ? 0 : (gamelimit - gamemillis)/1000;
     int iTIME = time(NULL);
@@ -3556,7 +3555,7 @@ void rereadcfgs(void)
     nickblacklist.read();
     forbiddenlist.read();
     passwords.read();
-	killmessages.read();
+    killmessages.read();
 }
 
 void loggamestatus(const char *reason)
@@ -4001,8 +4000,8 @@ string server_name = "unarmed server";
 
 void quitproc(int param)
 {
-	// this triggers any "atexit"-calls:
-	exit(param == 2 ? EXIT_SUCCESS : EXIT_FAILURE); // 3 is the only reply on Win32 apparently, SIGINT == 2 == Ctrl-C
+    // this triggers any "atexit"-calls:
+    exit(param == 2 ? EXIT_SUCCESS : EXIT_FAILURE); // 3 is the only reply on Win32 apparently, SIGINT == 2 == Ctrl-C
 }
 
 void initserver(bool dedicated, int argc, char **argv)
@@ -4066,7 +4065,7 @@ void initserver(bool dedicated, int argc, char **argv)
         ipblacklist.init(scl.blfile);
         nickblacklist.init(scl.nbfile);
         forbiddenlist.init(scl.forbidden);
-		killmessages.init(scl.killmessages);
+        killmessages.init(scl.killmessages);
         infofiles.init(scl.infopath, scl.motdpath);
         infofiles.getinfo("en"); // cache 'en' serverinfo
         logline(ACLOG_VERBOSE, "holding up to %d recorded demos in memory", scl.maxdemos);
@@ -4091,12 +4090,12 @@ void initserver(bool dedicated, int argc, char **argv)
         if (signal(SIGINT, quitproc) == SIG_ERR) logline(ACLOG_INFO, "Cannot handle SIGINT!");
         // kill -15 / probably process-manager on Win32 *shrug*
         if (signal(SIGTERM, quitproc) == SIG_ERR) logline(ACLOG_INFO, "Cannot handle SIGTERM!");
-		#ifndef WIN32
-		// kill -1
+        #ifndef WIN32
+        // kill -1
         if (signal(SIGHUP, quitproc) == SIG_ERR) logline(ACLOG_INFO, "Cannot handle SIGHUP!");
         // kill -9 is uncatchable - http://en.wikipedia.org/wiki/SIGKILL
         //if (signal(SIGKILL, quitproc) == SIG_ERR) logline(ACLOG_INFO, "Cannot handle SIGKILL!");
-		#endif
+        #endif
         logline(ACLOG_INFO, "dedicated server started, waiting for clients...");
         logline(ACLOG_INFO, "Ctrl-C to exit"); // this will now actually call the atexit-hooks below - thanks to SIGINT hooked above - noticed and signal-code-docs found by SKB:2011feb05:ft:
         atexit(enet_deinitialize);
