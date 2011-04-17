@@ -290,6 +290,32 @@ void _getalias(char *name)
 }
 COMMANDN(getalias, _getalias, ARG_1STR);
 
+void _getvar(char *name)
+{
+	string resstr;
+	resstr[0] = '\0';
+    ident *id = idents->access(name); 
+    if(id)
+	{
+		switch(id->type)
+		{
+			case ID_VAR:
+				formatstring(resstr)("%d", *id->storage.i);
+				break;
+			case ID_FVAR:
+				formatstring(resstr)("%.3f", *id->storage.f);
+				break;
+			case ID_SVAR:
+				formatstring(resstr)("%s", *id->storage.s);
+				break;
+
+			default: break;
+		}
+	}
+	result(resstr);
+}
+COMMANDN(getvar, _getvar, ARG_1STR);
+
 bool addcommand(const char *name, void (*fun)(), int narg)
 {
     if(!idents) idents = new hashtable<const char *, ident>;
