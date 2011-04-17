@@ -1016,7 +1016,20 @@
 					<defaultKeys>
 						<key alias="F12"/>
 					</defaultKeys>
+          <references>
+            <identifierReference identifier="cleanshot"/>
+          </references>
 				</command>
+        
+        <command name="cleanshot">
+          <description>Take a "clean" screenshot with no HUD items.</description>
+          <remarks>
+            <remark>Your current HUD configuration is stored into a buffer, and is re-enabled afterwards.</remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="screenshot"/>
+          </references>
+        </command>
 
         <command name="mapshot">
 					<description>save an image of the entire radar-overview of the map.</description>
