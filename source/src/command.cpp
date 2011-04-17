@@ -1054,6 +1054,7 @@ float mulf(float a, float b)   { return a*b; }            COMMANDN(*f, mulf, ARG
 float subf(float a, float b)   { return a-b; }            COMMANDN(-f, subf, ARG_2EXPF);
 float divf_(float a, float b)  { return b ? a/b : 0; }    COMMANDN(divf, divf_, ARG_2EXPF);
 float modf_(float a, float b)   { return b ? fmod(a, b) : 0; }    COMMANDN(modf, modf_, ARG_2EXPF);
+float powf_(float a, float b)   { return powf(a, b); }    COMMANDN(powf, powf_, ARG_2EXPF);
 int not_(int a) { return (int)(!a); }              COMMANDN(!, not_, ARG_1EXP);
 int equal(int a, int b) { return (int)(a==b); }    COMMANDN(=, equal, ARG_2EXP);
 int notequal(int a, int b) { return (int)(a!=b); } COMMANDN(!=, notequal, ARG_2EXP);
