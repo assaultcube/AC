@@ -152,6 +152,15 @@
 					</examples>
 				</command>
 
+				<command name="powf">
+					<description>Returns A raised to the power of B (floating-point)</description>
+					<arguments>
+						<argument token="A" description="the mantissa"/>
+						<argument token="B" description="the exponent"/>
+					</arguments>
+					<return token="F" description="A raised to the power of B"/>    
+				</command>
+
 				<command name="pop">
           <description>Resets a previously pushed alias to it's original value.</description>
           <arguments>
