@@ -1707,6 +1707,12 @@ echo (pstat_weap 0)
 					</arguments>
 				</command>
 
+				<command name="setfollowplayer">
+					<arguments>
+						<argument token="C" description="clientnum" valueNotes="which player to follow"/>
+					</arguments>
+				</command>
+
 				<command name="alive">
 					<description>Returns 1 if the local player is alive.</description>
 					<examples>

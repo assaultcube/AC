@@ -1460,6 +1460,21 @@ playerent *updatefollowplayer(int shiftdirection)
     return players[player1->followplayercn];
 }
 
+void setfollowplayer(int cn)
+{
+	// silently ignores invalid player-cn value passed
+	loopv(players) if(players[i])
+    {
+        if(player1->team != TEAM_SPECT && !watchingdemo && m_teammode && team_base(players[i]->team) != team_base(player1->team)) continue;
+		if(players[i]->clientnum == cn)
+		{
+		    if(player1->followplayercn != players[i]->clientnum) addmsg(SV_SPECTCN, "ri", cn);
+			player1->followplayercn = cn;
+		}
+    }
+
+}
+
 // set new spect mode
 void spectate(int mode)
 {
@@ -1526,6 +1541,7 @@ void changefollowplayer(int shift)
 COMMANDN(spectatemode, spectate, ARG_1INT);
 COMMAND(togglespect, ARG_NONE);
 COMMAND(changefollowplayer, ARG_1INT);
+COMMAND(setfollowplayer, ARG_1INT);
 
 int isalive() { return player1->state==CS_ALIVE ? 1 : 0; }
 COMMANDN(alive, isalive, ARG_IVAL);
