@@ -16,6 +16,35 @@ void mode(int n)
 }
 COMMAND(mode, ARG_1INT);
 
+void setbottimeout(int m, int t)
+{
+	if(m==1 || m==2)
+	{
+		if(t>0 && t<61)
+		{
+			switch(m)
+			{
+				case 1: 
+				{
+					extern int botmatch_dm_minremain;
+					botmatch_dm_minremain = t;
+					break;
+				}
+				case 2:
+				{
+					extern int botmatch_tm_minremain;
+					botmatch_tm_minremain = t;
+					break;
+				}
+				default: break;
+			}
+		}
+		else conoutf("time is not >=1 or <=60");
+	}
+	else conoutf("mode needs to be 1 for DeathMatch or 2 for TeamMode");
+}
+COMMAND(setbottimeout, ARG_2INT);
+
 bool intermission = false;
 int arenaintermission = 0;
 struct serverstate servstate = { 0 };
