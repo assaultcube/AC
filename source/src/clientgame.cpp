@@ -1492,16 +1492,12 @@ playerent *updatefollowplayer(int shiftdirection)
 void setfollowplayer(int cn)
 {
 	// silently ignores invalid player-cn value passed
-	loopv(players) if(players[i])
-    {
-        if(player1->team != TEAM_SPECT && !watchingdemo && m_teammode && team_base(players[i]->team) != team_base(player1->team)) continue;
-		if(players[i]->clientnum == cn)
-		{
-		    if(player1->followplayercn != players[i]->clientnum) addmsg(SV_SPECTCN, "ri", cn);
-			player1->followplayercn = cn;
-		}
-    }
+	if(players.inrange(cn))
+	{
+	    if(player1->followplayercn != players[cn]->clientnum) addmsg(SV_SPECTCN, "ri", cn);
+		player1->followplayercn = cn;
 
+	}
 }
 
 // set new spect mode
