@@ -106,6 +106,26 @@
 					</references>
 				</command>
 
+				<command name="getalias">
+					<description>return the value of the alias</description>
+					<arguments>
+						<argument token="N" description="alias name"/>
+					</arguments>
+					<references>
+						<identifierReference identifier="getvar"/>
+					</references>
+				</command>
+
+				<command name="getvar">
+					<description>return the value of the engine variable</description>
+					<arguments>
+						<argument token="N" description="identifier name"/>
+					</arguments>
+					<references>
+						<identifierReference identifier="getalias"/>
+					</references>
+				</command>
+
 				<command name="modf">
 					<description>Performs a floating-point modulo operation.</description>
 					<arguments>
@@ -5264,6 +5284,17 @@ Output:
 						<example><code><![CDATA[mode 8;map ac_mines;echo "Bot Deathmatch on ac_mines"]]></code></example>
 						<example><code><![CDATA[mode 5;map ac_shine;echo "CTF @ ac_shine"]]></code></example>
 					</examples>
+				</command>
+
+				<command name="setbottimeout">
+					<description>set the length of matches against bots</description>
+					<remarks>
+						<remark>The first argument <b>M</b> needs to be <b>1</b> for setting the DeathMatch-timeout or <b>2</b> for the TeamMode-timeout.</remark>
+					</remarks>
+					<arguments>
+						<argument token="M" description="mode" valueNotes="1||2"/>
+						<argument token="T" description="time" valueNotes="1..60"/>
+					</arguments>
 				</command>
 
 				<command name="osok">
