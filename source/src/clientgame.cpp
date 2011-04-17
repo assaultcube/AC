@@ -1494,9 +1494,11 @@ void setfollowplayer(int cn)
 	// silently ignores invalid player-cn value passed
 	if(players.inrange(cn))
 	{
-	    if(player1->followplayercn != players[cn]->clientnum) addmsg(SV_SPECTCN, "ri", cn);
-		player1->followplayercn = cn;
-
+		if(!(m_teammode && player1->team != TEAM_SPECT && !watchingdemo && team_base(players[cn]->team) != team_base(player1->team)))
+		{
+		    if(player1->followplayercn != players[cn]->clientnum) addmsg(SV_SPECTCN, "ri", cn);
+			player1->followplayercn = cn;
+		}
 	}
 }
 
