@@ -1263,6 +1263,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 {
                     player1->resetspec();
                     player1->state = CS_SPECTATE;
+					player1->team = TEAM_SPECT;
                 }
                 else
                 {
