@@ -126,6 +126,13 @@
 					</references>
 				</command>
 
+				<command name="isIdent">
+					<description>returns whether or not there is an identifier by that name</description>
+					<arguments>
+						<argument token="N" description="identifier name"/>
+					</arguments>
+				</command>
+
 				<command name="modf">
 					<description>Performs a floating-point modulo operation.</description>
 					<arguments>

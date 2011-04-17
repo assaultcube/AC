@@ -315,6 +315,7 @@ void _getvar(char *name)
 	result(resstr);
 }
 COMMANDN(getvar, _getvar, ARG_1STR);
+COMMANDN(isIdent, identexists, ARG_1EST);
 
 bool addcommand(const char *name, void (*fun)(), int narg)
 {
