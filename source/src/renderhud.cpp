@@ -44,6 +44,7 @@ void drawctficon(float x, float y, float s, int col, int row, float ts)
     if(!ctftex) ctftex = textureload("packages/misc/ctficons.png", 3);
     if(!htftex) htftex = textureload("packages/misc/htficons.png", 3);
     if(!ktftex) ktftex = textureload("packages/misc/ktficons.png", 3);
+	turn_on_transparency();
     if(m_htf)
     {
         if(htftex) drawicon(htftex, x, y, s, col, row, ts);
@@ -56,6 +57,7 @@ void drawctficon(float x, float y, float s, int col, int row, float ts)
     {
         if(ctftex) drawicon(ctftex, x, y, s, col, row, ts);
     }
+	glDisable(GL_BLEND);
 }
 
 void drawvoteicon(float x, float y, int col, int row, bool noblend)
