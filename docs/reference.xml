@@ -658,6 +658,26 @@
             <argument token="E" description="the new element to add"/>
           </arguments>
         </command>
+        
+        <command name="storesets">
+          <description>Generates an alias (list) of the current values for the given CVARs.</description>
+          <examples>
+            <example>
+              <code><![CDATA[storesets "sensitivity hudgun fov" tmp]]></code>
+              <explanation>Example result: stores "3.000 1 120" into alias "tmp".</explanation>
+            </example>
+          </examples>
+          <remarks>
+            <remark>Some idents cannot be stored via this command (e.g. curname), if an argument is given that cannot be used, the command will throw and error to notify you.</remark>
+          </remarks>
+          <arguments>
+            <argument token="L" description="the list of CVARs"/>
+            <argument token="A" description="the alias to store them in"/>
+          </arguments>
+          <references>
+            <identifierReference identifier="getvar"/>
+          </references>
+        </command>
 
 			</identifiers>
 		</section>
