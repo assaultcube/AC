@@ -55,6 +55,8 @@ vector<server_entity> sents;
 char *maplayout = NULL, *testlayout = NULL;
 int maplayout_factor, testlayout_factor, maplayoutssize;
 servermapbuffer mapbuffer;
+int botmatch_dm_minremain = 10; // deathmatch
+int botmatch_tm_minremain = 15; // teammode
 
 // cmod
 char *global_name;
@@ -1841,7 +1843,7 @@ void resetserver(const char *newname, int newmode, int newtime)
     smode = newmode;
     copystring(smapname, newname);
 
-    minremain = newtime >= 0 ? newtime : (m_teammode ? 15 : 10);
+    minremain = newtime >= 0 ? newtime : (m_botmode ? (m_teammode ? botmatch_tm_minremain : botmatch_dm_minremain) : (m_teammode ? 15 : 10));
     gamemillis = 0;
     gamelimit = minremain*60000;
     arenaround = arenaroundstartmillis = 0;
