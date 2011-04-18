@@ -677,7 +677,7 @@
             </example>
           </examples>
           <remarks>
-            <remark>Some idents cannot be stored via this command (e.g. curname), if an argument is given that cannot be used, the command will throw and error to notify you.</remark>
+            <remark>Some idents cannot be stored via this command (e.g. curname), if an argument is given that cannot be used, the command will throw an error to notify you.</remark>
           </remarks>
           <arguments>
             <argument token="L" description="the list of CVARs"/>
