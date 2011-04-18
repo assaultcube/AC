@@ -3884,6 +3884,11 @@ Output:
 					<value token="V" description="show/hide guns 3D models" minValue="0" maxValue="1" defaultValue="1"/>
 				</variable>
 
+				<variable name="hudgun">
+					<description>Turns on/off the display of the hudgun when spectating a player in first-person view. Works in demo mode as well.</description>
+					<value token="V" description="show/hide hudgun when spectating" minValue="0" maxValue="1" defaultValue="1"/>
+				</variable>
+
 				<variable name="showstats">
 					<description>Turns on/off display of FPS/rendering statistics on the HUD.</description>
 					<value token="N" description="0: Show no stats, 1: Only show FPS stats, 2: Show all stats" minValue="0" maxValue="2" defaultValue="1"/>

@@ -645,8 +645,9 @@ VARP(bulletairsounddestrad, 0, 8, 1000);
 
 void addshotline(dynent *pl, const vec &from, const vec &to)
 {
-    if(pl == player1 || !shotlinettl || !shotline) return;
-    bool fx = shotlinettl > 0 && (player1->isspectating() || !multiplayer(false)); // allow fx only in spect mode and locally
+    bool spectating = player1->isspectating();
+    if(pl == player1 || (spectating && camera1->type==ENT_PLAYER) || !shotlinettl || !shotline) return;
+    bool fx = shotlinettl > 0 && (spectating || !multiplayer(false)); // allow fx only in spect mode and locally
     if(rnd(3) && !fx) return; // show all shotlines when fx enabled
 
     int start = (camera1->o.dist(to) <= 10.0f) ? 8 : 5;

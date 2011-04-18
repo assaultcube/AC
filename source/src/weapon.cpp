@@ -716,7 +716,7 @@ void weapon::sendshoot(vec &from, vec &to, int millis)
     addmsg(SV_SHOOT, "ri2i3iv", millis, owner->weaponsel->type,
            (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF),
            hits.length(), hits.length()*sizeof(hitmsg)/sizeof(int), hits.getbuf());
-	player1->pstatshots[player1->weaponsel->type]++; //NEW
+    player1->pstatshots[player1->weaponsel->type]++; //NEW
 }
 
 bool weapon::modelattacking()
@@ -808,15 +808,16 @@ VARP(righthanded, 0, 1, 1); // flowtron 20090727
 
 void weapon::renderhudmodel(int lastaction, int index)
 {
+    playerent *p = owner;
     vec unitv;
-    float dist = worldpos.dist(owner->o, unitv);
+    float dist = worldpos.dist(p->o, unitv);
     unitv.div(dist);
 
-	weaponmove wm;
-	if(!intermission) wm.calcmove(unitv, lastaction);
+    weaponmove wm;
+    if(!intermission) wm.calcmove(unitv, p->lastaction, p);
     defformatstring(path)("weapons/%s", info.modelname);
-    bool emit = (wm.anim&ANIM_INDEX)==ANIM_GUN_SHOOT && (lastmillis - lastaction) < flashtime();
-    rendermodel(path, wm.anim|ANIM_DYNALLOC|(righthanded==index ? ANIM_MIRROR : 0)|(emit ? ANIM_PARTICLE : 0), 0, -1, wm.pos, player1->yaw+90, player1->pitch+wm.k_rot, 40.0f, wm.basetime, NULL, NULL, 1.28f);
+    bool emit = (wm.anim&ANIM_INDEX)==ANIM_GUN_SHOOT && (lastmillis - p->lastaction) < flashtime();
+    rendermodel(path, wm.anim|ANIM_DYNALLOC|(righthanded==index ? ANIM_MIRROR : 0)|(emit ? ANIM_PARTICLE : 0), 0, -1, wm.pos, p->yaw+90, p->pitch+wm.k_rot, 40.0f, wm.basetime, NULL, NULL, 1.28f);
 }
 
 void weapon::updatetimers(int millis)
@@ -922,7 +923,7 @@ void grenadeent::activate(const vec &from, const vec &to)
                (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF),
                0);
         audiomgr.playsound(S_GRENADEPULL, SP_HIGH);
-  		player1->pstatshots[GUN_GRENADE]++; //NEW
+        player1->pstatshots[GUN_GRENADE]++; //NEW
     }
 }
 
@@ -1132,18 +1133,18 @@ bool gun::attack(vec &targ)
     if(!mag)
     {
         audiomgr.playsoundc(S_NOAMMO);
-	    gunwait += 250;
-	    owner->lastattackweapon = NULL;
+        gunwait += 250;
+        owner->lastattackweapon = NULL;
         shots = 0;
         checkautoreload();
         return false;
     }
 
     owner->lastattackweapon = this;
-	shots++;
-	if(type==GUN_SUBGUN) flag4subgunDMGalt = !flag4subgunDMGalt;
+    shots++;
+    if(type==GUN_SUBGUN) flag4subgunDMGalt = !flag4subgunDMGalt;
 
-	if(!info.isauto) owner->attacking = false;
+    if(!info.isauto) owner->attacking = false;
 
     vec from = owner->o;
     vec to = targ;
@@ -1532,9 +1533,9 @@ void checkakimbo()
             // transfer ammo to pistol
             p.mag = min((int)p.info.magsize, max(a.mag, p.mag));
             p.ammo = max(p.ammo, p.ammo);
-			// fix akimbo magcontent
-			a.mag = 0;
-			a.ammo = 0;
+            // fix akimbo magcontent
+            a.mag = 0;
+            a.ammo = 0;
             if(player1->weaponsel->type==GUN_AKIMBO)
             {
 
@@ -1560,7 +1561,7 @@ void checkakimbo()
                     default: break;
                 }
             }
-	        if(player1->state != CS_DEAD) audiomgr.playsoundc(S_AKIMBOOUT);
+            if(player1->state != CS_DEAD) audiomgr.playsoundc(S_AKIMBOOUT);
         }
     }
 }
