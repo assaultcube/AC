@@ -676,11 +676,14 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 loopk(3) from[k] = s->o.v[k];
                 if(gun==GUN_SHOTGUN) createrays(from, to);
                 s->lastaction = lastmillis;
+                s->weaponchanging = 0;
                 s->mag[gun]--;
                 if(s->weapons[gun])
                 {
                     s->lastattackweapon = s->weapons[gun];
+                    s->weapons[gun]->gunwait = s->weapons[gun]->info.attackdelay;
                     s->weapons[gun]->attackfx(from, to, -1);
+                    s->weapons[gun]->reloading = 0;
                 }
                 s->pstatshots[gun]++; //NEW
                 break;
@@ -694,8 +697,13 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 int nademillis = getint(p);
                 if(!d) break;
                 d->lastaction = lastmillis;
+                d->weaponchanging = 0;
                 d->lastattackweapon = d->weapons[GUN_GRENADE];
-                if(d->weapons[GUN_GRENADE]) d->weapons[GUN_GRENADE]->attackfx(from, to, nademillis);
+                if(d->weapons[GUN_GRENADE])
+                {
+                    d->weapons[GUN_GRENADE]->attackfx(from, to, nademillis);
+                    d->weapons[GUN_GRENADE]->reloading = 0;
+                }
 				if(d!=player1) d->pstatshots[GUN_GRENADE]++; //NEW
                 break;
             }
@@ -708,6 +716,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 int bullets = magsize(gun)-p->mag[gun];
                 p->ammo[gun] -= bullets;
                 p->mag[gun] += bullets;
+                p->weapons[gun]->reloading = lastmillis;
+                p->weaponchanging = 0;
                 break;
             }
 

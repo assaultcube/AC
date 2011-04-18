@@ -808,6 +808,7 @@ void cleanupgl()
 int xtraverts;
 
 VARP(hudgun, 0, 1, 1);
+VARP(spechudgun, 0, 1, 1);
 
 void setperspective(float fovy, float aspect, float nearplane, float farplane)
 {
@@ -832,7 +833,7 @@ void drawhudgun(int w, int h, float aspect, int farplane)
 {
     sethudgunperspective(true);
 
-    if(hudgun && !player1->isspectating() && camera1->type==ENT_PLAYER)
+    if(hudgun && (spechudgun || !player1->isspectating()) && camera1->type==ENT_PLAYER)
     {
         playerent *p = (playerent *)camera1;
         if(p->state==CS_ALIVE) p->weaponsel->renderhudmodel();
