@@ -141,10 +141,10 @@ static const char * const maplocstr[] = { "not found", "temporary", "custom", "l
 
 int findmappath(const char *mapname, char *filename)
 {
+    if(!mapname[0]) return MAP_NOTFOUND;
     string tempname;
     if(!filename) filename = tempname;
     const char *name = behindpath(mapname);
-    if(!mapname[0]) return MAP_NOTFOUND;
     formatstring(filename)(SERVERMAP_PATH_BUILTIN "%s.cgz", name);
     path(filename);
     int loc = MAP_NOTFOUND;

@@ -3328,7 +3328,11 @@ void process(ENetPacket *packet, int sender, int chan)
                         }
                         int qmode = (mode >= GMODE_NUM ? mode - GMODE_NUM : mode);
                         if(mode==GMODE_DEMO) vi->action = new demoplayaction(newstring(text));
-                        else vi->action = new mapaction(newstring(vi->text), qmode, sender, qmode!=mode);
+                        else
+                        {
+                            char *vmap = newstring(vi->text ? behindpath(vi->text) : "");
+                            vi->action = new mapaction(vmap, qmode, sender, qmode!=mode);
+                        }
                         break;
                     }
                     case SA_KICK:
