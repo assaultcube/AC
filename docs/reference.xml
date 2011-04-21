@@ -1432,6 +1432,20 @@ addOnLoadAlways [
 					  <identifierReference identifier="onCallVote"/>
 					</references>
 				</scriptalias>
+        
+        <scriptalias name="onKill">
+          <description>If this alias exists it will be run every time you kill an enemy.</description>
+          <references>
+            <identifierReference identifier="onTK"/>
+          </references>
+        </scriptalias>
+        
+        <scriptalias name="onTK">
+          <description>If this alias exists it will be run every time you kill a teammate.</description>
+          <references>
+            <identifierReference identifier="onTK"/>
+          </references>
+        </scriptalias>
 
 				<scriptalias name="add2alias">
 				  <description>This will append the passed 2nd argument to any existing content of the alias named in the 1st argument. Several popular aliases have predefined shortcuts using this scriptalias: addOnQuit, addOnLoadOnce, addOnLoadAlways. Check config/scripts.cfg for possible omissions in that list.</description>
