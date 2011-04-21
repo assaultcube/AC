@@ -1443,7 +1443,7 @@ addOnLoadAlways [
         <scriptalias name="onTK">
           <description>If this alias exists it will be run every time you kill a teammate.</description>
           <references>
-            <identifierReference identifier="onTK"/>
+            <identifierReference identifier="onKill"/>
           </references>
         </scriptalias>
 
