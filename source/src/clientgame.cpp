@@ -770,12 +770,20 @@ void dokill(playerent *pl, playerent *act, bool gib, int gun)
     else if(isteam(pl->team, act->team))
     {
         if(pl==player1) outf("\f2you were %s by teammate %s", death, aname);
-        else outf("%s%s %s teammate %s", act==player1 ? "\f3" : "\f2", aname, death, pname);
+        else
+        {
+          outf("%s%s %s teammate %s", act==player1 ? "\f3" : "\f2", aname, death, pname);
+          if(identexists("onTK")) execute("onTK");
+        }
     }
     else
     {
         if(pl==player1) outf("\f2you were %s by %s", death, aname);
-        else outf("\f2%s %s %s", aname, death, pname);
+        else
+        {
+          outf("\f2%s %s %s", aname, death, pname);
+          if(identexists("onKill")) execute("onKill");
+        }
     }
 
     if(gib)
