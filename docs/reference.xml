@@ -5315,9 +5315,8 @@ Output:
 						<variableArgument token="M" description="The name of the map you wish to play"/>
 					</arguments>
 				</command>
-
-				<command name="mode">
-					<description>Sets the gameplay mode to N for the next map loaded.</description>
+		<command name="mode">
+          <description>Sets the gameplay mode to N for the next map loaded.</description>
 					<references>
 						<wikiReference article="Gamemodes"/>
 						<identifierReference identifier="map"/>
@@ -5340,13 +5339,28 @@ Output:
 						<identifierReference identifier="tktf"/>
 						<identifierReference identifier="ktf"/>
 					</references>
+          <arguments>
+	    <argument token="N" valueNotes="0" description="Team Deathmatch"/>
+            <argument valueNotes="1" description="Co-op edit"/>
+            <argument valueNotes="2" description="Deathmatch"/>
+            <argument valueNotes="3" description="Survivor"/>
+            <argument valueNotes="4" description="Team survivor"/>
+            <argument valueNotes="5" description="Capture the Flag"/>
+            <argument valueNotes="6" description="Pistol frenzy"/>
+            <argument valueNotes="7" description="Bot team deathmatch"/>
+            <argument valueNotes="8" description="Bot deathmatch"/>
+            <argument valueNotes="9" description="Last swiss standing"/>
+            <argument valueNotes="10" description="One shot, One kill"/>
+            <argument valueNotes="11" description="Team One shot, One kill"/>
+            <argument valueNotes="12" description="Bot One shot, One kill"/>
+            <argument valueNotes="13" description="Hunt the Flag"/>
+            <argument valueNotes="14" description="Team keep the flag"/>
+            <argument valueNotes="15" description="Keep the flag"/>
+          </arguments>
 					<remarks>
 						<remark>You will need to define mode before loading the map or it will stay as the last mode played.</remark>
 						<remark>There are many aliases for you to use instead of remembering the numeric mapping.</remark>
 					</remarks>
-					<arguments>
-						<argument token="N" description="The mode number" valueNotes="0..15"/>
-					</arguments>
 					<examples>
 						<example><code><![CDATA[mode 7;map ac_complex;echo "Bot Team Deathmatch on ac_complex"]]></code></example>
 						<example><code><![CDATA[mode 8;map ac_mines;echo "Bot Deathmatch on ac_mines"]]></code></example>
