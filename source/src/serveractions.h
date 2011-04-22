@@ -208,7 +208,7 @@ struct removebansaction : serveraction
     void perform() { bans.shrink(0); }
     removebansaction()
     {
-        role = roleconf('B');
+        role = roleconf('b');
         copystring(desc, "remove all bans");
     }
 };
