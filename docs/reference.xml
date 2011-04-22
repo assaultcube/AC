@@ -2574,6 +2574,16 @@ Output:
             <argument valueNotes="2 (switch to grenades, else switch to primary)"/>
           </arguments>
 				</variable>
+        
+        <command name="survival">
+          <description>Prepares a round of bot survival mode on the specified map.</description>
+          <remarks>
+            <remark>All official maps are compatible with survival, if you want to play survival on a custom map, prior edits/additions to the script are necessary, such as adding a zone for that specific map.</remark>
+          </remarks>
+          <arguments>
+            <argument description="the map to use"/>
+          </arguments>
+        </command>
 
 			</identifiers>
 		</section>
