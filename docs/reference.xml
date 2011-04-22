@@ -5808,6 +5808,13 @@ Output:
 			<description>This section describes identifiers that are not documented yet, but you may try to help us there.</description>
 			<identifiers sort="true">
 
+				<command name="shuffleteam">
+					<description>Shuffles the teams</description>
+				</command>
+				<command name="cleardemos">
+					<description>Clears all demos currently in memory on the server.</description>
+				</command>
+
 				<command name="getposition">
 					<description>Get information about your place in the world. Dimension: 0123 => XYZ and yaw</description>
 					<arguments>
