@@ -2564,6 +2564,14 @@ Output:
 					</remarks>
 					<value token="N" description="the game speed" minValue="10" maxValue="1000" defaultValue="100"/>
 				</variable>
+        
+        <variable name="akimboautoswitch">
+          <description>Enables or disables automatic switching to the akimbo upon pickup.</description>
+          <value token="N" description="enable or disable" minValue="0" maxValue="1" defaultValue="1"/>
+          <references>
+            <identifierReference identifier="akimboendaction"/>
+          </references>
+        </variable>
 
         <variable name="akimboendaction">
 					<description>Sets the behavior of weapon switching upon akimbo expiration.</description>
@@ -2573,6 +2581,9 @@ Output:
             <argument valueNotes="1 (switch to primary)"/>
             <argument valueNotes="2 (switch to grenades, else switch to primary)"/>
           </arguments>
+          <references>
+            <identifierReference identifier="akimboautoswitch"/>
+          </references>
 				</variable>
         
         <command name="survival">
