@@ -2724,7 +2724,15 @@ Output:
 					</arguments>
 				</command>
 
-				<command name="editheight">
+              <command name="settex">
+                <description><![CDATA[Set a texture for the current selection.]]></description>
+                <arguments>
+                  <argument token="T" description="position of the texture to set in map cfg" valueNotes="integer"/>
+                  <argument token="t" description="the type of the texture" valueNotes="0 (floor), 1 (wall), 2 (ceil), 3 (upper wall)"/>
+                </arguments>
+              </command>
+
+              <command name="editheight">
 					<description><![CDATA[Changes the height of the current selection.]]></description>
 					<remarks>
 					<remark>Default keys are [ and ] for floor level, and o/p for ceiling.</remark>
