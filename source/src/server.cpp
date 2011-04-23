@@ -1012,7 +1012,10 @@ void flagaction(int flag, int action, int actor)
                 logline(ACLOG_INFO,"[%s] %s returned the flag", c.hostname, c.name);
                 break;
             case FM_SCORE:
-                logline(ACLOG_INFO, "[%s] %s scored with the flag for %s, new score %d", c.hostname, c.name, team_string(c.team), c.state.flagscore);
+                if(m_htf)
+                    logline(ACLOG_INFO, "[%s] %s hunted the flag for %s, new score %d", c.hostname, c.name, team_string(c.team), c.state.flagscore);
+                else
+                   logline(ACLOG_INFO, "[%s] %s scored with the flag for %s, new score %d", c.hostname, c.name, team_string(c.team), c.state.flagscore);
                 break;
             case FM_KTFSCORE:
                 logline(ACLOG_INFO, "[%s] %s scored, carrying for %d seconds, new score %d", c.hostname, c.name, (gamemillis - f.stolentime) / 1000, c.state.flagscore);
