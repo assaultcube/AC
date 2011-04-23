@@ -323,6 +323,8 @@ void editheight(int flr, int amount)
 
 COMMAND(editheight, ARG_2INT);
 
+// texture type : 0 floor, 1 wall, 2 ceil, 3 upper wall
+
 void edittexxy(int type, int t, block &sel)
 {
     loopselxy(switch(type)
@@ -344,6 +346,26 @@ void edittex(int type, int dir)
     i = i<0 ? 0 : i+dir;
     curedittex[atype] = i = min(max(i, 0), 255);
     int t = lasttex = hdr.texlists[atype][i];
+    edittexxy(type, t, sel);
+    addmsg(SV_EDITT, "ri6", sel.x, sel.y, sel.xs, sel.ys, type, t);
+}
+
+void settex(int texture, int type)
+{
+    EDITSEL;
+    if(type<0 || type>3) return;
+    int atype = type==3 ? 1 : type;
+    int t = -1;
+    loopi(256) if(texture == (int)hdr.texlists[atype][i])
+    {
+        t = (int)hdr.texlists[atype][i];
+        break;
+    }
+    if(t<0)
+    {
+        conoutf("invalid/unavaible texture");
+        return;
+    }
     edittexxy(type, t, sel);
     addmsg(SV_EDITT, "ri6", sel.x, sel.y, sel.xs, sel.ys, type, t);
 }
@@ -610,3 +632,4 @@ COMMAND(movemap, ARG_3INT);
 COMMAND(selectionrotate, ARG_1INT);
 COMMAND(selectionflip, ARG_1STR);
 COMMAND(countwalls, ARG_1EXP);
+COMMAND(settex, ARG_2INT);
