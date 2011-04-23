@@ -496,7 +496,13 @@ bool empty_world(int factor, bool force)    // main empty world creation routine
 
 void mapenlarge()  { if(empty_world(-1, false)) addmsg(SV_NEWMAP, "ri", -1); }
 void mapshrink()   { if(empty_world(-2, false)) addmsg(SV_NEWMAP, "ri", -2); }
-void newmap(int i) { if(empty_world(i, false)) addmsg(SV_NEWMAP, "ri", max(i, 0)); }
+void newmap(int i) {
+    if(empty_world(i, false))
+    {
+        addmsg(SV_NEWMAP, "ri", max(i, 0));
+        if(identexists("onNewMap")) execute("onNewMap");
+    }
+}
 
 COMMAND(mapenlarge, ARG_NONE);
 COMMAND(mapshrink, ARG_NONE);
