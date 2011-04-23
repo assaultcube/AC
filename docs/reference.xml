@@ -3526,6 +3526,10 @@ Output:
             <remark>If disabled, an updated editing binds system is used, see the comments in "/config/resetbinds.cfg" for more info.</remark>
           </remarks>
         </variable>
+        
+        <scriptalias name="onNewMap">
+          <description>If this alias exists, it will be automatically executed when you start a new map.</description>
+        </scriptalias>
 
 			</identifiers>
 		</section>
