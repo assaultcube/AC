@@ -764,7 +764,11 @@ bool weapon::reload()
     bool local = (player1 == owner);
     if(owner->type==ENT_BOT) audiomgr.playsound(info.reload, owner);
     else audiomgr.playsoundc(info.reload, NULL, local ? SP_HIGH : SP_NORMAL);
-    if(local) addmsg(SV_RELOAD, "ri2", lastmillis, owner->weaponsel->type);
+    if(local)
+    {
+        addmsg(SV_RELOAD, "ri2", lastmillis, owner->weaponsel->type);
+        if(identexists("onReload")) execute("onReload");
+    }
     return true;
 }
 
