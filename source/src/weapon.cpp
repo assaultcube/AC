@@ -362,6 +362,13 @@ void damageeffect(int damage, playerent *d)
     particle_splash(3, damage/10, 1000, d->o);
 }
 
+struct hitweap
+{
+    float hits;
+    int shots;
+    hitweap() {hits=shots=0;}
+};
+hitweap accuracym[NUMGUNS];
 
 vector<hitmsg> hits;
 
@@ -427,6 +434,7 @@ void radialeffect(playerent *o, vec &v, int qdam, playerent *at, int gun)
     float dist = expdist(o, dir, v);
     if(dist<EXPDAMRAD)
     {
+        accuracym[gun].hits += 1.0f-(float)dist/EXPDAMRAD;
         int damage = (int)(qdam*(1-dist/EXPDAMRAD));
         hit(damage, o, at, dir, gun, true, int(dist*DMF));
     }
@@ -542,12 +550,6 @@ void shorten(vec &from, vec &target, float dist)
     target.sub(from).mul(min(1.0f, dist)).add(from);
 }
 
-struct hitweap
-{
-    int hits,shots;
-    hitweap() {hits=shots=0;}
-};
-hitweap accuracym[NUMGUNS];
 
 int timer4subgunDMGalt = 0;
 bool flag4subgunDMGalt = true;
@@ -559,12 +561,14 @@ void raydamage(vec &from, vec &to, playerent *d)
     playerent *o = NULL;
     float dist;
     bool hitted=false;
+    int rayscount = 0, hitscount = 0;
     if(d->weaponsel->type==GUN_SHOTGUN)
     {
         playerent *hits[3*SGRAYS];
         loopk(3)
         loopi(SGRAYS)
         {
+            rayscount++;
             int h = k*SGRAYS + i;
             if((hits[h] = intersectclosest(from, sgr[h].rv, d, dist, hitzone)))
                 shorten(from, sgr[h].rv, dist);
@@ -608,6 +612,7 @@ void raydamage(vec &from, vec &to, playerent *d)
                 }
                 if(numhits) hitpush( dmgreal, o, d, from, to, d->weaponsel->type, dmgreal == SGMAXDMGABS, dmgreal);
                 if(d==player1) hitted = true;
+                hitscount+=numhits;
             }
         }
     }
@@ -625,11 +630,13 @@ void raydamage(vec &from, vec &to, playerent *d)
         hitpush(dam, o, d, from, to, d->weaponsel->type, gib, info ? 1 : 0);
         if(d==player1) hitted=true;
         shorten(from, to, dist);
+        hitscount++;
     }
 
     if(d==player1)
     {
-        if(hitted) accuracym[d->weaponsel->type].hits++;
+        if(!rayscount) rayscount = 1;
+        if(hitted) accuracym[d->weaponsel->type].hits+=(float)hitscount/rayscount;
         accuracym[d->weaponsel->type].shots++;
     }
 }
@@ -654,6 +661,8 @@ const char *weapstr(unsigned int i)
         return "Knife";
     case GUN_RIFLE:
         return "TMP-M&A CB";
+    case GUN_GRENADE:
+        return "Grenades";
     }
     return "x";
 }
@@ -669,10 +678,18 @@ void r_accuracy()
     float x_offset = curfont->defaultw, y_offset = 3*VIRTH/2, spacing = curfont->defaultw*2;
     loopi(NUMGUNS)
     {
-        if(i == GUN_CPISTOL || i == GUN_GRENADE || !accuracym[i].shots) continue;
+        if(i == GUN_CPISTOL || !accuracym[i].shots) continue;
         rows+=1;
-        acc = 100.0f*(float)accuracym[i].hits/(float)accuracym[i].shots;
-        defformatstring(x)("\f5%5.1f%s (%3d/%3d) :\f0%s",acc,"%",accuracym[i].hits,accuracym[i].shots,weapstr(i));
+        acc = 100.0f*accuracym[i].hits/(float)accuracym[i].shots;
+        string x;
+        if(i == GUN_GRENADE || i == GUN_SHOTGUN)
+        {
+            formatstring(x)("\f5%5.1f%s (%.1f/%d) :\f0%s", acc, "%",accuracym[i].hits, (int)accuracym[i].shots, weapstr(i));
+        }
+        else
+        {
+            formatstring(x)("\f5%5.1f%s (%d/%d) :\f0%s", acc, "%", (int)accuracym[i].hits, (int)accuracym[i].shots, weapstr(i));
+        }
         cols=max(cols,(int)strlen(x));
         lines.add(newstring(x));
     }
@@ -902,6 +919,7 @@ void grenadeent::splash()
     adddynlight(NULL, o, 16, 600, 600, 192, 160, 128);
     if(owner != player1) return;
     int damage = guns[GUN_GRENADE].damage;
+    accuracym[GUN_GRENADE].shots++;
     radialeffect(owner, o, damage, owner, GUN_GRENADE);
     loopv(players)
     {
