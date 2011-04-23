@@ -766,7 +766,11 @@ void dokill(playerent *pl, playerent *act, bool gib, int gun)
     void (*outf)(const char *s, ...) = (pl == player1 || act == player1) ? hudoutf : conoutf;
 
     if(pl==act)
+    {
         outf("\f2%s suicided%s", pname, pl==player1 ? "!" : "");
+        if(pl==player1)
+            if(identexists("onSuicide")) execute("onSuicide");
+    }
     else if(isteam(pl->team, act->team))
     {
         if(pl==player1) outf("\f2you were %s by teammate %s", death, aname);
@@ -882,6 +886,7 @@ void timeupdate(int milliscur, int millismax)
         {
             audiomgr.musicsuggest(M_LASTMINUTE1 + rnd(2), 70*1000, true);
             hudoutf("1 minute left!");
+            if(identexists("onLastMin")) execute("onLastMin");
         }
         else if(clockdisplay==0) conoutf(_("time remaining: %d minutes"), minutesremaining);
     }

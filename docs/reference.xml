@@ -2584,6 +2584,14 @@ Output:
             <argument description="the map to use"/>
           </arguments>
         </command>
+        
+        <scriptalias name="onSuicide">
+          <description>If this alias exists, it will be automatically executed whenever you suicide.</description>
+        </scriptalias>
+        
+        <scriptalias name="onLastMin">
+          <description>If this alias exists, it will be automatically executed on the last minute remaining mark.</description>
+        </scriptalias>
 
 			</identifiers>
 		</section>
