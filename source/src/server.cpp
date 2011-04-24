@@ -1339,9 +1339,25 @@ void sendvoicecomteam(int sound, int sender)
     }
 }
 
+int numplayers()
+{
+    int count = 1;
+#ifdef STANDALONE
+    count = numclients();
+#else STANDALONE
+    if(m_botmode)
+    {
+        extern vector<botent *> bots;
+        loopv(bots) if(bots[i]) count++;
+    }
+    loopv(players) if(players[i]) count++;
+#endif
+    return count;
+}
+
 int spawntime(int type)
 {
-    int np = numclients();
+    int np = numplayers();
     np = np<3 ? 4 : (np>4 ? 2 : 3);	// Some spawn times are dependent on the number of players.
     int sec = 0;
     switch(type)
