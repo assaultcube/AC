@@ -674,25 +674,24 @@ void r_accuracy()
 {
     if(!accuracy) return;
     vector <char*>lines;
-    float acc;
     int rows=0, cols=0;
     float x_offset = curfont->defaultw, y_offset = 3*VIRTH/2, spacing = curfont->defaultw*2;
-    loopi(NUMGUNS)
+    loopi(NUMGUNS) if(i != GUN_CPISTOL && accuracym[i].shots) 
     {
-        if(i == GUN_CPISTOL || !accuracym[i].shots) continue;
-        rows+=1;
+        float acc;
+        string line;
+        rows++;
         acc = 100.0f*accuracym[i].hits/(float)accuracym[i].shots;
-        string x;
         if(i == GUN_GRENADE || i == GUN_SHOTGUN)
         {
-            formatstring(x)("\f5%5.1f%s (%.1f/%d) :\f0%s", acc, "%",accuracym[i].hits, (int)accuracym[i].shots, weapstr(i));
+            formatstring(line)("\f5%5.1f%s (%.1f/%d) :\f0%s", acc, "%", accuracym[i].hits, (int)accuracym[i].shots, weapstr(i));
         }
         else
         {
-            formatstring(x)("\f5%5.1f%s (%d/%d) :\f0%s", acc, "%", (int)accuracym[i].hits, (int)accuracym[i].shots, weapstr(i));
+            formatstring(line)("\f5%5.1f%s (%d/%d) :\f0%s", acc, "%", (int)accuracym[i].hits, (int)accuracym[i].shots, weapstr(i));
         }
-        cols=max(cols,(int)strlen(x));
-        lines.add(newstring(x));
+        cols=max(cols,(int)strlen(line));
+        lines.add(newstring(line));
     }
     if(rows<1) return;
     cols++;
