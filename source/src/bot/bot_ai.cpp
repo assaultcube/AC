@@ -618,18 +618,16 @@ bool CBot::HuntEnemy(void)
 
 void CBot::CheckWeaponSwitch()
 {
+    if(m_pMyEnt->nextweaponsel == NULL)  m_pMyEnt->weaponchanging = 0;
     if(!m_pMyEnt->weaponchanging) return;
+
     int timeprogress = lastmillis-m_pMyEnt->weaponchanging;
     if(timeprogress>weapon::weaponchangetime)
     {
+        m_pMyEnt->prevweaponsel = m_pMyEnt->weaponsel;
+        m_pMyEnt->weaponsel = m_pMyEnt->nextweaponsel;
         if(m_pMyEnt->weaponsel!=NULL) addmsg(SV_WEAPCHANGE, "ri", m_pMyEnt->weaponsel->type); // 2011jan17:ft: message possibly not needed in a local game!?!
         m_pMyEnt->weaponchanging = 0;
-    }
-    else if(timeprogress>(weapon::weaponchangetime>>1) && m_pMyEnt->weaponsel != m_pMyEnt->nextweaponsel)
-    {
-        m_pMyEnt->prevweaponsel = m_pMyEnt->weaponsel;
-        if(m_pMyEnt->nextweaponsel==NULL) m_pMyEnt->weaponsel = m_pMyEnt->weaponsel; // just keep using this weapon - next spawn will assign a new random weapon!
-        else  m_pMyEnt->weaponsel = m_pMyEnt->nextweaponsel;
     }
 }
 
@@ -717,14 +715,23 @@ bool CBot::ChoosePreferredWeapon()
      {
           // If no ammo for this weapon, skip it
           if (m_pMyEnt->ammo[i] == 0) continue;
-
-          sWeaponScore = 5; // Minimal score for a weapon
+          
+          // Minimal score for a weapon
+          sWeaponScore = 5; 
+          // advantage for primary weapons
+          sWeaponScore += i > 1 ? 5 : 0;
 
           if ((flDist >= WeaponInfoTable[i].flMinDesiredDistance) &&
               (flDist <= WeaponInfoTable[i].flMaxDesiredDistance))
           {
                // In desired range for this weapon
                sWeaponScore += 5; // Increase score much
+               if(WeaponInfoTable[i].eWeaponType == TYPE_MELEE) sWeaponScore += 20; // knife is a powerful weapon
+               // pistol & knife are better with sniper-like weapons as primary
+               if((i == GUN_PISTOL || WeaponInfoTable[i].eWeaponType == TYPE_MELEE) && WeaponInfoTable[m_pMyEnt->primary].eWeaponType == TYPE_SNIPER)
+               {
+                   sWeaponScore += 5;
+               }
           }
           else if ((flDist < WeaponInfoTable[i].flMinFireDistance) ||
                    (flDist > WeaponInfoTable[i].flMaxFireDistance))
@@ -788,6 +795,8 @@ int CBot::GetShootDelay()
 void CBot::CheckReload() // reload gun if no enemies are around
 {
 	if(m_pMyEnt->enemy) return;
+    // do not try to reload if not needed
+    if(m_pMyEnt->mag[m_pMyEnt->primary] >= WeaponInfoTable[m_pMyEnt->primary].sMinDesiredAmmo) return;
 	SelectGun(m_pMyEnt->primary);
 	tryreload(m_pMyEnt);
 	return;
