@@ -1344,7 +1344,7 @@ int numplayers()
     int count = 1;
 #ifdef STANDALONE
     count = numclients();
-#else STANDALONE
+#else
     if(m_botmode)
     {
         extern vector<botent *> bots;
