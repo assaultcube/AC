@@ -326,6 +326,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
     bool water = false;
     const bool editfly = pl->state==CS_EDITING;
     const bool specfly = pl->type==ENT_PLAYER && ((playerent *)pl)->spectatemode==SM_FLY;
+    const bool isfly = pl->state==CS_EDITING || pl->type==ENT_PLAYER && ((playerent *)pl)->spectatemode==SM_FLY;
 
     vec d;      // vector of direction we ideally want to move in
 
@@ -337,7 +338,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         water = hdr.waterlevel>pl->o.z;
 
         const float speed = curtime*pl->maxspeed/(water ? 2000.0f : 1000.0f);
-        const float friction = water ? 20.0f : (pl->onfloor || editfly || specfly ? 6.0f : 30.0f);
+        const float friction = water ? 20.0f : (pl->onfloor || isfly ? 6.0f : 30.0f);
         const float fpsfric = max(friction*20.0f/curtime, 1.0f);
 
         if(pl->onfloor) // apply friction
@@ -372,15 +373,15 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         if(!(pl->onfloor || pl->onladder)) chspeed = 1.0f;
 
         const bool crouching = pl->crouching || pl->eyeheight < pl->maxeyeheight;
-        const float speed = curtime/(water ? 2000.0f : 1000.0f)*pl->maxspeed*(crouching ? chspeed : 1.0f)*(specfly ? 2.0f : 1.0f);
-        const float friction = water ? 20.0f : (pl->onfloor || editfly || specfly ? 6.0f : (pl->onladder ? 1.5f : 30.0f));
+        const float speed = curtime/(water ? 2000.0f : 1000.0f)*pl->maxspeed*(crouching ? chspeed : 1.0f)*(isfly ? 2.0f : 1.0f);
+        const float friction = water ? 20.0f : (pl->onfloor || isfly ? 6.0f : (pl->onladder ? 1.5f : 30.0f));
         const float fpsfric = max(friction/curtime*20.0f, 1.0f);
 
         d.x = (float)(move*cosf(RAD*(pl->yaw-90)));
         d.y = (float)(move*sinf(RAD*(pl->yaw-90)));
         d.z = 0.0f;
 
-        if(editfly || specfly || water)
+        if(isfly || water)
         {
             d.x *= (float)cosf(RAD*(pl->pitch));
             d.y *= (float)cosf(RAD*(pl->pitch));
