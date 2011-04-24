@@ -271,6 +271,73 @@ COMMAND(curmap, ARG_1INT);
 VARP(showscoresondeath, 0, 1, 1);
 VARP(autoscreenshot, 0, 0, 1);
 
+// macros for getplayer() 
+// TODO : find a smarter way to implement this. 
+#define ATTR_GET_INT(attribute) itoa(output, attribute);
+#define ATTR_GET_FLOAT(attribute) ftoa(output, attribute);
+#define ATTR_GET_STR(attribute) copystring(output, attribute); 
+
+#define ATTR_SET_INT(attribute) if(set) { attribute = atoi(value); }
+#define ATTR_SET_FLOAT(attribute) if(set) { attribute = atof(value); }
+#define ATTR_SET_STR(attribute) if (set) { copystring(attribute, value); }
+
+#define ATTR_INT(name, attribute, readonly) if(!strcmp(attr, name)) { if(!readonly) ATTR_SET_INT(attribute); ATTR_GET_INT(attribute); result(output); return; }
+#define ATTR_FLOAT(name, attribute, readonly) if(!strcmp(attr, name)) { if(!readonly) ATTR_SET_FLOAT(attribute); ATTR_GET_FLOAT(attribute) result(output); return; }
+#define ATTR_STR(name, attribute, readonly) if(!strcmp(attr, name)) { if(!readonly) ATTR_SET_STR(attribute); ATTR_GET_STR(attribute) result(output); return; }
+
+void getplayer(const char *cn, const char *attr, const char *value)
+{
+    if(!*cn || !cn || !*attr || !attr)
+    {
+        return;
+    }
+    int clientnum = atoi(cn); // get player clientnum
+    playerent *p = clientnum == player1->clientnum ? player1 : getclient(clientnum);
+    if(!p)
+    {
+        conoutf("invalid clientnum");
+        return;
+    }
+    bool set = *value && value && p==player1; // do we have to get or set an attribute (valid value, player selected is local client)
+    string output = "";
+    if(p==player1)
+    {
+        ATTR_INT("health", p->health, 1);
+        ATTR_INT("armour", p->armour, 1);
+        ATTR_INT("magcontent", p->weaponsel->mag, 1);
+        ATTR_INT("ammo", p->weaponsel->ammo, 1);
+        ATTR_INT("nextprimary", p->nextprimary, 0);
+    }
+    if(p->team == player1->team || player1->isspectating())
+    {
+        ATTR_FLOAT("x", p->o.x, 1);
+        ATTR_FLOAT("y", p->o.y, 1);
+        ATTR_FLOAT("z", p->o.z, 1);
+    }
+    ATTR_STR("name", p->name, 0);
+    ATTR_INT("team", p->team, 1);
+    ATTR_INT("ping", p->ping, 1);
+    ATTR_INT("pj", p->plag, 1);
+    ATTR_INT("state", p->state, 1);
+    ATTR_INT("role", p->clientrole, 1);
+    ATTR_INT("primary", p->primary, 1);
+    ATTR_INT("frags", p->frags, 1);
+    ATTR_INT("flagscore", p->flagscore, 1);
+    ATTR_INT("points", p->points, 1);
+    ATTR_INT("deaths", p->deaths, 1);
+    conoutf("invalid attribute");
+}
+
+void getlocalplayer(const char *attr, const char *value)
+{
+    string cn;
+    itoa(cn, player1->clientnum);
+    getplayer(cn, attr, value);
+}
+
+COMMANDN(player, getplayer, ARG_3STR);
+COMMANDN(player1, getlocalplayer, ARG_2STR);
+
 void deathstate(playerent *pl)
 {
     if(pl==player1) { if(identexists("onDeathSelf")) execute("onDeathSelf"); }
@@ -1615,4 +1682,3 @@ void serverextension(char *ext, char *args)
 }
 
 COMMAND(serverextension, ARG_2STR);
-
