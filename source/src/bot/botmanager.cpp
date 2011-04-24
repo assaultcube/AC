@@ -627,8 +627,8 @@ void CBotManager::CreateSkillData()
           }
           else if (strcasecmp(cmd, "field_of_view") == 0)
           {
-               if (value < 60) value = 60;
-               else if (value > 130) value = 130;
+               if (value < 80) value = 80;
+               else if (value > 240) value = 120;
                m_BotSkills[SkillNr].iFov = (int)value;
           }
           else if (strcasecmp(cmd, "max_hear_volume") == 0)
@@ -670,7 +670,7 @@ void CBotManager::InitSkillData()
      m_BotSkills[0].sShootAtFeetWithRLPercent = 85;
      m_BotSkills[0].bCanPredict = true;
      m_BotSkills[0].iMaxHearVolume = 75;
-     m_BotSkills[0].iFov = 120;
+     m_BotSkills[0].iFov = 200;
      m_BotSkills[0].bCircleStrafe = true;
      m_BotSkills[0].bCanSearchItemsInCombat = true;
 
@@ -692,7 +692,7 @@ void CBotManager::InitSkillData()
      m_BotSkills[1].sShootAtFeetWithRLPercent = 60;
      m_BotSkills[1].bCanPredict = true;
      m_BotSkills[1].iMaxHearVolume = 60;
-     m_BotSkills[1].iFov = 105;
+     m_BotSkills[1].iFov = 160;
      m_BotSkills[1].bCircleStrafe = true;
      m_BotSkills[1].bCanSearchItemsInCombat = true;
 
@@ -714,7 +714,7 @@ void CBotManager::InitSkillData()
      m_BotSkills[2].sShootAtFeetWithRLPercent = 25;
      m_BotSkills[2].bCanPredict = false;
      m_BotSkills[2].iMaxHearVolume = 45;
-     m_BotSkills[2].iFov = 95;
+     m_BotSkills[2].iFov = 130;
      m_BotSkills[2].bCircleStrafe = true;
      m_BotSkills[2].bCanSearchItemsInCombat = false;
 
@@ -736,7 +736,7 @@ void CBotManager::InitSkillData()
      m_BotSkills[3].sShootAtFeetWithRLPercent = 10;
      m_BotSkills[3].bCanPredict = false;
      m_BotSkills[3].iMaxHearVolume = 30;
-     m_BotSkills[3].iFov = 85;
+     m_BotSkills[3].iFov = 120;
      m_BotSkills[3].bCircleStrafe = false;
      m_BotSkills[3].bCanSearchItemsInCombat = false;
 
@@ -758,7 +758,7 @@ void CBotManager::InitSkillData()
      m_BotSkills[4].sShootAtFeetWithRLPercent = 0;
      m_BotSkills[4].bCanPredict = false;
      m_BotSkills[4].iMaxHearVolume = 15;
-     m_BotSkills[4].iFov = 75;
+     m_BotSkills[4].iFov = 110;
      m_BotSkills[4].bCircleStrafe = false;
      m_BotSkills[4].bCanSearchItemsInCombat = false;
 }
