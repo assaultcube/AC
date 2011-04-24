@@ -2024,7 +2024,6 @@ void CBot::HearSound(int n, vec *o)
      }
 }
 
-VARP(botfov, -1, -1, 20);
 bool CBot::IsInFOV(const vec &o)
 {
      vec v2, forward, right, up;
