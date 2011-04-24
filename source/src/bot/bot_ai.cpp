@@ -2024,22 +2024,21 @@ void CBot::HearSound(int n, vec *o)
      }
 }
 
+VARP(botfov, -1, -1, 20);
 bool CBot::IsInFOV(const vec &o)
 {
      vec v2, forward, right, up;
-     float flDot;
+     float flDot, flAngle;
 
      AnglesToVectors(GetViewAngles(), forward, right, up);
 
      v2 = o;
      v2.sub(m_pMyEnt->o);
      v2.z = 0.0f; // Make 2D
-     v2 = Normalize(v2);
      forward.z = 0; // Make 2D
 
      flDot = v2.dot(forward);
-
-     return(flDot >= 0.5f); // sin2(0.5) == 60 degrees FOV
+     flAngle = acos(flDot/(v2.magnitude() * forward.magnitude()));
+     return (float)m_pBotSkill->iFov >= flAngle/RAD;
 }
-
 // Code of CBot - End

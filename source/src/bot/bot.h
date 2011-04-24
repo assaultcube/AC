@@ -109,6 +109,7 @@ struct bot_skill_s
      short sShootAtFeetWithRLPercent; // Percent that a bot shoot with a rocket
                                       // launcher at the enemy feet.
      int iMaxHearVolume; // Max volume that bot can hear
+     int iFov; // bots field of view
      bool bCanPredict; // Can this bot predict his enemy position?
      bool bCircleStrafe; // Can this bot circle strafe?
      bool bCanSearchItemsInCombat;
