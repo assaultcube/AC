@@ -321,6 +321,8 @@ float var_f = 0;
 int var_i = 0;
 bool var_b = true;
 
+VARP(slowmove, 0, 0, 1);
+
 void moveplayer(physent *pl, int moveres, bool local, int curtime)
 {
     bool water = false;
