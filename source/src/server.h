@@ -497,5 +497,5 @@ const char *teamnames_s[TEAM_NUM+1] = {"CLA", "RVSF", "CSPC", "RSPC", "SPEC", "v
 
 // for both client and server
 // default messages are hardcoded ! (in case there's a problem with cfgs)
-char fragmessages[NUMGUNS][MAXKILLMSGLEN] = { "", "busted", "shredded", "peppered", "sprayed", "punctured", "picked off", "busted", "", "busted" };
+char fragmessages[NUMGUNS][MAXKILLMSGLEN] = { "", "busted", "picked off", "peppered", "sprayed", "punctured", "shredded", "busted", "", "busted" };
 char gibmessages[NUMGUNS][MAXKILLMSGLEN] = { "slashed", "", "", "splattered", "", "headshot", "", "", "gibbed", "" }; 
