@@ -277,13 +277,9 @@ VARP(autoscreenshot, 0, 0, 1);
 
 // macros for getplayer() 
 // TODO : find a smarter way to implement this. 
-#define ATTR_SET_INT(attribute) if(set) { attribute = atoi(value); }
-#define ATTR_SET_FLOAT(attribute) if(set) { attribute = atof(value); }
-#define ATTR_SET_STR(attribute) if (set) { copystring(attribute, value); }
-
-#define ATTR_INT(attribute, readonly, extra) if(!strcmp(attr, #attribute) extra) { if(!readonly) ATTR_SET_INT(p->attribute); intret(p->attribute); return; }
-#define ATTR_POS(attribute, readonly) if(!strcmp(attr, #attribute)) { if(!readonly) ATTR_SET_FLOAT(p->o.attribute); floatret(p->o.attribute); return; }
-#define ATTR_STR(attribute, readonly) if(!strcmp(attr, #attribute)) { if(!readonly) ATTR_SET_STR(p->attribute); result(p->attribute); return; }
+#define ATTR_INT(attribute, readonly, extra) if(!strcmp(attr, #attribute) extra) { if(!readonly && set) p->attribute = atoi(value);      intret(p->attribute); return; }
+#define ATTR_POS(attribute, readonly)        if(!strcmp(attr, #attribute))       { if(!readonly && set) p->o.attribute = atof(value);    floatret(p->o.attribute); return; }
+#define ATTR_STR(attribute, readonly)        if(!strcmp(attr, #attribute))       { if(!readonly && set) copystring(p->attribute, value); result(p->attribute); return; }
 
 void getplayer(const char *cn, const char *attr, const char *value)
 {
@@ -316,7 +312,7 @@ void getplayer(const char *cn, const char *attr, const char *value)
     ATTR_INT(ping, 1,);
     ATTR_INT(plag, 1, || !strcmp(attr, "pj"));
     ATTR_INT(state, 1,);
-    ATTR_INT(clientrole, 1,);
+    ATTR_INT(clientrole, 1, || !strcmp(attr, "role"));
     ATTR_INT(primary, 1,);
     ATTR_INT(frags, 1,);
     ATTR_INT(flagscore, 1,);
