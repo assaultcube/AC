@@ -242,6 +242,7 @@ public:
      void ResetCurrentTask();
 
      // AI Functions
+     bool CBot::BotsAgainstHumans();
      bool DetectEnemy(playerent *p);
      bool FindEnemy(void);
      void CheckReload(void);

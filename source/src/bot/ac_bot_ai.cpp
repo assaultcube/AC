@@ -20,9 +20,9 @@ weaponinfo_s WeaponInfoTable[MAX_WEAPONS] =
     // mA: min desired Ammo
     // ---- Type : -- minDD -- maxDD -- minFD -- maxFD -- mA
     { TYPE_MELEE,      0.0f,    5.0f,   0.0f,    3.5f,   0 }, // KNIFE
-    { TYPE_NORMAL,     3.5f,   15.0f,   3.0f,   50.0f,   6 }, // PISTOL
+    { TYPE_NORMAL,     3.5f,   15.0f,   3.0f,   60.0f,   6 }, // PISTOL
     { TYPE_SNIPER,    20.0f,   80.0f,   3.0f,  180.0f,   2 }, // RIFLE    // min and max FD just guesstimates for now
-    { TYPE_SHOTGUN,    0.0f,   15.0f,   3.0f,   40.0f,   3 }, // SHOTGUN
+    { TYPE_SHOTGUN,    0.0f,   15.0f,   0.0f,   50.0f,   3 }, // SHOTGUN
     { TYPE_AUTO,       0.0f,   25.0f,   3.0f,   60.0f,  10 }, // SUBGUN
     { TYPE_SNIPER,    15.0f,  125.0f,   3.0f,  200.0f,   3 }, // SNIPER
     { TYPE_AUTO,      20.0f,   80.0f,   3.0f,  150.0f,   6 }, // ASSAULT

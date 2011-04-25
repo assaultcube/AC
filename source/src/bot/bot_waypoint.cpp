@@ -2100,7 +2100,7 @@ void botsheadtome(void)
      loopv(bots)
      {
           if (!bots[i] || !bots[i]->pBot) continue;
-          
+          bots[i]->pBot->HeadToGoal();
           bots[i]->pBot->GoToDebugGoal(player1->o);
      }
 }
