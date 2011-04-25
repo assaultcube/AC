@@ -405,7 +405,10 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
                 pl->jumpnext = true; // fly directly upwards while holding jump keybinds
                 pl->vel.z = 0.5f;
             }
-            else if (pl->crouching) pl->vel.z = -0.5f; // fly directly down while holding crouch keybinds
+            else if (pl->trycrouch)
+            {
+                pl->vel.z = -0.5f; // fly directly down while holding crouch keybinds
+            }
         }
         else if(specfly)
         {
@@ -748,10 +751,11 @@ void jumpn(bool on)
 void updatecrouch(playerent *p, bool on)
 {
     if(p->crouching == on) return;
+    if(p->state == CS_EDITING) return; // don't apply regular crouch physics in editfly
     const float crouchspeed = 0.6f;
     p->crouching = on;
     p->eyeheightvel = on ? -crouchspeed : crouchspeed;
-    if(p==player1 && p->state!=CS_EDITING) audiomgr.playsoundc(on ? S_CROUCH : S_UNCROUCH);
+    if(p==player1) audiomgr.playsoundc(on ? S_CROUCH : S_UNCROUCH);
 }
 
 void crouch(bool on)
