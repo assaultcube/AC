@@ -3549,6 +3549,11 @@ Output:
         <scriptalias name="onNewMap">
           <description>If this alias exists, it will be automatically executed when you start a new map.</description>
         </scriptalias>
+        
+        <variable name="slowmove">
+          <description>Enables or disables the old editfly velocity.</description>
+          <value token="N" description="enable or disable" minValue="0" maxValue="1" defaultValue="0"/>
+        </variable>
 
 			</identifiers>
 		</section>

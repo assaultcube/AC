@@ -373,7 +373,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         if(!(pl->onfloor || pl->onladder)) chspeed = 1.0f;
 
         const bool crouching = pl->crouching || pl->eyeheight < pl->maxeyeheight;
-        const float speed = curtime/(water ? 2000.0f : 1000.0f)*pl->maxspeed*(crouching ? chspeed : 1.0f)*(isfly ? 2.0f : 1.0f);
+        const float speed = curtime/(water ? 2000.0f : 1000.0f)*pl->maxspeed*(crouching ? chspeed : 1.0f)*(isfly && !slowmove ? 2.0f : 1.0f);
         const float friction = water ? 20.0f : (pl->onfloor || isfly ? 6.0f : (pl->onladder ? 1.5f : 30.0f));
         const float fpsfric = max(friction/curtime*20.0f, 1.0f);
 
