@@ -402,9 +402,10 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
             pl->o.add(d);
             if(pl->jumpnext)
             {
-                pl->jumpnext = false;
-                pl->vel.z = 2;
+                pl->jumpnext = true; // fly directly upwards while holding jump keybinds
+                pl->vel.z = 0.5f;
             }
+            else if (pl->crouching) pl->vel.z = -0.5f; // fly directly down while holding crouch keybinds
         }
         else if(specfly)
         {
@@ -458,7 +459,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
                     else
                     {
                         pl->timeinair += curtime;
-                        if (pl->trycrouch && !pl->crouching && !pl->crouchedinair) {
+                        if (pl->trycrouch && !pl->crouching && !pl->crouchedinair && pl->state!=CS_EDITING) {
                             pl->vel.z += 0.3f;
                             pl->crouchedinair = true;
                         }
@@ -750,7 +751,7 @@ void updatecrouch(playerent *p, bool on)
     const float crouchspeed = 0.6f;
     p->crouching = on;
     p->eyeheightvel = on ? -crouchspeed : crouchspeed;
-    if(p==player1) audiomgr.playsoundc(on ? S_CROUCH : S_UNCROUCH);
+    if(p==player1 && p->state!=CS_EDITING) audiomgr.playsoundc(on ? S_CROUCH : S_UNCROUCH);
 }
 
 void crouch(bool on)

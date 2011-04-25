@@ -7,28 +7,28 @@ Coolbot
 stefanhendriks
 Dude
 Dumb
-Rabid Newb
+Rabid_Newb
 Eek
 w00t
 Pwned
-Indoor Terrain
+Indoor_Terrain
 Dumbstruck
 [prrt]brainfart
-Santa Far
+Santa_Far
 TinCan-Sam
 Aristotles
 MuHaHaHa
 0x0DEFACED
-James Bonk
-Rotaredom Murof
+James_Bonk
+Rotaredom_Murof
 zaiBan
 YHWH
-gruiiik gruiiik
-Lady Die
-!!!BUY NOW!!!
+gruiiik_gruiiik
+Lady_Die
+!!!BUY_NOW!!!
 where_am_i
 PMB
-Leagle Eagle
+Leagle_Eagle
 Maleficus
 Grolsch
 Gambrinius
@@ -43,7 +43,7 @@ Hell
 Koff
 Orval
 Zlatopramen
-Lapin Kulta
+Lapin_Kulta
 Kaltenberg
 Zeunerts
 Bluesman
@@ -90,28 +90,28 @@ L33t_kR3W
 Bones
 MrJoe
 Shrike
-Captain Shrimps
-Count Draculol
-Harun Al-RushIt
-Honey Bunny
-Joe Blow
-Z00per N00b
-Corporal Clegg
-Rushing Russian
-Johnny Crash
-Private Parts
-Major Headache
-General Surgery
+Captain_Shrimps
+Count_Draculol
+Harun_Al-RushIt
+Honey_Bunny
+Joe_Blow
+Z00per_N00b
+Corporal_Clegg
+Rushing_Russian
+Johnny_Crash
+Private_Parts
+Major_Headache
+General_Surgery
 luggable
-fried circuits
-Byte my ASCII!
+fried_circuits
+Byte_my_ASCII!
 CPLD
 FPGA
 THE_STORM
-Die Hard
-Bad boy
+Die_Hard
+Bad_boy
 Beast
-Dead man
+Dead_man
 chibby
 teh_ownerer
 teh_masterer
