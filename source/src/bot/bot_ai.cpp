@@ -628,6 +628,10 @@ void CBot::CheckWeaponSwitch()
         m_pMyEnt->weaponsel = m_pMyEnt->nextweaponsel;
         if(m_pMyEnt->weaponsel!=NULL) addmsg(SV_WEAPCHANGE, "ri", m_pMyEnt->weaponsel->type); // 2011jan17:ft: message possibly not needed in a local game!?!
         m_pMyEnt->weaponchanging = 0;
+        if(!m_pMyEnt->weaponsel->mag)
+        {
+            tryreload(m_pMyEnt);
+        }
     }
 }
 
@@ -686,7 +690,6 @@ void CBot::ShootEnemy()
                // Add shoot delay
                m_iShootDelay = lastmillis + GetShootDelay();
           }
-          ChoosePreferredWeapon();
      }
 #ifndef RELEASE_BUILD
      else
@@ -713,11 +716,17 @@ bool CBot::ChoosePreferredWeapon()
      // Choose a weapon
      for(int i=0;i<MAX_WEAPONS;i++)
      {
-          // If no ammo for this weapon, skip it
-          if (m_pMyEnt->ammo[i] == 0) continue;
-          
           // Minimal score for a weapon
           sWeaponScore = 5; 
+          if (!m_pMyEnt->mag[i])
+          {
+                // If no ammo for this weapon, skip it
+                if(!m_pMyEnt->ammo[i]) continue;
+                
+                // If only the mag is empty, just penalize it
+                sWeaponScore -= 5;
+          }
+
           // advantage for primary weapons
           sWeaponScore += i > 1 ? 5 : 0;
 
@@ -794,10 +803,19 @@ int CBot::GetShootDelay()
 
 void CBot::CheckReload() // reload gun if no enemies are around
 {
-	if(m_pMyEnt->enemy) return;
-    // do not try to reload if not needed
-    if(m_pMyEnt->mag[m_pMyEnt->primary] >= WeaponInfoTable[m_pMyEnt->primary].sMinDesiredAmmo) return;
-	SelectGun(m_pMyEnt->primary);
+    //if(m_pMyEnt->mag[m_pMyEnt->weaponsel->type] >= WeaponInfoTable[m_pMyEnt->weaponsel->type].sMinDesiredAmmo) return; // do not reload if mindesiredammo is satisfied
+	if(m_pMyEnt->enemy)
+    {
+        if(m_pMyEnt->mag[m_pMyEnt->weaponsel->type])
+        {
+            return; // ignore the enemy, if no ammo in mag.
+        }
+        else if(!m_pMyEnt->ammo[m_pMyEnt->weaponsel->type])
+        {
+            ChoosePreferredWeapon();
+            return;
+        }
+    }
 	tryreload(m_pMyEnt);
 	return;
 }
@@ -825,8 +843,10 @@ void CBot::MainAI()
      }
      if (BotManager.BotsShoot() && FindEnemy()) // Combat
      {
+          CheckReload();
           AddDebugText("has enemy");
-
+          // Use best weapon
+          ChoosePreferredWeapon();
           // Shoot at enemy
           ShootEnemy();
 

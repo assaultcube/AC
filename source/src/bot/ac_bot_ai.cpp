@@ -19,12 +19,12 @@ weaponinfo_s WeaponInfoTable[MAX_WEAPONS] =
     // FD: fire distance
     // mA: min desired Ammo
     // ---- Type : -- minDD -- maxDD -- minFD -- maxFD -- mA
-     { TYPE_MELEE,      0.0f,    2.0f,    0.0f,    3.5f,   1 }, // KNIFE
-     { TYPE_NORMAL,     0.0f,   20.0f,    0.0f,   50.0f,   6 }, // PISTOL
-     { TYPE_SNIPER,    20.0f,   80.0f,    2.5f,  180.0f,   2 }, // RIFLE     // min and max FD just guesstimates for now
+     { TYPE_MELEE,      0.0f,    4.0f,    0.0f,    3.5f,   0 }, // KNIFE
+     { TYPE_NORMAL,     0.0f,   15.0f,    0.0f,   50.0f,   6 }, // PISTOL
+     { TYPE_SNIPER,    20.0f,   80.0f,    2.0f,  180.0f,   2 }, // RIFLE     // min and max FD just guesstimates for now
      { TYPE_SHOTGUN,    0.0f,   15.0f,    0.0f,   40.0f,   3 }, // SHOTGUN
      { TYPE_AUTO,       0.0f,   25.0f,    0.0f,   60.0f,  10 }, // SUBGUN
-     { TYPE_SNIPER,    23.0f,   75.0f,    10.0f, 200.0f,   3 }, // SNIPER
+     { TYPE_SNIPER,    15.0f,   125.0f,   3.0f,  200.0f,   3 }, // SNIPER
      { TYPE_AUTO,      20.0f,   80.0f,    0.0f,  150.0f,   6 }, // ASSAULT
      { TYPE_AUTO,       0.0f,    0.0f,    0.0f,    0.0f,   6 }, // CPISTOL
      { TYPE_GRENADE,   30.0f,   25.0f,    0.0f,   50.0f,   1 }, // GRENADE
@@ -41,33 +41,70 @@ bool CACBot::ChoosePreferredWeapon()
      short sWeaponScore;
      float flDist = GetDistance(m_pMyEnt->enemy->o);
 
-	 if (m_iChangeWeaponDelay < lastmillis && m_pMyEnt->mag[m_pMyEnt->gunselect])
-     {
-		 if ((WeaponInfoTable[m_pMyEnt->gunselect].eWeaponType != TYPE_MELEE) || (flDist <= WeaponInfoTable[GUN_KNIFE].flMaxFireDistance))
-               return true;
-     };
-
      // Choose a weapon
      for(int i=0;i<MAX_WEAPONS;i++)
      {
-          // If no ammo for this weapon, skip it
-          if (!m_pMyEnt->mag[i] && !m_pMyEnt->ammo[i]) continue;
+          sWeaponScore = 0; // Minimal score for a weapon
+          sWeaponScore = i > 1 ? 5 : 0; // Primary are usually better
+          
+          if (!m_pMyEnt->mag[i] && WeaponInfoTable[i].eWeaponType != TYPE_MELEE)
+          {
+                continue;
+                // If no ammo for this weapon, skip it
+                if(!m_pMyEnt->ammo[i]) continue;
+          }
+          else
+          {
+                sWeaponScore += 5;
+          }
 
-          sWeaponScore = 5; // Minimal score for a weapon
-
-		  // use the advantage of the melee weapon
 		  if((flDist >= WeaponInfoTable[i].flMinDesiredDistance) &&
               (flDist <= WeaponInfoTable[i].flMaxDesiredDistance))
 		  {
-			  if(WeaponInfoTable[i].eWeaponType == TYPE_MELEE) sWeaponScore += 20;
+			   // In desired range for this weapon
+               sWeaponScore += 5; // Increase score much
+               // Pistol & knife are better with sniper-like weapons as primary
+               if((i == GUN_PISTOL || WeaponInfoTable[i].eWeaponType == TYPE_MELEE) && WeaponInfoTable[m_pMyEnt->primary].eWeaponType == TYPE_SNIPER)
+               {
+                   sWeaponScore += 10; // pistol is considered stronger than a primary weapon with sniper or carbine when range is valid
+               }
 		  }
+          else
+          {
+              continue; // Not in range
+          }
 
-		  if ((flDist > WeaponInfoTable[i].flMinFireDistance) && // inside the range, continue to evaluate
-                   (flDist < WeaponInfoTable[i].flMaxFireDistance))
-		  {
-			if(m_pMyEnt->mag[i]) sWeaponScore += 5;
-		    if(i > 1) sWeaponScore += 4; // prefer primary guns
-		  }
+          // The ideal distance would be between the Min and Max desired distance.
+          // Score on the difference of the avarage of the Min and Max desired distance.
+          float flAvarage = (WeaponInfoTable[i].flMinDesiredDistance +
+                             WeaponInfoTable[i].flMaxDesiredDistance) / 2.0f;
+          float flIdealDiff = fabs(flDist - flAvarage);
+
+          if (flIdealDiff < 0.5f) // Close to ideal distance
+               sWeaponScore += 4;
+          else if (flIdealDiff <= 1.0f)
+               sWeaponScore += 2;
+
+          // Now rate the weapon on available ammo...
+          if (WeaponInfoTable[i].sMinDesiredAmmo > 0)
+          {
+               // Calculate how much percent of the min desired ammo the bot has
+               float flDesiredPercent = (float(m_pMyEnt->ammo[i]) /
+                                         float(WeaponInfoTable[i].sMinDesiredAmmo)) *
+                                         100.0f;
+
+               if (flDesiredPercent >= 400.0f)
+                    sWeaponScore += 4;
+               else if (flDesiredPercent >= 200.0f)
+                    sWeaponScore += 3;
+               else if (flDesiredPercent >= 100.0f)
+                    sWeaponScore += 1;
+          }
+          else
+          {
+              // Not needing ammo is an advantage...
+              sWeaponScore += 10;
+          }
 
           if(sWeaponScore > bestWeaponScore)
 		  {
@@ -79,12 +116,7 @@ bool CACBot::ChoosePreferredWeapon()
      {
           m_iChangeWeaponDelay = lastmillis + 8000; //RandomLong(2000, 8000);
           m_bShootAtFeet = false;
-		  SelectGun(bestWeapon);
-		  if(!m_pMyEnt->mag[bestWeapon])
-		  {
-			tryreload(m_pMyEnt);
-            m_iShootDelay = lastmillis + reloadtime(bestWeapon) + 10;
-		  }
+          SelectGun(bestWeapon);
 		  return true;
      }
 };
@@ -145,12 +177,13 @@ entity *CACBot::SearchForEnts(bool bUseWPs, float flRange, float flMaxHeight)
                sAmmo = m_pMyEnt->mag[GUN_GRENADE];
                break;
 		  case I_HEALTH:
-			   sMaxAmmo = powerupstats[I_HEALTH-I_HEALTH].max; //FIXME
+			   sMaxAmmo = powerupstats[0].max;
 			   bInteresting = (m_pMyEnt->health < sMaxAmmo);
 			   sAmmo = m_pMyEnt->health;
 			   break;
+          case I_HELMET:
 		  case I_ARMOUR:
-			   sMaxAmmo = powerupstats[I_ARMOUR-I_HEALTH].max; // FIXME
+			   sMaxAmmo = powerupstats[I_ARMOUR-I_HEALTH].max;
 			   bInteresting = (m_pMyEnt->armour < sMaxAmmo);
 			   sAmmo = m_pMyEnt->armour;
 			   break;
