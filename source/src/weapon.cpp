@@ -435,7 +435,7 @@ void radialeffect(playerent *o, vec &v, int qdam, playerent *at, int gun)
     float dist = expdist(o, dir, v);
     if(dist<EXPDAMRAD)
     {
-        accuracym[gun].hits += 1.0f-(float)dist/EXPDAMRAD;
+        if(at == player1) accuracym[gun].hits += 1.0f-(float)dist/EXPDAMRAD;
         int damage = (int)(qdam*(1-dist/EXPDAMRAD));
         hit(damage, o, at, dir, gun, true, int(dist*DMF));
     }
@@ -921,9 +921,16 @@ void grenadeent::splash()
     addscorchmark(o);
     adddynlight(NULL, o, 16, 200, 100, 255, 255, 224);
     adddynlight(NULL, o, 16, 600, 600, 192, 160, 128);
-    if(owner != player1) return;
+    if(owner == player1)
+    {
+        accuracym[GUN_GRENADE].shots++;
+    } 
+    else if(!m_botmode)
+    {
+        return;
+    }
     int damage = guns[GUN_GRENADE].damage;
-    accuracym[GUN_GRENADE].shots++;
+
     radialeffect(owner, o, damage, owner, GUN_GRENADE);
     loopv(players)
     {
@@ -957,7 +964,6 @@ void grenadeent::_throw(const vec &from, const vec &vel)
     this->o = from;
     this->resetinterp();
     inwater = hdr.waterlevel>o.z;
-
     if(local)
     {
         addmsg(SV_THROWNADE, "ri7", int(o.x*DMF), int(o.y*DMF), int(o.z*DMF), int(vel.x*DMF), int(vel.y*DMF), int(vel.z*DMF), lastmillis-millis);
