@@ -1350,7 +1350,10 @@ int numplayers()
         extern vector<botent *> bots;
         loopv(bots) if(bots[i]) count++;
     }
-    loopv(players) if(players[i]) count++;
+    if(m_demo)
+    {
+        count = numclients();
+    }
 #endif
     return count;
 }

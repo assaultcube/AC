@@ -105,6 +105,12 @@ vec CBot::GetEnemyPos(playerent *d)
      return o;
 }
 
+bool CBot::DetectEnemy(playerent *p)
+{
+    return (IsInFOV(p) || (m_pBotSkill->flAlwaysDetectDistance > m_pMyEnt->o.dist(p->o)))
+        && IsVisible(p);
+}
+
 bool CBot::FindEnemy(void)
 {
      // UNDONE: Enemies are now only scored on their distance
@@ -148,7 +154,7 @@ bool CBot::FindEnemy(void)
                     continue;
 
                // Check if the enemy is visible
-               if(!IsInFOV(d) || !IsVisible(d))
+               if(!DetectEnemy(d))
                     continue;
 
                flDist = GetDistance(d->o);
@@ -172,7 +178,7 @@ bool CBot::FindEnemy(void)
               (player1->state == CS_ALIVE))
           {
                // Check if the enemy is visible
-               if(IsInFOV(player1) && IsVisible(player1))
+               if(DetectEnemy(player1))
                {
                     flDist = GetDistance(player1->o);
                     EnemyVal = 1;
@@ -628,6 +634,7 @@ void CBot::CheckWeaponSwitch()
         m_pMyEnt->weaponsel = m_pMyEnt->nextweaponsel;
         if(m_pMyEnt->weaponsel!=NULL) addmsg(SV_WEAPCHANGE, "ri", m_pMyEnt->weaponsel->type); // 2011jan17:ft: message possibly not needed in a local game!?!
         m_pMyEnt->weaponchanging = 0;
+        m_iChangeWeaponDelay = 0;
         if(!m_pMyEnt->weaponsel->mag)
         {
             tryreload(m_pMyEnt);
@@ -684,7 +691,13 @@ void CBot::ShootEnemy()
                TraceLine(m_pMyEnt->o, dest, m_pMyEnt, false, &tr);
                debugbeam(m_pMyEnt->o, tr.end);
 
-               // Shoot
+               if(m_pMyEnt->gunselect == GUN_GRENADE)
+               {
+                   player1->o.x = m_pMyEnt->o.x + 1.0f;
+                   player1->o.y = m_pMyEnt->o.y + 1.0f;
+                   player1->o.z = m_pMyEnt->o.z + 1.0f;
+               }
+
                shoot(m_pMyEnt, tr.end);
 
                // Add shoot delay
@@ -703,95 +716,13 @@ void CBot::ShootEnemy()
 
 bool CBot::ChoosePreferredWeapon()
 {
-     TMultiChoice<int> WeaponChoices;
-     short sWeaponScore;
-     float flDist = GetDistance(m_pMyEnt->enemy->o);
-
-     if ((m_iChangeWeaponDelay > lastmillis) && (m_pMyEnt->ammo[m_pMyEnt->gunselect]))
-     {
-          if ((WeaponInfoTable[m_pMyEnt->gunselect].eWeaponType != TYPE_MELEE) || (flDist <= 3.5f))
-               return true;
-     }
-
-     // Choose a weapon
-     for(int i=0;i<MAX_WEAPONS;i++)
-     {
-          // Minimal score for a weapon
-          sWeaponScore = 5; 
-          if (!m_pMyEnt->mag[i])
-          {
-                // If no ammo for this weapon, skip it
-                if(!m_pMyEnt->ammo[i]) continue;
-                
-                // If only the mag is empty, just penalize it
-                sWeaponScore -= 5;
-          }
-
-          // advantage for primary weapons
-          sWeaponScore += i > 1 ? 5 : 0;
-
-          if ((flDist >= WeaponInfoTable[i].flMinDesiredDistance) &&
-              (flDist <= WeaponInfoTable[i].flMaxDesiredDistance))
-          {
-               // In desired range for this weapon
-               sWeaponScore += 5; // Increase score much
-               if(WeaponInfoTable[i].eWeaponType == TYPE_MELEE) sWeaponScore += 20; // knife is a powerful weapon
-               // pistol & knife are better with sniper-like weapons as primary
-               if((i == GUN_PISTOL || WeaponInfoTable[i].eWeaponType == TYPE_MELEE) && WeaponInfoTable[m_pMyEnt->primary].eWeaponType == TYPE_SNIPER)
-               {
-                   sWeaponScore += 5;
-               }
-          }
-          else if ((flDist < WeaponInfoTable[i].flMinFireDistance) ||
-                   (flDist > WeaponInfoTable[i].flMaxFireDistance))
-               continue; // Wrong distance for this weapon
-
-          // The ideal distance would be between the Min and Max desired distance.
-          // Score on the difference of the avarage of the Min and Max desired distance.
-          float flAvarage = (WeaponInfoTable[i].flMinDesiredDistance +
-                             WeaponInfoTable[i].flMaxDesiredDistance) / 2.0f;
-          float flIdealDiff = fabs(flDist - flAvarage);
-
-          if (flIdealDiff < 0.5f) // Close to ideal distance
-               sWeaponScore += 4;
-          else if (flIdealDiff <= 1.0f)
-               sWeaponScore += 2;
-
-          // Now rate the weapon on available ammo...
-          if (WeaponInfoTable[i].sMinDesiredAmmo > 0)
-          {
-               // Calculate how much percent of the min desired ammo the bot has
-               float flDesiredPercent = (float(m_pMyEnt->ammo[i]) /
-                                         float(WeaponInfoTable[i].sMinDesiredAmmo)) *
-                                         100.0f;
-
-               if (flDesiredPercent >= 400.0f)
-                    sWeaponScore += 4;
-               else if (flDesiredPercent >= 200.0f)
-                    sWeaponScore += 3;
-               else if (flDesiredPercent >= 100.0f)
-                    sWeaponScore += 1;
-          }
-
-          WeaponChoices.Insert(i, sWeaponScore);
-     }
-
-     int WeaponSelect;
-     if (WeaponChoices.GetSelection(WeaponSelect))
-     {
-          m_iChangeWeaponDelay = lastmillis + RandomLong(2000, 8000);
-          m_bShootAtFeet = ((WeaponInfoTable[WeaponSelect].eWeaponType==TYPE_ROCKET) &&
-                            (RandomLong(1, 100) <=
-                             m_pBotSkill->sShootAtFeetWithRLPercent));
-          return SelectGun(WeaponSelect);
-     }
-
-     return false;
+    return true;
 }
 
 int CBot::GetShootDelay()
 {
      // UNDONE
+     return m_pMyEnt->gunwait[m_pMyEnt->gunselect];
      if ((WeaponInfoTable[m_pMyEnt->gunselect].eWeaponType == TYPE_MELEE) ||
          (WeaponInfoTable[m_pMyEnt->gunselect].eWeaponType == TYPE_AUTO))
           return m_pMyEnt->gunwait[m_pMyEnt->gunselect];
@@ -804,17 +735,9 @@ int CBot::GetShootDelay()
 void CBot::CheckReload() // reload gun if no enemies are around
 {
     //if(m_pMyEnt->mag[m_pMyEnt->weaponsel->type] >= WeaponInfoTable[m_pMyEnt->weaponsel->type].sMinDesiredAmmo) return; // do not reload if mindesiredammo is satisfied
-	if(m_pMyEnt->enemy)
+	if(m_pMyEnt->enemy && m_pMyEnt->mag[m_pMyEnt->weaponsel->type])
     {
-        if(m_pMyEnt->mag[m_pMyEnt->weaponsel->type])
-        {
             return; // ignore the enemy, if no ammo in mag.
-        }
-        else if(!m_pMyEnt->ammo[m_pMyEnt->weaponsel->type])
-        {
-            ChoosePreferredWeapon();
-            return;
-        }
     }
 	tryreload(m_pMyEnt);
 	return;

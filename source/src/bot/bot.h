@@ -106,6 +106,7 @@ struct bot_skill_s
                                   // enemy again
      float flMaxEnemySearchDelay; // Maximal delay for when a bot can search for an
                                   // enemy again
+     float flAlwaysDetectDistance;
      short sShootAtFeetWithRLPercent; // Percent that a bot shoot with a rocket
                                       // launcher at the enemy feet.
      int iMaxHearVolume; // Max volume that bot can hear
@@ -241,6 +242,7 @@ public:
      void ResetCurrentTask();
 
      // AI Functions
+     bool DetectEnemy(playerent *p);
      bool FindEnemy(void);
      void CheckReload(void);
      void CheckWeaponSwitch(void); // 2011jan17:ft: fix non-shooting bots

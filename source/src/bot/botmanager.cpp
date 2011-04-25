@@ -615,6 +615,10 @@ void CBotManager::CreateSkillData()
           {
                m_BotSkills[SkillNr].flMaxEnemySearchDelay = value;
           }
+          else if (strcasecmp(cmd, "max_always_detect_distance") == 0)
+          {
+               m_BotSkills[SkillNr].flAlwaysDetectDistance = value;
+          }
           else if (strcasecmp(cmd, "shoot_at_feet_percent") == 0)
           {
                if (value < 0) value = 0;
@@ -667,6 +671,7 @@ void CBotManager::InitSkillData()
      m_BotSkills[0].flMaxAttackDelay = 0.4f;
      m_BotSkills[0].flMinEnemySearchDelay = 0.09f;
      m_BotSkills[0].flMaxEnemySearchDelay = 0.12f;
+     m_BotSkills[0].flAlwaysDetectDistance = 12.0f;
      m_BotSkills[0].sShootAtFeetWithRLPercent = 85;
      m_BotSkills[0].bCanPredict = true;
      m_BotSkills[0].iMaxHearVolume = 75;
@@ -689,6 +694,7 @@ void CBotManager::InitSkillData()
      m_BotSkills[1].flMaxAttackDelay = 0.6f;
      m_BotSkills[1].flMinEnemySearchDelay = 0.12f;
      m_BotSkills[1].flMaxEnemySearchDelay = 0.17f;
+     m_BotSkills[1].flAlwaysDetectDistance = 10.0f;
      m_BotSkills[1].sShootAtFeetWithRLPercent = 60;
      m_BotSkills[1].bCanPredict = true;
      m_BotSkills[1].iMaxHearVolume = 60;
@@ -711,6 +717,7 @@ void CBotManager::InitSkillData()
      m_BotSkills[2].flMaxAttackDelay = 1.0f;
      m_BotSkills[2].flMinEnemySearchDelay = 0.18f;
      m_BotSkills[2].flMaxEnemySearchDelay = 0.22f;
+     m_BotSkills[2].flAlwaysDetectDistance = 8.0f;
      m_BotSkills[2].sShootAtFeetWithRLPercent = 25;
      m_BotSkills[2].bCanPredict = false;
      m_BotSkills[2].iMaxHearVolume = 45;
@@ -733,6 +740,7 @@ void CBotManager::InitSkillData()
      m_BotSkills[3].flMaxAttackDelay = 1.6f;
      m_BotSkills[3].flMinEnemySearchDelay = 0.25f;
      m_BotSkills[3].flMaxEnemySearchDelay = 0.30f;
+     m_BotSkills[3].flAlwaysDetectDistance = 6.0f;
      m_BotSkills[3].sShootAtFeetWithRLPercent = 10;
      m_BotSkills[3].bCanPredict = false;
      m_BotSkills[3].iMaxHearVolume = 30;
@@ -755,6 +763,7 @@ void CBotManager::InitSkillData()
      m_BotSkills[4].flMaxAttackDelay = 2.0f;
      m_BotSkills[4].flMinEnemySearchDelay = 0.30f;
      m_BotSkills[4].flMaxEnemySearchDelay = 0.36f;
+     m_BotSkills[4].flAlwaysDetectDistance = 4.0f;
      m_BotSkills[4].sShootAtFeetWithRLPercent = 0;
      m_BotSkills[4].bCanPredict = false;
      m_BotSkills[4].iMaxHearVolume = 15;
