@@ -7,11 +7,11 @@ void drawicon(Texture *tex, float x, float y, float s, int col, int row, float t
     if(tex && tex->xs == tex->ys) quad(tex->id, x, y, s, ts*col, ts*row, ts);
 }
 
-inline void turn_on_transparency()
+inline void turn_on_transparency(int alpha = 255)
 {
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glColor4ub(255, 255, 255, 255);
+    glColor4ub(255, 255, 255, alpha);
 }
 
 void drawequipicon(float x, float y, int col, int row, float blend)
@@ -38,13 +38,13 @@ void drawradaricon(float x, float y, float s, int col, int row)
     }
 }
 
-void drawctficon(float x, float y, float s, int col, int row, float ts)
+void drawctficon(float x, float y, float s, int col, int row, float ts, int alpha)
 {
     static Texture *ctftex = NULL, *htftex = NULL, *ktftex = NULL;
     if(!ctftex) ctftex = textureload("packages/misc/ctficons.png", 3);
     if(!htftex) htftex = textureload("packages/misc/htficons.png", 3);
     if(!ktftex) ktftex = textureload("packages/misc/ktficons.png", 3);
-	turn_on_transparency();
+    turn_on_transparency(alpha);
     if(m_htf)
     {
         if(htftex) drawicon(htftex, x, y, s, col, row, ts);
@@ -57,7 +57,7 @@ void drawctficon(float x, float y, float s, int col, int row, float ts)
     {
         if(ctftex) drawicon(ctftex, x, y, s, col, row, ts);
     }
-	glDisable(GL_BLEND);
+    glDisable(GL_BLEND);
 }
 
 void drawvoteicon(float x, float y, int col, int row, bool noblend)
@@ -976,8 +976,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
             loopi(2) // flag state
             {
-                if(flaginfos[i].state == CTFF_INBASE) glDisable(GL_BLEND); else glEnable(GL_BLEND);
-                drawctficon(i*120+VIRTW/4.0f*3.0f, 1650, 120, i, 0, 1/4.0f);
+                drawctficon(i*120+VIRTW/4.0f*3.0f, 1650, 120, i, 0, 1/4.0f, flaginfos[i].state == CTFF_INBASE ? 255 : 100);
             }
 
             // big flag-stolen icon
@@ -987,7 +986,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             {
                 glColor4f(1.0f, 1.0f, 1.0f, (sinf(lastmillis/100.0f)+1.0f) / 2.0f);
                 glEnable(GL_BLEND);
-                drawctficon(VIRTW-225-10, VIRTH*5/8, 225, ft, 1, 1/2.0f);
+                drawctficon(VIRTW-225-10, VIRTH*5/8, 225, ft, 1, 1/2.0f, 255);
                 glDisable(GL_BLEND);
             }
         }
