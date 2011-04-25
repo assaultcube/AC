@@ -40,7 +40,7 @@
 // -B     // server IP blacklist file, default config/serverblacklist.cfg
 // -K     // server nickname blacklist file, default config/nicknameblacklist.cfg
 // -g     // server forbidden words file, default config/forbidden.cfg
-// -E     // server kill messages file, default config/killmessages.cfg
+// -E     // server kill messages file, default config/serverkillmessages.cfg
 // -P     // voting permission string (read docs/commandline.html)
           //    k kick players
           //    b ban players (and remove bans)
