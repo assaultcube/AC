@@ -750,6 +750,53 @@ bool tryrespawn()
 
 VARP(hitsound, 0, 0, 1);
 
+// client kill messages
+void setkillmessage(int gun, bool gib, const char *message)
+{
+	if(!message || !*message)
+	{
+		result(killmessage(gun, gib));
+		return;
+	}
+
+	if(gun < 0 || gun >= NUMGUNS)
+	{
+		conoutf("invalid gun specified");
+		return;
+	}
+	
+	if(gib) copystring(gibmessages[gun], message, sizeof(gibmessages[gun]));
+	else    copystring(fragmessages[gun], message, sizeof(fragmessages[gun]));
+}
+
+void fragmessage(const char *gun, const char *message)
+{
+	setkillmessage(atoi(gun), false, message);
+}
+
+void gibmessage(const char *gun, const char *message)
+{
+	setkillmessage(atoi(gun), true, message);
+}
+
+COMMAND(fragmessage, ARG_2STR);
+COMMAND(gibmessage, ARG_2STR);
+
+void writekillmsgcfg()
+{
+    stream *f = openfile(path("config/killmessages.cfg", true), "w");
+    if(!f) return;
+    f->printf("// kill messages for each weapon\n");
+    loopi(NUMGUNS)
+    {
+        const char *fragmsg = killmessage(i, false);
+        const char *gibmsg = killmessage(i, true);
+        f->printf("\nfragmessage %d \"%s\"", i, fragmsg);
+        f->printf("\ngibmessage %d \"%s\"", i, gibmsg);
+    }
+    f->printf("\n");
+}
+
 // damage arriving from the network, monsters, yourself, all ends up here.
 
 void dodamage(int damage, playerent *pl, playerent *actor, int gun, bool gib, bool local)
@@ -784,37 +831,6 @@ void dodamage(int damage, playerent *pl, playerent *actor, int gun, bool gib, bo
     else if(pl==player1) audiomgr.playsound(S_PAIN6, SP_HIGH);
     else audiomgr.playsound(S_PAIN1+rnd(5), pl);
 }
-
-void setkillmessage(int gun, bool gib, const char *message)
-{
-	if(!message || !*message)
-	{
-		result(killmessage(gun, gib));
-		return;
-	}
-
-	if(gun < 0 || gun >= NUMGUNS)
-	{
-		conoutf("invalid gun specified");
-		return;
-	}
-	
-	if(gib) copystring(gibmessages[gun], message, sizeof(gibmessages[gun]));
-	else    copystring(fragmessages[gun], message, sizeof(fragmessages[gun]));
-}
-
-void fragmessage(const char *gun, const char *message)
-{
-	setkillmessage(atoi(gun), false, message);
-}
-
-void gibmessage(const char *gun, const char *message)
-{
-	setkillmessage(atoi(gun), true, message);
-}
-
-COMMAND(fragmessage, ARG_2STR);
-COMMAND(gibmessage, ARG_2STR);
 
 void dokill(playerent *pl, playerent *act, bool gib, int gun)
 {

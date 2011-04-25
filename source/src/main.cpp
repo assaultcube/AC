@@ -34,6 +34,7 @@ void quit()                     // normal exit
     extern void writeinitcfg();
     writeinitcfg();
     writeservercfg();
+    writekillmsgcfg();
     if(resetcfg) deletecfg();
     else writecfg();
     cleanup(NULL);
@@ -1107,7 +1108,6 @@ int main(int argc, char **argv)
     exec("config/scontext.cfg");
     exec("config/locale.cfg");
     exec("config/keymap.cfg");
-	exec("config/killmessages.cfg");
     exec("config/menus.cfg");
     exec("config/scripts.cfg");
     exec("config/prefabs.cfg");
@@ -1115,6 +1115,7 @@ int main(int argc, char **argv)
     exec("config/securemaps.cfg");
     exec("config/admin.cfg");
     execfile("config/servers.cfg");
+    execfile("config/killmessages.cfg");
     persistidents = true;
 
     static char resdata[] = { 112, 97, 99, 107, 97, 103, 101, 115, 47, 116, 101, 120, 116, 117, 114, 101, 115, 47, 107, 117, 114, 116, 47, 107, 108, 105, 116, 101, 50, 46, 106, 112, 103, 0 };
