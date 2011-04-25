@@ -281,8 +281,8 @@ VARP(autoscreenshot, 0, 0, 1);
 #define ATTR_SET_FLOAT(attribute) if(set) { attribute = atof(value); }
 #define ATTR_SET_STR(attribute) if (set) { copystring(attribute, value); }
 
-#define ATTR_INT(attribute, readonly) if(!strcmp(attr, #attribute)) { if(!readonly) ATTR_SET_INT(p->attribute); intret(p->attribute); return; }
-#define ATTR_FLOAT(attribute, readonly) if(!strcmp(attr, #attribute)) { if(!readonly) ATTR_SET_FLOAT(p->attribute); floatret(p->attribute); return; }
+#define ATTR_INT(attribute, readonly, extra) if(!strcmp(attr, #attribute) extra) { if(!readonly) ATTR_SET_INT(p->attribute); intret(p->attribute); return; }
+#define ATTR_POS(attribute, readonly) if(!strcmp(attr, #attribute)) { if(!readonly) ATTR_SET_FLOAT(p->o.attribute); floatret(p->o.attribute); return; }
 #define ATTR_STR(attribute, readonly) if(!strcmp(attr, #attribute)) { if(!readonly) ATTR_SET_STR(p->attribute); result(p->attribute); return; }
 
 void getplayer(const char *cn, const char *attr, const char *value)
@@ -299,29 +299,29 @@ void getplayer(const char *cn, const char *attr, const char *value)
     bool set = *value && value && p==player1; // do we have to get or set an attribute (valid value, player selected is local client)
     if(p==player1)
     {
-        ATTR_INT(health, 1);
-        ATTR_INT(armour, 1);
-        ATTR_INT(weaponsel->mag, 1);
-        ATTR_INT(weaponsel->ammo, 1);
-        ATTR_INT(nextprimary, 0);
+        ATTR_INT(health, 1,);
+        ATTR_INT(armour, 1,);
+        ATTR_INT(weaponsel->mag, 1, || !strcmp(attr, "magcontent"));
+        ATTR_INT(weaponsel->ammo, 1, || !strcmp(attr, "ammo"));
+        ATTR_INT(nextprimary, 0,);
     }
     if(p->team == player1->team || player1->isspectating())
     {
-        ATTR_FLOAT(o.x, 1);
-        ATTR_FLOAT(o.y, 1);
-        ATTR_FLOAT(o.z, 1);
+        ATTR_POS(x, 1);
+        ATTR_POS(y, 1);
+        ATTR_POS(z, 1);
     }
     ATTR_STR(name, 0);
-    ATTR_INT(team, 1);
-    ATTR_INT(ping, 1);
-    ATTR_INT(plag, 1);
-    ATTR_INT(state, 1);
-    ATTR_INT(clientrole, 1);
-    ATTR_INT(primary, 1);
-    ATTR_INT(frags, 1);
-    ATTR_INT(flagscore, 1);
-    ATTR_INT(points, 1);
-    ATTR_INT(deaths, 1);
+    ATTR_INT(team, 1,);
+    ATTR_INT(ping, 1,);
+    ATTR_INT(plag, 1, || !strcmp(attr, "pj"));
+    ATTR_INT(state, 1,);
+    ATTR_INT(clientrole, 1,);
+    ATTR_INT(primary, 1,);
+    ATTR_INT(frags, 1,);
+    ATTR_INT(flagscore, 1,);
+    ATTR_INT(points, 1,);
+    ATTR_INT(deaths, 1,);
     conoutf("invalid attribute");
 }
 
