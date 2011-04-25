@@ -273,17 +273,13 @@ VARP(autoscreenshot, 0, 0, 1);
 
 // macros for getplayer() 
 // TODO : find a smarter way to implement this. 
-#define ATTR_GET_INT(attribute) itoa(output, attribute);
-#define ATTR_GET_FLOAT(attribute) ftoa(output, attribute);
-#define ATTR_GET_STR(attribute) copystring(output, attribute); 
-
 #define ATTR_SET_INT(attribute) if(set) { attribute = atoi(value); }
 #define ATTR_SET_FLOAT(attribute) if(set) { attribute = atof(value); }
 #define ATTR_SET_STR(attribute) if (set) { copystring(attribute, value); }
 
-#define ATTR_INT(attribute, readonly) if(!strcmp(attr, #attribute)) { if(!readonly) ATTR_SET_INT(p->attribute); ATTR_GET_INT(p->attribute); result(output); return; }
-#define ATTR_FLOAT(attribute, readonly) if(!strcmp(attr, #attribute)) { if(!readonly) ATTR_SET_FLOAT(p->attribute); ATTR_GET_FLOAT(p->attribute) result(output); return; }
-#define ATTR_STR(attribute, readonly) if(!strcmp(attr, #attribute)) { if(!readonly) ATTR_SET_STR(p->attribute); ATTR_GET_STR(p->attribute) result(output); return; }
+#define ATTR_INT(attribute, readonly) if(!strcmp(attr, #attribute)) { if(!readonly) ATTR_SET_INT(p->attribute); intret(p->attribute); return; }
+#define ATTR_FLOAT(attribute, readonly) if(!strcmp(attr, #attribute)) { if(!readonly) ATTR_SET_FLOAT(p->attribute); floatret(p->attribute); return; }
+#define ATTR_STR(attribute, readonly) if(!strcmp(attr, #attribute)) { if(!readonly) ATTR_SET_STR(p->attribute); result(p->attribute); return; }
 
 void getplayer(const char *cn, const char *attr, const char *value)
 {
@@ -297,7 +293,6 @@ void getplayer(const char *cn, const char *attr, const char *value)
         return;
     }
     bool set = *value && value && p==player1; // do we have to get or set an attribute (valid value, player selected is local client)
-    string output = "";
     if(p==player1)
     {
         ATTR_INT(health, 1);
