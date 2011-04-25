@@ -281,16 +281,14 @@ VARP(autoscreenshot, 0, 0, 1);
 #define ATTR_SET_FLOAT(attribute) if(set) { attribute = atof(value); }
 #define ATTR_SET_STR(attribute) if (set) { copystring(attribute, value); }
 
-#define ATTR_INT(name, attribute, readonly) if(!strcmp(attr, name)) { if(!readonly) ATTR_SET_INT(attribute); ATTR_GET_INT(attribute); result(output); return; }
-#define ATTR_FLOAT(name, attribute, readonly) if(!strcmp(attr, name)) { if(!readonly) ATTR_SET_FLOAT(attribute); ATTR_GET_FLOAT(attribute) result(output); return; }
-#define ATTR_STR(name, attribute, readonly) if(!strcmp(attr, name)) { if(!readonly) ATTR_SET_STR(attribute); ATTR_GET_STR(attribute) result(output); return; }
+#define ATTR_INT(attribute, readonly) if(!strcmp(attr, #attribute)) { if(!readonly) ATTR_SET_INT(p->attribute); ATTR_GET_INT(p->attribute); result(output); return; }
+#define ATTR_FLOAT(attribute, readonly) if(!strcmp(attr, #attribute)) { if(!readonly) ATTR_SET_FLOAT(p->attribute); ATTR_GET_FLOAT(p->attribute) result(output); return; }
+#define ATTR_STR(attribute, readonly) if(!strcmp(attr, #attribute)) { if(!readonly) ATTR_SET_STR(p->attribute); ATTR_GET_STR(p->attribute) result(output); return; }
 
 void getplayer(const char *cn, const char *attr, const char *value)
 {
-    if(!*cn || !cn || !*attr || !attr)
-    {
-        return;
-    }
+    if(!*cn || !cn || !*attr || !attr) return;
+
     int clientnum = atoi(cn); // get player clientnum
     playerent *p = clientnum == player1->clientnum ? player1 : getclient(clientnum);
     if(!p)
@@ -302,29 +300,29 @@ void getplayer(const char *cn, const char *attr, const char *value)
     string output = "";
     if(p==player1)
     {
-        ATTR_INT("health", p->health, 1);
-        ATTR_INT("armour", p->armour, 1);
-        ATTR_INT("magcontent", p->weaponsel->mag, 1);
-        ATTR_INT("ammo", p->weaponsel->ammo, 1);
-        ATTR_INT("nextprimary", p->nextprimary, 0);
+        ATTR_INT(health, 1);
+        ATTR_INT(armour, 1);
+        ATTR_INT(weaponsel->mag, 1);
+        ATTR_INT(weaponsel->ammo, 1);
+        ATTR_INT(nextprimary, 0);
     }
     if(p->team == player1->team || player1->isspectating())
     {
-        ATTR_FLOAT("x", p->o.x, 1);
-        ATTR_FLOAT("y", p->o.y, 1);
-        ATTR_FLOAT("z", p->o.z, 1);
+        ATTR_FLOAT(o.x, 1);
+        ATTR_FLOAT(o.y, 1);
+        ATTR_FLOAT(o.z, 1);
     }
-    ATTR_STR("name", p->name, 0);
-    ATTR_INT("team", p->team, 1);
-    ATTR_INT("ping", p->ping, 1);
-    ATTR_INT("pj", p->plag, 1);
-    ATTR_INT("state", p->state, 1);
-    ATTR_INT("role", p->clientrole, 1);
-    ATTR_INT("primary", p->primary, 1);
-    ATTR_INT("frags", p->frags, 1);
-    ATTR_INT("flagscore", p->flagscore, 1);
-    ATTR_INT("points", p->points, 1);
-    ATTR_INT("deaths", p->deaths, 1);
+    ATTR_STR(name, 0);
+    ATTR_INT(team, 1);
+    ATTR_INT(ping, 1);
+    ATTR_INT(plag, 1);
+    ATTR_INT(state, 1);
+    ATTR_INT(clientrole, 1);
+    ATTR_INT(primary, 1);
+    ATTR_INT(frags, 1);
+    ATTR_INT(flagscore, 1);
+    ATTR_INT(points, 1);
+    ATTR_INT(deaths, 1);
     conoutf("invalid attribute");
 }
 
