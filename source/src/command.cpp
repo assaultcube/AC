@@ -1268,26 +1268,12 @@ int millis_() { extern int totalmillis; return totalmillis; }
 void strlen_(char *s) { string r; formatstring(r)("%d", strlen(s)); result(r); }
 void substr_(char *fs, char *pa, char *len)
 {
-	int ia = atoi(pa);
-	int ilen = atoi(len);
-	string subq;
-	string subr;
-	subr[0] = '\0';
-    if(ia>(int)strlen(fs))
-    {
-        return;
-    }
-	if(ia>=0)
-	{
-        if(!ilen)
-        {
-            ilen = strlen(fs)-ia;
-        }
-		copystring(subq,  fs + ia);
-		strncpy(subr, subq, ilen);
-	}
-	subr[ilen] = '\0';
-	result(subr);
+    int ia = atoi(pa);
+    int ilen = atoi(len);
+    if(ia>(int)strlen(fs) || ia < 0 || ilen < 0) return;
+
+    if(!ilen) ilen = strlen(fs)-ia;
+    result(newstring(fs + ia, ilen));
 }
 void l0(int p, int v) { string f; string r; formatstring(f)("%%0%dd", p); formatstring(r)(f, v); result(r); }
 
