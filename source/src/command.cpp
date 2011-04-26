@@ -896,6 +896,8 @@ COMMAND(execdir,ARG_1STR);
 // below the commands that implement a small imperative language. thanks to the semantics of
 // () and [] expressions, any control construct can be defined trivially.
 
+bool breakout = false;
+
 void ifthen(char *cond, char *thenp, char *elsep) { commandret = executeret(cond[0]!='0' ? thenp : elsep); }
 void loopa(char *var, char *times, char *body)
 {
@@ -906,19 +908,40 @@ void loopa(char *var, char *times, char *body)
     char *buf = newstring("0", 16);
     pushident(*id, buf);
     execute(body);
-    loopi(t-1)
+    if(breakout) breakout = false;
+    else
     {
-        if(buf != id->action)
+        loopi(t-1)
         {
-            if(id->action != id->executing) delete[] id->action;
-            id->action = buf = newstring(16);
+            if(buf != id->action)
+            {
+                if(id->action != id->executing) delete[] id->action;
+                id->action = buf = newstring(16);
+            }
+            itoa(id->action, i+1);
+            execute(body);
+            if(breakout)
+            {
+                breakout = false;
+                break;
+            }
         }
-        itoa(id->action, i+1);
-        execute(body);
     }
     popident(*id);
 }
-void whilea(char *cond, char *body) { while(execute(cond)) execute(body); }    // can't get any simpler than this :)
+void whilea(char *cond, char *body)
+{
+    while(execute(cond))
+    {
+        execute(body);
+        if(breakout)
+        {
+            breakout = false;
+            break;
+        }
+    }
+}
+void breaka() { breakout = true; }
 
 void concat(char *s) { result(s); }
 void concatword(char *s) { result(s); }
@@ -1034,6 +1057,7 @@ void colora(char *s)
 COMMANDN(c, colora, ARG_1STR);
 COMMANDN(loop, loopa, ARG_3STR);
 COMMANDN(while, whilea, ARG_2STR);
+COMMANDN(break, breaka, ARG_NONE);
 COMMANDN(if, ifthen, ARG_3STR);
 COMMAND(exec, ARG_1STR);
 COMMAND(concat, ARG_CONC);
