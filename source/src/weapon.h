@@ -119,9 +119,9 @@ struct sniperrifle : gun
 };
 
 
-struct rifle : gun
+struct carbine : gun
 {
-    rifle(playerent *owner);
+    carbine(playerent *owner);
     bool selectable();
 };
 

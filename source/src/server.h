@@ -455,7 +455,7 @@ itemstat ammostats[NUMGUNS] =
 {
     {  1,  1,   1,  S_ITEMAMMO  },   // knife dummy
     { 20, 60, 100,  S_ITEMAMMO  },   // pistol : CHANGED since 1.1.0.4 2010nov19
-    { 15, 30,  30,  S_ITEMAMMO  },   // rifle
+    { 15, 30,  30,  S_ITEMAMMO  },   // carbine
     { 14, 28,  21,  S_ITEMAMMO  },   // shotgun
     { 60, 90,  90,  S_ITEMAMMO  },   // subgun
     { 10, 20,  15,  S_ITEMAMMO  },   // sniper
@@ -482,7 +482,7 @@ guninfo guns[NUMGUNS] =
     //              sound                reloadtime        damage        part    recoil        mKR      reI          reM           pFX
     { "knife",      S_KNIFE,      S_NULL,     0,      500,    50,     0,   0,  1,    1,   1,    0,  0,    0,  0,      0,      0,    1,      false },
     { "pistol",     S_PISTOL,     S_RPISTOL,  1400,   160,    18,     0,   0, 53,   10,   10,   6,  5,    6,  35,     58,     125,  1,      false },   
-    { "rifle",      S_RIFLE,      S_RRIFLE,   1800,   720,    60,     0,   0, 10,   60,   10,   4,  4,    10, 60,     60,     150,  1,      false },
+    { "carbine",    S_CARBINE,    S_RCARBINE, 1800,   720,    60,     0,   0, 10,   60,   10,   4,  4,    10, 60,     60,     150,  1,      false },
     { "shotgun",    S_SHOTGUN,    S_RSHOTGUN, 2400,   1000,   1,      0,   0,  1,   35,   7,    9,  9,    10, 140,    140,    125,  1,      false },   // CAUTION dmg only sane for server!
     { "subgun",     S_SUBGUN,     S_RSUBGUN,  1650,   80,     15,     0,   0, 45,   15,   30,   1,  2,    4,  30,     50,     188,  1,      true  },   
     { "sniper",     S_SNIPER,     S_RSNIPER,  1950,   1500,   82,     0,   0, 50,   50,   5,    4,  4,    10, 85,     85,     100,  1,      false },   // 2011jan24:ft: dmg 82, spread 50
