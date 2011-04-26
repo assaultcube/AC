@@ -510,6 +510,32 @@
 					</arguments>
 				</command>
 
+				<command name="break">
+					<description>Aborts a loop created with a 'loop' or 'while' command.</description>
+					<remarks>
+					<remark>
+						Note: As opposed to (almost) any other scripting language, this command does NOT abort execution of the current iteration.
+						Instead, it aborts the loop after the execution of that iteration has finished.
+						If you want to break out of a loop without executing the rest of the code, use an if-else construction as in the last example.
+					</remark>
+					</remarks>
+					<examples>
+					<example>
+						<code><![CDATA[loop i 10 [ echo $i; if (= $i 4) break ]]]></code>
+						<explanation>output: 0 1 2 3 4</explanation>
+					</example>
+					<example>
+						<code><![CDATA[loop i 10 [ if (= $i 4) break; echo $i ]]]></code>
+						<explanation>output: 0 1 2 3 4</explanation>
+						<explanation>Note how the result is no different than in the example before.</explanation>
+					</example>
+					<example>
+						<code><![CDATA[loop i 10 [ if (= $i 4) [break] [echo $i] ]]]></code>
+						<explanation>output: 0 1 2 3</explanation>
+					</example>
+					</examples>
+				</command>
+
 				<command name="concat">
 					<description>Concatenates multiple strings with spaces inbetween.</description>
 					<examples>
