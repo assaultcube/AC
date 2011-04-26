@@ -614,3 +614,18 @@ void entstats(void)
 
 COMMAND(entstats, ARG_NONE);
 
+vector<int> changedents;
+int lastentsync = 0;
+
+void syncentchanges(bool force)
+{
+    if(lastmillis - lastentsync < 1000 && !force) return;
+    loopv(changedents) if(ents.inrange(changedents[i]))
+    {
+        entity &e = ents[changedents[i]];
+        addmsg(SV_EDITENT, "ri9", changedents[i], e.type, e.x, e.y, e.z, e.attr1, e.attr2, e.attr3, e.attr4);
+    }
+    changedents.setsize(0);
+    lastentsync = lastmillis;
+}
+
