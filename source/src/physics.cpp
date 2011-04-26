@@ -328,7 +328,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
     bool water = false;
     const bool editfly = pl->state==CS_EDITING;
     const bool specfly = pl->type==ENT_PLAYER && ((playerent *)pl)->spectatemode==SM_FLY;
-    const bool isfly = editfly || specfly;
+    const bool isfly = editfly || specfly || player1->spectatemode==SM_FLY;
 
     vec d;      // vector of direction we ideally want to move in
 
