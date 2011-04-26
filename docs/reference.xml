@@ -439,7 +439,7 @@
 					</arguments>
 					<return token="S" description="the substring" />
 					<remarks>
-						<remark>Character indexes begins at 0.</remark>
+						<remark>Character indexes begins at 0. If "start position" is negative, the reference is the end of the string.</remark>
 					</remarks>
 					<examples>
 					<example>
@@ -447,8 +447,8 @@
 						cdefg]]></code>
 					</example>
 					<example>
-						<code><![CDATA[echo (substr abcdefgh 2 3)
-						cde]]></code>
+						<code><![CDATA[echo (substr abcdefgh -3 2)
+						fg]]></code>
 					</example>
 					<example>
 						<code><![CDATA[echo (substr abcdefgh 2)
