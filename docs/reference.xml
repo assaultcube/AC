@@ -435,20 +435,20 @@
 					<arguments>
 						<argument token="S" description="the original string"/>
 						<argument token="A" description="start position"/>
-						<argument token="B" description="end position"/>
+						<argument token="L" description="substring length (optionnal)"/>
 					</arguments>
 					<return token="S" description="the substring" />
 					<remarks>
-						<remark>Character indexes begins at 0. The end position is the char that is not included anymore.</remark>
+						<remark>Character indexes begins at 0.</remark>
 					</remarks>
 					<examples>
 					<example>
 						<code><![CDATA[echo (substr abcdefgh 2 5)
-						cde]]></code>
+						cdefg]]></code>
 					</example>
 					<example>
 						<code><![CDATA[echo (substr abcdefgh 2 3)
-						c]]></code>
+						cde]]></code>
 					</example>
 					<example>
 						<code><![CDATA[echo (substr abcdefgh 2)

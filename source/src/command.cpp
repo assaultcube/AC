@@ -1242,20 +1242,27 @@ void timestring_()
 
 int millis_() { extern int totalmillis; return totalmillis; }
 void strlen_(char *s) { string r; formatstring(r)("%d", strlen(s)); result(r); }
-void substr_(char *fs, char *pa, char *pb)
+void substr_(char *fs, char *pa, char *len)
 {
 	int ia = atoi(pa);
-	int ib = atoi(pb);
+	int ilen = atoi(len);
 	string subq;
 	string subr;
 	subr[0] = '\0';
+    if(ia>(int)strlen(fs))
+    {
+        return;
+    }
 	if(ia>=0)
 	{
-		if(ib<=0 || ib>=(int)strlen(fs)) ib = strlen(fs);
+        if(!ilen)
+        {
+            ilen = strlen(fs)-ia;
+        }
 		copystring(subq,  fs + ia);
-		strncpy(subr, subq, ib - ia);
+		strncpy(subr, subq, ilen);
 	}
-	subr[ib-ia] = '\0';
+	subr[ilen] = '\0';
 	result(subr);
 }
 void l0(int p, int v) { string f; string r; formatstring(f)("%%0%dd", p); formatstring(r)(f, v); result(r); }
