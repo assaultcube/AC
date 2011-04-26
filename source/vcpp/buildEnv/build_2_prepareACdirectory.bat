@@ -40,7 +40,7 @@ copy /Y %workingacdir%\packages\models\weapons\grenade\static\shadows.dat %acdir
 copy /Y %workingacdir%\packages\models\weapons\grenade\world\shadows.dat %acdir%\packages\models\weapons\grenade\world\shadows.dat
 copy /Y %workingacdir%\packages\models\weapons\knife\world\shadows.dat %acdir%\packages\models\weapons\knife\world\shadows.dat
 copy /Y %workingacdir%\packages\models\weapons\pistol\world\shadows.dat %acdir%\packages\models\weapons\pistol\world\shadows.dat
-copy /Y %workingacdir%\packages\models\weapons\rifle\world\shadows.dat %acdir%\packages\models\weapons\rifle\world\shadows.dat
+copy /Y %workingacdir%\packages\models\weapons\carbine\world\shadows.dat %acdir%\packages\models\weapons\carbine\world\shadows.dat
 copy /Y %workingacdir%\packages\models\weapons\shotgun\world\shadows.dat %acdir%\packages\models\weapons\shotgun\world\shadows.dat
 copy /Y %workingacdir%\packages\models\weapons\sniper\world\shadows.dat %acdir%\packages\models\weapons\sniper\world\shadows.dat
 copy /Y %workingacdir%\packages\models\weapons\subgun\world\shadows.dat %acdir%\packages\models\weapons\subgun\world\shadows.dat

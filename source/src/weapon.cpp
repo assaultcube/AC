@@ -660,7 +660,7 @@ const char *weapstr(unsigned int i)
         return "V-19 SG";
     case GUN_KNIFE:
         return "Knife";
-    case GUN_RIFLE:
+    case GUN_CARBINE:
         return "TMP-M&A CB";
     case GUN_GRENADE:
         return "Grenades";
@@ -867,7 +867,7 @@ void weapon::equipplayer(playerent *pl)
     pl->weapons[GUN_KNIFE] = new knife(pl);
     pl->weapons[GUN_PISTOL] = new pistol(pl);
     pl->weapons[GUN_CPISTOL] = new cpistol(pl);
-    pl->weapons[GUN_RIFLE] = new rifle(pl);
+    pl->weapons[GUN_CARBINE] = new carbine(pl);
     pl->weapons[GUN_SHOTGUN] = new shotgun(pl);
     pl->weapons[GUN_SNIPER] = new sniperrifle(pl);
     pl->weapons[GUN_SUBGUN] = new subgun(pl);
@@ -1302,11 +1302,11 @@ void sniperrifle::setscope(bool enable)
     }
 }
 
-// rifle
+// carbine
 
-rifle::rifle(playerent *owner) : gun(owner, GUN_RIFLE) {}
+carbine::carbine(playerent *owner) : gun(owner, GUN_CARBINE) {}
 
-bool rifle::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
+bool carbine::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
 
 
 // assaultrifle

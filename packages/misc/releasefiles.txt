@@ -176,8 +176,8 @@ packages/audio/weapon/pistol_reload.ogg
 packages/audio/weapon/ric1.ogg
 packages/audio/weapon/ric2.ogg
 packages/audio/weapon/ric3.ogg
-packages/audio/weapon/rifle.ogg
-packages/audio/weapon/rifle_reload.ogg
+packages/audio/weapon/carbine.ogg
+packages/audio/weapon/carbine_reload.ogg
 packages/audio/weapon/shotgun.ogg
 packages/audio/weapon/shotgun_reload.ogg
 packages/audio/weapon/sniper.ogg
@@ -494,10 +494,10 @@ packages/models/weapons/knife/world
 packages/models/weapons/pistol
 packages/models/weapons/pistol
 packages/models/weapons/pistol/world
-packages/models/weapons/rifle/menu
-packages/models/weapons/rifle
-packages/models/weapons/rifle
-packages/models/weapons/rifle/world
+packages/models/weapons/carbine/menu
+packages/models/weapons/carbine
+packages/models/weapons/carbine
+packages/models/weapons/carbine/world
 packages/models/weapons/shotgun/menu
 packages/models/weapons/shotgun
 packages/models/weapons/shotgun
