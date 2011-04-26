@@ -690,6 +690,8 @@ extern void rendermapmodels();
 extern void resetspawns(int type = -1);
 extern void setspawn(int i, bool on);
 extern void checkitems(playerent *d);
+extern vector<int> changedents;
+extern void syncentchanges(bool force = false);
 
 // rndmap
 extern void perlinarea(block &b, int scale, int seed, int psize);

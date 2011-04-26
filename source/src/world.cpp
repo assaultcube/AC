@@ -186,6 +186,7 @@ void entproperty(int prop, int amount)
         case LIGHT: calclight(); break;
         case SOUND: audiomgr.preloadmapsound(e);
     }
+    if(changedents.find(n) == -1) changedents.add(n);   // apply ent changes later (reduces network traffic)
 }
 
 hashtable<char *, enet_uint32> mapinfo, &resdata = mapinfo;
@@ -219,6 +220,7 @@ void delent()
 {
     int e = closestent();
     if(e<0) { conoutf("no more entities"); return; }
+    syncentchanges(true);
     int t = ents[e].type;
     conoutf("%s entity deleted", entnames[t]);
     ents[e].type = NOTUSED;
@@ -261,6 +263,7 @@ entity *newentity(int index, int x, int y, int z, char *what, int v1, int v2, in
             e.attr1 = (int)camera1->yaw;
             break;
     }
+    syncentchanges(true);
     addmsg(SV_EDITENT, "ri9", index<0 ? ents.length() : index, type, e.x, e.y, e.z, e.attr1, e.attr2, e.attr3, e.attr4);
     e.spawned = true;
     int oldtype = type;

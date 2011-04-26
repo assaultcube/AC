@@ -568,6 +568,7 @@ void updateworld(int curtime, int lastmillis)        // main game update loop
         }
     }
 
+    syncentchanges();
     physicsframe();
     checkweaponswitch();
     checkakimbo();
@@ -1060,6 +1061,7 @@ void resetmap(bool mrproper)
     clearminimap();
     cleardynlights();
     pruneundos();
+    changedents.setsize(0);
     particlereset();
     if(mrproper)
     {
