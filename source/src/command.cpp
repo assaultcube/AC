@@ -1279,11 +1279,35 @@ void substr_(char *fs, char *pa, char *len)
     result(newstring(fs + ia, ilen));
 }
 
+void strpos_(char *haystack, char *needle, char *occurence)
+{
+    int position = -1;
+    char *ptr = haystack;
+
+    if(haystack && needle)
+    for(int iocc = atoi(occurence); iocc >= 0; iocc--)
+    {
+        ptr = strstr(ptr, needle);
+        if (ptr)
+        {
+            position = ptr-haystack;
+            ptr += strlen(needle);
+        }
+        else
+        {
+            position = -1;
+            break;
+        }
+    }
+    intret(position);
+}
+
 void l0(int p, int v) { string f; string r; formatstring(f)("%%0%dd", p); formatstring(r)(f, v); result(r); }
 
 COMMANDN(millis, millis_, ARG_IVAL);
 COMMANDN(strlen, strlen_, ARG_1STR);
 COMMANDN(substr, substr_, ARG_3STR);
+COMMANDN(strpos, strpos_, ARG_3STR);
 COMMAND(l0, ARG_2INT);
 COMMAND(systime, ARG_NONE);
 COMMANDN(timestamp, timestamp_, ARG_NONE);
