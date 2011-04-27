@@ -530,29 +530,39 @@ void showrespawntimer()
     }
 }
 
-struct scriptsleep { int wait, millis; char *cmd; };
+struct scriptsleep { int wait, millis; char *cmd; bool persist; };
 vector<scriptsleep> sleeps;
 
-void addsleep(int msec, const char *cmd)
+void addsleep(int msec, const char *cmd, bool persist)
 {
     scriptsleep &s = sleeps.add();
     s.wait = max(msec, 1);
     s.millis = lastmillis;
     s.cmd = newstring(cmd);
+    s.persist = persist;
 }
 
-void addsleep_(char *msec, char *cmd)
+void addsleep_(char *msec, char *cmd, char *persist)
 {
-    addsleep(atoi(msec), cmd);
+    addsleep(atoi(msec), cmd, atoi(persist) != 0);
 }
 
-void resetsleep()
+void resetsleep(bool force)
 {
-    loopv(sleeps) DELETEA(sleeps[i].cmd);
-    sleeps.shrink(0);
+    loopv(sleeps) if(!sleeps[i].persist || force)
+    {
+        DELETEA(sleeps[i].cmd);
+        sleeps.remove(i);
+    }
 }
 
-COMMANDN(sleep, addsleep_, ARG_2STR);
+void resetsleep_()
+{
+    resetsleep(true);
+}
+
+COMMANDN(sleep, addsleep_, ARG_3STR);
+COMMANDN(resetsleeps, resetsleep_, ARG_NONE);
 
 void updateworld(int curtime, int lastmillis)        // main game update loop
 {
