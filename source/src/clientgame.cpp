@@ -1616,11 +1616,7 @@ void spectate(int mode)
         {
             if(player1->spectatemode != SM_FLY)
             {
-                player1->followplayercn = FPCN_FLY;
-                addmsg(SV_SPECTCN, "ri", player1->followplayercn);
-#if 0  // FIXME - we can't call updatefollowplayer() here, because that would change followplayercn and send a SV_SPECTCN
-                // set spectator location to last followed player
-                playerent *f = updatefollowplayer();
+                playerent *f = getclient(player1->followplayercn);
                 if(f)
                 {
                     player1->o = f->o;
@@ -1629,10 +1625,8 @@ void spectate(int mode)
                     player1->resetinterp();
                 }
                 else entinmap(player1); // or drop 'em at a random place
-#else
-                entinmap(player1);      // place near last location
-#endif
-
+                player1->followplayercn = FPCN_FLY;
+                addmsg(SV_SPECTCN, "ri", player1->followplayercn);
             }
             break;
         }
@@ -1640,7 +1634,6 @@ void spectate(int mode)
     }
     player1->spectatemode = mode;
 }
-
 
 void togglespect() // cycle through all spectating modes
 {
