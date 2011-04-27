@@ -74,6 +74,7 @@
 // -W     // demopath, path & file prefix to store recorded demos at
 // -V     // verbose logging (enable this via commandline, until you're sure, there are no errors in your config left)
 // -C     // import commandline options from file (can be used recursively)
+// -l     // If set to 0, disable game status logging from server logs
 // -T     // Add timestamps to every line of the console and file logs.
 // -LF    // Sets the logging level for file logs (0..5), default 2 (Win & Mac) or 5 (Linux)
 // -LS    // Sets the logging level for syslog logging (0..5), default 2 (Linux) or 5 (Win & Mac)

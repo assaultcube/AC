@@ -3588,6 +3588,7 @@ void rereadcfgs(void)
 
 void loggamestatus(const char *reason)
 {
+    if(!scl.loggamestatus) return;
     int fragscore[2] = {0, 0}, flagscore[2] = {0, 0}, pnum[2] = {0, 0};
     string text;
     formatstring(text)("%d minutes remaining", minremain);
