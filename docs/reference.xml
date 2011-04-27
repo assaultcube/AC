@@ -3252,7 +3252,7 @@ Output:
 						<remark>The new map has 2^S cubes. For S, 6 is small, 7 medium, 8 large.</remark>
 					</remarks>
 					<arguments>
-						<argument token="S" description="the size of the new map" valueNotes="6..12"/>
+						<argument token="S" description="the size of the new map" valueNotes="6..9"/>
 					</arguments>
 				</command>
 

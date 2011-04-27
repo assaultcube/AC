@@ -500,10 +500,14 @@ bool empty_world(int factor, bool force)    // main empty world creation routine
 void mapenlarge()  { if(empty_world(-1, false)) addmsg(SV_NEWMAP, "ri", -1); }
 void mapshrink()   { if(empty_world(-2, false)) addmsg(SV_NEWMAP, "ri", -2); }
 void newmap(int i) {
-    if(empty_world(i, false))
+    if(i < 6 || i > 9) conoutf("\f3Error: \f5newmap has a valid range of \f26-9"); // TODO: update this valid range when /newmap >9 stops crashing the client ;) - Bukz 2011apr27
+    else
     {
-        addmsg(SV_NEWMAP, "ri", max(i, 0));
-        if(identexists("onNewMap")) execute("onNewMap");
+        if(empty_world(i, false))
+        {
+            addmsg(SV_NEWMAP, "ri", max(i, 0));
+            if(identexists("onNewMap")) execute("onNewMap");
+        }
     }
 }
 
