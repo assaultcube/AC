@@ -248,6 +248,7 @@ ICOMMANDF(skin_rvsf, ARG_1EST, (char *s) { return _setskin(s, TEAM_RVSF); });
 ICOMMANDF(skin, ARG_1EST, (char *s) { return _setskin(s, player1->team); });
 
 int curteam() { return player1->team; }
+int isSpect() { return (player1->team==TEAM_SPECT || player1->spectatemode==SM_FLY); }
 int currole() { return player1->clientrole; }
 int curmode() { return gamemode; }
 int curmastermode() { return servstate.mastermode; }
@@ -266,6 +267,7 @@ COMMANDN(team, newteam, ARG_1STR);
 COMMANDN(name, newname, ARG_1STR);
 COMMAND(benchme, ARG_NONE);
 COMMAND(curteam, ARG_IVAL);
+COMMAND(isSpect, ARG_IVAL);
 COMMAND(currole, ARG_IVAL);
 COMMAND(curmode, ARG_IVAL);
 COMMAND(curmastermode, ARG_IVAL);
