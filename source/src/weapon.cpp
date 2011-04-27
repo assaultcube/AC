@@ -110,7 +110,7 @@ void quicknadethrow(bool on)
     if(player1->state != CS_ALIVE) return;
     if(on)
     {
-        if(player1->weapons[GUN_GRENADE]->mag > 0 && !player1->attacking)
+        if(player1->weapons[GUN_GRENADE]->mag > 0)
         {
             if(player1->weaponsel->type != GUN_GRENADE) selectweapon(player1->weapons[GUN_GRENADE]);
             if(player1->weaponsel->type == GUN_GRENADE || quicknade_hold) { player1->attacking = true; nadeattack = true; }
