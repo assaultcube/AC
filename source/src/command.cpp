@@ -329,11 +329,13 @@ char *parseexp(const char *&p, int right)             // parse any nested set of
 {
     int left = *p++;
     const char *word = p;
+    bool quot = false;
     for(int brak = 1; brak; )
     {
         int c = *p++;
-        if(c==left) brak++;
-        else if(c==right) brak--;
+        if(c==left && !quot) brak++;
+        else if(c=='"') quot = !quot;
+        else if(c==right && !quot) brak--;
         else if(!c) { p--; conoutf("missing \"%c\"", right); return NULL; }
     }
     char *s = newstring(word, p-word-1);
