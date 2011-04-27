@@ -430,6 +430,43 @@
           </references>
 				</command>
 
+              <command name="strpos">
+                <description>Returns the position of a substring into another</description>
+                <arguments>
+                  <argument token="H" description="haystack string"/>
+                  <argument token="S" description="needle string"/>
+                  <argument token="N" description="The occurence of 'needle' to find (optionnal)" />
+                </arguments>
+                <return token="N" description="The N'th position of 'needle' into 'haystack' (-1 if 'needle' isn't found;)" />
+                <remarks>
+                  <remark>Character indexes and occurence number begin at 0.</remark>
+                </remarks>
+                <examples>
+                  <example>
+                    <code>
+                      <![CDATA[echo (strpos "hello world" "world")
+						6]]>
+                    </code>
+                  </example>
+                  <example>
+                    <code>
+                      <![CDATA[echo (strpos "hello world" "l")
+						2]]>
+                    </code>
+                  </example>
+                  <example>
+                    <code>
+                      <![CDATA[echo (strpos "hello world" "l" 2)
+						9]]>
+                    </code>
+                    <code>
+                      <![CDATA[echo (strpos "hello world" "l" 3)
+						-1]]>
+                    </code>
+                  </example>
+                </examples>
+              </command>
+
 				<command name="substr">
 					<description>Copies a substring out of the original.</description>
 					<arguments>
