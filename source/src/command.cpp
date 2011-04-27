@@ -441,6 +441,7 @@ vector<long long> seer_t2; // timestamp of last n3 (10) level-2 calls
 #endif
 char *executeret(const char *p)                            // all evaluation happens here, recursively
 {
+	if(!p || !p[0]) return NULL;
 	bool noproblem = true;
 #if 0
 	if(execcontext>IEXC_CFG) // only PROMPT and MAP-CFG are checked for this, fooling with core/cfg at your own risk!
