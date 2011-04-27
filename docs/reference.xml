@@ -662,6 +662,7 @@
 					<arguments>
 						<argument token="N" description="the amount of milliseconds"/>
 						<argument token="C" description="the command to execute"/>
+                        <argument token="P" description="ignore map change (optionnal)"/>
 					</arguments>
 				</command>
 

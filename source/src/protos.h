@@ -387,8 +387,8 @@ extern void timeupdate(int milliscur, int millismax); // was (int timeremain);
 extern void respawnself();
 extern void setskin(playerent *pl, int skin, int team = -1);
 extern void callvote(int type, char *arg1 = NULL, char *arg2 = NULL);
-extern void addsleep(int msec, const char *cmd);
-extern void resetsleep();
+extern void addsleep(int msec, const char *cmd, bool persist = false);
+extern void resetsleep(bool force = false);
 //game mode extras
 extern void flagpickup(int fln);
 extern void tryflagdrop(bool manual = false);
