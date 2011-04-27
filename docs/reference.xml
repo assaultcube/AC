@@ -666,6 +666,10 @@
 					</arguments>
 				</command>
 
+                <command name="resetsleeps">
+                  <description>Resets all current "sleep".</description>
+                </command>
+
 				<variable name="numargs">
 					<description>The number of arguments passed to the current alias</description>
 					<value token="V" description="numargs" minValue="0" maxValue="25" defaultValue="0" readOnly="true"/>
