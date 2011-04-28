@@ -931,7 +931,7 @@ void grenadeent::splash()
     }
     int damage = guns[GUN_GRENADE].damage;
 
-    radialeffect(owner, o, damage, owner, GUN_GRENADE);
+    radialeffect(owner->type == ENT_BOT ? player1 : owner, o, damage, owner, GUN_GRENADE);
     loopv(players)
     {
         playerent *p = players[i];
