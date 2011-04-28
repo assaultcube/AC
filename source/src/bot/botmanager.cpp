@@ -1315,11 +1315,20 @@ void testvisible(int iDir)
 
 COMMAND(testvisible, ARG_1INT);
 
-void mapsize(void)
+int mapsize(void)
 {
-    conoutf("ssize: %d", ssize);
+    switch(ssize)
+    {
+        case 128:  return 7;  break;
+        case 256:  return 8;  break;
+        case 512:  return 9;  break;
+        case 1024: return 10; break;
+        case 2048: return 11; break;
+        case 4096: return 12; break;
+        default:   return 6;  break;
+    }
 }
 
-COMMAND(mapsize, ARG_NONE);
+COMMAND(mapsize, ARG_IVAL);
 
 #endif
