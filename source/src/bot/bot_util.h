@@ -1,13 +1,6 @@
 #ifndef BOT_UTIL_H
 #define BOT_UTIL_H
 
-// Structure for storing traceresults
-struct traceresult_s
-{
-     vec end;
-     bool collided;
-};
-
 long RandomLong(long from, long to);
 float RandomFloat(float from, float to);
 void lsrand(unsigned long initial_seed);
@@ -15,8 +8,7 @@ void lsrand(unsigned long initial_seed);
 void AnglesToVectors(vec angles, vec &forward, vec &right, vec &up);
 float WrapXAngle(float angle);
 float WrapYZAngle(float angle);
-void TraceLine(vec from, vec to, dynent *pTracer, bool CheckPlayers, traceresult_s *tr,
-               bool SkipTags=false);
+
 float GetDistance(vec v1, vec v2);
 float Get2DDistance(vec v1, vec v2);
 bool IsVisible(vec v1, vec v2, dynent *tracer = NULL, bool SkipTags=false);
