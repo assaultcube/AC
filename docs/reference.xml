@@ -1019,7 +1019,7 @@
             <argument token="O" description="body of code to execute if none of the other arguments have been met" valueNotes="a body of code"/>
           </arguments>
           <remarks>
-            <remark>This command requires 6 arguments, no more no less. Use an empty set of brackets [] for any of the arguments that you want to "do nothing".</remark>
+            <remark>This command requires 6 arguments, no less. Use an empty set of brackets [] for any of the arguments that you want to "do nothing".</remark>
           </remarks>
           <references>
             <identifierReference identifier="bind"/>
