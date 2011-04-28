@@ -279,9 +279,9 @@ VARP(autoscreenshot, 0, 0, 1);
 
 // macros for getplayer() 
 // TODO : find a smarter way to implement this. 
-#define ATTR_INT(attribute, readonly, extra) if(!strcmp(attr, #attribute) extra) { if(!readonly && set) p->attribute = atoi(value);      intret(p->attribute); return; }
-#define ATTR_POS(attribute, readonly)        if(!strcmp(attr, #attribute))       { if(!readonly && set) p->o.attribute = atof(value);    floatret(p->o.attribute); return; }
-#define ATTR_STR(attribute, readonly)        if(!strcmp(attr, #attribute))       { if(!readonly && set) copystring(p->attribute, value); result(p->attribute); return; }
+#define ATTR_INT(name, attribute, readonly)    if(!strcmp(attr, #name)) { if(!readonly && set) attribute = atoi(value);        intret(attribute); return; }
+#define ATTR_FLOAT(name, attribute, readonly)  if(!strcmp(attr, #name)) { if(!readonly && set) attribute = atof(value);      floatret(attribute); return; }
+#define ATTR_STR(name, attribute, readonly)    if(!strcmp(attr, #name)) { if(!readonly && set) copystring(attribute, value);   result(attribute); return; }
 
 void getplayer(const char *cn, const char *attr, const char *value)
 {
@@ -297,29 +297,29 @@ void getplayer(const char *cn, const char *attr, const char *value)
     bool set = *value && value && p==player1; // do we have to get or set an attribute (valid value, player selected is local client)
     if(p==player1)
     {
-        ATTR_INT(health, 1,);
-        ATTR_INT(armour, 1,);
-        ATTR_INT(weaponsel->mag, 1, || !strcmp(attr, "magcontent"));
-        ATTR_INT(weaponsel->ammo, 1, || !strcmp(attr, "ammo"));
-        ATTR_INT(nextprimary, 0,);
+        ATTR_INT(health, p->health, 1);
+        ATTR_INT(armour, p->armour, 1);
+        ATTR_INT(magcontent, p->weaponsel->mag, 1);
+        ATTR_INT(ammo, p->weaponsel->ammo, 1);
+        ATTR_INT(nextprimary, p->nextprimary, 0);
     }
     if(p->team == player1->team || player1->isspectating())
     {
-        ATTR_POS(x, 1);
-        ATTR_POS(y, 1);
-        ATTR_POS(z, 1);
+        ATTR_FLOAT(x, p->o.x, 1);
+        ATTR_FLOAT(y, p->o.y, 1);
+        ATTR_FLOAT(z, p->o.z, 1);
     }
-    ATTR_STR(name, 0);
-    ATTR_INT(team, 1,);
-    ATTR_INT(ping, 1,);
-    ATTR_INT(plag, 1, || !strcmp(attr, "pj"));
-    ATTR_INT(state, 1,);
-    ATTR_INT(clientrole, 1, || !strcmp(attr, "role"));
-    ATTR_INT(primary, 1,);
-    ATTR_INT(frags, 1,);
-    ATTR_INT(flagscore, 1,);
-    ATTR_INT(points, 1,);
-    ATTR_INT(deaths, 1,);
+    ATTR_STR(name, p->name, 0);
+    ATTR_INT(team, p->team, 1);
+    ATTR_INT(ping, p->ping, 1);
+    ATTR_INT(pj, p->plag, 1);
+    ATTR_INT(state, p->state, 1);
+    ATTR_INT(role, p->clientrole, 1);
+    ATTR_INT(primary, p->primary, 1);
+    ATTR_INT(frags, p->frags, 1);
+    ATTR_INT(flags, p->flagscore, 1);
+    ATTR_INT(points, p->points, 1);
+    ATTR_INT(deaths, p->deaths, 1);
     conoutf("invalid attribute");
 }
 
@@ -332,7 +332,6 @@ void getlocalplayer(const char *attr, const char *value)
 
 COMMANDN(player, getplayer, ARG_3STR);
 COMMANDN(player1, getlocalplayer, ARG_2STR);
-
 
 void deathstate(playerent *pl)
 {
