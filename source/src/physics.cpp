@@ -768,7 +768,7 @@ void crouch(bool on)
 
 int inWater(int type = 0)
 {
-    if(type ? hdr.waterlevel > player1->o.z : hdr.waterlevel > (player1->o.z - player1->eyeheight)) return 1;
+    if(hdr.waterlevel > (type ? player1->o.z : (player1->o.z - player1->eyeheight))) return 1;
     else return 0;
 }
 
