@@ -853,6 +853,14 @@
 				</command>
 
 				<command name="echo">
+          <description>Outputs text to the console.</description>
+					<arguments>
+						<argument token="L" description="List of strings"/>
+					</arguments>
+				</command>
+        
+        <command name="hudecho">
+          <description>Outputs text to the console and heads up display.</description>
 					<arguments>
 						<argument token="L" description="List of strings"/>
 					</arguments>

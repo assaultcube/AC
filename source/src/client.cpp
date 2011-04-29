@@ -270,7 +270,19 @@ void echo(char *text)
     while(s);
 }
 
+void hudecho(char *text)
+{
+    const char *s = strtok(text, "\n");
+    do
+    {
+        hudoutf("%s", s ? s : "");
+        s = strtok(NULL, "\n");
+    }
+    while(s);
+}
+
 COMMAND(echo, ARG_CONC);
+COMMAND(hudecho, ARG_CONC);
 COMMANDN(say, toserver, ARG_CONC);
 COMMANDN(me, toserverme, ARG_CONC);
 COMMANDN(connect, connectserv, ARG_3STR);
