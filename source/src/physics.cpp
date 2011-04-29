@@ -766,7 +766,11 @@ void crouch(bool on)
     player1->trycrouch = on;
 }
 
-
+int inWater(int type = 0)
+{
+    if(type ? hdr.waterlevel > player1->o.z : hdr.waterlevel > (player1->o.z - player1->eyeheight)) return 1;
+    else return 0;
+}
 
 COMMAND(backward, ARG_DOWN);
 COMMAND(forward, ARG_DOWN);
@@ -775,6 +779,7 @@ COMMAND(right, ARG_DOWN);
 COMMANDN(jump, jumpn, ARG_DOWN);
 COMMAND(attack, ARG_DOWN);
 COMMAND(crouch, ARG_DOWN);
+COMMAND(inWater, ARG_1EXP);
 
 void fixcamerarange(physent *cam)
 {
