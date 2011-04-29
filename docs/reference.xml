@@ -5112,7 +5112,7 @@ Output:
 					<remarks>
 					<remark>
 						If, for example, the server was run with -n&quot;Fred's Server&quot; -n1&quot;Fred's &quot; -n2&quot; Server&quot;,
-						then you could call &quot;/serverdesc [pWn4g3 TOSOK]&quot; and it would show up as &quot;"Fred's pWn4g3 TOSOK Server&quot;
+						then you could call &quot;/serverdesc [pWn4g3 TOSOK]&quot; and it would show up as &quot;Fred's pWn4g3 TOSOK Server&quot;
 						in the serverbrowser.
 					</remark>
 					</remarks>
