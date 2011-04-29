@@ -2699,6 +2699,23 @@ Output:
         <scriptalias name="onLastMin">
           <description>If this alias exists, it will be automatically executed on the last minute remaining mark.</description>
         </scriptalias>
+        
+        <command name="inWater">
+          <description>Determines if the local player is standing in water or submerged.</description>
+          <examples>
+            <example>
+              <code><![CDATA[if (inWater) [echo in water] [echo not in water]]]></code>
+              <explanation>Example output: in water</explanation>
+            </example>
+            <example>
+              <code><![CDATA[if (inWater 1) [echo submerged] [echo not submerged]]]></code>
+              <explanation>Example output: not submerged</explanation>
+            </example>
+          </examples>
+          <arguments>
+            <argument token="T" description="check if submerged instead?" valueNotes="min 0/max 1/default 0"/>
+          </arguments>
+        </command>
 
 			</identifiers>
 		</section>

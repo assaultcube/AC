@@ -6,7 +6,7 @@
 
 VARP(autoreload, 0, 1, 1);
 VARP(akimboautoswitch, 0, 1, 1);
-VARP(akimboendaction, 0, 0, 2); // 0: stay with pistol, 1: back to primary, 2: grenade - all fallback to previous one w/o ammo for target
+VARP(akimboendaction, 0, 1, 2); // 0: stay with pistol, 1: back to primary, 2: grenade - all fallback to previous one w/o ammo for target
 struct sgray {
     int ds; // damage flag: outer, medium, center: SGSEGDMG_*
     vec rv; // ray vector
