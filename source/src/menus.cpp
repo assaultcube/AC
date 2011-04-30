@@ -214,7 +214,9 @@ struct mitemmanual : mitem
         {
             gmenu *oldmenu = curmenu;
             push("arg1", text);
+            setcontext("menu", curmenu->name);
             int result = execute(action);
+            resetcontext();
             pop("arg1");
             if(result >= 0 && oldmenu == curmenu)
             {
@@ -741,10 +743,10 @@ struct mitemcheckbox : mitem
         checked = !checked;
         if(action && action[0])
         {
-        push("arg1", checked ? "1" : "0");
-        execute(action);
-        pop("arg1");
-    }
+            push("arg1", checked ? "1" : "0");
+            execute(action);
+            pop("arg1");
+        }
     }
 
     virtual void init()
@@ -1166,8 +1168,10 @@ void gmenu::open()
     if(!allowinput) menusel = 0;
     if(!forwardkeys) player1->stopmoving();
     if(items.inrange(menusel)) items[menusel]->focus(true);
+    setcontext("menu", name);
     init();
     if(initaction) execute(initaction);
+    resetcontext();
 }
 
 void gmenu::close()
