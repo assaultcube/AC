@@ -270,12 +270,16 @@ void echo(char *text)
     while(s);
 }
 
+VARP(allowhudechos, 0, 1, 1);
 void hudecho(char *text)
 {
     const char *s = strtok(text, "\n");
     do
     {
-        hudoutf("%s", s ? s : "");
+        if(allowhudechos)
+            hudoutf("%s", s ? s : "");
+        else
+            conoutf("%s", s ? s : "");
         s = strtok(NULL, "\n");
     }
     while(s);
