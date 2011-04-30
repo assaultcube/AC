@@ -5,6 +5,7 @@
 
 bool allowidentaccess(ident *id);
 char *exchangestr(char *o, const char *n) { delete[] o; return newstring(n); }
+void scripterr();
 
 vector<int> contextstack;
 bool contextsealed = false;
@@ -68,6 +69,7 @@ void pusha(const char *name, char *action)
     if(contextisolated[execcontext] && execcontext > id->context)
     {
         conoutf("cannot redefine alias %s in this execution context", id->name);
+        scripterr();
         return;
     }
     pushident(*id, action);
@@ -85,6 +87,7 @@ void pop(const char *name)
     if(contextisolated[execcontext] && execcontext > id->context)
     {
         conoutf("cannot redefine alias %s in this execution context", id->name);
+        scripterr();
         return;
     }
     popident(*id);
@@ -99,6 +102,7 @@ void delalias(const char *name)
     if(contextisolated[execcontext] && execcontext > id->context)
     {
         conoutf("cannot remove alias %s in this execution context", id->name);
+        scripterr();
         return;
     }
     idents->remove(name);
@@ -118,13 +122,18 @@ void alias(const char *name, const char *action)
         if(contextisolated[execcontext] && execcontext > b->context)
         {
             conoutf("cannot redefine alias %s in this execution context", b->name);
+            scripterr();
             return;
         }
         if(b->action!=b->executing) delete[] b->action;
         b->action = newstring(action);
         if(b->persist!=persistidents) b->persist = persistidents;
     }
-    else conoutf("cannot redefine builtin %s with an alias", name);
+    else
+    {
+        conoutf("cannot redefine builtin %s with an alias", name);
+        scripterr();
+    }
 }
 
 COMMAND(alias, ARG_2STR);
@@ -191,6 +200,7 @@ void modifyvar(const char *name, const char *arg, char op)
     if(!allowidentaccess(id))
     {
         conoutf("not allowed in this execution context: %s", id->name);
+        scripterr();
         return;
     }
     int val = 0;
@@ -227,6 +237,7 @@ void modifyfvar(const char *name, const char *arg, char op)
     if(!allowidentaccess(id))
     {
         conoutf("not allowed in this execution context: %s", id->name);
+        scripterr();
         return;
     }
     float val = 0;
@@ -336,7 +347,13 @@ char *parseexp(const char *&p, int right)             // parse any nested set of
         if(c==left && !quot) brak++;
         else if(c=='"') quot = !quot;
         else if(c==right && !quot) brak--;
-        else if(!c) { p--; conoutf("missing \"%c\"", right); return NULL; }
+        else if(!c)
+        {
+            p--;
+            conoutf("missing \"%c\"", right);
+            scripterr();
+            return NULL;
+        }
     }
     char *s = newstring(word, p-word-1);
     if(left=='(')
@@ -359,6 +376,7 @@ char *lookup(char *n)                           // find value of ident reference
         case ID_ALIAS: return exchangestr(n, id->action);
     }
     conoutf("unknown alias lookup: %s", n+1);
+    scripterr();
     return n;
 }
 
@@ -523,6 +541,7 @@ char *executeret(const char *p)                            // all evaluation hap
 				if(!isdigit(*c) && ((*c!='+' && *c!='-' && *c!='.') || !isdigit(c[1])))
 				{
 					conoutf("unknown command: %s", c);
+					scripterr();
 				}
 				setretval(newstring(c));
 			}
@@ -531,6 +550,7 @@ char *executeret(const char *p)                            // all evaluation hap
 				if(!allowidentaccess(id))
 				{
 					conoutf("not allowed in this execution context: %s", id->name);
+					scripterr();
 					continue;
 				}
 
@@ -604,6 +624,7 @@ char *executeret(const char *p)                            // all evaluation hap
 							{
 								f1 = f1<id->minvalf ? id->minvalf : id->maxvalf;       // clamp to valid range
 								conoutf("valid range for %s is %s..%s", id->name, floatstr(id->minvalf), floatstr(id->maxvalf));
+								scripterr();
 							}
 							*id->storage.f = f1;
 							if(id->fun) ((void (__cdecl *)())id->fun)();            // call trigger function if available
@@ -868,14 +889,35 @@ void complete(char *s)
 }
 #endif
 
+const char *curcontext = NULL, *curinfo = NULL;
+
+void scripterr()
+{
+    if(curcontext) conoutf("(%s: %s)", curcontext, curinfo);
+    else conoutf("(from console or builtin)");
+}
+
+void setcontext(const char *context, const char *info)
+{
+    curcontext = context;
+    curinfo = info;
+}
+
+void resetcontext()
+{
+    curcontext = curinfo = NULL;
+}
+
 bool execfile(const char *cfgfile)
 {
     string s;
     copystring(s, cfgfile);
+    setcontext("file", cfgfile);
     char *buf = loadfile(path(s), NULL);
     if(!buf) return false;
     execute(buf);
     delete[] buf;
+    resetcontext();
     return true;
 }
 
@@ -886,12 +928,14 @@ void exec(const char *cfgfile)
 
 void execdir(const char *dir)
 {
-        if(dir[0]) {
+        if(dir[0])
+        {
             vector<char *> files;
             listfiles(dir, "cfg", files);
-            loopv(files) {
-            defformatstring(d)("%s/%s.cfg",dir,files[i]);
-            exec(d);
+            loopv(files)
+            {
+                defformatstring(d)("%s/%s.cfg",dir,files[i]);
+                exec(d);
             }
         }
 }

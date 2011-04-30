@@ -768,6 +768,8 @@ extern int popscontext();
 extern int curscontext();
 extern int execcontext;
 extern const char *currentserver(int i, bool internal = false); // 2011feb05:ft: exposed
+extern void setcontext(const char *context, const char *info);
+extern void resetcontext();
 
 // server
 extern int modeacronyms;
