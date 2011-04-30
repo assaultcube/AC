@@ -857,6 +857,9 @@
 					<arguments>
 						<argument token="L" description="List of strings"/>
 					</arguments>
+          <references>
+            <identifierReference identifier="hudecho"/>
+          </references>
 				</command>
         
         <command name="hudecho">
@@ -864,7 +867,19 @@
 					<arguments>
 						<argument token="L" description="List of strings"/>
 					</arguments>
+          <references>
+            <identifierReference identifier="allowhudechos"/>
+            <identifierReference identifier="echo"/>
+          </references>
 				</command>
+        
+        <variable name="allowhudechos"/>
+          <description>Enables or disables the ability of hudecho to output text to the heads up display.</description>
+          <value token="N" description="0 off, 1 on" minValue="0" maxValue="1" defaultValue="1"/>
+          <references>
+            <identifierReference identifier="hudecho"/>
+          </references>
+        </variable>
 
 				<command name="debugargs">
 					<description>Dump all command arguments to STDOUT</description>
