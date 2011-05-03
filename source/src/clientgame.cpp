@@ -39,9 +39,9 @@ void setbottimeout(int m, int t)
 				default: break;
 			}
 		}
-		else conoutf("time is not >=1 or <=60");
+		else conoutf(_("\f3Error: \f5valid range for time is 1-60"));
 	}
-	else conoutf("mode needs to be 1 for DeathMatch or 2 for TeamMode");
+	else conoutf(_("\f3Error: \f5mode needs to be 1 for FFA or 2 for team modes"));
 }
 COMMAND(setbottimeout, ARG_2INT);
 
@@ -150,7 +150,7 @@ void listignored()
     pl[0] = '\0';
     loopv(players) if(players[i] && players[i]->ignored) concatformatstring(pl, ", %s", colorname(players[i]));
     if(*pl) conoutf(_("ignored players: %s"), pl + 2);
-    else conoutf(_("no players ignored."));
+    else conoutf(_("no players were ignored."));
 }
 
 void clearignored(char *ccn)
@@ -171,7 +171,7 @@ void listmuted()
     pl[0] = '\0';
     loopv(players) if(players[i] && players[i]->muted) concatformatstring(pl, ", %s", colorname(players[i]));
     if(*pl) conoutf(_("muted players: %s"), pl + 2);
-    else conoutf(_("no players muted."));
+    else conoutf(_("no players were muted."));
 }
 
 void clearmuted(char *ccn)

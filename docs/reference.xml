@@ -783,6 +783,23 @@
             <identifierReference identifier="getvar"/>
           </references>
         </command>
+        
+        <command name="checkalias">
+          <description>Determines if the argument given is an existing alias or not.</description>
+          <examples>
+            <example>
+              <code><![CDATA[hello = ""; echo (checkalias hello)]]></code>
+              <explanation>Output: 1</explanation>
+            </example>
+            <example>
+              <code><![CDATA[echo (checkalias oMgThIsAlIaSpRoLlYdOeSnTeXiSt)]]></code>
+              <explanation>Output: 0</explanation>
+            </example>
+          </examples>
+          <arguments>
+            <argument token="A" description="the alias to check for"/>
+          </arguments>
+        </command>
 
 			</identifiers>
 		</section>
@@ -5553,7 +5570,7 @@ Output:
 				<command name="setbottimeout">
 					<description>set the length of matches against bots</description>
 					<remarks>
-						<remark>The first argument <b>M</b> needs to be <b>1</b> for setting the DeathMatch-timeout or <b>2</b> for the TeamMode-timeout.</remark>
+						<remark>The first argument <b>"M"</b> needs to be <b>1</b> for setting the FFA-timeout or <b>2</b> for the Team-Mode-timeout.</remark>
 					</remarks>
 					<arguments>
 						<argument token="M" description="mode" valueNotes="1||2"/>
