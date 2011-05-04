@@ -3705,9 +3705,14 @@ Output:
         
         <variable name="slowmove">
           <description>Enables or disables the old editfly velocity.</description>
-          <value token="N" description="enable or disable" minValue="0" maxValue="1" defaultValue="0"/>
+          <value token="N" description="0 off, 1 on" minValue="0" maxValue="1" defaultValue="0"/>
         </variable>
-
+        
+        <variable name="oldselstyle">
+          <description>Enables or disables using triangles to render the editing grid/current selection instead of squares.</description>
+          <value token="N" description="0 off, 1 on" minValue="0" maxValue="1" defaultValue="1"/>
+        </variable>
+          
 			</identifiers>
 		</section>
 		<!-- Editing Section Ends -->
