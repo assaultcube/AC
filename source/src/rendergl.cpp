@@ -209,13 +209,15 @@ void linestyle(float width, int r, int g, int b)
     glColor3ub(r,g,b);
 }
 
+VARP(oldselstyle, 0, 1, 1); // Make the old (1004) grid/selection style default (render as quads rather than tris)
+
 void box(block &b, float z1, float z2, float z3, float z4)
 {
-    glBegin(GL_TRIANGLE_STRIP);
+    glBegin((oldselstyle ? GL_QUADS : GL_TRIANGLE_STRIP));
     glVertex3f((float)b.x,      (float)b.y,      z1);
     glVertex3f((float)b.x+b.xs, (float)b.y,      z2);
-    glVertex3f((float)b.x,      (float)b.y+b.ys, z4);
-    glVertex3f((float)b.x+b.xs, (float)b.y+b.ys, z3);
+    glVertex3f((float)(oldselstyle ? b.x+b.xs : b.x), (float)b.y+b.ys, (oldselstyle ? z3 : z4));
+    glVertex3f((float)(oldselstyle ? b.x : b.x+b.xs), (float)b.y+b.ys, (oldselstyle ? z4 : z3));
     glEnd();
     xtraverts += 4;
 }
