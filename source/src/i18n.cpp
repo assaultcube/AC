@@ -6,6 +6,7 @@
 i18nmanager::i18nmanager(const char *domain, const char *basepath) : domain(domain), basepath(basepath)
 {
     locale = setlocale(LC_ALL, ""); // use current default locale
+    setlocale(LC_NUMERIC, "C");     // make sure numeric is consistent (very important for float usage in scripts)
     bindtextdomain(domain, basepath); // set base path
     textdomain(domain);
     bind_textdomain_codeset(domain, "UTF-8"); // we use the utf-8 charset only
