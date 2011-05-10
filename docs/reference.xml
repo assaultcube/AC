@@ -799,6 +799,30 @@
           <arguments>
             <argument token="A" description="the alias to check for"/>
           </arguments>
+          <references>
+            <identifierReference identifier="checkinit"/>
+          </references>
+        </command>
+        
+        <command name="checkinit">
+          <description>Ensures the initialization of an alias.</description>
+          <examples>
+            <example>
+              <code><![CDATA[checkinit mapstartalways]]></code>
+              <explanation>Output: if alias mapstartalways does not exist, this command initializes it.</explanation>
+            </example>
+            <example>
+              <code><![CDATA[checkinit mapstartalways [ echo New map, good luck! ]]]></code>
+              <explanation>Output: if alias mapstartalways does not exist, it is initialized, and if the block of code "[ echo New map, good luck! ]" does not exist within the aliases contents, this command adds it.</explanation>
+            </example>
+          </examples>
+          <arguments>
+            <argument token="A" description="the alias to check for"/>
+            <argument token="B" description="the optional block of code to ensure that the alias contains"/>
+          </arguments>
+          <references>
+            <identifierReference identifier="checkalias"/>
+          </references>
         </command>
 
 			</identifiers>
