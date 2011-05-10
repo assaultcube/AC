@@ -6026,13 +6026,15 @@ Output:
 					<description>Binds a texture to the current texture slot.</description>
 					<remarks>
 						<remark>Binds the texture indicated in the filename to the current texture slot and increments the slot number.</remark>
+						<remark>The texture is rendered at the given scale. At scale 1.0 (or if scale is 0), 32x32 texels cover one cube. At scale 2.0, which is the current maximum, it's 64x64.</remark>
 					</remarks>
 					<references>
-						<identifierReference name="loadnotexture" identifier="loadnotexture"/>
+						<identifierReference name="texture" identifier="loadnotexture"/>
 						<identifierReference name="texturereset" identifier="texturereset"/>
+						<identifierReference name="hirestextures" identifier="hirestextures"/>
 					</references>
 					<arguments>
-						<argument token="0" description="This is a redundant value. Always leave this value as 0 here so it doesn'tbreak your configurations." valueNotes="0"/>
+						<argument token="S" description="Scale of the texture to load (should be a power of two)." valueNotes="Float"/>
 						<argument token="F" description="File name of the texture to bind" valueNotes="String"/>
 					</arguments>
 				</command>
@@ -6314,6 +6316,14 @@ Output:
 				<variable name="texreduce">
 					<description>-1: 2x2 : 0 : 1: x0.5 : 2: x0.25 : 3: x0.125</description>
 					<value token="N" description="TODO" minValue="-1" maxValue="3" defaultValue="0" />
+				</variable>
+
+				<variable name="hirestextures">
+					<description>controls whether textures with a non-default scale will be scaled down while loading to increase performance (0) or stay at higher resolution (1).</description>
+					<value token="N" description="TODO" minValue="0" maxValue="1" defaultValue="1" />
+					<references>
+						<identifierReference name="texture" identifier="texture"/>
+					</references>
 				</variable>
 
 				<variable name="texturescale">

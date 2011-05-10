@@ -125,7 +125,7 @@ int nquads;
 // for testing purpose. UNDOME on release.
 //const float TEXTURESCALE = 32.0f;
 VARP(texturescale, 16, 32, 64);
-#define TEXTURESCALE float(texturescale)
+#define TEXTURESCALE (float(texturescale) * (uniformtexres ? 1.0f : t->scale))
 
 int striptype = 0, striptex, oh, oy, ox, odir;                         // the o* vars are used by the stripification
 int ol1r, ol1g, ol1b, ol2r, ol2g, ol2b;
