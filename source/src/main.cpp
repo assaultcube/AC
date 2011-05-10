@@ -594,6 +594,8 @@ void setupscreen(int &usedcolorbits, int &useddepthbits, int &usedfsaa)
     usedfsaa = config&2 ? fsaa : 0;
 }
 
+extern int hirestextures;
+
 void resetgl()
 {
     clearchanges(CHANGE_GFX);
@@ -610,6 +612,7 @@ void resetgl()
     cleanuptextures();
     cleanuptmus();
     cleanupgl();
+    uniformtexres = !hirestextures;
     c2skeepalive();
 
     SDL_SetVideoMode(0, 0, 0, 0);
@@ -1144,6 +1147,7 @@ int main(int argc, char **argv)
     execfile("config/auth.cfg");
     execute("addallfavcatmenus");  // exec here, to add all categories (including those defined in autoexec.cfg)
     initing = NOT_INITING;
+    uniformtexres = !hirestextures;
 
     initlog("models");
     preload_playermodels();

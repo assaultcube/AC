@@ -338,9 +338,23 @@ SDL_Surface *texdecal(SDL_Surface *s)
     return m;
 }
 
+void scalesurface(SDL_Surface *s, float scale)
+{
+    uint dw = s->w*scale, dh = s->h*scale;
+    uchar *buf = new uchar[dw*dh*s->format->BytesPerPixel];
+    scaletexture((uchar *)s->pixels, s->w, s->h, s->format->BytesPerPixel, buf, dw, dh);
+    delete[] (uchar *)s->pixels;
+    s->w = dw;
+    s->h = dh;
+    s->pixels = buf;
+}
+
 bool silent_texture_load = false;
 
-GLuint loadsurface(const char *texname, int &xs, int &ys, int &bpp, int clamp = 0, bool mipmap = true, bool canreduce = false)
+VARFP(hirestextures, 0, 1, 1, initwarning("texture resolution", INIT_LOAD));
+bool uniformtexres = !hirestextures;
+
+GLuint loadsurface(const char *texname, int &xs, int &ys, int &bpp, int clamp = 0, bool mipmap = true, bool canreduce = false, float scale = 1.0f)
 {
     const char *file = texname;
     if(texname[0]=='<')
@@ -390,6 +404,8 @@ GLuint loadsurface(const char *texname, int &xs, int &ys, int &bpp, int clamp = 
         if(!strncmp(cmd, "decal", arg1-cmd)) { s = texdecal(s); format = texformat(s->format->BitsPerPixel); }
     }
 
+    if(uniformtexres && scale > 1.0f) scalesurface(s, 1.0f/scale);
+
     GLuint tnum;
     glGenTextures(1, &tnum);
     createtexture(tnum, s->w, s->h, s->pixels, clamp, mipmap, canreduce, format);
@@ -401,10 +417,10 @@ GLuint loadsurface(const char *texname, int &xs, int &ys, int &bpp, int clamp = 
 }
 
 // management of texture slots
-// each texture slot can have multople texture frames, of which currently only the first is used
+// each texture slot can have multiple texture frames, of which currently only the first is used
 // additional frames can be used for various shaders
 
-Texture *textureload(const char *name, int clamp, bool mipmap, bool canreduce)
+Texture *textureload(const char *name, int clamp, bool mipmap, bool canreduce, float scale)
 {
     string pname;
     copystring(pname, name);
@@ -412,7 +428,7 @@ Texture *textureload(const char *name, int clamp, bool mipmap, bool canreduce)
     Texture *t = textures.access(pname);
     if(t) return t;
     int xs, ys, bpp;
-    GLuint id = loadsurface(pname, xs, ys, bpp, clamp, mipmap, canreduce);
+    GLuint id = loadsurface(pname, xs, ys, bpp, clamp, mipmap, canreduce, scale);
     if(!id) return notexture;
     char *key = newstring(pname);
     t = &textures[key];
@@ -424,6 +440,7 @@ Texture *textureload(const char *name, int clamp, bool mipmap, bool canreduce)
     t->mipmap = mipmap;
     t->canreduce = canreduce;
     t->id = id;
+    t->scale = scale;
     return t;
 }
 
@@ -458,6 +475,7 @@ Texture *createtexturefromsurface(const char *name, SDL_Surface *s)
 struct Slot
 {
     string name;
+    float scale;
     Texture *tex;
     bool loaded;
 };
@@ -466,13 +484,15 @@ vector<Slot> slots;
 
 void texturereset() { slots.setsize(0); }
 
-void texture(char *aframe, char *name)
+void texture(char *scale, char *name)
 {
     Slot &s = slots.add();
     copystring(s.name, name);
     path(s.name);
+    float sc = atof(scale);
     s.tex = NULL;
     s.loaded = false;
+    s.scale = (sc > 0 && sc <= 2.0f) ? sc : 1.0f;
 }
 
 COMMAND(texturereset, ARG_NONE);
@@ -487,7 +507,7 @@ Texture *lookuptexture(int tex, Texture *failtex)
         if(!s.loaded)
         {
             defformatstring(pname)("packages/textures/%s", s.name);
-            s.tex = textureload(pname, 0, true, true);
+            s.tex = textureload(pname, 0, true, true, s.scale);
             if(s.tex==notexture) s.tex = failtex;
             s.loaded = true;
         }
@@ -507,7 +527,7 @@ bool reloadtexture(Texture &t)
 {
     if(t.id) return true;
     int xs = 1, ys = 1, bpp = 0;
-    t.id = loadsurface(t.name, xs, ys, bpp, t.clamp, t.mipmap, t.canreduce);
+    t.id = loadsurface(t.name, xs, ys, bpp, t.clamp, t.mipmap, t.canreduce, t.scale);
     t.xs = xs;
     t.ys = ys;
     t.bpp = bpp;
