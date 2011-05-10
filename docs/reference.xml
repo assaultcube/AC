@@ -801,6 +801,7 @@
           </arguments>
           <references>
             <identifierReference identifier="checkinit"/>
+            <identifierReference identifier="aliasinit"/>
           </references>
         </command>
         
@@ -822,6 +823,29 @@
           </arguments>
           <references>
             <identifierReference identifier="checkalias"/>
+            <identifierReference identifier="aliasinit"/>
+          </references>
+        </command>
+        
+        <command name="aliasinit">
+          <description>Initializes a group of aliases using checkinit.</description>
+          <examples>
+            <example>
+              <code><![CDATA[aliasinit "tmp1 tmp2 tmp3 tmp4 tmp5"]]></code>
+              </explanation>Checks to ensure that all 5 aliases listed exist, if not, it initializes them.</explanation>
+            </example>
+            <example>
+              <code><![CDATA[aliasinit "tmp1 tmp2 tmp3 tmp4 tmp5" 0]]></code>
+              </explanation>Checks to ensure that all 5 aliases listed exist, if not, it initializes them to 0.</explanation>
+            </example>
+          </examples>
+          <arguments>
+            <argument token="L" description="the list of aliases to check for"/>
+            <argument token="B" description="the optional block of code to ensure the aliases contain"/>
+          </arguments>
+          <references>
+            <identifierReference identifier="checkalias"/>
+            <identifierReference identifier="checkinit"/>
           </references>
         </command>
 
