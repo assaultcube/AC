@@ -832,11 +832,11 @@
           <examples>
             <example>
               <code><![CDATA[aliasinit "tmp1 tmp2 tmp3 tmp4 tmp5"]]></code>
-              </explanation>Checks to ensure that all 5 aliases listed exist, if not, it initializes them.</explanation>
+              <explanation>Checks to ensure that all 5 aliases listed exist, if not, it initializes them.</explanation>
             </example>
             <example>
               <code><![CDATA[aliasinit "tmp1 tmp2 tmp3 tmp4 tmp5" 0]]></code>
-              </explanation>Checks to ensure that all 5 aliases listed exist, if not, it initializes them to 0.</explanation>
+              <explanation>Checks to ensure that all 5 aliases listed exist, if not, it initializes them to 0.</explanation>
             </example>
           </examples>
           <arguments>
