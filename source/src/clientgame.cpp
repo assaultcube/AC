@@ -96,16 +96,14 @@ char *colorname(playerent *d, char *name, const char *prefix)
 char *colorping(int ping)
 {
     static string cping;
-    if(multiplayer(false)) formatstring(cping)("\fs\f%d%d\fr", ping <= 500 ? 0 : ping <= 1000 ? 2 : 3, ping);
-    else formatstring(cping)("%d", ping);
+    formatstring(cping)("\fs\f%d%d\fr", ping <= 500 ? 0 : ping <= 1000 ? 2 : 3, ping);
     return cping;
 }
 
 char *colorpj(int pj)
 {
     static string cpj;
-    if(multiplayer(false)) formatstring(cpj)("\fs\f%d%d\fr", pj <= 90 ? 0 : pj <= 170 ? 2 : 3, pj);
-    else formatstring(cpj)("%d", pj);
+    formatstring(cpj)("\fs\f%d%d\fr", pj <= 90 ? 0 : pj <= 170 ? 2 : 3, pj);
     return cpj;
 }
 
