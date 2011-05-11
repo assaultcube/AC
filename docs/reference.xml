@@ -6319,7 +6319,7 @@ Output:
 				</variable>
 
 				<variable name="hirestextures">
-					<description>controls whether textures with a non-default scale will be scaled down while loading to increase performance (0) or stay at higher resolution (1).</description>
+					<description>controls whether textures with a scale higher than 1.0 will be scaled down while loading to increase performance (0) or stay at higher resolution (1).</description>
 					<value token="N" description="TODO" minValue="0" maxValue="1" defaultValue="1" />
 					<references>
 						<identifierReference name="texture" identifier="texture"/>
