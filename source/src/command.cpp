@@ -914,7 +914,11 @@ bool execfile(const char *cfgfile)
     copystring(s, cfgfile);
     setcontext("file", cfgfile);
     char *buf = loadfile(path(s), NULL);
-    if(!buf) return false;
+    if(!buf)
+    {
+        resetcontext();
+        return false;
+    }
     execute(buf);
     delete[] buf;
     resetcontext();
