@@ -984,10 +984,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             if((flaginfos[0].state==CTFF_STOLEN && flaginfos[0].actor == p && flaginfos[0].ack) ||
                (flaginfos[1].state==CTFF_STOLEN && flaginfos[1].actor == p && flaginfos[1].ack && ++ft))
             {
-                glColor4f(1.0f, 1.0f, 1.0f, (sinf(lastmillis/100.0f)+1.0f) / 2.0f);
-                glEnable(GL_BLEND);
-                drawctficon(VIRTW-225-10, VIRTH*5/8, 225, ft, 1, 1/2.0f, 255);
-                glDisable(GL_BLEND);
+                drawctficon(VIRTW-225-10, VIRTH*5/8, 225, ft, 1, 1/2.0f, (sinf(lastmillis/100.0f)+1.0f) *128);
             }
         }
     }
