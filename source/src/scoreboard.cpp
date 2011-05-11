@@ -158,7 +158,14 @@ void renderscore(playerent *d)
     }
     else
     {
-        sprintf(lagping,"%s/%s",colorpj(d->plag),colorping(d->ping));
+        if(multiplayer(false))
+        {
+            sprintf(lagping,"%s/%s",colorpj(d->plag), colorping(d->ping));
+        }
+        else
+        {
+            sprintf(lagping,"%d/%d",d->plag, d->ping);
+        }
     }
 /*    const char *clag = team_isspect(d->team) ? "SPECT" : (d->state==CS_LAGGED ? "LAG" : colorpj(d->plag));
     const char *cping = colorping(d->ping);*/
