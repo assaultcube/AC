@@ -160,7 +160,7 @@ bool addshadowbox(const vec &bbmin, const vec &bbmax, const vec &extrude, const 
     {
         vec4 &p = v[i];
         mat.transform(vec(i&1 ? bbmax.x : bbmin.x, i&2 ? bbmax.y : bbmin.y, i&4 ? bbmax.z : bbmin.z), p); 
-        if(p.z >= 0)
+        if(p.z >= -p.w)
         {
             float x = p.x / p.w, y = p.y / p.w;
             sx1 = min(sx1, x);
@@ -172,13 +172,13 @@ bool addshadowbox(const vec &bbmin, const vec &bbmax, const vec &extrude, const 
     }
     vec4 ev;
     mat.transform(extrude, ev);
-    if(ev.z < 0 && !front) return false;
-    if(front < 8 || ev.z < 0) loopi(8)
+    if(ev.z < -ev.w && !front) return false;
+    if(front < 8 || ev.z < -ev.w) loopi(8)
     {
         const vec4 &p = v[i];
-        if(p.z >= 0) 
+        if(p.z >= -p.w) 
         {
-            if(ev.z >= 0) continue;
+            if(ev.z >= -ev.w) continue;
             float t = ev.z/(ev.z - p.z),
                   w = ev.w + t*(p.w - ev.w),
                   x = (ev.x + t*(p.x - ev.x))/w,
@@ -192,7 +192,7 @@ bool addshadowbox(const vec &bbmin, const vec &bbmax, const vec &extrude, const 
         loopj(3)
         {
             const vec4 &o = v[i^(1<<j)];
-            if(o.z < 0) continue;
+            if(o.z < -o.w) continue;
             float t = p.z/(p.z - o.z),
                   w = p.w + t*(o.w - p.w),
                   x = (p.x + t*(o.x - p.x))/w,
@@ -202,7 +202,7 @@ bool addshadowbox(const vec &bbmin, const vec &bbmax, const vec &extrude, const 
             sx2 = max(sx2, x);
             sy2 = max(sy2, y);
         }
-        if(ev.z < 0) continue;
+        if(ev.z < -ev.w) continue;
         float t = p.z/(p.z - ev.z),
               w = p.w + t*(ev.w - p.w),
               x = (p.x + t*(ev.x - p.x))/w,
@@ -212,7 +212,7 @@ bool addshadowbox(const vec &bbmin, const vec &bbmax, const vec &extrude, const 
         sx2 = max(sx2, x);
         sy2 = max(sy2, y);
     }
-    if(ev.z >= 0)
+    if(ev.z >= -ev.w)
     {
         float x = ev.x/ev.w, y = ev.y/ev.w;
         if((sx1 >= 1 && x >= 1) || (sy1 >= 1 && y >= 1) || (sx2 <= -1 && x <= -1) || (sy2 <= -1 && y <= -1)) return false;
