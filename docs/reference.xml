@@ -876,6 +876,10 @@
               <code><![CDATA[echo (addpunct "" 5)]]></code>
               <explanation>Output: %</explanation>
             </example>
+            <example>
+              <code><![CDATA[test = (concat echo (addpunct fov 3)); test]]></code>
+              <explanation>Output: 90.0</explanation>
+            </example>
           </examples>
           <arguments>
             <argument token="S" description="a string"/>
@@ -1795,6 +1799,10 @@ echo (pstat_weap 0)
 						<explanation>The output is a list of tuples for all weapons, SHOTS-FIRED and DAMAGE-DEALT for each.</explanation>
 					</example>
 					</examples>
+          <remarks>
+            <remark>The list is:</remark>
+            <remark>knife/atk dmg pistol/atk dmg carbine/atk dmg shotgun/atk dmg smg/atk dmg sniper/atk dmg assault/atk dmg cpistol/atk dmg nade/atk dmg akimbo/atk dmg</remark>
+          </remarks>
 					<references>
 					  <identifierReference identifier="start_intermission"/>
 					  <identifierReference identifier="pstat_score"/>
