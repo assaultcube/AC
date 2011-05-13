@@ -386,7 +386,7 @@ private:
 public:
     int clientnum, lastupdate, plag, ping;
     int lifesequence;                   // sequence id for each respawn, used in damage test
-    int frags, flagscore, deaths, points;
+    int frags, flagscore, deaths, points, tks;
     int lastaction, lastmove, lastpain, lastvoicecom;
     int clientrole;
     bool attacking;
@@ -413,7 +413,7 @@ public:
 
     bool ignored, muted;
 
-    playerent() : curskin(0), clientnum(-1), lastupdate(0), plag(0), ping(0), lifesequence(0), frags(0), flagscore(0), deaths(0), points(0), lastpain(0), lastvoicecom(0), clientrole(CR_DEFAULT),
+    playerent() : curskin(0), clientnum(-1), lastupdate(0), plag(0), ping(0), lifesequence(0), frags(0), flagscore(0), deaths(0), points(0), tks(0), lastpain(0), lastvoicecom(0), clientrole(CR_DEFAULT),
                   team(TEAM_SPECT), spectatemode(SM_NONE), followplayercn(FPCN_VOID), eardamagemillis(0), respawnoffset(0),
                   prevweaponsel(NULL), weaponsel(NULL), nextweaponsel(NULL), primweap(NULL), nextprimweap(NULL), lastattackweapon(NULL),
                   smoothmillis(-1),

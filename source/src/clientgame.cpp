@@ -250,6 +250,7 @@ int isSpect() { return (player1->team==TEAM_SPECT || player1->spectatemode==SM_F
 int currole() { return player1->clientrole; }
 int curmode() { return gamemode; }
 int curmastermode() { return servstate.mastermode; }
+int curautoteam()   { return servstate.autoteam; }
 void curmap(int cleaned) { result(cleaned ? behindpath(getclientmap()) : getclientmap()); }
 
 int curmodeattr(char *attr)
@@ -269,6 +270,7 @@ COMMAND(isSpect, ARG_IVAL);
 COMMAND(currole, ARG_IVAL);
 COMMAND(curmode, ARG_IVAL);
 COMMAND(curmastermode, ARG_IVAL);
+COMMAND(curautoteam, ARG_IVAL);
 COMMAND(getclientmode, ARG_IVAL);
 COMMAND(curmodeattr, ARG_1EST);
 COMMAND(curmap, ARG_1INT);
@@ -885,7 +887,7 @@ void dokill(playerent *pl, playerent *act, bool gib, int gun)
 
     if(!m_mp(gamemode))
     {
-        if(pl==act || isteam(pl->team, act->team)) act->frags--;
+        if(pl==act || isteam(pl->team, act->team)) { act->frags--; act->tks++; }
         else act->frags += ( gib && gun != GUN_GRENADE && gun != GUN_SHOTGUN) ? 2 : 1;
     }
 
@@ -903,6 +905,7 @@ void pstat_score(int cn)
         int p_frags = 0;
         int p_deaths = 0;
         int p_points = 0;
+        int p_tks = 0;
         playerent *pl = cn==player1->clientnum?player1:getclient(cn);
         if(pl)
         {
@@ -910,8 +913,9 @@ void pstat_score(int cn)
             p_frags = pl->frags;
             p_deaths = pl->deaths;
             p_points = pl->points;
+            p_tks = pl->tks;
         }
-        formatstring(scorestring)("%d %d %d %d %d %s", p_flags, p_frags, p_deaths, p_points, pl ? pl->team : -1, pl ? pl->name : "\"\"");
+        formatstring(scorestring)("%d %d %d %d %d %d %s", p_flags, p_frags, p_deaths, p_points, pl ? pl->team : -1, p_tks, pl ? pl->name : "\"\"");
         result(scorestring);
     /*}
     else result("0 0 0 0 -1 \"\"");*/
@@ -1121,8 +1125,8 @@ void startmap(const char *name, bool reset)   // called just after a map load
 
     if(!reset) return;
 
-    player1->frags = player1->flagscore = player1->deaths = player1->lifesequence = player1->points = 0;
-    loopv(players) if(players[i]) players[i]->frags = players[i]->flagscore = players[i]->deaths = players[i]->lifesequence = players[i]->points = 0;
+    player1->frags = player1->flagscore = player1->deaths = player1->lifesequence = player1->points = player1->tks = 0;
+    loopv(players) if(players[i]) players[i]->frags = players[i]->flagscore = players[i]->deaths = players[i]->lifesequence = players[i]->points = players[i]->tks = 0;
     if(editmode) toggleedit(true);
     intermission = false;
     showscores(false);
@@ -1445,6 +1449,7 @@ void voteresult(int v)
         curvote->millis = totalmillis + 5000;
         conoutf(_("vote %s"), v == VOTE_YES ? _("passed") : _("failed"));
         if(multiplayer(false)) audiomgr.playsound(v == VOTE_YES ? S_VOTEPASS : S_VOTEFAIL, SP_HIGH);
+        if(identexists("onVoteEnd")) execute("onVoteEnd");
     }
 }
 

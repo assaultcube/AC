@@ -1105,6 +1105,32 @@ void colora(char *s)
     commandret = newstring(x);
     }
 }
+
+// Easily inject a string into various CubeScript punctuations
+void addpunct(char *s, char *type = "0")
+{
+    int t = atoi(type);
+    if(t > -1 && t < 6)
+    {
+        switch(t)
+        {
+            case 1:  defformatstring(o1)("[%s]", s);   result(o1); break;
+            case 2:  defformatstring(o2)("(%s)", s);   result(o2); break;
+            case 3:  defformatstring(o3)("$%s", s);    result(o3); break;
+            case 4:  result("\""); break;
+            case 5:  result("%");  break;
+            default: defformatstring(o4)("\"%s\"", s); result(o4); break;
+        }
+    }
+}
+
+// Returns the current # of players
+void curplayers(void)
+{
+    defformatstring(output)("%d", (multiplayer(false) ? (players.length() + 1) : players.length()));
+    result(output);
+}
+
 COMMANDN(c, colora, ARG_1STR);
 COMMANDN(loop, loopa, ARG_3STR);
 COMMANDN(while, whilea, ARG_2STR);
@@ -1118,6 +1144,8 @@ COMMAND(result, ARG_1STR);
 COMMAND(at, ARG_2STR);
 COMMAND(listlen, ARG_1EST);
 COMMAND(findlist, ARG_2STR);
+COMMAND(addpunct, ARG_2STR);
+COMMAND(curplayers, ARG_NONE);
 
 int add(int a, int b)   { return a+b; }            COMMANDN(+, add, ARG_2EXP);
 int mul(int a, int b)   { return a*b; }            COMMANDN(*, mul, ARG_2EXP);
