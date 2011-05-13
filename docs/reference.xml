@@ -848,6 +848,47 @@
             <identifierReference identifier="checkinit"/>
           </references>
         </command>
+        
+        <command name="addpunct">
+          <description>Injects CubeScript punctuation.</description>
+          <examples>
+            <example>
+              <code><![CDATA[echo (addpunct hello)]]></code>
+              <explanation>Output: "hello"</explanation>
+            </example>
+            <example>
+              <code><![CDATA[echo (addpunct hello 1)]]></code>
+              <explanation>Output: [hello]</explanation>
+            </example>
+            <example>
+              <code><![CDATA[echo (addpunct hello 2)]]></code>
+              <explanation>Output: (hello)</explanation>
+            </example>
+            <example>
+              <code><![CDATA[echo (addpunct hello 3)]]></code>
+              <explanation>Output: $hello</explanation>
+            </example>
+            <example>
+              <code><![CDATA[echo (addpunct "" 4)]]></code>
+              <explanation>Output: "</explanation>
+            </example>
+            <example>
+              <code><![CDATA[echo (addpunct "" 5)]]></code>
+              <explanation>Output: %</explanation>
+            </example>
+          </examples>
+          <arguments>
+            <argument token="S" description="a string"/>
+            <argument token="N" description="type ID" valueNotes="min 0/max 5/default 0"/>
+          </arguments>
+        </command>
+        
+        <command name="curplayers">
+          <description>Returns the current number of players.</description>
+          <remarks>
+            <remark>The return value includes the local player "(you)", and works in both singleplayer and multiplayer scenarios.</remark>
+          </remarks>
+        </command>
 
 			</identifiers>
 		</section>
@@ -1608,14 +1649,35 @@ addOnLoadAlways [
 					<description>If this alias exists it will be run every time a vote is called.</description>
 					<references>
 					  <identifierReference identifier="onChangeVote"/>
+            <identifierReference identifier="onVoteEnd"/>
 					</references>
 				</scriptalias>
+        
 				<scriptalias name="onChangeVote">
 					<description>If this alias exists it will be run every time a vote is changed.</description>
 					<references>
 					  <identifierReference identifier="onCallVote"/>
+            <identifierReference identifier="onVoteEnd"/>
 					</references>
 				</scriptalias>
+        
+        <scriptalias name="onVoteEnd">
+          <description>If this alias exists it will be run every time a vote passes or fails.</description>
+          <references>
+            <identifierReference identifier="onCallVote"/>
+            <identifierReference identifier="onChangeVote"/>
+          </references>
+        </scriptalias>
+        
+        <variable name="votepending">
+          <description>Determines if there is a vote pending or not.</description>
+          <examples>
+            <example>
+              <code><![CDATA[echo $votepending]]></code>
+              <explanation>Output: if there is currently a vote pending, returns 1, else returns 0.</explanation>
+            </example>
+          </examples>
+        </variable>
         
         <scriptalias name="onKill">
           <description>If this alias exists it will be run every time you kill an enemy.</description>
@@ -1709,8 +1771,8 @@ echo foo
 						<code><![CDATA[
 echo (pstat_score 0)
 						]]></code>
-						<explanation>Output: 0 5 3 43 1 unarmed</explanation>
-						<explanation>The output is a list of FLAGS, FRAGS, DEATHS, POINTS, TEAM, and NAME.</explanation>
+						<explanation>Output: 0 5 3 43 1 1 unarmed</explanation>
+						<explanation>The output is a list of FLAGS, FRAGS, DEATHS, POINTS, TEAM, TEAMKILLS, and NAME.</explanation>
 					</example>
 					</examples>
 					<references>
@@ -2040,7 +2102,11 @@ echo (pstat_weap 0)
 				</command>
 
 				<command name="curmastermode">
-					<description>Returns the current mastermode</description>
+					<description>Returns the server's current mastermode state.</description>
+				</command>
+        
+        <command name="curautoteam">
+					<description>Returns the server's current autoteam state.</description>
 				</command>
 
 				<command name="currentprimary">
@@ -3914,7 +3980,9 @@ Output:
 						<argument token="N" description="the name of a previously defined menu"/>
 					</arguments>
 					<references>
+            <identifierReference identifier="newmenu"/>
 						<identifierReference identifier="closemenu"/>
+            <identifierReference identifier="delmenu"/>
 					</references>
 				</command>
 
@@ -3927,9 +3995,23 @@ Output:
 						<argument token="N" description="the name of a previously defined menu"/>
 					</arguments>
 					<references>
+            <identifierReference identifier="newmenu"/>
+            <identifierReference identifier="delmenu"/>
 						<identifierReference identifier="showmenu"/>
 					</references>
 				</command>
+        
+        <command name="delmenu">
+          <description>Deletes the entire contents (all menu items) of the given menu.</description>
+          <arguments>
+            <argument token="N" description="the name of a previously defined menu"/>
+          </arguments>
+          <references>
+            <identifierReference identifier="newmenu"/>
+            <identifierReference identifier="closemenu"/>
+            <identifierReference identifier="showmenu"/>
+          </references>
+        </command>
 
 				<command name="menumdl">
 					<description>Specifies a model to render while displaying the last added menu.</description>

@@ -810,6 +810,16 @@ void menureset(void *menu)
     m.items.deletecontents();
 }
 
+void delmenu(const char *name)
+{
+    if (!name) return;
+    gmenu *m = menus.access(name);
+    if (!m) return;
+    else menureset(m);
+}
+
+COMMAND(delmenu, ARG_1STR);
+
 void menumanual(void *menu, char *text, char *action, color *bgcolor, const char *desc)
 {
     gmenu &m = *(gmenu *)menu;
