@@ -1523,19 +1523,17 @@ COMMAND(whois, ARG_1INT);
 
 void findcn(char *name)
 {
-    bool found = false;
-	loopv(players) { if(players[i]) { if(!strcmp(name, players[i]->name)) { found = true; intret(players[i]->clientnum); } } }
-	if(!found) if(!strcmp(name, player1->name)) { found = true; intret(player1->clientnum); }
-	if(!found) intret(-1);
+	loopv(players) { if(players[i]) { if(!strcmp(name, players[i]->name)) { intret(players[i]->clientnum); return; } } }
+	if(!strcmp(name, player1->name)) { intret(player1->clientnum); return; }
+	intret(-1);
 }
 COMMAND(findcn, ARG_1STR);
 
 void findpn(int cn)
 {
-    bool found = false;
-	loopv(players) { if(players[i]) { if( players[i]->clientnum == cn) { found = true; result(players[i]->name); } } }
-	if(!found) if(player1->clientnum == cn) { found = true; result(player1->name); }
-	if(!found) result("");
+	loopv(players) { if(players[i]) { if( players[i]->clientnum == cn) { result(players[i]->name); return; } } }
+	if(player1->clientnum == cn) { result(player1->name); return; }
+	result("");
 }
 COMMAND(findpn, ARG_1INT);
 
