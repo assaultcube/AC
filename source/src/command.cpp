@@ -1293,7 +1293,7 @@ void writecfg()
     enumerate(*idents, ident, id,
         if(id.type==ID_ALIAS && id.persist && id.action[0])
         {
-            f->printf("alias \"%s\" [%s]\n", id.name, id.action);
+            f->printf("%s = [%s]\n", id.name, id.action);
         }
     );
     f->printf("\n");
