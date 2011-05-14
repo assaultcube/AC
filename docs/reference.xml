@@ -2677,21 +2677,34 @@ Output:
 					</arguments>
           <references>
             <identifierReference identifier="setmr"/>
+            <identifierReference identifier="rewind"/>
           </references>
 				</command>
         
         <command name="setmr">
-          <description>Restarts the current demo, and "fast forwards" to a predefined minutes remaining.</description>
-          <remarks>
-            <remark>Note: If the argument given is too low, this command will simply fast forward through an entire partial demo.</remark>
-          </remarks>
+          <description>Go to a predefined number of minutes before the end of the game while watching a demo.</description>
           <arguments>
             <argument token="M" description="the minutes remaining to skip to"/>
           </arguments>
           <references>
             <identifierReference identifier="demo"/>
+            <identifierReference identifier="rewind"/>
           </references>
         </command>
+
+              <command name="rewind">
+                <description>Rewind the current demo to S seconds ago.</description>
+                <remarks>
+                  <remark>Note: you can use a negative value to forward.</remark>
+                </remarks>
+                <arguments>
+                  <argument token="S" description="the number of seconds to rewind"/>
+                </arguments>
+                <references>
+                  <identifierReference identifier="demo"/>
+                  <identifierReference identifier="setmr"/>
+                </references>
+              </command>
 
 				<variable name="xhairwpsel">
 					<description>Determines if bot waypoints should be selected/placed using the crosshair or by the nearest location to your player.</description>
