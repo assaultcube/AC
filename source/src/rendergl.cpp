@@ -490,6 +490,27 @@ void recomputecamera()
                 resetcamera();
                 camera1->eyeheight = 1.0f;
                 break;
+            case SM_OVERVIEW:
+            {
+                // WIP, might not be released..
+                // FIXME : bad feeling with walls ATM because of perspective
+                /*camera1->yaw = 0;
+                camera1->pitch = -90;
+                camera1->o.x = mapdims[0] + mapdims[4]/2;
+                camera1->o.y = mapdims[1] + mapdims[5]/2;
+                camera1->o.z = vec(mapdims[4]/2.0f, mapdims[5]/2.0f, 0.0f).magnitude() / tan( (spectfov - 10) * RAD /2.0f);*/
+                // from drawminimap...
+                camera1->reset();
+                camera1->type = ENT_CAMERA;
+                camera1->o.x = mapdims[0] + mapdims[4]/2;
+                camera1->o.y = mapdims[1] + mapdims[5]/2;
+                camera1->o.z = mapdims[7] + 1;
+                camera1->pitch = -90;
+                camera1->yaw = 0;
+
+                disableraytable();                
+                break;
+            }
             case SM_FOLLOW1ST:
             {
                 playerent *f = updatefollowplayer();
@@ -815,7 +836,17 @@ VARP(spechudgun, 0, 1, 1);
 void setperspective(float fovy, float aspect, float nearplane, float farplane)
 {
     GLdouble ydist = nearplane * tan(fovy/2*RAD), xdist = ydist * aspect;
-    glFrustum(-xdist, xdist, -ydist, ydist, nearplane, farplane);
+    if(player1->isspectating() && player1->spectatemode == SM_OVERVIEW)
+    {
+        int gdim = max(mapdims[4], mapdims[5]);
+        if(!gdim) gdim = ssize/2;
+        int orthd = 2 + gdim/2;
+        glOrtho(-orthd, orthd, -orthd, orthd, 0, (mapdims[7]-mapdims[6])+2); // depth of map +2 covered
+    }
+    else
+    {
+        glFrustum(-xdist, xdist, -ydist, ydist, nearplane, farplane);
+    }
 }
 
 void sethudgunperspective(bool on)
@@ -974,6 +1005,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
     setuptmu(0, "T * P x 2");
 
     renderstrips();
+
 
     xtraverts = 0;
 
