@@ -492,14 +492,7 @@ void recomputecamera()
                 break;
             case SM_OVERVIEW:
             {
-                // WIP, might not be released..
-                // FIXME : bad feeling with walls ATM because of perspective
-                /*camera1->yaw = 0;
-                camera1->pitch = -90;
-                camera1->o.x = mapdims[0] + mapdims[4]/2;
-                camera1->o.y = mapdims[1] + mapdims[5]/2;
-                camera1->o.z = vec(mapdims[4]/2.0f, mapdims[5]/2.0f, 0.0f).magnitude() / tan( (spectfov - 10) * RAD /2.0f);*/
-                // from drawminimap...
+                // TODO : fix water rendering
                 camera1->reset();
                 camera1->type = ENT_CAMERA;
                 camera1->o.x = mapdims[0] + mapdims[4]/2;
