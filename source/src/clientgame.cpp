@@ -52,7 +52,7 @@ struct serverstate servstate = { 0 };
 playerent *player1 = newplayerent();          // our client
 vector<playerent *> players;                  // other clients
 
-int lastmillis = 0, totalmillis = 0;
+int lastmillis = 0, totalmillis = 0, nextmillis = 0;
 int lasthit = 0;
 int curtime = 0;
 string clientmap = "";
@@ -951,13 +951,21 @@ VAR(gametimecurrent, 1, 0, 0);
 VAR(gametimemaximum, 1, 0, 0);
 VAR(lastgametimeupdate, 1, 0, 0);
 
-void timeupdate(int milliscur, int millismax)
+void silenttimeupdate(int milliscur, int millismax)
 {
-	if( lastmillis - lastgametimeupdate < 1000 ) return; // avoid double-output, but possibly omit new message if joined 1s before server switches to next minute
     lastgametimeupdate = lastmillis;
     gametimecurrent = milliscur;
     gametimemaximum = millismax;
     minutesremaining = (gametimemaximum - gametimecurrent + 60000 - 1) / 60000;
+}
+
+void timeupdate(int milliscur, int millismax)
+{
+	bool display = lastmillis - lastgametimeupdate > 1000; // avoid double-output
+
+    silenttimeupdate(milliscur, millismax);
+   
+    if(!display) return;
     if(!minutesremaining)
     {
         intermission = true;

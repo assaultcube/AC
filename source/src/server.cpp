@@ -725,14 +725,14 @@ void enddemoplayback()
     delete demoplayback;
     demoplayback = NULL;
 
-    loopv(clients) sendf(i, 1, "ri3", SV_DEMOPLAYBACK, 0, i);
+    loopv(clients) sendf(i, 1, "risi", SV_DEMOPLAYBACK, "", i);
 
     sendservmsg("demo playback finished");
 
     loopv(clients) sendwelcome(clients[i]);
 }
 
-void setupdemoplayback()
+void setupdemoplayback(bool send = true)
 {
     demoheader hdr;
     string msg;
@@ -753,14 +753,16 @@ void setupdemoplayback()
     if(msg[0])
     {
         if(demoplayback) { delete demoplayback; demoplayback = NULL; }
-        sendservmsg(msg);
+        if(send) sendservmsg(msg);
         return;
     }
-
-    formatstring(msg)("playing demo \"%s\"", file);
-    sendservmsg(msg);
-
-    sendf(-1, 1, "ri3", SV_DEMOPLAYBACK, 1, -1);
+    
+    if(send)
+    {
+        formatstring(msg)("playing demo \"%s\"", file);
+        sendservmsg(msg);
+        sendf(-1, 1, "risi", SV_DEMOPLAYBACK, smapname, -1);
+    }
 
     if(demoplayback->read(&nextplayback, sizeof(nextplayback))!=sizeof(nextplayback))
     {
@@ -3719,7 +3721,14 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
     servertime = ((diff + 3 * servertime)>>2);
     if (servertime > 40) serverlagged = servmillis;
 
-    if(m_demo) readdemo();
+#ifndef STANDALONE
+    if(m_demo)
+    {
+        readdemo();
+        extern void silenttimeupdate(int milliscur, int millismax);
+        silenttimeupdate(gamemillis, gamelimit);
+    }
+#endif
 
     if(minremain>0)
     {
