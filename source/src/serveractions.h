@@ -99,10 +99,21 @@ struct mapaction : serveraction
             {
                 const char *s = scl.adminonlymaps[i], *h = strchr(s, '#'), *m = behindpath(map);
                 size_t sl = strlen(s);
-                if(h && h != s)
+                if(h)
                 {
-                    sl = h - s;
-                    if(mode != atoi(h + 1)) continue;
+                    if(h != s)
+                    {
+                        sl = h - s;
+                        if(mode != atoi(h + 1)) continue;
+                    }
+                    else
+                    {
+                        if(mode == atoi(h+1))
+                        {
+                            role = CR_ADMIN;
+                            break;
+                        }
+                    }
                 }
                 if(sl == strlen(m) && !strncmp(m, scl.adminonlymaps[i], sl)) role = CR_ADMIN;
             }
