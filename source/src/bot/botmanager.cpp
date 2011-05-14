@@ -1026,15 +1026,18 @@ COMMAND(botsshoot, ARG_1INT);
 
 void idlebots(int Idle)
 {
-    if (Idle)
+    switch(Idle)
     {
-        BotManager.SetIdleBots(true);
-        conoutf("Bots are idle");
-    }
-    else
-    {
-        BotManager.SetIdleBots(false);
-        conoutf("Bots aren't idle");
+        case 0:
+            BotManager.SetIdleBots(false);
+            conoutf("Bots aren't idle");
+            break;
+        case 1:
+            BotManager.SetIdleBots(true);
+            conoutf("Bots are idle");
+            break;
+        default:
+            intret(BotManager.IdleBots()); break;
     }
 }
 
