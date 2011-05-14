@@ -1010,15 +1010,18 @@ COMMAND(addnbot, ARG_3STR);
 
 void botsshoot(int Shoot)
 {
-    if (Shoot)
+    switch(Shoot)
     {
-        BotManager.SetBotsShoot(true);
-        conoutf("Bots will shoot");
-    }
-    else
-    {
-        BotManager.SetBotsShoot(false);
-        conoutf("Bots won't shoot");
+        case 0:
+            BotManager.SetBotsShoot(false);
+            conoutf("Bots won't shoot");
+            break;
+        case 1:
+            BotManager.SetBotsShoot(true);
+            conoutf("Bots will shoot");
+            break;
+        default:
+            intret(BotManager.BotsShoot()); break;
     }
 }
 
