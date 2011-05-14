@@ -1663,7 +1663,8 @@ void spectate(int mode)
 
 void togglespect() // cycle through all spectating modes
 {
-    if(m_botmode) spectate(SM_FLY);
+    if(m_botmode)
+        spectate(player1->spectatemode==SM_FLY ? SM_OVERVIEW : SM_FLY);
     else
     {
         int mode;
