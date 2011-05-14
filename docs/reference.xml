@@ -893,6 +893,111 @@
             <remark>The return value includes the local player "(you)", and works in both singleplayer and multiplayer scenarios.</remark>
           </remarks>
         </command>
+        
+        <command name="tolower">
+          <description>Converts a string to all lowercase characters.</description>
+          <examples>
+            <example>
+              <code><![CDATA[echo (tolower HELLO)]]></code>
+              <explanation>Output: hello</explanation>
+            </example>
+          </examples>
+          <arguments>
+            <argument token="S" description="a string"/>
+          </arguments>
+          <references>
+            <identifierReference identifier="toupper"/>
+            <identifierReference identifier="convertcase"/>
+          </references>
+        </command>
+        
+        <command name="toupper">
+          <description>Converts a string to all uppercase characters.</description>
+          <examples>
+            <example>
+              <code><![CDATA[echo (toupper hello)]]></code>
+              <explanation>Output: HELLO</explanation>
+            </example>
+          </examples>
+          <arguments>
+            <argument token="S" description="a string"/>
+          </arguments>
+          <references>
+            <identifierReference identifier="tolower"/>
+            <identifierReference identifier="convertcase"/>
+          </references>
+        </command>
+        
+        <command name="convertcase">
+          <description>Converts a list of strings to lowercase or uppercase characters.</description>
+          <examples>
+            <example>
+              <code><![CDATA[echo (convertcase 0 ZERO ONE TWO THREE)]]></code>
+              <explanation>Output: zero one two three</explanation>
+            </example>
+            <example>
+              <code><![CDATA[echo (convertcase 1 zero one two three)]]></code>
+              <explanation>Output: ZERO ONE TWO THREE</explanation>
+            </example>
+          </examples>
+          <arguments>
+            <argument token="N" description="0 - use lowercase, 1 - use uppercase" valueNotes="min 0/max 1"/>
+            <argument token="..." description="a list of strings"/>
+          </arguments>
+          <remarks>
+            <remark>This command can handle up to 23 string arguments.</remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="tolower"/>
+            <identifierReference identifier="toupper"/>
+          </references>
+        </command>
+        
+        <command name="testchar">
+          <description>Tests a character argument for various things.</description>
+          <examples>
+           <example>
+            <code><![CDATA[echo (testchar 1)]]></code>
+            <explanation>Output: 1 // It is a 0-9 digit</explanation>
+           </example>
+           <example>
+            <code><![CDATA[echo (testchar a 1)]]></code>
+            <explanation>Output: 1 // It is a a-z or A-Z character</explanation>
+           </example>
+           <example>
+            <code><![CDATA[echo (testchar z 2)]]></code>
+            <explanation>Output: 1 // It is a a-z or A-Z character or 0-9 digit</explanation>
+           </example>
+           <example>
+            <code><![CDATA[echo (testchar b 3)]]></code>
+            <explanation>Output: 1 // It is a lowercase a-z character</explanation>
+           </example>
+           <example>
+            <code><![CDATA[echo (testchar B 4)]]></code>
+            <explanation>Output: 1 // It is a uppercase A-Z character</explanation>
+           </example>
+           <example>
+            <code><![CDATA[echo (testchar , 5)]]></code>
+            <explanation>Output: 1 // It is a printable character</explanation>
+           </example>
+           <example>
+            <code><![CDATA[echo (testchar . 6)]]></code>
+            <explanation>Output: 1 // It is a punctuation character</explanation>
+           </example>
+           <example>
+            <code><![CDATA[echo (testchar " " 7)]]></code>
+            <explanation>Output: 1 // It is a whitespace character</explanation>
+           </example>
+          </examples>
+          <arguments>
+            <argument token="C" description="the character to test"/>
+            <argument token="N" description="type of test to run" valueNotes="min 0/max 7/default 0"/>
+          </arguments>
+          <remarks>
+            <remark>See the following c++ functions for more information about the usage of this command:</remark>
+            <remark>isalpha(), isalnum(), isdigit(), islower(), isprint(), ispunct(), isupper(), and isspace()</remark>
+          </remarks>
+        </command>
 
 			</identifiers>
 		</section>

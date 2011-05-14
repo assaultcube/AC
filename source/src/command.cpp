@@ -1131,6 +1131,74 @@ void curplayers(void)
     result(output);
 }
 
+void toLower(char *s)
+{
+    result(strcaps(s, false));
+}
+
+void toUpper(char *s)
+{
+    result(strcaps(s, true));
+}
+
+void testchar(char *s, char *type)
+{
+    int t = atoi(type);
+    switch(t)
+    {
+        case 1:
+            if(isalpha(s[0]) != 0)
+                intret(1);
+            else
+                intret(0);
+            break;
+        case 2:
+            if(isalnum(s[0]) != 0)
+                intret(1);
+            else
+                intret(0);
+            break;
+        case 3:
+            if(islower(s[0]) != 0)
+                intret(1);
+            else
+                intret(0);
+            break;
+        case 4:
+            if(isupper(s[0]) != 0)
+                intret(1);
+            else
+                intret(0);
+            break;
+        case 5:
+            if(isprint(s[0]) != 0)
+                intret(1);
+            else
+                intret(0);
+            break;
+        case 6:
+            if(ispunct(s[0]) != 0)
+                intret(1);
+            else
+                intret(0);
+            break;
+        case 7:
+            if(isspace(s[0]) != 0)
+                intret(1);
+            else
+                intret(0);
+            break;
+        default:
+            if(isdigit(s[0]) != 0)
+                intret(1);
+            else
+                intret(0);
+            break;
+    }
+}
+
+COMMAND(testchar, ARG_2STR);
+
 COMMANDN(c, colora, ARG_1STR);
 COMMANDN(loop, loopa, ARG_3STR);
 COMMANDN(while, whilea, ARG_2STR);
@@ -1146,6 +1214,9 @@ COMMAND(listlen, ARG_1EST);
 COMMAND(findlist, ARG_2STR);
 COMMAND(addpunct, ARG_2STR);
 COMMAND(curplayers, ARG_NONE);
+COMMANDN(tolower, toLower, ARG_1STR);
+COMMANDN(toupper, toUpper, ARG_1STR);
+
 
 int add(int a, int b)   { return a+b; }            COMMANDN(+, add, ARG_2EXP);
 int mul(int a, int b)   { return a*b; }            COMMANDN(*, mul, ARG_2EXP);
