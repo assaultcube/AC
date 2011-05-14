@@ -1193,6 +1193,11 @@ int main(int argc, char **argv)
         if(millis<totalmillis) millis = totalmillis;
         limitfps(millis, totalmillis);
         int elapsed = millis-totalmillis;
+        if(nextmillis && watchingdemo)
+        {
+            elapsed += nextmillis;
+            nextmillis = 0;
+        }
         if(multiplayer(false)) curtime = elapsed;
         else
         {

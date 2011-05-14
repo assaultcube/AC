@@ -1268,7 +1268,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
             case SV_DEMOPLAYBACK:
             {
-                watchingdemo = demoplayback = getint(p)!=0;
+                extern string demofile;
+                getstring(demofile, p);
+                watchingdemo = demoplayback = demofile && demofile[0];
                 if(demoplayback)
                 {
                     player1->resetspec();

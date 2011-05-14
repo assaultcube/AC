@@ -9,6 +9,7 @@ ENetHost *clienthost = NULL;
 ENetPeer *curpeer = NULL, *connpeer = NULL;
 int connmillis = 0, connattempts = 0, discmillis = 0;
 bool watchingdemo = false;
+string demofile;
 extern bool clfail, cllock;
 extern int searchlan;
 
@@ -763,6 +764,39 @@ void listdemos()
     addmsg(SV_LISTDEMOS, "r");
 }
 
+void shiftgametime(int newmillis)
+{
+    newmillis = max(0, newmillis);
+    int gamemillis = gametimecurrent + (lastmillis - lastgametimeupdate);
+
+    if(!watchingdemo) { conoutf("You have to be watching a demo to change game time"); return; }
+    if(newmillis > gametimemaximum) { conoutf("Invalid time specified"); return; }
+
+    if(newmillis < gamemillis)
+    {
+        // if rewinding
+        if(!demofile || !demofile[0]) return;
+        watchingdemo = false;
+        callvote(SA_MAP, demofile, "-1");
+        nextmillis = newmillis;
+    }
+    else
+    {
+        nextmillis = newmillis - gamemillis;
+    }
+}
+
+void setminutesremaining(int minutes)
+{
+    shiftgametime(gametimemaximum - minutes * 60000);
+}
+
+void rewinddemo(int seconds)
+{
+    int gamemillis = gametimecurrent+(lastmillis-lastgametimeupdate);
+    shiftgametime(gamemillis-seconds*1000);
+}
+
 COMMAND(sendmap, ARG_1STR);
 COMMAND(getmap, ARG_NONE);
 COMMAND(deleteservermap, ARG_1STR);
@@ -770,3 +804,5 @@ COMMAND(resetsecuremaps, ARG_NONE);
 COMMAND(securemap, ARG_1STR);
 COMMAND(getdemo, ARG_2STR);
 COMMAND(listdemos, ARG_NONE);
+COMMANDN(setmr, setminutesremaining, ARG_1INT);
+COMMANDN(rewind, rewinddemo, ARG_1INT);
