@@ -1268,11 +1268,14 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
             case SV_DEMOPLAYBACK:
             {
-                extern string demofile;
-                getstring(demofile, p);
+                string demofile;
+                extern char *curdemofile;
+                getstring(demofile, p, MAXSTRLEN);
                 watchingdemo = demoplayback = demofile && demofile[0];
+                delete[] curdemofile;
                 if(demoplayback)
                 {
+                    curdemofile = newstring(demofile);
                     player1->resetspec();
                     player1->state = CS_SPECTATE;
 					player1->team = TEAM_SPECT;
@@ -1280,6 +1283,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 else
                 {
                     // cleanups
+                    curdemofile = newstring("n/a");
                     loopv(players) zapplayer(players[i]);
                     clearvote();
                     player1->state = CS_ALIVE;

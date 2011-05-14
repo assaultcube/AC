@@ -9,7 +9,7 @@ ENetHost *clienthost = NULL;
 ENetPeer *curpeer = NULL, *connpeer = NULL;
 int connmillis = 0, connattempts = 0, discmillis = 0;
 bool watchingdemo = false;
-string demofile;
+SVAR(curdemofile, "n/a");
 extern bool clfail, cllock;
 extern int searchlan;
 
@@ -775,9 +775,9 @@ void shiftgametime(int newmillis)
     if(newmillis < gamemillis)
     {
         // if rewinding
-        if(!demofile || !demofile[0]) return;
+        if(!curdemofile || !curdemofile[0]) return;
         watchingdemo = false;
-        callvote(SA_MAP, demofile, "-1");
+        callvote(SA_MAP, curdemofile, "-1");
         nextmillis = newmillis;
     }
     else
