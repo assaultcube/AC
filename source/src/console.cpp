@@ -521,7 +521,7 @@ void writebinds(stream *f)
 {
     loopv(keyms)
     {
-        if(*keyms[i].action) f->printf("bind \"%s\" [%s]\n",     keyms[i].name, keyms[i].action);
+        if(*keyms[i].action) f->printf("bind %s [%s]\n",     keyms[i].name, keyms[i].action);
     }
 }
 
