@@ -493,8 +493,6 @@ void recomputecamera()
             case SM_OVERVIEW:
             {
                 // TODO : fix water rendering
-                camera1->reset();
-                camera1->type = ENT_CAMERA;
                 camera1->o.x = mapdims[0] + mapdims[4]/2;
                 camera1->o.y = mapdims[1] + mapdims[5]/2;
                 camera1->o.z = mapdims[7] + 1;
