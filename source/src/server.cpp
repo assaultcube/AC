@@ -732,7 +732,7 @@ void enddemoplayback()
     loopv(clients) sendwelcome(clients[i]);
 }
 
-void setupdemoplayback(bool send = true)
+void setupdemoplayback()
 {
     demoheader hdr;
     string msg;
@@ -753,16 +753,13 @@ void setupdemoplayback(bool send = true)
     if(msg[0])
     {
         if(demoplayback) { delete demoplayback; demoplayback = NULL; }
-        if(send) sendservmsg(msg);
+        sendservmsg(msg);
         return;
     }
     
-    if(send)
-    {
-        formatstring(msg)("playing demo \"%s\"", file);
-        sendservmsg(msg);
-        sendf(-1, 1, "risi", SV_DEMOPLAYBACK, smapname, -1);
-    }
+    formatstring(msg)("playing demo \"%s\"", file);
+    sendservmsg(msg);
+    sendf(-1, 1, "risi", SV_DEMOPLAYBACK, smapname, -1);
 
     if(demoplayback->read(&nextplayback, sizeof(nextplayback))!=sizeof(nextplayback))
     {
