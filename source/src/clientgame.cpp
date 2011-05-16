@@ -1273,7 +1273,7 @@ void flagmsg(int flag, int message, int actor, int flagtime)
 void dropflag() { tryflagdrop(true); }
 COMMAND(dropflag, ARG_NONE);
 
-char *votestring(int type, char *arg1, char *arg2)
+char *votestring(int type, const char *arg1, const char *arg2)
 {
     const char *msgs[] = { "kick player %s, reason: %s", "ban player %s, reason: %s", "remove all bans", "set mastermode to %s", "%s autoteam", "force player %s to the enemy team", "give admin to player %s", "load map %s in mode %s%s", "%s demo recording for the next match", "stop demo recording", "clear all demos", "set server description to '%s'", "shuffle teams"};
     const char *msg = msgs[type];
@@ -1323,7 +1323,7 @@ char *votestring(int type, char *arg1, char *arg2)
     return out;
 }
 
-votedisplayinfo *newvotedisplayinfo(playerent *owner, int type, char *arg1, char *arg2)
+votedisplayinfo *newvotedisplayinfo(playerent *owner, int type, const char *arg1, const char *arg2)
 {
     if(type < 0 || type >= SA_NUM) return NULL;
     votedisplayinfo *v = new votedisplayinfo();
@@ -1338,7 +1338,7 @@ votedisplayinfo *newvotedisplayinfo(playerent *owner, int type, char *arg1, char
 
 votedisplayinfo *curvote = NULL, *calledvote = NULL;
 
-void callvote(int type, char *arg1, char *arg2)
+void callvote(int type, const char *arg1, const char *arg2)
 {
     if(calledvote) return;
     votedisplayinfo *v = newvotedisplayinfo(player1, type, arg1, arg2);
@@ -1380,7 +1380,7 @@ void callvote(int type, char *arg1, char *arg2)
     else conoutf(_("%c3invalid vote"), CC);
 }
 
-void scallvote(char *type, char *arg1, char *arg2)
+void scallvote(char *type, const char *arg1, const char *arg2)
 {
     if(type && inmainloop)
     {

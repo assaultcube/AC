@@ -1271,7 +1271,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 string demofile;
                 extern char *curdemofile;
                 getstring(demofile, p, MAXSTRLEN);
-                watchingdemo = demoplayback = demofile && demofile[0];
+                watchingdemo = demoplayback = demofile[0] != '\0';
                 delete[] curdemofile;
                 if(demoplayback)
                 {
