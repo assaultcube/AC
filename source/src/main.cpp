@@ -177,7 +177,7 @@ void bmp_screenshot(const char *imagepath, bool mapshot = false)
         extern GLuint minimaptex;
         if(minimaptex)
         {
-            glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+            glPixelStorei(GL_PACK_ALIGNMENT, 1);
             glBindTexture(GL_TEXTURE_2D, minimaptex);
             glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, tmp);
         }
@@ -227,7 +227,7 @@ void jpeg_screenshot(const char *imagepath, bool mapshot = false)
         extern GLuint minimaptex;
         if(minimaptex)
         {
-            glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+            glPixelStorei(GL_PACK_ALIGNMENT, 1);
             glBindTexture(GL_TEXTURE_2D, minimaptex);
             glGetTexImage(GL_TEXTURE_2D, 0, GL_BGR, GL_UNSIGNED_BYTE, pixels);
         }
@@ -382,7 +382,7 @@ void png_screenshot(const char *imagepath, bool mapshot = false)
         extern GLuint minimaptex;
         if(minimaptex)
         {
-            glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+            glPixelStorei(GL_PACK_ALIGNMENT, 1);
             glBindTexture(GL_TEXTURE_2D, minimaptex);
             glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, tmp);
         }
