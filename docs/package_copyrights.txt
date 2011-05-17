@@ -225,4 +225,5 @@ E-net license:					source/enet/license
 Cube MasterServer license:			source/CubeMS/README.txt
 Redistrbutable Windows SDL libraries readme:	bin_win32/readme_SDL.txt
 Cube Bots readme:				docs/cube_bot-readme.txt
+JPEG license:                                   source/include/README_jpeg.txt
 
