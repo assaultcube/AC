@@ -321,7 +321,7 @@ float var_f = 0;
 int var_i = 0;
 bool var_b = true;
 
-VARP(slowmove, 0, 0, 1);
+FVARP(flyspeed, 1.0, 2.0, 5.0);
 
 void moveplayer(physent *pl, int moveres, bool local, int curtime)
 {
@@ -375,7 +375,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         if(!(pl->onfloor || pl->onladder)) chspeed = 1.0f;
 
         const bool crouching = pl->crouching || pl->eyeheight < pl->maxeyeheight;
-        const float speed = curtime/(water ? 2000.0f : 1000.0f)*pl->maxspeed*(crouching && pl->state != CS_EDITING ? chspeed : 1.0f)*(pl==player1 && isfly && !slowmove ? 2.0f : 1.0f);
+        const float speed = curtime/(water ? 2000.0f : 1000.0f)*pl->maxspeed*(crouching && pl->state != CS_EDITING ? chspeed : 1.0f)*(pl==player1 && isfly ? flyspeed : 1.0f);
         const float friction = water ? 20.0f : (pl->onfloor || isfly ? 6.0f : (pl->onladder ? 1.5f : 30.0f));
         const float fpsfric = max(friction/curtime*20.0f, 1.0f);
 

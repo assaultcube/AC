@@ -3943,9 +3943,9 @@ Output:
           <description>If this alias exists, it will be automatically executed when you start a new map.</description>
         </scriptalias>
         
-        <variable name="slowmove">
-          <description>Enables or disables the old editfly velocity.</description>
-          <value token="N" description="0 off, 1 on" minValue="0" maxValue="1" defaultValue="0"/>
+        <variable name="flyspeed">
+          <description>Determines by how much to multiply the fly speeds by.</description>
+          <value token="N" description="the multiplier" minValue="1.0" maxValue="5.0" defaultValue="2.0"/>
         </variable>
         
         <variable name="oldselstyle">
