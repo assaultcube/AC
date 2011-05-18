@@ -1124,80 +1124,78 @@ void addpunct(char *s, char *type = "0")
     }
 }
 
-// Returns the current # of players
-void curplayers(void)
-{
-    defformatstring(output)("%d", (multiplayer(false) ? (players.length() + 1) : players.length()));
-    result(output);
-}
+void curplayers(void) { intret(multiplayer(false) ? (players.length() + 1) : players.length()); }
 
-void toLower(char *s)
-{
-    result(strcaps(s, false));
-}
-
-void toUpper(char *s)
-{
-    result(strcaps(s, true));
-}
+void toLower(char *s) { result(strcaps(s, false)); }
+void toUpper(char *s) { result(strcaps(s, true)); }
 
 void testchar(char *s, char *type)
 {
     int t = atoi(type);
-    switch(t)
-    {
+    switch(t) {
         case 1:
-            if(isalpha(s[0]) != 0)
-                intret(1);
-            else
-                intret(0);
+            if(isalpha(s[0]) != 0) { intret(1); return; }
             break;
         case 2:
-            if(isalnum(s[0]) != 0)
-                intret(1);
-            else
-                intret(0);
+            if(isalnum(s[0]) != 0) { intret(1); return; }
             break;
         case 3:
-            if(islower(s[0]) != 0)
-                intret(1);
-            else
-                intret(0);
+            if(islower(s[0]) != 0) { intret(1); return; }
             break;
         case 4:
-            if(isupper(s[0]) != 0)
-                intret(1);
-            else
-                intret(0);
+            if(isupper(s[0]) != 0) { intret(1); return; }
             break;
         case 5:
-            if(isprint(s[0]) != 0)
-                intret(1);
-            else
-                intret(0);
+            if(isprint(s[0]) != 0) { intret(1); return; }
             break;
         case 6:
-            if(ispunct(s[0]) != 0)
-                intret(1);
-            else
-                intret(0);
+            if(ispunct(s[0]) != 0) { intret(1); return; }
             break;
         case 7:
-            if(isspace(s[0]) != 0)
-                intret(1);
-            else
-                intret(0);
+            if(isspace(s[0]) != 0) { intret(1); return; }
             break;
         default:
-            if(isdigit(s[0]) != 0)
-                intret(1);
-            else
-                intret(0);
+            if(isdigit(s[0]) != 0) { intret(1); return; }
             break;
     }
+    intret(0);
 }
 
-COMMAND(testchar, ARG_2STR);
+// test a cubescript list for various conditions, default being - ensure that every element of the list
+// is a number (supports ints and floats)
+void testlist(char *list, char *type = "0")
+{
+    if(listlen(list)) {
+        int t = atoi(type);
+        
+        for(int ctr = 0; ctr < listlen(list); ctr++) { // loop through every element of the list
+            int periodCtr = 0; // counter for how many times a period (.) shows up in each element
+            char *curelement = indexlist(list, ctr); // the current element to examine
+            
+            for(unsigned int len = 0; len < strlen(curelement); len++) { // loop through the length (in chars) of the current element
+                char curchar = curelement[len]; // the current char of the current element to examine
+                
+                switch(t) {
+                    case 1: // test for a list of alpha characters (a-z || A-Z are valid)
+                        if(!isalpha(curchar)) { intret(0); return; }
+                        break;
+                    case 2: // test for a list of alhpa characters (a-z || A-Z || whitespace are valid)
+                        if(!isalpha(curchar) && !isspace(curchar)) { intret(0); return; }
+                        break;
+                    //case 3: break;
+                    default: // test for a list of valid numbers
+                        bool notvalid = (isalpha(curchar) || isspace(curchar) || ispunct(curchar) && curchar != '.'); // determines if the char is valid or not
+                        
+                        if(curchar == '.') periodCtr++; // increment the periods counter
+                        if(notvalid || periodCtr > 1) { intret(0); return; } // if the char is not valid or we have found more than 1 period in this element, it is an invalid list
+                        break;
+                }
+            }
+        }
+        
+        intret(1);
+    }
+}
 
 COMMANDN(c, colora, ARG_1STR);
 COMMANDN(loop, loopa, ARG_3STR);
@@ -1216,7 +1214,8 @@ COMMAND(addpunct, ARG_2STR);
 COMMAND(curplayers, ARG_NONE);
 COMMANDN(tolower, toLower, ARG_1STR);
 COMMANDN(toupper, toUpper, ARG_1STR);
-
+COMMAND(testchar, ARG_2STR);
+COMMAND(testlist, ARG_2STR);
 
 int add(int a, int b)   { return a+b; }            COMMANDN(+, add, ARG_2EXP);
 int mul(int a, int b)   { return a*b; }            COMMANDN(*, mul, ARG_2EXP);
