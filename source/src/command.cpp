@@ -12,7 +12,9 @@ bool contextsealed = false;
 bool contextisolated[IEXC_NUM] = { false };
 int execcontext;
 
-hashtable<const char *, ident> *idents = NULL;        // contains ALL vars/commands/aliases
+bool loop_break = false, loop_skip = false;             // break or continue (skip) current loop
+
+hashtable<const char *, ident> *idents = NULL;          // contains ALL vars/commands/aliases
 
 bool persistidents = true;
 
@@ -506,6 +508,7 @@ char *executeret(const char *p)                            // all evaluation hap
 	{
 		for(bool cont = true; cont;)                // for each ; seperated statement
 		{
+            if(loop_skip) break;
 			int numargs = MAXWORDS, infix = 0;
 			loopi(MAXWORDS)                         // collect all argument values
 			{
@@ -947,8 +950,6 @@ COMMAND(execdir,ARG_1STR);
 // below the commands that implement a small imperative language. thanks to the semantics of
 // () and [] expressions, any control construct can be defined trivially.
 
-bool breakout = false;
-
 void ifthen(char *cond, char *thenp, char *elsep) { commandret = executeret(cond[0]!='0' ? thenp : elsep); }
 void loopa(char *var, char *times, char *body)
 {
@@ -959,7 +960,8 @@ void loopa(char *var, char *times, char *body)
     char *buf = newstring("0", 16);
     pushident(*id, buf);
     execute(body);
-    if(breakout) breakout = false;
+    if(loop_skip) loop_skip = false;
+    if(loop_break) loop_break = false;
     else
     {
         loopi(t-1)
@@ -971,9 +973,10 @@ void loopa(char *var, char *times, char *body)
             }
             itoa(id->action, i+1);
             execute(body);
-            if(breakout)
+            if(loop_skip) loop_skip = false;
+            if(loop_break)
             {
-                breakout = false;
+                loop_break = false;
                 break;
             }
         }
@@ -985,14 +988,16 @@ void whilea(char *cond, char *body)
     while(execute(cond))
     {
         execute(body);
-        if(breakout)
+        if(loop_skip) loop_skip = false;
+        if(loop_break)
         {
-            breakout = false;
+            loop_break = false;
             break;
         }
     }
 }
-void breaka() { breakout = true; }
+void breaka() { loop_skip = loop_break = true; }
+void continuea() { loop_skip = true; }
 
 void concat(char *s) { result(s); }
 void concatword(char *s) { result(s); }
@@ -1201,6 +1206,7 @@ COMMANDN(c, colora, ARG_1STR);
 COMMANDN(loop, loopa, ARG_3STR);
 COMMANDN(while, whilea, ARG_2STR);
 COMMANDN(break, breaka, ARG_NONE);
+COMMANDN(continue, continuea, ARG_NONE);
 COMMANDN(if, ifthen, ARG_3STR);
 COMMAND(exec, ARG_1STR);
 COMMAND(concat, ARG_CONC);
