@@ -909,7 +909,9 @@ struct killmessagesfile : serverconfigfile
             if(l)
             {
                 s = strtok(NULL, sep);
-				if(s && (!strcmp(l, "fragmessage") || !strcmp(l, "gibmessage")))
+                bool fragmsg = !strcmp(l, "fragmessage");
+                bool gibmsg = !strcmp(l, "gibmessage");
+				if(s && (fragmsg || gibmsg))
                 {
 					int errors = 0;
                     int gun = atoi(s);
@@ -950,14 +952,14 @@ struct killmessagesfile : serverconfigfile
 					}
 					if(!errors)
 					{
-						if(!strcmp(l, "fragmessage"))
+						if(fragmsg)
 						{
-							formatstring(fragmessages[gun])("%s", message);
+							formatstring(killmessages[0][gun])("%s", message);
 							logline(ACLOG_VERBOSE, " added msg '%s' for frags with weapon %i ", message, gun);
 						}
 						else
 						{
-							formatstring(gibmessages[gun])("%s", message);
+							formatstring(killmessages[1][gun])("%s", message);
 							logline(ACLOG_VERBOSE, " added msg '%s' for gibs with weapon %i ", message, gun);
 						}
 					}
