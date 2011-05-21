@@ -455,6 +455,7 @@
             <identifierReference identifier="concatword"/>
             <identifierReference identifier="strlen"/>
             <identifierReference identifier="substr"/>
+            <identifierReference identifier="replacestr"/>
           </references>
         </command>
         
@@ -522,6 +523,8 @@
           </examples>
           <references>
             <identifierReference identifier="strlen"/>
+            <identifierReference identifier="strpos"/>
+            <identifierReference identifier="replacestr"/>
           </references>
 				</command>
 
@@ -1011,7 +1014,56 @@
             <remark>See the following c++ functions for more information about the usage of this command:</remark>
             <remark>isalpha(), isalnum(), isdigit(), islower(), isprint(), ispunct(), isupper(), and isspace()</remark>
           </remarks>
+          <references>
+            <identifierReference identifier="testlist"/>
+          </references>
         </command>
+        
+        <command name="testlist">
+          <description>Tests a list argument for various things.</description>
+          <examples>
+           <example>
+            <code><![CDATA[echo (testlist "1 2.45 8")]]></code>
+            <explanation>Output: 1 // It is a valid list of numbers (supports ints and floats)</explanation>
+           </example>
+           <example>
+            <code><![CDATA[echo (testlist "a B C defg hi jk" 1)]]></code>
+            <explanation>Output: 1 // It is a valid list of alpha-characters a-z or A-Z only</explanation>
+           </example>
+           <example>
+            <code><![CDATA[echo (testlist "a B C  defg hi jk" 2)]]></code>
+            <explanation>Output: 1 // It is a valid list of alpha-characters a-z or A-Z or whitespace only</explanation>
+           </example>
+          </examples>
+          <arguments>
+            <argument token="L" description="the list to test"/>
+            <argument token="N" description="type of test to run" valueNotes="min 0/max 2/default 0"/>
+          </arguments>
+          <references>
+            <identifierReference identifier="testchar"/>
+          </references>
+        </command>
+        
+        <command name="replacestr">
+          <description>Returns a string, with a portion of it replaced with a new sub-string.</description>
+          <examples>
+             <example>
+            <code><![CDATA[echo (replacestr "Hello cruel world" cruel "")]]></code>
+            <explanation>Output: Hello world</explanation>
+           </example>
+          </examples>
+          <arguments>
+            <argument token="S" description="the original string to modify"/>
+            <argument token="T" description="the target sub-string to replace"/>
+            <argument token="N" description="the new sub-string to replace the target"/>
+          </arguments>
+          <references>
+            <identifierReference identifier="strins"/>
+            <identifierReference identifier="strpos"/>
+            <identifierReference identifier="substr"/>
+          </references>
+        </command>
+          
 
 			</identifiers>
 		</section>
