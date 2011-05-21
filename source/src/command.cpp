@@ -13,6 +13,7 @@ bool contextisolated[IEXC_NUM] = { false };
 int execcontext;
 
 bool loop_break = false, loop_skip = false;             // break or continue (skip) current loop
+int loop_level = 0;                                      // avoid bad calls of break & continue
 
 hashtable<const char *, ident> *idents = NULL;          // contains ALL vars/commands/aliases
 
@@ -508,7 +509,7 @@ char *executeret(const char *p)                            // all evaluation hap
 	{
 		for(bool cont = true; cont;)                // for each ; seperated statement
 		{
-            if(loop_skip) break;
+            if(loop_level && loop_skip) break;
 			int numargs = MAXWORDS, infix = 0;
 			loopi(MAXWORDS)                         // collect all argument values
 			{
@@ -959,6 +960,7 @@ void loopa(char *var, char *times, char *body)
     if(id->type!=ID_ALIAS) return;
     char *buf = newstring("0", 16);
     pushident(*id, buf);
+    loop_level++;
     execute(body);
     if(loop_skip) loop_skip = false;
     if(loop_break) loop_break = false;
@@ -982,9 +984,11 @@ void loopa(char *var, char *times, char *body)
         }
     }
     popident(*id);
+    loop_level--;
 }
 void whilea(char *cond, char *body)
 {
+    loop_level++;
     while(execute(cond))
     {
         execute(body);
@@ -995,9 +999,10 @@ void whilea(char *cond, char *body)
             break;
         }
     }
+    loop_level--;
 }
-void breaka() { loop_skip = loop_break = true; }
-void continuea() { loop_skip = true; }
+void breaka() { if(loop_level) loop_skip = loop_break = true; }
+void continuea() { if(loop_level) loop_skip = true; }
 
 void concat(char *s) { result(s); }
 void concatword(char *s) { result(s); }
