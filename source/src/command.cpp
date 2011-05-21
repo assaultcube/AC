@@ -1207,6 +1207,19 @@ void testlist(char *list, char *type = "0")
     }
 }
 
+void replacestr(char *arg1, char *arg2, char *arg3)
+{
+    string output;
+    char *ptr = strstr(arg1, arg2);
+
+    if(!ptr) { result(arg1); return; } // Return the string untouched if arg2 cannot be found in arg1
+
+    strncpy(output, arg1, ptr - arg1);
+    output[ptr - arg1] = 0;
+    sprintf(output + (ptr - arg1), "%s%s", arg3, ptr + strlen(arg2));
+    result(output);
+}
+
 COMMANDN(c, colora, ARG_1STR);
 COMMANDN(loop, loopa, ARG_3STR);
 COMMANDN(while, whilea, ARG_2STR);
@@ -1227,6 +1240,7 @@ COMMANDN(tolower, toLower, ARG_1STR);
 COMMANDN(toupper, toUpper, ARG_1STR);
 COMMAND(testchar, ARG_2STR);
 COMMAND(testlist, ARG_2STR);
+COMMAND(replacestr, ARG_3STR);
 
 int add(int a, int b)   { return a+b; }            COMMANDN(+, add, ARG_2EXP);
 int mul(int a, int b)   { return a*b; }            COMMANDN(*, mul, ARG_2EXP);
