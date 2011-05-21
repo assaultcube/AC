@@ -19,7 +19,7 @@ servernickblacklist nickblacklist;
 serverforbiddenlist forbiddenlist;
 serverpasswords passwords;
 serverinfofile infofiles;
-killmessagesfile killmessages;
+killmessagesfile killmsgs;
 
 // server state
 bool isdedicated = false;
@@ -3582,7 +3582,7 @@ void rereadcfgs(void)
     nickblacklist.read();
     forbiddenlist.read();
     passwords.read();
-    killmessages.read();
+    killmsgs.read();
 }
 
 void loggamestatus(const char *reason)
@@ -4100,7 +4100,7 @@ void initserver(bool dedicated, int argc, char **argv)
         ipblacklist.init(scl.blfile);
         nickblacklist.init(scl.nbfile);
         forbiddenlist.init(scl.forbidden);
-        killmessages.init(scl.killmessages);
+        killmsgs.init(scl.killmessages);
         infofiles.init(scl.infopath, scl.motdpath);
         infofiles.getinfo("en"); // cache 'en' serverinfo
         logline(ACLOG_VERBOSE, "holding up to %d recorded demos in memory", scl.maxdemos);

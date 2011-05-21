@@ -496,6 +496,5 @@ const char *teamnames[TEAM_NUM+1] = {"CLA", "RVSF", "CLA-SPECT", "RVSF-SPECT", "
 const char *teamnames_s[TEAM_NUM+1] = {"CLA", "RVSF", "CSPC", "RSPC", "SPEC", "void"};
 
 // for both client and server
-// default messages are hardcoded ! (in case there's a problem with cfgs)
-char fragmessages[NUMGUNS][MAXKILLMSGLEN] = { "", "busted", "picked off", "peppered", "sprayed", "punctured", "shredded", "busted", "", "busted" };
-char gibmessages[NUMGUNS][MAXKILLMSGLEN] = { "slashed", "", "", "splattered", "", "headshot", "", "", "gibbed", "" }; 
+// default messages are hardcoded !
+char killmessages[2][NUMGUNS][MAXKILLMSGLEN] = {{ "", "busted", "picked off", "peppered", "sprayed", "punctured", "shredded", "busted", "", "busted" }, { "slashed", "", "", "splattered", "", "headshot", "", "", "gibbed", "" }};

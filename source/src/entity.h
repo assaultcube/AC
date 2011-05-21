@@ -615,12 +615,10 @@ enum {MD_FRAGS = 0, MD_DEATHS, END_MDS};
 struct medalsst {bool assigned; int cn; int item;};
 
 #define MAXKILLMSGLEN 16
-extern char fragmessages[NUMGUNS][MAXKILLMSGLEN];
-extern char gibmessages[NUMGUNS][MAXKILLMSGLEN];
+extern char killmessages[2][NUMGUNS][MAXKILLMSGLEN];
 inline const char *killmessage(int gun, bool gib = false)
 {
 	if(gun<0 || gun>=NUMGUNS) return "";
 
-	if(gib) return gibmessages[gun];
-	else    return fragmessages[gun];
+    return killmessages[gib?1:0][gun];
 }
