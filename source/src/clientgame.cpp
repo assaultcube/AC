@@ -815,8 +815,10 @@ void dodamage(int damage, playerent *pl, playerent *actor, int gun, bool gib, bo
 	if(pl->state != CS_ALIVE || intermission) return;
 	pl->respawnoffset = pl->lastpain = lastmillis;
 	// could the author of the FIXME below please elaborate what's to fix?! (ft:2011mar28)
-//    playerent *h = local ? player1 : updatefollowplayer(0);
-    if(/*actor==h && pl!=actor*/ actor == player1 && pl!=actor ) // FIXME
+    // I suppose someone wanted to play the hitsound for player1 or spectated player (lucas:2011may22)
+    playerent *h = player1->isspectating() && player1->followplayercn > 0 ? getclient(player1->followplayercn) : NULL;
+    if(!h) h = player1;
+    if(actor==h && pl!=actor)
     {
         if(hitsound && lasthit != lastmillis) audiomgr.playsound(S_HITSOUND, SP_HIGH);
         lasthit = lastmillis;
@@ -1655,6 +1657,9 @@ void spectate(int mode)
             }
             break;
         }
+        case SM_OVERVIEW:
+            player1->followplayercn = FPCN_OVERVIEW;
+        break;
         default: break;
     }
     player1->spectatemode = mode;
