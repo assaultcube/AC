@@ -277,13 +277,12 @@ COMMAND(curmap, ARG_1INT);
 VARP(showscoresondeath, 0, 1, 1);
 VARP(autoscreenshot, 0, 0, 1);
 
-// macros for getplayer() 
-// TODO : find a smarter way to implement this. 
-#define ATTR_INT(name, attribute, readonly)    if(!strcmp(attr, #name)) { if(!readonly && set) attribute = atoi(value);        intret(attribute); return; }
-#define ATTR_FLOAT(name, attribute, readonly)  if(!strcmp(attr, #name)) { if(!readonly && set) attribute = atof(value);      floatret(attribute); return; }
-#define ATTR_STR(name, attribute, readonly)    if(!strcmp(attr, #name)) { if(!readonly && set) copystring(attribute, value);   result(attribute); return; }
+// macros for playerinfo() & teaminfo(). Use this to replace pstats_xxx ?
+#define ATTR_INT(name, attribute)    if(!strcmp(attr, #name)) { intret(attribute); return; }
+#define ATTR_FLOAT(name, attribute)  if(!strcmp(attr, #name)) { floatret(attribute); return; }
+#define ATTR_STR(name, attribute)    if(!strcmp(attr, #name)) { result(attribute); return; }
 
-void getplayer(const char *cn, const char *attr, const char *value)
+void playerinfo(const char *cn, const char *attr)
 {
     if(!*cn || !cn || !*attr || !attr) return;
 
@@ -294,44 +293,93 @@ void getplayer(const char *cn, const char *attr, const char *value)
         conoutf("invalid clientnum");
         return;
     }
-    bool set = *value && value && p==player1; // do we have to get or set an attribute (valid value, player selected is local client)
+
     if(p==player1)
     {
-        ATTR_INT(health, p->health, 1);
-        ATTR_INT(armour, p->armour, 1);
-        ATTR_INT(magcontent, p->weaponsel->mag, 1);
-        ATTR_INT(ammo, p->weaponsel->ammo, 1);
-        ATTR_INT(nextprimary, p->nextprimary, 0);
+        ATTR_INT(health, p->health);
+        ATTR_INT(armour, p->armour);
+        ATTR_INT(magcontent, p->weaponsel->mag);
+        ATTR_INT(ammo, p->weaponsel->ammo);
+        ATTR_INT(nextprimary, p->nextprimary);
     }
     if(p->team == player1->team || player1->isspectating())
     {
-        ATTR_FLOAT(x, p->o.x, 1);
-        ATTR_FLOAT(y, p->o.y, 1);
-        ATTR_FLOAT(z, p->o.z, 1);
+        ATTR_FLOAT(x, p->o.x);
+        ATTR_FLOAT(y, p->o.y);
+        ATTR_FLOAT(z, p->o.z);
     }
-    ATTR_STR(name, p->name, 0);
-    ATTR_INT(team, p->team, 1);
-    ATTR_INT(ping, p->ping, 1);
-    ATTR_INT(pj, p->plag, 1);
-    ATTR_INT(state, p->state, 1);
-    ATTR_INT(role, p->clientrole, 1);
-    ATTR_INT(primary, p->primary, 1);
-    ATTR_INT(frags, p->frags, 1);
-    ATTR_INT(flags, p->flagscore, 1);
-    ATTR_INT(points, p->points, 1);
-    ATTR_INT(deaths, p->deaths, 1);
+    ATTR_STR(name, p->name);
+    ATTR_INT(team, p->team);
+    ATTR_INT(ping, p->ping);
+    ATTR_INT(pj, p->plag);
+    ATTR_INT(state, p->state);
+    ATTR_INT(role, p->clientrole);
+    ATTR_INT(primary, p->primary);
+    ATTR_INT(frags, p->frags);
+    ATTR_INT(flags, p->flagscore);
+    ATTR_INT(points, p->points);
+    ATTR_INT(deaths, p->deaths);
+    ATTR_INT(tks, p->tks);
     conoutf("invalid attribute");
 }
 
-void getlocalplayer(const char *attr, const char *value)
+void playerinfolocal(const char *attr)
 {
     string cn;
     itoa(cn, player1->clientnum);
-    getplayer(cn, attr, value);
+    playerinfo(cn, attr);
 }
 
-COMMANDN(player, getplayer, ARG_3STR);
-COMMANDN(player1, getlocalplayer, ARG_2STR);
+COMMANDN(player, playerinfo, ARG_3STR);
+COMMANDN(player1, playerinfolocal, ARG_2STR);
+
+void teaminfo(const char *team, const char *attr)
+{
+    if(!team || !attr) return;
+    int t = atoi(team); // get player clientnum
+    if(!team_isactive(t))
+    {
+        conoutf("invalid team");
+        return;
+    }
+    int t_flags = 0;
+    int t_frags = 0;
+    int t_deaths = 0;
+    int t_points = 0;
+
+    loopv(players) if(players[i] && players[i]->team == t)
+    {
+        t_frags += players[i]->frags;
+        t_deaths += players[i]->deaths;
+        t_points += players[i]->points;
+        t_flags += players[i]->flagscore;
+    }
+
+    loopv(discscores) if(discscores[i].team == t)
+    {
+        t_frags += discscores[i].frags;
+        t_deaths += discscores[i].deaths;
+        t_points += discscores[i].points;
+        t_flags += discscores[i].flags;
+    }
+
+    if(player1->team == t)
+    {
+        t_frags += player1->frags;
+        t_deaths += player1->deaths;
+        t_points += player1->points;
+        t_flags += player1->flagscore;
+    }
+
+    ATTR_INT(flags, t_flags);
+    ATTR_INT(frags, t_frags);
+    ATTR_INT(deaths, t_deaths);
+    ATTR_INT(points, t_points);
+    ATTR_STR(name, newstring(team_string(t)));
+    conoutf("invalid attribute");
+}
+
+COMMAND(teaminfo, ARG_2STR);
 
 void deathstate(playerent *pl)
 {
@@ -945,6 +993,7 @@ void pstat_weap(int cn)
         result(weapstring);
     }*/
 }
+
 COMMAND(pstat_weap, ARG_1INT);
 
 VAR(minutesremaining, 1, 0, 0);
