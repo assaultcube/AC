@@ -936,6 +936,8 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int sw)
 }
 #endif
 
+VARP(compatibilitymode, 0, 1, 1); // FIXME : find a better place to put this ?
+
 int main(int argc, char **argv)
 {
     extern struct servercommandline scl;
@@ -1143,6 +1145,12 @@ int main(int argc, char **argv)
         firstrun = true;
     }
     if(identexists("afterinit")) execute("afterinit");
+    if(compatibilitymode)
+    {
+        persistidents = false;
+        exec("config/compatibility.cfg"); // exec after saved.cfg to get "compatibilitymode", but before user scripts..
+        persistidents = true;
+    }
     execfile("config/autoexec.cfg");
     execfile("config/auth.cfg");
     execute("addallfavcatmenus");  // exec here, to add all categories (including those defined in autoexec.cfg)
