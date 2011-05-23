@@ -294,16 +294,16 @@ void playerinfo(const char *cn, const char *attr)
         return;
     }
 
-    if(p==player1)
+    if(p == player1)
     {
-        ATTR_INT(health, p->health);
-        ATTR_INT(armour, p->armour);
         ATTR_INT(magcontent, p->weaponsel->mag);
         ATTR_INT(ammo, p->weaponsel->ammo);
         ATTR_INT(nextprimary, p->nextprimary);
     }
-    if(p->team == player1->team || player1->isspectating())
+    if((p->team == player1->team && m_teammode) || player1->isspectating() || p == player1)
     {
+        ATTR_INT(health, p->health);
+        ATTR_INT(armour, p->armour);
         ATTR_FLOAT(x, p->o.x);
         ATTR_FLOAT(y, p->o.y);
         ATTR_FLOAT(z, p->o.z);
@@ -320,6 +320,7 @@ void playerinfo(const char *cn, const char *attr)
     ATTR_INT(points, p->points);
     ATTR_INT(deaths, p->deaths);
     ATTR_INT(tks, p->tks);
+    ATTR_INT(cn, p->clientnum); // only useful to get player1's client number.
     conoutf("invalid attribute");
 }
 
@@ -383,8 +384,6 @@ COMMAND(teaminfo, ARG_2STR);
 
 void deathstate(playerent *pl)
 {
-    if(pl==player1) { if(identexists("onDeathSelf")) execute("onDeathSelf"); }
-    else { if(identexists("onDeathOther")) { defformatstring(argsVt)("%s %d", "onDeathOther", pl->clientnum); execute(argsVt); } }
     pl->state = CS_DEAD;
     pl->spectatemode = SM_DEATHCAM;
     pl->respawnoffset = pl->lastpain = lastmillis;
@@ -710,8 +709,11 @@ void findplayerstart(playerent *d, bool mapcenter, int arenaspawn)
         d->o.z = 4;
     }
     entinmap(d);
-    if(d==player1) { if(identexists("onSpawnSelf")) execute("onSpawnSelf 0"); }
-	else { if(identexists("onSpawnOther")) { defformatstring(argsVt)("%s %d", "onSpawnOther", d->clientnum); execute(argsVt); } }
+    if(identexists("onSpawn"))
+    {
+        defformatstring(onspawn)("onSpawn %d", d->clientnum);
+        execute(onspawn);
+    }
 }
 
 void spawnplayer(playerent *d)
@@ -897,6 +899,9 @@ void dokill(playerent *pl, playerent *act, bool gib, int gun)
 {
     if(pl->state!=CS_ALIVE || intermission) return;
 
+    defformatstring(killevent)("onKillEvent %d %d %d %d", act->clientnum, pl->clientnum, gun, gib ? 1 : 0);
+    if(identexists("onKillEvent")) execute(killevent);
+
     string pname, aname, death;
     copystring(pname, pl==player1 ? "you" : colorname(pl));
     copystring(aname, act==player1 ? "you" : colorname(act));
@@ -906,8 +911,6 @@ void dokill(playerent *pl, playerent *act, bool gib, int gun)
     if(pl==act)
     {
         outf("\f2%s suicided%s", pname, pl==player1 ? "!" : "");
-        if(pl==player1)
-            if(identexists("onSuicide")) execute("onSuicide");
     }
     else if(isteam(pl->team, act->team))
     {
@@ -915,7 +918,6 @@ void dokill(playerent *pl, playerent *act, bool gib, int gun)
         else
         {
           outf("%s%s %s teammate %s", act==player1 ? "\f3" : "\f2", aname, death, pname);
-          if(identexists("onTK")) execute("onTK");
         }
     }
     else
@@ -924,7 +926,6 @@ void dokill(playerent *pl, playerent *act, bool gib, int gun)
         else
         {
           outf("\f2%s %s %s", aname, death, pname);
-          if(identexists("onKill")) execute("onKill");
         }
     }
 
