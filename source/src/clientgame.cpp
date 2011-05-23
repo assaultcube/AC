@@ -298,6 +298,8 @@ void playerinfo(const char *cn, const char *attr)
     {
         ATTR_INT(magcontent, p->weaponsel->mag);
         ATTR_INT(ammo, p->weaponsel->ammo);
+        ATTR_INT(primary, p->primary);
+        ATTR_INT(curweapon, p->weaponsel->type);
         ATTR_INT(nextprimary, p->nextprimary);
     }
     if((p->team == player1->team && m_teammode) || player1->isspectating() || p == player1)
@@ -314,12 +316,13 @@ void playerinfo(const char *cn, const char *attr)
     ATTR_INT(pj, p->plag);
     ATTR_INT(state, p->state);
     ATTR_INT(role, p->clientrole);
-    ATTR_INT(primary, p->primary);
     ATTR_INT(frags, p->frags);
     ATTR_INT(flags, p->flagscore);
     ATTR_INT(points, p->points);
     ATTR_INT(deaths, p->deaths);
     ATTR_INT(tks, p->tks);
+    ATTR_INT(alive, p->state == CS_ALIVE ? 1 : 0);
+    ATTR_INT(spec, p->team == TEAM_SPECT || p->spectatemode == SM_FLY ? 1 : 0);
     ATTR_INT(cn, p->clientnum); // only useful to get player1's client number.
     conoutf("invalid attribute");
 }
