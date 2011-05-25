@@ -869,7 +869,7 @@ void dodamage(int damage, playerent *pl, playerent *actor, int gun, bool gib, bo
 	pl->respawnoffset = pl->lastpain = lastmillis;
 	// could the author of the FIXME below please elaborate what's to fix?! (ft:2011mar28)
     // I suppose someone wanted to play the hitsound for player1 or spectated player (lucas:2011may22)
-    playerent *h = player1->isspectating() && player1->followplayercn > 0 ? getclient(player1->followplayercn) : NULL;
+    playerent *h = player1->isspectating() && player1->followplayercn >= 0 ? getclient(player1->followplayercn) : NULL;
     if(!h) h = player1;
     if(actor==h && pl!=actor)
     {
@@ -1255,6 +1255,12 @@ void flagmsg(int flag, int message, int actor, int flagtime)
     bool firstpersondrop = false;
     const char *teamstr = m_ktf ? "the" : own ? "your" : "the enemy";
     const char *flagteam = m_ktf ? (teammate ? "your teammate " : "your enemy ") : "";
+
+    if(identexists("onFlagEvent"))
+    {
+        defformatstring(onflagevent)("onFlagEvent %d %d %d", message, actor);
+        execute(onflagevent);
+    }
 
     switch(message)
     {
