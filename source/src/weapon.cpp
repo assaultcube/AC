@@ -835,9 +835,9 @@ void weapon::renderhudmodel(int lastaction, int index)
     unitv.div(dist);
 
     weaponmove wm;
-    if(!intermission) wm.calcmove(unitv, p->lastaction, p);
+    if(!intermission) wm.calcmove(unitv, lastaction, p);
     defformatstring(path)("weapons/%s", info.modelname);
-    bool emit = (wm.anim&ANIM_INDEX)==ANIM_GUN_SHOOT && (lastmillis - p->lastaction) < flashtime();
+    bool emit = (wm.anim&ANIM_INDEX)==ANIM_GUN_SHOOT && (lastmillis - lastaction) < flashtime();
     rendermodel(path, wm.anim|ANIM_DYNALLOC|(righthanded==index ? ANIM_MIRROR : 0)|(emit ? ANIM_PARTICLE : 0), 0, -1, wm.pos, p->yaw+90, p->pitch+wm.k_rot, 40.0f, wm.basetime, NULL, NULL, 1.28f);
 }
 
@@ -1443,7 +1443,7 @@ bool akimbo::attack(vec &targ)
 {
     if(gun::attack(targ))
     {
-        akimbolastaction[akimboside] = lastmillis;
+        akimbolastaction[akimboside] = owner->lastaction;
         akimboside = (akimboside+1)%2;
         return true;
     }
