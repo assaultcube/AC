@@ -3602,7 +3602,7 @@ void loggamestatus(const char *reason)
         formatstring(text)("%2d %-16s ", c.clientnum, c.name);                 // cn, name
         if(m_teammode)
         {
-            const char *ts = team_string(c.team);
+            const char *ts = team_string(c.team, true);
             concatformatstring(text, "%-4s ", ts);                              // teamname (abbreviated)
         }
         if(m_flags) concatformatstring(text, "%4d ", c.state.flagscore);             // flag
