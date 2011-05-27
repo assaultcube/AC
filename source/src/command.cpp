@@ -1194,7 +1194,7 @@ void testlist(char *list, char *type = "0")
                         break;
                     //case 3: break;
                     default: // test for a list of valid numbers
-                        bool notvalid = (isalpha(curchar) || isspace(curchar) || ispunct(curchar) && curchar != '.'); // determines if the char is valid or not
+                        bool notvalid = (isalpha(curchar) || isspace(curchar) || (ispunct(curchar) && curchar != '.')); // determines if the char is valid or not
                         
                         if(curchar == '.') periodCtr++; // increment the periods counter
                         if(notvalid || periodCtr > 1) { intret(0); return; } // if the char is not valid or we have found more than 1 period in this element, it is an invalid list
