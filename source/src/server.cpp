@@ -3599,12 +3599,8 @@ void loggamestatus(const char *reason)
     {
         client &c = *clients[i];
         if(c.type == ST_EMPTY || !c.name[0]) continue;
-        formatstring(text)("%2d %-16s ", c.clientnum, c.name);                 // cn, name
-        if(m_teammode)
-        {
-            const char *ts = team_string(c.team, true);
-            concatformatstring(text, "%-4s ", ts);                              // teamname (abbreviated)
-        }
+        formatstring(text)("%2d %-16s ", c.clientnum, c.name);                 // cn name
+        if(m_teammode) concatformatstring(text, "%-4s ", team_string(c.team, true)); // teamname (abbreviated)
         if(m_flags) concatformatstring(text, "%4d ", c.state.flagscore);             // flag
         concatformatstring(text, "%6d ", c.state.points);                            // score
         concatformatstring(text, "%4d %5d", c.state.frags, c.state.deaths);          // frag death
