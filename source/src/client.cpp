@@ -561,6 +561,11 @@ void gets2c()           // get updates from the server
             connpeer = NULL;
             connected = 1;
             conoutf(_("connected to server"));
+            if(identexists("onConnect"))
+            {
+                defformatstring(onconnect)("onConnect %d", -1);
+                execute(onconnect);
+            }
             throttle();
             if(editmode) toggleedit(true);
             break;

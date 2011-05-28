@@ -189,7 +189,14 @@ void newname(const char *name)
 {
     if(name[0])
     {
-        filtertext(player1->name, name, 0, MAXNAMELEN);//12345678901234//
+        string tmpname;
+        filtertext(tmpname, name, 0, MAXNAMELEN);
+        if(identexists("onNameChange"))
+        {
+            defformatstring(onnamechange)("onNameChange %d \"%s\"", player1->clientnum, tmpname);
+            execute(onnamechange);
+        }
+        copystring(player1->name, tmpname);//12345678901234//
         if(!player1->name[0]) copystring(player1->name, "unarmed");
         updateclientname(player1);
         addmsg(SV_SWITCHNAME, "rs", player1->name);
@@ -287,7 +294,7 @@ void playerinfo(const char *cn, const char *attr)
     if(!*cn || !cn || !*attr || !attr) return;
 
     int clientnum = atoi(cn); // get player clientnum
-    playerent *p = clientnum == player1->clientnum ? player1 : getclient(clientnum);
+    playerent *p = clientnum == player1->clientnum || clientnum < 0 ? player1 : getclient(clientnum);
     if(!p)
     {
         conoutf("invalid clientnum");
@@ -329,9 +336,7 @@ void playerinfo(const char *cn, const char *attr)
 
 void playerinfolocal(const char *attr)
 {
-    string cn;
-    itoa(cn, player1->clientnum);
-    playerinfo(cn, attr);
+    playerinfo("-1", attr);
 }
 
 COMMANDN(player, playerinfo, ARG_3STR);
@@ -351,12 +356,15 @@ void teaminfo(const char *team, const char *attr)
     int t_deaths = 0;
     int t_points = 0;
 
+    string teammembers = "";
+
     loopv(players) if(players[i] && players[i]->team == t)
     {
         t_frags += players[i]->frags;
         t_deaths += players[i]->deaths;
         t_points += players[i]->points;
         t_flags += players[i]->flagscore;
+        sprintf("%s %d", teammembers, players[i]->clientnum);
     }
 
     loopv(discscores) if(discscores[i].team == t)
@@ -380,6 +388,7 @@ void teaminfo(const char *team, const char *attr)
     ATTR_INT(deaths, t_deaths);
     ATTR_INT(points, t_points);
     ATTR_STR(name, newstring(team_string(t)));
+    ATTR_STR(players, teammembers);
     conoutf("invalid attribute");
 }
 
@@ -902,8 +911,11 @@ void dokill(playerent *pl, playerent *act, bool gib, int gun)
 {
     if(pl->state!=CS_ALIVE || intermission) return;
 
-    defformatstring(killevent)("onKill %d %d %d %d", act->clientnum, pl->clientnum, gun, gib ? 1 : 0);
-    if(identexists("onKill")) execute(killevent);
+    if(identexists("onKill"))
+    {
+        defformatstring(killevent)("onKill %d %d %d %d", act->clientnum, pl->clientnum, gun, gib ? 1 : 0);
+        execute(killevent);
+    }
 
     string pname, aname, death;
     copystring(pname, pl==player1 ? "you" : colorname(pl));
