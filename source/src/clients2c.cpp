@@ -571,6 +571,11 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 else                    // new client
                 {
                     conoutf(_("connected: %s"), colorname(d, text));
+                    if(identexists("onNewPlayer"))
+                    {
+                        defformatstring(onnewplayer)("onNewPlayer %d", d->clientnum);
+                        execute(onnewplayer);
+                    }
                 }
                 copystring(d->name, text, MAXNAMELEN+1);
                 loopi(2) d->setskin(i, getint(p));
