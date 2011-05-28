@@ -712,7 +712,7 @@ void findplayerstart(playerent *d, bool mapcenter, int arenaspawn)
         d->o.z = 4;
     }
     entinmap(d);
-    if(identexists("onSpawn"))
+    if(identexists("onSpawn")/* && (m_teammode && d->team == player1->team)*/)
     {
         defformatstring(onspawn)("onSpawn %d", d->clientnum);
         execute(onspawn);
@@ -902,8 +902,8 @@ void dokill(playerent *pl, playerent *act, bool gib, int gun)
 {
     if(pl->state!=CS_ALIVE || intermission) return;
 
-    defformatstring(killevent)("onKillEvent %d %d %d %d", act->clientnum, pl->clientnum, gun, gib ? 1 : 0);
-    if(identexists("onKillEvent")) execute(killevent);
+    defformatstring(killevent)("onKill %d %d %d %d", act->clientnum, pl->clientnum, gun, gib ? 1 : 0);
+    if(identexists("onKill")) execute(killevent);
 
     string pname, aname, death;
     copystring(pname, pl==player1 ? "you" : colorname(pl));
@@ -1256,9 +1256,9 @@ void flagmsg(int flag, int message, int actor, int flagtime)
     const char *teamstr = m_ktf ? "the" : own ? "your" : "the enemy";
     const char *flagteam = m_ktf ? (teammate ? "your teammate " : "your enemy ") : "";
 
-    if(identexists("onFlagEvent"))
+    if(identexists("onFlag"))
     {
-        defformatstring(onflagevent)("onFlagEvent %d %d %d", message, actor);
+        defformatstring(onflagevent)("onFlag %d %d %d", message, actor, flag);
         execute(onflagevent);
     }
 

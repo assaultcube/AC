@@ -1787,39 +1787,6 @@ addOnLoadAlways [
 					</references>
 				</scriptalias>
 
-        <scriptalias name="onDeathOther">
-					<description>If this alias exists it will be run every time anybody but yourself dies.</description>
-					<references>
-					  <identifierReference identifier="onDeathSelf"/>
-					  <identifierReference identifier="onSpawnOther"/>
-					  <identifierReference identifier="onSpawnSelf"/>
-					</references>
-				</scriptalias>
-				<scriptalias name="onDeathSelf">
-					<description>If this alias exists it will be run every time you yourself die.</description>
-					<references>
-					  <identifierReference identifier="onDeathOther"/>
-					  <identifierReference identifier="onSpawnOther"/>
-					  <identifierReference identifier="onSpawnSelf"/>
-					</references>
-				</scriptalias>
-				<scriptalias name="onSpawnOther">
-					<description>If this alias exists it will be run every time anybody but yourself spawns.</description>
-					<references>
-					  <identifierReference identifier="onDeathOther"/>
-					  <identifierReference identifier="onDeathSelf"/>
-					  <identifierReference identifier="onSpawnSelf"/>
-					</references>
-				</scriptalias>
-				<scriptalias name="onSpawnSelf">
-					<description>If this alias exists it will be run every time you yourself spawn.</description>
-					<references>
-					  <identifierReference identifier="onDeathOther"/>
-					  <identifierReference identifier="onDeathSelf"/>
-					  <identifierReference identifier="onSpawnOther"/>
-					</references>
-				</scriptalias>
-
 				<scriptalias name="onCallVote">
 					<description>If this alias exists it will be run every time a vote is called.</description>
 					<references>
@@ -1855,20 +1822,26 @@ addOnLoadAlways [
         </variable>
         
         <scriptalias name="onKill">
-          <description>If this alias exists it will be run every time you kill an enemy.</description>
-          <references>
-            <identifierReference identifier="onTK"/>
-          </references>
-        </scriptalias>
-        
-        <scriptalias name="onTK">
-          <description>If this alias exists it will be run every time you kill a teammate.</description>
-          <references>
-            <identifierReference identifier="onKill"/>
-          </references>
+          <description>If it exists, this alias will be executing when any player get killed, receiving a few arguments : </description>
+          <arguments>
+            <argument token="actor" description="The client number of the actor" valueNotes="integer" />
+            <argument token="target" description="The client number of the target" valueNotes="integer" />
+            <argument token="gun" description="The number of the gun used" valueNotes="integer" />
+            <argument token="gib" description="Is it a gib or a normal frag" valueNotes="integer (0 or 1)" />
+          </arguments>
         </scriptalias>
 
-				<scriptalias name="add2alias">
+        <scriptalias name="onFlag">
+          <arguments>
+            <argument token="action" description="The action that occured" valueNotes="integer (0 = stolen, 1 = dropped, 2 = lost, 3 = returned, 4 = scored, 5 = ktfscore, 6 = failed to score, 7 = reset)" />
+            <argument token="actor" description="The client number of the actor" valueNotes="integer"/>
+            <argument token="flag" description="The flag owner team" valueNotes="integer (0 = CLA, 1 = RVSF)" />
+          </arguments>
+          <description>If defined, this will be executed each time a flag action occurs.</description>
+        </scriptalias>
+
+
+              <scriptalias name="add2alias">
 				  <description>This will append the passed 2nd argument to any existing content of the alias named in the 1st argument. Several popular aliases have predefined shortcuts using this scriptalias: addOnQuit, addOnLoadOnce, addOnLoadAlways. Check config/scripts.cfg for possible omissions in that list.</description>
    				  <examples>
 					<example>
@@ -1904,21 +1877,12 @@ echo foo
             <identifierReference identifier="addOnQuit"/>
           </references>
         </scriptalias>
-				
-				<scriptalias name="onDeathSelf">
-				  <description>This will be executed each time the player dies.</description>
-				</scriptalias>
 
-				<scriptalias name="onDeathOther">
-				  <description>This will be executed each time another player dies.</description>
-				</scriptalias>
-
-				<scriptalias name="onSpawnSelf">
-				  <description>This will be executed each time the player spawns.</description>
-				</scriptalias>
-
-				<scriptalias name="onSpawnOther">
-				  <description>This will be executed each time another player spawns.</description>
+				<scriptalias name="onSpawn">
+                  <arguments>
+                    <argument token="player" description="The client number of the player who spawned" valueNotes="integer" />
+                  </arguments>
+				  <description>If defined, this will be executed each time a player spawns.</description>
 				</scriptalias>
 				
 				<variable name="positiontype">
