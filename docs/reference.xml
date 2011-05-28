@@ -1840,6 +1840,30 @@ addOnLoadAlways [
           <description>If defined, this will be executed each time a flag action occurs.</description>
         </scriptalias>
 
+        <scriptalias name="onConnect">
+          <arguments>
+            <argument token="player" description="The client number of the player who connected" valueNotes="integer (-1 for local player)" />
+          </arguments>
+          <description>If defined, this will be executed when you or another player join(s) a server.</description>
+        </scriptalias>
+
+          <scriptalias name="onSpawn">
+            <arguments>
+              <argument token="player" description="The client number of the player who spawned" valueNotes="integer" />
+            </arguments>
+            <description>If defined, this will be executed each time a player spawns.</description>
+          </scriptalias>
+
+              <scriptalias name="onNameChange">
+                <arguments>
+                  <argument token="player" description="The client number of the player who connected" valueNotes="integer" />
+                  <argument token="new name" description="The new name of the client" valueNotes="string" />
+                </arguments>
+                <description>If defined, this will be executed when you or another player change(s) his name. </description>
+                <remarks>
+                  <remark>The alias is executed before the name is effectively changed, so you can still get the previous name of the client from this alias.</remark>
+                </remarks>
+              </scriptalias>
 
               <scriptalias name="add2alias">
 				  <description>This will append the passed 2nd argument to any existing content of the alias named in the 1st argument. Several popular aliases have predefined shortcuts using this scriptalias: addOnQuit, addOnLoadOnce, addOnLoadAlways. Check config/scripts.cfg for possible omissions in that list.</description>
@@ -1878,12 +1902,7 @@ echo foo
           </references>
         </scriptalias>
 
-				<scriptalias name="onSpawn">
-                  <arguments>
-                    <argument token="player" description="The client number of the player who spawned" valueNotes="integer" />
-                  </arguments>
-				  <description>If defined, this will be executed each time a player spawns.</description>
-				</scriptalias>
+
 				
 				<variable name="positiontype">
 					<description>Whether the values returned by <b>getposition</b> are integers (0) or floating-point numbers (1).</description>

@@ -532,6 +532,11 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 {
                     if(strcmp(d->name, text))
                         conoutf(_("%s is now known as %s"), colorname(d), colorname(d, text));
+                    if(identexists("onNameChange"))
+                    {
+                        defformatstring(onnamechange)("onNameChange %d \"%s\"", d->clientnum, text);
+                        execute(onnamechange);
+                    }
                     copystring(d->name, text, MAXNAMELEN+1);
                     updateclientname(d);
                 }
@@ -571,13 +576,13 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 else                    // new client
                 {
                     conoutf(_("connected: %s"), colorname(d, text));
-                    if(identexists("onNewPlayer"))
-                    {
-                        defformatstring(onnewplayer)("onNewPlayer %d", d->clientnum);
-                        execute(onnewplayer);
-                    }
                 }
                 copystring(d->name, text, MAXNAMELEN+1);
+                if(identexists("onConnect"))
+                {
+                    defformatstring(onconnect)("onConnect %d", d->clientnum);
+                    execute(onconnect);
+                }
                 loopi(2) d->setskin(i, getint(p));
                 d->team = getint(p);
                 if(m_flags) loopi(2)
