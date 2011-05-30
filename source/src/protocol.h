@@ -101,13 +101,15 @@ enum
     GMODE_HUNTTHEFLAG,         // 13
     GMODE_TEAMKEEPTHEFLAG,
     GMODE_KEEPTHEFLAG,
+    GMODE_TEAMPF,
+    GMODE_TEAMLSS,
     GMODE_NUM
 };
 
 #define m_lms         (gamemode==3 || gamemode==4)
 #define m_ctf         (gamemode==5)
-#define m_pistol      (gamemode==6)
-#define m_lss         (gamemode==9)
+#define m_pistol      (gamemode==6 || gamemode==16)
+#define m_lss         (gamemode==9 || gamemode==17)
 #define m_osok        (gamemode>=10 && gamemode<=12)
 #define m_htf         (gamemode==13)
 #define m_ktf         (gamemode==14 || gamemode==15)
@@ -118,7 +120,7 @@ enum
 #define m_noprimary   (m_pistol || m_lss)
 #define m_noguns      (m_nopistol && m_noprimary)
 #define m_arena       (m_lms || m_lss || m_osok)
-#define m_teammode    (gamemode==0 || gamemode==4 || gamemode==5 || gamemode==7 || gamemode==11 || gamemode==13 || gamemode==14)
+#define m_teammode    (gamemode==0 || gamemode==4 || gamemode==5 || gamemode==7 || gamemode==11 || gamemode==13 || gamemode==14 || gamemode==16 || gamemode==17)
 #define m_tarena      (m_arena && m_teammode)
 #define m_botmode     (gamemode==7 || gamemode == 8 || gamemode==12)
 #define m_valid(mode) (((mode)>=0 && (mode)<GMODE_NUM) || (mode) == -1)
