@@ -220,7 +220,7 @@ float CBot::ChangeAngle(float speed, float ideal, float current)
           speed = diff;  // just need to turn a little bit (less than max)
 
      // check if the bot is already facing the idealpitch direction...
-     if (diff <= 1.0f)
+     if (diff <= 0.5f)
           return ideal;
 
      if ((current >= 180) && (ideal >= 180))

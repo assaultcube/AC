@@ -623,7 +623,7 @@ void raydamage(vec &from, vec &to, playerent *d)
         switch(d->weaponsel->type)
         {
             case GUN_KNIFE: gib = true; break;
-            case GUN_SNIPER: if(d==player1 && hitzone==2) { dam *= 3; gib = true; }; break;
+            case GUN_SNIPER: if(hitzone==2) { dam *= 3; gib = true; }; break;
             case GUN_SUBGUN: if(flag4subgunDMGalt) dam +=1; break;
             default: break;
         }
@@ -1301,7 +1301,7 @@ void sniperrifle::setscope(bool enable)
     if(this == owner->weaponsel && !reloading && owner->state == CS_ALIVE)
     {
         if(scoped == false && enable == true) scoped_since = lastmillis;
-        if(player1 == owner && enable != scoped) player1->scoping = enable;
+        if(enable != scoped) owner->scoping = enable;
         scoped = enable;
     }
 }
