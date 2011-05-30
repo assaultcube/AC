@@ -335,11 +335,11 @@ public:
         gunselect = primary;
 
         if(m_osok) health = 1;
-        if(m_lms) // Survivor && Team-Survivor : 2010nov19
+        if(m_lms || m_pistol) // Survivor && Team-Survivor : 2010nov19
         {
             health = 100;
             armour = 100;
-            ammo[GUN_GRENADE] = 2;
+            if(m_lms) ammo[GUN_GRENADE] = 2;
         }
     }
 

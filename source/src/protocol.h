@@ -119,7 +119,7 @@ enum
 #define m_nopistol    (m_osok || m_lss)
 #define m_noprimary   (m_pistol || m_lss)
 #define m_noguns      (m_nopistol && m_noprimary)
-#define m_arena       (m_lms || m_lss || m_osok)
+#define m_arena       (m_lms || m_lss || m_osok || m_pistol)
 #define m_teammode    (gamemode==0 || gamemode==4 || gamemode==5 || gamemode==7 || gamemode==11 || gamemode==13 || gamemode==14 || gamemode==16 || gamemode==17)
 #define m_tarena      (m_arena && m_teammode)
 #define m_botmode     (gamemode==7 || gamemode == 8 || gamemode==12)
