@@ -309,7 +309,11 @@ void playerinfo(const char *cn, const char *attr)
         ATTR_INT(curweapon, p->weaponsel->type);
         ATTR_INT(nextprimary, p->nextprimary);
     }
-    if((p->team == player1->team && m_teammode) || player1->isspectating() || p == player1)
+
+    if(p == player1
+        || (team_base(p->team) == team_base(player1->team) && m_teammode)
+        || player1->team == TEAM_SPECT
+        || m_coop)
     {
         ATTR_INT(health, p->health);
         ATTR_INT(armour, p->armour);
@@ -344,7 +348,7 @@ COMMANDN(player1, playerinfolocal, ARG_2STR);
 
 void teaminfo(const char *team, const char *attr)
 {
-    if(!team || !attr) return;
+    if(!team || !attr || !m_teammode) return;
     int t = atoi(team); // get player clientnum
     if(!team_isactive(t))
     {
@@ -1671,7 +1675,7 @@ playerent *updatefollowplayer(int shiftdirection)
 
     // rotate
     int oldidx = -1;
-    if(players.inrange(player1->followplayercn)) oldidx = available.find(players[player1->followplayercn]);
+     if(players.inrange(player1->followplayercn)) oldidx = available.find(players[player1->followplayercn]);
     if(oldidx<0) oldidx = 0;
     int idx = (oldidx+shiftdirection) % available.length();
     if(idx<0) idx += available.length();
@@ -1739,12 +1743,12 @@ void spectate(int mode)
 void togglespect() // cycle through all spectating modes
 {
     if(m_botmode)
-        spectate(player1->spectatemode==SM_FLY ? SM_OVERVIEW : SM_FLY);
+        spectate(SM_FLY);
     else
     {
         int mode;
         if(player1->spectatemode==SM_NONE) mode = SM_FOLLOW1ST; // start with 1st person spect
-        else mode = SM_FOLLOW1ST + ((player1->spectatemode - SM_FOLLOW1ST + 1) % (SM_NUM-SM_FOLLOW1ST));
+        else mode = SM_FOLLOW1ST + ((player1->spectatemode - SM_FOLLOW1ST + 1) % (SM_OVERVIEW-SM_FOLLOW1ST)); // replace SM_OVERVIEW by SM_NUM to enable overview mode
         spectate(mode);
     }
 }
