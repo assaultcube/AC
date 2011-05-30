@@ -18,8 +18,8 @@ extern weaponinfo_s WeaponInfoTable[MAX_WEAPONS];
 vec CBot::GetEnemyPos(playerent *d)
 {
     // Aim offset idea by botman
-    vec o = d->o, offset;
-    float flDist = GetDistance(d->o), flScale;
+    vec o = m_pMyEnt->weaponsel->type == GUN_SNIPER && d->head.x >= 0 ? d->head : d->o, offset;
+    float flDist = GetDistance(o), flScale;
 
     if (WeaponInfoTable[m_pMyEnt->gunselect].eWeaponType == TYPE_ROCKET)
     {
@@ -751,7 +751,7 @@ int CBot::GetShootDelay()
 
 void CBot::CheckReload() // reload gun if no enemies are around
 {
-    //if(m_pMyEnt->mag[m_pMyEnt->weaponsel->type] >= WeaponInfoTable[m_pMyEnt->weaponsel->type].sMinDesiredAmmo) return; // do not reload if mindesiredammo is satisfied
+    if(m_pMyEnt->mag[m_pMyEnt->weaponsel->type] >= WeaponInfoTable[m_pMyEnt->weaponsel->type].sMinDesiredAmmo) return; // do not reload if mindesiredammo is satisfied
 	if(m_pMyEnt->enemy && m_pMyEnt->mag[m_pMyEnt->weaponsel->type])
     {
           return; // ignore the enemy, if no ammo in mag.
@@ -759,6 +759,23 @@ void CBot::CheckReload() // reload gun if no enemies are around
 	tryreload(m_pMyEnt);
 	return;
 }
+
+void CBot::CheckScope()
+{
+#define MINSCOPEDIST 15
+#define MINSCOPETIME 1000
+    if(m_pMyEnt->weaponsel->type != GUN_SNIPER) return;
+    sniperrifle *sniper = (sniperrifle *)m_pMyEnt->weaponsel;
+    if(m_pMyEnt->enemy && m_pMyEnt->o.dist(m_pMyEnt->enemy->o) > MINSCOPEDIST)
+    {
+        sniper->setscope(true);
+    }
+    else if(m_pMyEnt->scoping && lastmillis - sniper->scoped_since < MINSCOPETIME)
+    {
+        sniper->setscope(false);
+    }
+}
+
 
 void CBot::MainAI()
 {
@@ -784,6 +801,7 @@ void CBot::MainAI()
     if (BotManager.BotsShoot() && FindEnemy()) // Combat
     {
         CheckReload();
+        CheckScope();
         AddDebugText("has enemy");
         // Use best weapon
         ChoosePreferredWeapon();
@@ -802,14 +820,15 @@ void CBot::MainAI()
     }
     else if (CheckHunt() && HuntEnemy())
     {
-		  CheckReload();
+		CheckReload();
+        CheckScope();
         AddDebugText("Hunting to %s", m_pHuntTarget->name);
         m_eCurrentBotState = STATE_HUNT;
     }
     // Heading to an interesting entity(ammo, armour etc)
     else if (CheckItems())
     {
-		  CheckReload();
+		CheckReload();
         AddDebugText("has ent");
         m_eCurrentBotState = STATE_ENT;
     }

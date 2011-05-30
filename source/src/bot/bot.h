@@ -247,6 +247,7 @@ public:
      bool FindEnemy(void);
      void CheckReload(void);
      void CheckWeaponSwitch(void); // 2011jan17:ft: fix non-shooting bots
+     void CheckScope(void);
      void ShootEnemy(void);
      bool CheckHunt(void);
      bool HuntEnemy(void);
