@@ -945,6 +945,8 @@ botent *CBotManager::CreateBot(const char *team, const char *skill, const char *
 
     if (name && *name) copystring(m->name, name, 16);
     else copystring(m->name, BotManager.GetBotName(), 16);
+    
+    updateclientname((playerent *)m);
 
     const char *tempteam = team && *team && strcmp(team, "random") ? team : BotManager.GetBotTeam();
     loopi(TEAM_NUM) if(!strcmp(teamnames[i], tempteam)) { m->team = i; break; }
