@@ -4531,6 +4531,11 @@ Output:
 					<description>change at what height you are floating in the radar-view</description>
 					<value token="H" description="height" minValue="20" maxValue="70" defaultValue="35" />
 				</variable>
+        
+        <variable name="showtargetname">
+          <description>enables or disables showing the player name on the HUD when in your crosshair.</description>
+          <value token="N" description="0 off, 1 on" minValue="0" maxValue="1" defaultValue="1"/>
+        </variable>
 		
 			</identifiers>
 		</section>
