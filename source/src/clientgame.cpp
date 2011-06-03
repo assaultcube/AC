@@ -1169,7 +1169,7 @@ void resetmap(bool mrproper)
 int suicided = -1;
 extern bool good_map();
 extern bool item_fail;
-extern int MA, F2F;
+extern int MA, F2F, Ma, Hhits;
 extern float Mh;
 
 VARP(mapstats_hud, 0, 0, 1);
@@ -1178,7 +1178,8 @@ void showmapstats()
 {
     conoutf("\f2Map Quality Stats");
     conoutf("  The mean height is: %.2f", Mh);
-    if (MA) conoutf("  The max area is: %d", MA);
+    if (Hhits) conoutf("  Height check is: %d", Hhits);
+    if (MA) conoutf("  The max area is: %d (of %d)", MA, Ma);
     if (m_flags && F2F < 1000) conoutf("  Flag-to-flag distance is: %d", (int)fSqrt(F2F));
     if (item_fail) conoutf("  There are one or more items too close to each other in this map");
 }
