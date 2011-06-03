@@ -455,7 +455,7 @@
             <identifierReference identifier="concatword"/>
             <identifierReference identifier="strlen"/>
             <identifierReference identifier="substr"/>
-            <identifierReference identifier="replacestr"/>
+            <identifierReference identifier="strreplace"/>
           </references>
         </command>
         
@@ -524,7 +524,7 @@
           <references>
             <identifierReference identifier="strlen"/>
             <identifierReference identifier="strpos"/>
-            <identifierReference identifier="replacestr"/>
+            <identifierReference identifier="strreplace"/>
           </references>
 				</command>
 
@@ -1044,11 +1044,11 @@
           </references>
         </command>
         
-        <command name="replacestr">
+        <command name="strreplace">
           <description>Returns a string, with a portion of it replaced with a new sub-string.</description>
           <examples>
              <example>
-            <code><![CDATA[echo (replacestr "Hello cruel world" cruel "")]]></code>
+            <code><![CDATA[echo (strreplace "Hello cruel world" cruel "")]]></code>
             <explanation>Output: Hello world</explanation>
            </example>
           </examples>
