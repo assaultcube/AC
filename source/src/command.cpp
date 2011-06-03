@@ -1207,17 +1207,29 @@ void testlist(char *list, char *type = "0")
     }
 }
 
-void replacestr(char *arg1, char *arg2, char *arg3)
+void strreplace (const char *source, const char *search, const char *replace)
 {
-    string output;
-    char *ptr = strstr(arg1, arg2);
+    vector<char> buf;
 
-    if(!ptr) { result(arg1); return; } // Return the string untouched if arg2 cannot be found in arg1
-
-    strncpy(output, arg1, ptr - arg1);
-    output[ptr - arg1] = 0;
-    sprintf(output + (ptr - arg1), "%s%s", arg3, ptr + strlen(arg2));
-    result(output);
+    int searchlen = strlen(search);
+    if(!searchlen) { result(source); return; }
+    for(;;)
+    {
+        const char *found = strstr(source, search);
+        if(found)
+        {
+            while(source < found) buf.add(*source++);
+            for(const char *n = replace; *n; n++) buf.add(*n);
+            source = found + searchlen;
+        }
+        else
+        {
+            while(*source) buf.add(*source++);
+            buf.add('\0');
+            result(newstring(buf.getbuf(), buf.length()));
+            return;
+        }
+    }
 }
 
 COMMANDN(c, colora, ARG_1STR);
@@ -1240,7 +1252,7 @@ COMMANDN(tolower, toLower, ARG_1STR);
 COMMANDN(toupper, toUpper, ARG_1STR);
 COMMAND(testchar, ARG_2STR);
 COMMAND(testlist, ARG_2STR);
-COMMAND(replacestr, ARG_3STR);
+COMMAND(strreplace, ARG_3STR);
 
 int add(int a, int b)   { return a+b; }            COMMANDN(+, add, ARG_2EXP);
 int mul(int a, int b)   { return a*b; }            COMMANDN(*, mul, ARG_2EXP);
