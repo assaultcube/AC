@@ -469,7 +469,7 @@ int numspawn[3], maploaded = 0, numflagspawn[2];
 VAR(curmaprevision, 1, 0, 0);
 
 extern char *mlayout;
-extern int Mv, Ma;
+extern int Mv, Ma, Hhits;
 extern float Mh;
 
 bool load_world(char *mname)        // still supports all map formats that have existed since the earliest cube betas!
@@ -549,7 +549,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
     mlayout = new char[cubicsize + 256];
     memset(mlayout, 0, cubicsize * sizeof(char));
     char diff = 0;
-    Mv = Ma = 0;
+    Mv = Ma = Hhits = 0;
 
     if(!mapinfo.numelems || (mapinfo.access(mname) && !cmpf(cgzname, mapinfo[mname]))) world = (sqr *)ents.getbuf();
     c2skeepalive();
@@ -643,6 +643,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
         }
         if ( type != SOLID && diff > 6 )
         {
+            if (diff > MAXMHEIGHT) Hhits += diff * n;
             Ma += n;
             Mv += diff * n;
         }

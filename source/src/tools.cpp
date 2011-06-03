@@ -27,7 +27,7 @@ const char *numtime()
 int mapdims[8];     // min/max X/Y and delta X/Y and min/max Z
 
 extern char *maplayout, *testlayout;
-extern int maplayout_factor, testlayout_factor, Mvolume, Marea, Mopen;
+extern int maplayout_factor, testlayout_factor, Mvolume, Marea, Mopen, SHhits;
 extern float Mheight;
 extern int checkarea(int, char *);
 
@@ -85,7 +85,7 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
         memset(testlayout, 0, layoutsize * sizeof(char));
         char *t = NULL;
         char floor = 0, ceil, diff = 0;
-        Mvolume = Marea = 0;
+        Mvolume = Marea = SHhits = 0;
         loopk(layoutsize)
         {
             char *c = testlayout + k;
@@ -126,6 +126,7 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
             }
             if ( type != SOLID && diff > 6 )
             {
+                if (diff > MAXMHEIGHT) SHhits += diff * n;
                 Marea += n;
                 Mvolume += diff * n;
             }

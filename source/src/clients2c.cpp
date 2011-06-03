@@ -26,10 +26,10 @@ VARP(autogetmap, 0, 1, 1); // only if the client doesn't have that map
 VARP(autogetnewmaprevisions, 0, 1, 1);
 
 bool localwrongmap = false;
-int MA = 0; // flowtron: moved here
+int MA = 0, Hhits = 0; // flowtron: moved here
 bool changemapserv(char *name, int mode, int download, int revision)        // forced map change from the server
 {
-    MA = 0; // reset for checkarea()
+    MA = Hhits = 0; // reset for checkarea()
     gamemode = mode;
     if(m_demo) return true;
     if(m_coop)
@@ -303,7 +303,8 @@ bool good_map() // call this function only at startmap
         }
     }
 
-    map_quality = (!item_fail && F2F > MINFF && MA < MAXMAREA && Mh < MAXMHEIGHT) ? MAP_IS_GOOD : MAP_IS_BAD;
+    map_quality = (!item_fail && F2F > MINFF && MA < MAXMAREA && Mh < MAXMHEIGHT &&
+     Hhits < MAXHHITS && Hhits * 3 < Ma) ? MAP_IS_GOOD : MAP_IS_BAD;
     if ( (!connected || gamemode == GMODE_COOPEDIT) && map_quality == MAP_IS_BAD ) map_quality = MAP_IS_EDITABLE;
     return map_quality > 0;
 }
