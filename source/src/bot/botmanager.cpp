@@ -1128,6 +1128,11 @@ COMMAND(togglegrap, ARG_NONE);
 void togglebotview(char *bot)
 {
 	if(!botmode()) return;
+  /** 
+      Disable in arena modes, this command causes the game to go in an "infinite loop"
+      due to player1 automatically suiciding thus causing a new round to begin.
+  */
+  if(m_arena) { conoutf("togglebotview is not allowed in %s", modestr(gamemode, modeacronyms > 0)); return; }
     if (BotManager.m_pBotToView)
         BotManager.DisableBotView();
     else if (bot && *bot)
