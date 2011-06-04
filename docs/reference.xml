@@ -1096,7 +1096,7 @@
             </example>
           </examples>
           <references>
-            <identifierReference identifier="getmodeacr"/>
+            <identifierReference identifier="getmode"/>
             <identifierReference identifier="screenshottype"/>
           </references>
         </command>
@@ -1587,19 +1587,26 @@
 					<value token="B" description="" minValue="0" maxValue="1" defaultValue="0"/>
 				</variable>
 
-        <variable name="getmodeacr">
-          <description>Returns the current game mode's acronym.</description>
+        <command name="getmode">
+          <description>Returns the current game mode.</description>
           <examples>
             <example>
-              <code><![CDATA[echo (getmodeacr)]]></code>
+              <code><![CDATA[echo (getmode)]]></code>
+              <explanation>Example output: capture the flag</explanation>
+            </example>
+            <example>
+              <code><![CDATA[echo (getmode 1)]]></code>
               <explanation>Example output: CTF</explanation>
             </example>
           </examples>
+          <arguments>
+            <argument token="N" description="0 = full mode name, 1 = mode acronym" valueNotes="min 0/max 1/default 0"/>
+          </arguments>
           <references>
             <identifierReference identifier="getscrext"/>
             <identifierReference identifier="modeacronyms"/>
           </references>
-        </variable>
+        </command>
 
 				<variable name="resetbinds">
 					<description>Resets all binds back to their default values.</description>
