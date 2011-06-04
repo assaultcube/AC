@@ -84,7 +84,8 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
         testlayout = new char[layoutsize + 256];
         memset(testlayout, 0, layoutsize * sizeof(char));
         char *t = NULL;
-        char floor = 0, ceil, diff = 0;
+        char floor = 0, ceil;
+        int diff = 0;
         Mvolume = Marea = SHhits = 0;
         loopk(layoutsize)
         {
