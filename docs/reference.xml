@@ -4543,6 +4543,22 @@ Output:
           <description>enables or disables showing the player name on the HUD when in your crosshair.</description>
           <value token="N" description="0 off, 1 on" minValue="0" maxValue="1" defaultValue="1"/>
         </variable>
+        
+        <command name="disablehud">
+          <description>Stores your current HUD configuration in a buffer and disables it entirely.</description>
+          <references>
+            <identifierReference identifier="cleanshot"/>
+            <identifierReference identifier="enablehud"/>
+          </references>
+        </command>
+        
+        <command name="enablehud">
+          <description>Restores your HUD configuration after using disablehud.</description>
+          <references>
+            <identifierReference identifier="cleanshot"/>
+            <identifierReference identifier="disablehud"/>
+          </references>
+        </command>
 		
 			</identifiers>
 		</section>
