@@ -548,7 +548,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
     DELETEA(mlayout);
     mlayout = new char[cubicsize + 256];
     memset(mlayout, 0, cubicsize * sizeof(char));
-    char diff = 0;
+    int diff = 0;
     Mv = Ma = Hhits = 0;
 
     if(!mapinfo.numelems || (mapinfo.access(mname) && !cmpf(cgzname, mapinfo[mname]))) world = (sqr *)ents.getbuf();
