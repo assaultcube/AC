@@ -103,13 +103,15 @@ enum
     GMODE_KEEPTHEFLAG,
     GMODE_TEAMPF,
     GMODE_TEAMLSS,
+    GMODE_BOTPISTOLFRENZY,
+    GMODE_BOTLSS,
     GMODE_NUM
 };
 
 #define m_lms         (gamemode==3 || gamemode==4)
 #define m_ctf         (gamemode==5)
-#define m_pistol      (gamemode==6 || gamemode==16)
-#define m_lss         (gamemode==9 || gamemode==17)
+#define m_pistol      (gamemode==6 || gamemode==16 || gamemode==18)
+#define m_lss         (gamemode==9 || gamemode==17 || gamemode==19)
 #define m_osok        (gamemode>=10 && gamemode<=12)
 #define m_htf         (gamemode==13)
 #define m_ktf         (gamemode==14 || gamemode==15)
@@ -122,9 +124,9 @@ enum
 #define m_arena       (m_lms || m_lss || m_osok || m_pistol)
 #define m_teammode    (gamemode==0 || gamemode==4 || gamemode==5 || gamemode==7 || gamemode==11 || gamemode==13 || gamemode==14 || gamemode==16 || gamemode==17)
 #define m_tarena      (m_arena && m_teammode)
-#define m_botmode     (gamemode==7 || gamemode == 8 || gamemode==12)
+#define m_botmode     (gamemode==7 || gamemode == 8 || gamemode==12 || gamemode==18 || gamemode==19)
 #define m_valid(mode) (((mode)>=0 && (mode)<GMODE_NUM) || (mode) == -1)
-#define m_mp(mode)    (m_valid(mode) && (mode)>=0 && (mode)!=7 && (mode)!=8 && (mode)!=12)
+#define m_mp(mode)    (m_valid(mode) && (mode)>=0 && (mode)!=7 && (mode)!=8 && (mode)!=12 && (mode)!=18 && (mode)!=19)
 #define m_demo        (gamemode==-1)
 #define m_coop        (gamemode==1)
 #define m_flags       (m_ctf || m_htf || m_ktf)
