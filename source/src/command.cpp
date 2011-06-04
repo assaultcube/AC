@@ -628,7 +628,7 @@ char *executeret(const char *p)                            // all evaluation hap
 							{
 								f1 = f1<id->minvalf ? id->minvalf : id->maxvalf;       // clamp to valid range
 								conoutf("valid range for %s is %s..%s", id->name, floatstr(id->minvalf), floatstr(id->maxvalf));
-								scripterr();
+								//scripterr(); // Why throw this error here when it's not done for ID_VAR above? Only difference is datatype, both are "valid range errors". // Bukz 2011june04
 							}
 							*id->storage.f = f1;
 							if(id->fun) ((void (__cdecl *)())id->fun)();            // call trigger function if available
