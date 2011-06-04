@@ -303,8 +303,7 @@ bool good_map() // call this function only at startmap
         }
     }
 
-    map_quality = (!item_fail && F2F > MINFF && MA < MAXMAREA && Mh < MAXMHEIGHT &&
-     Hhits < MAXHHITS && Hhits * 3 < Ma) ? MAP_IS_GOOD : MAP_IS_BAD;
+    map_quality = (!item_fail && F2F > MINFF && MA < MAXMAREA && Mh < MAXMHEIGHT && Hhits < MAXHHITS) ? MAP_IS_GOOD : MAP_IS_BAD;
     if ( (!connected || gamemode == GMODE_COOPEDIT) && map_quality == MAP_IS_BAD ) map_quality = MAP_IS_EDITABLE;
     return map_quality > 0;
 }

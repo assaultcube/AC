@@ -126,7 +126,7 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
             }
             if ( type != SOLID && diff > 6 )
             {
-                if (diff > MAXMHEIGHT) SHhits += diff * n;
+                if (diff > MAXMHEIGHT) SHhits += pow2(diff-MAXMHEIGHT)*n;
                 Marea += n;
                 Mvolume += diff * n;
             }

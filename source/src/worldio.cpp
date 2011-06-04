@@ -643,7 +643,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
         }
         if ( type != SOLID && diff > 6 )
         {
-            if (diff > MAXMHEIGHT) Hhits += diff * n;
+            if (diff > MAXMHEIGHT) Hhits += pow2(diff-MAXMHEIGHT)*n;
             Ma += n;
             Mv += diff * n;
         }
