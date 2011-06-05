@@ -1544,7 +1544,7 @@ void clearvote() { DELETEP(curvote); DELETEP(calledvote); }
 const char *modestrings[] =
 {
     "tdm", "coop", "dm", "lms", "ts", "ctf", "pf", "btdm", "bdm", "lss",
-    "osok", "tosok", "bosok", "htf", "tktf", "ktf", "tpf", "tlss", "bpf", "blss"
+    "osok", "tosok", "bosok", "htf", "tktf", "ktf", "tpf", "tlss", "bpf", "blss", "btsurv", "btosok"
 };
 
 void setnext(char *arg1, char *arg2)
