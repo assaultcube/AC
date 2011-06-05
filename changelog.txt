@@ -59,7 +59,7 @@ Media (maps/textures/models)
 Physics
 ---------------------
 
-[*] Optional increased spec/editfly velocity. (Default on.)
+[*] New "flyspeed" variable for determining how much to multiply your fly speeds by. (Range: 1.0...5.0)
 [*] Jump/Crouch raises or lowers the camera in editmode, release to stop.
 
 Mapping
@@ -97,7 +97,7 @@ Cubescript
 [*] curplayers       - Returns the current number of players. (Works both in singleplayer and multiplayer scenarios.)
 [*] cleanshot        - Take a "clean" screenshot with no HUD items.
 [*] getEngineState   - Returns a list of the items that showstats displays. (i.e. FPS LOD WQD WVT EVT)
-[*] getmodeacr       - Returns the current mode's acronym. (e.g. TDM)
+[*] getmode          - Returns the current mode. (e.g. echo (getmode) // Output: team deathmatch // echo (getmode 1) // Output: TDM)
 [*] megabind         - Bind a key to many different actions depending on the current game state. (i.e. do this if watching a demo, do this if editing or in coop-edit mode, do this if connected to a server, etc.)
 [*] getposition      - Returns the coordinates of the player as a list of 3 integers or floating-point values - X, Y and Z. // TODO remove (playerinfo does the job)
 [*] onCallVote       - Native alias that is executed when someone (including yourself) calls a vote.
@@ -126,17 +126,24 @@ Cubescript
 [*] genhex           - Creates a random hexadecimal value. (Useful for finding fogcolours, i.e. fogcolour (genhex))
 [*] genwc            - Sets the current map's watercolour to random values.
 [*] getscrext        - Returns the proper file extension of your current screenshottype setting. (e.g. ".jpg" without the quotes)
-[*] slowmove         - Enables or disables the old spec/editfly velocity.
-[*] slowtoggle       - Increases or decreases fly velocities. (meant to be keybound, "slowtoggle" for fly fast, toggle slow, "slowtoggle 1" for fly slow, toggle fast.)
 [*] oldselstyle      - Enables or disables the old (1.0.4) grid/current selection style. (squares instead of triangles)
 [*] Multiple Idents  - New helper aliases for (c). (e.g. echo (red)Hello (blue)world! (white)My fov today is: (orange) $fov)
 [*] resetsleeps      - Reset all pending sleeps
 [*] settex           - Set texture given as first argument to the walls of current selection and of the type specified in 2nd argument.
-[*] round			 - Round a float, returns an integer
-[*] ceil			 - Returns the ceil value of a float
-[*] floor			 - Returns the floor value of a float
-[*] aliasinit // TODO explain
-[*] checkinit // TODO explain
+[*] round			       - Round a float, returns an integer
+[*] ceil			       - Returns the ceil value of a float
+[*] floor			       - Returns the floor value of a float
+[*] aliasinit        - Uses checkinit to initialize a list of aliases.
+[*] checkinit        - Determines if an alias exists or not, and if it does not exist, it is initialized to a specified value. (If no value is given, it is simply initialized to "")
+[*] checkmag         - Determines if there is *any* ammunition available for the specified weapon. (counts currently loaded rounds, and magreserve rounds)
+[*] checkrange       - Determines if a value is within a certain range. (supports floats)
+[*] ptoggle          - New weapon switching utility to easily flip back and fourth between your primary weapon and a specified weapon.
+[*] sndtoggle        - Toggles between primary/secondary weapons.
+[*] knftoggle        - Toggles between primary/melee (knife) weapons.
+[*] gndtoggle        - Toggles between primary/grenades.
+[*] disablehud       - Stores your current HUD configuration into a buffer (for later restoration with /enablehud) and disables it entirely.
+[*] enablehud        - Restores your HUD configuration from a previous /disablehud.
+[*] Multiple Idents  - New helper aliases for voting for SURV, TPF, and TLSS. (e.g. /surv ac_desert)
 [*] "Sleeps" can be persistent (3rd argument of "sleep" command)
 [*] Substr crash bug is fixed. Also the command can now use a negative position value.
 [*] New stat in (pstat_score) for teamkills. New list is: FLAGS FRAGS DEATHS POINTS TEAM TEAMKILLS NAME // TODO move to compatibility.cfg
