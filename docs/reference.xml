@@ -378,6 +378,30 @@
 					<return token="R" description="The random value" valueNotes="larger or equal 0 and smaller than A"/>
 				</command>
 
+        <command name="round">
+          <description>Round the given float</description>
+          <arguments>
+            <argument token="F" description="The float number to round" valueNotes=""/>
+          </arguments>
+          <return token="I" description="The rounded integer" valueNotes="The precision is 1 unit"/>
+        </command>
+
+        <command name="ceil">
+          <description>Upper value of a float number</description>
+          <arguments>
+            <argument token="F" description="The float number to get the ceil from" valueNotes=""/>
+          </arguments>
+          <return token="I" description="The ceil value (integer)"/>
+        </command>
+
+        <command name="floor">
+          <description>Floor value of a float number</description>
+          <arguments>
+            <argument token="F" description="The float number to get the floor from" valueNotes=""/>
+          </arguments>
+          <return token="I" description="The floor value (integer)"/>
+        </command>
+        
 				<command name="strcmp">
 					<description>Determines if two strings are equal.</description>
           <examples>

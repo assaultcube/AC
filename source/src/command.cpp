@@ -1272,6 +1272,11 @@ int lt(int a, int b)    { return (int)(a<b); }     COMMANDN(<, lt, ARG_2EXP);
 int gt(int a, int b)    { return (int)(a>b); }     COMMANDN(>, gt, ARG_2EXP);
 int lte(int a, int b)    { return (int)(a<=b); }   COMMANDN(<=, lte, ARG_2EXP);
 int gte(int a, int b)    { return (int)(a>=b); }   COMMANDN(>=, gte, ARG_2EXP);
+
+COMMANDF(round, ARG_1STR, (char *a) { intret((int)round(atof(a))); });
+COMMANDF(ceil, ARG_1STR, (char *a) { intret((int)ceil(atof(a))); });
+COMMANDF(floor, ARG_1STR, (char *a) { intret(atoi(a)); });
+
 #define COMPAREF(opname, func, op) \
     void func(char *a, char *b) { intret((int)(atof(a) op atof(b))); } \
     COMMANDN(opname, func, ARG_2STR)
