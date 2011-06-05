@@ -14,7 +14,6 @@ Find me a category!
 [*] fix scaling if scale is < 1.0 // TODO explain
 [*] nearplane fix // TODO explain
 [*] fix broken demo-viewer not able to change to SPECTATOR
-[*] fixed LANG for windows
 
 Weapons
 ---------------------
@@ -56,6 +55,12 @@ Media (maps/textures/models)
 // TODO add new maps & any new textures or models please :) (waypoints, new maps..)
 [*] ac_edifice, ac_industrial, ac_stellar added to the official map package
 
+Textures / Screenshots / ...
+---------------------
+
+[*] Textures can now have a non-default scale, definable through the texture command
+[*] screenshotscale - in-engine scaling of screenshots
+
 Physics
 ---------------------
 
@@ -67,6 +72,13 @@ Mapping
 [*] Key "F7" is now key bound to toggle fullbright on/off.
 [*] Key "7" is now key bound to "nextclosestent" - it gets typo'd all the time - know from experience.
 [*] entproperty now works in MP coop, but buffered
+
+I18n / L10n
+---------------------
+
+[*] Client now tries to set the LANG alias if it's not defined
+[*] fixed LANG for windows (breaks Win98/2K compatibility!)
+[*] Float separator set to "." (dot) regardless of locale
 
 Menus
 ---------------------
@@ -151,4 +163,3 @@ Cubescript
 [*] Many aliases that were stored in saved.cfg are now being stored as a single alias (list) "tmpClientData" and being restored on start. (see on_quit.cfg) // Not yet, still buggy. :P
 [*] Missing bracket ([], (), etc.) errors now also notify the client of what file the error resides in.
 [*] New automatically executed scripts folder in the root install directory of AC.
-[*] Float separator set to "." (dot)
