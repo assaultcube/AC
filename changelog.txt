@@ -11,7 +11,6 @@ Find me a category!
 // TODO : move this into other categories (you'll have to add some cats..)
 
 [*] Drop camera to previous followed player position when switching to fly editmode.
-[*] fix scaling if scale is < 1.0 // TODO explain
 [*] nearplane fix // TODO explain
 [*] fix broken demo-viewer not able to change to SPECTATOR
 
@@ -32,6 +31,8 @@ Servers
 [*] New switch to disable game status table of scores logging (-l switch)
 [*] Linux server available HDD space bug fixed.
 [*] /setnext bug fixed.
+[*] Fixed bug with map names containing slashes
+[*] The carbine is now consistently called such (not "Rifle")
 
 Server browser // TODO : merge with "Servers" ?
 ----------------------
@@ -66,6 +67,12 @@ Physics
 
 [*] New "flyspeed" variable for determining how much to multiply your fly speeds by. (Range: 1.0...5.0)
 [*] Jump/Crouch raises or lowers the camera in editmode, release to stop.
+
+Rendering / HUD / ...
+---------------------
+
+[*] Now using ANIM_REVERSE for playermodels going backward
+[*] Fixed flag icon transparency
 
 Mapping
 ---------------------
