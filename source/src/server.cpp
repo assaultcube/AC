@@ -1206,18 +1206,21 @@ void arenacheck()
 #ifndef STANDALONE
     if(m_botmode && clients[0]->type==ST_LOCAL)
     {
-        bool alive = false, dead = false;
-        loopv(players) if(players[i])
+        int enemies = 0, alive_enemies = 0;
+        playerent *alive = NULL;
+        loopv(players) if(players[i] && (!m_teammode || players[i]->team == team_opposite(player1->team)))
         {
-            if(!team_isspect(players[i]->team))
+            enemies++;
+            if(players[i]->state == CS_ALIVE)
             {
-                if(players[i]->state==CS_DEAD) dead = true;
-                else alive = true;
+                alive = players[i];
+                alive_enemies++;
             }
         }
-        if((dead && !alive) || player1->state==CS_DEAD)
+        if(player1->state == CS_ALIVE) alive = player1;
+        if(enemies && (!alive_enemies || player1->state != CS_ALIVE))
         {
-            sendf(-1, 1, "ri2", SV_ARENAWIN, player1->state==CS_ALIVE ? getclientnum() : (alive ? -2 : -1));
+            sendf(-1, 1, "ri2", SV_ARENAWIN, m_teammode ? (alive ? alive->clientnum : -1) : (alive && alive->type == ENT_BOT ? -2 : player1->state == CS_ALIVE ? player1->clientnum : -1));                              
             arenaround = gamemillis+5000;
         }
         return;
