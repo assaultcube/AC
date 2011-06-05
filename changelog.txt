@@ -1,0 +1,147 @@
+AssaultCube ChangeLog
+1.1.0.4 => 1.1.0.5
+---------------------
+
+Please add all commited changes to the SVN trunk from last release here, check TODO's
+This changelog is a WIP;
+
+Find me a category!
+---------------------
+
+// TODO : move this into other categories (you'll have to add some cats..)
+
+[*] Drop camera to previous followed player position when switching to fly editmode.
+[*] fix scaling if scale is < 1.0 // TODO explain
+[*] nearplane fix // TODO explain
+[*] fix broken demo-viewer not able to change to SPECTATOR
+[*] fixed LANG for windows
+
+Weapons
+---------------------
+
+[*] Sniper damage changed (82 -> 80)
+[*] New shotgun behavior // TODO : explain ?
+[*] Quicknadethrow now switches to nade even if the player was attacking
+[*] nades accuracy, real shotgun accuracy
+[*] Sniper trail bug fixed
+[*] Hudgun can be displayed when spectating
+
+Servers
+---------------------
+
+[*] Sets kill messages to appear in log for each weapon from a config file, default : serverkillmessages.cfg
+[*] New switch to disable game status table of scores logging (-l switch)
+[*] Linux server available HDD space bug fixed.
+[*] /setnext bug fixed.
+
+Server browser // TODO : merge with "Servers" ?
+----------------------
+
+[*] Colored ping in serverbrowser
+[*] Ability to connect to a server that requires a password via the server browser. (password protected, deban, etc.)
+[*] New updated kick/ban/reason menu with client statistics. (Reports teamkills as well.)
+
+Bots
+---------------------
+
+[*] New scripted "bot survival mode".
+[*] Bots in plclips bug fixed.
+[*] bots now actually fire the rifle
+[*] Bots can change use pistol, knife or nades
+[*] Bots have different fov, depending on their level
+[*] Bot PF, LSS, Team survivor & TOSOK modes
+
+Media (maps/textures/models)
+---------------------
+// TODO add new maps & any new textures or models please :) (waypoints, new maps..)
+[*] ac_edifice, ac_industrial, ac_stellar added to the official map package
+
+Physics
+---------------------
+
+[*] Optional increased spec/editfly velocity. (Default on.)
+[*] Jump/Crouch raises or lowers the camera in editmode, release to stop.
+
+Mapping
+---------------------
+[*] Key "F7" is now key bound to toggle fullbright on/off.
+[*] Key "7" is now key bound to "nextclosestent" - it gets typo'd all the time - know from experience.
+[*] entproperty now works in MP coop, but buffered
+
+Menus
+---------------------
+[*] New menuitems in the Keyboard menu, for looking up keybinds, and enabling/disabling the old editing binds system.
+[*] New menuitems in the gameplay settings menu, for setting fly velocities, and the color that your name is highlighted in, when it appears on the console via chat. (HIGHLIGHT)
+
+Cubescript
+---------------------
+
+[*] addpunct         - Injects CubeScript punctuation. (e.g. echo (addpunct hello) // Output: "hello")
+[*] break            - Jumps out of a loop created with the "loop" or "while" command
+[*] continue         - Skip current iteration of a "loop" or "while" command.
+[*] delmenu          - Deletes all of the menu items in the specified menu.
+[*] akimboautoswitch - Enables or disables automatically switching to akimbo upon pickup. (regardless of current weapon)
+[*] add2list         - Appends a new element to a list. (Exactly like add2alias, simply without the additional ";")
+[*] getvar           - Gets the current value of a CVAR. (client variable)
+[*] isIdent          - Determines if the argument given is a built-in identifier.
+[*] isSpect          - Determines if you are in any form of spectating (team, or singleplayer "fly")
+[*] l0               - Adds leading zeros to an integer.
+[*] powf             - Returns a floating point integer raised to the power of another, floating point integer.
+[*] rrnd             - Returns a ranged random integer.
+[*] storesets        - Generates an alias (list) of the current values for the given CVARs. (Useful for storing current settings into a buffer, before manipulating them with a script, with the intention of restoring them at a later time.)
+[*] strlen           - Returns the length (in characters) if the given string.
+[*] substr           - Returns a substring from the given string.
+[*] strpos           - Returns the position of string B in string A, else -1 for not found. (Useful for parsing.)
+[*] strins           - Returns a string, instered into another string, at position x.
+[*] curautoteam      - Returns the server's current autoteam state. (0 or 1)
+[*] curplayers       - Returns the current number of players. (Works both in singleplayer and multiplayer scenarios.)
+[*] cleanshot        - Take a "clean" screenshot with no HUD items.
+[*] getEngineState   - Returns a list of the items that showstats displays. (i.e. FPS LOD WQD WVT EVT)
+[*] getmodeacr       - Returns the current mode's acronym. (e.g. TDM)
+[*] megabind         - Bind a key to many different actions depending on the current game state. (i.e. do this if watching a demo, do this if editing or in coop-edit mode, do this if connected to a server, etc.)
+[*] getposition      - Returns the coordinates of the player as a list of 3 integers or floating-point values - X, Y and Z. // TODO remove (playerinfo does the job)
+[*] onCallVote       - Native alias that is executed when someone (including yourself) calls a vote.
+[*] onChangeVote     - Native alias that is executed when someone (including yourself) changes a vote.
+[*] onVoteEnd        - Native alias that is executed when a vote passes or fails.
+[*] votepending      - Native alias that is 1 if there is a vote currently pending on the server, else 0.
+[*] onKill           - Native alias that is executed when a player is killed.
+[*] onFlagEvent      - Native alias that is executed when a flag event occurs.
+[*] onLastMin        - Native alias that is executed when the last minute of the current round is reached.
+[*] onReload         - Native alias that is executed when you reload a weapon.
+[*] onNewMap         - Native alias that is executed when you executed the /newmap command.
+[*] afterinit        - Native alias that is executed immediately after saved.cfg is loaded.
+[*] positiontype     - Modifies the type of data that getposition returns. (0 for integer, 1 for floating point integer)
+[*] setfollowplayer  - Spectates the player with client number x.
+[*] setmr            - Restarts a demo and "fast forwards" to minutes remaining x.
+[*] dyngamma         - Enables or disables a new "per-official-map dynamic gamma system".
+[*] fragmessage      - Sets the frag message corresponding to a weapon. (Appears on the HUD and in your server logs.)
+[*] gibmessage       - Sets the gib message corresponding to a weapon. (Appears on the HUD and in your server logs.)
+[*] setgamma         - Sets the default gamma for the map you're on. (Must be an official map.)
+[*] forceme          - Calls a vote to force yourself to the enemy team.
+[*] copyent          - Copies the current closest entity into a buffer. (Must be in edit mode.)
+[*] countwalls       - Returns the number of walls of type x that is in the current selection.
+[*] old_editbinds    - Enables or disables the old editing binds. (If disabled, an updated editing binds system is used, that is focused around toggles rather than individual actions for each bind. For more info see the comments in /config/resetbinds.cfg)
+[*] pasteent         - Pastes the previously copied entity. (Must be in edit mode.)
+[*] gencl            - Creates or modifies an exisiting light entity, with random color values.
+[*] genhex           - Creates a random hexadecimal value. (Useful for finding fogcolours, i.e. fogcolour (genhex))
+[*] genwc            - Sets the current map's watercolour to random values.
+[*] getscrext        - Returns the proper file extension of your current screenshottype setting. (e.g. ".jpg" without the quotes)
+[*] slowmove         - Enables or disables the old spec/editfly velocity.
+[*] slowtoggle       - Increases or decreases fly velocities. (meant to be keybound, "slowtoggle" for fly fast, toggle slow, "slowtoggle 1" for fly slow, toggle fast.)
+[*] oldselstyle      - Enables or disables the old (1.0.4) grid/current selection style. (squares instead of triangles)
+[*] Multiple Idents  - New helper aliases for (c). (e.g. echo (red)Hello (blue)world! (white)My fov today is: (orange) $fov)
+[*] resetsleeps      - Reset all pending sleeps
+[*] settex           - Set texture given as first argument to the walls of current selection and of the type specified in 2nd argument.
+[*] round			 - Round a float, returns an integer
+[*] ceil			 - Returns the ceil value of a float
+[*] floor			 - Returns the floor value of a float
+[*] aliasinit // TODO explain
+[*] checkinit // TODO explain
+[*] "Sleeps" can be persistent (3rd argument of "sleep" command)
+[*] Substr crash bug is fixed. Also the command can now use a negative position value.
+[*] New stat in (pstat_score) for teamkills. New list is: FLAGS FRAGS DEATHS POINTS TEAM TEAMKILLS NAME // TODO move to compatibility.cfg
+[*] on_quit.cfg for deleting aliases from saved.cfg upon quit.
+[*] Many aliases that were stored in saved.cfg are now being stored as a single alias (list) "tmpClientData" and being restored on start. (see on_quit.cfg) // Not yet, still buggy. :P
+[*] Missing bracket ([], (), etc.) errors now also notify the client of what file the error resides in.
+[*] New automatically executed scripts folder in the root install directory of AC.
+[*] Float separator set to "." (dot)
