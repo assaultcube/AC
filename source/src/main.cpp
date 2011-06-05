@@ -163,12 +163,16 @@ const char *screenshotpath(const char *imagepath, const char *suffix)
     return buf;
 }
 
+FVARP(screenshotscale, 0.1f, 1.0f, 1.0f);
+
 void bmp_screenshot(const char *imagepath, bool mapshot = false)
 {
     extern int minimaplastsize;
     int iw = mapshot?minimaplastsize:screen->w;
     int ih = mapshot?minimaplastsize:screen->h;
-    SDL_Surface *image = creatergbsurface(iw, ih);
+    int tw = mapshot ? iw : iw*screenshotscale;
+    int th = mapshot ? ih : ih*screenshotscale;
+    SDL_Surface *image = creatergbsurface(tw, th);
     if(!image) return;
     uchar *tmp = new uchar[iw*ih*3];
     uchar *dst = (uchar *)image->pixels;
@@ -190,11 +194,18 @@ void bmp_screenshot(const char *imagepath, bool mapshot = false)
     else
     {
         glPixelStorei(GL_PACK_ALIGNMENT, 1);
-        glReadPixels(0, 0, iw, ih, GL_RGB, GL_UNSIGNED_BYTE, tmp); //screen->w//screen->h
+        if(screenshotscale != 1.0f)
+        {
+            uchar *buf = new uchar[iw*ih*3];
+            glReadPixels(0, 0, iw, ih, GL_RGB, GL_UNSIGNED_BYTE, buf); //screen->w//screen->h
+            scaletexture(buf, iw, ih, 3, tmp, tw, th);
+            delete[] buf;
+        }
+        else glReadPixels(0, 0, tw, th, GL_RGB, GL_UNSIGNED_BYTE, tmp);
     }
-    loopi(ih)
+    loopi(th)
     {
-        memcpy(dst, &tmp[3*iw*(ih-i-1)], 3*iw);
+        memcpy(dst, &tmp[3*tw*(th-i-1)], 3*tw);
         dst += image->pitch;
     }
     delete[] tmp;
@@ -219,8 +230,10 @@ void jpeg_screenshot(const char *imagepath, bool mapshot = false)
     extern int minimaplastsize;
     int iw = mapshot?minimaplastsize:screen->w;
     int ih = mapshot?minimaplastsize:screen->h;
+    int tw = mapshot ? iw : iw*screenshotscale;
+    int th = mapshot ? ih : ih*screenshotscale;
 
-    uchar *pixels = new uchar[3*iw*ih];
+    uchar *pixels = new uchar[3*tw*th];
 
     if(mapshot)
     {
@@ -241,15 +254,23 @@ void jpeg_screenshot(const char *imagepath, bool mapshot = false)
     else
     {
         glPixelStorei(GL_PACK_ALIGNMENT, 1);
-        glReadPixels(0, 0, iw, ih, GL_BGR, GL_UNSIGNED_BYTE, pixels);
-        int stride = 3*iw;
+        if(screenshotscale != 1.0f)
+        {
+            uchar *buf = new uchar[iw*ih*3];
+            glReadPixels(0, 0, iw, ih, GL_BGR, GL_UNSIGNED_BYTE, buf);
+            scaletexture(buf, iw, ih, 3, pixels, tw, th);
+            delete[] buf;
+        }
+        else glReadPixels(0, 0, tw, th, GL_BGR, GL_UNSIGNED_BYTE, pixels);
+
+        int stride = 3*tw;
 
         GLubyte *swapline = (GLubyte *) malloc(stride);
-        for(int row = 0; row < ih/2; row++)
+        for(int row = 0; row < th/2; row++)
         {
             memcpy(swapline, pixels + row * stride, stride);
-            memcpy(pixels + row * stride, pixels + (ih - row - 1) * stride, stride);
-            memcpy(pixels + (ih - row -1) * stride, swapline, stride);
+            memcpy(pixels + row * stride, pixels + (th - row - 1) * stride, stride);
+            memcpy(pixels + (th - row -1) * stride, swapline, stride);
         }
     }
 
@@ -257,7 +278,7 @@ void jpeg_screenshot(const char *imagepath, bool mapshot = false)
     conoutf("writing to file: %s", filename);
 
     jpegenc *jpegencoder = new jpegenc;
-    jpegencoder->encode(filename, (colorRGB *)pixels, iw, ih, jpegquality);
+    jpegencoder->encode(filename, (colorRGB *)pixels, tw, th, jpegquality);
     delete jpegencoder;
 
     delete[] pixels;
@@ -370,11 +391,13 @@ void png_screenshot(const char *imagepath, bool mapshot = false)
     extern int minimaplastsize;
     int iw = mapshot?minimaplastsize:screen->w;
     int ih = mapshot?minimaplastsize:screen->h;
+    int tw = mapshot ? iw : iw*screenshotscale;
+    int th = mapshot ? ih : ih*screenshotscale;
 
-    SDL_Surface *image = creatergbsurface(iw, ih);
+    SDL_Surface *image = creatergbsurface(tw, th);
     if(!image) return;
 
-    uchar *tmp = new uchar[iw*ih*3];
+    uchar *tmp = new uchar[tw*th*3];
     uchar *dst = (uchar *)image->pixels;
 
     if(mapshot)
@@ -395,11 +418,18 @@ void png_screenshot(const char *imagepath, bool mapshot = false)
     else
     {
         glPixelStorei(GL_PACK_ALIGNMENT, 1);
-        glReadPixels(0, 0, iw, ih, GL_RGB, GL_UNSIGNED_BYTE, tmp);
+        if(screenshotscale != 1.0f)
+        {
+            uchar *buf = new uchar[iw*ih*3];
+            glReadPixels(0, 0, iw, ih, GL_RGB, GL_UNSIGNED_BYTE, buf);
+            scaletexture(buf, iw, ih, 3, tmp, tw, th);
+            delete[] buf;
+        }
+        else glReadPixels(0, 0, tw, th, GL_RGB, GL_UNSIGNED_BYTE, tmp);
     }
-    loopi(ih)
+    loopi(th)
     {
-        memcpy(dst, &tmp[3*iw*(ih-i-1)], 3*iw);
+        memcpy(dst, &tmp[3*tw*(th-i-1)], 3*tw);
         dst += image->pitch;
     }
     delete[] tmp;
