@@ -1106,9 +1106,14 @@
 				<variable name="screenshottype">
 					<description>Toggle format of screenshot image. Your choice is for BMP (0), JPEG (1) or PNG (2).</description>
 					<value token="T" description="0=BMP, 1=JPEG, 2=PNG" minValue="0" maxValue="2" defaultValue="1"/>
-          <references>
-            <identifierReference identifier="getscrext"/>
-          </references>
+					<references>
+						<identifierReference identifier="getscrext"/>
+					</references>
+				</variable>
+
+				<variable name="screenshotscale">
+					<description>Scales screenshots by the given factor before saving. 1 = original size, 0.5 = half size, etc.</description>
+					<value token="S" description="Scale" minValue="0.1" maxValue="1" defaultValue="1"/>
 				</variable>
 
         <command name="getscrext">
