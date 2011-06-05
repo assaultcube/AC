@@ -37,7 +37,7 @@ struct entity : persistent_entity
     int lastmillis;
     entity(short x, short y, short z, uchar type, short attr1, uchar attr2, uchar attr3, uchar attr4) : persistent_entity(x, y, z, type, attr1, attr2, attr3, attr4), spawned(false) {}
     entity() {}
-    bool fitsmode(int gamemode) { return !m_noitems && isitem(type) && !(m_noitemsnade && type!=I_GRENADE) && !(m_pistol && (type!=I_GRENADE && type!=I_CLIPS && type!=I_AMMO)); }
+    bool fitsmode(int gamemode) { return !m_noitems && isitem(type) && !(m_noitemsnade && type!=I_GRENADE) && !(m_pistol && type==I_AMMO); }
     void transformtype(int gamemode)
     {
         if(m_noitemsnade && type==I_CLIPS) type = I_GRENADE;
@@ -335,11 +335,11 @@ public:
         gunselect = primary;
 
         if(m_osok) health = 1;
-        if(m_lms || m_pistol) // Survivor && Team-Survivor : 2010nov19
+        if(m_lms) // Survivor && Team-Survivor : 2010nov19
         {
             health = 100;
             armour = 100;
-            if(m_lms) ammo[GUN_GRENADE] = 2;
+            ammo[GUN_GRENADE] = 2;
         }
     }
 
