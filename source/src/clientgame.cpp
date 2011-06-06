@@ -1768,26 +1768,6 @@ COMMAND(setfollowplayer, ARG_1INT);
 int isalive() { return player1->state==CS_ALIVE ? 1 : 0; }
 COMMANDN(alive, isalive, ARG_IVAL);
 
-VARP(positiontype, 0, 1, 1); // integer (0) or float (1) return values?
-void getposition(int dim)
-{
-    string posr; //posr[0] = '\0';
-    formatstring(posr)("?");
-    float cv = 0;
-    switch(dim)
-    {
-        case 0: cv = player1->o.x; break;
-        case 1: cv = player1->o.y; break;
-        case 2: cv = player1->o.z; break;
-        case 3: cv = player1->yaw; break;
-        default: break;
-    }
-    if(positiontype) formatstring(posr)("%.2f", cv);
-    else formatstring(posr)("%d", (int)(cv*100));
-    result(posr);
-}
-COMMAND(getposition, ARG_1INT);
-
 void serverextension(char *ext, char *args)
 {
     if(!ext || !ext[0]) return;

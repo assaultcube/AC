@@ -1938,23 +1938,6 @@ echo foo
           </references>
         </scriptalias>
 
-
-				
-				<variable name="positiontype">
-					<description>Whether the values returned by <b>getposition</b> are integers (0) or floating-point numbers (1).</description>
-					<value token="T" description="" minValue="0" maxValue="1" defaultValue="0"/>
-					<references>
-					  <identifierReference identifier="getposition"/>
-					</references>
-				</variable>
-
-				<command name="getposition">
-					<description>Returns the coordinates of the player as a list of 3 integers or floating-point values - X, Y and Z.</description>
-					<references>
-					  <identifierReference identifier="positiontype"/>
-					</references>
-				</command>
-
 				<command name="pstat_score">
 					<description>Returns the score statistics for the player with the given clientnumber.</description>
 					<arguments>
@@ -6392,24 +6375,6 @@ Output:
 				<command name="cleardemos">
 					<description>Clears all demos currently in memory on the server.</description>
 				</command>
-
-				<command name="getposition">
-					<description>Get information about your place in the world. Dimension: 0123 => XYZ and yaw</description>
-					<arguments>
-  						<argument token="D" description="DIMENSION"/>
-					</arguments>
-					<references>
-					  <identifierReference identifier="positiontype"/>
-					</references>
-				</command>
-
-				<variable name="positiontype">
-					<description>0: int, 1: float</description>
-					<value token="T" description="TYPE" minValue="0" maxValue="1" defaultValue="1" />
-					<references>
-					  <identifierReference identifier="getposition"/>
-					</references>
-				</variable>
 
 				<command name="getdemonameformat">
 					<description>returns the currently used formatstring for demo filenames</description>
