@@ -1,5 +1,5 @@
 AssaultCube ChangeLog
-1.1.0.4 -> 1.1.0.5/6?
+1.1.0.4 -> SVN TRUNK
 ---------------------
 
 Please add all commited changes to the SVN trunk from last release here, check TODO's.
