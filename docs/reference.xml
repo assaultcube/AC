@@ -1087,7 +1087,19 @@
             <identifierReference identifier="substr"/>
           </references>
         </command>
-          
+
+        <command name="listaverage">
+          <description>Returns the average of a list of numbers.</description>
+          <examples>
+            <example>
+              <code><![CDATA[echo (listaverage "2 5 5")]]></code>
+              <explanation>Output: 4.0</explanation>
+            </example>
+          </examples>
+          <arguments>
+            <argument token="L" description="the list of numbers" valueNotes="supports ints and floats"/>
+          </arguments>
+        </command>
 
 			</identifiers>
 		</section>
