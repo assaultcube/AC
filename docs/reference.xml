@@ -3048,7 +3048,8 @@ Output:
             <remark>All official maps are compatible with survival, if you want to play survival on a custom map, prior edits/additions to the script are necessary, such as adding a zone for that specific map.</remark>
           </remarks>
           <arguments>
-            <argument description="the map to use"/>
+            <argument token="M" description="the map to use"/>
+            <argument token="D" description="optional: the difficulty" valueNotes="0 = easy, 1 = intermediate, 2 = hard, 3 = impossible"/>
           </arguments>
         </command>
         

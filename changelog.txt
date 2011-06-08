@@ -169,6 +169,7 @@ Cubescript
 [*] testlist         - Tests a list argument for certain things. (e.g. echo (testlist "1 2.3 3.14") // Output: 1 // It is a valid list of ints/floats.)
 [*] listaverage      - Returns the average of a list of numbers. (Supports ints and floats - e.g. echo (listaverage "2 5 5") // Output: 4.0)
 [*] player1          - // TODO explain // Also getposition and positiontype have been removed in favor of this command which does that and a lot more. :p
+[*] rndmap           - Returns a random official map. (e.g. echo (rndmap) // Example output: ac_desert3)
 [*] Multiple Idents  - New helper aliases for voting for SURV, TPF, and TLSS. (e.g. /surv ac_desert)
 [*] "Sleeps" can be persistent. (3rd argument of "sleep" command)
 [*] Substr crash bug is fixed. Also the command can now use a negative position value.
