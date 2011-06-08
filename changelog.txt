@@ -13,6 +13,7 @@ Find me a category!
 [*] Drop camera to previous followed player position when switching to fly specmode.
 [*] Nearplane fix. // TODO explain
 [*] Fix broken demo-viewer not able to change to SPECTATOR.
+[*] /keybind bug fix. No more client crash if the argument is an unknown key.
 
 Weapons
 ---------------------
@@ -93,7 +94,7 @@ Menus
 [*] New menuitems in the gameplay settings menu, for setting fly velocities, and the color that your name is highlighted in, when it appears on the console via chat. (HIGHLIGHT)
 [*] New updated kick/ban/reason menu with client statistics. (Reports teamkills as well.)
 
-Cubescript
+CubeScript
 ---------------------
 
 [*] addpunct         - Injects CubeScript punctuation. (e.g. echo (addpunct hello) // Output: "hello")
@@ -123,13 +124,13 @@ Cubescript
 [*] onCallVote       - Native alias that is executed when someone (including yourself) calls a vote.
 [*] onChangeVote     - Native alias that is executed when someone (including yourself) changes a vote.
 [*] onVoteEnd        - Native alias that is executed when a vote passes or fails.
-[*] votepending      - Native alias that is 1 if there is a vote currently pending on the server, else 0.
 [*] onKill           - Native alias that is executed when a player is killed.
 [*] onFlagEvent      - Native alias that is executed when a flag event occurs.
 [*] onLastMin        - Native alias that is executed when the last minute of the current round is reached.
 [*] onReload         - Native alias that is executed when you reload a weapon.
-[*] onNewMap         - Native alias that is executed when you executed the /newmap command.
+[*] onNewMap         - Native alias that is executed when you execute the /newmap command.
 [*] afterinit        - Native alias that is executed immediately after saved.cfg is loaded.
+[*] votepending      - Client variable that is 1 if there is a vote currently pending on the server, else 0. (e.g. echo $votepending // Example output: 0)
 [*] setfollowplayer  - Spectates the player with client number x.
 [*] setmr            - Restarts a demo and "fast forwards" to minutes remaining x.
 [*] dyngamma         - Enables or disables a new "per-official-map dynamic gamma system".
@@ -171,13 +172,15 @@ Cubescript
 [*] player1          - // TODO explain // Also getposition and positiontype have been removed in favor of this command which does that and a lot more. :p
 [*] rndmap           - Returns a random official map. (e.g. echo (rndmap) // Example output: ac_desert3)
 [*] Multiple Idents  - New helper aliases for voting for SURV, TPF, and TLSS. (e.g. /surv ac_desert)
-[*] "Sleeps" can be persistent. (3rd argument of "sleep" command)
+[*] "Sleeps" can be persistent. (e.g. "Persist" even through map loads - new optional 3rd argument of the /sleep command)
 [*] Substr crash bug is fixed. Also the command can now use a negative position value.
 [*] New stat in (pstat_score) for teamkills. New list is: FLAGS FRAGS DEATHS POINTS TEAM TEAMKILLS NAME // TODO move to compatibility.cfg
 [*] on_quit.cfg for deleting aliases from saved.cfg upon quit.
 [*] Many aliases that were stored in saved.cfg are now being stored as a single alias (list) "tmpClientData" and being restored on start. (see on_quit.cfg) // Not yet, still buggy. :P
 [*] Missing bracket ([], (), etc.) errors now also notify the client of what file the error resides in.
 [*] New automatically executed scripts folder in the root install directory of AC.
-[*] The /spectate command can now only be used if connected to a server.
-[*] togglebotview can no longer be used in arena modes.
 [*] New delta_edit/game_# aliases for easily tweaking gamma/fov/flyspeed on-the-fly. (e.g. Hold F5 and scroll for gamma, F6 for fov, bind "domodifier 10" to a key for flyspeed)
+[*] The /mapsize command now silenty returns 6-12, instead of conoutf'ing ssize.
+[*] The /newmap command has a (temporary) new range of 6-9. // TODO: Fix client crashing on /newmap >9!
+[*] The /spectate command can now only be used if connected to a server.
+[*] The /togglebotview command can no longer be used in arena modes.
