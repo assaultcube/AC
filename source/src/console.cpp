@@ -222,6 +222,7 @@ void bindk(const char *key, const char *action)
 void keybind(const char *key)
 {
     keym *km = findbind(key);
+    if(!km) { conoutf("unknown key \"%s\"", key); return; }
     result(km->action);
 }
 bool bindc(int code, const char *action)
