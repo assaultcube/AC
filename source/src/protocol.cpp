@@ -200,9 +200,10 @@ void filtertext(char *dst, const char *src, int whitespace, int len)
     for(int c = *src; c; c = *++src)
     {
         c &= 0x7F; // 7-bit ascii
-        switch(c)
+        if(c == '\f')
         {
-            case '\f': ++src; continue;
+            if(!*++src) break;
+            continue;
         }
         if(isspace(c) ? whitespace && (whitespace>1 || c == ' '): isprint(c))
         {
