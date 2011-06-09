@@ -259,11 +259,13 @@ struct md2 : vertmodel
         loadingmd2 = this;
         defformatstring(name2)("packages/models/%s/md2.cfg", loadname);
         persistidents = false;
+        neverpersist = true;
         if(!execfile(name2))
         {
             formatstring(name2)("packages/models/%s/md2.cfg", pname);
             execfile(name2);
         }
+        neverpersist = false;
         persistidents = true;
         loadingmd2 = 0;
         loopv(parts) parts[i]->scaleverts(scale/16.0f, vec(translate.x, -translate.y, translate.z));

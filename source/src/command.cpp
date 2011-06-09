@@ -17,7 +17,10 @@ int loop_level = 0;                                      // avoid bad calls of b
 
 hashtable<const char *, ident> *idents = NULL;          // contains ALL vars/commands/aliases
 
-bool persistidents = true;
+bool persistidents = true, neverpersist = false;
+COMMANDF(persistidents, ARG_1INT, (int on) {
+    persistidents = neverpersist ? false : on;
+});
 
 void clearstack(ident &id)
 {

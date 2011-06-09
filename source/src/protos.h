@@ -732,7 +732,7 @@ extern bool checkchallenge(const char *answerstr, void *correct);
 extern void conoutf(const char *s, ...);
 
 // command
-extern bool persistidents;
+extern bool persistidents, neverpersist;
 extern int variable(const char *name, int min, int cur, int max, int *storage, void (*fun)(), bool persist);
 extern float fvariable(const char *name, float min, float cur, float max, float *storage, void (*fun)(), bool persist);
 extern char *svariable(const char *name, const char *cur, char **storage, void (*fun)(), bool persist);

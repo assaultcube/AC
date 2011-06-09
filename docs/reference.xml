@@ -889,7 +889,25 @@
             <identifierReference identifier="checkinit"/>
           </references>
         </command>
-        
+
+        <command name="persistidents">
+            <description>Controls whether aliases defined afterwards will be saved (1) or not (0). This option is useful to keep saved.cfg free from unneeded clutter.</description>
+            <description>Note: in map and model configs, this option is always disabled.</description>
+            <arguments>
+                <argument token="B" description="control option"  valueNotes="1...persistent, 0...not persistent"/>
+            </arguments>
+            <examples>
+                <example>
+                    <code><![CDATA[persistidents 0; foo = [ echo "bar"]]]></code>
+                    <explanation>foo will not be saved and has to be redefined when restarting AC.</explanation>
+                </example>
+                <example>
+                    <code><![CDATA[persistidents 1; bar = [ echo "foo"]]]></code>
+                    <explanation>bar will be saved and persistent across sessions.</explanation>
+                </example>
+            </examples>
+        </command>
+
         <command name="addpunct">
           <description>Injects CubeScript punctuation.</description>
           <examples>

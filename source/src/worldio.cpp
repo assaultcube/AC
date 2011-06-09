@@ -674,9 +674,11 @@ bool load_world(char *mname)        // still supports all map formats that have 
     conoutf("%s", hdr.maptitle);
     pushscontext(IEXC_MAPCFG); // untrusted altogether
     persistidents = false;
+    neverpersist = true;
     execfile("config/default_map_settings.cfg");
     execfile(pcfname);
     execfile(mcfname);
+    neverpersist = false;
     persistidents = true;
     popscontext();
 
@@ -822,9 +824,11 @@ void listmapdependencies(char *mapname)  // print map dependencies to file
         enumeratek(usedmods, const char *, key, concatformatstring(allmods, "%s%s",*allmods ? ", " : "", key); delete key; usedm++);
         pushscontext(IEXC_MAPCFG); // untrusted altogether
         persistidents = false;
+        neverpersist = true;
         execfile(mcfname);
         f->printf("  used: %s%s %d total packages (%s.cfg)\n", allmods, usedm ? ", " : "", usedm, mapname);
         if(usedm) conoutf("  used: %s (%s.cfg) in %s", allmods, mapname, mapname);
+        neverpersist = false;
         persistidents = true;
         popscontext();
         f->printf("\n\n");

@@ -216,8 +216,10 @@ struct md3 : vertmodel
 
         loadingmd3 = this;
         persistidents = false;
+        neverpersist = true;
         if(execfile(cfgname) && parts.length()) // configured md3, will call the md3* commands below
         {
+            neverpersist = false;
             persistidents = true;
             loadingmd3 = NULL;
             if(parts.empty()) return false;
