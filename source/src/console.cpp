@@ -8,6 +8,7 @@ VARP(altconsize, 0, 0, 100);
 VARP(fullconsize, 0, 40, 100);
 VARP(consize, 0, 6, 100);
 VARP(confade, 0, 20, 60);
+VAR(conopen, 0, 0, 1);
 
 struct console : consolebuffer<cline>
 {
@@ -24,6 +25,7 @@ struct console : consolebuffer<cline>
     {
         if(!fullconsole) fullconsole = altconsize ? 1 : 2;
         else fullconsole = (fullconsole + 1) % 3;
+        conopen = fullconsole;
     }
 
     void addline(const char *sf) { consolebuffer<cline>::addline(sf, totalmillis); }
