@@ -9,6 +9,7 @@ VARP(fullconsize, 0, 40, 100);
 VARP(consize, 0, 6, 100);
 VARP(confade, 0, 20, 60);
 VAR(conopen, 0, 0, 1);
+VAR(numconlines, 0, 0, 1);
 
 struct console : consolebuffer<cline>
 {
@@ -28,7 +29,7 @@ struct console : consolebuffer<cline>
         conopen = fullconsole;
     }
 
-    void addline(const char *sf) { consolebuffer<cline>::addline(sf, totalmillis); }
+    void addline(const char *sf) { consolebuffer<cline>::addline(sf, totalmillis); numconlines++; }
 
     void render()
     {
