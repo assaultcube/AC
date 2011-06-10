@@ -708,13 +708,6 @@ void CBot::ShootEnemy()
             TraceLine(m_pMyEnt->o, dest, m_pMyEnt, false, &tr);
             debugbeam(m_pMyEnt->o, tr.end);
 
-            if(m_pMyEnt->gunselect == GUN_GRENADE)
-            {
-                player1->o.x = m_pMyEnt->o.x + 1.0f;
-                player1->o.y = m_pMyEnt->o.y + 1.0f;
-                player1->o.z = m_pMyEnt->o.z + 1.0f;
-            }
-
             shoot(m_pMyEnt, tr.end);
 
             // Add shoot delay
