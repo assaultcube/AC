@@ -8,8 +8,7 @@ void *scoremenu = NULL, *teammenu = NULL, *ctfmenu = NULL;
 void showscores(int on)
 {
     if(on) showmenu(m_flags ? "ctf score" : (m_teammode ? "team score" : "score"), false);
-    else if (!intermission)
-    {
+    else {
         closemenu("score");
         closemenu("team score");
         closemenu("ctf score");
