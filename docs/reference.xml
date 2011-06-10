@@ -790,20 +790,6 @@
   						<argument token="V" description="VALUE"/>
 					</arguments>
 				</command>
-
-        <command name="add2list">
-          <description>Appends a new element to a list.</description>
-          <examples>
-            <example>
-              <code><![CDATA[tmp_list = []; add2list tmp_list Hello; add2list tmp_list world!; echo $tmp_list]]></code>
-              <explanation>Output: Hello world!</explanation>
-            </example>
-          </examples>
-          <arguments>
-            <argument token="A" description="the alias (list) to add to"/>
-            <argument token="E" description="the new element to add"/>
-          </arguments>
-        </command>
         
         <command name="storesets">
           <description>Generates an alias (list) of the current values for the given CVARs.</description>
@@ -1118,6 +1104,55 @@
             <argument token="L" description="the list of numbers" valueNotes="supports ints and floats"/>
           </arguments>
         </command>
+        
+        <scriptalias name="add2alias">
+				  <description>This will append the passed 2nd argument to any existing content of the alias named in the 1st argument. Several popular aliases have predefined shortcuts using this scriptalias: addOnQuit, addOnLoadOnce, addOnLoadAlways. Check config/scripts.cfg for possible omissions in that list.</description>
+   				  <examples>
+					<example>
+						<code><![CDATA[
+foo = "one"
+add2alias foo two
+echo foo
+						]]></code>
+						<explanation>Output: one two</explanation>
+						<explanation>This will output the string and override any other actions that might've been defined.</explanation>
+					</example>
+					</examples>
+          <references>
+            <identifierReference identifier="add2bind"/>
+            <identifierReference identifier="add2list"/>
+          </references>
+				</scriptalias>
+        
+        <scriptalias name="add2list">
+          <description>Appends a new element to a list.</description>
+          <examples>
+            <example>
+              <code><![CDATA[tmp_list = []; add2list tmp_list Hello; add2list tmp_list world!; echo $tmp_list]]></code>
+              <explanation>Output: Hello world!</explanation>
+            </example>
+          </examples>
+          <arguments>
+            <argument token="A" description="the alias (list) to add to"/>
+            <argument token="E" description="the new element to add"/>
+          </arguments>
+          <references>
+            <identifierReference identifier="add2alias"/>
+            <identifierReference identifier="add2bind"/>
+          </references>
+        </scriptalias>
+
+        <scriptalias name="add2bind">
+          <description>Adds a block of code, if it does not already exist, to a keybind.</description>
+          <arguments>
+            <argument token="K" description="the key to add to"/>
+            <argument token="C" description="the code to add"/>
+          </arguments>
+          <references>
+            <identifierReference identifier="add2alias"/>
+            <identifierReference identifier="add2list"/>
+          </references>
+        </scriptalias>
 
 			</identifiers>
 		</section>
@@ -1766,6 +1801,10 @@
 					<description>Sets the maximum value the display will roll on strafing.</description>
 					<value token="N" description="the roll value" minValue="0" maxValue="20" defaultValue="0"/>
 				</variable>
+        
+        <variable name="numconlines">
+          <description>Hold the current number of lines on the console.</description>
+        </variable>
 
 			</identifiers>
 		</section>
@@ -1930,21 +1969,6 @@ addOnLoadAlways [
                   <remark>The alias is executed before the name is effectively changed, so you can still get the previous name of the client from this alias.</remark>
                 </remarks>
               </scriptalias>
-
-              <scriptalias name="add2alias">
-				  <description>This will append the passed 2nd argument to any existing content of the alias named in the 1st argument. Several popular aliases have predefined shortcuts using this scriptalias: addOnQuit, addOnLoadOnce, addOnLoadAlways. Check config/scripts.cfg for possible omissions in that list.</description>
-   				  <examples>
-					<example>
-						<code><![CDATA[
-foo = "one"
-add2alias foo two
-echo foo
-						]]></code>
-						<explanation>Output: one two</explanation>
-						<explanation>This will output the string and override any other actions that might've been defined.</explanation>
-					</example>
-					</examples>
-				</scriptalias>
 
         <scriptalias name="addOnQuit">
           <description>Execute a command or block of code on quit.</description>
