@@ -769,7 +769,7 @@ extern void pushscontext(int newcontext);
 extern int popscontext();
 extern int curscontext();
 extern int execcontext;
-extern const char *currentserver(int i, bool internal = false); // 2011feb05:ft: exposed
+extern const char *currentserver(int i);
 extern void setcontext(const char *context, const char *info);
 extern void resetcontext();
 
