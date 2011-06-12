@@ -440,7 +440,7 @@ void recordpacket(int chan, ENetPacket *packet)
 }
 
 #ifdef STANDALONE
-const char *currentserver(int i, bool internal) // = false) | ignored in standalone-version!
+const char *currentserver(int i)
 {
     static string curSRVinfo;
     string r;
@@ -502,8 +502,8 @@ const char *getDemoFilename(int gmode, int mplay, int mdrop, int tstamp, char *s
                         case 'F': formatstring(cfspp)("%s", fullmodestr(gmode)); break;
                         case 'g': formatstring(cfspp)("%d", gmode); break;
                         case 'G': formatstring(cfspp)("%s", acronymmodestr(gmode)); break;
-                        case 'h': formatstring(cfspp)("%s", currentserver(1, true)); break; // client/server have different implementations
-                        case 'H': formatstring(cfspp)("%s", currentserver(2, true)); break; // client/server have different implementations
+                        case 'h': formatstring(cfspp)("%s", currentserver(1)); break; // client/server have different implementations
+                        case 'H': formatstring(cfspp)("%s", currentserver(2)); break; // client/server have different implementations
                         case 'm': formatstring(cfspp)("%d", mdrop/60); break;
                         case 'M': formatstring(cfspp)("%d", mplay/60); break;
                         case 'n': formatstring(cfspp)("%s", srvmap); break;
