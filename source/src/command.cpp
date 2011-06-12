@@ -1614,11 +1614,6 @@ const char *currentserver(int i) // [client version]
 	return curSRVinfo;
 }
 
-void curserver(int i)
-{
-    result(currentserver(i));
-}
-
 COMMANDF(curserver, ARG_1INT, (int i) { result(currentserver(i)); });
 #endif
 
