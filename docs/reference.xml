@@ -1663,7 +1663,7 @@ echo foo
 
 				<variable name="maxfps">
 					<description>Limits the FPS (frames per second) of the game.</description>
-					<value token="V" description="maximum FPS" minValue="0" maxValue="200" defaultValue="200"/>
+					<value token="V" description="maximum FPS" minValue="25 or 0" maxValue="200" defaultValue="200" valueNotes="0 disables maxfps"/>
 				</variable>
 
 				<variable name="maxtmus">
