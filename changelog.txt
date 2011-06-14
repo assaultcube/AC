@@ -5,19 +5,12 @@ AssaultCube ChangeLog
 Please add all commited changes to the SVN trunk from last release here, check TODO's.
 This changelog is a WIP!
 
-Find me a category!
----------------------
-
-// TODO : move this into other categories (you'll have to add some cats..)
-
-[*] Drop camera to previous followed player position when switching to fly specmode.
-[*] Nearplane fix. // TODO explain
-[*] Fix broken demo-viewer not able to change to SPECTATOR.
-[*] /keybind bug fix. No more client crash if the argument is an unknown key.
+// TODO : find a better order for these categories
 
 Weapons
 ---------------------
 
+// TODO : please, report other changes (flowtron ? makkE ?)
 [*] Sniper damage changed (82 -> 80)
 [*] New shotgun behavior. // TODO : explain ?
 [*] Quicknadethrow now switches to nade even if the player was attacking.
@@ -36,11 +29,49 @@ Servers
 [*] The carbine is now consistently called such. (not "Rifle")
 [*] The server now differentiates between CTF/HTF scored flags in the serverlogs. (Useful for parsing/stats collection.)
 
-Server browser // TODO : merge with "Servers" ?
+Server browser
 ----------------------
 
 [*] Colored ping in serverbrowser.
 [*] Ability to connect to a server that requires a password via the server browser. (password protected, deban, etc.)
+
+Media (maps/textures/models)
+---------------------
+// TODO add new maps & any new textures or models please :) (waypoints, new maps..)
+[*] ac_edifice, ac_industrial, ac_stellar added to the official map package.
+
+Mapping
+---------------------
+[*] Key "F7" is now key bound to toggle fullbright on/off.
+[*] Key "7" is now key bound to "nextclosestent" - it gets typo'd all the time.
+[*] entproperty now works in MP coop, but buffered.
+[*] Textures can now have a non-default scale, definable through the texture command.
+
+Rendering / HUD / ...
+---------------------
+
+[*] Now using ANIM_REVERSE for playermodels going backward.
+[*] Fixed flag icon transparency.
+[*] Nearplane fix.
+[*] screenshotscale - in-engine scaling of screenshots.
+
+Physics
+---------------------
+
+[*] New "flyspeed" variable for determining how much to multiply your fly speeds by. (Range: 1.0...5.0)
+[*] Jump/Crouch raises or lowers the camera in editmode, release to stop.
+
+Demos / Spectating
+---------------------
+
+[*] Drop camera to previous followed player position when switching to fly specmode.
+[*] Fix broken demo-viewer not able to change to SPECTATOR.
+
+Menus
+---------------------
+[*] New menuitems in the Keyboard menu, for looking up keybinds, and enabling/disabling the old editing binds system.
+[*] New menuitems in the gameplay settings menu, for setting fly velocities, and the color that your name is highlighted in, when it appears on the console via chat. (HIGHLIGHT)
+[*] New updated kick/ban/reason menu with client statistics. (Reports teamkills as well.)
 
 Bots
 ---------------------
@@ -51,48 +82,6 @@ Bots
 [*] Bots can switch to, and use pistol, knife or grenades.
 [*] Bots have different fov, depending on their difficulty.
 [*] Bot PF, LSS, Team Survivor & TOSOK modes.
-
-Media (maps/textures/models)
----------------------
-// TODO add new maps & any new textures or models please :) (waypoints, new maps..)
-[*] ac_edifice, ac_industrial, ac_stellar added to the official map package.
-
-Textures / Screenshots / ...
----------------------
-
-[*] Textures can now have a non-default scale, definable through the texture command.
-[*] screenshotscale - in-engine scaling of screenshots.
-
-Physics
----------------------
-
-[*] New "flyspeed" variable for determining how much to multiply your fly speeds by. (Range: 1.0...5.0)
-[*] Jump/Crouch raises or lowers the camera in editmode, release to stop.
-
-Rendering / HUD / ...
----------------------
-
-[*] Now using ANIM_REVERSE for playermodels going backward.
-[*] Fixed flag icon transparency.
-
-Mapping
----------------------
-[*] Key "F7" is now key bound to toggle fullbright on/off.
-[*] Key "7" is now key bound to "nextclosestent" - it gets typo'd all the time.
-[*] entproperty now works in MP coop, but buffered.
-
-I18n / L10n
----------------------
-
-[*] Client now tries to set the LANG alias if it's not defined.
-[*] fixed LANG for windows (breaks Win98/2K compatibility!)
-[*] Float separator set to "." (dot) regardless of locale.
-
-Menus
----------------------
-[*] New menuitems in the Keyboard menu, for looking up keybinds, and enabling/disabling the old editing binds system.
-[*] New menuitems in the gameplay settings menu, for setting fly velocities, and the color that your name is highlighted in, when it appears on the console via chat. (HIGHLIGHT)
-[*] New updated kick/ban/reason menu with client statistics. (Reports teamkills as well.)
 
 CubeScript
 ---------------------
@@ -188,3 +177,11 @@ CubeScript
 [*] The /newmap command has a (temporary) new range of 6-9. // TODO: Fix client crashing on /newmap >9!
 [*] The /spectate command can now only be used if connected to a server.
 [*] The /togglebotview command can no longer be used in arena modes.
+[*] /keybind bug fix. No more client crash if the argument is an unknown key.
+
+I18n / L10n
+---------------------
+
+[*] Client now tries to set the LANG alias if it's not defined.
+[*] fixed LANG for windows (breaks Win98/2K compatibility!)
+[*] Float separator set to "." (dot) regardless of locale.
