@@ -612,6 +612,25 @@
                   </references>
 				</command>
 
+              <command name="looplist">
+                <description>Browses a list and executes a body for each element</description>
+                <examples>
+                  <example>
+                    <code><![CDATA[looplist "zero one two three" number [ echo $number ]]]></code>
+                  </example>
+                </examples>
+                <arguments>
+                  <argument token="V" description="the list to browse"/>
+                  <argument token="N" description="the alias containing the current element value."/>
+                  <argument token="body" description="the body to execute on each iteration"/>
+                </arguments>
+                <references>
+                  <identifierReference identifier="break"/>
+                  <identifierReference identifier="continue"/>
+                  <identifierReference identifier="loop"/>
+                </references>
+              </command>
+
 				<command name="break">
 					<description>Aborts a loop created with a 'loop' or 'while' command.</description>
 					<examples>
