@@ -1044,37 +1044,6 @@ void format(char **args, int numargs)
 #define whitespaceskip s += strspn(s, "\n\t \r")
 #define elementskip *s=='"' ? (++s, s += strcspn(s, "\"\n\0"), s += *s=='"') : s += strcspn(s, "\n\t \0")
 
-void looplista(char *s, char *var, char *body)
-{
-    int n = 0;
-    whitespaceskip;
-    loop_level++;
-    
-    ident *id = newident(var, execcontext);
-    if(id->type!=ID_ALIAS) return;
-    char *buf = newstring(MAXSTRLEN);
-
-    for(; *s; n++)
-    {
-        char *e = strtok(newstring(s), "\"\n\0\t \r");
-        if(buf != id->action)
-        {
-            if(id->action != id->executing) delete[] id->action;
-            id->action = buf = newstring(MAXSTRLEN);
-        }
-        copystring(id->action, e);
-        execute(body);
-        if(loop_skip) loop_skip = false;
-        if(loop_break)
-        {
-            loop_break = false;
-            break;
-        }
-        elementskip, whitespaceskip;
-    }
-    loop_level--;
-}
-
 void explodelist(const char *s, vector<char *> &elems)
 {
     whitespaceskip;
@@ -1085,6 +1054,36 @@ void explodelist(const char *s, vector<char *> &elems)
         elems.add(*elem=='"' ? newstring(elem+1, s-elem-(s[-1]=='"' ? 2 : 1)) : newstring(elem, s-elem));
         whitespaceskip;
     }
+}
+
+void looplist(char *list, char *var, char *body)
+{
+    ident *id = newident(var, execcontext);
+    if(id->type!=ID_ALIAS) return;
+    char *buf = newstring(MAXSTRLEN);
+    
+    vector<char *> elems;
+    explodelist(list, elems);
+
+    loop_level++;
+    loopv(elems)
+    {
+        const char *elem = elems[i];
+        if(buf != id->action)
+        {
+            if(id->action != id->executing) delete[] id->action;
+            id->action = buf = newstring(MAXSTRLEN);
+        }
+        copystring(id->action, elem);
+        execute(body);
+        if(loop_skip) loop_skip = false;
+        if(loop_break)
+        {
+            loop_break = false;
+            break;
+        }
+    }
+    loop_level--;
 }
 
 char *indexlist(const char *s, int pos)
@@ -1113,8 +1112,6 @@ int listlen(char *s)
     for(; *s; n++) elementskip, whitespaceskip;
     return n;
 }
-
-
 
 void at(char *s, char *pos)
 {
@@ -1271,7 +1268,7 @@ void strreplace (const char *source, const char *search, const char *replace)
 
 COMMANDN(c, colora, ARG_1STR);
 COMMANDN(loop, loopa, ARG_3STR);
-COMMANDN(looplist, looplista, ARG_3STR);
+COMMAND(looplist, ARG_3STR);
 COMMANDN(while, whilea, ARG_2STR);
 COMMANDN(break, breaka, ARG_NONE);
 COMMANDN(continue, continuea, ARG_NONE);
