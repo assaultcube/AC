@@ -1083,6 +1083,7 @@ void looplist(char *list, char *var, char *body)
             break;
         }
     }
+    popident(*id);
     loop_level--;
 }
 
