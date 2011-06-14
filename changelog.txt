@@ -5,6 +5,11 @@ AssaultCube ChangeLog
 Please add all commited changes to the SVN trunk from last release here, check TODO's.
 This changelog is a WIP!
 
+Find me a cat!
+---------------------
+
+[*] Changelog updates - oh shi-
+
 // TODO : find a better order for these categories
 
 Weapons
@@ -54,6 +59,7 @@ Rendering / HUD / ...
 [*] Fixed flag icon transparency.
 [*] Nearplane fix.
 [*] screenshotscale - in-engine scaling of screenshots.
+[*] showtargetname" - turns on/off showing the player name on the HUD when in your crosshair.
 
 Physics
 ---------------------
