@@ -632,7 +632,7 @@
               </command>
 
 				<command name="break">
-					<description>Aborts a loop created with a 'loop' or 'while' command.</description>
+					<description>Aborts a loop created with a 'loop', 'looplist' or 'while' command.</description>
 					<examples>
 					<example>
 						<code><![CDATA[loop i 10 [ if (= $i 4) [ break ]; echo $i]]]></code>
