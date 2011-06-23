@@ -445,12 +445,11 @@ void drawradar_showmap(playerent *p, int w, int h)
 	vec mdd(mapdims[0], mapdims[1], 0);
 	vec cod(offx+0.5f, offy+0.5f, 0);
 	vec ppv = vec(p->o).sub(mdd).mul(coordtrans).add(cod);
-	drawradarent(ppv.x+displace, ppv.y+displace, p->yaw, p->state==CS_ALIVE ? (isattacking(p) ? 2 : 0) : 1, 2, iconsize, isattacking(p), "%s", colorname(p)); // local player
+	if(team_isactive(p->team)) drawradarent(ppv.x+displace, ppv.y+displace, p->yaw, p->state==CS_ALIVE ? (isattacking(p) ? 2 : 0) : 1, 2, iconsize, isattacking(p), "%s", colorname(p)); // local player
 	loopv(players) // other players
 	{
 		playerent *pl = players[i];
-		if(!pl || pl==p) continue;
-		if(!isteam(p->team, pl->team)) continue;
+		if(!pl || pl==p || !isteam(p->team, pl->team) || !team_isactive(pl->team)) continue;
 		vec rtmp = vec(pl->o).sub(mdd).mul(coordtrans).add(cod);
 		drawradarent(rtmp.x+displace, rtmp.y+displace, pl->yaw, pl->state==CS_ALIVE ? (isattacking(pl) ? 2 : 0) : 1, team_base(pl->team), iconsize, isattacking(pl), "%s", colorname(pl));
 	}
@@ -534,12 +533,11 @@ void drawradar_vicinity(playerent *p, int w, int h)
 	glDisable(GL_BLEND);
 	circle(minimaptex, halfviewsize, halfviewsize, halfviewsize, usecenter.x/(float)gdim, usecenter.y/(float)gdim, scaleh, 31);
 	glTranslatef(halfviewsize, halfviewsize, 0);
-	drawradarent(0, 0, p->yaw, p->state==CS_ALIVE ? (isattacking(p) ? 2 : 0) : 1, 2, iconsize, isattacking(p), "%s", colorname(p)); // local player
+	if(team_isactive(p->team)) drawradarent(0, 0, p->yaw, p->state==CS_ALIVE ? (isattacking(p) ? 2 : 0) : 1, 2, iconsize, isattacking(p), "%s", colorname(p)); // local player
 	loopv(players) // other players
 	{
 		playerent *pl = players[i];
-		if(!pl || pl==p) continue;
-		if(!isteam(p->team, pl->team)) continue;
+		if(!pl || pl==p || !isteam(p->team, pl->team) || !team_isactive(pl->team)) continue;
 		vec rtmp = vec(pl->o).sub(p->o);
 		bool isok = rtmp.magnitude() < d2s;
 		if(isok)
