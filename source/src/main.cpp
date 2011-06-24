@@ -1231,11 +1231,6 @@ int main(int argc, char **argv)
         if(millis<totalmillis) millis = totalmillis;
         limitfps(millis, totalmillis);
         int elapsed = millis-totalmillis;
-        if(nextmillis && watchingdemo)
-        {
-            elapsed += nextmillis;
-            nextmillis = 0;
-        }
         if(multiplayer(false)) curtime = elapsed;
         else
         {
@@ -1243,6 +1238,11 @@ int main(int argc, char **argv)
             int scaledtime = elapsed*gamespeed + timeerr;
             curtime = scaledtime/100;
             timeerr = scaledtime%100;
+            if(nextmillis && watchingdemo)
+            {
+                curtime += nextmillis;
+                nextmillis = 0;
+            }
             if(paused) curtime = 0;
         }
         lastmillis += curtime;
