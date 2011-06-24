@@ -127,7 +127,8 @@ CubeScript
 [*] afterinit        - Native alias that is executed immediately after saved.cfg is loaded.
 [*] votepending      - Client variable that is 1 if there is a vote currently pending on the server, else 0. (e.g. echo $votepending // Example output: 0)
 [*] setfollowplayer  - Spectates the player with client number x.
-[*] setmr            - Restarts a demo and "fast forwards" to minutes remaining x.
+[*] setmr            - Seeks a demo to x minutes remaining.
+[*] rewind           - Rewinds a demo of x seconds. Forwards if x is negative.
 [*] dyngamma         - Enables or disables a new "per-official-map dynamic gamma system".
 [*] fragmessage      - Sets the frag message corresponding to a weapon. (Appears on the HUD and in your server logs.)
 [*] gibmessage       - Sets the gib message corresponding to a weapon. (Appears on the HUD and in your server logs.)
