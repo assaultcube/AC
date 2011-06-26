@@ -30,10 +30,20 @@ void *getprocaddress(const char *name)
     return SDL_GL_GetProcAddress(name);
 }
 
+bool hasext(const char *exts, const char *ext)
+{
+    int len = strlen(ext);
+    for(const char *cur = exts; (cur = strstr(cur, ext)); cur += len)
+    {
+        if((cur == exts || cur[-1] == ' ') && (cur[len] == ' ' || !cur[len])) return true;
+    }
+    return false;
+}
+
 int glext(char *ext)
 {
     const char *exts = (const char *)glGetString(GL_EXTENSIONS);
-    return strstr(exts, ext) != NULL;
+    return hasext(exts, ext) ? 1 : 0;
 }
 COMMAND(glext, ARG_1EST);
 
@@ -48,10 +58,10 @@ void gl_checkextensions()
     conoutf("Renderer: %s (%s)", renderer, vendor);
     conoutf("Driver: %s", version);
 
-    if(strstr(exts, "GL_EXT_texture_env_combine") || strstr(exts, "GL_ARB_texture_env_combine")) hasTE = true;
+    if(hasext(exts, "GL_EXT_texture_env_combine") || hasext(exts, "GL_ARB_texture_env_combine")) hasTE = true;
     else conoutf("WARNING: cannot use overbright lighting, using old lighting model!");
 
-    if(strstr(exts, "GL_ARB_multitexture"))
+    if(hasext(exts, "GL_ARB_multitexture"))
     {
         glActiveTexture_       = (PFNGLACTIVETEXTUREARBPROC)      getprocaddress("glActiveTextureARB");
         glClientActiveTexture_ = (PFNGLCLIENTACTIVETEXTUREARBPROC)getprocaddress("glClientActiveTextureARB");
@@ -60,7 +70,7 @@ void gl_checkextensions()
         hasMT = true;
     }
 
-    if(strstr(exts, "GL_EXT_multi_draw_arrays"))
+    if(hasext(exts, "GL_EXT_multi_draw_arrays"))
     {
         glMultiDrawArrays_   = (PFNGLMULTIDRAWARRAYSEXTPROC)  getprocaddress("glMultiDrawArraysEXT");
         glMultiDrawElements_ = (PFNGLMULTIDRAWELEMENTSEXTPROC)getprocaddress("glMultiDrawElementsEXT");
@@ -69,28 +79,28 @@ void gl_checkextensions()
         if(strstr(vendor, "ATI")) ati_mda_bug = 1;
     }
 
-    if(strstr(exts, "GL_EXT_draw_range_elements"))
+    if(hasext(exts, "GL_EXT_draw_range_elements"))
     {
         glDrawRangeElements_ = (PFNGLDRAWRANGEELEMENTSEXTPROC)getprocaddress("glDrawRangeElementsEXT");
         hasDRE = true;
     }
 
-    if(strstr(exts, "GL_EXT_stencil_two_side"))
+    if(hasext(exts, "GL_EXT_stencil_two_side"))
     {
         glActiveStencilFace_ = (PFNGLACTIVESTENCILFACEEXTPROC)getprocaddress("glActiveStencilFaceEXT");
         hasST2 = true;
     }
 
-    if(strstr(exts, "GL_ATI_separate_stencil"))
+    if(hasext(exts, "GL_ATI_separate_stencil"))
     {
         glStencilOpSeparate_   = (PFNGLSTENCILOPSEPARATEATIPROC)  getprocaddress("glStencilOpSeparateATI");
         glStencilFuncSeparate_ = (PFNGLSTENCILFUNCSEPARATEATIPROC)getprocaddress("glStencilFuncSeparateATI");
         hasSTS = true;
     }
 
-    if(strstr(exts, "GL_EXT_stencil_wrap")) hasSTW = true;
+    if(hasext(exts, "GL_EXT_stencil_wrap")) hasSTW = true;
 
-    if(strstr(exts, "GL_EXT_texture_filter_anisotropic"))
+    if(hasext(exts, "GL_EXT_texture_filter_anisotropic"))
     {
        GLint val;
        glGetIntegerv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &val);
@@ -98,7 +108,7 @@ void gl_checkextensions()
        hasAF = true;
     }
 
-    if(!strstr(exts, "GL_ARB_fragment_program"))
+    if(!hasext(exts, "GL_ARB_fragment_program"))
     {
         // not a required extension, but ensures the card has enough power to do reflections
         extern int waterreflect, waterrefract;
