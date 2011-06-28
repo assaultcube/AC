@@ -59,7 +59,7 @@ Rendering / HUD / ...
 [*] Fixed flag icon transparency.
 [*] Nearplane fix.
 [*] screenshotscale - in-engine scaling of screenshots.
-[*] showtargetname" - turns on/off showing the player name on the HUD when in your crosshair.
+[*] showtargetname - turns on/off showing the player name on the HUD when in your crosshair.
 
 Physics
 ---------------------
@@ -176,7 +176,7 @@ CubeScript
 [*] Substr crash bug is fixed. Also the command can now use a negative position value.
 [*] New stat in (pstat_score) for teamkills. New list is: FLAGS FRAGS DEATHS POINTS TEAM TEAMKILLS NAME // TODO move to compatibility.cfg
 [*] on_quit.cfg for deleting aliases from saved.cfg upon quit.
-[*] Many aliases that were stored in saved.cfg are now being stored as a single alias (list) "tmpClientData" and being restored on start. (see on_quit.cfg) // Not yet, still buggy. :P
+[*] Many aliases that were stored in saved.cfg are now being stored as a single alias (list) "tmpClientData" and being restored on start. (see on_quit.cfg) // Should be working now, please report any problems like unknown alias lookup errors though!
 [*] Missing bracket ([], (), etc.) errors now also notify the client of what file the error resides in.
 [*] New automatically executed scripts folder in the root install directory of AC.
 [*] New delta_edit/game_# aliases for easily tweaking gamma/fov/flyspeed on-the-fly. (e.g. Hold F5 and scroll for gamma, F6 for fov, bind "domodifier 10" to a key for flyspeed)
