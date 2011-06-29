@@ -7,10 +7,6 @@ This changelog is a WIP!
 
 Find me a cat!
 ---------------------
-
-[*] Changelog updates - oh shi-
-[*] Optional heartbeat sound when health reaches a certain level.
-
 // TODO : find a better order for these categories
 
 Weapons
@@ -73,6 +69,11 @@ Demos / Spectating
 
 [*] Drop camera to previous followed player position when switching to fly specmode.
 [*] Fix broken demo-viewer not able to change to SPECTATOR.
+
+Sounds / Audio
+---------------------
+[*] Optional heartbeat sound when health reaches a certain level.
+
 
 Menus
 ---------------------
