@@ -532,6 +532,8 @@ void audiomanager::stopsound()
     if(gamemusic) gamemusic->reset();
 }
 
+VAR(heartbeat, 0, 0, 99);
+
 // main audio update routine
 
 void audiomanager::updateaudio()
@@ -540,7 +542,7 @@ void audiomanager::updateaudio()
 
     alcSuspendContext(context); // don't process sounds while we mess around
 
-    //bool alive = player1->state!=CS_DEAD;
+    bool alive = player1->state!=CS_DEAD;
     bool firstperson = camera1==player1 || (player1->isspectating() && player1->spectatemode==SM_DEATHCAM);
 
     // footsteps
@@ -559,6 +561,10 @@ void audiomanager::updateaudio()
     // tinnitus
     bool tinnitus = /*alive &&*/ firstperson && player1->eardamagemillis>0 && lastmillis<=player1->eardamagemillis;
     location *tinnitusloc = updateloopsound(S_TINNITUS, tinnitus);
+
+    // heartbeat
+    bool heartbeatsound = heartbeat && alive && firstperson && player1->health <= heartbeat;
+    updateloopsound(S_HEARTBEAT, heartbeatsound);
 
     // pitch fx
     const float lowpitch = 0.65f;

@@ -9,6 +9,7 @@ Find me a cat!
 ---------------------
 
 [*] Changelog updates - oh shi-
+[*] Optional heartbeat sound when health reaches a certain level.
 
 // TODO : find a better order for these categories
 

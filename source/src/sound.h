@@ -70,6 +70,7 @@ enum
     S_AWESOME1,
     S_AWESOME2,
     S_ITEMHELMET,	// begin: Sounds for AssaultCube v1.1.0.4 onwards
+    S_HEARTBEAT,
     S_NULL
 };
 
