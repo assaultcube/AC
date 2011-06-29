@@ -4854,6 +4854,11 @@ Output:
 					<value token="N" description="velocity" minValue="1" maxValue="100" defaultValue="30"/>
 				</variable>
 
+				<variable name="heartbeat">
+					<description>Defines the health level at or below which a heartbeat sound will be played. A value of 0 (which is the default) disables this feature.</description>
+					<value token="H" description="health value" minValue="0" maxValue="99" defaultValue="0"/>
+				</variable>
+
 				<variable name="teamdisplaymode">
 					<description>Sets the team display mode.</description>
 					<remarks>
