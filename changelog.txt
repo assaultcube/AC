@@ -39,8 +39,9 @@ Server browser
 
 Media (maps/textures/models)
 ---------------------
-// TODO add new maps & any new textures or models please :) (waypoints, new maps..)
+// TODO add new maps & any new textures or models please :)
 [*] ac_edifice, ac_industrial, ac_stellar added to the official map package.
+[*] Bot waypoints for maps: ac_edifice, ac_industrial, ac_ingress, and ac_stellar.
 
 Mapping
 ---------------------
