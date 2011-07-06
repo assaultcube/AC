@@ -887,6 +887,12 @@ void dodamage(int damage, playerent *pl, playerent *actor, int gun, bool gib, bo
     // I suppose someone wanted to play the hitsound for player1 or spectated player (lucas:2011may22)
     playerent *h = player1->isspectating() && player1->followplayercn >= 0 && (player1->spectatemode == SM_FOLLOW1ST || player1->spectatemode == SM_FOLLOW3RD || player1->spectatemode == SM_FOLLOW3RD_TRANSPARENT) ? getclient(player1->followplayercn) : NULL;
     if(!h) h = player1;
+    if(identexists("onHit"))
+    {
+        if(actor->clientnum != pl->clientnum)
+        defformatstring(o)("onHit %d %d %d %d %d", actor->clientnum, pl->clientnum, damage, gun, gib ? 1 : 0);
+        execute(o);
+    }
     if(actor==h && pl!=actor)
     {
         if(hitsound && lasthit != lastmillis) audiomgr.playsound(S_HITSOUND, SP_HIGH);
