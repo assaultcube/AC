@@ -1237,7 +1237,7 @@ void gmenu::init()
                 }
                 defformatstring(fullname)("%s%s%s", dirlist->dir[0]?dirlist->dir+diroffset:"", dirlist->dir[0]?"/":"", f);
                 defformatstring(caction)("map %s", fullname);
-                defformatstring(title)("%s", d[0]!='\0'?d:f);
+                defformatstring(title)("%s", d && d[0]!='\0' ? d : f);
                 items.add(new mitemmapload(this, newstring(fullname), newstring(title), newstring(caction), NULL, NULL, NULL));
             }
             else items.add(new mitemtext(this, f, newstring(dirlist->action), NULL, NULL, d));
