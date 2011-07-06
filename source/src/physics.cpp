@@ -402,12 +402,12 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         if(editfly)                // just apply velocity
         {
             pl->o.add(d);
-            if(pl->jumpnext)
+            if(pl->jumpnext && !pl->trycrouch)
             {
                 pl->jumpnext = true; // fly directly upwards while holding jump keybinds
                 pl->vel.z = 0.5f;
             }
-            else if (pl->trycrouch)
+            else if (pl->trycrouch && !pl->jumpnext)
             {
                 pl->vel.z = -0.5f; // fly directly down while holding crouch keybinds
             }
