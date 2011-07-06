@@ -889,7 +889,6 @@ void dodamage(int damage, playerent *pl, playerent *actor, int gun, bool gib, bo
     if(!h) h = player1;
     if(identexists("onHit"))
     {
-        if(actor->clientnum != pl->clientnum)
         defformatstring(o)("onHit %d %d %d %d %d", actor->clientnum, pl->clientnum, damage, gun, gib ? 1 : 0);
         execute(o);
     }
