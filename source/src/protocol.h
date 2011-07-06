@@ -114,7 +114,7 @@ enum
 #define m_ctf         (gamemode==5)
 #define m_pistol      (gamemode==6 || gamemode==16 || gamemode==18)
 #define m_lss         (gamemode==9 || gamemode==17 || gamemode==19)
-#define m_osok        (gamemode>=10 && gamemode<=12 || gamemode == 21)
+#define m_osok        ((gamemode>=10 && gamemode<=12) || gamemode == 21)
 #define m_htf         (gamemode==13)
 #define m_ktf         (gamemode==14 || gamemode==15)
 
