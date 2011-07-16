@@ -1531,7 +1531,7 @@ void strpos_(char *haystack, char *needle, char *occurence)
 
 void l0(int p, int v) { string f; string r; formatstring(f)("%%0%dd", p); formatstring(r)(f, v); result(r); }
 
-void getmode(int acr = 0) { result(modestr(gamemode, acr ? true : false)); }
+void getmode_(int acr) { result(modestr(gamemode, acr ? true : false)); }
 
 COMMANDN(millis, millis_, ARG_IVAL);
 COMMANDN(strlen, strlen_, ARG_1STR);
@@ -1542,7 +1542,7 @@ COMMAND(systime, ARG_NONE);
 COMMANDN(timestamp, timestamp_, ARG_NONE);
 COMMAND(datestring, ARG_NONE);
 COMMANDN(timestring, timestring_, ARG_NONE);
-COMMAND(getmode, ARG_1INT);
+COMMANDN(getmode, getmode_, ARG_1INT);
 
 const char *currentserver(int i) // [client version]
 {
