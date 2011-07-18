@@ -793,7 +793,7 @@
         </command>
 
         <command name="l0">
-					<description>leading zeros for the number V to make it W chars wide</description>
+					<description>leading zeros for the number V to make it W chars wide. It may look like 10 - which might be considered a mnemonic - but it's lowercase-L and 0!</description>
           <examples>
             <example>
               <code><![CDATA[echo (l0 5 1000)]]></code>
