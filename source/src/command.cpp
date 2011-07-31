@@ -309,27 +309,26 @@ COMMANDN(getalias, _getalias, ARG_1STR);
 
 void _getvar(char *name)
 {
-	string resstr;
-	resstr[0] = '\0';
+    string resstr;
+    resstr[0] = '\0';
     ident *id = idents->access(name); 
     if(id)
-	{
-		switch(id->type)
-		{
-			case ID_VAR:
-				formatstring(resstr)("%d", *id->storage.i);
-				break;
-			case ID_FVAR:
-				formatstring(resstr)("%.3f", *id->storage.f);
-				break;
-			case ID_SVAR:
-				formatstring(resstr)("%s", *id->storage.s);
-				break;
-
-			default: break;
-		}
-	}
-	result(resstr);
+    {
+        switch(id->type)
+        {
+            case ID_VAR:
+                formatstring(resstr)("%d", *id->storage.i);
+                break;
+            case ID_FVAR:
+                formatstring(resstr)("%.3f", *id->storage.f);
+                break;
+            case ID_SVAR:
+                formatstring(resstr)("%s", *id->storage.s);
+                break;
+            default: break;
+        }
+    }
+    result(resstr);
 }
 COMMANDN(getvar, _getvar, ARG_1STR);
 COMMANDN(isIdent, identexists, ARG_1EST);
@@ -467,211 +466,211 @@ vector<long long> seer_t2; // timestamp of last n3 (10) level-2 calls
 #endif
 char *executeret(const char *p)                            // all evaluation happens here, recursively
 {
-	if(!p || !p[0]) return NULL;
-	bool noproblem = true;
+    if(!p || !p[0]) return NULL;
+    bool noproblem = true;
 #if 0
-	if(execcontext>IEXC_CFG) // only PROMPT and MAP-CFG are checked for this, fooling with core/cfg at your own risk!
-	{
-		seer_count++;
-		if(seer_count>=100)
-		{
-			seer_index = (seer_index+1)%10;
-			long long cts = (long long) time(NULL);
-			if(seer_t1.length()>=10) seer_t1[seer_index] = cts;
-			seer_t1.add(cts);
-			int lc = (seer_index+11)%10;
-			if(lc<=seer_t1.length())
-			{
-				int dt = seer_t1[seer_index] - seer_t1[lc];
-				if(abs(dt)<2)
-				{
-					conoutf("SCRIPT EXECUTION warning [%d:%s]", &p, p);
-					seer_t2.add(seer_t1[seer_index]);
-					if(seer_t2.length() >= 10)
-					{
-						if(seer_t2[0] == seer_t2.last())
-						{
-							conoutf("SCRIPT EXECUTION in danger of crashing the client - dropping script [%s].", p);
-							noproblem = false;
-							seer_t2.shrink(0);
-							seer_t1.shrink(0);
-							seer_index = 0;
-						}
-					}
-				}
-			}
-			seer_count = 0;
-		}
-	}
+    if(execcontext>IEXC_CFG) // only PROMPT and MAP-CFG are checked for this, fooling with core/cfg at your own risk!
+    {
+        seer_count++;
+        if(seer_count>=100)
+        {
+            seer_index = (seer_index+1)%10;
+            long long cts = (long long) time(NULL);
+            if(seer_t1.length()>=10) seer_t1[seer_index] = cts;
+            seer_t1.add(cts);
+            int lc = (seer_index+11)%10;
+            if(lc<=seer_t1.length())
+            {
+                int dt = seer_t1[seer_index] - seer_t1[lc];
+                if(abs(dt)<2)
+                {
+                    conoutf("SCRIPT EXECUTION warning [%d:%s]", &p, p);
+                    seer_t2.add(seer_t1[seer_index]);
+                    if(seer_t2.length() >= 10)
+                    {
+                        if(seer_t2[0] == seer_t2.last())
+                        {
+                            conoutf("SCRIPT EXECUTION in danger of crashing the client - dropping script [%s].", p);
+                            noproblem = false;
+                            seer_t2.shrink(0);
+                            seer_t1.shrink(0);
+                            seer_index = 0;
+                        }
+                    }
+                }
+            }
+            seer_count = 0;
+        }
+    }
 #endif
     const int MAXWORDS = 25;                    // limit, remove
     char *w[MAXWORDS];
     char *retval = NULL;
     #define setretval(v) { char *rv = v; if(rv) retval = rv; }
-	if(noproblem) // if the "seer"-algorithm doesn't object
-	{
-		for(bool cont = true; cont;)                // for each ; seperated statement
-		{
+    if(noproblem) // if the "seer"-algorithm doesn't object
+    {
+        for(bool cont = true; cont;)                // for each ; seperated statement
+        {
             if(loop_level && loop_skip) break;
-			int numargs = MAXWORDS, infix = 0;
-			loopi(MAXWORDS)                         // collect all argument values
-			{
-				w[i] = (char *)"";
-				if(i>numargs) continue;
-				char *s = parseword(p, i, infix);   // parse and evaluate exps
-				if(s) w[i] = s;
-				else numargs = i;
-			}
+            int numargs = MAXWORDS, infix = 0;
+            loopi(MAXWORDS)                         // collect all argument values
+            {
+                w[i] = (char *)"";
+                if(i>numargs) continue;
+                char *s = parseword(p, i, infix);   // parse and evaluate exps
+                if(s) w[i] = s;
+                else numargs = i;
+            }
 
-			p += strcspn(p, ";\n\0");
-			cont = *p++!=0;                         // more statements if this isn't the end of the string
-			const char *c = w[0];
-			if(!*c) continue;                       // empty statement
+            p += strcspn(p, ";\n\0");
+            cont = *p++!=0;                         // more statements if this isn't the end of the string
+            const char *c = w[0];
+            if(!*c) continue;                       // empty statement
 
-			DELETEA(retval);
+            DELETEA(retval);
 
-			if(infix)
-			{
-				switch(infix)
-				{
-					case '=':
-						DELETEA(w[1]);
-						swap(w[0], w[1]);
-						c = "alias";
-						break;
-				}
-			}
+            if(infix)
+            {
+                switch(infix)
+                {
+                    case '=':
+                        DELETEA(w[1]);
+                        swap(w[0], w[1]);
+                        c = "alias";
+                        break;
+                }
+            }
 
-			ident *id = idents->access(c);
-			if(!id)
-			{
-				if(!isdigit(*c) && ((*c!='+' && *c!='-' && *c!='.') || !isdigit(c[1])))
-				{
-					conoutf("unknown command: %s", c);
-					scripterr();
-				}
-				setretval(newstring(c));
-			}
-			else
-			{
-				if(!allowidentaccess(id))
-				{
-					conoutf("not allowed in this execution context: %s", id->name);
-					scripterr();
-					continue;
-				}
+            ident *id = idents->access(c);
+            if(!id)
+            {
+                if(!isdigit(*c) && ((*c!='+' && *c!='-' && *c!='.') || !isdigit(c[1])))
+                {
+                    conoutf("unknown command: %s", c);
+                    scripterr();
+                }
+                setretval(newstring(c));
+            }
+            else
+            {
+                if(!allowidentaccess(id))
+                {
+                    conoutf("not allowed in this execution context: %s", id->name);
+                    scripterr();
+                    continue;
+                }
 
-				switch(id->type)
-				{
-					case ID_COMMAND:                    // game defined commands
-						switch(id->narg)                // use very ad-hoc function signature, and just call it
-						{
-							case ARG_1INT: ((void (__cdecl *)(int))id->fun)(ATOI(w[1])); break;
-							case ARG_2INT: ((void (__cdecl *)(int, int))id->fun)(ATOI(w[1]), ATOI(w[2])); break;
-							case ARG_3INT: ((void (__cdecl *)(int, int, int))id->fun)(ATOI(w[1]), ATOI(w[2]), ATOI(w[3])); break;
-							case ARG_4INT: ((void (__cdecl *)(int, int, int, int))id->fun)(ATOI(w[1]), ATOI(w[2]), ATOI(w[3]), ATOI(w[4])); break;
-							case ARG_NONE: ((void (__cdecl *)())id->fun)(); break;
-							case ARG_1STR: ((void (__cdecl *)(char *))id->fun)(w[1]); break;
-							case ARG_2STR: ((void (__cdecl *)(char *, char *))id->fun)(w[1], w[2]); break;
-							case ARG_3STR: ((void (__cdecl *)(char *, char *, char*))id->fun)(w[1], w[2], w[3]); break;
-							case ARG_4STR: ((void (__cdecl *)(char *, char *, char*, char*))id->fun)(w[1], w[2], w[3], w[4]); break;
-							case ARG_5STR: ((void (__cdecl *)(char *, char *, char*, char*, char*))id->fun)(w[1], w[2], w[3], w[4], w[5]); break;
-							case ARG_6STR: ((void (__cdecl *)(char *, char *, char*, char*, char*, char*))id->fun)(w[1], w[2], w[3], w[4], w[5], w[6]); break;
-							case ARG_7STR: ((void (__cdecl *)(char *, char *, char*, char*, char*, char*, char*))id->fun)(w[1], w[2], w[3], w[4], w[5], w[6], w[7]); break;
-							case ARG_8STR: ((void (__cdecl *)(char *, char *, char*, char*, char*, char*, char*, char*))id->fun)(w[1], w[2], w[3], w[4], w[5], w[6], w[7], w[8]); break;
+                switch(id->type)
+                {
+                    case ID_COMMAND:                    // game defined commands
+                        switch(id->narg)                // use very ad-hoc function signature, and just call it
+                        {
+                            case ARG_1INT: ((void (__cdecl *)(int))id->fun)(ATOI(w[1])); break;
+                            case ARG_2INT: ((void (__cdecl *)(int, int))id->fun)(ATOI(w[1]), ATOI(w[2])); break;
+                            case ARG_3INT: ((void (__cdecl *)(int, int, int))id->fun)(ATOI(w[1]), ATOI(w[2]), ATOI(w[3])); break;
+                            case ARG_4INT: ((void (__cdecl *)(int, int, int, int))id->fun)(ATOI(w[1]), ATOI(w[2]), ATOI(w[3]), ATOI(w[4])); break;
+                            case ARG_NONE: ((void (__cdecl *)())id->fun)(); break;
+                            case ARG_1STR: ((void (__cdecl *)(char *))id->fun)(w[1]); break;
+                            case ARG_2STR: ((void (__cdecl *)(char *, char *))id->fun)(w[1], w[2]); break;
+                            case ARG_3STR: ((void (__cdecl *)(char *, char *, char*))id->fun)(w[1], w[2], w[3]); break;
+                            case ARG_4STR: ((void (__cdecl *)(char *, char *, char*, char*))id->fun)(w[1], w[2], w[3], w[4]); break;
+                            case ARG_5STR: ((void (__cdecl *)(char *, char *, char*, char*, char*))id->fun)(w[1], w[2], w[3], w[4], w[5]); break;
+                            case ARG_6STR: ((void (__cdecl *)(char *, char *, char*, char*, char*, char*))id->fun)(w[1], w[2], w[3], w[4], w[5], w[6]); break;
+                            case ARG_7STR: ((void (__cdecl *)(char *, char *, char*, char*, char*, char*, char*))id->fun)(w[1], w[2], w[3], w[4], w[5], w[6], w[7]); break;
+                            case ARG_8STR: ((void (__cdecl *)(char *, char *, char*, char*, char*, char*, char*, char*))id->fun)(w[1], w[2], w[3], w[4], w[5], w[6], w[7], w[8]); break;
 #ifndef STANDALONE
-							case ARG_DOWN: ((void (__cdecl *)(bool))id->fun)(addreleaseaction(id->name)!=NULL); break;
+                            case ARG_DOWN: ((void (__cdecl *)(bool))id->fun)(addreleaseaction(id->name)!=NULL); break;
 #endif
-							case ARG_1EXP: intret(((int (__cdecl *)(int))id->fun)(ATOI(w[1]))); break;
-							case ARG_2EXP: intret(((int (__cdecl *)(int, int))id->fun)(ATOI(w[1]), ATOI(w[2]))); break;
-							case ARG_1EXPF: floatret(((float (__cdecl *)(float))id->fun)(atof(w[1]))); break;
-							case ARG_2EXPF: floatret(((float (__cdecl *)(float, float))id->fun)(atof(w[1]), atof(w[2]))); break;
-							case ARG_1EST: intret(((int (__cdecl *)(char *))id->fun)(w[1])); break;
-							case ARG_2EST: intret(((int (__cdecl *)(char *, char *))id->fun)(w[1], w[2])); break;
-							case ARG_IVAL: intret(((int (__cdecl *)())id->fun)()); break;
-							case ARG_FVAL: floatret(((float (__cdecl *)())id->fun)()); break;
-							case ARG_SVAL: result(((const char * (__cdecl *)())id->fun)()); break;
-							case ARG_VARI: ((void (__cdecl *)(char **, int))id->fun)(&w[1], numargs-1); break;
-							case ARG_CONC:
-							case ARG_CONCW:
-							{
-								char *r = conc(w+1, numargs-1, id->narg==ARG_CONC);
-								((void (__cdecl *)(char *))id->fun)(r);
-								delete[] r;
-								break;
-							}
-						}
-						setretval(commandret);
-						commandret = NULL;
-						break;
+                            case ARG_1EXP: intret(((int (__cdecl *)(int))id->fun)(ATOI(w[1]))); break;
+                            case ARG_2EXP: intret(((int (__cdecl *)(int, int))id->fun)(ATOI(w[1]), ATOI(w[2]))); break;
+                            case ARG_1EXPF: floatret(((float (__cdecl *)(float))id->fun)(atof(w[1]))); break;
+                            case ARG_2EXPF: floatret(((float (__cdecl *)(float, float))id->fun)(atof(w[1]), atof(w[2]))); break;
+                            case ARG_1EST: intret(((int (__cdecl *)(char *))id->fun)(w[1])); break;
+                            case ARG_2EST: intret(((int (__cdecl *)(char *, char *))id->fun)(w[1], w[2])); break;
+                            case ARG_IVAL: intret(((int (__cdecl *)())id->fun)()); break;
+                            case ARG_FVAL: floatret(((float (__cdecl *)())id->fun)()); break;
+                            case ARG_SVAL: result(((const char * (__cdecl *)())id->fun)()); break;
+                            case ARG_VARI: ((void (__cdecl *)(char **, int))id->fun)(&w[1], numargs-1); break;
+                            case ARG_CONC:
+                            case ARG_CONCW:
+                            {
+                                char *r = conc(w+1, numargs-1, id->narg==ARG_CONC);
+                                ((void (__cdecl *)(char *))id->fun)(r);
+                                delete[] r;
+                                break;
+                            }
+                        }
+                        setretval(commandret);
+                        commandret = NULL;
+                        break;
 
-					case ID_VAR:                        // game defined variables
-						if(!w[1][0]) conoutf("%s = %d", c, *id->storage.i);      // var with no value just prints its current value
-						else if(id->minval>id->maxval) conoutf("variable %s is read-only", id->name);
-						else
-						{
-							int i1 = ATOI(w[1]);
-							if(i1<id->minval || i1>id->maxval)
-							{
-								i1 = i1<id->minval ? id->minval : id->maxval;       // clamp to valid range
-								conoutf("valid range for %s is %d..%d", id->name, id->minval, id->maxval);
-							}
-							*id->storage.i = i1;
-							if(id->fun) ((void (__cdecl *)())id->fun)();            // call trigger function if available
-						}
-						break;
+                    case ID_VAR:                        // game defined variables
+                        if(!w[1][0]) conoutf("%s = %d", c, *id->storage.i);      // var with no value just prints its current value
+                        else if(id->minval>id->maxval) conoutf("variable %s is read-only", id->name);
+                        else
+                        {
+                            int i1 = ATOI(w[1]);
+                            if(i1<id->minval || i1>id->maxval)
+                            {
+                                i1 = i1<id->minval ? id->minval : id->maxval;       // clamp to valid range
+                                conoutf("valid range for %s is %d..%d", id->name, id->minval, id->maxval);
+                            }
+                            *id->storage.i = i1;
+                            if(id->fun) ((void (__cdecl *)())id->fun)();            // call trigger function if available
+                        }
+                        break;
 
-					case ID_FVAR:                        // game defined variables
-						if(!w[1][0]) conoutf("%s = %s", c, floatstr(*id->storage.f));      // var with no value just prints its current value
-						else if(id->minvalf>id->maxvalf) conoutf("variable %s is read-only", id->name);
-						else
-						{
-							float f1 = atof(w[1]);
-							if(f1<id->minvalf || f1>id->maxvalf)
-							{
-								f1 = f1<id->minvalf ? id->minvalf : id->maxvalf;       // clamp to valid range
-								conoutf("valid range for %s is %s..%s", id->name, floatstr(id->minvalf), floatstr(id->maxvalf));
-								//scripterr(); // Why throw this error here when it's not done for ID_VAR above? Only difference is datatype, both are "valid range errors". // Bukz 2011june04
-							}
-							*id->storage.f = f1;
-							if(id->fun) ((void (__cdecl *)())id->fun)();            // call trigger function if available
-						}
-						break;
+                    case ID_FVAR:                        // game defined variables
+                        if(!w[1][0]) conoutf("%s = %s", c, floatstr(*id->storage.f));      // var with no value just prints its current value
+                        else if(id->minvalf>id->maxvalf) conoutf("variable %s is read-only", id->name);
+                        else
+                        {
+                            float f1 = atof(w[1]);
+                            if(f1<id->minvalf || f1>id->maxvalf)
+                            {
+                                f1 = f1<id->minvalf ? id->minvalf : id->maxvalf;       // clamp to valid range
+                                conoutf("valid range for %s is %s..%s", id->name, floatstr(id->minvalf), floatstr(id->maxvalf));
+                                //scripterr(); // Why throw this error here when it's not done for ID_VAR above? Only difference is datatype, both are "valid range errors". // Bukz 2011june04
+                            }
+                            *id->storage.f = f1;
+                            if(id->fun) ((void (__cdecl *)())id->fun)();            // call trigger function if available
+                        }
+                        break;
 
-					case ID_SVAR:                        // game defined variables
-						if(!w[1][0]) conoutf(strchr(*id->storage.s, '"') ? "%s = [%s]" : "%s = \"%s\"", c, *id->storage.s); // var with no value just prints its current value
-						else
-						{
-							*id->storage.s = exchangestr(*id->storage.s, newstring(w[1]));
-							if(id->fun) ((void (__cdecl *)())id->fun)();            // call trigger function if available
-						}
-						break;
+                    case ID_SVAR:                        // game defined variables
+                        if(!w[1][0]) conoutf(strchr(*id->storage.s, '"') ? "%s = [%s]" : "%s = \"%s\"", c, *id->storage.s); // var with no value just prints its current value
+                        else
+                        {
+                            *id->storage.s = exchangestr(*id->storage.s, newstring(w[1]));
+                            if(id->fun) ((void (__cdecl *)())id->fun)();            // call trigger function if available
+                        }
+                        break;
 
-					case ID_ALIAS:                              // alias, also used as functions and (global) variables
-						delete[] w[0];
-						static vector<ident *> argids;
-						for(int i = 1; i<numargs; i++)
-						{
-							if(i > argids.length())
-							{
-								defformatstring(argname)("arg%d", i);
-								argids.add(newident(argname, IEXC_CORE));
-							}
-							pushident(*argids[i-1], w[i]); // set any arguments as (global) arg values so functions can access them
-						}
-						_numargs = numargs-1;
-						char *wasexecuting = id->executing;
-						id->executing = id->action;
-						setretval(executeret(id->action));
-						if(id->executing!=id->action && id->executing!=wasexecuting) delete[] id->executing;
-						id->executing = wasexecuting;
-						for(int i = 1; i<numargs; i++) popident(*argids[i-1]);
-						continue;
-				}
-			}
-			loopj(numargs) if(w[j]) delete[] w[j];
-		}
-	}
+                    case ID_ALIAS:                              // alias, also used as functions and (global) variables
+                        delete[] w[0];
+                        static vector<ident *> argids;
+                        for(int i = 1; i<numargs; i++)
+                        {
+                            if(i > argids.length())
+                            {
+                                defformatstring(argname)("arg%d", i);
+                                argids.add(newident(argname, IEXC_CORE));
+                            }
+                            pushident(*argids[i-1], w[i]); // set any arguments as (global) arg values so functions can access them
+                        }
+                        _numargs = numargs-1;
+                        char *wasexecuting = id->executing;
+                        id->executing = id->action;
+                        setretval(executeret(id->action));
+                        if(id->executing!=id->action && id->executing!=wasexecuting) delete[] id->executing;
+                        id->executing = wasexecuting;
+                        for(int i = 1; i<numargs; i++) popident(*argids[i-1]);
+                        continue;
+                }
+            }
+            loopj(numargs) if(w[j]) delete[] w[j];
+        }
+    }
     return retval;
 }
 
@@ -1122,20 +1121,20 @@ void at(char *s, char *pos)
 int find(const char *s, const char *key)
 {
     whitespaceskip;
-	int len = strlen(key);
-	for(int i = 0; *s; i++)
-	{
-		const char *a = s, *e = s;
-		elementskip;
-		if(*e=='"')
-		{
-			e++;
-			if(s[-1]=='"') --s;
-		}
-		if(s-e==len && !strncmp(e, key, s-e)) return i;
-		else s = a;
-		elementskip, whitespaceskip;
-	}
+    int len = strlen(key);
+    for(int i = 0; *s; i++)
+    {
+        const char *a = s, *e = s;
+        elementskip;
+        if(*e=='"')
+        {
+            e++;
+            if(s[-1]=='"') --s;
+        }
+        if(s-e==len && !strncmp(e, key, s-e)) return i;
+        else s = a;
+        elementskip, whitespaceskip;
+    }
     return -1;
 }
 
@@ -1547,33 +1546,33 @@ COMMANDN(getmode, getmode_, ARG_1INT);
 const char *currentserver(int i) // [client version]
 {
     static string curSRVinfo;
-	// using the curpeer directly we can get the info of our currently connected server
-	string r;
-	r[0] = '\0';
-	extern ENetPeer *curpeer;
-	if(curpeer)
-	{
-		switch(i)
-		{
-			case 1: // IP
-			{
+    // using the curpeer directly we can get the info of our currently connected server
+    string r;
+    r[0] = '\0';
+    extern ENetPeer *curpeer;
+    if(curpeer)
+    {
+        switch(i)
+        {
+            case 1: // IP
+            {
                 uchar *ip = (uchar *)&curpeer->address.host;
-				formatstring(r)("%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
-				break;
-			}
-			case 2: // HOST
-			{
-				char hn[1024];
-				formatstring(r)("%s", (enet_address_get_host(&curpeer->address, hn, sizeof(hn))==0) ? hn : "unknown");
-				break;
-			}
-			case 3: // PORT
-			{
-				formatstring(r)("%d", curpeer->address.port);
-				break;
-			}
-			case 4: // STATE
-			{
+                formatstring(r)("%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
+                break;
+            }
+            case 2: // HOST
+            {
+                char hn[1024];
+                formatstring(r)("%s", (enet_address_get_host(&curpeer->address, hn, sizeof(hn))==0) ? hn : "unknown");
+                break;
+            }
+            case 3: // PORT
+            {
+                formatstring(r)("%d", curpeer->address.port);
+                break;
+            }
+            case 4: // STATE
+            {
                 const char *statenames[] =
                 {
                     "disconnected",
@@ -1589,27 +1588,27 @@ const char *currentserver(int i) // [client version]
                 };
                 if(curpeer->state>=0 && curpeer->state<int(sizeof(statenames)/sizeof(statenames[0])))
                     copystring(r, statenames[curpeer->state]);
-				break; // 5 == Connected (compare ../enet/include/enet/enet.h +165)
-			}
-			// CAUTION: the following are only filled if the serverbrowser was used or the scoreboard shown
-			// SERVERNAME
-			case 5: { serverinfo *si = getconnectedserverinfo(); if(si) copystring(r, si->name); break; }
-			// DESCRIPTION (3)
-			case 6: { serverinfo *si = getconnectedserverinfo(); if(si) copystring(r, si->sdesc); break; }
-			case 7: { serverinfo *si = getconnectedserverinfo(); if(si) copystring(r, si->description); break; }
-			// CAUTION: the following is only the last full-description _seen_ in the serverbrowser!
-			case 8: { serverinfo *si = getconnectedserverinfo(); if(si) copystring(r, si->full); break; }
-			// just IP & PORT as default response - always available, no lookup-delay either
-	     	default:
-			{
+                break; // 5 == Connected (compare ../enet/include/enet/enet.h +165)
+            }
+            // CAUTION: the following are only filled if the serverbrowser was used or the scoreboard shown
+            // SERVERNAME
+            case 5: { serverinfo *si = getconnectedserverinfo(); if(si) copystring(r, si->name); break; }
+            // DESCRIPTION (3)
+            case 6: { serverinfo *si = getconnectedserverinfo(); if(si) copystring(r, si->sdesc); break; }
+            case 7: { serverinfo *si = getconnectedserverinfo(); if(si) copystring(r, si->description); break; }
+            // CAUTION: the following is only the last full-description _seen_ in the serverbrowser!
+            case 8: { serverinfo *si = getconnectedserverinfo(); if(si) copystring(r, si->full); break; }
+            // just IP & PORT as default response - always available, no lookup-delay either
+             default:
+            {
                 uchar *ip = (uchar *)&curpeer->address.host;
-				formatstring(r)("%d.%d.%d.%d %d", ip[0], ip[1], ip[2], ip[3], curpeer->address.port);
-				break;
-			}
-		}
-	}
-	copystring(curSRVinfo, r);
-	return curSRVinfo;
+                formatstring(r)("%d.%d.%d.%d %d", ip[0], ip[1], ip[2], ip[3], curpeer->address.port);
+                break;
+            }
+        }
+    }
+    copystring(curSRVinfo, r);
+    return curSRVinfo;
 }
 
 COMMANDF(curserver, ARG_1INT, (int i) { result(currentserver(i)); });

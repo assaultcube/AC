@@ -99,7 +99,7 @@ int wizardmain(int argc, char **argv)
 
 #endif
 
-	printf("\nWriting your configuration to %s ... ", outfile); fflush(stdout);
+    printf("\nWriting your configuration to %s ... ", outfile); fflush(stdout);
 
     argstr.add('\0');
 
@@ -130,7 +130,7 @@ int wizardmain(int argc, char **argv)
 
         vector<char> path;
         databuf<char> cwd = path.reserve(MAX_PATH);    
-	    if(!_getcwd(cwd.buf, MAX_PATH))
+        if(!_getcwd(cwd.buf, MAX_PATH))
         {
             printf("Failed!\n");
             printf("Could not get current working directory: %u\n", (uint)GetLastError());
@@ -177,11 +177,11 @@ int wizardmain(int argc, char **argv)
 
 #endif
 
-	printf("Please press ENTER now to start your server...\n");
+    printf("Please press ENTER now to start your server...\n");
     fgetc(stdin);
-	printf("Starting the AC server ...\n");
+    printf("Starting the AC server ...\n");
     argstr.insert(0, relpath, strlen(relpath));
     system(argstr.getbuf());
 
-	return EXIT_SUCCESS;
+    return EXIT_SUCCESS;
 }

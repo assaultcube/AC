@@ -891,83 +891,83 @@ struct serverinfofile
 
 struct killmessagesfile : serverconfigfile
 {
-	void init(const char *name) { serverconfigfile::init(name); }
-	void read()
-	{
-		if(getfilesize(filename) == filelen) return;
+    void init(const char *name) { serverconfigfile::init(name); }
+    void read()
+    {
+        if(getfilesize(filename) == filelen) return;
         if(!load()) return;
 
         char *l, *s, *p = buf;
-		const char *sep = " \"";
-		int line = 0;
+        const char *sep = " \"";
+        int line = 0;
         logline(ACLOG_VERBOSE,"reading kill messages file '%s'", filename);
         while(p < buf + filelen)
-		{
-			l = p; p += strlen(p) + 1;
+        {
+            l = p; p += strlen(p) + 1;
             l = strtok(l, sep);
-			
-			char *message;
+            
+            char *message;
             if(l)
             {
                 s = strtok(NULL, sep);
                 bool fragmsg = !strcmp(l, "fragmessage");
                 bool gibmsg = !strcmp(l, "gibmessage");
-				if(s && (fragmsg || gibmsg))
+                if(s && (fragmsg || gibmsg))
                 {
-					int errors = 0;
+                    int errors = 0;
                     int gun = atoi(s);
-					
+                    
                     s += strlen(s) + 1;
-					while(s[0] == ' ') s++;
-					int hasquotes = strspn(s, "\"");
-					s += hasquotes;
+                    while(s[0] == ' ') s++;
+                    int hasquotes = strspn(s, "\"");
+                    s += hasquotes;
                     message = s;
-					// TODO : what's following is too much complicated for nothing. 
-					// it has to remove ending char (space, or quote if there was a first quote)
-					char endingchar = ' ';
-					char *end;
-					
-					if(hasquotes) endingchar = '"';
-					
-					end = strchr(message, endingchar);
+                    // TODO : what's following is too much complicated for nothing. 
+                    // it has to remove ending char (space, or quote if there was a first quote)
+                    char endingchar = ' ';
+                    char *end;
+                    
+                    if(hasquotes) endingchar = '"';
+                    
+                    end = strchr(message, endingchar);
 
-					if(end) message[end-message] = '\0';
-					else
-					{
-						if(hasquotes)
-						{
-							logline(ACLOG_INFO, " error in line %i, ending quote missing (%s)", line, message);
-							errors++;
-						}
-					}
-					
-					if(gun < 0 || gun >= NUMGUNS)
-					{
-						logline(ACLOG_INFO, " error in line %i, invalid gun : %i", line, gun);
-						errors++;
-					}
-					if(strlen(message)>MAXKILLMSGLEN)
-					{
-						logline(ACLOG_INFO, " error in line %i, too long message : string length is %i, max allowed i %i", line, strlen(message), MAXKILLMSGLEN);
-						errors++;
-					}
-					if(!errors)
-					{
-						if(fragmsg)
-						{
-							formatstring(killmessages[0][gun])("%s", message);
-							logline(ACLOG_VERBOSE, " added msg '%s' for frags with weapon %i ", message, gun);
-						}
-						else
-						{
-							formatstring(killmessages[1][gun])("%s", message);
-							logline(ACLOG_VERBOSE, " added msg '%s' for gibs with weapon %i ", message, gun);
-						}
-					}
+                    if(end) message[end-message] = '\0';
+                    else
+                    {
+                        if(hasquotes)
+                        {
+                            logline(ACLOG_INFO, " error in line %i, ending quote missing (%s)", line, message);
+                            errors++;
+                        }
+                    }
+                    
+                    if(gun < 0 || gun >= NUMGUNS)
+                    {
+                        logline(ACLOG_INFO, " error in line %i, invalid gun : %i", line, gun);
+                        errors++;
+                    }
+                    if(strlen(message)>MAXKILLMSGLEN)
+                    {
+                        logline(ACLOG_INFO, " error in line %i, too long message : string length is %i, max allowed i %i", line, strlen(message), MAXKILLMSGLEN);
+                        errors++;
+                    }
+                    if(!errors)
+                    {
+                        if(fragmsg)
+                        {
+                            formatstring(killmessages[0][gun])("%s", message);
+                            logline(ACLOG_VERBOSE, " added msg '%s' for frags with weapon %i ", message, gun);
+                        }
+                        else
+                        {
+                            formatstring(killmessages[1][gun])("%s", message);
+                            logline(ACLOG_VERBOSE, " added msg '%s' for gibs with weapon %i ", message, gun);
+                        }
+                    }
                     s = NULL;
-					line++;
-				}
-			}
-		}
-	}
+                    line++;
+                }
+            }
+        }
+    }
 };

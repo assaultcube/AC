@@ -339,11 +339,11 @@ VAR(dbgmbatch, 0, 0, 1);
 VARP(popdeadplayers, 0, 0, 1);
 void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, float yaw, float pitch, float speed, int basetime, playerent *d, modelattach *a, float scale)
 {
-	if(popdeadplayers && d && a)
-	{
-		int acv = anim&ANIM_INDEX;
-		if( acv == ANIM_DECAY || acv == ANIM_LYING_DEAD || acv == ANIM_CROUCH_DEATH || acv == ANIM_DEATH ) return;
-	}
+    if(popdeadplayers && d && a)
+    {
+        int acv = anim&ANIM_INDEX;
+        if( acv == ANIM_DECAY || acv == ANIM_LYING_DEAD || acv == ANIM_CROUCH_DEATH || acv == ANIM_DEATH ) return;
+    }
     model *m = loadmodel(mdl);
     if(!m || (stenciling && (m->shadowdist <= 0 || anim&ANIM_TRANSLUCENT))) return;
 

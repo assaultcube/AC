@@ -43,7 +43,7 @@ void toggleedit(bool force)
     else
     {
         //put call to clear/restart gamemode
-		player1->attacking = false;
+        player1->attacking = false;
     }
     keyrepeat(editmode);
     selset = false;
@@ -255,15 +255,15 @@ void paste()
 // Count the walls of type "type" contained in the current selection
 int countwalls(int type)
 {
-	int counter = 0;
-	EDITSELMP 0;
-	if(type < 0 || type >= MAXTYPE)
-	{
-		conoutf("invalid type");
-		return 0;
-	}
-	loopselxy(if(s->type==type) counter++)
-	return counter;
+    int counter = 0;
+    EDITSELMP 0;
+    if(type < 0 || type >= MAXTYPE)
+    {
+        conoutf("invalid type");
+        return 0;
+    }
+    loopselxy(if(s->type==type) counter++)
+    return counter;
 }
  
 void tofronttex()                                       // maintain most recently used of the texture lists when applying texture

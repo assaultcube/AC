@@ -148,15 +148,15 @@ void sourcescheduler::releasesource(source *src)
 
     if(!src) return;
     
-	DEBUG("unlocking source");
-	
-	src->unlock();
+    DEBUG("unlocking source");
+    
+    src->unlock();
 
     if(sources.length() > numsoundchannels)
     {
         sources.removeobj(src);
         delete src;
-		DEBUG("source deleted");
+        DEBUG("source deleted");
     }
 }
 

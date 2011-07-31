@@ -38,7 +38,7 @@ public:
         CloseServiceHandle(svc);
         return installed ? 1 : 0;
     }
-    	
+        
     int Install()
     {
         if(!scm) return -1;

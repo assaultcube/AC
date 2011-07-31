@@ -446,30 +446,30 @@ Texture *textureload(const char *name, int clamp, bool mipmap, bool canreduce, f
 
 Texture *createtexturefromsurface(const char *name, SDL_Surface *s)
 {
-	string pname;
-	copystring(pname, name);
-	path(pname);
-	Texture *t = textures.access(pname);
-	if(!t)
-	{
-		char *key = newstring(pname);
-		t = &textures[key];
-		t->name = key;
-	}
+    string pname;
+    copystring(pname, name);
+    path(pname);
+    Texture *t = textures.access(pname);
+    if(!t)
+    {
+        char *key = newstring(pname);
+        t = &textures[key];
+        t->name = key;
+    }
 
-	GLuint tnum;
-	glGenTextures(1, &tnum);
-	GLenum format = texformat(s->format->BitsPerPixel);
-	createtexture(tnum, s->w, s->h, s->pixels, 0, true, false, format);
+    GLuint tnum;
+    glGenTextures(1, &tnum);
+    GLenum format = texformat(s->format->BitsPerPixel);
+    createtexture(tnum, s->w, s->h, s->pixels, 0, true, false, format);
 
-	t->xs = s->w;
-	t->ys = s->h;
-	t->bpp = s->format->BitsPerPixel;
-	t->clamp = 0;
-	t->mipmap = true;
-	t->canreduce = false;
-	t->id = tnum;
-	return t;
+    t->xs = s->w;
+    t->ys = s->h;
+    t->bpp = s->format->BitsPerPixel;
+    t->clamp = 0;
+    t->mipmap = true;
+    t->canreduce = false;
+    t->id = tnum;
+    return t;
 }
 
 struct Slot

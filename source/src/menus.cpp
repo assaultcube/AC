@@ -435,24 +435,24 @@ struct mitemmaploadmanual : mitemmanual
                 glEnable(GL_BLEND);
                 if(maptitle[0]) // 2011feb09:ft: TODO - this would be better as bottom line in the menu, just need to ensure it doesn't make the menu change width all the time!
                 {
-					int mlil = maploaditemlength;
-					string showt;
-					string restt;
-					restt[0] = '\0';
-					filtertext(showt, maptitle, 1);
-					if(mlil && mlil != 255) // 0 && 255 are 'off'
-					{
-						int tl = strlen(showt);
-						if(tl>mlil)
-						{
-							int cr = 0;
-							int mr = min(max(0, tl-mlil), mlil);
-							for(cr=0;cr<mr;cr++) { restt[cr] = showt[cr+mlil]; }
-							if(cr>0) { restt[cr+1] = '\0'; showt[mlil] = '\0'; }
-						}
-					}
+                    int mlil = maploaditemlength;
+                    string showt;
+                    string restt;
+                    restt[0] = '\0';
+                    filtertext(showt, maptitle, 1);
+                    if(mlil && mlil != 255) // 0 && 255 are 'off'
+                    {
+                        int tl = strlen(showt);
+                        if(tl>mlil)
+                        {
+                            int cr = 0;
+                            int mr = min(max(0, tl-mlil), mlil);
+                            for(cr=0;cr<mr;cr++) { restt[cr] = showt[cr+mlil]; }
+                            if(cr>0) { restt[cr+1] = '\0'; showt[mlil] = '\0'; }
+                        }
+                    }
                     draw_text(showt, 1*FONTH/2, VIRTH - FONTH/2);
-					draw_text(restt, 3*FONTH/2, VIRTH + FONTH/2);
+                    draw_text(restt, 3*FONTH/2, VIRTH + FONTH/2);
                 }
                 //if(mapstats[0]) draw_text(mapstats, x, y+ys+5*FONTH/2);
             }
@@ -792,7 +792,7 @@ void *addmenu(const char *name, const char *title, bool allowinput, void (__cdec
     menu.keyfunc = keyfunc;
     menu.initaction = NULL;
     menu.usefont = NULL;
-	menu.allowblink = false;
+    menu.allowblink = false;
     menu.dirlist = NULL;
     menu.forwardkeys = forwardkeys;
     lastmenu = &menu;
@@ -872,9 +872,9 @@ void setmenufont(char *usefont)
 
 void setmenublink(int truth)
 {
-	if(!lastmenu) return;
-	gmenu &m = *(gmenu *)lastmenu;
-	m.allowblink = truth != 0;
+    if(!lastmenu) return;
+    gmenu &m = *(gmenu *)lastmenu;
+    m.allowblink = truth != 0;
 }
 
 void menuinit(char *initaction)
@@ -923,8 +923,8 @@ void menuitemmapload(char *name, char *text)
 {
     if(!lastmenu) return;
     string caction;
-	if(!text || text[0]=='\0') formatstring(caction)("map %s", name);
-	else formatstring(caction)("%s", text);
+    if(!text || text[0]=='\0') formatstring(caction)("map %s", name);
+    else formatstring(caction)("%s", text);
     lastmenu->items.add(new mitemmapload(lastmenu, newstring(name), newstring(name), newstring(caction), NULL, NULL, NULL));
 }
 
@@ -1138,7 +1138,7 @@ void rendermenumdl()
     glRotatef(90, -1, 0, 0);
     glScalef(1, -1, 1);
 
-	bool isplayermodel = !strncmp(m.mdl, "playermodels", strlen("playermodels"));
+    bool isplayermodel = !strncmp(m.mdl, "playermodels", strlen("playermodels"));
 
     vec pos;
     if(isplayermodel) pos = vec(2.0f, 1.2f, -0.4f);
@@ -1159,7 +1159,7 @@ void rendermenumdl()
         a[0].name = "weapons/subgun/world";
         a[0].tag = "tag_weapon";
     }
-	rendermodel(isplayermodel ? "playermodels" : m.mdl, m.anim|ANIM_DYNALLOC, tex, -1, pos, yaw, 0, 0, 0, NULL, a, m.scale ? m.scale/25.0f : 1.0f);
+    rendermodel(isplayermodel ? "playermodels" : m.mdl, m.anim|ANIM_DYNALLOC, tex, -1, pos, yaw, 0, 0, 0, NULL, a, m.scale ? m.scale/25.0f : 1.0f);
 
     glPopMatrix();
 }
@@ -1248,9 +1248,9 @@ void gmenu::init()
 
 void gmenu::render()
 {
-	extern bool ignoreblinkingbit;
+    extern bool ignoreblinkingbit;
     if(usefont) pushfont(usefont);
-	if(!allowblink) ignoreblinkingbit = true; 
+    if(!allowblink) ignoreblinkingbit = true; 
     const char *t = title;
     if(!t)
     {
@@ -1352,7 +1352,7 @@ void gmenu::render()
 
     }
     if(usefont) popfont(); // setfont("default");
-	ignoreblinkingbit = false;
+    ignoreblinkingbit = false;
 }
 
 void gmenu::renderbg(int x1, int y1, int x2, int y2, bool border)

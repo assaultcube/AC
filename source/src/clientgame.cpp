@@ -18,30 +18,30 @@ COMMAND(mode, ARG_1INT);
 
 void setbottimeout(int m, int t)
 {
-	if(m==1 || m==2)
-	{
-		if(t>0 && t<61)
-		{
-			switch(m)
-			{
-				case 1: 
-				{
-					extern int botmatch_dm_minremain;
-					botmatch_dm_minremain = t;
-					break;
-				}
-				case 2:
-				{
-					extern int botmatch_tm_minremain;
-					botmatch_tm_minremain = t;
-					break;
-				}
-				default: break;
-			}
-		}
-		else conoutf(_("\f3Error: \f5valid range for time is 1-60"));
-	}
-	else conoutf(_("\f3Error: \f5mode needs to be 1 for FFA or 2 for team modes"));
+    if(m==1 || m==2)
+    {
+        if(t>0 && t<61)
+        {
+            switch(m)
+            {
+                case 1: 
+                {
+                    extern int botmatch_dm_minremain;
+                    botmatch_dm_minremain = t;
+                    break;
+                }
+                case 2:
+                {
+                    extern int botmatch_tm_minremain;
+                    botmatch_tm_minremain = t;
+                    break;
+                }
+                default: break;
+            }
+        }
+        else conoutf(_("\f3Error: \f5valid range for time is 1-60"));
+    }
+    else conoutf(_("\f3Error: \f5mode needs to be 1 for FFA or 2 for team modes"));
 }
 COMMAND(setbottimeout, ARG_2INT);
 
@@ -66,8 +66,8 @@ extern bool sendmapidenttoserver;
 
 void setskin(playerent *pl, int skin, int team)
 {
-	if(!pl) return;
-	pl->setskin(team, skin);
+    if(!pl) return;
+    pl->setskin(team, skin);
 }
 
 extern char *global_name;
@@ -203,7 +203,7 @@ void newname(const char *name)
     }
     else conoutf(_("your name is: %s"), player1->name);
     //alias(_("curname"), player1->name); // WTF? stef went crazy - this isn't something to translate either.
-	alias("curname", player1->name);
+    alias("curname", player1->name);
 }
 
 int teamatoi(const char *name)
@@ -240,12 +240,12 @@ void benchme()
 
 int _setskin(char *s, int t)
 {
-	if(s && *s)
+    if(s && *s)
     {
         setskin(player1, atoi(s), t);
         addmsg(SV_SWITCHSKIN, "rii", player1->skin(0), player1->skin(1));
     }
-	return player1->skin(t);
+    return player1->skin(t);
 }
 
 ICOMMANDF(skin_cla, ARG_1EST, (char *s) { return _setskin(s, TEAM_CLA); });
@@ -438,7 +438,7 @@ void spawnstate(playerent *d)              // reset player state not persistent 
         setscope(false);
         setburst(false);
     }
-	if(d->deaths==0) d->resetstats();
+    if(d->deaths==0) d->resetstats();
 }
 
 playerent *newplayerent()                 // create a new blank player
@@ -490,8 +490,8 @@ void movelocalplayer()
     {
         if(lastmillis-player1->lastpain<2000)
         {
-	        player1->move = player1->strafe = 0;
-	        moveplayer(player1, 10, false);
+            player1->move = player1->strafe = 0;
+            moveplayer(player1, 10, false);
         }
     }
     else if(!intermission)
@@ -632,14 +632,14 @@ COMMANDN(resetsleeps, resetsleep_, ARG_NONE);
 void updateworld(int curtime, int lastmillis)        // main game update loop
 {
     // process command sleeps
-	loopv(sleeps)
+    loopv(sleeps)
     {
         if(lastmillis - sleeps[i].millis >= sleeps[i].wait)
         {
             char *cmd = sleeps[i].cmd;
             sleeps[i].cmd = NULL;
-	        execute(cmd);
-			delete[] cmd;
+            execute(cmd);
+            delete[] cmd;
             if(sleeps[i].cmd || !sleeps.inrange(i)) break;
             sleeps.remove(i--);
         }
@@ -834,29 +834,29 @@ VARP(hitsound, 0, 0, 1);
 // client kill messages
 void setkillmessage(int gun, bool gib, const char *message)
 {
-	if(!message || !*message)
-	{
-		result(killmessage(gun, gib));
-		return;
-	}
+    if(!message || !*message)
+    {
+        result(killmessage(gun, gib));
+        return;
+    }
 
-	if(gun < 0 || gun >= NUMGUNS)
-	{
-		conoutf("invalid gun specified");
-		return;
-	}
-	
-	copystring(killmessages[gib?1:0][gun], message, sizeof(killmessages[gib?1:0][gun]));
+    if(gun < 0 || gun >= NUMGUNS)
+    {
+        conoutf("invalid gun specified");
+        return;
+    }
+    
+    copystring(killmessages[gib?1:0][gun], message, sizeof(killmessages[gib?1:0][gun]));
 }
 
 void fragmessage(const char *gun, const char *message)
 {
-	setkillmessage(atoi(gun), false, message);
+    setkillmessage(atoi(gun), false, message);
 }
 
 void gibmessage(const char *gun, const char *message)
 {
-	setkillmessage(atoi(gun), true, message);
+    setkillmessage(atoi(gun), true, message);
 }
 
 COMMAND(fragmessage, ARG_2STR);
@@ -881,9 +881,9 @@ void writekillmsgcfg()
 
 void dodamage(int damage, playerent *pl, playerent *actor, int gun, bool gib, bool local)
 {
-	if(pl->state != CS_ALIVE || intermission) return;
-	pl->respawnoffset = pl->lastpain = lastmillis;
-	// could the author of the FIXME below please elaborate what's to fix?! (ft:2011mar28)
+    if(pl->state != CS_ALIVE || intermission) return;
+    pl->respawnoffset = pl->lastpain = lastmillis;
+    // could the author of the FIXME below please elaborate what's to fix?! (ft:2011mar28)
     // I suppose someone wanted to play the hitsound for player1 or spectated player (lucas:2011may22)
     playerent *h = player1->isspectating() && player1->followplayercn >= 0 && (player1->spectatemode == SM_FOLLOW1ST || player1->spectatemode == SM_FOLLOW3RD || player1->spectatemode == SM_FOLLOW3RD_TRANSPARENT) ? getclient(player1->followplayercn) : NULL;
     if(!h) h = player1;
@@ -932,7 +932,7 @@ void dokill(playerent *pl, playerent *act, bool gib, int gun)
     string pname, aname, death;
     copystring(pname, pl==player1 ? "you" : colorname(pl));
     copystring(aname, act==player1 ? "you" : colorname(act));
-	copystring(death, killmessage(gun, gib));
+    copystring(death, killmessage(gun, gib));
     void (*outf)(const char *s, ...) = (pl == player1 || act == player1) ? hudoutf : conoutf;
 
     if(pl==act)
@@ -1039,7 +1039,7 @@ void silenttimeupdate(int milliscur, int millismax)
 
 void timeupdate(int milliscur, int millismax)
 {
-	bool display = lastmillis - lastgametimeupdate > 1000; // avoid double-output
+    bool display = lastmillis - lastgametimeupdate > 1000; // avoid double-output
 
     silenttimeupdate(milliscur, millismax);
    
@@ -1456,11 +1456,11 @@ void callvote(int type, const char *arg1, const char *arg2)
                 break;
         }
         sendpackettoserv(1, p.finalize());
-		if(identexists("onCallVote"))
-		{
-			defformatstring(runas)("%s %d %d [%s] [%s]", "onCallVote", type, -1, arg1, arg2);
-			execute(runas);
-		}
+        if(identexists("onCallVote"))
+        {
+            defformatstring(runas)("%s %d %d [%s] [%s]", "onCallVote", type, -1, arg1, arg2);
+            execute(runas);
+        }
     }
     else conoutf(_("%c3invalid vote"), CC);
 }
@@ -1696,15 +1696,15 @@ playerent *updatefollowplayer(int shiftdirection)
 
 void setfollowplayer(int cn)
 {
-	// silently ignores invalid player-cn value passed
-	if(players.inrange(cn))
-	{
-		if(!(m_teammode && player1->team != TEAM_SPECT && !watchingdemo && team_base(players[cn]->team) != team_base(player1->team)))
-		{
-		    if(player1->followplayercn != players[cn]->clientnum) addmsg(SV_SPECTCN, "ri", cn);
-			player1->followplayercn = cn;
-		}
-	}
+    // silently ignores invalid player-cn value passed
+    if(players.inrange(cn))
+    {
+        if(!(m_teammode && player1->team != TEAM_SPECT && !watchingdemo && team_base(players[cn]->team) != team_base(player1->team)))
+        {
+            if(player1->followplayercn != players[cn]->clientnum) addmsg(SV_SPECTCN, "ri", cn);
+            player1->followplayercn = cn;
+        }
+    }
 }
 
 // set new spect mode
