@@ -480,7 +480,7 @@ void render_particles(int time, int typemask)
             }
             else
             {
-			    if(pt.gr) p->o.z -= ((lastmillis-p->millis)/3.0f)*time/(pt.gr*10000);
+                if(pt.gr) p->o.z -= ((lastmillis-p->millis)/3.0f)*time/(pt.gr*10000);
                 if(pt.type==PT_PART || pt.type==PT_BLOOD)
                 {
                     p->o.add(vec(p->d).mul(time/20000.0f));

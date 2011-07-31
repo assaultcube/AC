@@ -80,22 +80,22 @@ COMMAND(showedithide, ARG_NONE);
 void setedithide(char *text) // FIXME: human indexing inside
 {
     eh_ents.setsize(0);
-	if(text && text[0] != '\0')
-	{
-		const char *s = strtok(text, " ");
-		do
-		{
-			bool k = false;
-			int sn = -1;
-			int tn = atoi(s);
-			loopi(MAXENTTYPES) if(!strcmp(entnames[i], s)) sn = i;
-			if(sn!=-1) { loopv(eh_ents) { if(eh_ents[i]==sn) { k = true; } } }
-			else sn = tn;
-			if(!k) { if(sn>0 && sn<MAXENTTYPES) eh_ents.add(sn); }
-			s = strtok(NULL, " ");
-		}
-		while(s);
-	}
+    if(text && text[0] != '\0')
+    {
+        const char *s = strtok(text, " ");
+        do
+        {
+            bool k = false;
+            int sn = -1;
+            int tn = atoi(s);
+            loopi(MAXENTTYPES) if(!strcmp(entnames[i], s)) sn = i;
+            if(sn!=-1) { loopv(eh_ents) { if(eh_ents[i]==sn) { k = true; } } }
+            else sn = tn;
+            if(!k) { if(sn>0 && sn<MAXENTTYPES) eh_ents.add(sn); }
+            s = strtok(NULL, " ");
+        }
+        while(s);
+    }
 }
 COMMAND(setedithide, ARG_CONC);
 
@@ -500,34 +500,34 @@ void tryflagdrop(bool manual)
 
 void flagreturn(int fln)
 {
-	flaginfo &f = flaginfos[fln];
-	f.flagent->spawned = false;
-	f.ack = false;
-	addmsg(SV_FLAGACTION, "rii", FA_RETURN, f.team);
+    flaginfo &f = flaginfos[fln];
+    f.flagent->spawned = false;
+    f.ack = false;
+    addmsg(SV_FLAGACTION, "rii", FA_RETURN, f.team);
 }
 
 void flagscore(int fln)
 {
-	flaginfo &f = flaginfos[fln];
-	f.ack = false;
-	addmsg(SV_FLAGACTION, "rii", FA_SCORE, f.team);
+    flaginfo &f = flaginfos[fln];
+    f.ack = false;
+    addmsg(SV_FLAGACTION, "rii", FA_SCORE, f.team);
 }
 
 // flag ent actions from the net
 
 void flagstolen(int flag, int act)
 {
-	playerent *actor = act == getclientnum() ? player1 : getclient(act);
-	flaginfo &f = flaginfos[flag];
-	f.actor = actor; // could be NULL if we just connected
-	f.actor_cn = act;
-	f.flagent->spawned = false;
-	f.ack = true;
+    playerent *actor = act == getclientnum() ? player1 : getclient(act);
+    flaginfo &f = flaginfos[flag];
+    f.actor = actor; // could be NULL if we just connected
+    f.actor_cn = act;
+    f.flagent->spawned = false;
+    f.ack = true;
 }
 
 void flagdropped(int flag, float x, float y, float z)
 {
-	flaginfo &f = flaginfos[flag];
+    flaginfo &f = flaginfos[flag];
     if(OUTBORD(x, y)) return; // valid pos
     bounceent p;
     p.rotspeed = 0.0f;
@@ -555,23 +555,23 @@ void flagdropped(int flag, float x, float y, float z)
     f.pos.y = round(p.o.y);
     f.pos.z = round(p.o.z);
     if(f.pos.z < hdr.waterlevel) f.pos.z = (short) hdr.waterlevel;
-	f.flagent->spawned = true;
-	f.ack = true;
+    f.flagent->spawned = true;
+    f.ack = true;
 }
 
 void flaginbase(int flag)
 {
-	flaginfo &f = flaginfos[flag];
-	f.actor = NULL; f.actor_cn = -1;
+    flaginfo &f = flaginfos[flag];
+    f.actor = NULL; f.actor_cn = -1;
     f.pos = vec(f.flagent->x, f.flagent->y, f.flagent->z);
-	f.flagent->spawned = true;
-	f.ack = true;
+    f.flagent->spawned = true;
+    f.ack = true;
 }
 
 void flagidle(int flag)
 {
     flaginbase(flag);
-	flaginfos[flag].flagent->spawned = false;
+    flaginfos[flag].flagent->spawned = false;
 }
 
 void entstats(void)

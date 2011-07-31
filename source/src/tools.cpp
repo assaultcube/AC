@@ -74,8 +74,8 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
         entposs[i * 3] = e.x; entposs[i * 3 + 1] = e.y; entposs[i * 3 + 2] = e.z + e.attr1;
     }
     DELETEA(testlayout);
-	int minfloor = 0;
-	int maxceil = 0;
+    int minfloor = 0;
+    int maxceil = 0;
     if(s.hdr.sfactor <= LARGEST_FACTOR && s.hdr.sfactor >= SMALLEST_FACTOR)
     {
         testlayout_factor = s.hdr.sfactor;
@@ -113,8 +113,8 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
                     if(floor >= ceil && ceil > -128) floor = ceil - 1;  // for pre 12_13
                     diff = ceil - floor;
                     if(type == FHF) floor = -128;
-					if(floor!=-128 && floor<minfloor) minfloor = floor;
-					if(ceil>maxceil) maxceil = ceil;
+                    if(floor!=-128 && floor<minfloor) minfloor = floor;
+                    if(ceil>maxceil) maxceil = ceil;
                     f->getchar(); f->getchar();
                     if(s.hdr.version>=2) f->getchar();
                     if(s.hdr.version>=5) f->getchar();
@@ -164,8 +164,8 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
                 if(cwy > mapdims[3]) mapdims[3] = cwy;
             }
             loopk(2) mapdims[k+4] = mapdims[k+2] - mapdims[k];
-			mapdims[6] = minfloor;
-			mapdims[7] = maxceil;
+            mapdims[6] = minfloor;
+            mapdims[7] = maxceil;
         }
     }
     delete f;

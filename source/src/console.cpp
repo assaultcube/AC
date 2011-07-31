@@ -313,11 +313,11 @@ void pasteconsole(char *dst)
     concatstring(dst, cb);
     GlobalUnlock(cb);
     CloseClipboard();
-	#elif defined(__APPLE__)
-	extern void mac_pasteconsole(char *commandbuf);
+    #elif defined(__APPLE__)
+    extern void mac_pasteconsole(char *commandbuf);
 
-	mac_pasteconsole(dst);
-	#else
+    mac_pasteconsole(dst);
+    #else
     SDL_SysWMinfo wminfo;
     SDL_VERSION(&wminfo.version);
     wminfo.subsystem = SDL_SYSWM_X11;

@@ -23,7 +23,7 @@ source::~source()
 void source::lock()
 {
     locked = true;
-	DEBUG("source locked, " << lastmillis);
+    DEBUG("source locked, " << lastmillis);
 }
 
 void source::unlock()
@@ -32,7 +32,7 @@ void source::unlock()
     owner = NULL;
     stop();
     buffer(0);
-	DEBUG("source unlocked, " << lastmillis);
+    DEBUG("source unlocked, " << lastmillis);
 }
 
 void source::reset()
@@ -94,10 +94,10 @@ bool source::delete_()
 bool source::buffer(ALuint buf_id)
 {
     alclearerr();
-#ifdef __APPLE__		// weird bug
+#ifdef __APPLE__    // weird bug
     if (buf_id)
 #endif
-	    alSourcei(id, AL_BUFFER, buf_id);
+        alSourcei(id, AL_BUFFER, buf_id);
 
     return !ALERR;
 }
@@ -378,20 +378,20 @@ void alclearerr()
 
 bool alerr(bool msg, int line)
 {
-	ALenum er = alGetError();
-	if(er && msg)
-	{
-		const char *desc = "unknown";
-		switch(er)
-		{
-			case AL_INVALID_NAME: desc = "invalid name"; break;
-			case AL_INVALID_ENUM: desc = "invalid enum"; break;
-			case AL_INVALID_VALUE: desc = "invalid value"; break;
-			case AL_INVALID_OPERATION: desc = "invalid operation"; break;
-			case AL_OUT_OF_MEMORY: desc = "out of memory"; break;
-		}
-		if(line) conoutf("\f3OpenAL Error (%X): %s, line %d", er, desc, line);
-		else conoutf("\f3OpenAL Error (%X): %s", er, desc);
-	}
+    ALenum er = alGetError();
+    if(er && msg)
+    {
+        const char *desc = "unknown";
+        switch(er)
+        {
+            case AL_INVALID_NAME: desc = "invalid name"; break;
+            case AL_INVALID_ENUM: desc = "invalid enum"; break;
+            case AL_INVALID_VALUE: desc = "invalid value"; break;
+            case AL_INVALID_OPERATION: desc = "invalid operation"; break;
+            case AL_OUT_OF_MEMORY: desc = "out of memory"; break;
+        }
+        if(line) conoutf("\f3OpenAL Error (%X): %s, line %d", er, desc, line);
+        else conoutf("\f3OpenAL Error (%X): %s", er, desc);
+    }
     return er > 0;
 }

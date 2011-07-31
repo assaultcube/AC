@@ -511,11 +511,11 @@ const char *getDemoFilename(int gmode, int mplay, int mdrop, int tstamp, char *s
                         case 'S': formatstring(cfspp)("%d", mplay); break;
                         case 'w':
                         {
-                        	time_t t = tstamp;
-                        	struct tm * timeinfo;
-                        	timeinfo = demotimelocal ? localtime(&t) : gmtime (&t);
-                        	strftime(cfspp, sizeof(string) - 1, demotimestampformat, timeinfo);
-                        	break;
+                            time_t t = tstamp;
+                            struct tm * timeinfo;
+                            timeinfo = demotimelocal ? localtime(&t) : gmtime (&t);
+                            strftime(cfspp, sizeof(string) - 1, demotimestampformat, timeinfo);
+                            break;
                         }
                         default: logline(ACLOG_INFO, "bad formatstring: demonameformat @ %d", cc); cc-=1; break; // don't drop the bad char
                     }
@@ -1363,11 +1363,11 @@ int numplayers()
 int spawntime(int type)
 {
     int np = numplayers();
-    np = np<3 ? 4 : (np>4 ? 2 : 3);	// Some spawn times are dependent on the number of players.
+    np = np<3 ? 4 : (np>4 ? 2 : 3);    // Some spawn times are dependent on the number of players.
     int sec = 0;
     switch(type)
     {
-	// Please update ./ac_website/htdocs/docs/introduction.html if these times change.
+    // Please update ./ac_website/htdocs/docs/introduction.html if these times change.
         case I_CLIPS:
         case I_AMMO: sec = np*2; break;
         case I_GRENADE: sec = np + 5; break;
@@ -2351,9 +2351,9 @@ void authsucceeded(uint id)
     client *cl = findauth(id);
     if(!cl) return;
     cl->authreq = 0;
-	logline(ACLOG_INFO, "player authenticated: %s", cl->name);
-	defformatstring(auth4u)("player authenticated: %s", cl->name);
-	sendf(-1, 1, "ris", SV_SERVMSG, auth4u);
+    logline(ACLOG_INFO, "player authenticated: %s", cl->name);
+    defformatstring(auth4u)("player authenticated: %s", cl->name);
+    sendf(-1, 1, "ris", SV_SERVMSG, auth4u);
     //setmaster(cl, true, "", ci->authname);//TODO? compare to sauerbraten
 }
 
@@ -3470,7 +3470,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     // description: writes a custom string to the server log
                     // access:      requires admin privileges
                     // usage:       /serverextension driAn::writelog "your log message here.."
-                    // note:	    There is a 49 character limit. The server will ignore messages with 50+ characters.
+                    // note:        There is a 49 character limit. The server will ignore messages with 50+ characters.
 
                     getstring(text, p, n);
                     if(valid_client(sender) && clients[sender]->role==CR_ADMIN)

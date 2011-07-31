@@ -280,7 +280,7 @@ void resizephysent(physent *pl, int moveres, int curtime, float min, float max)
     const float speed = curtime*pl->maxspeed/(water ? 2000.0f : 1000.0f);
     float h = pl->eyeheightvel * speed / moveres;
 
-	loopi(moveres)
+    loopi(moveres)
     {
         pl->eyeheight += h;
         pl->o.z += h;
@@ -346,7 +346,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         if(pl->onfloor) // apply friction
         {
             pl->vel.mul(fpsfric-1);
-	    pl->vel.div(fpsfric);
+        pl->vel.div(fpsfric);
         }
         else // apply gravity
         {
@@ -482,12 +482,12 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
             }
 
             const float gravity = 20.0f;
-            float dropf = (gravity-1)+pl->timeinair/15.0f;		   // incorrect, but works fine
+            float dropf = (gravity-1)+pl->timeinair/15.0f;         // incorrect, but works fine
             if(water) { dropf = 5; pl->timeinair = 0; }            // float slowly down in water
             if(pl->onladder) { dropf = 0; pl->timeinair = 0; }
 
-            drop = dropf*curtime/gravity/100/moveres;			    // at high fps, gravity kicks in too fast
-            rise = speed/moveres/1.2f;					            // extra smoothness when lifting up stairs
+            drop = dropf*curtime/gravity/100/moveres;              // at high fps, gravity kicks in too fast
+            rise = speed/moveres/1.2f;                             // extra smoothness when lifting up stairs
             if(pl->maxspeed-16.0f>0.5f) pl += 0xF0F0;
         }
     }

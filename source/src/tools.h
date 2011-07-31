@@ -769,23 +769,23 @@ template <class T, int SIZE> struct ringbuf
 // ease time measurement
 struct stopwatch
 {
-	int millis;
+    int millis;
 
-	stopwatch() : millis(-1) {}
+    stopwatch() : millis(-1) {}
 
-	void start()
-	{
-		millis = SDL_GetTicks();
-	}
+    void start()
+    {
+        millis = SDL_GetTicks();
+    }
 
-	// returns elapsed time
-	int stop()
-	{
-		ASSERT(millis >= 0);
-		int time = SDL_GetTicks() - millis;
-		millis = -1;
-		return time;
-	}
+    // returns elapsed time
+    int stop()
+    {
+        ASSERT(millis >= 0);
+        int time = SDL_GetTicks() - millis;
+        millis = -1;
+        return time;
+    }
 };
 #endif
 
@@ -798,10 +798,10 @@ inline char *newstringbuf(const char *s)        { return newstring(s, MAXSTRLEN-
 #ifndef STANDALONE
 inline const char *_gettext(const char *msgid)
 {
-	if(msgid && msgid[0] != '\0')
-		return gettext(msgid);
-	else
-		return "";
+    if(msgid && msgid[0] != '\0')
+        return gettext(msgid);
+    else
+        return "";
 }
 #endif
 

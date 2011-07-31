@@ -13,7 +13,7 @@ struct weaponmove
     vec pos;
     int anim, basetime;
     
-	weaponmove() : k_rot(0), kick(0), anim(0), basetime(0) { pos.x = pos.y = pos.z = 0.0f; }
+    weaponmove() : k_rot(0), kick(0), anim(0), basetime(0) { pos.x = pos.y = pos.z = 0.0f; }
 
     void calcmove(vec aimdir, int lastaction, playerent *p)
     {

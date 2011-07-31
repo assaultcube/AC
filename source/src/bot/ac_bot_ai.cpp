@@ -35,8 +35,8 @@ weaponinfo_s WeaponInfoTable[MAX_WEAPONS] =
 
 bool CACBot::ChoosePreferredWeapon()
 {
-	short bestWeapon = m_pMyEnt->gunselect;
-	short bestWeaponScore = 0;
+    short bestWeapon = m_pMyEnt->gunselect;
+    short bestWeaponScore = 0;
 
     short sWeaponScore;
     float flDist = GetDistance(m_pMyEnt->enemy->o);
@@ -59,7 +59,7 @@ bool CACBot::ChoosePreferredWeapon()
         if((flDist >= WeaponInfoTable[i].flMinDesiredDistance) &&
             (flDist <= WeaponInfoTable[i].flMaxDesiredDistance))
         {
-			    // In desired range for this weapon
+                // In desired range for this weapon
             sWeaponScore += 5; // Increase score much
 
             if(i == GUN_PISTOL || WeaponInfoTable[i].eWeaponType == TYPE_MELEE)
@@ -118,10 +118,10 @@ bool CACBot::ChoosePreferredWeapon()
         }
 
         if(sWeaponScore > bestWeaponScore)
-		{
-		    bestWeaponScore = sWeaponScore;
-			bestWeapon = i;
-		}
+        {
+            bestWeaponScore = sWeaponScore;
+            bestWeapon = i;
+        }
     }
 
     if (WeaponInfoTable[m_pMyEnt->gunselect].eWeaponType == TYPE_ROCKET)
@@ -180,28 +180,28 @@ entity *CACBot::SearchForEnts(bool bUseWPs, float flRange, float flMaxHeight)
                 sMaxAmmo = ammostats[GUN_PISTOL].max;
                 bInteresting = (m_pMyEnt->ammo[GUN_PISTOL]<sMaxAmmo);
                 sAmmo = m_pMyEnt->ammo[GUN_PISTOL];
-            break;
+                break;
             case I_AMMO:
                 sMaxAmmo = ammostats[m_pMyEnt->primary].max;
                 bInteresting = (m_pMyEnt->ammo[m_pMyEnt->primary]<sMaxAmmo);
                 sAmmo = m_pMyEnt->ammo[m_pMyEnt->primary];
-            break;
-		    case I_GRENADE:
+                break;
+            case I_GRENADE:
                 sMaxAmmo = ammostats[GUN_GRENADE].max;
                 bInteresting = (m_pMyEnt->mag[GUN_GRENADE]<sMaxAmmo);
                 sAmmo = -1;
-            break;
-		    case I_HEALTH:
+                break;
+            case I_HEALTH:
                 sMaxAmmo = powerupstats[0].max;
-			    bInteresting = (m_pMyEnt->health < sMaxAmmo);
-			    sAmmo = m_pMyEnt->health;
-			break;
+                bInteresting = (m_pMyEnt->health < sMaxAmmo);
+                sAmmo = m_pMyEnt->health;
+                break;
             case I_HELMET:
-		    case I_ARMOUR:
-			   sMaxAmmo = powerupstats[I_ARMOUR-I_HEALTH].max;
-			   bInteresting = (m_pMyEnt->armour < sMaxAmmo);
-			   sAmmo = m_pMyEnt->armour;
-			   break;
+            case I_ARMOUR:
+               sMaxAmmo = powerupstats[I_ARMOUR-I_HEALTH].max;
+               bInteresting = (m_pMyEnt->armour < sMaxAmmo);
+               sAmmo = m_pMyEnt->armour;
+               break;
             case I_AKIMBO:
                bInteresting = !m_pMyEnt->akimbo;
                sAmmo = -1;

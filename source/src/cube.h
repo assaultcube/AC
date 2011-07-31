@@ -50,7 +50,7 @@ extern int hwtexsize, hwmaxaniso;
 extern int numspawn[3], maploaded, numflagspawn[2];
 extern int verbose;
 
-#include "protos.h"				// external function decls
+#include "protos.h"                     // external function decls
 
 #define AC_VERSION 1111
 #define AC_MASTER_URI "assault.cubers.net"

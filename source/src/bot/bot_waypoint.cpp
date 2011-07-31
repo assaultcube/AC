@@ -277,7 +277,7 @@ bool CWaypointClass::LoadWaypoints()
      
      conoutf("Waypoints for map %s loaded", (m_szMapName));
 
-	 testx = m_Waypoints[1][1].pNodeList;
+     testx = m_Waypoints[1][1].pNodeList;
 
      return true;
 }
@@ -1934,7 +1934,7 @@ COMMAND(wpload, ARG_NONE);
 
 void wpclear(void)
 {
-	WaypointClass.Clear();
+    WaypointClass.Clear();
 }
 
 COMMAND(wpclear, ARG_NONE);

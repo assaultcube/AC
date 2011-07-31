@@ -745,12 +745,12 @@ int CBot::GetShootDelay()
 void CBot::CheckReload() // reload gun if no enemies are around
 {
     if(m_pMyEnt->mag[m_pMyEnt->weaponsel->type] >= WeaponInfoTable[m_pMyEnt->weaponsel->type].sMinDesiredAmmo) return; // do not reload if mindesiredammo is satisfied
-	if(m_pMyEnt->enemy && m_pMyEnt->mag[m_pMyEnt->weaponsel->type])
+    if(m_pMyEnt->enemy && m_pMyEnt->mag[m_pMyEnt->weaponsel->type])
     {
           return; // ignore the enemy, if no ammo in mag.
     }
-	tryreload(m_pMyEnt);
-	return;
+    tryreload(m_pMyEnt);
+    return;
 }
 
 void CBot::CheckScope()
@@ -813,7 +813,7 @@ void CBot::MainAI()
     }
     else if (CheckHunt() && HuntEnemy())
     {
-		CheckReload();
+        CheckReload();
         CheckScope();
         AddDebugText("Hunting to %s", m_pHuntTarget->name);
         m_eCurrentBotState = STATE_HUNT;
@@ -821,7 +821,7 @@ void CBot::MainAI()
     // Heading to an interesting entity(ammo, armour etc)
     else if (CheckItems())
     {
-		CheckReload();
+        CheckReload();
         AddDebugText("has ent");
         m_eCurrentBotState = STATE_ENT;
     }
@@ -833,7 +833,7 @@ void CBot::MainAI()
     }
     else // Normal navigation
     {
-		  CheckReload();
+        CheckReload();
         if (m_eCurrentBotState != STATE_NORMAL)
         {
             m_vGoal = g_vecZero;
@@ -1954,9 +1954,9 @@ void CBot::HearSound(int n, vec *o)
     if (m_pMyEnt->enemy) return;
 
 
-	 //fixmebot
+    //fixmebot
     // Is the sound not interesting?
-	 if(n == S_DIE1 || n == S_DIE2) return;
+    if(n == S_DIE1 || n == S_DIE2) return;
 
     int soundvol = m_pBotSkill->iMaxHearVolume -
                        (int)(GetDistance(*o)*3*m_pBotSkill->iMaxHearVolume/255);

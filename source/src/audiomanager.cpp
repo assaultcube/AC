@@ -372,7 +372,7 @@ VARP(mapsoundrefresh, 0, 10, 1000);
 
 void audiomanager::mutesound(int n, int off)
 {
-	bool mute = (off == 0);
+    bool mute = (off == 0);
     if(!gamesounds.inrange(n))
     {
         conoutf("\f3could not %s sound #%d", mute ? "silence" : "unmute", n);
@@ -399,7 +399,7 @@ void audiomanager::writesoundconfig(stream *f)
 void voicecom(char *sound, char *text)
 {
     if(!sound || !sound[0]) return;
-	if(!text || !text[0]) return;
+    if(!text || !text[0]) return;
     static int last = 0;
     if(!last || lastmillis-last > 2000)
     {
@@ -751,30 +751,30 @@ audiomanager audiomgr;
 
 COMMANDF(sound, ARG_1INT, (int n)
 {
-	audiomgr.playsound(n);
+    audiomgr.playsound(n);
 });
 
 COMMANDF(applymapsoundchanges, ARG_NONE, (){
-	audiomgr.applymapsoundchanges();
+    audiomgr.applymapsoundchanges();
 });
 
 COMMANDF(unmuteallsounds, ARG_NONE, () {
-	audiomgr.unmuteallsounds();
+    audiomgr.unmuteallsounds();
 });
 
 COMMANDF(mutesound, ARG_2INT, (int n, int off)
 {
-	audiomgr.mutesound(n, off);
+    audiomgr.mutesound(n, off);
 });
 
 ICOMMANDF(soundmuted, ARG_1EXP, (int n)
 {
-	return audiomgr.soundmuted(n);
+    return audiomgr.soundmuted(n);
 });
 
 COMMANDF(mapsoundreset, ARG_NONE, ()
 {
-	audiomgr.mapsoundreset();
+    audiomgr.mapsoundreset();
 });
 
 VARF(soundchannels, 4, 32, 1024, audiomgr.setchannels(soundchannels); );
@@ -783,26 +783,26 @@ VARFP(soundvol, 0, 128, 255, audiomgr.setlistenervol(soundvol); );
 
 COMMANDF(registersound, ARG_4STR, (char *name, char *vol, char *loop, char *audibleradius)
 {
-	audiomgr.addsound(name, atoi(vol), -1, atoi(loop) != 0, gamesounds, true, atoi(audibleradius));
+    audiomgr.addsound(name, atoi(vol), -1, atoi(loop) != 0, gamesounds, true, atoi(audibleradius));
 });
 
 COMMANDF(mapsound, ARG_2STR, (char *name, char *maxuses)
 {
-	audiomgr.addsound(name, 255, atoi(maxuses), true, mapsounds, false, 0);
+    audiomgr.addsound(name, 255, atoi(maxuses), true, mapsounds, false, 0);
 });
 
 COMMANDF(registermusic, ARG_1STR, (char *name)
 {
-	audiomgr.registermusic(name);
+    audiomgr.registermusic(name);
 });
 
 COMMANDF(musicpreload, ARG_1INT, (int id)
 {
-	audiomgr.musicpreload(id);
+    audiomgr.musicpreload(id);
 });
 
 COMMANDF(music, ARG_3STR, (char *name, char *millis, char *cmd)
 {
-	audiomgr.music(name, millis, cmd);
+    audiomgr.music(name, millis, cmd);
 });
 

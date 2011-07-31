@@ -333,8 +333,8 @@ void servermsinit(const char *master, const char *ip, int infoport, bool listen)
     copystring(mastername, master);
     disconnectmaster();
 
-	if(listen)
-	{
+    if(listen)
+    {
         ENetAddress address = { ENET_HOST_ANY, infoport };
         if(*ip)
         {
@@ -358,5 +358,5 @@ void servermsinit(const char *master, const char *ip, int infoport, bool listen)
         }
         if(lansock == ENET_SOCKET_NULL) logline(ACLOG_WARNING, "could not create LAN server info socket");
         else enet_socket_set_option(lansock, ENET_SOCKOPT_NONBLOCK, 1);
-	}
+    }
 }

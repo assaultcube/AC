@@ -679,11 +679,11 @@ int sicompare(serverinfo **ap, serverinfo **bp)
             if(a->numplayers > b->numplayers) return -dir;
             break;
         case SBS_MAXPL: // maxplayers
-        	if(a->maxclients < b->maxclients) return dir;
+            if(a->maxclients < b->maxclients) return dir;
             if(a->maxclients > b->maxclients) return -dir;
             break;
         case SBS_MINREM: // minutes remaining
-        	if(a->minremain < b->minremain) return dir;
+            if(a->minremain < b->minremain) return dir;
             if(a->minremain > b->minremain) return -dir;
             break;
         case SBS_DESC: // description
@@ -693,7 +693,7 @@ int sicompare(serverinfo **ap, serverinfo **bp)
             filtertext(bd, b->sdesc);
             if(!ad[0] && bd[0]) return dir;
             if(ad[0] && !bd[0]) return -dir;
-			int mdir = dir * strcasecmp(ad, bd);
+            int mdir = dir * strcasecmp(ad, bd);
             if(mdir) return mdir;
             break;
         }
@@ -1042,8 +1042,8 @@ void refreshservers(void *menu, bool init)
             {
                 if(si.protocol!=PROTOCOL_VERSION)
                 {
-                	if(!showonlygoodservers) formatstring(si.full)("%s:%d [%s]", si.name, si.port, si.protocol<0 ? "modded version" : (si.protocol<PROTOCOL_VERSION ? "older protocol" : "newer protocol"));
-                	else showthisone = false;
+                    if(!showonlygoodservers) formatstring(si.full)("%s:%d [%s]", si.name, si.port, si.protocol<0 ? "modded version" : (si.protocol<PROTOCOL_VERSION ? "older protocol" : "newer protocol"));
+                    else showthisone = false;
                 }
                 else
                 {
@@ -1064,8 +1064,8 @@ void refreshservers(void *menu, bool init)
             }
             else
             {
-            	if(!showonlygoodservers) formatstring(si.full)(si.address.host != ENET_HOST_ANY ? "%s:%d [waiting for server response]" : "%s:%d [unknown host]", si.name, si.port);
-            	else showthisone = false;
+                if(!showonlygoodservers) formatstring(si.full)(si.address.host != ENET_HOST_ANY ? "%s:%d [waiting for server response]" : "%s:%d [unknown host]", si.name, si.port);
+                else showthisone = false;
             }
             if(issearch && showthisone)
             {
@@ -1191,9 +1191,9 @@ bool serverskey(void *menu, int code, bool isdown, int unicode)
             updatefrommaster(1);
             return true;
 
-		case SDLK_F6:
-			serversortdir = serversortdir ? 0 : 1;
-			return true;
+        case SDLK_F6:
+            serversortdir = serversortdir ? 0 : 1;
+            return true;
 
         case SDLK_F9:
             showmenu("serverinfo");
@@ -1206,9 +1206,9 @@ bool serverskey(void *menu, int code, bool isdown, int unicode)
             showmenu("serverbrowser help");
             return true;
 
-		case SDLK_F2:
+        case SDLK_F2:
             shownamesinbrowser = shownamesinbrowser ? 0 : 1;
-			return true;
+            return true;
 
         case SDLK_F3:
             showmenu("search player");
@@ -1218,13 +1218,13 @@ bool serverskey(void *menu, int code, bool isdown, int unicode)
             showmenu("edit favourites");
             return true;
 
-		case SDLK_F7:
-			showonlygoodservers = showonlygoodservers ? 0 : 1;
-			return true;
+        case SDLK_F7:
+            showonlygoodservers = showonlygoodservers ? 0 : 1;
+            return true;
 
-		case SDLK_F8:
-			showminremain = showminremain ? 0 : 1;
-			return true;
+        case SDLK_F8:
+            showminremain = showminremain ? 0 : 1;
+            return true;
     }
     return false;
 }

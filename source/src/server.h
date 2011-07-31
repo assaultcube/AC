@@ -444,7 +444,7 @@ const char *messagenames[SV_NUM] =
 const char *entnames[MAXENTTYPES] =
 {
     "none?",
-	"light", "playerstart",	"pistol", "ammobox","grenades",
+    "light", "playerstart", "pistol", "ammobox","grenades",
     "health", "helmet", "armour", "akimbo",
     "mapmodel", "trigger", "ladder", "ctf-flag", "sound", "clip", "plclip"
 };

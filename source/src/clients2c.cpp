@@ -362,20 +362,20 @@ int lastspawn = 0;
 
 void onCallVote(int type, int vcn, char *text, char *a)
 {
-	if(identexists("onCallVote"))
-	{
-		defformatstring(runas)("%s %d %d [%s] [%s]", "onCallVote", type, vcn, text, a);
-		execute(runas);
-	}
+    if(identexists("onCallVote"))
+    {
+        defformatstring(runas)("%s %d %d [%s] [%s]", "onCallVote", type, vcn, text, a);
+        execute(runas);
+    }
 }
 
 void onChangeVote(int mod, int id)
 {
-	if(identexists("onChangeVote"))
-	{
-		defformatstring(runas)("%s %d %d", "onChangeVote", mod, id);
-		execute(runas);
-	}
+    if(identexists("onChangeVote"))
+    {
+        defformatstring(runas)("%s %d %d", "onChangeVote", mod, id);
+        execute(runas);
+    }
 }
 
 VARP(voicecomsounds, 0, 1, 2);
@@ -410,7 +410,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 if(prot!=CUR_PROTOCOL_VERSION && !(watchingdemo && prot == -PROTOCOL_VERSION))
                 {
                     conoutf(_("%c3incompatible game protocol (local protocol: %d :: server protocol: %d)"), CC, CUR_PROTOCOL_VERSION, prot);
-		    conoutf("\f3if this occurs a lot, obtain an upgrade from \f1http://assault.cubers.net");
+                    conoutf("\f3if this occurs a lot, obtain an upgrade from \f1http://assault.cubers.net");
                     if(watchingdemo) conoutf("breaking loop : \f3this demo is using a different protocol\f5 : end it now!"); // SVN-WiP-bug: causes endless retry loop else!
                     else disconnect();
                     return;
@@ -714,7 +714,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                     d->weapons[GUN_GRENADE]->attackfx(from, to, nademillis);
                     d->weapons[GUN_GRENADE]->reloading = 0;
                 }
-				if(d!=player1) d->pstatshots[GUN_GRENADE]++; //NEW
+                if(d!=player1) d->pstatshots[GUN_GRENADE]++; //NEW
                 break;
             }
 
@@ -1004,11 +1004,11 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                         flagdropped(flag, x, y, z);
                         break;
                     }
-				    case CTFF_INBASE:
-					    flaginbase(flag);
-					    break;
-				    case CTFF_IDLE:
-					    flagidle(flag);
+                    case CTFF_INBASE:
+                        flaginbase(flag);
+                        break;
+                    case CTFF_IDLE:
+                        flagidle(flag);
                         break;
                 }
                 break;
@@ -1215,44 +1215,44 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 onCallVote(type, vcn, text, a);
                 if (vcn >= 0)
                 {
-                	loopi(n_yes) votecount(VOTE_YES);
-                	loopi(n_no) votecount(VOTE_NO);
-				}
+                    loopi(n_yes) votecount(VOTE_YES);
+                    loopi(n_no) votecount(VOTE_NO);
+                }
                 extern int vote(int);
                 if (d == player1) vote(VOTE_YES);
                 break;
             }
 
             case SV_CALLVOTESUC:
-			{
-				callvotesuc();
-				onChangeVote( 0, -1);
-				break;
-			}
+            {
+                callvotesuc();
+                onChangeVote( 0, -1);
+                break;
+            }
 
             case SV_CALLVOTEERR:
-			{
-				int errn = getint(p);
+            {
+                int errn = getint(p);
                 callvoteerr(errn);
-				onChangeVote( 1, errn);
+                onChangeVote( 1, errn);
                 break;
-			}
+            }
 
             case SV_VOTE:
-			{
-				int vote = getint(p);
+            {
+                int vote = getint(p);
                 votecount(vote);
-				onChangeVote( 2, vote);
+                onChangeVote( 2, vote);
                 break;
-			}
+            }
 
             case SV_VOTERESULT:
-			{
-				int vres = getint(p);
+            {
+                int vres = getint(p);
                 voteresult(vres);
-				onChangeVote( 3, vres);
+                onChangeVote( 3, vres);
                 break;
-			}
+            }
 
             case SV_WHOISINFO:
             {
@@ -1288,7 +1288,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                     curdemofile = newstring(demofile);
                     player1->resetspec();
                     player1->state = CS_SPECTATE;
-					player1->team = TEAM_SPECT;
+                    player1->team = TEAM_SPECT;
                 }
                 else
                 {
@@ -1316,7 +1316,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
 void setDemoFilenameFormat(char *fmt)
 {
-	extern string demofilenameformat;
+    extern string demofilenameformat;
     if(fmt && fmt[0]!='\0')
     {
         copystring(demofilenameformat, fmt);
@@ -1325,7 +1325,7 @@ void setDemoFilenameFormat(char *fmt)
 COMMANDN(demonameformat, setDemoFilenameFormat, ARG_1STR);
 void setDemoTimestampFormat(char *fmt)
 {
-	extern string demotimestampformat;
+    extern string demotimestampformat;
     if(fmt && fmt[0]!='\0')
     {
         copystring(demotimestampformat, fmt);
@@ -1334,8 +1334,8 @@ void setDemoTimestampFormat(char *fmt)
 COMMANDN(demotimeformat, setDemoTimestampFormat, ARG_1STR);
 void setDemoTimeLocal(int truth)
 {
-	extern int demotimelocal;
-	demotimelocal = truth == 0 ? 0 : 1;
+    extern int demotimelocal;
+    demotimelocal = truth == 0 ? 0 : 1;
 }
 COMMANDN(demotimelocal, setDemoTimeLocal, ARG_1INT);
 void getdemonameformat() { extern string demofilenameformat; result(demofilenameformat); } COMMAND(getdemonameformat, ARG_NONE);
@@ -1377,7 +1377,7 @@ const char *parseDemoFilename(char *srvfinfo)
 
 void receivefile(uchar *data, int len)
 {
-	static char text[MAXTRANS];
+    static char text[MAXTRANS];
     ucharbuf p(data, len);
     int type = getint(p);
     data += p.length();
@@ -1388,16 +1388,16 @@ void receivefile(uchar *data, int len)
         {
             getstring(text, p);
             extern string demosubpath;
-			defformatstring(demofn)("%s", parseDemoFilename(text));
+            defformatstring(demofn)("%s", parseDemoFilename(text));
             defformatstring(fname)("demos/%s%s.dmo", demosubpath, demofn);
             copystring(demosubpath, "");
             data += strlen(text);
             int demosize = getint(p);
             if(p.remaining() < demosize)
-			{
-				p.forceoverread();
-				break;
-			}
+            {
+                p.forceoverread();
+                break;
+            }
             path(fname);
             stream *demo = openrawfile(fname, "wb");
             if(!demo)

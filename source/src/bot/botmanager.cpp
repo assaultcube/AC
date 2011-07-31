@@ -316,7 +316,7 @@ void CBotManager::RenderBots()
         {
             /*drawblue = (m_sp || isteam(player1->team, bots[i]->team));
             renderclient(bots[i], drawblue, "playermodels/counterterrorist", 1.6f);*/
-			  renderclient(bots[i]);
+            renderclient(bots[i]);
         }
     }
 }
@@ -978,9 +978,9 @@ botent *CBotManager::CreateBot(const char *team, const char *skill, const char *
 
 bool botmode()
 {
-	if(m_botmode) return true;
-	conoutf("the current game mode does not support bots");
-	return false;
+    if(m_botmode) return true;
+    conoutf("the current game mode does not support bots");
+    return false;
 }
 
 // Bot manager class end
@@ -997,7 +997,7 @@ COMMAND(addbot, ARG_3STR);
 
 void addnbot(char *arg1, char *arg2, char *arg3)
 {
-	 if(!botmode()) return;
+    if(!botmode()) return;
     if (!arg1 || !arg1[0]) return;
 
     int i = atoi(arg1);
@@ -1050,7 +1050,7 @@ COMMAND(idlebots, ARG_1INT);
 
 void drawbeamtobots()
 {
-	if(!botmode()) return;
+    if(!botmode()) return;
     loopv(bots)
     {
         if (bots[i])
@@ -1062,7 +1062,7 @@ COMMAND(drawbeamtobots, ARG_NONE);
 
 void kickbot(const char *szName)
 {
-	if(!botmode()) return;
+    if(!botmode()) return;
     if (!szName || !(*szName))
         return;
 
@@ -1127,7 +1127,7 @@ COMMAND(togglegrap, ARG_NONE);
 
 void togglebotview(char *bot)
 {
-	if(!botmode()) return;
+    if(!botmode()) return;
   /** 
       Disable in arena modes, this command causes the game to go in an "infinite loop"
       due to player1 automatically suiciding thus causing a new round to begin.
