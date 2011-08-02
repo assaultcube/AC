@@ -311,7 +311,7 @@ void _getvar(char *name)
 {
     string resstr;
     resstr[0] = '\0';
-    ident *id = idents->access(name); 
+    ident *id = idents->access(name);
     if(id)
     {
         switch(id->type)
@@ -1060,7 +1060,7 @@ void looplist(char *list, char *var, char *body)
     ident *id = newident(var, execcontext);
     if(id->type!=ID_ALIAS) return;
     char *buf = newstring(MAXSTRLEN);
-    
+
     vector<char *> elems;
     explodelist(list, elems);
 
@@ -1168,8 +1168,6 @@ void addpunct(char *s, char *type = "0")
     }
 }
 
-void curplayers(void) { intret(multiplayer(false) ? (players.length() + 1) : players.length()); }
-
 void toLower(char *s) { result(strcaps(s, false)); }
 void toUpper(char *s) { result(strcaps(s, true)); }
 
@@ -1211,14 +1209,14 @@ void testlist(char *list, char *type = "0")
 {
     if(listlen(list)) {
         int t = atoi(type);
-        
+
         for(int ctr = 0; ctr < listlen(list); ctr++) { // loop through every element of the list
             int periodCtr = 0; // counter for how many times a period (.) shows up in each element
             char *curelement = indexlist(list, ctr); // the current element to examine
-            
+
             for(unsigned int len = 0; len < strlen(curelement); len++) { // loop through the length (in chars) of the current element
                 char curchar = curelement[len]; // the current char of the current element to examine
-                
+
                 switch(t) {
                     case 1: // test for a list of alpha characters (a-z || A-Z are valid)
                         if(!isalpha(curchar)) { intret(0); return; }
@@ -1229,14 +1227,14 @@ void testlist(char *list, char *type = "0")
                     //case 3: break;
                     default: // test for a list of valid numbers
                         bool notvalid = (isalpha(curchar) || isspace(curchar) || (ispunct(curchar) && curchar != '.')); // determines if the char is valid or not
-                        
+
                         if(curchar == '.') periodCtr++; // increment the periods counter
                         if(notvalid || periodCtr > 1) { intret(0); return; } // if the char is not valid or we have found more than 1 period in this element, it is an invalid list
                         break;
                 }
             }
         }
-        
+
         intret(1);
     }
 }
@@ -1282,7 +1280,6 @@ COMMAND(at, ARG_2STR);
 COMMAND(listlen, ARG_1EST);
 COMMAND(findlist, ARG_2STR);
 COMMAND(addpunct, ARG_2STR);
-COMMAND(curplayers, ARG_NONE);
 COMMANDN(tolower, toLower, ARG_1STR);
 COMMANDN(toupper, toUpper, ARG_1STR);
 COMMAND(testchar, ARG_2STR);
