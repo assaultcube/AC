@@ -259,6 +259,7 @@ int curmode() { return gamemode; }
 int curmastermode() { return servstate.mastermode; }
 int curautoteam()   { return servstate.autoteam; }
 void curmap(int cleaned) { result(cleaned ? behindpath(getclientmap()) : getclientmap()); }
+void curplayers(void) { intret(multiplayer(false) ? (players.length() + 1) : players.length()); }
 
 int curmodeattr(char *attr)
 {
@@ -281,6 +282,7 @@ COMMAND(curautoteam, ARG_IVAL);
 COMMAND(getclientmode, ARG_IVAL);
 COMMAND(curmodeattr, ARG_1EST);
 COMMAND(curmap, ARG_1INT);
+COMMAND(curplayers, ARG_NONE);
 VARP(showscoresondeath, 0, 1, 1);
 VARP(autoscreenshot, 0, 0, 1);
 
@@ -1042,7 +1044,7 @@ void timeupdate(int milliscur, int millismax)
     bool display = lastmillis - lastgametimeupdate > 1000; // avoid double-output
 
     silenttimeupdate(milliscur, millismax);
-   
+
     if(!display) return;
     if(!minutesremaining)
     {
