@@ -532,7 +532,7 @@ void audiomanager::stopsound()
     if(gamemusic) gamemusic->reset();
 }
 
-VAR(heartbeat, 0, 0, 99);
+VARP(heartbeat, 0, 0, 99);
 
 // main audio update routine
 
