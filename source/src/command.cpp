@@ -1487,7 +1487,7 @@ void timestring_()
     result(res[0] == '0' ? res + 1 : res);
 }
 
-int millis_() { extern int totalmillis; return totalmillis; }
+extern int millis_() { extern int totalmillis; return totalmillis; }
 void strlen_(char *s) { string r; formatstring(r)("%d", strlen(s)); result(r); }
 
 void substr_(char *fs, char *pa, char *len)

@@ -363,6 +363,8 @@ void wrapCMD(int i) { checkmapdependencies(false, i!=0); }
 //COMMAND(checkmapdependencies, ARG_NONE); // for some reason this still results in silent==true - WTF? It used to work with the _proper_ default.
 COMMANDN(checkmapdependencies, wrapCMD, ARG_1INT);
 
+VARP(mapbackupsonsave, 0, 1, 1);
+
 void save_world(char *mname)
 {
     if(!*mname) mname = getclientmap();
@@ -370,7 +372,7 @@ void save_world(char *mname)
     voptimize();
     toptimize();
     setnames(mname);
-    backup(cgzname, bakname);
+    if(mapbackupsonsave) backup(cgzname, bakname);
     checkmapdependencies(true);
     copystring(hdr.mediareq, reqmpak, 128);
     stream *f = opengzfile(cgzname, "wb");
@@ -696,6 +698,8 @@ bool load_world(char *mname)        // still supports all map formats that have 
     printf("loaded mapsounds (%d milliseconds)\n", watch.stop());
     c2skeepalive();
 
+    defformatstring(startmillis)("%d", millis_());
+    alias("gametimestart", startmillis);
     startmap(mname);
     return true;
 }

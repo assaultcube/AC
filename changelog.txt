@@ -175,6 +175,8 @@ CubeScript
 [*] numconlines      - Returns the current number of lines on the console. (e.g. echo $numconlines // Example output: 153)
 [*] Multiple Idents  - New helper aliases for voting for SURV, TPF, and TLSS. (e.g. /surv ac_desert)
 [*] looplist         - Browses a list executing a body for each element (e.g. looplist "zero one two three" number [ echo $number ])
+[*] gametimestart    - Returns the time (in milliseconds) when the last map was loaded.
+[*] mapbackupsonsave - Determines if map backups (.bak) should be created when a map is saved.
 [*] "Sleeps" can be persistent. (e.g. "Persist" even through map loads - new optional 3rd argument of the /sleep command)
 [*] Substr crash bug is fixed. Also the command can now use a negative position value.
 [*] New stat in (pstat_score) for teamkills. New list is: FLAGS FRAGS DEATHS POINTS TEAM TEAMKILLS NAME // TODO move to compatibility.cfg
