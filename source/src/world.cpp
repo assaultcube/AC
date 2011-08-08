@@ -510,6 +510,8 @@ void newmap(int i) {
             addmsg(SV_NEWMAP, "ri", max(i, 0));
             if(identexists("onNewMap")) execute("onNewMap");
         }
+        defformatstring(startmillis)("%d", millis_());
+        alias("gametimestart", startmillis);
     }
 }
 

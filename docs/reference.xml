@@ -3003,6 +3003,16 @@ Output:
 						<identifierReference identifier="millis"/>
 					</references>
 				</variable>
+        
+        <variable name="gametimestart">
+          <description>Returns the time (in milliseconds) when the last map was loaded.</description>
+          <references>
+            <identifierReference identifier="minutesremaining"/>
+						<identifierReference identifier="gametimecurrent"/>
+						<identifierReference identifier="lastgametimeupdate"/>
+						<identifierReference identifier="millis"/>
+          </references>
+        </variable>
 
 				<variable name="lastgametimeupdate">
 					<description>Returns the last time (in milliseconds) the gametime was updated. READ ONLY</description>
@@ -3708,6 +3718,11 @@ Output:
 						<argument token="M" description="file name of the map, see command 'map' for the naming scheme" valueNotes="string"/>
 					</arguments>
 				</command>
+        
+        <variable name="mapbackupsonsave">
+          <description>Determines if map backups (.bak) should be created when a map is saved.</description>
+          <value token="N" description="0 off, 1 on" minValue="0" maxValue="1" defaultValue="1" />
+        </variable>
 
 				<command name="newmap">
 					<description>Creates a new map.</description>
