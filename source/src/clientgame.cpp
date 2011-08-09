@@ -1487,9 +1487,7 @@ void scallvote(char *type, const char *arg1, const char *arg2)
                 if ( !arg2 || strlen(arg2) <= 3 || !multiplayer(false) )
                 {
                     if(!multiplayer(false))
-                        //conoutf(_("\f3%s is not available in singleplayer.", t == SA_BAN ? "ban" : "kick"));
-                        // warning C4002: too many actual parameters for macro '_' ???
-                        conoutf("\f3%s is not available in singleplayer.", t == SA_BAN ? "Ban" : "Kick");
+                        conoutf(_("\f3%s is not available in singleplayer."), t == SA_BAN ? "Ban" : "Kick");
                     else conoutf(_("%c3invalid reason"), CC);
                     break;
                 }
