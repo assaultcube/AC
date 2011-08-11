@@ -1638,8 +1638,15 @@ int sessionid = 0;
 
 void setadmin(char *claim, char *password)
 {
-    if(!claim || !password) return;
-    else addmsg(SV_SETADMIN, "ris", atoi(claim), genpwdhash(player1->name, password, sessionid));
+    if(!claim && !password) return;
+    else
+    {
+        int y = atoi(claim);
+        if(player1->clientrole) conoutf(_("you released admin status"));
+        if((y != 0) && (y != 1)) addmsg(SV_SETADMIN, "ris", 0);
+        else
+            addmsg(SV_SETADMIN, "ris", y, genpwdhash(player1->name, password, sessionid));
+    }
 }
 
 COMMAND(setadmin, ARG_2STR);
