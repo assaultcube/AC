@@ -252,14 +252,21 @@ ICOMMANDF(skin_cla, ARG_1EST, (char *s) { return _setskin(s, TEAM_CLA); });
 ICOMMANDF(skin_rvsf, ARG_1EST, (char *s) { return _setskin(s, TEAM_RVSF); });
 ICOMMANDF(skin, ARG_1EST, (char *s) { return _setskin(s, player1->team); });
 
-int curteam() { return player1->team; }
+void isclient(char *arg1)
+{
+    int i = atoi(arg1);
+    defformatstring(o)("%d", (getclient(i) != NULL || i == player1->clientnum) ? 1 : 0);
+    result(o);
+}
+
+//int curteam() { return player1->team; } // See compatibility.cfg
 int isSpect() { return (player1->team==TEAM_SPECT || player1->spectatemode==SM_FLY); }
 int currole() { return player1->clientrole; }
-int curmode() { return gamemode; }
+//int curmode() { return gamemode; } // See compatibility.cfg
 int curmastermode() { return servstate.mastermode; }
 int curautoteam()   { return servstate.autoteam; }
 void curmap(int cleaned) { result(cleaned ? behindpath(getclientmap()) : getclientmap()); }
-void curplayers(void) { intret(multiplayer(false) ? (players.length() + 1) : players.length()); }
+void curplayers() { intret(multiplayer(false) ? (players.length() + 1) : players.length()); }
 
 int curmodeattr(char *attr)
 {
@@ -273,13 +280,14 @@ int curmodeattr(char *attr)
 COMMANDN(team, newteam, ARG_1STR);
 COMMANDN(name, newname, ARG_1STR);
 COMMAND(benchme, ARG_NONE);
-COMMAND(curteam, ARG_IVAL);
+//COMMAND(curteam, ARG_IVAL);
+COMMAND(isclient, ARG_1STR);
 COMMAND(isSpect, ARG_IVAL);
 COMMAND(currole, ARG_IVAL);
-COMMAND(curmode, ARG_IVAL);
+//COMMAND(curmode, ARG_IVAL);
 COMMAND(curmastermode, ARG_IVAL);
 COMMAND(curautoteam, ARG_IVAL);
-COMMAND(getclientmode, ARG_IVAL);
+//COMMAND(getclientmode, ARG_IVAL);
 COMMAND(curmodeattr, ARG_1EST);
 COMMAND(curmap, ARG_1INT);
 COMMAND(curplayers, ARG_NONE);
@@ -974,11 +982,12 @@ void dokill(playerent *pl, playerent *act, bool gib, int gun)
     pl->deaths++;
     audiomgr.playsound(S_DIE1+rnd(2), pl);
 }
-
+/* Removed in favor of the new (player) && (player1) commands ???
+    See /config/compatibility.cfg
 void pstat_score(int cn)
 {
-    /*if(intermission)
-    {*/
+    //if(intermission)
+    //{
         string scorestring;
         int p_flags = 0;
         int p_frags = 0;
@@ -996,10 +1005,11 @@ void pstat_score(int cn)
         }
         formatstring(scorestring)("%d %d %d %d %d %d %s", p_flags, p_frags, p_deaths, p_points, pl ? pl->team : -1, p_tks, pl ? pl->name : "\"\"");
         result(scorestring);
-    /*}
-    else result("0 0 0 0 -1 \"\"");*/
+    //}
+    //else result("0 0 0 0 -1 \"\"");
 }
 COMMAND(pstat_score, ARG_1INT);
+*/
 
 void pstat_weap(int cn)
 {
@@ -1642,8 +1652,11 @@ void setadmin(char *claim, char *password)
     else
     {
         int y = atoi(claim);
-        if((y != 1) && (player1->clientrole)) conoutf(_("you released admin status"));
-        if((y != 0) && (y != 1)) addmsg(SV_SETADMIN, "ris", 0);
+        if((y != 1) && (player1->clientrole))
+        {
+            conoutf(_("you released admin status"));
+            addmsg(SV_SETADMIN, "ris", 0);
+        }
         else
             addmsg(SV_SETADMIN, "ris", y, genpwdhash(player1->name, password, sessionid));
     }
