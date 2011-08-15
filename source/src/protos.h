@@ -914,7 +914,7 @@ struct servercommandline
             case 'i': ip     = a; break;
             case 'm': master = a; break;
             case 'N': logident = a; break;
-            case 'l': loggamestatus = ai == 1; break;
+            case 'l': loggamestatus = a; break;
             case 'F': if(isdigit(*a) && ai >= 0 && ai <= 7) syslogfacility = ai; break;
             case 'T': logtimestamp = true; break;
             case 'L':
