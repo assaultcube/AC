@@ -177,9 +177,10 @@ CubeScript
 [*] looplist         - Browses a list executing a body for each element (e.g. looplist "zero one two three" number [ echo $number ])
 [*] gametimestart    - Returns the time (in milliseconds) when the last map was loaded.
 [*] mapbackupsonsave - Determines if map backups (.bak) should be created when a map is saved.
+[*] isclient         - Determines if the client number given is a valid client (player).
 [*] "Sleeps" can be persistent. (e.g. "Persist" even through map loads - new optional 3rd argument of the /sleep command)
 [*] Substr crash bug is fixed. Also the command can now use a negative position value.
-[*] New stat in (pstat_score) for teamkills. New list is: FLAGS FRAGS DEATHS POINTS TEAM TEAMKILLS NAME // TODO move to compatibility.cfg
+[*] New stat in (pstat_score) for teamkills. New list is: FLAGS FRAGS DEATHS POINTS TEAM TEAMKILLS NAME
 [*] on_quit.cfg for deleting aliases from saved.cfg upon quit.
 [*] Missing bracket ([], (), etc.) errors now also notify the client of what file the error resides in.
 [*] New automatically executed scripts folder in the root install directory of AC.
@@ -189,6 +190,7 @@ CubeScript
 [*] The /spectate command can now only be used if connected to a server.
 [*] The /togglebotview command can no longer be used in arena modes.
 [*] /keybind bug fix. No more client crash if the argument is an unknown key.
+[*] Moved some old/redundant commands to /config/compatibility.cfg.
 
 I18n / L10n
 ---------------------
