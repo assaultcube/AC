@@ -2419,6 +2419,9 @@ bind PRINT [ if (strcmp $last_server "") [ remember_server ]
 
 				<command name="curteam">
 					<description>Returns 1 if the local player is on the RVSF team, 0 if on CLA. If the player is in SPECTATOR it returns 2.</description>
+          <arguments>
+            <argument token="C" description="optional argument: client number" valueNotes="returns the specified client's cn instead"/>
+          </arguments>
 					<references>
 						<identifierReference identifier="team"/>
 						<identifierReference identifier="skin"/>
@@ -3142,6 +3145,23 @@ Output:
           </examples>
           <arguments>
             <argument token="T" description="check if submerged instead?" valueNotes="min 0/max 1/default 0"/>
+          </arguments>
+        </command>
+        
+        <command name="isclient">
+          <description>Determines if the client number given is a valid client (player).</description>
+          <examples>
+            <example>
+              <code><![CDATA[echo (isclient 0)]]></code>
+              <explanation>Example output: 1</explanation>
+            </example>
+            <example>
+              <code><![CDATA[echo (isclient 32)]]></code>
+              <explanation>Example output: 0</explanation>
+            </example>
+          </examples>
+          <arguments>
+            <argument token="C" description="client number"/>
           </arguments>
         </command>
 
