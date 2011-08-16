@@ -173,6 +173,12 @@ void constant(const char *name, const char *action)
             return;
         }
         b->isconst = true;
+        if(action && action[0])
+        {
+            if(b->action!=b->executing) delete[] b->action;
+            b->action = newstring(action);
+            if(b->persist!=persistidents) b->persist = persistidents;
+        }
     }
     else
     {
