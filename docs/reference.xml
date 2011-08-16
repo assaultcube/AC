@@ -827,6 +827,50 @@
             <identifierReference identifier="getvar"/>
           </references>
         </command>
+
+        <command name="alias">
+          <description>Binds a name to commands.</description>
+          <arguments>
+            <argument token="N" description="the name of the alias" valueNotes="string, must not contain '$'"/>
+            <argument token="A" description="the commands" valueNotes="string"/>
+          </arguments>
+          <examples>
+            <example>
+              <code><![CDATA[alias myalias [ echo "hello world"; alias myalias [ echo "I already said hello" ] ]]]></code>
+              <explanation>It is possible to re-bind an alias, even during its evaluation.</explanation>
+            </example>
+            <example>
+              <code><![CDATA[test = [ echo "successful" ]]]></code>
+              <explanation>There is also the shorthand version of defining an alias via the "="-sign.</explanation>
+            </example>
+          </examples>
+        </command>
+
+        <command name="const">
+          <description>Set an alias as a constant.</description>
+          <remarks>
+            <remark>A constant cannot be redefined : its value cannot be changed.</remark>
+            <remark>To get rid of a constant, use delalias</remark>
+          </remarks>
+          <arguments>
+            <argument token="N" description="the name of the alias" valueNotes="string, must not contain '$'"/>
+            <argument token="A" description="the value" valueNotes="string (optional)"/>
+          </arguments>
+          <examples>
+            <example>
+              <code><![CDATA[myalias = myvalue; const myalias;]]></code>
+              <explanation>Set "myalias" value to "myvalue" then "lock" it as a constant.</explanation>
+            </example>
+            <example>
+              <code><![CDATA[const myalias myvalue;]]></code>
+              <explanation>You can directly set a value for your alias when you define it as a constant.</explanation>
+            </example>
+            <example>
+              <code><![CDATA[const myalias myvalue; myalias = anothervalue;]]></code>
+              <explanation>Assigning a value to a const will throw you an error. Output: myalias is already defined as a constant</explanation>
+            </example>
+          </examples>
+        </command>
         
         <command name="checkalias">
           <description>Determines if the argument given is an existing alias or not.</description>
@@ -846,6 +890,26 @@
           <references>
             <identifierReference identifier="checkinit"/>
             <identifierReference identifier="aliasinit"/>
+          </references>
+        </command>
+
+        <command name="isconst">
+          <description>Determines if the argument given is a constant or not.</description>
+          <examples>
+            <example>
+              <code><![CDATA[const hello ""; echo (isconst hello)]]></code>
+              <explanation>Output: 1</explanation>
+            </example>
+            <example>
+              <code><![CDATA[hello = value; echo (isconst hello)]]></code>
+              <explanation>Output: 0</explanation>
+            </example>
+          </examples>
+          <arguments>
+            <argument token="A" description="the alias to check for"/>
+          </arguments>
+          <references>
+            <identifierReference identifier="const"/>
           </references>
         </command>
         
@@ -1459,24 +1523,6 @@ echo foo
 					<arguments>
 						<argument token="A" description="the command"/>
 					</arguments>
-				</command>
-
-				<command name="alias">
-					<description>Binds a name to commands.</description>
-					<arguments>
-						<argument token="N" description="the name of the alias" valueNotes="string, must not contain '$'"/>
-						<argument token="A" description="the commands" valueNotes="string"/>
-					</arguments>
-					<examples>
-					<example>
-						<code><![CDATA[alias myalias [ echo "hello world"; alias myalias [ echo "I already said hello" ] ]]]></code>
-						<explanation>It is possible to re-bind an alias, even during its evaluation.</explanation>
-					</example>
-					<example>
-						<code><![CDATA[test = [ echo "successful" ]]]></code>
-						<explanation>There is also the shorthand version of defining an alias via the "="-sign.</explanation>
-					</example>
-					</examples>
 				</command>
 
 				<command name="quit">
