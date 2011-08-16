@@ -131,6 +131,12 @@ void alias(const char *name, const char *action)
             scripterr();
             return;
         }
+        if(b->isconst)
+        {
+            conoutf("alias %s is a constant and cannot be redefined", b->name);
+            scripterr();
+            return;
+        }
         if(b->action!=b->executing) delete[] b->action;
         b->action = newstring(action);
         if(b->persist!=persistidents) b->persist = persistidents;
@@ -142,7 +148,34 @@ void alias(const char *name, const char *action)
     }
 }
 
+void constant(const char *name, const char *action)
+{
+    ident *b = idents->access(name);
+    if(!b)
+    {
+        ident b(ID_ALIAS, newstring(name), newstring(action), persistidents, execcontext);
+        b.isconst = true;
+        idents->access(b.name, b);
+    }
+    else if(b->type==ID_ALIAS)
+    {
+        if(contextisolated[execcontext] && execcontext > b->context)
+        {
+            conoutf("cannot redefine alias %s as a constant in this execution context", b->name);
+            scripterr();
+            return;
+        }
+        b->isconst = true;
+    }
+    else
+    {
+        conoutf("cannot redefine %s as a constant", name);
+        scripterr();
+    }
+}
+
 COMMAND(alias, ARG_2STR);
+COMMANDN(const, constant, ARG_2STR);
 
 void checkalias(const char *name)
 {
