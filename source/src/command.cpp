@@ -190,11 +190,8 @@ void constant(const char *name, const char *action)
 COMMAND(alias, ARG_2STR);
 COMMANDN(const, constant, ARG_2STR);
 
-void checkalias(const char *name)
-{
-    intret(getalias(name) ? 1 : 0);
-}
-COMMAND(checkalias, ARG_1STR);
+COMMANDF(checkalias, ARG_1STR, (const char *name) { intret(getalias(name) ? 1 : 0); });
+COMMANDF(isconst, ARG_1STR, (const char *name) { ident *id = idents->access(name); intret(id && id->isconst ? 1 : 0); });
 
 // variable's and commands are registered through globals, see cube.h
 
@@ -1412,14 +1409,7 @@ void writecfg()
     enumerate(*idents, ident, id,
         if(id.type==ID_ALIAS && id.persist && id.action[0])
         {
-            if(id.isconst)
-            {
-                f->printf("const %s %s\n", id.name, id.action);
-            }
-            else
-            {
-                f->printf("%s = [%s]\n", id.name, id.action);
-            }
+            f->printf("%s = [%s]\n", id.name, id.action);
         }
     );
     f->printf("\n");
