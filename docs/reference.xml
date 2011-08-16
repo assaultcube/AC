@@ -2420,7 +2420,7 @@ bind PRINT [ if (strcmp $last_server "") [ remember_server ]
 				<command name="curteam">
 					<description>Returns 1 if the local player is on the RVSF team, 0 if on CLA. If the player is in SPECTATOR it returns 2.</description>
           <arguments>
-            <argument token="C" description="optional argument: client number" valueNotes="returns the specified client's cn instead"/>
+            <argument token="C" description="optional argument: client number" valueNotes="returns the specified client's team instead"/>
           </arguments>
 					<references>
 						<identifierReference identifier="team"/>
