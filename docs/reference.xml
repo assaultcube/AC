@@ -1,59 +1,57 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-	 This is the default transformation to show the reference as an XML
-	 document. To turn this text into script that can be read by the
-	 AssaultCube engine, simply uncomment the below line, comment the
-	 line below that one, save and then refresh.
--->
+  <!--
+    This is the default transformation to show the reference as an XML document. 
+    To turn this text into script that can be read by the AssaultCube engine, simply
+    uncomment the below line, comment the line below that one, save and then refresh.
 
-<!--<?xml-stylesheet type="text/xsl" href="transformations/cuberef2cubescript.xslt"?>-->
-<?xml-stylesheet type="text/xsl" href="transformations/cuberef2xhtml.xslt"?>
+    <?xml-stylesheet type="text/xsl" href="transformations/cuberef2cubescript.xslt"?>
+  -->
 
-<cuberef
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns="http://cubers.net/Schemas/CubeRef"
-	name="AssaultCube Reference"
-	version="v1.0"
-	xsi:schemaLocation="http://cubers.net/Schemas/CubeRef schemas/cuberef.xsd">
-	<description>This reference describes the commands and variables available in AssaultCube.</description>
-	<!--
-		Sections are: CubeScript, General, Game modes, Editing, Gameplay, Visuals, Head-up display,
-			Sound, Menus, Ingame reference, server commands, Game modes, Editing configs.
-	-->
-	<sections sort="true">
-	
-		<!-- CubeScript language Section Starts -->
-		<section name="CubeScript" sortindex="00">
-			<description>This section describes identifiers that are closely related to the CubeScript language.</description>
-			
-			<identifiers sort="true">
-			
-				<command name="&lt;f">
-					<description>Determines if a floating-point value is smaller than a second floating-point value.</description>
-					<return token="F" description="(true)1||0(false)"/>
-					<arguments>
-						<argument token="A" description="the first value"/>
-						<argument token="B" description="the second value"/>
-					</arguments>
-				</command>
+  <?xml-stylesheet type="text/xsl" href="transformations/cuberef2xhtml.xslt"?>
+  <cuberef xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://cubers.net/Schemas/CubeRef"
+  name="AssaultCube Reference" version="Current SVN" xsi:schemaLocation="schemas/cuberef.xsd">
+    <description>
+      The AssaultCube reference describes all the different commands and variables available to AssaultCube.
+    </description>
+    <!--
+      Sections available: CubeScript, General, Game modes, Editing, Gameplay, Visuals, Head-up display,
+                          Sound, Menus, Ingame reference, server commands, Game modes, Editing configs.
+    -->
+    <sections sort="true">
+    <section name="CubeScript" sortindex="00">
+      <description>This section describes identifiers that are closely related to the CubeScript language.</description>
+      <identifiers sort="true">
 
-				<command name="&lt;=f">
-					<description>Determines if a floating-point value is less than or equal to a second floating-point value.</description>
-					<return token="F" description="(true)1||0(false)"/>
-					<arguments>
-						<argument token="A" description="the first value"/>
-						<argument token="B" description="the second value"/>
-					</arguments>
-				</command>
+        <command name="&lt;f">
+          <description>
+            Compares if a particular floating-point value is smaller than another floating-point value.
+          </description>
+          <return token="F" description="(true)1||0(false)"/>
+          <arguments>
+            <argument token="A" description="The first value."/>
+            <argument token="B" description="The second value."/>
+          </arguments>
+        </command>
 
-				<command name="=f">
-					<description>Determines if a floating-point value is equal to a second floating-point value.</description>
-					<return token="F" description="(true)1||0(false)"/>
-					<arguments>
-						<argument token="A" description="the first value"/>
-						<argument token="B" description="the second value"/>
-					</arguments>
-				</command>
+        <command name="&lt;=f">
+          <description>
+            Compares if a particular floating-point value is less than or equal to another floating-point value.
+          </description>
+          <return token="F" description="(true)1||0(false)"/>
+          <arguments>
+            <argument token="A" description="The first value."/>
+            <argument token="B" description="The second value."/>
+          </arguments>
+        </command>
+
+        <command name="=f">
+          <description>Compares if a particular floating-point value is equal to another floating-point value.</description>
+          <return token="F" description="(true)1||0(false)"/>
+          <arguments>
+            <argument token="A" description="The first value."/>
+            <argument token="B" description="The second value."/>
+          </arguments>
+        </command>
 
 				<command name="&gt;f">
 					<description>Determines if a floating-point value is greater than a second floating-point value.</description>
