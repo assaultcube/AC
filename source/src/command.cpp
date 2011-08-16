@@ -156,8 +156,15 @@ void constant(const char *name, const char *action)
         ident b(ID_ALIAS, newstring(name), newstring(action), persistidents, execcontext);
         b.isconst = true;
         idents->access(b.name, b);
+        return;
     }
-    else if(b->type==ID_ALIAS)
+    if(b->isconst)
+    {
+        conoutf("%s is already defined as a constant", b->name);
+        scripterr();
+        return;
+    }
+    if(b->type==ID_ALIAS)
     {
         if(contextisolated[execcontext] && execcontext > b->context)
         {
@@ -1399,7 +1406,14 @@ void writecfg()
     enumerate(*idents, ident, id,
         if(id.type==ID_ALIAS && id.persist && id.action[0])
         {
-            f->printf("%s = [%s]\n", id.name, id.action);
+            if(id.isconst)
+            {
+                f->printf("const %s %s\n", id.name, id.action);
+            }
+            else
+            {
+                f->printf("%s = [%s]\n", id.name, id.action);
+            }
         }
     );
     f->printf("\n");
