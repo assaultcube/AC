@@ -1386,7 +1386,11 @@ char *votestring(int type, const char *arg1, const char *arg2)
             int cn = atoi(arg1);
             playerent *p = (cn == getclientnum() ? player1 : getclient(cn));
             if(!p) break;
-            if ( SA_KICK || SA_BAN ) formatstring(out)(msg, colorname(p), arg2);
+            if ( SA_KICK || SA_BAN )
+            {
+                if(m_teammode) conoutf(_("\f0INFO: \f5%s has %d teamkills."), p->name, p->tks);
+                formatstring(out)(msg, colorname(p), arg2);
+            }
             else formatstring(out)(msg, colorname(p));
             break;
         }
