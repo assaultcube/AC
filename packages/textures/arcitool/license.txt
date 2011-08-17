@@ -1,0 +1,33 @@
+Files within this folder are copyright (all rights reserved) by:
+	 http://www.arcitool.de/ (info@arcitool.de)
+
+These files are no longer available from this website. When these
+files were originally obtained, they allowed redistribution with
+the following German license.
+
+	WICHTIG: Die angebotenen Dateien und Bilder sind zum kostenlosen
+	download vorgesehen. Die Dateien erhalten keinen besonderen Schutz,
+	um eine hohe Flexibilität für die Weiterbearbeitung zu gewährleisten.
+	Die Dateien dürfen beliebig verändert werden. Mailen Sie uns bitte
+	Änderungsvorschläge, damit wir die Dateien ggf. auf den neuesten
+	Stand bringen können.
+
+	Alle Dateien und Bilder dürfen uneingeschränkt in eigenen Projekten
+	verwendet werden. Es ist nicht gestattet, die Dateien und Bilder zu
+	veröffentlichen, in andere Sammlungen einzubauen oder in irgend einer
+	Form zu veräußern. Hierzu bedarf es in jedem Fall der Erlaubnis von 
+	arcitool.
+
+The following is a refined English translation:
+
+	IMPORTANT: These files and images are provided as a free download.
+	These files do not receive special protection to ensure a high degree
+	of flexibility for further processing. These files can be changed
+	arbitrarily. Please email us suggestions for changes, so that if
+	necessary, we can update them.
+
+	All files and images may be used without restrictions in your own
+	projects. It is prohibited to incorporate these files/images into
+	other texture collections, or to sell the files/images in any way
+	without permission from arcitool.
+
