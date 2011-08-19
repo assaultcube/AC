@@ -1,6 +1,0 @@
-The following textures are (c) 2006-2008 by Markus "makkE" Bekel. All rights reserved.
-
-clayceiling.jpg
-d_brick.jpg
-platten.jpg
-tiles.jpg

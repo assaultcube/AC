@@ -1,16 +1,3 @@
-This file holds the copyright information for all packages/artwork included in AssaultCube (UNLESS OTHERWISE 
-NOTED) OR it will tell you the place to find the licenses for works within AssaultCube.
-Please respect the authors reserved rights and permissions.
-
-
-PLEASE, check any folder containing media for a "license" or "readme" file and use that for 
-information about licensing, etc...
-
-
-------------MAPS----------------------
-Check comments inside the *.cfg file included with the map for copyright information.
-The included maps remain intellectual property of their respective creators. 
-Mapmessages upon load may provide further detail.
 
 ------------MODELS--------------------
 
@@ -39,101 +26,6 @@ File: source/vcpp/buildEnv/header.bmp
  - © makkE, all rights reserved
 
 
-------------TEXTURES------------------
-
-../packages/textures/arcitool
-
-Copyright by arcitool: http://www.arcitool.de/
-
-German:
--------
-WICHTIG: Die angebotenen Dateien und Bilder sind zum kostenlosen download vorgesehen. Die Dateien erhalten 
-keinen besonderen Schutz, um eine hohe Flexibilität für die Weiterbearbeitung zu gewährleisten. Die Dateien 
-dürfen beliebig verändert werden. Mailen Sie uns bitte Änderungsvorschläge, damit wir die Dateien ggf. auf 
-den neuesten Stand bringen können.
-
-Alle Dateien und Bilder dürfen uneingeschränkt in eigenen Projekten verwendet werden. Es ist nicht gestattet, 
-die Dateien und Bilder zu veröffentlichen, in andere Sammlungen einzubauen oder in irgend einer Form zu 
-veräußern. Hierzu bedarf es in jedem Fall der Erlaubnis von arcitool. 
-
-English:
---------
-Copyright by arcitool
-
-IMPORTANT: The offered files and images are meant to be freely downloadable. The files are not protected in 
-any way, to allow high flexibility of usage and reproccession. Files may be altered in any way. Please mail 
-us suggestions for changes, so we can assure future quality and replace files eventually.
-
-All files and images may be used without restrictions in your projects.It is prohibited to offer those files 
-as part of other texture packs or sell or distribute them in any other way without prior permission from 
-arcitool.
-______________________________________________________________________________________________________________
-
-../packages/textures/boeck
-
-Royalty Free textures assorted by Boeck, partially reprocessed by makkE to fit the engine. Thanks for the 
-excellent textures/resources !!
-
-http://www.boeckmania.de
-______________________________________________________________________________________________________________
-
-../packages/textures/craig_fortune
-
-These great textures were made by Craig Fortune.
-http://www.garagegames.com/my/home/view.profile.php?qid=27414
-______________________________________________________________________________________________________________
-
-../packages/textures/DigitalFlux
-
-These textures are copyright (c) Ted Southard  http://www.digitalflux.com 
-They are free to use for non commercial use. Re-packaging and selling as part of a texture collection is 
-strictly prohibited.
-______________________________________________________________________________________________________________
-
-../packages/textures/jcdpc
-
-(c)Copyright by jcdpc
-______________________________________________________________________________________________________________
-
-../packages/textures/makke
-
-The following textures are (c) 2006-2008 by Markus "makkE" Bekel. All rights reserved.
-
-clayceiling.jpg
-d_brick.jpg
-platten.jpg
-tiles.jpg
-
-Other textures here-in have been assembled/reprocessed/tiled/etc from various sources:
-
----
-http://www.mayang.com/textures
----
-http://www.afflict.net/option_1/option_1.htm
-
-Can I use these textures for free?
-You can use any texture for personal or school projects without my permission. However if you decide to 
-distribute your work I would appreciate credit where credit is due.
-
-Where can I not use these textures?
-Any webpage, program, or texture cd that has them available without my permission is not permitted. You can 
-however use them in a design scheme for your site.
-
-what's with the update delays?
-Since I'm a full time student and freelance web designer, it's a little hard for me to find time to get out 
-and take pictures (especially since i live in arizona and it's 500 degrees outside). Lately though I've been 
-trying a lot harder to put a lot more work into the sites content.
----
-Golgotha Texture Pack
-
-Textures by "Jonathon Clark and the Golgotha team
-
-Free textures from the abandoned "Golgotha" Video game. 
-
-License Agreement
------------------
-Thanks to the Golgotha creators, these textures are free for use in any project whatsoever, and can be used 
-in commercial games or anything else unconditionally.
 ______________________________________________________________________________________________________________
 
 ../packages/textures/noctua
@@ -158,20 +50,6 @@ Greetings from the dark underworld of texture art. Thank you for giving my textu
 use these textures commercially, please contact me via email. Please do not alter these images, or distribute 
 them without this "info.txt" file.  Thanks if you link to my main page, but please don't link to the files 
 directly. Thanks, have fun! ;)
-_____________________________________________________________________________________________________________
-
-../packages/textures/mitaman
-
-Textures from various, approved "free to use for non commercial purpose" resources. 
-Textures here-in remain intellectual property of their respective authors.
-
-Check readme in these folders for information:
-
-..packages/textures/mitaman/golgotha/readme.txt
-..packages/textures/mitaman/Grsites/readme.txt
-..packages/textures/mitaman/Zastrow/readme.txt
-..packages/textures/mitaman/various/readme.txt
-..packages/textures/mitaman/3dcafe/readme.txt
 _____________________________________________________________________________________________________________
 
 ../packages/textures/wotwot/urban
@@ -204,11 +82,6 @@ MitaMAN for gathering resources).
 
 Note: Shame on me I didn't keep track of my exact sources here. If you recognize any sound or components of a 
 sound that has copyright issues, please contact me so I can solve it. Thanks, makkE. 
-
-_____________________________________________________________________________________________________________
-
-..packages/audio/player/gib.ogg
-	Please read "gib.ogg_license.txt" for more information.
 
 ____________________________________________________________________________________________________________
 

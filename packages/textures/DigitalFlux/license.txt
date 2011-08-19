@@ -1,0 +1,5 @@
+Files within this folder are copyright (all rights reserved) by:
+	 Ted Southard (http://www.digitalflux.com)
+
+These files are free to use for non-commercial use. Re-packaging and
+selling these files as part of a texture collection is strictly prohibited.

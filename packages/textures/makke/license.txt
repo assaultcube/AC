@@ -1,0 +1,75 @@
+These five textures files:
+
+  * clayceiling.jpg
+  * d_brick.jpg
+  * platten.jpg
+  * tiles.jpg
+  * black.jpg
+
+...are copyright (all rights reserved) by:
+	 Markus "makkE" Bekel
+
+All other textures within this folder have been re-assembled, re-processed,
+tiled, etc. by makkE from other various sources. Unfortunately, a list of
+which images are from which source is unavailable, however, some of the
+sources include:
+==============================================
+http://www.mayang.com/textures
+	William Smith & Mayang Murni Adnin (will@willsmith.org)
+
+Originally available under the following license:
+	What can I use the textures for?
+	You can use the textures in your school projects, to make CD sleeves,
+	posters, in movies, in videogames etc - anything where you have added
+	your own artistic effort.
+
+	You cannot use the textures for anything that directly competes with us.
+	This includes, putting the textures on your own website, selling them,
+	or giving them away.  This restriction includes the textures themselves,
+	as well as any minor modifications, for example, you may not make our
+	texture seamless or tileable and then sell them.
+==============================================
+http://www.afflict.net/
+	Dylan Debusk (dylandebusk@hotmail.com)
+
+Originally available under the following license:
+	Can I use these textures for free?
+	You can use any texture for personal or school projects without my permission.
+	However if you decide to distribute your work I would appreciate credit where
+	credit is due.
+
+	Where can I NOT use these textures?
+	Any webpage, program, or texture cd that has them available without my permission
+	is not permitted. You can however use them in a design scheme for your site.
+==============================================
+http://www.jonathanclark.com
+		Crack dot Com (The Golgotha Team)
+
+According to Golgotha's credits, these textures were most likely created by Kevin Tyler, 
+Stephen Wilson or Johnathan Clark:
+	http://web.archive.org/web/20041019082122/jonathanclark.com/golgotha/credits.html
+
+Read Wikipedia for more information about the fate of Golgotha:
+	http://en.wikipedia.org/wiki/Golgotha_%28computer_game%29
+
+The last available archive of their website can be found here:
+	http://web.archive.org/web/20041015081823/jonathanclark.com/golgotha/
+
+
+These textures are free, released into the public domain by the since-abandoned "Golgotha" 
+computer game, which means they can be used for just about anything.
+You can read more about it being free, to the public domain below. This excerpt was taken from:
+	http://web.archive.org/web/20031009012921/jonathanclark.com/golgotha/free.html
+
+Is everything free?
+-------------------
+YES! Free as in "free beer" and free as in "free speech." You can do anything you like with 
+the source, graphics, music, and level files, including: sell it, include parts or all of 
+it in your project, post it, copy it, and change it to your heart's content. The only 
+restrictions lay in the code which we did not write and therefore do not own (i.e. the MP3
+decoder code ). The author of MPG123 allows free use of that code for non profit use.
+
+This code and data is "public domain" not to be confused with code released under a license
+such GPL. GPL sets limits on what you can do the code and conditions on it's use and we do not.
+
+The trademarks "Crack dot Com" and "Golgotha" remain the property of crack.com.
