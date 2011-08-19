@@ -101,7 +101,6 @@ CubeScript
 [*] delmenu          - Deletes all of the menu items in the specified menu.
 [*] akimboautoswitch - Enables or disables automatically switching to akimbo upon pickup. (regardless of current weapon)
 [*] add2list         - Appends a new element to a list. (Exactly like add2alias, simply without the additional ";")
-[*] getvar           - Gets the current value of a CVAR. (client variable)
 [*] isIdent          - Determines if the argument given is a built-in identifier.
 [*] isSpect          - Determines if you are in any form of spectating (team, or singleplayer "fly")
 [*] inWater          - Determines if you are standing or submerged in water.
@@ -178,6 +177,7 @@ CubeScript
 [*] gametimestart    - Returns the time (in milliseconds) when the last map was loaded.
 [*] mapbackupsonsave - Determines if map backups (.bak) should be created when a map is saved.
 [*] isclient         - Determines if the client number given is a valid client (player).
+[*] getalias can now work on built-in client variables (CVARs). - (e.g. fov)
 [*] "Sleeps" can be persistent. (e.g. "Persist" even through map loads - new optional 3rd argument of the /sleep command)
 [*] Substr crash bug is fixed. Also the command can now use a negative position value.
 [*] New stat in (pstat_score) for teamkills. New list is: FLAGS FRAGS DEATHS POINTS TEAM TEAMKILLS NAME

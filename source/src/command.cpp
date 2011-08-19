@@ -345,12 +345,36 @@ const char *getalias(const char *name)
 }
 void _getalias(char *name)
 {
+    string o;
+    ident *id = idents->access(name);
     const char *action = getalias(name);
-    result(action ? action : "");
+    if(id)
+    {
+        switch(id->type)
+        {
+            case ID_VAR:
+                formatstring(o)("%d", *id->storage.i);
+                result(o);
+                break;
+            case ID_FVAR:
+                formatstring(o)("%.3f", *id->storage.f);
+                result(o);
+                break;
+            case ID_SVAR:
+                formatstring(o)("%s", *id->storage.s);
+                result(o);
+                break;
+            case ID_ALIAS:
+                result(action ? action : "");
+                break;
+            default: break;
+        }
+    }
 }
 COMMANDN(getalias, _getalias, ARG_1STR);
 
-void _getvar(char *name)
+// (getalias) now handles client variables as well
+/*void _getvar(char *name)
 {
     string resstr;
     resstr[0] = '\0';
@@ -373,7 +397,7 @@ void _getvar(char *name)
     }
     result(resstr);
 }
-COMMANDN(getvar, _getvar, ARG_1STR);
+COMMANDN(getvar, _getvar, ARG_1STR);*/
 COMMANDN(isIdent, identexists, ARG_1EST);
 
 bool addcommand(const char *name, void (*fun)(), int narg)
@@ -1319,6 +1343,7 @@ COMMAND(concat, ARG_CONC);
 COMMAND(concatword, ARG_CONCW);
 COMMAND(format, ARG_VARI);
 COMMAND(result, ARG_1STR);
+COMMAND(execute, ARG_1STR);
 COMMAND(at, ARG_2STR);
 COMMAND(listlen, ARG_1EST);
 COMMAND(findlist, ARG_2STR);

@@ -85,7 +85,35 @@
 					<arguments>
 						<argument token="R" description="the result"/>
 					</arguments>
+          <references>
+            <identifierReference identifier="execute"/>
+            <identifierReference identifier="return"/>
+          </references>
 				</command>
+        
+        <command name="return">
+					<description>sets the result value of a CubeScript block</description>
+					<arguments>
+						<argument token="R" description="the result"/>
+					</arguments>
+          <references>
+            <identifierReference identifier="execute"/>
+            <identifierReference identifier="result"/>
+          </references>
+				</command>
+        
+        <command name="execute">
+          <description>Executes the specified string as CubeScript.</description>
+          <arguments>
+            <argument token="S" description="the string to execute"/>
+          </arguments>
+          <examples>
+            <example>
+              <code><![CDATA[execute (concat echo (addpunct fov 3))]]></code>
+              <explanation>Example output: 90.0</explanation>
+            </example>
+          </examples>
+        </command>
 
 				<command name="push">
 					<description>Temporarily redefines the value of an alias.</description>
@@ -110,11 +138,13 @@
 						<argument token="N" description="alias name"/>
 					</arguments>
 					<references>
-						<identifierReference identifier="getvar"/>
+						<identifierReference identifier="storesets"/>
 					</references>
 				</command>
 
-				<command name="getvar">
+				<!--
+        // (getalias) can not handle built-in client variables
+        <command name="getvar">
 					<description>return the value of the engine variable</description>
 					<arguments>
 						<argument token="N" description="identifier name"/>
@@ -122,7 +152,7 @@
 					<references>
 						<identifierReference identifier="getalias"/>
 					</references>
-				</command>
+				</command>-->
 
 				<command name="isIdent">
 					<description>returns whether or not there is an identifier by that name</description>
@@ -809,22 +839,19 @@
 				</command>
         
         <command name="storesets">
-          <description>Generates an alias (list) of the current values for the given CVARs.</description>
+          <description>Generates an alias (list) of the current values for the given aliases/CVARs.</description>
           <examples>
             <example>
               <code><![CDATA[storesets "sensitivity hudgun fov" tmp]]></code>
               <explanation>Example result: stores "3.000 1 120" into alias "tmp".</explanation>
             </example>
           </examples>
-          <remarks>
-            <remark>Some idents cannot be stored via this command (e.g. curname), if an argument is given that cannot be used, the command will throw an error to notify you.</remark>
-          </remarks>
           <arguments>
-            <argument token="L" description="the list of CVARs"/>
+            <argument token="L" description="the list of aliases/CVARs"/>
             <argument token="A" description="the alias to store them in"/>
           </arguments>
           <references>
-            <identifierReference identifier="getvar"/>
+            <identifierReference identifier="getalias"/>
           </references>
         </command>
 
