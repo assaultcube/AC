@@ -283,7 +283,7 @@ void checkmapdependencies(bool silent = false, bool details = false) // find req
     reqmpak[0] = '\0';
     // First check releasefiles
     int mpfl;
-    char* acrfc = loadfile("packages/misc/releasefiles.txt", &mpfl, "r");
+    char* acrfc = loadfile("config/releasefiles.cfg", &mpfl, "r");
     if(acrfc)
     {
         idx = -1;
@@ -296,7 +296,7 @@ void checkmapdependencies(bool silent = false, bool details = false) // find req
             }
         );
     }
-    else conoutf("ERROR: your installation is missing the packages/misc/releasefiles.txt - please do a CLEAN re-install!"); // even if silent == true
+    else conoutf("ERROR: your installation is missing the file config/releasefiles.cfg - please do a CLEAN re-install!"); // even if silent == true
     // Now check MediaPack definition files
     vector<char *> mpdefs;
     listfiles("packages/mediapack", "txt", mpdefs);
