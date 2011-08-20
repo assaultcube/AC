@@ -2034,12 +2034,31 @@ addOnLoadAlways [
           </arguments>
           <description>If defined, this will be executed each time a flag action occurs.</description>
         </scriptalias>
-
+        
+        <scriptalias name="onPickup">
+          <arguments>
+            <argument token="item" description="The item that was picked up" valueNotes="integer (0 = pistol clips, 1 = ammo box, 2 = grenade, 3 = health, 4 = helmet, 5 = armour, 6 = akimbo)" />
+            <argument token="q" description="The quantity that was received" />
+          </arguments>
+          <description>If defined, this will be executed each time you pick up an item.</description>
+        </scriptalias>
+        
+        <scriptalias name="onWeaponSwitch">
+          <arguments>
+            <argument token="w" description="The weapon ID that you switched to" />
+          </arguments>
+          <description>If defined, this will be executed each time you switch to a different weapon.</description>
+        </scriptalias>
+            
         <scriptalias name="onConnect">
           <arguments>
             <argument token="player" description="The client number of the player who connected" valueNotes="integer (-1 for local player)" />
           </arguments>
           <description>If defined, this will be executed when you or another player join(s) a server.</description>
+        </scriptalias>
+        
+        <scriptalias name="onDisconnect">
+          <description>If defined, this will be executed when you disconnect from a server.</description>
         </scriptalias>
 
           <scriptalias name="onSpawn">

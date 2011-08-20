@@ -215,6 +215,8 @@ void disconnect(int onlyclean, int async)
     }
 #endif
     if(!onlyclean) localconnect();
+    
+    if(identexists("onDisconnect")) execute("onDisconnect");
 }
 
 void trydisconnect()
