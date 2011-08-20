@@ -1,17 +1,3 @@
-------------SKYBOXES------------------
-
-(../packages/textures/skymaps)
-
-Skyboxes (c) 2004 by steini, makkE.
-(Feel free to use the sykboxes in "makke" for whatever you want, read PD).
-
-
-SimonOC 		Nightball skymap	\
-LadyNightHawk 		InhCanyons skymap  	 |--> All under CC license. See the readme in their folders.
-Sock 			Iceflow skymap 		/
-
-
-
 
 ------------SOUNDS--------------------
 Recorded by makkE and/or partially reprocessed from various royalty free or free to modify samples (thanks to 
