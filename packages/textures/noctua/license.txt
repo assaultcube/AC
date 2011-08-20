@@ -1,0 +1,13 @@
+Files within these subfolders are copyright (all rights reserved) by:
+	NOCTUA Graphics
+
+They are distributed under the following license:
+	All textures, materials and 3D objects in the download area
+	can be used without any restrictions in your own private and
+	commercial projects.
+
+	You are NOT allowed to spread them without giving the creators
+	name, to include them in texture collections without a written
+	permission and you strictly may NOT offer them as textures for
+	sale in any way.
+

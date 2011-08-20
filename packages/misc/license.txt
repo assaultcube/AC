@@ -1,0 +1,111 @@
+All files within this folder are copyright by:
+	Markus "makkE" Bekel
+
+EXCEPT... the following files:
+
+	* nopreview.jpg
+	* scope.png
+	* startscreen.png
+	* chars_blocky.png
+	* chars_monospace.png
+	* blood.png
+	* bullethole.png
+	* explosion.png
+
+See below for licenses to these files.
+
+================================================================================
+"blood.png" is copyright (all rights reserved) by:
+	Shane Nieb
+
+================================================================================
+"chars_blocky.png" is by: 
+	Alejandro “Toca”
+
+================================================================================
+"chars_monospace.png" was rendered by:
+	SKB
+
+The render was based off the "White Rabbit" font file created by:
+	Matthew Welch (daffy-duck@worldnet.att.net)
+	  * http://www.squaregear.net/fonts/
+	  * http://www.dafont.com/matthew-welch.d318
+
+Which is available under the following MIT-style license:
+	All my fonts are copyrigted by me, Matthew Welch, and are released under
+	the following license:
+
+	Permission is hereby granted, free of charge, to any person obtaining a
+	copy of this font software and associated documentation files (the 
+	"Software"), to deal in the Software without restriction, including without
+	limitation the rights to use, copy, modify, merge, publish, distribute,
+	sublicense, and/or sell copies of the Software, and to permit persons to
+	whom the Software is furnished to do so, subject to the following conditions:
+
+	The above copyright notice and this permission notice shall be included in
+	all copies or substantial portions of the Software.
+
+	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+	IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+	FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+	AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+	WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+	CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+================================================================================
+"explosion.png" is by:
+	Stephanos "RaZgRiZ" Vlastos
+
+This file has been declared by razgriz to be "public domain".
+
+================================================================================
+"bullethole.png" was created by:
+	leileilol (from "OpenArena")
+
+This file is licensed under the GNU General Public License, which can be found
+here: http://www.gnu.org/licenses/gpl-3.0.txt
+
+================================================================================
+"scope.png" was created by:
+	Attila "Antiklimax" Feher
+
+Permission has been granted from Antiklimax to make use
+of this file for anything, in any way, freely.
+
+================================================================================
+The "startscreen.png" & "nopreview.jpg" logo was gifted to Rabid Viper Productions
+from Lewis Communications. They allowed us to use and re-license it freely, in any
+way we wish.
+
+Some minor modifications were made and we now allow redistribution under the 
+"Attribution-NonCommercial-ShareAlike 3.0 Unported" Creative Commons
+(http://creativecommons.org/licenses/by-nc-sa/3.0/), with the additional clause, that
+you may not use it to misrepresent the origin of AssaultCube, or claim that you
+created AssaultCube or any of the original AssaultCube package(s).
+
+This means you are free to share, copy, distribute, transmit and/or remix/adapt the
+work under the following conditions:
+
+    * Attribution - You must attribute the work in the manner specified by the author
+      or licensor (but not in any way that suggests that they endorse you or your use
+      of the work).
+    * Noncommercial - You may not use this work for commercial purposes.
+    * Share Alike - If you alter, transform, or build upon this work, you may
+      distribute the resulting work only under the same or similar license to this one.
+    * Origin - You must not use the work(s) to misrepresent the origin of AssaultCube,
+      or claim that you created AssaultCube or any of the original AssaultCube package(s).
+
+With the understanding that:
+
+    * Waiver - Any of the above conditions can be waived if you get permission 
+               from the copyright holder.
+    * Public Domain - Where the work or any of its elements is in the public domain under
+                      applicable law, that status is in no way affected by the license.
+    * Other Rights - In no way are any of the following rights affected by the license:
+         1. Your fair dealing or fair use rights, or other applicable copyright
+            exceptions and limitations;
+         2. The author's moral rights;
+         3. Rights other persons may have either in the work itself or in how the work is
+            used, such as publicity or privacy rights.
+    * Notice - For any reuse or distribution, you must make clear to others the license
+               terms of this work. The best way to do this is with a link to this web page.
