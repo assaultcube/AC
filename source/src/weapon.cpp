@@ -40,11 +40,18 @@ void selectweapon(weapon *w)
     if(!w || !player1->weaponsel->deselectable()) return;
     if(w->selectable())
     {
+        int i = w->type;
         // substitute akimbo
         weapon *akimbo = player1->weapons[GUN_AKIMBO];
         if(w->type==GUN_PISTOL && akimbo->selectable()) w = akimbo;
 
         player1->weaponswitch(w);
+        if(identexists("onWeaponSwitch"))
+        {
+            string o;
+            formatstring(o)("onWeaponSwitch %d", i);
+            execute(o);
+        }
     }
 }
 
