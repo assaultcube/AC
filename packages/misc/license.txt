@@ -6,7 +6,7 @@ EXCEPT... the following files:
 	* nopreview.jpg
 	* scope.png
 	* startscreen.png
-	* chars_blocky.png
+	* chars_default.png
 	* chars_monospace.png
 	* blood.png
 	* bullethole.png
@@ -19,7 +19,7 @@ See below for licenses to these files.
 	Shane Nieb
 
 ================================================================================
-"chars_blocky.png" is by: 
+"chars_default.png" is by: 
 	Alejandro “Toca”
 
 ================================================================================

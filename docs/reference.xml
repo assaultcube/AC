@@ -4897,19 +4897,33 @@ Output:
 					</arguments>
 				</command>
 
-				<command name="font">
-					<description>Loads an image to be used as a text font.</description>
-					<arguments>
-						<argument token="A" description="Check font.cfg for examples of use" valueNotes="value"/>
-					</arguments>
-				</command>
+        <command name="font">
+          <description>
+            Loads a font texture to use as text within AssaultCube.
+          </description>
+          <arguments>
+            <argument token="NAME" description="The font name."/>
+            <argument token="PATH" description="The path to the font texture."/>
+            <argument token="A" description="The default width."/>
+            <argument token="B" description="The default height."/>
+            <argument token="C" description="Offset (co-ordinate X)."/>
+            <argument token="D" description="Offset (co-ordinate Y)."/>
+            <argument token="E" description="Offset (width)."/>
+            <argument token="F" description="Offset (height)."/>
+          </arguments>
+        </command>
 
-				<command name="fontchar">
-					<description>Especify a region of an image to be used as a font character.</description>
-					<arguments>
-						<argument token="A" description="Check font.cfg for examples of use" valueNotes="value"/>
-					</arguments>
-				</command>
+        <command name="fontchar">
+          <description>
+            Specify a region of an image to be used as a font character
+          </description>
+          <arguments>
+            <argument token="A" description="X co-ordinates (from top-left corner)."/>
+            <argument token="B" description="Y co-ordinates (from top-left corner)."/>
+            <argument token="C" description="Width."/>
+            <argument token="D" description="Height."/>
+          </arguments>
+        </command>
 
 				<command name="setfont">
 					<description>Changes the current font.</description>
