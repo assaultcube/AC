@@ -250,6 +250,7 @@ extern void setperspective(float fovy, float aspect, float nearplane, float farp
 extern void sethudgunperspective(bool on);
 extern void gl_drawframe(int w, int h, float changelod, float curfps);
 extern void clearminimap();
+extern void resetzone();
 extern void rendercursor(int x, int y, int w);
 extern void renderaboveheadicon(playerent *p);
 extern void drawscope(bool preload = false);

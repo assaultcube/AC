@@ -24,7 +24,7 @@ void setbottimeout(int m, int t)
         {
             switch(m)
             {
-                case 1: 
+                case 1:
                 {
                     extern int botmatch_dm_minremain;
                     botmatch_dm_minremain = t;
@@ -855,7 +855,7 @@ void setkillmessage(int gun, bool gib, const char *message)
         conoutf("invalid gun specified");
         return;
     }
-    
+
     copystring(killmessages[gib?1:0][gun], message, sizeof(killmessages[gib?1:0][gun]));
 }
 
@@ -1169,6 +1169,7 @@ COMMAND(gamemodedesc, ARG_2STR);
 void resetmap(bool mrproper)
 {
     resetsleep();
+    resetzone();
     clearminimap();
     cleardynlights();
     pruneundos();
