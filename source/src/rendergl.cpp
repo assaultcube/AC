@@ -509,7 +509,7 @@ void recomputecamera()
                 camera1->pitch = -90;
                 camera1->yaw = 0;
 
-                disableraytable();                
+                disableraytable();
                 break;
             }
             case SM_FOLLOW1ST:
@@ -745,6 +745,24 @@ bool minimap = false, minimapdirty = true;
 int minimaplastsize = 0;
 GLuint minimaptex = 0;
 
+int zonex1 = -1, zoney1 = -1, zonex2 = -1, zoney2 = -1;
+
+void renderzone(float z)
+{
+    glColor4f(0, 1, 0, 0.3f);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glDisable(GL_TEXTURE_2D);
+    glBegin(GL_QUADS);
+    glVertex3f(zonex1, zoney1, z);
+    glVertex3f(zonex2, zoney1, z);
+    glVertex3f(zonex2, zoney2, z);
+    glVertex3f(zonex1, zoney2, z);
+    glEnd();
+    glDisable(GL_BLEND);
+    glEnable(GL_TEXTURE_2D);
+}
+
 void clearminimap()
 {
     minimapdirty = true;
@@ -804,6 +822,7 @@ void drawminimap(int w, int h)
     renderstrips();
     glDepthFunc(GL_LESS);
     rendermapmodels();
+    renderzone(mapdims[7]);
     //renderentities();// IMHO better done by radar itself, if at all
     resettmu(0);
     float hf = hdr.waterlevel-0.3f;
@@ -828,6 +847,15 @@ void cleanupgl()
     reflecttex = refracttex = minimaptex = 0;
     minimapdirty = true;
 }
+
+
+void drawzone(int x1, int x2, int y1, int y2)
+{
+    zonex1 = x1; zoney1 = y1;
+    zonex2 = x2; zoney2 = y2;
+    clearminimap();
+}
+COMMAND(drawzone, ARG_4INT);
 
 int xtraverts;
 
