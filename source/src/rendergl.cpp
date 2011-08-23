@@ -848,7 +848,6 @@ void cleanupgl()
     minimapdirty = true;
 }
 
-
 void drawzone(int x1, int x2, int y1, int y2)
 {
     zonex1 = x1; zoney1 = y1;
@@ -856,6 +855,11 @@ void drawzone(int x1, int x2, int y1, int y2)
     clearminimap();
 }
 COMMAND(drawzone, ARG_4INT);
+
+void resetzone()
+{
+    zonex1 = zoney1 = zonex2 = zoney2 = 0;
+}
 
 int xtraverts;
 
