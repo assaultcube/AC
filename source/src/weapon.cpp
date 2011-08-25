@@ -378,6 +378,15 @@ struct hitweap
 };
 hitweap accuracym[NUMGUNS];
 
+inline void attackevent(playerent *owner, int weapon)
+{
+    if(owner == player1 && identexists("onAttack"))
+    {
+        defformatstring(onattackevent)("onAttack %d", weapon);
+        execute(onattackevent);
+    }
+}
+
 vector<hitmsg> hits;
 
 void hit(int damage, playerent *d, playerent *at, const vec &vel, int gun, bool gib, int info)
@@ -1024,8 +1033,12 @@ bool grenades::attack(vec &targ)
     switch(state)
     {
         case GST_NONE:
-            if(waitdone && owner->attacking && this==owner->weaponsel) activatenade(to); // activate
-            break;
+            if(waitdone && owner->attacking && this==owner->weaponsel)
+            {
+                attackevent(owner, type);
+                activatenade(to); // activate
+            }
+        break;
 
         case GST_INHAND:
             if(waitdone || ( quicknade && quickwait ) )
@@ -1195,6 +1208,8 @@ bool gun::attack(vec &targ)
     mag--;
 
     sendshoot(from, to, attackmillis);
+
+    attackevent(owner, type);
     return true;
 }
 
@@ -1524,6 +1539,8 @@ bool knife::attack(vec &targ)
     attackfx(from, to, 0);
     sendshoot(from, to, attackmillis);
     gunwait = info.attackdelay;
+
+    attackevent(owner, type);
     return true;
 }
 
