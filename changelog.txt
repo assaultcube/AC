@@ -8,6 +8,7 @@ This changelog is a WIP!
 Find me a cat!
 ---------------------
 // TODO : find a better order for these categories
+[*] New Private messages feature (/pm cn message) default bind is N
 
 Weapons
 ---------------------
@@ -122,12 +123,13 @@ CubeScript
 [*] onChangeVote     - Native alias that is executed when someone (including yourself) changes a vote.
 [*] onVoteEnd        - Native alias that is executed when a vote passes or fails.
 [*] onKill           - Native alias that is executed when a player is killed.
-[*] onFlagEvent      - Native alias that is executed when a flag event occurs.
+[*] onFlag           - Native alias that is executed when a flag event occurs.
 [*] onLastMin        - Native alias that is executed when the last minute of the current round is reached.
 [*] onPickup         - Native alias that is executed when you pick up an item.
 [*] onWeaponSwitch   - Native alias that is executed when you switch to a different weapon.
 [*] onDisconnect     - Native alias that is executed when you disconnect from a server.
 [*] onReload         - Native alias that is executed when you reload a weapon.
+[*] onAttack         - Native alias that is executed when you shoot a bullet, throw or nade or attack with your knife.
 [*] onNewMap         - Native alias that is executed when you execute the /newmap command.
 [*] afterinit        - Native alias that is executed immediately after saved.cfg is loaded.
 [*] votepending      - Client variable that is 1 if there is a vote currently pending on the server, else 0. (e.g. echo $votepending // Example output: 0)
