@@ -489,8 +489,10 @@ void freebotent(botent *d)
     }
 }
 
+VAR(lastpm, -1, -1, -1);
 void zapplayer(playerent *&d)
 {
+    if(d && d->clientnum == lastpm) lastpm = -1;
     DELETEP(d);
 }
 

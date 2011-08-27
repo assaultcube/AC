@@ -5,7 +5,7 @@
 #define CUBE_SERVINFO_PORT_LAN 28762
 #define CUBE_SERVINFO_PORT(serverport) (serverport+1)
 #define CUBE_SERVINFO_TO_SERV_PORT(servinfoport) (servinfoport-1)
-#define PROTOCOL_VERSION 1140 // 1132           // bump when protocol changes (use negative numbers for mods!)
+#define PROTOCOL_VERSION 1141 // 1132           // bump when protocol changes (use negative numbers for mods!)
 #define DEMO_VERSION 2                  // bump when demo format changes
 #define DEMO_MAGIC "ASSAULTCUBE_DEMO"
 #define DEMO_MINTIME 10000              // don't keep demo recordings with less than 10 seconds
@@ -18,7 +18,7 @@ extern bool modprotocol;
 // network messages codes, c2s, c2c, s2c
 enum
 {
-    SV_SERVINFO = 0, SV_WELCOME, SV_INITCLIENT, SV_POS, SV_POSC, SV_POSN, SV_TEXT, SV_TEAMTEXT, SV_TEXTME, SV_TEAMTEXTME,
+    SV_SERVINFO = 0, SV_WELCOME, SV_INITCLIENT, SV_POS, SV_POSC, SV_POSN, SV_TEXT, SV_TEAMTEXT, SV_TEXTME, SV_TEAMTEXTME, SV_TEXTPRIVATE,
     SV_SOUND, SV_VOICECOM, SV_VOICECOMTEAM, SV_CDIS,
     SV_SHOOT, SV_EXPLODE, SV_SUICIDE, SV_AKIMBO, SV_RELOAD, SV_AUTHT, SV_AUTHREQ, SV_AUTHTRY, SV_AUTHANS, SV_AUTHCHAL,
     SV_GIBDIED, SV_DIED, SV_GIBDAMAGE, SV_DAMAGE, SV_HITPUSH, SV_SHOTFX, SV_THROWNADE,

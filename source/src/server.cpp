@@ -2821,6 +2821,43 @@ void process(ENetPacket *packet, int sender, int chan)
                 break;
             }
 
+            case SV_TEXTPRIVATE:
+            {
+                int targ = getint(p);
+                getstring(text, p);
+                filtertext(text, text);
+                trimtrailingwhitespace(text);
+
+                if(!valid_client(targ)) break;
+                client *target = clients[targ];
+
+                if(*text)
+                {
+                    bool canspeech = forbiddenlist.canspeech(text);
+                    if(!spamdetect(cl, text) && canspeech)
+                    {
+                        bool allowed = !(mastermode == MM_MATCH && cl->team != target->team) && cl->role >= roleconf('T');
+                        logline(ACLOG_INFO, "[%s] %s says to %s: '%s' (%s)", cl->hostname, cl->name, target->name, text, allowed ? "allowed":"disallowed");
+                        if(allowed) sendf(target->clientnum, 1, "riis", SV_TEXTPRIVATE, cl->clientnum, text);
+                    }
+                    else
+                    {
+                        logline(ACLOG_INFO, "[%s] %s says to %s: '%s', %s", cl->hostname, cl->name, target->name, text, canspeech ? "SPAM detected" : "Forbidden speech");
+                        if (canspeech)
+                        {
+                            sendservmsg("\f3please do not spam", sender);
+                            if ( cl->spamcount > SPAMMAXREPEAT + 2 ) disconnect_client(cl->clientnum, DISC_ABUSE);
+                        }
+                        else
+                        {
+                            sendservmsg("\f3watch your language!", sender);
+                            kick_abuser(cl->clientnum, cl->badmillis, cl->badspeech, 3);
+                        }
+                    }
+                }
+            }
+            break;
+
             case SV_VOICECOM:
             case SV_VOICECOMTEAM:
             {
@@ -2839,7 +2876,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     else sendvoicecomteam(s, sender);
                 }
             }
-                break;
+            break;
 
             case SV_MAPIDENT:
             {
