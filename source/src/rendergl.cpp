@@ -745,11 +745,11 @@ bool minimap = false, minimapdirty = true;
 int minimaplastsize = 0;
 GLuint minimaptex = 0;
 
-int zonex1 = -1, zoney1 = -1, zonex2 = -1, zoney2 = -1;
+int zonex1 = -1, zoney1 = -1, zonex2 = -1, zoney2 = -1, zonecolor = 0;
 
 void renderzone(float z)
 {
-    glColor4f(0, 1, 0, 0.3f);
+    glColor4f(((zonecolor>>16)&0xFF)/255.0f, ((zonecolor>>8)&0xFF)/255.0f, (zonecolor&0xFF)/255.0f, 0.3f);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glDisable(GL_TEXTURE_2D);
@@ -848,13 +848,15 @@ void cleanupgl()
     minimapdirty = true;
 }
 
-void drawzone(int x1, int x2, int y1, int y2)
+void drawzone(char *x1, char *x2, char *y1, char *y2, char *color)
 {
-    zonex1 = x1; zoney1 = y1;
-    zonex2 = x2; zoney2 = y2;
+    zonex1 = atoi(x1); zoney1 = atoi(y1);
+    zonex2 = atoi(x2); zoney2 = atoi(y2);
+    if(color[0]) zonecolor = ATOI(color);
+    else zonecolor = 0x00FF00;
     clearminimap();
 }
-COMMAND(drawzone, ARG_4INT);
+COMMAND(drawzone, ARG_5STR);
 
 void resetzone()
 {
