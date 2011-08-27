@@ -243,6 +243,7 @@ char *mlayout = NULL;
 int Mv = 0, Ma = 0, F2F = 1000 * MINFF; // moved up:, MA = 0;
 float Mh = 0;
 extern int connected;
+extern int lastpm;
 extern bool noflags;
 bool item_fail = false;
 int map_quality = MAP_IS_EDITABLE;
@@ -496,6 +497,22 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 }
                 else return;
                 break;
+
+            case SV_TEXTPRIVATE:
+            {
+                int cn = getint(p);
+                getstring(text, p);
+                filtertext(text, text);
+                playerent *d = getclient(cn);
+                if(!d) break;
+                if(d->ignored) clientlogf("ignored: pm %s %s", colorname(d), text);
+                else
+                {
+                    conoutf("%s (PM):\f9 %s", colorname(d), highlight(text));
+                    lastpm = d->clientnum;
+                }
+                break;
+            }
 
             case SV_MAPCHANGE:
             {

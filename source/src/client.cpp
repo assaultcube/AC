@@ -277,16 +277,61 @@ VARP(allowhudechos, 0, 1, 1);
 void hudecho(char *text)
 {
     const char *s = strtok(text, "\n");
+    void (*outf)(const char *s, ...) = allowhudechos ? hudoutf : conoutf;
     do
     {
-        if(allowhudechos)
-            hudoutf("%s", s ? s : "");
-        else
-            conoutf("%s", s ? s : "");
+        outf("%s", s ? s : "");
         s = strtok(NULL, "\n");
     }
     while(s);
 }
+
+void pm(char *text)
+{
+    if(!text || !text[0]) return;
+    int cn = -1;
+    char digit;
+    while ((digit = *text++) != '\0')
+    {
+        if (digit < '0' || digit > '9') break;
+        if(cn < 0) cn = 0;
+        else cn *= 10;
+        cn += digit - '0';
+    }
+    playerent *to = getclient(cn);
+    if(!to)
+    {
+        conoutf("invalid client number specified");
+        return;
+    }
+
+    if(!isspace(digit)) { --text; }
+
+    // FIXME:
+    /*if(!text || !text[0] || !isdigit(text[0])) return;
+    int cn = -1;
+    char *numend = strpbrk(text, " \t");
+    if(!numend) return;
+    string cnbuf;
+    copystring(cnbuf, text, min(numend-text+1, MAXSTRLEN));
+    cn = atoi(cnbuf);
+    playerent *to = getclient(cn);
+    if(!to)
+    {
+        conoutf("invalid client number specified");
+        return;
+    }
+
+    if(*numend) numend++;*/
+    // :FIXME
+
+    filtertext(text, text);
+    trimtrailingwhitespace(text);
+
+    addmsg(SV_TEXTPRIVATE, "ris", cn, text);
+    conoutf("to %s:\f9 %s", colorname(to), highlight(text));
+}
+COMMAND(pm, ARG_CONC);
 
 COMMAND(echo, ARG_CONC);
 COMMAND(hudecho, ARG_CONC);
