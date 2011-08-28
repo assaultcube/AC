@@ -2836,7 +2836,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     bool canspeech = forbiddenlist.canspeech(text);
                     if(!spamdetect(cl, text) && canspeech)
                     {
-                        bool allowed = !(mastermode == MM_MATCH && cl->team != target->team) && cl->role >= roleconf('T');
+                        bool allowed = !(mastermode == MM_MATCH && cl->team != target->team) && cl->role >= roleconf('t');
                         logline(ACLOG_INFO, "[%s] %s says to %s: '%s' (%s)", cl->hostname, cl->name, target->name, text, allowed ? "allowed":"disallowed");
                         if(allowed) sendf(target->clientnum, 1, "riis", SV_TEXTPRIVATE, cl->clientnum, text);
                     }
