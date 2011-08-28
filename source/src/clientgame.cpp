@@ -252,22 +252,6 @@ ICOMMANDF(skin_cla, ARG_1EST, (char *s) { return _setskin(s, TEAM_CLA); });
 ICOMMANDF(skin_rvsf, ARG_1EST, (char *s) { return _setskin(s, TEAM_RVSF); });
 ICOMMANDF(skin, ARG_1EST, (char *s) { return _setskin(s, player1->team); });
 
-void isclient(char *arg1)
-{
-    int i = atoi(arg1);
-    defformatstring(o)("%d", (getclient(i) != NULL || i == player1->clientnum) ? 1 : 0);
-    result(o);
-}
-
-//int curteam() { return player1->team; } // See compatibility.cfg
-int isSpect() { return (player1->team==TEAM_SPECT || player1->spectatemode==SM_FLY); }
-int currole() { return player1->clientrole; }
-//int curmode() { return gamemode; } // See compatibility.cfg
-int curmastermode() { return servstate.mastermode; }
-int curautoteam()   { return servstate.autoteam; }
-void curmap(int cleaned) { result(cleaned ? behindpath(getclientmap()) : getclientmap()); }
-void curplayers() { intret(multiplayer(false) ? (players.length() + 1) : players.length()); }
-
 int curmodeattr(char *attr)
 {
     if(!strcmp(attr, "team")) return m_teammode;
@@ -280,17 +264,14 @@ int curmodeattr(char *attr)
 COMMANDN(team, newteam, ARG_1STR);
 COMMANDN(name, newname, ARG_1STR);
 COMMAND(benchme, ARG_NONE);
-//COMMAND(curteam, ARG_IVAL);
-COMMAND(isclient, ARG_1STR);
-COMMAND(isSpect, ARG_IVAL);
-COMMAND(currole, ARG_IVAL);
-//COMMAND(curmode, ARG_IVAL);
-COMMAND(curmastermode, ARG_IVAL);
-COMMAND(curautoteam, ARG_IVAL);
-//COMMAND(getclientmode, ARG_IVAL);
+ICOMMANDF(isclient, ARG_1EXP, (int cn) { return cn == player1->clientnum || getclient(cn) != NULL ? 1 : 0; } );
+ICOMMANDF(isSpect, ARG_IVAL, (void) { return (player1->team==TEAM_SPECT || player1->spectatemode==SM_FLY); });
+ICOMMANDF(currole, ARG_IVAL, (void) { return player1->clientrole; });
+ICOMMANDF(curmastermode, ARG_IVAL, (void) { return servstate.mastermode; });
+ICOMMANDF(curautoteam, ARG_IVAL, (void) { return servstate.autoteam; });
 COMMAND(curmodeattr, ARG_1EST);
-COMMAND(curmap, ARG_1INT);
-COMMAND(curplayers, ARG_NONE);
+COMMANDF(curmap, ARG_1INT, (int cleaned) { result(cleaned ? behindpath(getclientmap()) : getclientmap()); });
+ICOMMANDF(curplayers, ARG_IVAL, (void) { return players.length() + 1; });
 VARP(showscoresondeath, 0, 1, 1);
 VARP(autoscreenshot, 0, 0, 1);
 

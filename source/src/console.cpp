@@ -222,6 +222,7 @@ void bindk(const char *key, const char *action)
     if(!km) { conoutf("unknown key \"%s\"", key); return; }
     bindkey(km, action);
 }
+
 void keybind(const char *key)
 {
     keym *km = findbind(key);
@@ -236,9 +237,9 @@ bool bindc(int code, const char *action)
     else return false;
 }
 
-void searchbinds(char *action)
+void searchbinds(const char *action)
 {
-    if(!action || action[0] == '\0') return;
+    if(!action || !action[0]) return;
     vector<char> names;
     loopv(keyms)
     {
@@ -252,9 +253,10 @@ void searchbinds(char *action)
     result(names.getbuf());
 }
 
-COMMAND(searchbinds, ARG_1STR);
-COMMANDN(bind, bindk, ARG_2STR);
 COMMAND(keybind, ARG_1STR);
+COMMANDN(bind, bindk, ARG_2STR);
+COMMAND(searchbinds, ARG_1STR);
+
 struct releaseaction
 {
     keym *key;
