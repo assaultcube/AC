@@ -177,12 +177,15 @@ int rendercommand_wip(int x, int y, int w)
 
 vector<keym> keyms;
 
+const char *keycmds[keym::NUMACTIONS] = { "bind", "specbind", "editbind" };
+inline const char *keycmd(int type) { return type >= 0 && type < keym::NUMACTIONS ? keycmds[type] : ""; } 
+
 void keymap(char *code, char *key, char *action)
 {
     keym &km = keyms.add();
     km.code = atoi(code);
     km.name = newstring(key);
-    km.action = newstring(action);
+//    km.action = newstring(action);
 }
 
 COMMAND(keymap, ARG_3STR);
@@ -193,9 +196,9 @@ keym *findbind(const char *key)
     return NULL;
 }
 
-keym *findbinda(const char *action)
+keym *findbinda(const char *action, int type)
 {
-    loopv(keyms) if(!strcasecmp(keyms[i].action, action)) return &keyms[i];
+    loopv(keyms) if(!strcasecmp(keyms[i].actions[type], action)) return &keyms[i];
     return NULL;
 }
 
@@ -208,42 +211,45 @@ keym *findbindc(int code)
 keym *keypressed = NULL;
 char *keyaction = NULL;
 
-bool bindkey(keym *km, const char *action)
+bool bindkey(keym *km, const char *action, int type)
 {
     if(!km) return false;
-    if(!keypressed || keyaction!=km->action) delete[] km->action;
-    km->action = newstring(action);
+    if(type < keym::ACTION_DEFAULT || type >= keym::NUMACTIONS) { conoutf("invalid bind type \"%i\"", type); return false; }
+    if(!keypressed || keyaction!=km->actions[type]) delete[] km->actions[type];
+    km->actions[type] = newstring(action);
     return true;
 }
 
-void bindk(const char *key, const char *action)
+void bindk(const char *key, const char *action, int type)
 {
     keym *km = findbind(key);
     if(!km) { conoutf("unknown key \"%s\"", key); return; }
-    bindkey(km, action);
+    bindkey(km, action, type);
 }
 
-void keybind(const char *key)
+void keybind(const char *key, int type)
 {
     keym *km = findbind(key);
     if(!km) { conoutf("unknown key \"%s\"", key); return; }
-    result(km->action);
+    if(type < keym::ACTION_DEFAULT || type >= keym::NUMACTIONS) { conoutf("invalid bind type \"%i\"", type); return; }
+    result(km->actions[type]);
 }
 
-bool bindc(int code, const char *action)
+bool bindc(int code, const char *action, int type)
 {
     keym *km = findbindc(code);
-    if(km) return bindkey(km, action);
+    if(km) return bindkey(km, action, type);
     else return false;
 }
 
-void searchbinds(const char *action)
+void searchbinds(const char *action, int type)
 {
     if(!action || !action[0]) return;
+    if(type < keym::ACTION_DEFAULT || type >= keym::NUMACTIONS) { conoutf("invalid bind type \"%i\"", type); return; }
     vector<char> names;
     loopv(keyms)
     {
-        if(strstr(keyms[i].action, action))
+        if(!strcmp(keyms[i].actions[type], action))
         {
             if(names.length()) names.add(' ');
             names.put(keyms[i].name, strlen(keyms[i].name));
@@ -253,9 +259,17 @@ void searchbinds(const char *action)
     result(names.getbuf());
 }
 
-COMMAND(keybind, ARG_1STR);
-COMMANDN(bind, bindk, ARG_2STR);
-COMMAND(searchbinds, ARG_1STR);
+COMMANDF(keybind, ARG_1STR, (const char *key) { keybind(key, keym::ACTION_DEFAULT); } );
+COMMANDF(keyspecbind, ARG_1STR, (const char *key) { keybind(key, keym::ACTION_SPECTATOR); } );
+COMMANDF(keyeditbind, ARG_1STR, (const char *key) { keybind(key, keym::ACTION_EDITING); } );
+
+COMMANDF(bind, ARG_2STR, (const char *key, const char *action) { bindk(key, action, keym::ACTION_DEFAULT); } );
+COMMANDF(specbind, ARG_2STR, (const char *key, const char *action) { bindk(key, action, keym::ACTION_SPECTATOR); } );
+COMMANDF(editbind, ARG_2STR, (const char *key, const char *action) { bindk(key, action, keym::ACTION_EDITING); } );
+
+COMMANDF(searchbinds, ARG_1STR, (const char *action) { searchbinds(action, keym::ACTION_DEFAULT); });
+COMMANDF(searchspecbinds, ARG_1STR, (const char *action) { searchbinds(action, keym::ACTION_SPECTATOR); });
+COMMANDF(searcheditbinds, ARG_1STR, (const char *action) { searchbinds(action, keym::ACTION_EDITING); });
 
 struct releaseaction
 {
@@ -444,11 +458,15 @@ void execbind(keym &k, bool isdown)
     }
     if(isdown)
     {
-        keyaction = k.action;
+        int state = keym::ACTION_DEFAULT;
+        if(editmode) state = keym::ACTION_EDITING;
+        else if(player1->isspectating()) state = keym::ACTION_SPECTATOR;
+        char *&action = k.actions[state][0] ? k.actions[state] : k.actions[keym::ACTION_DEFAULT];
+        keyaction = action;
         keypressed = &k;
         execute(keyaction);
         keypressed = NULL;
-        if(keyaction!=k.action) delete[] keyaction;
+        if(keyaction!=action) delete[] keyaction;
     }
     k.pressed = isdown;
 }
@@ -545,7 +563,8 @@ void writebinds(stream *f)
 {
     loopv(keyms)
     {
-        if(*keyms[i].action) f->printf("bind %s [%s]\n",     keyms[i].name, keyms[i].action);
+        keym *km = &keyms[i];
+        loopj(3) if(km->actions[j]) f->printf("%s \"%s\" [%s]\n", keycmd(j), km->name, km->actions[j]);
     }
 }
 
