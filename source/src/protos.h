@@ -64,18 +64,27 @@ extern void clientlogf(const char *s, ...);
 struct keym
 {
     int code;
-    char *name, *action;
+
+    enum
+    {
+        ACTION_DEFAULT = 0,
+        ACTION_SPECTATOR,
+        ACTION_EDITING,
+        NUMACTIONS
+    };
+
+    char *name, *actions[NUMACTIONS];
     bool pressed;
 
-    keym() : code(-1), name(NULL), action(NULL), pressed(false) {}
-    ~keym() { DELETEA(name); DELETEA(action); }
+    keym() : code(-1), name(NULL), pressed(false) { loopi(NUMACTIONS) actions[i] = newstring(""); }
+    ~keym() { DELETEA(name); loopi(NUMACTIONS) DELETEA(actions[i]); }
 };
 
 extern keym *keypressed;
 
-extern bool bindkey(keym *km, const char *action);
-extern keym *findbinda(const char *action);
-extern bool bindc(int code, const char *action);
+extern bool bindkey(keym *km, const char *action, int state = keym::ACTION_DEFAULT);
+extern keym *findbinda(const char *action, int type = keym::ACTION_DEFAULT);
+extern bool bindc(int code, const char *action, int type = keym::ACTION_DEFAULT);
 
 // menus
 extern void rendermenu();
