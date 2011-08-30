@@ -196,6 +196,7 @@ CubeScript
 [*] The /togglebotview command can no longer be used in arena modes.
 [*] /keybind bug fix. No more client crash if the argument is an unknown key.
 [*] Moved some old/redundant commands to /config/compatibility.cfg.
+[*] Hardcoded key bind/editbind/specbind 
 
 I18n / L10n
 ---------------------
