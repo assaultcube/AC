@@ -1335,15 +1335,15 @@ echo foo
 					</arguments>
 				</command>
 
-				<command name="echo">
-          <description>Outputs text to the console.</description>
-					<arguments>
-						<argument token="L" description="List of strings"/>
-					</arguments>
-          <references>
-            <identifierReference identifier="hudecho"/>
-          </references>
-				</command>
+                  <command name="echo">
+                    <description>Outputs text to the console.</description>
+                    <arguments>
+                      <argument token="L" description="List of strings"/>
+                    </arguments>
+                    <references>
+                      <identifierReference identifier="hudecho"/>
+                    </references>
+                  </command>
         
         <command name="hudecho">
           <description>Outputs text to the console and heads up display.</description>
@@ -2042,8 +2042,26 @@ addOnLoadAlways [
           </arguments>
           <description>If defined, this will be executed each time you pick up an item.</description>
         </scriptalias>
-        
-        <scriptalias name="onWeaponSwitch">
+
+        <scriptalias name="onAttack">
+          <arguments>
+            <argument token="weapon" description="The weapon that was used" />
+          </arguments>
+          <description>If defined, this will be executed each time you shot a bullet, throw a grenade or use your knife.</description>
+        </scriptalias>
+
+        <scriptalias name="onHit">
+          <arguments>
+            <argument token="actor" description="The client number of the actor" valueNotes="integer" />
+            <argument token="target" description="The client number of the target" valueNotes="integer" />
+            <argument token="damage" description="The damage done" valueNotes="integer" />
+            <argument token="gun" description="The number of the gun used" valueNotes="integer" />
+            <argument token="gib" description="Is it a gib or a normal frag" valueNotes="integer (0 or 1)" />
+          </arguments>
+          <description>If it's defined, this alias will be executed each time a damage is done.</description>
+        </scriptalias>
+              
+              <scriptalias name="onWeaponSwitch">
           <arguments>
             <argument token="w" description="The weapon ID that you switched to" />
           </arguments>
@@ -2635,6 +2653,17 @@ bind PRINT [ if (strcmp $last_server "") [ remember_server ]
 						<variableArgument token="S..." description="the text"/>
 					</arguments>
 				</command>
+
+              <command name="pm">
+                <description>Sends a private message to a specified client.</description>
+                <arguments>
+                  <argument token="C" description="Client number"/>
+                  <argument token="L" description="List of strings"/>
+                </arguments>
+                <references>
+                  <identifierReference identifier="say"/>
+                </references>
+              </command>
 
 				<command name="ignore">
 					<description>Ignore a player.</description>
