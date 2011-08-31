@@ -20,7 +20,10 @@
   </xsl:variable>
 
   <xsl:template match="/t:cuberef">
-    <xsl:text>// auto generated script to make the doc reference readable for Cube games, see the 'docs/cuberef.txt'</xsl:text>
+    <xsl:text>// This CubeScript has been automatically generated from AssaultCubes reference.xml file.</xsl:text>
+    <xsl:value-of select="$newline"/>
+    <xsl:text>// To auto-generate this file yourself, please carefully read the comment at the top of reference.xml</xsl:text>
+    <xsl:value-of select="$newline"/>
     <xsl:value-of select="$newline"/>
 
     <!-- sections -->
@@ -30,11 +33,10 @@
       <xsl:value-of select="@name"/>
       <xsl:text>]</xsl:text>
       <xsl:value-of select="$newline"/>
-      <xsl:value-of select="$newline"/>
 
       <!-- identifiers -->
       <xsl:for-each select="t:identifiers/*">
-        <xsl:sort select="@name"/> <!-- always sort to avoid axcessive sorting inside the Cube games -->
+        <xsl:sort select="@name"/> <!-- always sort to avoid excessive sorting inside the Cube games -->
         <xsl:text>docident </xsl:text>
         <xsl:text>[</xsl:text>
         <xsl:value-of select="@name"/>
@@ -140,7 +142,6 @@
           <xsl:value-of select="$newline"/>
         </xsl:for-each>
 
-        <xsl:value-of select="$newline"/>
       </xsl:for-each>
     </xsl:for-each>
 
