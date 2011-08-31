@@ -180,15 +180,14 @@ vector<keym> keyms;
 const char *keycmds[keym::NUMACTIONS] = { "bind", "specbind", "editbind" };
 inline const char *keycmd(int type) { return type >= 0 && type < keym::NUMACTIONS ? keycmds[type] : ""; } 
 
-void keymap(char *code, char *key, char *action)
+void keymap(char *code, char *key)
 {
     keym &km = keyms.add();
     km.code = atoi(code);
     km.name = newstring(key);
-//    km.action = newstring(action);
 }
 
-COMMAND(keymap, ARG_3STR);
+COMMAND(keymap, ARG_2STR);
 
 keym *findbind(const char *key)
 {
@@ -564,7 +563,7 @@ void writebinds(stream *f)
     loopv(keyms)
     {
         keym *km = &keyms[i];
-        loopj(3) if(km->actions[j]) f->printf("%s \"%s\" [%s]\n", keycmd(j), km->name, km->actions[j]);
+        loopj(3) if(*km->actions[j]) f->printf("%s \"%s\" [%s]\n", keycmd(j), km->name, km->actions[j]);
     }
 }
 
