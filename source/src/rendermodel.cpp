@@ -116,6 +116,7 @@ model *loadmodel(const char *name, int i)
     if(mm) m = *mm;
     else
     {
+        pushscontext(IEXC_MDLCFG);
         m = new md2(name);
         loadingmodel = m;
         if(!m->load())
@@ -127,9 +128,10 @@ model *loadmodel(const char *name, int i)
             {
                 delete m;
                 loadingmodel = NULL;
-                return NULL;
             }
         }
+        popscontext();
+        if(!loadingmodel) return NULL;
         loadingmodel = NULL;
         mdllookup.access(m->name(), m);
     }
