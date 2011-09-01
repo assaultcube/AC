@@ -1023,7 +1023,6 @@
             </example>
             <example>
               <code><![CDATA[echo (addpunct "" 4)]]></code>
-              <explanation>Output: "</explanation>
             </example>
             <example>
               <code><![CDATA[echo (addpunct "" 5)]]></code>
