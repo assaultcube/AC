@@ -1217,8 +1217,8 @@ void arenacheck()
                 alive_enemies++;
             }
         }
-        if(player1->state == CS_ALIVE) alive = player1;
-        if(enemies && (!alive_enemies || player1->state != CS_ALIVE))
+        if(player1->state != CS_DEAD) alive = player1;
+        if(enemies && (!alive_enemies || player1->state == CS_DEAD))
         {
             sendf(-1, 1, "ri2", SV_ARENAWIN, m_teammode ? (alive ? alive->clientnum : -1) : (alive && alive->type == ENT_BOT ? -2 : player1->state == CS_ALIVE ? player1->clientnum : -1));                              
             arenaround = gamemillis+5000;
