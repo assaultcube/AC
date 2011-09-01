@@ -1200,6 +1200,8 @@ bool gun::attack(vec &targ)
 
     attackphysics(from, to);
 
+    attackevent(owner, type);
+
     hits.setsize(0);
     raydamage(from, to, owner);
     attackfx(from, to, 0);
@@ -1209,7 +1211,6 @@ bool gun::attack(vec &targ)
 
     sendshoot(from, to, attackmillis);
 
-    attackevent(owner, type);
     return true;
 }
 
@@ -1534,13 +1535,14 @@ bool knife::attack(vec &targ)
     to.add(unitv);
     if ( owner->pitch < 0 ) to.z += 2.5 * sin( owner->pitch * 0.01745329 );
 
+    attackevent(owner, type);
+
     hits.setsize(0);
     raydamage(from, to, owner);
     attackfx(from, to, 0);
     sendshoot(from, to, attackmillis);
     gunwait = info.attackdelay;
 
-    attackevent(owner, type);
     return true;
 }
 
