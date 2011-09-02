@@ -61,10 +61,10 @@ static int teamscorecmp(const teamscore *x, const teamscore *y)
     if(x->points > y->points) return -1;
     if(x->points < y->points) return 1;
     if(x->deaths < y->deaths) return -1;
-    return 1;
+    return 0;
 }
 
-static int scorecmp(const playerent **x, const playerent **y)
+static int scorecmp(playerent **x, playerent **y)
 {
     if((*x)->flagscore > (*y)->flagscore) return -1;
     if((*x)->flagscore < (*y)->flagscore) return 1;
@@ -76,7 +76,7 @@ static int scorecmp(const playerent **x, const playerent **y)
     if((*x)->deaths < (*y)->deaths) return -1;
     if((*x)->lifesequence > (*y)->lifesequence) return 1;
     if((*x)->lifesequence < (*y)->lifesequence) return -1;
-    return strcmp((*x)->name, (*y)->name);
+    return 0;
 }
 
 static int discscorecmp(const discscore *x, const discscore *y)
@@ -418,3 +418,38 @@ void consolescores()
 {
     printf("%s\n", asciiscores());
 }
+
+void winners()
+{
+    string winners = "";
+    vector<playerent *> scores;
+    if(!watchingdemo) scores.add(player1);
+    loopv(players) if(players[i]) { scores.add(players[i]); }
+    scores.sort(scorecmp);
+    discscores.sort(discscorecmp);
+
+    if(m_teammode)
+    {
+        teamscore teamscores[2] = { teamscore(TEAM_CLA), teamscore(TEAM_RVSF) };
+
+        loopv(scores) if(scores[i]->team != TEAM_SPECT) teamscores[team_base(scores[i]->team)].addplayer(scores[i]);
+        loopv(discscores) if(discscores[i].team != TEAM_SPECT)
+        teamscores[team_base(discscores[i].team)].addscore(discscores[i]);
+
+        int sort = teamscorecmp(&teamscores[TEAM_CLA], &teamscores[TEAM_RVSF]);
+        if(!sort) copystring(winners, "0 1");
+        else itoa(winners, sort < 0 ? 0 : 1);
+    }
+    else
+    {
+        loopv(scores)
+        {
+            if(!i || !scorecmp(&scores[i], &scores[i-1])) concatformatstring(winners, "%s%d", i ? " " : "", scores[i]->clientnum);
+            else break;
+        }
+    }
+
+    result(winners);
+}
+
+COMMAND(winners, ARG_NONE);
