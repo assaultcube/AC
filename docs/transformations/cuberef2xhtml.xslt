@@ -1,12 +1,7 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- ZLIB licensed, (C) 2007 Adrian 'driAn' Henke, http://www.sprintf.org -->
-
-<!--
-  transforms a cuberef document to a xhtml document
--->
-
-<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:t="http://cubers.net/Schemas/CubeRef">
-
+<?xml version="1.0" encoding="UTF-8"?>
+<xsl:transform version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:t="http://cubers.net/Schemas/CubeRef">
+  <!-- ZLIB licensed, (C) 2007 Adrian 'driAn' Henke, http://www.sprintf.org -->
+  <!-- This file transforms reference.xml into an XHTML webpage. -->
   <xsl:output method="html" omit-xml-declaration="yes" encoding="utf-8" doctype-public="-//W3C//DTD XHTML 1.0 Transitional//EN"/>
 
   
@@ -43,69 +38,57 @@
   <xsl:template match="/t:cuberef">
     <html>
       <head>
-        <title>
-          <xsl:value-of select="@name"/>
-        </title>
-        <meta http-equiv="content-type" content="application/xhtml+xml;charset=utf-8" />
-        <link rel="stylesheet" href="styles/cuberef.css"/>
-        <link rel="shortcut icon" href="images/favicon.ico" /> 
+        <meta http-equiv="Content-Type" content="application/xhtml+xml;charset=UTF-8" />
+        <meta name="robots" content="NOODP" />
+        <meta name="author" content="Rabid Viper Productions" />
+        <meta name="copyright" content="You may be able to redistribute this content under specific conditions.
+        Please read the licensing information, available @ http://assault.cubers.net/docs/license.html for the
+        conditions that would apply to what you may be redistributing." />
+        <title>AssaultCube Documentation :: CubeScript command reference</title>
+<!-- TEMP -->
+        <link rel="stylesheet" href="css/oldrefcss.css" />
+<!-- /TEMP -->
+        <link rel="stylesheet" href="css/main.css" />
+        <link rel="stylesheet" href="css/docs.css" />
+        <link rel="stylesheet" href="css/referencexml.css" />
+        <!--#include virtual="/SSI-HTML/docs/invisibility.html" -->
+        <link rel="shortcut icon" href="images/favicon.ico" />
       </head>
-
       <body>
-      
-        <div id="fixedmenu">
-          <a href="#">TOP</a>
-        </div>
-        <div id="main">
-
+        <div id="container">
+          <div id="docsheader">
+            AssaultCube Documentation
+          </div>
           <div id="logo">
-            <img src="images/head.gif" alt="AssaultCube logo" />
+            <a href="index.html"><img src="images/aclogo.png"
+            alt="AssaultCube" width="193px" height="81px" /></a>
           </div>
+          <div id="menubar">
+            <!--#include virtual="/SSI-HTML/docs/navigation_box_docs.html" --> &#160;
+          </div>
+          <!--#include virtual="/SSI-HTML/docs/docswarn.html" -->
+          <div class="docsmain">
+            <div id="gohome">
+              <a href="index.html">Go to documentation index &#8629;</a>
+            </div>
+            <div id="fixedmenu">
+              <a href="#">TOP</a>
+            </div>
+            <h2>
+              CubeScript command reference
+            </h2>
 
-          <!-- reference title -->
-          <div id="title">
-            <h1>
-              <xsl:value-of select="@name"/>
-            </h1>
-          </div>
 
-          <!-- contents panel -->
-          <div id="contentspanel">
-            <xsl:if test="t:sections">
-              <xsl:for-each select="t:sections/t:section">
-                <xsl:sort select="@sortindex[not(../../@sort) or ../../@sort = 'true' or ../../@sort = '1']"/>
-                <div class="sectiontitle">
-                  <a>
-                    <xsl:attribute name="href">
-                      <xsl:text>#section_</xsl:text>
-                      <xsl:value-of select="translate(@name, ' ', '_')"/>
-                    </xsl:attribute>
-                    <xsl:value-of select="@name"/>
-                  </a>
-                </div>
-                <div class="identifiers">
-                  <xsl:if test="t:identifiers">
-                    <ul>
-                      <xsl:for-each select="t:identifiers/*">
-                        <xsl:sort select="@name[not(../../@sort) or ../../@sort = 'true' or ../../@sort = '1']"/>
-                        <li>
-                          <xsl:call-template name="identifierLink"/>
-                        </li>
-                      </xsl:for-each>
-                    </ul>
-                  </xsl:if>
-                </div>
-              </xsl:for-each>
-            </xsl:if>
-          </div>
+
+
 
           <div id="content">
             
               <!-- contents -->
               <div id="contents">
-                <h2>
+                <h4>
                   Contents
-                </h2>
+                </h4>
                 <p>
                   <xsl:value-of select="t:description"/>
                 </p>
@@ -369,8 +352,41 @@
               </xsl:for-each>
             </div>
           </div>
+          <!-- XML: CONTENTS PANEL -->
+          <div class="commandlist">
+            CubeScript command &amp; variable list
+          </div>
+          <div id="contentspanel">
+            <xsl:if test="t:sections">
+              <xsl:for-each select="t:sections/t:section">
+                <xsl:sort select="@sortindex[not(../../@sort) or ../../@sort = 'true' or ../../@sort = '1']"/>
+                <div class="sectiontitle">
+                  <a>
+                    <xsl:attribute name="href">
+                      <xsl:text>#section_</xsl:text>
+                      <xsl:value-of select="translate(@name, ' ', '_')"/>
+                    </xsl:attribute>
+                    <xsl:value-of select="@name"/>
+                  </a>
+                </div>
+                <div class="identifiers">
+                  <xsl:if test="t:identifiers">
+                    <ul>
+                      <xsl:for-each select="t:identifiers/*">
+                        <xsl:sort select="@name[not(../../@sort) or ../../@sort = 'true' or ../../@sort = '1']"/>
+                        <li>
+                          <xsl:call-template name="identifierLink"/>
+                        </li>
+                      </xsl:for-each>
+                    </ul>
+                  </xsl:if>
+                </div>
+              </xsl:for-each>
+            </xsl:if>
+          </div>
           <div id="footer"></div>
+</div>
       </body>
     </html>
   </xsl:template>
-</xsl:stylesheet> 
+</xsl:transform> 

@@ -1,0 +1,83 @@
+/* side contentspanel */
+
+.docsmain {
+clear : none;
+float : left;
+width : 720px;
+}
+
+#gohome {
+width : 720px;
+}
+
+.commandlist {
+margin-top : 15px;
+font-size : 17px;
+text-align : center;
+padding : 5px 0px;
+font-family : "Trebuchet MS", Arial, Helvetica, sans-serif;
+color: #FFFFFF;
+border : solid 2px #00303D;
+background-color: #101010;
+float: right;
+clear : right;
+width : 136px;
+}
+
+div#contentspanel
+{
+margin-top : 10px;
+float: right;
+clear : right;
+width: 140px;
+word-wrap: break-word;
+margin-left : 10px;
+font-family : "Trebuchet MS", Arial, Helvetica, sans-serif;
+font-size: 10px;
+text-align: left;
+background-color: #101010;
+}
+
+div#contentspanel div.sectiontitle
+{
+	padding-left: 10px;
+	height: 20px;
+background-color: #252525;
+border-bottom : solid 1px #000000;
+	font-size: 14px;
+	font-weight: bold;
+margin : 0px;
+line-height : 20px;
+white-space: nowrap;
+}
+
+div#contentspanel ul
+{
+	list-style-type: none;
+	padding: 0;
+	padding-left : -10px;
+	margin: 10px;
+
+}
+
+div#contentspanel a
+{
+	text-decoration: none;
+	color: #E0E0E0;
+}
+
+div#contentspanel div.identifiers a
+{
+	display: block;
+	position: relative;
+	width: 110px;
+	overflow: hidden;
+}
+
+div#contentspanel div.identifiers a:hover
+{
+	width: 110px;
+	border-right: solid 10px #777777;
+	background-color: #666666;
+	
+}
