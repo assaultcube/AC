@@ -1,0 +1,234 @@
+/* ZLIB licensed, (C) 2007 Adrian 'driAn' Henke, http://www.sprintf.org */
+
+/*
+	styles for the reference - the old one, HACKED TO PIECES!!
+
+
+this file can be as messy as whatever, it's gonna be deleted eventually :)
+*/
+
+
+/* fix positioned menu */
+
+div#fixedmenu a
+{
+	visibility: visible;
+	position: fixed;
+	padding: 5px;
+	left: 10px;
+	bottom: 10px;
+	font-size: 16px;
+	font-family: Courier New, Sans-Serif;
+	font-weight: bold;
+	text-decoration: none;	
+	border: solid 2px black;
+	background-color: #444444;	
+	color: Black;
+}
+
+body > div#fixedmenu a /* broken browsers will ignore this and therefore keep the menu hidden */
+{
+	visibility: visible;
+}
+
+div#fixedmenu a:hover
+{
+	background-color: #555555;
+}
+
+
+
+/* contents */
+
+div#contents
+{
+
+}
+
+/* identifier */
+
+div.section div.identifier
+{
+	padding: 0 0 10px 0;
+	margin: 0 0 0 20px;
+}
+
+/* display name */
+
+div.section div.identifier div.displayname
+{
+	font-family: Courier New, Sans-Serif;
+	margin: 1em 0 1em -20px;
+}
+
+div.section div.identifier div.displayname a
+{
+	color: #007190;
+	text-decoration: none;
+}
+
+/* command arguments */
+
+div.section div.identifier div.argumentDescriptions
+{
+	margin: 10px 0 0 0;
+	padding: 0;
+}
+
+div.section div.identifier div.argumentDescriptions table
+{
+	margin: 0;
+	padding: 0;
+	border-collapse: collapse;
+	width : 100%;
+
+}
+
+div.section div.identifier div.argumentDescriptions table td
+{
+	border: solid 1px #777777;
+}
+
+div.section div.identifier div.argumentDescriptions table th
+{
+	font-weight: normal;
+	color: #333333;
+	background-color: #777777;
+	border: solid 1px #777777;
+}
+
+div.section div.identifier div.argumentDescriptions table tr td.token
+{
+	font-style: italic;
+	width: 65px;
+}
+
+div.section div.identifier div.argumentDescriptions table tr td.description
+{
+	width: 300px;
+}
+
+div.section div.identifier div.argumentDescriptions table tr td.values
+{
+	
+}
+
+/* variable value */
+
+div.section div.identifier div.valueDescription
+{
+	margin: 10px 0 0 0;
+	padding: 0;
+}
+
+div.section div.identifier div.valueDescription table
+{
+	margin: 0;
+	padding: 0;
+	border-collapse: collapse;
+	width: 100%;
+}
+
+div.section div.identifier div.valueDescription table td
+{
+	border: solid 1px #777777;
+}
+
+div.section div.identifier div.valueDescription table th
+{
+	font-weight: normal;
+	color: #333333;
+	background-color: #777777;
+	border: solid 1px #777777;
+}
+
+div.section div.identifier div.valueDescription table tr td.token
+{
+	font-style: italic;
+	width: 65px;
+}
+
+div.section div.identifier div.valueDescription table tr td.description
+{
+}
+
+div.section div.identifier div.valueDescription table tr td.values
+{
+	width: 200px;
+}
+
+div.section div.identifier div.valueDescription table tr td.range
+{
+	width: 50px;
+}
+
+div.section div.identifier div.valueDescription table tr td.defaultValue
+{
+	text-align: right;
+	width: 50px;
+}
+
+/* remarks */
+
+div.section div.identifier div.remarks
+{
+	margin: 10px 0 0 0;
+	padding: 0;
+}
+
+div.section div.identifier div.remarks div.remark
+{
+	margin: 10px 0 0 0;
+}
+
+/* references */
+
+div.section div.identifier div.references
+{
+    margin: 10px 0 0 0;
+	padding: 0;
+}
+
+
+div.section div.identifier div.references a.internal
+{
+	font-family: Courier New, Sans-Serif;
+	text-decoration: none;
+}
+
+div.section div.identifier div.references a.external
+{
+	
+}
+
+div.section div.identifier div.references span.none
+{
+	
+}
+
+/* examples */
+
+div.section div.identifier div.examples
+{
+    margin: 0;
+    padding : 0;
+}
+
+div.section div.identifier div.examples div.code
+{
+    margin: 10px 0 10px 0;
+    padding: 0;
+}
+
+div.section div.identifier div.examples div.exampleExplanation
+{
+    margin: 0;
+    padding: 0;
+}
+
+
+/* return value */
+
+div.section div.identifier div.return
+{
+}
