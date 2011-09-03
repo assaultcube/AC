@@ -842,18 +842,8 @@ void setkillmessage(int gun, bool gib, const char *message)
     copystring(killmessages[gib?1:0][gun], message, sizeof(killmessages[gib?1:0][gun]));
 }
 
-void fragmessage(const char *gun, const char *message)
-{
-    setkillmessage(atoi(gun), false, message);
-}
-
-void gibmessage(const char *gun, const char *message)
-{
-    setkillmessage(atoi(gun), true, message);
-}
-
-COMMAND(fragmessage, ARG_2STR);
-COMMAND(gibmessage, ARG_2STR);
+COMMANDF(fragmessage, ARG_2STR, (const char *gun, const char *message) { setkillmessage(atoi(gun), false, message); });
+COMMANDF(gibmessage, ARG_2STR, (const char *gun, const char *message) { setkillmessage(atoi(gun), true, message); });
 
 void writekillmsgcfg()
 {
@@ -996,25 +986,10 @@ COMMAND(pstat_score, ARG_1INT);
 
 void pstat_weap(int cn)
 {
-    /*if(intermission)
-    {*/
-        string wbuf;
-        defformatstring(weapstring)("");
-        playerent *pl = cn==player1->clientnum?player1:getclient(cn);
-        loopi(NUMGUNS)
-        {
-            if(pl) formatstring(wbuf)("%s%s%d %d", weapstring, strlen(weapstring)?" ":"", pl->pstatshots[i], pl->pstatdamage[i]);
-            else formatstring(wbuf)("%s%s0 0", weapstring, strlen(weapstring)?" ":"");
-            copystring(weapstring, wbuf);
-        }
-        result(weapstring);
-    /*}
-    else
-    {
-        defformatstring(weapstring)("");
-        loopi(NUMGUNS) { defformatstring(wbuf)("%s%s0 0", weapstring, strlen(weapstring)?" ":""); copystring(weapstring, wbuf); }
-        result(weapstring);
-    }*/
+    string weapstring = "";
+    playerent *pl = cn == player1->clientnum ? player1 : getclient(cn);
+    if(pl) loopi(NUMGUNS) concatformatstring(weapstring, "%s%d %d", strlen(weapstring) ? " " : "", pl->pstatshots[i], pl->pstatdamage[i]);
+    result(weapstring);
 }
 
 COMMAND(pstat_weap, ARG_1INT);
@@ -1370,7 +1345,7 @@ char *votestring(int type, const char *arg1, const char *arg2)
             int cn = atoi(arg1);
             playerent *p = (cn == getclientnum() ? player1 : getclient(cn));
             if(!p) break;
-            if ( SA_KICK || SA_BAN )
+            if (type == SA_KICK || type == SA_BAN)
             {
                 if(m_teammode) conoutf(_("\f0INFO: \f5%s has %d teamkills."), p->name, p->tks);
                 formatstring(out)(msg, colorname(p), arg2);
