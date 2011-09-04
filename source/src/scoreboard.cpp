@@ -238,7 +238,7 @@ int renderteamscore(teamscore *t)
             if(m_flags) line.addcol("%d", t->flagscore);
             line.addcol("%d", t->frags);
             line.addcol("%d", t->deaths);
-            if(multiplayer(false)) line.addcol("%d", max(t->points, 0));
+            if(multiplayer(false) || watchingdemo) line.addcol("%d", max(t->points, 0));
             break;
         }
         case 0:
