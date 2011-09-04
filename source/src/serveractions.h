@@ -68,8 +68,10 @@ struct mapaction : serveraction
             mapok = (ms != NULL) && ( (mode != GMODE_COOPEDIT && mapisok(ms)) || (mode == GMODE_COOPEDIT && !readonlymap(maploc)) );
             if(!mapok)
             {
-                defformatstring(msg)("%s", ms ? ( mode == GMODE_COOPEDIT ? "this map cannot be coopedited in this server" : "sorry, but this map does not satisfy some quality requisites to be played in MultiPlayer Mode" ) : "the server does not have this map" );
-                if(notify) sendservmsg(msg, caller);
+                if(notify) sendservmsg(ms ?
+                    ( mode == GMODE_COOPEDIT ? "this map cannot be coopedited in this server" : "sorry, but this map does not satisfy some quality requisites to be played in MultiPlayer Mode" ) :
+                    "the server does not have this map",
+                    caller);
             }
             else
             { // check, if map supports mode

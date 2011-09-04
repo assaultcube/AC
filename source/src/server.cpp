@@ -1082,38 +1082,35 @@ void resetflag(int cn)
 void htf_forceflag(int flag)
 {
     sflaginfo &f = sflaginfos[flag];
-    int besthealth = 0, numbesthealth = 0;
+    int besthealth = 0;
+    vector<int> clientnumbers;
     loopv(clients) if(clients[i]->type!=ST_EMPTY)
     {
         if(clients[i]->state.state == CS_ALIVE && team_base(clients[i]->team) == flag)
         {
             if(clients[i]->state.health == besthealth)
-                numbesthealth++;
+                clientnumbers.add(i);
             else
             {
                 if(clients[i]->state.health > besthealth)
                 {
                     besthealth = clients[i]->state.health;
-                    numbesthealth = 1;
+                    clientnumbers.shrink(0);
+                    clientnumbers.add(i);
                 }
             }
         }
     }
-    if(numbesthealth)
+
+    if(clientnumbers.length())
     {
-        int pick = rnd(numbesthealth);
-        loopv(clients) if(clients[i]->type!=ST_EMPTY)
-        {
-            if(clients[i]->state.state == CS_ALIVE && team_base(clients[i]->team) == flag && --pick < 0)
-            {
-                f.state = CTFF_STOLEN;
-                f.actor_cn = i;
-                sendflaginfo(flag);
-                flagmessage(flag, FM_PICKUP, i);
-                logline(ACLOG_INFO,"[%s] %s got forced to pickup the flag", clients[i]->hostname, clients[i]->name);
-                break;
-            }
-        }
+        int pick = rnd(clientnumbers.length());
+        client *cl = clients[clientnumbers[pick]];
+        f.state = CTFF_STOLEN;
+        f.actor_cn = cl->clientnum;
+        sendflaginfo(flag);
+        flagmessage(flag, FM_PICKUP, cl->clientnum);
+        logline(ACLOG_INFO,"[%s] %s got forced to pickup the flag", cl->hostname, cl->name);
     }
     f.lastupdate = gamemillis;
 }
