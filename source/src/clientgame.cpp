@@ -927,7 +927,7 @@ void dokill(playerent *pl, playerent *act, bool gib, int gun)
         if(pl==player1) outf("\f2you were %s by teammate %s", death, aname);
         else
         {
-          outf("%s%s %s teammate %s", act==player1 ? "\f3" : "\f2", aname, death, pname);
+            outf("%s%s %s teammate %s", act==player1 ? "\f3" : "\f2", aname, death, pname);
         }
     }
     else
@@ -935,7 +935,7 @@ void dokill(playerent *pl, playerent *act, bool gib, int gun)
         if(pl==player1) outf("\f2you were %s by %s", death, aname);
         else
         {
-          outf("\f2%s %s %s", aname, death, pname);
+            outf("\f2%s %s %s", aname, death, pname);
         }
     }
 
@@ -1188,6 +1188,7 @@ void startmap(const char *name, bool reset)   // called just after a map load
     if(editmode) toggleedit(true);
     intermission = false;
     showscores(false);
+    reorderscorecolumns();
     minutesremaining = -1;
     lastgametimeupdate = 0;
     arenaintermission = 0;
@@ -1347,8 +1348,10 @@ char *votestring(int type, const char *arg1, const char *arg2)
             if(!p) break;
             if (type == SA_KICK || type == SA_BAN)
             {
-                if(m_teammode) conoutf(_("\f0INFO: \f5%s has %d teamkills."), p->name, p->tks);
-                formatstring(out)(msg, colorname(p), arg2);
+                string reason = "";
+                if(m_teammode) formatstring(reason)("%s (%d tks, ping %d)", arg2, p->tks, p->ping);
+                else formatstring(reason)("%s (ping %d)", arg2, p->ping);
+                formatstring(out)(msg, colorname(p), reason);
             }
             else formatstring(out)(msg, colorname(p));
             break;

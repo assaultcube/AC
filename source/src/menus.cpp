@@ -1402,52 +1402,16 @@ void refreshapplymenu(void *menu, bool init)
     if(init) m->menusel = m->items.length()-2; // select OK
 }
 
-void reorderscorecolumns();
-VARFP(orderscorecolumns, 0, 0, 1, reorderscorecolumns());
-void reorderscorecolumns()
-{
-    extern void *scoremenu, *teammenu, *ctfmenu;
-    switch(orderscorecolumns)
-    {
-        case 1:
-        {
-            menutitle(scoremenu, "cn\tname\tfrags\tdeaths\tscore\tpj/ping");
-            menutitle( teammenu, "cn\tname\tfrags\tdeaths\tscore\tpj/ping");
-            menutitle(  ctfmenu, "cn\tname\tflags\tfrags\tdeaths\tscore\tpj/ping");
-            break;
-        }
-        case 0:
-        default:
-        {
-            menutitle(scoremenu, "frags\tdeaths\tscore\tpj/ping\tcn\tname");
-            menutitle( teammenu, "frags\tdeaths\tscore\tpj/ping\tcn\tname");
-            menutitle(  ctfmenu, "flags\tfrags\tdeaths\tscore\tpj/ping\tcn\tname");
-            break;
-        }
-    }
-}
-
 void setscorefont();
 VARFP(scorefont, 0, 0, 1, setscorefont());
 void setscorefont()
 {
-    extern void *scoremenu, *teammenu, *ctfmenu;
+    extern void *scoremenu;
     switch(scorefont)
     {
-        case 1:
-        {
-            menufont(scoremenu, "mono");
-            menufont(teammenu, "mono");
-            menufont(ctfmenu, "mono");
-            break;
-        }
+        case 1: menufont(scoremenu, "mono"); break;
+
         case 0:
-        default:
-        {
-            menufont(scoremenu, NULL); // "default"
-            menufont(teammenu, NULL); // "default"
-            menufont(ctfmenu, NULL); // "default"
-            break;
-        }
+        default: menufont(scoremenu, NULL); break;
     }
 }

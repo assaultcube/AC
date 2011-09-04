@@ -1126,11 +1126,8 @@ int main(int argc, char **argv)
     audiomgr.initsound();
 
     initlog("cfg");
-    extern void *scoremenu, *teammenu, *ctfmenu, *servmenu, *searchmenu, *serverinfomenu, *kickmenu, *banmenu, *forceteammenu, *giveadminmenu, *docmenu, *applymenu;
+    extern void *scoremenu, *servmenu, *searchmenu, *serverinfomenu, *kickmenu, *banmenu, *forceteammenu, *giveadminmenu, *docmenu, *applymenu;
     scoremenu = addmenu("score", "columns", false, renderscores, NULL, false, true);
-    teammenu = addmenu("team score", "columns", false, renderscores, NULL, false, true);
-    ctfmenu = addmenu("ctf score", "columns", false, renderscores, NULL, false, true);
-    reorderscorecolumns();
     servmenu = addmenu("server", NULL, true, refreshservers, serverskey);
     searchmenu = addmenu("search", NULL, true, refreshservers, serverskey);
     serverinfomenu = addmenu("serverinfo", NULL, true, refreshservers, serverinfokey);

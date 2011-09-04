@@ -3397,9 +3397,10 @@ void process(ENetPacket *packet, int sender, int chan)
                     {
                         vi->num = cn2boot = getint(p);
                         getstring(text, p);
-                        strncpy(vi->text,text,MAXTRANS-1);
+                        strncpy(vi->text,text,128);
                         filtertext(text, text);
-                        vi->action = new kickaction(cn2boot, newstring(text));
+                        trimtrailingwhitespace(text);
+                        vi->action = new kickaction(cn2boot, newstring(text, 128));
                         vi->boot = 1;
                         break;
                     }
@@ -3407,9 +3408,10 @@ void process(ENetPacket *packet, int sender, int chan)
                     {
                         vi->num = cn2boot = getint(p);
                         getstring(text, p);
-                        strncpy(vi->text,text,MAXTRANS-1);
+                        strncpy(vi->text,text,128);
                         filtertext(text, text);
-                        vi->action = new banaction(cn2boot, newstring(text));
+                        trimtrailingwhitespace(text);
+                        vi->action = new banaction(cn2boot, newstring(text, 128));
                         vi->boot = 2;
                         break;
                     }
