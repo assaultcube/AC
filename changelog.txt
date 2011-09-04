@@ -9,6 +9,7 @@ Find me a cat!
 ---------------------
 // TODO : find a better order for these categories
 [*] New Private messages feature (/pm cn message) default bind is N
+[*] Scoreboard doesn't show ping/score/pj in singleplayer
 
 Weapons
 ---------------------
@@ -20,6 +21,12 @@ Weapons
 [*] Grenades accuracy, real shotgun accuracy.
 [*] Sniper trail bug fixed. // TODO: Is this for the "stop the sniper trail upon hit thing"? If so I'm not 100% certain it's completely fixed. // Bukz
 [*] Hudgun can be displayed when spectating (and in demos - e.g. /spechudgun 1).
+
+Gameplay
+---------------------
+
+[*] New gamemodes Team Last Swiss Standing / Team Pistol Frenzy
+[*] HTF now forces those who have the best health to pickup the flag instead of allocating it randomly
 
 Servers
 ---------------------
@@ -182,6 +189,7 @@ CubeScript
 [*] gametimestart    - Returns the time (in milliseconds) when the last map was loaded.
 [*] mapbackupsonsave - Determines if map backups (.bak) should be created when a map is saved.
 [*] isclient         - Determines if the client number given is a valid client (player).
+[*] winners          - Returns the list of winning teams or players
 [*] getalias can now work on built-in client variables (CVARs). - (e.g. fov)
 [*] "Sleeps" can be persistent. (e.g. "Persist" even through map loads - new optional 3rd argument of the /sleep command)
 [*] Substr crash bug is fixed. Also the command can now use a negative position value.
