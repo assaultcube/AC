@@ -616,7 +616,8 @@ void setupdemorecord()
 {
     if(numlocalclients() || !m_mp(gamemode) || gamemode == GMODE_COOPEDIT) return;
 
-    demotmp = opentempfile("demos/demorecord", "w+b");
+    defformatstring(demotmppath)("demos/demorecord_%s_%d", scl.ip[0] ? scl.ip : "local", scl.serverport);
+    demotmp = opentempfile(demotmppath, "w+b");
     if(!demotmp) return;
 
     stream *f = opengzfile(NULL, "wb", demotmp);
@@ -756,7 +757,7 @@ void setupdemoplayback()
         sendservmsg(msg);
         return;
     }
-    
+
     formatstring(msg)("playing demo \"%s\"", file);
     sendservmsg(msg);
     sendf(-1, 1, "risi", SV_DEMOPLAYBACK, smapname, -1);
@@ -1217,7 +1218,7 @@ void arenacheck()
         if(player1->state != CS_DEAD) alive = player1;
         if(enemies && (!alive_enemies || player1->state == CS_DEAD))
         {
-            sendf(-1, 1, "ri2", SV_ARENAWIN, m_teammode ? (alive ? alive->clientnum : -1) : (alive && alive->type == ENT_BOT ? -2 : player1->state == CS_ALIVE ? player1->clientnum : -1));                              
+            sendf(-1, 1, "ri2", SV_ARENAWIN, m_teammode ? (alive ? alive->clientnum : -1) : (alive && alive->type == ENT_BOT ? -2 : player1->state == CS_ALIVE ? player1->clientnum : -1));
             arenaround = gamemillis+5000;
         }
         return;
