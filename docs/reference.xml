@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
   <!--
-    This is the default transformation to show the reference as an XML document. 
+    This is the default transformation to show the reference as an XML document.
     To turn this text into script that can be read by the AssaultCube engine, simply
     uncomment the below line, comment the line below that one, save and then refresh.
 
@@ -90,7 +90,7 @@
             <identifierReference identifier="return"/>
           </references>
 				</command>
-        
+
         <command name="return">
 					<description>sets the result value of a CubeScript block</description>
 					<arguments>
@@ -101,7 +101,7 @@
             <identifierReference identifier="result"/>
           </references>
 				</command>
-        
+
         <command name="execute">
           <description>Executes the specified string as CubeScript.</description>
           <arguments>
@@ -186,7 +186,7 @@
 						<argument token="A" description="the mantissa"/>
 						<argument token="B" description="the exponent"/>
 					</arguments>
-					<return token="F" description="A raised to the power of B"/>    
+					<return token="F" description="A raised to the power of B"/>
 				</command>
 
 				<command name="pop">
@@ -429,7 +429,7 @@
           </arguments>
           <return token="I" description="The floor value (integer)"/>
         </command>
-        
+
 				<command name="strcmp">
 					<description>Determines if two strings are equal.</description>
           <examples>
@@ -481,7 +481,7 @@
             <identifierReference identifier="substr"/>
           </references>
 				</command>
-        
+
         <command name="strins">
           <description>Returns string B inserted into string A at position X.</description>
           <examples>
@@ -510,7 +510,7 @@
             <identifierReference identifier="strreplace"/>
           </references>
         </command>
-        
+
               <command name="strpos">
                 <description>Returns the position of a substring into another</description>
                 <arguments>
@@ -837,7 +837,7 @@
   						<argument token="V" description="VALUE"/>
 					</arguments>
 				</command>
-        
+
         <command name="storesets">
           <description>Generates an alias (list) of the current values for the given aliases/CVARs.</description>
           <examples>
@@ -898,7 +898,7 @@
             </example>
           </examples>
         </command>
-        
+
         <command name="checkalias">
           <description>Determines if the argument given is an existing alias or not.</description>
           <examples>
@@ -939,7 +939,7 @@
             <identifierReference identifier="const"/>
           </references>
         </command>
-        
+
         <command name="checkinit">
           <description>Ensures the initialization of an alias.</description>
           <examples>
@@ -961,7 +961,7 @@
             <identifierReference identifier="aliasinit"/>
           </references>
         </command>
-        
+
         <command name="aliasinit">
           <description>Initializes a group of aliases using checkinit.</description>
           <examples>
@@ -1038,14 +1038,14 @@
             <argument token="N" description="type ID" valueNotes="min 0/max 5/default 0"/>
           </arguments>
         </command>
-        
+
         <command name="curplayers">
           <description>Returns the current number of players.</description>
           <remarks>
             <remark>The return value includes the local player "(you)", and works in both singleplayer and multiplayer scenarios.</remark>
           </remarks>
         </command>
-        
+
         <command name="tolower">
           <description>Converts a string to all lowercase characters.</description>
           <examples>
@@ -1062,7 +1062,7 @@
             <identifierReference identifier="convertcase"/>
           </references>
         </command>
-        
+
         <command name="toupper">
           <description>Converts a string to all uppercase characters.</description>
           <examples>
@@ -1079,7 +1079,7 @@
             <identifierReference identifier="convertcase"/>
           </references>
         </command>
-        
+
         <command name="convertcase">
           <description>Converts a list of strings to lowercase or uppercase characters.</description>
           <examples>
@@ -1104,7 +1104,7 @@
             <identifierReference identifier="toupper"/>
           </references>
         </command>
-        
+
         <command name="testchar">
           <description>Tests a character argument for various things.</description>
           <examples>
@@ -1153,7 +1153,7 @@
             <identifierReference identifier="testlist"/>
           </references>
         </command>
-        
+
         <command name="testlist">
           <description>Tests a list argument for various things.</description>
           <examples>
@@ -1178,7 +1178,7 @@
             <identifierReference identifier="testchar"/>
           </references>
         </command>
-        
+
         <command name="strreplace">
           <description>Returns a string, with a portion of it replaced with a new sub-string.</description>
           <examples>
@@ -1211,7 +1211,7 @@
             <argument token="L" description="the list of numbers" valueNotes="supports ints and floats"/>
           </arguments>
         </command>
-        
+
         <scriptalias name="add2alias">
 				  <description>This will append the passed 2nd argument to any existing content of the alias named in the 1st argument. Several popular aliases have predefined shortcuts using this scriptalias: addOnQuit, addOnLoadOnce, addOnLoadAlways. Check config/scripts.cfg for possible omissions in that list.</description>
    				  <examples>
@@ -1230,7 +1230,7 @@ echo foo
             <identifierReference identifier="add2list"/>
           </references>
 				</scriptalias>
-        
+
         <scriptalias name="add2list">
           <description>Appends a new element to a list.</description>
           <examples>
@@ -1269,7 +1269,7 @@ echo foo
 		<section name="General" sortindex="01">
 			<description>This section describes general identifiers.</description>
 				<identifiers sort="true">
-				
+
 				<variable name="autoscreenshot">
 					<description>Toggle for taking an automatic screenshot during intermission.</description>
 					<value token="B" description="0=Off, 1=On" minValue="0" maxValue="1" defaultValue="1"/>
@@ -1343,7 +1343,7 @@ echo foo
                       <identifierReference identifier="hudecho"/>
                     </references>
                   </command>
-        
+
         <command name="hudecho">
           <description>Outputs text to the console and heads up display.</description>
 					<arguments>
@@ -1354,7 +1354,7 @@ echo foo
             <identifierReference identifier="echo"/>
           </references>
 				</command>
-        
+
         <variable name="allowhudechos">
           <description>Enables or disables the ability of hudecho to output text to the heads up display.</description>
           <value token="N" description="0 off, 1 on" minValue="0" maxValue="1" defaultValue="1"/>
@@ -1372,7 +1372,7 @@ echo foo
 
 				<command name="clearservers">
 				</command>
-				
+
 				<variable name="browsefiledesc">
 					<description>Toggles getting descriptive text from CGZ or DMO files in menudirlist.</description>
 					<value token="B" description="" minValue="0" maxValue="1" defaultValue="1"/>
@@ -1612,7 +1612,7 @@ echo foo
             <identifierReference identifier="cleanshot"/>
           </references>
 				</command>
-        
+
         <command name="cleanshot">
           <description>Take a "clean" screenshot with no HUD items.</description>
           <remarks>
@@ -1890,7 +1890,7 @@ echo foo
 					<description>Sets the maximum value the display will roll on strafing.</description>
 					<value token="N" description="the roll value" minValue="0" maxValue="20" defaultValue="0"/>
 				</variable>
-        
+
         <variable name="numconlines">
           <description>Hold the current number of lines on the console.</description>
         </variable>
@@ -1898,7 +1898,7 @@ echo foo
 			</identifiers>
 		</section>
 		<!-- General Section Ends -->
-			
+
 		<!-- Gameplay Section Starts -->
 		<section name="Gameplay" sortindex="02">
 			<description>This section describes gameplay related identifiers.</description>
@@ -1988,7 +1988,7 @@ addOnLoadAlways [
             <identifierReference identifier="onVoteEnd"/>
 					</references>
 				</scriptalias>
-        
+
 				<scriptalias name="onChangeVote">
 					<description>If this alias exists it will be run every time a vote is changed.</description>
 					<references>
@@ -1996,7 +1996,7 @@ addOnLoadAlways [
             <identifierReference identifier="onVoteEnd"/>
 					</references>
 				</scriptalias>
-        
+
         <scriptalias name="onVoteEnd">
           <description>If this alias exists it will be run every time a vote passes or fails.</description>
           <references>
@@ -2004,7 +2004,7 @@ addOnLoadAlways [
             <identifierReference identifier="onChangeVote"/>
           </references>
         </scriptalias>
-        
+
         <variable name="votepending">
           <description>Determines if there is a vote pending or not.</description>
           <examples>
@@ -2014,7 +2014,7 @@ addOnLoadAlways [
             </example>
           </examples>
         </variable>
-        
+
         <scriptalias name="onKill">
           <description>If it exists, this alias will be executing when any player get killed, receiving a few arguments : </description>
           <arguments>
@@ -2033,7 +2033,7 @@ addOnLoadAlways [
           </arguments>
           <description>If defined, this will be executed each time a flag action occurs.</description>
         </scriptalias>
-        
+
         <scriptalias name="onPickup">
           <arguments>
             <argument token="item" description="The item that was picked up" valueNotes="integer (0 = pistol clips, 1 = ammo box, 2 = grenade, 3 = health, 4 = helmet, 5 = armour, 6 = akimbo)" />
@@ -2059,21 +2059,21 @@ addOnLoadAlways [
           </arguments>
           <description>If it's defined, this alias will be executed each time a damage is done.</description>
         </scriptalias>
-              
+
               <scriptalias name="onWeaponSwitch">
           <arguments>
             <argument token="w" description="The weapon ID that you switched to" />
           </arguments>
           <description>If defined, this will be executed each time you switch to a different weapon.</description>
         </scriptalias>
-            
+
         <scriptalias name="onConnect">
           <arguments>
             <argument token="player" description="The client number of the player who connected" valueNotes="integer (-1 for local player)" />
           </arguments>
           <description>If defined, this will be executed when you or another player join(s) a server.</description>
         </scriptalias>
-        
+
         <scriptalias name="onDisconnect">
           <description>If defined, this will be executed when you disconnect from a server.</description>
         </scriptalias>
@@ -2465,7 +2465,7 @@ echo (pstat_weap 0)
 				<command name="curmastermode">
 					<description>Returns the server's current mastermode state.</description>
 				</command>
-        
+
         <command name="curautoteam">
 					<description>Returns the server's current autoteam state.</description>
 				</command>
@@ -2964,7 +2964,7 @@ ammoinfo = [
 		if (> $mt 0) [ echo (numtwo $mc) "/" (numtwo $mr) ":" (at $wnames $w) ]
 	]
 ]
-				
+
 Output:
 01 / 01 : Knife
 08 / 64 : Pistol
@@ -3047,7 +3047,7 @@ Output:
             <identifierReference identifier="rewind"/>
           </references>
 				</command>
-        
+
         <command name="setmr">
           <description>Go to a predefined number of minutes before the end of the game while watching a demo.</description>
           <arguments>
@@ -3124,7 +3124,7 @@ Output:
 						<identifierReference identifier="millis"/>
 					</references>
 				</variable>
-        
+
         <variable name="gametimestart">
           <description>Returns the time (in milliseconds) when the last map was loaded.</description>
           <references>
@@ -3212,7 +3212,7 @@ Output:
 					</remarks>
 					<value token="N" description="the game speed" minValue="10" maxValue="1000" defaultValue="100"/>
 				</variable>
-        
+
         <variable name="akimboautoswitch">
           <description>Enables or disables automatic switching to the akimbo upon pickup.</description>
           <value token="N" description="enable or disable" minValue="0" maxValue="1" defaultValue="1"/>
@@ -3233,7 +3233,7 @@ Output:
             <identifierReference identifier="akimboautoswitch"/>
           </references>
 				</variable>
-        
+
         <command name="survival">
           <description>Prepares a round of bot survival mode on the specified map.</description>
           <remarks>
@@ -3244,11 +3244,29 @@ Output:
             <argument token="D" description="optional: the difficulty" valueNotes="0 = easy, 1 = intermediate, 2 = hard, 3 = impossible"/>
           </arguments>
         </command>
-        
+
+		<command name="drawzone">
+			<description>Draws a zone marker with the specified color and dimensions on the minimap/radar. This is primarily intended for the survival mode.</description>
+			<remarks>
+				<remark>Only a single zone can be drawn at a time, and it will be reset (i.e. removed) once a new game starts.</remark>
+				<remark>Note that the coordinates must be specified as integers, not as floating-point values.</remark>
+			</remarks>
+			<arguments>
+				<argument token="X1" description="X-coordinate - top-left corner"/>
+				<argument token="X2" description="X-coordinate - bottom-right corner"/>
+				<argument token="Y1" description="Y-coordinate - top-left corner"/>
+				<argument token="Y2" description="Y-coordinate - bottom-right corner"/>
+				<argument token="C" description="a color for the zone, in hexadecimal notation" valueNotes="default: 0x00FF00 (green)"/>
+			</arguments>
+			<references>
+				<identifierReference name="survival" identifier="survival"/>
+			</references>
+		</command>
+
         <scriptalias name="onLastMin">
           <description>If this alias exists, it will be automatically executed on the last minute remaining mark.</description>
         </scriptalias>
-        
+
         <command name="inWater">
           <description>Determines if the local player is standing in water or submerged.</description>
           <examples>
@@ -3265,7 +3283,7 @@ Output:
             <argument token="T" description="check if submerged instead?" valueNotes="min 0/max 1/default 0"/>
           </arguments>
         </command>
-        
+
         <command name="isclient">
           <description>Determines if the client number given is a valid client (player).</description>
           <examples>
@@ -3290,7 +3308,7 @@ Output:
 		<!-- Editing Section Starts -->
 		<section name="Editing" sortindex="09">
 			<identifiers sort="true">
-		
+
 				<command name="togglegrap">
 					<description>Will toggle the focus of the mouse in game. Normally you can use your mouse to look around, when you type this command your mouse cursor is visible and can be used as normally. This is only useful when you run cube windowed, of course.</description>
 				</command>
@@ -3300,7 +3318,7 @@ Output:
 				</command>
 
 				<command name="getenttype"/>
-				
+
 				<command name="edittag">
 					<arguments>
 						<argument token="T" description="tag" valueNotes="integer value"/>
@@ -3856,7 +3874,7 @@ Output:
 						<argument token="M" description="file name of the map, see command 'map' for the naming scheme" valueNotes="string"/>
 					</arguments>
 				</command>
-        
+
         <variable name="mapbackupsonsave">
           <description>Determines if map backups (.bak) should be created when a map is saved.</description>
           <value token="N" description="0 off, 1 on" minValue="0" maxValue="1" defaultValue="1" />
@@ -4212,7 +4230,7 @@ Output:
         <command name="checkmapdependencies">
 					<description>Find what media the map depends on, this is used for mediapack providers.</description>
 				</command>
-        
+
         <variable name="old_editbinds">
           <description>Enables or disables the old editing binds.</description>
           <examples>
@@ -4229,21 +4247,21 @@ Output:
             <remark>If disabled, an updated editing binds system is used, see the comments in "/config/resetbinds.cfg" for more info.</remark>
           </remarks>
         </variable>
-        
+
         <scriptalias name="onNewMap">
           <description>If this alias exists, it will be automatically executed when you start a new map.</description>
         </scriptalias>
-        
+
         <variable name="flyspeed">
           <description>Determines by how much to multiply the fly speeds by.</description>
           <value token="N" description="the multiplier" minValue="1.0" maxValue="5.0" defaultValue="2.0"/>
         </variable>
-        
+
         <variable name="oldselstyle">
           <description>Enables or disables using triangles to render the editing grid/current selection instead of squares.</description>
           <value token="N" description="0 off, 1 on" minValue="0" maxValue="1" defaultValue="1"/>
         </variable>
-          
+
 			</identifiers>
 		</section>
 		<!-- Editing Section Ends -->
@@ -4417,7 +4435,7 @@ Output:
 						<identifierReference identifier="showmenu"/>
 					</references>
 				</command>
-        
+
         <command name="delmenu">
           <description>Deletes the entire contents (all menu items) of the given menu.</description>
           <arguments>
@@ -4777,12 +4795,12 @@ Output:
 					<description>change at what height you are floating in the radar-view</description>
 					<value token="H" description="height" minValue="20" maxValue="70" defaultValue="35" />
 				</variable>
-        
+
         <variable name="showtargetname">
           <description>enables or disables showing the player name on the HUD when in your crosshair.</description>
           <value token="N" description="0 off, 1 on" minValue="0" maxValue="1" defaultValue="1"/>
         </variable>
-        
+
         <command name="disablehud">
           <description>Stores your current HUD configuration in a buffer and disables it entirely.</description>
           <references>
@@ -4790,7 +4808,7 @@ Output:
             <identifierReference identifier="enablehud"/>
           </references>
         </command>
-        
+
         <command name="enablehud">
           <description>Restores your HUD configuration after using disablehud.</description>
           <references>
@@ -4798,7 +4816,7 @@ Output:
             <identifierReference identifier="disablehud"/>
           </references>
         </command>
-		
+
 			</identifiers>
 		</section>
 		<!-- Heads-Up Display Section ends -->
@@ -5531,7 +5549,7 @@ Output:
 		<section name="Ingame Reference" sortindex="12">
 			<description>This section describes all identifiers related to the ingame documentation reference.</description>
 			<identifiers>
-			
+
 				<command name="docsection">
 					<description>Adds a new section to the ingame documentation.</description>
 					<references>
@@ -6721,7 +6739,7 @@ Output:
 					  <identifierReference identifier="allowblinkingtext"/>
 					</references>
 				</command>
-				
+
 				<command name="allowblinkingtext">
 					<description>for toggling on the ability for any text to have the blinking bit set.</description>
 					<arguments>
