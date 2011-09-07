@@ -10,6 +10,7 @@ Find me a cat!
 // TODO : find a better order for these categories
 [*] New Private messages feature (/pm cn message) default bind is N
 [*] Scoreboard doesn't show ping/score/pj in singleplayer
+[*] Added /drawzone command to draw a rectangular zone on the minimap
 
 Weapons
 ---------------------
@@ -78,6 +79,7 @@ Demos / Spectating
 
 [*] Drop camera to previous followed player position when switching to fly specmode.
 [*] Fix broken demo-viewer not able to change to SPECTATOR.
+[*] Servers now choose a unique file name for the temporary demo file ("demorecord_<IP/local>_<port>")
 
 Sounds / Audio
 ---------------------
@@ -204,7 +206,7 @@ CubeScript
 [*] The /togglebotview command can no longer be used in arena modes.
 [*] /keybind bug fix. No more client crash if the argument is an unknown key.
 [*] Moved some old/redundant commands to /config/compatibility.cfg.
-[*] Hardcoded key bind/editbind/specbind 
+[*] Hardcoded key bind/editbind/specbind
 
 I18n / L10n
 ---------------------
