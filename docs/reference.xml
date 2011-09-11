@@ -630,7 +630,7 @@
 					</example>
 					</examples>
 					<arguments>
-						<argument token="cond" description="the condition" valueNotes="0 (false) or anything else (true)"/>
+						<argument token="cond" description="the condition" valueNotes="the code evaluated before each iteration"/>
 						<argument token="body" description="the body to execute on each iteration"/>
 					</arguments>
                   <references>
