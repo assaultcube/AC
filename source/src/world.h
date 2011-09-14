@@ -130,7 +130,7 @@ struct mapstats
 #define MAXHHITS 6000
 #define MINFF 2500
 
-struct block { int x, y, xs, ys; };
+struct block { int x, y, xs, ys, h; };
 
 // vertex array format
 

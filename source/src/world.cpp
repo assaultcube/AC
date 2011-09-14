@@ -442,6 +442,8 @@ bool empty_world(int factor, bool force)    // main empty world creation routine
         sqrdefault(S(x,y));
     }
 
+    checkselections(); // assert no selection became invalid
+
     strncpy(hdr.head, "ACMP", 4);
     hdr.version = MAPVERSION;
     hdr.headersize = sizeof(header);
@@ -471,7 +473,7 @@ bool empty_world(int factor, bool force)    // main empty world creation routine
         loopi(sizeof(hdr.reserved)/sizeof(hdr.reserved[0])) hdr.reserved[i] = 0;
         loopk(3) loopi(256) hdr.texlists[k][i] = i;
         ents.shrink(0);
-        block b = { 8, 8, ssize-16, ssize-16 };
+        block b = { 8, 8, ssize-16, ssize - 16};
         edittypexy(SPACE, b);
     }
 
