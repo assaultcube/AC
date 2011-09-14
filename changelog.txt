@@ -7,10 +7,8 @@ This changelog is a WIP!
 
 Find me a cat!
 ---------------------
-// TODO : find a better order for these categories
 [*] New Private messages feature (/pm cn message) default bind is N
-[*] Scoreboard doesn't show ping/score/pj in singleplayer
-[*] Added /drawzone command to draw a rectangular zone on the minimap
+// TODO : find a better order for these categories
 
 Weapons
 ---------------------
@@ -58,6 +56,7 @@ Mapping
 [*] Key "7" is now key bound to "nextclosestent" - it gets typo'd all the time.
 [*] entproperty now works in MP coop, but buffered.
 [*] Textures can now have a non-default scale, definable through the texture command.
+[*] Multiple selections support
 
 Rendering / HUD / ...
 ---------------------
@@ -67,6 +66,7 @@ Rendering / HUD / ...
 [*] Nearplane fix.
 [*] screenshotscale - in-engine scaling of screenshots.
 [*] showtargetname - turns on/off showing the player name on the HUD when in your crosshair.
+[*] Scoreboard doesn't show ping/score/pj in singleplayer
 
 Physics
 ---------------------
@@ -192,6 +192,8 @@ CubeScript
 [*] mapbackupsonsave - Determines if map backups (.bak) should be created when a map is saved.
 [*] isclient         - Determines if the client number given is a valid client (player).
 [*] winners          - Returns the list of winning teams or players
+[*] drawzone         - Draw a rectangular zone on the minimap
+[*] const            - Sets an alias as a constant
 [*] getalias can now work on built-in client variables (CVARs). - (e.g. fov)
 [*] "Sleeps" can be persistent. (e.g. "Persist" even through map loads - new optional 3rd argument of the /sleep command)
 [*] Substr crash bug is fixed. Also the command can now use a negative position value.
