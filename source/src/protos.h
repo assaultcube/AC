@@ -472,6 +472,7 @@ extern void undodynlights();
 extern void cleardynlights();
 extern void removedynlights(physent *owner);
 extern block *blockcopy(const block &b);
+extern void blockpaste(const block &b, int bx, int by);
 extern void blockpaste(const block &b);
 extern void freeblock(block *&b);
 
@@ -554,6 +555,7 @@ extern void cursorupdate();
 extern void toggleedit(bool force = false);
 extern char *editinfo();
 extern void editdrag(bool isdown);
+extern void checkselections();
 extern void setvdeltaxy(int delta, block &sel);
 extern void editequalisexy(bool isfloor, block &sel);
 extern void edittypexy(int type, block &sel);

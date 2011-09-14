@@ -337,11 +337,16 @@ block *blockcopy(const block &s)
     return b;
 }
 
-void blockpaste(const block &b)
+void blockpaste(const block &b, int bx, int by)
 {
     const sqr *q = (const sqr *)((&b)+1);
-    for(int y = b.y; y<b.ys+b.y; y++) for(int x = b.x; x<b.xs+b.x; x++) *S(x,y) = *q++;
+    for(int y = by; y<b.ys+by; y++) for(int x = bx; x<b.xs+bx; x++) *S(x,y) = *q++;
     remipmore(b);
+}
+
+void blockpaste(const block &b)
+{
+    blockpaste(b, b.x, b.y);
 }
 
 void freeblock(block *&b)

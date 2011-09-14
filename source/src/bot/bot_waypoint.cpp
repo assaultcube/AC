@@ -19,8 +19,9 @@ CCubeWaypointClass WaypointClass;
 #endif
 
 VAR(xhairwpsel, 0, 1, 1);
-extern block sel;
-#define curselection (xhairwpsel ? vec(sel.x, sel.y, S(sel.x, sel.y)->floor+2.0f) : vec(player1->o.x, player1->o.y, player1->o.z))
+// FIXME: multiple selections support ?
+extern vector<block> sels;
+#define curselection (xhairwpsel ? vec(sels.last().x, sels.last().y, S(sels.last().x, sels.last().y)->floor+2.0f) : vec(player1->o.x, player1->o.y, player1->o.z))
 
 // Waypoint class begin
 
