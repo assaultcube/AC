@@ -922,24 +922,14 @@ struct killmessagesfile : serverconfigfile
                     int hasquotes = strspn(s, "\"");
                     s += hasquotes;
                     message = s;
-                    // TODO : what's following is too much complicated for nothing. 
-                    // it has to remove ending char (space, or quote if there was a first quote)
-                    char endingchar = ' ';
-                    char *end;
-                    
-                    if(hasquotes) endingchar = '"';
-                    
-                    end = strchr(message, endingchar);
-
-                    if(end) message[end-message] = '\0';
-                    else
+                    char *seps = "\" \n", *end;
+                    char cursep;
+                    while( (cursep = *seps++) != '\0')
                     {
-                        if(hasquotes)
-                        {
-                            logline(ACLOG_INFO, " error in line %i, ending quote missing (%s)", line, message);
-                            errors++;
-                        }
+                        if(cursep == '"' && !hasquotes) continue;
+                        if(end = strchr(message, cursep)) break;
                     }
+                    if(end) message[end-message] = '\0';
                     
                     if(gun < 0 || gun >= NUMGUNS)
                     {
@@ -948,19 +938,19 @@ struct killmessagesfile : serverconfigfile
                     }
                     if(strlen(message)>MAXKILLMSGLEN)
                     {
-                        logline(ACLOG_INFO, " error in line %i, too long message : string length is %i, max allowed i %i", line, strlen(message), MAXKILLMSGLEN);
+                        logline(ACLOG_INFO, " error in line %i, too long message : string length is %i, max. allowed is %i", line, strlen(message), MAXKILLMSGLEN);
                         errors++;
                     }
                     if(!errors)
                     {
                         if(fragmsg)
                         {
-                            formatstring(killmessages[0][gun])("%s", message);
+                            copystring(killmessages[0][gun], message);
                             logline(ACLOG_VERBOSE, " added msg '%s' for frags with weapon %i ", message, gun);
                         }
                         else
                         {
-                            formatstring(killmessages[1][gun])("%s", message);
+                            copystring(killmessages[1][gun], message);
                             logline(ACLOG_VERBOSE, " added msg '%s' for gibs with weapon %i ", message, gun);
                         }
                     }
