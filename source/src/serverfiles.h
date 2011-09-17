@@ -922,12 +922,13 @@ struct killmessagesfile : serverconfigfile
                     int hasquotes = strspn(s, "\"");
                     s += hasquotes;
                     message = s;
-                    char *seps = "\" \n", *end;
+                    const char *seps = "\" \n", *end = NULL;
                     char cursep;
                     while( (cursep = *seps++) != '\0')
                     {
                         if(cursep == '"' && !hasquotes) continue;
-                        if(end = strchr(message, cursep)) break;
+                        end = strchr(message, cursep);
+                        if(end) break;
                     }
                     if(end) message[end-message] = '\0';
                     
