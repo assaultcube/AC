@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="cube"
 	ProjectGUID="{1FAF5BB4-C49A-4124-9F23-188528BAE7C8}"
 	RootNamespace="cube"
@@ -634,7 +634,15 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\server.h"
+				>
+			</File>
+			<File
 				RelativePath="..\src\serveractions.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\serverchecks.h"
 				>
 			</File>
 			<File
