@@ -1,11 +1,9 @@
 LICENSE
 
-Platform model (not textured).
+Platform 8x8 model (not textured).
 
 - tris.md3 by "DES|Cleaner" for AssaultCube using MilkShape 3D.
 e-mail: totally_shameless@hotmail.fr
-
-- skin.jpg by noctua used only as an example to show tiling match.
 
 If you are using my material outside than AssaultCube I would pretty much appreciate that you send me some screenshots.
 
