@@ -296,6 +296,9 @@
 		<Unit filename="../src/tristrip.h">
 			<Option target="default" />
 		</Unit>
+        <Unit filename="../src/varray.h">
+            <Option target="default" />
+        </Unit>
 		<Unit filename="../src/vertmodel.h">
 			<Option target="default" />
 		</Unit>

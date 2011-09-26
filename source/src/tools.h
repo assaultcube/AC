@@ -473,6 +473,13 @@ template <class T> struct vector
         advance(p.length());
     }
 
+    T *pad(int n)
+    {
+        T *buf = reserve(n).buf;
+        advance(n);
+        return buf;
+    }
+
     void put(const T &v) { add(v); }
 
     void put(const T *v, int n)

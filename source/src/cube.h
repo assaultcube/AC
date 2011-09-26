@@ -17,6 +17,7 @@
 #include "command.h"
 
 #ifndef STANDALONE
+ #include "varray.h"
  #include "vote.h"
  #include "console.h"
 #endif

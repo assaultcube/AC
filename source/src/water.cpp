@@ -28,39 +28,68 @@ COMMANDN(watercolour, setwatercolor, ARG_4STR);
 
 // renders water for bounding rect area that contains water... simple but very inefficient
 
-#define VERTW(vertw, body) \
+#define VERTW(vertw, defbody, body) \
+    static inline void def##vertw() \
+    { \
+        varray::defattrib(varray::ATTRIB_VERTEX, 3, GL_FLOAT); \
+        defbody; \
+    } \
     inline void vertw(float v1, float v2, float v3, float t) \
     { \
-        float angle = v1*v2*0.1f + t; \
-        float h = 0.3f*sinf(angle); \
+        float angle = v1*v2*0.1f/(2*M_PI) + t; \
+        float s = angle - int(angle) - 0.5f; \
+        s *= 8 - fabs(s)*16; \
+        float h = 0.3f*s; \
+        varray::attrib<float>(v1, v2, v3+h); \
         body; \
-        glVertex3f(v1, v2, v3+h); \
     }
-#define VERTWT(vertwt, body) VERTW(vertwt, { float v = cosf(angle); float duv = 0.2f*v; body; })
-VERTW(vertw, {})
-VERTW(vertwc, {
-    float v = cosf(angle);
-    glColor4ub(hdr.watercolor[0], hdr.watercolor[1], hdr.watercolor[2], (uchar)(hdr.watercolor[3] + (max(v, 0.0f) - 0.5f)*51.0f));
+#define VERTWC(vertwc, defbody, body) \
+    VERTW(vertwc, defbody, { \
+        float v = angle - int(angle+0.25) - 0.25; \
+        v *= 8 - fabs(v)*16; \
+        body; \
+    })
+#define VERTWT(vertwt, defbody, body) \
+    VERTWC(vertwt, defbody, { \
+        float duv = 0.2f*v; \
+        body; \
+    })
+
+VERTW(vertw, {}, {})
+VERTWC(vertwc, {
+    varray::defattrib(varray::ATTRIB_COLOR, 4, GL_UNSIGNED_BYTE);
+}, {
+    varray::attrib<uchar>(hdr.watercolor[0], hdr.watercolor[1], hdr.watercolor[2], (uchar)(hdr.watercolor[3] + (max(v, 0.0f) - 0.5f)*51.0f));
 })
 VERTWT(vertwt, {
-    glTexCoord3f(v1+duv, v2+duv, v3+h);
+    varray::defattrib(varray::ATTRIB_TEXCOORD0, 3, GL_FLOAT);
+}, {
+    varray::attrib<float>(v1+duv, v2+duv, v3+h);
 })
 VERTWT(vertwtc, {
-    glColor4f(1, 1, 1, 0.15f + max(v, 0.0f)*0.15f);
-    glTexCoord3f(v1+duv, v2+duv, v3+h);
+    varray::defattrib(varray::ATTRIB_COLOR, 4, GL_UNSIGNED_BYTE);
+    varray::defattrib(varray::ATTRIB_TEXCOORD0, 3, GL_FLOAT);
+}, {
+    varray::attrib<uchar>(255, 255, 255, uchar(38 + max(v, 0.0f)*38));
+    varray::attrib<float>(v1+duv, v2+duv, v3+h);
 })
 VERTWT(vertwmtc, {
-    glColor4f(1, 1, 1, 0.15f + max(v, 0.0f)*0.15f);
-    glMultiTexCoord3f_(GL_TEXTURE0_ARB, v1-duv, v2+duv, v3+h);
-    glMultiTexCoord3f_(GL_TEXTURE1_ARB, v1+duv, v2+duv, v3+h);
+    varray::defattrib(varray::ATTRIB_COLOR, 4, GL_UNSIGNED_BYTE);
+    varray::defattrib(varray::ATTRIB_TEXCOORD0, 3, GL_FLOAT);
+    varray::defattrib(varray::ATTRIB_TEXCOORD1, 3, GL_FLOAT);
+}, {
+    varray::attrib<uchar>(255, 255, 255, uchar(38 + max(v, 0.0f)*38));
+    varray::attrib<float>(v1-duv, v2+duv, v3+h);
+    varray::attrib<float>(v1+duv, v2+duv, v3+h);
 })
 
 extern int nquads;
 
 #define renderwaterstrips(vertw, hf, t) \
+    def##vertw(); \
     for(int x = wx1; x<wx2; x += watersubdiv) \
     { \
-        glBegin(GL_TRIANGLE_STRIP); \
+        varray::begin(GL_TRIANGLE_STRIP); \
         vertw(x,             wy1, hf, t); \
         vertw(x+watersubdiv, wy1, hf, t); \
         for(int y = wy1; y<wy2; y += watersubdiv) \
@@ -68,8 +97,7 @@ extern int nquads;
             vertw(x,             y+watersubdiv, hf, t); \
             vertw(x+watersubdiv, y+watersubdiv, hf, t); \
         } \
-        glEnd(); \
-        nquads += (wy2-wy1-1)/watersubdiv; \
+        nquads += varray::end()/4; \
     }
 
 void setprojtexmatrix()
@@ -137,10 +165,12 @@ int renderwater(float hf, GLuint reflecttex, GLuint refracttex)
     wx1 -= wx1%watersubdiv;
     wy1 -= wy1%watersubdiv;
 
-    float t = lastmillis/300.0f;
+    float t = fmod(lastmillis/300.0f/(2*M_PI), 1.0f);
 
     if(mtwater && maxtmus>=2 && reflecttex)
     {
+        varray::enable();
+
         if(refracttex)
         {
             setupmultitexrefract(reflecttex, refracttex);
@@ -158,6 +188,8 @@ int renderwater(float hf, GLuint reflecttex, GLuint refracttex)
         }
         cleanupmultitex(reflecttex, refracttex);
 
+        varray::disable();
+
         return nquads;
     }
 
@@ -168,6 +200,8 @@ int renderwater(float hf, GLuint reflecttex, GLuint refracttex)
     }
     glDepthMask(GL_FALSE);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    varray::enable();
 
     if(reflecttex)
     {
@@ -195,6 +229,8 @@ int renderwater(float hf, GLuint reflecttex, GLuint refracttex)
     }
     if(reflecttex) { renderwaterstrips(vertwtc, hf, t); }
     else { renderwaterstrips(vertwc, hf, t); }
+
+    varray::disable();
 
     if(reflecttex)
     {
