@@ -165,7 +165,7 @@ int renderwater(float hf, GLuint reflecttex, GLuint refracttex)
     wx1 -= wx1%watersubdiv;
     wy1 -= wy1%watersubdiv;
 
-    float t = fmod(lastmillis/300.0f/(2*M_PI), 1.0f);
+    float t = fmod(float(lastmillis/300.0f/(2*M_PI)), 1.0f);
 
     if(mtwater && maxtmus>=2 && reflecttex)
     {
