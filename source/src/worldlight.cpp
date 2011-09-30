@@ -206,7 +206,7 @@ struct dlight
 
 vector<dlight> dlights;
 
-VAR(dynlight, 0, 1, 1);
+VARP(dynlight, 0, 1, 1);
 
 static inline bool insidearea(const block &a, const block &b)
 {
