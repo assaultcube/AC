@@ -120,13 +120,6 @@ void checkselections()
     loopv(sels) if(!correctsel(sels[i])) sels.remove(i);
 }
 
-// selection from cubescript
-void selectpos(int x, int y, int xs, int ys)
-{
-    resetselections();
-    addselection(x, y, xs, ys, 0);
-}
-
 // update current selection, or add a new one
 void makesel(bool isnew)
 {
@@ -710,7 +703,9 @@ void selectionflip(char *axis)
     loopv(sels) selfliprotate(sels[i], c == 'X' ? 11 : 12);
 }
 
-COMMANDN(select, selectpos, ARG_4INT);
+COMMANDF(select, ARG_4INT, (int x, int y, int xs, int ys) { resetselections(); addselection(x, y, xs, ys, 0); });
+COMMANDF(addselection, ARG_4INT, (int x, int y, int xs, int ys) { addselection(x, y, xs, ys, 0); });
+COMMAND(resetselections, ARG_NONE);
 COMMAND(edittag, ARG_1INT);
 COMMAND(replace, ARG_NONE);
 COMMAND(archvertex, ARG_3INT);
