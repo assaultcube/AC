@@ -135,7 +135,7 @@ void makesel(bool isnew)
     if(selset()) rtex = *S((sels.last()).x, (sels.last()).y);
 }
 
-#define SEL_ATTR(attr) { string buf; loopv(sels) { concatformatstring(buf, "%d ", sels[i].attr); } result(buf); }
+#define SEL_ATTR(attr) { string buf = ""; loopv(sels) { concatformatstring(buf, "%d ", sels[i].attr); } result(buf); }
 COMMANDF(selx, ARG_NONE, (void) { SEL_ATTR(x); });
 COMMANDF(sely, ARG_NONE, (void) { SEL_ATTR(y); });
 COMMANDF(selxs, ARG_NONE, (void) { SEL_ATTR(xs); });
