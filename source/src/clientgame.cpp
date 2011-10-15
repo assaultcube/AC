@@ -730,9 +730,11 @@ void findplayerstart(playerent *d, bool mapcenter, int arenaspawn)
 
 void spawnplayer(playerent *d)
 {
+	//2011oct16:flowtron:keep spectator state
+	bool dws = d->state == CS_SPECTATE;
     d->respawn();
     d->spawnstate(gamemode);
-    d->state = (d==player1 && editmode) ? CS_EDITING : CS_ALIVE;
+    d->state = (d==player1 && editmode) ? CS_EDITING : (dws?CS_SPECTATE:CS_ALIVE);
     findplayerstart(d);
 }
 

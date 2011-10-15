@@ -40,7 +40,9 @@ void toggleedit(bool force)
     }
     keyrepeat(editmode);
     editing = editmode ? 1 : 0;
-    player1->state = editing ? CS_EDITING : CS_ALIVE;
+    //2011oct16:flowtron:keep spectator state
+    //spectators are ghosts, no toggling of editmode for them!
+    player1->state = player1->state==CS_SPECTATE?CS_SPECTATE:(editing ? CS_EDITING : CS_ALIVE);
     if(editing && player1->onladder) player1->onladder = false;
     if(editing && (player1->weaponsel->type == GUN_SNIPER && ((sniperrifle *)player1->weaponsel)->scoped)) ((sniperrifle *)player1->weaponsel)->onownerdies(); // or ondeselecting()
     if(!force) addmsg(SV_EDITMODE, "ri", editing);
@@ -272,7 +274,7 @@ void copy()
         block *b = blockcopy(sels[i]);
         copybuffers.add(b);
     }
-        
+
 }
 
 void paste()
@@ -315,7 +317,7 @@ int countwalls(int type)
     loopselsxy(if(s->type==type) counter++)
     return counter;
 }
- 
+
 void tofronttex()                                       // maintain most recently used of the texture lists when applying texture
 {
     loopi(3)
