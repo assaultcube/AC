@@ -626,7 +626,12 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 int val = getint(p);
                 if(!d) break;
                 if(val) d->state = CS_EDITING;
-                else d->state = CS_ALIVE;
+                else
+                {
+                	//2011oct16:flowtron:keep spectator state
+                	//specators shouldn't be allowed to toggle editmode for themselves. they're ghosts!
+                	d->state = d->state==CS_SPECTATE?CS_SPECTATE:CS_ALIVE;
+                }
                 break;
             }
 
@@ -643,7 +648,10 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 s->selectweapon(gunselect);
                 loopi(NUMGUNS) s->ammo[i] = getint(p);
                 loopi(NUMGUNS) s->mag[i] = getint(p);
-                s->state = CS_SPAWNING;
+                //2011oct16:flowtron:keep spectator state
+                //possible fubar here - trying out ATM!
+                bool cws = s->state == CS_SPECTATE;
+                s->state = cws?CS_SPECTATE:CS_SPAWNING;
                 if(s->lifesequence==0) s->resetstats(); //NEW
                 break;
             }
@@ -671,7 +679,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 int arenaspawn = getint(p);
                 loopi(NUMGUNS) player1->ammo[i] = getint(p);
                 loopi(NUMGUNS) player1->mag[i] = getint(p);
-                player1->state = CS_ALIVE;
+                //2011oct16:flowtron:keep spectator state
+                bool pws = player1->state == CS_SPECTATE;
+                player1->state = pws?CS_SPECTATE:CS_ALIVE;
                 lastspawn = lastmillis;
                 findplayerstart(player1, false, arenaspawn);
                 arenaintermission = 0;
