@@ -548,7 +548,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         if (cornersurface)
         {
             float ct2f = (cornersurface == 2 ? -1.0 : 1.0);
-            float diag = f*d.ufmagxy()*2;
+            float diag = f*d.magnitudexy()*2;
             vec vd = vec((d.y*ct2f+d.x >= 0.0f ? diag : -diag), (d.x*ct2f+d.y >= 0.0f ? diag : -diag), 0);
             pl->o.x -= f*d.x;
             pl->o.y -= f*d.y;
