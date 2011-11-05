@@ -120,6 +120,7 @@ SetCompressor /SOLID lzma
 !define AC_SHORTNAME "AssaultCube"
 !define AC_FULLNAME "AssaultCube v1.1.0.5"
 !define AC_FULLNAMESAVE "AssaultCube_v1.1.0.5"
+!define AC_URLPROTOCOL "assaultcube"
 !define AC_MAJORVERSIONINT 1
 !define AC_MINORVERSIONINT 1
 
@@ -128,7 +129,7 @@ VAR StartMenuFolder
 OutFile "AssaultCube_${AC_FULLVERSION}.exe"
 InstallDir "$PROGRAMFILES\${AC_FULLNAMESAVE}"
 InstallDirRegKey HKLM "Software\${AC_SHORTNAME}" ""
-RequestExecutionLevel admin ; require admin in vista/7
+RequestExecutionLevel admin ; require admin in Vista/7
 
 ; Interface Configuration
 
@@ -431,11 +432,11 @@ FunctionEnd
 
 Function DisableMultiuserOption
 
-    !insertmacro MUI_INSTALLOPTIONS_WRITE "InstallTypes.ini" "Field 2" "Flags" "DISABLED"	
+    !insertmacro MUI_INSTALLOPTIONS_WRITE "InstallTypes.ini" "Field 2" "Flags" "DISABLED"
     !insertmacro MUI_INSTALLOPTIONS_WRITE "InstallTypes.ini" "Field 4" "Flags" "DISABLED"
 
     ; fix currently selected option
-    !insertmacro MUI_INSTALLOPTIONS_WRITE "InstallTypes.ini" "Field 2" "State" "0"	
+    !insertmacro MUI_INSTALLOPTIONS_WRITE "InstallTypes.ini" "Field 2" "State" "0"
     !insertmacro MUI_INSTALLOPTIONS_WRITE "InstallTypes.ini" "Field 1" "State" "1"
 
 FunctionEnd
@@ -469,7 +470,7 @@ Function InstallationTypePage
     StrCmp $R0 "6" 0 winvercheckdone ; vista
    
         ; suggest multiuser option on vista and later
-        !insertmacro MUI_INSTALLOPTIONS_WRITE "InstallTypes.ini" "Field 2" "State" "1"	
+        !insertmacro MUI_INSTALLOPTIONS_WRITE "InstallTypes.ini" "Field 2" "State" "1"
         !insertmacro MUI_INSTALLOPTIONS_WRITE "InstallTypes.ini" "Field 1" "State" "0"
     
     winvercheckdone:
@@ -515,28 +516,23 @@ Section "AssaultCube ${AC_FULLVERSION}" AC
     WriteRegStr HKLM "Software\${AC_SHORTNAME}" "version" ${AC_FULLVERSIONINT}
 
     ; Create uninstaller
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_FULLNAMESAVE}" "DisplayName" "${AC_FULLNAME}"
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_FULLNAMESAVE}" "UninstallString" '"$INSTDIR\uninstall.exe"'
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_FULLNAMESAVE}" "DisplayIcon" '"$INSTDIR\docs\images\favicon.ico"'
-
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_FULLNAMESAVE}" "HelpLink" "$INSTDIR\README.html"
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_FULLNAMESAVE}" "URLInfoAbout" "http://assault.cubers.net"
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_FULLNAMESAVE}" "URLUpdateInfo" "http://assault.cubers.net/download.html"
-
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_FULLNAMESAVE}" "DisplayVersion" "${AC_FULLVERSION}"
-    WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_FULLNAMESAVE}" "VersionMajor" ${AC_MAJORVERSIONINT}
-    WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_FULLNAMESAVE}" "VersionMinor" ${AC_MINORVERSIONINT}
-
-    WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_FULLNAMESAVE}" "NoModify" 1
-    WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_FULLNAMESAVE}" "NoRepair" 1
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "DisplayName" "${AC_FULLNAME}"
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "UninstallString" '"$INSTDIR\uninstall.exe"'
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "DisplayIcon" '"$INSTDIR\docs\images\favicon.ico"'
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "HelpLink" "$INSTDIR\README.html"
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "URLInfoAbout" "http://assault.cubers.net"
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "URLUpdateInfo" "http://assault.cubers.net/download.html"
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "DisplayVersion" "${AC_FULLVERSION}"
+    WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "VersionMajor" ${AC_MAJORVERSIONINT}
+    WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "VersionMinor" ${AC_MINORVERSIONINT}
+    WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "NoModify" 1
+    WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "NoRepair" 1
 
     WriteUninstaller "$INSTDIR\Uninstall.exe"
     
 
     ; create shortcuts
     
-    ; CreateShortCut "$INSTDIR\User Data.lnk" "%appdata%\${AC_FULLNAMESAVE}" "" "" 0
-      
     !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
        
         SetShellVarContext all
@@ -577,10 +573,10 @@ SectionEnd
 
 Section "Register URL protocol" REGISTERURL
 
-    WriteRegStr HKCR "assaultcube" "" "${AC_SHORTNAME}"
-    WriteRegStr HKCR "assaultcube" "URL Protocol" ""
-    WriteRegStr HKCR "assaultcube\DefaultIcon" "" '"$INSTDIR\bin_win32\ac_client.exe"'
-    WriteRegStr HKCR "assaultcube\shell\open\command" "" '"cmd.exe" /C cd "$INSTDIR" & "assaultcube.bat" "%1"'
+    WriteRegStr HKCR "${AC_URLPROTOCOL}" "" "${AC_SHORTNAME}"
+    WriteRegStr HKCR "${AC_URLPROTOCOL}" "URL Protocol" ""
+    WriteRegStr HKCR "${AC_URLPROTOCOL}\DefaultIcon" "" '"$INSTDIR\bin_win32\ac_client.exe"'
+    WriteRegStr HKCR "${AC_URLPROTOCOL}\shell\open\command" "" '"cmd.exe" /C cd "$INSTDIR" & "assaultcube.bat" "%1"'
 
 SectionEnd
 
@@ -624,9 +620,9 @@ Section "Uninstall"
     
     ; delete reg keys
     
-    DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_FULLNAMESAVE}"
+    DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}"
     DeleteRegKey HKLM "SOFTWARE\${AC_SHORTNAME}"
-    DeleteRegKey HKCR "assaultcube"
+    DeleteRegKey HKCR "${AC_URLPROTOCOL}"
     
 SectionEnd
 
@@ -638,6 +634,6 @@ SectionEnd
     !insertmacro MUI_DESCRIPTION_TEXT ${AC} "Installs the required AssaultCube core files"
     !insertmacro MUI_DESCRIPTION_TEXT ${OAL} "Installs a sound library for 3D audio"
     !insertmacro MUI_DESCRIPTION_TEXT ${DESKSHORTCUTS} "Creates shortcuts on your Desktop"
-    !insertmacro MUI_DESCRIPTION_TEXT ${REGISTERURL} "Registers the assaultcube:// protocol"
+    !insertmacro MUI_DESCRIPTION_TEXT ${REGISTERURL} "Registers the ${AC_URLPROTOCOL}:// protocol"
 
 !insertmacro MUI_FUNCTION_DESCRIPTION_END
