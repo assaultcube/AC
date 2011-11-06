@@ -358,6 +358,8 @@ FunctionEnd
 
 Function WelcomePage
 
+    Call CheckPrevInstallation
+
     nsDialogs::Create /NOUNLOAD 1044
     Pop $DIALOG
 
@@ -468,7 +470,7 @@ Function InstallationTypePage
     Pop $R1 ; minor version
  
     StrCmp $R0 "6" 0 winvercheckdone ; vista
-   
+    
         ; suggest multiuser option on vista and later
         !insertmacro MUI_INSTALLOPTIONS_WRITE "InstallTypes.ini" "Field 2" "State" "1"
         !insertmacro MUI_INSTALLOPTIONS_WRITE "InstallTypes.ini" "Field 1" "State" "0"
@@ -500,6 +502,18 @@ Function ConfigureWithoutAppdata
     FileWrite $9 "start bin_win32\ac_client.exe --init %1 %2 %3 %4 %5$\r$\n"
     FileClose $9
 
+FunctionEnd
+
+Function CheckPrevInstallation
+    
+    ReadRegStr $0 HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "UninstallString"
+    StrCmp $0 "" isnotinstalled isinstalled
+    isinstalled:
+    MessageBox MB_YESNO "A previous installation was detected. Would you like to uninstall before installation?" IDNO uninstallno
+    ExecWait "$0"
+    uninstallno:
+    isnotinstalled:
+    
 FunctionEnd
 
 ; Installer Sections
