@@ -2118,6 +2118,34 @@ addOnLoadAlways [
           </references>
         </scriptalias>
 
+		<scriptalias name="modmdlweapN">
+		  <description>change name of directory used for weapon model (hudgun) number N</description>
+		  <examples>
+			<example>
+						<code><![CDATA[
+modmdlweap4 my_subgun
+						]]></code>
+						<explanation>This will make the subgun hudgun model use the data inside packages/models/weapon/my_subgun</explanation>
+					</example>
+
+		  </examples>
+		  <remarks>
+			<remark>These setting should be loaded from config/autoexec.cfg, but they work on-the-fly too.</remark>
+			<remark>If the model fails to load you will end up with nothing being displayed; use <b>delalias</b> to get back to default</remark>
+		  </remarks>
+		  <references>
+		    <identifierReference identifier="modmdlvwepN"/>
+		    <identifierReference identifier="delalias"/>
+		  </references>
+		</scriptalias>
+
+		<scriptalias name="modmdlvwepN">
+		  <description>change name of directory used for weapon model (viewable/world) number N</description>
+		  <references>
+		    <identifierReference identifier="modmdlweapN"/>
+		  </references>
+		</scriptalias>
+
 				<command name="pstat_score">
 					<description>Returns the score statistics for the player with the given clientnumber.</description>
 					<arguments>
@@ -6632,6 +6660,10 @@ Output:
 		<section name="TODO" sortindex="99">
 			<description>This section describes identifiers that are not documented yet, but you may try to help us there.</description>
 			<identifiers sort="true">
+
+				<command name="delalias">
+					<description>deletes the passed alias.</description>
+				</command>
 
 				<command name="shuffleteam">
 					<description>Shuffles the teams</description>
