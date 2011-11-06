@@ -491,7 +491,8 @@ void preload_playermodels()
     if(dynshadow && playermdl) playermdl->genshadows(8.0f, 4.0f);
     loopi(NUMGUNS)
     {
-        defformatstring(vwep)("weapons/%s/world", guns[i].modelname);
+        defformatstring(widn)("modmdlvwep%d", i);
+        defformatstring(vwep)("weapons/%s/world", identexists(widn)?getalias(widn):guns[i].modelname);
         model *vwepmdl = loadmodel(vwep);
         if(dynshadow && vwepmdl) vwepmdl->genshadows(8.0f, 4.0f);
     }
@@ -709,7 +710,8 @@ void renderclient(playerent *d)
         }
     }
     string vwep;
-    if(d->weaponsel) formatstring(vwep)("weapons/%s/world", d->weaponsel->info.modelname);
+    defformatstring(widn)("modmdlvwep%d", d->weaponsel->type);
+    if(d->weaponsel) formatstring(vwep)("weapons/%s/world", identexists(widn)?getalias(widn):d->weaponsel->info.modelname);
     else vwep[0] = 0;
     renderclient(d, "playermodels", vwep[0] ? vwep : NULL, -(int)textureload(skin)->id);
 }

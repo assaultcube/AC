@@ -115,7 +115,8 @@ void preload_hudguns()
 {
     loopi(NUMGUNS)
     {
-        defformatstring(path)("weapons/%s", guns[i].modelname);
+		defformatstring(widn)("modmdlweap%d", i);
+        defformatstring(path)("weapons/%s", identexists(widn)?getalias(widn):guns[i].modelname);
         loadmodel(path);
     }
 }
