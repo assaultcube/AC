@@ -2123,7 +2123,7 @@ addOnLoadAlways [
 		  <examples>
 			<example>
 						<code><![CDATA[
-modmdlweap4 my_subgun
+modmdlweap4 = my_subgun
 						]]></code>
 						<explanation>This will make the subgun hudgun model use the data inside packages/models/weapon/my_subgun</explanation>
 					</example>
