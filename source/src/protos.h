@@ -376,7 +376,7 @@ extern int gametimecurrent;
 extern int gametimemaximum;
 extern int lastgametimeupdate;
 extern bool watchingdemo;
-struct serverstate { int autoteam; int mastermode; int matchteamsize; void reset() { autoteam = mastermode = matchteamsize = 0; }};
+struct serverstate { int mastermode; bool autoteam, teamslocked; void reset() { mastermode = 0; autoteam = teamslocked = false; }};
 extern struct serverstate servstate;
 extern void updateworld(int curtime, int lastmillis);
 extern void resetmap(bool mrproper = true);

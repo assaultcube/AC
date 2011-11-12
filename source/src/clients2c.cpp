@@ -1183,9 +1183,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             case SV_SERVERMODE:
             {
                 int sm = getint(p);
-                servstate.autoteam = sm & 1;
+                servstate.autoteam = sm & 0x1;
                 servstate.mastermode = (sm >> 2) & MM_MASK;
-                servstate.matchteamsize = sm >> 4;
+                servstate.teamslocked = sm & 0xF;
                 //if(sm & AT_SHUFFLE) playsound(TEAMSHUFFLE);    // TODO
                 break;
             }
@@ -1220,6 +1220,12 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                         getstring(text, p);
                         filtertext(text, text);
                         v = newvotedisplayinfo(d, type, a, text);
+                        break;
+                    }
+                    case SA_FORCETEAM:
+                    {
+                        itoa(a, getint(p));
+                        v = newvotedisplayinfo(d, type, a, team_string(getint(p)));
                         break;
                     }
                     case SA_SERVERDESC:
