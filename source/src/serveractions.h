@@ -158,13 +158,26 @@ struct playeraction : serveraction
 
 struct forceteamaction : playeraction
 {
-    void perform() { updateclientteam(cn, team_opposite(clients[cn]->team), FTR_SILENTFORCE); }
-    virtual bool isvalid() { return m_teammode && valid_client(cn); }
-    forceteamaction(int cn, int caller) : playeraction(cn)
+    char *teamname;
+    int team;
+
+    void perform() { updateclientteam(cn, team, FTR_SILENTFORCE); }
+    virtual bool isvalid()
     {
-        if(cn != caller) role = roleconf('f');
-        if(isvalid() && !(clients[cn]->state.forced && clients[caller]->role != CR_ADMIN)) formatstring(desc)("force player %s to the enemy team", clients[cn]->name);
+        return (team == TEAM_CLA || team == TEAM_RVSF || team == TEAM_SPECT) && m_teammode && valid_client(cn);
     }
+    forceteamaction(int cn, int caller, char *teamstring) : playeraction(cn)
+    {
+        team = -1; teamname = newstring(teamstring);
+        if(cn != caller) role = roleconf('f');
+        
+        if(teamname && *teamname) { loopi(TEAM_NUM) { if(!stricmp(teamnames_s[i], teamname)) { team = i; break; } } } // FIXME ? maybe it should be done clientside ?
+        else if(valid_client(cn)) team = team_opposite(clients[cn]->team);
+
+        if(isvalid() && !(clients[cn]->state.forced && clients[caller]->role != CR_ADMIN)) formatstring(desc)("force player %s to %s", clients[cn]->name, team_string(team));
+    }
+
+    ~forceteamaction() { DELETEA(teamname); }
 };
 
 struct giveadminaction : playeraction
@@ -271,6 +284,21 @@ struct shuffleteamaction : serveraction
     {
         role = roleconf('S');
         if(isvalid()) copystring(desc, "shuffle teams");
+    }
+};
+
+struct lockteamsaction : enableaction
+{
+    void perform()
+    {
+        teamslocked = enable;
+        sendservermode();
+        if(m_teammode && enable && mastermode != MM_MATCH) refillteams(true);
+    }
+    lockteamsaction(bool enable) : enableaction(enable)
+    {
+        role = roleconf('L');
+        if(isvalid()) formatstring(desc)("%s teams", enable ? "lock" : "unlock");
     }
 };
 
