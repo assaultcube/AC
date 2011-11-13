@@ -243,7 +243,7 @@ void _toserver(char *text, int msg, int msgt)
     if(toteam) text++;
     filtertext(text, text);
     trimtrailingwhitespace(text);
-    if(servstate.mastermode == MM_MATCH && !team_isactive(player1->team) && !(player1->team == TEAM_SPECT && player1->clientrole == CR_ADMIN)) toteam = true; // spect chat
+    if(servstate.mastermode == MM_MATCH && servstate.matchteamsize && !team_isactive(player1->team) && !(player1->team == TEAM_SPECT && player1->clientrole == CR_ADMIN)) toteam = true; // spect chat
     if(*text)
     {
         if(msg == SV_TEXTME) conoutf("\f%d%s %s", toteam ? 1 : 0, colorname(player1), highlight(text));

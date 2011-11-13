@@ -349,7 +349,7 @@ void renderscores(void *menu, bool init)
         serverinfo *s = getconnectedserverinfo();
         if(s)
         {
-            if(servstate.mastermode > MM_OPEN) concatformatstring(serverline, servstate.mastermode == MM_MATCH ? "M " : "P ");
+            if(servstate.mastermode > MM_OPEN) concatformatstring(serverline, servstate.mastermode == MM_MATCH ? "M%d " : "P ", servstate.matchteamsize);
             // ft: 2010jun12: this can write over the menu boundary
             //concatformatstring(serverline, "%s:%d %s", s->name, s->port, s->sdesc);
             // for now we'll just cut it off, same as the serverbrowser
