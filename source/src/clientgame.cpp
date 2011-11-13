@@ -1334,7 +1334,7 @@ COMMAND(dropflag, ARG_NONE);
 
 char *votestring(int type, const char *arg1, const char *arg2)
 {
-    const char *msgs[] = { "kick player %s, reason: %s", "ban player %s, reason: %s", "remove all bans", "set mastermode to %s", "%s autoteam", "force player %s to %s", "give admin to player %s", "load map %s in mode %s%s", "%s demo recording for the next match", "stop demo recording", "clear all demos", "set server description to '%s'", "shuffle teams", "%s teams" };
+    const char *msgs[] = { "kick player %s, reason: %s", "ban player %s, reason: %s", "remove all bans", "set mastermode to %s", "%s autoteam", "force player %s to the enemy team", "give admin to player %s", "load map %s in mode %s%s", "%s demo recording for the next match", "stop demo recording", "clear all demos", "set server description to '%s'", "shuffle teams"};
     const char *msg = msgs[type];
     char *out = newstring(MAXSTRLEN);
     out[MAXSTRLEN] = '\0';
@@ -1342,8 +1342,8 @@ char *votestring(int type, const char *arg1, const char *arg2)
     {
         case SA_KICK:
         case SA_BAN:
-        case SA_GIVEADMIN:
         case SA_FORCETEAM:
+        case SA_GIVEADMIN:
         {
             int cn = atoi(arg1);
             playerent *p = (cn == getclientnum() ? player1 : getclient(cn));
@@ -1355,7 +1355,6 @@ char *votestring(int type, const char *arg1, const char *arg2)
                 else formatstring(reason)("%s (ping %d)", arg2, p->ping);
                 formatstring(out)(msg, colorname(p), reason);
             }
-            else if(type == SA_FORCETEAM) formatstring(out)(msg, colorname(p), arg2 && *arg2 ? arg2 : team_string(team_opposite(p->team)));
             else formatstring(out)(msg, colorname(p));
             break;
         }
@@ -1365,9 +1364,6 @@ char *votestring(int type, const char *arg1, const char *arg2)
         case SA_AUTOTEAM:
         case SA_RECORDDEMO:
             formatstring(out)(msg, atoi(arg1) == 0 ? "disable" : "enable");
-            break;
-        case SA_LOCKTEAMS:
-            formatstring(out)(msg, atoi(arg1) == 0 ? "unlock" : "lock");
             break;
         case SA_MAP:
         {
@@ -1421,7 +1417,6 @@ void callvote(int type, const char *arg1, const char *arg2)
         {
             case SA_KICK:
             case SA_BAN:
-            case SA_FORCETEAM:
                 putint(p, atoi(arg1));
                 sendstring(arg2, p);
                 break;

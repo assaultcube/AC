@@ -35,7 +35,7 @@ vector<demofile> demofiles;
 
 int mastermode = MM_OPEN;
 static bool autoteam = true;
-static bool teamslocked = true;
+int matchteamsize = 0;
 
 long int incoming_size = 0;
 
@@ -227,9 +227,30 @@ int *numteamclients(int exclude = -1)
 
 int sendservermode(bool send = true)
 {
-    int sm = (autoteam ? AT_ENABLED : AT_DISABLED) | ((mastermode & MM_MASK) << 2) | (teamslocked << 4);
+    int sm = (autoteam ? AT_ENABLED : AT_DISABLED) | ((mastermode & MM_MASK) << 2) | (matchteamsize << 4);
     if(send) sendf(-1, 1, "ri2", SV_SERVERMODE, sm);
     return sm;
+}
+
+void changematchteamsize(int newteamsize)
+{
+    if(newteamsize < 0) return;
+    if(matchteamsize != newteamsize)
+    {
+        matchteamsize = newteamsize;
+        sendservermode();
+    }
+    if(mastermode == MM_MATCH && matchteamsize && m_teammode)
+    {
+        int size[2] = { 0 };
+        loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->isauthed && clients[i]->isonrightmap)
+        {
+            if(team_isactive(clients[i]->team))
+            {
+                if(++size[clients[i]->team] > matchteamsize) updateclientteam(i, team_tospec(clients[i]->team), FTR_SILENTFORCE);
+            }
+        }
+    }
 }
 
 void changemastermode(int newmode)
@@ -245,7 +266,8 @@ void changemastermode(int newmode)
                 if(clients[i]->team == TEAM_CLA_SPECT || clients[i]->team == TEAM_RVSF_SPECT) updateclientteam(i, TEAM_SPECT, FTR_SILENTFORCE);
             }
         }
-        sendservermode();
+        else if(matchteamsize) changematchteamsize(matchteamsize);
+    sendservermode();
     }
 }
 
@@ -1522,6 +1544,15 @@ int canspawn(client *c)   // beware: canspawn() doesn't check m_arena!
         (servmillis - c->connectmillis < 1000 + c->state.reconnections * 2000 &&
             gamemillis > 10000 && totalclients > 3 && !team_isspect(c->team)) ) return SP_OK_NUM; // equivalent to SP_DENY
     if(!c->isonrightmap) return SP_WRONGMAP;
+    if(mastermode == MM_MATCH && matchteamsize)
+    {
+        if(c->team == TEAM_SPECT || (team_isspect(c->team) && !m_teammode)) return SP_SPECT;
+        if(c->team == TEAM_CLA_SPECT || c->team == TEAM_RVSF_SPECT)
+        {
+            if(numteamclients()[team_base(c->team)] >= matchteamsize) return SP_SPECT;
+            else return SP_REFILLMATCH;
+        }
+    }
     return SP_OK;
 }
 
@@ -1533,7 +1564,6 @@ bool updateclientteam(int cln, int newteam, int ftr)
     client &cl = *clients[cln];
     if(cl.team == newteam && ftr != FTR_AUTOTEAM) return true; // no change
     int *teamsizes = numteamclients(cln);
-    if(teamslocked && ftr != FTR_SILENTFORCE && ftr != FTR_INFO) return false;
     if( mastermode == MM_OPEN && cl.state.forced && ftr == FTR_PLAYERWISH &&
         newteam < TEAM_SPECT && team_base(cl.team) != team_base(newteam) ) return false; // no free will changes to forced people
     if(newteam == TEAM_ANYACTIVE) // when spawning from spect
@@ -1558,10 +1588,21 @@ bool updateclientteam(int cln, int newteam, int ftr)
     }
     if(ftr == FTR_PLAYERWISH)
     {
+        if(mastermode == MM_MATCH && matchteamsize && m_teammode)
+        {
+            if(newteam != TEAM_SPECT && (team_base(newteam) != team_base(cl.team) || !m_teammode)) return false; // no switching sides in match mode when teamsize is set
+        }
         if(team_isactive(newteam))
         {
             if(!m_teammode && cl.state.state == CS_ALIVE) return false;  // no comments
-            if(m_teammode && autoteam && teamsizes[newteam] > teamsizes[team_opposite(newteam)]) return false; // don't switch to an already bigger team
+            if(mastermode == MM_MATCH)
+            {
+                if(m_teammode && matchteamsize && teamsizes[newteam] >= matchteamsize) return false;  // ensure maximum team size
+            }
+            else
+            {
+                if(m_teammode && autoteam && teamsizes[newteam] > teamsizes[team_opposite(newteam)]) return false; // don't switch to an already bigger team
+            }
         }
         else
         {
@@ -1630,7 +1671,7 @@ void shuffleteams(int ftr = FTR_AUTOTEAM)
 
 bool balanceteams(int ftr)  // pro vs noobs never more
 {
-    if(teamslocked || mastermode != MM_OPEN || totalclients < 3 ) return true;
+    if(mastermode != MM_OPEN || totalclients < 3 ) return true;
     int tsize[2] = {0, 0}, tscore[2] = {0, 0};
     int totalscore = 0, nplayers = 0;
     int flagmult = (m_ctf ? 50 : (m_htf ? 25 : 12));
@@ -1922,6 +1963,7 @@ void startgame(const char *newname, int newmode, int newtime, bool notify)
         send_item_list(q); // always send the item list when a game starts
         sendpacket(-1, 1, q.finalize());
         defformatstring(gsmsg)("Game start: %s on %s, %d players, %d minutes, mastermode %d, ", modestr(smode), smapname, numclients(), minremain, mastermode);
+        if(mastermode == MM_MATCH) concatformatstring(gsmsg, "teamsize %d, ", matchteamsize);
         if(ms) concatformatstring(gsmsg, "(map rev %d/%d, %s, 'getmap' %sprepared)", smapstats.hdr.maprevision, smapstats.cgzsize, maplocstr[maploc], mapbuffer.available() ? "" : "not ");
         else concatformatstring(gsmsg, "error: failed to preload map (map: %s)", maplocstr[maploc]);
         logline(ACLOG_INFO, "\n%s", gsmsg);
@@ -2149,7 +2191,6 @@ bool scallvote(voteinfo *v, ENetPacket *msg) // true if a regular vote was calle
         /** same team, with low tk, not lagging, and not spamming... so, why to kick? */
         else if ( isteam(c->team, b->team) && b->state.teamkills < c->state.teamkills ) error = VOTEE_WEAK;
     }
-    else if( teamslocked && v->type == SA_FORCETEAM && c->role != CR_ADMIN) error = VOTEE_WEAK;
 
     if(error>=0)
     {
@@ -2199,11 +2240,6 @@ void callvotepacket (int cn, voteinfo *v = curvote)
         case SA_STOPDEMO:
         case SA_REMBANS:
         case SA_SHUFFLETEAMS:
-            break;
-        case SA_FORCETEAM:
-            putint(q, v->num);
-            logline(ACLOG_INFO, "team sent %d", ((forceteamaction *)v)->team);
-            putint(q, ((forceteamaction *)v)->team);
             break;
         default:
             putint(q, v->num);
@@ -2752,7 +2788,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     bool canspeech = forbiddenlist.canspeech(text);
                     if(!spamdetect(cl, text) && canspeech)
                     {
-                        if(mastermode != MM_MATCH || team_isactive(cl->team) || (cl->team == TEAM_SPECT && cl->role == CR_ADMIN)) // common chat
+                        if(mastermode != MM_MATCH || !matchteamsize || team_isactive(cl->team) || (cl->team == TEAM_SPECT && cl->role == CR_ADMIN)) // common chat
                         {
                             logline(ACLOG_INFO, "[%s] %s%s says: '%s'", cl->hostname, type == SV_TEXTME ? "(me) " : "", cl->name, text);
                             if(cl->type==ST_TCPIP) while(mid1<mid2) cl->messages.add(p.buf[mid1++]);
@@ -3392,15 +3428,8 @@ void process(ENetPacket *packet, int sender, int chan)
                     case SA_SHUFFLETEAMS:
                         vi->action = new shuffleteamaction();
                         break;
-                    case SA_LOCKTEAMS:
-                        vi->action = new lockteamsaction((vi->num = getint(p)) > 0);
-                        break;
                     case SA_FORCETEAM:
-                        vi->num = getint(p);
-                        getstring(text, p);
-                        filtertext(text, text);
-                        trimtrailingwhitespace(text);
-                        vi->action = new forceteamaction(vi->num, sender, text);
+                        vi->action = new forceteamaction((vi->num = getint(p)), sender);
                         break;
                     case SA_GIVEADMIN:
                         vi->action = new giveadminaction(vi->num = getint(p));
@@ -3487,6 +3516,18 @@ void process(ENetPacket *packet, int sender, int chan)
                         sendservmsg("your message has been logged", sender);
                     }
                 }
+                else if(!strcmp(ext, "set::teamsize"))
+                {
+                    // intermediate solution to set the teamsize (will be voteable)
+
+                    getstring(text, p, n);
+                    if(valid_client(sender) && clients[sender]->role==CR_ADMIN && mastermode == MM_MATCH)
+                    {
+                        changematchteamsize(atoi(text));
+                        defformatstring(msg)("match team size set to %d", matchteamsize);
+                        sendservmsg(msg, -1);
+                    }
+                }
                 // else if()
 
                 // add other extensions here
@@ -3556,8 +3597,8 @@ void resetserverifempty()
 {
     loopv(clients) if(clients[i]->type!=ST_EMPTY) return;
     resetserver("", 0, 10);
+    matchteamsize = 0;
     autoteam = true;
-    teamslocked =  false;
     changemastermode(MM_OPEN);
     nextmapname[0] = '\0';
 }
