@@ -1462,10 +1462,11 @@ void scallvote(char *type, const char *arg1, const char *arg2)
             case SA_KICK:
             case SA_BAN:
             {
-                if ( !arg2 || strlen(arg2) <= 3 || !multiplayer(false) )
+                if (!arg1 || !isdigit(arg1[0]) || !arg2 || strlen(arg2) <= 3 || !multiplayer(false))
                 {
                     if(!multiplayer(false))
                         conoutf(_("%s3%s is not available in singleplayer."), CC, t == SA_BAN ? "Ban" : "Kick");
+                    else if(arg1 && !isdigit(arg1[0])) conoutf(_("%c3invalid vote"), CC);
                     else conoutf(_("%c3invalid reason"), CC);
                     break;
                 }
