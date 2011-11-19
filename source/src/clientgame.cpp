@@ -39,9 +39,9 @@ void setbottimeout(int m, int t)
                 default: break;
             }
         }
-        else conoutf(_("%s3Error: %s5valid range for time is 1-60"), CC, CC);
+        else conoutf(_("%c3Error: %c5valid range for time is 1-60"), CC, CC);
     }
-    else conoutf(_("%s3Error: %s5mode needs to be 1 for FFA or 2 for team modes"), CC, CC);
+    else conoutf(_("%c3Error: %c5mode needs to be 1 for FFA or 2 for team modes"), CC, CC);
 }
 COMMAND(setbottimeout, ARG_2INT);
 
@@ -1465,7 +1465,7 @@ void scallvote(char *type, const char *arg1, const char *arg2)
                 if (!arg1 || !isdigit(arg1[0]) || !arg2 || strlen(arg2) <= 3 || !multiplayer(false))
                 {
                     if(!multiplayer(false))
-                        conoutf(_("%s3%s is not available in singleplayer."), CC, t == SA_BAN ? "Ban" : "Kick");
+                        conoutf(_("%c3%s is not available in singleplayer."), CC, t == SA_BAN ? "Ban" : "Kick");
                     else if(arg1 && !isdigit(arg1[0])) conoutf(_("%c3invalid vote"), CC);
                     else conoutf(_("%c3invalid reason"), CC);
                     break;
