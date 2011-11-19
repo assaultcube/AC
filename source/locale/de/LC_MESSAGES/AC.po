@@ -76,7 +76,7 @@ msgstr "%c3Ungueltiges CTF-Flaggen Objekt (%i)"
 #: clientgame.cpp:1198
 #, c-format
 msgid "%c3invalid reason"
-msgstr "%c3Ungueltige Abstimmung"
+msgstr "%c3Ungueltige Begruendung"
 
 #: clientgame.cpp:1176
 #, c-format
