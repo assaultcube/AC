@@ -785,6 +785,7 @@ extern const char *currentserver(int i);
 extern void setcontext(const char *context, const char *info);
 extern void resetcontext();
 extern int millis_();
+extern int screenshottype;
 
 // server
 extern int modeacronyms;
