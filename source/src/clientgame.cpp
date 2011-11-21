@@ -640,8 +640,7 @@ void updateworld(int curtime, int lastmillis)        // main game update loop
 
     syncentchanges();
     physicsframe();
-    checkweaponswitch();
-    checkakimbo();
+    checkweaponstate();
     if(getclientnum()>=0) shoot(player1, worldpos);     // only shoot when connected to server
     movebounceents();
     moveotherplayers();

@@ -754,12 +754,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             {
                 int cn = getint(p), gun = getint(p);
                 playerent *p = cn==getclientnum() ? player1 : getclient(cn);
-                if(!p || p==player1) break;
-                int bullets = magsize(gun)-p->mag[gun];
-                p->ammo[gun] -= bullets;
-                p->mag[gun] += bullets;
-                p->weapons[gun]->reloading = lastmillis;
-                p->weaponchanging = 0;
+                if(p && p!=player1) p->weapons[gun]->reload();
                 break;
             }
 

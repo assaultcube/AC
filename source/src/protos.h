@@ -686,7 +686,6 @@ extern void renderbounceents();
 extern void addgib(playerent *d);
 extern playerent *playerincrosshair();
 extern int magsize(int gun);
-extern void checkweaponswitch();
 extern void setscope(bool activate);
 extern void setburst(bool activate);
 extern int intersect(playerent *d, const vec &from, const vec &to, vec *end = NULL);
@@ -700,7 +699,7 @@ struct traceresult_s
 void TraceLine(vec from, vec to, dynent *pTracer, bool CheckPlayers, traceresult_s *tr, bool SkipTags=false);
 extern void damageeffect(int damage, playerent *d);
 extern void tryreload(playerent *p);
-extern void checkakimbo();
+extern void checkweaponstate();
 extern struct projectile *newprojectile(vec &from, vec &to, float speed, bool local, playerent *owner, int gun, int id = lastmillis);
 
 // entities
