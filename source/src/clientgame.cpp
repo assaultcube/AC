@@ -1491,6 +1491,8 @@ int vote(int v)
     return 1;
 }
 
+VAR(votepending, 0, 0, 1);
+
 void displayvote(votedisplayinfo *v)
 {
     if(!v) return;
@@ -1499,6 +1501,7 @@ void displayvote(votedisplayinfo *v)
     conoutf(_("%s called a vote: %s"), v->owner ? colorname(v->owner) : "", curvote->desc);
     audiomgr.playsound(S_CALLVOTE, SP_HIGHEST);
     curvote->localplayervoted = false;
+    votepending = 1;
 }
 
 void callvotesuc()
@@ -1526,6 +1529,7 @@ void voteresult(int v)
         conoutf(_("vote %s"), v == VOTE_YES ? _("passed") : _("failed"));
         if(multiplayer(false)) audiomgr.playsound(v == VOTE_YES ? S_VOTEPASS : S_VOTEFAIL, SP_HIGH);
         if(identexists("onVoteEnd")) execute("onVoteEnd");
+        votepending = 0;
     }
 }
 

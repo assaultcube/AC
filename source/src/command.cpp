@@ -1597,6 +1597,17 @@ void l0(int p, int v) { string f; string r; formatstring(f)("%%0%dd", p); format
 
 void getmode_(int acr) { result(modestr(gamemode, acr ? true : false)); }
 
+void getscrext()
+{
+    switch(screenshottype)
+    {
+        case 2: result(".png"); break;
+        case 1: result(".jpg"); break;
+        case 0:
+        default: result(".bmp"); break;
+    }
+}
+
 COMMANDN(millis, millis_, ARG_IVAL);
 COMMANDN(strlen, strlen_, ARG_1STR);
 COMMANDN(substr, substr_, ARG_3STR);
@@ -1607,6 +1618,7 @@ COMMANDN(timestamp, timestamp_, ARG_NONE);
 COMMAND(datestring, ARG_NONE);
 COMMANDN(timestring, timestring_, ARG_NONE);
 COMMANDN(getmode, getmode_, ARG_1INT);
+COMMAND(getscrext, ARG_NONE);
 
 const char *currentserver(int i) // [client version]
 {
