@@ -1491,7 +1491,7 @@ int vote(int v)
     return 1;
 }
 
-VAR(votepending, 0, 0, 1);
+VAR(votepending, 1, 0, 0);
 
 void displayvote(votedisplayinfo *v)
 {
