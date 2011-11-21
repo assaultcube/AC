@@ -510,6 +510,11 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 {
                     conoutf("%s (PM):\f9 %s", colorname(d), highlight(text));
                     lastpm = d->clientnum;
+                    if(identexists("onPM"))
+                    {
+                        defformatstring(onpm)("onPM %d %s", d->clientnum, text);
+                        execute(onpm);
+                    }
                 }
                 break;
             }
