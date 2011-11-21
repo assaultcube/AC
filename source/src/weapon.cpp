@@ -778,8 +778,7 @@ bool weapon::reload()
     ammo -= numbullets;
 
     bool local = (player1 == owner);
-    if(owner->type==ENT_BOT) audiomgr.playsound(info.reload, owner);
-    else audiomgr.playsoundc(info.reload, NULL, local ? SP_HIGH : SP_NORMAL);
+    audiomgr.playsound(info.reload, owner, local ? SP_HIGH : SP_NORMAL);
     if(local)
     {
         addmsg(SV_RELOAD, "ri2", lastmillis, owner->weaponsel->type);
@@ -1624,4 +1623,12 @@ void checkakimbo()
             if(player1->state != CS_DEAD) audiomgr.playsoundc(S_AKIMBOOUT);
         }
     }
+}
+
+void checkweaponstate()
+{
+    checkweaponswitch();
+    checkakimbo();
+    playerent *p = (playerent *) camera1;
+    if(lastmillis - p->weaponsel->reloading > p->weaponsel->info.reloadtime) p->weaponsel->reloading = 0;
 }
