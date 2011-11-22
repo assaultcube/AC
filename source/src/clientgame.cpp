@@ -449,14 +449,22 @@ botent *newbotent()                 // create a new blank player
     setskin(d, rnd(6));
     weapon::equipplayer(d);
     spawnstate(d); // move like above
-    loopv(players) if(i!=getclientnum() && !players[i])
+	int nextcn = 0;
+	bool lukin = true;
+	while(lukin)
+	{
+		bool used = nextcn==getclientnum();
+		loopv(players) if(!used && players[i]) if(players[i]->clientnum==nextcn) used = true; 
+		if(!used) lukin = false; else nextcn++;
+	}
+    loopv(players) if(i!=getclientnum() && !players[i]) 
     {
         players[i] = d;
-        d->clientnum = i;
+        d->clientnum = nextcn;
         return d;
     }
     if(players.length()==getclientnum()) players.add(NULL);
-    d->clientnum = players.length();
+    d->clientnum = nextcn;
     players.add(d);
     return d;
 }
