@@ -345,7 +345,7 @@ void editdrag(bool isdown)
 
         extern vector<keym> keyms;
         bool ctrlpressed = false;
-        loopv(keyms) if(keyms[i].pressed && (keyms[i].code == SDLK_RCTRL || keyms[i].code == SDLK_LCTRL)) ctrlpressed = true;
+        loopv(keyms) if(keyms[i].pressed && (keyms[i].code == SDLK_RCTRL || keyms[i].code == SDLK_LCTRL)) { { ctrlpressed = true; break; } }
         if(!ctrlpressed) resetselections();
     }
     makesel(isdown);
