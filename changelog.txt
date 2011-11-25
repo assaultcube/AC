@@ -80,6 +80,7 @@ Demos / Spectating
 [*] Drop camera to previous followed player position when switching to fly specmode.
 [*] Fix broken demo-viewer not able to change to SPECTATOR.
 [*] Servers now choose a unique file name for the temporary demo file ("demorecord_<IP/local>_<port>")
+[*] Hitsound while spectating
 
 Sounds / Audio
 ---------------------
