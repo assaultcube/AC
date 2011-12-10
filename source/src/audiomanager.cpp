@@ -193,10 +193,24 @@ void audiomanager::registermusic(char *name)
     musics.add(newstring(name));
 }
 
+int audiomanager::findsound(char *name, int vol, vector<soundconfig> &sounds)
+{
+    loopv(sounds)
+    {
+        if(!strcmp(sounds[i].buf->name, name) && (!vol || sounds[i].vol==vol)) return i;
+    }
+    return -1;
+}
+
 int audiomanager::addsound(char *name, int vol, int maxuses, bool loop, vector<soundconfig> &sounds, bool load, int audibleradius)
 {
     if(nosound) return -1;
     if(!soundvol) return -1;
+
+    // check if the sound was already registered
+    int index = findsound(name, vol, sounds);
+    if(index > -1) return index;
+
     sbuffer *b = bufferpool.find(name);
     if(!b)
     {
@@ -209,15 +223,6 @@ int audiomanager::addsound(char *name, int vol, int maxuses, bool loop, vector<s
     soundconfig s(b, vol, maxuses, loop, audibleradius);
     sounds.add(s);
     return sounds.length()-1;
-}
-
-int audiomanager::findsound(char *name, int vol, vector<soundconfig> &sounds)
-{
-    loopv(sounds)
-    {
-        if(!strcmp(sounds[i].buf->name, name) && (!vol || sounds[i].vol==vol)) return i;
-    }
-    return -1;
 }
 
 void audiomanager::preloadmapsound(entity &e)
@@ -783,7 +788,7 @@ VARFP(soundvol, 0, 128, 255, audiomgr.setlistenervol(soundvol); );
 
 COMMANDF(registersound, ARG_4STR, (char *name, char *vol, char *loop, char *audibleradius)
 {
-    audiomgr.addsound(name, atoi(vol), -1, atoi(loop) != 0, gamesounds, true, atoi(audibleradius));
+    intret(audiomgr.addsound(name, atoi(vol), -1, atoi(loop) != 0, gamesounds, true, atoi(audibleradius)));
 });
 
 COMMANDF(mapsound, ARG_2STR, (char *name, char *maxuses)
