@@ -146,6 +146,7 @@ COMMANDF(selys, ARG_NONE, (void) { SEL_ATTR(ys); });
 
 VAR(flrceil,0,0,2);
 VAR(editaxis,0,0,13);
+VARP(showgrid,0,1,1);
 
 // VC8 optimizer screws up rendering somehow if this is an actual function
 #define sheight(s,t,z) (!flrceil ? (s->type==FHF ? s->floor-t->vdelta/4.0f : (float)s->floor) : (s->type==CHF ? s->ceil+t->vdelta/4.0f : (float)s->ceil))
@@ -187,37 +188,40 @@ void cursorupdate()                                     // called every frame fr
 
     // render editing grid
 
-    for(int ix = cx-GRIDSIZE; ix<=cx+GRIDSIZE; ix++) for(int iy = cy-GRIDSIZE; iy<=cy+GRIDSIZE; iy++)
+    if(showgrid)
     {
+        for(int ix = cx-GRIDSIZE; ix<=cx+GRIDSIZE; ix++) for(int iy = cy-GRIDSIZE; iy<=cy+GRIDSIZE; iy++)
+        {
 
-        if(OUTBORD(ix, iy)) continue;
-        sqr *s = S(ix,iy);
-        if(SOLID(s)) continue;
-        float h1 = sheight(s, s, z);
-        float h2 = sheight(s, SWS(s,1,0,sfactor), z);
-        float h3 = sheight(s, SWS(s,1,1,sfactor), z);
-        float h4 = sheight(s, SWS(s,0,1,sfactor), z);
-        if(s->tag) linestyle(GRIDW, 0xFF, 0x40, 0x40);
-        else if(s->type==FHF || s->type==CHF) linestyle(GRIDW, 0x80, 0xFF, 0x80);
-        else linestyle(GRIDW, 0x80, 0x80, 0x80);
-        block b = { ix, iy, 1, 1 };
-        box(b, h1, h2, h3, h4);
-        linestyle(GRID8, 0x40, 0x40, 0xFF);
-        if(!(ix&GRIDM))   line(ix,   iy,   h1, ix,   iy+1, h4);
-        if(!((ix+1)&GRIDM)) line(ix+1, iy,   h2, ix+1, iy+1, h3);
-        if(!(iy&GRIDM))   line(ix,   iy,   h1, ix+1, iy,   h2);
-        if(!((iy+1)&GRIDM)) line(ix,   iy+1, h4, ix+1, iy+1, h3);
-    }
+            if(OUTBORD(ix, iy)) continue;
+            sqr *s = S(ix,iy);
+            if(SOLID(s)) continue;
+            float h1 = sheight(s, s, z);
+            float h2 = sheight(s, SWS(s,1,0,sfactor), z);
+            float h3 = sheight(s, SWS(s,1,1,sfactor), z);
+            float h4 = sheight(s, SWS(s,0,1,sfactor), z);
+            if(s->tag) linestyle(GRIDW, 0xFF, 0x40, 0x40);
+            else if(s->type==FHF || s->type==CHF) linestyle(GRIDW, 0x80, 0xFF, 0x80);
+            else linestyle(GRIDW, 0x80, 0x80, 0x80);
+            block b = { ix, iy, 1, 1 };
+            box(b, h1, h2, h3, h4);
+            linestyle(GRID8, 0x40, 0x40, 0xFF);
+            if(!(ix&GRIDM))   line(ix,   iy,   h1, ix,   iy+1, h4);
+            if(!((ix+1)&GRIDM)) line(ix+1, iy,   h2, ix+1, iy+1, h3);
+            if(!(iy&GRIDM))   line(ix,   iy,   h1, ix+1, iy,   h2);
+            if(!((iy+1)&GRIDM)) line(ix,   iy+1, h4, ix+1, iy+1, h3);
+        }
 
-    if(!SOLID(s))
-    {
-        float ih = sheight(s, s, z);
-        linestyle(GRIDS, 0xFF, 0xFF, 0xFF);
-        block b = { cx, cy, 1, 1 };
-        box(b, ih, sheight(s, SWS(s,1,0,sfactor), z), sheight(s, SWS(s,1,1,sfactor), z), sheight(s, SWS(s,0,1,sfactor), z));
-        linestyle(GRIDS, 0xFF, 0x00, 0x00);
-        dot(cx, cy, ih);
-        ch = (int)ih;
+        if(!SOLID(s))
+        {
+            float ih = sheight(s, s, z);
+            linestyle(GRIDS, 0xFF, 0xFF, 0xFF);
+            block b = { cx, cy, 1, 1 };
+            box(b, ih, sheight(s, SWS(s,1,0,sfactor), z), sheight(s, SWS(s,1,1,sfactor), z), sheight(s, SWS(s,0,1,sfactor), z));
+            linestyle(GRIDS, 0xFF, 0x00, 0x00);
+            dot(cx, cy, ih);
+            ch = (int)ih;
+        }
     }
 
     if(selset())
