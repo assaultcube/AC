@@ -1172,6 +1172,8 @@ void showmapstats()
 }
 COMMAND(showmapstats, ARG_NONE);
 
+VARP(showmodedescriptions, 0, 1, 1);
+
 void startmap(const char *name, bool reset)   // called just after a map load
 {
     copystring(clientmap, name);
@@ -1204,7 +1206,7 @@ void startmap(const char *name, bool reset)   // called just after a map load
     bool noflags = (m_ctf || m_ktf) && (!numflagspawn[0] || !numflagspawn[1]);
     if(*clientmap) conoutf(_("game mode is \"%s\"%s"), modestr(gamemode, modeacronyms > 0), noflags ? " - \f2but there are no flag bases on this map" : "");
 
-    if(multiplayer(false) || m_botmode)
+    if(showmodedescriptions && (multiplayer(false) || m_botmode))
     {
         loopv(gmdescs) if(gmdescs[i].mode == gamemode)
         {
