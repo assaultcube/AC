@@ -482,35 +482,6 @@
           </references>
 				</command>
 
-        <command name="strins">
-          <description>Returns string B inserted into string A at position X.</description>
-          <examples>
-            <example>
-              <code><![CDATA[echo (strins "Hello world" " cruel" 5)]]></code>
-              <explanation>Output: Hello cruel world</explanation>
-            </example>
-            <example>
-              <code><![CDATA[tmp = "Hello world"; echo (strins $tmp " cruel" (strlen $tmp))]]></code>
-              <explanation>Output: -1</explanation>
-            </example>
-          </examples>
-          <arguments>
-            <argument token="A" description="the original string"/>
-            <argument token="B" description="the string to insert into the original"/>
-            <argument token="P" description="the position at which to insert string B into string A"/>
-          </arguments>
-          <remarks>
-            <remark>The third argument must be at least greater than -1, and 1 less than the length "(in characters)" of string A, otherwise use concat or concatword.</remark>
-          </remarks>
-          <references>
-            <identifierReference identifier="concat"/>
-            <identifierReference identifier="concatword"/>
-            <identifierReference identifier="strlen"/>
-            <identifierReference identifier="substr"/>
-            <identifierReference identifier="strreplace"/>
-          </references>
-        </command>
-
               <command name="strpos">
                 <description>Returns the position of a substring into another</description>
                 <arguments>
@@ -4844,6 +4815,11 @@ Output:
             <identifierReference identifier="disablehud"/>
           </references>
         </command>
+        
+        <variable name="showmodedescriptions">
+          <description>enables or disables the showing of game mode descriptions on the console after map starts.</description>
+          <value token="B" description="0 off, 1 on" minValue="0" maxValue="1" defaultValue="1">
+        </variable>
 
 			</identifiers>
 		</section>
