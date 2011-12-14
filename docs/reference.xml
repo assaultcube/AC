@@ -218,6 +218,45 @@
 					</arguments>
 					<return token="N" description="the sum"/>
 				</command>
+				
+				<command name="+=">
+					<description>Adds a value to an alias.</description>
+					<remarks>
+					<remark>
+						Example: += foo 1337
+					</remark>
+					</remarks>
+					<arguments>
+						<argument token="A" description="the alias to add to"/>
+						<argument token="B" description="value to be added"/>
+					</arguments>
+				</command>
+				
+				<command name="-=">
+					<description>Subtracts a value from an alias.</description>
+					<remarks>
+					<remark>
+						Example: -= foo 1337
+					</remark>
+					</remarks>
+					<arguments>
+						<argument token="A" description="the alias to subtract from"/>
+						<argument token="B" description="value to be subtracted"/>
+					</arguments>
+				</command>
+				
+				<command name="*=">
+					<description>Multiplies a value and an alias.</description>
+					<remarks>
+					<remark>
+						Example: *= foo 1337
+					</remark>
+					</remarks>
+					<arguments>
+						<argument token="A" description="the alias to multiplied"/>
+						<argument token="B" description="the multiplier"/>
+					</arguments>
+				</command>
 
 				<command name="-">
 					<description>Performs a subtraction.</description>
@@ -1572,8 +1611,8 @@ echo foo
 					<description>Takes a screenshot.</description>
 					<remarks>
 					<remark>
-						Screenshots are saved to "screenshots/screenshotN.bmp",
-						where N is the number of milliseconds since the game was launched.
+						Screenshots are saved to "screenshots/[date]_[time]_[map]_[mode].[ext]",
+						where [ext] is the image type selected.						
 					</remark>
 					</remarks>
 					<defaultKeys>
@@ -4818,7 +4857,7 @@ Output:
         
         <variable name="showmodedescriptions">
           <description>enables or disables the showing of game mode descriptions on the console after map starts.</description>
-          <value token="B" description="0 off, 1 on" minValue="0" maxValue="1" defaultValue="1">
+          <value token="B" description="0 off, 1 on" minValue="0" maxValue="1" defaultValue="1"/>
         </variable>
 
 			</identifiers>
