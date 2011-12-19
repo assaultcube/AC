@@ -272,6 +272,7 @@ void jpeg_screenshot(const char *imagepath, bool mapshot = false)
             memcpy(pixels + row * stride, pixels + (th - row - 1) * stride, stride);
             memcpy(pixels + (th - row -1) * stride, swapline, stride);
         }
+        free(swapline);
     }
 
     const char *filename = findfile(screenshotpath(imagepath, "jpg"), "wb");

@@ -154,7 +154,7 @@ int getCONlength(int n)
 /** WIP ALERT */
 int rendercommand_wip(int x, int y, int w)
 {
-    int width, height;
+    int width, height = 0;
     if( strlen(cmdline.buf) > 0 )
     {
         int ctx = -1;
@@ -178,7 +178,7 @@ int rendercommand_wip(int x, int y, int w)
 vector<keym> keyms;
 
 const char *keycmds[keym::NUMACTIONS] = { "bind", "specbind", "editbind" };
-inline const char *keycmd(int type) { return type >= 0 && type < keym::NUMACTIONS ? keycmds[type] : ""; } 
+inline const char *keycmd(int type) { return type >= 0 && type < keym::NUMACTIONS ? keycmds[type] : ""; }
 
 void keymap(char *code, char *key)
 {
