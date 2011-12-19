@@ -23,7 +23,7 @@ else
 USRLIB=$(shell if [ -e /usr/lib64 ]; then echo "/usr/lib64"; else echo "/usr/lib"; fi)
 override CXXFLAGS+= -rdynamic
 CLIENT_INCLUDES= $(INCLUDES) -I/usr/include `sdl-config --cflags` -idirafter ../include
-CLIENT_LIBS= -L../enet/.libs -lenet -L$(USRLIB) `sdl-config --libs` -lSDL_image -lz -lGL -lopenal -lvorbisfile
+CLIENT_LIBS= -L../enet/.libs -lenet -L$(USRLIB) -lX11 `sdl-config --libs` -lSDL_image -lz -lGL -lopenal -lvorbisfile
 endif
 
 CLIENT_OBJS= \
@@ -79,7 +79,7 @@ CLIENT_OBJS= \
 	bot/bot_util.o \
 	bot/bot_waypoint.o \
 	bot/ac_bot.o \
-	bot/ac_bot_ai.o 
+	bot/ac_bot_ai.o
 
 CLIENT_PCH= cube.h.gch
 
@@ -142,7 +142,7 @@ $(filter-out $(SERVER_OBJS),$(MASTER_OBJS)): CXXFLAGS += $(SERVER_INCLUDES)
 
 ifneq (,$(findstring MINGW,$(PLATFORM)))
 client: $(CLIENT_OBJS)
-	$(WINDRES) -I ../vcpp -i ../vcpp/cube.rc -J rc -o ../vcpp/cube.res -O coff 
+	$(WINDRES) -I ../vcpp -i ../vcpp/cube.rc -J rc -o ../vcpp/cube.res -O coff
 	$(CXX) $(CXXFLAGS) -o ../../bin_win32/ac_client.exe ../vcpp/cube.res $(CLIENT_OBJS) $(CLIENT_LIBS)
 
 server: $(SERVER_OBJS)
@@ -159,11 +159,11 @@ client: libenet $(CLIENT_OBJS)
 	$(CXX) $(CXXFLAGS) -o ac_client $(CLIENT_OBJS) $(CLIENT_LIBS)
 
 server: libenet $(SERVER_OBJS)
-	$(CXX) $(CXXFLAGS) -o ac_server $(SERVER_OBJS) $(SERVER_LIBS)  
+	$(CXX) $(CXXFLAGS) -o ac_server $(SERVER_OBJS) $(SERVER_LIBS)
 
 master: libenet $(MASTER_OBJS)
-	$(CXX) $(CXXFLAGS) -o ac_master $(MASTER_OBJS) $(SERVER_LIBS)  
-	
+	$(CXX) $(CXXFLAGS) -o ac_master $(MASTER_OBJS) $(SERVER_LIBS)
+
 client_install: client
 	cp ac_client ../../bin_unix/$(PLATFORM_PREFIX)_client
 #ifneq (,$(STRIP))
