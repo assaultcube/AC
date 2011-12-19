@@ -353,7 +353,7 @@ void teaminfo(const char *team, const char *attr)
     int t_deaths = 0;
     int t_points = 0;
 
-    string teammembers = "";
+    string teammembers = "", tmp;
 
     loopv(players) if(players[i] && players[i]->team == t)
     {
@@ -361,7 +361,8 @@ void teaminfo(const char *team, const char *attr)
         t_deaths += players[i]->deaths;
         t_points += players[i]->points;
         t_flags += players[i]->flagscore;
-        sprintf(teammembers, "%s%d ", teammembers, players[i]->clientnum);
+        sprintf(tmp, "%s%d ", teammembers, players[i]->clientnum);
+        concatstring(teammembers, tmp);
     }
 
     loopv(discscores) if(discscores[i].team == t)
@@ -378,14 +379,15 @@ void teaminfo(const char *team, const char *attr)
         t_deaths += player1->deaths;
         t_points += player1->points;
         t_flags += player1->flagscore;
-        sprintf(teammembers, "%s%d ", teammembers, player1->clientnum);
+        sprintf(tmp, "%s%d ", teammembers, player1->clientnum);
+        concatstring(teammembers, tmp);
     }
 
     ATTR_INT(flags, t_flags);
     ATTR_INT(frags, t_frags);
     ATTR_INT(deaths, t_deaths);
     ATTR_INT(points, t_points);
-    ATTR_STR(name, newstring(team_string(t)));
+    ATTR_STR(name, team_string(t));
     ATTR_STR(players, teammembers);
     conoutf("invalid attribute");
 }
@@ -454,10 +456,10 @@ botent *newbotent()                 // create a new blank player
 	while(lukin)
 	{
 		bool used = nextcn==getclientnum();
-		loopv(players) if(!used && players[i]) if(players[i]->clientnum==nextcn) used = true; 
+		loopv(players) if(!used && players[i]) if(players[i]->clientnum==nextcn) used = true;
 		if(!used) lukin = false; else nextcn++;
 	}
-    loopv(players) if(i!=getclientnum() && !players[i]) 
+    loopv(players) if(i!=getclientnum() && !players[i])
     {
         players[i] = d;
         d->clientnum = nextcn;

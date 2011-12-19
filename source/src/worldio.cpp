@@ -358,6 +358,7 @@ void checkmapdependencies(bool silent = false, bool details = false) // find req
         }
     }
     enumeratek(mufpaths, const char *, key, mufpaths.remove(key)); // don't report false positives next time round
+    delete[] packn;
 }
 void wrapCMD(int i) { checkmapdependencies(false, i!=0); }
 //COMMAND(checkmapdependencies, ARG_NONE); // for some reason this still results in silent==true - WTF? It used to work with the _proper_ default.

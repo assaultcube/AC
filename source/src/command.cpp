@@ -1286,20 +1286,21 @@ void testlist(char *list, char *type = "0")
 
                 switch(t) {
                     case 1: // test for a list of alpha characters (a-z || A-Z are valid)
-                        if(!isalpha(curchar)) { intret(0); return; }
+                        if(!isalpha(curchar)) { intret(0); delete[] curelement; return; }
                         break;
                     case 2: // test for a list of alhpa characters (a-z || A-Z || whitespace are valid)
-                        if(!isalpha(curchar) && !isspace(curchar)) { intret(0); return; }
+                        if(!isalpha(curchar) && !isspace(curchar)) { intret(0); delete[] curelement; return; }
                         break;
                     //case 3: break;
                     default: // test for a list of valid numbers
                         bool notvalid = (isalpha(curchar) || isspace(curchar) || (ispunct(curchar) && curchar != '.')); // determines if the char is valid or not
 
                         if(curchar == '.') periodCtr++; // increment the periods counter
-                        if(notvalid || periodCtr > 1) { intret(0); return; } // if the char is not valid or we have found more than 1 period in this element, it is an invalid list
+                        if(notvalid || periodCtr > 1) { intret(0); delete[] curelement; return; } // if the char is not valid or we have found more than 1 period in this element, it is an invalid list
                         break;
                 }
             }
+            delete[] curelement;
         }
 
         intret(1);
@@ -1325,7 +1326,7 @@ void strreplace (const char *source, const char *search, const char *replace)
         {
             while(*source) buf.add(*source++);
             buf.add('\0');
-            result(newstring(buf.getbuf(), buf.length()));
+            result(buf.getbuf());
             return;
         }
     }
@@ -1567,7 +1568,8 @@ void substr_(char *fs, char *pa, char *len)
     if(ia>fslen || ia < 0 || ilen < 0) return;
 
     if(!ilen) ilen = fslen-ia;
-    result(newstring(fs + ia, ilen));
+    (fs+ia)[ilen] = '\0';
+    result(fs+ia);
 }
 
 void strpos_(char *haystack, char *needle, char *occurence)
