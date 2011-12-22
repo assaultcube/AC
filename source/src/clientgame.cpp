@@ -936,30 +936,25 @@ void dokill(playerent *pl, playerent *act, bool gib, int gun)
     else if(isteam(pl->team, act->team))
     {
         if(pl==player1) outf("\f2you were %s by teammate %s", death, aname);
-        else
-        {
-            outf("%s%s %s teammate %s", act==player1 ? "\f3" : "\f2", aname, death, pname);
-        }
+        else outf("%s%s %s teammate %s", act==player1 ? "\f3" : "\f2", aname, death, pname);
     }
     else
     {
         if(pl==player1) outf("\f2you were %s by %s", death, aname);
-        else
-        {
-            outf("\f2%s %s %s", aname, death, pname);
-        }
+        else outf("\f2%s %s %s", aname, death, pname);
     }
+
+    if(pl == act || isteam(pl->team, act->team))
+    {
+        act->tks++;
+        if(!m_mp(gamemode)) act->frags--;
+    }
+    else if(!m_mp(gamemode)) act->frags += ( gib && gun != GUN_GRENADE && gun != GUN_SHOTGUN) ? 2 : 1;
 
     if(gib)
     {
         if(pl!=act && gun == GUN_SNIPER) audiomgr.playsound(S_HEADSHOT, SP_LOW);
         addgib(pl);
-    }
-
-    if(!m_mp(gamemode))
-    {
-        if(pl==act || isteam(pl->team, act->team)) { act->frags--; act->tks++; }
-        else act->frags += ( gib && gun != GUN_GRENADE && gun != GUN_SHOTGUN) ? 2 : 1;
     }
 
     deathstate(pl);
