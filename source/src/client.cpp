@@ -399,7 +399,11 @@ void addmsg(int type, const char *fmt, ...)
                 numi += n;
                 break;
             }
-            case 's': sendstring(va_arg(args, const char *), p); nums++; break;
+            case 's':
+            {
+                const char *t = va_arg(args, const char *);
+                if(t) sendstring(t, p); nums++; break;
+            }
         }
         va_end(args);
     }
