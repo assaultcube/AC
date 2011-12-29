@@ -3353,8 +3353,11 @@ void process(ENetPacket *packet, int sender, int chan)
             case SV_SETADMIN:
             {
                 bool claim = getint(p) != 0;
-                getstring(text, p);
-                changeclientrole(sender, claim ? CR_ADMIN : CR_DEFAULT, text);
+                if(claim)
+                {
+                    getstring(text, p);
+                    changeclientrole(sender, CR_ADMIN, text);
+                } else changeclientrole(sender, CR_DEFAULT);
                 break;
             }
 
