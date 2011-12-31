@@ -70,7 +70,7 @@ void processevent(client *c, shotevent &e)
                 totalrays += rays;
                 if(totalrays>maxrays) continue;
 
-                int damage = rays*guns[e.gun].damage+(e.gun==GUN_SUBGUN&&h.info);
+                int damage = rays*guns[e.gun].damage;
                 bool gib = false;
                 if(e.gun==GUN_KNIFE || (e.gun==GUN_SHOTGUN && rays==maxrays)) gib = true;
                 else if(e.gun==GUN_SNIPER) gib = h.info!=0;

@@ -567,10 +567,6 @@ void shorten(vec &from, vec &target, float dist)
     target.sub(from).mul(min(1.0f, dist)).add(from);
 }
 
-
-int timer4subgunDMGalt = 0;
-bool flag4subgunDMGalt = true;
-
 void raydamage(vec &from, vec &to, playerent *d)
 {
     int dam = d->weaponsel->info.damage;
@@ -628,6 +624,7 @@ void raydamage(vec &from, vec &to, playerent *d)
                     dmgreal = min(dmgreal, SGMAXDMGABS);
                 }
                 if(numhits) hitpush( dmgreal, o, d, from, to, d->weaponsel->type, dmgreal == SGMAXDMGABS, dmgreal);
+                
                 if(d==player1) hitted = true;
                 hitscount+=numhits;
             }
@@ -640,10 +637,9 @@ void raydamage(vec &from, vec &to, playerent *d)
         {
             case GUN_KNIFE: gib = true; break;
             case GUN_SNIPER: if(hitzone==2) { dam *= 3; gib = true; }; break;
-            case GUN_SUBGUN: if(flag4subgunDMGalt) dam +=1; break;
             default: break;
         }
-        bool info = gib || (d->weaponsel->type==GUN_SUBGUN && flag4subgunDMGalt);
+        bool info = gib;
         hitpush(dam, o, d, from, to, d->weaponsel->type, gib, info ? 1 : 0);
         if(d==player1) hitted=true;
         shorten(from, to, dist);
@@ -1167,11 +1163,6 @@ bool gun::attack(vec &targ)
     if(!owner->attacking)
     {
         shots = 0;
-        if(type==GUN_SUBGUN)
-        {
-            if(lastmillis-timer4subgunDMGalt>=750) flag4subgunDMGalt = true; // 1st shot 16, 2nd 15, .. reset on "end burst" (timed)
-            if(!timer4subgunDMGalt) timer4subgunDMGalt = lastmillis;
-        }
         checkautoreload();
         return false;
     }
@@ -1190,7 +1181,6 @@ bool gun::attack(vec &targ)
 
     owner->lastattackweapon = this;
     shots++;
-    if(type==GUN_SUBGUN) flag4subgunDMGalt = !flag4subgunDMGalt;
 
     if(!info.isauto) owner->attacking = false;
 
