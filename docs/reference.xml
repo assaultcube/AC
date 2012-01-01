@@ -4053,26 +4053,6 @@ Output:
 					<value token="N" description="increment" minValue="1" maxValue="100" defaultValue="1" />
 				</variable>
 
-				<variable name="selx">
-					<description>Current selection: x-coordinate</description>
-					<value token="N" description="x" minValue="0" maxValue="4096" defaultValue="0" />
-				</variable>
-
-				<variable name="selxs">
-					<description>Current selection: x-span</description>
-					<value token="N" description="xs" minValue="0" maxValue="4096" defaultValue="0" />
-				</variable>
-
-				<variable name="sely">
-					<description>Current selection: y-coordinate</description>
-					<value token="N" description="y" minValue="0" maxValue="4096" defaultValue="0" />
-				</variable>
-
-				<variable name="selys">
-					<description>Current selection: y-span</description>
-					<value token="N" description="ys" minValue="0" maxValue="4096" defaultValue="0" />
-				</variable>
-
 				<variable name="showmodelclipping">
 					<description>Show mapmodel clipping during edit mode.</description>
 					<value token="N" description="-" minValue="0" maxValue="1" defaultValue="0" />
@@ -4189,23 +4169,19 @@ Output:
 				</command>
 
 				<command name="select">
-					<description>Selects the given area, as if dragged with the mouse.</description>
+					<description>Resets all current selections and selects the given area, as if dragged with the mouse.</description>
 					<remarks>
 					<remark>
-						This command is useful for making complex geometry-generating scripts.
-						The current dimensions of the selection (either created by the user or this command)
-						are in the variables selx, sely, selxs and selys and can also be read/modified.
-					</remark>
-					<remark>
-						Coordinates are as follows: after a "newmap 6" the top-left corner (the one where the red dot points) are (8,8),
-						the opposite corner is (56,56) (or (120,120) on a "newmap 7" etc.).
+            This command is similar to addselection although "select" resets all selections.
 					</remark>
 					</remarks>
 					<references>
-						<identifierReference name="selx" identifier="selx"/>
-						<identifierReference name="sely" identifier="sely"/>
-						<identifierReference name="selxs" identifier="selxs"/>
-						<identifierReference name="selys" identifier="selys"/>
+            <identifierReference name="addselection" identifier="addselection"/>
+            <identifierReference name="resetselections" identifier="resetselections"/>
+            <identifierReference name="selsx" identifier="selsx"/>
+            <identifierReference name="selsy" identifier="selsy"/>
+            <identifierReference name="selsxs" identifier="selsxs"/>
+            <identifierReference name="selsys" identifier="selsys"/>
 					</references>
 					<arguments>
 						<argument token="X" description="the X coordinate"/>
@@ -4214,6 +4190,57 @@ Output:
 						<argument token="XY" description="the length along the Y axis"/>
 					</arguments>
 				</command>
+
+        <command name="addselection">
+          <description>Select the given area, as if dragged with the mouse holding CTRL.</description>
+          <remarks>
+            <remark>
+              This command is useful for making complex geometry-generating scripts.
+              It adds a selection to the current list of selections.
+              
+              The dimensions of the current selections can be accessed by the commands selsx, selsy, selsxs and selsys.
+              These commands return the list of coordinates corresponding to each selection.
+            </remark>
+            <remark>
+              Coordinates are as follows: after a "newmap 6" the top-left corner (the one where the red dot points) are (8,8),
+              the opposite corner is (56,56) (or (120,120) on a "newmap 7" etc.).
+            </remark>
+          </remarks>
+          <references>
+            <identifierReference name="select" identifier="select"/>
+            <identifierReference name="resetselections" identifier="resetselections"/>
+            <identifierReference name="selsx" identifier="selsx"/>
+            <identifierReference name="selsy" identifier="selsy"/>
+            <identifierReference name="selsxs" identifier="selsxs"/>
+            <identifierReference name="selsys" identifier="selsys"/>            
+          </references>
+          <arguments>
+            <argument token="X" description="the X coordinate"/>
+            <argument token="Y" description="the Y coordinate"/>
+            <argument token="XS" description="the length along the X axis"/>
+            <argument token="XY" description="the length along the Y axis"/>
+          </arguments>
+        </command>
+
+        <command name="resetselections">
+          <description>Resets all current selections.</description>
+        </command>
+
+        <command name="selsx">
+          <description>Return a list containg the x-coordinate of each selection</description>
+        </command>
+
+        <command name="selsxs">
+          <description>Return a list containg the x-span of each selection</description>
+        </command>
+
+        <command name="selsy">
+          <description>Return a list containg the y-coordinate of each selection</description>
+        </command>
+
+          <command name="selsys">
+            <description>Return a list containg the y-span of each selection</description>
+          </command>
 
 				<command name="registersound">
 					<description>Registers a sound.</description>
