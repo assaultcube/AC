@@ -699,6 +699,8 @@ COMMANDN(getEngineState, CSgetEngineState, ARG_NONE);
 VARP(clockdisplay,0,0,2);
 VARP(dbgpos,0,0,1);
 VARP(showtargetname,0,1,1);
+VARP(showspeed, 0, 0, 1);
+
 void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwater)
 {
     playerent *p = camera1->type<ENT_CAMERA ? (playerent *)camera1 : player1;
@@ -927,6 +929,15 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     const int tbMSGtop = (VIRTH*3/2)*7/8;
     draw_textf("!TEST BUILD!", tbMSGleft, tbMSGtop);
     / * */
+
+    if(showspeed)
+    {
+        glPushMatrix();
+        glScalef(2, 2, 1);
+        draw_textf("v %.2f", VIRTW/2, VIRTH*0.85f, sqrtf(p->vel.x*p->vel.x + p->vel.y*p->vel.y));
+        glPopMatrix();
+    }
+
     drawscores();
     if(!hidespecthud && spectating && player1->spectatemode!=SM_DEATHCAM)
     {

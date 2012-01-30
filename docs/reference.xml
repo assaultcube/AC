@@ -218,7 +218,7 @@
 					</arguments>
 					<return token="N" description="the sum"/>
 				</command>
-				
+
 				<command name="+=">
 					<description>Adds a value to an alias.</description>
 					<remarks>
@@ -231,7 +231,7 @@
 						<argument token="B" description="value to be added"/>
 					</arguments>
 				</command>
-				
+
 				<command name="-=">
 					<description>Subtracts a value from an alias.</description>
 					<remarks>
@@ -244,7 +244,7 @@
 						<argument token="B" description="value to be subtracted"/>
 					</arguments>
 				</command>
-				
+
 				<command name="*=">
 					<description>Multiplies a value and an alias.</description>
 					<remarks>
@@ -1612,7 +1612,7 @@ echo foo
 					<remarks>
 					<remark>
 						Screenshots are saved to "screenshots/[date]_[time]_[map]_[mode].[ext]",
-						where [ext] is the image type selected.						
+						where [ext] is the image type selected.
 					</remark>
 					</remarks>
 					<defaultKeys>
@@ -4197,7 +4197,7 @@ Output:
             <remark>
               This command is useful for making complex geometry-generating scripts.
               It adds a selection to the current list of selections.
-              
+
               The dimensions of the current selections can be accessed by the commands selsx, selsy, selsxs and selsys.
               These commands return the list of coordinates corresponding to each selection.
             </remark>
@@ -4212,7 +4212,7 @@ Output:
             <identifierReference name="selsx" identifier="selsx"/>
             <identifierReference name="selsy" identifier="selsy"/>
             <identifierReference name="selsxs" identifier="selsxs"/>
-            <identifierReference name="selsys" identifier="selsys"/>            
+            <identifierReference name="selsys" identifier="selsys"/>
           </references>
           <arguments>
             <argument token="X" description="the X coordinate"/>
@@ -4866,6 +4866,11 @@ Output:
           <value token="N" description="0 off, 1 on" minValue="0" maxValue="1" defaultValue="1"/>
         </variable>
 
+        <variable name="showspeed">
+          <description>Enables or disables showing the player's horizontal speed.</description>
+          <value token="N" description="0 off, 1 on" minValue="0" maxValue="1" defaultValue="0"/>
+        </variable>
+
         <command name="disablehud">
           <description>Stores your current HUD configuration in a buffer and disables it entirely.</description>
           <references>
@@ -4881,7 +4886,7 @@ Output:
             <identifierReference identifier="disablehud"/>
           </references>
         </command>
-        
+
         <variable name="showmodedescriptions">
           <description>enables or disables the showing of game mode descriptions on the console after map starts.</description>
           <value token="B" description="0 off, 1 on" minValue="0" maxValue="1" defaultValue="1"/>

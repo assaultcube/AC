@@ -67,6 +67,7 @@ Rendering / HUD / ...
 [*] screenshotscale - in-engine scaling of screenshots.
 [*] showtargetname - turns on/off showing the player name on the HUD when in your crosshair.
 [*] Scoreboard doesn't show ping/score/pj in singleplayer
+[*] showspeed - turns speed indicator on/off
 
 Physics
 ---------------------
@@ -116,10 +117,10 @@ CubeScript
 [*] isSpect          - Determines if you are in any form of spectating (team, or singleplayer "fly")
 [*] inWater          - Determines if you are standing or submerged in water.
 [*] l0               - Adds leading zeros to an integer.
-[*] powf             - Returns a floating point integer raised to the power of another, floating point integer.
+[*] powf             - Returns a floating point number raised to the power of another floating point number.
 [*] rrnd             - Returns a ranged random integer.
 [*] storesets        - Generates an alias (list) of the current values for the given CVARs. (Useful for storing current settings into a buffer, before manipulating them with a script, with the intention of restoring them at a later time.)
-[*] strlen           - Returns the length (in characters) if the given string.
+[*] strlen           - Returns the length (in characters) of the given string.
 [*] substr           - Returns a substring from the given string.
 [*] strpos           - Returns the position of string B in string A, else -1 for not found. (Useful for parsing.)
 [*] strins           - Returns a string, instered into another string, at position x.
@@ -144,8 +145,8 @@ CubeScript
 [*] afterinit        - Native alias that is executed immediately after saved.cfg is loaded.
 [*] votepending      - Client variable that is 1 if there is a vote currently pending on the server, else 0. (e.g. echo $votepending // Example output: 0)
 [*] setfollowplayer  - Spectates the player with client number x.
+[*] rewind           - Rewinds a demo by x seconds. Forwards if x is negative.
 [*] setmr            - Seeks a demo to x minutes remaining.
-[*] rewind           - Rewinds a demo of x seconds. Forwards if x is negative.
 [*] dyngamma         - Enables or disables a new "per-official-map dynamic gamma system".
 [*] fragmessage      - Sets the frag message corresponding to a weapon. (Appears on the HUD and in your server logs.)
 [*] gibmessage       - Sets the gib message corresponding to a weapon. (Appears on the HUD and in your server logs.)
