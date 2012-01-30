@@ -44,7 +44,7 @@ void drawctficon(float x, float y, float s, int col, int row, float ts, int alph
     if(!ctftex) ctftex = textureload("packages/misc/ctficons.png", 3);
     if(!htftex) htftex = textureload("packages/misc/htficons.png", 3);
     if(!ktftex) ktftex = textureload("packages/misc/ktficons.png", 3);
-    turn_on_transparency(alpha);
+    glColor4ub(255, 255, 255, alpha);
     if(m_htf)
     {
         if(htftex) drawicon(htftex, x, y, s, col, row, ts);
@@ -57,7 +57,6 @@ void drawctficon(float x, float y, float s, int col, int row, float ts, int alph
     {
         if(ctftex) drawicon(ctftex, x, y, s, col, row, ts);
     }
-    glDisable(GL_BLEND);
 }
 
 void drawvoteicon(float x, float y, int col, int row, bool noblend)
@@ -514,7 +513,7 @@ void drawradar_vicinity(playerent *p, int w, int h)
     float d2s = radarheight/2.0f;
     glColor3f(1.0f, 1.0f, 1.0f);
     glPushMatrix();
-    vec centerpos(VIRTW-halfviewsize-72, halfviewsize+64, 0); 
+    vec centerpos(VIRTW-halfviewsize-72, halfviewsize+64, 0);
     glTranslatef(centerpos.x, centerpos.y, 0);
     glRotatef(-camera1->yaw, 0, 0, 1);
     glTranslatef(-halfviewsize, -halfviewsize, 0);
@@ -971,11 +970,17 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             glLoadIdentity();
             glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
             glColor4f(1.0f, 1.0f, 1.0f, 0.2f);
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+            turn_on_transparency(255);
+            int flagscores[2];
+            teamflagscores(flagscores[0], flagscores[1]);
 
             loopi(2) // flag state
             {
                 drawctficon(i*120+VIRTW/4.0f*3.0f, 1650, 120, i, 0, 1/4.0f, flaginfos[i].state == CTFF_INBASE ? 255 : 100);
+                defformatstring(count)("%d", flagscores[i]);
+                int cw, ch;
+                text_bounds(count, cw, ch);
+                draw_textf(count, i*120+VIRTW/4.0f*3.0f+60-cw/2, 1590);
             }
 
             // big flag-stolen icon
