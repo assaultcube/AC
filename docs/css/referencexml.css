@@ -43,10 +43,11 @@ div#contentspanel div.sectiontitle
 	padding-left: 10px;
 	height: 20px;
 background-color: #252525;
+border-top : solid 1px #000000;
 border-bottom : solid 1px #000000;
 	font-size: 14px;
 	font-weight: bold;
-margin : 0px;
+margin: 0px;
 line-height : 20px;
 white-space: nowrap;
 }
@@ -54,9 +55,9 @@ white-space: nowrap;
 div#contentspanel ul
 {
 	list-style-type: none;
-	padding: 0;
-	padding-left : -10px;
-	margin: 10px;
+	padding: 0px;
+	margin: 0px;
+	padding : 5px;
 
 }
 
@@ -70,14 +71,18 @@ div#contentspanel div.identifiers a
 {
 	display: block;
 	position: relative;
-	width: 110px;
+	width: 121px;
 	overflow: hidden;
 }
 
 div#contentspanel div.identifiers a:hover
 {
-	width: 110px;
-	border-right: solid 10px #777777;
+	width: 128px;
+color: black;
+font-size: 12px;
+border: solid 1px #000000;
+padding : 0px;
+text-align : center;
 	background-color: #666666;
 	
 }
