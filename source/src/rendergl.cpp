@@ -802,7 +802,7 @@ void drawminimap(int w, int h)
     camera1->o.z = mapdims[7] + 1;
     camera1->pitch = -90;
     camera1->yaw = 0;
-    int orthd = gdim/2;
+    int orthd = 2 + gdim/2;
     glViewport(2, 2, size-4, size-4); // !not wsize here
     glClearDepth(0.0);
     glClearColor(0, 0, 0, 0);
