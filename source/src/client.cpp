@@ -556,12 +556,9 @@ void c2sinfo(playerent *d)                  // send update to the server
     lastupdate = totalmillis;
 }
 
-void sendintro()
+int getbuildtype()
 {
-    packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
-    putint(p, SV_CONNECT);
-    putint(p, AC_VERSION);
-    putint(p, (isbigendian() ? 0x80 : 0 )|(adler((unsigned char *)guns, sizeof(guns)) % 31 << 8)|
+    return (isbigendian() ? 0x80 : 0 )|(adler((unsigned char *)guns, sizeof(guns)) % 31 << 8)|
         #ifdef WIN32
             0x40 |
         #endif
@@ -574,7 +571,15 @@ void sendintro()
         #ifdef __GNUC__
             0x04 |
         #endif
-            0);
+            0;
+}
+
+void sendintro()
+{
+    packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
+    putint(p, SV_CONNECT);
+    putint(p, AC_VERSION);
+    putint(p, getbuildtype());
     sendstring(player1->name, p);
     sendstring(genpwdhash(player1->name, clientpassword, sessionid), p);
     const char *lang = getalias("LANG");

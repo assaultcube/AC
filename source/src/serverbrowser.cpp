@@ -1287,7 +1287,7 @@ void retrieveservers(vector<char> &data)
 
     int starttime = SDL_GetTicks(), timeout = 0;
     string request;
-    sprintf(request, "list %s %d\n",global_name,AC_VERSION);
+    sprintf(request, "list %s %d %d\n",global_name,AC_VERSION,getbuildtype());
     const char *req = request;
     int reqlen = strlen(req);
     ENetBuffer buf;
