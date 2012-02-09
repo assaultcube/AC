@@ -802,8 +802,8 @@ void drawminimap(int w, int h)
     camera1->o.z = mapdims[7] + 1;
     camera1->pitch = -90;
     camera1->yaw = 0;
-    int orthd = 2 + gdim/2;
-    glViewport(2, 2, size-2, size-2); // !not wsize here
+    int orthd = gdim/2;
+    glViewport(2, 2, size-4, size-4); // !not wsize here
     glClearDepth(0.0);
     glClearColor(0, 0, 0, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT); // stencil added 2010jul22
