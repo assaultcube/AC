@@ -358,6 +358,7 @@ extern void changeteam(int team, bool respawn = true); // deprecated?
 extern void getmap();
 extern void newteam(char *name);
 extern bool securemapcheck(const char *map, bool msg = true);
+extern int getbuildtype();
 extern void sendintro();
 extern void getdemo(char *idx, char *dsp);
 extern void listdemos();
