@@ -347,6 +347,7 @@ struct hudmessages : consolebuffer<hudline>
     void render()
     {
         if(!conlines.length()) return;
+        glPushMatrix();
         glLoadIdentity();
         glOrtho(0, VIRTW*0.9f, VIRTH*0.9f, 0, -1, 1);
         int dispmillis = arenaintermission ? 6000 : 3000;
@@ -356,6 +357,7 @@ struct hudmessages : consolebuffer<hudline>
             int tw = text_width(c.line);
             draw_text(c.line, int(tw > VIRTW*0.9f ? 0 : (VIRTW*0.9f-tw)/2), int(((VIRTH*0.9f)/4*3)+FONTH*i+pow((totalmillis-c.millis)/(float)dispmillis, 4)*VIRTH*0.9f/4.0f));
         }
+        glPopMatrix();
     }
 };
 
@@ -932,9 +934,11 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
     if(showspeed)
     {
+        glLoadIdentity();
         glPushMatrix();
-        glScalef(2, 2, 1);
-        draw_textf("v %.2f", VIRTW/2, VIRTH*0.85f, sqrtf(p->vel.x*p->vel.x + p->vel.y*p->vel.y));
+        glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
+        glScalef(0.8, 0.8, 1);
+        draw_textf("Speed: %.2f", VIRTW/2, VIRTH, sqrtf(p->vel.x*p->vel.x + p->vel.y*p->vel.y));
         glPopMatrix();
     }
 
