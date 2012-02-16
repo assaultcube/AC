@@ -795,15 +795,23 @@ void drawminimap(int w, int h)
     physent minicam;
     camera1 = &minicam;
     camera1->type = ENT_CAMERA;
-    camera1->o.x = mapdims[0] + mapdims[4]/2;
-    camera1->o.y = mapdims[1] + mapdims[5]/2;
-    int gdim = max(mapdims[4], mapdims[5]);
-    if(!gdim) gdim = ssize/2;
+    camera1->o.x = mapdims[0] + mapdims[4]/2.0f;
+    camera1->o.y = mapdims[1] + mapdims[5]/2.0f;
+    
+    //float gdim = max(mapdims[4], mapdims[5])+2.0f; //make 1 cube smaller to give it a black edge
+    float gdim = max(mapdims[4], mapdims[5]); //no border
+    
+    if(!gdim) gdim = ssize/2.0f;
     camera1->o.z = mapdims[7] + 1;
     camera1->pitch = -90;
     camera1->yaw = 0;
-    int orthd = 2 + gdim/2;
-    glViewport(2, 2, size-4, size-4); // !not wsize here
+    
+    //float orthd = 2 + gdim/2;    
+    //glViewport(2, 2, size-4, size-4); // !not wsize here
+        
+    float orthd = gdim/2.0f;    
+    glViewport(0, 0, size, size); // !not wsize here
+    
     glClearDepth(0.0);
     glClearColor(0, 0, 0, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT); // stencil added 2010jul22
@@ -830,6 +838,22 @@ void drawminimap(int w, int h)
     resettmu(0);
     float hf = hdr.waterlevel-0.3f;
     renderwater(hf, 0, 0);
+    
+    //draw a black border to prevent the minimap texture edges from bleeding in radarview
+    GLfloat prevLineWidth;
+    glGetFloatv(GL_LINE_WIDTH, &prevLineWidth);
+    glDisable(GL_BLEND);
+    glColor3f(0, 0, 0);
+    glLineWidth(2.0f);
+    glBegin(GL_LINE_LOOP);
+        glVertex3f(mapdims[0]+0.02f,            mapdims[1]+0.02f, mapdims[7]);
+        glVertex3f(mapdims[0]+mapdims[4]-0.02f, mapdims[1]+0.02f, mapdims[7]);
+        glVertex3f(mapdims[0]+mapdims[4]-0.02f, mapdims[1]+mapdims[5]-0.02f, mapdims[7]);
+        glVertex3f(mapdims[0]+0.02f,            mapdims[1]+mapdims[5]-0.02f, mapdims[7]);
+    glEnd();
+    glLineWidth(prevLineWidth);
+    glEnable(GL_BLEND);
+  
     camera1 = oldcam;
     minimap = false;
     glBindTexture(GL_TEXTURE_2D, minimaptex);
