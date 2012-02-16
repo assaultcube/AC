@@ -404,17 +404,10 @@ VAR(showradarvalues, 0, 0, 1); // DEBUG
 
 void drawradar_showmap(playerent *p, int w, int h)
 {
-    int gdim = max(mapdims[4], mapdims[5]);
-    float radarviewsize = 3*min(VIRTW,VIRTH)/4;
-    float halfviewsize = radarviewsize/2.0f;
+    //float minimapviewsize = min(VIRTW,VIRTH); //minimapsize big size
+    float minimapviewsize = 3*min(VIRTW,VIRTH)/4; //minimap default size
+    float halfviewsize = minimapviewsize/2.0f;
     float iconsize = radarentsize/0.2f;
-    int orthd = gdim/2;
-    int displace = radarviewsize/orthd;
-    float coordtrans = (radarviewsize-displace)/(gdim+3);
-    int offd = (abs(mapdims[5]-mapdims[4])/2)*coordtrans;
-    if(!gdim) { gdim = ssize/2; offd = 0; }
-    int offx = gdim==mapdims[5]?offd:0;
-    int offy = gdim==mapdims[4]?offd:0;
     glColor3f(1.0f, 1.0f, 1.0f);
     glPushMatrix();
     extern GLuint minimaptex;
@@ -440,13 +433,25 @@ void drawradar_showmap(playerent *p, int w, int h)
     }
     glTranslatef(centerpos.x - halfviewsize, centerpos.y - halfviewsize , 0);
     glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_COLOR);
-    quad(minimaptex, 0, 0, radarviewsize, 0.0f, 0.0f, 1.0f);
+    quad(minimaptex, 0, 0, minimapviewsize, 0.0f, 0.0f, 1.0f);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glDisable(GL_BLEND);
-    vec mdd(mapdims[0], mapdims[1], 0);
-    vec cod(offx+0.5f, offy+0.5f, 0);
-    vec ppv = vec(p->o).sub(mdd).mul(coordtrans).add(cod);
-    if(team_isactive(p->team)) drawradarent(ppv.x+displace, ppv.y+displace, p->yaw, p->state==CS_ALIVE ? (isattacking(p) ? 2 : 0) : 1, 2, iconsize, isattacking(p), "%s", colorname(p)); // local player
+        
+    float gdim = max(mapdims[4], mapdims[5]); //no border
+    float orthd = gdim/2.0f;
+    float displace = (minimapviewsize/orthd)/2.0f;
+    float coordtrans = (minimapviewsize)/(gdim);
+    
+    float offd = fabs(mapdims[5]-mapdims[4]) /2.0f;
+    if(!gdim) { gdim = ssize/2.0f; offd = 0; }
+    float offx = gdim==mapdims[5] ? offd : 0;
+    float offy = gdim==mapdims[4] ? offd : 0;
+    
+    vec mdd = vec(mapdims[0]-offx, mapdims[1]-offy, 0);
+    vec cod(offx, offy, 0);
+    vec ppv = vec(p->o).sub(mdd).mul(coordtrans);
+
+    if(team_isactive(p->team)) drawradarent(ppv.x, ppv.y, p->yaw, p->state==CS_ALIVE ? (isattacking(p) ? 2 : 0) : 1, 2, iconsize, isattacking(p), "%s", colorname(p)); // local player    
     loopv(players) // other players
     {
         playerent *pl = players[i];
@@ -503,10 +508,10 @@ void drawradar_vicinity(playerent *p, int w, int h)
     float radarviewsize = min(VIRTW,VIRTH)/5;
     float halfviewsize = radarviewsize/2.0f;
     float iconsize = radarentsize/0.4f; // Gibstick suggested: radarentsize*radarviewsize*0.015
-    float scaler = gdim/100.0f;
+    //float scaler = gdim/100.0f;
     float scaleh = radarheight/(2.0f*gdim);
     float scaled = radarviewsize/float(radarheight);
-    float offd = abs(mapdims[5]-mapdims[4])/2.0f;
+    float offd = fabs((mapdims[5]-mapdims[4]) /2.0f);
     if(!gdim) { gdim = ssize/2; offd = 0; }
     float offx = gdim==mapdims[5]?offd:0;
     float offy = gdim==mapdims[4]?offd:0;
@@ -519,7 +524,8 @@ void drawradar_vicinity(playerent *p, int w, int h)
     glTranslatef(centerpos.x, centerpos.y, 0);
     glRotatef(-camera1->yaw, 0, 0, 1);
     glTranslatef(-halfviewsize, -halfviewsize, 0);
-    vec d4rc = vec(p->o).sub(rsd).normalize().mul(scaler);
+    //vec d4rc = vec(p->o).sub(rsd).normalize().mul(scaler);
+    vec d4rc = vec(p->o).sub(rsd).normalize().mul(0); //Toca .mul(0) is still needed
     vec usecenter = vec(p->o).sub(rtr).sub(d4rc);
     if(showradarvalues)
     {
