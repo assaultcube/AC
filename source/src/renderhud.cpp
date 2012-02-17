@@ -438,8 +438,8 @@ void drawradar_showmap(playerent *p, int w, int h)
     glDisable(GL_BLEND);
         
     float gdim = max(mapdims[4], mapdims[5]); //no border
-    float orthd = gdim/2.0f;
-    float displace = (minimapviewsize/orthd)/2.0f;
+    //float orthd = gdim/2.0f;
+    //float displace = (minimapviewsize/orthd)/2.0f;
     float coordtrans = (minimapviewsize)/(gdim);
     
     float offd = fabs(mapdims[5]-mapdims[4]) /2.0f;
@@ -456,8 +456,8 @@ void drawradar_showmap(playerent *p, int w, int h)
     {
         playerent *pl = players[i];
         if(!pl || pl==p || !isteam(p->team, pl->team) || !team_isactive(pl->team)) continue;
-        vec rtmp = vec(pl->o).sub(mdd).mul(coordtrans).add(cod);
-        drawradarent(rtmp.x+displace, rtmp.y+displace, pl->yaw, pl->state==CS_ALIVE ? (isattacking(pl) ? 2 : 0) : 1, team_base(pl->team), iconsize, isattacking(pl), "%s", colorname(pl));
+        vec rtmp = vec(pl->o).sub(mdd).mul(coordtrans);
+        drawradarent(rtmp.x, rtmp.y, pl->yaw, pl->state==CS_ALIVE ? (isattacking(pl) ? 2 : 0) : 1, team_base(pl->team), iconsize, isattacking(pl), "%s", colorname(pl));
     }
     if(m_flags)
     {
@@ -469,12 +469,12 @@ void drawradar_showmap(playerent *p, int w, int h)
             entity *e = f.flagent;
             if(!e) continue;
             if(e->x == -1 && e-> y == -1) continue; // flagdummies
-            vec pos = vec(e->x, e->y, 0).sub(mdd).mul(coordtrans).add(cod);
-            vec cpos = vec(f.pos.x, f.pos.y, f.pos.z).sub(mdd).mul(coordtrans).add(cod);
-            drawradarent(pos.x+displace, pos.y+displace, camera1->yaw, m_ktf ? 2 : f.team, 3, iconsize, false); // draw bases
+            vec pos = vec(e->x, e->y, 0).sub(mdd).mul(coordtrans);
+            vec cpos = vec(f.pos.x, f.pos.y, f.pos.z).sub(mdd).mul(coordtrans);
+            drawradarent(pos.x, pos.y, camera1->yaw, m_ktf ? 2 : f.team, 3, iconsize, false); // draw bases
             if(f.state!=CTFF_STOLEN && !(m_ktf && f.state == CTFF_IDLE))
             {
-                drawradarent(cpos.x+displace, cpos.y+displace, 0, 3, m_ktf ? 2 : f.team, iconsize, false); // draw on entity pos
+                drawradarent(cpos.x, cpos.y, 0, 3, m_ktf ? 2 : f.team, iconsize, false); // draw on entity pos
             }
             if(m_ktf && f.state == CTFF_IDLE) continue;
             if(f.state==CTFF_STOLEN)
@@ -489,8 +489,8 @@ void drawradar_showmap(playerent *p, int w, int h)
                     else if(m_ktf) tm = true;
                     if(tm)
                     {
-                        apos.sub(mdd).mul(coordtrans).add(cod);
-                        drawradarent(apos.x+displace, apos.y+displace, 0, 3, m_ktf ? 2 : f.team, iconsize, true); // draw near flag thief
+                        apos.sub(mdd).mul(coordtrans);
+                        drawradarent(apos.x, apos.y, 0, 3, m_ktf ? 2 : f.team, iconsize, true); // draw near flag thief
                     }
                 }
             }
