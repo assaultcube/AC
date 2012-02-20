@@ -101,7 +101,7 @@ namespace varray
     {
         if(type == ATTRIB_VERTEX)
         {
-            numattribs = 0;
+            numattribs = attribmask = 0;
             vertexsize = 0;
         }
         changedattribs = true;
