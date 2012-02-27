@@ -738,7 +738,7 @@ void listmapdependencies(char *mapname)  // print map dependencies to file
         vector<const char *> allres;
         enumeratek(sumpaths, const char *, key, allres.add(key));
         allres.sort(stringsort);
-        f->printf("used ressources total:\n");
+        f->printf("used resources total:\n");
         loopv(allres) f->printf("    used %6d times:  \"%s\"\n", *sumpaths.access(allres[i]), allres[i]);
         enumeratek(sumpaths, const char *, key, delete key);
         sumpaths.clear();
