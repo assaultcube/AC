@@ -1619,7 +1619,6 @@ void checkweaponstate()
 {
     checkweaponswitch();
     checkakimbo();
-    playerent *p = (playerent *) camera1;
-    if(!p || !p->weaponsel) return;
-    if(lastmillis - p->weaponsel->reloading > p->weaponsel->info.reloadtime) p->weaponsel->reloading = 0;
+    
+    // TODO : here we need to check properly that the spectated player weapon has finished to reload...
 }

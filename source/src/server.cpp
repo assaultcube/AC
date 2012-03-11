@@ -3998,7 +3998,8 @@ void extinfo_statsbuf(ucharbuf &p, int pid, int bpos, ENetSocket &pongsock, ENet
         putint(p,clients[i]->clientnum);  //add player id
         putint(p,clients[i]->ping);             //Ping
         sendstring(clients[i]->name,p);         //Name
-        sendstring(team_string(clients[i]->team),p); //Team
+        sendstring(team_string(clients[i]->team),p); //Team 
+        // "team_string(clients[i]->team)" sometimes return NULL according to RK, causing the server to crash. WTF ?
         putint(p,clients[i]->state.frags);      //Frags
         putint(p,clients[i]->state.flagscore);  //Flagscore
         putint(p,clients[i]->state.deaths);     //Death

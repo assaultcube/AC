@@ -98,7 +98,7 @@ template<class T>
 static inline void sendstring_(const char *text, T &p)
 {
     const char *t = text;
-    while(*t) putint(p, *t++);
+    if(t) { while(*t) putint(p, *t++); }
     putint(p, 0);
     DEBUGVAR(text);
 }
