@@ -442,7 +442,7 @@ void drawradar_showmap(playerent *p, int w, int h)
     //float displace = (minimapviewsize/orthd)/2.0f;
     float coordtrans = (minimapviewsize)/(gdim);
     
-    float offd = fabs(mapdims[5]-mapdims[4]) /2.0f;
+    float offd = fabs(float(mapdims[5])-float(mapdims[4])) /2.0f;
     if(!gdim) { gdim = ssize/2.0f; offd = 0; }
     float offx = gdim==mapdims[5] ? offd : 0;
     float offy = gdim==mapdims[4] ? offd : 0;
