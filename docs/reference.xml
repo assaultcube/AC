@@ -4058,6 +4058,11 @@ Output:
 					<value token="N" description="-" minValue="0" maxValue="1" defaultValue="0" />
 				</variable>
 
+				<variable name="showgrid">
+					<description>Show editing cursor grid.</description>
+					<value token="N" description="-" minValue="0" maxValue="1" defaultValue="1" />
+				</variable>
+
 				<command name="waterlevel">
 					<description>Sets the global water level for the map.</description>
 					<remarks>
