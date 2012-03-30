@@ -1901,9 +1901,20 @@ echo foo
 					<value token="N" description="the roll value" minValue="0" maxValue="20" defaultValue="0"/>
 				</variable>
 
-        <variable name="numconlines">
-          <description>Hold the current number of lines on the console.</description>
-        </variable>
+				<variable name="numconlines">
+					<description>Hold the current number of lines on the console.</description>
+				</variable>
+
+				<variable name="lang">
+					<description>Sets the language for which a translated server MOTD will be fetched, if the server has one for this language.</description>
+					<remarks>
+						<remark>This is always a two-letter language code as defined in the ISO 639 standard, three-letter codes are currently not allowed.</remark>
+						<remark>If lang is not set, or if the server does not have a matching MOTD file, it will fall back to English.</remark>
+						<remark>Note: this does not affect the client language, which is derived from the system settings (e.g. on many *nix systems, it may be changed via the "LANG" environment variable).</remark>
+					</remarks>
+					<examples><example><code>en, de, fr, ...</code></example></examples>
+					<value token="L" description="the language code"/>
+				</variable>
 
 			</identifiers>
 		</section>
