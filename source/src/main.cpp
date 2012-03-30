@@ -134,6 +134,8 @@ void writeinitcfg()
     extern int audio, soundchannels;
     f->printf("audio %d\n", audio > 0 ? 1 : 0);
     f->printf("soundchannels %d\n", soundchannels);
+    extern const char *lang;
+    f->printf("lang %s\n", lang);
     delete f;
 }
 

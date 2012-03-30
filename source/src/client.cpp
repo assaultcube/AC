@@ -215,7 +215,7 @@ void disconnect(int onlyclean, int async)
     }
 #endif
     if(!onlyclean) localconnect();
-    
+
     if(identexists("onDisconnect")) execute("onDisconnect");
 }
 
@@ -582,7 +582,7 @@ void sendintro()
     putint(p, getbuildtype());
     sendstring(player1->name, p);
     sendstring(genpwdhash(player1->name, clientpassword, sessionid), p);
-    const char *lang = getalias("LANG");
+    extern const char *lang;
     sendstring(!lang || strlen(lang) != 2 ? "" : lang, p);
     putint(p, connectrole);
     clientpassword[0] = '\0';
