@@ -373,9 +373,11 @@ void pingservers(bool issearch, serverinfo *onlyconnected)
         if(si->getinfo == EXTPING_SERVERINFO)
         {
             putint(p, EXTPING_SERVERINFO);
-            const char *lang = getalias("LANG");
-            if(!lang || strlen(lang) != 2) lang = "en";
-            loopi(2) putint(p, lang[i]);
+            extern const char *lang;
+            const char *silang;
+            if(strlen(lang) != 2) silang = "en";
+            else silang = lang;
+            loopi(2) putint(p, silang[i]);
         }
         else putint(p, issearch ? EXTPING_NAMELIST : chooseextping(si));
         buf.data = ping;
