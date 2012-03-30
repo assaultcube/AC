@@ -653,10 +653,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 s->selectweapon(gunselect);
                 loopi(NUMGUNS) s->ammo[i] = getint(p);
                 loopi(NUMGUNS) s->mag[i] = getint(p);
-                //2011oct16:flowtron:keep spectator state
-                //possible fubar here - trying out ATM!
-                bool cws = s->state == CS_SPECTATE;
-                s->state = cws?CS_SPECTATE:CS_SPAWNING;
+                s->state = CS_SPAWNING;
                 if(s->lifesequence==0) s->resetstats(); //NEW
                 break;
             }
