@@ -3,7 +3,6 @@
 	<FileVersion major="1" minor="6" />
 	<Project>
 		<Option title="AssaultCube" />
-		<Option makefile_is_custom="1" />
 		<Option pch_mode="2" />
 		<Option compiler="gcc" />
 		<Build>
@@ -20,46 +19,124 @@
 					<Add option="-fsigned-char" />
 					<Add option="-fomit-frame-pointer" />
 				</Compiler>
-				<MakeCommands>
-					<Build command="cd ../src;$make -f $makefile $target" />
-					<CompileFile command="$make -f $makefile $file" />
-					<Clean command="cd ../src;$make -f $makefile clean" />
-					<DistClean command="$make -f $makefile distclean$target" />
-				</MakeCommands>
-			</Target>
-			<Target title="install">
-				<Option output="AssaultCube" prefix_auto="1" extension_auto="1" />
-				<Option type="1" />
-				<Option compiler="gcc" />
-				<Option use_console_runner="0" />
-				<MakeCommands>
-					<Build command="cd ../src/;$make -f $makefile install" />
-					<CompileFile command="cd ../src/;$make -f $makefile $file" />
-					<Clean command="cd ../src/;$make -f $makefile clean" />
-					<DistClean command="cd ../src/;$make -f $makefile distclean" />
-				</MakeCommands>
-			</Target>
-			<Target title="make">
-				<Option output="AssaultCube" prefix_auto="1" extension_auto="1" />
-				<Option type="0" />
-				<Option compiler="gcc" />
-				<MakeCommands>
-					<Build command="cd ../src/;$make -f $makefile" />
-					<CompileFile command="cd ../src/;$make -f $makefile $file" />
-					<Clean command="cd ../src/;$make -f $makefile clean" />
-					<DistClean command="cd ../src/;$make -f $makefile distclean" />
-				</MakeCommands>
+				<ResourceCompiler>
+					<Add directory="../vcpp" />
+				</ResourceCompiler>
+				<Linker>
+					<Add option="-mwindows" />
+					<Add library="SDL" />
+					<Add library="SDL_image" />
+					<Add library="SDL_ttf" />
+					<Add library="zdll" />
+					<Add library="opengl32" />
+					<Add library="enet" />
+					<Add library="OpenAL32" />
+					<Add library="../lib/libvorbisfile.lib" />
+					<Add library="jpeg" />
+					<Add library="../lib/libintl.lib" />
+					<Add library="ws2_32" />
+					<Add library="winmm" />
+					<Add directory="../lib" />
+				</Linker>
 			</Target>
 			<Target title="debug">
-				<Option output="AssaultCube" prefix_auto="1" extension_auto="1" />
-				<Option type="0" />
+				<Option output="../../bin_win32/ac_client.exe" prefix_auto="0" extension_auto="0" />
+				<Option working_dir="../../" />
+				<Option object_output=".objs/debug" />
+				<Option type="1" />
 				<Option compiler="gcc" />
-				<MakeCommands>
-					<Build command="cd ../src/;$make -f $makefile debug" />
-					<CompileFile command="cd ../src/;$make -f $makefile $file" />
-					<Clean command="cd ../src/;$make -f $makefile clean" />
-					<DistClean command="cd ../src/;$make -f $makefile distclean" />
-				</MakeCommands>
+				<Option projectResourceIncludeDirsRelation="1" />
+				<Compiler>
+					<Add option="-Wall" />
+					<Add option="-g" />
+					<Add option="-fsigned-char" />
+				</Compiler>
+				<ResourceCompiler>
+					<Add directory="../vcpp" />
+				</ResourceCompiler>
+				<Linker>
+					<Add option="-mwindows" />
+					<Add library="SDL" />
+					<Add library="SDL_image" />
+					<Add library="SDL_ttf" />
+					<Add library="zdll" />
+					<Add library="opengl32" />
+					<Add library="enet" />
+					<Add library="OpenAL32" />
+					<Add library="../lib/libvorbisfile.lib" />
+					<Add library="jpeg" />
+					<Add library="../lib/libintl.lib" />
+					<Add library="ws2_32" />
+					<Add library="winmm" />
+					<Add directory="../lib" />
+				</Linker>
+			</Target>
+			<Target title="server">
+				<Option output="../../bin_win32/ac_server.exe" prefix_auto="0" extension_auto="0" />
+				<Option working_dir="../../" />
+				<Option object_output=".objs/server" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Option projectResourceIncludeDirsRelation="1" />
+				<Compiler>
+					<Add option="-DSTANDALONE" />
+					<Add option="-O3" />
+					<Add option="-Wall" />
+					<Add option="-fsigned-char" />
+					<Add option="-fomit-frame-pointer" />
+				</Compiler>
+				<Linker>
+					<Add library="zdll" />
+					<Add library="enet" />
+					<Add library="ws2_32" />
+					<Add library="winmm" />
+					<Add directory="../lib" />
+				</Linker>
+			</Target>
+			<Target title="server-debug">
+				<Option output="../../bin_win32/ac_server.exe" prefix_auto="0" extension_auto="0" />
+				<Option working_dir="../../" />
+				<Option parameters="-mlocalhost" />
+				<Option object_output=".objs/server-debug" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Option projectResourceIncludeDirsRelation="1" />
+				<Compiler>
+					<Add option="-DSTANDALONE" />
+					<Add option="-O0" />
+					<Add option="-Wall" />
+					<Add option="-g" />
+					<Add option="-fsigned-char" />
+				</Compiler>
+				<Linker>
+					<Add library="zdll" />
+					<Add library="enet" />
+					<Add library="ws2_32" />
+					<Add library="winmm" />
+					<Add directory="../lib" />
+				</Linker>
+			</Target>
+			<Target title="master">
+				<Option output="../../bin_win32/ac_master.exe" prefix_auto="0" extension_auto="0" />
+				<Option working_dir="../../" />
+				<Option object_output=".objs/master" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Option projectResourceIncludeDirsRelation="1" />
+				<Compiler>
+					<Add option="-DSTANDALONE" />
+					<Add option="-O3" />
+					<Add option="-Wall" />
+					<Add option="-fsigned-char" />
+					<Add option="-fomit-frame-pointer" />
+				</Compiler>
+				<Linker>
+					<Add library="zdll" />
+					<Add library="enet" />
+					<Add library="ws2_32" />
+					<Add library="winmm" />
+					<Add directory="../lib" />
+				</Linker>
 			</Target>
 		</Build>
 		<VirtualTargets>
@@ -70,84 +147,93 @@
 			<Add directory="../include" />
 			<Add directory="../src" />
 		</Compiler>
-		<ResourceCompiler>
-			<Add directory="../vcpp" />
-		</ResourceCompiler>
-		<Linker>
-			<Add option="-mwindows" />
-			<Add library="SDL" />
-			<Add library="SDL_image" />
-			<Add library="SDL_ttf" />
-			<Add library="zdll" />
-			<Add library="opengl32" />
-			<Add library="enet" />
-			<Add library="OpenAL32" />
-			<Add library="../lib/libvorbisfile.lib" />
-			<Add library="jpeg.lib" />
-			<Add library="../lib/libintl.lib" />
-			<Add library="ws2_32" />
-			<Add library="winmm" />
-			<Add directory="../lib" />
-		</Linker>
+		<MakeCommands>
+			<Build command="cd ../src;$make -f $makefile $target" />
+			<CompileFile command="$make -f $makefile $file" />
+			<Clean command="cd ../src;$make -f $makefile clean" />
+			<DistClean command="$make -f $makefile distclean$target" />
+			<AskRebuildNeeded command="$make -q -f $makefile $target" />
+			<SilentBuild command="$make -s -f $makefile $target" />
+		</MakeCommands>
 		<Unit filename="../src/audiomanager.cpp">
 			<Option target="default" />
+			<Option target="debug" />
 		</Unit>
 		<Unit filename="../src/bot/ac_bot.cpp">
 			<Option target="default" />
+			<Option target="debug" />
 		</Unit>
 		<Unit filename="../src/bot/ac_bot.h">
 			<Option target="default" />
+			<Option target="debug" />
 		</Unit>
 		<Unit filename="../src/bot/ac_bot_ai.cpp">
 			<Option target="default" />
+			<Option target="debug" />
 		</Unit>
 		<Unit filename="../src/bot/bot.cpp">
 			<Option target="default" />
+			<Option target="debug" />
 		</Unit>
 		<Unit filename="../src/bot/bot.h">
 			<Option target="default" />
+			<Option target="debug" />
 		</Unit>
 		<Unit filename="../src/bot/bot_ai.cpp">
 			<Option target="default" />
+			<Option target="debug" />
 		</Unit>
 		<Unit filename="../src/bot/bot_util.cpp">
 			<Option target="default" />
+			<Option target="debug" />
 		</Unit>
 		<Unit filename="../src/bot/bot_util.h">
 			<Option target="default" />
+			<Option target="debug" />
 		</Unit>
 		<Unit filename="../src/bot/bot_waypoint.cpp">
 			<Option target="default" />
+			<Option target="debug" />
 		</Unit>
 		<Unit filename="../src/bot/bot_waypoint.h">
 			<Option target="default" />
+			<Option target="debug" />
 		</Unit>
 		<Unit filename="../src/bot/botmanager.cpp">
 			<Option target="default" />
+			<Option target="debug" />
 		</Unit>
 		<Unit filename="../src/client.cpp">
 			<Option target="default" />
+			<Option target="debug" />
 		</Unit>
 		<Unit filename="../src/clientgame.cpp">
 			<Option target="default" />
+			<Option target="debug" />
 		</Unit>
 		<Unit filename="../src/clients2c.cpp">
 			<Option target="default" />
+			<Option target="debug" />
 		</Unit>
 		<Unit filename="../src/command.cpp">
 			<Option target="default" />
+			<Option target="debug" />
+			<Option target="master" />
 		</Unit>
 		<Unit filename="../src/command.h">
 			<Option target="default" />
+			<Option target="debug" />
+			<Option target="master" />
 		</Unit>
 		<Unit filename="../src/console.cpp">
 			<Option target="default" />
+			<Option target="debug" />
 		</Unit>
 		<Unit filename="../src/console.h">
 			<Option target="default" />
+			<Option target="debug" />
 		</Unit>
 		<Unit filename="../src/crypto.cpp" />
-		<Unit filename="../src/crypto_tools.cpp" />
 		<Unit filename="../src/crypto_tools.h" />
 		<Unit filename="../src/cube.h">
 			<Option compile="1" />
@@ -156,194 +242,296 @@
 		</Unit>
 		<Unit filename="../src/docs.cpp">
 			<Option target="default" />
+			<Option target="debug" />
 		</Unit>
 		<Unit filename="../src/editing.cpp">
 			<Option target="default" />
+			<Option target="debug" />
 		</Unit>
 		<Unit filename="../src/entities.cpp">
 			<Option target="default" />
+			<Option target="debug" />
 		</Unit>
 		<Unit filename="../src/entity.h">
 			<Option target="default" />
+			<Option target="debug" />
 		</Unit>
 		<Unit filename="../src/geom.h">
 			<Option target="default" />
+			<Option target="debug" />
 		</Unit>
 		<Unit filename="../src/hudgun.h">
 			<Option target="default" />
+			<Option target="debug" />
 		</Unit>
 		<Unit filename="../src/i18n.cpp">
 			<Option target="default" />
+			<Option target="debug" />
 		</Unit>
 		<Unit filename="../src/i18n.h">
 			<Option target="default" />
+			<Option target="debug" />
 		</Unit>
 		<Unit filename="../src/log.cpp">
 			<Option target="default" />
+			<Option target="debug" />
+			<Option target="server" />
+			<Option target="server-debug" />
 		</Unit>
 		<Unit filename="../src/main.cpp">
 			<Option target="default" />
+			<Option target="debug" />
 		</Unit>
-		<Unit filename="../src/master.cpp" />
+		<Unit filename="../src/master.cpp">
+			<Option target="master" />
+		</Unit>
 		<Unit filename="../src/md2.h">
 			<Option target="default" />
+			<Option target="debug" />
 		</Unit>
 		<Unit filename="../src/md3.h">
 			<Option target="default" />
+			<Option target="debug" />
 		</Unit>
 		<Unit filename="../src/menus.cpp">
 			<Option target="default" />
+			<Option target="debug" />
 		</Unit>
 		<Unit filename="../src/model.h">
 			<Option target="default" />
+			<Option target="debug" />
 		</Unit>
 		<Unit filename="../src/oggstream.cpp">
 			<Option target="default" />
+			<Option target="debug" />
 		</Unit>
 		<Unit filename="../src/openal.cpp">
 			<Option target="default" />
+			<Option target="debug" />
 		</Unit>
 		<Unit filename="../src/packetqueue.cpp">
 			<Option target="default" />
+			<Option target="debug" />
 		</Unit>
 		<Unit filename="../src/physics.cpp">
 			<Option target="default" />
+			<Option target="debug" />
 		</Unit>
 		<Unit filename="../src/platform.h">
 			<Option target="default" />
+			<Option target="debug" />
 		</Unit>
 		<Unit filename="../src/protocol.cpp">
 			<Option target="default" />
+			<Option target="debug" />
+			<Option target="server" />
+			<Option target="server-debug" />
 		</Unit>
 		<Unit filename="../src/protocol.h">
 			<Option target="default" />
+			<Option target="debug" />
+			<Option target="server" />
+			<Option target="server-debug" />
 		</Unit>
 		<Unit filename="../src/protos.h">
 			<Option target="default" />
+			<Option target="debug" />
+			<Option target="server" />
+			<Option target="server-debug" />
 		</Unit>
 		<Unit filename="../src/rendercubes.cpp">
 			<Option target="default" />
+			<Option target="debug" />
 		</Unit>
 		<Unit filename="../src/rendergl.cpp">
 			<Option target="default" />
+			<Option target="debug" />
 		</Unit>
 		<Unit filename="../src/renderhud.cpp">
 			<Option target="default" />
+			<Option target="debug" />
 		</Unit>
 		<Unit filename="../src/rendermodel.cpp">
 			<Option target="default" />
+			<Option target="debug" />
 		</Unit>
 		<Unit filename="../src/renderparticles.cpp">
 			<Option target="default" />
+			<Option target="debug" />
 		</Unit>
 		<Unit filename="../src/rendertext.cpp">
 			<Option target="default" />
+			<Option target="debug" />
 		</Unit>
 		<Unit filename="../src/rndmap.cpp">
 			<Option target="default" />
+			<Option target="debug" />
 		</Unit>
 		<Unit filename="../src/scoreboard.cpp">
 			<Option target="default" />
+			<Option target="debug" />
 		</Unit>
 		<Unit filename="../src/server.cpp">
 			<Option target="default" />
+			<Option target="debug" />
+			<Option target="server" />
+			<Option target="server-debug" />
 		</Unit>
-		<Unit filename="../src/server.h" />
+		<Unit filename="../src/server.h">
+			<Option target="default" />
+			<Option target="debug" />
+			<Option target="server" />
+			<Option target="server-debug" />
+		</Unit>
 		<Unit filename="../src/serveractions.h">
 			<Option target="default" />
+			<Option target="debug" />
+			<Option target="server" />
+			<Option target="server-debug" />
 		</Unit>
 		<Unit filename="../src/serverbrowser.cpp">
 			<Option target="default" />
+			<Option target="debug" />
 		</Unit>
-		<Unit filename="../src/serverchecks.h" />
+		<Unit filename="../src/serverchecks.h">
+			<Option target="default" />
+			<Option target="debug" />
+			<Option target="server" />
+			<Option target="server-debug" />
+		</Unit>
 		<Unit filename="../src/servercontroller.h">
 			<Option target="default" />
+			<Option target="debug" />
+			<Option target="server" />
+			<Option target="server-debug" />
 		</Unit>
 		<Unit filename="../src/serverevents.h">
 			<Option target="default" />
+			<Option target="debug" />
+			<Option target="server" />
+			<Option target="server-debug" />
 		</Unit>
-		<Unit filename="../src/serverfiles.h" />
+		<Unit filename="../src/serverfiles.h">
+			<Option target="default" />
+			<Option target="debug" />
+			<Option target="server" />
+			<Option target="server-debug" />
+		</Unit>
 		<Unit filename="../src/serverms.cpp">
 			<Option target="default" />
+			<Option target="debug" />
+			<Option target="server" />
+			<Option target="server-debug" />
 		</Unit>
 		<Unit filename="../src/shadow.cpp">
 			<Option target="default" />
+			<Option target="debug" />
 		</Unit>
 		<Unit filename="../src/sound.cpp">
 			<Option target="default" />
+			<Option target="debug" />
 		</Unit>
 		<Unit filename="../src/sound.h">
 			<Option target="default" />
+			<Option target="debug" />
 		</Unit>
 		<Unit filename="../src/soundlocation.cpp">
 			<Option target="default" />
+			<Option target="debug" />
 		</Unit>
 		<Unit filename="../src/soundscheduler.cpp">
 			<Option target="default" />
+			<Option target="debug" />
 		</Unit>
-		<Unit filename="../src/stream.cpp">
-			<Option target="default" />
-		</Unit>
+		<Unit filename="../src/stream.cpp" />
 		<Unit filename="../src/texture.cpp">
 			<Option target="default" />
+			<Option target="debug" />
 		</Unit>
 		<Unit filename="../src/tools.cpp">
 			<Option target="default" />
+			<Option target="debug" />
+			<Option target="server" />
+			<Option target="server-debug" />
 		</Unit>
 		<Unit filename="../src/tools.h">
 			<Option target="default" />
+			<Option target="debug" />
+			<Option target="server" />
+			<Option target="server-debug" />
 		</Unit>
 		<Unit filename="../src/tristrip.h">
 			<Option target="default" />
+			<Option target="debug" />
 		</Unit>
-        <Unit filename="../src/varray.h">
-            <Option target="default" />
-        </Unit>
+		<Unit filename="../src/varray.h">
+			<Option target="default" />
+			<Option target="debug" />
+		</Unit>
 		<Unit filename="../src/vertmodel.h">
 			<Option target="default" />
+			<Option target="debug" />
 		</Unit>
 		<Unit filename="../src/vote.h">
 			<Option target="default" />
+			<Option target="debug" />
 		</Unit>
 		<Unit filename="../src/water.cpp">
 			<Option target="default" />
+			<Option target="debug" />
 		</Unit>
 		<Unit filename="../src/weapon.cpp">
 			<Option target="default" />
+			<Option target="debug" />
 		</Unit>
 		<Unit filename="../src/weapon.h">
 			<Option target="default" />
+			<Option target="debug" />
 		</Unit>
 		<Unit filename="../src/winserviceinstaller.h">
 			<Option target="default" />
+			<Option target="debug" />
+			<Option target="server" />
+			<Option target="server-debug" />
 		</Unit>
 		<Unit filename="../src/wizard.cpp">
 			<Option target="default" />
+			<Option target="debug" />
+			<Option target="server" />
+			<Option target="server-debug" />
 		</Unit>
 		<Unit filename="../src/world.cpp">
 			<Option target="default" />
+			<Option target="debug" />
 		</Unit>
 		<Unit filename="../src/world.h">
 			<Option target="default" />
+			<Option target="debug" />
 		</Unit>
 		<Unit filename="../src/worldio.cpp">
 			<Option target="default" />
+			<Option target="debug" />
 		</Unit>
 		<Unit filename="../src/worldlight.cpp">
 			<Option target="default" />
+			<Option target="debug" />
 		</Unit>
 		<Unit filename="../src/worldocull.cpp">
 			<Option target="default" />
+			<Option target="debug" />
 		</Unit>
 		<Unit filename="../src/worldrender.cpp">
 			<Option target="default" />
+			<Option target="debug" />
 		</Unit>
 		<Unit filename="../src/zip.cpp">
 			<Option target="default" />
+			<Option target="debug" />
 		</Unit>
 		<Unit filename="../vcpp/cube.rc">
 			<Option compilerVar="WINDRES" />
 			<Option target="default" />
+			<Option target="debug" />
 		</Unit>
 		<Extensions>
 			<code_completion />
