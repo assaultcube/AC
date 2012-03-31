@@ -140,7 +140,7 @@
 			</Target>
 		</Build>
 		<VirtualTargets>
-			<Add alias="All" targets="default;" />
+			<Add alias="All" targets="default;server;" />
 		</VirtualTargets>
 		<Compiler>
 			<Add directory="../enet/include" />
