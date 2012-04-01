@@ -361,7 +361,7 @@ bool stream::getline(char *str, int len)
     return true;
 }
 
-#ifdef __linux__
+#ifndef WIN32
 #include <sys/statvfs.h>
 const int64_t MINFSSIZE = 50000000;         // 50MB
 #endif
@@ -377,7 +377,7 @@ struct filestream : stream
     {
         if(file) return false;
         file = fopen(name, mode);
-#ifdef __linux__
+#ifndef WIN32
         struct statvfs buf;
         if(file && strchr(mode,'w'))
         {
