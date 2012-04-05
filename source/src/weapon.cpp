@@ -624,7 +624,7 @@ void raydamage(vec &from, vec &to, playerent *d)
                     dmgreal = min(dmgreal, SGMAXDMGABS);
                 }
                 if(numhits) hitpush( dmgreal, o, d, from, to, d->weaponsel->type, dmgreal == SGMAXDMGABS, dmgreal);
-                
+
                 if(d==player1) hitted = true;
                 hitscount+=numhits;
             }
@@ -688,7 +688,7 @@ void r_accuracy()
     vector <char*>lines;
     int rows=0, cols=0;
     float x_offset = curfont->defaultw, y_offset = 3*VIRTH/2, spacing = curfont->defaultw*2;
-    loopi(NUMGUNS) if(i != GUN_CPISTOL && accuracym[i].shots) 
+    loopi(NUMGUNS) if(i != GUN_CPISTOL && accuracym[i].shots)
     {
         float acc;
         string line;
@@ -848,7 +848,7 @@ void weapon::renderhudmodel(int lastaction, int index)
     weaponmove wm;
     if(!intermission) wm.calcmove(unitv, lastaction, p);
     defformatstring(widn)("modmdlweap%d", type);
-    defformatstring(path)("weapons/%s", identexists(widn)?getalias(widn):info.modelname); 
+    defformatstring(path)("weapons/%s", identexists(widn)?getalias(widn):info.modelname);
     bool emit = (wm.anim&ANIM_INDEX)==ANIM_GUN_SHOOT && (lastmillis - lastaction) < flashtime();
     rendermodel(path, wm.anim|ANIM_DYNALLOC|(righthanded==index ? ANIM_MIRROR : 0)|(emit ? ANIM_PARTICLE : 0), 0, -1, wm.pos, p->yaw+90, p->pitch+wm.k_rot, 40.0f, wm.basetime, NULL, NULL, 1.28f);
 }
@@ -936,7 +936,7 @@ void grenadeent::splash()
     if(owner == player1)
     {
         accuracym[GUN_GRENADE].shots++;
-    } 
+    }
     else if(!m_botmode)
     {
         return;
@@ -1556,7 +1556,7 @@ COMMAND(setscope, ARG_1INT);
 
 void shoot(playerent *p, vec &targ)
 {
-    if(p->state==CS_DEAD || p->weaponchanging) return;
+    if(p->state!=CS_ALIVE || p->weaponchanging) return;
     weapon *weap = p->weaponsel;
     if(weap)
     {
@@ -1619,6 +1619,6 @@ void checkweaponstate()
 {
     checkweaponswitch();
     checkakimbo();
-    
+
     // TODO : here we need to check properly that the spectated player weapon has finished to reload...
 }

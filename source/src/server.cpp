@@ -3030,11 +3030,18 @@ void process(ENetPacket *packet, int sender, int chan)
                 break;
             }
 
-            case SV_SPECTCN:
-                cl->spectcn = getint(p);
-//                 logline(ACLOG_DEBUG, "[%s] %s is now spectating cn %d", cl->hostname, cl->name, cl->spectcn); // FIXME: comment out later
-                QUEUE_MSG;
+            case SV_SPECTATE:
+            {
+                getint(p);      // clientnum
+                if(team_isspect(cl->team)) break;
+
+                if(cl->state.state == CS_ALIVE) serverdamage(cl, cl, INT_MAX, GUN_KNIFE, false);    // suicide if alive
+                cl->state.state = CS_SPECTATE;
+                cl->team = TEAM_SPECT;
+
+                sendf(-1, 1, "rii", SV_SPECTATE, cl->clientnum);
                 break;
+            }
 
             case SV_SUICIDE:
             {
@@ -3998,7 +4005,7 @@ void extinfo_statsbuf(ucharbuf &p, int pid, int bpos, ENetSocket &pongsock, ENet
         putint(p,clients[i]->clientnum);  //add player id
         putint(p,clients[i]->ping);             //Ping
         sendstring(clients[i]->name,p);         //Name
-        sendstring(team_string(clients[i]->team),p); //Team 
+        sendstring(team_string(clients[i]->team),p); //Team
         // "team_string(clients[i]->team)" sometimes return NULL according to RK, causing the server to crash. WTF ?
         putint(p,clients[i]->state.frags);      //Frags
         putint(p,clients[i]->state.flagscore);  //Flagscore
