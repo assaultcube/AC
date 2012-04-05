@@ -552,7 +552,7 @@ void flagscore(int fln)
 
 void flagstolen(int flag, int act)
 {
-    playerent *actor = act == getclientnum() ? player1 : getclient(act);
+    playerent *actor = getclient(act);
     flaginfo &f = flaginfos[flag];
     f.actor = actor; // could be NULL if we just connected
     f.actor_cn = act;

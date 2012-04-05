@@ -3057,12 +3057,20 @@ Output:
 				</command>
 
 				<command name="spectatemode">
-					<description>Toggle into spectator mode - only possible when you're dead!</description>
+					<description>Sets the desired spectating mode.</description>
+					<arguments>
+						<argument token="M" description="the mode" valueNotes="2 (1st-person), 3 (3rd-person), 4 (3rd-person transparent), 5 (free flying), 6 (overview)"/>
+					</arguments>
 					<defaultKeys>
 						<key alias="SPACE" description="switch spectator mode"/>
-						<key alias="MOUSE4" description="next player"/>
-						<key alias="MOUSE5" description="previous player"/>
 					</defaultKeys>
+				</command>
+
+				<command name="spectate">
+					<description>Toggles spectator mode. If you are alive while changing into spectator mode, suicide will be invoked.</description>
+					<references>
+						<identifierReference identifier="suicide"/>
+					</references>
 				</command>
 
 				<command name="stopdemo">
@@ -3080,7 +3088,7 @@ Output:
 				</command>
 
 				<command name="suicide">
-					<description>Kills your player. You will lose 1 frag point and gain 1 death point when using this command.</description>
+					<description>Kills your player. You will lose 1 frag point and receive 1 death point when using this command.</description>
 				</command>
 
 				<command name="demo">

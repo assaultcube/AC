@@ -423,7 +423,7 @@ extern char *colorpj(int pj);
 extern const char *highlight(const char *text);
 extern void togglespect();
 extern playerent *updatefollowplayer(int shiftdirection = 0);
-extern void spectate(int mode);
+extern void spectatemode(int mode);
 
 struct votedisplayinfo
 {

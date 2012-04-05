@@ -139,7 +139,7 @@ const char *highlight(const char *text)
 void ignore(int cn)
 {
     playerent *d = getclient(cn);
-    if(d) d->ignored = true;
+    if(d && d != player1) d->ignored = true;
 }
 
 void listignored()
@@ -160,7 +160,7 @@ void clearignored(char *ccn)
 void muteplayer(int cn)
 {
     playerent *d = getclient(cn);
-    if(d) d->muted = true;
+    if(d && d != player1) d->muted = true;
 }
 
 void listmuted()
@@ -264,7 +264,7 @@ int curmodeattr(char *attr)
 COMMANDN(team, newteam, ARG_1STR);
 COMMANDN(name, newname, ARG_1STR);
 COMMAND(benchme, ARG_NONE);
-ICOMMANDF(isclient, ARG_1EXP, (int cn) { return cn == player1->clientnum || getclient(cn) != NULL ? 1 : 0; } );
+ICOMMANDF(isclient, ARG_1EXP, (int cn) { return getclient(cn) != NULL ? 1 : 0; } );
 ICOMMANDF(isSpect, ARG_IVAL, (void) { return (player1->team==TEAM_SPECT || player1->spectatemode==SM_FLY); });
 ICOMMANDF(currole, ARG_IVAL, (void) { return player1->clientrole; });
 ICOMMANDF(curmastermode, ARG_IVAL, (void) { return servstate.mastermode; });
@@ -285,7 +285,7 @@ void playerinfo(const char *cn, const char *attr)
     if(!*cn || !cn || !*attr || !attr) return;
 
     int clientnum = atoi(cn); // get player clientnum
-    playerent *p = clientnum == player1->clientnum || clientnum < 0 ? player1 : getclient(clientnum);
+    playerent *p = clientnum < 0 ? player1 : getclient(clientnum);
     if(!p)
     {
         conoutf("invalid clientnum");
@@ -411,13 +411,9 @@ void deathstate(playerent *pl)
         setburst(false);
         if(editmode) toggleedit(true);
         damageblend(-1);
-        if(pl->team == TEAM_SPECT) spectate(SM_FLY);
-        else if(team_isspect(pl->team)) spectate(SM_FOLLOW1ST);
-        if(pl->spectatemode == SM_DEATHCAM)
-        {
-            player1->followplayercn = FPCN_DEATHCAM;
-            addmsg(SV_SPECTCN, "ri", player1->followplayercn);
-        }
+        if(pl->team == TEAM_SPECT) spectatemode(SM_FLY);
+        else if(team_isspect(pl->team)) spectatemode(SM_FOLLOW1ST);
+        if(pl->spectatemode == SM_DEATHCAM) player1->followplayercn = FPCN_DEATHCAM;
     }
     else pl->resetinterp();
 }
@@ -739,11 +735,9 @@ void findplayerstart(playerent *d, bool mapcenter, int arenaspawn)
 
 void spawnplayer(playerent *d)
 {
-	//2011oct16:flowtron:keep spectator state
-	bool dws = d->state == CS_SPECTATE;
     d->respawn();
     d->spawnstate(gamemode);
-    d->state = (d==player1 && editmode) ? CS_EDITING : (dws?CS_SPECTATE:CS_ALIVE);
+    d->state = (d==player1 && editmode) ? CS_EDITING : CS_ALIVE;
     findplayerstart(d);
 }
 
@@ -993,7 +987,7 @@ COMMAND(pstat_score, ARG_1INT);
 void pstat_weap(int cn)
 {
     string weapstring = "";
-    playerent *pl = cn == player1->clientnum ? player1 : getclient(cn);
+    playerent *pl = getclient(cn);
     if(pl) loopi(NUMGUNS) concatformatstring(weapstring, "%s%d %d", strlen(weapstring) ? " " : "", pl->pstatshots[i], pl->pstatdamage[i]);
     result(weapstring);
 }
@@ -1063,6 +1057,7 @@ playerent *newclient(int cn)   // ensure valid entity
 
 playerent *getclient(int cn)   // ensure valid entity
 {
+    if(cn == player1->clientnum) return player1;
     return players.inrange(cn) ? players[cn] : NULL;
 }
 
@@ -1352,7 +1347,7 @@ char *votestring(int type, const char *arg1, const char *arg2)
         case SA_GIVEADMIN:
         {
             int cn = atoi(arg1);
-            playerent *p = (cn == getclientnum() ? player1 : getclient(cn));
+            playerent *p = getclient(cn);
             if(!p) break;
             if (type == SA_KICK || type == SA_BAN)
             {
@@ -1687,14 +1682,20 @@ playerent *updatefollowplayer(int shiftdirection)
 
     // rotate
     int oldidx = -1;
-     if(players.inrange(player1->followplayercn)) oldidx = available.find(players[player1->followplayercn]);
+    if(players.inrange(player1->followplayercn)) oldidx = available.find(players[player1->followplayercn]);
     if(oldidx<0) oldidx = 0;
     int idx = (oldidx+shiftdirection) % available.length();
     if(idx<0) idx += available.length();
 
-    if(player1->followplayercn != available[idx]->clientnum) addmsg(SV_SPECTCN, "ri", available[idx]->clientnum);
     player1->followplayercn = available[idx]->clientnum;
     return players[player1->followplayercn];
+}
+
+void spectate()
+{
+    if(m_demo) return;
+    if(!team_isspect(player1->team)) addmsg(SV_SPECTATE, "ri", player1->clientnum);
+    else tryrespawn();
 }
 
 void setfollowplayer(int cn)
@@ -1702,18 +1703,17 @@ void setfollowplayer(int cn)
     // silently ignores invalid player-cn value passed
     if(players.inrange(cn))
     {
-        if(!(m_teammode && player1->team != TEAM_SPECT && !watchingdemo && team_base(players[cn]->team) != team_base(player1->team)))
+        if(!(m_teammode && !watchingdemo && team_base(players[cn]->team) != team_base(player1->team)))
         {
-            if(player1->followplayercn != players[cn]->clientnum) addmsg(SV_SPECTCN, "ri", cn);
             player1->followplayercn = cn;
+            if(player1->spectatemode == SM_FLY) player1->spectatemode = SM_FOLLOW1ST;
         }
     }
 }
 
 // set new spect mode
-void spectate(int mode)
+void spectatemode(int mode)
 {
-    if(!player1->isspectating()) return;
     if(!m_teammode && !team_isspect(player1->team) && servstate.mastermode == MM_MATCH) return;  // during ffa matches only SPECTATORS can spectate
     if(mode == player1->spectatemode) return;
     showscores(false);
@@ -1740,7 +1740,6 @@ void spectate(int mode)
                 }
                 else entinmap(player1); // or drop 'em at a random place
                 player1->followplayercn = FPCN_FLY;
-                addmsg(SV_SPECTCN, "ri", player1->followplayercn);
             }
             break;
         }
@@ -1755,13 +1754,13 @@ void spectate(int mode)
 void togglespect() // cycle through all spectating modes
 {
     if(m_botmode)
-        spectate(SM_FLY);
+        spectatemode(SM_FLY);
     else
     {
         int mode;
         if(player1->spectatemode==SM_NONE) mode = SM_FOLLOW1ST; // start with 1st person spect
         else mode = SM_FOLLOW1ST + ((player1->spectatemode - SM_FOLLOW1ST + 1) % (SM_OVERVIEW-SM_FOLLOW1ST)); // replace SM_OVERVIEW by SM_NUM to enable overview mode
-        spectate(mode);
+        spectatemode(mode);
     }
 }
 
@@ -1770,7 +1769,8 @@ void changefollowplayer(int shift)
     updatefollowplayer(shift);
 }
 
-COMMANDN(spectatemode, spectate, ARG_1INT);
+COMMAND(spectate, ARG_NONE);
+COMMAND(spectatemode, ARG_1INT);
 COMMAND(togglespect, ARG_NONE);
 COMMAND(changefollowplayer, ARG_1INT);
 COMMAND(setfollowplayer, ARG_1INT);

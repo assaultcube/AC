@@ -660,7 +660,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
             case SV_SPAWNSTATE:
             {
-
                 if ( map_quality == MAP_IS_BAD )
                 {
                     loopi(6+2*NUMGUNS) getint(p);
@@ -681,9 +680,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 int arenaspawn = getint(p);
                 loopi(NUMGUNS) player1->ammo[i] = getint(p);
                 loopi(NUMGUNS) player1->mag[i] = getint(p);
-                //2011oct16:flowtron:keep spectator state
-                bool pws = player1->state == CS_SPECTATE;
-                player1->state = pws?CS_SPECTATE:CS_ALIVE;
+                player1->state = CS_ALIVE;
                 lastspawn = lastmillis;
                 findplayerstart(player1, false, arenaspawn);
                 arenaintermission = 0;
@@ -701,9 +698,20 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 break;
             }
 
-            case SV_SPECTCN:
-                getint(p);
+            case SV_SPECTATE:
+            {
+                int cn = getint(p);
+                playerent *s = getclient(cn);
+                if(!s) break;
+                s->state = CS_SPECTATE;
+                s->team = TEAM_SPECT;
+                if(s == player1)
+                {
+                    showscores(false);
+                    spectatemode(SM_FLY);
+                }
                 break;
+            }
 
             case SV_SHOTFX:
             {
@@ -750,7 +758,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             case SV_RELOAD:
             {
                 int cn = getint(p), gun = getint(p);
-                playerent *p = cn==getclientnum() ? player1 : getclient(cn);
+                playerent *p = getclient(cn);
                 if(p && p!=player1) p->weapons[gun]->reload();
                 break;
             }
@@ -792,8 +800,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                     damage = getint(p),
                     armour = getint(p),
                     health = getint(p);
-                playerent *target = tcn==getclientnum() ? player1 : getclient(tcn),
-                          *actor = acn==getclientnum() ? player1 : getclient(acn);
+                playerent *target = getclient(tcn), *actor = getclient(acn);
                 if(!target || !actor) break;
                 target->armour = armour;
                 target->health = health;
@@ -808,7 +815,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 if ( count > 0 ) {
                     loopi(count){
                         int pcn = getint(p); int score = getint(p);
-                        playerent *ppl = pcn == getclientnum() ? player1 : getclient(pcn);
+                        playerent *ppl = getclient(pcn);
                         if (!ppl) break;
                         ppl->points += score;
                     }
@@ -847,8 +854,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             case SV_DIED:
             {
                 int vcn = getint(p), acn = getint(p), frags = getint(p), gun = getint(p);
-                playerent *victim = vcn==getclientnum() ? player1 : getclient(vcn),
-                          *actor = acn==getclientnum() ? player1 : getclient(acn);
+                playerent *victim = getclient(vcn), *actor = getclient(acn);
                 if(!actor) break;
                 if ( m_mp(gamemode) ) actor->frags = frags;
                 if(!victim) break;
@@ -916,7 +922,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             case SV_ITEMACC:
             {
                 int i = getint(p), cn = getint(p);
-                playerent *d = cn==getclientnum() ? player1 : getclient(cn);
+                playerent *d = getclient(cn);
                 pickupeffects(i, d);
                 break;
             }
@@ -1053,7 +1059,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             {
                 int fcn = getint(p);
                 int flags = getint(p);
-                playerent *p = (fcn == getclientnum() ? player1 : getclient(fcn));
+                playerent *p = getclient(fcn);
                 if(p) p->flagscore = flags;
                 break;
             }
@@ -1061,7 +1067,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             case SV_ARENAWIN:
             {
                 int acn = getint(p);
-                playerent *alive = acn<0 ? NULL : (acn==getclientnum() ? player1 : getclient(acn));
+                playerent *alive = getclient(acn);
                 conoutf(_("the round is over! next round in 5 seconds..."));
                 if(m_botmode && acn==-2) hudoutf(_("the bots have won the round!"));
                 else if(!alive) hudoutf(_("everyone died!"));
@@ -1169,7 +1175,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                                         break;
                                 }
                             }
-                            if(you && !team_isspect(d->team) && team_isspect(fnt) && d->state == CS_DEAD) spectate(SM_FLY);
+                            if(you && !team_isspect(d->team) && team_isspect(fnt) && d->state == CS_DEAD) spectatemode(SM_FLY);
                         }
                     }
                     else if(d->team != fnt && ftr == FTR_PLAYERWISH) conoutf(_("%s changed to active play"), you ? _("you") : colorname(d));
@@ -1282,7 +1288,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             case SV_WHOISINFO:
             {
                 int cn = getint(p);
-                playerent *pl = cn == getclientnum() ? player1 : getclient(cn);
+                playerent *pl = getclient(cn);
                 int ip = getint(p);
                 if(m_teammode) conoutf(_("%c0INFO: %c5%s has %d teamkills."), CC, CC, pl->name, pl->tks);
                 if((ip>>24&0xFF) > 0 || player1->clientrole==CR_ADMIN)

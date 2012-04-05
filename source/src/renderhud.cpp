@@ -436,22 +436,22 @@ void drawradar_showmap(playerent *p, int w, int h)
     quad(minimaptex, 0, 0, minimapviewsize, 0.0f, 0.0f, 1.0f);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glDisable(GL_BLEND);
-        
+
     float gdim = max(mapdims[4], mapdims[5]); //no border
     //float orthd = gdim/2.0f;
     //float displace = (minimapviewsize/orthd)/2.0f;
     float coordtrans = (minimapviewsize)/(gdim);
-    
+
     float offd = fabs(float(mapdims[5])-float(mapdims[4])) /2.0f;
     if(!gdim) { gdim = ssize/2.0f; offd = 0; }
     float offx = gdim==mapdims[5] ? offd : 0;
     float offy = gdim==mapdims[4] ? offd : 0;
-    
+
     vec mdd = vec(mapdims[0]-offx, mapdims[1]-offy, 0);
     vec cod(offx, offy, 0);
     vec ppv = vec(p->o).sub(mdd).mul(coordtrans);
 
-    if(team_isactive(p->team)) drawradarent(ppv.x, ppv.y, p->yaw, p->state==CS_ALIVE ? (isattacking(p) ? 2 : 0) : 1, 2, iconsize, isattacking(p), "%s", colorname(p)); // local player    
+    if(team_isactive(p->team)) drawradarent(ppv.x, ppv.y, p->yaw, p->state==CS_ALIVE ? (isattacking(p) ? 2 : 0) : 1, 2, iconsize, isattacking(p), "%s", colorname(p)); // local player
     loopv(players) // other players
     {
         playerent *pl = players[i];
@@ -692,7 +692,7 @@ void drawscores()
             desttime+=0.3;
             if(time < desttime) continue;
             drawmedals(left, top, 0, 0, tex);
-            playerent *mpl = a_medals[i].cn == getclientnum() ? player1 : getclient(a_medals[i].cn);
+            playerent *mpl = getclient(a_medals[i].cn);
             draw_textf("%s %s: %d", left+txtdx, top+txtdy, medal_str[i], mpl->name, a_medals[i].item); top+=medalsdy;
         }
     }
