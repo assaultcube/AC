@@ -814,13 +814,13 @@ int tsens(int x)
         "\fJSensitivity Training (hotkeys):\n\fE1. try High Sens. %s\n2. try Low Sens. %s\n\fJ%s :"
         "\fE\n3. choose: High Sens.\n4. choose: Low Sens.\n\fIrepeat the steps above until the training stops.\n\f35. Stop Training.",
         VIRTW/4  , VIRTH/3,
-        hightry?"(TRYED)":"" , lowtry?"(TRYED)":"",
+        hightry?"(TRIED)":"" , lowtry?"(TRIED)":"",
         hightry&&lowtry?"after trying both choose the one you liked most":"now you can choose the sensitivity you preferred");
         glPushMatrix(); glScalef(2,2,2);
         draw_textf("step: \f0%d",VIRTW/2  , VIRTH/3*2,nstep);
         glPopMatrix();
         }
-    return 0;
+        return 0;
     }
     if (x == SDLK_3 || x == SDLK_4)
     {
@@ -862,7 +862,7 @@ int tsens(int x)
                 }
             }
             if(sensh/sensn > 1.04f) {
-            conoutf("--- \f0you choose: the %ser sensitivity.",x==SDLK_3?"higher":"lower");
+            conoutf("--- \f0you chose the %ser sensitivity.",x==SDLK_3?"higher":"lower");
             conoutf("--- \f0repeat previous steps by trying both higher and lower sens and then by choosing the one you like most.");
             hudoutf("next step!");
             nstep++;
@@ -904,7 +904,7 @@ int tsens(int x)
         testsens=0;
         nstep=1;
     }
-return 0;
+    return 0;
 }
 
 void findsens()
