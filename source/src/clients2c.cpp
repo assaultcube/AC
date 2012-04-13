@@ -698,21 +698,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 break;
             }
 
-            case SV_SPECTATE:
-            {
-                int cn = getint(p);
-                playerent *s = getclient(cn);
-                if(!s) break;
-                s->state = CS_SPECTATE;
-                s->team = TEAM_SPECT;
-                if(s == player1)
-                {
-                    showscores(false);
-                    spectatemode(SM_FLY);
-                }
-                break;
-            }
-
             case SV_SHOTFX:
             {
                 int scn = getint(p), gun = getint(p);
@@ -1180,6 +1165,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                     }
                     else if(d->team != fnt && ftr == FTR_PLAYERWISH) conoutf(_("%s changed to active play"), you ? _("you") : colorname(d));
                     d->team = fnt;
+                    if(team_isspect(d->team)) d->state = CS_SPECTATE;
                 }
                 break;
             }

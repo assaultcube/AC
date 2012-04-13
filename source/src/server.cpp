@@ -1604,11 +1604,7 @@ bool updateclientteam(int cln, int newteam, int ftr)
                 if(m_teammode && autoteam && teamsizes[newteam] > teamsizes[team_opposite(newteam)]) return false; // don't switch to an already bigger team
             }
         }
-        else
-        {
-            if(team_isactive(cl.team) && cl.state.state != CS_DEAD) return false; // you need to be dead to change to spectator
-            if(mastermode != MM_MATCH || !m_teammode) newteam = TEAM_SPECT; // only match mode (team) has more than one spect team
-        }
+        else if(mastermode != MM_MATCH || !m_teammode) newteam = TEAM_SPECT; // only match mode (team) has more than one spect team
     }
     if(cl.team == newteam && ftr != FTR_AUTOTEAM) return true; // no change
     if(cl.team != newteam) sdropflag(cl.clientnum);
@@ -3027,19 +3023,6 @@ void process(ENetPacket *packet, int sender, int chan)
                     loopi(NUMGUNS) putint(cl->messages, cl->state.ammo[i]);
                     loopi(NUMGUNS) putint(cl->messages, cl->state.mag[i]);
                 });
-                break;
-            }
-
-            case SV_SPECTATE:
-            {
-                getint(p);      // clientnum
-                if(team_isspect(cl->team)) break;
-
-                if(cl->state.state == CS_ALIVE) serverdamage(cl, cl, INT_MAX, GUN_KNIFE, false);    // suicide if alive
-                cl->state.state = CS_SPECTATE;
-                cl->team = TEAM_SPECT;
-
-                sendf(-1, 1, "rii", SV_SPECTATE, cl->clientnum);
                 break;
             }
 

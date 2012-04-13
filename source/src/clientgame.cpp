@@ -1694,7 +1694,7 @@ playerent *updatefollowplayer(int shiftdirection)
 void spectate()
 {
     if(m_demo) return;
-    if(!team_isspect(player1->team)) addmsg(SV_SPECTATE, "ri", player1->clientnum);
+    if(!team_isspect(player1->team)) addmsg(SV_SWITCHTEAM, "ri", TEAM_SPECT);
     else tryrespawn();
 }
 
