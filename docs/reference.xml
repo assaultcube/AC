@@ -3221,9 +3221,17 @@ Output:
 					<value token="B" description="show mini-map" minValue="0" maxValue="1" defaultValue="0"/>
 				</variable>
 
-        <variable name="showmapbackdrop">
+				<variable name="showmapbackdrop">
 					<description>change wether to have a see-through map overview (0), or render it on a black backdrop (1) or a combination of both (2)</description>
 					<value token="B" description="backdrop-style" minValue="0" maxValue="2" defaultValue="0" />
+				</variable>
+
+				<variable name="showmapbackdroptransparency">
+					<description>Transparency of the black map backdrop (in percent) rendered if showmapbackdrop is set to 2.</description>
+					<value token="T" description="transparency" minValue="0" maxValue="100" defaultValue="75" />
+					<references>
+						<identifierReference identifier="showmapbackdrop"/>
+					</references>
 				</variable>
 
 				<variable name="showscoresondeath">
@@ -5074,6 +5082,11 @@ Output:
 					</arguments>
 				</command>
 
+				<variable name="scorefont">
+					<description>Whether a special monospace font should be used to render the text on the scoreboard.</description>
+					<value token="M" description="normal (0) or monospace (1)" minValue="0" maxValue="1" defaultValue="0" />
+				</variable>
+
 				<variable name="fov">
 					<description>Sets the field of view (fov).</description>
 					<value token="N" description="the FOV value" minValue="75" maxValue="120" defaultValue="90"/>
@@ -5357,15 +5370,35 @@ Output:
 				</variable>
 
 				<variable name="hwtexsize">
-					<value token="V" description="" minValue="1" maxValue="0" defaultValue="0"/>
+					<description>The maximum texture size (in pixels) supported by the graphics hardware.</description>
+					<value token="V" description="max. hardware texture size" minValue="1" maxValue="0" defaultValue="0"/>
 				</variable>
 
 				<variable name="maxtexsize">
-					<value token="V" description="" minValue="0" maxValue="4096" defaultValue="0"/>
+					<description>The maximum texture (if less than hwtexsize) that will actually be used by the engine, larger textures will be scaled down. 0 removes this limit.</description>
+					<value token="V" description="max. texture size" minValue="0" maxValue="4096" defaultValue="0"/>
+					<references>
+						<identifierReference identifier="hwtexsize"/>
+					</references>
 				</variable>
 
 				<variable name="trilinear">
 					<value token="V" description="" minValue="0" maxValue="1" defaultValue="1"/>
+				</variable>
+
+				<variable name="texreduce">
+					<description>Reduces the size of all texture by the selected factor:</description>
+					<description>-1: 2x2 : 0 : 1: x0.5 : 2: x0.25 : 3: x0.125</description>
+					<description>Note: -1 is a special mode which reduces all textures to flat coloured surfaces.</description>
+					<value token="S" description="scale selection" minValue="-1" maxValue="3" defaultValue="0" />
+				</variable>
+
+				<variable name="hirestextures">
+					<description>Controls whether textures with a scale higher than 1.0 will be scaled down while loading to increase performance (0) or stay at higher resolution (1).</description>
+					<value token="S" description="scale down?" minValue="0" maxValue="1" defaultValue="1" />
+					<references>
+						<identifierReference name="texture" identifier="texture"/>
+					</references>
 				</variable>
 
 				<variable name="bulletholettl">
@@ -6888,8 +6921,9 @@ Output:
 				</command>
 
 				<variable name="ambient">
-					<description>TODO</description>
-					<value token="N" description="TODO" minValue="0" maxValue="16777215" defaultValue="0" />
+					<description>Controls the ambient lighting of the map, i.e. how bright areas not affected by any light entities will appear.</description>
+					<description>This should be entered in hexadecimal notation, as 0xRRGGBB. If the green and blue are both zero, the input will be interpreted as a grayscale value.</description>
+					<value token="N" description="the ambient color" minValue="0" maxValue="16777215" defaultValue="0" />
 				</variable>
 
 				<variable name="applydialog">
@@ -6937,11 +6971,6 @@ Output:
 					<value token="N" description="TODO" minValue="0,001" maxValue="1000,0" defaultValue="0,5" />
 				</variable>
 
-				<variable name="scorefont">
-					<description>use monspacefont to render the scoreboard? or the default one?</description>
-					<value token="N" description="TODO" minValue="0" maxValue="1" defaultValue="0" />
-				</variable>
-
 				<variable name="sensitivityscale">
 					<description>TODO</description>
 					<value token="N" description="TODO" minValue="0,001" maxValue="1000,0" defaultValue="1,0" />
@@ -6950,29 +6979,6 @@ Output:
 				<variable name="testvel">
 					<description>TODO</description>
 					<value token="N" description="TODO" minValue="0" maxValue="1" defaultValue="0" />
-				</variable>
-
-				<variable name="texreduce">
-					<description>-1: 2x2 : 0 : 1: x0.5 : 2: x0.25 : 3: x0.125</description>
-					<value token="N" description="TODO" minValue="-1" maxValue="3" defaultValue="0" />
-				</variable>
-
-				<variable name="hirestextures">
-					<description>controls whether textures with a scale higher than 1.0 will be scaled down while loading to increase performance (0) or stay at higher resolution (1).</description>
-					<value token="N" description="TODO" minValue="0" maxValue="1" defaultValue="1" />
-					<references>
-						<identifierReference name="texture" identifier="texture"/>
-					</references>
-				</variable>
-
-				<variable name="texturescale">
-					<description>TODO</description>
-					<value token="N" description="TODO" minValue="16" maxValue="64" defaultValue="32" />
-				</variable>
-
-				<variable name="showmapbackdroptransparency">
-					<description></description>
-					<value token="T" description="transparency" minValue="0" maxValue="100" defaultValue="75" />
 				</variable>
 
 				<command name="showedithide">
