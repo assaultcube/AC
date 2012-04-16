@@ -632,8 +632,6 @@ void renderclient(playerent *d, const char *mdlname, const char *vwepname, int t
             numattach++;
         }
     }
-    // FIXME: while networked my state as spectator seems to stay CS_DEAD, not CS_SPECTATE
-    // flowtron: I fixed this for following at least (see followplayer())
     if(player1->isspectating() && d->clientnum == player1->followplayercn && player1->spectatemode == SM_FOLLOW3RD_TRANSPARENT)
     {
         anim |= ANIM_TRANSLUCENT; // see through followed player

@@ -4756,7 +4756,7 @@ Output:
 					<value token="V" description="show/hide guns 3D models" minValue="0" maxValue="1" defaultValue="1"/>
 				</variable>
 
-				<variable name="spechudgun">
+				<variable name="specthudgun">
 					<description>Turns on/off the display of the hudgun while spectating a player in first-person view. Works in demo mode as well.</description>
 					<value token="V" description="show/hide hudgun when spectating" minValue="0" maxValue="1" defaultValue="1"/>
 				</variable>

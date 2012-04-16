@@ -797,21 +797,21 @@ void drawminimap(int w, int h)
     camera1->type = ENT_CAMERA;
     camera1->o.x = mapdims[0] + mapdims[4]/2.0f;
     camera1->o.y = mapdims[1] + mapdims[5]/2.0f;
-    
+
     //float gdim = max(mapdims[4], mapdims[5])+2.0f; //make 1 cube smaller to give it a black edge
     float gdim = max(mapdims[4], mapdims[5]); //no border
-    
+
     if(!gdim) gdim = ssize/2.0f;
     camera1->o.z = mapdims[7] + 1;
     camera1->pitch = -90;
     camera1->yaw = 0;
-    
-    //float orthd = 2 + gdim/2;    
+
+    //float orthd = 2 + gdim/2;
     //glViewport(2, 2, size-4, size-4); // !not wsize here
-        
-    float orthd = gdim/2.0f;    
+
+    float orthd = gdim/2.0f;
     glViewport(0, 0, size, size); // !not wsize here
-    
+
     glClearDepth(0.0);
     glClearColor(0, 0, 0, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT); // stencil added 2010jul22
@@ -838,7 +838,7 @@ void drawminimap(int w, int h)
     resettmu(0);
     float hf = hdr.waterlevel-0.3f;
     renderwater(hf, 0, 0);
-    
+
     //draw a black border to prevent the minimap texture edges from bleeding in radarview
     GLfloat prevLineWidth;
     glGetFloatv(GL_LINE_WIDTH, &prevLineWidth);
@@ -853,7 +853,7 @@ void drawminimap(int w, int h)
     glEnd();
     glLineWidth(prevLineWidth);
     glEnable(GL_BLEND);
-  
+
     camera1 = oldcam;
     minimap = false;
     glBindTexture(GL_TEXTURE_2D, minimaptex);
@@ -893,7 +893,7 @@ void resetzone()
 int xtraverts;
 
 VARP(hudgun, 0, 1, 1);
-VARP(spechudgun, 0, 1, 1);
+VARP(specthudgun, 0, 1, 1);
 
 void setperspective(float fovy, float aspect, float nearplane, float farplane)
 {
@@ -928,7 +928,7 @@ void drawhudgun(int w, int h, float aspect, int farplane)
 {
     sethudgunperspective(true);
 
-    if(hudgun && (spechudgun || !player1->isspectating()) && camera1->type==ENT_PLAYER)
+    if(hudgun && (specthudgun || !player1->isspectating()) && camera1->type==ENT_PLAYER)
     {
         playerent *p = (playerent *)camera1;
         if(p->state==CS_ALIVE) p->weaponsel->renderhudmodel();
