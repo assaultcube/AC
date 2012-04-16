@@ -3067,10 +3067,7 @@ Output:
 				</command>
 
 				<command name="spectate">
-					<description>Toggles spectator mode. If you are alive while changing into spectator mode, suicide will be invoked.</description>
-					<references>
-						<identifierReference identifier="suicide"/>
-					</references>
+					<description>Toggles spectator mode.</description>
 				</command>
 
 				<command name="stopdemo">
