@@ -245,7 +245,7 @@ int connectwithtimeout(ENetSocket sock, const char *hostname, ENetAddress &addre
         return result;
     }
 
-    defformatstring(text)("connecting to %s... (esc to abort)", hostname);
+    defformatstring(text)("connecting to %s:%d... (esc to abort)", hostname, address.port);
     show_out_of_renderloop_progress(0, text);
 
     if(!connmutex) connmutex = SDL_CreateMutex();
@@ -1283,8 +1283,7 @@ void retrieveservers(vector<char> &data)
     }
     clfail = false;
 
-    extern string mastername;
-    defformatstring(text)("retrieving servers from %s... (esc to abort)", mastername);
+    defformatstring(text)("retrieving servers from %s:%d... (esc to abort)", mastername, masterport);
     show_out_of_renderloop_progress(0, text);
 
     int starttime = SDL_GetTicks(), timeout = 0;
