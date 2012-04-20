@@ -167,25 +167,23 @@ void renderdiscscores(int team)
 }
 
 VARP(cncolumncolor, 0, 5, 9);
-char lagping[20];
 
 void renderscore(playerent *d)
 {
     const char *status = "";
+    string lagping;
     static color localplayerc(0.2f, 0.2f, 0.2f, 0.2f);
     if(d->clientrole==CR_ADMIN) status = d->state==CS_DEAD ? "\f7" : "\f3";
     else if(d->state==CS_DEAD) status = "\f4";
     const char *spect = team_isspect(d->team) ? "\f4" : "";
     //float ratio = SCORERATIO(d->frags, d->deaths);
-    if (team_isspect(d->team)) copystring(lagping, "SPECT", 5);
-    else if (d->state==CS_LAGGED || (d->ping > 999 && d->plag > 99)) copystring(lagping, "LAG", 3);
+    if (team_isspect(d->team)) copystring(lagping, "SPECT");
+    else if (d->state==CS_LAGGED || (d->ping > 999 && d->plag > 99)) copystring(lagping, "LAG");
     else
     {
         if(multiplayer(false)) formatstring(lagping)("%s/%s", colorpj(d->plag), colorping(d->ping));
         else formatstring(lagping)("%d/%d", d->plag, d->ping);
     }
-    /*const char *clag = team_isspect(d->team) ? "SPECT" : (d->state==CS_LAGGED ? "LAG" : colorpj(d->plag));
-    const char *cping = colorping(d->ping);*/
     const char *ign = d->ignored ? " (ignored)" : (d->muted ? " (muted)" : "");
     sline &line = scorelines.add();
     line.bgcolor = d==player1 ? &localplayerc : NULL;
