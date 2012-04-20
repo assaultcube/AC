@@ -19,6 +19,7 @@ int connectwithtimeout(ENetSocket sock, const char *hostname, ENetAddress &remot
 ENetSocket mastersock = ENET_SOCKET_NULL;
 ENetAddress masteraddress = { ENET_HOST_ANY, ENET_PORT_ANY }, serveraddress = { ENET_HOST_ANY, ENET_PORT_ANY };
 string mastername = AC_MASTER_URI;
+int masterport = AC_MASTER_PORT;
 int lastupdatemaster = 0;
 vector<char> masterout, masterin;
 int masteroutpos = 0, masterinpos = 0;
@@ -48,8 +49,8 @@ ENetSocket connectmaster()
 
     if(masteraddress.host == ENET_HOST_ANY)
     {
-        logline(ACLOG_INFO, "looking up %s...", mastername);
-        masteraddress.port = AC_MASTER_PORT;
+        logline(ACLOG_INFO, "looking up %s:%d...", mastername, masterport);
+        masteraddress.port = masterport;
         if(!resolverwait(mastername, &masteraddress)) return ENET_SOCKET_NULL;
     }
     ENetSocket sock = enet_socket_create(ENET_SOCKET_TYPE_STREAM);
