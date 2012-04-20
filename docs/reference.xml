@@ -6715,9 +6715,9 @@ Output:
 						<remark>The texture is rendered at the given scale. At scale 1.0 (or if scale is 0), 32x32 texels cover one cube. At scale 2.0, which is the current maximum, it's 64x64.</remark>
 					</remarks>
 					<references>
-						<identifierReference name="texture" identifier="loadnotexture"/>
-						<identifierReference name="texturereset" identifier="texturereset"/>
-						<identifierReference name="hirestextures" identifier="hirestextures"/>
+						<identifierReference identifier="loadnotexture"/>
+						<identifierReference identifier="texturereset"/>
+						<identifierReference identifier="hirestextures"/>
 					</references>
 					<arguments>
 						<argument token="S" description="Scale of the texture to load (should be a power of two)." valueNotes="Float"/>
