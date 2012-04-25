@@ -373,7 +373,6 @@ void pingservers(bool issearch, serverinfo *onlyconnected)
         if(si->getinfo == EXTPING_SERVERINFO)
         {
             putint(p, EXTPING_SERVERINFO);
-            extern const char *lang;
             const char *silang;
             if(strlen(lang) != 2) silang = "en";
             else silang = lang;
