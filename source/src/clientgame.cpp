@@ -1250,11 +1250,13 @@ void flagmsg(int flag, int message, int actor, int flagtime)
     playerent *act = getclient(actor);
     if(actor != getclientnum() && !act && message != FM_RESET) return;
     bool own = flag == team_base(player1->team);
+    bool neutral = team_isspect(player1->team);
     bool firstperson = actor == getclientnum();
     bool teammate = !act ? true : isteam(player1->team, act->team);
     bool firstpersondrop = false;
-    const char *teamstr = m_ktf ? "the" : own ? "your" : "the enemy";
-    const char *flagteam = m_ktf ? (teammate ? "your teammate " : "your enemy ") : "";
+    defformatstring(ownerstr)("the %s", teamnames[flag]);
+    const char *teamstr = m_ktf ? "the" : neutral ? ownerstr : own ? "your" : "the enemy";
+    const char *flagteam = (m_ktf && !neutral) ? (teammate ? "your teammate " : "your enemy ") : "";
 
     if(identexists("onFlag"))
     {
@@ -1299,7 +1301,7 @@ void flagmsg(int flag, int message, int actor, int flagtime)
                 hudoutf("\f2you scored");
                 if(m_ctf) firstpersondrop = true;
             }
-            else hudoutf("\f2%s scored for %s team", colorname(act), teammate ? "your" : "the enemy");
+            else hudoutf("\f2%s scored for %s", colorname(act), neutral ? teamnames[act->team] : teammate ? "your team" : "the enemy team");
             break;
         case FM_KTFSCORE:
         {
