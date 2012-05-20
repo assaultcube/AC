@@ -64,7 +64,7 @@ void topt(sqr *s, bool &wf, bool &uf, int &wt, int &ut)
     o[1] = SWS(s,0,1,sfactor);
     o[2] = SWS(s,1,0,sfactor);
     o[3] = SWS(s,-1,0,sfactor);
-    wf = true;
+     wf = true;
     uf = true;
     if(SOLID(s))
     {
@@ -74,14 +74,29 @@ void topt(sqr *s, bool &wf, bool &uf, int &wt, int &ut)
             wt = s->wtex;
             ut = s->utex;
             return;
-        }
+         }
     }
     else
     {
         loopi(4) if(!SOLID(o[i]))
         {
-            if(o[i]->floor<s->floor) { wt = s->wtex; wf = false; }
-            if(o[i]->ceil>s->ceil)   { ut = s->utex; uf = false; }
+            //don't corrupt non-matching cube types
+            if (o[i]->type != s->type)
+            {
+                wf = false;
+                uf = false;
+                wt = s->wtex;
+                ut = s->utex;
+                return;
+            }
+
+            //wall
+            if(o[i]->floor < s->floor)
+            { wt = s->wtex; wf = false; }
+
+            //upper wall
+            if(o[i]->ceil > s->ceil)
+             { ut = s->utex; uf = false; }
         }
     }
 }
