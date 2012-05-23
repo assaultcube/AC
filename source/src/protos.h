@@ -474,7 +474,7 @@ extern void undodynlights();
 extern void cleardynlights();
 extern void removedynlights(physent *owner);
 extern block *blockcopy(const block &b);
-extern void blockpaste(const block &b, int bx, int by);
+extern void blockpaste(const block &b, int bx, int by, bool light);
 extern void blockpaste(const block &b);
 extern void freeblock(block *&b);
 
