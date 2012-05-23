@@ -337,16 +337,37 @@ block *blockcopy(const block &s)
     return b;
 }
 
-void blockpaste(const block &b, int bx, int by)
+void blockpaste(const block &b, int bx, int by, bool light)
 {
     const sqr *q = (const sqr *)((&b)+1);
-    for(int y = by; y<b.ys+by; y++) for(int x = bx; x<b.xs+bx; x++) *S(x,y) = *q++;
+    sqr *dest = 0;
+    uchar tr, tg, tb;
+
+    for(int y = by; y<b.ys+by; y++)
+    for(int x = bx; x<b.xs+bx; x++)
+    {
+        dest = S(x,y);
+
+        // retain light info for edit mode paste
+        tr = dest->r;
+        tg = dest->g;
+        tb = dest->b;
+
+        *dest = *q++;
+
+        if (light) //edit mode paste
+        {
+            dest->r = tr;
+            dest->g = tg;
+            dest->b = tb;
+        }
+    }
     remipmore(b);
 }
 
 void blockpaste(const block &b)
 {
-    blockpaste(b, b.x, b.y);
+    blockpaste(b, b.x, b.y, false);
 }
 
 void freeblock(block *&b)
