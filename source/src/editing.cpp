@@ -305,6 +305,7 @@ void paste()
             makeundo(sel);
             blockpaste(*copyblock, sel.x, sel.y);
         }
+        remipmore(sel);
     }
 }
 
