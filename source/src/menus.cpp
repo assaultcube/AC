@@ -1197,7 +1197,7 @@ void gmenu::conprintmenu()
 
 void gmenu::init()
 {
-    if(dirlist && dirlist->ext != NULL)
+    if(dirlist && ((dirlist->dir != NULL) && (dirlist->ext != NULL)))
     {
         items.deletecontents();
         vector<char *> files;
