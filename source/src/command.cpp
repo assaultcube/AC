@@ -1263,6 +1263,9 @@ void testchar(char *s, char *type)
         case 7:
             if(isspace(s[0]) != 0) { intret(1); return; }
             break;
+        case 8: // Without this it is impossible to determine if a character === " in cubescript
+            if(!strcmp(s, "\"")) { intret(1); return; }
+            break;
         default:
             if(isdigit(s[0]) != 0) { intret(1); return; }
             break;
