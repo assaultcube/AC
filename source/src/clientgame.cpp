@@ -288,7 +288,8 @@ void playerinfo(const char *cn, const char *attr)
     playerent *p = clientnum < 0 ? player1 : getclient(clientnum);
     if(!p)
     {
-        conoutf("invalid clientnum");
+        if(!m_botmode && multiplayer(false)) // bot clientnums are still glitchy, causing this message to sometimes appear in offline/singleplayer when it shouldn't??? -Bukz 2012may
+            conoutf("invalid clientnum cn: %s attr: %s", cn, attr);
         return;
     }
 
@@ -328,7 +329,7 @@ void playerinfo(const char *cn, const char *attr)
     ATTR_INT(alive, p->state == CS_ALIVE ? 1 : 0);
     ATTR_INT(spec, p->team == TEAM_SPECT || p->spectatemode == SM_FLY ? 1 : 0);
     ATTR_INT(cn, p->clientnum); // only useful to get player1's client number.
-    conoutf("invalid attribute");
+    conoutf("invalid attribute: %s", attr);
 }
 
 void playerinfolocal(const char *attr)
@@ -345,7 +346,7 @@ void teaminfo(const char *team, const char *attr)
     int t = atoi(team); // get player clientnum
     if(!team_isactive(t))
     {
-        conoutf("invalid team");
+        conoutf("invalid team: %s", team);
         return;
     }
     int t_flags = 0;
@@ -389,7 +390,7 @@ void teaminfo(const char *team, const char *attr)
     ATTR_INT(points, t_points);
     ATTR_STR(name, team_string(t));
     ATTR_STR(players, teammembers);
-    conoutf("invalid attribute");
+    conoutf("invalid attribute: %s", attr);
 }
 
 COMMAND(teaminfo, ARG_2STR);
