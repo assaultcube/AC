@@ -1270,6 +1270,158 @@ echo foo
             <identifierReference identifier="add2list"/>
           </references>
         </scriptalias>
+        
+        <command name="MDArray_New_Subarray">
+          <description>Adds a subarray to a cubescript multidimensional array. (alias)</description>
+          <examples>
+             <example>
+            <code><![CDATA[MDArray_New_Subarray test words "how now brown cow"; echo (MDArray_Get test words -1); echo (MDArray_Get test words 2)]]></code>
+            <explanation>Output: how now brown cow</explanation>
+            <explanation>Output: brown</explanation>
+           </example>
+          </examples>
+          <arguments>
+            <argument token="A" description="name of alias (multidimensional array)"/>
+            <argument token="N" description="name of subarray to create"/>
+            <argument token="C" description="subarray content (string)"/>
+          </arguments>
+          <references>
+            <identifierReference identifier="MDArray_Get"/>
+            <identifierReference identifier="MDArray_Modify_Subarray"/>
+            <identifierReference identifier="MDArray_Delete_Subarray"/>
+            <identifierReference identifier="MDArray_Get_Subarray_Count"/>
+            <identifierReference identifier="MDArray_Get_All_Subarray_Names"/>
+            <identifierReference identifier="MDArray_Search"/>
+          </references>
+        </command>
+        
+        <command name="MDArray_Get">
+          <description>Returns a subarray or a subarray element of a cubescript multidimensional array.</description>
+          <examples>
+             <example>
+            <code><![CDATA[MDArray_New_Subarray test words "how now brown cow"; echo (MDArray_Get test words -1); echo (MDArray_Get test words 2)]]></code>
+            <explanation>Output: how now brown cow</explanation>
+            <explanation>Output: brown</explanation>
+           </example>
+          </examples>
+          <arguments>
+            <argument token="A" description="name of alias (multidimensional array)"/>
+            <argument token="N" description="name of target subarray to get"/>
+            <argument token="E" description="element # of subarray to get (-1 to return the whole subarray)"/>
+          </arguments>
+          <references>
+            <identifierReference identifier="MDArray_New_Subarray"/>
+            <identifierReference identifier="MDArray_Modify_Subarray"/>
+            <identifierReference identifier="MDArray_Delete_Subarray"/>
+            <identifierReference identifier="MDArray_Get_Subarray_Count"/>
+            <identifierReference identifier="MDArray_Get_All_Subarray_Names"/>
+            <identifierReference identifier="MDArray_Search"/>
+          </references>
+        </command>
+        
+        <command name="MDArray_Modify_Subarray">
+          <description>Modifies a subarray element of a cubescript multidimensional array.</description>
+          <examples>
+            <example>
+              <code><![CDATA[MDArray_New_Subarray test numbers "1 2 3 4 5"; MDArray_Modify_Subarray test numbers 2 9; echo (MDArray_Get test numbers -1)]]></code>
+              <explanation>Output: 1 2 9 4 5</explanation>
+            </example>
+          </examples>
+          
+          <arguments>
+            <argument token="A" description="name of alias (multidimensional array)"/>
+            <argument token="N" description="name of target subarray to modify"/>
+            <argument token="E" description="element # of subarray to modify"/>
+            <argument token="C" description="new value of subarray element"/>
+          </arguments>
+          <references>
+            <identifierReference identifier="MDArray_New_Subarray"/>
+            <identifierReference identifier="MDArray_Get"/>
+            <identifierReference identifier="MDArray_Delete_Subarray"/>
+            <identifierReference identifier="MDArray_Get_Subarray_Count"/>
+            <identifierReference identifier="MDArray_Get_All_Subarray_Names"/>
+            <identifierReference identifier="MDArray_Search"/>
+          </references>
+        </command>
+        
+        <command name="MDArray_Delete_Subarray">
+          <description>Deletes an entire subarray from an existing cubescript multidimensional array.</description>
+          <arguments>
+            <argument token="A" description="name of alias (multidimensional array)"/>
+            <argument token="N" description="name of target subarray to delete"/>
+          </arguments>
+          <references>
+            <identifierReference identifier="MDArray_New_Subarray"/>
+            <identifierReference identifier="MDArray_Get"/>
+            <identifierReference identifier="MDArray_Modify_Subarray"/>
+            <identifierReference identifier="MDArray_Get_Subarray_Count"/>
+            <identifierReference identifier="MDArray_Get_All_Subarray_Names"/>
+            <identifierReference identifier="MDArray_Search"/>
+          </references>
+        </command>
+        
+        <command name="MDArray_Get_Subarray_Count">
+          <description>Returns the number of subarrays in a cubescript multidimensional array.</description>
+          <arguments>
+            <argument token="A" description="name of alias (multidimensional array)"/>
+          </arguments>
+          <references>
+            <identifierReference identifier="MDArray_New_Subarray"/>
+            <identifierReference identifier="MDArray_Get"/>
+            <identifierReference identifier="MDArray_Modify_Subarray"/>
+            <identifierReference identifier="MDArray_Delete_Subarray"/>
+            <identifierReference identifier="MDArray_Get_All_Subarray_Names"/>
+            <identifierReference identifier="MDArray_Search"/>
+          </references>
+        </command>
+        
+        <command name="MDArray_Get_All_Subarray_Names">
+          <description>Returns a list of all subarray names in a cubescript multidimensional array.</description>
+          <examples>
+             <example>
+            <code><![CDATA[MDArray_New_Subarray test chars "a b c d e f"; MDArray_New_Subarray test words "how now brown cow"; echo (MDArray_Get_All_Subarray_Names test)]]></code>
+            <explanation>Output: chars words</explanation>
+           </example>
+          </examples>
+          <arguments>
+            <argument token="A" description="name of alias (multidimensional array)"/>
+          </arguments>
+          <references>
+            <identifierReference identifier="MDArray_New_Subarray"/>
+            <identifierReference identifier="MDArray_Get"/>
+            <identifierReference identifier="MDArray_Modify_Subarray"/>
+            <identifierReference identifier="MDArray_Delete_Subarray"/>
+            <identifierReference identifier="MDArray_Get_Subarray_Count"/>
+            <identifierReference identifier="MDArray_Search"/>
+          </references>
+        </command>
+        
+        <command name="MDArray_Search">
+          <description>Returns a list of all subarray names that have content matching a specific keyword.</description>
+          <examples>
+             <example>
+            <code><![CDATA[
+              MDArray_New_Subarray test words "how now brown cow";
+              MDArray_New_Subarray test days "monday tuesday wednesday thursday friday saturday sunday";
+              MDArray_New_Subarray test sentences [ "his shirt was brown" "her shirt was white" ];
+              echo (MDArray_Search test brown)
+            ]]></code>
+            <explanation>Output: words sentences</explanation>
+           </example>
+          </examples>
+          <arguments>
+            <argument token="A" description="name of alias (multidimensional array)"/>
+            <argument token="K" description="keyword to search for"/>
+          </arguments>
+          <references>
+            <identifierReference identifier="MDArray_New_Subarray"/>
+            <identifierReference identifier="MDArray_Get"/>
+            <identifierReference identifier="MDArray_Modify_Subarray"/>
+            <identifierReference identifier="MDArray_Delete_Subarray"/>
+            <identifierReference identifier="MDArray_Get_Subarray_Count"/>
+            <identifierReference identifier="MDArray_Get_All_Subarray_Names"/>
+          </references>
+        </command>
 
 			</identifiers>
 		</section>
