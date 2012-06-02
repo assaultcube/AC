@@ -5087,7 +5087,7 @@ Output:
 				</command>
 
 				<command name="screenres">
-					<description>Changes the screen resolution, available only for LINUX</description>
+					<description>Changes the screen resolution</description>
 					<arguments>
 						<argument token="W" description="width"/>
 						<argument token="H" description="height"/>
