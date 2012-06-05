@@ -3630,21 +3630,30 @@ Output:
 				<command name="addpath1way2"/>
 				<command name="addpath2way1"/>
 				<command name="addpath2way2"/>
+
 				<command name="addwp">
-					<argument token="A" description="autoconnect" valueNotes="0||1"/>
+					<description>Adds a bot waypoint at the current position.</description>
+					<arguments>
+						<argument token="A" description="connect automatically" valueNotes="0 or 1"/>
+					</arguments>
 				</command>
 
 				<command name="autowp">
-					<argument token="O" description="on" valueNotes="0||1"/>
+					<description>Automatically place waypoints.</description>
+					<argument token="O" description="on" valueNotes="0 or 1"/>
 				</command>
 
 				<command name="delpath1way1"/>
 				<command name="delpath1way2"/>
 				<command name="delpath2way1"/>
 				<command name="delpath2way2"/>
-				<command name="delwp"/>
+
+				<command name="delwp">
+					<description>Deletes the selected waypoint.</description>
+				</command>
+
 				<command name="applymapsoundchanges">
-					<description>during map editing, drop all mapsounds so they can be re-added</description>
+					<description>During map editing, drop all mapsounds so they can be re-added.</description>
 				</command>
 
 				<variable name="editing">
@@ -3963,7 +3972,7 @@ Output:
 				<command name="newent ctf-flag">
 					<description>Adds a CTF flag entity.</description>
 					<remarks>
-						<remark>Note that this entity is only rendered as flag if the current game mode is CTF.</remark>
+						<remark>Note that outside of edit mode, this entity is only rendered as flag if the current game mode is CTF.</remark>
 					</remarks>
 					<arguments>
 						<argument token="T" description="denotes the flag's team" valueNotes="0 (CLA), 1 (RVSF)"/>
@@ -4120,10 +4129,10 @@ Output:
 					</arguments>
 				</command>
 
-        <variable name="mapbackupsonsave">
-          <description>Determines if map backups (.bak) should be created when a map is saved.</description>
-          <value token="N" description="0 off, 1 on" minValue="0" maxValue="1" defaultValue="1" />
-        </variable>
+				<variable name="mapbackupsonsave">
+					<description>Determines if map backups (.bak) should be created when a map is saved.</description>
+					<value token="N" description="0 off, 1 on" minValue="0" maxValue="1" defaultValue="1" />
+				</variable>
 
 				<command name="newmap">
 					<description>Creates a new map.</description>
@@ -4288,6 +4297,12 @@ Output:
 						<argument token="H" description="the water level" valueNotes="integer"/>
 					</arguments>
 				</command>
+
+				<variable name="ambient">
+					<description>Controls the ambient lighting of the map, i.e. how bright areas not affected by any light entities will appear.</description>
+					<description>This should be entered in hexadecimal notation, as 0xRRGGBB. If the green and blue are both zero, the input will be interpreted as a grayscale value.</description>
+					<value token="N" description="the ambient color" minValue="0x000000" maxValue="0xFFFFFF" defaultValue="0" />
+				</variable>
 
 				<command name="fullbright">
 					<description>Sets all light values to fullbright.</description>
@@ -6081,6 +6096,7 @@ Output:
 				</command>
 
 				<variable name="showallservers">
+					<description>Whether servers that have not yet responded to a ping should be shown in the server list.</description>
 					<value token="V" description="" minValue="0" maxValue="1" defaultValue="1"/>
 				</variable>
 
@@ -6101,7 +6117,8 @@ Output:
 				</variable>
 
 				<variable name="maxservpings">
-					<value token="V" description="" minValue="0" maxValue="1000" defaultValue="0"/>
+					<description>Sets the number of servers to be pinged at once.</description>
+					<value token="V" description="" minValue="0" maxValue="1000" defaultValue="10"/>
 				</variable>
 
 				<command name="addfavcategory">
@@ -6229,12 +6246,23 @@ Output:
 					</arguments>
 				</command>
 
-        <command name="forceme">
-          <description>Calls a vote to forceteam yourself to the enemy team.</description>
-          <references>
-            <identifierReference identifier="forceteam"/>
-          </references>
-        </command>
+				<command name="forceme">
+					<description>Calls a vote to forceteam yourself to the enemy team.</description>
+					<references>
+						<identifierReference identifier="forceteam"/>
+					</references>
+				</command>
+
+				<command name="shuffleteams">
+					<description>
+						Shuffles the teams. The server will attempt to restore balance, but the result may
+						be less that optimal, and there are certainly better ways to keep teams balanced.
+					</description>
+					<references>
+						<identifierReference identifier="forceteam"/>
+						<identifierReference identifier="forceme"/>
+					</references>
+				</command>
 
 				<command name="giveadmin">
 					<description>Gives admin state to the specified player.</description>
@@ -6281,6 +6309,10 @@ Output:
 						<identifierReference identifier="ban"/>
 						<identifierReference identifier="setadmin"/>
 					</references>
+				</command>
+
+				<command name="cleardemos">
+					<description>Clears all demos currently in memory on the server.</description>
 				</command>
 
 				<command name="sendmap">
@@ -6949,13 +6981,6 @@ Output:
 					<description>deletes the passed alias.</description>
 				</command>
 
-				<command name="shuffleteam">
-					<description>Shuffles the teams</description>
-				</command>
-				<command name="cleardemos">
-					<description>Clears all demos currently in memory on the server.</description>
-				</command>
-
 				<command name="getdemonameformat">
 					<description>returns the currently used formatstring for demo filenames</description>
 					<references>
@@ -7102,12 +7127,6 @@ Output:
   						<argument token="A" description="TODO"/>
 					</arguments>
 				</command>
-
-				<variable name="ambient">
-					<description>Controls the ambient lighting of the map, i.e. how bright areas not affected by any light entities will appear.</description>
-					<description>This should be entered in hexadecimal notation, as 0xRRGGBB. If the green and blue are both zero, the input will be interpreted as a grayscale value.</description>
-					<value token="N" description="the ambient color" minValue="0" maxValue="16777215" defaultValue="0" />
-				</variable>
 
 				<variable name="applydialog">
 					<description>do you <i>really</i> want to quit?</description>
