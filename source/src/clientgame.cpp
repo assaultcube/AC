@@ -265,8 +265,8 @@ COMMANDN(team, newteam, ARG_1STR);
 COMMANDN(name, newname, ARG_1STR);
 COMMAND(benchme, ARG_NONE);
 ICOMMANDF(isclient, ARG_1EXP, (int cn) { return getclient(cn) != NULL ? 1 : 0; } );
-ICOMMANDF(isSpect, ARG_IVAL, (void) { return (player1->team==TEAM_SPECT || player1->spectatemode==SM_FLY); });
-ICOMMANDF(currole, ARG_IVAL, (void) { return player1->clientrole; });
+//ICOMMANDF(isSpect, ARG_IVAL, (void) { return (player1->team==TEAM_SPECT || player1->spectatemode==SM_FLY); }); // Moved to /config/compatibility.cfg
+//ICOMMANDF(currole, ARG_IVAL, (void) { return player1->clientrole; }); // Moved to /config/compatibility.cfg
 ICOMMANDF(curmastermode, ARG_IVAL, (void) { return servstate.mastermode; });
 ICOMMANDF(curautoteam, ARG_IVAL, (void) { return servstate.autoteam; });
 COMMAND(curmodeattr, ARG_1EST);
@@ -327,7 +327,7 @@ void playerinfo(const char *cn, const char *attr)
     ATTR_INT(deaths, p->deaths);
     ATTR_INT(tks, p->tks);
     ATTR_INT(alive, p->state == CS_ALIVE ? 1 : 0);
-    ATTR_INT(spec, p->team == TEAM_SPECT || p->spectatemode == SM_FLY ? 1 : 0);
+    ATTR_INT(spect, p->team == TEAM_SPECT || p->spectatemode == SM_FLY ? 1 : 0);
     ATTR_INT(cn, p->clientnum); // only useful to get player1's client number.
     conoutf("invalid attribute: %s", attr);
 }
@@ -1609,6 +1609,7 @@ void findcn(char *name)
 }
 COMMAND(findcn, ARG_1STR);
 
+/* moved to /config/compatibility.cfg
 void findpn(int cn)
 {
     loopv(players) if(players[i] && players[i]->clientnum == cn)
@@ -1620,6 +1621,7 @@ void findpn(int cn)
     result("");
 }
 COMMAND(findpn, ARG_1INT);
+*/
 
 int sessionid = 0;
 
@@ -1778,8 +1780,8 @@ COMMAND(togglespect, ARG_NONE);
 COMMAND(changefollowplayer, ARG_1INT);
 COMMAND(setfollowplayer, ARG_1INT);
 
-int isalive() { return player1->state==CS_ALIVE ? 1 : 0; }
-COMMANDN(alive, isalive, ARG_IVAL);
+//int isalive() { return player1->state==CS_ALIVE ? 1 : 0; }
+//COMMANDN(alive, isalive, ARG_IVAL); // Moved to /config/compatibility.cfg
 
 void serverextension(char *ext, char *args)
 {
