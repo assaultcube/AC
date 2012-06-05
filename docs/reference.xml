@@ -1286,6 +1286,31 @@ echo foo
             <argument token="C" description="subarray content (string)"/>
           </arguments>
           <references>
+            <identifierReference identifier="MDArray_Add_To_Subarray"/>
+            <identifierReference identifier="MDArray_Get"/>
+            <identifierReference identifier="MDArray_Modify_Subarray"/>
+            <identifierReference identifier="MDArray_Delete_Subarray"/>
+            <identifierReference identifier="MDArray_Get_Subarray_Count"/>
+            <identifierReference identifier="MDArray_Get_All_Subarray_Names"/>
+            <identifierReference identifier="MDArray_Search"/>
+          </references>
+        </command>
+        
+        <command name="MDArray_Add_To_Subarray">
+          <description>Adds a string to an existing subarray in a cubescript multidimensional array.</description>
+          <examples>
+             <example>
+            <code><![CDATA[MDArray_New_Subarray test list1 "this is part of list1"; MDArray_Add_To_Subarray test list1 "and so is this"; echo (MDArray_Get test list1 -1)]]></code>
+            <explanation>Output: "this is part of list1" "and so is this"</explanation>
+           </example>
+          </examples>
+          <arguments>
+            <argument token="A" description="name of alias (multidimensional array)"/>
+            <argument token="N" description="name of target subarray to add to"/>
+            <argument token="C" description="string to add to target subarray"/>
+          </arguments>
+          <references>
+            <identifierReference identifier="MDArray_New_Subarray"/>
             <identifierReference identifier="MDArray_Get"/>
             <identifierReference identifier="MDArray_Modify_Subarray"/>
             <identifierReference identifier="MDArray_Delete_Subarray"/>
@@ -1311,6 +1336,7 @@ echo foo
           </arguments>
           <references>
             <identifierReference identifier="MDArray_New_Subarray"/>
+            <identifierReference identifier="MDArray_Add_To_Subarray"/>
             <identifierReference identifier="MDArray_Modify_Subarray"/>
             <identifierReference identifier="MDArray_Delete_Subarray"/>
             <identifierReference identifier="MDArray_Get_Subarray_Count"/>
@@ -1336,6 +1362,7 @@ echo foo
           </arguments>
           <references>
             <identifierReference identifier="MDArray_New_Subarray"/>
+            <identifierReference identifier="MDArray_Add_To_Subarray"/>
             <identifierReference identifier="MDArray_Get"/>
             <identifierReference identifier="MDArray_Delete_Subarray"/>
             <identifierReference identifier="MDArray_Get_Subarray_Count"/>
@@ -1352,6 +1379,7 @@ echo foo
           </arguments>
           <references>
             <identifierReference identifier="MDArray_New_Subarray"/>
+            <identifierReference identifier="MDArray_Add_To_Subarray"/>
             <identifierReference identifier="MDArray_Get"/>
             <identifierReference identifier="MDArray_Modify_Subarray"/>
             <identifierReference identifier="MDArray_Get_Subarray_Count"/>
@@ -1367,6 +1395,7 @@ echo foo
           </arguments>
           <references>
             <identifierReference identifier="MDArray_New_Subarray"/>
+            <identifierReference identifier="MDArray_Add_To_Subarray"/>
             <identifierReference identifier="MDArray_Get"/>
             <identifierReference identifier="MDArray_Modify_Subarray"/>
             <identifierReference identifier="MDArray_Delete_Subarray"/>
@@ -1387,6 +1416,7 @@ echo foo
             <argument token="A" description="name of alias (multidimensional array)"/>
           </arguments>
           <references>
+            <identifierReference identifier="MDArray_Add_To_Subarray"/>
             <identifierReference identifier="MDArray_New_Subarray"/>
             <identifierReference identifier="MDArray_Get"/>
             <identifierReference identifier="MDArray_Modify_Subarray"/>
@@ -1414,6 +1444,7 @@ echo foo
             <argument token="K" description="keyword to search for"/>
           </arguments>
           <references>
+            <identifierReference identifier="MDArray_Add_To_Subarray"/>
             <identifierReference identifier="MDArray_New_Subarray"/>
             <identifierReference identifier="MDArray_Get"/>
             <identifierReference identifier="MDArray_Modify_Subarray"/>
