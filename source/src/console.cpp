@@ -556,6 +556,11 @@ void keypress(int code, bool isdown, int cooked, SDLMod mod)
         defformatstring(kpi)("KEYPRESS %d", code);
         execute(kpi);
     }
+    if (!isdown && identexists("KEYRELEASE"))
+    {
+        defformatstring(kpo)("KEYRELEASE %d", code);
+        execute(kpo);
+    }
 }
 
 char *getcurcommand()
