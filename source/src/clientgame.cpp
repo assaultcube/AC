@@ -788,7 +788,7 @@ int waiting_permission = 0;
 
 bool tryrespawn()
 {
-    if ( m_mp(gamemode) && bad_map() )
+    if ( m_mp(gamemode) && multiplayer(false) && bad_map() )
     {
         hudoutf("This map is not supported in multiplayer. Read the docs about map quality/dimensions.");
     }
