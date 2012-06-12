@@ -551,6 +551,11 @@ void keypress(int code, bool isdown, int cooked, SDLMod mod)
     {
         if(haskey) execbind(*haskey, isdown);
     }
+    if(isdown && identexists("KEYPRESS")) // TODO: Remove this if its misued. e.x: /KEYPRESS = [ echo You pressed key code: $arg1 ] // Output: You pressed key code: 32 (if you press the spacebar)
+    {
+        defformatstring(kpi)("KEYPRESS %d", code);
+        execute(kpi);
+    }
 }
 
 char *getcurcommand()
