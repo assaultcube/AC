@@ -2762,12 +2762,12 @@ void process(ENetPacket *packet, int sender, int chan)
                                 cl->name, team_string(cl->team), text, canspeech ? "SPAM detected" : "Forbidden speech");
                         if (canspeech)
                         {
-                            sendservmsg("\f3please do not spam", sender);
+                            sendservmsg("\f3Please do not spam; your message was not delivered.", sender);
                             if ( cl->spamcount > SPAMMAXREPEAT + 2 ) disconnect_client(cl->clientnum, DISC_ABUSE);
                         }
                         else
                         {
-                            sendservmsg("\f3watch your language!", sender);
+                            sendservmsg("\f3Watch your language! Your message was not delivered.", sender);
                             kick_abuser(cl->clientnum, cl->badmillis, cl->badspeech, 3);
                         }
                     }
@@ -2804,12 +2804,12 @@ void process(ENetPacket *packet, int sender, int chan)
                                 cl->name, text, canspeech ? "SPAM detected" : "Forbidden speech");
                         if (canspeech)
                         {
-                            sendservmsg("\f3please do not spam", sender);
+                            sendservmsg("\f3Please do not spam; your message was not delivered.", sender);
                             if ( cl->spamcount > SPAMMAXREPEAT + 2 ) disconnect_client(cl->clientnum, DISC_ABUSE);
                         }
                         else
                         {
-                            sendservmsg("\f3watch your language!", sender);
+                            sendservmsg("\f3Watch your language! Your message was not delivered.", sender);
                             kick_abuser(cl->clientnum, cl->badmillis, cl->badspeech, 3);
                         }
                     }
@@ -2841,12 +2841,12 @@ void process(ENetPacket *packet, int sender, int chan)
                         logline(ACLOG_INFO, "[%s] %s says to %s: '%s', %s", cl->hostname, cl->name, target->name, text, canspeech ? "SPAM detected" : "Forbidden speech");
                         if (canspeech)
                         {
-                            sendservmsg("\f3please do not spam", sender);
+                            sendservmsg("\f3Please do not spam; your message was not delivered.", sender);
                             if ( cl->spamcount > SPAMMAXREPEAT + 2 ) disconnect_client(cl->clientnum, DISC_ABUSE);
                         }
                         else
                         {
-                            sendservmsg("\f3watch your language!", sender);
+                            sendservmsg("\f3Watch your language! Your message was not delivered.", sender);
                             kick_abuser(cl->clientnum, cl->badmillis, cl->badspeech, 3);
                         }
                     }
