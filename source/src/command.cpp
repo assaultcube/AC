@@ -1273,43 +1273,6 @@ void testchar(char *s, char *type)
     intret(0);
 }
 
-// test a cubescript list for various conditions, default being - ensure that every element of the list
-// is a number (supports ints and floats)
-void testlist(char *list, char *type = "0")
-{
-    if(listlen(list)) {
-        int t = atoi(type);
-
-        for(int ctr = 0; ctr < listlen(list); ctr++) { // loop through every element of the list
-            int periodCtr = 0; // counter for how many times a period (.) shows up in each element
-            char *curelement = indexlist(list, ctr); // the current element to examine
-
-            for(unsigned int len = 0; len < strlen(curelement); len++) { // loop through the length (in chars) of the current element
-                char curchar = curelement[len]; // the current char of the current element to examine
-
-                switch(t) {
-                    case 1: // test for a list of alpha characters (a-z || A-Z are valid)
-                        if(!isalpha(curchar)) { intret(0); delete[] curelement; return; }
-                        break;
-                    case 2: // test for a list of alhpa characters (a-z || A-Z || whitespace are valid)
-                        if(!isalpha(curchar) && !isspace(curchar)) { intret(0); delete[] curelement; return; }
-                        break;
-                    //case 3: break;
-                    default: // test for a list of valid numbers
-                        bool notvalid = (isalpha(curchar) || isspace(curchar) || (ispunct(curchar) && curchar != '.')); // determines if the char is valid or not
-
-                        if(curchar == '.') periodCtr++; // increment the periods counter
-                        if(notvalid || periodCtr > 1) { intret(0); delete[] curelement; return; } // if the char is not valid or we have found more than 1 period in this element, it is an invalid list
-                        break;
-                }
-            }
-            delete[] curelement;
-        }
-
-        intret(1);
-    }
-}
-
 void strreplace (const char *source, const char *search, const char *replace)
 {
     vector<char> buf;
@@ -1355,7 +1318,6 @@ COMMAND(addpunct, ARG_2STR);
 COMMANDN(tolower, toLower, ARG_1STR);
 COMMANDN(toupper, toUpper, ARG_1STR);
 COMMAND(testchar, ARG_2STR);
-COMMAND(testlist, ARG_2STR);
 COMMAND(strreplace, ARG_3STR);
 
 int add(int a, int b)   { return a+b; }            COMMANDN(+, add, ARG_2EXP);
