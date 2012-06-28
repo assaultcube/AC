@@ -1270,7 +1270,7 @@ echo foo
             <identifierReference identifier="add2list"/>
           </references>
         </scriptalias>
-        
+
         <command name="MDArray_New_Subarray">
           <description>Adds a subarray to a cubescript multidimensional array. (alias)</description>
           <examples>
@@ -1295,7 +1295,7 @@ echo foo
             <identifierReference identifier="MDArray_Search"/>
           </references>
         </command>
-        
+
         <command name="MDArray_Add_To_Subarray">
           <description>Adds a string to an existing subarray in a cubescript multidimensional array.</description>
           <examples>
@@ -1319,7 +1319,7 @@ echo foo
             <identifierReference identifier="MDArray_Search"/>
           </references>
         </command>
-        
+
         <command name="MDArray_Get">
           <description>Returns a subarray or a subarray element of a cubescript multidimensional array.</description>
           <examples>
@@ -1344,7 +1344,7 @@ echo foo
             <identifierReference identifier="MDArray_Search"/>
           </references>
         </command>
-        
+
         <command name="MDArray_Modify_Subarray">
           <description>Modifies a subarray element of a cubescript multidimensional array.</description>
           <examples>
@@ -1353,7 +1353,7 @@ echo foo
               <explanation>Output: 1 2 9 4 5</explanation>
             </example>
           </examples>
-          
+
           <arguments>
             <argument token="A" description="name of alias (multidimensional array)"/>
             <argument token="N" description="name of target subarray to modify"/>
@@ -1370,7 +1370,7 @@ echo foo
             <identifierReference identifier="MDArray_Search"/>
           </references>
         </command>
-        
+
         <command name="MDArray_Delete_Subarray">
           <description>Deletes an entire subarray from an existing cubescript multidimensional array.</description>
           <arguments>
@@ -1387,7 +1387,7 @@ echo foo
             <identifierReference identifier="MDArray_Search"/>
           </references>
         </command>
-        
+
         <command name="MDArray_Get_Subarray_Count">
           <description>Returns the number of subarrays in a cubescript multidimensional array.</description>
           <arguments>
@@ -1403,7 +1403,7 @@ echo foo
             <identifierReference identifier="MDArray_Search"/>
           </references>
         </command>
-        
+
         <command name="MDArray_Get_All_Subarray_Names">
           <description>Returns a list of all subarray names in a cubescript multidimensional array.</description>
           <examples>
@@ -1425,7 +1425,7 @@ echo foo
             <identifierReference identifier="MDArray_Search"/>
           </references>
         </command>
-        
+
         <command name="MDArray_Search">
           <description>Returns a list of all subarray names that have content matching a specific keyword.</description>
           <examples>
@@ -6967,6 +6967,11 @@ Output:
 						<argument token="B" description="Blue colour intensity" valueNotes="Between 1 and 255"/>
 					</arguments>
 				</command>
+
+				<variable name="waveheight">
+					<description>Sets the wave height of water, between 0 (completely still, no waves at all) and 1 (very choppy).</description>
+					<value token="F" description="wave height (floating-point value)" minValue="0" maxValue="1" defaultValue="0.3" />
+				</variable>
 
 			</identifiers>
 		</section>
