@@ -965,6 +965,7 @@ void menumdl(char *mdl, char *anim, char *rotspeed, char *scale)
 void menudirlist(char *dir, char *ext, char *action, char *image)
 {
     if(!lastmenu) return;
+    if(!action || !action[0]) return;
     gmenu *menu = lastmenu;
     if(menu->dirlist) delete menu->dirlist;
     mdirlist *d = menu->dirlist = new mdirlist;
