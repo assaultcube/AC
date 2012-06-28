@@ -57,6 +57,7 @@ Mapping
 [*] entproperty now works in MP coop, but buffered.
 [*] Textures can now have a non-default scale, definable through the texture command.
 [*] Multiple selections support
+[*] Configurable wave height
 
 Rendering / HUD / ...
 ---------------------

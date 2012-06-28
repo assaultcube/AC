@@ -25,6 +25,7 @@ void setwatercolor(const char *r, const char *g, const char *b, const char *a)
 }
 
 COMMANDN(watercolour, setwatercolor, ARG_4STR);
+FVAR(waveheight, 0, 0.3f, 1.0f);
 
 // renders water for bounding rect area that contains water... simple but very inefficient
 
@@ -39,7 +40,7 @@ COMMANDN(watercolour, setwatercolor, ARG_4STR);
         float angle = v1*v2*0.1f/(2*M_PI) + t; \
         float s = angle - int(angle) - 0.5f; \
         s *= 8 - fabs(s)*16; \
-        float h = 0.3f*s; \
+        float h = waveheight*0.5f*s; \
         varray::attrib<float>(v1, v2, v3+h); \
         body; \
     }
@@ -51,7 +52,7 @@ COMMANDN(watercolour, setwatercolor, ARG_4STR);
     })
 #define VERTWT(vertwt, defbody, body) \
     VERTWC(vertwt, defbody, { \
-        float duv = 0.2f*v; \
+        float duv = waveheight*0.5f*v; \
         body; \
     })
 
