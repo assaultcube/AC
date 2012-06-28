@@ -214,6 +214,4 @@ CubeScript
 I18n / L10n
 ---------------------
 
-[*] Client now tries to set the LANG alias if it's not defined.
-[*] fixed LANG for windows (breaks Win98/2K compatibility!)
 [*] Float separator set to "." (dot) regardless of locale.
