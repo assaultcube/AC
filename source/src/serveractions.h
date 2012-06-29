@@ -285,21 +285,6 @@ struct recorddemoaction : enableaction            // TODO: remove completely
     }
 };
 
-struct stopdemoaction : serveraction
-{
-    bool isvalid() { return serveraction::isvalid() && m_demo; }
-    void perform()
-    {
-        if(m_demo) enddemoplayback();
-    }
-    stopdemoaction()
-    {
-        role = CR_ADMIN;
-        area |= EE_LOCAL_SERV;
-        copystring(desc, "stop demo playback");
-    }
-};
-
 struct cleardemosaction : serveraction
 {
     int demo;
