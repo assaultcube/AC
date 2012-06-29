@@ -382,7 +382,7 @@ void onChangeVote(int mod, int id)
 VARP(voicecomsounds, 0, 1, 2);
 bool medals_arrived=0;
 medalsst a_medals[END_MDS];
-void parsemessages(int cn, playerent *d, ucharbuf &p)
+void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
 {
     static char text[MAXTRANS];
     int type, joining = 0;
@@ -391,6 +391,17 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
     while(p.remaining())
     {
         type = getint(p);
+
+        if(demo && watchingdemo && demoprotocol == 1132)
+        {
+            if(type >= SV_TEXTPRIVATE) ++type;      // SV_TEXTPRIVATE added
+            if(type == SV_SWITCHNAME)               // SV_SPECTCN removed
+            {
+                getint(p);
+                continue;
+            }
+            else if(type > SV_SWITCHNAME) --type;
+        }
 
         #ifdef _DEBUG
         if(type!=SV_POS && type!=SV_CLIENTPING && type!=SV_PING && type!=SV_PONG && type!=SV_CLIENT)
@@ -405,7 +416,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
         switch(type)
         {
-            case SV_SERVINFO:  // welcome messsage from the server
+            case SV_SERVINFO:  // welcome message from the server
             {
                 int mycn = getint(p), prot = getint(p);
                 if(prot!=CUR_PROTOCOL_VERSION && !(watchingdemo && prot == -PROTOCOL_VERSION))
@@ -433,7 +444,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             {
                 int cn = getint(p), len = getuint(p);
                 ucharbuf q = p.subbuf(len);
-                parsemessages(cn, getclient(cn), q);
+                parsemessages(cn, getclient(cn), q, demo);
                 break;
             }
 
@@ -853,7 +864,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 {
                     int cn = getint(p);
                     if(p.overread() || cn<0) break;
-                    int state = getint(p), lifesequence = getint(p), primary = getint(p), gunselect = getint(p), flagscore = getint(p), frags = getint(p), deaths = getint(p), health = getint(p), armour = getint(p), points = getint(p), teamkills = getint(p);
+                    int state = getint(p), lifesequence = getint(p), primary = getint(p), gunselect = getint(p), flagscore = getint(p), frags = getint(p), deaths = getint(p), health = getint(p), armour = getint(p), points = getint(p);
+                    int teamkills = 0;
+                    if(!demo || !watchingdemo || demoprotocol != 1132) teamkills = getint(p);
                     int ammo[NUMGUNS], mag[NUMGUNS];
                     loopi(NUMGUNS) ammo[i] = getint(p);
                     loopi(NUMGUNS) mag[i] = getint(p);
@@ -1219,6 +1232,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
                         break;
                     case SA_STOPDEMO:
+                        // compatibility
+                        break;
                     case SA_REMBANS:
                     case SA_SHUFFLETEAMS:
                         v = newvotedisplayinfo(d, type, NULL, NULL);
@@ -1299,8 +1314,16 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             {
                 string demofile;
                 extern char *curdemofile;
-                getstring(demofile, p, MAXSTRLEN);
-                watchingdemo = demoplayback = demofile[0] != '\0';
+                if(demo && watchingdemo && demoprotocol == 1132)
+                {
+                    watchingdemo = demoplayback = getint(p)!=0;
+                    copystring(demofile, "n/a");
+                }
+                else
+                {
+                    getstring(demofile, p, MAXSTRLEN);
+                    watchingdemo = demoplayback = demofile[0] != '\0';
+                }
                 DELETEA(curdemofile);
                 if(demoplayback)
                 {
@@ -1467,19 +1490,19 @@ void receivefile(uchar *data, int len)
     }
 }
 
-void servertoclient(int chan, uchar *buf, int len)   // processes any updates from the server
+void servertoclient(int chan, uchar *buf, int len, bool demo)   // processes any updates from the server
 {
     ucharbuf p(buf, len);
     switch(chan)
     {
         case 0: parsepositions(p); break;
-        case 1: parsemessages(-1, NULL, p); break;
+        case 1: parsemessages(-1, NULL, p, demo); break;
         case 2: receivefile(p.buf, p.maxlen); break;
     }
 }
 
-void localservertoclient(int chan, uchar *buf, int len)   // processes any updates from the server
+void localservertoclient(int chan, uchar *buf, int len, bool demo)   // processes any updates from the server
 {
 //    pktlogger.queue(enet_packet_create (buf, len, 0));  // log local & demo packets
-    servertoclient(chan, buf, len);
+    servertoclient(chan, buf, len, demo);
 }

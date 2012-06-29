@@ -85,7 +85,7 @@ void cleanworldstate(ENetPacket *packet)
    }
 }
 
-void sendpacket(int n, int chan, ENetPacket *packet, int exclude)
+void sendpacket(int n, int chan, ENetPacket *packet, int exclude, bool demopacket)
 {
     if(n<0)
     {
@@ -102,7 +102,7 @@ void sendpacket(int n, int chan, ENetPacket *packet, int exclude)
         }
 
         case ST_LOCAL:
-            localservertoclient(chan, packet->data, (int)packet->dataLength);
+            localservertoclient(chan, packet->data, (int)packet->dataLength, demopacket);
             break;
     }
 }
@@ -396,9 +396,9 @@ void sendextras()
     sendpacket(-1, 1, p.finalize());
 }
 
-void sendservmsg(const char *msg, int client=-1)
+void sendservmsg(const char *msg, int cn = -1)
 {
-    sendf(client, 1, "ris", SV_SERVMSG, msg);
+    sendf(cn, 1, "ris", SV_SERVMSG, msg);
 }
 
 void sendspawn(client *c)
@@ -720,11 +720,15 @@ void senddemo(int cn, int num)
     sendpacket(cn, 2, p.finalize());
 }
 
+int demoprotocol;
+bool watchingdemo = false;
+
 void enddemoplayback()
 {
     if(!demoplayback) return;
     delete demoplayback;
     demoplayback = NULL;
+    watchingdemo = false;
 
     loopv(clients) sendf(i, 1, "risi", SV_DEMOPLAYBACK, "", i);
 
@@ -749,7 +753,9 @@ void setupdemoplayback()
         lilswap(&hdr.version, 1);
         lilswap(&hdr.protocol, 1);
         if(hdr.version!=DEMO_VERSION) formatstring(msg)("demo \"%s\" requires an %s version of AssaultCube", file, hdr.version<DEMO_VERSION ? "older" : "newer");
-        else if(hdr.protocol != PROTOCOL_VERSION && !(hdr.protocol < 0 && hdr.protocol == -PROTOCOL_VERSION)) formatstring(msg)("demo \"%s\" requires an %s version of AssaultCube", file, hdr.protocol<PROTOCOL_VERSION ? "older" : "newer");
+        else if(hdr.protocol != PROTOCOL_VERSION && !(hdr.protocol < 0 && hdr.protocol == -PROTOCOL_VERSION) && hdr.protocol != 1132) formatstring(msg)("demo \"%s\" requires an %s version of AssaultCube", file, hdr.protocol<PROTOCOL_VERSION ? "older" : "newer");
+        else if(hdr.protocol == 1132) sendservmsg("WARNING: using experimental compatibility mode for older demo protocol, expect breakage");
+        demoprotocol = hdr.protocol;
     }
     if(msg[0])
     {
@@ -761,6 +767,7 @@ void setupdemoplayback()
     formatstring(msg)("playing demo \"%s\"", file);
     sendservmsg(msg);
     sendf(-1, 1, "risi", SV_DEMOPLAYBACK, smapname, -1);
+    watchingdemo = true;
 
     if(demoplayback->read(&nextplayback, sizeof(nextplayback))!=sizeof(nextplayback))
     {
@@ -791,7 +798,7 @@ void readdemo()
             enddemoplayback();
             return;
         }
-        sendpacket(-1, chan, packet);
+        sendpacket(-1, chan, packet, -1, true);
         if(!packet->referenceCount) enet_packet_destroy(packet);
         if(demoplayback->read(&nextplayback, sizeof(nextplayback))!=sizeof(nextplayback))
         {
@@ -3433,7 +3440,7 @@ void process(ENetPacket *packet, int sender, int chan)
                         vi->action = new recorddemoaction((vi->num = getint(p))!=0);
                         break;
                     case SA_STOPDEMO:
-                        vi->action = new stopdemoaction();
+                        // compatibility
                         break;
                     case SA_CLEARDEMOS:
                         vi->action = new cleardemosaction(vi->num = getint(p));
@@ -4178,7 +4185,7 @@ void initserver(bool dedicated, int argc, char **argv)
 
 #ifdef STANDALONE
 
-void localservertoclient(int chan, uchar *buf, int len) {}
+void localservertoclient(int chan, uchar *buf, int len, bool demo) {}
 void fatal(const char *s, ...)
 {
     defvformatstring(msg,s,s);

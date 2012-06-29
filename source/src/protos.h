@@ -376,7 +376,6 @@ extern int sessionid;
 extern int gametimecurrent;
 extern int gametimemaximum;
 extern int lastgametimeupdate;
-extern bool watchingdemo;
 struct serverstate { int autoteam; int mastermode; int matchteamsize; void reset() { autoteam = mastermode = matchteamsize = 0; }};
 extern struct serverstate servstate;
 extern void updateworld(int curtime, int lastmillis);
@@ -790,8 +789,8 @@ extern int screenshottype;
 
 // server
 extern int modeacronyms;
-extern void servertoclient(int chan, uchar *buf, int len);
-extern void localservertoclient(int chan, uchar *buf, int len);
+extern void servertoclient(int chan, uchar *buf, int len, bool demo = false);
+extern void localservertoclient(int chan, uchar *buf, int len, bool demo = false);
 extern const char *modestr(int n, bool acronyms = false);
 extern const char *voteerrorstr(int n);
 extern const char *mmfullname(int n);
@@ -854,6 +853,11 @@ struct demoheader
 };
 #define DEFDEMOFILEFMT "%w_%h_%n_%Mmin_%G"
 #define DEFDEMOTIMEFMT "%Y%m%d_%H%M"
+
+extern bool watchingdemo;
+extern int demoprotocol;
+extern void enddemoplayback();
+
 // logging
 
 enum { ACLOG_DEBUG = 0, ACLOG_VERBOSE, ACLOG_INFO, ACLOG_WARNING, ACLOG_ERROR, ACLOG_NUM };

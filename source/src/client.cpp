@@ -8,7 +8,6 @@ VAR(connected, 1, 0, 0);
 ENetHost *clienthost = NULL;
 ENetPeer *curpeer = NULL, *connpeer = NULL;
 int connmillis = 0, connattempts = 0, discmillis = 0;
-bool watchingdemo = false;
 SVAR(curdemofile, "n/a");
 extern bool clfail, cllock;
 extern int searchlan;
@@ -66,7 +65,6 @@ void connectserv_(const char *servername, const char *serverport = NULL, const c
 {
     const char *defaultport = "28763";
     if (!serverport) serverport = defaultport;
-    extern void enddemoplayback();
     if(watchingdemo) enddemoplayback();
     if(!clfail && cllock && searchlan<2) return;
 
