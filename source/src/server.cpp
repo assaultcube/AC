@@ -2241,6 +2241,8 @@ void callvotepacket (int cn, voteinfo *v = curvote)
             sendstring(v->text, q);
             break;
         case SA_STOPDEMO:
+            // compatibility
+            break;
         case SA_REMBANS:
         case SA_SHUFFLETEAMS:
             break;

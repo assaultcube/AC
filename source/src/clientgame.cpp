@@ -1440,6 +1440,8 @@ void callvote(int type, const char *arg1, const char *arg2)
                 sendstring(arg1, p);
                 break;
             case SA_STOPDEMO:
+                // compatibility
+                break;
             case SA_REMBANS:
             case SA_SHUFFLETEAMS:
                 break;
