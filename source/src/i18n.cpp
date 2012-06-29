@@ -13,8 +13,6 @@ i18nmanager::i18nmanager(const char *domain, const char *basepath) : domain(doma
     bind_textdomain_codeset(domain, "UTF-8"); // we use the utf-8 charset only
 
     setlocale(LC_NUMERIC, "C"); // make sure numeric is consistent (very important for float usage in scripts)
-                                // Note to self: only do this _after_ using the return value from the previous
-                                // setlocale call - this one will overwrite it
 }
 
 // export gettext to cubescript
