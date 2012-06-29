@@ -401,7 +401,7 @@ void senddisconnectedscores(int cn);
 void process(ENetPacket *packet, int sender, int chan);
 void welcomepacket(packetbuf &p, int n);
 void sendwelcome(client *cl, int chan = 1);
-void sendpacket(int n, int chan, ENetPacket *packet, int exclude = -1);
+void sendpacket(int n, int chan, ENetPacket *packet, int exclude = -1, bool demopacket = false);
 int numclients();
 bool updateclientteam(int cln, int newteam, int ftr);
 void forcedeath(client *cl);

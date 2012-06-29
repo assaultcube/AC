@@ -83,6 +83,7 @@ Demos / Spectating
 [*] Fix broken demo-viewer not able to change to SPECTATOR.
 [*] Servers now choose a unique file name for the temporary demo file ("demorecord_<IP/local>_<port>")
 [*] Hitsound while spectating
+[*] Experimental compatibility mode for 1.1.0.4 demos
 
 Sounds / Audio
 ---------------------

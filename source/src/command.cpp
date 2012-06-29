@@ -1495,7 +1495,6 @@ COMMAND(sealcontexts, ARG_NONE);
 #ifndef STANDALONE
 void _watchingdemo()
 {
-    extern bool watchingdemo;
     intret(watchingdemo);
 }
 COMMANDN(watchingdemo, _watchingdemo, ARG_NONE);

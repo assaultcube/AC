@@ -275,6 +275,13 @@ ICOMMANDF(curplayers, ARG_IVAL, (void) { return players.length() + 1; });
 VARP(showscoresondeath, 0, 1, 1);
 VARP(autoscreenshot, 0, 0, 1);
 
+void stopdemo()
+{
+    if(watchingdemo) enddemoplayback();
+    else conoutf(_("not playing a demo"));
+}
+COMMAND(stopdemo, ARG_NONE);
+
 // macros for playerinfo() & teaminfo(). Use this to replace pstats_xxx ?
 #define ATTR_INT(name, attribute)    if(!strcmp(attr, #name)) { intret(attribute); return; }
 #define ATTR_FLOAT(name, attribute)  if(!strcmp(attr, #name)) { floatret(attribute); return; }
