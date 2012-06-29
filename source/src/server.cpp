@@ -90,7 +90,7 @@ void sendpacket(int n, int chan, ENetPacket *packet, int exclude, bool demopacke
     if(n<0)
     {
         recordpacket(chan, packet->data, (int)packet->dataLength);
-        loopv(clients) if(i!=exclude && (clients[i]->type!=ST_TCPIP || clients[i]->isauthed)) sendpacket(i, chan, packet);
+        loopv(clients) if(i!=exclude && (clients[i]->type!=ST_TCPIP || clients[i]->isauthed)) sendpacket(i, chan, packet, -1, demopacket);
         return;
     }
     switch(clients[n]->type)
