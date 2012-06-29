@@ -3249,8 +3249,8 @@ void process(ENetPacket *packet, int sender, int chan)
                 }
                 else if( scl.incoming_limit && ( scl.incoming_limit << 20 ) < incoming_size + mapsize + cfgsizegz )
                 {
-                    reject = "server incoming achieved its limits";
-                    sendservmsg("\f3server does not support more incomings: limit achieved", sender);
+                    reject = "server incoming reached its limits";
+                    sendservmsg("\f3server does not support more incomings: limit reached", sender);
                 }
                 else if(mp == MAP_NOTFOUND && strchr(scl.mapperm, 'C') && cl->role < CR_ADMIN)
                 {
