@@ -336,7 +336,7 @@ void servermsinit(const char *master, const char *ip, int infoport, bool listen)
 
     if(listen)
     {
-        ENetAddress address = { ENET_HOST_ANY, infoport };
+        ENetAddress address = { ENET_HOST_ANY, (enet_uint16)infoport };
         if(*ip)
         {
             if(enet_address_set_host(&address, ip)<0) logline(ACLOG_WARNING, "server ip not resolved");

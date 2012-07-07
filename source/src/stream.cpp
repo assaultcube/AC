@@ -594,8 +594,8 @@ struct gzstream : stream
         }
         uchar trailer[8] =
         {
-            crc&0xFF, (crc>>8)&0xFF, (crc>>16)&0xFF, (crc>>24)&0xFF,
-            zfile.total_in&0xFF, (zfile.total_in>>8)&0xFF, (zfile.total_in>>16)&0xFF, (zfile.total_in>>24)&0xFF
+            uchar(crc&0xFF), uchar((crc>>8)&0xFF), uchar((crc>>16)&0xFF), uchar((crc>>24)&0xFF),
+            uchar(zfile.total_in&0xFF), uchar((zfile.total_in>>8)&0xFF), uchar((zfile.total_in>>16)&0xFF), uchar((zfile.total_in>>24)&0xFF)
         };
         file->write(trailer, sizeof(trailer));
     }

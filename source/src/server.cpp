@@ -4133,7 +4133,7 @@ void initserver(bool dedicated, int argc, char **argv)
 
     if((isdedicated = dedicated))
     {
-        ENetAddress address = { ENET_HOST_ANY, scl.serverport };
+        ENetAddress address = { ENET_HOST_ANY, (enet_uint16)scl.serverport };
         if(scl.ip[0] && enet_address_set_host(&address, scl.ip)<0) logline(ACLOG_WARNING, "server ip not resolved!");
         serverhost = enet_host_create(&address, scl.maxclients+1, 3, 0, scl.uprate);
         if(!serverhost) fatal("could not create server host");
