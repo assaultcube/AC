@@ -336,6 +336,13 @@ void playerinfo(const char *cn, const char *attr)
     ATTR_INT(alive, p->state == CS_ALIVE ? 1 : 0);
     ATTR_INT(spect, p->team == TEAM_SPECT || p->spectatemode == SM_FLY ? 1 : 0);
     ATTR_INT(cn, p->clientnum); // only useful to get player1's client number.
+
+    string addr = "";
+    if((p->address>>24&0xFF) > 0 || player1->clientrole==CR_ADMIN)
+        formatstring(addr)("%d.%d.%d.%d", p->address&0xFF, p->address>>8&0xFF, p->address>>16&0xFF, p->address>>24&0xFF); // full IP
+    else formatstring(addr)("%d.%d.%d.x", p->address&0xFF, p->address>>8&0xFF, p->address>>16&0xFF); // censored IP
+    ATTR_STR(ip, addr);
+
     conoutf("invalid attribute: %s", attr);
 }
 
@@ -1603,7 +1610,17 @@ void cleanplayervotes(playerent *p)
 
 void whois(int cn)
 {
-    addmsg(SV_WHOIS, "ri", cn);
+    playerent *pl =  getclient(cn);
+    if(!pl)
+    {
+        conoutf(_("invalid player name"));
+        return;
+    }
+
+    if(m_teammode) conoutf(_("%c0INFO: %c5%s has %d teamkills."), CC, CC, pl->name, pl->tks);
+    if((pl->address>>24&0xFF) > 0 || player1->clientrole==CR_ADMIN)
+        conoutf("WHOIS %2d: %-16s\t%d.%d.%d.%d", cn, pl ? colorname(pl) : "", pl->address&0xFF, pl->address>>8&0xFF, pl->address>>16&0xFF, pl->address>>24&0xFF); // full IP
+    else conoutf("WHOIS client %d:\n\f5name\t%s\n\f5IP\t%d.%d.%d.x", cn, pl ? colorname(pl) : "", pl->address&0xFF, pl->address>>8&0xFF, pl->address>>16&0xFF); // censored IP
 }
 COMMAND(whois, ARG_1INT);
 

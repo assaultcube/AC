@@ -385,6 +385,7 @@ private:
     int curskin, nextskin[2];
 public:
     int clientnum, lastupdate, plag, ping;
+    enet_uint32 address;
     int lifesequence;                   // sequence id for each respawn, used in damage test
     int frags, flagscore, deaths, points, tks;
     int lastaction, lastmove, lastpain, lastvoicecom;

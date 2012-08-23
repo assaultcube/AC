@@ -618,6 +618,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 }
                 loopi(2) d->setskin(i, getint(p));
                 d->team = getint(p);
+
+                d->address = getint(p); // partial or complete IP address
+
                 if(m_flags) loopi(2)
                 {
                     flaginfo &f = flaginfos[i];
@@ -1288,13 +1291,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
 
             case SV_WHOISINFO:
             {
-                int cn = getint(p);
+                int cn = getint(p), ip = getint(p);
                 playerent *pl = getclient(cn);
-                int ip = getint(p);
-                if(m_teammode) conoutf(_("%c0INFO: %c5%s has %d teamkills."), CC, CC, pl->name, pl->tks);
-                if((ip>>24&0xFF) > 0 || player1->clientrole==CR_ADMIN)
-                    conoutf("WHOIS %2d: %-16s\t%d.%d.%d.%d", cn, pl ? colorname(pl) : "", ip&0xFF, ip>>8&0xFF, ip>>16&0xFF, ip>>24&0xFF); // full IP
-                else conoutf("WHOIS client %d:\n\f5name\t%s\n\f5IP\t%d.%d.%d.x", cn, pl ? colorname(pl) : "", ip&0xFF, ip>>8&0xFF, ip>>16&0xFF); // censored IP
+                if(pl) pl->address = ip;
                 break;
             }
 
