@@ -2271,6 +2271,18 @@ void changeclientrole(int client, int role, char *pwd, bool force)
         if(pd.line > -1)
             logline(ACLOG_INFO,"[%s] player %s used admin password in line %d", clients[client]->hostname, clients[client]->name[0] ? clients[client]->name : "[unnamed]", pd.line);
         logline(ACLOG_INFO,"[%s] set role of player %s to %s", clients[client]->hostname, clients[client]->name[0] ? clients[client]->name : "[unnamed]", role == CR_ADMIN ? "admin" : "normal player"); // flowtron : connecting players haven't got a name yet (connectadmin)
+        if(role > CR_DEFAULT)
+        {
+            // send complete IP addresses
+            packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
+            loopv(clients) if(clients[i]->clientnum != client)
+            {
+                putint(p, SV_WHOISINFO);
+                putint(p, clients[i]->clientnum);
+                putint(p, clients[i]->peer->address.host);
+            }
+            sendpacket(client, 1, p.finalize());
+        }
     }
     else if(pwd && pwd[0]) disconnect_client(client, DISC_SOPLOGINFAIL); // avoid brute-force
     if(curvote) curvote->evaluate();
@@ -2456,7 +2468,7 @@ void sendservinfo(client &c)
     sendf(c.clientnum, 1, "ri5", SV_SERVINFO, c.clientnum, isdedicated ? SERVER_PROTOCOL_VERSION : PROTOCOL_VERSION, c.salt, scl.serverpassword[0] ? 1 : 0);
 }
 
-void putinitclient(client &c, packetbuf &p)
+void putinitclient(client &c, packetbuf &p, int n)
 {
     putint(p, SV_INITCLIENT);
     putint(p, c.clientnum);
@@ -2464,13 +2476,22 @@ void putinitclient(client &c, packetbuf &p)
     putint(p, c.skin[TEAM_CLA]);
     putint(p, c.skin[TEAM_RVSF]);
     putint(p, c.team);
+    enet_uint32 ip = isdedicated ? ( (n != -1 && clients[n]->role == CR_ADMIN) ?
+        c.peer->address.host :
+        c.peer->address.host & 0xFFFFFF
+     ) : 0;
+    putint(p, ip); // FIXME ? Maybe the IPs addresses should only be sent with SV_WHOISINFO
 }
 
 void sendinitclient(client &c)
 {
-    packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
-    putinitclient(c, p);
-    sendpacket(-1, 1, p.finalize(), c.clientnum);
+    loopv(clients) if(clients[i]->clientnum != c.clientnum)
+    {
+        packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
+        putinitclient(c, p, clients[i]->clientnum);
+        sendpacket(clients[i]->clientnum, 1, p.finalize());
+    }
+
 }
 
 void welcomeinitclient(packetbuf &p, int exclude = -1)
@@ -2479,7 +2500,7 @@ void welcomeinitclient(packetbuf &p, int exclude = -1)
     {
         client &c = *clients[i];
         if(c.type!=ST_TCPIP || !c.isauthed || c.clientnum == exclude) continue;
-        putinitclient(c, p);
+        putinitclient(c, p, exclude);
     }
 }
 
