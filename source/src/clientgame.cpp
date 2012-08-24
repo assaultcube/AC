@@ -338,7 +338,7 @@ void playerinfo(const char *cn, const char *attr)
     ATTR_INT(cn, p->clientnum); // only useful to get player1's client number.
 
     string addr = "";
-    if((p->address>>24&0xFF) > 0 || player1->clientrole==CR_ADMIN)
+    if((p->address>>24&0xFF) != 0 || player1->clientrole==CR_ADMIN)
         formatstring(addr)("%d.%d.%d.%d", p->address&0xFF, p->address>>8&0xFF, p->address>>16&0xFF, p->address>>24&0xFF); // full IP
     else formatstring(addr)("%d.%d.%d.x", p->address&0xFF, p->address>>8&0xFF, p->address>>16&0xFF); // censored IP
     ATTR_STR(ip, addr);
@@ -1626,17 +1626,18 @@ void cleanplayervotes(playerent *p)
 
 void whois(int cn)
 {
-    playerent *pl =  getclient(cn);
-    if(!pl)
+    playerent *p = getclient(cn);
+    if(!p)
     {
         conoutf(_("invalid player name"));
         return;
     }
 
-    if(m_teammode) conoutf(_("%c0INFO: %c5%s has %d teamkills."), CC, CC, pl->name, pl->tks);
-    if((pl->address>>24&0xFF) > 0 || player1->clientrole==CR_ADMIN)
-        conoutf("WHOIS %2d: %-16s\t%d.%d.%d.%d", cn, pl ? colorname(pl) : "", pl->address&0xFF, pl->address>>8&0xFF, pl->address>>16&0xFF, pl->address>>24&0xFF); // full IP
-    else conoutf("WHOIS client %d:\n\f5name\t%s\n\f5IP\t%d.%d.%d.x", cn, pl ? colorname(pl) : "", pl->address&0xFF, pl->address>>8&0xFF, pl->address>>16&0xFF); // censored IP
+    int ip = p->address;
+    if(m_teammode) conoutf(_("%c0INFO: %c5%s has %d teamkills."), CC, CC, p->name, p->tks);
+    if((ip>>24&0xFF) > 0 || player1->clientrole==CR_ADMIN)
+        conoutf("WHOIS client %d:\n\f5name\t%s\n\f5IP\t%d.%d.%d.%d", cn, colorname(p), ip&0xFF, ip>>8&0xFF, ip>>16&0xFF, ip>>24&0xFF); // full IP
+    else conoutf("WHOIS client %d:\n\f5name\t%s\n\f5IP\t%d.%d.%d.x", cn, colorname(p), ip&0xFF, ip>>8&0xFF, ip>>16&0xFF); // censored IP
 }
 COMMAND(whois, ARG_1INT);
 
@@ -1651,20 +1652,6 @@ void findcn(char *name)
     intret(-1);
 }
 COMMAND(findcn, ARG_1STR);
-
-/* moved to /config/compatibility.cfg
-void findpn(int cn)
-{
-    loopv(players) if(players[i] && players[i]->clientnum == cn)
-    {
-        result(players[i]->name);
-        return;
-    }
-    if(player1->clientnum == cn) { result(player1->name); return; }
-    result("");
-}
-COMMAND(findpn, ARG_1INT);
-*/
 
 int sessionid = 0;
 
