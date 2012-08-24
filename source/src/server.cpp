@@ -2271,18 +2271,7 @@ void changeclientrole(int client, int role, char *pwd, bool force)
         if(pd.line > -1)
             logline(ACLOG_INFO,"[%s] player %s used admin password in line %d", clients[client]->hostname, clients[client]->name[0] ? clients[client]->name : "[unnamed]", pd.line);
         logline(ACLOG_INFO,"[%s] set role of player %s to %s", clients[client]->hostname, clients[client]->name[0] ? clients[client]->name : "[unnamed]", role == CR_ADMIN ? "admin" : "normal player"); // flowtron : connecting players haven't got a name yet (connectadmin)
-        if(role > CR_DEFAULT)
-        {
-            // send complete IP addresses
-            packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
-            loopv(clients) if(clients[i]->clientnum != client)
-            {
-                putint(p, SV_WHOISINFO);
-                putint(p, clients[i]->clientnum);
-                putint(p, clients[i]->peer->address.host);
-            }
-            sendpacket(client, 1, p.finalize());
-        }
+        if(role > CR_DEFAULT) sendiplist(client);
     }
     else if(pwd && pwd[0]) disconnect_client(client, DISC_SOPLOGINFAIL); // avoid brute-force
     if(curvote) curvote->evaluate();
@@ -2411,21 +2400,19 @@ void answerchallenge(client *cl, uint id, char *val)
 
 // :for AUTH
 
-void sendwhois(int sender, int cn)
+void sendiplist(int receiver, int cn)
 {
-    if( !valid_client(sender) ) return;
-    if ( cn == -1 && clients[sender]->role == CR_ADMIN )
+    if(!valid_client(receiver)) return;
+    packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
+    putint(p, SV_IPLIST);
+    loopv(clients) if(valid_client(i) && clients[i]->type == ST_TCPIP && i != receiver
+        && (clients[i]->clientnum == cn || cn == -1))
     {
-        loopv(clients) if ( valid_client(i) && clients[i]->type == ST_TCPIP && i != sender ) sendwhois(sender, i);
-        return;
+        putint(p, i);
+        putint(p, clients[i]->peer->address.host);
     }
-    if( !valid_client(cn) ) return;
-    if( clients[cn]->type == ST_TCPIP )
-    {
-        uint ip = clients[cn]->peer->address.host;
-        if(clients[sender]->role != CR_ADMIN) ip &= 0xFFFFFF; // only admin gets full IP
-        sendf(sender, 1, "ri3", SV_WHOISINFO, cn, ip);
-    }
+    putint(p, -1);
+    sendpacket(receiver, 1, p.finalize());
 }
 
 void sendresume(client &c, bool broadcast)
@@ -2468,7 +2455,7 @@ void sendservinfo(client &c)
     sendf(c.clientnum, 1, "ri5", SV_SERVINFO, c.clientnum, isdedicated ? SERVER_PROTOCOL_VERSION : PROTOCOL_VERSION, c.salt, scl.serverpassword[0] ? 1 : 0);
 }
 
-void putinitclient(client &c, packetbuf &p, int n)
+void putinitclient(client &c, packetbuf &p)
 {
     putint(p, SV_INITCLIENT);
     putint(p, c.clientnum);
@@ -2476,22 +2463,16 @@ void putinitclient(client &c, packetbuf &p, int n)
     putint(p, c.skin[TEAM_CLA]);
     putint(p, c.skin[TEAM_RVSF]);
     putint(p, c.team);
-    enet_uint32 ip = isdedicated ? ( (n != -1 && clients[n]->role == CR_ADMIN) ?
-        c.peer->address.host :
-        c.peer->address.host & 0xFFFFFF
-     ) : 0;
-    putint(p, ip); // FIXME ? Maybe the IPs addresses should only be sent with SV_WHOISINFO
+    enet_uint32 ip = 0;
+    if(c.type == ST_TCPIP) ip = c.peer->address.host & 0xFFFFFF;
+    putint(p, ip);
 }
 
 void sendinitclient(client &c)
 {
-    loopv(clients) if(clients[i]->clientnum != c.clientnum)
-    {
-        packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
-        putinitclient(c, p, clients[i]->clientnum);
-        sendpacket(clients[i]->clientnum, 1, p.finalize());
-    }
-
+    packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
+    putinitclient(c, p);
+    sendpacket(-1, 1, p.finalize(), c.clientnum);
 }
 
 void welcomeinitclient(packetbuf &p, int exclude = -1)
@@ -2500,7 +2481,7 @@ void welcomeinitclient(packetbuf &p, int exclude = -1)
     {
         client &c = *clients[i];
         if(c.type!=ST_TCPIP || !c.isauthed || c.clientnum == exclude) continue;
-        putinitclient(c, p, exclude);
+        putinitclient(c, p);
     }
 }
 
@@ -2605,7 +2586,7 @@ int checktype(int type, client *cl)
                         SV_SERVMSG, SV_ITEMLIST, SV_FLAGINFO, SV_FLAGMSG, SV_FLAGCNT,
                         SV_ARENAWIN, SV_SERVOPINFO,
                         SV_CALLVOTESUC, SV_CALLVOTEERR, SV_VOTERESULT,
-                        SV_SETTEAM, SV_TEAMDENY, SV_SERVERMODE, SV_WHOISINFO,
+                        SV_SETTEAM, SV_TEAMDENY, SV_SERVERMODE, SV_IPLIST,
                         SV_SENDDEMOLIST, SV_SENDDEMO, SV_DEMOPLAYBACK,
                         SV_CLIENT, SV_HUDEXTRAS, SV_POINTS };
     // only allow edit messages in coop-edit mode
@@ -2728,6 +2709,13 @@ void process(ENetPacket *packet, int sender, int chan)
         sendinitclient(*cl);
         if(clientrole != CR_DEFAULT) changeclientrole(sender, clientrole, NULL, true);
         if( curvote && curvote->result == VOTE_NEUTRAL ) callvotepacket (cl->clientnum);
+
+        // send full IPs to admins
+        loopv(clients)
+        {
+            if(clients[i] && clients[i]->clientnum != cl->clientnum && (clients[i]->role == CR_ADMIN || clients[i]->type == ST_LOCAL))
+                sendiplist(clients[i]->clientnum, cl->clientnum);
+        }
     }
 
     if(!cl) { logline(ACLOG_ERROR, "<NULL> client in process()"); return; }  // should never happen anyway
@@ -3489,12 +3477,6 @@ void process(ENetPacket *packet, int sender, int chan)
                 ++msg->referenceCount; // need to increase reference count in case a vote disconnects a player after packet is queued to prevent double-freeing by packetbuf
                 svote(sender, n, msg);
                 --msg->referenceCount;
-                break;
-            }
-
-            case SV_WHOIS:
-            {
-                sendwhois(sender, getint(p));
                 break;
             }
 

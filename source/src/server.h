@@ -390,6 +390,7 @@ struct demofile
 
 void startgame(const char *newname, int newmode, int newtime = -1, bool notify = true);
 void disconnect_client(int n, int reason = -1);
+void sendiplist(int receiver, int cn = -1);
 int clienthasflag(int cn);
 bool refillteams(bool now = false, int ftr = FTR_AUTOTEAM);
 void changeclientrole(int client, int role, char *pwd = NULL, bool force=false);
@@ -430,7 +431,7 @@ const char *messagenames[SV_NUM] =
     "SV_SETADMIN", "SV_SERVOPINFO",
     "SV_CALLVOTE", "SV_CALLVOTESUC", "SV_CALLVOTEERR", "SV_VOTE", "SV_VOTERESULT",
     "SV_SETTEAM", "SV_TEAMDENY", "SV_SERVERMODE",
-    "SV_WHOIS", "SV_WHOISINFO",
+    "SV_IPLIST",
     "SV_LISTDEMOS", "SV_SENDDEMOLIST", "SV_GETDEMO", "SV_SENDDEMO", "SV_DEMOPLAYBACK",
     "SV_CONNECT",
     "SV_SWITCHNAME", "SV_SWITCHSKIN", "SV_SWITCHTEAM",
