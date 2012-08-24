@@ -881,17 +881,21 @@ void writekillmsgcfg()
     f->printf("\n");
 }
 
-void burstshots(int gun, int shots = -1)
+void burstshots(char *gun_str, char *shots_str)
 {
+    // args are passed as strings to differentiate 2 cases : shots_str == "0" or shots_str is empty (not specified from cubescript). 
+    int gun = gun_str ? atoi(gun_str) : -1;
+    int shots = shots_str && *shots_str != '\0' ? atoi(shots_str) : -1;
+
     if(gun >= 0 && gun < NUMGUNS && guns[gun].isauto)
     {
-        if(shots >= 0) burstshotssettings[gun] = shots;
+        if(shots >= 0) burstshotssettings[gun] = min(shots, ((int)guns[gun].magsize-1));
         else intret(burstshotssettings[gun]);
     }
     else conoutf(_("invalid gun specified"));
 }
 
-COMMAND(burstshots, ARG_2INT);
+COMMAND(burstshots, ARG_2STR);
 
 // damage arriving from the network, monsters, yourself, all ends up here.
 
