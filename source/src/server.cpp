@@ -2409,7 +2409,7 @@ void sendiplist(int receiver, int cn)
         && (clients[i]->clientnum == cn || cn == -1))
     {
         putint(p, i);
-        putint(p, clients[i]->peer->address.host);
+        putint(p, isbigendian() ? endianswap(clients[i]->peer->address.host) : clients[i]->peer->address.host);
     }
     putint(p, -1);
     sendpacket(receiver, 1, p.finalize());
@@ -2465,7 +2465,7 @@ void putinitclient(client &c, packetbuf &p)
     putint(p, c.team);
     enet_uint32 ip = 0;
     if(c.type == ST_TCPIP) ip = c.peer->address.host & 0xFFFFFF;
-    putint(p, ip);
+    putint(p, isbigendian() ? endianswap(ip) : ip);
 }
 
 void sendinitclient(client &c)

@@ -883,7 +883,7 @@ void writekillmsgcfg()
 
 void burstshots(char *gun_str, char *shots_str)
 {
-    // args are passed as strings to differentiate 2 cases : shots_str == "0" or shots_str is empty (not specified from cubescript). 
+    // args are passed as strings to differentiate 2 cases : shots_str == "0" or shots_str is empty (not specified from cubescript).
     int gun = gun_str ? atoi(gun_str) : -1;
     int shots = shots_str && *shots_str != '\0' ? atoi(shots_str) : -1;
 
@@ -1633,11 +1633,18 @@ void whois(int cn)
         return;
     }
 
-    int ip = p->address;
+    uchar ip[4];
+    if(isbigendian())
+    {
+        enet_uint32 big = endianswap(p->address);
+        memmove(&ip, &big, 4);
+    }
+    else memmove(&ip, &p->address, 4);
+
     if(m_teammode) conoutf(_("%c0INFO: %c5%s has %d teamkills."), CC, CC, p->name, p->tks);
-    if((ip>>24&0xFF) > 0 || player1->clientrole==CR_ADMIN)
-        conoutf("WHOIS client %d:\n\f5name\t%s\n\f5IP\t%d.%d.%d.%d", cn, colorname(p), ip&0xFF, ip>>8&0xFF, ip>>16&0xFF, ip>>24&0xFF); // full IP
-    else conoutf("WHOIS client %d:\n\f5name\t%s\n\f5IP\t%d.%d.%d.x", cn, colorname(p), ip&0xFF, ip>>8&0xFF, ip>>16&0xFF); // censored IP
+    if(ip[3] != 0 || player1->clientrole==CR_ADMIN)
+        conoutf("WHOIS client %d:\n\f5name\t%s\n\f5IP\t%d.%d.%d.%d", cn, colorname(p), ip[0], ip[1], ip[2], ip[3]); // full IP
+    else conoutf("WHOIS client %d:\n\f5name\t%s\n\f5IP\t%d.%d.%d.x", cn, colorname(p), ip[0], ip[1], ip[2]); // censored IP
 }
 COMMAND(whois, ARG_1INT);
 
