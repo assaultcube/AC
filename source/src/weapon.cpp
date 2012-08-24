@@ -13,6 +13,8 @@ struct sgray {
 };
 sgray sgr[SGRAYS*3];
 
+int burstshotssettings[NUMGUNS] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, };
+
 void updatelastaction(playerent *d, int millis = lastmillis)
 {
     loopi(NUMGUNS) d->weapons[i]->updatetimers(millis);
@@ -1183,6 +1185,8 @@ bool gun::attack(vec &targ)
     shots++;
 
     if(!info.isauto) owner->attacking = false;
+
+    if(burstshotssettings[this->type] > 0 && shots >= burstshotssettings[this->type]) owner->attacking = false;
 
     vec from = owner->o;
     vec to = targ;

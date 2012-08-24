@@ -1395,6 +1395,11 @@ void writecfg()
         }
     );
     f->printf("\n");
+    loopi(NUMGUNS) if(guns[i].isauto)
+    {
+        f->printf("burstshots %d %d\n", i, burstshotssettings[i]);
+    }
+    f->printf("\n");
     writebinds(f);
     f->printf("\n");
     enumerate(*idents, ident, id,
