@@ -20,6 +20,7 @@ Weapons
 [*] Grenades accuracy, real shotgun accuracy.
 [*] Sniper trail bug fixed. // TODO: Is this for the "stop the sniper trail upon hit thing"? If so I'm not 100% certain it's completely fixed. // Bukz
 [*] Hudgun can be displayed when spectating (and in demos - e.g. /specthudgun 1).
+[*] Burst fire settings
 
 Gameplay
 ---------------------

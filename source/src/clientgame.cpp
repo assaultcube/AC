@@ -881,6 +881,18 @@ void writekillmsgcfg()
     f->printf("\n");
 }
 
+void burstshots(int gun, int shots = -1)
+{
+    if(gun >= 0 && gun < NUMGUNS && guns[gun].isauto)
+    {
+        if(shots >= 0) burstshotssettings[gun] = shots;
+        else intret(burstshotssettings[gun]);
+    }
+    else conoutf(_("invalid gun specified"));
+}
+
+COMMAND(burstshots, ARG_2INT);
+
 // damage arriving from the network, monsters, yourself, all ends up here.
 
 void dodamage(int damage, playerent *pl, playerent *actor, int gun, bool gib, bool local)
