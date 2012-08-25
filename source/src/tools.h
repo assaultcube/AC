@@ -849,9 +849,9 @@ template<class T> inline void bigswap(T *buf, int len) { if(*(const uchar *)&isl
 if(isbigendian())\
 { \
     enet_uint32 big = endianswap(address);\
-    memmove(&ip, &big, 4);\
+    memcpy(&ip, &big, 4);\
 }\
-else memmove(&ip, &address, 4);\
+else memcpy(&ip, &address, 4);\
 
 /* workaround for some C platforms that have these two functions as macros - not used anywhere */
 #ifdef getchar
