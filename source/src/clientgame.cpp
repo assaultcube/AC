@@ -337,11 +337,12 @@ void playerinfo(const char *cn, const char *attr)
     ATTR_INT(spect, p->team == TEAM_SPECT || p->spectatemode == SM_FLY ? 1 : 0);
     ATTR_INT(cn, p->clientnum); // only useful to get player1's client number.
 
-    string addr = "";
-    if((p->address>>24&0xFF) != 0 || player1->clientrole==CR_ADMIN)
-        formatstring(addr)("%d.%d.%d.%d", p->address&0xFF, p->address>>8&0xFF, p->address>>16&0xFF, p->address>>24&0xFF); // full IP
-    else formatstring(addr)("%d.%d.%d.x", p->address&0xFF, p->address>>8&0xFF, p->address>>16&0xFF); // censored IP
-    ATTR_STR(ip, addr);
+    string addrstr = "";
+    uint2ip(p->address, addr);
+    if(addr[3] != 0 || player1->clientrole==CR_ADMIN)
+        formatstring(addrstr)("%d.%d.%d.%d", addr[0], addr[1], addr[2], addr[3]); // full IP
+    else formatstring(addrstr)("%d.%d.%d.x", addr[0], addr[1], addr[2]); // censored IP
+    ATTR_STR(ip, addrstr);
 
     conoutf("invalid attribute: %s", attr);
 }
@@ -889,7 +890,7 @@ void burstshots(char *gun_str, char *shots_str)
 
     if(gun >= 0 && gun < NUMGUNS && guns[gun].isauto)
     {
-        if(shots >= 0) burstshotssettings[gun] = min(shots, ((int)guns[gun].magsize-1));
+        if(shots >= 0) burstshotssettings[gun] = min(shots, (guns[gun].magsize-1));
         else intret(burstshotssettings[gun]);
     }
     else conoutf(_("invalid gun specified"));
@@ -1633,13 +1634,7 @@ void whois(int cn)
         return;
     }
 
-    uchar ip[4];
-    if(isbigendian())
-    {
-        enet_uint32 big = endianswap(p->address);
-        memmove(&ip, &big, 4);
-    }
-    else memmove(&ip, &p->address, 4);
+    uint2ip(p->address, ip);
 
     if(m_teammode) conoutf(_("%c0INFO: %c5%s has %d teamkills."), CC, CC, p->name, p->tks);
     if(ip[3] != 0 || player1->clientrole==CR_ADMIN)

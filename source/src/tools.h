@@ -845,6 +845,14 @@ template<class T> inline T bigswap(T n) { return *(const uchar *)&islittleendian
 template<class T> inline void bigswap(T *buf, int len) { if(*(const uchar *)&islittleendian) endianswap(buf, len); }
 #endif
 
+#define uint2ip(address, ip) uchar ip[4]; \
+if(isbigendian())\
+{ \
+    enet_uint32 big = endianswap(address);\
+    memmove(&ip, &big, 4);\
+}\
+else memmove(&ip, &address, 4);\
+
 /* workaround for some C platforms that have these two functions as macros - not used anywhere */
 #ifdef getchar
 #undef getchar
