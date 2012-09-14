@@ -266,7 +266,7 @@ void modifyvar(const char *name, const char *arg, char op)
         case '+': val += argval; break;
         case '-': val -= argval; break;
         case '*': val *= argval; break;
-        case '/': val /= argval; break;
+        case '/': val = argval ? val/argval : 0; break;
     }
     switch(id->type)
     {
@@ -303,7 +303,7 @@ void modifyfvar(const char *name, const char *arg, char op)
         case '+': val += argval; break;
         case '-': val -= argval; break;
         case '*': val *= argval; break;
-        case '/': val /= argval; break;
+        case '/': val = (argval == 0.0f) ? 0 : val/argval; break;
     }
     switch(id->type)
     {
@@ -319,16 +319,20 @@ void modifyfvar(const char *name, const char *arg, char op)
 void addeq(char *name, char *arg) { modifyvar(name, arg, '+'); }
 void subeq(char *name, char *arg) { modifyvar(name, arg, '-'); }
 void muleq(char *name, char *arg) { modifyvar(name, arg, '*'); }
+void diveq(char *name, char *arg) { modifyvar(name, arg, '/'); }
 void addeqf(char *name, char *arg) { modifyfvar(name, arg, '+'); }
 void subeqf(char *name, char *arg) { modifyfvar(name, arg, '-'); }
 void muleqf(char *name, char *arg) { modifyfvar(name, arg, '*'); }
+void diveqf(char *name, char *arg) { modifyfvar(name, arg, '/'); }
 
 COMMANDN(+=, addeq, ARG_2STR);
 COMMANDN(-=, subeq, ARG_2STR);
 COMMANDN(*=, muleq, ARG_2STR);
+COMMANDN(div=, diveq, ARG_2STR);
 COMMANDN(+=f, addeqf, ARG_2STR);
 COMMANDN(-=f, subeqf, ARG_2STR);
 COMMANDN(*=f, muleqf, ARG_2STR);
+COMMANDN(div=f, diveqf, ARG_2STR);
 
 int getvar(const char *name)
 {
