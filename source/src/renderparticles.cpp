@@ -615,7 +615,7 @@ bool addbullethole(dynent *d, const vec &from, const vec &to, float radius, bool
     if(surface.iszero() || (radius>0 && (dist < mag-radius || dist > mag+radius))) return false;
     vec o(from);
     o.add(ray.mul(dist));
-    o.add(vec(surface).mul(0.005f));
+    o.add(vec(surface).normalize().mul(0.01f));
     newparticle(o, surface, bulletholettl, 7);
     if(noisy && bulletbouncesound && bulletbouncesoundrad && d!=player1 && o.dist(camera1->o) <= bulletbouncesoundrad)
     {
@@ -632,7 +632,7 @@ bool addscorchmark(vec &o, float radius)
     if(!scorchttl || !scorch) return false;
     sqr *s = S((int)o.x, (int)o.y);
     if(s->type!=SPACE || o.z-s->floor>radius) return false;
-    newparticle(vec(o.x, o.y, s->floor+0.005f), vec(0, 0, 1), scorchttl, 9);
+    newparticle(vec(o.x, o.y, s->floor+0.02f), vec(0, 0, 1), scorchttl, 9);
     return true;
 }
 
