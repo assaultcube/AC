@@ -219,6 +219,69 @@
 					<return token="N" description="the sum"/>
 				</command>
 
+				<command name="-">
+					<description>Performs a subtraction.</description>
+					<arguments>
+						<argument token="A" description="the minuend"/>
+						<argument token="B" description="the subtrahend"/>
+					</arguments>
+					<return token="N" description="the difference"/>
+				</command>
+
+				<command name="*">
+					<description>Performs a multiplication.</description>
+					<arguments>
+						<argument token="A" description="the multiplicand"/>
+						<argument token="B" description="the multiplier"/>
+					</arguments>
+					<return token="N" description="the product"/>
+				</command>
+
+				<command name="div">
+					<description>Performs an integer division.</description>
+					<arguments>
+						<argument token="A" description="the dividend"/>
+						<argument token="B" description="the divisor"/>
+					</arguments>
+					<return token="N" description="the quotient (integer)"/>
+				</command>
+
+				<command name="-f">
+					<description>Subtracts two floating-point numbers.</description>
+					<arguments>
+						<argument token="A" description="the minuend" valueNotes="float"/>
+						<argument token="B" description="the subtrahend" valueNotes="float"/>
+					</arguments>
+					<return token="F" description="the difference"/>
+				</command>
+
+				<command name="+f">
+					<description>Adds up two floating-point numbers.</description>
+					<arguments>
+						<argument token="A" description="the first summand" valueNotes="float"/>
+						<argument token="B" description="the second summand" valueNotes="float"/>
+					</arguments>
+					<return token="F" description="the sum"/>
+				</command>
+
+				<command name="*f">
+					<description>Performs a floating point multiplication.</description>
+					<arguments>
+						<argument token="A" description="the multiplicand"/>
+						<argument token="B" description="the multiplier"/>
+					</arguments>
+					<return token="N" description="the product"/>
+				</command>
+
+				<command name="divf">
+					<description>Performs a division with floating-point precision.</description>
+					<arguments>
+						<argument token="A" description="" valueNotes="the dividend"/>
+						<argument token="B" description="" valueNotes="the divisor"/>
+					</arguments>
+					<return token="F" description="the quotient (floating-point)"/>
+				</command>
+
 				<command name="+=">
 					<description>Adds a value to an alias.</description>
 					<remarks>
@@ -246,70 +309,81 @@
 				</command>
 
 				<command name="*=">
-					<description>Multiplies a value and an alias.</description>
+					<description>Multiplies an alias by a value.</description>
 					<remarks>
 					<remark>
 						Example: *= foo 1337
 					</remark>
 					</remarks>
 					<arguments>
-						<argument token="A" description="the alias to multiplied"/>
+						<argument token="A" description="the alias to be multiplied"/>
 						<argument token="B" description="the multiplier"/>
 					</arguments>
 				</command>
 
-				<command name="-">
-					<description>Performs a subtraction.</description>
+				<command name="div=">
+					<description>Divides an alias by a value.</description>
+					<remarks>
+					<remark>
+						Example: div= foo 1337
+					</remark>
+					</remarks>
 					<arguments>
-						<argument token="A" description="the minuend"/>
-						<argument token="B" description="the subtrahend"/>
-					</arguments>
-					<return token="N" description="the difference"/>
-				</command>
-
-				<command name="-f">
-					<description>Subtracts two floating-point numbers.</description>
-					<arguments>
-						<argument token="A" description="the minuend" valueNotes="float"/>
-						<argument token="B" description="the subtrahend" valueNotes="float"/>
-					</arguments>
-					<return token="F" description="the difference"/>
-				</command>
-
-				<command name="+f">
-					<description>Adds up two floating-point numbers.</description>
-					<arguments>
-						<argument token="A" description="the first summand" valueNotes="float"/>
-						<argument token="B" description="the second summand" valueNotes="float"/>
-					</arguments>
-					<return token="F" description="the sum"/>
-				</command>
-
-				<command name="*">
-					<description>Performs a multiplication.</description>
-					<arguments>
-						<argument token="A" description="the multiplicand"/>
-						<argument token="B" description="the multiplier"/>
-					</arguments>
-					<return token="N" description="the product"/>
-				</command>
-
-				<command name="div">
-					<description>Performs an integer division.</description>
-					<arguments>
-						<argument token="A" description="the dividend"/>
+						<argument token="A" description="the alias to be divided"/>
 						<argument token="B" description="the divisor"/>
 					</arguments>
-					<return token="N" description="the quotient (integer)"/>
 				</command>
 
-				<command name="divf">
-					<description>Performs a division with floating-point precision.</description>
+				<command name="+=f">
+					<description>Adds a floating-point value to an alias.</description>
+					<remarks>
+					<remark>
+						Example: +=f foo 13.37
+					</remark>
+					</remarks>
 					<arguments>
-						<argument token="A" description="" valueNotes="the dividend"/>
-						<argument token="B" description="" valueNotes="the divisor"/>
+						<argument token="A" description="the alias to add to"/>
+						<argument token="B" description="value to be added"/>
 					</arguments>
-					<return token="F" description="the quotient (floating-point)"/>
+				</command>
+
+				<command name="-=f">
+					<description>Subtracts a floating-point value from an alias.</description>
+					<remarks>
+					<remark>
+						Example: -=f foo 13.37
+					</remark>
+					</remarks>
+					<arguments>
+						<argument token="A" description="the alias to subtract from"/>
+						<argument token="B" description="value to be subtracted"/>
+					</arguments>
+				</command>
+
+				<command name="*=f">
+					<description>Multiplies an alias by a floating-point value.</description>
+					<remarks>
+					<remark>
+						Example: *=f foo 13.37
+					</remark>
+					</remarks>
+					<arguments>
+						<argument token="A" description="the alias to be multiplied"/>
+						<argument token="B" description="the multiplier"/>
+					</arguments>
+				</command>
+
+				<command name="div=f">
+					<description>Divides an alias by a floating-point value.</description>
+					<remarks>
+					<remark>
+						Example: div=f foo 13.37
+					</remark>
+					</remarks>
+					<arguments>
+						<argument token="A" description="the alias to be divided"/>
+						<argument token="B" description="the divisor"/>
+					</arguments>
 				</command>
 
 				<command name="mod">
@@ -426,15 +500,6 @@
 					<arguments>
 						<argument token="A" description="argument"/>
 					</arguments>
-				</command>
-
-				<command name="*f">
-					<description>Performs a floating point multiplication.</description>
-					<arguments>
-						<argument token="A" description="the multiplicand"/>
-						<argument token="B" description="the multiplier"/>
-					</arguments>
-					<return token="N" description="the product"/>
 				</command>
 
 				<command name="rnd">
