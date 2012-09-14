@@ -168,29 +168,29 @@ void renderentities()
                 if(ice) continue;
                 vec v(e.x, e.y, e.z);
                 if(vec(v).sub(camera1->o).dot(camdir) < 0) continue;
-                //particle_splash(i == closest ? 12 : 2, 2, 40, v);
-                int sc = 17; // "carrot" (orange) - entity slot currently unused, possibly "reserved"
+                //particle_splash(i == closest ? PART_ELIGHT : PART_ECLOSEST, 2, 40, v);
+                int sc = PART_ECARROT; // "carrot" (orange) - entity slot currently unused, possibly "reserved"
                 if(i==closest)
                 {
-                    sc = 2; // blue
+                    sc = PART_ECLOSEST; // blue
                 }
                 else switch(e.type)
                 {
-                    case LIGHT : sc = 12; break; // white
-                    case PLAYERSTART: sc = 13; break; // green
+                    case LIGHT : sc = PART_ELIGHT; break; // white
+                    case PLAYERSTART: sc = PART_ESPAWN; break; // green
                     case I_CLIPS:
                     case I_AMMO:
-                    case I_GRENADE: sc = 14; break; // red
+                    case I_GRENADE: sc = PART_EAMMO; break; // red
                     case I_HEALTH:
                     case I_HELMET:
                     case I_ARMOUR:
-                    case I_AKIMBO: sc = 15; break; // yellow
+                    case I_AKIMBO: sc = PART_EPICKUP; break; // yellow
                     case MAPMODEL:
-                    case SOUND: sc = 16; break; // magenta
+                    case SOUND: sc = PART_EMODEL; break; // magenta
                     case LADDER:
                     case CLIP:
-                    case PLCLIP: sc = 18; break; // grey
-                    case CTF_FLAG: sc = 19; break; // turquoise
+                    case PLCLIP: sc = PART_ELADDER; break; // grey
+                    case CTF_FLAG: sc = PART_EFLAG; break; // turquoise
                     default: break;
                 }
                 //particle_splash(sc, i==closest?6:2, i==closest?120:40, v);
