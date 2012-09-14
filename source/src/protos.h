@@ -600,6 +600,30 @@ enum
 
 #define PT_DECAL_MASK ((1<<PT_DECAL)|(1<<PT_BULLETHOLE)|(1<<PT_STAIN))
 
+enum
+{
+    PART_SPARK = 0,
+    PART_SMOKE,
+    PART_ECLOSEST,
+    PART_BLOOD,
+    PART_DEMOTRACK,
+    PART_FIREBALL,
+    PART_SHOTLINE,
+    PART_BULLETHOLE,
+    PART_BLOODSTAIN,
+    PART_SCORCH,
+    PART_HUDMUZZLEFLASH,
+    PART_MUZZLEFLASH,
+    PART_ELIGHT,
+    PART_ESPAWN,
+    PART_EAMMO,
+    PART_EPICKUP,
+    PART_EMODEL,
+    PART_ECARROT,
+    PART_ELADDER,
+    PART_EFLAG
+};
+
 extern void particleinit();
 extern void particlereset();
 extern void particle_flash(int type, float scale, float angle, const vec &p);

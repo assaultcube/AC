@@ -369,7 +369,7 @@ playerent *playerincrosshair()
 
 void damageeffect(int damage, playerent *d)
 {
-    particle_splash(3, damage/10, 1000, d->o);
+    particle_splash(PART_BLOOD, damage/10, 1000, d->o);
 }
 
 struct hitweap
@@ -930,8 +930,8 @@ void grenadeent::explode()
 
 void grenadeent::splash()
 {
-    particle_splash(0, 50, 300, o);
-    particle_fireball(5, o);
+    particle_splash(PART_SPARK, 50, 300, o);
+    particle_fireball(PART_FIREBALL, o);
     addscorchmark(o);
     adddynlight(NULL, o, 16, 200, 100, 255, 255, 224);
     adddynlight(NULL, o, 16, 600, 600, 192, 160, 128);
@@ -1214,7 +1214,7 @@ void gun::attackfx(const vec &from, const vec &to, int millis)
     TraceLine(from, to, owner, true, &tr);
     addbullethole(owner, from, tr.end);
     addshotline(owner, from, tr.end);
-    particle_splash(0, 5, 250, tr.end);
+    particle_splash(PART_SPARK, 5, 250, tr.end);
     adddynlight(owner, from, 4, 100, 50, 96, 80, 64);
     attacksound();
 }
@@ -1240,7 +1240,7 @@ bool shotgun::attack(vec &targ)
 
 void shotgun::attackfx(const vec &from, const vec &to, int millis)
 {
-    loopi(SGRAYS) particle_splash(0, 5, 200, sgr[i].rv);
+    loopi(SGRAYS) particle_splash(PART_SPARK, 5, 200, sgr[i].rv);
     if(addbullethole(owner, from, to))
     {
         loopk(3)
@@ -1274,8 +1274,8 @@ void sniperrifle::attackfx(const vec &from, const vec &to, int millis)
     TraceLine(from, to, owner, true, &tr);
     addbullethole(owner, from, tr.end);
     addshotline(owner, from, tr.end);
-    particle_splash(0, 50, 200, tr.end);
-    particle_trail(1, 500, from, tr.end);
+    particle_splash(PART_SPARK, 50, 200, tr.end);
+    particle_trail(PART_SMOKE, 500, from, tr.end);
     adddynlight(owner, from, 4, 100, 50, 96, 80, 64);
     attacksound();
 }

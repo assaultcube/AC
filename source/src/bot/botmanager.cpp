@@ -945,7 +945,7 @@ botent *CBotManager::CreateBot(const char *team, const char *skill, const char *
 
     if (name && *name) copystring(m->name, name, 16);
     else copystring(m->name, BotManager.GetBotName(), 16);
-    
+
     updateclientname((playerent *)m);
 
     const char *tempteam = team && *team && strcmp(team, "random") ? team : BotManager.GetBotTeam();
@@ -1054,7 +1054,7 @@ void drawbeamtobots()
     loopv(bots)
     {
         if (bots[i])
-            particle_trail(1, 500, player1->o, bots[i]->o);
+            particle_trail(PART_SMOKE, 500, player1->o, bots[i]->o);
     }
 }
 
@@ -1128,7 +1128,7 @@ COMMAND(togglegrap, ARG_NONE);
 void togglebotview(char *bot)
 {
     if(!botmode()) return;
-  /** 
+  /**
       Disable in arena modes, this command causes the game to go in an "infinite loop"
       due to player1 automatically suiciding thus causing a new round to begin.
   */
@@ -1209,7 +1209,7 @@ void drawbeamtocarrots()
         entity &e = ents[i];
         vec o = { e.x, e.y, S(e.x, e.y)->floor+player1->eyeheight };
         if ((e.type != CARROT) || !e.spawned) continue;
-        particle_trail(1, 500, player1->o, o);
+        particle_trail(PART_SMOKE, 500, player1->o, o);
     }
 }
 
@@ -1222,7 +1222,7 @@ void drawbeamtoteleporters()
         entity &e = ents[i];
         vec o = { e.x, e.y, S(e.x, e.y)->floor+player1->eyeheight };
         if (e.type != TELEPORT) continue;
-        particle_trail(1, 500, player1->o, o);
+        particle_trail(PART_SMOKE, 500, player1->o, o);
     }
 }
 
