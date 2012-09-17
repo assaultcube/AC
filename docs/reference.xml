@@ -6440,101 +6440,8 @@ Output:
 		<section name="Game modes" sortindex="04">
 			<identifiers sort="true">
 
-				<command name="gamemodedesc">
-					<arguments>
-						<argument token="M" description="mode" valueNotes="integer"/>
-						<argument token="D" description="description" valueNotes="string"/>
-					</arguments>
-				</command>
-
-				<command name="coop">
-					<description>Starts a map with the mode "Co-op edit"</description>
-					<remarks>
-						<remark>See the co-op edit section in page 4 of the map editing guide for more information.</remark>
-					</remarks>
-					<examples>
-					<example>
-						<code><![CDATA[coop ac_newmap]]></code>
-					</example>
-					</examples>
-					<arguments>
-						<variableArgument token="M" description="The name of the map you wish to edit"/>
-					</arguments>
-				</command>
-
-				<command name="ctf">
-					<description>Starts a map with the mode "Capture the Flag"</description>
-					<examples>
-					<example>
-						<code><![CDATA[ctf ac_mines]]></code>
-					</example>
-					</examples>
-					<arguments>
-						<variableArgument token="M" description="The name of the map you wish to play"/>
-					</arguments>
-				</command>
-
-				<command name="dm">
-					<description>Starts a map with the mode "Deathmatch"</description>
-					<examples>
-					<example>
-						<code><![CDATA[dm ac_complex]]></code>
-					</example>
-					</examples>
-					<arguments>
-						<variableArgument token="M" description="The name of the map you wish to play"/>
-					</arguments>
-				</command>
-
-				<command name="htf">
-					<description>Starts a map with the mode "Hunt the Flag"</description>
-					<examples>
-					<example>
-						<code><![CDATA[htf ac_mines]]></code>
-					</example>
-					</examples>
-					<arguments>
-						<variableArgument token="M" description="The name of the map you wish to play"/>
-					</arguments>
-				</command>
-
-				<command name="ktf">
-					<description>Starts a map with the mode "Keep the Flag"</description>
-					<examples>
-					<example>
-						<code><![CDATA[ktf ac_mines]]></code>
-					</example>
-					</examples>
-					<arguments>
-						<variableArgument token="M" description="The name of the map you wish to play"/>
-					</arguments>
-				</command>
-
-				<command name="lms">
-					<description>Starts a map with the mode "Last Man Standing"</description>
-					<examples>
-					<example>
-						<code><![CDATA[lms ac_complex]]></code>
-					</example>
-					</examples>
-					<arguments>
-						<variableArgument token="M" description="The name of the map you wish to play"/>
-					</arguments>
-				</command>
-
-				<command name="lss">
-					<description>Starts a map with the mode "Last Swiss Standing"</description>
-					<examples>
-					<example>
-						<code><![CDATA[lss ac_complex]]></code>
-					</example>
-					</examples>
-					<arguments>
-						<variableArgument token="M" description="The name of the map you wish to play"/>
-					</arguments>
-				</command>
-		<command name="mode">
-          <description>Sets the gameplay mode to N for the next map loaded.</description>
+				<command name="mode">
+					<description>Sets the gameplay mode to N for the next map loaded.</description>
 					<references>
 						<wikiReference article="Gamemodes"/>
 						<identifierReference identifier="map"/>
@@ -6557,43 +6464,133 @@ Output:
 						<identifierReference identifier="tktf"/>
 						<identifierReference identifier="ktf"/>
 					</references>
-          <arguments>
-	    <argument token="N" valueNotes="0" description="Team Deathmatch"/>
-            <argument valueNotes="1" description="Co-op edit"/>
-            <argument valueNotes="2" description="Deathmatch"/>
-            <argument valueNotes="3" description="Survivor"/>
-            <argument valueNotes="4" description="Team survivor"/>
-            <argument valueNotes="5" description="Capture the Flag"/>
-            <argument valueNotes="6" description="Pistol frenzy"/>
-            <argument valueNotes="7" description="Bot team deathmatch"/>
-            <argument valueNotes="8" description="Bot deathmatch"/>
-            <argument valueNotes="9" description="Last swiss standing"/>
-            <argument valueNotes="10" description="One shot, One kill"/>
-            <argument valueNotes="11" description="Team One shot, One kill"/>
-            <argument valueNotes="12" description="Bot One shot, One kill"/>
-            <argument valueNotes="13" description="Hunt the Flag"/>
-            <argument valueNotes="14" description="Team keep the flag"/>
-            <argument valueNotes="15" description="Keep the flag"/>
-          </arguments>
+					<arguments>
+						<argument token="N" valueNotes="0" description="Team Deathmatch"/>
+						<argument valueNotes="1" description="Co-op edit"/>
+						<argument valueNotes="2" description="Deathmatch"/>
+						<argument valueNotes="3" description="Survivor"/>
+						<argument valueNotes="4" description="Team survivor"/>
+						<argument valueNotes="5" description="Capture the Flag"/>
+						<argument valueNotes="6" description="Pistol frenzy"/>
+						<argument valueNotes="7" description="Bot team deathmatch"/>
+						<argument valueNotes="8" description="Bot deathmatch"/>
+						<argument valueNotes="9" description="Last swiss standing"/>
+						<argument valueNotes="10" description="One shot, One kill"/>
+						<argument valueNotes="11" description="Team One shot, One kill"/>
+						<argument valueNotes="12" description="Bot One shot, One kill"/>
+						<argument valueNotes="13" description="Hunt the Flag"/>
+						<argument valueNotes="14" description="Team keep the flag"/>
+						<argument valueNotes="15" description="Keep the flag"/>
+					</arguments>
 					<remarks>
 						<remark>You will need to define mode before loading the map or it will stay as the last mode played.</remark>
 						<remark>There are many aliases for you to use instead of remembering the numeric mapping.</remark>
 					</remarks>
 					<examples>
-						<example><code><![CDATA[mode 7;map ac_complex;echo "Bot Team Deathmatch on ac_complex"]]></code></example>
-						<example><code><![CDATA[mode 8;map ac_mines;echo "Bot Deathmatch on ac_mines"]]></code></example>
-						<example><code><![CDATA[mode 5;map ac_shine;echo "CTF @ ac_shine"]]></code></example>
+						<example><code><![CDATA[mode 7; map ac_complex; echo "Bot Team Deathmatch on ac_complex"]]></code></example>
+						<example><code><![CDATA[mode 8; map ac_mines 4; echo "Bot Deathmatch on ac_mines for 4 minutes"]]></code></example>
+						<example><code><![CDATA[mode 5; map ac_shine; echo "CTF @ ac_shine"]]></code></example>
 					</examples>
 				</command>
 
-				<command name="setbottimeout">
-					<description>set the length of matches against bots</description>
-					<remarks>
-						<remark>The first argument <b>"M"</b> needs to be <b>1</b> for setting the FFA-timeout or <b>2</b> for the Team-Mode-timeout.</remark>
-					</remarks>
+				<command name="gamemodedesc">
 					<arguments>
-						<argument token="M" description="mode" valueNotes="1||2"/>
-						<argument token="T" description="time" valueNotes="1..60"/>
+						<argument token="M" description="mode" valueNotes="integer"/>
+						<argument token="D" description="description" valueNotes="string"/>
+					</arguments>
+				</command>
+
+				<command name="coop">
+					<description>Starts a map with the mode "Co-op edit"</description>
+					<remarks>
+						<remark>See the co-op edit section in page 4 of the map editing guide for more information.</remark>
+					</remarks>
+					<examples>
+					<example>
+						<code><![CDATA[coop ac_newmap]]></code>
+					</example>
+					</examples>
+					<arguments>
+						<variableArgument token="M" description="The name of the map you wish to edit"/>
+						<variableArgument token="T" valueNotes="1..60" description="The time limit, in minutes (default 10 minutes if T is 0 or not specified)"/>
+					</arguments>
+				</command>
+
+				<command name="ctf">
+					<description>Starts a map with the mode "Capture the Flag"</description>
+					<examples>
+					<example>
+						<code><![CDATA[ctf ac_mines]]></code>
+					</example>
+					</examples>
+					<arguments>
+						<variableArgument token="M" description="The name of the map you wish to play"/>
+						<variableArgument token="T" valueNotes="1..60" description="The time limit, in minutes (default 15 minutes if T is 0 or not specified)"/>
+					</arguments>
+				</command>
+
+				<command name="dm">
+					<description>Starts a map with the mode "Deathmatch"</description>
+					<examples>
+					<example>
+						<code><![CDATA[dm ac_complex]]></code>
+					</example>
+					</examples>
+					<arguments>
+						<variableArgument token="M" description="The name of the map you wish to play"/>
+						<variableArgument token="T" valueNotes="1..60" description="The time limit, in minutes (default 10 minutes if T is 0 or not specified)"/>
+					</arguments>
+				</command>
+
+				<command name="htf">
+					<description>Starts a map with the mode "Hunt the Flag"</description>
+					<examples>
+					<example>
+						<code><![CDATA[htf ac_mines]]></code>
+					</example>
+					</examples>
+					<arguments>
+						<variableArgument token="M" description="The name of the map you wish to play"/>
+						<variableArgument token="T" valueNotes="1..60" description="The time limit, in minutes (default 15 minutes if T is 0 or not specified)"/>
+					</arguments>
+				</command>
+
+				<command name="ktf">
+					<description>Starts a map with the mode "Keep the Flag"</description>
+					<examples>
+					<example>
+						<code><![CDATA[ktf ac_mines]]></code>
+					</example>
+					</examples>
+					<arguments>
+						<variableArgument token="M" description="The name of the map you wish to play"/>
+						<variableArgument token="T" valueNotes="1..60" description="The time limit, in minutes (default 10 minutes if T is 0 or not specified)"/>
+					</arguments>
+				</command>
+
+				<command name="lms">
+					<description>Starts a map with the mode "Last Man Standing"</description>
+					<examples>
+					<example>
+						<code><![CDATA[lms ac_complex]]></code>
+					</example>
+					</examples>
+					<arguments>
+						<variableArgument token="M" description="The name of the map you wish to play"/>
+						<variableArgument token="T" valueNotes="1..60" description="The time limit, in minutes (default 10 minutes if T is 0 or not specified)"/>
+					</arguments>
+				</command>
+
+				<command name="lss">
+					<description>Starts a map with the mode "Last Swiss Standing"</description>
+					<examples>
+					<example>
+						<code><![CDATA[lss ac_complex]]></code>
+					</example>
+					</examples>
+					<arguments>
+						<variableArgument token="M" description="The name of the map you wish to play"/>
+						<variableArgument token="T" valueNotes="1..60" description="The time limit, in minutes (default 10 minutes if T is 0 or not specified)"/>
 					</arguments>
 				</command>
 
@@ -6605,7 +6602,8 @@ Output:
 					</example>
 					</examples>
 					<arguments>
-				<variableArgument token="M" description="The name of the map you wish to play"/>
+						<variableArgument token="M" description="The name of the map you wish to play"/>
+						<variableArgument token="T" valueNotes="1..60" description="The time limit, in minutes (default 10 minutes if T is 0 or not specified)"/>
 					</arguments>
 				</command>
 
@@ -6618,6 +6616,7 @@ Output:
 					</examples>
 					<arguments>
 						<variableArgument token="M" description="The name of the map you wish to play"/>
+						<variableArgument token="T" valueNotes="1..60" description="The time limit, in minutes (default 10 minutes if T is 0 or not specified)"/>
 					</arguments>
 				</command>
 
@@ -6630,6 +6629,7 @@ Output:
 					</examples>
 					<arguments>
 						<variableArgument token="M" description="The name of the map you wish to play"/>
+						<variableArgument token="T" valueNotes="1..60" description="The time limit, in minutes (default 15 minutes if T is 0 or not specified)"/>
 					</arguments>
 				</command>
 
@@ -6642,6 +6642,7 @@ Output:
 					</examples>
 					<arguments>
 						<variableArgument token="M" description="The name of the map you wish to play"/>
+						<variableArgument token="T" valueNotes="1..60" description="The time limit, in minutes (default 15 minutes if T is 0 or not specified)"/>
 					</arguments>
 				</command>
 
@@ -6654,6 +6655,7 @@ Output:
 					</examples>
 					<arguments>
 						<variableArgument token="M" description="The name of the map you wish to play"/>
+						<variableArgument token="T" valueNotes="1..60" description="The time limit, in minutes (default 15 minutes if T is 0 or not specified)"/>
 					</arguments>
 				</command>
 
@@ -6666,6 +6668,7 @@ Output:
 					</examples>
 					<arguments>
 						<variableArgument token="M" description="The name of the map you wish to play"/>
+						<variableArgument token="T" valueNotes="1..60" description="The time limit, in minutes (default 15 minutes if T is 0 or not specified)"/>
 					</arguments>
 				</command>
 
@@ -6678,6 +6681,7 @@ Output:
 					</examples>
 					<arguments>
 						<variableArgument token="M" description="The name of the map you wish to play"/>
+						<variableArgument token="T" valueNotes="1..60" description="The time limit, in minutes (default 15 minutes if T is 0 or not specified)"/>
 					</arguments>
 				</command>
 

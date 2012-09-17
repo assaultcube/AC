@@ -398,7 +398,7 @@ extern playerent *newclient(int cn);
 extern void timeupdate(int milliscur, int millismax); // was (int timeremain);
 extern void respawnself();
 extern void setskin(playerent *pl, int skin, int team = -1);
-extern void callvote(int type, const char *arg1 = NULL, const char *arg2 = NULL);
+extern void callvote(int type, const char *arg1 = NULL, const char *arg2 = NULL, const char *arg3 = NULL);
 extern void addsleep(int msec, const char *cmd, bool persist = false);
 extern void resetsleep(bool force = false);
 //game mode extras
@@ -433,7 +433,7 @@ struct votedisplayinfo
     votedisplayinfo() : owner(NULL), result(VOTE_NEUTRAL), millis(0), localplayervoted(false) { loopi(VOTE_NUM) stats[i] = VOTE_NEUTRAL; }
 };
 
-extern votedisplayinfo *newvotedisplayinfo(playerent *owner, int type, const char *arg1, const char *arg2);
+extern votedisplayinfo *newvotedisplayinfo(playerent *owner, int type, const char *arg1, const char *arg2, const char *arg3 = "");
 extern void callvotesuc();
 extern void callvoteerr(int e);
 extern void displayvote(votedisplayinfo *v);
@@ -863,7 +863,7 @@ extern bool valid_client(int cn);
 extern void extinfo_cnbuf(ucharbuf &p, int cn);
 extern void extinfo_statsbuf(ucharbuf &p, int pid, int bpos, ENetSocket &pongsock, ENetAddress &addr, ENetBuffer &buf, int len, int *csend);
 extern void extinfo_teamscorebuf(ucharbuf &p);
-extern char *votestring(int type, char *arg1, char *arg2);
+extern char *votestring(int type, char *arg1, char *arg2, char *arg3);
 extern int wizardmain(int argc, char **argv);
 
 // demo

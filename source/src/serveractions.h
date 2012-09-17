@@ -36,7 +36,7 @@ void kick_abuser(int cn, int &cmillis, int &count, int limit)
 struct mapaction : serveraction
 {
     char *map;
-    int mode;
+    int mode, time;
     bool mapok, queue;
     void perform()
     {
@@ -53,12 +53,12 @@ struct mapaction : serveraction
         }
         else
         {
-            startgame(map, mode);
+            startgame(map, mode, time);
         }
     }
     bool isvalid() { return serveraction::isvalid() && mode != GMODE_DEMO && map[0] && mapok && !(isdedicated && !m_mp(mode)); }
     bool isdisabled() { return maprot.current() && !maprot.current()->vote; }
-    mapaction(char *map, int mode, int caller, bool q) : map(map), mode(mode), queue(q)
+    mapaction(char *map, int mode, int time, int caller, bool q) : map(map), mode(mode), time(time), queue(q)
     {
         if(isdedicated)
         {
