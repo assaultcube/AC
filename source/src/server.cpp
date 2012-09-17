@@ -55,8 +55,6 @@ vector<server_entity> sents;
 char *maplayout = NULL, *testlayout = NULL;
 int maplayout_factor, testlayout_factor, maplayoutssize;
 servermapbuffer mapbuffer;
-int botmatch_dm_minremain = 10; // deathmatch
-int botmatch_tm_minremain = 15; // teammode
 
 // cmod
 char *global_name;
@@ -1868,7 +1866,7 @@ void resetserver(const char *newname, int newmode, int newtime)
     smode = newmode;
     copystring(smapname, newname);
 
-    minremain = newtime >= 0 ? newtime : (m_botmode ? (m_teammode ? botmatch_tm_minremain : botmatch_dm_minremain) : (m_teammode ? 15 : 10));
+    minremain = newtime > 0 ? newtime : (m_teammode ? 15 : 10);
     gamemillis = 0;
     gamelimit = minremain*60000;
     arenaround = arenaroundstartmillis = 0;
@@ -2070,7 +2068,7 @@ void sendserveropinfo(int receiver)
 struct voteinfo
 {
     int boot;
-    int owner, callmillis, result, num, type;
+    int owner, callmillis, result, num1, num2, type;
     char text[MAXTRANS];
     serveraction *action;
     bool gonext;
@@ -2114,7 +2112,7 @@ struct voteinfo
         bool min_time = servmillis - callmillis > 10*1000;
 #define yes_condition ((min_time && stats[VOTE_YES] - stats[VOTE_NO] > 0.34f*total && totalclients > 4) || stats[VOTE_YES] > requiredcount*total)
 #define no_condition (forceend || !valid_client(owner) || stats[VOTE_NO] >= stats[VOTE_YES]+stats[VOTE_NEUTRAL] || adminvote == VOTE_NO)
-#define boot_condition (!boot || (boot && valid_client(num) && clients[num]->peer->address.host == host))
+#define boot_condition (!boot || (boot && valid_client(num1) && clients[num1]->peer->address.host == host))
         if( (yes_condition || admin || adminvote == VOTE_YES) && boot_condition ) end(VOTE_YES);
         else if( no_condition || (min_time && !boot_condition)) end(VOTE_NO);
         else return;
@@ -2183,7 +2181,7 @@ bool scallvote(voteinfo *v, ENetPacket *msg) // true if a regular vote was calle
     else if( v->action->role > c->role ) error = VOTEE_PERMISSION;
     else if( !(area & v->action->area) ) error = VOTEE_AREA;
     else if( curvote && curvote->result==VOTE_NEUTRAL ) error = VOTEE_CUR;
-    else if( v->type == SA_MAP && v->num >= GMODE_NUM && map_queued ) error = VOTEE_NEXT;
+    else if( v->type == SA_MAP && v->num1 >= GMODE_NUM && map_queued ) error = VOTEE_NEXT;
     else if( c->role == CR_DEFAULT && v->action->isdisabled() ) error = VOTEE_DISABLED;
     else if( (c->lastvotecall && servmillis - c->lastvotecall < 60*1000 && c->role != CR_ADMIN && numclients()>1) || c->nvotes > 3 ) error = VOTEE_MAX;
     else if( ( ( v->boot == 1 && c->role < roleconf('w') ) || ( v->boot == 2 && c->role < roleconf('X') ) )
@@ -2202,7 +2200,7 @@ bool scallvote(voteinfo *v, ENetPacket *msg) // true if a regular vote was calle
     }
     else
     {
-        if ( v->type == SA_MAP && v->num >= GMODE_NUM ) map_queued = true;
+        if ( v->type == SA_MAP && v->num1 >= GMODE_NUM ) map_queued = true;
         if (!v->gonext) sendpacket(-1, 1, msg, v->owner); // FIXME in fact, all votes should go to the server, registered, and then go back to the clients
         else callvotepacket (-1, v);                      // also, no vote should exclude the caller... these would provide many code advantages/facilities
         scallvotesuc(v);                                  // but we cannot change the vote system now for compatibility issues... so, TODO
@@ -2230,12 +2228,13 @@ void callvotepacket (int cn, voteinfo *v = curvote)
     {
         case SA_KICK:
         case SA_BAN:
-            putint(q, v->num);
+            putint(q, v->num1);
             sendstring(v->text, q);
             break;
         case SA_MAP:
             sendstring(v->text, q);
-            putint(q, v->num);
+            putint(q, v->num1);
+            putint(q, v->num2);
             break;
         case SA_SERVERDESC:
             sendstring(v->text, q);
@@ -2247,7 +2246,7 @@ void callvotepacket (int cn, voteinfo *v = curvote)
         case SA_SHUFFLETEAMS:
             break;
         default:
-            putint(q, v->num);
+            putint(q, v->num1);
             break;
     }
     sendpacket(cn, 1, q.finalize());
@@ -3380,7 +3379,9 @@ void process(ENetPacket *packet, int sender, int chan)
                     {
                         getstring(text, p);
                         filtertext(text, text);
-                        int mode = getint(p);
+                        int mode = getint(p), time = getint(p);
+                        if(time <= 0) time = -1;
+                        time = min(time, 60);
                         vi->gonext = text[0]=='+' && text[1]=='1';
                         if (vi->gonext)
                         {
@@ -3389,27 +3390,28 @@ void process(ENetPacket *packet, int sender, int chan)
                             if(c)
                             {
                                 strcpy(vi->text,c->mapname);
-                                mode = vi->num = c->mode;
+                                mode = vi->num1 = c->mode;
                             }
                             else fatal("unable to get next map in maprot");
                         }
                         else
                         {
                             strncpy(vi->text,text,MAXTRANS-1);
-                            vi->num = mode;
+                            vi->num1 = mode;
+                            vi->num2 = time;
                         }
                         int qmode = (mode >= GMODE_NUM ? mode - GMODE_NUM : mode);
                         if(mode==GMODE_DEMO) vi->action = new demoplayaction(newstring(text));
                         else
                         {
                             char *vmap = newstring(vi->text ? behindpath(vi->text) : "");
-                            vi->action = new mapaction(vmap, qmode, sender, qmode!=mode);
+                            vi->action = new mapaction(vmap, qmode, time, sender, qmode!=mode);
                         }
                         break;
                     }
                     case SA_KICK:
                     {
-                        vi->num = cn2boot = getint(p);
+                        vi->num1 = cn2boot = getint(p);
                         getstring(text, p);
                         strncpy(vi->text,text,128);
                         filtertext(text, text);
@@ -3420,7 +3422,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     }
                     case SA_BAN:
                     {
-                        vi->num = cn2boot = getint(p);
+                        vi->num1 = cn2boot = getint(p);
                         getstring(text, p);
                         strncpy(vi->text,text,128);
                         filtertext(text, text);
@@ -3433,28 +3435,28 @@ void process(ENetPacket *packet, int sender, int chan)
                         vi->action = new removebansaction();
                         break;
                     case SA_MASTERMODE:
-                        vi->action = new mastermodeaction(vi->num = getint(p));
+                        vi->action = new mastermodeaction(vi->num1 = getint(p));
                         break;
                     case SA_AUTOTEAM:
-                        vi->action = new autoteamaction((vi->num = getint(p)) > 0);
+                        vi->action = new autoteamaction((vi->num1 = getint(p)) > 0);
                         break;
                     case SA_SHUFFLETEAMS:
                         vi->action = new shuffleteamaction();
                         break;
                     case SA_FORCETEAM:
-                        vi->action = new forceteamaction((vi->num = getint(p)), sender);
+                        vi->action = new forceteamaction((vi->num1 = getint(p)), sender);
                         break;
                     case SA_GIVEADMIN:
-                        vi->action = new giveadminaction(vi->num = getint(p));
+                        vi->action = new giveadminaction(vi->num1 = getint(p));
                         break;
                     case SA_RECORDDEMO:
-                        vi->action = new recorddemoaction((vi->num = getint(p))!=0);
+                        vi->action = new recorddemoaction((vi->num1 = getint(p))!=0);
                         break;
                     case SA_STOPDEMO:
                         // compatibility
                         break;
                     case SA_CLEARDEMOS:
-                        vi->action = new cleardemosaction(vi->num = getint(p));
+                        vi->action = new cleardemosaction(vi->num1 = getint(p));
                         break;
                     case SA_SERVERDESC:
                         getstring(text, p);

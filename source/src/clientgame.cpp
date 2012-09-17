@@ -16,35 +16,6 @@ void mode(int n)
 }
 COMMAND(mode, ARG_1INT);
 
-void setbottimeout(int m, int t)
-{
-    if(m==1 || m==2)
-    {
-        if(t>0 && t<61)
-        {
-            switch(m)
-            {
-                case 1:
-                {
-                    extern int botmatch_dm_minremain;
-                    botmatch_dm_minremain = t;
-                    break;
-                }
-                case 2:
-                {
-                    extern int botmatch_tm_minremain;
-                    botmatch_tm_minremain = t;
-                    break;
-                }
-                default: break;
-            }
-        }
-        else conoutf(_("%c3Error: %c5valid range for time is 1-60"), CC, CC);
-    }
-    else conoutf(_("%c3Error: %c5mode needs to be 1 for FFA or 2 for team modes"), CC, CC);
-}
-COMMAND(setbottimeout, ARG_2INT);
-
 bool intermission = false;
 int arenaintermission = 0;
 struct serverstate servstate = { 0 };
@@ -1368,9 +1339,9 @@ void flagmsg(int flag, int message, int actor, int flagtime)
 void dropflag() { tryflagdrop(true); }
 COMMAND(dropflag, ARG_NONE);
 
-char *votestring(int type, const char *arg1, const char *arg2)
+char *votestring(int type, const char *arg1, const char *arg2, const char *arg3)
 {
-    const char *msgs[] = { "kick player %s, reason: %s", "ban player %s, reason: %s", "remove all bans", "set mastermode to %s", "%s autoteam", "force player %s to the enemy team", "give admin to player %s", "load map %s in mode %s%s", "%s demo recording for the next match", "stop demo recording", "clear all demos", "set server description to '%s'", "shuffle teams"};
+    const char *msgs[] = { "kick player %s, reason: %s", "ban player %s, reason: %s", "remove all bans", "set mastermode to %s", "%s autoteam", "force player %s to the enemy team", "give admin to player %s", (arg3 && arg3[0]) ? "load map %s in mode %s%s for %s minutes" : "load map %s in mode %s%s", "%s demo recording for the next match", "stop demo recording", "clear all demos", "set server description to '%s'", "shuffle teams"};
     const char *msg = msgs[type];
     char *out = newstring(MAXSTRLEN);
     out[MAXSTRLEN] = '\0';
@@ -1406,11 +1377,11 @@ char *votestring(int type, const char *arg1, const char *arg2)
             int n = atoi(arg2);
             if ( n >= GMODE_NUM )
             {
-                formatstring(out)(msg, arg1, modestr(n-GMODE_NUM, modeacronyms > 0)," (in the next game)");
+                formatstring(out)(msg, arg1, modestr(n-GMODE_NUM, modeacronyms > 0)," (in the next game)", arg3);
             }
             else
             {
-                formatstring(out)(msg, arg1, modestr(n, modeacronyms > 0),"");
+                formatstring(out)(msg, arg1, modestr(n, modeacronyms > 0), "", arg3);
             }
             break;
         }
@@ -1424,14 +1395,14 @@ char *votestring(int type, const char *arg1, const char *arg2)
     return out;
 }
 
-votedisplayinfo *newvotedisplayinfo(playerent *owner, int type, const char *arg1, const char *arg2)
+votedisplayinfo *newvotedisplayinfo(playerent *owner, int type, const char *arg1, const char *arg2, const char *arg3)
 {
     if(type < 0 || type >= SA_NUM) return NULL;
     votedisplayinfo *v = new votedisplayinfo();
     v->owner = owner;
     v->type = type;
     v->millis = totalmillis + (30+10)*1000;
-    char *votedesc = votestring(type, arg1, arg2);
+    char *votedesc = votestring(type, arg1, arg2, arg3);
     copystring(v->desc, votedesc);
     DELETEA(votedesc);
     return v;
@@ -1439,10 +1410,10 @@ votedisplayinfo *newvotedisplayinfo(playerent *owner, int type, const char *arg1
 
 votedisplayinfo *curvote = NULL, *calledvote = NULL;
 
-void callvote(int type, const char *arg1, const char *arg2)
+void callvote(int type, const char *arg1, const char *arg2, const char *arg3)
 {
     if(calledvote) return;
-    votedisplayinfo *v = newvotedisplayinfo(player1, type, arg1, arg2);
+    votedisplayinfo *v = newvotedisplayinfo(player1, type, arg1, arg2, arg3);
     if(v)
     {
         calledvote = v;
@@ -1459,6 +1430,7 @@ void callvote(int type, const char *arg1, const char *arg2)
             case SA_MAP:
                 sendstring(arg1, p);
                 putint(p, nextmode);
+                putint(p, atoi(arg3));
                 break;
             case SA_SERVERDESC:
                 sendstring(arg1, p);
@@ -1492,9 +1464,7 @@ void scallvote(char *type, const char *arg1, const char *arg2)
         {
             case SA_MAP: // FIXME
             {
-                string n;
-                itoa(n, nextmode);
-                callvote(t, arg1, n);
+                callvote(t, arg1, "", arg2);    // nextmode is implicit arg2
                 break;
             }
             case SA_KICK:
@@ -1593,10 +1563,8 @@ void setnext(char *arg1, char *arg2)
         }
         if ( !strcmp(arg1,modestrings[i]) )
         {
-            string n;
-            itoa(n, i+GMODE_NUM);
             nextmode=i+GMODE_NUM;
-            callvote(SA_MAP, arg2, n);
+            callvote(SA_MAP, arg2, "-1");
             return;
         }
     }
@@ -1612,6 +1580,7 @@ void gonext(char *arg1)
     putint(p, SA_MAP);
     sendstring("+1", p);
     putint(p, atoi(arg1));
+    putint(p, -1);
     sendpackettoserv(1, p.finalize());
 }
 COMMAND(gonext, ARG_1STR);

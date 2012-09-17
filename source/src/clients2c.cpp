@@ -1219,7 +1219,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                         getstring(text, p);
                         filtertext(text, text);
                         itoa(a, getint(p));
-                        v = newvotedisplayinfo(d, type, text, a);
+                        defformatstring(t)("%d", getint(p));
+                        v = newvotedisplayinfo(d, type, text, a, t);
                         break;
                     case SA_KICK:
                     case SA_BAN:
