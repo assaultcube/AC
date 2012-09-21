@@ -437,7 +437,7 @@ void checkitems(playerent *d)
         if(OUTBORD(f.pos.x, f.pos.y)) continue;
         if(f.state==CTFF_DROPPED) // 3d collision for dropped ctf flags
         {
-            if(objcollide(d, f.pos, 2.5f, 4.0f)) trypickupflag(i, d);
+            if(objcollide(d, f.pos, 2.5f, 8.0f)) trypickupflag(i, d);
         }
         else // simple 2d collision
         {
@@ -565,6 +565,7 @@ void flagdropped(int flag, float x, float y, float z)
     flaginfo &f = flaginfos[flag];
     if(OUTBORD(x, y)) return; // valid pos
     bounceent p;
+    p.plclipped = true;
     p.rotspeed = 0.0f;
     p.o.x = x;
     p.o.y = y;
