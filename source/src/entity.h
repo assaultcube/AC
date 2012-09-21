@@ -569,9 +569,10 @@ class bounceent : public physent
 public:
     int millis, timetolive, bouncetype; // see enum above
     float rotspeed;
+    bool plclipped;
     playerent *owner;
 
-    bounceent() : bouncetype(BT_NONE), rotspeed(1.0f), owner(NULL)
+    bounceent() : bouncetype(BT_NONE), rotspeed(1.0f), plclipped(false), owner(NULL)
     {
         type = ENT_BOUNCE;
         maxspeed = 40;
