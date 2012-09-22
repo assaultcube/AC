@@ -2107,10 +2107,8 @@ struct voteinfo
             };
 
         bool admin = clients[owner]->role==CR_ADMIN || (!isdedicated && clients[owner]->type==ST_LOCAL);
-        int total = stats[VOTE_NO]+stats[VOTE_YES]+stats[VOTE_NEUTRAL];
-        const float requiredcount = 0.51f;
         bool min_time = servmillis - callmillis > 10*1000;
-#define yes_condition ((min_time && stats[VOTE_YES] - stats[VOTE_NO] > 0.34f*total && totalclients > 4) || stats[VOTE_YES] > requiredcount*total)
+#define yes_condition ((min_time && stats[VOTE_YES] > stats[VOTE_NO]) || stats[VOTE_YES] > stats[VOTE_NO]+stats[VOTE_NEUTRAL])
 #define no_condition (forceend || !valid_client(owner) || stats[VOTE_NO] >= stats[VOTE_YES]+stats[VOTE_NEUTRAL] || adminvote == VOTE_NO)
 #define boot_condition (!boot || (boot && valid_client(num1) && clients[num1]->peer->address.host == host))
         if( (yes_condition || admin || adminvote == VOTE_YES) && boot_condition ) end(VOTE_YES);
