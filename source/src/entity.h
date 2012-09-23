@@ -344,7 +344,7 @@ public:
     }
 
     // just subtract damage here, can set death, etc. later in code calling this
-    int dodamage(int damage)
+    int dodamage(int damage, int gun)
     {
         if(damage == INT_MAX)
         {
@@ -353,24 +353,27 @@ public:
             return damage;
         }
 
-        // 4-level armour - tiered approach: 16%, 33%, 37%, 41%
-        // Please update ./ac_website/htdocs/docs/introduction.html if this changes.
-        int armoursection = 0;
-        int ad = damage;
-        if(armour > 25) armoursection = 1;
-        if(armour > 50) armoursection = 2;
-        if(armour > 75) armoursection = 3;
-        switch(armoursection)
+        if(gun != GUN_KNIFE)
         {
-            case 0: ad = (int) (16.0f/25.0f * armour); break;             // 16
-            case 1: ad = (int) (17.0f/25.0f * armour) - 1; break;         // 33
-            case 2: ad = (int) (4.0f/25.0f * armour) + 25; break;         // 37
-            case 3: ad = (int) (4.0f/25.0f * armour) + 25; break;         // 41
-            default: break;
+            // 4-level armour - tiered approach: 16%, 33%, 37%, 41%
+            // Please update ./ac_website/htdocs/docs/introduction.html if this changes.
+            int armoursection = 0;
+            int ad = damage;
+            if(armour > 25) armoursection = 1;
+            if(armour > 50) armoursection = 2;
+            if(armour > 75) armoursection = 3;
+            switch(armoursection)
+            {
+                case 0: ad = (int) (16.0f/25.0f * armour); break;             // 16
+                case 1: ad = (int) (17.0f/25.0f * armour) - 1; break;         // 33
+                case 2: ad = (int) (4.0f/25.0f * armour) + 25; break;         // 37
+                case 3: ad = (int) (4.0f/25.0f * armour) + 25; break;         // 41
+                default: break;
+            }
+            int rd = (int) (ad * damage/100.0f);
+            armour -= rd;
+            damage -= rd;
         }
-        int rd = (int) (ad * damage/100.0f);
-        armour -= rd;
-        damage -= rd;
         health -= damage;
         return damage;
     }

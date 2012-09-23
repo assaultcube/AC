@@ -1442,7 +1442,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
     if (!m_demo && !m_coop && !validdamage(target, actor, damage, gun, gib)) return;
     if ( m_arena && gun == GUN_GRENADE && arenaroundstartmillis + 2000 > gamemillis && target != actor ) return;
     clientstate &ts = target->state;
-    ts.dodamage(damage);
+    ts.dodamage(damage, gun);
     if(damage < INT_MAX)
     {
         actor->state.damage += damage;
