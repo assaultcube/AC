@@ -896,7 +896,7 @@ void dodamage(int damage, playerent *pl, playerent *actor, int gun, bool gib, bo
         audiomgr.playsound(S_PAIN1+rnd(5), pl);
     }
 
-    if(local) damage = pl->dodamage(damage);
+    if(local) damage = pl->dodamage(damage, gun);
     else if(actor==player1) return;
 
     if(pl==player1)
