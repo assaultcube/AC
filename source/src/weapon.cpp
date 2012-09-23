@@ -684,18 +684,18 @@ const char *weapstr(unsigned int i)
 
 VARP(accuracy,0,0,1);
 
-void r_accuracy()
+void r_accuracy(int h)
 {
     if(!accuracy) return;
     vector <char*>lines;
-    int rows=0, cols=0;
-    float x_offset = curfont->defaultw, y_offset = 3*VIRTH/2, spacing = curfont->defaultw*2;
+    int rows = 0, cols = 0;
+    float spacing = curfont->defaultw*2, x_offset = curfont->defaultw, y_offset = float(2*h) - 2*spacing;
+
     loopi(NUMGUNS) if(i != GUN_CPISTOL && accuracym[i].shots)
     {
-        float acc;
+        float acc = 100.0f*accuracym[i].hits/(float)accuracym[i].shots;
         string line;
         rows++;
-        acc = 100.0f*accuracym[i].hits/(float)accuracym[i].shots;
         if(i == GUN_GRENADE || i == GUN_SHOTGUN)
         {
             formatstring(line)("\f5%5.1f%s (%.1f/%d) :\f0%s", acc, "%", accuracym[i].hits, (int)accuracym[i].shots, weapstr(i));
@@ -709,12 +709,12 @@ void r_accuracy()
     }
     if(rows<1) return;
     cols++;
-    blendbox(x_offset, y_offset, spacing+x_offset+curfont->defaultw*cols, spacing+y_offset+curfont->defaulth*rows, true, -1);
+    blendbox(x_offset, spacing+y_offset, spacing+x_offset+curfont->defaultw*cols, y_offset-curfont->defaulth*rows, true, -1);
     int x=0;
     loopv(lines)
     {
         char *line = lines[i];
-        draw_textf(line,spacing*0.5+x_offset,spacing*0.5+y_offset+x*curfont->defaulth);
+        draw_textf(line,spacing*0.5+x_offset,y_offset-x*curfont->defaulth-0.5*spacing);
         x++;
     }
 }
