@@ -158,12 +158,13 @@ struct playeraction : serveraction
 
 struct forceteamaction : playeraction
 {
-    void perform() { updateclientteam(cn, team_opposite(clients[cn]->team), FTR_SILENTFORCE); }
-    virtual bool isvalid() { return m_teammode && valid_client(cn); }
-    forceteamaction(int cn, int caller) : playeraction(cn)
+    int team;
+    void perform() { updateclientteam(cn, team, FTR_SILENTFORCE); }
+    virtual bool isvalid() { return valid_client(cn) && team_isvalid(team) && team != clients[cn]->team; }
+    forceteamaction(int cn, int caller, int team) : playeraction(cn), team(team)
     {
         if(cn != caller) role = roleconf('f');
-        if(isvalid() && !(clients[cn]->state.forced && clients[caller]->role != CR_ADMIN)) formatstring(desc)("force player %s to the enemy team", clients[cn]->name);
+        if(isvalid() && !(clients[cn]->state.forced && clients[caller]->role != CR_ADMIN)) formatstring(desc)("force player %s to team %s", clients[cn]->name, teamnames[team]);
     }
 };
 

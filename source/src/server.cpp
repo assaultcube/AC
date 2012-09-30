@@ -2243,6 +2243,10 @@ void callvotepacket (int cn, voteinfo *v = curvote)
         case SA_REMBANS:
         case SA_SHUFFLETEAMS:
             break;
+        case SA_FORCETEAM:
+            putint(q, v->num1);
+            putint(q, v->num2);
+            break;
         default:
             putint(q, v->num1);
             break;
@@ -3442,7 +3446,7 @@ void process(ENetPacket *packet, int sender, int chan)
                         vi->action = new shuffleteamaction();
                         break;
                     case SA_FORCETEAM:
-                        vi->action = new forceteamaction((vi->num1 = getint(p)), sender);
+                        vi->action = new forceteamaction((vi->num1 = getint(p)), sender, (vi->num2 = getint(p)));
                         break;
                     case SA_GIVEADMIN:
                         vi->action = new giveadminaction(vi->num1 = getint(p));
@@ -3465,8 +3469,10 @@ void process(ENetPacket *packet, int sender, int chan)
                 }
                 vi->owner = sender;
                 vi->callmillis = servmillis;
+                logline(ACLOG_INFO, "pre packet");
                 MSG_PACKET(msg);
                 if(!scallvote(vi, msg)) delete vi;
+                logline(ACLOG_INFO, "post scallvote");
                 break;
             }
 

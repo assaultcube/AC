@@ -1212,30 +1212,29 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 if (type == SA_MAP && d == NULL) d = player1;      // gonext uses this
                 if( type < 0 || type >= SA_NUM || !d ) return;
                 votedisplayinfo *v = NULL;
-                string a;
+                string a1, a2;
                 switch(type)
                 {
                     case SA_MAP:
                         getstring(text, p);
                         filtertext(text, text);
-                        itoa(a, getint(p));
+                        itoa(a1, getint(p));
                         defformatstring(t)("%d", getint(p));
-                        v = newvotedisplayinfo(d, type, text, a, t);
+                        v = newvotedisplayinfo(d, type, text, a1, t);
                         break;
                     case SA_KICK:
                     case SA_BAN:
                     {
-                        itoa(a, getint(p));
+                        itoa(a1, getint(p));
                         getstring(text, p);
                         filtertext(text, text);
-                        v = newvotedisplayinfo(d, type, a, text);
+                        v = newvotedisplayinfo(d, type, a1, text);
                         break;
                     }
                     case SA_SERVERDESC:
                         getstring(text, p);
                         filtertext(text, text);
                         v = newvotedisplayinfo(d, type, text, NULL);
-
                         break;
                     case SA_STOPDEMO:
                         // compatibility
@@ -1244,13 +1243,18 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     case SA_SHUFFLETEAMS:
                         v = newvotedisplayinfo(d, type, NULL, NULL);
                         break;
+                    case SA_FORCETEAM:
+                        itoa(a1, getint(p));
+                        itoa(a2, getint(p));
+                        v = newvotedisplayinfo(d, type, a1, a2);
+                        break;
                     default:
-                        itoa(a, getint(p));
-                        v = newvotedisplayinfo(d, type, a, NULL);
+                        itoa(a1, getint(p));
+                        v = newvotedisplayinfo(d, type, a1, NULL);
                         break;
                 }
                 displayvote(v);
-                onCallVote(type, vcn, text, a);
+                onCallVote(type, vcn, text, a1);
                 if (vcn >= 0)
                 {
                     loopi(n_yes) votecount(VOTE_YES);
