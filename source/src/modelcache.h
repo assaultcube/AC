@@ -31,8 +31,8 @@ template<class T> struct modelcacheentry
 
     void unlink()
     {
-        prev->entry::next = next;
-        next->entry::prev = prev;
+        prev->modelcacheentry<T>::next = next;
+        next->modelcacheentry<T>::prev = prev;
         prev = next = (T *)this;
     }
 
@@ -79,7 +79,7 @@ struct modelcache
     uchar *buf;
     size_t size;
     entry *curalloc;
-    
+
     modelcache(size_t size = 0) : buf(size ? new uchar[size] : NULL), size(size), curalloc(NULL) {}
     ~modelcache() { DELETEA(buf); }
 
@@ -140,7 +140,7 @@ struct modelcache
             curalloc = result;
             return (T *)curalloc;
         }
-       
+
         curalloc = (entry *)buf;
         return NULL;
     }
