@@ -1341,7 +1341,7 @@ COMMAND(dropflag, ARG_NONE);
 
 char *votestring(int type, const char *arg1, const char *arg2, const char *arg3)
 {
-    const char *msgs[] = { "kick player %s, reason: %s", "ban player %s, reason: %s", "remove all bans", "set mastermode to %s", "%s autoteam", "force player %s to the enemy team", "give admin to player %s", (arg3 && arg3[0] && arg3[0]!='0') ? "load map %s in mode %s%s for %s minutes" : "load map %s in mode %s%s", "%s demo recording for the next match", "stop demo recording", "clear all demos", "set server description to '%s'", "shuffle teams"};
+    const char *msgs[] = { "kick player %s, reason: %s", "ban player %s, reason: %s", "remove all bans", "set mastermode to %s", "%s autoteam", "force player %s to team %s", "give admin to player %s", (arg3 && arg3[0] && arg3[0]!='0') ? "load map %s in mode %s%s for %s minutes" : "load map %s in mode %s%s", "%s demo recording for the next match", "stop demo recording", "clear all demos", "set server description to '%s'", "shuffle teams"};
     const char *msg = msgs[type];
     char *out = newstring(MAXSTRLEN);
     out[MAXSTRLEN] = '\0';
@@ -1361,6 +1361,11 @@ char *votestring(int type, const char *arg1, const char *arg2, const char *arg3)
                 if(m_teammode) formatstring(reason)("%s (%d tks, ping %d)", arg2, p->tks, p->ping);
                 else formatstring(reason)("%s (ping %d)", arg2, p->ping);
                 formatstring(out)(msg, colorname(p), reason);
+            }
+            else if(type == SA_FORCETEAM)
+            {
+                int team = atoi(arg2);
+                formatstring(out)(msg, colorname(p), team_isvalid(team) ? teamnames[team] : "");
             }
             else formatstring(out)(msg, colorname(p));
             break;
@@ -1440,6 +1445,10 @@ void callvote(int type, const char *arg1, const char *arg2, const char *arg3)
                 break;
             case SA_REMBANS:
             case SA_SHUFFLETEAMS:
+                break;
+            case SA_FORCETEAM:
+                putint(p, atoi(arg1));
+                putint(p, atoi(arg2));
                 break;
             default:
                 putint(p, atoi(arg1));
