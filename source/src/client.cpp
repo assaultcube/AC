@@ -61,10 +61,9 @@ void abortconnect()
 #endif
 }
 
-void connectserv_(const char *servername, const char *serverport = NULL, const char *password = NULL, int role = CR_DEFAULT)
+void connectserv_(const char *servername, int serverport = 0, const char *password = NULL, int role = CR_DEFAULT)
 {
-    const char *defaultport = "28763";
-    if (!serverport) serverport = defaultport;
+    if(serverport <= 0) serverport = CUBE_DEFAULT_SERVER_PORT;
     if(watchingdemo) enddemoplayback();
     if(!clfail && cllock && searchlan<2) return;
 
@@ -76,15 +75,12 @@ void connectserv_(const char *servername, const char *serverport = NULL, const c
     connectrole = role;
     copystring(clientpassword, password ? password : "");
     ENetAddress address;
-
-    int p = 0;
-    if(serverport && serverport[0]) p = atoi(serverport);
-    address.port = p > 0 ? p : CUBE_DEFAULT_SERVER_PORT;
+    address.port = serverport;
 
     if(servername)
     {
-        addserver(servername, serverport, "0");
-        conoutf(_("%c2attempting to %sconnect to %c5%s%c4%s%s%c2"), CC, role==CR_DEFAULT?"":"\f8admin\f2", CC, servername, CC, address.port != CUBE_DEFAULT_SERVER_PORT?":":"", serverport, CC);
+        addserver(servername, serverport, 0);
+        conoutf(_("%c2attempting to %sconnect to %c5%s%c4%s%d%c2"), CC, role==CR_DEFAULT?"":"\f8admin\f2", CC, servername, CC, address.port != CUBE_DEFAULT_SERVER_PORT?":":"", serverport, CC);
         if(!resolverwait(servername, &address))
         {
             conoutf(_("%c2could %c3not resolve%c2 server %c5%s%c2"), CC, CC, CC, CC, servername, CC);
@@ -118,17 +114,17 @@ void connectserv_(const char *servername, const char *serverport = NULL, const c
     }
 }
 
-void connectserv(char *servername, char *serverport, char *password)
+void connectserv(char *servername, int *serverport, char *password)
 {
     modprotocol = false;
-    connectserv_(servername, serverport, password);
+    connectserv_(servername, *serverport, password);
 }
 
-void connectadmin(char *servername, char *serverport, char *password)
+void connectadmin(char *servername, int *serverport, char *password)
 {
     modprotocol = false;
     if(!password[0]) return;
-    connectserv_(servername, serverport, password, CR_ADMIN);
+    connectserv_(servername, *serverport, password, CR_ADMIN);
 }
 
 void lanconnect()
@@ -137,17 +133,17 @@ void lanconnect()
     connectserv_(NULL);
 }
 
-void modconnectserv(char *servername, char *serverport, char *password)
+void modconnectserv(char *servername, int *serverport, char *password)
 {
     modprotocol = true;
-    connectserv_(servername, serverport, password);
+    connectserv_(servername, *serverport, password);
 }
 
-void modconnectadmin(char *servername, char *serverport, char *password)
+void modconnectadmin(char *servername, int *serverport, char *password)
 {
     modprotocol = true;
     if(!password[0]) return;
-    connectserv_(servername, serverport, password, CR_ADMIN);
+    connectserv_(servername, *serverport, password, CR_ADMIN);
 }
 
 void modlanconnect()
@@ -161,14 +157,12 @@ void whereami()
     conoutf("you are at (%.2f,%.2f)", player1->o.x, player1->o.y);
 }
 
-void go_to(char *x, char *y)
+void go_to(float *x, float *y)
 {
     if(player1->state != CS_EDITING) return;
-    float fx = 1.0f * atoi(x);
-    float fy = 1.0f * atoi(y);
-    player1->newpos.x = fx;
-    player1->newpos.y = fy;
-    conoutf("you are going to (%.2f; %.2f)", fx, fy);
+    player1->newpos.x = *x;
+    player1->newpos.y = *y;
+    conoutf("you are going to (%.2f; %.2f)", *x, *y);
 }
 
 void disconnect(int onlyclean, int async)
@@ -329,28 +323,28 @@ void pm(char *text)
     addmsg(SV_TEXTPRIVATE, "ris", cn, text);
     conoutf("to %s:\f9 %s", colorname(to), highlight(text));
 }
-COMMAND(pm, ARG_CONC);
+COMMAND(pm, "c");
 
-COMMAND(echo, ARG_CONC);
-COMMAND(hudecho, ARG_CONC);
-COMMANDN(say, toserver, ARG_CONC);
-COMMANDN(me, toserverme, ARG_CONC);
-COMMANDN(connect, connectserv, ARG_3STR);
-COMMAND(connectadmin, ARG_3STR);
-COMMAND(lanconnect, ARG_NONE);
-COMMANDN(modconnect, modconnectserv, ARG_3STR);
-COMMAND(modconnectadmin, ARG_3STR);
-COMMAND(modlanconnect, ARG_NONE);
-COMMANDN(disconnect, trydisconnect, ARG_NONE);
-COMMAND(whereami, ARG_NONE);
-COMMAND(go_to, ARG_2STR);
+COMMAND(echo, "c");
+COMMAND(hudecho, "c");
+COMMANDN(say, toserver, "c");
+COMMANDN(me, toserverme, "c");
+COMMANDN(connect, connectserv, "sis");
+COMMAND(connectadmin, "sis");
+COMMAND(lanconnect, "");
+COMMANDN(modconnect, modconnectserv, "sis");
+COMMAND(modconnectadmin, "sis");
+COMMAND(modlanconnect, "");
+COMMANDN(disconnect, trydisconnect, "");
+COMMAND(whereami, "");
+COMMAND(go_to, "ff");
 
 void current_version(char *text)
 {
     int version = atoi(text);
     if (version && AC_VERSION<version) conoutf("YOUR VERSION OF ASSAULTCUBE IS OUTDATED!\nYOU MUST UPDATE ASSAULTCUBE\nplease visit %s for more information",AC_MASTER_URI);
 }
-COMMAND(current_version, ARG_1STR);
+COMMAND(current_version, "s");
 
 void cleanupclient()
 {
@@ -718,11 +712,11 @@ bool tryauth(const char *desc)
     return true;
 }
 
-COMMANDN(authkey, addauthkey, ARG_3STR);
-ICOMMANDF(hasauthkey, ARG_2EST, (char *name, char *desc) { return (_hasauthkey(name, desc) ? 1 : 0); });
-COMMAND(genauthkey, ARG_1STR);
-COMMAND(saveauthkeys, ARG_NONE);
-ICOMMANDF(auth, ARG_1EST, (char *desc) { return tryauth(desc); });
+COMMANDN(authkey, addauthkey, "sss");
+COMMANDF(hasauthkey, "ss", (char *name, char *desc) { intret(_hasauthkey(name, desc) ? 1 : 0); });
+COMMAND(genauthkey, "s");
+COMMAND(saveauthkeys, "");
+COMMANDF(auth, "s", (char *desc) { intret(tryauth(desc)); });
 
 // :for AUTH
 
@@ -806,14 +800,13 @@ void deleteservermap(char *mapname)
 }
 
 string demosubpath;
-void getdemo(char *idx, char *dsp)
+void getdemo(int *idx, char *dsp)
 {
-    int i = atoi(idx);
     if(dsp && dsp[0]) formatstring(demosubpath)("%s/", dsp);
     else copystring(demosubpath, "");
-    if(i<=0) conoutf(_("getting demo..."));
-    else conoutf(_("getting demo %d..."), i);
-    addmsg(SV_GETDEMO, "ri", i);
+    if(*idx<=0) conoutf(_("getting demo..."));
+    else conoutf(_("getting demo %d..."), *idx);
+    addmsg(SV_GETDEMO, "ri", *idx);
 }
 
 void listdemos()
@@ -844,23 +837,23 @@ void shiftgametime(int newmillis)
     }
 }
 
-void setminutesremaining(int minutes)
+void setminutesremaining(int *minutes)
 {
-    shiftgametime(gametimemaximum - minutes * 60000);
+    shiftgametime(gametimemaximum - (*minutes)*60000);
 }
 
-void rewinddemo(int seconds)
+void rewinddemo(int *seconds)
 {
     int gamemillis = gametimecurrent+(lastmillis-lastgametimeupdate);
-    shiftgametime(gamemillis-seconds*1000);
+    shiftgametime(gamemillis - (*seconds)*1000);
 }
 
-COMMAND(sendmap, ARG_1STR);
-COMMAND(getmap, ARG_NONE);
-COMMAND(deleteservermap, ARG_1STR);
-COMMAND(resetsecuremaps, ARG_NONE);
-COMMAND(securemap, ARG_1STR);
-COMMAND(getdemo, ARG_2STR);
-COMMAND(listdemos, ARG_NONE);
-COMMANDN(setmr, setminutesremaining, ARG_1INT);
-COMMANDN(rewind, rewinddemo, ARG_1INT);
+COMMAND(sendmap, "s");
+COMMAND(getmap, "");
+COMMAND(deleteservermap, "s");
+COMMAND(resetsecuremaps, "");
+COMMAND(securemap, "s");
+COMMAND(getdemo, "is");
+COMMAND(listdemos, "");
+COMMANDN(setmr, setminutesremaining, "i");
+COMMANDN(rewind, rewinddemo, "i");

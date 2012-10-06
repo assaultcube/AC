@@ -27,7 +27,7 @@ struct md2 : vertmodel
         float      translate[3];
         char       name[16];
     };
-    
+
     md2(const char *name) : vertmodel(name) {}
 
     int type() { return MDL_MD2; }
@@ -60,11 +60,11 @@ struct md2 : vertmodel
                         tc.u = u.f;
                         tc.v = v.f;
                         vindexes.add((ushort)vindex);
-                    }        
+                    }
                     idxs.add(*idx);
                 }
-                loopi(numvertex-2) 
-                { 
+                loopi(numvertex-2)
+                {
                     tri &t = tris.add();
                     if(isfan)
                     {
@@ -76,7 +76,7 @@ struct md2 : vertmodel
                 }
             }
         }
-        
+
         bool load(char *path)
         {
             if(filename) return true;
@@ -88,12 +88,12 @@ struct md2 : vertmodel
             file->read(&header, sizeof(md2_header));
             lilswap((int *)&header, sizeof(md2_header)/sizeof(int));
 
-            if(header.magic!=844121161 || header.version!=8) 
+            if(header.magic!=844121161 || header.version!=8)
             {
                 delete file;
                 return false;
             }
-           
+
             numframes = header.numframes;
 
             mesh &m = *new mesh;
@@ -144,14 +144,14 @@ struct md2 : vertmodel
             delete[] tmpverts;
 
             delete file;
-          
+
             filename = newstring(path);
             return true;
         }
 
         void getdefaultanim(animstate &as, int anim, int varseed)
         {
-            //                      0   1   2   3   4   5   6   7   8   9  10  11  12   13  14  15  16  17 18  19  20   21  21  23  24     
+            //                      0   1   2   3   4   5   6   7   8   9  10  11  12   13  14  15  16  17 18  19  20   21  21  23  24
             //                      I   R   A   P   P   P   J   L   F   S   T   W   P   CI  CW  CA  CP  CD  D   D   D   LD  LD  LD   F
             static int frame[] =  { 0,  40, 46, 54, 58, 62, 66, 69, 72, 84, 95, 112,123,135,154,160,169,173,178,184,190,183,189,197, 0 };
             static int range[] =  { 40, 6,  8,  4,  4,  4,  3,  3,  12, 11, 17, 11, 12, 19, 6,  9,  4,  5,  6,  6,  8,  1,  1,  1,   7 };
@@ -239,7 +239,7 @@ struct md2 : vertmodel
     }
 
     bool load()
-    { 
+    {
         if(loaded) return true;
         md2part &mdl = *new md2part;
         parts.add(&mdl);
@@ -276,12 +276,12 @@ struct md2 : vertmodel
     }
 };
 
-void md2anim(char *anim, char *frame, char *range, char *speed)
+void md2anim(char *anim, int *frame, int *range, float *speed)
 {
     if(!loadingmd2 || loadingmd2->parts.empty()) { conoutf("not loading an md2"); return; }
     int num = findanim(anim);
     if(num<0) { conoutf("could not find animation %s", anim); return; }
-    loadingmd2->parts.last()->setanim(num, atoi(frame), atoi(range), atof(speed));
+    loadingmd2->parts.last()->setanim(num, *frame, *range, *speed);
 }
 
 void md2tag(char *name, char *vert1, char *vert2, char *vert3, char *vert4)
@@ -323,14 +323,14 @@ void md2tag(char *name, char *vert1, char *vert2, char *vert3, char *vert4)
     if(!mdl.gentag(name, indexes, numverts)) { conoutf("could not generate tag %s", name); return; }
 }
 
-void md2emit(char *tag, char *type, char *arg1, char *arg2)
+void md2emit(char *tag, int *type, int *arg1, int *arg2)
 {
     if(!loadingmd2 || loadingmd2->parts.empty()) { conoutf("not loading an md2"); return; };
     md2::part &mdl = *loadingmd2->parts.last();
-    if(!mdl.addemitter(tag, ATOI(type), ATOI(arg1), ATOI(arg2))) { conoutf("could not find tag %s", tag); return; }
+    if(!mdl.addemitter(tag, *type, *arg1, *arg2)) { conoutf("could not find tag %s", tag); return; }
 }
 
-COMMAND(md2anim, ARG_4STR);
-COMMAND(md2tag, ARG_5STR);
-COMMAND(md2emit, ARG_4STR);
+COMMAND(md2anim, "siif");
+COMMAND(md2tag, "sssss");
+COMMAND(md2emit, "siii");
 

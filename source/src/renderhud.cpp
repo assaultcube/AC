@@ -178,7 +178,7 @@ void loadcrosshair(char *c, char *name)
     crosshairs[n] = loadcrosshairtexture(c);
 }
 
-COMMAND(loadcrosshair, ARG_2STR);
+COMMAND(loadcrosshair, "ss");
 
 void drawcrosshair(playerent *p, int n, color *c, float size)
 {
@@ -702,7 +702,7 @@ void drawscores()
 
 string enginestateinfo = "";
 void CSgetEngineState() { result(enginestateinfo); }
-COMMANDN(getEngineState, CSgetEngineState, ARG_NONE);
+COMMANDN(getEngineState, CSgetEngineState, "");
 
 VARP(clockdisplay,0,0,2);
 VARP(dbgpos,0,0,1);

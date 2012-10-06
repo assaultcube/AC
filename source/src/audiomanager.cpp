@@ -89,7 +89,7 @@ void audiomanager::initsound()
     }
 }
 
-void audiomanager::music(char *name, char *millis, char *cmd)
+void audiomanager::music(char *name, int millis, char *cmd)
 {
     if(nosound) return;
     stopsound();
@@ -100,11 +100,11 @@ void audiomanager::music(char *name, char *millis, char *cmd)
         if(gamemusic->open(name))
         {
             // fade
-            if(atoi(millis) > 0)
+            if(millis > 0)
             {
                 const int fadetime = 1000;
                 gamemusic->fadein(lastmillis, fadetime);
-                gamemusic->fadeout(lastmillis+atoi(millis), fadetime);
+                gamemusic->fadeout(lastmillis+millis, fadetime);
             }
 
             // play
@@ -428,14 +428,14 @@ void voicecom(char *sound, char *text)
     }
 }
 
-COMMAND(voicecom, ARG_2STR);
+COMMAND(voicecom, "ss");
 
 void soundtest()
 {
     loopi(S_NULL) audiomgr.playsound(i, rnd(SP_HIGH+1));
 }
 
-COMMAND(soundtest, ARG_NONE);
+COMMAND(soundtest, "");
 
 // sound configuration
 
@@ -754,30 +754,30 @@ bool staticreference::operator==(const worldobjreference &other)
 
 audiomanager audiomgr;
 
-COMMANDF(sound, ARG_1INT, (int n)
+COMMANDF(sound, "i", (int *n)
 {
-    audiomgr.playsound(n);
+    audiomgr.playsound(*n);
 });
 
-COMMANDF(applymapsoundchanges, ARG_NONE, (){
+COMMANDF(applymapsoundchanges, "", (){
     audiomgr.applymapsoundchanges();
 });
 
-COMMANDF(unmuteallsounds, ARG_NONE, () {
+COMMANDF(unmuteallsounds, "", () {
     audiomgr.unmuteallsounds();
 });
 
-COMMANDF(mutesound, ARG_2INT, (int n, int off)
+COMMANDF(mutesound, "ii", (int *n, int *off)
 {
-    audiomgr.mutesound(n, off);
+    audiomgr.mutesound(*n, *off);
 });
 
-ICOMMANDF(soundmuted, ARG_1EXP, (int n)
+COMMANDF(soundmuted, "i", (int *n)
 {
-    return audiomgr.soundmuted(n);
+    intret(audiomgr.soundmuted(*n));
 });
 
-COMMANDF(mapsoundreset, ARG_NONE, ()
+COMMANDF(mapsoundreset, "", ()
 {
     audiomgr.mapsoundreset();
 });
@@ -786,28 +786,28 @@ VARF(soundchannels, 4, 32, 1024, audiomgr.setchannels(soundchannels); );
 
 VARFP(soundvol, 0, 128, 255, audiomgr.setlistenervol(soundvol); );
 
-COMMANDF(registersound, ARG_4STR, (char *name, char *vol, char *loop, char *audibleradius)
+COMMANDF(registersound, "siii", (char *name, int *vol, int *loop, int *audibleradius)
 {
-    intret(audiomgr.addsound(name, atoi(vol), -1, atoi(loop) != 0, gamesounds, true, atoi(audibleradius)));
+    intret(audiomgr.addsound(name, *vol, -1, *loop != 0, gamesounds, true, *audibleradius));
 });
 
-COMMANDF(mapsound, ARG_2STR, (char *name, char *maxuses)
+COMMANDF(mapsound, "si", (char *name, int *maxuses)
 {
-    audiomgr.addsound(name, 255, atoi(maxuses), true, mapsounds, false, 0);
+    audiomgr.addsound(name, 255, *maxuses, true, mapsounds, false, 0);
 });
 
-COMMANDF(registermusic, ARG_1STR, (char *name)
+COMMANDF(registermusic, "s", (char *name)
 {
     audiomgr.registermusic(name);
 });
 
-COMMANDF(musicpreload, ARG_1INT, (int id)
+COMMANDF(musicpreload, "i", (int *id)
 {
-    audiomgr.musicpreload(id);
+    audiomgr.musicpreload(*id);
 });
 
-COMMANDF(music, ARG_3STR, (char *name, char *millis, char *cmd)
+COMMANDF(music, "sis", (char *name, int *millis, char *cmd)
 {
-    audiomgr.music(name, millis, cmd);
+    audiomgr.music(name, *millis, cmd);
 });
 

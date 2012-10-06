@@ -3469,10 +3469,8 @@ void process(ENetPacket *packet, int sender, int chan)
                 }
                 vi->owner = sender;
                 vi->callmillis = servmillis;
-                logline(ACLOG_INFO, "pre packet");
                 MSG_PACKET(msg);
                 if(!scallvote(vi, msg)) delete vi;
-                logline(ACLOG_INFO, "post scallvote");
                 break;
             }
 

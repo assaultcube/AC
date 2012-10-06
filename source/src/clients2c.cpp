@@ -1375,7 +1375,7 @@ void setDemoFilenameFormat(char *fmt)
         copystring(demofilenameformat, fmt);
     } else copystring(demofilenameformat, DEFDEMOFILEFMT); // reset to default if passed empty string - or should we output the current value in this case?
 }
-COMMANDN(demonameformat, setDemoFilenameFormat, ARG_1STR);
+COMMANDN(demonameformat, setDemoFilenameFormat, "s");
 void setDemoTimestampFormat(char *fmt)
 {
     extern string demotimestampformat;
@@ -1384,16 +1384,16 @@ void setDemoTimestampFormat(char *fmt)
         copystring(demotimestampformat, fmt);
     } else copystring(demotimestampformat, DEFDEMOTIMEFMT); // reset to default if passed empty string - or should we output the current value in this case?
 }
-COMMANDN(demotimeformat, setDemoTimestampFormat, ARG_1STR);
-void setDemoTimeLocal(int truth)
+COMMANDN(demotimeformat, setDemoTimestampFormat, "s");
+void setDemoTimeLocal(int *truth)
 {
     extern int demotimelocal;
-    demotimelocal = truth == 0 ? 0 : 1;
+    demotimelocal = *truth == 0 ? 0 : 1;
 }
-COMMANDN(demotimelocal, setDemoTimeLocal, ARG_1INT);
-void getdemonameformat() { extern string demofilenameformat; result(demofilenameformat); } COMMAND(getdemonameformat, ARG_NONE);
-void getdemotimeformat() { extern string demotimestampformat; result(demotimestampformat); } COMMAND(getdemotimeformat, ARG_NONE);
-int getdemotimelocal() { extern int demotimelocal; return demotimelocal; } COMMAND(getdemotimelocal, ARG_1EXP);
+COMMANDN(demotimelocal, setDemoTimeLocal, "i");
+void getdemonameformat() { extern string demofilenameformat; result(demofilenameformat); } COMMAND(getdemonameformat, "");
+void getdemotimeformat() { extern string demotimestampformat; result(demotimestampformat); } COMMAND(getdemotimeformat, "");
+void getdemotimelocal() { extern int demotimelocal; intret(demotimelocal); } COMMAND(getdemotimelocal, "");
 
 
 const char *parseDemoFilename(char *srvfinfo)

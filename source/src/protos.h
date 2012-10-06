@@ -179,7 +179,7 @@ struct gmenu
 };
 
 // serverbrowser
-extern void addserver(const char *servername, const char *serverport, const char *weight);
+extern void addserver(const char *servername, int serverport, int weight);
 extern char *getservername(int n);
 extern bool resolverwait(const char *name, ENetAddress *address);
 extern int connectwithtimeout(ENetSocket sock, const char *hostname, ENetAddress &remoteaddress);
@@ -360,7 +360,7 @@ extern void newteam(char *name);
 extern bool securemapcheck(const char *map, bool msg = true);
 extern int getbuildtype();
 extern void sendintro();
-extern void getdemo(char *idx, char *dsp);
+extern void getdemo(int *idx, char *dsp);
 extern void listdemos();
 extern bool tryauth(const char *desc);
 extern authkey *findauthkey(const char *desc);
@@ -444,7 +444,7 @@ extern void clearvote();
 // scoreboard
 struct discscore { int team, flags, frags, deaths, points; char name[MAXNAMELEN + 1]; };
 extern vector<discscore> discscores;
-extern void showscores(int on);
+extern void showscores(bool on);
 extern void renderscores(void *menu, bool init);
 extern const char *asciiscores(bool destjpg = false);
 extern void consolescores();
@@ -778,7 +778,7 @@ extern void setfvar(const char *name, float f, bool dofunc = false);
 extern void setsvar(const char *name, const char *str, bool dofunc = false);
 extern int getvar(const char *name);
 extern bool identexists(const char *name);
-extern bool addcommand(const char *name, void (*fun)(), int narg);
+extern bool addcommand(const char *name, void (*fun)(), const char *sig);
 extern int execute(const char *p);
 extern char *executeret(const char *p);
 extern char *conc(char **w, int n, bool space);

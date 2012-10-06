@@ -57,16 +57,16 @@ void selectweapon(weapon *w)
     }
 }
 
-void requestweapon(int w)
+void requestweapon(int *w)
 {
-    if(keypressed && player1->state == CS_ALIVE && w >= 0 && w < NUMGUNS )
+    if(keypressed && player1->state == CS_ALIVE && *w >= 0 && *w < NUMGUNS )
     {
-        if (player1->akimbo && w==GUN_PISTOL) w = GUN_AKIMBO;
-        selectweapon(player1->weapons[w]);
+        if (player1->akimbo && *w==GUN_PISTOL) *w = GUN_AKIMBO;
+        selectweapon(player1->weapons[*w]);
     }
 }
 
-void shiftweapon(int s)
+void shiftweapon(int *s)
 {
     if(keypressed && player1->state == CS_ALIVE)
     {
@@ -100,7 +100,7 @@ void shiftweapon(int s)
         int num = availweapons.length();
         int curidx = availweapons.find(curweapon);
         if(!num || curidx<0) return;
-        int idx = (curidx+s) % num;
+        int idx = (curidx + *s) % num;
         if(idx<0) idx += num;
         weapon *next = availweapons[idx];
         if(next->type!=player1->weaponsel->type) // different weapon
@@ -108,7 +108,7 @@ void shiftweapon(int s)
             selectweapon(next);
         }
     }
-    else if(player1->isspectating()) updatefollowplayer(s);
+    else if(player1->isspectating()) updatefollowplayer(*s);
 }
 
 bool quicknade = false, nadeattack = false;
@@ -132,21 +132,21 @@ void quicknadethrow(bool on)
     }
 }
 
-int currentprimary() { return player1->primweap->type; }
-int prevweapon() { return player1->prevweaponsel->type; }
-int curweapon() { return player1->weaponsel->type; }
+void currentprimary() { intret(player1->primweap->type); }
+void prevweapon() { intret(player1->prevweaponsel->type); }
+void curweapon() { intret(player1->weaponsel->type); }
 
-int magcontent(int w) { if(w >= 0 && w < NUMGUNS) return player1->weapons[w]->mag; else return -1;}
-int magreserve(int w) { if(w >= 0 && w < NUMGUNS) return player1->weapons[w]->ammo; else return -1;}
+void magcontent(int *w) { if(*w >= 0 && *w < NUMGUNS) intret(player1->weapons[*w]->mag); else intret(-1); }
+void magreserve(int *w) { if(*w >= 0 && *w < NUMGUNS) intret(player1->weapons[*w]->ammo); else intret(-1); }
 
-COMMANDN(weapon, requestweapon, ARG_1INT);
-COMMAND(shiftweapon, ARG_1INT);
-COMMAND(quicknadethrow, ARG_DOWN);
-COMMAND(currentprimary, ARG_IVAL);
-COMMAND(prevweapon, ARG_IVAL);
-COMMAND(curweapon, ARG_IVAL);
-COMMAND(magcontent, ARG_1EXP);
-COMMAND(magreserve, ARG_1EXP);
+COMMANDN(weapon, requestweapon, "i");
+COMMAND(shiftweapon, "i");
+COMMAND(quicknadethrow, "d");
+COMMAND(currentprimary, "");
+COMMAND(prevweapon, "");
+COMMAND(curweapon, "");
+COMMAND(magcontent, "i");
+COMMAND(magreserve, "i");
 
 void tryreload(playerent *p)
 {
@@ -155,7 +155,7 @@ void tryreload(playerent *p)
 }
 
 void selfreload() { tryreload(player1); }
-COMMANDN(reload, selfreload, ARG_NONE);
+COMMANDN(reload, selfreload, "");
 
 void createrays(vec &from, vec &to) // create random spread of rays for the shotgun
 {
@@ -727,7 +727,7 @@ void accuracyreset()
     }
     conoutf(_("Your accuracy has been reset."));
 }
-COMMAND(accuracyreset,ARG_NONE);
+COMMAND(accuracyreset, "");
 // weapon
 
 weapon::weapon(class playerent *owner, int type) : type(type), owner(owner), info(guns[type]),
@@ -1441,7 +1441,7 @@ void setburst(bool enable)
     }
 }
 
-COMMAND(setburst, ARG_DOWN);
+COMMAND(setburst, "d");
 
 // pistol
 
@@ -1555,7 +1555,7 @@ void setscope(bool enable)
     sr->setscope(enable);
 }
 
-COMMAND(setscope, ARG_1INT);
+COMMANDF(setscope, "i", (int *on) { setscope(*on != 0); });
 
 
 void shoot(playerent *p, vec &targ)

@@ -18,8 +18,8 @@ int loop_level = 0;                                      // avoid bad calls of b
 hashtable<const char *, ident> *idents = NULL;          // contains ALL vars/commands/aliases
 
 bool persistidents = true, neverpersist = false;
-COMMANDF(persistidents, ARG_1INT, (int on) {
-    persistidents = neverpersist ? false : on;
+COMMANDF(persistidents, "i", (int *on) {
+    persistidents = neverpersist ? false : *on;
 });
 
 void clearstack(ident &id)
@@ -99,8 +99,8 @@ void pop(const char *name)
     popident(*id);
 }
 
-COMMAND(push, ARG_2STR);
-COMMAND(pop, ARG_1STR);
+COMMAND(push, "ss");
+COMMAND(pop, "s");
 void delalias(const char *name)
 {
     ident *id = idents->access(name);
@@ -113,7 +113,7 @@ void delalias(const char *name)
     }
     idents->remove(name);
 }
-COMMAND(delalias, ARG_1STR);
+COMMAND(delalias, "s");
 
 void alias(const char *name, const char *action)
 {
@@ -187,11 +187,11 @@ void constant(const char *name, const char *action)
     }
 }
 
-COMMAND(alias, ARG_2STR);
-COMMANDN(const, constant, ARG_2STR);
+COMMAND(alias, "ss");
+COMMANDN(const, constant, "ss");
 
-COMMANDF(checkalias, ARG_1STR, (const char *name) { intret(getalias(name) ? 1 : 0); });
-COMMANDF(isconst, ARG_1STR, (const char *name) { ident *id = idents->access(name); intret(id && id->isconst ? 1 : 0); });
+COMMANDF(checkalias, "s", (const char *name) { intret(getalias(name) ? 1 : 0); });
+COMMANDF(isconst, "s", (const char *name) { ident *id = idents->access(name); intret(id && id->isconst ? 1 : 0); });
 
 // variable's and commands are registered through globals, see cube.h
 
@@ -242,7 +242,7 @@ void setsvar(const char *name, const char *str, bool dofunc)
     if(dofunc && id->fun) ((void (__cdecl *)())id->fun)();            // call trigger function if available
 }
 
-void modifyvar(const char *name, const char *arg, char op)
+void modifyvar(const char *name, int arg, char op)
 {
     ident *id = idents->access(name);
     if(!id) return;
@@ -260,13 +260,12 @@ void modifyvar(const char *name, const char *arg, char op)
         case ID_SVAR: val = ATOI(*id->storage.s); break;
         case ID_ALIAS: val = ATOI(id->action); break;
     }
-    int argval = ATOI(arg);
     switch(op)
     {
-        case '+': val += argval; break;
-        case '-': val -= argval; break;
-        case '*': val *= argval; break;
-        case '/': val = argval ? val/argval : 0; break;
+        case '+': val += arg; break;
+        case '-': val -= arg; break;
+        case '*': val *= arg; break;
+        case '/': val = arg ? val/arg : 0; break;
     }
     switch(id->type)
     {
@@ -279,7 +278,7 @@ void modifyvar(const char *name, const char *arg, char op)
     if(id->fun) ((void (__cdecl *)())id->fun)();
 }
 
-void modifyfvar(const char *name, const char *arg, char op)
+void modifyfvar(const char *name, float arg, char op)
 {
     ident *id = idents->access(name);
     if(!id) return;
@@ -297,13 +296,12 @@ void modifyfvar(const char *name, const char *arg, char op)
         case ID_SVAR: val = atof(*id->storage.s); break;
         case ID_ALIAS: val = atof(id->action); break;
     }
-    float argval = atof(arg);
     switch(op)
     {
-        case '+': val += argval; break;
-        case '-': val -= argval; break;
-        case '*': val *= argval; break;
-        case '/': val = (argval == 0.0f) ? 0 : val/argval; break;
+        case '+': val += arg; break;
+        case '-': val -= arg; break;
+        case '*': val *= arg; break;
+        case '/': val = (arg == 0.0f) ? 0 : val/arg; break;
     }
     switch(id->type)
     {
@@ -316,23 +314,23 @@ void modifyfvar(const char *name, const char *arg, char op)
     if(id->fun) ((void (__cdecl *)())id->fun)();
 }
 
-void addeq(char *name, char *arg) { modifyvar(name, arg, '+'); }
-void subeq(char *name, char *arg) { modifyvar(name, arg, '-'); }
-void muleq(char *name, char *arg) { modifyvar(name, arg, '*'); }
-void diveq(char *name, char *arg) { modifyvar(name, arg, '/'); }
-void addeqf(char *name, char *arg) { modifyfvar(name, arg, '+'); }
-void subeqf(char *name, char *arg) { modifyfvar(name, arg, '-'); }
-void muleqf(char *name, char *arg) { modifyfvar(name, arg, '*'); }
-void diveqf(char *name, char *arg) { modifyfvar(name, arg, '/'); }
+void addeq(char *name, int *arg) { modifyvar(name, *arg, '+'); }
+void subeq(char *name, int *arg) { modifyvar(name, *arg, '-'); }
+void muleq(char *name, int *arg) { modifyvar(name, *arg, '*'); }
+void diveq(char *name, int *arg) { modifyvar(name, *arg, '/'); }
+void addeqf(char *name, float *arg) { modifyfvar(name, *arg, '+'); }
+void subeqf(char *name, float *arg) { modifyfvar(name, *arg, '-'); }
+void muleqf(char *name, float *arg) { modifyfvar(name, *arg, '*'); }
+void diveqf(char *name, float *arg) { modifyfvar(name, *arg, '/'); }
 
-COMMANDN(+=, addeq, ARG_2STR);
-COMMANDN(-=, subeq, ARG_2STR);
-COMMANDN(*=, muleq, ARG_2STR);
-COMMANDN(div=, diveq, ARG_2STR);
-COMMANDN(+=f, addeqf, ARG_2STR);
-COMMANDN(-=f, subeqf, ARG_2STR);
-COMMANDN(*=f, muleqf, ARG_2STR);
-COMMANDN(div=f, diveqf, ARG_2STR);
+COMMANDN(+=, addeq, "si");
+COMMANDN(-=, subeq, "si");
+COMMANDN(*=, muleq, "si");
+COMMANDN(div=, diveq, "si");
+COMMANDN(+=f, addeqf, "sf");
+COMMANDN(-=f, subeqf, "sf");
+COMMANDN(*=f, muleqf, "sf");
+COMMANDN(div=f, diveqf, "sf");
 
 int getvar(const char *name)
 {
@@ -375,39 +373,14 @@ void _getalias(char *name)
         }
     }
 }
-COMMANDN(getalias, _getalias, ARG_1STR);
+COMMANDN(getalias, _getalias, "s");
 
-// (getalias) now handles client variables as well
-/*void _getvar(char *name)
-{
-    string resstr;
-    resstr[0] = '\0';
-    ident *id = idents->access(name);
-    if(id)
-    {
-        switch(id->type)
-        {
-            case ID_VAR:
-                formatstring(resstr)("%d", *id->storage.i);
-                break;
-            case ID_FVAR:
-                formatstring(resstr)("%.3f", *id->storage.f);
-                break;
-            case ID_SVAR:
-                formatstring(resstr)("%s", *id->storage.s);
-                break;
-            default: break;
-        }
-    }
-    result(resstr);
-}
-COMMANDN(getvar, _getvar, ARG_1STR);*/
-COMMANDN(isIdent, identexists, ARG_1EST);
+COMMANDF(isIdent, "s", (char *name) { intret(identexists(name) ? 1 : 0); });
 
-bool addcommand(const char *name, void (*fun)(), int narg)
+bool addcommand(const char *name, void (*fun)(), const char *sig)
 {
     if(!idents) idents = new hashtable<const char *, ident>;
-    ident c(ID_COMMAND, name, fun, narg, IEXC_CORE);
+    ident c(ID_COMMAND, name, fun, sig, IEXC_CORE);
     idents->access(name, c);
     return false;
 }
@@ -634,46 +607,42 @@ char *executeret(const char *p)                            // all evaluation hap
                 switch(id->type)
                 {
                     case ID_COMMAND:                    // game defined commands
-                        switch(id->narg)                // use very ad-hoc function signature, and just call it
+                    {
+
+                        if(strstr(id->sig, "v")) ((void (__cdecl *)(char **, int))id->fun)(&w[1], numargs-1);
+                        else if(strstr(id->sig, "c") || strstr(id->sig, "w"))
                         {
-                            case ARG_1INT: ((void (__cdecl *)(int))id->fun)(ATOI(w[1])); break;
-                            case ARG_2INT: ((void (__cdecl *)(int, int))id->fun)(ATOI(w[1]), ATOI(w[2])); break;
-                            case ARG_3INT: ((void (__cdecl *)(int, int, int))id->fun)(ATOI(w[1]), ATOI(w[2]), ATOI(w[3])); break;
-                            case ARG_4INT: ((void (__cdecl *)(int, int, int, int))id->fun)(ATOI(w[1]), ATOI(w[2]), ATOI(w[3]), ATOI(w[4])); break;
-                            case ARG_NONE: ((void (__cdecl *)())id->fun)(); break;
-                            case ARG_1STR: ((void (__cdecl *)(char *))id->fun)(w[1]); break;
-                            case ARG_2STR: ((void (__cdecl *)(char *, char *))id->fun)(w[1], w[2]); break;
-                            case ARG_3STR: ((void (__cdecl *)(char *, char *, char*))id->fun)(w[1], w[2], w[3]); break;
-                            case ARG_4STR: ((void (__cdecl *)(char *, char *, char*, char*))id->fun)(w[1], w[2], w[3], w[4]); break;
-                            case ARG_5STR: ((void (__cdecl *)(char *, char *, char*, char*, char*))id->fun)(w[1], w[2], w[3], w[4], w[5]); break;
-                            case ARG_6STR: ((void (__cdecl *)(char *, char *, char*, char*, char*, char*))id->fun)(w[1], w[2], w[3], w[4], w[5], w[6]); break;
-                            case ARG_7STR: ((void (__cdecl *)(char *, char *, char*, char*, char*, char*, char*))id->fun)(w[1], w[2], w[3], w[4], w[5], w[6], w[7]); break;
-                            case ARG_8STR: ((void (__cdecl *)(char *, char *, char*, char*, char*, char*, char*, char*))id->fun)(w[1], w[2], w[3], w[4], w[5], w[6], w[7], w[8]); break;
-#ifndef STANDALONE
-                            case ARG_DOWN: ((void (__cdecl *)(bool))id->fun)(addreleaseaction(id->name)!=NULL); break;
-#endif
-                            case ARG_1EXP: intret(((int (__cdecl *)(int))id->fun)(ATOI(w[1]))); break;
-                            case ARG_2EXP: intret(((int (__cdecl *)(int, int))id->fun)(ATOI(w[1]), ATOI(w[2]))); break;
-                            case ARG_1EXPF: floatret(((float (__cdecl *)(float))id->fun)(atof(w[1]))); break;
-                            case ARG_2EXPF: floatret(((float (__cdecl *)(float, float))id->fun)(atof(w[1]), atof(w[2]))); break;
-                            case ARG_1EST: intret(((int (__cdecl *)(char *))id->fun)(w[1])); break;
-                            case ARG_2EST: intret(((int (__cdecl *)(char *, char *))id->fun)(w[1], w[2])); break;
-                            case ARG_IVAL: intret(((int (__cdecl *)())id->fun)()); break;
-                            case ARG_FVAL: floatret(((float (__cdecl *)())id->fun)()); break;
-                            case ARG_SVAL: result(((const char * (__cdecl *)())id->fun)()); break;
-                            case ARG_VARI: ((void (__cdecl *)(char **, int))id->fun)(&w[1], numargs-1); break;
-                            case ARG_CONC:
-                            case ARG_CONCW:
-                            {
-                                char *r = conc(w+1, numargs-1, id->narg==ARG_CONC);
-                                ((void (__cdecl *)(char *))id->fun)(r);
-                                delete[] r;
-                                break;
-                            }
+                            char *r = conc(w+1, numargs-1, strstr(id->sig, "c"));
+                            ((void (__cdecl *)(char *))id->fun)(r);
+                            delete[] r;
                         }
+                        else if(strstr(id->sig, "d")) ((void (__cdecl *)(bool))id->fun)(addreleaseaction(id->name)!=NULL);
+                        else
+                        {
+                            int ib1, ib2, ib3, ib4, ib5, ib6, ib7, ib8;
+                            float fb1, fb2, fb3, fb4, fb5, fb6, fb7, fb8;
+                            #define ARG(i) (id->sig[i-1] == 'i' ? ((void *)&(ib##i=strtol(w[i], NULL, 0))) : (id->sig[i-1] == 'f' ? ((void *)&(fb##i=atof(w[i]))) : (void *)w[i]))
+
+                            switch(strlen(id->sig))                // use very ad-hoc function signature, and just call it
+                            {
+                                case 0: ((void (__cdecl *)())id->fun)(); break;
+                                case 1: ((void (__cdecl *)(void*))id->fun)(ARG(1)); break;
+                                case 2: ((void (__cdecl *)(void*, void*))id->fun)(ARG(1), ARG(2)); break;
+                                case 3: ((void (__cdecl *)(void*, void*, void*))id->fun)(ARG(1), ARG(2), ARG(3)); break;
+                                case 4: ((void (__cdecl *)(void*, void*, void*, void*))id->fun)(ARG(1), ARG(2), ARG(3), ARG(4)); break;
+                                case 5: ((void (__cdecl *)(void*, void*, void*, void*, void*))id->fun)(ARG(1), ARG(2), ARG(3), ARG(4), ARG(5)); break;
+                                case 6: ((void (__cdecl *)(void*, void*, void*, void*, void*, void*))id->fun)(ARG(1), ARG(2), ARG(3), ARG(4), ARG(5), ARG(6)); break;
+                                case 7: ((void (__cdecl *)(void*, void*, void*, void*, void*, void*, void*))id->fun)(ARG(1), ARG(2), ARG(3), ARG(4), ARG(5), ARG(6), ARG(7)); break;
+                                case 8: ((void (__cdecl *)(void*, void*, void*, void*, void*, void*, void*, void*))id->fun)(ARG(1), ARG(2), ARG(3), ARG(4), ARG(5), ARG(6), ARG(7), ARG(8)); break;
+                                default: fatal("command %s has too many arguments (signature: %s)", id->name, id->sig); break;
+                            }
+                            #undef ARG
+                        }
+
                         setretval(commandret);
                         commandret = NULL;
                         break;
+                    }
 
                     case ID_VAR:                        // game defined variables
                         if(!w[1][0]) conoutf("%s = %d", c, *id->storage.i);      // var with no value just prints its current value
@@ -883,9 +852,9 @@ void addnickcomplete(char *command)
     addcomplete(command, COMPLETE_NICK, NULL, NULL);
 }
 
-COMMANDN(complete, addfilecomplete, ARG_3STR);
-COMMANDN(listcomplete, addlistcomplete, ARG_2STR);
-COMMANDN(nickcomplete, addnickcomplete, ARG_1STR);
+COMMANDN(complete, addfilecomplete, "sss");
+COMMANDN(listcomplete, addlistcomplete, "ss");
+COMMANDN(nickcomplete, addnickcomplete, "s");
 
 void commandcomplete(char *s)
 {
@@ -1020,14 +989,15 @@ void execdir(const char *dir)
             }
         }
 }
-COMMAND(execdir,ARG_1STR);
+COMMAND(execdir, "s");
+
 // below the commands that implement a small imperative language. thanks to the semantics of
 // () and [] expressions, any control construct can be defined trivially.
 
 void ifthen(char *cond, char *thenp, char *elsep) { commandret = executeret(cond[0]!='0' ? thenp : elsep); }
-void loopa(char *var, char *times, char *body)
+void loopa(char *var, int *times, char *body)
 {
-    int t = ATOI(times);
+    int t = *times;
     if(t<=0) return;
     ident *id = newident(var, execcontext);
     if(id->type!=ID_ALIAS) return;
@@ -1184,9 +1154,9 @@ int listlen(char *s)
     return n;
 }
 
-void at(char *s, char *pos)
+void at(char *s, int *pos)
 {
-    commandret = indexlist(s, ATOI(pos));
+    commandret = indexlist(s, *pos);
 }
 
 int find(const char *s, const char *key)
@@ -1215,37 +1185,33 @@ void findlist(char *s, char *key)
 }
 void colora(char *s)
 {
-    if(s[0] && s[1]=='\0') {
-    defformatstring(x)("\f%c",s[0]);
-    commandret = newstring(x);
+    if(s[0] && s[1]=='\0')
+    {
+        defformatstring(x)("\f%c",s[0]);
+        commandret = newstring(x);
     }
 }
 
 // Easily inject a string into various CubeScript punctuations
-void addpunct(char *s, char *type = "0")
+void addpunct(char *s, int *type)
 {
-    int t = atoi(type);
-    if(t > -1 && t < 6)
+    switch(*type)
     {
-        switch(t)
-        {
-            case 1:  defformatstring(o1)("[%s]", s);   result(o1); break;
-            case 2:  defformatstring(o2)("(%s)", s);   result(o2); break;
-            case 3:  defformatstring(o3)("$%s", s);    result(o3); break;
-            case 4:  result("\""); break;
-            case 5:  result("%");  break;
-            default: defformatstring(o4)("\"%s\"", s); result(o4); break;
-        }
+        case 1:  defformatstring(o1)("[%s]", s);   result(o1); break;
+        case 2:  defformatstring(o2)("(%s)", s);   result(o2); break;
+        case 3:  defformatstring(o3)("$%s", s);    result(o3); break;
+        case 4:  result("\""); break;
+        case 5:  result("%");  break;
+        default: defformatstring(o4)("\"%s\"", s); result(o4); break;
     }
 }
 
 void toLower(char *s) { result(strcaps(s, false)); }
 void toUpper(char *s) { result(strcaps(s, true)); }
 
-void testchar(char *s, char *type)
+void testchar(char *s, int *type)
 {
-    int t = atoi(type);
-    switch(t) {
+    switch(*type) {
         case 1:
             if(isalpha(s[0]) != 0) { intret(1); return; }
             break;
@@ -1302,54 +1268,54 @@ void strreplace (const char *source, const char *search, const char *replace)
     }
 }
 
-COMMANDN(c, colora, ARG_1STR);
-COMMANDN(loop, loopa, ARG_3STR);
-COMMAND(looplist, ARG_3STR);
-COMMANDN(while, whilea, ARG_2STR);
-COMMANDN(break, breaka, ARG_NONE);
-COMMANDN(continue, continuea, ARG_NONE);
-COMMANDN(if, ifthen, ARG_3STR);
-COMMAND(exec, ARG_1STR);
-COMMAND(concat, ARG_CONC);
-COMMAND(concatword, ARG_CONCW);
-COMMAND(format, ARG_VARI);
-COMMAND(result, ARG_1STR);
-COMMAND(execute, ARG_1STR);
-COMMAND(at, ARG_2STR);
-COMMAND(listlen, ARG_1EST);
-COMMAND(findlist, ARG_2STR);
-COMMAND(addpunct, ARG_2STR);
-COMMANDN(tolower, toLower, ARG_1STR);
-COMMANDN(toupper, toUpper, ARG_1STR);
-COMMAND(testchar, ARG_2STR);
-COMMAND(strreplace, ARG_3STR);
+COMMANDN(c, colora, "s");
+COMMANDN(loop, loopa, "sis");
+COMMAND(looplist, "sss");
+COMMANDN(while, whilea, "ss");
+COMMANDN(break, breaka, "");
+COMMANDN(continue, continuea, "");
+COMMANDN(if, ifthen, "sss");
+COMMAND(exec, "s");
+COMMAND(concat, "c");
+COMMAND(concatword, "w");
+COMMAND(format, "v");
+COMMAND(result, "s");
+COMMAND(execute, "s");
+COMMAND(at, "si");
+COMMANDF(listlen, "s", (char *l) { intret(listlen(l)); });
+COMMAND(findlist, "ss");
+COMMAND(addpunct, "si");
+COMMANDN(tolower, toLower, "s");
+COMMANDN(toupper, toUpper, "s");
+COMMAND(testchar, "si");
+COMMAND(strreplace, "sss");
 
-int add(int a, int b)   { return a+b; }            COMMANDN(+, add, ARG_2EXP);
-int mul(int a, int b)   { return a*b; }            COMMANDN(*, mul, ARG_2EXP);
-int sub(int a, int b)   { return a-b; }            COMMANDN(-, sub, ARG_2EXP);
-int div_(int a, int b)  { return b ? a/b : 0; }    COMMANDN(div, div_, ARG_2EXP);
-int mod_(int a, int b)   { return b ? a%b : 0; }    COMMANDN(mod, mod_, ARG_2EXP);
-float addf(float a, float b)   { return a+b; }            COMMANDN(+f, addf, ARG_2EXPF);
-float mulf(float a, float b)   { return a*b; }            COMMANDN(*f, mulf, ARG_2EXPF);
-float subf(float a, float b)   { return a-b; }            COMMANDN(-f, subf, ARG_2EXPF);
-float divf_(float a, float b)  { return b ? a/b : 0; }    COMMANDN(divf, divf_, ARG_2EXPF);
-float modf_(float a, float b)   { return b ? fmod(a, b) : 0; }    COMMANDN(modf, modf_, ARG_2EXPF);
-float powf_(float a, float b)   { return powf(a, b); }    COMMANDN(powf, powf_, ARG_2EXPF);
-int not_(int a) { return (int)(!a); }              COMMANDN(!, not_, ARG_1EXP);
-int equal(int a, int b) { return (int)(a==b); }    COMMANDN(=, equal, ARG_2EXP);
-int notequal(int a, int b) { return (int)(a!=b); } COMMANDN(!=, notequal, ARG_2EXP);
-int lt(int a, int b)    { return (int)(a<b); }     COMMANDN(<, lt, ARG_2EXP);
-int gt(int a, int b)    { return (int)(a>b); }     COMMANDN(>, gt, ARG_2EXP);
-int lte(int a, int b)    { return (int)(a<=b); }   COMMANDN(<=, lte, ARG_2EXP);
-int gte(int a, int b)    { return (int)(a>=b); }   COMMANDN(>=, gte, ARG_2EXP);
+void add(int *a, int *b)   { intret(*a + *b); }            COMMANDN(+, add, "ii");
+void mul(int *a, int *b)   { intret(*a * *b); }            COMMANDN(*, mul, "ii");
+void sub(int *a, int *b)   { intret(*a - *b); }            COMMANDN(-, sub, "ii");
+void div_(int *a, int *b)  { intret(*b ? (*a)/(*b) : 0); }    COMMANDN(div, div_, "ii");
+void mod_(int *a, int *b)   { intret(*b ? (*a)%(*b) : 0); }    COMMANDN(mod, mod_, "ii");
+void addf(float *a, float *b)   { floatret(*a + *b); }            COMMANDN(+f, addf, "ff");
+void mulf(float *a, float *b)   { floatret(*a * *b); }            COMMANDN(*f, mulf, "ff");
+void subf(float *a, float *b)   { floatret(*a - *b); }            COMMANDN(-f, subf, "ff");
+void divf_(float *a, float *b)  { floatret(*b ? (*a)/(*b) : 0); }    COMMANDN(divf, divf_, "ff");
+void modf_(float *a, float *b)   { floatret(*b ? fmod(*a, *b) : 0); }    COMMANDN(modf, modf_, "ff");
+void powf_(float *a, float *b)   { floatret(powf(*a, *b)); }    COMMANDN(powf, powf_, "ff");
+void not_(int *a) { intret((int)(!(*a))); }              COMMANDN(!, not_, "i");
+void equal(int *a, int *b) { intret((int)(*a == *b)); }    COMMANDN(=, equal, "ii");
+void notequal(int *a, int *b) { intret((int)(*a != *b)); } COMMANDN(!=, notequal, "ii");
+void lt(int *a, int *b)    { intret((int)(*a < *b)); }     COMMANDN(<, lt, "ii");
+void gt(int *a, int *b)    { intret((int)(*a > *b)); }     COMMANDN(>, gt, "ii");
+void lte(int *a, int *b)    { intret((int)(*a <= *b)); }   COMMANDN(<=, lte, "ii");
+void gte(int *a, int *b)    { intret((int)(*a >= *b)); }   COMMANDN(>=, gte, "ii");
 
-COMMANDF(round, ARG_1STR, (char *a) { intret((int)round(atof(a))); });
-COMMANDF(ceil, ARG_1STR, (char *a) { intret((int)ceil(atof(a))); });
-COMMANDF(floor, ARG_1STR, (char *a) { intret(atoi(a)); });
+COMMANDF(round, "f", (float *a) { intret((int)round(*a)); });
+COMMANDF(ceil,  "f", (float *a) { intret((int)ceil(*a)); });
+COMMANDF(floor, "f", (float *a) { intret((int)floor(*a)); });
 
 #define COMPAREF(opname, func, op) \
-    void func(char *a, char *b) { intret((int)(atof(a) op atof(b))); } \
-    COMMANDN(opname, func, ARG_2STR)
+    void func(float *a, float *b) { intret((int)((*a) op (*b))); } \
+    COMMANDN(opname, func, "ff")
 COMPAREF(=f, equalf, ==);
 COMPAREF(!=f, notequalf, !=);
 COMPAREF(<f, ltf, <);
@@ -1360,12 +1326,12 @@ COMPAREF(>=f, gtef, >=);
 void anda (char *a, char *b) { intret(execute(a)!=0 && execute(b)!=0); }
 void ora  (char *a, char *b) { intret(execute(a)!=0 || execute(b)!=0); }
 
-COMMANDN(&&, anda, ARG_2STR);
-COMMANDN(||, ora, ARG_2STR);
+COMMANDN(&&, anda, "ss");
+COMMANDN(||, ora, "ss");
 
-int strcmpa(char *a, char *b) { return strcmp(a,b)==0; }  COMMANDN(strcmp, strcmpa, ARG_2EST);
+COMMANDF(strcmp, "ss", (char *a, char *b) { intret((strcmp(a, b) == 0) ? 1 : 0); });
 
-int rndn(int a)    { return a>0 ? rnd(a) : 0; }  COMMANDN(rnd, rndn, ARG_1EXP);
+COMMANDF(rnd, "i", (int *a) { intret(*a>0 ? rnd(*a) : 0); });
 
 #ifndef STANDALONE
 void writecfg()
@@ -1416,7 +1382,7 @@ void writecfg()
     delete f;
 }
 
-COMMAND(writecfg, ARG_NONE);
+COMMAND(writecfg, "");
 
 void deletecfg()
 {
@@ -1473,18 +1439,18 @@ int popscontext()
     return execcontext;
 }
 
-void scriptcontext(char *context, char *idname)
+void scriptcontext(int *context, char *idname)
 {
     if(contextsealed) return;
     ident *id = idents->access(idname);
     if(!id) return;
-    int c = atoi(context);
+    int c = *context;
     if(c >= 0 && c < IEXC_NUM) id->context = c;
 }
 
-void isolatecontext(int context)
+void isolatecontext(int *context)
 {
-    if(context >= 0 && context < IEXC_NUM && !contextsealed) contextisolated[context] = true;
+    if(*context >= 0 && *context < IEXC_NUM && !contextsealed) contextisolated[*context] = true;
 }
 
 void sealcontexts() { contextsealed = true; }
@@ -1497,16 +1463,12 @@ bool allowidentaccess(ident *id) // check if ident is allowed in current context
     return execcontext <= id->context;
 }
 
-COMMAND(scriptcontext, ARG_2STR);
-COMMAND(isolatecontext, ARG_1INT);
-COMMAND(sealcontexts, ARG_NONE);
+COMMAND(scriptcontext, "is");
+COMMAND(isolatecontext, "i");
+COMMAND(sealcontexts, "");
 
 #ifndef STANDALONE
-void _watchingdemo()
-{
-    intret(watchingdemo);
-}
-COMMANDN(watchingdemo, _watchingdemo, ARG_NONE);
+COMMANDF(watchingdemo, "", () { intret(watchingdemo); });
 
 void systime()
 {
@@ -1530,12 +1492,12 @@ void timestring_()
 }
 
 extern int millis_() { extern int totalmillis; return totalmillis; }
-void strlen_(char *s) { string r; formatstring(r)("%d", strlen(s)); result(r); }
+void strlen_(char *s) { intret(strlen(s)); }
 
-void substr_(char *fs, char *pa, char *len)
+void substr_(char *fs, int *pa, int *len)
 {
-    int ia = atoi(pa);
-    int ilen = atoi(len);
+    int ia = *pa;
+    int ilen = *len;
     int fslen = (int)strlen(fs);
     if(ia<0) ia += fslen;
     if(ia>fslen || ia < 0 || ilen < 0) return;
@@ -1545,13 +1507,13 @@ void substr_(char *fs, char *pa, char *len)
     result(fs+ia);
 }
 
-void strpos_(char *haystack, char *needle, char *occurence)
+void strpos_(char *haystack, char *needle, int *occurence)
 {
     int position = -1;
     char *ptr = haystack;
 
     if(haystack && needle)
-    for(int iocc = atoi(occurence); iocc >= 0; iocc--)
+    for(int iocc = *occurence; iocc >= 0; iocc--)
     {
         ptr = strstr(ptr, needle);
         if (ptr)
@@ -1568,9 +1530,7 @@ void strpos_(char *haystack, char *needle, char *occurence)
     intret(position);
 }
 
-void l0(int p, int v) { string f; string r; formatstring(f)("%%0%dd", p); formatstring(r)(f, v); result(r); }
-
-void getmode_(int acr) { result(modestr(gamemode, acr ? true : false)); }
+void l0(int *p, int *v) { string f; string r; formatstring(f)("%%0%dd", *p); formatstring(r)(f, *v); result(r); }
 
 void getscrext()
 {
@@ -1583,17 +1543,17 @@ void getscrext()
     }
 }
 
-COMMANDN(millis, millis_, ARG_IVAL);
-COMMANDN(strlen, strlen_, ARG_1STR);
-COMMANDN(substr, substr_, ARG_3STR);
-COMMANDN(strpos, strpos_, ARG_3STR);
-COMMAND(l0, ARG_2INT);
-COMMAND(systime, ARG_NONE);
-COMMANDN(timestamp, timestamp_, ARG_NONE);
-COMMAND(datestring, ARG_NONE);
-COMMANDN(timestring, timestring_, ARG_NONE);
-COMMANDN(getmode, getmode_, ARG_1INT);
-COMMAND(getscrext, ARG_NONE);
+COMMANDF(millis, "", () { intret(millis_()); });
+COMMANDN(strlen, strlen_, "s");
+COMMANDN(substr, substr_, "sii");
+COMMANDN(strpos, strpos_, "ssi");
+COMMAND(l0, "ii");
+COMMAND(systime, "");
+COMMANDN(timestamp, timestamp_, "");
+COMMAND(datestring, "");
+COMMANDN(timestring, timestring_, "");
+COMMANDF(getmode, "i", (int *acr) { result(modestr(gamemode, *acr)); });
+COMMAND(getscrext, "");
 
 const char *currentserver(int i) // [client version]
 {
@@ -1663,7 +1623,7 @@ const char *currentserver(int i) // [client version]
     return curSRVinfo;
 }
 
-COMMANDF(curserver, ARG_1INT, (int i) { result(currentserver(i)); });
+COMMANDF(curserver, "i", (int *i) { result(currentserver(*i)); });
 #endif
 
 void debugargs(char **args, int numargs)
@@ -1677,4 +1637,4 @@ void debugargs(char **args, int numargs)
     printf("\n");
 }
 
-COMMAND(debugargs, ARG_VARI);
+COMMAND(debugargs, "v");

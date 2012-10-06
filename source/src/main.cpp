@@ -482,9 +482,9 @@ void makeautoscreenshot()
     screenshot(NULL);
 }
 
-COMMAND(screenshot, ARG_1STR);
-COMMAND(mapshot, ARG_NONE);
-COMMAND(quit, ARG_NONE);
+COMMAND(screenshot, "s");
+COMMAND(mapshot, "");
+COMMAND(quit, "");
 
 void screenres(int w, int h)
 {
@@ -516,7 +516,7 @@ void setresdata(char *s, enet_uint32 c)
 }
 #endif
 
-COMMAND(screenres, ARG_2INT);
+COMMANDF(screenres, "ii", (int *w, int *h) { screenres(*w, *h); });
 
 static int curgamma = 100;
 VARFP(gamma, 30, 100, 300,
@@ -677,7 +677,7 @@ void resetgl()
     c2skeepalive();
 }
 
-COMMAND(resetgl, ARG_NONE);
+COMMAND(resetgl, "");
 
 VARFP(maxfps, 0, 200, 1000, if(maxfps && maxfps < 25) maxfps = 25);
 
@@ -705,14 +705,14 @@ void limitfps(int &millis, int curmillis)
 
 int lowfps = 30, highfps = 40;
 
-void fpsrange(int low, int high)
+void fpsrange(int *low, int *high)
 {
-    if(low>high || low<1) return;
-    lowfps = low;
-    highfps = high;
+    if(*low>*high || *low<1) return;
+    lowfps = *low;
+    highfps = *high;
 }
 
-COMMAND(fpsrange, ARG_2INT);
+COMMAND(fpsrange, "ii");
 
 void keyrepeat(bool on)
 {
@@ -895,14 +895,16 @@ const char *rndmapname()
     return mapnames[n];
 }
 
-extern void connectserv(char *, char *, char *);
+extern void connectserv(char *, int *, char *);
 
-void connectprotocol(char *protocolstring, string &servername, string &serverport, string &password, bool &direct_connect)
+void connectprotocol(char *protocolstring, string &servername, int &serverport, string &password, bool &direct_connect)
 {
     const char *c = &protocolstring[14], *p = c;
     int len = 0;
     direct_connect = false;
-    servername[0] = serverport[0] = password[0] = '\0';
+    string sp;
+    servername[0] = password[0] = '\0';
+    serverport = 0;
     while(*c && *c!='/' && *c!='?' && *c!=':') { len++; c++; }
     if(!len) { conoutf("\f3bad commandline syntax", protocolstring); return; }
     copystring(servername, p, min(len+1, MAXSTRLEN));
@@ -911,7 +913,11 @@ void connectprotocol(char *protocolstring, string &servername, string &serverpor
     {
         c++; p = c; len = 0;
         while(*c && *c!='/' && *c!='?') { len++; c++; }
-        if(len) copystring(serverport, p, min(len+1, MAXSTRLEN));
+        if(len)
+        {
+            copystring(sp, p, min(len+1, MAXSTRLEN));
+            serverport = atoi(sp);
+        }
     }
     if(*c && *c=='/') c++;
     if(!*c || *c!='?') return;
@@ -922,7 +928,11 @@ void connectprotocol(char *protocolstring, string &servername, string &serverpor
         {
             c += 5; p = c; len = 0;
             while(*c && *c!='&' && *c!='/') { len++; c++; }
-            if(len) copystring(serverport, p, min(len+1, MAXSTRLEN));
+            if(len)
+            {
+                copystring(sp, p, min(len+1, MAXSTRLEN));
+                serverport = atoi(sp);
+            }
         }
         else if(!strncmp(c, "password=", 9))
         {
@@ -987,7 +997,8 @@ int main(int argc, char **argv)
     char *initscript = NULL;
     char *initdemo = NULL;
     bool direct_connect = false;               // to connect via assaultcube:// browser switch
-    string servername, serverport, password;
+    string servername, password;
+    int serverport;
 
     const char *initmap = rndmapname();
 
@@ -1276,7 +1287,7 @@ int main(int argc, char **argv)
         if (direct_connect)
         {
             direct_connect = false;
-            connectserv(servername, serverport, password);
+            connectserv(servername, &serverport, password);
         }
     }
 

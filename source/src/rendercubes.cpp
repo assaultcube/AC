@@ -138,7 +138,7 @@ bool showm = false;
 void showmip() { showm = !showm; }
 void mipstats(int a, int b, int c) { if(showm) conoutf("1x1/2x2/4x4: %d / %d / %d", a, b, c); }
 
-COMMAND(showmip, ARG_NONE);
+COMMAND(showmip, "");
 
 VAR(mergestrips, 0, 1, 1);
 

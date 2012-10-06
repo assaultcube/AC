@@ -523,7 +523,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
                 pl->vel.mul(0.7f);
                 continue;
             }
-            pl->o == oo;
+            pl->o = oo;
         }
         if(pl->type==ENT_CAMERA || (pl->type==ENT_PLAYER && pl->state==CS_DEAD && ((playerent *)pl)->spectatemode != SM_FLY))
         {
@@ -766,20 +766,20 @@ void crouch(bool on)
     player1->trycrouch = on;
 }
 
-int inWater(int type = 0)
+int inWater(int *type)
 {
-    if(hdr.waterlevel > (type ? player1->o.z : (player1->o.z - player1->eyeheight))) return 1;
+    if(hdr.waterlevel > (*type ? player1->o.z : (player1->o.z - player1->eyeheight))) return 1;
     else return 0;
 }
 
-COMMAND(backward, ARG_DOWN);
-COMMAND(forward, ARG_DOWN);
-COMMAND(left, ARG_DOWN);
-COMMAND(right, ARG_DOWN);
-COMMANDN(jump, jumpn, ARG_DOWN);
-COMMAND(attack, ARG_DOWN);
-COMMAND(crouch, ARG_DOWN);
-COMMAND(inWater, ARG_1EXP);
+COMMAND(backward, "d");
+COMMAND(forward, "d");
+COMMAND(left, "d");
+COMMAND(right, "d");
+COMMANDN(jump, jumpn, "d");
+COMMAND(attack, "d");
+COMMAND(crouch, "d");
+COMMAND(inWater, "i");
 
 void fixcamerarange(physent *cam)
 {
@@ -917,7 +917,7 @@ void findsens()
         return;
     }
 }
-COMMAND(findsens,ARG_NONE);
+COMMAND(findsens, "");
 
 inline bool zooming(playerent *plx) { return (plx->weaponsel->type == GUN_SNIPER && ((sniperrifle *)plx->weaponsel)->scoped); }
 

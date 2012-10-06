@@ -32,14 +32,14 @@ void adduser(char *name, char *pubkey)
     u.name = name;
     u.pubkey = parsepubkey(pubkey);
 }
-COMMAND(adduser, ARG_2STR);
+COMMAND(adduser, "ss");
 
 void clearusers()
 {
     enumerate(users, userinfo, u, { delete[] u.name; freepubkey(u.pubkey); });
     users.clear();
 }
-COMMAND(clearusers, ARG_NONE);
+COMMAND(clearusers, "");
 // :for AUTH
 
 struct baninfo
@@ -54,7 +54,7 @@ void clearbans()
     servbans.shrink(0);
     gbans.shrink(0);
 }
-COMMAND(clearbans, ARG_NONE);
+COMMAND(clearbans, "");
 
 void addban(vector<baninfo> &bans, const char *name)
 {
@@ -74,9 +74,9 @@ void addban(vector<baninfo> &bans, const char *name)
     ban.ip = ip.i;
     ban.mask = mask.i;
 }
-COMMANDF(ban, ARG_1STR, (char *name) { addban(bans, name); });
-COMMANDF(servban, ARG_1STR, (char *name) { addban(servbans, name); });
-COMMANDF(gban, ARG_1STR, (char *name) { addban(gbans, name); });
+COMMANDF(ban, "s", (char *name) { addban(bans, name); });
+COMMANDF(servban, "s", (char *name) { addban(servbans, name); });
+COMMANDF(gban, "s", (char *name) { addban(gbans, name); });
 
 char *printban(const baninfo &ban, char *buf)
 {

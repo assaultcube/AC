@@ -129,7 +129,7 @@ int wizardmain(int argc, char **argv)
         printf("Installing the AC Server as windows service ... "); fflush(stdout);
 
         vector<char> path;
-        databuf<char> cwd = path.reserve(MAX_PATH);    
+        databuf<char> cwd = path.reserve(MAX_PATH);
         if(!_getcwd(cwd.buf, MAX_PATH))
         {
             printf("Failed!\n");

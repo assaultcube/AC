@@ -563,7 +563,7 @@ int listzipfiles(const char *dir, const char *ext, vector<char *> &files)
 }
 
 #ifndef STANDALONE
-COMMANDF(addzip, ARG_3STR, (const char *name, const char *mount, const char *strip) { addzip(name, mount[0] ? mount : NULL, strip[0] ? strip : NULL); });
-COMMANDF(removezip, ARG_1STR, (const char *name) { removezip(name); });
+COMMANDF(addzip, "sss", (const char *name, const char *mount, const char *strip) { addzip(name, mount[0] ? mount : NULL, strip[0] ? strip : NULL); });
+COMMANDF(removezip, "s", (const char *name) { removezip(name); });
 #endif
 

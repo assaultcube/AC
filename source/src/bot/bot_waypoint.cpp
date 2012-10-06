@@ -32,7 +32,7 @@ CWaypointClass::CWaypointClass(void) : m_bDrawWaypoints(false), m_bDrawWPPaths(t
                                        m_bDrawWPText(false), m_vLastCreatedWP(g_vecZero),
                                        m_bFlooding(false), m_bFilteringNodes(false),
                                        m_iFloodStartTime(0), m_iCurFloodX(0),
-                                       m_iCurFloodY(0), m_iFloodSize(0), 
+                                       m_iCurFloodY(0), m_iFloodSize(0),
                                        m_iFilteredNodes(0), m_iWaypointCount(0)
 {
      loopi(MAX_MAP_GRIDS)
@@ -43,7 +43,7 @@ CWaypointClass::CWaypointClass(void) : m_bDrawWaypoints(false), m_bDrawWPPaths(t
                     delete m_Waypoints[i][j].Pop();
           }
      }
-     
+
      m_szMapName[0] = 0;
 }
 
@@ -80,7 +80,7 @@ void CWaypointClass::Clear()
                     delete p;
                }
           }
-     }     
+     }
 }
 
 //fixme
@@ -105,12 +105,12 @@ bool CWaypointClass::LoadWaypoints()
      bfp = openfile(filename, "rb");
 
      BotManager.m_sCurrentTriggerNr = -1;
-      
+
      // if file exists, read the waypoint structure from it
      if (bfp != NULL)
      {
           bfp->read(&header, sizeof(header));
-          
+
           header.szFileType[sizeof(header.szFileType)-1] = 0;
           if (strcmp(header.szFileType, "cube_bot") == 0)
           {
@@ -124,27 +124,27 @@ bool CWaypointClass::LoadWaypoints()
                     if (header.iFileVersion == 1)
                     {
                          // First version, works with an big array and has a limit
-                         
+
                          waypoint_version_1_s WPs[1024];
                          int path_index;
-                                   
-                         m_iWaypointCount = header.iWPCount;         
+
+                         m_iWaypointCount = header.iWPCount;
                          for (i=0; i < header.iWPCount; i++)
                          {
                               bfp->read(&WPs[i], sizeof(WPs[0]));
                               WPs[i].ConnectedWPs.Reset(); // We get garbage when we read this from
                                                            // a file, so just clear it
-                              
+
                               // Convert to new waypoint structure
                               node_s *pNode = new node_s(WPs[i].v_origin, WPs[i].iFlags, 0);
-                              
+
                               short x, y;
                               GetNodeIndexes(pNode->v_origin, &x, &y);
-                                   
+
                               m_Waypoints[x][y].AddNode(pNode);
                               BotManager.AddWaypoint(pNode);
                          }
-                    
+
                          // read and add waypoint paths...
                          for (i=0; i < m_iWaypointCount; i++)
                          {
@@ -153,73 +153,73 @@ bool CWaypointClass::LoadWaypoints()
 
                               // See which waypoint the current is
                               node_s *pCurrent = GetWaypointFromVec(WPs[i].v_origin);
-                         
+
                               if (!pCurrent)
                               {
                                    conoutf("Error: NULL path in waypoint file");
                                    continue;
                               }
-                              
+
                               for (j=0; j < num; j++)
                               {
                                    bfp->read(&path_index, sizeof(path_index));
-                                   
+
                                    // See which waypoint this is
                                    node_s *pTo = GetWaypointFromVec(WPs[path_index].v_origin);
-                         
+
                                    if (!pTo)
                                    {
                                         conoutf("Error: NULL path in waypoint file");
                                         continue;
                                    }
-                                   
+
                                    AddPath(pCurrent, pTo);
-                              }                              
+                              }
                          }
                          conoutf("Old waypoint version(%d) converted to new version(%d)",
                                   header.iFileVersion, WAYPOINT_VERSION);
                          conoutf("Use the wpsave command to convert permently");
-                         
+
                     }
                     else if (header.iFileVersion == 2)
                     {
                          m_iWaypointCount = header.iWPCount;
-                         
+
                          for (i=0; i < header.iWPCount; i++)
                          {
                               bfp->read(&from, sizeof(from)); // Read origin
                               bfp->read(&flags, sizeof(flags)); // Read waypoint flags
                               bfp->read(&triggernr, sizeof(triggernr)); // Read trigger nr
                               bfp->read(&yaw, sizeof(yaw)); // Read target yaw
-                              
+
                               node_s *pNode = new node_s(from, flags, triggernr, yaw);
-                         
+
                               short x, y;
                               GetNodeIndexes(pNode->v_origin, &x, &y);
-                                   
+
                               m_Waypoints[x][y].AddNode(pNode);
                               BotManager.AddWaypoint(pNode);
-                              
+
                               if ((BotManager.m_sCurrentTriggerNr == -1) ||
                                   (triggernr < BotManager.m_sCurrentTriggerNr))
                                   BotManager.m_sCurrentTriggerNr = triggernr;
                          }
-               
+
                          for (i=0; i < header.iWPCount; i++)
                          {
                               // read the number of paths from this node...
                               bfp->read(&num, sizeof(num));
                               bfp->read(&from, sizeof(from));
-                                                       
+
                               if (!num)
                                    continue;
-                              
+
                               node_s *pCurrent = GetWaypointFromVec(from);
-                         
+
                               if (!pCurrent)
                               {
                                    conoutf("Error: NULL path in waypoint file");
-                                   
+
                                    for(j=0;j<num;j++) bfp->read(&to, sizeof(to)); // Read rest of block
                                    continue;
                               }
@@ -230,7 +230,7 @@ bool CWaypointClass::LoadWaypoints()
                                    node_s *p = GetWaypointFromVec(to);
                                    if (p)
                                         AddPath(pCurrent, p);
-                              }                         
+                              }
                          }
                     }
                     else if (header.iFileVersion > WAYPOINT_VERSION)
@@ -275,9 +275,9 @@ bool CWaypointClass::LoadWaypoints()
 
      if (BotManager.m_sCurrentTriggerNr == -1)
           BotManager.m_sCurrentTriggerNr = 0;
-          
+
      ReCalcCosts();
-     
+
      conoutf("Waypoints for map %s loaded", (m_szMapName));
 
      testx = m_Waypoints[1][1].pNodeList;
@@ -318,10 +318,10 @@ void CWaypointClass::SaveWaypoints()
                        "the right permissions are set");
           return;
      }
-     
+
      // write the waypoint header to the file...
      bfp->write(&header, sizeof(header));
-     
+
      // write the waypoint data to the file...
      loopi(MAX_MAP_GRIDS)
      {
@@ -334,29 +334,29 @@ void CWaypointClass::SaveWaypoints()
                     bfp->write(&p->Entry->iFlags, sizeof(p->Entry->iFlags)); // Write waypoint flags
                     bfp->write(&p->Entry->sTriggerNr, sizeof(p->Entry->sTriggerNr)); // Write trigger nr
                     bfp->write(&p->Entry->sYaw, sizeof(p->Entry->sYaw)); // Write target yaw
-                    
+
                     p = p->next;
-               }               
+               }
           }
      }
-     
+
      loopi(MAX_MAP_GRIDS)
      {
           loopj(MAX_MAP_GRIDS)
           {
                TLinkedList<node_s *>::node_s *p = m_Waypoints[i][j].GetFirst();
                while(p)
-               {          
+               {
                     // save the waypoint paths...
-          
+
                     // count the number of paths from this node...
                     pPath = p->Entry->ConnectedWPs.GetFirst();
                     num = p->Entry->ConnectedWPs.NodeCount();
-                    
+
                     bfp->write(&num, sizeof(num));  // write the count
                     bfp->write(&p->Entry->v_origin, sizeof(p->Entry->v_origin)); // write the origin of this path
-                    
-                    // now write out each path...          
+
+                    // now write out each path...
                     while (pPath != NULL)
                     {
                          bfp->write(&pPath->Entry->v_origin, sizeof(pPath->Entry->v_origin));
@@ -366,7 +366,7 @@ void CWaypointClass::SaveWaypoints()
                }
           }
      }
-     
+
      delete bfp;
 }
 
@@ -382,7 +382,7 @@ bool CWaypointClass::LoadWPExpFile()
 
      if (m_iWaypointCount == 0)
           return false;
-          
+
      strcpy(szWPFileName, m_szMapName);
      strcat(szWPFileName, ".exp");
 
@@ -394,7 +394,7 @@ bool CWaypointClass::LoadWPExpFile()
      if (bfp != NULL)
      {
           fread(&header, sizeof(header), 1, bfp);
-          
+
           header.szFileType[sizeof(header.szFileType)-1] = 0;
           if (strcmp(header.szFileType, "cube_bot") == 0)
           {
@@ -404,17 +404,17 @@ bool CWaypointClass::LoadWPExpFile()
                {
                     // Check which waypoint file version this is, handle each of them different
                     if (header.iFileVersion == 1)
-                    {                                                       
+                    {
                          for (i=0; i < header.iWPCount; i++)
                          {
                               // read the number of paths from this node...
                               fread(&num, sizeof(num), 1, bfp);
                               fread(&from, sizeof(vec), 1, bfp);
-                         
+
                               if (!num) continue;
-                              
+
                               node_s *pCurrent = GetWaypointFromVec(from);
-                         
+
                               if (!pCurrent)
                               {
                                    conoutf("Error: NULL node in waypoint experience file");
@@ -429,7 +429,7 @@ bool CWaypointClass::LoadWPExpFile()
                                    {
                                         pCurrent->FailedGoalList.AddNode(p);
                                    }
-                              }                         
+                              }
                          }
                     }
                     else if (header.iFileVersion > EXP_WP_VERSION)
@@ -480,7 +480,7 @@ void CWaypointClass::SaveWPExpFile()
 {
      if (!m_iWaypointCount)
           return;
-          
+
      char filename[256];
      char mapname[64];
      waypoint_header_s header;
@@ -511,11 +511,11 @@ void CWaypointClass::SaveWPExpFile()
                        "the right permissions are set");
           return;
      }
-     
+
      // write the waypoint header to the file...
      fwrite(&header, sizeof(header), 1, bfp);
-         
-     // save the waypoint experience data...     
+
+     // save the waypoint experience data...
      loopi(MAX_MAP_GRIDS)
      {
           loopj(MAX_MAP_GRIDS)
@@ -523,12 +523,12 @@ void CWaypointClass::SaveWPExpFile()
                TLinkedList<node_s *>::node_s *p = m_Waypoints[i][j].GetFirst();
                while(p)
                {
-                    // count the number of paths from this node...                    
+                    // count the number of paths from this node...
                     TLinkedList<node_s *>::node_s *p2 = p->Entry->FailedGoalList.GetFirst();
                     num = p->Entry->FailedGoalList.NodeCount();
 
                     if (!num || !p2) continue;
-                         
+
                     fwrite(&num, sizeof(num), 1, bfp);  // write the count
                     fwrite(&p->Entry->v_origin, sizeof(vec), 1, bfp); // write the origin of this node
 
@@ -542,18 +542,18 @@ void CWaypointClass::SaveWPExpFile()
                }
           }
      }
-     
+
      fclose(bfp);
 }
 
 void CWaypointClass::Think()
 {
      if (dedserv) return;
-     
+
 #ifdef WP_FLOOD
      FloodThink();
 #endif
-                   
+
      if (m_bAutoWaypoint) // is auto waypoint on?
      {
           // find the distance from the last used waypoint
@@ -561,7 +561,7 @@ void CWaypointClass::Think()
 
           bool NoLastCreatedWP = ((m_vLastCreatedWP.x == 0) && (m_vLastCreatedWP.y == 0) &&
                                                     (m_vLastCreatedWP.z == 0));
-          
+
           if ((flDistance > 3.0f) || NoLastCreatedWP)
           {
                // check that no other reachable waypoints are nearby...
@@ -576,18 +576,18 @@ void CWaypointClass::Think()
      if (m_bDrawWPText)
      {
           node_s *nearestwp = GetNearestWaypoint(player1, 20.0f);
-          
+
 #ifdef WP_FLOOD
           if (!nearestwp)
                nearestwp = GetNearestFloodWP(player1, 10.0f);
 #endif
-               
+
           if (nearestwp)
           {
                char szWPInfo[256];
                sprintf(szWPInfo, "Distance nearest waypoint: %f", GetDistance(player1->o, nearestwp->v_origin));
                AddScreenText(szWPInfo);
-                              
+
                strcpy(szWPInfo, "Flags: ");
                if (nearestwp->iFlags & W_FL_TELEPORT)
                     strcat(szWPInfo, "Teleport ");
@@ -605,19 +605,19 @@ void CWaypointClass::Think()
                     strcat(szWPInfo, "In tagged cube(s) ");
                if (strlen(szWPInfo) == 7)
                     strcat(szWPInfo, "None");
-                                   
+
                AddScreenText(szWPInfo);
-               
+
                if (nearestwp->sYaw != -1)
                     AddScreenText("yaw %d", nearestwp->sYaw);
-               
+
                sprintf(szWPInfo, "Waypoint has %d connections",
                        nearestwp->ConnectedWPs.NodeCount());
                AddScreenText(szWPInfo);
                AddScreenText("Base Cost: %d", nearestwp->sCost);
           }
      }
-  
+
      if (m_bDrawWaypoints)  // display the waypoints if turned on...
      {
           DrawNearWaypoints();
@@ -650,12 +650,12 @@ void CWaypointClass::DrawNearWaypoints()
           MaxJ = MAX_MAP_GRIDS - 1;
 
      node_s *nearestwp = WaypointClass.GetNearestWaypoint(curselection, 20.0f);
-     
+
 #ifdef WP_FLOOD
      if (!nearestwp)
           nearestwp = GetNearestFloodWP(player1, 20.0f);
 #endif
-     
+
      for (int x=MinI;x<=MaxI;x++)
      {
           for(int y=MinJ;y<=MaxJ;y++)
@@ -671,12 +671,12 @@ void CWaypointClass::DrawNearWaypoints()
                          vec e = o;
                          o.z -= 2;
                          e.z += 2;
-                         
+
                          if (pNode->Entry->iFlags & W_FL_JUMP)
                          {
                               // draw a red waypoint
                               linestyle(2.5f, 0xFF, 0x40, 0x40);
-                         }                    
+                         }
                          else if (nearestwp == pNode->Entry)
                          {
                               // draw a green waypoint
@@ -687,14 +687,14 @@ void CWaypointClass::DrawNearWaypoints()
                               // draw a blue waypoint
                               linestyle(2.5f, 0x40, 0x40, 0xFF);
                          }
-                         
-                         line(int(o.x), int(o.y), int(o.z), int(e.x), int(e.y), int(e.z)); 
-                         
+
+                         line(int(o.x), int(o.y), int(o.z), int(e.x), int(e.y), int(e.z));
+
                          if (flNearestDist > flDist)
                          {
                               flNearestDist = flDist;
                               pNearest = pNode->Entry;
-                         }                              
+                         }
                     }
 
                     pNode = pNode->next;
@@ -705,38 +705,38 @@ void CWaypointClass::DrawNearWaypoints()
      if (pNearest)
      {
           pNode = pNearest->ConnectedWPs.GetFirst();
-          
+
           linestyle(2.0f, 0xFF, 0xFF, 0xFF);
-          
+
           while(pNode)
           {
                vec o = pNode->Entry->v_origin;
                vec e = pNearest->v_origin;
-               
+
                line(int(o.x), int(o.y), int(o.z), int(e.x), int(e.y), int(e.z));
-                              
+
                pNode = pNode->next;
           }
-          
+
           // Has this waypoint an target yaw?
           if (pNearest->sYaw != -1)
           {
                vec angles(0, pNearest->sYaw, 0);
                vec from = pNearest->v_origin, end = pNearest->v_origin;
                vec forward, right, up;
-               
+
                from.z = end.z = (pNearest->v_origin.z-1.0f);
-               
+
                AnglesToVectors(angles, forward, right, up);
                forward.mul(5.0f);
                end.add(forward);
-            
+
                linestyle(2.0f, 0xFF, 0x40, 0x40);
                line(int(from.x), int(from.y), int(from.z), int(end.x), int(end.y), int(end.z));
           }
      }
 
-#ifndef RELEASE_BUILD                    
+#ifndef RELEASE_BUILD
      // check if path waypointing is on...
      if (m_bDrawWPPaths)
      {
@@ -748,36 +748,36 @@ void CWaypointClass::DrawNearWaypoints()
                if (!pB->m_bCalculatingAStarPath && !pB->m_AStarNodeList.Empty())
                {
                     TLinkedList<waypoint_s *>::node_s *pNode = pB->m_AStarNodeList.GetFirst(), *pNext;
-                         
+
                     linestyle(2.5f, 0xFF, 0x40, 0x40);
-                         
+
                     line((int)pB->m_pCurrentWaypoint->pNode->v_origin.x,
                            (int)pB->m_pCurrentWaypoint->pNode->v_origin.y,
                            (int)pB->m_pCurrentWaypoint->pNode->v_origin.z,
                            (int)pNode->Entry->pNode->v_origin.x,
                            (int)pNode->Entry->pNode->v_origin.y,
                            (int)pNode->Entry->pNode->v_origin.z);
-                                
+
                     while(pNode && pNode->next)
                     {
                          pNext = pNode->next;
                          vec &v1 = pNode->Entry->pNode->v_origin;
                          vec &v2 = pNext->Entry->pNode->v_origin;
-                              
+
                          line(int(v1.x), int(v1.y), int(v1.z), int(v2.x), int(v2.y), int(v2.z));
-                                   
+
                          pNode = pNode->next;
                     }
                }
-          } 
+          }
      }
 #endif
-    
+
     glEnable(GL_CULL_FACE);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
      if (intermission) return;
-     
+
      /*for(int i=0;i<MAX_STORED_LOCATIONS;i++)
      {
           if (player1->PrevLocations.prevloc[i]==g_vecZero) continue;
@@ -796,7 +796,7 @@ node_s *CWaypointClass::AddWaypoint(vec o, bool connectwp)
      short x, y;
      int flags = 0;
      if (S((int)o.x, (int)o.y)->tag) flags |= W_FL_INTAG;
-     
+
      node_s *pNode = new node_s(o, flags, 0);
      m_vLastCreatedWP = o;
 
@@ -804,19 +804,19 @@ node_s *CWaypointClass::AddWaypoint(vec o, bool connectwp)
 
      m_Waypoints[x][y].AddNode(pNode);
      BotManager.AddWaypoint(pNode);
-     
+
      m_iWaypointCount++;
-     
+
      if (connectwp && m_bAutoPlacePaths)
      {
           // Connect new waypoint with other near waypoints.
-          
+
           loopi(MAX_MAP_GRIDS)
           {
                loopj(MAX_MAP_GRIDS)
                {
                     TLinkedList<node_s *>::node_s *p = m_Waypoints[i][j].GetFirst();
-                    
+
                     while(p)
                     {
                          if (p->Entry == pNode)
@@ -830,13 +830,13 @@ node_s *CWaypointClass::AddWaypoint(vec o, bool connectwp)
                               AddPath(pNode, p->Entry); // Add a path from a to b
                          if (WPIsReachable(p->Entry->v_origin, pNode->v_origin))
                               AddPath(p->Entry, pNode); // Add a path from b to a
-                              
+
                          p = p->next;
                     }
                }
           }
      }
-     
+
      return pNode;
 }
 
@@ -851,20 +851,20 @@ void CWaypointClass::DeleteWaypoint(vec v_src)
           conoutf("Error: Couldn´t find near waypoint");
           return;
      }
-     
+
      BotManager.DelWaypoint(pWP);
-     
+
      // delete any paths that lead to this index...
      DeletePath(pWP);
-     
+
      short x, y;
      GetNodeIndexes(pWP->v_origin, &x, &y);
-     
+
      m_Waypoints[x][y].DeleteEntry(pWP);
-     
+
      pWP->ConnectedWPs.DeleteAllNodes();
      pWP->ConnectedWPsWithMe.DeleteAllNodes();
-     
+
      m_iWaypointCount--;
      delete pWP;
 }
@@ -927,7 +927,7 @@ void CWaypointClass::ManuallyCreatePath(vec v_src, int iCmd, bool TwoWay)
                conoutf("Error: First waypoint unset");
                return;
           }
-          
+
           waypoint2 = GetNearestWaypoint(v_src, 7.0f);
 
           if (!waypoint2)
@@ -968,7 +968,7 @@ void CWaypointClass::ManuallyDeletePath(vec v_src, int iCmd, bool TwoWay)
                conoutf("Error: First waypoint unset");
                return;
           }
-          
+
           waypoint2 = GetNearestWaypoint(v_src, 7.0f);
 
           if (!waypoint2)
@@ -995,7 +995,7 @@ bool CWaypointClass::WPIsReachable(vec from, vec to)
      if (distance < REACHABLE_RANGE)
      {
           if (IsVisible(from, to))
-          {                              
+          {
                if (UnderWater(from) && UnderWater(to))
                {
                     // No need to worry about heights in water
@@ -1154,7 +1154,7 @@ node_s *CWaypointClass::GetNearestTriggerWaypoint(vec v_src, float flRange)
                          pNode = pNode->next;
                          continue;
                     }
-               
+
                     flDist = GetDistance(v_src, pNode->Entry->v_origin);
                     if ((flDist < flNearestDist) && (flDist <= flRange))
                     {
@@ -1176,16 +1176,16 @@ node_s *CWaypointClass::GetWaypointFromVec(const vec &v_src)
 {
      static TLinkedList<node_s *>::node_s *pNode;
      static short x, y;
- 
+
      GetNodeIndexes(v_src, &x, &y);
-     
+
      pNode = m_Waypoints[x][y].GetFirst();
 
      while(pNode)
      {
           if (pNode->Entry->v_origin==v_src)
                return pNode->Entry;
-                    
+
           pNode = pNode->next;
      }
      return NULL;
@@ -1199,7 +1199,7 @@ void CWaypointClass::CalcCost(node_s *pNode)
      int x = int(pNode->v_origin.x);
      int y = int(pNode->v_origin.y);
      int a, b, row;
-     
+
      for (row=0;row<=1;row++)
      {
           if (row==0) b = y - 6;
@@ -1208,10 +1208,10 @@ void CWaypointClass::CalcCost(node_s *pNode)
           for (a=(x-6);a<=(x+6);a++)
           {
                if (OUTBORD(a, b)) continue;
-               
+
                vec to(a, b, GetCubeFloor(a, b) + 1.0f);
-               
-               // See if there is a obstacle(cube or mapmodel) nearby          
+
+               // See if there is a obstacle(cube or mapmodel) nearby
                traceresult_s tr;
                TraceLine(pNode->v_origin, to, NULL, false, &tr);
                if (tr.collided)
@@ -1220,26 +1220,26 @@ void CWaypointClass::CalcCost(node_s *pNode)
                                         GetDistance(pNode->v_origin, to));
                     flCost += (1.0f-flFraction)*0.5f;
                }
-               
+
                if ((abs(a) > 4) || (abs(b) > 4)) continue;
-               
+
                vec from = to;
                to.z -= (JUMP_HEIGHT - 1.0f);
                TraceLine(from, to, NULL, false, &tr);
                if (!tr.collided)
                     flCost += 0.5f;
           }
-          
+
           if (row==0) a = x - 6;
           else a = x + 6;
 
           for (b=(y-6);b<=(y+6);b++)
           {
                if (OUTBORD(a, b)) continue;
-               
+
                vec to(a, b, GetCubeFloor(a, b) + 1.0f);
-               
-               // See if there is a obstacle(cube or mapmodel) nearby          
+
+               // See if there is a obstacle(cube or mapmodel) nearby
                traceresult_s tr;
                TraceLine(pNode->v_origin, to, NULL, false, &tr);
                if (tr.collided)
@@ -1248,9 +1248,9 @@ void CWaypointClass::CalcCost(node_s *pNode)
                                         GetDistance(pNode->v_origin, to));
                     flCost += (1.0f-flFraction)*0.5f;
                }
-               
+
                if ((abs(a) > 4) || (abs(b) > 4)) continue;
-               
+
                vec from = to;
                to.z -= (JUMP_HEIGHT - 1.0f);
                TraceLine(from, to, NULL, false, &tr);
@@ -1258,11 +1258,11 @@ void CWaypointClass::CalcCost(node_s *pNode)
                     flCost += 0.5f;
           }
      }
-         
+
      if (UnderWater(pNode->v_origin)) // Water is annoying
           flCost += 5.0f;
-     
-     pNode->sCost = (short)flCost;          
+
+     pNode->sCost = (short)flCost;
 }
 
 void CWaypointClass::ReCalcCosts(void)
@@ -1286,7 +1286,7 @@ void CWaypointClass::ReCalcCosts(void)
 void CWaypointClass::StartFlood()
 {
      if (m_bFlooding) return;
-     
+
      conoutf("Starting flood, this may take a while on large maps....");
      m_bFlooding = true;
      m_iFloodStartTime = SDL_GetTicks();
@@ -1297,10 +1297,10 @@ void CWaypointClass::StartFlood()
 void CWaypointClass::FloodThink()
 {
      if (!m_bFlooding) return;
-     
+
      static int x, y, count;
      count = 0;
-     
+
      if (!m_bFilteringNodes)
      {
           // loop through ALL cubes and check if we should add a waypoint here
@@ -1313,14 +1313,14 @@ void CWaypointClass::FloodThink()
                     m_iCurFloodX = x;
                     return;
                }
-          
+
                count++;
 
                for (y=MINBORD; y<(ssize-MINBORD); y+=4)
-               {               
+               {
                     vec from(x, y, GetCubeFloor(x, y)+2.0f);
                     bool bFound = CanPlaceNodeHere(from);
-                    
+
                     if (!bFound)
                     {
                          for (int a=x-2;a<=(x+2);a++)
@@ -1336,41 +1336,41 @@ void CWaypointClass::FloodThink()
                                         break;
                                    }
                               }
-                              
+
                               if (bFound) break;
                          }
                     }
-                    
+
                     if (!bFound) continue;
-                    
+
                     // Add WP
                     int flags = W_FL_FLOOD;
                     if (S((int)from.x, (int)from.y)->tag) flags |= W_FL_INTAG;
-                    
+
                     node_s *pWP = new node_s(from, flags, 0);
-               
+
                     short i, j;
                     GetNodeIndexes(from, &i, &j);
                     m_Waypoints[i][j].PushNode(pWP);
                     BotManager.AddWaypoint(pWP);
                     m_iFloodSize += sizeof(node_s);
-                    m_iWaypointCount++;               
-               
+                    m_iWaypointCount++;
+
                     // Connect with other nearby nodes
                     ConnectFloodWP(pWP);
                }
           }
      }
-          
+
      if (!m_bFilteringNodes)
      {
           m_bFilteringNodes = true;
           m_iCurFloodX = m_iCurFloodY = 0;
           m_iFilteredNodes = 0;
      }
-     
+
      count = 0;
-     
+
      // Filter all nodes which aren't connected to any other nodes
      for (x=m_iCurFloodX;x<MAX_MAP_GRIDS;x++)
      {
@@ -1383,7 +1383,7 @@ void CWaypointClass::FloodThink()
           }
 
           count++;
-                              
+
           for (y=0;y<MAX_MAP_GRIDS;y++)
           {
                TLinkedList<node_s *>::node_s *pNode = m_Waypoints[x][y].GetFirst(), *pTemp;
@@ -1408,20 +1408,20 @@ void CWaypointClass::FloodThink()
                }
           }
      }
-     
+
      // Done with flooding
      m_bFlooding = false;
      m_bFilteringNodes = false;
-     
+
      //ReCalcCosts();
      BotManager.PickNextTrigger();
-                        
+
      m_iFloodSize += sizeof(m_Waypoints);
      conoutf("Added %d wps in %d milliseconds", m_iWaypointCount, SDL_GetTicks()-m_iFloodStartTime);
      conoutf("Filtered %d wps", m_iFilteredNodes);
-     
+
      BotManager.CalculateMaxAStarCount();
-     
+
      char szSize[64];
      sprintf(szSize, "Total size: %.2f Kb", float(m_iFloodSize)/1024.0f);
      conoutf(szSize);
@@ -1432,23 +1432,23 @@ bool CWaypointClass::CanPlaceNodeHere(const vec &from)
      static short x, y, a, b;
      static traceresult_s tr;
      static vec to, v1, v2;
-     
+
      x = short(from.x);
      y = short(from.y);
-     
+
      sqr *s = S(x, y);
      if (SOLID(s))
      {
           return false;
      }
-               
+
      if (fabs((float)(s->ceil - s->floor)) < player1->radius)
      {
           return false;
      }
 
      if (GetNearestFloodWP(from, 2.0f, NULL)) return false;
-               
+
      for (a=(x-1);a<=(x+1);a++)
      {
           for (b=(y-1);b<=(y+1);b++)
@@ -1458,10 +1458,10 @@ bool CWaypointClass::CanPlaceNodeHere(const vec &from)
                makevec(&v1, a, b, from.z);
                v2 = v1;
                v2.z -= 1000.0f;
-               
+
                TraceLine(v1, v2, NULL, false, &tr, true);
                to = tr.end;
-                         
+
                if ((a >= (x-1)) && (a <= (x+1)) && (b >= (y-1)) && (b <= (y+1)))
                {
                     if (!tr.collided || (to.z < (from.z-4.0f)))
@@ -1469,14 +1469,14 @@ bool CWaypointClass::CanPlaceNodeHere(const vec &from)
                          return false;
                     }
                }
-                         
+
                to.z += 2.0f;
-               
+
                if (from.z < (to.z-JUMP_HEIGHT))
                {
                     return false;
-               }                         
-                         
+               }
+
                TraceLine(from, to, NULL, false, &tr, true);
                if (tr.collided)
                     return false;
@@ -1489,13 +1489,13 @@ bool CWaypointClass::CanPlaceNodeHere(const vec &from)
 void CWaypointClass::ConnectFloodWP(node_s *pWP)
 {
      if (!pWP) return;
-     
+
      static float flRange;
      static TLinkedList<node_s *>::node_s *pNode;
      static short i, j, MinI, MaxI, MinJ, MaxJ, x, y, Offset;
      static float flDist;
      static node_s *p;
-     
+
      // Calculate range, based on distance to nearest node
      p = GetNearestFloodWP(pWP->v_origin, 15.0f, pWP, true);
      if (p)
@@ -1506,7 +1506,7 @@ void CWaypointClass::ConnectFloodWP(node_s *pWP)
      }
      else
           return;
-          
+
      Offset = (short)ceil(flRange / MAX_MAP_GRIDS);
 
      GetNodeIndexes(pWP->v_origin, &i, &j);
@@ -1546,11 +1546,11 @@ void CWaypointClass::ConnectFloodWP(node_s *pWP)
                               // Connect a with b
                               pWP->ConnectedWPs.AddNode(pNode->Entry);
                               pNode->Entry->ConnectedWPsWithMe.AddNode(pWP);
-                              
+
                               // Connect b with a
                               pNode->Entry->ConnectedWPs.AddNode(pWP);
                               pWP->ConnectedWPsWithMe.AddNode(pNode->Entry);
-                              
+
                               m_iFloodSize += (2 * sizeof(node_s *));
                          }
                     }
@@ -1691,8 +1691,8 @@ void CWaypointClass::GetNodeIndexes(const vec &v_origin, short *i, short *j)
 
 // AC waypoint class begin
 void CACWaypointClass::StartFlood()
-{ 
-     // UNDONE?    
+{
+     // UNDONE?
      CWaypointClass::StartFlood();
 }
 
@@ -1705,19 +1705,19 @@ void CACWaypointClass::StartFlood()
 void CCubeWaypointClass::StartFlood()
 {
      CWaypointClass::StartFlood();
-     
+
      // Add wps at triggers and teleporters and their destination
      loopv(ents)
      {
           entity &e = ents[i];
-          
+
           if (OUTBORD(e.x, e.y)) continue;
 
           if (e.type == TELEPORT)
           {
                vec telepos = { e.x, e.y, S(e.x, e.y)->floor+player1->eyeheight }, teledestpos = g_vecZero;
-          
-               // Find the teleport destination          
+
+               // Find the teleport destination
                int n = -1, tag = e.attr1, beenhere = -1;
                for(;;)
                {
@@ -1732,65 +1732,65 @@ void CCubeWaypointClass::StartFlood()
                          break;
                     }
                }
-          
+
                if (vis(teledestpos, g_vecZero)) continue;
-          
+
                int flags = (W_FL_FLOOD | W_FL_TELEPORT);
                if (S((int)telepos.x, (int)telepos.y)->tag) flags |= W_FL_INTAG;
-               
+
                // Add waypoint at teleporter and teleport destination
                node_s *pWP = new node_s(telepos, flags, 0);
-               
+
                short i, j;
                GetNodeIndexes(telepos, &i, &j);
                m_Waypoints[i][j].PushNode(pWP);
                BotManager.AddWaypoint(pWP);
-               m_iFloodSize += sizeof(node_s);               
+               m_iFloodSize += sizeof(node_s);
                m_iWaypointCount++;
-          
+
                flags = (W_FL_FLOOD | W_FL_TELEPORTDEST);
                if (S((int)teledestpos.x, (int)teledestpos.y)->tag) flags |= W_FL_INTAG;
 
                node_s *pWP2 = new node_s(teledestpos, flags, 0);
-          
+
                GetNodeIndexes(teledestpos, &i, &j);
                m_Waypoints[i][j].PushNode(pWP2);
                BotManager.AddWaypoint(pWP2);
-               m_iFloodSize += sizeof(node_s);               
+               m_iFloodSize += sizeof(node_s);
                m_iWaypointCount++;
-          
+
                // Connect the teleporter waypoint with the teleport-destination waypoint(1 way)
                AddPath(pWP, pWP2);
-               
+
                // Connect with other nearby nodes
-               ConnectFloodWP(pWP);               
+               ConnectFloodWP(pWP);
           }
           else if (e.type == CARROT)
           {
                vec pos = { e.x, e.y, S(e.x, e.y)->floor+player1->eyeheight };
-               
+
                int flags = (W_FL_FLOOD | W_FL_TRIGGER);
                if (S(e.x, e.y)->tag) flags |= W_FL_INTAG;
-               
+
                node_s *pWP = new node_s(pos, flags, 0);
-               
+
                short i, j;
                GetNodeIndexes(pos, &i, &j);
                m_Waypoints[i][j].PushNode(pWP);
                BotManager.AddWaypoint(pWP);
-               m_iFloodSize += sizeof(node_s);               
+               m_iFloodSize += sizeof(node_s);
                m_iWaypointCount++;
-               
+
                // Connect with other nearby nodes
-               ConnectFloodWP(pWP);               
+               ConnectFloodWP(pWP);
           }
           else if (e.type == MAPMODEL)
           {
                mapmodelinfo &mmi = getmminfo(e.attr2);
                if(!&mmi || !mmi.h || !mmi.rad) continue;
-    
+
                float floor = (float)(S(e.x, e.y)->floor+mmi.zoff+e.attr3)+mmi.h;
-              
+
                float x1 = e.x - mmi.rad;
                float x2 = e.x + mmi.rad;
                float y1 = e.y - mmi.rad;
@@ -1803,25 +1803,25 @@ void CCubeWaypointClass::StartFlood()
                     {
                          vec from = { x, y, floor+2.0f };
                          if (GetNearestFloodWP(from, 2.0f, NULL)) continue;
-                                       
+
                          // Add WP
                          int flags = W_FL_FLOOD;
                          if (S((int)x, (int)y)->tag) flags |= W_FL_INTAG;
-                         
+
                          node_s *pWP = new node_s(from, flags, 0);
-               
+
                          short i, j;
                          GetNodeIndexes(from, &i, &j);
                          m_Waypoints[i][j].PushNode(pWP);
                          BotManager.AddWaypoint(pWP);
-                         m_iFloodSize += sizeof(node_s);               
+                         m_iFloodSize += sizeof(node_s);
                          m_iWaypointCount++;
-               
+
                          // Connect with other nearby nodes
                          ConnectFloodWP(pWP);
                     }
                }
-          }    
+          }
      }
      CWaypointClass::StartFlood();
 }
@@ -1831,13 +1831,13 @@ void CCubeWaypointClass::CreateWPsAtTeleporters()
      loopv(ents)
      {
           entity &e = ents[i];
-          
+
           if (e.type != TELEPORT) continue;
           if (OUTBORD(e.x, e.y)) continue;
 
           vec telepos = { e.x, e.y, S(e.x, e.y)->floor+player1->eyeheight }, teledestpos = g_vecZero;
-          
-          // Find the teleport destination          
+
+          // Find the teleport destination
           int n = -1, tag = e.attr1, beenhere = -1;
           for(;;)
           {
@@ -1852,38 +1852,38 @@ void CCubeWaypointClass::CreateWPsAtTeleporters()
                     break;
                }
           }
-          
+
           if (vis(teledestpos, g_vecZero)) continue;
-          
+
           // Add waypoint at teleporter and teleport destination
           node_s *telewp = AddWaypoint(telepos, false);
           node_s *teledestwp = AddWaypoint(teledestpos, false);
-          
+
           if (telewp && teledestwp)
           {
                // Connect the teleporter waypoint with the teleport-destination waypoint(1 way)
                AddPath(telewp, teledestwp);
-               
+
                // Flag waypoints
                telewp->iFlags = W_FL_TELEPORT;
                teledestwp->iFlags = W_FL_TELEPORTDEST;
           }
      }
 }
-                         
+
 void CCubeWaypointClass::CreateWPsAtTriggers()
 {
      loopv(ents)
      {
           entity &e = ents[i];
-          
+
           if (e.type != CARROT) continue;
           if (OUTBORD(e.x, e.y)) continue;
 
           vec pos = { e.x, e.y, S(e.x, e.y)->floor+player1->eyeheight };
-          
+
           node_s *wp = AddWaypoint(pos, false);
-          
+
           if (wp)
           {
                // Flag waypoints
@@ -1898,65 +1898,65 @@ void CCubeWaypointClass::CreateWPsAtTriggers()
 
 // Waypoint commands begin
 
-void addwp(int autoconnect)
+void addwp(int *autoconnect)
 {
      WaypointClass.SetWaypointsVisible(true);
-     WaypointClass.AddWaypoint(curselection, autoconnect!=0);
+     WaypointClass.AddWaypoint(curselection, *autoconnect!=0);
 }
 
-COMMAND(addwp, ARG_1INT);
+COMMAND(addwp, "i");
 
 void delwp(void)
 {
      WaypointClass.SetWaypointsVisible(true);
      WaypointClass.DeleteWaypoint(curselection);
 }
-     
-COMMAND(delwp, ARG_NONE);
 
-void wpvisible(int on)
+COMMAND(delwp, "");
+
+void wpvisible(int *on)
 {
-     WaypointClass.SetWaypointsVisible(on!=0);
+     WaypointClass.SetWaypointsVisible(*on!=0);
 }
 
-COMMAND(wpvisible, ARG_1INT);
+COMMAND(wpvisible, "i");
 
 void wpsave(void)
 {
      WaypointClass.SaveWaypoints();
 }
 
-COMMAND(wpsave, ARG_NONE);
+COMMAND(wpsave, "");
 
 void wpload(void)
 {
      WaypointClass.LoadWaypoints();
 }
 
-COMMAND(wpload, ARG_NONE);
+COMMAND(wpload, "");
 
 void wpclear(void)
 {
     WaypointClass.Clear();
 }
 
-COMMAND(wpclear, ARG_NONE);
+COMMAND(wpclear, "");
 
-void autowp(int on)
+void autowp(int *on)
 {
      WaypointClass.SetWaypointsVisible(true);
-     WaypointClass.SetAutoWaypoint(on!=0);
+     WaypointClass.SetAutoWaypoint(*on!=0);
 }
 
-COMMAND(autowp, ARG_1INT);
+COMMAND(autowp, "i");
 
-void wpinfo(int on)
+void wpinfo(int *on)
 {
      WaypointClass.SetWaypointsVisible(true);
-     WaypointClass.SetWPInfo(on!=0);
+     WaypointClass.SetWPInfo(*on!=0);
 }
 
-COMMAND(wpinfo, ARG_1INT);
+COMMAND(wpinfo, "i");
 
 void addpath1way1(void)
 {
@@ -1964,7 +1964,7 @@ void addpath1way1(void)
      WaypointClass.ManuallyCreatePath(curselection, 1, false);
 }
 
-COMMAND(addpath1way1, ARG_NONE);
+COMMAND(addpath1way1, "");
 
 void addpath1way2(void)
 {
@@ -1972,7 +1972,7 @@ void addpath1way2(void)
      WaypointClass.ManuallyCreatePath(curselection, 2, false);
 }
 
-COMMAND(addpath1way2, ARG_NONE);
+COMMAND(addpath1way2, "");
 
 void addpath2way1(void)
 {
@@ -1980,7 +1980,7 @@ void addpath2way1(void)
      WaypointClass.ManuallyCreatePath(curselection, 1, true);
 }
 
-COMMAND(addpath2way1, ARG_NONE);
+COMMAND(addpath2way1, "");
 
 void addpath2way2(void)
 {
@@ -1988,7 +1988,7 @@ void addpath2way2(void)
      WaypointClass.ManuallyCreatePath(curselection, 2, true);
 }
 
-COMMAND(addpath2way2, ARG_NONE);
+COMMAND(addpath2way2, "");
 
 void delpath1way1(void)
 {
@@ -1996,7 +1996,7 @@ void delpath1way1(void)
      WaypointClass.ManuallyDeletePath(curselection, 1, false);
 }
 
-COMMAND(delpath1way1, ARG_NONE);
+COMMAND(delpath1way1, "");
 
 void delpath1way2(void)
 {
@@ -2004,7 +2004,7 @@ void delpath1way2(void)
      WaypointClass.ManuallyDeletePath(curselection, 2, false);
 }
 
-COMMAND(delpath1way2, ARG_NONE);
+COMMAND(delpath1way2, "");
 
 void delpath2way1(void)
 {
@@ -2012,7 +2012,7 @@ void delpath2way1(void)
      WaypointClass.ManuallyDeletePath(curselection, 1, true);
 }
 
-COMMAND(delpath2way1, ARG_NONE);
+COMMAND(delpath2way1, "");
 
 void delpath2way2(void)
 {
@@ -2020,7 +2020,7 @@ void delpath2way2(void)
      WaypointClass.ManuallyDeletePath(curselection, 2, true);
 }
 
-COMMAND(delpath2way2, ARG_NONE);
+COMMAND(delpath2way2, "");
 
 void setjumpwp(void)
 {
@@ -2031,7 +2031,7 @@ void setjumpwp(void)
      }
 }
 
-COMMAND(setjumpwp, ARG_NONE);
+COMMAND(setjumpwp, "");
 
 void unsetjumpwp(void)
 {
@@ -2042,18 +2042,18 @@ void unsetjumpwp(void)
      }
 }
 
-COMMAND(unsetjumpwp, ARG_NONE);
+COMMAND(unsetjumpwp, "");
 
-void setwptriggernr(int nr)
+void setwptriggernr(int *nr)
 {
      node_s *wp = WaypointClass.GetNearestWaypoint(curselection, 20.0f);
      if (wp)
      {
-          WaypointClass.SetWPTriggerNr(wp, nr);
+          WaypointClass.SetWPTriggerNr(wp, *nr);
      }
 }
 
-COMMAND(setwptriggernr, ARG_1INT);
+COMMAND(setwptriggernr, "i");
 
 void setwpyaw(void)
 {
@@ -2064,7 +2064,7 @@ void setwpyaw(void)
      }
 }
 
-COMMAND(setwpyaw, ARG_NONE);
+COMMAND(setwpyaw, "");
 
 #ifdef WP_FLOOD
 void wpflood(void)
@@ -2072,7 +2072,7 @@ void wpflood(void)
      WaypointClass.StartFlood();
 }
 
-COMMAND(wpflood, ARG_NONE);
+COMMAND(wpflood, "");
 #endif
 
 #ifdef VANILLA_CUBE
@@ -2083,7 +2083,7 @@ void addtelewps(void)
      WaypointClass.CreateWPsAtTeleporters();
 }
 
-COMMAND(addtelewps, ARG_NONE);
+COMMAND(addtelewps, "");
 
 void addtriggerwps(void)
 {
@@ -2091,7 +2091,7 @@ void addtriggerwps(void)
      WaypointClass.CreateWPsAtTriggers();
 }
 
-COMMAND(addtriggerwps, ARG_NONE);
+COMMAND(addtriggerwps, "");
 #endif
 
 // Debug functions
@@ -2108,22 +2108,22 @@ void botsheadtome(void)
      }
 }
 
-COMMAND(botsheadtome, ARG_NONE);
+COMMAND(botsheadtome, "");
 
 void setdebuggoal(void) { v_debuggoal = player1->o; };
-COMMAND(setdebuggoal, ARG_NONE);
+COMMAND(setdebuggoal, "");
 
 void botsheadtodebuggoal(void)
 {
      loopv(bots)
      {
           if (!bots[i] || !bots[i]->pBot) continue;
-          
+
           bots[i]->pBot->GoToDebugGoal(v_debuggoal);
      }
 }
 
-COMMAND(botsheadtodebuggoal, ARG_NONE);
+COMMAND(botsheadtodebuggoal, "");
 
 #endif // RELEASE_BUILD
 
@@ -2158,14 +2158,14 @@ bool CBot::FindWaypoint()
                pNode = pNode->next;
                continue;
           }
-     
+
           wp = GetWPFromNode(pNode->Entry);
           if (!wp)
           {
                pNode = pNode->next;
                continue;
           }
-                    
+
           // if index is not a current or recent previous waypoint...
           if ((wp != m_pCurrentWaypoint) &&
               (wp != m_pPrevWaypoints[0]) &&
@@ -2281,7 +2281,7 @@ bool CBot::HeadToWaypoint()
              !IsVisible(m_AStarNodeList.GetFirst()->Entry->pNode->v_origin))
                Touching = false;
      }
-     
+
      // save current distance as previous
      m_fPrevWaypointDistance = WPDist;
 
@@ -2294,16 +2294,16 @@ bool CBot::HeadToWaypoint()
                // UNDONE: Inhuman
                m_pMyEnt->yaw = m_pMyEnt->targetyaw = m_pCurrentWaypoint->pNode->sYaw;
           }
-          
+
           // Reached a jump waypoint?
           if (m_pCurrentWaypoint->pNode->iFlags & W_FL_JUMP)
                m_pMyEnt->jumpnext = true;
-                              
+
           m_fPrevWaypointDistance = 0.0f;
 
           // Does the bot has a goal?
           if (m_pCurrentGoalWaypoint)
-          {               
+          {
                if (m_pCurrentWaypoint != m_pCurrentGoalWaypoint)
                {
                     if (m_AStarNodeList.Empty())
@@ -2324,10 +2324,10 @@ bool CBot::HeadToWaypoint()
                               }
                          }
                     }
-                                        
+
                     m_pCurrentWaypoint = m_AStarNodeList.Pop();
 
-                    if (!IsVisible(m_pCurrentWaypoint->pNode->v_origin)) 
+                    if (!IsVisible(m_pCurrentWaypoint->pNode->v_origin))
                         //(!(m_pCurrentWaypoint->iFlags & W_FL_TELEPORT)))
                     {
                          //m_UnreachableNodes.PushNode(unreachable_node_s(m_pCurrentGoalWaypoint, gpGlobals->time));
@@ -2367,7 +2367,7 @@ bool CBot::HeadToWaypoint()
                }
           }
           m_iWaypointHeadPauseTime = lastmillis + 75;
-          m_iWaypointTime += 75;          
+          m_iWaypointTime += 75;
      }
 
      // keep turning towards the waypoint...
@@ -2409,7 +2409,7 @@ bool CBot::HeadToWaypoint()
                m_pMyEnt->jumpnext = true;
                condebug("Low wall in HeadToWaypoint()");
           }
-     
+
           // Check if bot has to strafe
           if (m_iStrafeTime > lastmillis)
                SetMoveDir(m_iMoveDir, true);
@@ -2417,17 +2417,17 @@ bool CBot::HeadToWaypoint()
           {
                m_iStrafeTime = 0;
                m_iMoveDir = DIR_NONE;
-               
+
                vec forward, up, right;
                AnglesToVectors(GetViewAngles(), forward, right, up);
-               
-               float flLeftDist = -1.0f, flRightDist = -1.0f;          
+
+               float flLeftDist = -1.0f, flRightDist = -1.0f;
                vec dir = right;
                bool bStrafe = false;
                int iStrafeDir = 0;
-          
+
                dir.mul(m_pMyEnt->radius);
-          
+
                // Check left
                from = m_pMyEnt->o;
                from.sub(dir);
@@ -2439,7 +2439,7 @@ bool CBot::HeadToWaypoint()
                from.add(dir);
                if (IsVisible(from, FORWARD, 3.0f, false, &flRightDist))
                     flRightDist = -1.0f;
-          
+
                if ((flLeftDist != -1.0f) && (flRightDist != -1.0f))
                {
                     if (flLeftDist < flRightDist)
@@ -2476,7 +2476,7 @@ bool CBot::HeadToWaypoint()
                     bStrafe = true;
                     iStrafeDir = LEFT;
                }
-     
+
                if (bStrafe)
                {
                     SetMoveDir(iStrafeDir, true);
@@ -2485,7 +2485,7 @@ bool CBot::HeadToWaypoint()
                }
           }
      }
-     
+
      return true;
 }
 
@@ -2523,23 +2523,23 @@ bool CBot::HeadToGoal()
                               return true; // else just wait a little bit longer
                     }
                     //ResetMoveSpeed();
-                    //return true;                    
+                    //return true;
                }
                else
                {
                     // Current waypoint isn't reachable, search new one
                     waypoint_s *pWP = NULL;
 
-#ifdef WP_FLOOD                                        
+#ifdef WP_FLOOD
                     if (m_pCurrentGoalWaypoint->pNode->iFlags & W_FL_FLOOD)
                          pWP = GetNearestFloodWP(8.0f);
                     else
-#endif                    
+#endif
                          pWP = GetNearestWaypoint(15.0f);
 
                     if (!pWP || (pWP == m_pCurrentWaypoint))
                          return false;
-                                        
+
                     SetCurrentWaypoint(pWP);
                     if (AStar())
                     {
@@ -2552,13 +2552,13 @@ bool CBot::HeadToGoal()
                          return true;
                     }
                }
-               
-               //debugbeam(m_pMyEnt->o, m_pCurrentWaypoint->pNode->v_origin);               
+
+               //debugbeam(m_pMyEnt->o, m_pCurrentWaypoint->pNode->v_origin);
           }
      }
      else
           return false;
-                    
+
      return HeadToWaypoint();
 }
 
@@ -2574,7 +2574,7 @@ bool CBot::AStar()
           }
           return true;
      }
-     
+
      // Ideas by PMB :
      // * Make locals static to speed up a bit
      // * MaxCycles per frame and make it fps dependent
@@ -2598,34 +2598,34 @@ bool CBot::AStar()
           {
                return true;
           }
-     
+
           BotManager.m_sUsingAStarBotsCount++;
-          
+
           CleanAStarLists(false);
-          
+
           m_pCurrentWaypoint->g[0] = m_pCurrentWaypoint->g[1] = 0;
-          m_pCurrentWaypoint->pParent[0] = m_pCurrentWaypoint->pParent[1] = NULL;        
+          m_pCurrentWaypoint->pParent[0] = m_pCurrentWaypoint->pParent[1] = NULL;
           m_pCurrentGoalWaypoint->g[0] = m_pCurrentGoalWaypoint->g[1] = 0;
           m_pCurrentGoalWaypoint->pParent[0] = m_pCurrentGoalWaypoint->pParent[1] = NULL;
 
           m_AStarNodeList.DeleteAllNodes();
-                    
+
           m_AStarOpenList[0].Clear();
           m_AStarOpenList[1].Clear();
           m_AStarClosedList[0].DeleteAllNodes();
           m_AStarClosedList[1].DeleteAllNodes();
-          
+
           m_AStarOpenList[0].AddEntry(m_pCurrentWaypoint,
                                       GetDistance(m_pCurrentGoalWaypoint->pNode->v_origin));
           m_AStarOpenList[1].AddEntry(m_pCurrentGoalWaypoint,
                                       GetDistance(m_pCurrentGoalWaypoint->pNode->v_origin));
-          
+
           m_pCurrentWaypoint->bIsOpen[0] = m_pCurrentGoalWaypoint->bIsOpen[1] = true;
           m_pCurrentWaypoint->bIsOpen[1] = m_pCurrentGoalWaypoint->bIsOpen[0] = false;
           m_pCurrentWaypoint->bIsClosed[0] = m_pCurrentGoalWaypoint->bIsClosed[1] = false;
           m_pCurrentWaypoint->bIsClosed[1] = m_pCurrentGoalWaypoint->bIsClosed[0] = false;
      }
-     
+
      while(!m_AStarOpenList[0].Empty())
      {
           if (iCurrentCycles >= (iMaxCycles/2))
@@ -2636,27 +2636,27 @@ bool CBot::AStar()
 
           n = m_AStarOpenList[0].Pop();
           n->bIsOpen[0] = false;
-         
+
           if (n->pNode->FailedGoalList.IsInList(m_pCurrentGoalWaypoint->pNode))
           {
                bPathFailed = true;
                break; // Can't make path to goal
           }
-                    
+
           // Done with calculating
           if (n == m_pCurrentGoalWaypoint)
           {
                m_bCalculatingAStarPath = false;
                BotManager.m_sUsingAStarBotsCount--;
-          
+
                while(n)
                {
-                    m_AStarNodeList.PushNode(n);                    
+                    m_AStarNodeList.PushNode(n);
                     n = n->pParent[0];
                }
 
-               CleanAStarLists(false);               
-               
+               CleanAStarLists(false);
+
                return true;
           }
 
@@ -2669,37 +2669,37 @@ bool CBot::AStar()
                     pPath = pPath->next;
                     continue;
                }
-          
+
                n2 = GetWPFromNode(pPath->Entry);
-               
+
                if (!n2)
                {
                     pPath = pPath->next;
                     continue;
                }
-               
+
                if (n2->bIsClosed[1])
                {
                     m_bCalculatingAStarPath = false;
                     BotManager.m_sUsingAStarBotsCount--;
-                    
+
                     while(n2)
                     {
                          m_AStarNodeList.AddNode(n2);
                          n2 = n2->pParent[1];
                     }
-               
+
                     while(n)
                     {
-                         m_AStarNodeList.PushNode(n);                    
+                         m_AStarNodeList.PushNode(n);
                          n = n->pParent[0];
                     }
 
                     CleanAStarLists(false);
-               
+
                     return true;
                }
-               
+
                newg = n->g[0] + (short)AStarCost(n, n2);
 
                if ((n2->g[0] <= newg) && (n2->bIsOpen[0] || n2->bIsClosed[0]))
@@ -2707,7 +2707,7 @@ bool CBot::AStar()
                     pPath = pPath->next;
                     continue;
                }
-               
+
                n2->pParent[0] = n;
                n2->g[0] = newg;
                n2->bIsClosed[0] = false;
@@ -2720,12 +2720,12 @@ bool CBot::AStar()
                }
                pPath = pPath->next;
           }
-          
+
           m_AStarClosedList[0].PushNode(n);
           n->bIsClosed[0] = true;
           iCurrentCycles++;
      }
-     
+
      if (!bPathFailed)
      {
           while(!m_AStarOpenList[1].Empty())
@@ -2738,27 +2738,27 @@ bool CBot::AStar()
 
                n = m_AStarOpenList[1].Pop();
                n->bIsOpen[1] = false;
-         
+
                if (n->pNode->FailedGoalList.IsInList(m_pCurrentWaypoint->pNode))
                {
                     bPathFailed = true;
                     break; // Can't make path to goal
                }
-                    
+
                // Done with calculating
                if (n == m_pCurrentWaypoint)
                {
                     m_bCalculatingAStarPath = false;
                     BotManager.m_sUsingAStarBotsCount--;
-                           
+
                     while(n)
                     {
-                         m_AStarNodeList.AddNode(n);                    
+                         m_AStarNodeList.AddNode(n);
                          n = n->pParent[1];
-                    }    
+                    }
 
-                    CleanAStarLists(false);               
-               
+                    CleanAStarLists(false);
+
                     return true;
                }
 
@@ -2771,37 +2771,37 @@ bool CBot::AStar()
                          pPath = pPath->next;
                          continue;
                     }
-               
+
                     n2 = GetWPFromNode(pPath->Entry);
-                    
+
                     if (!n2)
                     {
                          pPath = pPath->next;
                          continue;
                     }
-                    
+
                     if (n2->bIsClosed[0])
                     {
                          m_bCalculatingAStarPath = false;
                          BotManager.m_sUsingAStarBotsCount--;
-                    
+
                          while(n2)
                          {
                               m_AStarNodeList.PushNode(n2);
                               n2 = n2->pParent[0];
                          }
-               
+
                          while(n)
                          {
-                              m_AStarNodeList.AddNode(n);                    
+                              m_AStarNodeList.AddNode(n);
                               n = n->pParent[1];
                          }
 
-                         CleanAStarLists(false);               
-               
+                         CleanAStarLists(false);
+
                          return true;
                     }
-                    
+
                     newg = n->g[1] + (short)AStarCost(n, n2);
 
                     if ((n2->g[1] <= newg) && (n2->bIsOpen[1] || n2->bIsClosed[1]))
@@ -2809,7 +2809,7 @@ bool CBot::AStar()
                          pPath = pPath->next;
                          continue;
                     }
-               
+
                     n2->pParent[1] = n;
                     n2->g[1] = newg;
                     n2->bIsClosed[1] = false;
@@ -2822,16 +2822,16 @@ bool CBot::AStar()
                     }
                     pPath = pPath->next;
                }
-          
+
                m_AStarClosedList[1].PushNode(n);
                n->bIsClosed[1] = true;
                iCurrentCycles++;
           }
      }
-     
-     // Failed making path  
+
+     // Failed making path
      condebug("Path failed");
-               
+
      CleanAStarLists(true);
      m_bCalculatingAStarPath = false;
      BotManager.m_sUsingAStarBotsCount--;
@@ -2854,7 +2854,7 @@ void CBot::CleanAStarLists(bool bPathFailed)
           p->pParent[0] = p->pParent[1] = NULL;
           p->g[0] = p->g[1] = 0;
      }
-     
+
      while(m_AStarOpenList[1].Empty() == false)
      {
           waypoint_s *p = m_AStarOpenList[1].Pop();
@@ -2863,7 +2863,7 @@ void CBot::CleanAStarLists(bool bPathFailed)
           p->pParent[0] = p->pParent[1] = NULL;
           p->g[0] = p->g[1] = 0;
      }
-                                                       
+
      while(m_AStarClosedList[0].Empty() == false)
      {
           waypoint_s *p = m_AStarClosedList[0].Pop();
@@ -2874,7 +2874,7 @@ void CBot::CleanAStarLists(bool bPathFailed)
           if (bPathFailed)
                p->pNode->FailedGoalList.AddNode(m_pCurrentGoalWaypoint->pNode);
      }
-     
+
      while(m_AStarClosedList[1].Empty() == false)
      {
           waypoint_s *p = m_AStarClosedList[1].Pop();
@@ -2916,7 +2916,7 @@ void CBot::SetCurrentWaypoint(node_s *pNode)
 #ifndef RELEASE_BUILD
      if (!pWP || !pNode) condebug("NULL WP In SetCurrentWP");
 #endif
-     
+
      m_pCurrentWaypoint = pWP;
      m_iWaypointTime = lastmillis;
 }
@@ -2926,7 +2926,7 @@ void CBot::SetCurrentWaypoint(waypoint_s *pWP)
 #ifndef RELEASE_BUILD
      if (!pWP) condebug("NULL WP In SetCurrentWP(2)");
 #endif
-     
+
      m_pCurrentWaypoint = pWP;
      m_iWaypointTime = lastmillis;
 }
@@ -2937,7 +2937,7 @@ void CBot::SetCurrentGoalWaypoint(node_s *pNode)
 #ifndef RELEASE_BUILD
      if (!pWP || !pNode) condebug("NULL WP In SetCurrentGoalWP");
 #endif
-     
+
      m_pCurrentGoalWaypoint = pWP;
 }
 
@@ -2946,7 +2946,7 @@ void CBot::SetCurrentGoalWaypoint(waypoint_s *pWP)
 #ifndef RELEASE_BUILD
      if (!pWP) condebug("NULL WP In SetCurrentGoalWP(2)");
 #endif
-     
+
      m_pCurrentGoalWaypoint = pWP;
 }
 
@@ -2957,19 +2957,19 @@ bool CBot::CurrentWPIsValid()
           //condebug("Invalid WP: Is NULL");
           return false;
      }
-     
+
      // check if the bot has been trying to get to this waypoint for a while...
      if ((m_iWaypointTime + 5000) < lastmillis)
-     {   
+     {
           condebug("Invalid WP: time over");
           return false;
      }
 
-#ifndef RELEASE_BUILD     
+#ifndef RELEASE_BUILD
      if (!IsVisible(m_pCurrentWaypoint->pNode->v_origin))
           condebug("Invalid WP: Not visible");
 #endif
-          
+
      return (IsVisible(m_pCurrentWaypoint->pNode->v_origin));
 }
 
@@ -2988,19 +2988,19 @@ bool CBot::ReachedGoalWP()
 waypoint_s *CBot::GetWPFromNode(node_s *pNode)
 {
      if (!pNode) return NULL;
-     
+
      short x, y;
      WaypointClass.GetNodeIndexes(pNode->v_origin, &x, &y);
-     
+
      TLinkedList<waypoint_s *>::node_s *p = m_WaypointList[x][y].GetFirst();
      while(p)
      {
           if (p->Entry->pNode == pNode)
                return p->Entry;
-               
+
           p = p->next;
      }
-     
+
      return NULL;
 }
 
@@ -3039,7 +3039,7 @@ waypoint_s *CBot::GetNearestWaypoint(vec v_src, float flRange)
                          p = p->next;
                          continue;
                     }
-               
+
                     flDist = GetDistance(v_src, p->Entry->pNode->v_origin);
                     if ((flDist < flNearestDist) && (flDist <= flRange))
                     {
@@ -3092,7 +3092,7 @@ waypoint_s *CBot::GetNearestTriggerWaypoint(vec v_src, float flRange)
                          p = p->next;
                          continue;
                     }
-               
+
                     flDist = GetDistance(v_src, p->Entry->pNode->v_origin);
                     if ((flDist < flNearestDist) && (flDist <= flRange))
                     {
@@ -3115,7 +3115,7 @@ void CBot::SyncWaypoints()
 {
      short x, y;
      TLinkedList<node_s *>::node_s *p;
-     
+
      // Clean everything first
      for (x=0;x<MAX_MAP_GRIDS;x++)
      {
@@ -3125,7 +3125,7 @@ void CBot::SyncWaypoints()
                     delete m_WaypointList[x][y].Pop();
           }
      }
-     
+
      // Sync
      for (x=0;x<MAX_MAP_GRIDS;x++)
      {
@@ -3137,17 +3137,17 @@ void CBot::SyncWaypoints()
                     waypoint_s *pWP = new waypoint_s;
                     pWP->pNode = p->Entry;
                     m_WaypointList[x][y].AddNode(pWP);
-                    
+
 #ifndef RELEASE_BUILD
                     if (!GetWPFromNode(p->Entry)) condebug("Error adding bot wp!");
-#endif                                   
-                    
+#endif
+
                     p = p->next;
                }
           }
      }
 }
-     
+
 #ifdef WP_FLOOD
 waypoint_s *CBot::GetNearestFloodWP(vec v_origin, float flRange)
 {
@@ -3184,7 +3184,7 @@ waypoint_s *CBot::GetNearestFloodWP(vec v_origin, float flRange)
                          p = p->next;
                          continue;
                     }
-                         
+
                     flDist = GetDistance(v_origin, p->Entry->pNode->v_origin);
                     if ((flDist < flNearestDist) && (flDist <= flRange))
                     {
@@ -3237,7 +3237,7 @@ waypoint_s *CBot::GetNearestTriggerFloodWP(vec v_origin, float flRange)
                          p = p->next;
                          continue;
                     }
-                         
+
                     flDist = GetDistance(v_origin, p->Entry->pNode->v_origin);
                     if ((flDist < flNearestDist) && (flDist <= flRange))
                     {
@@ -3258,17 +3258,17 @@ waypoint_s *CBot::GetNearestTriggerFloodWP(vec v_origin, float flRange)
 void CBot::GoToDebugGoal(vec o)
 {
      ResetWaypointVars();
-     
+
      node_s *wp = WaypointClass.GetNearestWaypoint(m_pMyEnt, 20.0f);
      node_s *goalwp = WaypointClass.GetNearestWaypoint(player1, 20.0f);
-     
+
      if (!wp || !goalwp)
      {
           wp = WaypointClass.GetNearestFloodWP(m_pMyEnt, 8.0f);
           goalwp = WaypointClass.GetNearestFloodWP(player1, 5.0f);
      }
      if (!wp || !goalwp) { condebug("No near WP"); return; }
-          
+
      SetCurrentWaypoint(wp);
      SetCurrentGoalWaypoint(goalwp);
      m_vGoal = o;

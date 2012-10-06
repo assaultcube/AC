@@ -11,7 +11,7 @@ font *curfont = NULL;
 
 VARP(allowblinkingtext, 0, 0, 1); // if you're so inclined
 
-void newfont(char *name, char *tex, char *defaultw, char *defaulth, char *offsetx, char *offsety, char *offsetw, char *offseth)
+void newfont(char *name, char *tex, int *defaultw, int *defaulth, int *offsetx, int *offsety, int *offsetw, int *offseth)
 {
     font *f = fonts.access(name);
     if(!f)
@@ -23,12 +23,12 @@ void newfont(char *name, char *tex, char *defaultw, char *defaulth, char *offset
 
     f->tex = textureload(tex);
     f->chars.shrink(0);
-    f->defaultw = ATOI(defaultw);
-    f->defaulth = ATOI(defaulth);
-    f->offsetx = ATOI(offsetx);
-    f->offsety = ATOI(offsety);
-    f->offsetw = ATOI(offsetw);
-    f->offseth = ATOI(offseth);
+    f->defaultw = *defaultw;
+    f->defaulth = *defaulth;
+    f->offsetx = *offsetx;
+    f->offsety = *offsety;
+    f->offsetw = *offsetw;
+    f->offseth = *offseth;
     f->skip = 33;
 
     fontdef = f;
@@ -36,27 +36,27 @@ void newfont(char *name, char *tex, char *defaultw, char *defaulth, char *offset
 
 extern GLenum texformat(int bpp);
 
-void fontchar(int x, int y, int w, int h)
+void fontchar(int *x, int *y, int *w, int *h)
 {
     if(!fontdef) return;
 
     font::charinfo &c = fontdef->chars.add();
-    c.x = x;
-    c.y = y;
-    c.w = w ? w : fontdef->defaultw;
-    c.h = h ? h : fontdef->defaulth;
+    c.x = *x;
+    c.y = *y;
+    c.w = *w ? *w : fontdef->defaultw;
+    c.h = *h ? *h : fontdef->defaulth;
 }
 
-void fontskip(int n)
+void fontskip(int *n)
 {
     if(!fontdef) return;
 
-    fontdef->skip = n;
+    fontdef->skip = *n;
 }
 
-COMMANDN(font, newfont, ARG_8STR);
-COMMAND(fontchar, ARG_4INT);
-COMMAND(fontskip, ARG_1INT);
+COMMANDN(font, newfont, "ssiiiiii");
+COMMAND(fontchar, "iiii");
+COMMAND(fontskip, "i");
 
 string myfont = "default";
 void newsetfont(const char *name)
@@ -71,7 +71,7 @@ bool setfont(const char *name)
     curfont = f;
     return true;
 }
-COMMANDN(setfont, newsetfont, ARG_1STR);
+COMMANDN(setfont, newsetfont, "s");
 
 font *getfont(const char *name)
 {

@@ -12,81 +12,81 @@ model *loadingmodel = NULL;
 
 #define checkmdl if(!loadingmodel) { conoutf("not loading a model"); return; }
 
-void mdlcullface(int cullface)
+void mdlcullface(int *cullface)
 {
     checkmdl;
-    loadingmodel->cullface = cullface!=0;
+    loadingmodel->cullface = *cullface!=0;
 }
 
-COMMAND(mdlcullface, ARG_1INT);
+COMMAND(mdlcullface, "i");
 
-void mdlvertexlight(int vertexlight)
+void mdlvertexlight(int *vertexlight)
 {
     checkmdl;
-    loadingmodel->vertexlight = vertexlight!=0;
+    loadingmodel->vertexlight = *vertexlight!=0;
 }
 
-COMMAND(mdlvertexlight, ARG_1INT);
+COMMAND(mdlvertexlight, "i");
 
-void mdltranslucent(int translucency)
+void mdltranslucent(int *translucency)
 {
     checkmdl;
-    loadingmodel->translucency = translucency/100.0f;
+    loadingmodel->translucency = *translucency/100.0f;
 }
 
-COMMAND(mdltranslucent, ARG_1INT);
+COMMAND(mdltranslucent, "i");
 
-void mdlalphatest(int alphatest)
+void mdlalphatest(int *alphatest)
 {
     checkmdl;
-    loadingmodel->alphatest = alphatest/100.0f;
+    loadingmodel->alphatest = *alphatest/100.0f;
 }
 
-COMMAND(mdlalphatest, ARG_1INT);
+COMMAND(mdlalphatest, "i");
 
-void mdlscale(int percent)
+void mdlscale(int *percent)
 {
     checkmdl;
     float scale = 0.3f;
-    if(percent>0) scale = percent/100.0f;
-    else if(percent<0) scale = 0.0f;
+    if(*percent>0) scale = *percent/100.0f;
+    else if(*percent<0) scale = 0.0f;
     loadingmodel->scale = scale;
 }
 
-COMMAND(mdlscale, ARG_1INT);
+COMMAND(mdlscale, "i");
 
-void mdltrans(char *x, char *y, char *z)
+void mdltrans(float *x, float *y, float *z)
 {
     checkmdl;
-    loadingmodel->translate = vec(atof(x), atof(y), atof(z));
+    loadingmodel->translate = vec(*x, *y, *z);
 }
 
-COMMAND(mdltrans, ARG_3STR);
+COMMAND(mdltrans, "fff");
 
-void mdlshadowdist(int dist)
+void mdlshadowdist(int *dist)
 {
     checkmdl;
-    loadingmodel->shadowdist = dist;
+    loadingmodel->shadowdist = *dist;
 }
 
-COMMAND(mdlshadowdist, ARG_1INT);
+COMMAND(mdlshadowdist, "i");
 
-void mdlcachelimit(int limit)
+void mdlcachelimit(int *limit)
 {
     checkmdl;
-    loadingmodel->cachelimit = limit;
+    loadingmodel->cachelimit = *limit;
 }
 
-COMMAND(mdlcachelimit, ARG_1INT);
+COMMAND(mdlcachelimit, "i");
 
 vector<mapmodelinfo> mapmodels;
 
-void mapmodel(char *rad, char *h, char *zoff, char *snap, char *name)
+void mapmodel(int *rad, int *h, int *zoff, char *snap, char *name)
 {
     mapmodelinfo &mmi = mapmodels.add();
-    mmi.rad = atoi(rad);
-    mmi.h = atoi(h);
-    mmi.zoff = atoi(zoff);
+    mmi.rad = *rad;
+    mmi.h = *h;
+    mmi.zoff = *zoff;
     formatstring(mmi.name)("mapmodels/%s", name);
 }
 
@@ -97,8 +97,8 @@ void mapmodelreset()
 
 mapmodelinfo &getmminfo(int i) { return mapmodels.inrange(i) ? mapmodels[i] : *(mapmodelinfo *)0; }
 
-COMMAND(mapmodel, ARG_5STR);
-COMMAND(mapmodelreset, ARG_NONE);
+COMMAND(mapmodel, "iiiss");
+COMMAND(mapmodelreset, "");
 
 hashtable<const char *, model *> mdllookup;
 

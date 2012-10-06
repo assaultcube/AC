@@ -799,9 +799,9 @@ void *addmenu(const char *name, const char *title, bool allowinput, void (__cdec
     return &menu;
 }
 
-void newmenu(char *name, char *hotkeys, char *forwardkeys)
+void newmenu(char *name, int *hotkeys, int *forwardkeys)
 {
-    addmenu(name, NULL, true, NULL, NULL, atoi(hotkeys) > 0, atoi(forwardkeys) > 0);
+    addmenu(name, NULL, true, NULL, NULL, *hotkeys > 0, *forwardkeys > 0);
 }
 
 void menureset(void *menu)
@@ -818,7 +818,7 @@ void delmenu(const char *name)
     else menureset(m);
 }
 
-COMMAND(delmenu, ARG_1STR);
+COMMAND(delmenu, "s");
 
 void menumanual(void *menu, char *text, char *action, color *bgcolor, const char *desc)
 {
@@ -852,7 +852,7 @@ void lastmenu_header(char *header, char *footer)
     }
     else conoutf("no last menu to apply to");
 }
-COMMANDN(menuheader, lastmenu_header, ARG_2STR);
+COMMANDN(menuheader, lastmenu_header, "ss");
 
 void menufont(void *menu, const char *usefont)
 {
@@ -870,11 +870,11 @@ void setmenufont(char *usefont)
     menufont(lastmenu, usefont);
 }
 
-void setmenublink(int truth)
+void setmenublink(int *truth)
 {
     if(!lastmenu) return;
     gmenu &m = *(gmenu *)lastmenu;
-    m.allowblink = truth != 0;
+    m.allowblink = *truth != 0;
 }
 
 void menuinit(char *initaction)
@@ -883,17 +883,17 @@ void menuinit(char *initaction)
     lastmenu->initaction = newstring(initaction);
 }
 
-void menuinitselection(int line)
+void menuinitselection(int *line)
 {
     if(!lastmenu) return;
-    if(lastmenu->items.inrange(line)) lastmenu->menusel = line;
+    if(lastmenu->items.inrange(*line)) lastmenu->menusel = *line;
 }
 
-void menuselection(char *menu, char *line)
+void menuselection(char *menu, int *line)
 {
-    if(!menu || !line || !menus.access(menu)) return;
+    if(!menu || !menus.access(menu)) return;
     gmenu &m = menus[menu];
-    menuselect(&m, atoi(line));
+    menuselect(&m, *line);
 }
 
 void menuitem(char *text, char *action, char *hoveraction)
@@ -928,16 +928,16 @@ void menuitemmapload(char *name, char *text)
     lastmenu->items.add(new mitemmapload(lastmenu, newstring(name), newstring(name), newstring(caction), NULL, NULL, NULL));
 }
 
-void menuitemtextinput(char *text, char *value, char *action, char *hoveraction, char *maxchars)
+void menuitemtextinput(char *text, char *value, char *action, char *hoveraction, int *maxchars)
 {
     if(!lastmenu || !text || !value) return;
-    lastmenu->items.add(new mitemtextinput(lastmenu, newstring(text), newstring(value), action[0] ? newstring(action) : NULL, hoveraction[0] ? newstring(hoveraction) : NULL, NULL, atoi(maxchars)));
+    lastmenu->items.add(new mitemtextinput(lastmenu, newstring(text), newstring(value), action[0] ? newstring(action) : NULL, hoveraction[0] ? newstring(hoveraction) : NULL, NULL, *maxchars));
 }
 
-void menuitemslider(char *text, char *min_, char *max_, char *value, char *step, char *display, char *action)
+void menuitemslider(char *text, int *min_, int *max_, char *value, int *step, char *display, char *action)
 {
     if(!lastmenu) return;
-    lastmenu->items.add(new mitemslider(lastmenu, newstring(text), atoi(min_), atoi(max_), atoi(step), newstring(value), display[0] ? newstring(display) : NULL, action[0] ? newstring(action) : NULL, NULL));
+    lastmenu->items.add(new mitemslider(lastmenu, newstring(text), *min_, *max_, *step, newstring(value), display[0] ? newstring(display) : NULL, action[0] ? newstring(action) : NULL, NULL));
 }
 
 void menuitemkeyinput(char *text, char *bindcmd)
@@ -952,17 +952,17 @@ void menuitemcheckbox(char *text, char *value, char *action)
     lastmenu->items.add(new mitemcheckbox(lastmenu, newstring(text), newstring(value), action[0] ? newstring(action) : NULL, NULL));
 }
 
-void menumdl(char *mdl, char *anim, char *rotspeed, char *scale)
+void menumdl(char *mdl, char *anim, int *rotspeed, int *scale)
 {
     if(!lastmenu || !mdl || !anim) return;
     gmenu &menu = *lastmenu;
     menu.mdl = newstring(mdl);
     menu.anim = findanim(anim)|ANIM_LOOP;
-    menu.rotspeed = max(0, min(atoi(rotspeed), 100));
-    menu.scale = max(0, min(atoi(scale), 100));
+    menu.rotspeed = clamp(*rotspeed, 0, 100);
+    menu.scale = clamp(*scale, 0, 100);
 }
 
-void menudirlist(char *dir, char *ext, char *action, char *image)
+void menudirlist(char *dir, char *ext, char *action, int *image)
 {
     if(!lastmenu) return;
     if(!action || !action[0]) return;
@@ -972,10 +972,10 @@ void menudirlist(char *dir, char *ext, char *action, char *image)
     d->dir = newstring(dir);
     d->ext = ext[0] ? newstring(ext): NULL;
     d->action = action[0] ? newstring(action) : NULL;
-    d->image = atoi(image)!=0;
+    d->image = *image!=0;
 }
 
-void chmenumdl(char *menu, char *mdl, char *anim, char *rotspeed, char *scale)
+void chmenumdl(char *menu, char *mdl, char *anim, int *rotspeed, int *scale)
 {
     if(!menu || !menus.access(menu)) return;
     gmenu &m = menus[menu];
@@ -983,8 +983,8 @@ void chmenumdl(char *menu, char *mdl, char *anim, char *rotspeed, char *scale)
     if(!mdl ||!*mdl) return;
     m.mdl = newstring(mdl);
     m.anim = findanim(anim)|ANIM_LOOP;
-    m.rotspeed = max(0, min(atoi(rotspeed), 100));
-    m.scale = max(0, min(atoi(scale), 100));
+    m.rotspeed = clamp(*rotspeed, 0, 100);
+    m.scale = clamp(*scale, 0, 100);
 }
 
 bool parsecolor(color *col, const char *r, const char *g, const char *b, const char *a)
@@ -1006,26 +1006,26 @@ void menuselectionbgcolor(char *r, char *g, char *b, char *a)
     parsecolor(menuselbgcolor, r, g, b, a);
 }
 
-COMMAND(newmenu, ARG_3STR);
-COMMAND(menumdl, ARG_5STR);
-COMMAND(menudirlist, ARG_4STR);
-COMMAND(chmenumdl, ARG_6STR);
-COMMANDN(showmenu, showmenu_, ARG_1STR);
-COMMAND(closemenu, ARG_1STR);
-COMMANDN(menufont, setmenufont, ARG_1STR);
-COMMANDN(menucanblink, setmenublink, ARG_1INT);
-COMMAND(menuinit, ARG_1STR);
-COMMAND(menuinitselection, ARG_1INT);
-COMMAND(menuselection, ARG_2STR);
-COMMAND(menuitem, ARG_3STR);
-COMMAND(menuitemvar, ARG_3STR);
-COMMAND(menuitemimage, ARG_4STR);
-COMMAND(menuitemmapload, ARG_2STR);
-COMMAND(menuitemtextinput, ARG_5STR);
-COMMAND(menuitemslider, ARG_7STR);
-COMMAND(menuitemkeyinput, ARG_2STR);
-COMMAND(menuitemcheckbox, ARG_3STR);
-COMMAND(menuselectionbgcolor, ARG_4STR);
+COMMAND(newmenu, "sii");
+COMMAND(menumdl, "ssii");
+COMMAND(menudirlist, "sssi");
+COMMAND(chmenumdl, "sssii");
+COMMANDN(showmenu, showmenu_, "s");
+COMMAND(closemenu, "s");
+COMMANDN(menufont, setmenufont, "s");
+COMMANDN(menucanblink, setmenublink, "i");
+COMMAND(menuinit, "s");
+COMMAND(menuinitselection, "i");
+COMMAND(menuselection, "si");
+COMMAND(menuitem, "sss");
+COMMAND(menuitemvar, "sss");
+COMMAND(menuitemimage, "ssss");
+COMMAND(menuitemmapload, "ss");
+COMMAND(menuitemtextinput, "ssssi");
+COMMAND(menuitemslider, "siisiss");
+COMMAND(menuitemkeyinput, "ss");
+COMMAND(menuitemcheckbox, "sss");
+COMMAND(menuselectionbgcolor, "ssss");
 
 bool menukey(int code, bool isdown, int unicode, SDLMod mod)
 {
@@ -1251,7 +1251,7 @@ void gmenu::render()
 {
     extern bool ignoreblinkingbit;
     if(usefont) pushfont(usefont);
-    if(!allowblink) ignoreblinkingbit = true; 
+    if(!allowblink) ignoreblinkingbit = true;
     const char *t = title;
     if(!t)
     {
