@@ -408,7 +408,7 @@ public:
     void stopsound();
 
     // music handling
-    void music(char *name, char *millis, char *cmd);
+    void music(char *name, int millis, char *cmd);
     void musicpreload(int id);
     void musicsuggest(int id, int millis, bool rndofs);
     void musicfadeout(int id);

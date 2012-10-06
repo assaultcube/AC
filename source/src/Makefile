@@ -14,7 +14,6 @@ endif
 endif
 
 MV=mv
-
 ifneq (,$(findstring MINGW,$(PLATFORM)))
 WINDRES= windres
 CLIENT_INCLUDES= $(INCLUDES) -I../include
@@ -160,7 +159,6 @@ client: libenet $(CLIENT_OBJS)
 
 server: libenet $(SERVER_OBJS)
 	$(CXX) $(CXXFLAGS) -o ac_server $(SERVER_OBJS) $(SERVER_LIBS)
-
 master: libenet $(MASTER_OBJS)
 	$(CXX) $(CXXFLAGS) -o ac_master $(MASTER_OBJS) $(SERVER_LIBS)
 

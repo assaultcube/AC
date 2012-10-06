@@ -489,14 +489,13 @@ void texture(char *scale, char *name)
     Slot &s = slots.add();
     copystring(s.name, name);
     path(s.name);
-    float sc = atof(scale);
     s.tex = NULL;
     s.loaded = false;
-    s.scale = (sc > 0 && sc <= 2.0f) ? sc : 1.0f;
+    s.scale = (*scale > 0 && *scale <= 2.0f) ? *scale : 1.0f;
 }
 
-COMMAND(texturereset, ARG_NONE);
-COMMAND(texture, ARG_2STR);
+COMMAND(texturereset, "");
+COMMAND(texture, "fs");
 
 Texture *lookuptexture(int tex, Texture *failtex)
 {
@@ -559,7 +558,7 @@ void loadsky(char *basename)
     }
 }
 
-COMMAND(loadsky, ARG_1STR);
+COMMAND(loadsky, "s");
 
 void loadnotexture(char *c)
 {
@@ -571,7 +570,7 @@ void loadnotexture(char *c)
         if(noworldtexture==notexture) conoutf("could not load alternative texture '%s'.", p);
     }
 }
-COMMAND(loadnotexture, ARG_1STR);
+COMMAND(loadnotexture, "s");
 
 void draw_envbox_face(float s0, float t0, float x0, float y0, float z0,
                       float s1, float t1, float x1, float y1, float z1,

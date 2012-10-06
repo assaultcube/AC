@@ -40,12 +40,12 @@ bool hasext(const char *exts, const char *ext)
     return false;
 }
 
-int glext(char *ext)
+void glext(char *ext)
 {
     const char *exts = (const char *)glGetString(GL_EXTENSIONS);
-    return hasext(exts, ext) ? 1 : 0;
+    intret(hasext(exts, ext) ? 1 : 0);
 }
-COMMAND(glext, ARG_1EST);
+COMMAND(glext, "s");
 
 VAR(ati_mda_bug, 0, 0, 1);
 
@@ -453,13 +453,13 @@ void scopefunc()
 }
 
 // map old fov values to new ones
-void fovcompat(int oldfov)
+void fovcompat(int *oldfov)
 {
     extern float aspect;
-    setfvar("fov", atan(tan(RAD/2.0f*oldfov/aspect)*aspect)*2.0f/RAD, true);
+    setfvar("fov", atan(tan(RAD/2.0f*(*oldfov)/aspect)*aspect)*2.0f/RAD, true);
 }
 
-COMMAND(fovcompat, ARG_1INT);
+COMMAND(fovcompat, "i");
 
 float dynfov()
 {
@@ -771,7 +771,7 @@ void clearminimap()
     minimapdirty = true;
 }
 
-COMMAND(clearminimap, ARG_NONE);
+COMMAND(clearminimap, "");
 VARFP(minimapres, 7, 9, 10, clearminimap());
 void drawminimap(int w, int h)
 {
@@ -875,15 +875,15 @@ void cleanupgl()
     minimapdirty = true;
 }
 
-void drawzone(char *x1, char *x2, char *y1, char *y2, char *color)
+void drawzone(int *x1, int *x2, int *y1, int *y2, int *color)
 {
-    zonex1 = atoi(x1); zoney1 = atoi(y1);
-    zonex2 = atoi(x2); zoney2 = atoi(y2);
-    if(color[0]) zonecolor = ATOI(color);
+    zonex1 = *x1; zoney1 = *y1;
+    zonex2 = *x2; zoney2 = *y2;
+    if(*color) zonecolor = *color;
     else zonecolor = 0x00FF00;
     clearminimap();
 }
-COMMAND(drawzone, ARG_5STR);
+COMMAND(drawzone, "iiiii");
 
 void resetzone()
 {

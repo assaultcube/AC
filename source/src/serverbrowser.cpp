@@ -321,14 +321,13 @@ static serverinfo *newserver(const char *name, uint ip = ENET_HOST_ANY, int port
     return si;
 }
 
-void addserver(const char *servername, const char *serverport, const char *weight)
+void addserver(const char *servername, int serverport, int weight)
 {
-    int port = atoi(serverport);
-    if(port == 0) port = CUBE_DEFAULT_SERVER_PORT;
+    if(serverport <= 0) serverport = CUBE_DEFAULT_SERVER_PORT;
 
-    loopv(servers) if(strcmp(servers[i]->name, servername)==0 && servers[i]->port == port) return;
+    loopv(servers) if(strcmp(servers[i]->name, servername)==0 && servers[i]->port == serverport) return;
 
-    newserver(servername, ENET_HOST_ANY, port, weight ? atoi(weight) : 0);
+    newserver(servername, ENET_HOST_ANY, serverport, weight);
 }
 
 VARP(servpingrate, 1000, 5000, 60000);
@@ -738,7 +737,7 @@ void searchnickname(const char *name)
     strtoupper(cursearchuc);
     showmenu("search");
 }
-COMMAND(searchnickname, ARG_1STR);
+COMMAND(searchnickname, "s");
 
 VAR(showallservers, 0, 1, 1);
 
@@ -924,8 +923,8 @@ bool assignserverfavourites()
     return res;
 }
 
-COMMAND(addfavcategory, ARG_1STR);
-COMMAND(listfavcats, ARG_NONE);
+COMMAND(addfavcategory, "s");
+COMMAND(listfavcats, "");
 
 static serverinfo *lastselectedserver = NULL;
 static bool pinglastselected = false;
@@ -1352,28 +1351,23 @@ void updatefrommaster(int force)
     {
         // preserve currently connected server from deletion
         serverinfo *curserver = getconnectedserverinfo();
-        string curname, curport, curweight;
-        if(curserver)
-        {
-            copystring(curname, curserver->name);
-            formatstring(curport)("%d", curserver->port);
-            formatstring(curweight)("%d", curserver->msweight);
-        }
+        string curname;
+        if(curserver) copystring(curname, curserver->name);
 
         clearservers();
-        if ( !strncmp(data.getbuf(), "addserver", 9) ) cllock = false; // the ms could reply other thing... but currently, this is useless
-        if ( !cllock )
+        if(!strncmp(data.getbuf(), "addserver", 9)) cllock = false; // the ms could reply other thing... but currently, this is useless
+        if(!cllock )
         {
             execute(data.getbuf());
-            if(curserver) addserver(curname, curport, curweight);
+            if(curserver) addserver(curname, curserver->port, curserver->msweight);
         }
         lastupdate = totalmillis;
     }
 }
 
-COMMAND(addserver, ARG_3STR);
-COMMAND(clearservers, ARG_NONE);
-COMMAND(updatefrommaster, ARG_1INT);
+COMMANDF(addserver, "sii", (char *n, int *p, int *w) { addserver(n, *p, *w); });
+COMMAND(clearservers, "");
+COMMANDF(updatefrommaster, "i", (int *f) { updatefrommaster(*f); });
 
 void writeservercfg()
 {

@@ -9,12 +9,12 @@ VARP(modeacronyms, 0, 1, 1);
 
 flaginfo flaginfos[2];
 
-void mode(int n)
+void mode(int *n)
 {
-    nextmode = n;
-    if(m_mp(n) || !multiplayer()) addmsg(SV_GAMEMODE, "ri", n);
+    nextmode = *n;
+    if(m_mp(*n) || !multiplayer()) addmsg(SV_GAMEMODE, "ri", *n);
 }
-COMMAND(mode, ARG_1INT);
+COMMAND(mode, "i");
 
 bool intermission = false;
 int arenaintermission = 0;
@@ -107,9 +107,9 @@ const char *highlight(const char *text)
     return *result ? result : text;
 }
 
-void ignore(int cn)
+void ignore(int *cn)
 {
-    playerent *d = getclient(cn);
+    playerent *d = getclient(*cn);
     if(d && d != player1) d->ignored = true;
 }
 
@@ -122,15 +122,14 @@ void listignored()
     else conoutf(_("no players were ignored."));
 }
 
-void clearignored(char *ccn)
+void clearignored(int *cn)
 {
-    int cn = ccn && *ccn ? atoi(ccn) : -1;
-    loopv(players) if(players[i] && (cn < 0 || cn == i)) players[i]->ignored = false;
+    loopv(players) if(players[i] && (*cn < 0 || *cn == i)) players[i]->ignored = false;
 }
 
-void muteplayer(int cn)
+void muteplayer(int *cn)
 {
-    playerent *d = getclient(cn);
+    playerent *d = getclient(*cn);
     if(d && d != player1) d->muted = true;
 }
 
@@ -143,18 +142,17 @@ void listmuted()
     else conoutf(_("no players were muted."));
 }
 
-void clearmuted(char *ccn)
+void clearmuted(char *cn)
 {
-    int cn = ccn && *ccn ? atoi(ccn) : -1;
-    loopv(players) if(players[i] && (cn < 0 || cn == i)) players[i]->muted = false;
+    loopv(players) if(players[i] && (*cn < 0 || *cn == i)) players[i]->muted = false;
 }
 
-COMMAND(ignore, ARG_1INT);
-COMMAND(listignored, ARG_NONE);
-COMMAND(clearignored, ARG_1STR);
-COMMAND(muteplayer, ARG_1INT);
-COMMAND(listmuted, ARG_NONE);
-COMMAND(clearmuted, ARG_1STR);
+COMMAND(ignore, "i");
+COMMAND(listignored, "");
+COMMAND(clearignored, "i");
+COMMAND(muteplayer, "i");
+COMMAND(listmuted, "");
+COMMAND(clearmuted, "i");
 
 void newname(const char *name)
 {
@@ -209,40 +207,35 @@ void benchme()
         addmsg(SV_SWITCHTEAM, "ri", team_tospec(player1->team));
 }
 
-int _setskin(char *s, int t)
+int _setskin(int s, int t)
 {
-    if(s && *s)
-    {
-        setskin(player1, atoi(s), t);
-        addmsg(SV_SWITCHSKIN, "rii", player1->skin(0), player1->skin(1));
-    }
+    setskin(player1, s, t);
+    addmsg(SV_SWITCHSKIN, "rii", player1->skin(0), player1->skin(1));
     return player1->skin(t);
 }
 
-ICOMMANDF(skin_cla, ARG_1EST, (char *s) { return _setskin(s, TEAM_CLA); });
-ICOMMANDF(skin_rvsf, ARG_1EST, (char *s) { return _setskin(s, TEAM_RVSF); });
-ICOMMANDF(skin, ARG_1EST, (char *s) { return _setskin(s, player1->team); });
+COMMANDF(skin_cla, "i", (int *s) { intret(_setskin(*s, TEAM_CLA)); });
+COMMANDF(skin_rvsf, "i", (int *s) { intret(_setskin(*s, TEAM_RVSF)); });
+COMMANDF(skin, "i", (int *s) { intret(_setskin(*s, player1->team)); });
 
-int curmodeattr(char *attr)
+void curmodeattr(char *attr)
 {
-    if(!strcmp(attr, "team")) return m_teammode;
-    else if(!strcmp(attr, "arena")) return m_arena;
-    else if(!strcmp(attr, "flag")) return m_flags;
-    else if(!strcmp(attr, "bot")) return m_botmode;
-    return 0;
+    if(!strcmp(attr, "team")) { intret(m_teammode); return; }
+    else if(!strcmp(attr, "arena")) { intret(m_arena); return; }
+    else if(!strcmp(attr, "flag")) { intret(m_flags); return; }
+    else if(!strcmp(attr, "bot")) { intret(m_botmode); return; }
+    intret(0);
 }
 
-COMMANDN(team, newteam, ARG_1STR);
-COMMANDN(name, newname, ARG_1STR);
-COMMAND(benchme, ARG_NONE);
-ICOMMANDF(isclient, ARG_1EXP, (int cn) { return getclient(cn) != NULL ? 1 : 0; } );
-//ICOMMANDF(isSpect, ARG_IVAL, (void) { return (player1->team==TEAM_SPECT || player1->spectatemode==SM_FLY); }); // Moved to /config/compatibility.cfg
-//ICOMMANDF(currole, ARG_IVAL, (void) { return player1->clientrole; }); // Moved to /config/compatibility.cfg
-ICOMMANDF(curmastermode, ARG_IVAL, (void) { return servstate.mastermode; });
-ICOMMANDF(curautoteam, ARG_IVAL, (void) { return servstate.autoteam; });
-COMMAND(curmodeattr, ARG_1EST);
-COMMANDF(curmap, ARG_1INT, (int cleaned) { result(cleaned ? behindpath(getclientmap()) : getclientmap()); });
-ICOMMANDF(curplayers, ARG_IVAL, (void) { return players.length() + 1; });
+COMMANDN(team, newteam, "s");
+COMMANDN(name, newname, "s");
+COMMAND(benchme, "");
+COMMANDF(isclient, "i", (int *cn) { intret(getclient(*cn) != NULL ? 1 : 0); } );
+COMMANDF(curmastermode, "", (void) { intret(servstate.mastermode); });
+COMMANDF(curautoteam, "", (void) { intret(servstate.autoteam); });
+COMMAND(curmodeattr, "");
+COMMANDF(curmap, "i", (int *cleaned) { result(*cleaned ? behindpath(getclientmap()) : getclientmap()); });
+COMMANDF(curplayers, "", (void) { intret(players.length() + 1); });
 VARP(showscoresondeath, 0, 1, 1);
 VARP(autoscreenshot, 0, 0, 1);
 
@@ -251,18 +244,18 @@ void stopdemo()
     if(watchingdemo) enddemoplayback();
     else conoutf(_("not playing a demo"));
 }
-COMMAND(stopdemo, ARG_NONE);
+COMMAND(stopdemo, "");
 
 // macros for playerinfo() & teaminfo(). Use this to replace pstats_xxx ?
 #define ATTR_INT(name, attribute)    if(!strcmp(attr, #name)) { intret(attribute); return; }
 #define ATTR_FLOAT(name, attribute)  if(!strcmp(attr, #name)) { floatret(attribute); return; }
 #define ATTR_STR(name, attribute)    if(!strcmp(attr, #name)) { result(attribute); return; }
 
-void playerinfo(const char *cn, const char *attr)
+void playerinfo(int *cn, const char *attr)
 {
-    if(!*cn || !cn || !*attr || !attr) return;
+    if(!*attr || !attr) return;
 
-    int clientnum = atoi(cn); // get player clientnum
+    int clientnum = *cn; // get player clientnum
     playerent *p = clientnum < 0 ? player1 : getclient(clientnum);
     if(!p)
     {
@@ -320,16 +313,17 @@ void playerinfo(const char *cn, const char *attr)
 
 void playerinfolocal(const char *attr)
 {
-    playerinfo("-1", attr);
+    int cn = -1;
+    playerinfo(&cn, attr);
 }
 
-COMMANDN(player, playerinfo, ARG_3STR);
-COMMANDN(player1, playerinfolocal, ARG_2STR);
+COMMANDN(player, playerinfo, "is");
+COMMANDN(player1, playerinfolocal, "s");
 
 void teaminfo(const char *team, const char *attr)
 {
     if(!team || !attr || !m_teammode) return;
-    int t = atoi(team); // get player clientnum
+    int t = teamatoi(team); // get player clientnum
     if(!team_isactive(t))
     {
         conoutf("invalid team: %s", team);
@@ -379,7 +373,7 @@ void teaminfo(const char *team, const char *attr)
     conoutf("invalid attribute: %s", attr);
 }
 
-COMMAND(teaminfo, ARG_2STR);
+COMMAND(teaminfo, "ss");
 
 void deathstate(playerent *pl)
 {
@@ -593,9 +587,9 @@ void addsleep(int msec, const char *cmd, bool persist)
     s.persist = persist;
 }
 
-void addsleep_(char *msec, char *cmd, char *persist)
+void addsleep_(int *msec, char *cmd, int *persist)
 {
-    addsleep(atoi(msec), cmd, atoi(persist) != 0);
+    addsleep(*msec, cmd, *persist != 0);
 }
 
 void resetsleep(bool force)
@@ -612,8 +606,8 @@ void resetsleep_()
     resetsleep(true);
 }
 
-COMMANDN(sleep, addsleep_, ARG_3STR);
-COMMANDN(resetsleeps, resetsleep_, ARG_NONE);
+COMMANDN(sleep, addsleep_, "isi");
+COMMANDN(resetsleeps, resetsleep_, "");
 
 void updateworld(int curtime, int lastmillis)        // main game update loop
 {
@@ -835,8 +829,8 @@ void setkillmessage(int gun, bool gib, const char *message)
     copystring(killmessages[gib?1:0][gun], message, sizeof(killmessages[gib?1:0][gun]));
 }
 
-COMMANDF(fragmessage, ARG_2STR, (const char *gun, const char *message) { setkillmessage(atoi(gun), false, message); });
-COMMANDF(gibmessage, ARG_2STR, (const char *gun, const char *message) { setkillmessage(atoi(gun), true, message); });
+COMMANDF(fragmessage, "is", (int *gun, const char *message) { setkillmessage(*gun, false, message); });
+COMMANDF(gibmessage, "is", (int *gun, const char *message) { setkillmessage(*gun, true, message); });
 
 void writekillmsgcfg()
 {
@@ -853,12 +847,9 @@ void writekillmsgcfg()
     f->printf("\n");
 }
 
-void burstshots(char *gun_str, char *shots_str)
+void burstshots(int gun, int shots)
 {
     // args are passed as strings to differentiate 2 cases : shots_str == "0" or shots_str is empty (not specified from cubescript).
-    int gun = gun_str ? atoi(gun_str) : -1;
-    int shots = shots_str && *shots_str != '\0' ? atoi(shots_str) : -1;
-
     if(gun >= 0 && gun < NUMGUNS && guns[gun].isauto)
     {
         if(shots >= 0) burstshotssettings[gun] = min(shots, (guns[gun].magsize-1));
@@ -867,7 +858,7 @@ void burstshots(char *gun_str, char *shots_str)
     else conoutf(_("invalid gun specified"));
 }
 
-COMMAND(burstshots, ARG_2STR);
+COMMANDF(burstshots, "ii", (int *g, int *s) { burstshots(*g, *s); });
 
 // damage arriving from the network, monsters, yourself, all ends up here.
 
@@ -959,44 +950,16 @@ void dokill(playerent *pl, playerent *act, bool gib, int gun)
     pl->deaths++;
     audiomgr.playsound(S_DIE1+rnd(2), pl);
 }
-/* Removed in favor of the new (player) && (player1) commands ???
-    See /config/compatibility.cfg
-void pstat_score(int cn)
-{
-    //if(intermission)
-    //{
-        string scorestring;
-        int p_flags = 0;
-        int p_frags = 0;
-        int p_deaths = 0;
-        int p_points = 0;
-        int p_tks = 0;
-        playerent *pl = cn==player1->clientnum?player1:getclient(cn);
-        if(pl)
-        {
-            p_flags = pl->flagscore;
-            p_frags = pl->frags;
-            p_deaths = pl->deaths;
-            p_points = pl->points;
-            p_tks = pl->tks;
-        }
-        formatstring(scorestring)("%d %d %d %d %d %d %s", p_flags, p_frags, p_deaths, p_points, pl ? pl->team : -1, p_tks, pl ? pl->name : "\"\"");
-        result(scorestring);
-    //}
-    //else result("0 0 0 0 -1 \"\"");
-}
-COMMAND(pstat_score, ARG_1INT);
-*/
 
-void pstat_weap(int cn)
+void pstat_weap(int *cn)
 {
     string weapstring = "";
-    playerent *pl = getclient(cn);
+    playerent *pl = getclient(*cn);
     if(pl) loopi(NUMGUNS) concatformatstring(weapstring, "%s%d %d", strlen(weapstring) ? " " : "", pl->pstatshots[i], pl->pstatdamage[i]);
     result(weapstring);
 }
 
-COMMAND(pstat_weap, ARG_1INT);
+COMMAND(pstat_weap, "i");
 
 VAR(minutesremaining, 1, 0, 0);
 VAR(gametimecurrent, 1, 0, 0);
@@ -1119,15 +1082,15 @@ void preparectf(bool cleanonly=false)
 struct gmdesc { int mode; char *desc; };
 vector<gmdesc> gmdescs;
 
-void gamemodedesc(char *modenr, char *desc)
+void gamemodedesc(int *modenr, char *desc)
 {
-    if(!modenr || !desc) return;
+    if(!desc) return;
     struct gmdesc &gd = gmdescs.add();
-    gd.mode = atoi(modenr);
+    gd.mode = *modenr;
     gd.desc = newstring(desc);
 }
 
-COMMAND(gamemodedesc, ARG_2STR);
+COMMAND(gamemodedesc, "is");
 
 void resetmap(bool mrproper)
 {
@@ -1166,7 +1129,7 @@ void showmapstats()
     if (m_flags && F2F < 1000) conoutf("  Flag-to-flag distance is: %d", (int)fSqrt(F2F));
     if (item_fail) conoutf("  There are one or more items too close to each other in this map");
 }
-COMMAND(showmapstats, ARG_NONE);
+COMMAND(showmapstats, "");
 
 VARP(showmodedescriptions, 0, 1, 1);
 
@@ -1244,7 +1207,7 @@ void suicide()
     }
 }
 
-COMMAND(suicide, ARG_NONE);
+COMMAND(suicide, "");
 
 // console and audio feedback
 
@@ -1337,7 +1300,7 @@ void flagmsg(int flag, int message, int actor, int flagtime)
 }
 
 void dropflag() { tryflagdrop(true); }
-COMMAND(dropflag, ARG_NONE);
+COMMAND(dropflag, "");
 
 char *votestring(int type, const char *arg1, const char *arg2, const char *arg3)
 {
@@ -1464,11 +1427,11 @@ void callvote(int type, const char *arg1, const char *arg2, const char *arg3)
     else conoutf(_("%c3invalid vote"), CC);
 }
 
-void scallvote(char *type, const char *arg1, const char *arg2)
+void scallvote(int *type, const char *arg1, const char *arg2)
 {
     if(type && inmainloop)
     {
-        int t = atoi(type);
+        int t = *type;
         switch (t)
         {
             case SA_MAP: // FIXME
@@ -1487,6 +1450,12 @@ void scallvote(char *type, const char *arg1, const char *arg2)
                     else conoutf(_("%c3invalid reason"), CC);
                     break;
                 }
+            }
+            case SA_FORCETEAM:
+            {
+                int team = atoi(arg2);
+                if(team < 0) arg2 = (team == 0) ? "RVSF" : "CLA";
+                // fall through
             }
             default:
                 callvote(t, arg1, arg2);
@@ -1558,44 +1527,40 @@ const char *modestrings[] =
     "osok", "tosok", "bosok", "htf", "tktf", "ktf", "tpf", "tlss", "bpf", "blss", "btsurv", "btosok"
 };
 
-void setnext(char *arg1, char *arg2)
+void setnext(int *mode, char *arg2)
 {
-    for (int i = 0; i < GMODE_NUM; i++)
+    if(*mode < 0 || *mode >= GMODE_NUM) return;
+
+    switch(*mode)
     {
-        switch(i)
-        {
-            case GMODE_COOPEDIT:
-            case GMODE_BOTTEAMDEATHMATCH:
-            case GMODE_BOTDEATHMATCH:
-            case GMODE_BOTONESHOTONEKILL:
-                continue;
-        }
-        if ( !strcmp(arg1,modestrings[i]) )
-        {
-            nextmode=i+GMODE_NUM;
-            callvote(SA_MAP, arg2, "-1");
+        case GMODE_COOPEDIT:
+        case GMODE_BOTTEAMDEATHMATCH:
+        case GMODE_BOTDEATHMATCH:
+        case GMODE_BOTONESHOTONEKILL:
             return;
-        }
     }
 
+    nextmode = *mode+GMODE_NUM;
+    callvote(SA_MAP, arg2, "-1");
+    return;
 }
-COMMAND(setnext, ARG_2STR);
+COMMAND(setnext, "is");
 
-void gonext(char *arg1)
+void gonext(int *arg1)
 {
     if(calledvote || !multiplayer(false)) return;
     packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
     putint(p, SV_CALLVOTE);
     putint(p, SA_MAP);
     sendstring("+1", p);
-    putint(p, atoi(arg1));
+    putint(p, *arg1);
     putint(p, -1);
     sendpackettoserv(1, p.finalize());
 }
-COMMAND(gonext, ARG_1STR);
+COMMAND(gonext, "i");
 
-COMMANDN(callvote, scallvote, ARG_3STR); //fixme,ah
-COMMAND(vote, ARG_1EXP);
+COMMANDN(callvote, scallvote, "iss"); //fixme,ah
+COMMANDF(vote, "i", (int *v) { vote(*v); });
 
 void cleanplayervotes(playerent *p)
 {
@@ -1603,9 +1568,9 @@ void cleanplayervotes(playerent *p)
     if(curvote && curvote->owner==p) curvote->owner = NULL;
 }
 
-void whois(int cn)
+void whois(int *cn)
 {
-    playerent *p = getclient(cn);
+    playerent *p = getclient(*cn);
     if(!p)
     {
         conoutf(_("invalid player name"));
@@ -1616,10 +1581,10 @@ void whois(int cn)
 
     if(m_teammode) conoutf(_("%c0INFO: %c5%s has %d teamkills."), CC, CC, p->name, p->tks);
     if(ip[3] != 0 || player1->clientrole==CR_ADMIN)
-        conoutf("WHOIS client %d:\n\f5name\t%s\n\f5IP\t%d.%d.%d.%d", cn, colorname(p), ip[0], ip[1], ip[2], ip[3]); // full IP
-    else conoutf("WHOIS client %d:\n\f5name\t%s\n\f5IP\t%d.%d.%d.x", cn, colorname(p), ip[0], ip[1], ip[2]); // censored IP
+        conoutf("WHOIS client %d:\n\f5name\t%s\n\f5IP\t%d.%d.%d.%d", *cn, colorname(p), ip[0], ip[1], ip[2], ip[3]); // full IP
+    else conoutf("WHOIS client %d:\n\f5name\t%s\n\f5IP\t%d.%d.%d.x", *cn, colorname(p), ip[0], ip[1], ip[2]); // censored IP
 }
-COMMAND(whois, ARG_1INT);
+COMMAND(whois, "i");
 
 void findcn(char *name)
 {
@@ -1631,27 +1596,22 @@ void findcn(char *name)
     if(!strcmp(name, player1->name)) { intret(player1->clientnum); return; }
     intret(-1);
 }
-COMMAND(findcn, ARG_1STR);
+COMMAND(findcn, "s");
 
 int sessionid = 0;
 
-void setadmin(char *claim, char *password)
+void setadmin(int *claim, char *password)
 {
-    if(!claim && !password) return;
-    else
+    if(!*claim && (player1->clientrole))
     {
-        int y = atoi(claim);
-        if(!y && (player1->clientrole))
-        {
-            conoutf(_("you released admin status"));
-            addmsg(SV_SETADMIN, "ri", 0);
-        }
-        else if(y != 0)
-            addmsg(SV_SETADMIN, "ris", y, genpwdhash(player1->name, password, sessionid));
+        conoutf(_("you released admin status"));
+        addmsg(SV_SETADMIN, "ri", 0);
     }
+    else if(*claim != 0 && password)
+        addmsg(SV_SETADMIN, "ris", *claim, genpwdhash(player1->name, password, sessionid));
 }
 
-COMMAND(setadmin, ARG_2STR);
+COMMAND(setadmin, "is");
 
 struct mline { string name, cmd; };
 static vector<mline> mlines;
@@ -1784,14 +1744,11 @@ void changefollowplayer(int shift)
     updatefollowplayer(shift);
 }
 
-COMMAND(spectate, ARG_NONE);
-COMMAND(spectatemode, ARG_1INT);
-COMMAND(togglespect, ARG_NONE);
-COMMAND(changefollowplayer, ARG_1INT);
-COMMAND(setfollowplayer, ARG_1INT);
-
-//int isalive() { return player1->state==CS_ALIVE ? 1 : 0; }
-//COMMANDN(alive, isalive, ARG_IVAL); // Moved to /config/compatibility.cfg
+COMMAND(spectate, "");
+COMMANDF(spectatemode, "i", (int *mode) { spectatemode(*mode); });
+COMMAND(togglespect, "");
+COMMANDF(changefollowplayer, "i", (int *dir) { changefollowplayer(*dir); });
+COMMANDF(setfollowplayer, "i", (int *cn) { setfollowplayer(*cn); });
 
 void serverextension(char *ext, char *args)
 {
@@ -1801,4 +1758,4 @@ void serverextension(char *ext, char *args)
     else addmsg(SV_EXTENSION, "rsi", ext, n);
 }
 
-COMMAND(serverextension, ARG_2STR);
+COMMAND(serverextension, "ss");

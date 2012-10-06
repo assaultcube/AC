@@ -75,7 +75,7 @@ void showedithide()
         else { conoutf("#%02d: %d : -n/a-", i, eh_ents[i]);  }
     }
 }
-COMMAND(showedithide, ARG_NONE);
+COMMAND(showedithide, "");
 
 void setedithide(char *text) // FIXME: human indexing inside
 {
@@ -97,7 +97,7 @@ void setedithide(char *text) // FIXME: human indexing inside
         while(s);
     }
 }
-COMMAND(setedithide, ARG_CONC);
+COMMAND(setedithide, "c");
 
 void seteditshow(char *just)
 {
@@ -116,7 +116,7 @@ void seteditshow(char *just)
         }
     }
 }
-COMMAND(seteditshow, ARG_1STR);
+COMMAND(seteditshow, "s");
 
 void renderentarrow(const entity &e, const vec &dir, float radius)
 {
@@ -648,7 +648,7 @@ void entstats(void)
     conoutf("total entities: %d", ents.length());
 }
 
-COMMAND(entstats, ARG_NONE);
+COMMAND(entstats, "");
 
 vector<int> changedents;
 int lastentsync = 0;

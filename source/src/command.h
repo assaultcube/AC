@@ -33,7 +33,7 @@ struct ident
         void (*fun)();      // ID_VAR, ID_COMMAND
         identstack *stack;  // ID_ALIAS
     };
-    int narg;           // ID_VAR, ID_COMMAND
+    const char *sig;        // command signature
     char *action, *executing; // ID_ALIAS
     bool persist;
 
@@ -45,55 +45,40 @@ struct ident
     // ID_VAR
     ident(int type, const char *name, int minval, int maxval, int *i, void (*fun)(), bool persist, int context)
         : type(type), name(name), isconst(false), minval(minval), maxval(maxval), fun(fun),
-          narg(0), action(NULL), executing(NULL), persist(persist), context(context)
+          sig(NULL), action(NULL), executing(NULL), persist(persist), context(context)
     { storage.i = i; }
 
     // ID_FVAR
     ident(int type, const char *name, float minval, float maxval, float *f, void (*fun)(), bool persist, int context)
         : type(type), name(name), isconst(false), minvalf(minval), maxvalf(maxval), fun(fun),
-          narg(0), action(NULL), executing(NULL), persist(persist), context(context)
+          sig(NULL), action(NULL), executing(NULL), persist(persist), context(context)
     { storage.f = f; }
 
     // ID_SVAR
     ident(int type, const char *name, char **s, void (*fun)(), bool persist, int context)
         : type(type), name(name), isconst(false), minval(0), maxval(0), fun(fun),
-          narg(0), action(NULL), executing(NULL), persist(persist), context(context)
+          sig(NULL), action(NULL), executing(NULL), persist(persist), context(context)
     { storage.s = s; }
 
     // ID_ALIAS
     ident(int type, const char *name, char *action, bool persist, int context)
         : type(type), name(name), isconst(false), minval(0), maxval(0), stack(0),
-          narg(0), action(action), executing(NULL), persist(persist), context(context)
+          sig(NULL), action(action), executing(NULL), persist(persist), context(context)
     { storage.i = NULL; }
 
     // ID_COMMAND
-    ident(int type, const char *name, void (*fun)(), int narg, int context)
+    ident(int type, const char *name, void (*fun)(), const char *sig, int context)
         : type(type), name(name), isconst(false), minval(0), maxval(0), fun(fun),
-          narg(narg), action(NULL), executing(NULL), persist(false), context(context)
+          sig(sig), action(NULL), executing(NULL), persist(false), context(context)
     { storage.i = NULL; }
-};
-
-enum    // function signatures for script functions, see command.cpp
-{
-    ARG_1INT, ARG_2INT, ARG_3INT, ARG_4INT,
-    ARG_NONE,
-    ARG_1STR, ARG_2STR, ARG_3STR, ARG_4STR, ARG_5STR, ARG_6STR, ARG_7STR, ARG_8STR,
-    ARG_DOWN,
-    ARG_1EXP, ARG_2EXP,
-    ARG_1EXPF, ARG_2EXPF,
-    ARG_1EST, ARG_2EST,
-    ARG_IVAL, ARG_FVAL, ARG_SVAL,
-    ARG_CONC, ARG_CONCW,
-    ARG_VARI
 };
 
 enum { IEXC_CORE = 0, IEXC_CFG, IEXC_PROMPT, IEXC_MAPCFG, IEXC_MDLCFG, IEXC_NUM }; // script execution context
 
 // nasty macros for registering script functions, abuses globals to avoid excessive infrastructure
-#define COMMANDN(name, fun, nargs) static bool __dummy_##fun = addcommand(#name, (void (*)())fun, nargs)
-#define COMMAND(name, nargs) COMMANDN(name, name, nargs)
-#define COMMANDF(name, nargs, inlinefunc) static void __dummy_##name inlinefunc ; COMMANDN(name, __dummy_##name, nargs)
-#define ICOMMANDF(name, nargs, inlinefunc) static int __dummy_##name inlinefunc ; COMMANDN(name, __dummy_##name, nargs)
+#define COMMANDN(name, fun, sig) static bool __dummy_##fun = addcommand(#name, (void (*)())fun, sig)
+#define COMMAND(name, sig) COMMANDN(name, name, sig)
+#define COMMANDF(name, sig, inlinefunc) static void __dummy_##name inlinefunc ; COMMANDN(name, __dummy_##name, sig)
 
 #define VARP(name, min, cur, max) int name = variable(#name, min, cur, max, &name, NULL, true)
 #define VAR(name, min, cur, max)  int name = variable(#name, min, cur, max, &name, NULL, false)

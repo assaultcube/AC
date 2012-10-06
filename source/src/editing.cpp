@@ -50,7 +50,7 @@ void toggleedit(bool force)
 
 void edittoggle() { toggleedit(false); }
 
-COMMAND(edittoggle, ARG_NONE);
+COMMAND(edittoggle, "");
 
 bool correctsel(block &s)                                       // ensures above invariant
 {
@@ -138,10 +138,10 @@ void makesel(bool isnew)
 }
 
 #define SEL_ATTR(attr) { string buf = ""; loopv(sels) { concatformatstring(buf, "%d ", sels[i].attr); } result(buf); }
-COMMANDF(selx, ARG_NONE, (void) { SEL_ATTR(x); });
-COMMANDF(sely, ARG_NONE, (void) { SEL_ATTR(y); });
-COMMANDF(selxs, ARG_NONE, (void) { SEL_ATTR(xs); });
-COMMANDF(selys, ARG_NONE, (void) { SEL_ATTR(ys); });
+COMMANDF(selx, "", (void) { SEL_ATTR(x); });
+COMMANDF(sely, "", (void) { SEL_ATTR(y); });
+COMMANDF(selxs, "", (void) { SEL_ATTR(xs); });
+COMMANDF(selys, "", (void) { SEL_ATTR(ys); });
 #undef SEL_ATTR
 
 VAR(flrceil,0,0,2);
@@ -310,17 +310,17 @@ void paste()
 }
 
 // Count the walls of type "type" contained in the current selection
-int countwalls(int type)
+void countwalls(int *type)
 {
     int counter = 0;
-    EDITSELMP 0;
-    if(type < 0 || type >= MAXTYPE)
+    EDITSELMP;
+    if(*type < 0 || *type >= MAXTYPE)
     {
         conoutf("invalid type");
-        return 0;
+        intret(0);
     }
-    loopselsxy(if(s->type==type) counter++)
-    return counter;
+    loopselsxy(if(s->type==*type) counter++)
+    intret(counter);
 }
 
 void tofronttex()                                       // maintain most recently used of the texture lists when applying texture
@@ -374,18 +374,18 @@ void editheightxy(bool isfloor, int amount, block &sel)
     });
 }
 
-void editheight(int flr, int amount)
+void editheight(int *flr, int *amount)
 {
     EDITSEL;
-    bool isfloor = flr==0;
+    bool isfloor = *flr==0;
     loopv(sels)
     {
-        editheightxy(isfloor, amount, sels[i]);
-        addmsg(SV_EDITH, "ri6", sels[i].x, sels[i].y, sels[i].xs, sels[i].ys, isfloor, amount);
+        editheightxy(isfloor, *amount, sels[i]);
+        addmsg(SV_EDITH, "ri6", sels[i].x, sels[i].y, sels[i].xs, sels[i].ys, isfloor, *amount);
     }
 }
 
-COMMAND(editheight, ARG_2INT);
+COMMAND(editheight, "ii");
 
 // texture type : 0 floor, 1 wall, 2 ceil, 3 upper wall
 
@@ -477,13 +477,13 @@ void edittype(int type)
     }
 }
 
-void heightfield(int t) { edittype(t==0 ? FHF : CHF); }
-void solid(int t)       { edittype(t==0 ? SPACE : SOLID); }
+void heightfield(int *t) { edittype(*t==0 ? FHF : CHF); }
+void solid(int *t)       { edittype(*t==0 ? SPACE : SOLID); }
 void corner()           { edittype(CORNER); }
 
-COMMAND(heightfield, ARG_1INT);
-COMMAND(solid, ARG_1INT);
-COMMAND(corner, ARG_NONE);
+COMMAND(heightfield, "i");
+COMMAND(solid, "i");
+COMMAND(corner, "");
 
 void editequalisexy(bool isfloor, block &sel)
 {
@@ -500,9 +500,9 @@ void editequalisexy(bool isfloor, block &sel)
     });
 }
 
-void equalize(int flr)
+void equalize(int *flr)
 {
-    bool isfloor = flr==0;
+    bool isfloor = *flr==0;
     EDITSEL;
     loopv(sels)
     {
@@ -512,7 +512,7 @@ void equalize(int flr)
     }
 }
 
-COMMAND(equalize, ARG_1INT);
+COMMAND(equalize, "i");
 
 void setvdeltaxy(int delta, block &sel)
 {
@@ -534,18 +534,18 @@ const int MAXARCHVERT = 50;
 int archverts[MAXARCHVERT][MAXARCHVERT];
 bool archvinit = false;
 
-void archvertex(int span, int vert, int delta)
+void archvertex(int *span, int *vert, int *delta)
 {
     if(!archvinit)
     {
         archvinit = true;
         loop(s,MAXARCHVERT) loop(v,MAXARCHVERT) archverts[s][v] = 0;
     }
-    if(span>=MAXARCHVERT || vert>=MAXARCHVERT || span<0 || vert<0) return;
-    archverts[span][vert] = delta;
+    if(*span>=MAXARCHVERT || *vert>=MAXARCHVERT || *span<0 || *vert<0) return;
+    archverts[*span][*vert] = *delta;
 }
 
-void arch(int sidedelta, int _a)
+void arch(int *sidedelta)
 {
     EDITSELMP;
     loopv(sels)
@@ -557,8 +557,8 @@ void arch(int sidedelta, int _a)
         if(sel.ys>MAXARCHVERT) sel.ys = MAXARCHVERT;
         loopselxy(sel, s->vdelta =
             sel.xs>sel.ys
-                ? (archverts[sel.xs-1][x] + (y==0 || y==sel.ys-1 ? sidedelta : 0))
-                : (archverts[sel.ys-1][y] + (x==0 || x==sel.xs-1 ? sidedelta : 0)));
+                ? (archverts[sel.xs-1][x] + (y==0 || y==sel.ys-1 ? *sidedelta : 0))
+                : (archverts[sel.ys-1][y] + (x==0 || x==sel.xs-1 ? *sidedelta : 0)));
         remipmore(sel);
     }
 }
@@ -608,16 +608,16 @@ VARF(fullbright, 0, 0, 1,
     else calclight();
 );
 
-void edittag(int tag)
+void edittag(int *tag)
 {
     EDITSELMP;
-    loopselsxy(s->tag = tag);
+    loopselsxy(s->tag = *tag);
 }
 
-void newent(char *what, char *a1, char *a2, char *a3, char *a4)
+void newent(char *what, int *a1, int *a2, int *a3, int *a4)
 {
     EDITSEL;
-    loopv(sels) newentity(-1, sels[i].x, sels[i].y, (int)camera1->o.z, what, ATOI(a1), ATOI(a2), ATOI(a3), ATOI(a4));
+    loopv(sels) newentity(-1, sels[i].x, sels[i].y, (int)camera1->o.z, what, *a1, *a2, *a3, *a4);
 }
 
 void movemap(int xo, int yo, int zo) // move whole map
@@ -710,23 +710,23 @@ void selectionflip(char *axis)
     loopv(sels) selfliprotate(sels[i], c == 'X' ? 11 : 12);
 }
 
-COMMANDF(select, ARG_4INT, (int x, int y, int xs, int ys) { resetselections(); addselection(x, y, xs, ys, 0); });
-COMMANDF(addselection, ARG_4INT, (int x, int y, int xs, int ys) { addselection(x, y, xs, ys, 0); });
-COMMAND(resetselections, ARG_NONE);
-COMMAND(edittag, ARG_1INT);
-COMMAND(replace, ARG_NONE);
-COMMAND(archvertex, ARG_3INT);
-COMMAND(arch, ARG_2INT);
-COMMAND(slope, ARG_2INT);
-COMMANDN(vdelta, setvdelta, ARG_1INT);
-COMMANDN(undo, editundo, ARG_NONE);
-COMMAND(copy, ARG_NONE);
-COMMAND(paste, ARG_NONE);
-COMMAND(edittex, ARG_2INT);
-COMMAND(newent, ARG_5STR);
-COMMAND(perlin, ARG_3INT);
-COMMAND(movemap, ARG_3INT);
-COMMAND(selectionrotate, ARG_1INT);
-COMMAND(selectionflip, ARG_1STR);
-COMMAND(countwalls, ARG_1EXP);
-COMMAND(settex, ARG_2INT);
+COMMANDF(select, "iiii", (int *x, int *y, int *xs, int *ys) { resetselections(); addselection(*x, *y, *xs, *ys, 0); });
+COMMANDF(addselection, "iiii", (int *x, int *y, int *xs, int *ys) { addselection(*x, *y, *xs, *ys, 0); });
+COMMAND(resetselections, "");
+COMMAND(edittag, "i");
+COMMAND(replace, "");
+COMMAND(archvertex, "iii");
+COMMAND(arch, "i");
+COMMANDF(slope, "ii", (int *xd, int *yd) { slope(*xd, *yd); });
+COMMANDF(vdelta, "i", (int *d) { setvdelta(*d); });
+COMMANDN(undo, editundo, "");
+COMMAND(copy, "");
+COMMAND(paste, "");
+COMMANDF(edittex, "ii", (int *type, int *dir) { edittex(*type, *dir); });
+COMMAND(newent, "siiii");
+COMMANDF(perlin, "iii", (int *sc, int *se, int *ps) { perlin(*sc, *se, *ps); });
+COMMANDF(movemap, "iii", (int *x, int *y, int *z) { movemap(*x, *y, *z); });
+COMMANDF(selectionrotate, "i", (int *d) { selectionrotate(*d); });
+COMMAND(selectionflip, "s");
+COMMAND(countwalls, "i");
+COMMANDF(settex, "ii", (int *texture, int *type) { edittex(*texture, *type); });

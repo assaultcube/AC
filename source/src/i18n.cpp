@@ -23,4 +23,4 @@ void script_gettext(char *msgid)
     result(translated);
 }
 
-COMMANDN(gettext, script_gettext, ARG_1STR);
+COMMANDN(gettext, script_gettext, "s");

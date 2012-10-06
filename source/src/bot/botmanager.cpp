@@ -993,7 +993,7 @@ void addbot(char *arg1, char *arg2, char *arg3)
     if (b) conoutf("connected: %s", b->name);
     else { conoutf("Error: Couldn't create bot!"); return; }
 }
-COMMAND(addbot, ARG_3STR);
+COMMAND(addbot, "sss");
 
 void addnbot(char *arg1, char *arg2, char *arg3)
 {
@@ -1008,11 +1008,11 @@ void addnbot(char *arg1, char *arg2, char *arg3)
         i--;
     }
 }
-COMMAND(addnbot, ARG_3STR);
+COMMAND(addnbot, "sss");
 
-void botsshoot(int Shoot)
+void botsshoot(int *Shoot)
 {
-    switch(Shoot)
+    switch(*Shoot)
     {
         case 0:
             BotManager.SetBotsShoot(false);
@@ -1027,11 +1027,11 @@ void botsshoot(int Shoot)
     }
 }
 
-COMMAND(botsshoot, ARG_1INT);
+COMMAND(botsshoot, "i");
 
-void idlebots(int Idle)
+void idlebots(int *Idle)
 {
-    switch(Idle)
+    switch(*Idle)
     {
         case 0:
             BotManager.SetIdleBots(false);
@@ -1046,7 +1046,7 @@ void idlebots(int Idle)
     }
 }
 
-COMMAND(idlebots, ARG_1INT);
+COMMAND(idlebots, "i");
 
 void drawbeamtobots()
 {
@@ -1058,7 +1058,7 @@ void drawbeamtobots()
     }
 }
 
-COMMAND(drawbeamtobots, ARG_NONE);
+COMMAND(drawbeamtobots, "");
 
 void kickbot(const char *szName)
 {
@@ -1088,7 +1088,7 @@ void kickbot(const char *szName)
     }
 }
 
-COMMAND(kickbot, ARG_1STR);
+COMMAND(kickbot, "s");
 
 void kickallbots(void)
 {
@@ -1107,7 +1107,7 @@ void kickallbots(void)
     bots.setsize(0);
 }
 
-COMMAND(kickallbots, ARG_NONE);
+COMMAND(kickallbots, "");
 
 void togglegrap()
 {
@@ -1123,7 +1123,7 @@ void togglegrap()
     }
 }
 
-COMMAND(togglegrap, ARG_NONE);
+COMMAND(togglegrap, "");
 
 void togglebotview(char *bot)
 {
@@ -1150,7 +1150,7 @@ void togglebotview(char *bot)
     }
 }
 
-COMMAND(togglebotview, ARG_1STR);
+COMMAND(togglebotview, "s");
 
 void botskill(char *bot, char *skill)
 {
@@ -1190,14 +1190,14 @@ void botskill(char *bot, char *skill)
          BotManager.ChangeBotSkill(SkillNr);
 }
 
-COMMAND(botskill, ARG_2STR);
+COMMAND(botskill, "ss");
 
 void botskillall(char *skill)
 {
     botskill(NULL, skill);
 }
 
-COMMAND(botskillall, ARG_1STR);
+COMMAND(botskillall, "s");
 
 #ifndef RELEASE_BUILD
 
@@ -1213,7 +1213,7 @@ void drawbeamtocarrots()
     }
 }
 
-COMMAND(drawbeamtocarrots, ARG_NONE);
+COMMAND(drawbeamtocarrots, "");
 
 void drawbeamtoteleporters()
 {
@@ -1226,7 +1226,7 @@ void drawbeamtoteleporters()
     }
 }
 
-COMMAND(drawbeamtoteleporters, ARG_NONE);
+COMMAND(drawbeamtoteleporters, "");
 #endif
 
 void telebot(void)
@@ -1254,7 +1254,7 @@ void telebot(void)
     }
 }
 
-COMMAND(telebot, ARG_NONE);
+COMMAND(telebot, "");
 
 void testvisible(int iDir)
 {
@@ -1326,22 +1326,13 @@ void testvisible(int iDir)
     condebug(sz);
 }
 
-COMMAND(testvisible, ARG_1INT);
+COMMANDF(testvisible, "i", (int *dir) { testvisible(*dir); });
 
-int mapsize(void)
+void mapsize(void)
 {
-    switch(ssize)
-    {
-        case 128:  return 7;  break;
-        case 256:  return 8;  break;
-        case 512:  return 9;  break;
-        case 1024: return 10; break;
-        case 2048: return 11; break;
-        case 4096: return 12; break;
-        default:   return 6;  break;
-    }
+    intret(ffs(ssize)-1);
 }
 
-COMMAND(mapsize, ARG_IVAL);
+COMMAND(mapsize, "");
 
 #endif

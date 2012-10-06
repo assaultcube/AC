@@ -5,13 +5,13 @@
 
 void *scoremenu = NULL;
 
-void showscores(int on)
+void showscores(bool on)
 {
     if(on) showmenu("score", false);
     else closemenu("score");
 }
 
-COMMAND(showscores, ARG_1INT);
+COMMANDF(showscores, "i", (int *on) { showscores(*on != 0); });
 
 struct sline
 {
@@ -543,4 +543,4 @@ void winners()
     result(winners);
 }
 
-COMMAND(winners, ARG_NONE);
+COMMAND(winners, "");

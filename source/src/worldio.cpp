@@ -375,9 +375,8 @@ void checkmapdependencies(bool silent = false, bool details = false) // find req
     enumeratek(mufpaths, const char *, key, mufpaths.remove(key)); // don't report false positives next time round
     delete[] packn;
 }
-void wrapCMD(int i) { checkmapdependencies(false, i!=0); }
-//COMMAND(checkmapdependencies, ARG_NONE); // for some reason this still results in silent==true - WTF? It used to work with the _proper_ default.
-COMMANDN(checkmapdependencies, wrapCMD, ARG_1INT);
+
+COMMANDF(checkmapdependencies, "i", (int *i) { checkmapdependencies(false, *i!=0); });
 
 VARP(mapbackupsonsave, 0, 1, 1);
 
@@ -480,7 +479,7 @@ void showmapdims()
     conoutf("  max X|Y|Z: %3d : %3d : %3d", mapdims[2], mapdims[3], mapdims[7]);
     conoutf("delta X|Y|Z: %3d : %3d : %3d", mapdims[4], mapdims[5], mapdims[7]-mapdims[6]);
 }
-COMMAND(showmapdims, ARG_NONE);
+COMMAND(showmapdims, "");
 
 extern void preparectf(bool cleanonly = false);
 int numspawn[3], maploaded = 0, numflagspawn[2];
@@ -720,11 +719,10 @@ bool load_world(char *mname)        // still supports all map formats that have 
     return true;
 }
 
-COMMANDN(savemap, save_world, ARG_1STR);
+COMMANDN(savemap, save_world, "s");
 
 // FIXME - remove this before release
-void setmaprevision(int rev) { hdr.maprevision = rev; }
-COMMAND(setmaprevision, ARG_1INT);
+COMMANDF(setmaprevision, "i", (int *rev) { hdr.maprevision = *rev; });
 
 #define MAPDEPFILENAME "mapdependencies.txt"
 void listmapdependencies(char *mapname)  // print map dependencies to file
@@ -856,11 +854,11 @@ void listmapdependencies(char *mapname)  // print map dependencies to file
     delete f;
 }
 
-COMMAND(listmapdependencies, ARG_1STR);
+COMMAND(listmapdependencies, "s");
 
-void listmapdependencies_all(int sure)
+void listmapdependencies_all(int *sure)
 {
-    if(sure != 42 || multiplayer()) return;
+    if(*sure != 42 || multiplayer()) return;
 
     stream *f = openfile(MAPDEPFILENAME, "w");
     delete f;
@@ -872,4 +870,4 @@ void listmapdependencies_all(int sure)
     loopv(files) listmapdependencies(files[i]);
     listmapdependencies(NULL);
 }
-COMMAND(listmapdependencies_all, ARG_1INT);
+COMMAND(listmapdependencies_all, "i");

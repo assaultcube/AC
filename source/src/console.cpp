@@ -84,11 +84,11 @@ bool saycommandon = false;
 
 VARFP(maxcon, 10, 200, 1000, con.setmaxlines(maxcon));
 
-void setconskip(int n) { con.setconskip(n); }
-COMMANDN(conskip, setconskip, ARG_1INT);
+void setconskip(int *n) { con.setconskip(*n); }
+COMMANDN(conskip, setconskip, "i");
 
 void toggleconsole() { con.toggleconsole(); }
-COMMANDN(toggleconsole, toggleconsole, ARG_NONE);
+COMMANDN(toggleconsole, toggleconsole, "");
 
 void renderconsole() { con.render(); }
 
@@ -115,11 +115,9 @@ void conoutf(const char *s, ...)
     con.addline(sf);
     delete[] conline; conline=newstring(sf);
 }
-void strstra(const char *a,const char *b) {
-    intret(strstr(a,b)?1:0);
-    return;
-}
-COMMANDN(strstr,strstra,ARG_2STR);
+
+COMMANDF(strstr, "ss", (char *a, char *b) { intret(strstr(a, b) ? 1 : 0); });
+
 /** This is the 1.0.4 function
     It will substituted by rendercommand_wip
     I am putting this temporarily here because it is very difficult to chat in game with the current cursor behavior,
@@ -180,14 +178,14 @@ vector<keym> keyms;
 const char *keycmds[keym::NUMACTIONS] = { "bind", "specbind", "editbind" };
 inline const char *keycmd(int type) { return type >= 0 && type < keym::NUMACTIONS ? keycmds[type] : ""; }
 
-void keymap(char *code, char *key)
+void keymap(int *code, char *key)
 {
     keym &km = keyms.add();
-    km.code = atoi(code);
+    km.code = *code;
     km.name = newstring(key);
 }
 
-COMMAND(keymap, ARG_2STR);
+COMMAND(keymap, "is");
 
 keym *findbind(const char *key)
 {
@@ -258,17 +256,17 @@ void searchbinds(const char *action, int type)
     result(names.getbuf());
 }
 
-COMMANDF(keybind, ARG_1STR, (const char *key) { keybind(key, keym::ACTION_DEFAULT); } );
-COMMANDF(keyspecbind, ARG_1STR, (const char *key) { keybind(key, keym::ACTION_SPECTATOR); } );
-COMMANDF(keyeditbind, ARG_1STR, (const char *key) { keybind(key, keym::ACTION_EDITING); } );
+COMMANDF(keybind, "s", (const char *key) { keybind(key, keym::ACTION_DEFAULT); } );
+COMMANDF(keyspecbind, "s", (const char *key) { keybind(key, keym::ACTION_SPECTATOR); } );
+COMMANDF(keyeditbind, "s", (const char *key) { keybind(key, keym::ACTION_EDITING); } );
 
-COMMANDF(bind, ARG_2STR, (const char *key, const char *action) { bindk(key, action, keym::ACTION_DEFAULT); } );
-COMMANDF(specbind, ARG_2STR, (const char *key, const char *action) { bindk(key, action, keym::ACTION_SPECTATOR); } );
-COMMANDF(editbind, ARG_2STR, (const char *key, const char *action) { bindk(key, action, keym::ACTION_EDITING); } );
+COMMANDF(bind, "ss", (const char *key, const char *action) { bindk(key, action, keym::ACTION_DEFAULT); } );
+COMMANDF(specbind, "ss", (const char *key, const char *action) { bindk(key, action, keym::ACTION_SPECTATOR); } );
+COMMANDF(editbind, "ss", (const char *key, const char *action) { bindk(key, action, keym::ACTION_EDITING); } );
 
-COMMANDF(searchbinds, ARG_1STR, (const char *action) { searchbinds(action, keym::ACTION_DEFAULT); });
-COMMANDF(searchspecbinds, ARG_1STR, (const char *action) { searchbinds(action, keym::ACTION_SPECTATOR); });
-COMMANDF(searcheditbinds, ARG_1STR, (const char *action) { searchbinds(action, keym::ACTION_EDITING); });
+COMMANDF(searchbinds, "s", (const char *action) { searchbinds(action, keym::ACTION_DEFAULT); });
+COMMANDF(searchspecbinds, "s", (const char *action) { searchbinds(action, keym::ACTION_SPECTATOR); });
+COMMANDF(searcheditbinds, "s", (const char *action) { searchbinds(action, keym::ACTION_EDITING); });
 
 struct releaseaction
 {
@@ -291,7 +289,7 @@ void onrelease(char *s)
     addreleaseaction(s);
 }
 
-COMMAND(onrelease, ARG_1STR);
+COMMAND(onrelease, "s");
 
 void saycommand(char *init)                         // turns input to the command line on or off
 {
@@ -327,10 +325,10 @@ void getmapmsg(void)
     result(text);
 }
 
-COMMAND(saycommand, ARG_CONC);
-COMMAND(inputcommand, ARG_3STR);
-COMMAND(mapmsg, ARG_1STR);
-COMMAND(getmapmsg, ARG_NONE);
+COMMAND(saycommand, "c");
+COMMAND(inputcommand, "sss");
+COMMAND(mapmsg, "s");
+COMMAND(getmapmsg, "");
 
 #if !defined(WIN32) && !defined(__APPLE__)
 #include <X11/Xlib.h>
@@ -430,18 +428,18 @@ int histpos = 0;
 
 VARP(maxhistory, 0, 1000, 10000);
 
-void history_(int n)
+void history_(int *n)
 {
     static bool inhistory = false;
-    if(!inhistory && history.inrange(n))
+    if(!inhistory && history.inrange(*n))
     {
         inhistory = true;
-        history[history.length()-n-1]->run();
+        history[history.length() - *n - 1]->run();
         inhistory = false;
     }
 }
 
-COMMANDN(history, history_, ARG_1INT);
+COMMANDN(history, history_, "i");
 
 void execbind(keym &k, bool isdown)
 {

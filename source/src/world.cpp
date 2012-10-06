@@ -125,8 +125,8 @@ void closestenttype(char *what)
     clenttype = what[0] ? findtype(what) : NOTUSED;
 }
 
-COMMAND(nextclosestent, ARG_NONE);
-COMMAND(closestenttype, ARG_1STR);
+COMMAND(nextclosestent, "");
+COMMAND(closestenttype, "s");
 
 int closestent()        // used for delent and edit mode ent display
 {
@@ -200,21 +200,21 @@ void getenttype()
     result(entnames[type]);
 }
 
-int getentattr(int attr)
+void getentattr(int *attr)
 {
     int e = closestent();
-    if(e>=0) switch(attr)
+    if(e>=0) switch(*attr)
     {
-        case 0: return ents[e].attr1;
-        case 1: return ents[e].attr2;
-        case 2: return ents[e].attr3;
-        case 3: return ents[e].attr4;
+        case 0: intret(ents[e].attr1); return;
+        case 1: intret(ents[e].attr2); return;
+        case 2: intret(ents[e].attr3); return;
+        case 3: intret(ents[e].attr4); return;
     }
-    return 0;
+    intret(0);
 }
 
-COMMAND(getenttype, ARG_NONE);
-COMMAND(getentattr, ARG_1EXP);
+COMMAND(getenttype, "");
+COMMAND(getentattr, "i");
 
 void delent()
 {
@@ -285,17 +285,17 @@ entity *newentity(int index, int x, int y, int z, char *what, int v1, int v2, in
     return index<0 ? &ents.last() : &ents[index];
 }
 
-void entset(char *what, char *a1, char *a2, char *a3, char *a4)
+void entset(char *what, int *a1, int *a2, int *a3, int *a4)
 {
     int n = closestent();
     if(n>=0)
     {
         entity &e = ents[n];
-        newentity(n, e.x, e.y, e.z, what, ATOI(a1), ATOI(a2), ATOI(a3), ATOI(a4));
+        newentity(n, e.x, e.y, e.z, what, *a1, *a2, *a3, *a4);
     }
 }
 
-COMMAND(entset, ARG_5STR);
+COMMAND(entset, "siiii");
 
 void clearents(char *name)
 {
@@ -312,7 +312,7 @@ void clearents(char *name)
     }
 }
 
-COMMAND(clearents, ARG_1STR);
+COMMAND(clearents, "s");
 
 void scalecomp(uchar &c, int intens)
 {
@@ -340,7 +340,7 @@ void scalelights(int f, int intens)
     calclight();
 }
 
-COMMAND(scalelights, ARG_2INT);
+COMMANDF(scalelights, "ii", (int *f, int *i) { scalelights(*f, *i); });
 
 int findentity(int type, int index)
 {
@@ -356,12 +356,12 @@ int findentity(int type, int index, uchar attr2)
     return -1;
 }
 
-void nextplayerstart(char *type)
+void nextplayerstart(int *type)
 {
     static int cycle = -1;
 
     if(noteditmode("nextplayerstart")) return;
-    cycle = type[0] ? findentity(PLAYERSTART, cycle + 1, atoi(type)) : findentity(PLAYERSTART, cycle + 1);
+    cycle = findentity(PLAYERSTART, cycle + 1, *type);
     if(cycle >= 0)
     {
         entity &e = ents[cycle];
@@ -375,7 +375,7 @@ void nextplayerstart(char *type)
     }
 }
 
-COMMAND(nextplayerstart, ARG_1STR);
+COMMAND(nextplayerstart, "i");
 
 sqr *wmip[LARGEST_FACTOR*2];
 
@@ -506,21 +506,21 @@ bool empty_world(int factor, bool force)    // main empty world creation routine
 
 void mapenlarge()  { if(empty_world(-1, false)) addmsg(SV_NEWMAP, "ri", -1); }
 void mapshrink()   { if(empty_world(-2, false)) addmsg(SV_NEWMAP, "ri", -2); }
-void newmap(int i)
+void newmap(int *i)
 {
-    if(empty_world(i, false))
+    if(empty_world(*i, false))
     {
-        addmsg(SV_NEWMAP, "ri", max(i, 0));
+        addmsg(SV_NEWMAP, "ri", max(*i, 0));
         if(identexists("onNewMap")) execute("onNewMap");
     }
     defformatstring(startmillis)("%d", millis_());
     alias("gametimestart", startmillis);
 }
 
-COMMAND(mapenlarge, ARG_NONE);
-COMMAND(mapshrink, ARG_NONE);
-COMMAND(newmap, ARG_1INT);
-COMMANDN(recalc, calclight, ARG_NONE);
-COMMAND(delent, ARG_NONE);
-COMMAND(entproperty, ARG_2INT);
+COMMAND(mapenlarge, "");
+COMMAND(mapshrink, "");
+COMMAND(newmap, "i");
+COMMANDN(recalc, calclight, "");
+COMMAND(delent, "");
+COMMANDF(entproperty, "ii", (int *p, int *a) { entproperty(*p, *a); });
 

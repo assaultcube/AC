@@ -60,21 +60,21 @@ struct md3 : vertmodel
             lilswap(&header.version, 1);
             lilswap(&header.flags, 9);
             if(strncmp(header.id, "IDP3", 4) != 0 || header.version != 15) // header check
-            { 
+            {
                 delete f;
-                conoutf("md3: corrupted header"); 
-                return false; 
+                conoutf("md3: corrupted header");
+                return false;
             }
 
             numframes = header.numframes;
-            numtags = header.numtags;        
+            numtags = header.numtags;
             if(numtags)
             {
                 tags = new tag[numframes*numtags];
                 f->seek(header.ofs_tags, SEEK_SET);
                 md3tag tag;
-                
-                loopi(header.numframes*header.numtags) 
+
+                loopi(header.numframes*header.numtags)
                 {
                     f->read(&tag, sizeof(md3tag));
                     lilswap((float *)&tag.pos, 12);
@@ -102,12 +102,12 @@ struct md3 : vertmodel
                     mesh_offset += mheader.meshsize;
                     continue;
                 }
-                
+
                 mesh &m = *meshes.add(new mesh);
                 m.owner = this;
                 m.name = newstring(mheader.name);
-               
-                m.numtris = mheader.numtriangles; 
+
+                m.numtris = mheader.numtriangles;
                 m.tris = new tri[m.numtris];
                 f->seek(mesh_offset + mheader.ofs_triangles, SEEK_SET);
                 loopj(mheader.numtriangles)
@@ -120,12 +120,12 @@ struct md3 : vertmodel
 
                 m.numverts = mheader.numvertices;
                 m.tcverts = new tcvert[m.numverts];
-                f->seek(mesh_offset + mheader.ofs_uv , SEEK_SET); 
+                f->seek(mesh_offset + mheader.ofs_uv , SEEK_SET);
                 f->read(m.tcverts, 2*sizeof(float)*m.numverts); // read the UV data
                 lilswap(&m.tcverts[0].u, 2*m.numverts);
-                
+
                 m.verts = new vec[numframes*m.numverts + 1];
-                f->seek(mesh_offset + mheader.ofs_vertices, SEEK_SET); 
+                f->seek(mesh_offset + mheader.ofs_vertices, SEEK_SET);
                 loopj(numframes*mheader.numvertices)
                 {
                     md3vertex v;
@@ -141,7 +141,7 @@ struct md3 : vertmodel
             }
             delete f;
 
-            filename = newstring(path); 
+            filename = newstring(path);
             return true;
         }
 
@@ -152,7 +152,7 @@ struct md3 : vertmodel
             matrixstack[0].rotate_around_z(180*RAD);
         }
     };
-   
+
     void render(int anim, int varseed, float speed, int basetime, const vec &o, float yaw, float pitch, dynent *d, modelattach *a, float scale)
     {
         if(!loaded) return;
@@ -232,7 +232,7 @@ struct md3 : vertmodel
             md3part &mdl = *new md3part;
             parts.add(&mdl);
             mdl.model = this;
-            mdl.index = 0; 
+            mdl.index = 0;
             defformatstring(name1)("packages/models/%s/tris.md3", loadname);
             if(!mdl.load(path(name1)))
             {
@@ -253,7 +253,7 @@ struct md3 : vertmodel
 };
 
 void md3load(char *model)
-{   
+{
     if(!loadingmd3) { conoutf("not loading an md3"); return; };
     defformatstring(filename)("%s/%s", md3dir, model);
     md3::md3part &mdl = *new md3::md3part;
@@ -261,15 +261,15 @@ void md3load(char *model)
     mdl.model = loadingmd3;
     mdl.index = loadingmd3->parts.length()-1;
     if(!mdl.load(path(filename))) conoutf("could not load %s", filename); // ignore failure
-}  
-    
+}
+
 void md3skin(char *objname, char *skin)
-{   
+{
     if(!objname || !skin) return;
     if(!loadingmd3 || loadingmd3->parts.empty()) { conoutf("not loading an md3"); return; };
     md3::part &mdl = *loadingmd3->parts.last();
     loopv(mdl.meshes)
-    {   
+    {
         md3::mesh &m = *mdl.meshes[i];
         if(!strcmp(objname, "*") || !strcmp(m.name, objname))
         {
@@ -279,32 +279,31 @@ void md3skin(char *objname, char *skin)
     }
 }
 
-void md3anim(char *anim, char *startframe, char *range, char *speed)
+void md3anim(char *anim, int *startframe, int *range, float *speed)
 {
     if(!loadingmd3 || loadingmd3->parts.empty()) { conoutf("not loading an md3"); return; };
     int num = findanim(anim);
     if(num<0) { conoutf("could not find animation %s", anim); return; };
-    loadingmd3->parts.last()->setanim(num, atoi(startframe), atoi(range), atof(speed));
+    loadingmd3->parts.last()->setanim(num, *startframe, *range, *speed);
 }
 
-void md3link(char *parentno, char *childno, char *tagname)
+void md3link(int *parent, int *child, char *tagname)
 {
     if(!loadingmd3) { conoutf("not loading an md3"); return; };
-    int parent = ATOI(parentno), child = ATOI(childno);
-    if(!loadingmd3->parts.inrange(parent) || !loadingmd3->parts.inrange(child)) { conoutf("no models loaded to link"); return; }
-    if(!loadingmd3->parts[parent]->link(loadingmd3->parts[child], tagname)) conoutf("could not link model %s", loadingmd3->loadname);
+    if(!loadingmd3->parts.inrange(*parent) || !loadingmd3->parts.inrange(*child)) { conoutf("no models loaded to link"); return; }
+    if(!loadingmd3->parts[*parent]->link(loadingmd3->parts[*child], tagname)) conoutf("could not link model %s", loadingmd3->loadname);
 }
 
-void md3emit(char *tag, char *type, char *arg1, char *arg2)
+void md3emit(char *tag, int *type, int *arg1, int *arg2)
 {
     if(!loadingmd3 || loadingmd3->parts.empty()) { conoutf("not loading an md3"); return; };
     md3::part &mdl = *loadingmd3->parts.last();
-    if(!mdl.addemitter(tag, ATOI(type), ATOI(arg1), ATOI(arg2))) { conoutf("could not find tag %s", tag); return; }
+    if(!mdl.addemitter(tag, *type, *arg1, *arg2)) { conoutf("could not find tag %s", tag); return; }
 }
- 
-COMMAND(md3load, ARG_1STR);
-COMMAND(md3skin, ARG_2STR);
-COMMAND(md3anim, ARG_4STR);
-COMMAND(md3link, ARG_3STR);
-COMMAND(md3emit, ARG_4STR);
-            
+
+COMMAND(md3load, "s");
+COMMAND(md3skin, "ss");
+COMMAND(md3anim, "siif");
+COMMAND(md3link, "iis");
+COMMAND(md3emit, "siii");
+
