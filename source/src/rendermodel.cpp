@@ -101,6 +101,7 @@ COMMAND(mapmodel, "iiiss");
 COMMAND(mapmodelreset, "");
 
 hashtable<const char *, model *> mdllookup;
+model *nomodel = NULL;
 
 model *loadmodel(const char *name, int i)
 {
@@ -131,10 +132,17 @@ model *loadmodel(const char *name, int i)
             }
         }
         popscontext();
-        if(!loadingmodel) return NULL;
+        if(!loadingmodel)
+        {
+            conoutf(_("failed to load model %s"), name);
+            if(!nomodel) nomodel = new md2("nomodel");
+            m = nomodel;
+            mdllookup.access(newstring(name), m);
+        }
+        else mdllookup.access(m->name(), m);
         loadingmodel = NULL;
-        mdllookup.access(m->name(), m);
     }
+    if(m == nomodel) return NULL;
     if(mapmodels.inrange(i) && !mapmodels[i].m) mapmodels[i].m = m;
     return m;
 }
