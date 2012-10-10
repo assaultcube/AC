@@ -1387,7 +1387,7 @@ bool serverpickup(int i, int sender)         // server side item pickup, acknowl
     const char *hn = sender >= 0 && clients[sender]->type == ST_TCPIP ? clients[sender]->hostname : NULL;
     if(!sents.inrange(i))
     {
-        if(hn) logline(ACLOG_INFO, "[%s] tried to pick up entity #%d - doesn't exist on this map", hn, i);
+        if(hn && !m_coop) logline(ACLOG_INFO, "[%s] tried to pick up entity #%d - doesn't exist on this map", hn, i);
         return false;
     }
     server_entity &e = sents[i];
