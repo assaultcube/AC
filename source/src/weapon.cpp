@@ -7,11 +7,29 @@
 VARP(autoreload, 0, 1, 1);
 VARP(akimboautoswitch, 0, 1, 1);
 VARP(akimboendaction, 0, 1, 2); // 0: stay with pistol, 1: back to primary, 2: grenade - all fallback to previous one w/o ammo for target
-struct sgray {
-    int ds; // damage flag: outer, medium, center: SGSEGDMG_*
-    vec rv; // ray vector
-};
+
+int SGDMGTOTAL = 85;
+
+int SGDMGBONUS = 65;
+int SGDMGDISTB = 50;
+
+int SGCCdmg = 550;
+int SGCCbase = 0;
+int SGCCrange = 40;
+
+int SGCMdmg = 350;
+int SGCMbase = 25;
+int SGCMrange = 60;
+
+int SGCOdmg = 100;
+int SGCObase = 45;
+int SGCOrange = 75;
+
+
 sgray sgr[SGRAYS*3];
+sgray pat[SGRAYS*3]; // DEBUG 2011may27
+
+
 
 int burstshotssettings[NUMGUNS] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, };
 
@@ -157,9 +175,13 @@ void tryreload(playerent *p)
 void selfreload() { tryreload(player1); }
 COMMANDN(reload, selfreload, "");
 
+int lastsgs_hits = 0;
+int lastsgs_dmgt = 0;
+
 void createrays(vec &from, vec &to) // create random spread of rays for the shotgun
 {
     // 2011jan17:ft: once this basic approach has been agreed upon this function should be optimized
+    // 2011may27:ft: indeed
     vec dir = vec(from).sub(to);
     float f = dir.magnitude() / 10.0f;
     dir.normalize();
@@ -171,22 +193,28 @@ void createrays(vec &from, vec &to) // create random spread of rays for the shot
     loopi(SGRAYS)
     {
         int j = k * SGRAYS;
-        sgr[j+i].ds = k==0 ? SGSEGDMG_O : (k==1? SGSEGDMG_M: SGSEGDMG_C);
+        sgr[j+i].ds = k; //2011jun18 - damage-independent-section-indicator .. not: k==0 ? SGSEGDMG_O : (k==1? SGSEGDMG_M: SGSEGDMG_C);
         vec p(spoke);
-        float base = 3.14f;
+        float base = 0.0f;
         int wrange = 50;
         switch(sgr[j+i].ds)
         {
-            case SGSEGDMG_O:  base = 1.35f; wrange = 40; break;
-            case SGSEGDMG_M:  base = 0.50f; wrange = 85; break;
-            case SGSEGDMG_C:
-            default:          base = 0.00f; wrange = 50; break;
+            case 0:/* SGSEGDMG_O:*/  base = SGCObase/100.0f; wrange = SGCOrange; break;
+            case 1:/* SGSEGDMG_M:*/  base = SGCMbase/100.0f; wrange = SGCMrange; break;
+            case 2:/* SGSEGDMG_C:*/
+            default:          base = SGCCbase/100.0f; wrange = SGCCrange; break;
         }
         int rndmul = rnd(wrange);
-        p.mul( base + rndmul/100.0f );
+        float veclen = base + rndmul/100.0f;
+        p.mul( veclen );
         int rnddir = rnd(15);
         p.rotate( 2*M_PI/SGRAYS * i + rnddir , dir );
         vec rray = vec(to);
+        float nvl = veclen / ( ( SGCObase / 100.0f ) + ( SGCOrange / 100.0f ) );
+        vec pbv = vec( nvl, 0, 0);
+        pbv.rotate( 2*M_PI/SGRAYS * i + rnddir, vec( 0, 0, 1) );
+        pat[j+i].ds = int(veclen*100);
+        pat[j+i].rv = pbv;
         rray.add(p);
         sgr[j+i].rv = rray;
     }
@@ -600,9 +628,9 @@ void raydamage(vec &from, vec &to, playerent *d)
                 numhits_o = numhits_m = numhits_c = 0;
                 switch(sgr[h].ds)
                 {
-                    case SGSEGDMG_O: numhits_o++; break;
-                    case SGSEGDMG_M: numhits_m++; break;
-                    case SGSEGDMG_C: numhits_c++; break;
+                    case 0:/* SGSEGDMG_O:*/ numhits_o++; break;
+                    case 1:/* SGSEGDMG_M:*/ numhits_m++; break;
+                    case 2:/* SGSEGDMG_C:*/ numhits_c++; break;
                     default: break;
                 }
                 for(int j = i+1; j < 3*SGRAYS; j++) if(hits[j] == o)
@@ -610,23 +638,52 @@ void raydamage(vec &from, vec &to, playerent *d)
                     hits[j] = NULL;
                     switch(sgr[j].ds)
                     {
-                        case SGSEGDMG_O: numhits_o++; break;
-                        case SGSEGDMG_M: numhits_m++; break;
-                        case SGSEGDMG_C: numhits_c++; break;
+                        case 0:/* SGSEGDMG_O:*/ numhits_o++; break;
+                        case 1:/* SGSEGDMG_M:*/ numhits_m++; break;
+                        case 2:/* SGSEGDMG_C:*/ numhits_c++; break;
                         default: break;
                     }
                 }
                 int numhits = numhits_o + numhits_m + numhits_c;
-                int dmgreal = (SGSEGDMG_O * numhits_o + SGSEGDMG_M * numhits_m + SGSEGDMG_C * numhits_c)/3;
-                float d2o = SGBONUSDIST;
-                if(o) d2o = vec(from).sub(o->o).magnitude();
-                if(d2o <= (SGBONUSDIST/10.0f) && numhits)
+                int dmgreal = 0;
+				float dmg4r = 0.0f;
+				bool withBONUS = false;//'';
+                if(SGDMGBONUS)
                 {
-                    dmgreal += (SGMAXDMGABS-SGMAXDMGLOC);
-                    dmgreal = min(dmgreal, SGMAXDMGABS);
+	                float d2o = SGDMGDISTB;
+		            if(o) d2o = vec(from).sub(o->o).magnitude();
+			        if(d2o <= (SGDMGDISTB/10.0f) && numhits)
+					{
+						/*
+                         float soc = ( SGCCdmg/10.0f * SGDMGTOTAL/100.0f ) + ( SGCMdmg/10.0f * SGDMGTOTAL/100.0f ) + ( SGCOdmg/10.0f * SGDMGTOTAL/100.0f );
+                         float d2t = SGDMGTOTAL - soc;
+                         */
+						dmg4r += SGDMGBONUS;//d2t; //was: "d2t" == if percentage-points are dangling and we have hits, we have a base-damage value
+						withBONUS = true;
+						//printf("established SOC: %.2f | d2t: %.2f\n", soc, d2t);
+	                	//if(numhits) dmgreal += int(d2t);
+					}
                 }
-                if(numhits) hitpush( dmgreal, o, d, from, to, d->weaponsel->type, dmgreal == SGMAXDMGABS, dmgreal);
-
+                dmg4r += /*(int)*/( ( SGCOdmg/10.0f * SGDMGTOTAL/100.0f ) * numhits_o/21.0f );
+                dmg4r += /*(int)*/( ( SGCMdmg/10.0f * SGDMGTOTAL/100.0f ) * numhits_m/21.0f );
+                dmg4r += /*(int)*/( ( SGCCdmg/10.0f * SGDMGTOTAL/100.0f ) * numhits_c/21.0f );
+                //              int dmgreal = (SGSEGDMG_O * numhits_o + SGSEGDMG_M * numhits_m + SGSEGDMG_C * numhits_c)/3;
+                /*
+                 float d2o = SGBONUSDIST;
+                 if(o) d2o = vec(from).sub(o->o).magnitude();
+                 if(d2o <= (SGBONUSDIST/10.0f) && numhits)
+                 {
+                 dmgreal += (SGMAXDMGABS-SGMAXDMGLOC);
+                 dmgreal = min(dmgreal, SGMAXDMGABS);
+                 }
+                 */
+				dmgreal = (int) dmg4r;
+				lastsgs_hits = numhits;
+				lastsgs_dmgt = dmgreal;
+//				conoutf("%d [%.3f%s] DMG with %d hits", lastsgs_dmgt, dmg4r, withBONUS ? "\fs\f3+\fr" : "", lastsgs_hits);
+                if(numhits) hitpush( dmgreal, o, d, from, to, d->weaponsel->type, dmgreal == SGDMGTOTAL, dmgreal);
+//              if(numhits) hitpush( dmgreal, o, d, from, to, d->weaponsel->type, dmgreal == SGMAXDMGABS, dmgreal);
+                
                 if(d==player1) hitted = true;
                 hitscount+=numhits;
             }
@@ -638,7 +695,7 @@ void raydamage(vec &from, vec &to, playerent *d)
         switch(d->weaponsel->type)
         {
             case GUN_KNIFE: gib = true; break;
-            case GUN_SNIPER: if(hitzone==2) { dam *= 3; gib = true; }; break;
+            case GUN_SNIPER: if(d==player1 && hitzone==2) { dam *= 3; gib = true; }; break;
             default: break;
         }
         bool info = gib;
@@ -647,7 +704,7 @@ void raydamage(vec &from, vec &to, playerent *d)
         shorten(from, to, dist);
         hitscount++;
     }
-
+    
     if(d==player1)
     {
         if(!rayscount) rayscount = 1;
@@ -849,9 +906,11 @@ void weapon::renderhudmodel(int lastaction, int index)
 
     weaponmove wm;
     if(!intermission) wm.calcmove(unitv, lastaction, p);
+//    if(!intermission) wm.calcmove(unitv, p->lastaction, p);
     defformatstring(widn)("modmdlweap%d", type);
     defformatstring(path)("weapons/%s", identexists(widn)?getalias(widn):info.modelname);
     bool emit = (wm.anim&ANIM_INDEX)==ANIM_GUN_SHOOT && (lastmillis - lastaction) < flashtime();
+//    bool emit = (wm.anim&ANIM_INDEX)==ANIM_GUN_SHOOT && (lastmillis - p->lastaction) < flashtime();
     rendermodel(path, wm.anim|ANIM_DYNALLOC|(righthanded==index ? ANIM_MIRROR : 0)|(emit ? ANIM_PARTICLE : 0), 0, -1, wm.pos, p->yaw+90, p->pitch+wm.k_rot, 40.0f, wm.basetime, NULL, NULL, 1.28f);
 }
 
@@ -1241,6 +1300,7 @@ bool shotgun::attack(vec &targ)
 void shotgun::attackfx(const vec &from, const vec &to, int millis)
 {
     loopi(SGRAYS) particle_splash(PART_SPARK, 5, 200, sgr[i].rv);
+    
     if(addbullethole(owner, from, to))
     {
         loopk(3)

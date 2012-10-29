@@ -184,7 +184,7 @@ void cleanupexplosion()
     }
 }
 
-#define MAXPARTYPES 20
+#define MAXPARTYPES 22
 
 struct particle { vec o, d; int fade, type; int millis; particle *next; };
 particle *parlist[MAXPARTYPES], *parempty = NULL;
@@ -258,6 +258,7 @@ static struct parttype { int type; float r, g, b; int gr, tex; float sz; } partt
     { PT_FIREBALL,   1.0f, 0.5f, 0.5f, 0,  2, 7.0f  }, // explosion fireball
     { PT_SHOTLINE,   1.0f, 1.0f, 0.7f, 0, -1, 0.0f  }, // yellow: shotline
     { PT_BULLETHOLE, 1.0f, 1.0f, 1.0f, 0,  3, 0.3f  }, // hole decal
+    
     { PT_STAIN,      0.5f, 0.0f, 0.0f, 0,  4, 0.6f  }, // red:    blood stain
     { PT_DECAL,      1.0f, 1.0f, 1.0f, 0,  5, 1.5f  }, // scorch decal
     { PT_HUDFLASH,   1.0f, 1.0f, 1.0f, 0,  6, 0.7f  }, // hudgun muzzle flash
@@ -270,6 +271,9 @@ static struct parttype { int type; float r, g, b; int gr, tex; float sz; } partt
     { PT_PART,       1.0f, 0.5f, 0.2f, 20, 0, 0.08f }, // orange: edit mode ent type : "carrot"
     { PT_PART,       0.5f, 0.5f, 0.5f, 20, 0, 0.08f }, // grey: edit mode ent type : ladder, (pl)clip
     { PT_PART,       0.0f, 1.0f, 1.0f, 20, 0, 0.08f }, // turquoise: edit mode ent type : CTF-flag
+	// 2011jun18 : shotty decals
+    { PT_BULLETHOLE, 0.2f, 0.2f, 1.0f, 0,  3, 0.1f  }, // hole decal M
+    { PT_BULLETHOLE, 0.2f, 1.0f, 0.2f, 0,  3, 0.1f  }, // hole decal C
 };
 
 VAR(particlesize, 20, 100, 500);
@@ -605,7 +609,9 @@ VARP(bullethole, 0, 1, 1);
 VARP(bulletholettl, 0, 10000, 30000);
 VARP(bulletbouncesoundrad, 0, 15, 1000);
 
-bool addbullethole(dynent *d, const vec &from, const vec &to, float radius, bool noisy)
+// 2011jun18: shotty decals
+//bool addbullethole(dynent *d, const vec &from, const vec &to, float radius, bool noisy)
+bool addbullethole(dynent *d, const vec &from, const vec &to, float radius, bool noisy, int type)
 {
     if(!bulletholettl || !bullethole) return false;
     vec surface, ray(to);
@@ -616,13 +622,17 @@ bool addbullethole(dynent *d, const vec &from, const vec &to, float radius, bool
     vec o(from);
     o.add(ray.mul(dist));
     o.add(vec(surface).normalize().mul(0.01f));
-    newparticle(o, surface, bulletholettl, 7);
+	// 2011jun18: shotty decals
+    int tf = type > 0 ? ( type > 1 ? 21 : 20 ) : 7;
+    newparticle(o, surface, bulletholettl, tf);
+    //newparticle(o, surface, bulletholettl, 7);
     if(noisy && bulletbouncesound && bulletbouncesoundrad && d!=player1 && o.dist(camera1->o) <= bulletbouncesoundrad)
     {
         audiomgr.playsound(o.z<hdr.waterlevel ? S_BULLETWATERHIT : S_BULLETHIT, &o, SP_LOW);
     }
     return true;
 }
+
 
 VARP(scorch, 0, 1, 1);
 VARP(scorchttl, 0, 10000, 30000);
