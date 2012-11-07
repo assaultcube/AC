@@ -390,6 +390,7 @@ int numargs(char *args)
             switch(*argstart)
             {
                 case '[': if(*(t-1) != ']') continue; break;
+                case '(': if(*(t-1) != ')') continue; break;
                 case '"': if(*(t-1) != '"') continue; break;
                 default: break;
             }
@@ -404,18 +405,73 @@ void renderdoc(int x, int y, int doch)
     if(!docvisible) return;
 
     char *exp = getcurcommand();
-    if(!exp || *exp != '/' || strlen(exp) < 2) return;
 
-    char *c = exp+1;
+    int o = 0; //offset
+    int f = 0; //last found
+
+    while (*exp)
+    {exp++; o++; if (*exp == ';' || (*exp == ' ' && f == o-1)) f = o;} exp--;
+
+    if (f > 0)
+    {
+        for (int i = o - f - 1; i > 0; i--) exp--;
+        if (o > f + 1) exp++;
+    }
+
+    else {for (int i = o; i > 1; i--) exp--;}
+
+    char *openblock = strrchr(exp+1, '('); //find last open parenthesis
+    char *closeblock = strrchr(exp+1, ')'); //find last closed parenthesis
+    char *temp = NULL;
+
+    if (openblock)
+    {
+        if (!closeblock || closeblock < openblock) //open block
+        temp = openblock + 1;
+    }
+
+    if(!exp || (*exp != '/' && f == 0) || strlen(exp) < 2) return;
+
+    char *c = exp+1; if (f > 0) c = exp;
+    char *d = NULL; if (temp) d = temp;
+
     size_t clen = strlen(c);
+    size_t dlen = 0; if (d) dlen = strlen(d);
+
+    bool nc = false; //tests if text after open parenthesis is not a command
+
+    docident *ident = NULL;
+
     for(size_t i = 0; i < clen; i++) // search first matching cmd doc by stripping arguments of exp from right to left
     {
         char *end = c+clen-i;
         if(!*end || *end == ' ')
         {
             string cmd;
+            string dmd;
+
             copystring(cmd, c, clen-i+1);
-            docident *ident = docidents.access(cmd);
+
+            if (d && !nc && dlen > 1)
+            {
+                for(size_t j = 0; j < dlen; j++) //test text after parenthesis
+                {
+                    char *dnd = d+dlen-j;
+                    if(!*dnd || *dnd == ' ')
+                    {
+                        copystring(dmd, d, dlen-j+1);
+                        ident = docidents.access(dmd);
+                    }
+                    if (j == dlen-1 && !ident)
+                    nc = true;
+                }
+            }
+            else
+            {
+                nc = true;
+                ident = docidents.access(cmd);
+            }
+
             if(ident)
             {
                 vector<const char *> doclines;
@@ -436,7 +492,10 @@ void renderdoc(int x, int y, int doch)
                 if(ident->arguments.length() > 0) // args
                 {
                     extern textinputbuffer cmdline;
+
+                    if (d && dlen > 1) c = d;
                     char *args = strchr(c, ' ');
+
                     int arg = -1;
 
                     if(args)
@@ -457,6 +516,7 @@ void renderdoc(int x, int y, int doch)
                         if(arg >= 0) // multipart idents need a fixed argument offset
                         {
                             char *c = cmd;
+                            if (!nc) c = dmd;
                             while((c = strchr(c, ' ')) && c++) arg--;
                         }
 

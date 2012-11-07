@@ -866,9 +866,36 @@ void commandcomplete(char *s)
         concatstring(s, t);
     }
     if(!s[1]) return;
-    char *cp = s;
+
+    int o = 0; //offset
+
+    while(*s) {s++; o++;} //seek to end
+    s--; //last character
+
+    for (int i = o; i > 1; i--) //seek backwards
+    {
+        s--;
+        o--;
+        if (*s == ';') //until ';' is found
+        {
+            s++; break; //string after ';'
+        }
+    }
+
+    char *openblock = strrchr(s+1, '('); //find last open parenthesis
+    char *closeblock = strrchr(s+1, ')'); //find last closed parenthesis
+
+    if (openblock)
+    {
+        if (!closeblock || closeblock < openblock) //open block
+        s = openblock;
+    }
+
+    char *cp = s; //part to complete
+
     for(int i = (int)strlen(s) - 1; i > 0; i--)
-        if(s[i] == ';' || s[i] == ' ') { cp = s + i; break; }
+        if(s[i] == ' ') { cp = s + i; break; } //testing for command/argument needs completion
+
     bool init = false;
     if(completesize < 0)
     {
@@ -878,8 +905,10 @@ void commandcomplete(char *s)
     }
 
     completeval *cdata = NULL;
-    char *end = strchr(s, ' ');
-    if(end && end <= cp)
+
+    char *end = strchr(s+1, ' '); //find end of command name
+
+    if(end && end <= cp) //full command is present
     {
         string command;
         copystring(command, s+1, min(size_t(end-s), sizeof(command)));
@@ -892,18 +921,19 @@ void commandcomplete(char *s)
        loopv(cdata->dirlist) listfiles(cdata->dirlist[i], cdata->ext, cdata->list);
     }
 
-    if(*cp == '/' || *cp == ';')
+    if(*cp == '/' || *cp == ';'
+    || cp == s && (*cp == ' ' || *cp == '('))
     { // commandname completion
         int idx = 0;
         enumerate(*idents, ident, id,
             if(!strncasecmp(id.name, cp+1, completesize) && idx++==completeidx)
             {
                 cp[1] = '\0';
-                concatstring(s, id.name);
+                strcpy(s+1, id.name); //concatstring/copystring will crash because of overflow
             }
         );
         completeidx++;
-        if(completeidx>=idx) completeidx = 0;
+        if(completeidx>=idx) completeidx = 1;
     }
     else if(!cdata) return;
     else if(cdata->type==COMPLETE_NICK) nickcomplete(s);
@@ -915,13 +945,13 @@ void commandcomplete(char *s)
             if(!strncasecmp(cdata->list[j], cp + 1, completesize))
             {
                 cp[1] = '\0';
-                concatstring(s, cdata->list[j]);
+                strcpy(cp+1, cdata->list[j]); //concatstring/copystring will crash because of overflow
                 completeidx = j;
                 break;
             }
         }
         completeidx++;
-        if(completeidx >= cdata->list.length()) completeidx = 0;
+        if(completeidx >= cdata->list.length()) completeidx = 1;
     }
 }
 
