@@ -108,8 +108,8 @@ void drawsgpat(int w, int h)
     int rgbcv = 0;
     loopi(8+1)
     {
-    	/* if((i%3)==0) { glColor3ub(rgbcv,rgbcv,rgbcv); rgbcv += 4; //rgbcv -= 255/(8+1); }*/
-    	if(i%2) glColor3ub(64,64,64); else glColor3ub(32,32,32);
+        /* if((i%3)==0) { glColor3ub(rgbcv,rgbcv,rgbcv); rgbcv += 4; //rgbcv -= 255/(8+1); }*/
+        if(i%2) glColor3ub(64,64,64); else glColor3ub(32,32,32);
         float c = 0.5f*(1 + border*cosf(i*2*M_PI/8.0f)), s = 0.5f*(1 + border*sinf(i*2*M_PI/8.0f));
         glVertex2f(x1 + c*sz, y1 + s*sz);
     }
@@ -122,8 +122,8 @@ void drawsgpat(int w, int h)
     glBegin(GL_TRIANGLE_STRIP);
     loopi(8+1)
     {
-    	/* if((i%3)==0) { glColor3ub(rgbcv,rgbcv,rgbcv); //,128); rgbcv += 8; //rgbcv -= 255/(8+1); }*/
-    	if(i%2) glColor3ub(16,16,16); else glColor3ub(32,32,32);
+        /* if((i%3)==0) { glColor3ub(rgbcv,rgbcv,rgbcv); //,128); rgbcv += 8; //rgbcv -= 255/(8+1); }*/
+        if(i%2) glColor3ub(16,16,16); else glColor3ub(32,32,32);
         float c = 0.5f*(1 + border*cosf(i*2*M_PI/8.0f)), s = 0.5f*(1 + border*sinf(i*2*M_PI/8.0f));
         glVertex2f(x1 + c*sz, y1 + s*sz);
         c = c < 0.4f ? 0 : (c > 0.6f ? 1 : 0.5f);
@@ -138,28 +138,28 @@ void drawsgpat(int w, int h)
     if(!pattex) pattex = textureload("packages/misc/sgpat.png", 4);
     loopk(3)
     {
-    	switch(k)
-    	{
-    		case 0:  glColor3ub(  32, 250, 250); break; // center
-    		case 1:  glColor3ub( 250,  64,  64); break; // middle
-    		case 2:  glColor3ub( 250, 250,  64); break; // outer
-    		default: glColor3ub( 255, 255, 255); break;
-    	}
-    	extern sgray pat[SGRAYS*3];
-    	int j = k * SGRAYS;
-    	loopi(SGRAYS)
-    	{
-			if(pattex)
-			{
-				vec p = pat[j+i].rv;
-				int ppx = VIRTW/2 + p.x*(sz/2);
-				int ppy = VIRTH/2 + p.y*(sz/2);
-				drawicon(pattex, ppx, ppy, 16, 1, 1, 1);
-			}
-    	}
+        switch(k)
+        {
+            case 0:  glColor3ub(  32, 250, 250); break; // center
+            case 1:  glColor3ub( 250,  64,  64); break; // middle
+            case 2:  glColor3ub( 250, 250,  64); break; // outer
+            default: glColor3ub( 255, 255, 255); break;
+        }
+        extern sgray pat[SGRAYS*3];
+        int j = k * SGRAYS;
+        loopi(SGRAYS)
+        {
+            if(pattex)
+            {
+                vec p = pat[j+i].rv;
+                int ppx = VIRTW/2 + p.x*(sz/2);
+                int ppy = VIRTH/2 + p.y*(sz/2);
+                drawicon(pattex, ppx, ppy, 16, 1, 1, 1);
+            }
+        }
     }
     glEnable(GL_BLEND);
-	/*
+    /*
      // 2011may31: dmg/hits output comes upon each shot, let the pattern be shown "pure"
      extern int lastsgs_hits;
      extern int lastsgs_dmgt;

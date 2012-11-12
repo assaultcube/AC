@@ -649,9 +649,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 if(val) d->state = CS_EDITING;
                 else
                 {
-                	//2011oct16:flowtron:keep spectator state
-                	//specators shouldn't be allowed to toggle editmode for themselves. they're ghosts!
-                	d->state = d->state==CS_SPECTATE?CS_SPECTATE:CS_ALIVE;
+                    //2011oct16:flowtron:keep spectator state
+                    //specators shouldn't be allowed to toggle editmode for themselves. they're ghosts!
+                    d->state = d->state==CS_SPECTATE?CS_SPECTATE:CS_ALIVE;
                 }
                 break;
             }

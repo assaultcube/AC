@@ -1045,13 +1045,13 @@ bool menukey(int code, bool isdown, int unicode, SDLMod mod)
                 else menusel += pagesize;
                 break;
             case SDLK_ESCAPE:
-			case SDL_AC_BUTTON_RIGHT:
+            case SDL_AC_BUTTON_RIGHT:
                 if(!curmenu->allowinput) return false;
                 menuset(menustack.empty() ? NULL : menustack.pop(), false);
                 return true;
                 break;
             case SDLK_UP:
-			case SDL_AC_BUTTON_WHEELUP:
+            case SDL_AC_BUTTON_WHEELUP:
                 if(!curmenu->allowinput) return false;
                 menusel--;
                 break;
