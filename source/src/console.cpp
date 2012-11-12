@@ -16,7 +16,8 @@ struct console : consolebuffer<cline>
     int conskip;
     void setconskip(int n)
     {
-        conskip = clamp(conskip + n, 0, conlines.length());
+        int visible_lines = (int)(min(fullconsole ? ((VIRTH*2 - 2*CONSPAD - 2*FONTH/3)*(fullconsole==1 ? altconsize : fullconsize))/100 : FONTH*consize, (VIRTH*2 - 2*CONSPAD - 2*FONTH/3))/ (CONSPAD + 2*FONTH/3)) - 1;
+        conskip = clamp(conskip + n, 0, clamp(conlines.length()-visible_lines, 0, conlines.length()));
     }
 
     static const int WORDWRAP = 80;
@@ -486,11 +487,13 @@ void consolekey(int code, bool isdown, int cooked)
                 scrolldoc(4);
                 break;
 
+			case SDL_AC_BUTTON_WHEELUP:
             case SDLK_UP:
                 if(histpos > history.length()) histpos = history.length();
                 if(histpos > 0) history[--histpos]->restore();
                 break;
 
+			case SDL_AC_BUTTON_WHEELDOWN:
             case SDLK_DOWN:
                 if(histpos + 1 < history.length()) history[++histpos]->restore();
                 break;
@@ -511,7 +514,7 @@ void consolekey(int code, bool isdown, int cooked)
     }
     else
     {
-        if(code==SDLK_RETURN)
+        if(code==SDLK_RETURN || code==SDL_AC_BUTTON_LEFT || code==SDL_AC_BUTTON_MIDDLE)
         {
             hline *h = NULL;
             if(cmdline.buf[0])
@@ -531,7 +534,7 @@ void consolekey(int code, bool isdown, int cooked)
             saycommand(NULL);
             if(h) h->run();
         }
-        else if(code==SDLK_ESCAPE)
+        else if(code==SDLK_ESCAPE || code== SDL_AC_BUTTON_RIGHT)
         {
             histpos = history.length();
             saycommand(NULL);

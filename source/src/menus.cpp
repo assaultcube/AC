@@ -1045,18 +1045,18 @@ bool menukey(int code, bool isdown, int unicode, SDLMod mod)
                 else menusel += pagesize;
                 break;
             case SDLK_ESCAPE:
-            case -3:
+			case SDL_AC_BUTTON_RIGHT:
                 if(!curmenu->allowinput) return false;
                 menuset(menustack.empty() ? NULL : menustack.pop(), false);
                 return true;
                 break;
             case SDLK_UP:
-            case -4:
+			case SDL_AC_BUTTON_WHEELUP:
                 if(!curmenu->allowinput) return false;
                 menusel--;
                 break;
             case SDLK_DOWN:
-            case -5:
+            case SDL_AC_BUTTON_WHEELDOWN:
                 if(!curmenu->allowinput) return false;
                 menusel++;
                 break;
@@ -1117,7 +1117,7 @@ bool menukey(int code, bool isdown, int unicode, SDLMod mod)
     {
         if(!curmenu->allowinput || !curmenu->items.inrange(menusel)) return false;
         mitem &m = *curmenu->items[menusel];
-        if(code==SDLK_RETURN || code==SDLK_SPACE || code==-1 || code==-2)
+        if(code==SDLK_RETURN || code==SDLK_SPACE || code==SDL_AC_BUTTON_LEFT || code==SDL_AC_BUTTON_MIDDLE)
         {
             m.select();
             audiomgr.playsound(S_MENUENTER, SP_HIGHEST);
