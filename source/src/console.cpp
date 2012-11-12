@@ -487,13 +487,13 @@ void consolekey(int code, bool isdown, int cooked)
                 scrolldoc(4);
                 break;
 
-			case SDL_AC_BUTTON_WHEELUP:
+            case SDL_AC_BUTTON_WHEELUP:
             case SDLK_UP:
                 if(histpos > history.length()) histpos = history.length();
                 if(histpos > 0) history[--histpos]->restore();
                 break;
 
-			case SDL_AC_BUTTON_WHEELDOWN:
+            case SDL_AC_BUTTON_WHEELDOWN:
             case SDLK_DOWN:
                 if(histpos + 1 < history.length()) history[++histpos]->restore();
                 break;

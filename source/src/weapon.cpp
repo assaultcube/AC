@@ -646,23 +646,23 @@ void raydamage(vec &from, vec &to, playerent *d)
                 }
                 int numhits = numhits_o + numhits_m + numhits_c;
                 int dmgreal = 0;
-				float dmg4r = 0.0f;
-				bool withBONUS = false;//'';
+                float dmg4r = 0.0f;
+                bool withBONUS = false;//'';
                 if(SGDMGBONUS)
                 {
-	                float d2o = SGDMGDISTB;
-		            if(o) d2o = vec(from).sub(o->o).magnitude();
-			        if(d2o <= (SGDMGDISTB/10.0f) && numhits)
-					{
-						/*
+                    float d2o = SGDMGDISTB;
+                    if(o) d2o = vec(from).sub(o->o).magnitude();
+                    if(d2o <= (SGDMGDISTB/10.0f) && numhits)
+                    {
+                        /*
                          float soc = ( SGCCdmg/10.0f * SGDMGTOTAL/100.0f ) + ( SGCMdmg/10.0f * SGDMGTOTAL/100.0f ) + ( SGCOdmg/10.0f * SGDMGTOTAL/100.0f );
                          float d2t = SGDMGTOTAL - soc;
                          */
-						dmg4r += SGDMGBONUS;//d2t; //was: "d2t" == if percentage-points are dangling and we have hits, we have a base-damage value
-						withBONUS = true;
-						//printf("established SOC: %.2f | d2t: %.2f\n", soc, d2t);
-	                	//if(numhits) dmgreal += int(d2t);
-					}
+                        dmg4r += SGDMGBONUS;//d2t; //was: "d2t" == if percentage-points are dangling and we have hits, we have a base-damage value
+                        withBONUS = true;
+                        //printf("established SOC: %.2f | d2t: %.2f\n", soc, d2t);
+                        //if(numhits) dmgreal += int(d2t);
+                    }
                 }
                 dmg4r += /*(int)*/( ( SGCOdmg/10.0f * SGDMGTOTAL/100.0f ) * numhits_o/21.0f );
                 dmg4r += /*(int)*/( ( SGCMdmg/10.0f * SGDMGTOTAL/100.0f ) * numhits_m/21.0f );
@@ -677,10 +677,10 @@ void raydamage(vec &from, vec &to, playerent *d)
                  dmgreal = min(dmgreal, SGMAXDMGABS);
                  }
                  */
-				dmgreal = (int) dmg4r;
-				lastsgs_hits = numhits;
-				lastsgs_dmgt = dmgreal;
-//				conoutf("%d [%.3f%s] DMG with %d hits", lastsgs_dmgt, dmg4r, withBONUS ? "\fs\f3+\fr" : "", lastsgs_hits);
+                dmgreal = (int) dmg4r;
+                lastsgs_hits = numhits;
+                lastsgs_dmgt = dmgreal;
+//                conoutf("%d [%.3f%s] DMG with %d hits", lastsgs_dmgt, dmg4r, withBONUS ? "\fs\f3+\fr" : "", lastsgs_hits);
                 if(numhits) hitpush( dmgreal, o, d, from, to, d->weaponsel->type, lastsgs_hits == SGRAYS*3, dmgreal);
 //              if(numhits) hitpush( dmgreal, o, d, from, to, d->weaponsel->type, dmgreal == SGMAXDMGABS, dmgreal);
                 

@@ -271,7 +271,7 @@ static struct parttype { int type; float r, g, b; int gr, tex; float sz; } partt
     { PT_PART,       1.0f, 0.5f, 0.2f, 20, 0, 0.08f }, // orange: edit mode ent type : "carrot"
     { PT_PART,       0.5f, 0.5f, 0.5f, 20, 0, 0.08f }, // grey: edit mode ent type : ladder, (pl)clip
     { PT_PART,       0.0f, 1.0f, 1.0f, 20, 0, 0.08f }, // turquoise: edit mode ent type : CTF-flag
-	// 2011jun18 : shotty decals
+    // 2011jun18 : shotty decals
     { PT_BULLETHOLE, 0.2f, 0.2f, 1.0f, 0,  3, 0.1f  }, // hole decal M
     { PT_BULLETHOLE, 0.2f, 1.0f, 0.2f, 0,  3, 0.1f  }, // hole decal C
 };
@@ -622,7 +622,7 @@ bool addbullethole(dynent *d, const vec &from, const vec &to, float radius, bool
     vec o(from);
     o.add(ray.mul(dist));
     o.add(vec(surface).normalize().mul(0.01f));
-	// 2011jun18: shotty decals
+    // 2011jun18: shotty decals
     int tf = type > 0 ? ( type > 1 ? 21 : 20 ) : 7;
     newparticle(o, surface, bulletholettl, tf);
     //newparticle(o, surface, bulletholettl, 7);
