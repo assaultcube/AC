@@ -1345,11 +1345,11 @@ char *votestring(int type, const char *arg1, const char *arg2, const char *arg3)
             int n = atoi(arg2);
             if ( n >= GMODE_NUM )
             {
-                formatstring(out)(msg, arg1, modestr(n-GMODE_NUM, modeacronyms > 0)," (in the next game)", arg3);
+                formatstring(out)(msg, arg1, modestr(nextmode, modeacronyms > 0)," (in the next game)", arg3);
             }
             else
             {
-                formatstring(out)(msg, arg1, modestr(n, modeacronyms > 0), "", arg3);
+                formatstring(out)(msg, arg1, modestr(nextmode, modeacronyms > 0), "", arg3);
             }
             break;
         }
