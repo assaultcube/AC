@@ -115,11 +115,11 @@ FunctionEnd
 SetCompressor /SOLID lzma
 
 !define CURPATH ".\" ; must include the installer graphics and the \ac\ directory
-!define AC_FULLVERSION "v1.1.0.5"
-!define AC_FULLVERSIONINT "1.1.0.5"
+!define AC_FULLVERSION "v1.2.0.0"
+!define AC_FULLVERSIONINT "1.2.0.0"
 !define AC_SHORTNAME "AssaultCube"
-!define AC_FULLNAME "AssaultCube v1.1.0.5"
-!define AC_FULLNAMESAVE "AssaultCube_v1.1.0.5"
+!define AC_FULLNAME "AssaultCube v1.2.0.0"
+!define AC_FULLNAMESAVE "AssaultCube_v1.2.0.0"
 !define AC_URLPROTOCOL "assaultcube"
 !define AC_MAJORVERSIONINT 1
 !define AC_MINORVERSIONINT 1
@@ -591,25 +591,6 @@ Section "Register URL protocol" REGISTERURL
     WriteRegStr HKCR "${AC_URLPROTOCOL}" "URL Protocol" ""
     WriteRegStr HKCR "${AC_URLPROTOCOL}\DefaultIcon" "" '"$INSTDIR\bin_win32\ac_client.exe"'
     WriteRegStr HKCR "${AC_URLPROTOCOL}\shell\open\command" "" '"cmd.exe" /C cd "$INSTDIR" & "assaultcube.bat" "%1"'
-
-SectionEnd
-
-Section "-Debug Helper Library"
-
-    GetVersion::WindowsVersion
-    Pop $R0
-    Push "." ; divider char
-    Push $R0 ; input string
-    Call SplitFirstStrPart
-    Pop $R0 ; major version
-    Pop $R1 ; minor version
- 
-    StrCmp $R0 "4" 0 winvercheckdone ; win98
-   
-        ; make app-specific debug helper library available on win98
-        Rename "$INSTDIR\bin_win32\DbgHelp_RemoveThisPartIfOnWin98.DLL" "$INSTDIR\bin_win32\DbgHelp.DLL"
-    
-    winvercheckdone:
 
 SectionEnd
 
