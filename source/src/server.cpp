@@ -482,7 +482,7 @@ const char *getDemoFilename(int gmode, int mplay, int mdrop, int tstamp, char *s
     // %h : IP of server        %H : hostname of server
     // %n : mapName
     // %w : timestamp "when"
-    static string dmofn;
+    string dmofn;
     int cc = 0;
     int mc = strlen(demofilenameformat);
 
