@@ -729,4 +729,4 @@ COMMANDF(movemap, "iii", (int *x, int *y, int *z) { movemap(*x, *y, *z); });
 COMMANDF(selectionrotate, "i", (int *d) { selectionrotate(*d); });
 COMMAND(selectionflip, "s");
 COMMAND(countwalls, "i");
-COMMANDF(settex, "ii", (int *texture, int *type) { edittex(*texture, *type); });
+COMMANDF(settex, "ii", (int *texture, int *type) { settex(*texture, *type); });
