@@ -62,7 +62,7 @@ struct itemstat { int add, start, max, sound; };
 extern itemstat ammostats[NUMGUNS];
 extern itemstat powerupstats[I_ARMOUR-I_HEALTH+1];
 
-struct guninfo { string modelname; short sound, reload, reloadtime, attackdelay, damage, projspeed, part, spread, recoil, magsize, mdl_kick_rot, mdl_kick_back, recoilincrease, recoilbase, maxrecoil, recoilbackfade, pushfactor; bool isauto; };
+struct guninfo { string modelname; short sound, reload, reloadtime, attackdelay, damage, armourignore, projspeed, part, spread, recoil, magsize, mdl_kick_rot, mdl_kick_back, recoilincrease, recoilbase, maxrecoil, recoilbackfade, pushfactor; bool isauto; };
 extern guninfo guns[NUMGUNS];
 
 static inline int reloadtime(int gun) { return guns[gun].reloadtime; }
@@ -346,6 +346,7 @@ public:
     // just subtract damage here, can set death, etc. later in code calling this
     int dodamage(int damage, int gun)
     {
+        guninfo gi = guns[gun];
         if(damage == INT_MAX)
         {
             damage = health;
@@ -353,27 +354,29 @@ public:
             return damage;
         }
 
-        if(gun != GUN_KNIFE)
+        // 4-level armour - tiered approach: 16%, 33%, 37%, 41%
+        // Please update ./ac_website/htdocs/docs/introduction.html if this changes.
+        int armoursection = 0;
+        int ad = damage;
+        if(armour > 25) armoursection = 1;
+        if(armour > 50) armoursection = 2;
+        if(armour > 75) armoursection = 3;
+        switch(armoursection)
         {
-            // 4-level armour - tiered approach: 16%, 33%, 37%, 41%
-            // Please update ./ac_website/htdocs/docs/introduction.html if this changes.
-            int armoursection = 0;
-            int ad = damage;
-            if(armour > 25) armoursection = 1;
-            if(armour > 50) armoursection = 2;
-            if(armour > 75) armoursection = 3;
-            switch(armoursection)
-            {
-                case 0: ad = (int) (16.0f/25.0f * armour); break;             // 16
-                case 1: ad = (int) (17.0f/25.0f * armour) - 1; break;         // 33
-                case 2: ad = (int) (4.0f/25.0f * armour) + 25; break;         // 37
-                case 3: ad = (int) (4.0f/25.0f * armour) + 25; break;         // 41
-                default: break;
-            }
-            int rd = (int) (ad * damage/100.0f);
-            armour -= rd;
-            damage -= rd;
+            case 0: ad = (int) (16.0f/25.0f * armour); break;             // 16
+            case 1: ad = (int) (17.0f/25.0f * armour) - 1; break;         // 33
+            case 2: ad = (int) (4.0f/25.0f * armour) + 25; break;         // 37
+            case 3: ad = (int) (4.0f/25.0f * armour) + 25; break;         // 41
+            default: break;
         }
+        
+ 
+        int ra = (int) (ad * damage/100.0f);
+        int rd = ra-(ra*(gi.armourignore/100.0f)); //Who cares about rounding errors anyways?
+        
+        armour -= ra;
+        damage -= rd;
+            
         health -= damage;
         return damage;
     }
