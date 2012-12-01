@@ -57,7 +57,7 @@ void processevent(client *c, shotevent &e)
         case GUN_GRENADE: gs.grenades.add(e.id); break;
         default:
         {
-            int totalrays = 0, maxrays = e.gun==GUN_SHOTGUN ? SGMAXDMGABS: 1;
+            int totalrays = 0, maxrays = e.gun==GUN_SHOTGUN ? 3*SGRAYS: 1;
             for(int i = 1; i<c->events.length() && c->events[i].type==GE_HIT; i++)
             {
                 hitevent &h = c->events[i].hit;
@@ -65,14 +65,15 @@ void processevent(client *c, shotevent &e)
                 client *target = clients[h.target];
                 if(target->type==ST_EMPTY || target->state.state!=CS_ALIVE || h.lifesequence!=target->state.lifesequence) continue;
 
-                int rays = e.gun==GUN_SHOTGUN ? h.info : 1;
+                int rays = e.gun==GUN_SHOTGUN ? ((h.info & 0xFF00) >> 8) : 1;
                 if(rays<1) continue;
                 totalrays += rays;
                 if(totalrays>maxrays) continue;
-
-                int damage = rays*guns[e.gun].damage;
+                
+                int damage = e.gun==GUN_SHOTGUN ? h.info&0xFF : rays*guns[e.gun].damage;
                 bool gib = false;
-                if(e.gun==GUN_KNIFE || (e.gun==GUN_SHOTGUN && rays==maxrays)) gib = true;
+                if(e.gun==GUN_KNIFE || (e.gun==GUN_SHOTGUN && rays == maxrays)) gib = true;
+                
                 else if(e.gun==GUN_SNIPER) gib = h.info!=0;
                 if(e.gun==GUN_SNIPER && gib) damage *= 3;
                 serverdamage(target, c, damage, e.gun, gib, h.dir);
