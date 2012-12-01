@@ -681,7 +681,7 @@ void raydamage(vec &from, vec &to, playerent *d)
                 lastsgs_hits = numhits;
                 lastsgs_dmgt = dmgreal;
 //                conoutf("%d [%.3f%s] DMG with %d hits", lastsgs_dmgt, dmg4r, withBONUS ? "\fs\f3+\fr" : "", lastsgs_hits);
-                if(numhits) hitpush( dmgreal, o, d, from, to, d->weaponsel->type, lastsgs_hits == SGRAYS*3, dmgreal);
+                if(numhits) hitpush( dmgreal, o, d, from, to, d->weaponsel->type, lastsgs_hits == SGRAYS*3, dmgreal | (lastsgs_hits << 8));
 //              if(numhits) hitpush( dmgreal, o, d, from, to, d->weaponsel->type, dmgreal == SGMAXDMGABS, dmgreal);
                 
                 if(d==player1) hitted = true;
