@@ -1,7 +1,7 @@
 #!/bin/bash
 #Configures the environment for the *nix users.
 
-ac_version=1.1.0.5
+ac_version=1.2.0.0
 ac_dir=$(dirname "$(readlink -f "${0}")")
 ac_exec=assaultcube.sh
 ac_menupath=~/.local/share/applications
