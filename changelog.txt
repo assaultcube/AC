@@ -21,10 +21,14 @@ Weapons
 [*] Sniper trail bug fixed. // TODO: Is this for the "stop the sniper trail upon hit thing"? If so I'm not 100% certain it's completely fixed. // Bukz
 [*] Hudgun can be displayed when spectating (and in demos - e.g. /specthudgun 1).
 [*] Burst fire settings
+[*] "piercing", A percent of armor to ignore when dealing damage.
+[*] Knife fully ignores armor
+[*] Carbine ignores some armor
 
 Gameplay
 ---------------------
 
+[*] Votable timelimit
 [*] New gamemodes Team Last Swiss Standing / Team Pistol Frenzy
 [*] HTF now forces those who have the best health to pickup the flag instead of allocating it randomly
 
@@ -70,6 +74,7 @@ Rendering / HUD / ...
 [*] showtargetname - turns on/off showing the player name on the HUD when in your crosshair.
 [*] Scoreboard doesn't show ping/score/pj in singleplayer
 [*] showspeed - turns speed indicator on/off
+[*] Improved tab completion.
 
 Physics
 ---------------------
@@ -109,6 +114,7 @@ Bots
 CubeScript
 ---------------------
 
+[*] div= and div=f   - Divides an alias by a value.
 [*] addpunct         - Injects CubeScript punctuation. (e.g. echo (addpunct hello) // Output: "hello")
 [*] break            - Jumps out of a loop created with the "loop" or "while" command.
 [*] continue         - Skip current iteration of a "loop" or "while" command.
@@ -199,6 +205,7 @@ CubeScript
 [*] drawzone         - Draw a rectangular zone on the minimap
 [*] const            - Sets an alias as a constant
 [*] getalias can now work on built-in client variables (CVARs). - (e.g. fov)
+[*] forceteam now can target specific team
 [*] "Sleeps" can be persistent. (e.g. "Persist" even through map loads - new optional 3rd argument of the /sleep command)
 [*] Substr crash bug is fixed. Also the command can now use a negative position value.
 [*] New stat in (pstat_score) for teamkills. New list is: FLAGS FRAGS DEATHS POINTS TEAM TEAMKILLS NAME

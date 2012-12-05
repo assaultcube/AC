@@ -477,11 +477,11 @@ guninfo guns[NUMGUNS] =
     //mKR: mdl_kick_rot && mKB: mdl_kick_back
     //reI: recoilincrease && reB: recoilbase && reM: maxrecoil && reF: recoilbackfade
     //pFX: pushfactor
-    //modelname                   reload       attackdelay    armourignore   part     recoil       mKR       reI          reM           pFX
+    //modelname                   reload       attackdelay      piercing     part     recoil       mKR       reI          reM           pFX
     //              sound                reloadtime        damage    projspeed  spread     magsize     mKB        reB             reF           isauto
     { "knife",      S_KNIFE,      S_NULL,     0,      500,    50, 100,     0,   0,  1,    1,   1,    0,  0,   0,   0,      0,      0,   1,      false },
     { "pistol",     S_PISTOL,     S_RPISTOL,  1400,   160,    18,   0,     0,   0, 53,   10,   10,   6,  5,   6,  35,     58,     125,  1,      false },
-    { "carbine",    S_CARBINE,    S_RCARBINE, 1800,   720,    60,  50,     0,   0, 10,   60,   10,   4,  4,  10,  60,     60,     150,  1,      false },
+    { "carbine",    S_CARBINE,    S_RCARBINE, 1800,   720,    60,  55,     0,   0, 10,   60,   10,   4,  4,  10,  60,     60,     150,  1,      false },
     { "shotgun",    S_SHOTGUN,    S_RSHOTGUN, 2400,   800,    1,    0,      0,   0,  1,   35,   7,    9,  9, 10, 140,    140,    125,   1,      false },   // CAUTION dmg only sane for server!
     { "subgun",     S_SUBGUN,     S_RSUBGUN,  1650,   80,     16,   0,     0,   0, 45,   15,   30,   1,  2,   4,  30,     50,     188,  1,      true  },
     { "sniper",     S_SNIPER,     S_RSNIPER,  1950,   1500,   80,   0,     0,   0, 50,   50,   5,    4,  4,  10,  85,     85,     100,  1,      false },   // 2011may22:ft: dmg 82->80, spread 50
