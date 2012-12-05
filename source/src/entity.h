@@ -62,7 +62,7 @@ struct itemstat { int add, start, max, sound; };
 extern itemstat ammostats[NUMGUNS];
 extern itemstat powerupstats[I_ARMOUR-I_HEALTH+1];
 
-struct guninfo { string modelname; short sound, reload, reloadtime, attackdelay, damage, armourignore, projspeed, part, spread, recoil, magsize, mdl_kick_rot, mdl_kick_back, recoilincrease, recoilbase, maxrecoil, recoilbackfade, pushfactor; bool isauto; };
+struct guninfo { string modelname; short sound, reload, reloadtime, attackdelay, damage, piercing, projspeed, part, spread, recoil, magsize, mdl_kick_rot, mdl_kick_back, recoilincrease, recoilbase, maxrecoil, recoilbackfade, pushfactor; bool isauto; };
 extern guninfo guns[NUMGUNS];
 
 static inline int reloadtime(int gun) { return guns[gun].reloadtime; }
@@ -372,7 +372,7 @@ public:
         
  
         int ra = (int) (ad * damage/100.0f);
-        int rd = ra-(ra*(gi.armourignore/100.0f)); //Who cares about rounding errors anyways?
+        int rd = ra-(ra*(gi.piercing/100.0f)); //Who cares about rounding errors anyways?
         
         armour -= ra;
         damage -= rd;
