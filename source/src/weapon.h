@@ -170,7 +170,7 @@ struct akimbo : gun
     int akimbomillis;
     int akimbolastaction[2];
 
-    bool attack(vec &targ);
+    void attackfx(const vec &from, const vec &to, int millis);
     void onammopicked();
     void onselecting();
     bool selectable();

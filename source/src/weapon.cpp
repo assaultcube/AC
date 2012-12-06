@@ -683,7 +683,7 @@ void raydamage(vec &from, vec &to, playerent *d)
 //                conoutf("%d [%.3f%s] DMG with %d hits", lastsgs_dmgt, dmg4r, withBONUS ? "\fs\f3+\fr" : "", lastsgs_hits);
                 if(numhits) hitpush( dmgreal, o, d, from, to, d->weaponsel->type, lastsgs_hits == SGRAYS*3, dmgreal | (lastsgs_hits << 8));
 //              if(numhits) hitpush( dmgreal, o, d, from, to, d->weaponsel->type, dmgreal == SGMAXDMGABS, dmgreal);
-                
+
                 if(d==player1) hitted = true;
                 hitscount+=numhits;
             }
@@ -704,7 +704,7 @@ void raydamage(vec &from, vec &to, playerent *d)
         shorten(from, to, dist);
         hitscount++;
     }
-    
+
     if(d==player1)
     {
         if(!rayscount) rayscount = 1;
@@ -1300,7 +1300,7 @@ bool shotgun::attack(vec &targ)
 void shotgun::attackfx(const vec &from, const vec &to, int millis)
 {
     loopi(SGRAYS) particle_splash(PART_SPARK, 5, 200, sgr[i].rv);
-    
+
     if(addbullethole(owner, from, to))
     {
         loopk(3)
@@ -1516,15 +1516,11 @@ akimbo::akimbo(playerent *owner) : gun(owner, GUN_AKIMBO), akimboside(0), akimbo
     akimbolastaction[0] = akimbolastaction[1] = 0;
 }
 
-bool akimbo::attack(vec &targ)
+void akimbo::attackfx(const vec &from, const vec &to, int millis)
 {
-    if(gun::attack(targ))
-    {
-        akimbolastaction[akimboside] = owner->lastaction;
-        akimboside = (akimboside+1)%2;
-        return true;
-    }
-    return false;
+    akimbolastaction[akimboside] = owner->lastaction;
+    akimboside = (akimboside+1)%2;
+    gun::attackfx(from, to, millis);
 }
 
 void akimbo::onammopicked()
