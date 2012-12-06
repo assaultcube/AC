@@ -1345,11 +1345,11 @@ char *votestring(int type, const char *arg1, const char *arg2, const char *arg3)
             int n = atoi(arg2);
             if ( n >= GMODE_NUM )
             {
-                formatstring(out)(msg, arg1, modestr(nextmode, modeacronyms > 0)," (in the next game)", arg3);
+                formatstring(out)(msg, arg1, modestr(n, modeacronyms > 0)," (in the next game)", arg3);
             }
             else
             {
-                formatstring(out)(msg, arg1, modestr(nextmode, modeacronyms > 0), "", arg3);
+                formatstring(out)(msg, arg1, modestr(n, modeacronyms > 0), "", arg3);
             }
             break;
         }
@@ -1397,7 +1397,7 @@ void callvote(int type, const char *arg1, const char *arg2, const char *arg3)
                 break;
             case SA_MAP:
                 sendstring(arg1, p);
-                putint(p, nextmode);
+                putint(p, atoi(arg2));
                 putint(p, atoi(arg3));
                 break;
             case SA_SERVERDESC:
@@ -1434,9 +1434,13 @@ void scallvote(int *type, const char *arg1, const char *arg2)
         int t = *type;
         switch (t)
         {
-            case SA_MAP: // FIXME
+            case SA_MAP:
             {
-                callvote(t, arg1, "", arg2);    // nextmode is implicit arg2
+                //FIXME: this stupid conversion of ints to strings and back should
+                //  really be replaced with a saner method
+                char m[4];
+                snprintf(&m[0], 4, "%d", nextmode);
+                callvote(t, arg1, &m[0], arg2);
                 break;
             }
             case SA_KICK:
