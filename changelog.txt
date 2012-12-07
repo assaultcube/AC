@@ -5,25 +5,32 @@ AssaultCube ChangeLog
 Please add all commited changes to the SVN trunk from last release here, check TODO's.
 This changelog is a WIP!
 
-Find me a cat!
----------------------
-[*] New Private messages feature (/pm cn message) default bind is N
-// TODO : find a better order for these categories
 
 Weapons
 ---------------------
 
-// TODO : please, report other changes (flowtron ? makkE ?)
-[*] Sniper damage changed (82 -> 80)
-[*] New shotgun behavior. // TODO : explain ?
+[*] Sniper spread reduced (60 to 50)
+[*] Pistol spread reduced
+[*] Pistol magsize enlarged (8 to 10)
+[*] SMG damage increased (15 to 16)
+[*] SMG initial spread reduced
+[*] SMG recoil increased
+[*] AR damage reduced (24 to 22)
+[*] AR kickback reduced (40 to 35)
+[*] AR magsize reduced (20 to 18)
+[*] AR spread reduced
+[*] AR recoil increased
+[*] New shotgun behavior :  3 types of rays (center, medium, outter) with different properties.
+[*] "piercing", A percent of armor to ignore when dealing damage.
+[*] Knife fully ignores armor
+[*] Carbine ignores some armor
+
 [*] Quicknadethrow now switches to nade even if the player was attacking.
 [*] Grenades accuracy, real shotgun accuracy.
 [*] Sniper trail bug fixed. // TODO: Is this for the "stop the sniper trail upon hit thing"? If so I'm not 100% certain it's completely fixed. // Bukz
 [*] Hudgun can be displayed when spectating (and in demos - e.g. /specthudgun 1).
 [*] Burst fire settings
-[*] "piercing", A percent of armor to ignore when dealing damage.
-[*] Knife fully ignores armor
-[*] Carbine ignores some armor
+
 
 Gameplay
 ---------------------
@@ -31,6 +38,11 @@ Gameplay
 [*] Votable timelimit
 [*] New gamemodes Team Last Swiss Standing / Team Pistol Frenzy
 [*] HTF now forces those who have the best health to pickup the flag instead of allocating it randomly
+
+Chat
+---------------------
+
+[*] New Private messages feature (/pm cn message) default bind is N
 
 Servers
 ---------------------
