@@ -1,10 +1,7 @@
 AssaultCube ChangeLog
-1.1.0.4 -> SVN TRUNK
+
+1.1.0.4 -> 1.2.0.0
 ---------------------
-
-Please add all commited changes to the SVN trunk from last release here, check TODO's.
-This changelog is a WIP!
-
 
 Weapons
 ---------------------
@@ -27,7 +24,6 @@ Weapons
 
 [*] Quicknadethrow now switches to nade even if the player was attacking.
 [*] Grenades accuracy, real shotgun accuracy.
-[*] Sniper trail bug fixed. // TODO: Is this for the "stop the sniper trail upon hit thing"? If so I'm not 100% certain it's completely fixed. // Bukz
 [*] Hudgun can be displayed when spectating (and in demos - e.g. /specthudgun 1).
 [*] Burst fire settings
 
@@ -63,7 +59,7 @@ Server browser
 
 Media (maps/textures/models)
 ---------------------
-// TODO add new maps & any new textures or models please :)
+
 [*] ac_edifice, ac_industrial, ac_stellar added to the official map package.
 [*] Bot waypoints for maps: ac_edifice, ac_industrial, ac_ingress, and ac_stellar.
 
@@ -75,6 +71,7 @@ Mapping
 [*] Textures can now have a non-default scale, definable through the texture command.
 [*] Multiple selections support
 [*] Configurable wave height
+[*] newmap crash fix
 
 Rendering / HUD / ...
 ---------------------
@@ -203,7 +200,7 @@ CubeScript
 [*] testchar         - Tests a character argument for certain things. (e.g. echo (testchar a) // Output: 0 // It is not a 0-9 digit.)
 [*] testlist         - Tests a list argument for certain things. (e.g. echo (testlist "1 2.3 3.14") // Output: 1 // It is a valid list of ints/floats.)
 [*] listaverage      - Returns the average of a list of numbers. (Supports ints and floats - e.g. echo (listaverage "2 5 5") // Output: 4.0)
-[*] player1          - // TODO explain // Also getposition and positiontype have been removed in favor of this command which does that and a lot more. :p
+[*] player           - Returns a player's attribute (e.g. echo Client number 2 refers to (player 2 name) // Example output: Client number 2 refers to unarmed)
 [*] rndmap           - Returns a random official map. (e.g. echo (rndmap) // Example output: ac_desert3)
 [*] persistidents    - Controls persistence of idents/aliases. (Stored into saved.cfg on quit.)
 [*] add2bind         - Adds a block of code, if it does not already exist, to a keybind.
@@ -226,7 +223,6 @@ CubeScript
 [*] New automatically executed scripts folder in the root install directory of AC.
 [*] New delta_edit/game_# aliases for easily tweaking gamma/fov/flyspeed on-the-fly. (e.g. Hold F5 and scroll for gamma, F6 for fov, bind "domodifier 10" to a key for flyspeed)
 [*] The /mapsize command now silenty returns 6-12, instead of conoutf'ing ssize.
-[*] The /newmap command has a (temporary) new range of 6-9. // TODO: Fix client crashing on /newmap >9!
 [*] The /spectate command can now only be used if connected to a server.
 [*] The /togglebotview command can no longer be used in arena modes.
 [*] /keybind bug fix. No more client crash if the argument is an unknown key.
