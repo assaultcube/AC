@@ -59,7 +59,7 @@ extern int hwtexsize, hwmaxaniso;
 extern int numspawn[3], maploaded, numflagspawn[2];
 extern int verbose;
 
-#define AC_VERSION 1111
+#define AC_VERSION 1200
 #define AC_MASTER_URI "assault.cubers.net"
 #define AC_MASTER_PORT 28760
 #define MAXCL 16
