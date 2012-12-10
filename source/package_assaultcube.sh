@@ -113,8 +113,13 @@ find ./packages/audio/ambience ./packages/textures -type f \
   -o -iname "*.ogg" | \
   grep -vE '(.svn|\/textures\/skymaps\/)' | \
   gawk -F'\\./' '{print $2}' > ./config/releasefiles.cfg
-find ./packages/textures/skymaps/* ./packages/models/mapmodels/* -type d | \
+find ./packages/models/mapmodels/* -type d | \
   grep -v ".svn" | \
+  gawk -F'\\./' '{print $2}' >> ./config/releasefiles.cfg
+find ./packages/textures/skymaps/* -type f \
+  -iname "*.jpg" | \
+  gawk -F'_' '{print $1}' | \
+  sort -u | \
   gawk -F'\\./' '{print $2}' >> ./config/releasefiles.cfg
 
 # Create the linux tarball:
