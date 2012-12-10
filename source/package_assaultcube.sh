@@ -26,16 +26,31 @@ cp $ABSOLUTEPATHTODOCS/* $PATHTOACDIR/docs/ -R
 # Set up ./config/docs.cfg correctly:
 xsltproc -o ./config/docs.cfg ./docs/xml/cuberef2cubescript.xslt ./docs/reference.xml
 
-# Set up "releasefiles.cfg" correctly:
-head -n3 ./config/releasefiles.cfg | tee ./config/releasefiles.cfg
-find ./docs ./packages -type f | grep -v ".svn" >> ./config/releasefiles.cfg
+# Set up "releasefiles.cfg" correctly. We should be forcing good standards, so don't
+# worry about leaving stuff out that isn't normally in the configs:
+find ./packages/audio/ambience ./packages/textures -type f \
+	-name "*.jpg" \
+	-o -name "*.png" \
+	-o -name "*.ogg" | \
+	grep -vE '(.svn|\/textures\/skymaps\/)' | \
+	gawk -F'\\./' '{print $2}' > ./config/releasefiles.cfg
+find ./packages/textures/skymaps/* ./packages/models/mapmodels/* -type d | \
+	grep -v ".svn" | \
+	gawk -F'\\./' '{print $2}' >> ./config/releasefiles.cfg
 
 # Create the linux tarball:
 cd .. && mv $ACDIRFOLDERNAME AssaultCube_v$NEWACVERSION
-tar cjvf assaultcube_v$NEWACVERSION.tar.bz2 --exclude=*.bat --exclude=*bin_win32* --exclude=*xcode* --exclude=*vcpp* --exclude-vcs AssaultCube_v$NEWACVERSION/
+tar cjvf AssaultCube_v$NEWACVERSION.tar.bz2 \
+	--exclude=*.bat --exclude=*bin_win32* \
+	--exclude=*xcode* \
+	--exclude=*vcpp* \
+	--exclude-vcs \
+	AssaultCube_v$NEWACVERSION/
 
 # Create the source tarball:
 mv AssaultCube_v$NEWACVERSION/ AssaultCube_v$NEWACVERSION.source/
-tar cjvf assaultcube_v$NEWACVERSION.source.tar.bz2 --exclude-vcs AssaultCube_v$NEWACVERSION.source/source/
+tar cjvf AssaultCube_v$NEWACVERSION.source.tar.bz2 \
+	--exclude-vcs \
+	AssaultCube_v$NEWACVERSION.source/source/
 mv AssaultCube_v$NEWACVERSION.source/ $ACDIRFOLDERNAME/
 
