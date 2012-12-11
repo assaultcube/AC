@@ -1533,6 +1533,10 @@ const char *modestrings[] =
 
 void setnext(int *mode, char *arg2)
 {
+    if(!multiplayer()) { //RR 10/12/12 - Is this the action we want?
+        conoutf("You cannot use setnext in singleplayer.");
+        return;
+    }
     if(*mode < 0 || *mode >= GMODE_NUM) return;
 
     switch(*mode)
