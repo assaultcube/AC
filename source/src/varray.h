@@ -63,24 +63,24 @@ namespace varray
 #else
     struct attribinfo
     {
-        int type, size, formatsize;
+        int type, size, formatsize, offset;
         GLenum format;
 
-        attribinfo() : type(0), size(0), formatsize(0), format(GL_FALSE) {}
+        attribinfo() : type(0), size(0), formatsize(0), offset(0), format(GL_FALSE) {}
 
         bool operator==(const attribinfo &a) const
         {
-            return type == a.type && size == a.size && format == a.format;
+            return type == a.type && size == a.size && format == a.format && offset == a.offset;
         }
         bool operator!=(const attribinfo &a) const
         {
-            return type != a.type || size != a.size || format != a.format;
+            return type != a.type || size != a.size || format != a.format || offset != a.offset;
         }
     };
 
     vector<uchar> data;
     static attribinfo attribs[MAXATTRIBS], lastattribs[MAXATTRIBS];
-    static int enabled = 0, numattribs = 0, attribmask = 0, numlastattribs = 0, lastattribmask = 0, vertexsize = 0;
+    static int enabled = 0, numattribs = 0, attribmask = 0, numlastattribs = 0, lastattribmask = 0, vertexsize = 0, lastvertexsize = 0;
     static GLenum primtype = GL_TRIANGLES;
     static uchar *lastbuf = NULL;
     static bool changedattribs = false;
@@ -88,7 +88,7 @@ namespace varray
     void enable()
     {
         enabled = 0;
-        numlastattribs = lastattribmask = 0;
+        numlastattribs = lastattribmask = lastvertexsize = 0;
         lastbuf = NULL;
     }
 
@@ -123,6 +123,7 @@ namespace varray
             default:                a.formatsize = 0; break;
         }
         a.formatsize *= size;
+        a.offset = vertexsize;
         vertexsize += a.formatsize;
     }
 
@@ -178,13 +179,14 @@ namespace varray
                 glClientActiveTexture_(GL_TEXTURE0_ARB);
                 break;
         }
+        enabled &= ~a.type;
     }
 
     int end()
     {
         if(data.empty()) return 0;
         uchar *buf = data.getbuf();
-        bool forceattribs = numattribs != numlastattribs || buf != lastbuf;
+        bool forceattribs = numattribs != numlastattribs || vertexsize != lastvertexsize || buf != lastbuf;
         if(forceattribs || changedattribs)
         {
             int diffmask = enabled & lastattribmask & ~attribmask;
@@ -193,19 +195,21 @@ namespace varray
                 const attribinfo &a = lastattribs[i];
                 if(diffmask & a.type) unsetattrib(a);
             }
+            uchar *src = buf;
             loopi(numattribs)
             {
                 const attribinfo &a = attribs[i];
                 if(forceattribs || a != lastattribs[i])
                 {
-                    setattrib(a, buf);
+                    setattrib(a, src);
                     lastattribs[i] = a;
                 }
-                buf += a.formatsize;
+                src += a.formatsize;
             }
             lastbuf = buf;
             numlastattribs = numattribs;
             lastattribmask = attribmask;
+            lastvertexsize = vertexsize;
             changedattribs = false;
         }
         int numvertexes = data.length()/vertexsize;
