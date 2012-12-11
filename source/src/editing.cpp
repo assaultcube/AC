@@ -125,10 +125,10 @@ void checkselections()
 // update current selection, or add a new one
 void makesel(bool isnew)
 {
-    if(isnew) addselection(min(lastx, cx), min(lasty, cy), abs(lastx-cx)+1, abs(lasty-cy)+1, max(lasth, ch));
+    block &cursel = sels.last(); //RR 10/12/12 - FIXEME, error checking should happen with "isnew", not here checking if it really is new.
+    if(isnew || sels.length() == 0) addselection(min(lastx, cx), min(lasty, cy), abs(lastx-cx)+1, abs(lasty-cy)+1, max(lasth, ch));
     else
     {
-        block &cursel = sels.last();
         cursel.x = min(lastx, cx); cursel.y = min(lasty, cy);
         cursel.xs = abs(lastx-cx)+1; cursel.ys = abs(lasty-cy)+1;
         cursel.h = max(lasth, ch);
