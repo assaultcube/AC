@@ -115,9 +115,9 @@ void drawsgpat(int w, int h)
     }
     glColor3ub(255,255,255);
     glEnd();
-    
+
     glDisable(GL_BLEND);
-    
+
     rgbcv = 32;
     glBegin(GL_TRIANGLE_STRIP);
     loopi(8+1)
@@ -132,7 +132,7 @@ void drawsgpat(int w, int h)
     }
     glColor3ub(255,255,255);
     glEnd();
-    
+
     glEnable(GL_TEXTURE_2D);
     static Texture *pattex = NULL;
     if(!pattex) pattex = textureload("packages/misc/sgpat.png", 4);
@@ -1069,7 +1069,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             popfont();
         }
 
-        if(m_flags && !hidectfhud)
+        if(m_flags && m_teammode && !hidectfhud)
         {
             glLoadIdentity();
             glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
