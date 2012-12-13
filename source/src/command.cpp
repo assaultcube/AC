@@ -922,7 +922,7 @@ void commandcomplete(char *s)
     }
 
     if(*cp == '/' || *cp == ';'
-    || cp == s && (*cp == ' ' || *cp == '('))
+    || (cp == s && (*cp == ' ' || *cp == '(')))
     { // commandname completion
         int idx = 0;
         enumerate(*idents, ident, id,
