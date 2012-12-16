@@ -233,7 +233,7 @@ COMMAND(benchme, "");
 COMMANDF(isclient, "i", (int *cn) { intret(getclient(*cn) != NULL ? 1 : 0); } );
 COMMANDF(curmastermode, "", (void) { intret(servstate.mastermode); });
 COMMANDF(curautoteam, "", (void) { intret(servstate.autoteam); });
-COMMAND(curmodeattr, "");
+COMMAND(curmodeattr, "s");
 COMMANDF(curmap, "i", (int *cleaned) { result(*cleaned ? behindpath(getclientmap()) : getclientmap()); });
 COMMANDF(curplayers, "", (void) { intret(players.length() + 1); });
 VARP(showscoresondeath, 0, 1, 1);
