@@ -139,6 +139,7 @@ void renderdiscscores(int team)
         {
             case 1:
             {
+                line.addcol("DISC");
                 line.addcol("%s%s", spect, d.name);
                 if(m_flags) line.addcol("%d", d.flags);
                 line.addcol("%d", d.frags);
@@ -160,6 +161,7 @@ void renderdiscscores(int team)
                 line.addcol("%d", d.deaths);
                 if(multiplayer(false) || watchingdemo) line.addcol("%d", max(d.points, 0));
                 line.addcol(clag);
+                line.addcol("DISC");
                 line.addcol(d.name);
             }
         }
@@ -192,7 +194,7 @@ void renderscore(playerent *d)
         case 1:
         {
             line.addcol("%s\fs\f%d%d\fr", spect, cncolumncolor, d->clientnum);
-            line.addcol("%s%s", status, colorname(d));
+            line.addcol("\fs%s%s\fr", status, colorname(d));
             if(m_flags) line.addcol("%d", d->flagscore);
             line.addcol("%d", d->frags);
             line.addcol("%d", d->deaths);
@@ -221,7 +223,7 @@ void renderscore(playerent *d)
                 line.addcol(lagping);
             }
             line.addcol("\fs\f%d%d\fr", cncolumncolor, d->clientnum);
-            line.addcol("%s%s%s", status, colorname(d), ign);
+            line.addcol("\fs%s%s\fr%s", status, colorname(d), ign);
         }
     }
 }
