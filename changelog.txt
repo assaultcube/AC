@@ -7,20 +7,21 @@ Weapons
 ---------------------
 
 [*] Sniper spread reduced (60 to 50)
+[*] Sniper damage set to 82
 [*] Pistol spread reduced
 [*] Pistol magsize enlarged (8 to 10)
 [*] SMG damage increased (15 to 16)
 [*] SMG initial spread reduced
 [*] SMG recoil increased
 [*] AR damage reduced (24 to 22)
-[*] AR kickback reduced (40 to 35)
-[*] AR magsize reduced (20 to 18)
+[*] AR kickback reduced (40 to 30)
 [*] AR spread reduced
 [*] AR recoil increased
 [*] New shotgun behavior :  3 types of rays (center, medium, outter) with different properties.
 [*] "piercing", A percent of armor to ignore when dealing damage.
 [*] Knife fully ignores armor
 [*] Carbine ignores some armor
+[*] Sniper ignores some armor
 
 [*] Quicknadethrow now switches to nade even if the player was attacking.
 [*] Grenades accuracy, real shotgun accuracy.
@@ -50,6 +51,7 @@ Servers
 [*] Fixed bug with map names containing slashes.
 [*] The carbine is now consistently called such. (not "Rifle")
 [*] The server now differentiates between CTF/HTF scored flags in the serverlogs. (Useful for parsing/stats collection.)
+[*] Server can restricts voting from a mode for any map
 
 Server browser
 ----------------------
