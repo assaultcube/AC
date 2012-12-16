@@ -1069,7 +1069,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             popfont();
         }
 
-        if(m_flags && m_teammode && !hidectfhud)
+        if(m_flags && !hidectfhud)
         {
             glLoadIdentity();
             glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
@@ -1081,10 +1081,13 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             loopi(2) // flag state
             {
                 drawctficon(i*120+VIRTW/4.0f*3.0f, 1650, 120, i, 0, 1/4.0f, flaginfos[i].state == CTFF_INBASE ? 255 : 100);
-                defformatstring(count)("%d", flagscores[i]);
-                int cw, ch;
-                text_bounds(count, cw, ch);
-                draw_textf(count, i*120+VIRTW/4.0f*3.0f+60-cw/2, 1590);
+                if(m_teammode)
+                {
+                    defformatstring(count)("%d", flagscores[i]);
+                    int cw, ch;
+                    text_bounds(count, cw, ch);
+                    draw_textf(count, i*120+VIRTW/4.0f*3.0f+60-cw/2, 1590);
+                }
             }
 
             // big flag-stolen icon
