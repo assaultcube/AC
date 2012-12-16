@@ -8,20 +8,20 @@ VARP(autoreload, 0, 1, 1);
 VARP(akimboautoswitch, 0, 1, 1);
 VARP(akimboendaction, 0, 1, 2); // 0: stay with pistol, 1: back to primary, 2: grenade - all fallback to previous one w/o ammo for target
 
-int SGDMGTOTAL = 85;
+int SGDMGTOTAL = 90;
 
 int SGDMGBONUS = 65;
 int SGDMGDISTB = 50;
 
-int SGCCdmg = 550;
+int SGCCdmg = 500;
 int SGCCbase = 0;
 int SGCCrange = 40;
 
-int SGCMdmg = 350;
+int SGCMdmg = 375;
 int SGCMbase = 25;
 int SGCMrange = 60;
 
-int SGCOdmg = 100;
+int SGCOdmg = 125;
 int SGCObase = 45;
 int SGCOrange = 75;
 
