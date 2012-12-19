@@ -499,6 +499,7 @@ void preload_playermodels()
     if(dynshadow && playermdl) playermdl->genshadows(8.0f, 4.0f);
     loopi(NUMGUNS)
     {
+        if (i==GUN_CPISTOL) continue; //RR 18/12/12 - Remove when cpistol is added.
         defformatstring(widn)("modmdlvwep%d", i);
         defformatstring(vwep)("weapons/%s/world", identexists(widn)?getalias(widn):guns[i].modelname);
         model *vwepmdl = loadmodel(vwep);
