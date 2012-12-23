@@ -481,7 +481,7 @@ vec getradarpos()
 
 VARP(showmapbackdrop, 0, 0, 2);
 VARP(showmapbackdroptransparency, 0, 75, 100);
-VARP(radarheight, 5, 150, 500); // testing: 0, 50, 1000 // release: 5, 150, 500
+VARP(radarheight, 5, 150, 500);
 VAR(showradarvalues, 0, 0, 1); // DEBUG
 
 void drawradar_showmap(playerent *p, int w, int h)
