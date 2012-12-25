@@ -4166,6 +4166,11 @@ void initserver(bool dedicated, int argc, char **argv)
         logline(ACLOG_VERBOSE,"maxclients: %d, kick threshold: %d, ban threshold: %d", scl.maxclients, scl.kickthreshold, scl.banthreshold);
         if(scl.master) logline(ACLOG_VERBOSE,"master server URL: \"%s\"", scl.master);
         if(scl.serverpassword[0]) logline(ACLOG_VERBOSE,"server password: \"%s\"", hiddenpwd(scl.serverpassword));
+#ifdef ACAC
+        logline(ACLOG_INFO, "anticheat: enabled");
+#else
+        logline(ACLOG_INFO, "anticheat: disabled");
+#endif
     }
 
     resetserverifempty();
