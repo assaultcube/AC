@@ -1868,7 +1868,7 @@ void resetserver(const char *newname, int newmode, int newtime)
     smode = newmode;
     copystring(smapname, newname);
 
-    minremain = newtime > 0 ? newtime : (m_teammode ? 15 : 10);
+    minremain = newtime > 0 ? newtime : defaultgamelimit(newmode);
     gamemillis = 0;
     gamelimit = minremain*60000;
     arenaround = arenaroundstartmillis = 0;

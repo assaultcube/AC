@@ -317,6 +317,8 @@ const char *modestr(int n, bool acronyms) { return acronyms ? acronymmodestr (n)
 const char *voteerrorstr(int n) { return (n>=0 && (size_t)n < sizeof(voteerrors)/sizeof(voteerrors[0])) ? voteerrors[n] : "unknown"; }
 const char *mmfullname(int n) { return (n>=0 && n < MM_NUM) ? mmfullnames[n] : "unknown"; }
 
+int defaultgamelimit(int gamemode) { return m_teammode ? 15 : 10; }
+
 static const int msgsizes[] =               // size inclusive message token, 0 for variable or not-checked sizes
 {
     SV_SERVINFO, 5, SV_WELCOME, 2, SV_INITCLIENT, 0, SV_POS, 0, SV_POSC, 0, SV_POSN, 0, SV_TEXT, 0, SV_TEAMTEXT, 0, SV_TEXTME, 0, SV_TEAMTEXTME, 0, SV_TEXTPRIVATE, 0,

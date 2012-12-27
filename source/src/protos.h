@@ -753,6 +753,7 @@ extern int stringsort(const char **a, const char **b);
 // protocol [client and server]
 extern const char *acronymmodestr(int n);
 extern const char *fullmodestr(int n);
+extern int defaultgamelimit(int gamemode);
 
 // crypto // for AUTH
 extern void genprivkey(const char *seed, vector<char> &privstr, vector<char> &pubstr);
