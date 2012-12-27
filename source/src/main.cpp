@@ -476,12 +476,6 @@ void mapshot()
 
 bool needsautoscreenshot = false;
 
-void makeautoscreenshot()
-{
-    needsautoscreenshot = false;
-    screenshot(NULL);
-}
-
 COMMAND(screenshot, "s");
 COMMAND(mapshot, "");
 COMMAND(quit, "");
@@ -1263,7 +1257,12 @@ int main(int argc, char **argv)
 
         if(lastmillis) updateworld(curtime, lastmillis);
 
-        if(needsautoscreenshot) showscores(true);
+        if(needsautoscreenshot)
+        {
+            showscores(true);
+            addsleep(0, "screenshot");
+            needsautoscreenshot = false;
+        }
 
         serverslice(0);
 
@@ -1278,8 +1277,6 @@ int main(int argc, char **argv)
             gl_drawframe(screen->w, screen->h, fps<lowfps ? fps/lowfps : (fps>highfps ? fps/highfps : 1.0f), fps);
             if(frames>4) SDL_GL_SwapBuffers();
         }
-
-        if(needsautoscreenshot) makeautoscreenshot();
 
 #ifdef _DEBUG
         if(millis>lastflush+60000) { fflush(stdout); lastflush = millis; }
