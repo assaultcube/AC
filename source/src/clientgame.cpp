@@ -1304,7 +1304,7 @@ COMMAND(dropflag, "");
 
 char *votestring(int type, const char *arg1, const char *arg2, const char *arg3)
 {
-    const char *msgs[] = { "kick player %s, reason: %s", "ban player %s, reason: %s", "remove all bans", "set mastermode to %s", "%s autoteam", "force player %s to team %s", "give admin to player %s", (arg3 && arg3[0] && arg3[0]!='0') ? "load map %s in mode %s%s for %s minutes" : "load map %s in mode %s%s", "%s demo recording for the next match", "stop demo recording", "clear all demos", "set server description to '%s'", "shuffle teams"};
+    const char *msgs[] = { "kick player %s, reason: %s", "ban player %s, reason: %s", "remove all bans", "set mastermode to %s", "%s autoteam", "force player %s to team %s", "give admin to player %s", "load map %s in mode %s%s%s", "%s demo recording for the next match", "stop demo recording", "clear all demos", "set server description to '%s'", "shuffle teams"};
     const char *msg = msgs[type];
     char *out = newstring(MAXSTRLEN);
     out[MAXSTRLEN] = '\0';
@@ -1343,13 +1343,20 @@ char *votestring(int type, const char *arg1, const char *arg2, const char *arg3)
         case SA_MAP:
         {
             int n = atoi(arg2);
+            string timestr = "";
+            if(arg3 && arg3[0])
+            {
+                int time = atoi(arg3);
+                if(time > 0 && time != defaultgamelimit(n)) formatstring(timestr)(" for %d minutes", time);
+            }
+
             if ( n >= GMODE_NUM )
             {
-                formatstring(out)(msg, arg1, modestr(n, modeacronyms > 0)," (in the next game)", arg3);
+                formatstring(out)(msg, arg1, modestr(n, modeacronyms > 0)," (in the next game)", timestr);
             }
             else
             {
-                formatstring(out)(msg, arg1, modestr(n, modeacronyms > 0), "", arg3);
+                formatstring(out)(msg, arg1, modestr(n, modeacronyms > 0), "", timestr);
             }
             break;
         }
