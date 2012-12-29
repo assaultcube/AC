@@ -2034,7 +2034,7 @@ void addgban(const char *name)
     loopvrev(clients)
     {
         client &c = *clients[i];
-        if(c.type!=ST_TCPIP || c.role >= CR_ADMIN) continue;
+        if(c.type!=ST_TCPIP) continue;
         if(checkgban(c.peer->address.host)) disconnect_client(c.clientnum, DISC_BANREFUSE);
     }
 }
