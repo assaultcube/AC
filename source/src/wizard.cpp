@@ -75,7 +75,7 @@ int wizardmain(int argc, char **argv)
     vector<char> argstr;
     readarg(argstr, "Server description", "-n");
     readarg(argstr, "Message of the day", "-o");
-    readarg(argstr, "Maximum clients (No more than 20 allowed!)", "-c");
+    readarg(argstr, "Maximum clients (No more than 16 allowed!)", "-c");
     readarg(argstr, "Administrator password", "-x");
     readarg(argstr, "Server port", "-f");
 
