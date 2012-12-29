@@ -2039,18 +2039,20 @@ void addgban(const char *name)
     }
 }
 
-bool isbanned(int cn)
+int getbantype(int cn)
 {
-    if(!valid_client(cn)) return false;
+    if(!valid_client(cn)) return BAN_NONE;
     client &c = *clients[cn];
-    if(c.type==ST_LOCAL) return false;
+    if(c.type==ST_LOCAL) return BAN_NONE;
+    if(checkgban(c.peer->address.host)) return BAN_MASTER;
+    if(ipblacklist.check(c.peer->address.host)) return BAN_BLACKLIST;
     loopv(bans)
     {
         ban &b = bans[i];
         if(b.millis < servmillis) { bans.remove(i--); }
-        if(b.address.host == c.peer->address.host) { return true; }
+        if(b.address.host == c.peer->address.host) { return BAN_VOTE; }
     }
-    return checkgban(c.peer->address.host) || ipblacklist.check(c.peer->address.host);
+    return BAN_NONE;
 }
 
 int serveroperator()
@@ -2636,7 +2638,8 @@ void process(ENetPacket *packet, int sender, int chan)
             int wantrole = getint(p);
             cl->state.nextprimary = getint(p);
             loopi(2) cl->skin[i] = getint(p);
-            bool banned = isbanned(sender);
+            int bantype = getbantype(sender);
+            bool banned = bantype > BAN_NONE;
             bool srvfull = numnonlocalclients() > scl.maxclients;
             bool srvprivate = mastermode == MM_PRIVATE || mastermode == MM_MATCH;
             bool matchreconnect = mastermode == MM_MATCH && findscore(*cl, false);
@@ -2658,11 +2661,11 @@ void process(ENetPacket *packet, int sender, int chan)
                 logline(ACLOG_INFO, "[%s] '%s' matches nickname blacklist line %d%s", cl->hostname, cl->name, bl, tags);
                 disconnect_client(sender, DISC_BADNICK);
             }
-            else if(passwords.check(cl->name, cl->pwd, cl->salt, &pd, (cl->type==ST_TCPIP ? cl->peer->address.host : 0)) && (!pd.denyadmin || (banned && !srvfull && !srvprivate))) // pass admins always through
+            else if(passwords.check(cl->name, cl->pwd, cl->salt, &pd, (cl->type==ST_TCPIP ? cl->peer->address.host : 0)) && (!pd.denyadmin || (banned && !srvfull && !srvprivate)) && bantype != BAN_MASTER) // pass admins always through
             { // admin (or deban) password match
                 cl->isauthed = true;
                 if(!pd.denyadmin && wantrole == CR_ADMIN) clientrole = CR_ADMIN;
-                if(banned)
+                if(bantype == BAN_VOTE)
                 {
                     loopv(bans) if(bans[i].address.host == cl->peer->address.host) { bans.remove(i); concatstring(tags, ", ban removed"); break; } // remove admin bans
                 }
