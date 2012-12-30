@@ -108,8 +108,8 @@ xsltproc -o ./config/docs.cfg ./docs/xml/cuberef2cubescript.xslt ./docs/referenc
 # Just-in-case, regenerate ./config/securemaps.cfg:
 echo "resetsecuremaps" > ./config/securemaps.cfg
 find ./packages/maps/official/*.cgz | \
-  gawk -F'official/' '{print $2}' | \
-  gawk -F'.cgz' '{print "securemap " $1}' | \
+  xargs -i basename {} .cgz | \
+  xargs -i echo "securemap" {} | \
   sort -u >> ./config/securemaps.cfg
 
 # Set up "releasefiles.cfg" correctly. We should be forcing good standards, so don't
