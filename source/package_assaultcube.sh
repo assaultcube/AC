@@ -105,19 +105,26 @@ cd $PATHTOACDIR && cp $ABSOLUTEPATHTODOCS/* $PATHTOACDIR/docs/ -R
 # Set up ./config/docs.cfg correctly:
 xsltproc -o ./config/docs.cfg ./docs/xml/cuberef2cubescript.xslt ./docs/reference.xml
 
+# Just-in-case, regenerate ./config/securemaps.cfg:
+echo "resetsecuremaps" > ./config/securemaps.cfg
+find ./packages/maps/official/*.cgz | \
+  gawk -F'official/' '{print $2}' | \
+  gawk -F'.cgz' '{print "securemap " $1}' | \
+  sort -u >> ./config/securemaps.cfg
+
 # Set up "releasefiles.cfg" correctly. We should be forcing good standards, so don't
-# worry about leaving stuff out that isn't normally in the configs:
+# worry about upper-case extensions or leaving stuff out that isn't normally in the configs:
 find ./packages/audio/ambience ./packages/textures -type f \
-  -iname "*.jpg" \
-  -o -iname "*.png" \
-  -o -iname "*.ogg" | \
+  -name "*.jpg" \
+  -o -name "*.png" \
+  -o -name "*.ogg" | \
   grep -vE '(.svn|\/textures\/skymaps\/)' | \
   gawk -F'\\./' '{print $2}' > ./config/releasefiles.cfg
 find ./packages/models/mapmodels/* -type d | \
   grep -v ".svn" | \
   gawk -F'\\./' '{print $2}' >> ./config/releasefiles.cfg
-find ./packages/textures/skymaps/* -type f \
-  -iname "*.jpg" | \
+find ./packages/textures/skymaps/* -type f -name "*.jpg" | \
+  grep -v ".svn" | \
   gawk -F'_' '{print $1}' | \
   sort -u | \
   gawk -F'\\./' '{print $2}' >> ./config/releasefiles.cfg
