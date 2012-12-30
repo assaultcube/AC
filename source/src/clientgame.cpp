@@ -1095,7 +1095,7 @@ COMMAND(gamemodedesc, "is");
 void resetmap(bool mrproper)
 {
     resetsleep();
-    resetzone();
+    resetzones();
     clearminimap();
     cleardynlights();
     pruneundos();
