@@ -748,20 +748,23 @@ bool minimap = false, minimapdirty = true;
 int minimaplastsize = 0;
 GLuint minimaptex = 0;
 
-int zonex1 = -1, zoney1 = -1, zonex2 = -1, zoney2 = -1, zonecolor = 0;
+vector<zone> zones;
 
-void renderzone(float z)
+void renderzones(float z)
 {
-    glColor4f(((zonecolor>>16)&0xFF)/255.0f, ((zonecolor>>8)&0xFF)/255.0f, (zonecolor&0xFF)/255.0f, 0.3f);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glDisable(GL_TEXTURE_2D);
-    glBegin(GL_QUADS);
-    glVertex3f(zonex1, zoney1, z);
-    glVertex3f(zonex2, zoney1, z);
-    glVertex3f(zonex2, zoney2, z);
-    glVertex3f(zonex1, zoney2, z);
-    glEnd();
+    loopv(zones)
+    {
+        glColor4f(((zones[i].color>>16)&0xFF)/255.0f, ((zones[i].color>>8)&0xFF)/255.0f, (zones[i].color&0xFF)/255.0f, 0.3f);
+        glBegin(GL_QUADS);
+        glVertex3f(zones[i].x1, zones[i].y1, z);
+        glVertex3f(zones[i].x2, zones[i].y1, z);
+        glVertex3f(zones[i].x2, zones[i].y2, z);
+        glVertex3f(zones[i].x1, zones[i].y2, z);
+        glEnd();
+    }
     glDisable(GL_BLEND);
     glEnable(GL_TEXTURE_2D);
 }
@@ -833,7 +836,7 @@ void drawminimap(int w, int h)
     renderstrips();
     glDepthFunc(GL_LESS);
     rendermapmodels();
-    renderzone(mapdims[7]);
+    renderzones(mapdims[7]);
     //renderentities();// IMHO better done by radar itself, if at all
     resettmu(0);
     float hf = hdr.waterlevel-0.3f;
@@ -877,18 +880,19 @@ void cleanupgl()
 
 void drawzone(int *x1, int *x2, int *y1, int *y2, int *color)
 {
-    zonex1 = *x1; zoney1 = *y1;
-    zonex2 = *x2; zoney2 = *y2;
-    if(*color) zonecolor = *color;
-    else zonecolor = 0x00FF00;
+    zone &newzone = zones.add();
+    newzone.x1 = *x1; newzone.x2 = *x2;
+    newzone.y1 = *y1; newzone.y2 = *y2;
+    newzone.color = *color ? *color : 0x00FF00;
     clearminimap();
 }
 COMMAND(drawzone, "iiiii");
 
-void resetzone()
+void resetzones()
 {
-    zonex1 = zoney1 = zonex2 = zoney2 = 0;
+    zones.shrink(0);
 }
+COMMAND(resetzones, "");
 
 int xtraverts;
 

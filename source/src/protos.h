@@ -259,7 +259,7 @@ extern void setperspective(float fovy, float aspect, float nearplane, float farp
 extern void sethudgunperspective(bool on);
 extern void gl_drawframe(int w, int h, float changelod, float curfps);
 extern void clearminimap();
-extern void resetzone();
+extern void resetzones();
 extern void rendercursor(int x, int y, int w);
 extern void renderaboveheadicon(playerent *p);
 extern void drawscope(bool preload = false);
@@ -320,6 +320,8 @@ extern void resettmu(int n);
 extern void scaletmu(int n, int rgbscale, int alphascale = 0);
 extern void colortmu(int n, float r = 0, float g = 0, float b = 0, float a = 0);
 extern void setuptmu(int n, const char *rgbfunc = NULL, const char *alphafunc = NULL);
+
+struct zone { int x1, x2, y1, y2, color; }; // zones (drawn on the minimap)
 
 // rendercubes
 extern void mipstats(int a, int b, int c);
