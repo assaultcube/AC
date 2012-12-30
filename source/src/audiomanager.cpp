@@ -568,7 +568,7 @@ void audiomanager::updateaudio()
     location *tinnitusloc = updateloopsound(S_TINNITUS, tinnitus);
 
     // heartbeat
-    bool heartbeatsound = heartbeat && alive && firstperson && player1->health <= heartbeat;
+    bool heartbeatsound = heartbeat && alive && firstperson && !m_osok && player1->health <= heartbeat;
     updateloopsound(S_HEARTBEAT, heartbeatsound);
 
     // pitch fx
