@@ -122,7 +122,7 @@ SetCompressor /SOLID lzma
 !define AC_FULLNAMESAVE "AssaultCube_v1.2.0.0"
 !define AC_URLPROTOCOL "assaultcube"
 !define AC_MAJORVERSIONINT 1
-!define AC_MINORVERSIONINT 1
+!define AC_MINORVERSIONINT 2
 
 Name "AssaultCube"
 VAR StartMenuFolder
