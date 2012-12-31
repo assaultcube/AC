@@ -8,28 +8,8 @@ VARP(autoreload, 0, 1, 1);
 VARP(akimboautoswitch, 0, 1, 1);
 VARP(akimboendaction, 0, 1, 2); // 0: stay with pistol, 1: back to primary, 2: grenade - all fallback to previous one w/o ammo for target
 
-int SGDMGTOTAL = 90;
-
-int SGDMGBONUS = 65;
-int SGDMGDISTB = 50;
-
-int SGCCdmg = 500;
-int SGCCbase = 0;
-int SGCCrange = 40;
-
-int SGCMdmg = 375;
-int SGCMbase = 25;
-int SGCMrange = 60;
-
-int SGCOdmg = 125;
-int SGCObase = 45;
-int SGCOrange = 75;
-
-
 sgray sgr[SGRAYS*3];
 sgray pat[SGRAYS*3]; // DEBUG 2011may27
-
-
 
 int burstshotssettings[NUMGUNS] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, };
 
@@ -677,7 +657,7 @@ void raydamage(vec &from, vec &to, playerent *d)
                  dmgreal = min(dmgreal, SGMAXDMGABS);
                  }
                  */
-                dmgreal = (int) dmg4r;
+                dmgreal = (int) ceil(dmg4r);
                 lastsgs_hits = numhits;
                 lastsgs_dmgt = dmgreal;
 //                conoutf("%d [%.3f%s] DMG with %d hits", lastsgs_dmgt, dmg4r, withBONUS ? "\fs\f3+\fr" : "", lastsgs_hits);
