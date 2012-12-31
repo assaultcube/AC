@@ -1513,9 +1513,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
                   actor->state.teamkills * 30 * 1000 > gamemillis &&
                   actor->state.frags < 4 * actor->state.teamkills ) )
             {
-                ban b = { actor->peer->address, servmillis+scl.ban_time };
-                bans.add(b);
-                disconnect_client(actor->clientnum, DISC_AUTOBAN);
+                addban(actor, DISC_AUTOBAN);
             }
             else if( actor->state.frags < scl.kickthreshold ||
                      /** teamkilling more than 5 (defaults), more than 1 tk per minute and less than 4 frags per tk */
@@ -2037,6 +2035,14 @@ void addgban(const char *name)
         if(c.type!=ST_TCPIP) continue;
         if(checkgban(c.peer->address.host)) disconnect_client(c.clientnum, DISC_BANREFUSE);
     }
+}
+
+void addban(client *cl, int reason)
+{
+    if(!cl) return;
+    ban b = { cl->peer->address, servmillis+scl.ban_time };
+    bans.add(b);
+    disconnect_client(cl->clientnum, reason);
 }
 
 int getbantype(int cn)

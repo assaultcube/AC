@@ -23,6 +23,8 @@ inline void checkclientpos(client *cl)
 
 #define POW2XY(A,B) (pow2(A.x-B.x)+pow2(A.y-B.y))
 
+extern void addban(client *cl, int reason);
+
 #ifdef ACAC
 #include "anticheat.h"
 #endif

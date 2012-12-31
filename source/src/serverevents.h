@@ -65,17 +65,46 @@ void processevent(client *c, shotevent &e)
                 client *target = clients[h.target];
                 if(target->type==ST_EMPTY || target->state.state!=CS_ALIVE || h.lifesequence!=target->state.lifesequence) continue;
 
-                int rays = e.gun==GUN_SHOTGUN ? ((h.info & 0xFF00) >> 8) : 1;
-                if(rays<1) continue;
-                totalrays += rays;
-                if(totalrays>maxrays) continue;
-                
-                int damage = e.gun==GUN_SHOTGUN ? h.info&0xFF : rays*guns[e.gun].damage;
+                int rays = 1, damage = 0;
                 bool gib = false;
-                if(e.gun==GUN_KNIFE || (e.gun==GUN_SHOTGUN && rays == maxrays)) gib = true;
-                
-                else if(e.gun==GUN_SNIPER) gib = h.info!=0;
-                if(e.gun==GUN_SNIPER && gib) damage *= 3;
+                if(e.gun == GUN_SHOTGUN)
+                {
+                    h.info = isbigendian() ? endianswap(h.info) : h.info;
+                    int bonusdist = h.info&0xFF;
+                    int numhits_c = (h.info & 0x0000FF00) >> 8;
+                    int numhits_m = (h.info & 0x00FF0000) >> 16; 
+                    int numhits_o = (h.info & 0xFF000000) >> 24;
+                    rays = numhits_c + numhits_m + numhits_o;
+                    
+                    if(rays < 1) continue;
+
+                    if(numhits_c > SGRAYS || numhits_m > SGRAYS || numhits_o > SGRAYS || bonusdist > SGDMGBONUS)
+                    {
+                        addban(c, DISC_CHEAT); 
+                        continue;
+                    }
+                    
+                    gib = rays == maxrays;
+                    float fdamage = (SGDMGTOTAL/(21*100.0f)) * (numhits_o * SGCOdmg/10.0f + numhits_m * SGCMdmg/10.0f + numhits_c * SGCCdmg/10.0f);
+                    fdamage += (float)bonusdist;
+                    damage = (int)ceil(fdamage);
+#ifdef ACAC
+                    if (!sg_engine(target, c, numhits_c, numhits_m, numhits_o, bonusdist)) continue;
+#endif
+                }
+                else
+                {
+                    damage = rays*guns[e.gun].damage;
+                    gib = e.gun == GUN_KNIFE;
+                    if(e.gun == GUN_SNIPER && h.info != 0)
+                    {
+                        gib = true;
+                        damage *= 3;
+                    }
+                }
+                totalrays += rays;
+
+                if(totalrays>maxrays) continue;
                 serverdamage(target, c, damage, e.gun, gib, h.dir);
             }
             break;

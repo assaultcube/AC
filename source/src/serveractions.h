@@ -200,9 +200,8 @@ struct banaction : playeraction
     bool wasvalid;
     void perform()
     {
-        ban b = { address, servmillis+scl.ban_time };
-        bans.add(b);
-        disconnect(DISC_MBAN);
+        int i = findcnbyaddress(&address);
+        if(i >= 0) addban(clients[i], DISC_MBAN);
     }
     virtual bool isvalid() { return wasvalid || playeraction::isvalid(); }
     banaction(int cn, char *reason) : playeraction(cn)
