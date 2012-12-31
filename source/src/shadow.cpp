@@ -8,7 +8,8 @@ int stenciling = 0;
 
 VAR(shadowclip, 0, 1, 1);
 VAR(shadowtile, 0, 1, 1);
-VAR(dbgtiles, 0, 0, 1);
+const int dbgtiles = 0;
+//VAR(dbgtiles, 0, 0, 1);
 VAR(shadowcasters, 1, 0, 0);
 
 #define SHADOWROWS 64

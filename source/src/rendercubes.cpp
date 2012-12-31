@@ -123,8 +123,8 @@ enum
 int nquads;
 
 // for testing purpose. UNDOME on release.
-//const float texturescale = 32.0f;
-VARP(texturescale, 16, 32, 64);
+const float texturescale = 32.0f;
+//VARP(texturescale, 16, 32, 64);
 
 #define TEXTURESCALE (float(texturescale) * ((uniformtexres && t->scale>1.0f) ? 1.0f : t->scale))
 
