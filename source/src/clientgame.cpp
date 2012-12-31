@@ -601,13 +601,8 @@ void resetsleep(bool force)
     }
 }
 
-void resetsleep_()
-{
-    resetsleep(true);
-}
-
 COMMANDN(sleep, addsleep_, "isi");
-COMMANDN(resetsleeps, resetsleep_, "");
+COMMANDF(resetsleeps, "", (void) { resetsleep(true); });
 
 void updateworld(int curtime, int lastmillis)        // main game update loop
 {

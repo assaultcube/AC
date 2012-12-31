@@ -7,8 +7,10 @@ VARP(dynshadowquad, 0, 0, 1);
 VAR(shadowyaw, 0, 45, 360);
 vec shadowdir(0, 0, -1), shadowpos(0, 0, 0);
 
-VAR(dbgstenc, 0, 0, 2);
-VAR(dbgvlight, 0, 0, 1);
+const int dbgstenc = 0;
+const int dbgvlight = 0;
+//VAR(dbgstenc, 0, 0, 2);
+//VAR(dbgvlight, 0, 0, 1);
 
 VARP(mdldlist, 0, 1, 1);
 

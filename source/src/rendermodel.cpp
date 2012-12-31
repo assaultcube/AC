@@ -344,7 +344,8 @@ void endmodelbatches(bool flush)
     if(flush) clearmodelbatches();
 }
 
-VAR(dbgmbatch, 0, 0, 1);
+const int dbgmbatch = 0;
+//VAR(dbgmbatch, 0, 0, 1);
 
 VARP(popdeadplayers, 0, 0, 1);
 void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, float yaw, float pitch, float speed, int basetime, playerent *d, modelattach *a, float scale)
