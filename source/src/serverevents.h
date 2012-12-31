@@ -58,6 +58,7 @@ void processevent(client *c, shotevent &e)
         default:
         {
             int totalrays = 0, maxrays = e.gun==GUN_SHOTGUN ? 3*SGRAYS: 1;
+            int tothits_c = 0, tothits_m = 0, tothits_o = 0; // sgrays
             for(int i = 1; i<c->events.length() && c->events[i].type==GE_HIT; i++)
             {
                 hitevent &h = c->events[i].hit;
@@ -71,14 +72,12 @@ void processevent(client *c, shotevent &e)
                 {
                     h.info = isbigendian() ? endianswap(h.info) : h.info;
                     int bonusdist = h.info&0xFF;
-                    int numhits_c = (h.info & 0x0000FF00) >> 8;
-                    int numhits_m = (h.info & 0x00FF0000) >> 16; 
-                    int numhits_o = (h.info & 0xFF000000) >> 24;
+                    int numhits_c = (h.info & 0x0000FF00) >> 8, numhits_m = (h.info & 0x00FF0000) >> 16, numhits_o = (h.info & 0xFF000000) >> 24;
+                    tothits_c += numhits_c; tothits_m += numhits_m; tothits_o += numhits_o;
                     rays = numhits_c + numhits_m + numhits_o;
-                    
                     if(rays < 1) continue;
 
-                    if(numhits_c > SGRAYS || numhits_m > SGRAYS || numhits_o > SGRAYS || bonusdist > SGDMGBONUS)
+                    if(tothits_c > SGRAYS || tothits_m > SGRAYS || tothits_o > SGRAYS || bonusdist > SGDMGBONUS)
                     {
                         addban(c, DISC_CHEAT); 
                         continue;
