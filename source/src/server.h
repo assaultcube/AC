@@ -8,7 +8,7 @@
 
 #define valid_flag(f) (f >= 0 && f < 2)
 
-enum { GE_NONE = 0, GE_SHOT, GE_EXPLODE, GE_HIT, GE_AKIMBO, GE_RELOAD, GE_SCOPING, GE_SUICIDE, GE_PICKUP };
+enum { GE_NONE = 0, GE_SHOT, GE_EXPLODE, GE_HIT, GE_AKIMBO, GE_RELOAD, GE_SUICIDE, GE_PICKUP };
 enum { ST_EMPTY, ST_LOCAL, ST_TCPIP };
 
 extern int smode, servmillis;
@@ -65,13 +65,6 @@ struct reloadevent
     int gun;
 };
 
-struct scopeevent
-{
-    int type;
-    int millis, id;
-    bool scoped;
-};
-
 union gameevent
 {
     int type;
@@ -82,7 +75,6 @@ union gameevent
     pickupevent pickup;
     akimboevent akimbo;
     reloadevent reload;
-    scopeevent scoping;
 };
 
 template <int N>

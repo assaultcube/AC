@@ -75,14 +75,9 @@ void processevent(client *c, shotevent &e)
                     int numhits_c = (h.info & 0x0000FF00) >> 8, numhits_m = (h.info & 0x00FF0000) >> 16, numhits_o = (h.info & 0xFF000000) >> 24;
                     tothits_c += numhits_c; tothits_m += numhits_m; tothits_o += numhits_o;
                     rays = numhits_c + numhits_m + numhits_o;
-                    if(rays < 1) continue;
-
-                    if(tothits_c > SGRAYS || tothits_m > SGRAYS || tothits_o > SGRAYS || bonusdist > SGDMGBONUS)
-                    {
-                        addban(c, DISC_CHEAT); 
-                        continue;
-                    }
                     
+                    if(rays < 1 || tothits_c > SGRAYS || tothits_m > SGRAYS || tothits_o > SGRAYS || bonusdist > SGDMGBONUS) continue;
+
                     gib = rays == maxrays;
                     float fdamage = (SGDMGTOTAL/(21*100.0f)) * (numhits_o * SGCOdmg/10.0f + numhits_m * SGCMdmg/10.0f + numhits_c * SGCCdmg/10.0f);
                     fdamage += (float)bonusdist;
@@ -121,13 +116,6 @@ void processevent(client *c, pickupevent &e)
     clientstate &gs = c->state;
     if(m_mp(gamemode) && !gs.isalive(gamemillis)) return;
     serverpickup(e.ent, c->clientnum);
-}
-
-void processevent(client *c, scopeevent &e) // FIXME remove in the next protocol change
-{
-    clientstate &gs = c->state;
-    if(!gs.isalive(gamemillis)/* || e.gun!=GUN_SNIPER*/) return; // currently we check the gun on the client-side only
-    gs.scoped = e.scoped;
 }
 
 void processevent(client *c, reloadevent &e)
@@ -193,7 +181,6 @@ void processevents()
                 case GE_EXPLODE: processevent(c, e.explode); break;
                 case GE_AKIMBO: processevent(c, e.akimbo); break;
                 case GE_RELOAD: processevent(c, e.reload); break;
-                case GE_SCOPING: processevent(c, e.scoping); break;
                 // untimed events
                 case GE_SUICIDE: processevent(c, e.suicide); break;
                 case GE_PICKUP: processevent(c, e.pickup); break;
