@@ -564,7 +564,7 @@ void audiomanager::updateaudio()
     updateloopsound(S_UNDERWATER, underwater);
 
     // tinnitus
-    bool tinnitus = /*alive &&*/ firstperson && player1->eardamagemillis>0 && lastmillis<=player1->eardamagemillis;
+    bool tinnitus = alive && firstperson && player1->eardamagemillis>0 && lastmillis<=player1->eardamagemillis;
     location *tinnitusloc = updateloopsound(S_TINNITUS, tinnitus);
 
     // heartbeat
