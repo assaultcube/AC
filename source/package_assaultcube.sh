@@ -76,6 +76,31 @@ else
     exit
 fi
 
+# Check that map previews are all available:
+MAPSPATH="$PATHTOACDIR/packages/maps/official"
+MAPSCGZ=`cd $MAPSPATH && find ./*.cgz ! -name ac_depot_classic.cgz | xargs -i basename {} .cgz | sort -u | xargs`
+MAPSJPG=`cd $MAPSPATH/preview && find ./*.jpg ! -name ac_depot_classic.jpg | xargs -i basename {} .jpg | sort -u | xargs`
+if [ "$MAPSCGZ" = "$MAPSJPG" ]; then
+    echo "All map \"previews\" are available!"
+    echo -e "Proceeding to the next step...\n"
+else
+    echo -e "\a\E[31m\033[1mERROR:\E[0m Some map previews are missing."
+    echo "Please go to $MAPSPATH/preview and create the ones that are missing!"
+    exit
+fi
+
+# Check that bot waypoints are all available:
+MAPSCGZ2=`cd $MAPSPATH && find ./*.cgz | xargs -i basename {} .cgz | sort -u | xargs`
+MAPSBOTS=`cd $PATHTOACDIR/bot/waypoints && find ./*.wpt | xargs -i basename {} .wpt | sort -u | xargs`
+if [ "$MAPSBOTS" = "$MAPSCGZ2" ]; then
+    echo "All bot waypoints are available!"
+    echo -e "Proceeding to the next step...\n"
+else
+    echo -e "\a\E[31m\033[1mERROR:\E[0m Some bot waypoints are missing."
+    echo "Please go generate the ones that are missing!"
+    exit
+fi
+
 # Check that shadows.dat files exist. To grab a list of shadows.dat files:
 #    cd ./packages/models && find . -name "shadows.dat" | sort
 cd $PATHTOACDIR/packages/models/
