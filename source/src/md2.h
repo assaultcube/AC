@@ -177,10 +177,14 @@ struct md2 : vertmodel
         }
     };
 
-    void render(int anim, int varseed, float speed, int basetime, const vec &o, float yaw, float pitch, dynent *d, modelattach *a, float scale)
+    void render(int anim, int varseed, float speed, int basetime, const vec &o, float roll, float yaw, float pitch, dynent *d, modelattach *a, float scale)
     {
         if(!loaded) return;
 
+        pitch += offsetpitch;
+        yaw += offsetyaw;
+        roll += offsetroll;
+        
         if(a) for(int i = 0; a[i].tag; i++)
         {
             if(a[i].pos) link(NULL, a[i].tag, a[i].pos);
@@ -206,6 +210,7 @@ struct md2 : vertmodel
         matrixstack[0].translate(o);
         matrixstack[0].rotate_around_z((yaw+180)*RAD);
         matrixstack[0].rotate_around_y(-pitch*RAD);
+        matrixstack[0].rotate_around_x(roll*RAD);        
         if(anim&ANIM_MIRROR || scale!=1) matrixstack[0].scale(scale, anim&ANIM_MIRROR ? -scale : scale, scale);
         parts[0]->render(anim, varseed, speed, basetime, d);
 
@@ -220,7 +225,7 @@ struct md2 : vertmodel
             if(!m) continue;
             m->parts[0]->index = parts.length()+i;
             m->setskin();
-            m->render(anim, varseed, speed, basetime, o, yaw, pitch, d, NULL, scale);
+            m->render(anim, varseed, speed, basetime, o, roll, yaw, pitch, d, NULL, scale);
         }
 
         if(d) d->lastrendered = lastmillis;
