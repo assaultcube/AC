@@ -79,6 +79,27 @@ void mdlcachelimit(int *limit)
 
 COMMAND(mdlcachelimit, "i");
 
+void mdlroll(float *angle)
+{
+    checkmdl;
+    loadingmodel->offsetroll = *angle;
+}
+COMMAND(mdlroll, "f");
+
+void mdlyaw(float *angle)
+{
+    checkmdl;
+    loadingmodel->offsetyaw = *angle;
+}
+COMMAND(mdlyaw, "f");
+
+void mdlpitch(float *angle)
+{
+    checkmdl;
+    loadingmodel->offsetpitch = *angle;
+}
+COMMAND(mdlpitch, "f");
+
 vector<mapmodelinfo> mapmodels;
 
 void mapmodel(int *rad, int *h, int *zoff, char *snap, char *name)
@@ -159,7 +180,7 @@ struct batchedmodel
 {
     vec o;
     int anim, varseed, tex;
-    float yaw, pitch, speed;
+    float roll, yaw, pitch, speed;
     int basetime;
     playerent *d;
     int attached;
@@ -205,7 +226,7 @@ void renderbatchedmodel(model *m, batchedmodel &b)
 
     if(stenciling)
     {
-        m->render(b.anim|ANIM_NOSKIN, b.varseed, b.speed, b.basetime, b.o, b.yaw, b.pitch, b.d, a, b.scale);
+        m->render(b.anim|ANIM_NOSKIN, b.varseed, b.speed, b.basetime, b.o, b.roll, b.yaw, b.pitch, b.d, a, b.scale);
         return;
     }
 
@@ -222,7 +243,7 @@ void renderbatchedmodel(model *m, batchedmodel &b)
     if(b.anim&ANIM_TRANSLUCENT)
     {
         glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-        m->render(b.anim|ANIM_NOSKIN, b.varseed, b.speed, b.basetime, b.o, b.yaw, b.pitch, b.d, a, b.scale);
+        m->render(b.anim|ANIM_NOSKIN, b.varseed, b.speed, b.basetime, b.o, b.roll, b.yaw, b.pitch, b.d, a, b.scale);
         glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 
         glDepthFunc(GL_LEQUAL);
@@ -234,7 +255,7 @@ void renderbatchedmodel(model *m, batchedmodel &b)
         glColor4f(color[0], color[1], color[2], m->translucency);
     }
 
-    m->render(b.anim, b.varseed, b.speed, b.basetime, b.o, b.yaw, b.pitch, b.d, a, b.scale);
+    m->render(b.anim, b.varseed, b.speed, b.basetime, b.o, b.roll, b.yaw, b.pitch, b.d, a, b.scale);
 
     if(b.anim&ANIM_TRANSLUCENT)
     {
@@ -406,7 +427,7 @@ void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, fl
     if(stenciling)
     {
         m->startrender();
-        m->render(anim|ANIM_NOSKIN, varseed, speed, basetime, o, yaw, pitch, d, a, scale);
+        m->render(anim|ANIM_NOSKIN, varseed, speed, basetime, o, 0, yaw, pitch, d, a, scale);
         m->endrender();
         return;
     }
@@ -445,7 +466,7 @@ void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, fl
     if(anim&ANIM_TRANSLUCENT)
     {
         glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-        m->render(anim|ANIM_NOSKIN, varseed, speed, basetime, o, yaw, pitch, d, a, scale);
+        m->render(anim|ANIM_NOSKIN, varseed, speed, basetime, o, 0, yaw, pitch, d, a, scale);
         glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 
         glDepthFunc(GL_LEQUAL);
@@ -457,7 +478,7 @@ void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, fl
         glColor4f(color[0], color[1], color[2], m->translucency);
     }
 
-    m->render(anim, varseed, speed, basetime, o, yaw, pitch, d, a, scale);
+    m->render(anim, varseed, speed, basetime, o, 0, yaw, pitch, d, a, scale);
 
     if(anim&ANIM_TRANSLUCENT)
     {
