@@ -1136,7 +1136,7 @@ void startmap(const char *name, bool reset)   // called just after a map load
     if(editmode) toggleedit(true);
     intermission = false;
     showscores(false);
-    reorderscorecolumns();
+    needscoresreorder = true;
     minutesremaining = -1;
     lastgametimeupdate = 0;
     arenaintermission = 0;
