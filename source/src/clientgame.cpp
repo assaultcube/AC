@@ -814,33 +814,16 @@ void setkillmessage(int gun, bool gib, const char *message)
         result(killmessage(gun, gib));
         return;
     }
-
     if(gun < 0 || gun >= NUMGUNS)
     {
         conoutf("invalid gun specified");
         return;
     }
-
     copystring(killmessages[gib?1:0][gun], message, sizeof(killmessages[gib?1:0][gun]));
 }
 
 COMMANDF(fragmessage, "is", (int *gun, const char *message) { setkillmessage(*gun, false, message); });
 COMMANDF(gibmessage, "is", (int *gun, const char *message) { setkillmessage(*gun, true, message); });
-
-void writekillmsgcfg()
-{
-    stream *f = openfile(path("config/killmessages.cfg", true), "w");
-    if(!f) return;
-    f->printf("// kill messages for each weapon\n");
-    loopi(NUMGUNS)
-    {
-        const char *fragmsg = killmessage(i, false);
-        const char *gibmsg = killmessage(i, true);
-        f->printf("\nfragmessage %d \"%s\"", i, fragmsg);
-        f->printf("\ngibmessage %d \"%s\"", i, gibmsg);
-    }
-    f->printf("\n");
-}
 
 void burstshots(int gun, int shots)
 {

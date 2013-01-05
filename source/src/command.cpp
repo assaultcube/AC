@@ -1385,6 +1385,15 @@ void writecfg()
     f->printf("\n");
     audiomgr.writesoundconfig(f);
     f->printf("\n");
+    f->printf("// kill messages for each weapon\n");
+    loopi(NUMGUNS)
+    {
+        const char *fragmsg = killmessage(i, false);
+        const char *gibmsg = killmessage(i, true);
+        f->printf("\nfragmessage %d \"%s\"", i, fragmsg);
+        f->printf("\ngibmessage %d \"%s\"", i, gibmsg);
+    }
+    f->printf("\n");
     enumerate(*idents, ident, id,
         if(!id.persist) continue;
         switch(id.type)

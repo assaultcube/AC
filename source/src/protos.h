@@ -797,7 +797,6 @@ extern void push(const char *name, const char *action);
 extern void pop(const char *name);
 extern void alias(const char *name, const char *action);
 extern const char *getalias(const char *name);
-extern void writekillmsgcfg();
 extern void writecfg();
 extern void deletecfg();
 extern void identnames(vector<const char *> &names, bool builtinonly);
