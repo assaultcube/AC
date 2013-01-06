@@ -53,9 +53,6 @@ struct sline
 
     sline() : bgcolor(NULL), textcolor(0) { copystring(s, ""); }
 
-    // FIXME : type and priority are a bit redundant
-    //         but getting rid of "type" might cause issues under specific conditions
-    //         (if two columns share the same priority)
     void addcol(int priority, const char *format = NULL, ...)
     {
         if(priority < 0) return;
@@ -77,7 +74,7 @@ struct sline
             loopv(cols)
             {
                if(i > 0) concatstring(s, "\t");
-               concatstring(s, cols[i].val);
+               if(cols[i].val) concatstring(s, cols[i].val);
             }
         }
         return s;
