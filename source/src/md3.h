@@ -153,13 +153,9 @@ struct md3 : vertmodel
         }
     };
 
-    void render(int anim, int varseed, float speed, int basetime, const vec &o, float roll, float yaw, float pitch, dynent *d, modelattach *a, float scale)
+    void render(int anim, int varseed, float speed, int basetime, const vec &o, float yaw, float pitch, dynent *d, modelattach *a, float scale)
     {
         if(!loaded) return;
-
-        pitch += offsetpitch;
-        yaw += offsetyaw;
-        roll += offsetroll;
 
         if(a) for(int i = 0; a[i].tag; i++)
         {
@@ -181,7 +177,6 @@ struct md3 : vertmodel
             shadowdir = vec(0, 1/SQRT2, -1/SQRT2);
             shadowdir.rotate_around_z((-shadowyaw-yaw-180.0f)*RAD);
             shadowdir.rotate_around_y(-pitch*RAD);
-            shadowdir.rotate_around_x(roll*RAD);
             (shadowpos = shadowdir).mul(shadowdist);
         }
 
@@ -194,7 +189,6 @@ struct md3 : vertmodel
         matrixstack[0].translate(o);
         matrixstack[0].rotate_around_z((yaw+180)*RAD);
         matrixstack[0].rotate_around_y(-pitch*RAD);
-        matrixstack[0].rotate_around_x(roll*RAD);
         if(anim&ANIM_MIRROR || scale!=1) matrixstack[0].scale(scale, anim&ANIM_MIRROR ? -scale : scale, scale);
         parts[0]->render(anim, varseed, speed, basetime, d);
 
