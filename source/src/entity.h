@@ -387,7 +387,8 @@ public:
             default: break;
         }
         
- 
+        //ra - reduced armor
+        //rd - reduced damage
         int ra = (int) (ad * damage/100.0f);
         int rd = ra-(ra*(gi.piercing/100.0f)); //Who cares about rounding errors anyways?
         
