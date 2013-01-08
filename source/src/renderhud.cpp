@@ -555,8 +555,7 @@ void drawradar_showmap(playerent *p, int w, int h)
             if(!e) continue;
             if(e->x == -1 && e-> y == -1) continue; // flagdummies
             vec pos = vec(e->x, e->y, 0).sub(mdd).mul(coordtrans);
-            //drawradarent(pos.x, pos.y, camera1->yaw, m_ktf ? 2 : f.team, 3, iconsize, false); // draw bases
-            drawradarent(pos.x, pos.y, 0, m_ktf ? 2 : f.team, 3, iconsize, false);
+            drawradarent(pos.x, pos.y, 0, m_ktf ? 2 : f.team, 3, iconsize, false); // draw bases
             vec fltxoff = vec(8, -8, 0);
             vec cpos = vec(f.pos.x, f.pos.y, f.pos.z).sub(mdd).mul(coordtrans).add(fltxoff);
             if(f.state!=CTFF_STOLEN && !(m_ktf && f.state == CTFF_IDLE))
