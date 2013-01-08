@@ -26,6 +26,8 @@ void drawequipicon(float x, float y, int col, int row, float blend)
     }
 }
 
+VARP(radarentsize, 4, 12, 64);
+
 void drawradaricon(float x, float y, float s, int col, int row)
 {
     static Texture *tex = NULL;
@@ -79,7 +81,6 @@ VARP(crosshairteamsign, 0, 1, 1);
 VARP(hideradar, 0, 0, 1);
 VARP(hidecompass, 0, 0, 1);
 VARP(hideteam, 0, 0, 1);
-VARP(radarentsize, 4, 12, 64);
 VARP(hidectfhud, 0, 0, 1);
 VARP(hidevote, 0, 0, 2);
 VARP(hidehudmsgs, 0, 0, 1);
@@ -554,11 +555,15 @@ void drawradar_showmap(playerent *p, int w, int h)
             if(!e) continue;
             if(e->x == -1 && e-> y == -1) continue; // flagdummies
             vec pos = vec(e->x, e->y, 0).sub(mdd).mul(coordtrans);
-            vec cpos = vec(f.pos.x, f.pos.y, f.pos.z).sub(mdd).mul(coordtrans);
-            drawradarent(pos.x, pos.y, camera1->yaw, m_ktf ? 2 : f.team, 3, iconsize, false); // draw bases
+            //drawradarent(pos.x, pos.y, camera1->yaw, m_ktf ? 2 : f.team, 3, iconsize, false); // draw bases
+            drawradarent(pos.x, pos.y, 0, m_ktf ? 2 : f.team, 3, iconsize, false);
+            vec fltxoff = vec(8, -8, 0);
+            vec cpos = vec(f.pos.x, f.pos.y, f.pos.z).sub(mdd).mul(coordtrans).add(fltxoff);
             if(f.state!=CTFF_STOLEN && !(m_ktf && f.state == CTFF_IDLE))
             {
-                drawradarent(cpos.x, cpos.y, 0, 3, m_ktf ? 2 : f.team, iconsize, false); // draw on entity pos
+                float flgoff=fabs((radarentsize*2.1f)-8);
+                vec fo = vec(cpos.x+flgoff, cpos.y-flgoff, 0); //flag offset
+                drawradarent(fo.x, fo.y, 0, 3, m_ktf ? 2 : f.team, iconsize, false); // draw on entity pos
             }
             if(m_ktf && f.state == CTFF_IDLE) continue;
             if(f.state==CTFF_STOLEN)
@@ -622,7 +627,7 @@ void drawradar_vicinity(playerent *p, int w, int h)
         //showradarvalues = 0;
     }
     glDisable(GL_BLEND);
-    circle(minimaptex, halfviewsize, halfviewsize, halfviewsize, usecenter.x/(float)gdim, usecenter.y/(float)gdim, scaleh, 31);
+    circle(minimaptex, halfviewsize, halfviewsize, halfviewsize, usecenter.x/(float)gdim, usecenter.y/(float)gdim, scaleh, 31); //Draw mimimaptext as radar background
     glTranslatef(halfviewsize, halfviewsize, 0);
     if(team_isactive(p->team)) drawradarent(0, 0, p->yaw, p->state==CS_ALIVE ? (isattacking(p) ? 2 : 0) : 1, 2, iconsize, isattacking(p), "%s", colorname(p)); // local player
     loopv(players) // other players
@@ -662,7 +667,12 @@ void drawradar_vicinity(playerent *p, int w, int h)
                 {
                     cpos.mul(scaled);//.add(vec(d2c,-d2c,0));
                     //cpos.mul(scaled).add(vec(4*d2c,-4*d2c,0));
-                    drawradarent(cpos.x, cpos.y, camera1->yaw, 3, m_ktf ? 2 : f.team, iconsize, false); // draw on entity pos
+                    float flgoff=radarentsize/0.68f;
+                    float ryaw=(camera1->yaw-45)*(2*PI/360);
+                    float offx=flgoff*cosf(-ryaw);
+                    float offy=flgoff*sinf(-ryaw);
+                    vec fo = vec(cpos.x+offx, cpos.y-offy, 0); //flag offset
+                    drawradarent(fo.x, fo.y, camera1->yaw, 3, m_ktf ? 2 : f.team, iconsize, false); // draw flag on entity pos
                 }
             }
             if(m_ktf && f.state == CTFF_IDLE) continue;
@@ -938,11 +948,15 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             if(dbgpos)
             {
                 pushfont("mono");
-                defformatstring(o_x)("%05.2f X", player1->o.x);
+                defformatstring(o_yw)("%05.2f YAW", player1->yaw);
+                draw_text(o_yw, VIRTW*2 - ( text_width(o_yw) + FONTH ), VIRTH*2 - 15*FONTH/2);
+                defformatstring(o_p)("%05.2f PIT", player1->pitch);
+                draw_text(o_p, VIRTW*2 - ( text_width(o_p) + FONTH ), VIRTH*2 - 13*FONTH/2);
+                defformatstring(o_x)("%05.2f X  ", player1->o.x);
                 draw_text(o_x, VIRTW*2 - ( text_width(o_x) + FONTH ), VIRTH*2 - 11*FONTH/2);
-                defformatstring(o_y)("%05.2f Y", player1->o.y);
+                defformatstring(o_y)("%05.2f Y  ", player1->o.y);
                 draw_text(o_y, VIRTW*2 - ( text_width(o_y) + FONTH ), VIRTH*2 - 9*FONTH/2);
-                defformatstring(o_z)("%05.2f Z", player1->o.z);
+                defformatstring(o_z)("%05.2f Z  ", player1->o.z);
                 draw_text(o_z, VIRTW*2 - ( text_width(o_z) + FONTH ), VIRTH*2 - 7*FONTH/2);
                 popfont();
             }
