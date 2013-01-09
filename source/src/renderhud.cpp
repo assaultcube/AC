@@ -489,7 +489,6 @@ VAR(showradarvalues, 0, 0, 1); // DEBUG
 
 void drawradar_showmap(playerent *p, int w, int h)
 {
-    //float minimapviewsize = min(VIRTW,VIRTH); //minimapsize big size
     float minimapviewsize = 3*min(VIRTW,VIRTH)/4; //minimap default size
     float halfviewsize = minimapviewsize/2.0f;
     float iconsize = radarentsize/0.2f;
@@ -523,8 +522,6 @@ void drawradar_showmap(playerent *p, int w, int h)
     glDisable(GL_BLEND);
 
     float gdim = max(mapdims[4], mapdims[5]); //no border
-    //float orthd = gdim/2.0f;
-    //float displace = (minimapviewsize/orthd)/2.0f;
     float coordtrans = (minimapviewsize)/(gdim);
 
     float offd = fabs(float(mapdims[5])-float(mapdims[4])) /2.0f;
@@ -561,8 +558,7 @@ void drawradar_showmap(playerent *p, int w, int h)
             if(f.state!=CTFF_STOLEN && !(m_ktf && f.state == CTFF_IDLE))
             {
                 float flgoff=fabs((radarentsize*2.1f)-8);
-                vec fo = vec(cpos.x+flgoff, cpos.y-flgoff, 0); //flag offset
-                drawradarent(fo.x, fo.y, 0, 3, m_ktf ? 2 : f.team, iconsize, false); // draw on entity pos
+                drawradarent(cpos.x+flgoff, cpos.y-flgoff, 0, 3, m_ktf ? 2 : f.team, iconsize, false); // draw on entity pos
             }
             if(m_ktf && f.state == CTFF_IDLE) continue;
             if(f.state==CTFF_STOLEN)
@@ -591,12 +587,10 @@ void drawradar_showmap(playerent *p, int w, int h)
 void drawradar_vicinity(playerent *p, int w, int h)
 {
     extern GLuint minimaptex;
-    //extern int minimaplastsize;
     int gdim = max(mapdims[4], mapdims[5]);
     float radarviewsize = min(VIRTW,VIRTH)/5;
     float halfviewsize = radarviewsize/2.0f;
-    float iconsize = radarentsize/0.4f; // Gibstick suggested: radarentsize*radarviewsize*0.015
-    //float scaler = gdim/100.0f;
+    float iconsize = radarentsize/0.4f;
     float scaleh = radarheight/(2.0f*gdim);
     float scaled = radarviewsize/float(radarheight);
     float offd = fabs((mapdims[5]-mapdims[4]) /2.0f);
@@ -612,8 +606,7 @@ void drawradar_vicinity(playerent *p, int w, int h)
     glTranslatef(centerpos.x, centerpos.y, 0);
     glRotatef(-camera1->yaw, 0, 0, 1);
     glTranslatef(-halfviewsize, -halfviewsize, 0);
-    //vec d4rc = vec(p->o).sub(rsd).normalize().mul(scaler);
-    vec d4rc = vec(p->o).sub(rsd).normalize().mul(0); //Toca .mul(0) is still needed
+    vec d4rc = vec(p->o).sub(rsd).normalize().mul(0);
     vec usecenter = vec(p->o).sub(rtr).sub(d4rc);
     if(showradarvalues)
     {
@@ -664,14 +657,12 @@ void drawradar_vicinity(playerent *p, int w, int h)
             {
                 if(cpos.magnitude() < d2s)
                 {
-                    cpos.mul(scaled);//.add(vec(d2c,-d2c,0));
-                    //cpos.mul(scaled).add(vec(4*d2c,-4*d2c,0));
+                    cpos.mul(scaled);
                     float flgoff=radarentsize/0.68f;
                     float ryaw=(camera1->yaw-45)*(2*PI/360);
                     float offx=flgoff*cosf(-ryaw);
                     float offy=flgoff*sinf(-ryaw);
-                    vec fo = vec(cpos.x+offx, cpos.y-offy, 0); //flag offset
-                    drawradarent(fo.x, fo.y, camera1->yaw, 3, m_ktf ? 2 : f.team, iconsize, false); // draw flag on entity pos
+                    drawradarent(cpos.x+offx, cpos.y-offy, camera1->yaw, 3, m_ktf ? 2 : f.team, iconsize, false); // draw flag on entity pos
                 }
             }
             if(m_ktf && f.state == CTFF_IDLE) continue;
