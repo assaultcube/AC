@@ -1,100 +1,38 @@
 Toca's 3D Models for AssaultCube
+================================================================================
+All mapmodels in these subfolders, have been created by Alejandro V. "Toca" García:
+	buzonyx@hotmail.com
 
---------------------------------------------------------------------------------------------------
-These mapmodels have been created for Assaultcube. http://assault.cubers.net/
+Originally created for the game AssaultCube:
+	http://assault.cubers.net/
 
-Models and skins by Alejandro V. García :
+All files within this folder and all subfolders are licensed as follows:
 
 
-LICENSE
-===========
-Files in this folder and subfolders:
-
-by "Toca"
-Alejandro V. García
-e-mail: buzonyx@hotmail.com
-
-===================================================================================================
-These files have been licensed under a the
-"Creative Commons Deed / Attribution Non-commercial Share-Alike ( at-nc-sa )" 
-===================================================================================================
-
+Creative Commons Deed / Attribution Non-commercial Share-Alike (AT-NC-SA):
+================================================================================
 You are free:
-
-    * to copy, distribute, display, and perform the work
-    * to make derivative works
+	* to copy, distribute, display, and perform the work
+	* to make derivative works
 
 Under the following conditions:
+	- Attribution. You must give the original author credit.
+	- Non-Commercial. You may not use this work for commercial purposes.
+	- Share Alike. If you alter, transform, or build upon this work, you may
+	  distribute the resulting work only under a licence identical to this one.
 
-"by" 	
-     -Attribution. You must give the original author credit.
-"nc"	
-     -Non-Commercial. You may not use this work for commercial purposes.
-"sa" 	
-     -Share Alike. If you alter, transform, or build upon this work, you may distribute the resulting          work only under a licence identical to this one.
-
-    * For any reuse or distribution, you must make clear to others the licence terms of this work.
-    * Any of these conditions can be waived if you get permission from the copyright holder.
+For any reuse or distribution, you must make clear to others the licence terms of this work.
+Any of these conditions can be waived if you get permission from the copyright holder.
 
 Your fair use and other rights are in no way affected by the above.
 
-This is a human-readable summary of the Legal Code (the full licence).
-
-=====================================================================================================
-
-See:
-
-http://creativecommons.org/licenses/by-nc-sa/2.5/deed.en_GB
-
-for the original "human readable" document.
-
-http://creativecommons.org/licenses/by-nc-sa/2.5/legalcode
-
-for the full legal code. 
-
-visit creativecommons.org for general information and translations of the above documents. 
-
-=====================================================================================================
-
-Español:
-Estos modelos 3D han sido creados para Actioncube. http://assault.cubers.net/
-
-Modelos y texturas creados por Alejandro V. García :
-
-LICENSIA
-===========
-Todos los Achivos en esta carpeta y subcarpertas (directorios y subdirectorios)
-
-Creados por "Toca"
-Alejandro V. García
-correo electronico: buzonyx@hotmail.com
-
-Atribución-No comercial-Licenciamiento Recíproco 2.5 México
-
-Eres libre de:
-
-* copiar, distribuir y comunicar públicamente la obra 
-* hacer obras derivadas
-
-Bajo las condiciones siguientes:
-
-* Atribución. Debes reconocer la autoría de la obra en los términos especificados por el propio
-  autor o licenciante.
-
-* No comercial. No puedes utilizar esta obra para fines comerciales.
-
-* Licenciamiento Recíproco. Si alteras, transformas o creas una obra a partir de esta obra, solo
-  podrás distribuir la obra resultante bajo una licencia igual a ésta.
-
-# Al reutilizar o distribuir la obra, tiene que dejar bien claro los términos de la licencia
-  de esta obra.
-# Alguna de estas condiciones puede no aplicarse si se obtiene el permiso del titular de
-  los derechos de autor.
-# Nada en esta licencia menoscaba o restringe los derechos morales del autor.
+================================================================================
+This is only a human-readable summary of the Legal Code (the full licence), which can be found at:
+	http://creativecommons.org/licenses/by-nc-sa/2.5/
+The full legal code can be found at:
+	http://creativecommons.org/licenses/by-nc-sa/2.5/legalcode
 
 http://creativecommons.org/international/mx/mx-license.pdf
 http://creativecommons.org/international/mx/
 http://creativecommons.org/licenses/by-nc-sa/2.5/mx/
-
-
 
