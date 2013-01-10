@@ -282,6 +282,30 @@ void reorderscorecolumns()
     menutitle(scoremenu, newstring(sscore.getcols()));
 }
 
+//Gets winning team based off of the mode.
+// If the mode is m_flags counts flags, if not counts frags.
+// Returns the team (TEAM_CLA, TEAM_RVSF), or -1 for non-teammode or a tie.
+// Good for ignore all other stats (deaths, score)
+int getwinningteam() {
+    if (!m_teammode) return -1;
+    int teamscores[] = {0, 0};
+    int ccteam; //Current Client Team
+    
+    loopv(players) {
+        if (!players[i]) continue;
+        ccteam = (players[i]->team % 2 ? TEAM_RVSF : TEAM_CLA); //Add in spec_teams
+        teamscores[ccteam] += (m_flags ? players[i]->flagscore : players[i]->frags); 
+    }
+    
+    //Add in player1
+    ccteam = (player1->team % 2 ? TEAM_RVSF : TEAM_CLA);
+    teamscores[ccteam] += (m_flags ? player1->flagscore : player1->frags);
+    
+    return (teamscores[TEAM_CLA] == teamscores[TEAM_RVSF] ? -1 :
+            (teamscores[TEAM_CLA] > teamscores[TEAM_RVSF] ? TEAM_CLA : TEAM_RVSF));
+    
+}
+
 void renderscores(void *menu, bool init)
 {
     if(needscoresreorder) reorderscorecolumns();
@@ -311,7 +335,23 @@ void renderscores(void *menu, bool init)
     extern int minutesremaining;
     if((gamemode>1 || (gamemode==0 && (multiplayer(false) || watchingdemo))) && minutesremaining >= 0)
     {
-        if(!minutesremaining) concatstring(modeline, ", intermission");
+        if(!minutesremaining) {
+            concatstring(modeline, ", intermission");
+            
+            if (m_teammode) { // Add in the winning team
+                int winningteam = getwinningteam();
+                conoutf("winning team = %d", winningteam);
+                if (winningteam == -1) {
+                    concatstring(modeline, ", \f2it's a tie!");
+                }
+                else if (winningteam == TEAM_RVSF) {
+                    concatstring(modeline, ", \f1RVSF wins!");
+                }
+                else if (winningteam == TEAM_CLA) {
+                    concatstring(modeline, ", \f3CLA wins!");
+                }
+            }
+        }
         else
         {
             defformatstring(timestr)(", %d %s remaining", minutesremaining, minutesremaining==1 ? "minute" : "minutes");
