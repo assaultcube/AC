@@ -306,7 +306,7 @@ int getwinningteam() {
     
 }
 
-playerent *getWinningPlayer() {
+playerent *getwinningplayer() {
     playerent *winner;
     int winningscore = 0;
     bool istie = true; //If no players, then it is a tie.
@@ -373,7 +373,6 @@ void renderscores(void *menu, bool init)
             
             if (m_teammode) { // Add in the winning team
                 int winningteam = getwinningteam();
-                conoutf("winning team = %d", winningteam);
                 if (winningteam == -1) {
                     concatstring(modeline, ", \f2it's a tie!");
                 }
@@ -385,7 +384,7 @@ void renderscores(void *menu, bool init)
                 }
             }
             else { //FFA modes
-                playerent *winner = getWinningPlayer();
+                playerent *winner = getwinningplayer();
                 if (winner == NULL) {
                     concatstring(modeline, ", \f2it's a tie!");
                 }
