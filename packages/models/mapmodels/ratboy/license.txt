@@ -1,11 +1,16 @@
 ================================================================================
-jcdpc_cardboardbox_skin.jpg is a modification of:
+ * ./jcdpc_cardboardbox_reskin/skin.jpg
+
+...is a modification of:
 	../../../textures/zastrow/wood_crate_10.jpg
 
 As such, it is licensed the same. Please read this file for its license:
 	../../../textures/zastrow/license.txt
 ================================================================================
-toca_milkcrate_skin.jpg & toca_milkcrate2_skin.jpg are modifications of:
+ * ./toca_milkcrate_blue/skin.jpg
+ * ./toca_milkcrate_blue/skin.jpg
+
+... are modifications of:
 	../toca/milkcrate/skin.png
 
 As such, it is licensed the same. Please read this file for its license:
