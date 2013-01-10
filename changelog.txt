@@ -85,6 +85,7 @@ Rendering / HUD / ...
 [*] showtargetname - turns on/off showing the player name on the HUD when in your crosshair.
 [*] Scoreboard doesn't show ping/score/pj in singleplayer
 [*] Customizable scoreboard, ability to display ratio
+[*] Scoreboard shows the winner of each game.
 [*] showspeed - turns speed indicator on/off
 [*] Improved tab completion.
 

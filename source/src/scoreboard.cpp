@@ -306,6 +306,39 @@ int getwinningteam() {
     
 }
 
+playerent *getWinningPlayer() {
+    playerent *winner;
+    int winningscore = 0;
+    bool istie = true; //If no players, then it is a tie.
+    
+    int curscore;
+    
+    loopv(players) {
+        if (!players[i]) continue;
+        curscore = m_flags ? players[i]->flagscore : players[i]->frags;
+        if (winningscore < curscore) {
+            winningscore = curscore;
+            winner = players[i];
+            istie = false;
+        }
+        else if (winningscore == curscore) {
+            istie = true;
+        }
+    }
+    
+    //Lets look at player1
+    curscore = m_flags ? player1->flagscore : player1->frags;
+    if (winningscore < curscore) {
+        winningscore = curscore;
+        winner = player1;
+        istie = false;
+    }
+    else if (winningscore == curscore) {
+        istie = true;
+    }
+    return (istie ? NULL : winner);
+}
+
 void renderscores(void *menu, bool init)
 {
     if(needscoresreorder) reorderscorecolumns();
@@ -351,8 +384,18 @@ void renderscores(void *menu, bool init)
                     concatstring(modeline, ", \f3CLA wins!");
                 }
             }
+            else { //FFA modes
+                playerent *winner = getWinningPlayer();
+                if (winner == NULL) {
+                    concatstring(modeline, ", \f2it's a tie!");
+                }
+                else {
+                    defformatstring(winnerstr)(", \f1%s wins!", winner->name);
+                    concatstring(modeline, winnerstr);
+                }
+            }
         }
-        else
+        else 
         {
             defformatstring(timestr)(", %d %s remaining", minutesremaining, minutesremaining==1 ? "minute" : "minutes");
             concatstring(modeline, timestr);
