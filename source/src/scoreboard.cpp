@@ -282,63 +282,6 @@ void reorderscorecolumns()
     menutitle(scoremenu, newstring(sscore.getcols()));
 }
 
-//Gets winning team based off of the mode.
-// If the mode is m_flags counts flags, if not counts frags.
-// Returns the team (TEAM_CLA, TEAM_RVSF), or -1 for non-teammode or a tie.
-// Good for ignore all other stats (deaths, score)
-int getwinningteam() {
-    if (!m_teammode) return -1;
-    int teamscores[] = {0, 0};
-    int ccteam; //Current Client Team
-    
-    loopv(players) {
-        if (!players[i]) continue;
-        ccteam = (players[i]->team % 2 ? TEAM_RVSF : TEAM_CLA); //Add in spec_teams
-        teamscores[ccteam] += (m_flags ? players[i]->flagscore : players[i]->frags); 
-    }
-    
-    //Add in player1
-    ccteam = (player1->team % 2 ? TEAM_RVSF : TEAM_CLA);
-    teamscores[ccteam] += (m_flags ? player1->flagscore : player1->frags);
-    
-    return (teamscores[TEAM_CLA] == teamscores[TEAM_RVSF] ? -1 :
-            (teamscores[TEAM_CLA] > teamscores[TEAM_RVSF] ? TEAM_CLA : TEAM_RVSF));
-    
-}
-
-playerent *getwinningplayer() {
-    playerent *winner;
-    int winningscore = 0;
-    bool istie = true; //If no players, then it is a tie.
-    
-    int curscore;
-    
-    loopv(players) {
-        if (!players[i]) continue;
-        curscore = m_flags ? players[i]->flagscore : players[i]->frags;
-        if (winningscore < curscore) {
-            winningscore = curscore;
-            winner = players[i];
-            istie = false;
-        }
-        else if (winningscore == curscore) {
-            istie = true;
-        }
-    }
-    
-    //Lets look at player1
-    curscore = m_flags ? player1->flagscore : player1->frags;
-    if (winningscore < curscore) {
-        winningscore = curscore;
-        winner = player1;
-        istie = false;
-    }
-    else if (winningscore == curscore) {
-        istie = true;
-    }
-    return (istie ? NULL : winner);
-}
-
 void renderscores(void *menu, bool init)
 {
     if(needscoresreorder) reorderscorecolumns();
@@ -359,6 +302,49 @@ void renderscores(void *menu, bool init)
     loopv(scores) if(scores[i]->team == TEAM_SPECT) spectators++;
     loopv(discscores) if(discscores[i].team == TEAM_SPECT) spectators++;
 
+    int winner = -1;
+    if(m_teammode)
+    {
+        teamscore teamscores[2] = { teamscore(TEAM_CLA), teamscore(TEAM_RVSF) };
+
+        loopv(scores) if(scores[i]->team != TEAM_SPECT) teamscores[team_base(scores[i]->team)].addplayer(scores[i]);
+        loopv(discscores) if(discscores[i].team != TEAM_SPECT) teamscores[team_base(discscores[i].team)].addscore(discscores[i]);
+
+        int sort = teamscorecmp(&teamscores[TEAM_CLA], &teamscores[TEAM_RVSF]) < 0 ? 0 : 1;
+        loopi(2)
+        {
+            renderteamscore(&teamscores[sort ^ i]);
+            renderdiscscores(sort ^ i);
+        }
+        winner = m_flags ?
+            (teamscores[sort].flagscore > teamscores[team_opposite(sort)].flagscore ? sort : -1) :
+            (teamscores[sort].frags > teamscores[team_opposite(sort)].frags ? sort : -1);
+                   
+    }
+    else
+    { // ffa mode
+        loopv(scores) if(scores[i]->team != TEAM_SPECT) renderscore(scores[i]);
+        loopi(2) renderdiscscores(i);
+        if(scores.length() > 0)
+        {
+            winner = scores[0]->clientnum;
+            if(scores.length() > 1
+                && (m_flags && scores[0]->flagscore == scores[1]->flagscore
+                     || !m_flags && scores[0]->frags == scores[1]->frags))
+                winner = -1;
+        }
+    }
+    if(spectators)
+    {
+        if(!scorelines.empty()) // space between teams and spectators
+        {
+            sline &space = scorelines.add();
+            space.s[0] = 0;
+        }
+        renderdiscscores(TEAM_SPECT);
+        loopv(scores) if(scores[i]->team == TEAM_SPECT) renderscore(scores[i]);
+    }
+
     if(getclientmap()[0])
     {
         bool fldrprefix = !strncmp(getclientmap(), "maps/", strlen("maps/"));
@@ -368,37 +354,29 @@ void renderscores(void *menu, bool init)
     extern int minutesremaining;
     if((gamemode>1 || (gamemode==0 && (multiplayer(false) || watchingdemo))) && minutesremaining >= 0)
     {
-        if(!minutesremaining) {
+        if(!minutesremaining)
+        {
             concatstring(modeline, ", intermission");
             
-            if (m_teammode) { // Add in the winning team
-                int winningteam = getwinningteam();
-                if (winningteam == -1) {
-                    concatstring(modeline, ", \f2it's a tie!");
-                }
-                else if (winningteam == TEAM_RVSF) {
-                    concatstring(modeline, ", \f1RVSF wins!");
-                }
-                else if (winningteam == TEAM_CLA) {
-                    concatstring(modeline, ", \f3CLA wins!");
-                }
-            }
-            else { //FFA modes
-                playerent *winner = getwinningplayer();
-                if (winner == NULL) {
-                    concatstring(modeline, ", \f2it's a tie!");
-                }
-                else {
-                    defformatstring(winnerstr)(", \f1%s wins!", winner->name);
-                    concatstring(modeline, winnerstr);
+            if (m_teammode) // Add in the winning team
+            {
+                switch(winner)
+                {
+                    case TEAM_CLA: concatstring(modeline, ", \f3CLA wins!"); break;
+                    case TEAM_RVSF: concatstring(modeline, ", \f1RVSF wins!"); break;
+                    case -1:
+                    default:
+                        concatstring(modeline, ", \f2it's a tie!");
+                    break;
                 }
             }
+            else // Add the winning player
+            {
+                if (winner < 0) concatstring(modeline, ", \f2it's a tie!");
+                else concatformatstring(modeline, ", \f1%s wins!", players[winner]->name);
+            }
         }
-        else 
-        {
-            defformatstring(timestr)(", %d %s remaining", minutesremaining, minutesremaining==1 ? "minute" : "minutes");
-            concatstring(modeline, timestr);
-        }
+        else concatformatstring(modeline, ", %d %s remaining", minutesremaining, minutesremaining==1 ? "minute" : "minutes");
     }
 
     if(multiplayer(false))
@@ -420,43 +398,6 @@ void renderscores(void *menu, bool init)
         }
     }
 
-    if(m_teammode)
-    {
-        teamscore teamscores[2] = { teamscore(TEAM_CLA), teamscore(TEAM_RVSF) };
-
-        loopv(scores) if(scores[i]->team != TEAM_SPECT)
-        {
-            teamscores[team_base(scores[i]->team)].addplayer(scores[i]);
-        }
-
-        loopv(discscores) if(discscores[i].team != TEAM_SPECT)
-        {
-            teamscores[team_base(discscores[i].team)].addscore(discscores[i]);
-        }
-
-        int sort = teamscorecmp(&teamscores[TEAM_CLA], &teamscores[TEAM_RVSF]) < 0 ? 0 : 1;
-        loopi(2)
-        {
-            renderteamscore(&teamscores[sort ^ i]);
-            renderdiscscores(sort ^ i);
-        }
-    }
-    else
-    { // ffa mode
-
-        loopv(scores) if(scores[i]->team != TEAM_SPECT) renderscore(scores[i]);
-        loopi(2) renderdiscscores(i);
-    }
-    if(spectators)
-    {
-        if(!scorelines.empty()) // space between teams and spectators
-        {
-            sline &space = scorelines.add();
-            space.s[0] = 0;
-        }
-        renderdiscscores(TEAM_SPECT);
-        loopv(scores) if(scores[i]->team == TEAM_SPECT) renderscore(scores[i]);
-    }
     menureset(menu);
     loopv(scorelines) menumanual(menu, scorelines[i].getcols(), NULL, scorelines[i].bgcolor);
     menuheader(menu, modeline, serverline);
