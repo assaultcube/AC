@@ -48,6 +48,44 @@ while getopts "c:" copt; do
       sed -i 's/wrench/makke\/wrench/g' $OPTARG
       sed -i 's/strahler/makke\/wall_spotlight/g' $OPTARG
       sed -i 's/streetlamp/makke\/street_light/g' $OPTARG
+      sed -i 's/ladder_rung/makke\/ladder_1x/g' $OPTARG
+      sed -i 's/ladder_7x/makke\/ladder_7x/g' $OPTARG
+      sed -i 's/ladder_8x/makke\/ladder_8x/g' $OPTARG
+      sed -i 's/ladder_10x/makke\/ladder_10x/g' $OPTARG
+      sed -i 's/ladder_11x/makke\/ladder_11x/g' $OPTARG
+      sed -i 's/ladder_15x/makke\/ladder_15x/g' $OPTARG
+      sed -i 's/ladderx15_center3/makke\/ladder_15x_offset/g' $OPTARG
+      sed -i 's/gutter_h/makke\/grate_hor/g' $OPTARG
+      sed -i 's/gutter_v/makke\/grate_vert/g' $OPTARG
+      sed -i 's/minelift/makke\/mine-shaft_elevator/g' $OPTARG
+      sed -i 's/screw/makke\/bolt_nut/g' $OPTARG
+      sed -i 's/sail/makke\/sail/g' $OPTARG
+      sed -i 's/snowsail/makke\/sail_snow/g' $OPTARG
+      sed -i 's/wires\/2x8/makke\/wires\/2x8/g' $OPTARG
+      sed -i 's/wires\/3x8/makke\/wires\/3x8/g' $OPTARG
+      sed -i 's/wires\/4x8/makke\/wires\/4x8/g' $OPTARG
+      sed -i 's/wires\/4x8a/makke\/wires\/4x8a/g' $OPTARG
+      sed -i 's/poster/makke\/signs\/wanted/g' $OPTARG
+      sed -i 's/signs\/arab/makke\/signs\/arab/g' $OPTARG
+      sed -i 's/signs\/biohazard/makke\/signs\/biohazard/g' $OPTARG
+      sed -i 's/signs\/caution/makke\/signs\/caution_voltage/g' $OPTARG
+      sed -i 's/signs\/maint/makke\/signs\/caution_maintainence/g' $OPTARG
+      sed -i 's/signs\/flammable/makke\/signs\/flammable/g' $OPTARG
+      sed -i 's/signs\/speed/makke\/signs\/speed/g' $OPTARG
+      sed -i 's/nocamp/makke\/signs\/no_camping/g' $OPTARG
+      sed -i 's/roadblock01/makke\/roadblock/g' $OPTARG
+      sed -i 's/roadblock02/makke\/roadblock_graffiti/g' $OPTARG
+      sed -i 's/nothing/makke\/nothing_clip/g' $OPTARG
+      sed -i 's/picture01/makke\/picture/g' $OPTARG
+      sed -i 's/plant01/makke\/plant_leafy/g' $OPTARG
+      sed -i 's/plant01_d/makke\/plant_leafy_dry/g' $OPTARG
+      sed -i 's/plant01_s/makke\/plant_leafy_snow/g' $OPTARG
+      sed -i 's/grass01/makke\/grass_short/g' $OPTARG
+      sed -i 's/grass01_d/makke\/grass_short_dry/g' $OPTARG
+      sed -i 's/grass01_s/makke\/grass_short_snow/g' $OPTARG
+      sed -i 's/grass02/makke\/grass_long/g' $OPTARG
+      sed -i 's/grass02_d/makke\/grass_long_dry/g' $OPTARG
+      sed -i 's/grass02_s/makke\/grass_long_snow/g' $OPTARG
       echo -e "\a\nConversion finished!"
     else
       echo -e "\a\E[31m\033[1mERROR:\E[0m The path you've stated to the map config file is invalid."
