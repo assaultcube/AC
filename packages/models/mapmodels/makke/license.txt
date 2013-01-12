@@ -1,0 +1,57 @@
+LICENSE
+================================================================================
+All files in this folder and their subfolders are by Markus "makkE" Bekel
+	makk_e@web.de
+
+Originally created for the game AssaultCube:
+	http://assault.cubers.net/
+
+Shane Nieb (nieb_123@hotmail.com) modelled (but did not skin) the following:
+================================================================================
+office_chair (Nieb did skin this one)
+dumpster
+fence_chainlink
+fence_chainlink_closed_gate
+fence_chainlink_no_gate
+fence_chainlink_post
+nothing_clip
+picture
+lightbulb
+roadblock
+roadblock_graffiti
+
+
+All files within this folder and all subfolders (except "platform_shine/skin.jpg") are licensed as follows:
+
+
+Creative Commons Deed / Attribution Non-commercial Share-Alike (AT-NC-SA):
+================================================================================
+You are free:
+	* to copy, distribute, display, and perform the work
+	* to make derivative works
+
+Under the following conditions:
+	- Attribution. You must give the original author credit.
+	- Non-Commercial. You may not use this work for commercial purposes.
+	- Share Alike. If you alter, transform, or build upon this work, you may
+	  distribute the resulting work only under a licence identical to this one.
+
+For any reuse or distribution, you must make clear to others the licence terms of this work.
+Any of these conditions can be waived if you get permission from the copyright holder.
+
+Your fair use and other rights are in no way affected by the above.
+
+================================================================================
+This is only a human-readable summary of the Legal Code (the full licence), which can be found at:
+	http://creativecommons.org/licenses/by-nc-sa/2.5/
+The full legal code can be found at:
+	http://creativecommons.org/licenses/by-nc-sa/2.5/legalcode
+================================================================================
+For "platform_shine/skin.jpg", this is made up of two textures. 
+
+One of the textures licenses can be found here:
+  ../../../textures/dog/license.txt
+
+The other license can be found here:
+  ../../../textures/arcitool/license.txt
+

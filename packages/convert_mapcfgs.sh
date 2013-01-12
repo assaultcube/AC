@@ -86,6 +86,12 @@ while getopts "c:" copt; do
       sed -i 's/grass02/makke\/grass_long/g' $OPTARG
       sed -i 's/grass02_d/makke\/grass_long_dry/g' $OPTARG
       sed -i 's/grass02_s/makke\/grass_long_snow/g' $OPTARG
+      echo -e "\nConverting textures..."
+      sed -i 's/wotwot\/skin\/drainpipe.jpg/..\/..\/..\/models\/mapmodels\/wotwot\/makke_drainpipe_gritty\/skin.jpg/g' $OPTARG
+      sed -i 's/wotwot\/skin\/commrack.jpg/..\/..\/..\/models\/mapmodels\/wotwot\/toca_commrack_dull\/skin.jpg/g' $OPTARG
+      sed -i 's/wotwot\/skin\/monitor.jpg/..\/..\/..\/models\/mapmodels\/wotwot\/toca_monitor_dull\/skin.jpg/g' $OPTARG
+      sed -i 's/wotwot\/skin\/milkcarton.jpg/..\/..\/..\/models\/mapmodels\/wotwot\/toca_milkcarton_dull\/skin.jpg/g' $OPTARG
+      sed -i 's/wotwot\/skin\/guardrail2.jpg/..\/..\/..\/models\/mapmodels\/wotwot\/toca_guardrail2_dull\/skin.jpg/g' $OPTARG
       echo -e "\a\nConversion finished!"
     else
       echo -e "\a\E[31m\033[1mERROR:\E[0m The path you've stated to the map config file is invalid."

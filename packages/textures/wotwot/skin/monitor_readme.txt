@@ -1,1 +1,0 @@
-This is modification made by me (wotwot) for tocas monitor-mapmodel and is based on his original texture.
