@@ -1,1 +1,0 @@
-This is modification made by me (wotwot) for tocas commrack-mapmodel and is based on his original texture.

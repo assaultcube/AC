@@ -1,0 +1,14 @@
+================================================================================
+ * ./makke_drainpipe_gritty/skin.jpg is a modification of ../makke/drainpipe/skin.jpg
+
+As such, it is licensed the same. Please read this file for its license:
+	../makke/license.txt
+================================================================================
+ * ./toca_commrack_dull/skin.jpg is a modification of ../toca/commrack/skin.jpg
+ * ./toca_milkcarton_dull/skin.jpg is a modification of ../toca/milkcarton/skin.jpg
+ * ./toca_guardrail2_dull/skin.jpg is a modification of ../toca/guardrail2/skin.jpg
+ * ./toca_monitor_dull/skin.jpg is a modification of ../toca/monitor/skin.jpg
+
+As such, it is licensed the same. Please read this file for its license:
+	../toca/license.txt
+================================================================================
