@@ -9,3 +9,8 @@ originally obtained, they allowed redistribution with the following license:
 	please contact me via email.  Please do not alter these images, or 
 	distribute them without this "info.txt" file. Thanks if you link to my
 	main page, but please don't link to the files directly. Thanks, have fun!
+
+These files were modified to fit AssaultCube by either:
+	* Markus "makkE" Bekel
+	or:
+	* Mike "MitaMAN" Poeschl (mitaman1@optonline.net)
