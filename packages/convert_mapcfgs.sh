@@ -32,6 +32,22 @@ while getopts "c:" copt; do
       sed -i 's/dumpster/makke\/dumpster/g' $OPTARG
       sed -i 's/elektro/makke\/electric_meter/g' $OPTARG
       sed -i 's/europalette/makke\/pallet/g' $OPTARG
+      sed -i 's/fag/makke\/cigarette/g' $OPTARG
+      sed -i 's/fence/makke\/fence_chainlink/g' $OPTARG
+      sed -i 's/fencegate_closed/makke\/fence_chainlink_closed_gate/g' $OPTARG
+      sed -i 's/fencegate_open/makke\/fence_chainlink_no_gate/g' $OPTARG
+      sed -i 's/fencepost/makke\/fence_chainlink_post/g' $OPTARG
+      sed -i 's/flyer/makke\/flyer_propaganda/g' $OPTARG
+      sed -i 's/tree01/makke\/flyer_environmental/g' $OPTARG
+      sed -i 's/gastank/makke\/fuel_tank/g' $OPTARG
+      sed -i 's/icicle/makke\/icicle/g' $OPTARG
+      sed -i 's/hook/makke\/hook/g' $OPTARG
+      sed -i 's/locker/makke\/locker/g' $OPTARG
+      sed -i 's/light01/makke\/fluorescent_lamp/g' $OPTARG
+      sed -i 's/wood01/makke\/broken_wood/g' $OPTARG
+      sed -i 's/wrench/makke\/wrench/g' $OPTARG
+      sed -i 's/strahler/makke\/wall_spotlight/g' $OPTARG
+      sed -i 's/streetlamp/makke\/street_light/g' $OPTARG
       echo -e "\a\nConversion finished!"
     else
       echo -e "\a\E[31m\033[1mERROR:\E[0m The path you've stated to the map config file is invalid."
