@@ -13,7 +13,6 @@ if [[ -r "$1" && -w "$1" ]]; then
   fi
 
   echo "Converting $1 to a compatible map config file..."
-
   echo -e "\nConverting mapmodels..."
   sed -i '/^mapmodel/s/\<laptop1\>/jcdpc\/laptop/g' $1
   sed -i '/^mapmodel/s/\<rattrap\/cbbox\>/jcdpc\/cardboardbox/g' $1
@@ -110,6 +109,9 @@ if [[ -r "$1" && -w "$1" ]]; then
   sed -i '/^texture/s/\<mitaman\/zastrow\/sub_doors512B05.jpg\>/zastrow\/sub_doors512B05.jpg/g' $1
   sed -i '/^texture/s/\<mitaman\/zastrow\/sub_window31.jpg\>/zastrow\/sub_window31.jpg/g' $1
   sed -i '/^texture/s/\<mitaman\/zastrow\/sub_window33.jpg\>/zastrow\/sub_window33.jpg/g' $1
+  sed -i '/^texture/s/\<sub\/sub_sand.jpg\>/zastrow\/sub_sand.jpg/g' $1
+  sed -i '/^texture/s/\<sub\/brick_wall_08.jpg\>/zastrow\/brick_wall_08.jpg/g' $1
+  sed -i '/^texture/s/\<sub\/brick_wall_09.jpg\>/zastrow\/brick_wall_09.jpg/g' $1
 
   echo -e "\a\nConversion finished!"
   echo "Please check your map config file carefully for any inconsistencies."
