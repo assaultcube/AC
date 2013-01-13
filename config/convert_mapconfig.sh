@@ -112,6 +112,11 @@ if [[ -r "$1" && -w "$1" ]]; then
   sed -i '/^texture/s/\<sub\/sub_sand.jpg\>/zastrow\/sub_sand.jpg/g' $1
   sed -i '/^texture/s/\<sub\/brick_wall_08.jpg\>/zastrow\/brick_wall_08.jpg/g' $1
   sed -i '/^texture/s/\<sub\/brick_wall_09.jpg\>/zastrow\/brick_wall_09.jpg/g' $1
+  sed -i '/^texture/s/\<mitaman\/various\/sub_window23.jpg\>/zastrow\/sub_window23.jpg/g' $1
+  sed -i '/^texture/s/\<mitaman\/various\/vent_cap.jpg\>/zastrow\/vent_cap.jpg/g' $1
+  sed -i '/^texture/s/\<mitaman\/various\/sub_window38.jpg\>/zastrow\/sub_window38.jpg/g' $1
+  sed -i '/^texture/s/\<mitaman\/various\/sub_doors256nf_01.jpg\>/zastrow\/sub_doors256nf_01.jpg/g' $1
+  sed -i '/^texture/s/\<rattrap\/rb_box_07.jpg\>/zastrow\/rb_box_07.jpg/g' $1
 
   echo -e "\a\nConversion finished!"
   echo "Please check your map config file carefully for any inconsistencies."
@@ -119,7 +124,7 @@ else
   if [ "$1" = "" ]; then
     echo -e "\a\E[31m\033[1mERROR:\E[0m Please append the path of your map config file to the end of this script."
     echo "For example, run:"
-    echo -e "\tsh convert_mapconfig.sh ../packages/maps/yourmapname.cfg"
+    echo -e "\tsh $0 ../packages/maps/yourmapname.cfg"
   else
     echo -e "\a\E[31m\033[1mERROR:\E[0m The path you've stated to the map config file is non-readable and/or non-writeable and/or incorrect."
     exit
