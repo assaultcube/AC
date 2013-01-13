@@ -329,8 +329,8 @@ void renderscores(void *menu, bool init)
         {
             winner = scores[0]->clientnum;
             if(scores.length() > 1
-                && (m_flags && scores[0]->flagscore == scores[1]->flagscore
-                     || !m_flags && scores[0]->frags == scores[1]->frags))
+                && ((m_flags && scores[0]->flagscore == scores[1]->flagscore)
+                     || (!m_flags && scores[0]->frags == scores[1]->frags)))
                 winner = -1;
         }
     }
