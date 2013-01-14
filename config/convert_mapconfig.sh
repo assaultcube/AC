@@ -121,6 +121,14 @@ for file in $*; do
     sed -i '/^texture/s/\<mitaman\/various\/sub_window38.jpg\>/zastrow\/sub_window38.jpg/g' $file
     sed -i '/^texture/s/\<mitaman\/various\/sub_doors256nf_01.jpg\>/zastrow\/sub_doors256nf_01.jpg/g' $file
     sed -i '/^texture/s/\<rattrap\/rb_box_07.jpg\>/zastrow\/rb_box_07.jpg/g' $file
+    sed -i '/^texture/s/\<mitaman\/golgotha\/elecpanelstwo.jpg\>/golgotha\/elecpanelstwo.jpg/g' $file
+    sed -i '/^texture/s/\<mitaman\/golgotha\/metal_bumps3.jpg\>/golgotha\/metal_bumps3.jpg/g' $file
+    sed -i '/^texture/s/\<mitaman\/golgotha\/tunnel_ceiling.jpg\>/golgotha\/tunnel_ceiling.jpg/g' $file
+    sed -i '/^texture/s/\<mitaman\/golgotha\/hhroofgray.jpg\>/golgotha\/metal_bumps2.jpg/g' $file
+    sed -i '/^texture/s/\<mitaman\/golgotha\/tunnel_ceiling_b.jpg\>/golgotha\/tunnel_ceiling_b.jpg/g' $file
+    sed -i '/^texture/s/\<mitaman\/various\/5sqtunnelroad.jpg\>/golgotha\/5sqtunnelroad.jpg/g' $file
+
+
 
     echo -e "Successfully finished converting: "$file"\n"
   else

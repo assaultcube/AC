@@ -1,2 +1,13 @@
 All files within this folder and all subfolders:
 	Copyright © 2004 by JCDPC, all rights reserved.
+
+As from JCDPC's website:
+================================================================================
+All the stuff here was originally created by me and should be free of other
+peoples copyrights. You can use the stuff here within CUBE for free! If you want
+to use it for something else (i.e. alter it, or use it in a mod/other game),
+please contact me.
+
+You are not allowed to take stuff from this site and put it on another website for
+download. Further, you are not allowed to repackage it in any kind of commercial
+product!
