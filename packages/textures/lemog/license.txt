@@ -1,0 +1,14 @@
+The following 5 files are originally obtained from:
+	http://www.3dtextures.fr.st/lemog_textures/acc_textures01.html
+
+ * 006metal.jpg
+ * 027metal.jpg
+ * 036metal.jpg
+ * 063bois.jpg
+ * 063bois_b.jpg
+
+	As per the website advised, these are completely free:
+	
+	Welcome at www.3dtextures.fr.st 
+	You can find here a great choice of textures, all "seamless", principally
+	meant to used in your favorite 3d software... and it's completely free!

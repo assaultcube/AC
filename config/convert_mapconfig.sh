@@ -127,8 +127,25 @@ for file in $*; do
     sed -i '/^texture/s/\<mitaman\/golgotha\/hhroofgray.jpg\>/golgotha\/metal_bumps2.jpg/g' $file
     sed -i '/^texture/s/\<mitaman\/golgotha\/tunnel_ceiling_b.jpg\>/golgotha\/tunnel_ceiling_b.jpg/g' $file
     sed -i '/^texture/s/\<mitaman\/various\/5sqtunnelroad.jpg\>/golgotha\/5sqtunnelroad.jpg/g' $file
-
-
+    sed -i '/^texture/s/\<mitaman\/3dcafe\/door07_a.jpg\>/3dcafe\/door07_a.jpg/g' $file
+    sed -i '/^texture/s/\<mitaman\/3dcafe\/door07.jpg\>/3dcafe\/door07.jpg/g' $file
+    sed -i '/^texture/s/\<mitaman\/3dcafe\/door10_a.jpg\>/3dcafe\/door10_a.jpg/g' $file
+    sed -i '/^texture/s/\<mitaman\/3dcafe\/door10.jpg\>/3dcafe\/door10.jpg/g' $file
+    sed -i '/^texture/s/\<mitaman\/3dcafe\/door12.jpg\>/3dcafe\/door12.jpg/g' $file
+    sed -i '/^texture/s/\<mitaman\/3dcafe\/door15.jpg\>/3dcafe\/door15.jpg/g' $file
+    sed -i '/^texture/s/\<mitaman\/3dcafe\/objects08.jpg\>/3dcafe\/objects08.jpg/g' $file
+    sed -i '/^texture/s/\<mitaman\/3dcafe\/objects09_a.jpg\>/3dcafe\/objects09_a.jpg/g' $file
+    sed -i '/^texture/s/\<mitaman\/3dcafe\/stone18.jpg\>/3dcafe\/stone18.jpg/g' $file
+    sed -i '/^texture/s/\<mitaman\/grsites\/brick051.jpg\>/grsites\/brick051.jpg/g' $file
+    sed -i '/^texture/s/\<mitaman\/grsites\/brick065.jpg\>/grsites\/brick065.jpg/g' $file
+    sed -i '/^texture/s/\<mitaman\/grsites\/wood060.jpg\>/grsites\/wood060.jpg/g' $file
+    sed -i '/^texture/s/\<mitaman\/various\/metal020.jpg\>/grsites\/metal020.jpg/g' $file
+    sed -i '/^texture/s/\<mitaman\/various\/metal026.jpg\>/grsites\/metal026.jpg/g' $file
+    sed -i '/^texture/s/\<mitaman\/various\/036metal.jpg\>/lemog\/036metal.jpg/g' $file
+    sed -i '/^texture/s/\<mitaman\/various\/006metal.jpg\>/lemog\/006metal.jpg/g' $file
+    sed -i '/^texture/s/\<mitaman\/various\/063bois.jpg\>/lemog\/063bois.jpg/g' $file
+    sed -i '/^texture/s/\<mitaman\/various\/063bois_b.jpg\>/lemog\/063bois_b.jpg/g' $file
+    sed -i '/^texture/s/\<mitaman\/various\/027metal.jpg\>/lemog\/027metal.jpg/g' $file
 
     echo -e "Successfully finished converting: "$file"\n"
   else
