@@ -2,10 +2,42 @@
 # A simple script using SED to make map configs
 # compatible with the new layout.
 
+# HELP file:
+if [ "$1" = "-h" ] || [ "$1" = "--help" ] || [ "$1" = "" ]; then
+  echo "Usage: "$0" MAP_CONFIG_FILE(S)"
+  echo "This script will make a backup of specified map CFG files (into their existing"
+  echo "directory), then using SED it will modify the original map CFG file to be"
+  echo "compatible with the new packaging layout for AssaultCube."
+  echo ""
+  echo "This script can accept multiple map CFG files at once, as well as wild cards, as"
+  echo "well as files in different directories. For example:"
+  echo "    sh "$0" ../packages/maps/yourmap.cfg ../../mapfolder/*.cfg"
+  echo ""
+  echo "Options (must be placed before the CFG filenames):"
+  echo -e "   -h, --help     This help message."
+  echo -e "   -r, --revert   Revert specified config file(s) to the current \".BAK\" file."
+  exit
+# REVERT command:
+elif [ "$1" = "-r" ] || [ "$1" = "--revert" ]; then
+  for file in $*; do
+    if [ "$file" = "-r" ] || [ "$file" = "--revert" ]; then
+      continue
+    elif [[ -w "$file" && "$file" = *.cfg && -r "$file".BAK ]]; then
+      mv -fv "$file".BAK "$file"
+    else
+      echo -e "\a\E[31m\033[1mERROR:\E[0m "$file" was unwriteable (or not a \".CFG\"), or "$file".BAK file was unreadable."
+      exit
+    fi
+  done
+  exit
+fi
+
+# Alias to define if anything failed (but the script continued).
 CONTFAILED="0"
 
 for file in $*; do
   if [[ -r "$file" && -w "$file" && "$file" = *.cfg ]]; then
+    # Backup files first:
     cp "$file" "$file".BAK
     if [ -r "$file".BAK ]; then
       echo "A successful backup of "$file" has been made to "$file".BAK"
@@ -155,11 +187,7 @@ for file in $*; do
   fi
 done
 
-if [ "$1" = "" ]; then
-  echo -e "\a\E[31m\033[1mERROR:\E[0m Please append the path of your map config file to the end of this script."
-  echo "For example, run:"
-  echo -e "\tsh $0 the/path/to/your/mapconfigfile.cfg"
-elif [ "$CONTFAILED" = "1" ]; then
+if [ "$CONTFAILED" = "1" ]; then
   echo -e "\aConversion finished, HOWEVER, \E[31m\033[1msome files were NOT converted\E[0m!"
   echo "Please check the output of this script for their errors!"
   echo "It is suggested to check your map config files carefully for any inconsistencies, using the \"diff\" command."
