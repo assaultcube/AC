@@ -1,1 +1,0 @@
-Disclaimer: Background textures found on this site were not created by the webmaster. They were obtained from various sources on the internet that labeled them as "freely distributable". If you should discover images in this collection which you recognize as copyrighted, please email the webmaster immediately so that they may be removed.
