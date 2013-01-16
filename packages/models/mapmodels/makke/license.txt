@@ -21,7 +21,12 @@ roadblock
 roadblock_graffiti
 
 
-All files within this folder and all subfolders (except "platform_shine/skin.jpg") are licensed as follows:
+All files within this folder and all subfolders, except:
+ * ./platform_shine/skin.jpg
+ * ./signs/biohazard/skin.jpg
+ * ./signs/flammable/skin.jpg
+ * ./signs/speed/skin.jpg
+	...are licensed as follows:
 
 
 Creative Commons Deed / Attribution Non-commercial Share-Alike (AT-NC-SA):
@@ -54,4 +59,21 @@ One of the textures licenses can be found here:
 
 The other license can be found here:
   ../../../textures/arcitool/license.txt
+================================================================================
+These skins:
+ * ./signs/biohazard/skin.jpg
+ * ./signs/flammable/skin.jpg
+ * ./signs/speed/skin.jpg
+
+Were originally copyright by:
+	 Chris "subverse" Zastrow (http://www.quakewiki.net/archives/subverse/)	
+
+These files are no longer available from this website. When these files were 
+originally obtained, they allowed redistribution with the following license:
+
+	Greetings from the dark underworld of texture art. Thank you for giving
+	my textures a try.  If you'd like to use these textures commercially,
+	please contact me via email.  Please do not alter these images, or 
+	distribute them without this "info.txt" file. Thanks if you link to my
+	main page, but please don't link to the files directly. Thanks, have fun!
 
