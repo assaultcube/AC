@@ -11,3 +11,6 @@ They are distributed under the following license:
 	permission and you strictly may NOT offer them as textures for
 	sale in any way.
 
+
+FYI:
+	./ground/rb_trim_01.jpg was edited by Ratboy for AC.
