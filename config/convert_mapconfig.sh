@@ -179,6 +179,10 @@ for file in $*; do
     sed -i '/^texture/s/\<mitaman\/various\/063bois.jpg\>/lemog\/063bois.jpg/g' $file
     sed -i '/^texture/s/\<mitaman\/various\/063bois_b.jpg\>/lemog\/063bois_b.jpg/g' $file
     sed -i '/^texture/s/\<mitaman\/various\/027metal.jpg\>/lemog\/027metal.jpg/g' $file
+    sed -i '/^texture/s/\<makke\/windows.jpg\>/golgotha\/windows.jpg/g' $file
+    sed -i '/^texture/s/\<makke\/window.jpg\>/golgotha\/window.jpg/g' $file
+    sed -i '/^texture/s/\<makke\/panel.jpg\>/golgotha\/panel.jpg/g' $file
+    sed -i '/^texture/s/\<makke\/door.jpg\>/golgotha\/door.jpg/g' $file
 
     echo -e "Successfully finished converting: "$file"\n"
   else

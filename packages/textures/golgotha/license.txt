@@ -7,6 +7,8 @@ Stephen Wilson or Johnathan Clark:
 
 These files were then modified to fit AssaultCube and added to the game by:
 	Mike "MitaMAN" Poeschl (mitaman1@optonline.net)
+		or
+	Markus "makkE" Bekel
 
 Read Wikipedia for more information about the fate of Golgotha:
 	http://en.wikipedia.org/wiki/Golgotha_%28computer_game%29
