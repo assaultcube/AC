@@ -10,24 +10,39 @@ These five textures files:
 	 Markus "makkE" Bekel
 
 All other textures within this folder have been re-assembled, re-processed,
-tiled, etc. by makkE from other various sources. Unfortunately, a list of
-which images are from which source is unavailable, however, some of the
-sources include:
-==============================================
+tiled, etc. by makkE from other various sources. Unfortunately, a list of 
+which images are from which source is unavailable.
+
+As the original licenses to these other files are unknown, unless you're able to
+find the original source and adhere to their license, you MUST assume that the
+data is COPYRIGHT and you are NOT allowed to redistribute that data outside
+of an UNMODIFIED AssaultCube package(s).
+
+Some of the sources would have included:
+================================================================================
 http://www.mayang.com/textures
 	William Smith & Mayang Murni Adnin (will@willsmith.org)
 
-Originally available under the following license:
-	What can I use the textures for?
-	You can use the textures in your school projects, to make CD sleeves,
-	posters, in movies, in videogames etc - anything where you have added
-	your own artistic effort.
+Available under the following license:
+These textures are Copyright © Mayang Murni Adnin, 2001-2012. They have all been
+taken by our own cameras or created by ourselves.
 
-	You cannot use the textures for anything that directly competes with us.
-	This includes, putting the textures on your own website, selling them,
-	or giving them away.  This restriction includes the textures themselves,
-	as well as any minor modifications, for example, you may not make our
-	texture seamless or tileable and then sell them.
+Use:
+They are free to use for all uses, whether commercial or non-commercial (you may
+incorporate them into your derived work with no requirement to pay us any
+licensing fee etc). Your derived work must involve significant modification to the
+textures. It would be nice if you could credit us.
+
+Sell:
+You may not sell any of these textures in an unmodified form, or any derived works
+where the product you are selling is still a texture and is likely to compete with
+this website.
+
+Redistribute:
+You may redistribute (give/send to somebody else/display on a web site) up to 30 of
+these textures together, but no more. You must credit this website as the original
+source (tell them about us).
+
 ==============================================
 http://www.afflict.net/
 	Dylan Debusk (dylandebusk@hotmail.com)

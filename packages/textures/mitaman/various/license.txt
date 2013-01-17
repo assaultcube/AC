@@ -1,7 +1,7 @@
 Files in this folder are from various sources.
 
 The following 4 files in this folder are from unknown sources (however,
-it may have come from a source listed in this readme). Even though the
+it may have come from a source already used in AC). Even though the
 license of these files is unknown, they were free to use in AssaultCube.
 
  * metal_trim_4_v.jpg
