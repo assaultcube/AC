@@ -26,3 +26,9 @@ These files would have been re-processed either by:
 	Markus "makkE" Bekel
    or:
 	wotwot
+
+The files with an "rb" prefix were re-processed by:
+	Pablo "RatBoy" Ciamarra
+
+... using "../makke/concrete_trim.jpg", so you'll need to adhere to that license
+for these images also.

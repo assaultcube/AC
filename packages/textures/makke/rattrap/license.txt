@@ -4,9 +4,6 @@
 * rb_box_04.jpg
 * rb_box_05.jpg
 * rb_box_06.jpg
-* rb_bricks_01.jpg
-* rb_bricks_02.jpg
-* rb_bricks_03.jpg
 * rb_concrete.jpg
 
 These are re-assembled from: packages/textures/makke
