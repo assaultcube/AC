@@ -183,6 +183,8 @@ for file in $*; do
     sed -i '/^texture/s/\<makke\/window.jpg\>/golgotha\/window.jpg/g' $file
     sed -i '/^texture/s/\<makke\/panel.jpg\>/golgotha\/panel.jpg/g' $file
     sed -i '/^texture/s/\<makke\/door.jpg\>/golgotha\/door.jpg/g' $file
+    sed -i '/^texture/s/\<makke\/smallsteelbox.jpg\>/golgotha\/smallsteelbox.jpg/g' $file
+    sed -i '/^texture/s/\<makke\/klappe3.jpg\>/golgotha\/klappe.jpg/g' $file
 
     echo -e "Successfully finished converting: "$file"\n"
   else
