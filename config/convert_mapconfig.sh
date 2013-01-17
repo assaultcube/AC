@@ -185,6 +185,28 @@ for file in $*; do
     sed -i '/^texture/s/\<makke\/door.jpg\>/golgotha\/door.jpg/g' $file
     sed -i '/^texture/s/\<makke\/smallsteelbox.jpg\>/golgotha\/smallsteelbox.jpg/g' $file
     sed -i '/^texture/s/\<makke\/klappe3.jpg\>/golgotha\/klappe.jpg/g' $file
+    sed -i '/^texture/s/\<makke\/bricks2.jpg\>/mayang\/bricks2.jpg/g' $file
+    sed -i '/^texture/s/\<wotwot\/urban\/manhole1.jpg\>/mayang\/manhole1.jpg/g' $file
+    sed -i '/^texture/s/\<wotwot\/urban\/hatch1.jpg\>/mayang\/hatch1.jpg/g' $file
+    sed -i '/^texture/s/\<wotwot\/urban\/grill2_s.jpg\>/mayang\/grill2_s.jpg/g' $file
+    sed -i '/^texture/s/\<wotwot\/urban\/door3.jpg\>/mayang\/door3.jpg/g' $file
+    sed -i '/^texture/s/\<wotwot\/urban\/airvent1.jpg\>/mayang\/airvent1.jpg/g' $file
+    sed -i '/^texture/s/\<rattrap\/rb_trim_03.jpg\>/golgotha\/rb_trim_03.jpg/g' $file
+    sed -i '/^texture/s/\<rattrap\/rb_window.jpg\>/makke\/rb_window.jpg/g' $file
+    sed -i '/^texture/s/\<rattrap\/rb_window2.jpg\>/makke\/rb_window2.jpg/g' $file
+    sed -i '/^texture/s/\<rattrap\/rb_trim_01.jpg\>/noctua\/ground\/rb_trim_01.jpg/g' $file
+    sed -i '/^texture/s/\<rattrap\/rb_trim_02.jpg\>/makke\/rb_trim_02.jpg/g' $file
+    sed -i '/^texture/s/\<rattrap\/rb_box_01.jpg\>/makke\/rattrap\/rb_box_01.jpg/g' $file
+    sed -i '/^texture/s/\<rattrap\/rb_box_02.jpg\>/makke\/rattrap\/rb_box_02.jpg/g' $file
+    sed -i '/^texture/s/\<rattrap\/rb_box_03.jpg\>/makke\/rattrap\/rb_box_03.jpg/g' $file
+    sed -i '/^texture/s/\<rattrap\/rb_box_04.jpg\>/makke\/rattrap\/rb_box_04.jpg/g' $file
+    sed -i '/^texture/s/\<rattrap\/rb_box_05.jpg\>/makke\/rattrap\/rb_box_05.jpg/g' $file
+    sed -i '/^texture/s/\<rattrap\/rb_box_06.jpg\>/makke\/rattrap\/rb_box_06.jpg/g' $file
+    sed -i '/^texture/s/\<rattrap\/rb_concrete.jpg\>/makke\/rattrap\/rb_concrete.jpg/g' $file
+    sed -i '/^texture/s/\<rattrap\/rb_bricks_01.jpg\>/mayang\/rb_bricks_01.jpg/g' $file
+    sed -i '/^texture/s/\<rattrap\/rb_bricks_02.jpg\>/mayang\/rb_bricks_02.jpg/g' $file
+    sed -i '/^texture/s/\<rattrap\/rb_bricks_03.jpg\>/mayang\/rb_bricks_03.jpg/g' $file
+    sed -i '/^texture/s/\<rattrap\/rb_planks02_trim.jpg\>/noctua\/wood\/planks02_trim_vert.jpg/g' $file
 
     echo -e "Successfully finished converting: "$file"\n"
   else

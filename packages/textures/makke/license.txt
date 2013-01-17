@@ -5,6 +5,9 @@ These five textures files:
   * platten.jpg
   * tiles.jpg
   * black.jpg
+  * rb_window.jpg
+  * rb_window2.jpg
+  * douze.jpg
 
 ...are copyright (all rights reserved) by:
 	 Markus "makkE" Bekel
@@ -17,6 +20,7 @@ As the original licenses to these other files are unknown, unless you're able to
 find the original source and adhere to their license, you MUST assume that the
 data is COPYRIGHT and you are NOT allowed to redistribute that data outside
 of an UNMODIFIED AssaultCube package(s).
+
 
 Some of the sources would have included:
 ================================================================================

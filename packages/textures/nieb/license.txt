@@ -1,0 +1,81 @@
+Textures by Nieb. Special thanks to makkE for critique and assistance. 
+
+All textures made with sources from:
+================================================================================
+http://www.burningwell.org/
+
+How may I use the images in the BurningWell repository?
+
+The images in the BurningWell repository are in the public domain. Basically, 
+this means that you are allowed to use the images freely for any purpose,
+commercial or private. You do not have to pay to use them, or even acknowledge
+or give credit to the BurningWell repository or original photographer (unless you
+are feeling generous).
+
+When recognizable people appear in any of the images, the photographers have
+obtained a "model release" and assigned all rights to the public domain. This
+allows the images to be used in any manner, including advertising. 
+================================================================================
+http://www.cgtextures.com/
+
+Please read this for the full license:
+	http://www.cgtextures.com/content.php?action=license
+
+To comply with their license, we have included the following text in this file:
+
+One or more textures on this 3D model have been created with images from CGTextures.com.
+These images may not be redistributed by default, please visit www.cgtextures.com for more information.
+
+
+Here is a quick brief of their license (please see their website for full terms):
+---------------------------------------------------------------------------------
+Use of the Textures is only allowed under the following conditions:
+ - Private or commercial use.
+ - Use in 2D or 3D computer graphics, movies and printed media.
+ - Incorporation in computer games, 3D models.
+ - Selling 3D models bundled with modified versions of the textures, when the
+   texture is customized for the 3D model.
+
+It is NOT permitted to:
+ - Sell or distribute any of these textures in an unmodified form, or where the
+   derived product you are selling or distributing is a Texture or a collection of 
+   Textures. IN OTHER WORDS: Do not sell or distribute any of these textures
+   (modified or not) by itself or in a texture pack, material, clipart, website
+   theme or scrapbooking pack!
+ - Bundle the images with software such as paint programs, 3D programs, photo-kiosk
+   software.
+ - Reselling or redistributing the images at 'print on demand' services (mugs, 
+   t-shirts, mouse mats, etc).
+ - Use the textures in graphic design themes or templates sold to multiple customers
+   on digital market places (this includes templates of websites and business cards
+   and e-cards).
+ - Selling or redistributing skins for laptops, phones and other devices, created
+   with images from CGTextures.
+ - Stockpile images with the goal of making a local texture library.
+ - Using a special program (spider, leecher) or script to automatically download all
+   Textures on the CGTextures website. Users who try to mass download will be banned
+   from the website automatically.
+ - Interfere with the security or otherwise abuse, disrupt, place excessive loads on,
+   or attempt to gain unauthorized access to the CGTextures website or any system
+   resources or networks connected to this website.
+ - Release the Textures or derivative products under Open Source Licences
+================================================================================
+http://www.imageafter.com/
+
+WHAT CAN YOU DO WITH IMAGE*AFTER IMAGES AND TEXTURES?
+ * You CAN modify our images and textures in any way you see fit.
+ * You CAN use our images and textures in your own work, whether it be for 
+    personal or commercial use.
+ * You CAN redistribute or sell our images and textures ALTERED OR UNALTERED as
+   part of printed work (e.g. posters, cd-covers, postcards, etc).
+
+WHAT CAN'T YOU DO WITH IMAGE*AFTER IMAGES AND TEXTURES?
+
+ * You CANNOT REDISTRIBUTE our images and textures as part of an online resource
+   site like our own, i.e. use them to directly compete with us.
+================================================================================
+http://www.ryane.com/
+
+USAGE: Feel free to use these texture where-ever you wish. Just let people know
+where you got it from.
+
