@@ -11,7 +11,6 @@ del /Q %acdir%\screenshots\*
 
 rem purge demo directory
 del /Q %acdir%\demos\*
-copy /Y %workingacdir%\demos\tutorial_demo.dmo %acdir%\demos\tutorial_demo.dmo
 
 rem remove linux stuff
 del %acdir%\*.sh
