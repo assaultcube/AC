@@ -373,7 +373,7 @@ void renderscores(void *menu, bool init)
             else // Add the winning player
             {
                 if (winner < 0) concatstring(modeline, ", \f2it's a tie!");
-                else concatformatstring(modeline, ", \f1%s wins!", players[winner]->name);
+                else concatformatstring(modeline, ", \f1%s wins!", scores[0]->name);
             }
         }
         else concatformatstring(modeline, ", %d %s remaining", minutesremaining, minutesremaining==1 ? "minute" : "minutes");
