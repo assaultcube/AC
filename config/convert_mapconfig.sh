@@ -9,6 +9,9 @@ if [ "$1" = "-h" ] || [ "$1" = "--help" ] || [ "$1" = "" ]; then
   echo "directory), then using SED it will modify the original map CFG file to be"
   echo "compatible with the new packaging layout for AssaultCube."
   echo ""
+  echo "It is suggested not to use this script twice on a file, as it may duplicate the"
+  echo "changes which could cause many errors."
+  echo ""
   echo "This script can accept multiple map CFG files at once, as well as wild cards, as"
   echo "well as files in different directories. For example:"
   echo "    sh "$0" ../packages/maps/yourmap.cfg ../../mapfolder/*.cfg"
@@ -47,6 +50,22 @@ for file in $*; do
       echo -e "Please note, because backing up of "$file" failed, it was NOT converted.\n"
       CONTFAILED="1"
       continue
+    fi
+
+    # Check if this file has been converted before, if not, add a comment. If so, ask the user to be careful.
+    CHECKIFDONE=`grep "// This config file was converted by" "$file" | awk '{print $2,$3,$4}'`
+    if [ "$CHECKIFDONE" = "This config file" ]; then
+      echo -e "\n\aChecks indicate that this file has been converted before."
+      echo "Continuing any further may cause this script to re-convert already converted parts of the map config."
+      echo "This would cause many errors. Are you sure you wish to continue (Y/N)?"
+      read ANSR
+      if [ "$ANSR" = "n" ] || [ "$ANSR" = "N" ] || [ "$ANSR" = "" ]; then
+        CONTFAILED="1"
+        echo -e "\a\E[31m\033[1mERROR:\E[0m You've selected not to convert "$file", as it has already been converted."
+        continue
+      fi
+    else
+      echo "// This config file was converted by "$0" on `date +%c`." >> $file
     fi
 
     echo "Converting mapmodels..."
@@ -209,7 +228,7 @@ for file in $*; do
     sed -i '/^texture/s/\<rattrap\/rb_bricks_03.jpg\>/mayang\/rb_bricks_03.jpg/1' $file
     sed -i '/^texture/s/\<rattrap\/rb_planks02_trim.jpg\>/noctua\/wood\/planks02_trim_vert.jpg/1' $file
 
-    echo -e "Successfully finished converting: "$file"\n"
+    echo -e "Successfully finished converting: "$file""
   else
     echo -e "\a\E[31m\033[1mERROR:\E[0m "$file" is an incorrect filename or path, or it is not a \".cfg\" file, or it may be non-readable and/or non-writeable.\n"
     CONTFAILED="1"
@@ -217,7 +236,7 @@ for file in $*; do
 done
 
 if [ "$CONTFAILED" = "1" ]; then
-  echo -e "\aConversion finished, HOWEVER, \E[31m\033[1msome files were NOT converted\E[0m!"
+  echo -e "\a\nConversion finished, HOWEVER, \E[31m\033[1msome files were NOT converted\E[0m!"
   echo "Please check the output of this script for their errors!"
   echo "It is suggested to check your map config files carefully for any inconsistencies, using the \"diff\" command."
 else
