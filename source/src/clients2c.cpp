@@ -968,6 +968,17 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 uint i = getint(p);
                 while((uint)ents.length()<=i) ents.add().type = NOTUSED;
                 int to = ents[i].type;
+                if(ents[i].type==SOUND)
+                {
+                    entity &e = ents[i];
+
+                    entityreference entref(&e);
+                    location *loc = audiomgr.locations.find(e.attr1, &entref, mapsounds);
+
+                    if(loc)
+                        loc->drop();
+                }
+
                 ents[i].type = getint(p);
                 ents[i].x = getint(p);
                 ents[i].y = getint(p);

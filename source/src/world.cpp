@@ -184,7 +184,12 @@ void entproperty(int prop, int amount)
     switch(e.type)
     {
         case LIGHT: calclight(); break;
-        case SOUND: audiomgr.preloadmapsound(e);
+        case SOUND:
+            audiomgr.preloadmapsound(e);
+            entityreference entref(&e);
+            location *loc = audiomgr.locations.find(e.attr1-amount, &entref, mapsounds);
+            if(loc)
+                loc->drop();
     }
     if(changedents.find(n) == -1) changedents.add(n);   // apply ent changes later (reduces network traffic)
 }
@@ -218,13 +223,26 @@ COMMAND(getentattr, "i");
 
 void delent()
 {
-    int e = closestent();
-    if(e<0) { conoutf("no more entities"); return; }
+    int n = closestent();
+    if(n<0) { conoutf("no more entities"); return; }
     syncentchanges(true);
-    int t = ents[e].type;
+    int t = ents[n].type;
     conoutf("%s entity deleted", entnames[t]);
-    ents[e].type = NOTUSED;
-    addmsg(SV_EDITENT, "ri9", e, NOTUSED, 0, 0, 0, 0, 0, 0, 0);
+
+    entity &e = ents[n];
+
+    if (t == SOUND) //stop playing sound
+    {
+        entityreference entref(&e);
+        location *loc = audiomgr.locations.find(e.attr1, &entref, mapsounds);
+
+        if(loc)
+            loc->drop();
+    }
+
+    ents[n].type = NOTUSED;
+    addmsg(SV_EDITENT, "ri9", n, NOTUSED, 0, 0, 0, 0, 0, 0, 0);
+
     switch(t)
     {
         case LIGHT: calclight(); break;
@@ -242,6 +260,17 @@ entity *newentity(int index, int x, int y, int z, char *what, int v1, int v2, in
 {
     int type = findtype(what);
     if(type==NOTUSED) return NULL;
+
+    if (type == SOUND && index >= 0)
+    {
+        entity &o = ents[index];
+
+        entityreference entref(&o);
+        location *loc = audiomgr.locations.find(o.attr1, &entref, mapsounds);
+
+        if(loc)
+            loc->drop();
+    }
 
     entity e(x, y, z, type, v1, v2, v3, v4);
 

@@ -379,10 +379,11 @@ class audiomanager
     ALCcontext *context;
 
     bufferhashtable bufferpool;
-    locvector locations;
     oggstream *gamemusic;
 
 public:
+
+    locvector locations;
 
     audiomanager();
 
