@@ -17,8 +17,12 @@ if [ "$1" = "-h" ] || [ "$1" = "--help" ] || [ "$1" = "" ]; then
   echo "    sh "$0" ../packages/maps/yourmap.cfg ../../mapfolder/*.cfg"
   echo ""
   echo "Options (must be placed before the CFG filenames):"
-  echo -e "   -h, --help     This help message."
-  echo -e "   -r, --revert   Revert specified config file(s) to the current \".BAK\" file."
+  echo "-h, --help        This help message."
+  echo "-r, --revert      Revert specified config file(s) to the current \".BAK\" file."
+  echo "-s, --strip       Strips all files of cruft. This converts newlines to UNIX"
+  echo "                  format and removes comments, trailing spaces, trailing tabs"
+  echo "                  and blank lines."
+  echo "-os, --onlystrip  Same as above, but no compatibility conversion takes place."
   exit
 # REVERT command:
 elif [ "$1" = "-r" ] || [ "$1" = "--revert" ]; then
@@ -39,17 +43,36 @@ fi
 CONTFAILED="0"
 
 for file in $*; do
-  if [[ -r "$file" && -w "$file" && "$file" = *.cfg ]]; then
-    # Backup files first:
-    cp "$file" "$file".BAK
-    if [ -r "$file".BAK ]; then
-      echo "A successful backup of "$file" has been made to "$file".BAK"
-      echo "Now converting "$file" to a compatible map config file..."
-    else
-      echo -e "\a\E[31m\033[1mERROR:\E[0m Backup of "$file" failed. Please check files can be written in the \"`dirname $file`\" directory."
-      echo -e "Please note, because backing up of "$file" failed, it was NOT converted.\n"
-      CONTFAILED="1"
+  if [[ -r "$file" && -w "$file" && "$file" = *.cfg ]] || [ "$file" = "-s" ] || [ "$file" = "--strip" ] || [ "$file" = "-os" ] || [ "$file" = "--onlystrip" ]; then
+    if [ "$file" = "-s" ] || [ "$file" = "--strip" ] || [ "$file" = "-os" ] || [ "$file" = "--onlystrip" ]; then
       continue
+    else
+      # Backup files first:
+      cp "$file" "$file".BAK
+      if [ -r "$file".BAK ]; then
+        echo "A successful backup of "$file" has been made to "$file".BAK"
+        # Option to strip file of cruft.
+        if [ "$1" = "-s" ] || [ "$1" = "--strip" ] || [ "$1" = "-os" ] || [ "$1" = "--onlystrip" ]; then
+          echo "Now stripping "$file" of cruft..."
+          # 1) Convert to UNIX new-line format.
+          # 2) Remove comments.
+          # 3) Remove trailing spaces/tabs.
+          # 4) Remove blank lines.
+          gawk '{sub(/\r$/,"")};1' $file.BAK | \
+          gawk -F'//' '{print $1}' | \
+          gawk '{sub(/[ \t]+$/, "")};1' | \
+          gawk NF > $file
+        fi
+        if [ "$1" = "-os" ] || [ "$1" = "--onlystrip" ]; then
+          echo -e "As requested, "$file" has been stripped of cruft and no conversion was made.\n"
+          continue
+        fi
+      else
+        echo -e "\a\E[31m\033[1mERROR:\E[0m Backup of "$file" failed. Please check files can be written in the \"`dirname $file`\" directory."
+        echo -e "Please note, because backing up of "$file" failed, it was NOT converted and/or stripped.\n"
+        CONTFAILED="1"
+        continue
+      fi
     fi
 
     # Check if this file has been converted before, if not, add a comment. If so, ask the user to be careful.
@@ -68,6 +91,7 @@ for file in $*; do
       echo "// This config file was converted by "$0" on `date +%c`." >> $file
     fi
 
+    echo "Now converting "$file" to a compatible map config file..."
     echo "Converting mapmodels..."
     sed -i '/^mapmodel/s/\<laptop1\>/jcdpc\/laptop/1' $file
     sed -i '/^mapmodel/s/\<rattrap\/cbbox\>/jcdpc\/cardboardbox/1' $file
@@ -228,15 +252,15 @@ for file in $*; do
     sed -i '/^texture/s/\<rattrap\/rb_bricks_03.jpg\>/mayang\/rb_bricks_03.jpg/1' $file
     sed -i '/^texture/s/\<rattrap\/rb_planks02_trim.jpg\>/noctua\/wood\/planks02_trim_vert.jpg/1' $file
 
-    echo -e "Successfully finished converting: "$file""
+    echo -e "Successfully finished converting: "$file"\n"
   else
-    echo -e "\a\E[31m\033[1mERROR:\E[0m "$file" is an incorrect filename or path, or it is not a \".cfg\" file, or it may be non-readable and/or non-writeable.\n"
+    echo -e "\a\E[31m\033[1mERROR:\E[0m "$file" is an incorrect filename, path or option. Or it is not a \".cfg\" file, or it may be non-readable and/or non-writeable.\n"
     CONTFAILED="1"
   fi
 done
 
 if [ "$CONTFAILED" = "1" ]; then
-  echo -e "\a\nConversion finished, HOWEVER, \E[31m\033[1msome files were NOT converted\E[0m!"
+  echo -e "\a\nConversion finished, HOWEVER, \E[31m\033[1msome files were NOT converted and/or stripped.\E[0m!"
   echo "Please check the output of this script for their errors!"
   echo "It is suggested to check your map config files carefully for any inconsistencies, using the \"diff\" command."
 else
