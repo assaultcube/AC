@@ -127,7 +127,7 @@ SetCompressor /SOLID lzma
 Name "AssaultCube"
 VAR StartMenuFolder
 OutFile "AssaultCube_${AC_FULLVERSION}.exe"
-InstallDir "$PROGRAMFILES\${AC_FULLNAMESAVE}"
+InstallDir "$PROGRAMFILES\${AC_SHORTNAME}"
 InstallDirRegKey HKLM "Software\${AC_SHORTNAME}" ""
 RequestExecutionLevel admin ; require admin in Vista/7
 
@@ -162,7 +162,6 @@ Page custom FinishPage
 !insertmacro MUI_UNPAGE_INSTFILES
 
 !insertmacro MUI_LANGUAGE "English"
-
 
 ; Custom Welcome Page
 
@@ -279,7 +278,34 @@ Var HWND
 Var IMAGECTL
 Var IMAGE
 
+; Version Info
+
+VIProductVersion "${AC_FULLVERSIONINT}"
+VIAddVersionKey "ProductName" "${AC_SHORTNAME}"
+VIAddVersionKey "CompanyName" "Rabid Viper Productions"
+VIAddVersionKey "LegalCopyright" "Copyright © Rabid Viper Productions"
+VIAddVersionKey "FileDescription" "AssaultCube is a FREE, multiplayer, first-person shooter game, based on the CUBE engine."
+VIAddVersionKey "FileVersion" "${AC_FULLVERSIONINT}"
+VIAddVersionKey "ProductVersion" "${AC_FULLVERSIONINT}"
+
 Function .onInit
+
+    ;Uninstall previous installation
+    ReadRegStr $R0 HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "UninstallString"
+    StrCmp $R0 "" done
+
+    IfSilent uninst
+    MessageBox MB_YESNO|MB_ICONQUESTION \
+    "${AC_SHORTNAME} is already installed. $\n$\nDo you want to uninstall the previous installation?" \
+    IDYES uninst \
+    IDNO done
+ 
+    ;Run the uninstaller silently
+    uninst:
+    ClearErrors
+    ExecWait '$R0 /S'
+
+    done:
 
     InitPluginsDir
     File /oname=$TEMP\welcome.bmp "${CURPATH}\welcome.bmp"
@@ -290,15 +316,19 @@ FunctionEnd
 
 Function .onInstSuccess
 
-    StrCpy $0 "http://assault.cubers.net/releasenotes/v1.1/"
+    IfSilent skipopenlink
+    StrCpy $0 "http://assault.cubers.net/releasenotes/v1.2/"
     Call openLinkNewWindow
+    skipopenlink:
 
 FunctionEnd
 
 Function un.onUninstSuccess
 
-    StrCpy $0 "http://assault.cubers.net/uninstallnotes/v1.1/"
+    IfSilent skipopenlink
+    StrCpy $0 "http://assault.cubers.net/uninstallnotes/v1.2/"
     Call un.openLinkNewWindow  
+    skipopenlink:
 
 FunctionEnd
 
@@ -357,8 +387,6 @@ Function ShowControls
 FunctionEnd
 
 Function WelcomePage
-
-    Call CheckPrevInstallation
 
     nsDialogs::Create /NOUNLOAD 1044
     Pop $DIALOG
@@ -504,18 +532,6 @@ Function ConfigureWithoutAppdata
 
 FunctionEnd
 
-Function CheckPrevInstallation
-    
-    ReadRegStr $0 HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "UninstallString"
-    StrCmp $0 "" isnotinstalled isinstalled
-    isinstalled:
-    MessageBox MB_YESNO "A previous installation was detected. Would you like to uninstall before installation?" IDNO uninstallno
-    ExecWait "$0"
-    uninstallno:
-    isnotinstalled:
-    
-FunctionEnd
-
 ; Installer Sections
 
 Section "AssaultCube ${AC_FULLVERSION}" AC
@@ -531,12 +547,12 @@ Section "AssaultCube ${AC_FULLVERSION}" AC
 
     ; Create uninstaller
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "DisplayName" "${AC_FULLNAME}"
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "UninstallString" '"$INSTDIR\uninstall.exe"'
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "UninstallString" '"$INSTDIR\Uninstall.exe"'
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "DisplayIcon" '"$INSTDIR\docs\images\favicon.ico"'
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "HelpLink" "$INSTDIR\README.html"
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "URLInfoAbout" "http://assault.cubers.net"
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "URLUpdateInfo" "http://assault.cubers.net/download.html"
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "DisplayVersion" "${AC_FULLVERSION}"
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "DisplayVersion" "${AC_FULLVERSIONINT}"
     WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "VersionMajor" ${AC_MAJORVERSIONINT}
     WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "VersionMinor" ${AC_MINORVERSIONINT}
     WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "NoModify" 1
