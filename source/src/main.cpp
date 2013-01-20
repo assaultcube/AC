@@ -1295,3 +1295,4 @@ int main(int argc, char **argv)
 }
 
 VAR(version, 1, AC_VERSION, 0);
+VAR(protocol, 1, PROTOCOL_VERSION, 0);
