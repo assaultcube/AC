@@ -58,10 +58,10 @@ for file in $*; do
           # 2) Remove comments.
           # 3) Remove trailing spaces/tabs.
           # 4) Remove blank lines.
-          gawk '{sub(/\r$/,"")};1' $file.BAK | \
-          gawk -F'//' '{print $1}' | \
-          gawk '{sub(/[ \t]+$/, "")};1' | \
-          gawk NF > $file
+          awk '{sub(/\r$/,"")};1' $file.BAK | \
+          awk -F'//' '{print $1}' | \
+          awk '{sub(/[ \t]+$/, "")};1' | \
+          awk NF > $file
         fi
         if [ "$1" = "-os" ] || [ "$1" = "--onlystrip" ]; then
           echo -e "As requested, "$file" has been stripped of cruft and no conversion was made.\n"
