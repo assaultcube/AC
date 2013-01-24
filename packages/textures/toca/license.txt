@@ -1,10 +1,15 @@
-greybricks.jpg is originally by CGTextures.com and is sourced from:
-	http://www.cgtextures.com/login.php?&texid=2725&destination=texview.php?id=2725
+Some of this textures are originally by CGTextures.com and are sourced from:
 
-It has been used under a complex license, to which we've been able to adhere:
+pebbles1.jpg:    http://cgtextures.com/texview.php?id=53799
+pebbles2.jpg:    http://cgtextures.com/texview.php?id=66840
+pebbles3.jpg:    http://cgtextures.com/texview.php?id=9524
+greybricks.jpg:  http://cgtextures.com/texview.php?id=2725
+
+
+And are used under a complex license, to which we've been able to adhere:
 	http://www.cgtextures.com/content.php?action=license
 
-This image has been reprocessed by Toca, and due to the restrictiveness of the license
+This images has been reprocessed by Toca, and due to the restrictiveness of the license
 above, redistribution has been allowed under those same license terms.
 
 To comply with their license, we have included the following text in this file:
