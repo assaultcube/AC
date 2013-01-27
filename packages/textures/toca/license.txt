@@ -1,10 +1,16 @@
-Some of this textures are originally by CGTextures.com and are sourced from:
+The following textures are originally by CGTextures.com and are sourced from:
 
+oldwall.jpg: http://cgtextures.com/texview.php?id=54137
+ice1.jpg:    http://cgtextures.com/texview.php?id=8536
+sand1.jpg:       http://cgtextures.com/texview.php?id=32630
+frozenground1.jpg: http://cgtextures.com/texview.php?id=30324
+frozenground2.jpg: http://cgtextures.com/texview.php?id=30379
+snow1.jpg:       http://cgtextures.com/texview.php?id=8537
+snow1.jpg:       http://cgtextures.com/texview.php?id=72446
 pebbles1.jpg:    http://cgtextures.com/texview.php?id=53799
 pebbles2.jpg:    http://cgtextures.com/texview.php?id=66840
 pebbles3.jpg:    http://cgtextures.com/texview.php?id=9524
 greybricks.jpg:  http://cgtextures.com/texview.php?id=2725
-
 
 And are used under a complex license, to which we've been able to adhere:
 	http://www.cgtextures.com/content.php?action=license
@@ -49,4 +55,3 @@ It is NOT permitted to:
    or attempt to gain unauthorized access to the CGTextures website or any system
    resources or networks connected to this website.
  - Release the Textures or derivative products under Open Source Licences
-
