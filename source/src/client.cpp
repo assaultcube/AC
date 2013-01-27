@@ -208,7 +208,11 @@ void disconnect(int onlyclean, int async)
 #endif
     if(!onlyclean) localconnect();
 
-    if(identexists("onDisconnect")) execute("onDisconnect");
+    if(identexists("onDisconnect"))
+    {
+        defformatstring(ondisconnect)("onDisconnect %d", -1);
+        execute(ondisconnect);
+    }
 }
 
 void trydisconnect()

@@ -639,6 +639,11 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 if(!d) break;
                 if(d->name[0]) conoutf(_("player %s disconnected"), colorname(d));
                 zapplayer(players[cn]);
+                if(identexists("onDisconnect"))
+                {
+                    defformatstring(ondisconnect)("onDisconnect %d", d->clientnum);
+                    execute(ondisconnect);
+                }
                 break;
             }
 
