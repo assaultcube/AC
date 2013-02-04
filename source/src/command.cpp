@@ -1298,6 +1298,64 @@ void strreplace (const char *source, const char *search, const char *replace)
     }
 }
 
+void sortlist(char *list)
+{
+    static char buf[255]; strcpy(buf, ""); //output
+    
+    if (strcmp(list, "") == 0) {result(buf); return;} //no input
+    
+    vector<char *> elems;
+    explodelist(list, elems);
+    elems.sort(stringsort);
+    
+    strcpy(buf, elems[0]);
+    for(int i = 1; i < elems.length(); i++)
+    {
+        strcat(buf, " ");
+        strcat(buf, elems[i]);
+    }
+    
+    result(buf); //result
+}
+
+void swapelements(char *list, char *v)
+{
+    static char buf[255]; strcpy(buf, ""); //output
+    
+    if (strcmp(list, "") == 0) {result(buf); return;} //no input
+    
+    vector<char *> elems;
+    explodelist(list, elems);
+    
+    vector<char *> swap;
+    explodelist(v, swap);
+    
+    if (strcmp(v, "") == 0 || //no input
+    swap.length()%2 != 0) //incorrect input
+    {result(buf); return;}
+    
+    char tmp[255]; strcpy (tmp, "");
+    
+    for(int i = 0; i < swap.length(); i+=2)
+    {
+        if (elems.inrange(atoi(swap[i])) && elems.inrange(atoi(swap[i + 1])))
+        {
+            strcpy(tmp, elems[atoi(swap[i])]);
+            strcpy(elems[atoi(swap[i])], elems[atoi(swap[i+1])]);
+            strcpy(elems[atoi(swap[i+1])], tmp);
+        }
+    }
+    
+    strcpy(buf, elems[0]);
+    for(int i = 1; i < elems.length(); i++)
+    {
+        strcat(buf, " ");
+        strcat(buf, elems[i]);
+    }
+    
+    result(buf); //result
+}
+
 COMMANDN(c, colora, "s");
 COMMANDN(loop, loopa, "sis");
 COMMAND(looplist, "sss");
@@ -1318,7 +1376,9 @@ COMMAND(addpunct, "si");
 COMMANDN(tolower, toLower, "s");
 COMMANDN(toupper, toUpper, "s");
 COMMAND(testchar, "si");
+COMMAND(sortlist, "c");
 COMMAND(strreplace, "sss");
+COMMAND(swapelements, "ss");
 
 void add(int *a, int *b)   { intret(*a + *b); }            COMMANDN(+, add, "ii");
 void mul(int *a, int *b)   { intret(*a * *b); }            COMMANDN(*, mul, "ii");
