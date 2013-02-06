@@ -206,6 +206,39 @@ keym *findbindc(int code)
     return NULL;
 }
 
+void findkey(int *code)
+{
+    for (int i = 0; i < keyms.length(); i++)
+    {
+        if(keyms[i].code==*code)
+        {
+            defformatstring(out)("%s", keyms[i].name);
+            result(out);
+            return;
+        }
+    }
+    result("-255");
+    return;
+}
+ 
+void findkeycode(const char* s)
+{
+     for (int i = 0; i < keyms.length(); i++)
+     {
+         if(strcmp(s, keyms[i].name) == 0)
+         {
+             defformatstring(out)("%i", keyms[i].code);
+             result(out);
+             return;
+         }
+     }
+     result("-255");
+     return;
+}
+
+COMMAND(findkey, "i");
+COMMAND(findkeycode, "s");
+
 keym *keypressed = NULL;
 char *keyaction = NULL;
 
