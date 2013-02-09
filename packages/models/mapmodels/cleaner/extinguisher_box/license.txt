@@ -8,8 +8,8 @@ DES|Cleaner contact details:
 	* totally_shameless@hotmail.fr
 ================================================================================
 All files in folder:
- * "extinguisher.md3"
- * "skin.jpg"
+ * "extinguisher_box.md3"
+ * "box.png"
 
 Are originally by "DES|Cleaner" for AssaultCube using MilkShape 3D and PaintShop Pro XII. 
 They are licensed under the Creative Commons "Attribution-NonCommercial-ShareAlike 3.0
