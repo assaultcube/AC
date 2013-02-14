@@ -1120,6 +1120,7 @@ bool menukey(int code, bool isdown, int unicode, SDLMod mod)
         if(code==SDLK_RETURN || code==SDLK_SPACE || code==SDL_AC_BUTTON_LEFT || code==SDL_AC_BUTTON_MIDDLE)
         {
             m.select();
+            if(m.getaction()!=NULL && !strcmp(m.getaction(), "-1")) return true; // don't playsound S_MENUENTER if menuitem action == -1 (null/blank/text only item) - Bukz 2013feb13
             audiomgr.playsound(S_MENUENTER, SP_HIGHEST);
             return true;
         }
