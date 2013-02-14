@@ -519,20 +519,32 @@ void preload_playermodels()
 }
 
 void preload_entmodels()
-{
-    extern const char *entmdlnames[];
-    loopi(I_AKIMBO-I_CLIPS+1)
-    {
-        model *mdl = loadmodel(entmdlnames[i]);
-        if(dynshadow && mdl) mdl->genshadows(8.0f, 2.0f);
-    }
-    static const char *bouncemdlnames[] = { "misc/gib01", "misc/gib02", "misc/gib03", "weapons/grenade/static" };
-    loopi(sizeof(bouncemdlnames)/sizeof(bouncemdlnames[0]))
-    {
-        model *mdl = loadmodel(bouncemdlnames[i]);
-        if(dynshadow && mdl) mdl->genshadows(8.0f, 2.0f);
-    }
-}
+ {
+     string buf;
+
+     extern const char *entmdlnames[];
+     loopi(I_AKIMBO-I_CLIPS+1)
+     {
+         strcpy(buf, "pickups/");
+
+         defformatstring(widn)("modmdlvwep%d", i-3);
+
+         if (identexists(widn))
+         strcat(buf, getalias(widn));
+         else
+         strcat(buf, entmdlnames[i]);
+
+         model *mdl = loadmodel(buf);
+
+         if(dynshadow && mdl) mdl->genshadows(8.0f, 2.0f);
+     }
+     static const char *bouncemdlnames[] = { "misc/gib01", "misc/gib02", "misc/gib03", "weapons/grenade/static" };
+     loopi(sizeof(bouncemdlnames)/sizeof(bouncemdlnames[0]))
+     {
+         model *mdl = loadmodel(bouncemdlnames[i]);
+         if(dynshadow && mdl) mdl->genshadows(8.0f, 2.0f);
+     }
+ }
 
 void preload_mapmodels()
 {
