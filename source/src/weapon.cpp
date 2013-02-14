@@ -6,7 +6,7 @@
 
 VARP(autoreload, 0, 1, 1);
 VARP(akimboautoswitch, 0, 1, 1);
-VARP(akimboendaction, 0, 1, 2); // 0: stay with pistol, 1: back to primary, 2: grenade - all fallback to previous one w/o ammo for target
+VARP(akimboendaction, 0, 3, 3); // 0: switch to knife, 1: stay with pistol (if has ammo), 2: switch to grenade (if possible), 3: switch to primary (if has ammo) - all fallback to previous one w/o ammo for target
 
 sgray sgr[SGRAYS*3];
 sgray pat[SGRAYS*3]; // DEBUG 2011may27
@@ -1631,6 +1631,36 @@ void checkakimbo()
 
                 switch(akimboendaction)
                 {
+                    case 0: player1->weaponswitch(player1->weapons[GUN_KNIFE]); break;
+                    case 1:
+                    {
+                        if(player1->weapons[GUN_PISTOL]->ammo) player1->weaponswitch(&p);
+                        else player1->weaponswitch(player1->weapons[GUN_KNIFE]);
+                        break;
+                    }
+                    case 2:
+                    {
+                        if(player1->mag[GUN_GRENADE]) player1->weaponswitch(player1->weapons[GUN_GRENADE]);
+                        else {
+                            if(player1->weapons[GUN_PISTOL]->ammo) player1->weaponswitch(&p);
+                            else player1->weaponswitch(player1->weapons[GUN_KNIFE]);
+                        }
+                        break;
+                    }
+                    case 3:
+                    {
+                        if(player1->ammo[player1->primary]) player1->weaponswitch(player1->weapons[player1->primary]);
+                        else {
+                            if(player1->mag[GUN_GRENADE]) player1->weaponswitch(player1->weapons[GUN_GRENADE]);
+                            else {
+                                if(player1->weapons[GUN_PISTOL]->ammo) player1->weaponswitch(&p);
+                                else player1->weaponswitch(player1->weapons[GUN_KNIFE]);
+                            }
+                        }
+                        break;
+                    }
+                    default: break;
+                /*
                     case 0: player1->weaponswitch(&p); break;
                     case 1:
                     {
@@ -1649,6 +1679,7 @@ void checkakimbo()
                         break;
                     }
                     default: break;
+                */
                 }
             }
             if(player1->state != CS_DEAD) audiomgr.playsoundc(S_AKIMBOOUT);
