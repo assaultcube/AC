@@ -1741,3 +1741,4 @@ void debugargs(char **args, int numargs)
 }
 
 COMMAND(debugargs, "v");
+SVARP(storestring,"n/a");
