@@ -226,8 +226,7 @@ void renderbatchedmodel(model *m, batchedmodel &b)
 
     m->setskin(b.tex);
 
-    //if(b.anim&ANIM_TRANSLUCENT)
-    if(b.anim&ANIM_TRANSLUCENT || m->alphablend) //ALX Alpha channel models
+    if(b.anim&ANIM_TRANSLUCENT)
     {
         glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
         m->render(b.anim|ANIM_NOSKIN, b.varseed, b.speed, b.basetime, b.o, b.yaw, b.pitch, b.d, a, b.scale);
@@ -244,8 +243,7 @@ void renderbatchedmodel(model *m, batchedmodel &b)
 
     m->render(b.anim, b.varseed, b.speed, b.basetime, b.o, b.yaw, b.pitch, b.d, a, b.scale);
 
-    //if(b.anim&ANIM_TRANSLUCENT)
-    if(b.anim&ANIM_TRANSLUCENT || m->alphablend) //ALX Alpha channel models
+    if(b.anim&ANIM_TRANSLUCENT)
     {
         glDepthFunc(GL_LESS);
         glDisable(GL_BLEND);
@@ -313,8 +311,8 @@ void endmodelbatches(bool flush)
         loopvj(b.batched)
         {
             batchedmodel &bm = b.batched[j];
-            //if(bm.anim&ANIM_TRANSLUCENT)
-            if(bm.anim&ANIM_TRANSLUCENT || b.m->alphablend) //ALX Alpha channel models
+            
+            if(bm.anim&ANIM_TRANSLUCENT)
             {
                 translucentmodel &tm = translucent.add();
                 tm.m = b.m;
