@@ -311,7 +311,6 @@ void endmodelbatches(bool flush)
         loopvj(b.batched)
         {
             batchedmodel &bm = b.batched[j];
-            
             if(bm.anim&ANIM_TRANSLUCENT)
             {
                 translucentmodel &tm = translucent.add();
