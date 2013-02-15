@@ -524,7 +524,7 @@ void preload_entmodels()
      {
          strcpy(buf, "pickups/");
 
-         defformatstring(widn)("modmdlvwep%d", i-3);
+         defformatstring(widn)("modmdlpickup%d", i-3);
 
          if (identexists(widn))
          strcat(buf, getalias(widn));
