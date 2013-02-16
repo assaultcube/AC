@@ -240,7 +240,7 @@ void drawscope(bool preload)
     glEnable(GL_BLEND);
 }
 
-const char *crosshairnames[CROSSHAIR_NUM] = { "default", "teammate", "scope" };
+const char *crosshairnames[CROSSHAIR_NUM] = { "default", "teammate", "scope", "knife", "pistol", "carbine", "shotgun", "smg", "sniper", "ar", "cpistol", "grenades", "akimbo" };
 Texture *crosshairs[CROSSHAIR_NUM] = { NULL }; // weapon specific crosshairs
 
 Texture *loadcrosshairtexture(const char *c)
@@ -253,13 +253,25 @@ Texture *loadcrosshairtexture(const char *c)
 
 void loadcrosshair(char *c, char *name)
 {
-    int n = -1;
-    loopi(CROSSHAIR_NUM) if(!strcmp(crosshairnames[i], name)) { n = i; break; }
-    if(n<0)
+    if (strcmp(name, "") == 0 || strcmp(name, "all") == 0)
     {
-        n = atoi(name);
-        if(n<0 || n>=CROSSHAIR_NUM) return;
+        for (int i = 0; i < CROSSHAIR_NUM; i++)
+        {
+            if (i == CROSSHAIR_TEAMMATE || i == CROSSHAIR_SCOPE) continue;
+            crosshairs[i] = loadcrosshairtexture(c);
+        }
+        return;
     }
+ 
+    int n = -1;
+ 
+    for (int i = 0; i < CROSSHAIR_NUM; i++)
+    {
+       if(strcmp(crosshairnames[i], name) == 0) { n = i; break; }
+    }
+ 
+    if (n < 0 || n >= CROSSHAIR_NUM) return;
+ 
     crosshairs[n] = loadcrosshairtexture(c);
 }
 

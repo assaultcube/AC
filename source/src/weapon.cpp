@@ -907,7 +907,7 @@ void weapon::onselecting()
 }
 
 void weapon::renderhudmodel() { renderhudmodel(owner->lastaction); }
-void weapon::renderaimhelp(bool teamwarning) { drawcrosshair(owner, teamwarning ? CROSSHAIR_TEAMMATE : CROSSHAIR_DEFAULT); }
+void weapon::renderaimhelp(bool teamwarning) { drawcrosshair(owner, teamwarning ? CROSSHAIR_TEAMMATE : owner->weaponsel->type + 3); }
 int weapon::dynspread() { return info.spread; }
 float weapon::dynrecoil() { return info.recoil; }
 bool weapon::selectable() { return this != owner->weaponsel && owner->state == CS_ALIVE && !owner->weaponchanging; }
