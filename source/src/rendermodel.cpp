@@ -516,7 +516,7 @@ void preload_playermodels()
 }
 
 void preload_entmodels()
- {
+{
      string buf;
 
      extern const char *entmdlnames[];
@@ -538,10 +538,17 @@ void preload_entmodels()
      static const char *bouncemdlnames[] = { "misc/gib01", "misc/gib02", "misc/gib03", "weapons/grenade/static" };
      loopi(sizeof(bouncemdlnames)/sizeof(bouncemdlnames[0]))
      {
-         model *mdl = loadmodel(bouncemdlnames[i]);
+         model *mdl = NULL;
+         defformatstring(widn)("modmdlbounce%d", i);
+
+         if (identexists(widn))
+         mdl = loadmodel(getalias(widn));
+         else
+         mdl = loadmodel(bouncemdlnames[i]);
+
          if(dynshadow && mdl) mdl->genshadows(8.0f, 2.0f);
      }
- }
+}
 
 void preload_mapmodels()
 {

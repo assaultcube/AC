@@ -509,13 +509,23 @@ void renderbounceents()
         switch(p->bouncetype)
         {
             case BT_NADE:
+            if (identexists("modmdlbounce3"))
+                copystring(model, getalias("modmdlbounce3"));
+                else
                 copystring(model, "weapons/grenade/static");
                 break;
             case BT_GIB:
             default:
             {
                 uint n = (((4*(uint)(size_t)p)+(uint)p->timetolive)%3)+1;
+
+                defformatstring(widn)("modmdlbounce%d", n-1);
+
+                if (identexists(widn))
+                copystring(model, getalias(widn));
+                else
                 formatstring(model)("misc/gib0%u", n);
+
                 int t = lastmillis-p->millis;
                 if(t>p->timetolive-2000)
                 {
