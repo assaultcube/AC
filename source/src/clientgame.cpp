@@ -1155,9 +1155,9 @@ void startmap(const char *name, bool reset)   // called just after a map load
     // run once
     if(firstrun)
     {
-        persistidents = false;
+        per_idents = false;
         execfile("config/firstrun.cfg");
-        persistidents = true;
+        per_idents = true;
         firstrun = false;
     }
     // execute mapstart event once

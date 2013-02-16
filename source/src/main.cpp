@@ -1110,7 +1110,7 @@ int main(int argc, char **argv)
     if(!notexture) fatal("could not find core textures (hint: run AssaultCube from the parent of the bin directory)");
 
     initlog("console");
-    persistidents = false;
+    per_idents = false;
     // Main font file, all other font files execute from here.
     if(!execfile("config/font.cfg")) fatal("cannot find default font definitions");
     // Check these 2 standard fonts have been executed.
@@ -1147,7 +1147,7 @@ int main(int argc, char **argv)
     exec("config/securemaps.cfg");
     exec("config/admin.cfg");
     execfile("config/servers.cfg");
-    persistidents = true;
+    per_idents = true;
 
     static char resdata[] = { 112, 97, 99, 107, 97, 103, 101, 115, 47, 116, 101, 120, 116, 117, 114, 101, 115, 47, 107, 117, 114, 116, 47, 107, 108, 105, 116, 101, 50, 46, 106, 112, 103, 0 };
     stream *f = opengzfile(resdata, "rb");
@@ -1173,9 +1173,9 @@ int main(int argc, char **argv)
     if(identexists("afterinit")) execute("afterinit");
     if(compatibilitymode)
     {
-        persistidents = false;
+        per_idents = false;
         exec("config/compatibility.cfg"); // exec after saved.cfg to get "compatibilitymode", but before user scripts..
-        persistidents = true;
+        per_idents = true;
     }
     execfile("config/autoexec.cfg");
     execfile("config/auth.cfg");
@@ -1189,9 +1189,9 @@ int main(int argc, char **argv)
     preload_entmodels();
 
     initlog("docs");
-    persistidents = false;
+    per_idents = false;
     execfile("config/docs.cfg");
-    persistidents = true;
+    per_idents = true;
 
     initlog("localconnect");
     extern string clientmap;
