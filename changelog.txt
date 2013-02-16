@@ -127,6 +127,25 @@ Bots
 CubeScript
 ---------------------
 
+[*] persistidents bug fix, aliases write to saved.cfg much more reliably now.
+[*] modmdl*N aliases, load custom weapon/pickup/gib models from in-game, on-the-fly via cubescript.
+[*] loadcrosshair bug fix, you can load custom crosshairs for each weapon again.
+[*] getalias can now work on built-in client variables (CVARs). - (e.g. fov)
+[*] forceteam now can target specific team
+[*] "Sleeps" can be persistent. (e.g. "Persist" even through map loads - new optional 3rd argument of the /sleep command)
+[*] Substr crash bug is fixed. Also the command can now use a negative position value.
+[*] New stat in (pstat_score) for teamkills. New list is: FLAGS FRAGS DEATHS POINTS TEAM TEAMKILLS NAME
+[*] on_quit.cfg for deleting aliases from saved.cfg upon quit.
+[*] Missing bracket ([], (), etc.) errors now also notify the client of what file the error resides in.
+[*] New automatically executed scripts folder in the root install directory of AC.
+[*] New delta_edit/game_# aliases for easily tweaking gamma/fov/flyspeed on-the-fly. (e.g. Hold F5 and scroll for gamma, F6 for fov, bind "domodifier 10" to a key for flyspeed)
+[*] The /mapsize command now silenty returns 6-12, instead of conoutf'ing ssize.
+[*] The /spectate command can now only be used if connected to a server.
+[*] The /togglebotview command can no longer be used in arena modes.
+[*] /keybind bug fix. No more client crash if the argument is an unknown key.
+[*] Moved some old/redundant commands to /config/compatibility.cfg.
+[*] Hardcoded key bind/editbind/specbind
+[*] const            - Creates or sets an alias as a constant
 [*] div= and div=f   - Divides an alias by a value.
 [*] addpunct         - Injects CubeScript punctuation. (e.g. echo (addpunct hello) // Output: "hello")
 [*] break            - Jumps out of a loop created with the "loop" or "while" command.
@@ -216,22 +235,9 @@ CubeScript
 [*] isclient         - Determines if the client number given is a valid client (player).
 [*] winners          - Returns the list of winning teams or players
 [*] drawzone         - Draw a rectangular zone on the minimap
-[*] const            - Sets an alias as a constant
-[*] getalias can now work on built-in client variables (CVARs). - (e.g. fov)
-[*] forceteam now can target specific team
-[*] "Sleeps" can be persistent. (e.g. "Persist" even through map loads - new optional 3rd argument of the /sleep command)
-[*] Substr crash bug is fixed. Also the command can now use a negative position value.
-[*] New stat in (pstat_score) for teamkills. New list is: FLAGS FRAGS DEATHS POINTS TEAM TEAMKILLS NAME
-[*] on_quit.cfg for deleting aliases from saved.cfg upon quit.
-[*] Missing bracket ([], (), etc.) errors now also notify the client of what file the error resides in.
-[*] New automatically executed scripts folder in the root install directory of AC.
-[*] New delta_edit/game_# aliases for easily tweaking gamma/fov/flyspeed on-the-fly. (e.g. Hold F5 and scroll for gamma, F6 for fov, bind "domodifier 10" to a key for flyspeed)
-[*] The /mapsize command now silenty returns 6-12, instead of conoutf'ing ssize.
-[*] The /spectate command can now only be used if connected to a server.
-[*] The /togglebotview command can no longer be used in arena modes.
-[*] /keybind bug fix. No more client crash if the argument is an unknown key.
-[*] Moved some old/redundant commands to /config/compatibility.cfg.
-[*] Hardcoded key bind/editbind/specbind
+[*] swapelements     - Returns a modified list swapping the positions of 2 elements.
+[*] sortlist         - Returns an alphabetically sorted list.
+[*] Too many others to list...
 
 I18n / L10n
 ---------------------
