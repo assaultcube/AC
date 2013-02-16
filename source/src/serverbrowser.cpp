@@ -786,8 +786,8 @@ void addfavcategory(const char *refdes)
     if(!text[0]) { intret(0); return; }
     loopv(favcats) if(!strcmp(favcats[i], text)) { intret(i + 1); return; }
     favcats.add(newstring(text));
-    bool oldpersist = persistidents;
-    persistidents = false; // only keep changed values
+    bool oldpersist = per_idents;
+    per_idents = false; // only keep changed values
     loopi(FC_NUM) alx[i] = getalias(favcatargname(text, i)) ? 1 : 0;
     loopi(3)
     {
@@ -798,7 +798,7 @@ void addfavcategory(const char *refdes)
     const int defk[] = { FC_WEIGHT, FC_DESC, FC_TAG, FC_KEYS, FC_IGNORE, FC_ALPHA };
     const char *defv[] = { "0",     val,     refdes, "",      "",        "20" };
     loopi(sizeof(defk)/sizeof(defk[0])) { if(!alx[defk[i]]) alias(favcatargname(text, defk[i]), defv[i]); }
-    persistidents = oldpersist;
+    per_idents = oldpersist;
     intret(favcats.length());
 }
 

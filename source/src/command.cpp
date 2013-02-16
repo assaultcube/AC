@@ -17,10 +17,22 @@ int loop_level = 0;                                      // avoid bad calls of b
 
 hashtable<const char *, ident> *idents = NULL;          // contains ALL vars/commands/aliases
 
-bool persistidents = true, neverpersist = false;
-COMMANDF(persistidents, "i", (int *on) {
-    persistidents = neverpersist ? false : *on;
+VAR(persistidents, 0, 1, 1);
+
+bool per_idents = true, neverpersist = false;
+COMMANDF(per_idents, "i", (int *on) {
+    per_idents = neverpersist ? false : *on;
 });
+
+void ispersist()
+{
+    if (persistidents)
+    conoutf("persistidents is on");
+    else
+    conoutf("persistidents is off");
+}
+
+COMMAND(ispersist, "");
 
 void clearstack(ident &id)
 {
@@ -63,7 +75,7 @@ ident *newident(const char *name, int context = execcontext)
     ident *id = idents->access(name);
     if(!id)
     {
-        ident init(ID_ALIAS, newstring(name), newstring(""), persistidents, context);
+        ident init(ID_ALIAS, newstring(name), newstring(""), per_idents, context);
         id = &idents->access(init.name, init);
     }
     return id;
@@ -153,7 +165,7 @@ void constant(const char *name, const char *action)
     ident *b = idents->access(name);
     if(!b)
     {
-        ident b(ID_ALIAS, newstring(name), newstring(action), persistidents, execcontext);
+        ident b(ID_ALIAS, newstring(name), newstring(action), false, execcontext); // never write consts to saved.cfg, too error prone - Bukz
         b.isconst = true;
         idents->access(b.name, b);
         return;
@@ -177,7 +189,7 @@ void constant(const char *name, const char *action)
         {
             if(b->action!=b->executing) delete[] b->action;
             b->action = newstring(action);
-            if(b->persist!=persistidents) b->persist = persistidents;
+            //if(b->persist!=persistidents) b->persist = persistidents;
         }
     }
     else

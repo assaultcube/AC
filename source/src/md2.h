@@ -258,7 +258,7 @@ struct md2 : vertmodel
         if(skin==notexture) conoutf(_("could not load model skin for %s"), name1);
         loadingmd2 = this;
         defformatstring(name2)("packages/models/%s/md2.cfg", loadname);
-        persistidents = false;
+        per_idents = false;
         neverpersist = true;
         if(!execfile(name2))
         {
@@ -266,7 +266,7 @@ struct md2 : vertmodel
             execfile(name2);
         }
         neverpersist = false;
-        persistidents = true;
+        per_idents = true;
         loadingmd2 = 0;
         loopv(parts) parts[i]->scaleverts(scale/16.0f, vec(translate.x, -translate.y, translate.z));
         radius = calcradius();
