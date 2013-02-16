@@ -24,16 +24,6 @@ COMMANDF(per_idents, "i", (int *on) {
     per_idents = neverpersist ? false : *on;
 });
 
-void ispersist()
-{
-    if (persistidents)
-    conoutf("persistidents is on");
-    else
-    conoutf("persistidents is off");
-}
-
-COMMAND(ispersist, "");
-
 void clearstack(ident &id)
 {
     identstack *stack = id.stack;
