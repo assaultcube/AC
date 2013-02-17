@@ -805,6 +805,10 @@ VARP(dbgpos,0,0,1);
 VARP(showtargetname,0,1,1);
 VARP(showspeed, 0, 0, 1);
 
+static char lastseen [20];
+void lasttarget() { result(lastseen); }
+COMMAND(lasttarget, "");
+
 void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwater)
 {
     playerent *p = camera1->type<ENT_CAMERA ? (playerent *)camera1 : player1;
@@ -857,6 +861,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     glEnable(GL_TEXTURE_2D);
 
     playerent *targetplayer = playerincrosshair();
+    if (targetplayer) strcpy(lastseen, targetplayer->name);
     bool menu = menuvisible();
     bool command = getcurcommand() ? true : false;
     if((p->state==CS_ALIVE || p->state==CS_EDITING) && !p->weaponsel->reloading)

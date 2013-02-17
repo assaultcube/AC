@@ -349,8 +349,24 @@ void editdrag(bool isdown)
         tofronttex();
 
         extern vector<keym> keyms;
+        vector<char *> elems;
+        
         bool ctrlpressed = false;
-        loopv(keyms) if(keyms[i].pressed && (keyms[i].code == SDLK_RCTRL || keyms[i].code == SDLK_LCTRL)) { { ctrlpressed = true; break; } }
+        
+        if (identexists("newselkeys"))
+        {
+            for (int i = 0; i < keyms.length(); i++)
+            if(keyms[i].pressed)
+            {
+                explodelist(getalias("newselkeys"), elems);
+                for (int j = 0; j < elems.length(); j++)
+                {
+                    if (strcmp(keyms[i].name, elems[j]) == 0)
+                    { ctrlpressed = true; break; }
+                }
+            }
+        }
+
         if(!ctrlpressed) resetselections();
     }
     makesel(isdown);
