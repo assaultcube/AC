@@ -51,17 +51,18 @@ for file in $*; do
       cp "$file" "$file".BAK
       if [ -r "$file".BAK ]; then
         echo "A successful backup of "$file" has been made to "$file".BAK"
+        # Convert to UNIX new-line format, just in case.
+        awk '{sub(/\r$/,"")};1' "$file".BAK > "$file"
         # Option to strip file of cruft.
         if [ "$1" = "-s" ] || [ "$1" = "--strip" ] || [ "$1" = "-os" ] || [ "$1" = "--onlystrip" ]; then
           echo "Now stripping "$file" of cruft..."
-          # 1) Convert to UNIX new-line format.
-          # 2) Remove comments.
-          # 3) Remove trailing spaces/tabs.
-          # 4) Remove blank lines.
-          awk '{sub(/\r$/,"")};1' $file.BAK | \
-          awk -F'//' '{print $1}' | \
+          # 1) Remove comments.
+          # 2) Remove trailing spaces/tabs.
+          # 3) Remove blank lines.
+          awk -F'//' '{print $1}' "$file" | \
           awk '{sub(/[ \t]+$/, "")};1' | \
-          awk NF > $file
+          awk NF > "$file".tmp
+          mv -f "$file".tmp "$file"
         fi
         if [ "$1" = "-os" ] || [ "$1" = "--onlystrip" ]; then
           echo -e "As requested, "$file" has been stripped of cruft and no conversion was made.\n"
