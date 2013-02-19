@@ -524,7 +524,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     lastpm = d->clientnum;
                     if(identexists("onPM"))
                     {
-                        defformatstring(onpm)("onPM %d %s", d->clientnum, text);
+                        defformatstring(onpm)("onPM %d [%s]", d->clientnum, text);
                         execute(onpm);
                     }
                 }
