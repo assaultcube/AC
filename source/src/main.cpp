@@ -1248,12 +1248,7 @@ int main(int argc, char **argv)
 
         if(lastmillis) updateworld(curtime, lastmillis);
 
-        if(needsautoscreenshot)
-        {
-            showscores(true);
-            addsleep(0, "screenshot");
-            needsautoscreenshot = false;
-        }
+        if(needsautoscreenshot) showscores(true);
 
         serverslice(0);
 
@@ -1269,6 +1264,18 @@ int main(int argc, char **argv)
             if(frames>4) SDL_GL_SwapBuffers();
         }
 
+        if(needsautoscreenshot)
+        {
+            showscores(true);
+            // draw again after swapping buffers, to make sure menu is captured
+            // in the screenshot regardless of which frame buffer is current
+            if (!minimized)
+            {
+                gl_drawframe(screen->w, screen->h, fps<lowfps ? fps/lowfps : (fps>highfps ? fps/highfps : 1.0f), fps);           
+            }
+            addsleep(0, "screenshot");
+            needsautoscreenshot = false;
+        }
 #ifdef _DEBUG
         if(millis>lastflush+60000) { fflush(stdout); lastflush = millis; }
 #endif
