@@ -913,7 +913,7 @@ void dokill(playerent *pl, playerent *act, bool gib, int gun)
 
     if(pl == act || isteam(pl->team, act->team))
     {
-        act->tks++;
+        if(pl != act) act->tks++;
         if(!m_mp(gamemode)) act->frags--;
     }
     else if(!m_mp(gamemode)) act->frags += ( gib && gun != GUN_GRENADE && gun != GUN_SHOTGUN) ? 2 : 1;
