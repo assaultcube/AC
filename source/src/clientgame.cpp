@@ -1669,7 +1669,7 @@ void spectate()
 void setfollowplayer(int cn)
 {
     // silently ignores invalid player-cn value passed
-    if(players.inrange(cn))
+    if(players.inrange(cn) && players[cn])
     {
         if(!(m_teammode && !watchingdemo && team_base(players[cn]->team) != team_base(player1->team)))
         {
