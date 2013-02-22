@@ -547,7 +547,7 @@ void consolekey(int code, bool isdown, int cooked)
     }
     else
     {
-        if(code==SDLK_RETURN || code==SDL_AC_BUTTON_LEFT || code==SDL_AC_BUTTON_MIDDLE)
+        if(code==SDLK_RETURN || code==SDLK_KP_ENTER || code==SDL_AC_BUTTON_LEFT || code==SDL_AC_BUTTON_MIDDLE)
         {
             hline *h = NULL;
             if(cmdline.buf[0])
