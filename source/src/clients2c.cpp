@@ -1270,7 +1270,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                         break;
                 }
                 displayvote(v);
-                onCallVote(type, vcn, text, a1);
+                onCallVote(type, v->owner->clientnum, text, a1);
                 if (vcn >= 0)
                 {
                     loopi(n_yes) votecount(VOTE_YES);

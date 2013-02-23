@@ -1405,7 +1405,7 @@ void callvote(int type, const char *arg1, const char *arg2, const char *arg3)
         sendpackettoserv(1, p.finalize());
         if(identexists("onCallVote"))
         {
-            defformatstring(runas)("%s %d %d [%s] [%s]", "onCallVote", type, -1, arg1, arg2);
+            defformatstring(runas)("%s %d %d [%s] [%s]", "onCallVote", type, player1->clientnum, arg1, arg2);
             execute(runas);
         }
     }
