@@ -1435,6 +1435,7 @@ void writecfg()
     stream *f = openfile(path("config/saved.cfg", true), "w");
     if(!f) return;
     f->printf("// automatically written on exit, DO NOT MODIFY\n// delete this file to have defaults.cfg overwrite these settings\n// modify settings in game, or put settings in autoexec.cfg to override anything\n\n");
+    f->printf("// basic settings\n\n");
     f->printf("name \"%s\"\n", player1->name);
     extern const char *crosshairnames[CROSSHAIR_NUM];
     extern Texture *crosshairs[CROSSHAIR_NUM];
@@ -1456,10 +1457,10 @@ void writecfg()
     {
         const char *fragmsg = killmessage(i, false);
         const char *gibmsg = killmessage(i, true);
-        f->printf("\nfragmessage %d \"%s\"", i, fragmsg);
-        f->printf("\ngibmessage %d \"%s\"", i, gibmsg);
+        f->printf("\nfragmessage %d [%s]", i, fragmsg);
+        f->printf("\ngibmessage %d [%s]", i, gibmsg);
     }
-    f->printf("\n");
+    f->printf("\n\n// client variables\n\n");
     enumerate(*idents, ident, id,
         if(!id.persist) continue;
         switch(id.type)
@@ -1469,14 +1470,14 @@ void writecfg()
             case ID_SVAR: f->printf("%s [%s]\n", id.name, *id.storage.s); break;
         }
     );
-    f->printf("\n");
+    f->printf("\n// weapon settings\n\n");
     loopi(NUMGUNS) if(guns[i].isauto)
     {
         f->printf("burstshots %d %d\n", i, burstshotssettings[i]);
     }
-    f->printf("\n");
+    f->printf("\n// key binds\n\n");
     writebinds(f);
-    f->printf("\n");
+    f->printf("\n// aliases\n\n");
     enumerate(*idents, ident, id,
         if(id.type==ID_ALIAS && id.persist && id.action[0])
         {

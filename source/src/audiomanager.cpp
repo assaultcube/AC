@@ -398,7 +398,19 @@ int audiomanager::soundmuted(int n)
 
 void audiomanager::writesoundconfig(stream *f)
 {
-    loopv(gamesounds) if(gamesounds[i].muted) f->printf("mutesound %d\n", i);
+    bool wrotesound = false;
+    loopv(gamesounds)
+    {
+        if(gamesounds[i].muted)
+        {
+            if(!wrotesound)
+            {
+                f->printf("// sound settings\n\n");
+                wrotesound = true;
+            }
+            f->printf("mutesound %d\n", i);
+        }
+    }
 }
 
 void voicecom(char *sound, char *text)
