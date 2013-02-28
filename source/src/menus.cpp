@@ -562,6 +562,7 @@ struct mitemtextinput : mitemtext
 };
 
 // slider item
+VARP(wrapslider, 0, 0, 1);
 
 struct mitemslider : mitem
 {
@@ -623,7 +624,12 @@ struct mitemslider : mitem
     void slide(bool right)
     {
         value += right ? step : -step;
-        value = min(max_, max(min_, value));
+        if (wrapslider)
+        {
+            if (value > max_) value = min_;
+            if (value < min_) value = max_;
+        }
+        else value = min(max_, max(min_, value));
         displaycurvalue();
         if(action)
         {
@@ -1029,6 +1035,13 @@ COMMAND(menuitemkeyinput, "ss");
 COMMAND(menuitemcheckbox, "sss");
 COMMAND(menuselectionbgcolor, "ssss");
 
+static bool iskeypressed(int key)
+{
+    int numkeys = 0;
+    Uint8* state = SDL_GetKeyState(&numkeys);
+    return key < numkeys && state[key] != 0;
+}
+
 bool menukey(int code, bool isdown, int unicode, SDLMod mod)
 {
     if(!curmenu) return false;
@@ -1054,11 +1067,13 @@ bool menukey(int code, bool isdown, int unicode, SDLMod mod)
                 break;
             case SDLK_UP:
             case SDL_AC_BUTTON_WHEELUP:
+                if(iskeypressed(SDLK_LCTRL)) return menukey(SDLK_LEFT, isdown, 0);
                 if(!curmenu->allowinput) return false;
                 menusel--;
                 break;
             case SDLK_DOWN:
             case SDL_AC_BUTTON_WHEELDOWN:
+                if(iskeypressed(SDLK_LCTRL)) return menukey(SDLK_RIGHT, isdown, 0);
                 if(!curmenu->allowinput) return false;
                 menusel++;
                 break;
