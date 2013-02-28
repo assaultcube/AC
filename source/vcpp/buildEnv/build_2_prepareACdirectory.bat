@@ -14,6 +14,7 @@ del /Q %acdir%\demos\*
 
 rem remove linux stuff
 del %acdir%\*.sh
+del %acdir%\config\*.sh
 rmdir /S /Q %acdir%\bin_unix
 
 rem remove source files (those are available in the source pkg)
