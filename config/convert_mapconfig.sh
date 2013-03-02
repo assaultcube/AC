@@ -19,10 +19,9 @@ if [ "$1" = "-h" ] || [ "$1" = "--help" ] || [ "$1" = "" ]; then
   echo "Options (must be placed before the CFG filenames):"
   echo "-h, --help        This help message."
   echo "-r, --revert      Revert specified config file(s) to the current \".BAK\" file."
-  echo "-s, --strip       Strips all files of cruft. This converts newlines to UNIX"
-  echo "                  format and removes comments, trailing spaces, trailing tabs"
-  echo "                  and blank lines."
-  echo "-os, --onlystrip  Same as above, but no compatibility conversion takes place."
+  echo "-s, --strip       Strips the specified config file(s) of comments,"
+  echo "                  leading/trailing spaces/tabs and blank lines."
+  echo "-os, --onlystrip  Same as --strip, but no compatibility conversion takes place."
   exit
 # REVERT command:
 elif [ "$1" = "-r" ] || [ "$1" = "--revert" ]; then
@@ -52,20 +51,21 @@ for file in $*; do
       if [ -r "$file".BAK ]; then
         echo "A successful backup of "$file" has been made to "$file".BAK"
         # Convert to UNIX new-line format, just in case.
-        awk '{sub(/\r$/,"")};1' "$file".BAK > "$file"
-        # Option to strip file of cruft.
+        sed -i 's/^M$//' $file
+        # This if-statement "strips" the files...
         if [ "$1" = "-s" ] || [ "$1" = "--strip" ] || [ "$1" = "-os" ] || [ "$1" = "--onlystrip" ]; then
-          echo "Now stripping "$file" of cruft..."
+          echo "Now stripping "$file" of comments, leading/trailing spaces/tabs and blank lines..."
           # 1) Remove comments.
-          # 2) Remove trailing spaces/tabs.
-          # 3) Remove blank lines.
-          awk -F'//' '{print $1}' "$file" | \
-          awk '{sub(/[ \t]+$/, "")};1' | \
-          awk NF > "$file".tmp
-          mv -f "$file".tmp "$file"
+          # 2) Remove leading/trailing spaces/tabs.
+          # 3) Show ONLY lines starting with: loadnotexture loadsky mapmodelreset mapmodel texturereset texture fog fogcolour mapsoundreset mapsound watercolour shadowyaw
+          # 4) Remove blank lines.
+          sed -i 's/\/\/..*//g' $file
+          sed -i 's/^[ \t]*//;s/[ \t]*$//' $file
+          sed -ni '/^loadnotexture\|^loadsky\|^mapmodelreset\|^mapmodel\|^texturereset\|^texture\|^fog\|^fogcolour\|^mapsoundreset\|^mapsound\|^watercolour\|^shadowyaw/p' $file
+          sed -i '/^$/d' $file
         fi
         if [ "$1" = "-os" ] || [ "$1" = "--onlystrip" ]; then
-          echo -e "As requested, "$file" has been stripped of cruft and no conversion was made.\n"
+          echo -e "As requested, "$file" has been stripped and no compatibility conversion was made.\n"
           continue
         fi
       else
@@ -76,9 +76,9 @@ for file in $*; do
       fi
     fi
 
-    # Check if this file has been converted before, if not, add a comment. If so, ask the user to be careful.
-    CHECKIFDONE=`grep "// This config file was converted by" "$file" | awk '{print $2,$3,$4}'`
-    if [ "$CHECKIFDONE" = "This config file" ]; then
+    # Check if this file has been converted before. If so, ask the user to be careful.
+    CHECKIFDONE=`grep "// This config file" "$file" | sed 's/was converted by..*//g'`
+    if [ "$CHECKIFDONE" = "// This config file " ]; then
       echo -e "\n\aChecks indicate that this file has been converted before."
       echo "Continuing any further may cause this script to re-convert already converted parts of the map config."
       echo "This would cause many errors. Are you sure you wish to continue (Y/N)?"
@@ -88,9 +88,11 @@ for file in $*; do
         echo -e "\a\E[31m\033[1mERROR:\E[0m You've selected not to convert "$file", as it has already been converted."
         continue
       fi
-    else
-      echo "// This config file was converted by "$0" on `date +%c`." >> $file
     fi
+
+    # Remove the old comment before adding the new one...
+    sed -i '/This config file was converted/d' $file
+    echo "// This config file was converted by "$0" on `date +%c`." >> $file
 
     echo "Now converting "$file" to a compatible map config file..."
     echo "Converting mapmodels..."
