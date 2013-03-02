@@ -347,22 +347,21 @@ void editdrag(bool isdown)
         lasty = cy;
         lasth = ch;
         tofronttex();
-
-        extern vector<keym> keyms;
-        vector<char *> elems;
         
         bool ctrlpressed = false;
         
         if (identexists("newselkeys"))
         {
-            for (int i = 0; i < keyms.length(); i++)
-            if(keyms[i].pressed)
+            extern vector<keym> keyms;
+            vector<char *> elems;
+            explodelist(getalias("newselkeys"), elems);
+
+            loopi(keyms.length()) if(keyms[i].pressed) loopj(elems.length())
             {
-                explodelist(getalias("newselkeys"), elems);
-                for (int j = 0; j < elems.length(); j++)
+                if (strcmp(keyms[i].name, elems[j]) == 0)
                 {
-                    if (strcmp(keyms[i].name, elems[j]) == 0)
-                    { ctrlpressed = true; break; }
+                    ctrlpressed = true;
+                    break;
                 }
             }
         }

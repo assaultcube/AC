@@ -1051,7 +1051,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         glPushMatrix();
         glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
         glScalef(0.8, 0.8, 1);
-        draw_textf("Speed: %.2f", VIRTW/2, VIRTH, sqrtf(p->vel.x*p->vel.x + p->vel.y*p->vel.y));
+        draw_textf("Speed: %.2f", VIRTW/2, VIRTH, p->vel.magnitudexy());
         glPopMatrix();
     }
 
