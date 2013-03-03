@@ -522,6 +522,12 @@ bool empty_world(int factor, bool force)    // main empty world creation routine
         popscontext();
         setvar("fullbright", 1);
         fullbrightlight();
+        
+        mapdims[0] = mapdims[1] = 0;
+        mapdims[2] = mapdims[3] = ssize;
+        mapdims[4] = mapdims[5] = ssize;
+        mapdims[6] = 0;
+        mapdims[7] = 16;
     }
     if(!copy)
     {
