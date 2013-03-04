@@ -35,4 +35,3 @@ This is only a human-readable summary of the Legal Code (the full licence), whic
 The full legal code can be found at:
 	http://creativecommons.org/licenses/by/3.0/legalcode
 ================================================================================
-Note: mona_lisa.jpg uses an existing Noctua graphic from ../noctua/wall/plast03.jpg
