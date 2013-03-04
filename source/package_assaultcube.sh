@@ -78,8 +78,8 @@ fi
 
 # Check that map previews are all available:
 MAPSPATH="$PATHTOACDIR/packages/maps/official"
-MAPSCGZ=`cd $MAPSPATH && find ./*.cgz ! -name ac_depot_classic.cgz -name new_content.cgz | xargs -i basename {} .cgz | sort -u | xargs`
-MAPSJPG=`cd $MAPSPATH/preview && find ./*.jpg ! -name ac_depot_classic.jpg -name new_content.cgz | xargs -i basename {} .jpg | sort -u | xargs`
+MAPSCGZ=`cd $MAPSPATH && find ./*.cgz ! -name new_content.cgz | xargs -i basename {} .cgz | sort -u | xargs`
+MAPSJPG=`cd $MAPSPATH/preview && find ./*.jpg ! -name new_content.cgz | xargs -i basename {} .jpg | sort -u | xargs`
 if [ "$MAPSCGZ" = "$MAPSJPG" ]; then
     echo "All map \"previews\" are available!"
     echo -e "Proceeding to the next step...\n"
