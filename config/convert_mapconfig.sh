@@ -92,7 +92,7 @@ for file in $*; do
 
     # Remove the old comment before adding the new one...
     sed -i '/This config file was converted/d' $file
-    echo "// This config file was converted by "$0" on `date +%c`." >> $file
+    echo -e "\n// This config file was converted by "$0" on `date +%c`." >> $file
 
     echo "Now converting "$file" to a compatible map config file..."
     echo "Converting mapmodels..."
