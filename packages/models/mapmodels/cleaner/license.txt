@@ -7,12 +7,11 @@ DES|Cleaner contact details:
 	* http://forums.des-clan.net/
 	* totally_shameless@hotmail.fr
 ================================================================================
-All mapmodels in sub-folders:
- * "platform"
+All mapmodels in sub-folders, except "minecart" and "rails":
 
-Are originally by "DES|Cleaner" for AssaultCube using MilkShape 3D. They are
-licensed under the Creative Commons "Attribution-NonCommercial-ShareAlike 3.0
-Unported" (AT-NC-SA) license.
+Are originally by "DES|Cleaner" for AssaultCube using MilkShape 3D and PaintShop
+Pro XII. They are licensed under the Creative Commons
+"Attribution-NonCommercial-ShareAlike 3.0" Unported" (AT-NC-SA) license.
 	http://creativecommons.org/licenses/by-nc-sa/3.0/
 
 This means you are free to share, copy, distribute, transmit & to remix/adapt
