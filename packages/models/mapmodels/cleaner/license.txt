@@ -26,6 +26,9 @@ the work, under the following conditions:
 
 To view a copy of the full licenses legal code, visit:
 	http://creativecommons.org/licenses/by-nc-sa/3.0/legalcode
+
+Please note, a_slow_old_man assisted in creating "hotel_sign":
+	http://forum.cubers.net/user-11.htm
 ================================================================================
 All mapmodels in sub-folders:
 	* "minecart"
