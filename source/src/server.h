@@ -245,6 +245,7 @@ struct client                   // server side version of "dynent" type
     bool timesync;
     int overflow;
     int gameoffset, lastevent, lastvotecall;
+    int lastprofileupdate, fastprofileupdates;
     int demoflags;
     clientstate state;
     vector<gameevent> events;
@@ -331,6 +332,7 @@ struct client                   // server side version of "dynent" type
         isauthed = haswelcome = false;
         role = CR_DEFAULT;
         lastvotecall = 0;
+        lastprofileupdate = fastprofileupdates = 0;
         vote = VOTE_NEUTRAL;
         lastsaytext[0] = '\0';
         saychars = 0;
