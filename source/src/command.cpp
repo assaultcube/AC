@@ -21,7 +21,7 @@ VAR(persistidents, 0, 1, 1);
 
 bool per_idents = true, neverpersist = false;
 COMMANDF(per_idents, "i", (int *on) {
-    per_idents = neverpersist ? false : *on;
+    per_idents = neverpersist ? false : (*on != 0);
 });
 
 void clearstack(ident &id)
@@ -148,7 +148,7 @@ void alias(const char *name, const char *action, bool constant)
         {
             if(b->action!=b->executing) delete[] b->action;
             b->action = newstring(action);
-            b->persist = (bool)persistidents;
+            b->persist = persistidents != 0;
         }
     }
     else
@@ -583,7 +583,7 @@ char *executeret(const char *p)                            // all evaluation hap
                         if(strstr(id->sig, "v")) ((void (__cdecl *)(char **, int))id->fun)(&w[1], numargs-1);
                         else if(strstr(id->sig, "c") || strstr(id->sig, "w"))
                         {
-                            char *r = conc(w+1, numargs-1, strstr(id->sig, "c"));
+                            char *r = conc(w+1, numargs-1, strstr(id->sig, "c") != NULL);
                             ((void (__cdecl *)(char *))id->fun)(r);
                             delete[] r;
                         }
@@ -1627,7 +1627,7 @@ COMMAND(systime, "");
 COMMANDN(timestamp, timestamp_, "");
 COMMAND(datestring, "");
 COMMANDN(timestring, timestring_, "");
-COMMANDF(getmode, "i", (int *acr) { result(modestr(gamemode, *acr)); });
+COMMANDF(getmode, "i", (int *acr) { result(modestr(gamemode, *acr != 0)); });
 COMMAND(getscrext, "");
 
 const char *currentserver(int i) // [client version]
