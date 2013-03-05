@@ -52,6 +52,8 @@ Servers
 [*] The carbine is now consistently called such. (not "Rifle")
 [*] The server now differentiates between CTF/HTF scored flags in the serverlogs. (Useful for parsing/stats collection.)
 [*] Server can restricts voting from a mode for any map
+[*] Prevent name/skin changing spam
+[*] Server side spawn delay check
 
 Server browser
 ----------------------
