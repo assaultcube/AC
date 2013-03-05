@@ -2984,6 +2984,16 @@ void process(ENetPacket *packet, int sender, int chan)
                 copystring(cl->name, text, MAXNAMELEN+1);
                 if(namechanged)
                 {
+                    // very simple spam detection (possible FIXME: centralize spam detection)
+                    if(servmillis - cl->lastprofileupdate < 1000)
+                    {
+                        ++cl->fastprofileupdates;
+                        if(cl->fastprofileupdates == 3) sendservmsg("\f3Please do not spam");
+                        if(cl->fastprofileupdates >= 5) { disconnect_client(sender, DISC_ABUSE); break; }
+                    }
+                    else if(servmillis - cl->lastprofileupdate > 10000) cl->fastprofileupdates = 0;
+                    cl->lastprofileupdate = servmillis;
+
                     switch(nickblacklist.checkwhitelist(*cl))
                     {
                         case NWL_PWDFAIL:
@@ -3018,6 +3028,15 @@ void process(ENetPacket *packet, int sender, int chan)
             {
                 loopi(2) cl->skin[i] = getint(p);
                 QUEUE_MSG;
+
+                if(servmillis - cl->lastprofileupdate < 1000)
+                {
+                    ++cl->fastprofileupdates;
+                    if(cl->fastprofileupdates == 3) sendservmsg("\f3Please do not spam");
+                    if(cl->fastprofileupdates >= 5) disconnect_client(sender, DISC_ABUSE);
+                }
+                else if(servmillis - cl->lastprofileupdate > 10000) cl->fastprofileupdates = 0;
+                cl->lastprofileupdate = servmillis;
                 break;
             }
 
