@@ -201,7 +201,7 @@ struct banaction : playeraction
     void perform()
     {
         int i = findcnbyaddress(&address);
-        if(i >= 0) addban(clients[i], DISC_MBAN);
+        if(i >= 0) addban(clients[i], DISC_MBAN, BAN_VOTE);
     }
     virtual bool isvalid() { return wasvalid || playeraction::isvalid(); }
     banaction(int cn, char *reason) : playeraction(cn)
