@@ -355,7 +355,7 @@ struct client                   // server side version of "dynent" type
 struct ban
 {
     ENetAddress address;
-    int millis;
+    int millis, type;
 };
 
 struct worldstate
