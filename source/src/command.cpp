@@ -117,13 +117,15 @@ void delalias(const char *name)
 }
 COMMAND(delalias, "s");
 
-void alias(const char *name, const char *action)
+void alias(const char *name, const char *action, bool constant)
 {
     ident *b = idents->access(name);
     if(!b)
     {
-        ident b(ID_ALIAS, newstring(name), newstring(action), persistidents, execcontext);
+        ident b(ID_ALIAS, newstring(name), newstring(action), persistidents && !constant, execcontext);
+        b.isconst = constant;
         idents->access(b.name, b);
+        return;
     }
     else if(b->type==ID_ALIAS)
     {
@@ -133,15 +135,21 @@ void alias(const char *name, const char *action)
             scripterr();
             return;
         }
+
         if(b->isconst)
         {
             conoutf("alias %s is a constant and cannot be redefined", b->name);
             scripterr();
             return;
         }
-        if(b->action!=b->executing) delete[] b->action;
-        b->action = newstring(action);
-        if(b->persist!=persistidents) b->persist = persistidents;
+
+        b->isconst = constant;
+        if(action && action[0])
+        {
+            if(b->action!=b->executing) delete[] b->action;
+            b->action = newstring(action);
+            b->persist = (bool)persistidents;
+        }
     }
     else
     {
@@ -150,47 +158,8 @@ void alias(const char *name, const char *action)
     }
 }
 
-void constant(const char *name, const char *action)
-{
-    ident *b = idents->access(name);
-    if(!b)
-    {
-        ident b(ID_ALIAS, newstring(name), newstring(action), false, execcontext); // never write consts to saved.cfg, too error prone - Bukz
-        b.isconst = true;
-        idents->access(b.name, b);
-        return;
-    }
-    if(b->isconst)
-    {
-        conoutf("%s is already defined as a constant", b->name);
-        scripterr();
-        return;
-    }
-    if(b->type==ID_ALIAS)
-    {
-        if(contextisolated[execcontext] && execcontext > b->context)
-        {
-            conoutf("cannot redefine alias %s as a constant in this execution context", b->name);
-            scripterr();
-            return;
-        }
-        b->isconst = true;
-        if(action && action[0])
-        {
-            if(b->action!=b->executing) delete[] b->action;
-            b->action = newstring(action);
-            //if(b->persist!=persistidents) b->persist = persistidents;
-        }
-    }
-    else
-    {
-        conoutf("cannot redefine %s as a constant", name);
-        scripterr();
-    }
-}
-
-COMMAND(alias, "ss");
-COMMANDN(const, constant, "ss");
+COMMANDF(alias, "ss", (const char *name, const char *action) { alias(name, action, false); });
+COMMANDF(const, "ss", (const char *name, const char *action) { alias(name, action, true); });
 
 COMMANDF(checkalias, "s", (const char *name) { intret(getalias(name) ? 1 : 0); });
 COMMANDF(isconst, "s", (const char *name) { ident *id = idents->access(name); intret(id && id->isconst ? 1 : 0); });

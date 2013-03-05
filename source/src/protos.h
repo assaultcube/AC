@@ -804,7 +804,7 @@ extern void resetcomplete();
 extern void complete(char *s);
 extern void push(const char *name, const char *action);
 extern void pop(const char *name);
-extern void alias(const char *name, const char *action);
+extern void alias(const char *name, const char *action, bool constant = false);
 extern const char *getalias(const char *name);
 extern void writecfg();
 extern void deletecfg();
