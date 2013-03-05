@@ -144,7 +144,7 @@ void alias(const char *name, const char *action, bool constant)
         }
 
         b->isconst = constant;
-        if(action && action[0])
+        if(!constant || (action && action[0]))
         {
             if(b->action!=b->executing) delete[] b->action;
             b->action = newstring(action);
