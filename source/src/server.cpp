@@ -2037,10 +2037,10 @@ void addgban(const char *name)
     }
 }
 
-void addban(client *cl, int reason)
+inline void addban(client *cl, int reason, int type)
 {
     if(!cl) return;
-    ban b = { cl->peer->address, servmillis+scl.ban_time };
+    ban b = { cl->peer->address, servmillis+scl.ban_time, type };
     bans.add(b);
     disconnect_client(cl->clientnum, reason);
 }
@@ -2056,7 +2056,7 @@ int getbantype(int cn)
     {
         ban &b = bans[i];
         if(b.millis < servmillis) { bans.remove(i--); }
-        if(b.address.host == c.peer->address.host) { return BAN_VOTE; }
+        if(b.address.host == c.peer->address.host) return b.type;
     }
     return BAN_NONE;
 }
