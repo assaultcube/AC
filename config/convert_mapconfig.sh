@@ -60,19 +60,25 @@ for file in $*; do
         if [ "$1" = "-s" ] || [ "$1" = "--strip" ] || [ "$1" = "-os" ] || [ "$1" = "-sp" ] || [ "$1" = "-osp" ]; then
           echo "Now stripping "$file" of comments, invalid commands, leading/trailing spaces/tabs and blank lines..."
           # 1) Remove comments.
-          # 2) Show ONLY lines starting with: loadnotexture loadsky mapmodelreset mapmodel texturereset texture fog fogcolour mapsoundreset mapsound watercolour shadowyaw
-          # 3) Remove leading/trailing spaces/tabs.
+          # 2) Remove leading/trailing spaces/tabs.
+          # 3) Show ONLY lines starting with: loadnotexture loadsky mapmodelreset mapmodel texturereset texture fog fogcolour mapsoundreset mapsound watercolour shadowyaw
           # 4) Remove blank lines.
-          # 5) IF ENABLED, preserve comments made before the "mapmodelreset" command.
+          # 5) IF ENABLED: Preserve comments made before the "mapmodelreset" command.
           sed -i 's/\/\/..*//g' $file
-          sed -ni '/^loadnotexture\|^loadsky\|^mapmodelreset\|^mapmodel\|^texturereset\|^texture\|^fog\|^fogcolour\|^mapsoundreset\|^mapsound\|^watercolour\|^shadowyaw/p' $file
           sed -i 's/^[ \t]*//;s/[ \t]*$//' $file
+          sed -ni '/^loadnotexture\|^loadsky\|^mapmodelreset\|^mapmodel\|^texturereset\|^texture\|^fog\|^fogcolour\|^mapsoundreset\|^mapsound\|^watercolour\|^shadowyaw/p' $file
           sed -i '/^$/d' $file
           if [ "$1" = "-sp" ] || [ "$1" = "-osp" ]; then
+            # Create a working file...
             cp $file $file.tmp
+            # Grab data before the "mapmodelreset" command (excluding that line) from the original file...
             sed '/^mapmodelreset/q' $file.BAK | sed '$d' > $file
-            cat $file.tmp >> $file && rm -f $file.tmp
+            # Remove leading/trailing spaces/tabs from it...
             sed -i 's/^[ \t]*//;s/[ \t]*$//' $file
+            # Keep only comments/new-lines from it...
+            sed -ni '/^\/\/\|^$/p' $file
+            # Paste/remove working file into normal file...
+            cat $file.tmp >> $file && rm -f $file.tmp
           fi
         fi
         if [ "$1" = "-os" ] || [ "$1" = "-osp" ]; then
