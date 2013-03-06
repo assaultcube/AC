@@ -60,18 +60,19 @@ for file in $*; do
         if [ "$1" = "-s" ] || [ "$1" = "--strip" ] || [ "$1" = "-os" ] || [ "$1" = "-sp" ] || [ "$1" = "-osp" ]; then
           echo "Now stripping "$file" of comments, invalid commands, leading/trailing spaces/tabs and blank lines..."
           # 1) Remove comments.
-          # 2) Remove leading/trailing spaces/tabs.
-          # 3) Show ONLY lines starting with: loadnotexture loadsky mapmodelreset mapmodel texturereset texture fog fogcolour mapsoundreset mapsound watercolour shadowyaw
+          # 2) Show ONLY lines starting with: loadnotexture loadsky mapmodelreset mapmodel texturereset texture fog fogcolour mapsoundreset mapsound watercolour shadowyaw
+          # 3) Remove leading/trailing spaces/tabs.
           # 4) Remove blank lines.
+          # 5) IF ENABLED, preserve comments made before the "mapmodelreset" command.
           sed -i 's/\/\/..*//g' $file
-          sed -i 's/^[ \t]*//;s/[ \t]*$//' $file
           sed -ni '/^loadnotexture\|^loadsky\|^mapmodelreset\|^mapmodel\|^texturereset\|^texture\|^fog\|^fogcolour\|^mapsoundreset\|^mapsound\|^watercolour\|^shadowyaw/p' $file
+          sed -i 's/^[ \t]*//;s/[ \t]*$//' $file
           sed -i '/^$/d' $file
           if [ "$1" = "-sp" ] || [ "$1" = "-osp" ]; then
-            echo "Now preserving any comments made before the \"mapmodelreset\" command..."
             cp $file $file.tmp
             sed '/^mapmodelreset/q' $file.BAK | sed '$d' > $file
             cat $file.tmp >> $file && rm -f $file.tmp
+            sed -i 's/^[ \t]*//;s/[ \t]*$//' $file
           fi
         fi
         if [ "$1" = "-os" ] || [ "$1" = "-osp" ]; then
