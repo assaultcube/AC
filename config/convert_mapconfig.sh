@@ -17,11 +17,15 @@ if [ "$1" = "-h" ] || [ "$1" = "--help" ] || [ "$1" = "" ]; then
   echo "    sh "$0" ../packages/maps/yourmap.cfg ../../mapfolder/*.cfg"
   echo ""
   echo "Options (must be placed before the CFG filenames):"
-  echo "-h, --help        This help message."
-  echo "-r, --revert      Revert specified config file(s) to the current \".BAK\" file."
-  echo "-s, --strip       Strips the specified config file(s) of comments,"
-  echo "                  leading/trailing spaces/tabs and blank lines."
-  echo "-os, --onlystrip  Same as --strip, but no compatibility conversion takes place."
+  echo "-h, --help    This help message."
+  echo "-r, --revert  Revert specified config file(s) to the current \".BAK\" file."
+  echo "-s, --strip   Strips the specified config file(s) of comments, invalid commands,"
+  echo "              leading/trailing spaces/tabs and blank lines."
+  echo "  -os         Same as --strip, but no compatibility conversion takes place."
+  echo "  -sp         Same as --strip, but preserves any comments made before the"
+  echo "              mapmodelreset command."
+  echo "  -osp        Same as --strip, but preserves any comments made before the"
+  echo "              mapmodelreset command AND no compatibility conversion takes place."
   exit
 # REVERT command:
 elif [ "$1" = "-r" ] || [ "$1" = "--revert" ]; then
@@ -42,8 +46,8 @@ fi
 CONTFAILED="0"
 
 for file in $*; do
-  if [[ -r "$file" && -w "$file" && "$file" = *.cfg ]] || [ "$file" = "-s" ] || [ "$file" = "--strip" ] || [ "$file" = "-os" ] || [ "$file" = "--onlystrip" ]; then
-    if [ "$file" = "-s" ] || [ "$file" = "--strip" ] || [ "$file" = "-os" ] || [ "$file" = "--onlystrip" ]; then
+  if [[ -r "$file" && -w "$file" && "$file" = *.cfg ]] || [ "$file" = "-s" ] || [ "$file" = "--strip" ] || [ "$file" = "-os" ] || [ "$file" = "-sp" ] || [ "$file" = "-osp" ]; then
+    if [ "$file" = "-s" ] || [ "$file" = "--strip" ] || [ "$file" = "-os" ] || [ "$file" = "-sp" ] || [ "$file" = "-osp" ]; then
       continue
     else
       # Backup files first:
@@ -53,8 +57,8 @@ for file in $*; do
         # Convert to UNIX new-line format, just in case.
         sed -i 's/^M$//' $file
         # This if-statement "strips" the files...
-        if [ "$1" = "-s" ] || [ "$1" = "--strip" ] || [ "$1" = "-os" ] || [ "$1" = "--onlystrip" ]; then
-          echo "Now stripping "$file" of comments, leading/trailing spaces/tabs and blank lines..."
+        if [ "$1" = "-s" ] || [ "$1" = "--strip" ] || [ "$1" = "-os" ] || [ "$1" = "-sp" ] || [ "$1" = "-osp" ]; then
+          echo "Now stripping "$file" of comments, invalid commands, leading/trailing spaces/tabs and blank lines..."
           # 1) Remove comments.
           # 2) Remove leading/trailing spaces/tabs.
           # 3) Show ONLY lines starting with: loadnotexture loadsky mapmodelreset mapmodel texturereset texture fog fogcolour mapsoundreset mapsound watercolour shadowyaw
@@ -63,8 +67,14 @@ for file in $*; do
           sed -i 's/^[ \t]*//;s/[ \t]*$//' $file
           sed -ni '/^loadnotexture\|^loadsky\|^mapmodelreset\|^mapmodel\|^texturereset\|^texture\|^fog\|^fogcolour\|^mapsoundreset\|^mapsound\|^watercolour\|^shadowyaw/p' $file
           sed -i '/^$/d' $file
+          if [ "$1" = "-sp" ] || [ "$1" = "-osp" ]; then
+            echo "Now preserving any comments made before the \"mapmodelreset\" command..."
+            cp $file $file.tmp
+            sed '/^mapmodelreset/q' $file.BAK | sed '$d' > $file
+            cat $file.tmp >> $file && rm -f $file.tmp
+          fi
         fi
-        if [ "$1" = "-os" ] || [ "$1" = "--onlystrip" ]; then
+        if [ "$1" = "-os" ] || [ "$1" = "-osp" ]; then
           echo -e "As requested, "$file" has been stripped and no compatibility conversion was made.\n"
           continue
         fi
@@ -77,7 +87,7 @@ for file in $*; do
     fi
 
     # Check if this file has been converted before. If so, ask the user to be careful.
-    CHECKIFDONE=`grep "// This config file" "$file" | sed 's/was converted by..*//g'`
+    CHECKIFDONE=`sed -n '/\/\/ This config file was converted by/p' $file | sed 's/was converted by..*//g'`
     if [ "$CHECKIFDONE" = "// This config file " ]; then
       echo -e "\n\aChecks indicate that this file has been converted before."
       echo "Continuing any further may cause this script to re-convert already converted parts of the map config."
