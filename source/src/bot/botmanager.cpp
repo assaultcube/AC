@@ -666,7 +666,7 @@ void CBotManager::CreateSkillData()
         }
     }
 
-    conoutf("done\n");
+    conoutf("done");
 }
 
 void CBotManager::InitSkillData()
@@ -988,9 +988,8 @@ bool botmode()
 void addbot(char *arg1, char *arg2, char *arg3)
 {
     if(!botmode()) return;
-    conoutf("Creating bot...\n");
     botent *b = BotManager.CreateBot(arg1, arg2, arg3);
-    if (b) conoutf("connected: %s", b->name);
+    if (b) conoutf("Bot connected: %s", b->name);
     else { conoutf("Error: Couldn't create bot!"); return; }
 }
 COMMAND(addbot, "sss");
