@@ -482,7 +482,7 @@ struct Slot
 
 vector<Slot> slots;
 
-void texturereset() { slots.setsize(0); }
+void texturereset() { if(execcontext==IEXC_MAPCFG) slots.setsize(0); }
 
 void texture(char *scale, char *name)
 {
