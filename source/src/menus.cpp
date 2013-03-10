@@ -1052,6 +1052,17 @@ bool menukey(int code, bool isdown, int unicode, SDLMod mod)
         loopv(curmenu->items) if(curmenu->items[i]->getdesc()) { hasdesc = true; break;}
         //int pagesize = MAXMENU - (curmenu->header ? 2 : 0) - (curmenu->footer || hasdesc ? 2 : 0); // FIXME: footer-length
         int pagesize = MAXMENU - (curmenu->header ? 2 : 0) - (curmenu->footer ? (curmenu->footlen?(curmenu->footlen+1):2) : (hasdesc ? 2 : 0)); // FIXME: footer-length
+
+        if(curmenu->items.inrange(menusel))
+        {
+            mitem *m = curmenu->items[menusel];
+            if(m->type == mitem::TYPE_KEYINPUT && ((mitemkeyinput *)m)->capture && code != SDLK_ESCAPE)
+            {
+                m->key(code, isdown, unicode);
+                return true;
+            }
+        }
+
         switch(code)
         {
             case SDLK_PAGEUP: menusel -= pagesize; break;
@@ -1067,38 +1078,16 @@ bool menukey(int code, bool isdown, int unicode, SDLMod mod)
                 break;
             case SDLK_UP:
             case SDL_AC_BUTTON_WHEELUP:
-            {
                 if(iskeypressed(SDLK_LCTRL)) return menukey(SDLK_LEFT, isdown, 0);
                 if(!curmenu->allowinput) return false;
-                if(curmenu->items.inrange(menusel))
-                {
-                    mitem *m = curmenu->items[menusel];
-                    if(m->type == mitem::TYPE_KEYINPUT && ((mitemkeyinput *)m)->capture)
-                    {
-                        m->key(code, isdown, unicode);
-                        break;
-                    }
-                }
                 menusel--;
-            }
-            break;
+                break;
             case SDLK_DOWN:
             case SDL_AC_BUTTON_WHEELDOWN:
-            {
                 if(iskeypressed(SDLK_LCTRL)) return menukey(SDLK_RIGHT, isdown, 0);
                 if(!curmenu->allowinput) return false;
-                if(curmenu->items.inrange(menusel))
-                {
-                    mitem *m = curmenu->items[menusel];
-                    if(m->type == mitem::TYPE_KEYINPUT && ((mitemkeyinput *)m)->capture)
-                    {
-                        m->key(code, isdown, unicode);
-                        break;
-                    }
-                }
                 menusel++;
-            }
-            break;
+                break;
             case SDLK_TAB:
                 if(!curmenu->allowinput) return false;
                 if(mod & KMOD_LSHIFT) menusel--;
