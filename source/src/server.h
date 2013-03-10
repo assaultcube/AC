@@ -374,12 +374,19 @@ struct server_entity            // server side version of "entity" type
     short x, y;
 };
 
+struct clientidentity
+{
+    uint ip;
+    int clientnum;
+};
+
 struct demofile
 {
     string info;
     string file;
     uchar *data;
     int len;
+    vector<clientidentity> clientssent;
 };
 
 void startgame(const char *newname, int newmode, int newtime = -1, bool notify = true);
