@@ -352,6 +352,7 @@ void scalecomp(uchar &c, int intens)
 
 void scalelights(int f, int intens)
 {
+    if(multiplayer()) return;
     loopv(ents)
     {
         entity &e = ents[i];
