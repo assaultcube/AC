@@ -123,6 +123,7 @@ Bots
 [*] Bots in plclips bug fixed.
 [*] Bots now actually fire the carbine.
 [*] Bots can switch to, and use pistol, knife or grenades.
+[*] Bots can crouch
 [*] Bots have different fov, depending on their difficulty.
 [*] Bot PF, LSS, Team Survivor & TOSOK modes.
 
