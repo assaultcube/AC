@@ -127,7 +127,8 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
             }
             if ( type != SOLID && diff > 6 )
             {
-                if (diff > MAXMHEIGHT) SHhits += pow2(diff-MAXMHEIGHT)*n;
+                // Lucas (10mar2013): Removed "pow2" because it was too strict
+                if (diff > MAXMHEIGHT) SHhits += /*pow2*/(diff-MAXMHEIGHT)*n;
                 Marea += n;
                 Mvolume += diff * n;
             }
