@@ -778,6 +778,10 @@ void CBot::MainAI()
     // Default bots won't strafe
     m_pMyEnt->strafe = 0;
 
+    // Whatever the bot is doing, check for needed crouch
+    if(CheckCrouch()) m_pMyEnt->trycrouch = true;
+    else m_pMyEnt->trycrouch = false;
+
     if (!BotManager.BotsShoot() && m_pMyEnt->enemy)
         m_pMyEnt->enemy = NULL; // Clear enemy when bots may not shoot
 
@@ -1244,7 +1248,7 @@ void CBot::DoCombatNav()
 
 bool CBot::CheckStuck()
 {
-    if (m_iStuckCheckDelay >= lastmillis)
+    if (m_iStuckCheckDelay + (CheckCrouch() ? 2000 : 0) >= lastmillis)
         return false;
 
     if ((m_vGoal!=g_vecZero) && (GetDistance(m_vGoal) < 2.0f))
@@ -1403,8 +1407,23 @@ bool CBot::CheckJump()
             return true;
         }
     }
-
     return false; // Bot didn't had to jump(or couldn't)
+}
+
+bool CBot::CheckCrouch()
+{
+    bool bHasGoal = m_vGoal!=g_vecZero;
+    float flGoalDist = (bHasGoal) ? GetDistance(m_vGoal) : 0.0f;
+
+    vec start = m_pMyEnt->o;
+    vec crouch = vec(0, 0, 2.0f);
+    float flTraceDist = 3.0f;
+
+    if (bHasGoal && (flGoalDist < flTraceDist))
+       flTraceDist = flGoalDist;
+
+    if (!IsVisible(vec(start).add(crouch), FORWARD, flTraceDist, false) && IsVisible(vec(start).sub(crouch), FORWARD, flTraceDist, false)) return true;
+    return false;
 }
 
 bool CBot::CheckStrafe()

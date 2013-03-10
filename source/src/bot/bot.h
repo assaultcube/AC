@@ -255,6 +255,7 @@ public:
      void MainAI(void);
      bool CheckStuck(void);
      bool CheckJump(void);
+     bool CheckCrouch(void);
      bool CheckStrafe(void);
      void CheckFOV(void);
      bool IsVisible(const vec &o, bool CheckPlayers = false) { return ::IsVisible(m_pMyEnt->o, o,
