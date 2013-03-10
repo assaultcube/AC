@@ -429,7 +429,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
                 {
                     const float climbspeed = 1.0f;
 
-                    if(pl->type==ENT_BOT) pl->vel.z = climbspeed; // bots climb upwards only
+                    if(pl->type==ENT_BOT && pl->state == CS_ALIVE) pl->vel.z = climbspeed; // bots climb upwards only
                     else if(pl->type==ENT_PLAYER)
                     {
                         if(((playerent *)pl)->k_up) pl->vel.z = climbspeed;
