@@ -193,7 +193,7 @@ struct mitemmanual : mitem
 {
     const char *text, *action, *hoveraction, *desc;
 
-    mitemmanual(gmenu *parent, char *text, char *action, char *hoveraction, color *bgcolor, const char *desc) : mitem(parent, bgcolor), text(text), action(action), hoveraction(hoveraction), desc(desc) {}
+    mitemmanual(gmenu *parent, char *text, char *action, char *hoveraction, color *bgcolor, const char *desc) : mitem(parent, bgcolor, mitem::TYPE_MANUAL), text(text), action(action), hoveraction(hoveraction), desc(desc) {}
 
     virtual int width() { return text_width(text); }
 
@@ -571,7 +571,7 @@ struct mitemslider : mitem
     string curval;
     static int sliderwidth;
 
-    mitemslider(gmenu *parent, char *text, int min_, int max_, int step, char *value, char *display, char *action, color *bgcolor) : mitem(parent, bgcolor), min_(min_), max_(max_), step(step), value(min_), maxvaluewidth(0), text(text), valueexp(value), display(display), action(action)
+    mitemslider(gmenu *parent, char *text, int min_, int max_, int step, char *value, char *display, char *action, color *bgcolor) : mitem(parent, bgcolor, mitem::TYPE_SLIDER), min_(min_), max_(max_), step(step), value(min_), maxvaluewidth(0), text(text), valueexp(value), display(display), action(action)
     {
         if(sliderwidth==0) sliderwidth = max(VIRTW/4, 15*text_width("w"));  // match slider width with width of text input fields
     }
@@ -678,7 +678,7 @@ struct mitemkeyinput : mitem
     static const char *unknown, *empty;
     bool capture;
 
-    mitemkeyinput(gmenu *parent, char *text, char *bindcmd, color *bgcolor) : mitem(parent, bgcolor), text(text), bindcmd(bindcmd), keyname(NULL), capture(false){};
+    mitemkeyinput(gmenu *parent, char *text, char *bindcmd, color *bgcolor) : mitem(parent, bgcolor, mitem::TYPE_KEYINPUT), text(text), bindcmd(bindcmd), keyname(NULL), capture(false) {};
 
     ~mitemkeyinput()
     {
@@ -735,7 +735,7 @@ struct mitemcheckbox : mitem
     char *text, *valueexp, *action;
     bool checked;
 
-    mitemcheckbox(gmenu *parent, char *text, char *value, char *action, color *bgcolor) : mitem(parent, bgcolor), text(text), valueexp(value), action(action), checked(false) {};
+    mitemcheckbox(gmenu *parent, char *text, char *value, char *action, color *bgcolor) : mitem(parent, bgcolor, mitem::TYPE_CHECKBOX), text(text), valueexp(value), action(action), checked(false) {};
 
     ~mitemcheckbox()
     {
@@ -1067,17 +1067,38 @@ bool menukey(int code, bool isdown, int unicode, SDLMod mod)
                 break;
             case SDLK_UP:
             case SDL_AC_BUTTON_WHEELUP:
+            {
                 if(iskeypressed(SDLK_LCTRL)) return menukey(SDLK_LEFT, isdown, 0);
                 if(!curmenu->allowinput) return false;
+                if(curmenu->items.inrange(menusel))
+                {
+                    mitem *m = curmenu->items[menusel];
+                    if(m->type == mitem::TYPE_KEYINPUT && ((mitemkeyinput *)m)->capture)
+                    {
+                        m->key(code, isdown, unicode);
+                        break;
+                    }
+                }
                 menusel--;
-                break;
+            }
+            break;
             case SDLK_DOWN:
             case SDL_AC_BUTTON_WHEELDOWN:
+            {
                 if(iskeypressed(SDLK_LCTRL)) return menukey(SDLK_RIGHT, isdown, 0);
                 if(!curmenu->allowinput) return false;
+                if(curmenu->items.inrange(menusel))
+                {
+                    mitem *m = curmenu->items[menusel];
+                    if(m->type == mitem::TYPE_KEYINPUT && ((mitemkeyinput *)m)->capture)
+                    {
+                        m->key(code, isdown, unicode);
+                        break;
+                    }
+                }
                 menusel++;
-                break;
-
+            }
+            break;
             case SDLK_TAB:
                 if(!curmenu->allowinput) return false;
                 if(mod & KMOD_LSHIFT) menusel--;
