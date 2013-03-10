@@ -710,8 +710,17 @@ void senddemo(int cn, int num)
         }
         return;
     }
-    if (interm) sending_demo = true;
     demofile &d = demofiles[num-1];
+    loopv(d.clientssent) if(d.clientssent[i].ip == cl->peer->address.host && d.clientssent[i].clientnum == cl->clientnum)
+    {
+        sendservmsg("\f3Sorry, you have already downloaded this demo.");
+        return;
+    }
+    clientidentity &ci = d.clientssent.add();
+    ci.ip = cl->peer->address.host;
+    ci.clientnum = cl->clientnum;
+
+    if (interm) sending_demo = true;
     packetbuf p(MAXTRANS + d.len, ENET_PACKET_FLAG_RELIABLE);
     putint(p, SV_SENDDEMO);
     sendstring(d.file, p);
