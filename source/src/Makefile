@@ -163,14 +163,14 @@ master: libenet $(MASTER_OBJS)
 	$(CXX) $(CXXFLAGS) -o ac_master $(MASTER_OBJS) $(SERVER_LIBS)
 
 client_install: client
-	install -d ac_client ../../bin_unix/$(PLATFORM_PREFIX)_client
+	install -d ../../bin_unix/
 	install -m755 ac_client ../../bin_unix/$(PLATFORM_PREFIX)_client
 #ifneq (,$(STRIP))
 #	$(STRIP) ../../bin_unix/$(PLATFORM_PREFIX)_client
 #endif
 
 server_install: server
-	install -d ac_server ../../bin_unix/$(PLATFORM_PREFIX)_server
+	install -d ../../bin_unix/
 	install -m755 ac_server ../../bin_unix/$(PLATFORM_PREFIX)_server
 #ifneq (,$(STRIP))
 #	$(STRIP) ../../bin_unix/$(PLATFORM_PREFIX)_server
