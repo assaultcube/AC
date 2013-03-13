@@ -5,6 +5,7 @@
 
 int nextmode = 0;   // nextmode becomes gamemode after next map load
 VAR(gamemode, 1, 0, 0);
+VAR(nextGameMode, 1, 0, 0);
 VARP(modeacronyms, 0, 1, 1);
 
 flaginfo flaginfos[2];
@@ -12,6 +13,7 @@ flaginfo flaginfos[2];
 void mode(int *n)
 {
     nextmode = *n;
+    nextGameMode = nextmode;
     if(m_mp(*n) || !multiplayer()) addmsg(SV_GAMEMODE, "ri", *n);
 }
 COMMAND(mode, "i");
