@@ -10,6 +10,7 @@ static font *fontdef = NULL;
 font *curfont = NULL;
 
 VARP(allowblinkingtext, 0, 0, 1); // if you're so inclined
+VARP(__fontsetting, 0, 0, 2);
 
 void newfont(char *name, char *tex, int *defaultw, int *defaulth, int *offsetx, int *offsety, int *offsetw, int *offseth)
 {
@@ -68,6 +69,14 @@ bool setfont(const char *name)
 {
     font *f = fonts.access(name);
     if(!f) return false;
+    int v = -1;
+    if(strcmp(name, "default")==0)
+        v = 0;
+    else if(strcmp(name, "serif")==0)
+        v = 1;
+    else if(strcmp(name, "mono")==0)
+        v = 2;
+    if(v!=-1) __fontsetting = v;
     curfont = f;
     return true;
 }
