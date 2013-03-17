@@ -64,8 +64,20 @@ Server browser
 Media (maps/textures/models)
 ---------------------
 
-[*] ac_edifice, ac_industrial, ac_stellar added to the official map package.
+[*] New map "ac_avenue"
+[*] New map "ac_cavern"
+[*] New map "ac_edifice"
+[*] New map "ac_industrial"
+[*] New map "ac_stellar"
+[*] New map "ac_lainio"
+[*] New map "ac_swamp"
+[*] New map "ac_terros"
+[*] New map "ac_venison"
+[*] New map "ac_wasteland"
 [*] Bot waypoints for maps: ac_edifice, ac_industrial, ac_ingress, and ac_stellar.
+[*] md2 models converted to md3
+[*] Many new mapmodels and textures
+[*] Packaging reworked
 
 Mapping
 ---------------------
