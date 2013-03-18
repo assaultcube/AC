@@ -60,11 +60,13 @@ for file in $*; do
         if [ "$1" = "-s" ] || [ "$1" = "--strip" ] || [ "$1" = "-os" ] || [ "$1" = "-sp" ] || [ "$1" = "-osp" ]; then
           echo "Now stripping "$file" of comments, invalid commands, leading/trailing spaces/tabs and blank lines..."
           # 1) Remove comments.
-          # 2) Remove leading/trailing spaces/tabs.
-          # 3) Show ONLY lines starting with: loadnotexture loadsky mapmodelreset mapmodel texturereset texture fog fogcolour mapsoundreset mapsound watercolour shadowyaw
-          # 4) Remove blank lines.
-          # 5) IF ENABLED: Preserve comments made before the "mapmodelreset" command.
+          # 2) Remove unrequired "./" referencing of files.
+          # 3) Remove leading/trailing spaces/tabs.
+          # 4) Show ONLY lines starting with: loadnotexture loadsky mapmodelreset mapmodel texturereset texture fog fogcolour mapsoundreset mapsound watercolour shadowyaw
+          # 5) Remove blank lines.
+          # 6) IF ENABLED: Preserve comments made before the "mapmodelreset" command.
           sed -i 's/\/\/..*//g' $file
+          sed -i 's/ ".\// "/g' $file
           sed -i 's/^[ \t]*//;s/[ \t]*$//' $file
           sed -ni '/^loadnotexture\|^loadsky\|^mapmodelreset\|^mapmodel\|^texturereset\|^texture\|^fog\|^fogcolour\|^mapsoundreset\|^mapsound\|^watercolour\|^shadowyaw/p' $file
           sed -i '/^$/d' $file
