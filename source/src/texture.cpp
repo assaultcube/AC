@@ -816,3 +816,54 @@ void blitsurface(SDL_Surface *dst, SDL_Surface *src, int x, int y)
     }
 }
 
+Texture *e_wall, *e_floor, *e_ceil;
+
+void guidetoggle()
+{
+    if(player1->state == CS_EDITING)
+    {
+        Slot *sw = &slots[DEFAULT_WALL];
+        Slot *sf = &slots[DEFAULT_FLOOR];
+        Slot *sc = &slots[DEFAULT_CEIL];
+
+        char swn[256] = "packages/textures/"; swn[255] = '\0';
+        char sfn[256] = "packages/textures/"; swn[255] = '\0';
+        char scn[256] = "packages/textures/"; swn[255] = '\0';
+
+        strncat(swn, sw->name, 254);
+        strncat(sfn, sf->name, 254);
+        strncat(scn, sc->name, 254);
+
+        if( 0 //if textures match original texture name saved in Slot.name
+            == strcmp(sw->tex->name, path(swn))
+            == strcmp(sf->tex->name, path(sfn))
+            == strcmp(sc->tex->name, path(scn)) )
+        {
+            //replace defaults with grid texures
+            e_wall = sw->tex;
+            e_floor = sf->tex;
+            e_ceil = sc->tex;
+            sw->tex = textureload("packages/textures/map_editor/wall.jpg");
+            sf->tex = textureload("packages/textures/map_editor/floor.jpg");
+            sc->tex = textureload("packages/textures/map_editor/ceil.jpg");
+            conoutf("Grid: \f0on");
+        }
+        else
+        {
+            // restore textures
+            if(e_wall) sw->tex = e_wall;
+            if(e_floor) sf->tex = e_floor;
+            if(e_ceil) sc->tex = e_ceil;
+            e_wall = NULL;
+            e_floor = NULL;
+            e_ceil = NULL;
+            conoutf("Grid: \fBoff");
+        }
+    }
+    else
+    {
+        conoutf("\fBGrid view is only avaiable when editing.");
+    }
+}
+
+COMMAND(guidetoggle, "");
