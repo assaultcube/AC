@@ -2,12 +2,12 @@ For all materials in these subfolders, if they're used outside of AssaultCube,
 please e-mail DES|Cleaner with some screenshots. He'd "pretty much appreciate it".
 ================================================================================
 DES|Cleaner contact details:
-	* http://akimbo.in/forum/
+	* http://ac-akimbo.net/forum/
 	* http://assault.cubers.net/forum/user-420.html
 	* http://forums.des-clan.net/
-	* totally_shameless@hotmail.fr
+	* shamelessarts@gmail.com
 ================================================================================
-All mapmodels in sub-folders, except "minecart" and "rails":
+All mapmodels in sub-folders, except "minecart" "rails" and "rails_rusty":
 
 Are originally by "DES|Cleaner" for AssaultCube using MilkShape 3D and PaintShop
 Pro XII. They are licensed under the Creative Commons
@@ -33,6 +33,7 @@ Please note, a_slow_old_man assisted in creating "hotel_sign":
 All mapmodels in sub-folders:
 	* "minecart"
 	* "rails"
+	* "rails_rusty"
 
 Are originally by Sitters (and have been modified for AssaultCube by DES|Cleaner):
 	- http://www.md2.sitters-electronics.nl/index.htm
