@@ -843,10 +843,10 @@ void guidetoggle()
             e_wall = sw->tex;
             e_floor = sf->tex;
             e_ceil = sc->tex;
-            sw->tex = textureload("packages/textures/map_editor/wall.jpg");
-            sf->tex = textureload("packages/textures/map_editor/floor.jpg");
-            sc->tex = textureload("packages/textures/map_editor/ceil.jpg");
-            conoutf("Grid: \f0on");
+            sw->tex = textureload("packages/textures/map_editor/wall.png");
+            sf->tex = textureload("packages/textures/map_editor/floor.png");
+            sc->tex = textureload("packages/textures/map_editor/ceil.png");
+            conoutf("Guide: \f0on");
         }
         else
         {
@@ -857,12 +857,12 @@ void guidetoggle()
             e_wall = NULL;
             e_floor = NULL;
             e_ceil = NULL;
-            conoutf("Grid: \fBoff");
+            conoutf("Guide: \fBoff");
         }
     }
     else
     {
-        conoutf("\fBGrid view is only avaiable when editing.");
+        conoutf("\fBGuide view is only avaiable when editing.");
     }
 }
 
