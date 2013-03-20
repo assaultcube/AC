@@ -1212,36 +1212,40 @@ void toUpper(char *s) { result(strcaps(s, true)); }
 
 void testchar(char *s, int *type)
 {
+    bool istrue = false;
     switch(*type) {
         case 1:
-            if(isalpha(s[0]) != 0) { intret(1); return; }
+            if(isalpha(s[0]) != 0) { istrue = true; }
             break;
         case 2:
-            if(isalnum(s[0]) != 0) { intret(1); return; }
+            if(isalnum(s[0]) != 0) { istrue = true; }
             break;
         case 3:
-            if(islower(s[0]) != 0) { intret(1); return; }
+            if(islower(s[0]) != 0) { istrue = true; }
             break;
         case 4:
-            if(isupper(s[0]) != 0) { intret(1); return; }
+            if(isupper(s[0]) != 0) { istrue = true; }
             break;
         case 5:
-            if(isprint(s[0]) != 0) { intret(1); return; }
+            if(isprint(s[0]) != 0) { istrue = true; }
             break;
         case 6:
-            if(ispunct(s[0]) != 0) { intret(1); return; }
+            if(ispunct(s[0]) != 0) { istrue = true; }
             break;
         case 7:
-            if(isspace(s[0]) != 0) { intret(1); return; }
+            if(isspace(s[0]) != 0) { istrue = true; }
             break;
         case 8: // Without this it is impossible to determine if a character === " in cubescript
-            if(!strcmp(s, "\"")) { intret(1); return; }
+            if(!strcmp(s, "\"")) { istrue = true; }
             break;
         default:
-            if(isdigit(s[0]) != 0) { intret(1); return; }
+            if(isdigit(s[0]) != 0) { istrue = true; }
             break;
     }
-    intret(0);
+    if(istrue)
+        intret(1);
+    else
+        intret(0);
 }
 
 void strreplace (const char *source, const char *search, const char *replace)
