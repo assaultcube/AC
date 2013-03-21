@@ -1,5 +1,5 @@
 ================================================================================
- * ./jcdpc_cardboardbox_reskin/skin.jpg
+ * ./toca_cardboardbox_reskin/skin.jpg
 
 ...is a modification of:
 	../../../textures/zastrow/wood_crate_10.jpg
