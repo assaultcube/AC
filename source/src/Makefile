@@ -158,7 +158,6 @@ client: libenet $(CLIENT_OBJS)
 	$(CXX) $(CXXFLAGS) -o ac_client $(CLIENT_OBJS) $(CLIENT_LIBS)
 
 server: libenet $(SERVER_OBJS)
-server: libenet $(SERVER_OBJS)
 	$(CXX) $(CXXFLAGS) -o ac_server $(SERVER_OBJS) $(SERVER_LIBS)
 master: libenet $(MASTER_OBJS)
 	$(CXX) $(CXXFLAGS) -o ac_master $(MASTER_OBJS) $(SERVER_LIBS)

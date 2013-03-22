@@ -64,6 +64,7 @@ Server browser
 Media (maps/textures/models)
 ---------------------
 
+[*] Ability to download maps, textures, mapmodels on the fly when they're missing
 [*] New map "ac_avenue"
 [*] New map "ac_cavern"
 [*] New map "ac_edifice"
