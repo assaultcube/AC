@@ -207,13 +207,11 @@ void disconnect(int onlyclean, int async)
     }
 #endif
     if(!onlyclean) localconnect();
-
     if(identexists("onDisconnect"))
     {
         defformatstring(ondisconnect)("onDisconnect %d", -1);
         execute(ondisconnect);
-    }
-}
+    }}
 
 void trydisconnect()
 {
@@ -788,12 +786,23 @@ void sendmap(char *mapname)
     conoutf(_("sending map %s to server..."), mapname);
 }
 
-void getmap()
+void getmap(char *name)
 {
-    conoutf(_("requesting map from server..."));
-    packetbuf p(10, ENET_PACKET_FLAG_RELIABLE);
-    putint(p, SV_RECVMAP);
-    sendpackettoserv(2, p.finalize());
+    if((!name || !*name)
+        || (connected && !strcmp(name, getclientmap())) )
+    {
+        conoutf(_("requesting map from server..."));
+        packetbuf p(10, ENET_PACKET_FLAG_RELIABLE);
+        putint(p, SV_RECVMAP);
+        sendpackettoserv(2, p.finalize());
+    }
+    else
+    {
+        defformatstring(package)("packages/maps/%s.cgz", name);
+        requirepackage(PCK_MAP, package);
+        if(downloadpackages()) conoutf("map %s installed successfully", name);
+        else conoutf("\f3map download failed.");
+    }
 }
 
 void deleteservermap(char *mapname)
@@ -853,7 +862,7 @@ void rewinddemo(int *seconds)
 }
 
 COMMAND(sendmap, "s");
-COMMAND(getmap, "");
+COMMAND(getmap, "s");
 COMMAND(deleteservermap, "s");
 COMMAND(resetsecuremaps, "");
 COMMAND(securemap, "s");
@@ -861,3 +870,201 @@ COMMAND(getdemo, "is");
 COMMAND(listdemos, "");
 COMMANDN(setmr, setminutesremaining, "i");
 COMMANDN(rewind, rewinddemo, "i");
+
+// packages auto - downloader
+
+// arrays
+vector<pckserver *> pckservers;
+hashtable<const char *, package *> pendingpackages;
+
+// cubescript
+
+void resetpckservers()
+{
+    pckservers.deletecontents();
+}
+
+void addpckserver(char *addr)
+{
+    pckserver *srcserver = new pckserver();
+    srcserver->addr = newstring(addr);
+    srcserver->pending = true;
+    pckservers.add(srcserver);
+}
+
+COMMAND(resetpckservers, "");
+COMMAND(addpckserver, "s");
+
+// cURL / Network
+
+bool havecurl = false, canceldownloads = false;
+
+void setupcurl()
+{
+    if(curl_global_init(CURL_GLOBAL_NOTHING)) conoutf(_("\f3could not init cURL, content downloads not available"));
+    else
+    {
+        havecurl = true;
+        execfile("config/pcksources.cfg");
+    }
+}
+
+static size_t write_callback(void *ptr, size_t size, size_t nmemb, FILE *stream)
+{
+    return fwrite(ptr, size, nmemb, stream);
+}
+
+int progress_callback(void *clientp, double dltotal, double dlnow, double ultotal, double ulnow)
+{
+    package *pck = (package *)clientp;
+    loadingscreen(_("downloading...\n%s %.0f/%.0f KB (%.1f%%)\n(ESC to cancel)"), pck->name, dlnow/double(1000.0), dltotal/double(1000.0), dltotal == 0 ? 0 : (dlnow/dltotal * double(100.0)));
+    if(interceptkey(SDLK_ESCAPE))
+    {
+        canceldownloads = true;
+        loadingscreen();
+        return 1;
+    }
+    return 0;
+}
+
+int processdownload(package *pck)
+{
+    if(!pck->pending)
+    {
+        switch(pck->type)
+        {
+            case PCK_TEXTURE: case PCK_AUDIO:
+            {
+                preparedir(pck->name);
+                // with textures/sounds, the image/audio file itself is sent. Just need to copy it from the temporary file
+                if(!copyfile(path("tmp", true), pck->name)) conoutf(_("\f3failed to install %s"), pck->name);
+                break;
+            }
+
+            case PCK_MAP: case PCK_MAPMODEL:
+            {
+                const char *p = path("tmp", true);
+                addzip(p, pck->name, NULL, true, pck->type);
+                break;
+            }
+
+            case PCK_SKYBOX:
+            {
+                const char *p = path("tmp", true);
+                char *fname = newstring(pck->name), *ls = strrchr(fname, '/');
+                if(ls) *ls = '\0';
+                addzip(p, fname, NULL, true, pck->type);
+                break;
+            }
+
+            default:
+                conoutf(_("could not install package %s"), pck->name);
+                break;
+        }
+        delfile(path("tmp", true));
+    }
+    return 0;
+}
+
+// download a package
+double dlpackage(package *pck)
+{
+    if(!pck || !pck->source) return false;
+    FILE *outfile = fopen(path("tmp", true), "wb");
+    string req;
+    sprintf(req, "%s/%s%s", pck->source->addr, pck->name, (pck->type==PCK_MAP || pck->type==PCK_MAPMODEL || pck->type==PCK_SKYBOX) ? ".zip" : "");
+    conoutf(_("downloading %s from %s ..."), pck->name, pck->source->addr);
+
+    int result, httpresult = 0;
+    double dlsize;
+    pck->curl = curl_easy_init();
+    curl_easy_setopt(pck->curl, CURLOPT_URL, req);
+    curl_easy_setopt(pck->curl, CURLOPT_WRITEFUNCTION, write_callback);
+    curl_easy_setopt(pck->curl, CURLOPT_WRITEDATA, outfile);
+    curl_easy_setopt(pck->curl, CURLOPT_NOPROGRESS, 0);
+    curl_easy_setopt(pck->curl, CURLOPT_PROGRESSFUNCTION, progress_callback);
+    curl_easy_setopt(pck->curl, CURLOPT_PROGRESSDATA, pck);
+    curl_easy_setopt(pck->curl, CURLOPT_CONNECTTIMEOUT, 10);     // generous timeout for Bukz ;)
+    result = curl_easy_perform(pck->curl);
+    curl_easy_getinfo(pck->curl, CURLINFO_RESPONSE_CODE, &httpresult);
+    curl_easy_getinfo(pck->curl, CURLINFO_SIZE_DOWNLOAD, &dlsize);
+    curl_easy_cleanup(pck->curl);
+    pck->curl = NULL;
+    fclose(outfile);
+
+    pck->pending = false;
+    if(result == CURLE_OPERATION_TIMEDOUT || result == CURLE_COULDNT_RESOLVE_HOST)
+    {
+        // mark source unresponsive
+        pck->source->responsive = false;
+        conoutf(_("\f3could not connect to %s"), pck->source->addr);
+
+        // try to find another source
+        pckserver *source = NULL;
+        loopv(pckservers) if(pckservers[i]->responsive) { source = pckservers[i]; break; }
+        if(!source)
+        {
+            conoutf(_("\f3no more servers to connect to"));
+            canceldownloads = true;
+            return 0;
+        }
+
+        // update all packages
+        enumerate(pendingpackages, package *, pack,
+        {
+            pack->source = source;
+        });
+
+        pck->pending = true;
+
+        return dlpackage(pck); // retry current
+    }
+    if(!result && httpresult == 200) processdownload(pck);
+    else if(result == CURLE_ABORTED_BY_CALLBACK) conoutf(_("\f3download cancelled"));
+    else conoutf(_("\f2request for %s failed (cURL %d, HTTP %d)"), req, result, httpresult);
+    return (!result && httpresult == 200) ? dlsize : 0;
+}
+
+int downloadpackages()
+{
+    double total = 0;
+    enumerate(pendingpackages, package *, pck,
+    {
+        if(!canceldownloads)
+        {
+            if(connected) c2skeepalive(); // try to avoid time out
+            total += dlpackage(pck);
+        }
+        pendingpackages.remove(pck->name);
+        delete pck;
+    });
+    canceldownloads = false;
+    return (int)total;
+}
+
+bool requirepackage(int type, const char *path)
+{
+    if(!havecurl || canceldownloads || type < 0 || type >= PCK_NUM || pendingpackages.access(path)) return false;
+
+    package *pck = new package;
+    pck->name = unixpath(newstring(path));
+    pck->type = type;
+    loopv(pckservers) if(pckservers[i]->responsive) { pck->source = pckservers[i]; break; }
+    if(!pck->source) { conoutf(_("\f3no responsive source server found, can't download")); return false; }
+    pck->pending = true;
+
+    pendingpackages.access(pck->name, pck);
+
+    return true;
+}
+
+
+void writepcksourcecfg()
+{
+    stream *f = openfile(path("config/pcksources.cfg", true), "w");
+    if(!f) return;
+    f->printf("// list of package source servers (only add servers you trust!)\n");
+    loopv(pckservers) f->printf("\naddpckserver %s", pckservers[i]->addr);
+    f->printf("\n");
+    delete f;
+}

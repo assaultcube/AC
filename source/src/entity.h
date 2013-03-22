@@ -648,3 +648,24 @@ inline const char *killmessage(int gun, bool gib = false)
 
     return killmessages[gib?1:0][gun];
 }
+
+struct pckserver
+{
+    char *addr;
+    bool pending, responsive;
+
+    pckserver() : addr(NULL), pending(false), responsive(true) {}
+};
+
+enum { PCK_TEXTURE, PCK_SKYBOX, PCK_MAPMODEL, PCK_AUDIO, PCK_MAP, PCK_NUM };
+
+struct package
+{
+    char *name;
+    int type;
+    bool pending;
+    pckserver *source;
+    CURL *curl;
+
+    package() : name(NULL), type(-1), pending(false), source(NULL), curl(NULL) {}
+};

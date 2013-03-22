@@ -160,7 +160,7 @@ public:
     sbuffer();
     ~sbuffer();
 
-    bool load();
+    bool load(bool trydl = false);
     void unload();
 };
 
@@ -389,8 +389,8 @@ public:
 
     // init & setup
     void initsound();
-    void preloadmapsound(entity &e);
-    void preloadmapsounds();
+    void preloadmapsound(entity &e, bool trydl = false);
+    void preloadmapsounds(bool trydl = false);
     void applymapsoundchanges();
 
     // configuration

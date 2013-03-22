@@ -225,19 +225,19 @@ int audiomanager::addsound(char *name, int vol, int maxuses, bool loop, vector<s
     return sounds.length()-1;
 }
 
-void audiomanager::preloadmapsound(entity &e)
+void audiomanager::preloadmapsound(entity &e, bool trydl)
 {
     if(e.type!=SOUND || !mapsounds.inrange(e.attr1)) return;
     sbuffer *buf = mapsounds[e.attr1].buf;
-    if(!buf->load()) conoutf("\f3failed to load sample %s", buf->name);
+    if(!buf->load(trydl) && !trydl) conoutf("\f3failed to load sample %s", buf->name);
 }
 
-void audiomanager::preloadmapsounds()
+void audiomanager::preloadmapsounds(bool trydl)
 {
     loopv(ents)
     {
         entity &e = ents[i];
-        if(e.type==SOUND) preloadmapsound(e);
+        if(e.type==SOUND) preloadmapsound(e, trydl);
     }
 }
 

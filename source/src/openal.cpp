@@ -254,7 +254,7 @@ sbuffer::~sbuffer()
     unload();
 }
 
-bool sbuffer::load()
+bool sbuffer::load(bool trydl)
 {
     if(!name) return false;
     if(id) return true;
@@ -264,79 +264,94 @@ bool sbuffer::load()
     {
         const char *exts[] = { "", ".wav", ".ogg" };
         string filepath;
-        loopi(sizeof(exts)/sizeof(exts[0]))
+        loopk(2)
         {
-            formatstring(filepath)("packages/audio/%s%s", name, exts[i]);
-            stream *f = openfile(path(filepath), "rb");
-            if(!f) continue;
-
-            size_t len = strlen(filepath);
-            if(len >= 4 && !strcasecmp(filepath + len - 4, ".ogg"))
+            loopi(sizeof(exts)/sizeof(exts[0]))
             {
-                OggVorbis_File oggfile;
-                if(!ov_open_callbacks(f, &oggfile, NULL, 0, oggcallbacks))
+                formatstring(filepath)("packages/audio/%s%s", name, exts[i]);
+                stream *f = openfile(path(filepath), "rb");
+                if(!f && k>0 && trydl) // only try donwloading after trying all extensions
                 {
-                    vorbis_info *info = ov_info(&oggfile, -1);
+                    requirepackage(PCK_AUDIO, filepath);
+                    bool skip = false;
+                    loopj(sizeof(exts)/sizeof(exts[0])) if(strstr(name, exts[j])) skip = true;  // don't try extensions if name already has a known extension
+                    if(skip) break;
+                    continue;
+                }
+                if(!f) continue;
 
-                    const size_t BUFSIZE = 32*1024;
-                    vector<char> buf;
-                    int bitstream;
-                    long bytes;
-
-                    do
+                size_t len = strlen(filepath);
+                if(len >= 4 && !strcasecmp(filepath + len - 4, ".ogg"))
+                {
+                    OggVorbis_File oggfile;
+                    if(!ov_open_callbacks(f, &oggfile, NULL, 0, oggcallbacks))
                     {
-                        char buffer[BUFSIZE];
-                        bytes = ov_read(&oggfile, buffer, BUFSIZE, isbigendian(), 2, 1, &bitstream);
-                        loopi(bytes) buf.add(buffer[i]);
-                    } while(bytes > 0);
+                        vorbis_info *info = ov_info(&oggfile, -1);
 
-                    alBufferData(id, info->channels == 2 ? AL_FORMAT_STEREO16 : AL_FORMAT_MONO16, buf.getbuf(), buf.length(), info->rate);
-                    ov_clear(&oggfile);
+                        const size_t BUFSIZE = 32*1024;
+                        vector<char> buf;
+                        int bitstream;
+                        long bytes;
+
+                        do
+                        {
+                            char buffer[BUFSIZE];
+                            bytes = ov_read(&oggfile, buffer, BUFSIZE, isbigendian(), 2, 1, &bitstream);
+                            loopi(bytes) buf.add(buffer[i]);
+                        } while(bytes > 0);
+
+                        alBufferData(id, info->channels == 2 ? AL_FORMAT_STEREO16 : AL_FORMAT_MONO16, buf.getbuf(), buf.length(), info->rate);
+                        ov_clear(&oggfile);
+                    }
+                    else
+                    {
+                        delete f;
+                        continue;
+                    }
                 }
                 else
                 {
+                    SDL_AudioSpec wavspec;
+                    uint32_t wavlen;
+                    uint8_t *wavbuf;
+
+                    if(!SDL_LoadWAV_RW(f->rwops(), 1, &wavspec, &wavbuf, &wavlen))
+                    {
+                        SDL_ClearError();
+                        continue;
+                    }
+
+                    ALenum format;
+                    switch(wavspec.format) // map wav header to openal format
+                    {
+                        case AUDIO_U8:
+                        case AUDIO_S8:
+                            format = wavspec.channels==2 ? AL_FORMAT_STEREO8 : AL_FORMAT_MONO8;
+                            break;
+                        case AUDIO_U16:
+                        case AUDIO_S16:
+                            format = wavspec.channels==2 ? AL_FORMAT_STEREO16 : AL_FORMAT_MONO16;
+                            break;
+                        default:
+                            SDL_FreeWAV(wavbuf);
+                            delete f;
+                            unload();
+                            return false;
+                    }
+
+                    alBufferData(id, format, wavbuf, wavlen, wavspec.freq);
+                    SDL_FreeWAV(wavbuf);
                     delete f;
-                    continue;
-                }
-            }
-            else
-            {
-                SDL_AudioSpec wavspec;
-                uint32_t wavlen;
-                uint8_t *wavbuf;
 
-                if(!SDL_LoadWAV_RW(f->rwops(), 1, &wavspec, &wavbuf, &wavlen))
-                {
-                    SDL_ClearError();
-                    continue;
-                }
-
-                ALenum format;
-                switch(wavspec.format) // map wav header to openal format
-                {
-                    case AUDIO_U8:
-                    case AUDIO_S8:
-                        format = wavspec.channels==2 ? AL_FORMAT_STEREO8 : AL_FORMAT_MONO8;
-                        break;
-                    case AUDIO_U16:
-                    case AUDIO_S16:
-                        format = wavspec.channels==2 ? AL_FORMAT_STEREO16 : AL_FORMAT_MONO16;
-                        break;
-                    default:
-                        SDL_FreeWAV(wavbuf);
-                        delete f;
+                    if(ALERR)
+                    {
                         unload();
                         return false;
+                    };
                 }
 
-                alBufferData(id, format, wavbuf, wavlen, wavspec.freq);
-                SDL_FreeWAV(wavbuf);
-                delete f;
-
-                if(ALERR) break;
+                return true;
             }
-
-            return true;
         }
     }
     unload(); // loading failed
