@@ -738,6 +738,22 @@ bool interceptkey(int sym)
     return false;
 }
 
+void togglegrab()
+{
+    if (SDL_WM_GrabInput(SDL_GRAB_QUERY) == SDL_GrabMode(0))
+    {
+        SDL_WM_GrabInput(SDL_GRAB_ON);
+        conoutf("mouse input locked");
+    }
+    else
+    {
+        SDL_WM_GrabInput(SDL_GrabMode(0));
+        conoutf("mouse input released");
+    }
+}
+
+COMMAND(togglegrab, "");
+
 static void resetmousemotion()
 {
 #ifndef WIN32
