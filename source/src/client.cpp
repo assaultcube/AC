@@ -878,6 +878,7 @@ vector<pckserver *> pckservers;
 hashtable<const char *, package *> pendingpackages;
 
 // cubescript
+VARP(autodownload, 0, 1, 1);
 
 void resetpckservers()
 {
@@ -1044,7 +1045,7 @@ int downloadpackages()
 
 bool requirepackage(int type, const char *path)
 {
-    if(!havecurl || canceldownloads || type < 0 || type >= PCK_NUM || pendingpackages.access(path)) return false;
+    if(!havecurl || canceldownloads || !autodownload || type < 0 || type >= PCK_NUM || pendingpackages.access(path)) return false;
 
     package *pck = new package;
     pck->name = unixpath(newstring(path));
