@@ -94,6 +94,7 @@ void mapmodel(int *rad, int *h, int *zoff, char *snap, char *name)
     mmi.rad = *rad;
     mmi.h = *h;
     mmi.zoff = *zoff;
+    mmi.m = NULL;
     formatstring(mmi.name)("mapmodels/%s", name);
 }
 
@@ -110,7 +111,7 @@ COMMAND(mapmodelreset, "");
 hashtable<const char *, model *> mdllookup;
 model *nomodel = NULL;
 
-model *loadmodel(const char *name, int i)
+model *loadmodel(const char *name, int i, bool trydl)
 {
     if(!name)
     {
@@ -136,15 +137,28 @@ model *loadmodel(const char *name, int i)
             {
                 delete m;
                 loadingmodel = NULL;
+                if(trydl)
+                {
+                    defformatstring(dl)("packages/models/%s", name);
+                    requirepackage(PCK_MAPMODEL, dl);
+                }
+                else
+                {
+                    mdllookup.access(newstring(name), nomodel);
+                    conoutf("\f3failed to load model %s", name);
+                }
             }
         }
         popscontext();
         if(!loadingmodel)
         {
-            conoutf(_("failed to load model %s"), name);
-            if(!nomodel) nomodel = new md2("nomodel");
-            m = nomodel;
-            mdllookup.access(newstring(name), m);
+            if(!trydl)
+            {
+                conoutf(_("failed to load model %s"), name);
+                if(!nomodel) nomodel = new md2("nomodel");
+                m = nomodel;
+                mdllookup.access(newstring(name), m);
+            }
         }
         else mdllookup.access(m->name(), m);
         loadingmodel = NULL;
@@ -550,14 +564,14 @@ void preload_entmodels()
      }
 }
 
-void preload_mapmodels()
+void preload_mapmodels(bool trydl)
 {
     loopv(ents)
     {
         entity &e = ents[i];
         if(e.type!=MAPMODEL || !mapmodels.inrange(e.attr2)) continue;
-        if(!loadmodel(NULL, e.attr2)) continue;
-        if(e.attr4) lookuptexture(e.attr4);
+        loadmodel(NULL, e.attr2, trydl);
+        if(e.attr4) lookuptexture(e.attr4, notexture, trydl);
     }
 }
 

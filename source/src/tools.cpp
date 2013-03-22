@@ -45,20 +45,16 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
     stream *f = opengzfile(filename, "rb");
     if(!f) return NULL;
     memset(&s.hdr, 0, sizeof(header));
-    if(f->read(&s.hdr, sizeof(header)-sizeof(int)*16-sizeof(char)*128)!=sizeof(header)-sizeof(int)*16-sizeof(char)*128 || (strncmp(s.hdr.head, "CUBE", 4) && strncmp(s.hdr.head, "ACMP",4))) { delete f; return NULL; }
+    if(f->read(&s.hdr, sizeof(header)-sizeof(int)*16)!=sizeof(header)-sizeof(int)*16 || (strncmp(s.hdr.head, "CUBE", 4) && strncmp(s.hdr.head, "ACMP",4))) { delete f; return NULL; }
     lilswap(&s.hdr.version, 4);
     if(s.hdr.version>MAPVERSION || s.hdr.numents > MAXENTITIES || (s.hdr.version>=4 && f->read(&s.hdr.waterlevel, sizeof(int)*16)!=sizeof(int)*16)) { delete f; return NULL; }
-    if(s.hdr.version>=7 && f->read(&s.hdr.mediareq, sizeof(char)*128)!=sizeof(char)*128) { delete f; return NULL; }
+    if((s.hdr.version==7 || s.hdr.version==8) && !f->seek(sizeof(char)*128, SEEK_CUR)) { delete f; return NULL; }
     if(s.hdr.version>=4)
     {
         lilswap(&s.hdr.waterlevel, 1);
         lilswap(&s.hdr.maprevision, 2);
     }
     else s.hdr.waterlevel = -100000;
-    if(s.hdr.version<7)
-    {
-        copystring(s.hdr.mediareq, "", 128);//s.hdr.mediareq[0] = '\0';
-    }
     entity e;
     enttypes = new uchar[s.hdr.numents];
     entposs = new short[s.hdr.numents * 3];

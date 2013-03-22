@@ -1701,6 +1701,4 @@ void checkweaponstate()
 {
     checkweaponswitch();
     checkakimbo();
-
-    // TODO : here we need to check properly that the spectated player weapon has finished to reload...
 }

@@ -312,19 +312,25 @@ extern SDL_Surface *creatergbsurface(int width, int height);
 extern SDL_Surface *creatergbasurface(int width, int height);
 extern SDL_Surface *forcergbsurface(SDL_Surface *os);
 extern SDL_Surface *forcergbasurface(SDL_Surface *os);
-extern Texture *textureload(const char *name, int clamp = 0, bool mipmap = true, bool canreduce = false, float scale = 1.0f);
-extern Texture *lookuptexture(int tex, Texture *failtex = notexture);
+extern Texture *textureload(const char *name, int clamp = 0, bool mipmap = true, bool canreduce = false, float scale = 1.0f, bool trydl = false);
+extern Texture *lookuptexture(int tex, Texture *failtex = notexture, bool trydl = false);
 extern bool reloadtexture(Texture &t);
 extern bool reloadtexture(const char *name);
 extern void reloadtextures();
 Texture *createtexturefromsurface(const char *name, SDL_Surface *s);
 extern void blitsurface(SDL_Surface *dst, SDL_Surface *src, int x, int y);
+void loadsky(char *basename, bool reload);
 
-static inline Texture *lookupworldtexture(int tex)
-{ return lookuptexture(tex, noworldtexture); }
+static inline Texture *lookupworldtexture(int tex, bool trydl = true)
+{ return lookuptexture(tex, noworldtexture, trydl); }
 
 extern float skyfloor;
 extern void draw_envbox(int fogdist);
+
+extern void setupcurl();
+extern bool requirepackage(int type, const char *path);
+extern int downloadpackages();
+extern void writepcksourcecfg();
 
 extern int maxtmus;
 extern void inittmus();
@@ -369,7 +375,7 @@ extern void c2skeepalive();
 extern void neterr(const char *s);
 extern int getclientnum();
 extern void changeteam(int team, bool respawn = true); // deprecated?
-extern void getmap();
+extern void getmap(char *name = NULL);
 extern void newteam(char *name);
 extern bool securemapcheck(const char *map, bool msg = true);
 extern int getbuildtype();
@@ -705,11 +711,12 @@ extern void clearmodelbatches();
 extern mapmodelinfo &getmminfo(int i);
 extern int findanim(const char *name);
 extern void loadskin(const char *dir, const char *altdir, Texture *&skin);
-extern model *loadmodel(const char *name, int i = -1);
+extern model *nomodel;
+extern model *loadmodel(const char *name, int i = -1, bool trydl = false);
 extern void preload_playermodels();
 extern void preload_entmodels();
 extern void preload_hudguns();
-extern void preload_mapmodels();
+extern void preload_mapmodels(bool trydl = false);
 extern void renderclients();
 extern void renderclient(playerent *d);
 extern void renderclient(playerent *d, const char *mdlname, const char *vwepname, int tex = 0);

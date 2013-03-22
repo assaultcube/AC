@@ -22,7 +22,7 @@ struct zipfileheader
 {
     uint signature;
     ushort version, needversion, flags, compression, modtime, moddate;
-    uint crc32, compressedsize, uncompressedsize; 
+    uint crc32, compressedsize, uncompressedsize;
     ushort namelength, extralength, commentlength, disknumber, internalattribs;
     uint externalattribs, offset;
 };
@@ -43,9 +43,9 @@ struct zipfile
     zipfile() : name(NULL), header(0), offset(~0U), size(0), compressedsize(0)
     {
     }
-    ~zipfile() 
-    { 
-        DELETEA(name); 
+    ~zipfile()
+    {
+        DELETEA(name);
     }
 };
 
@@ -57,9 +57,10 @@ struct ziparchive
     FILE *data;
     hashtable<const char *, zipfile> files;
     int openfiles;
+    int type;
     zipstream *owner;
 
-    ziparchive() : name(NULL), data(NULL), files(512), openfiles(0), owner(NULL)
+    ziparchive() : name(NULL), data(NULL), files(512), openfiles(0), type(-1), owner(NULL)
     {
     }
     ~ziparchive()
@@ -85,9 +86,9 @@ static bool findzipdirectory(FILE *f, zipdirectoryheader &hdr)
         if(next + carry < ZIP_DIRECTORY_SIZE || fseek(f, offset, SEEK_SET) < 0 || (int)fread(buf, 1, next, f) != next) return false;
         len = next + carry;
         uchar *search = &buf[next-1];
-        for(; search >= buf; search--) if(*(uint *)search == signature) break; 
+        for(; search >= buf; search--) if(*(uint *)search == signature) break;
         if(search >= buf) { src = search; break; }
-    }        
+    }
 
     if(&buf[len] - src < ZIP_DIRECTORY_SIZE) return false;
 
@@ -149,7 +150,7 @@ static bool readzipdirectory(const char *archname, FILE *f, int entries, int off
         pname[namelen] = '\0';
         path(pname);
         char *name = newstring(pname);
-    
+
         zipfile &f = files.add();
         f.name = name;
         f.header = hdr.offset;
@@ -206,18 +207,36 @@ static bool checkprefix(vector<zipfile> &files, const char *prefix, int prefixle
     return true;
 }
 
-static void mountzip(ziparchive &arch, vector<zipfile> &files, const char *mountdir, const char *stripdir)
+bool extractzipfile(ziparchive *a, zipfile *f, const char *name);
+
+bool fitspackage(char *filename, int type)
+{
+    char *extension = strrchr(filename, '.');
+    ++extension;
+    switch(type)
+    {
+        case PCK_MAPMODEL:  return !strcmp(extension, "md2") || !strcmp(extension, "md3")
+                               || !strcmp(extension, "cfg") || !strcmp(extension, "txt")
+                               || !strcmp(extension, "jpg") || !strcmp(extension, "png");
+        case PCK_MAP:       return !strcmp(extension, "cgz") || !strcmp(extension, "cfg");
+        case PCK_SKYBOX:    return !strcmp(extension, "jpg") || !strcmp(extension, "png");
+        default:            return true;
+    }
+}
+
+static void mountzip(ziparchive &arch, vector<zipfile> &files, const char *mountdir, const char *stripdir, bool extract)
 {
     string packagesdir = "packages/";
     path(packagesdir);
     int striplen = stripdir ? (int)strlen(stripdir) : 0;
+    if(arch.type == PCK_MAP) mountdir = "packages/maps/";
     if(!mountdir && !stripdir) loopv(files)
     {
         zipfile &f = files[i];
         const char *foundpackages = strstr(f.name, packagesdir);
         if(foundpackages)
         {
-            if(foundpackages > f.name) 
+            if(foundpackages > f.name)
             {
                 stripdir = f.name;
                 striplen = foundpackages - f.name;
@@ -239,7 +258,8 @@ static void mountzip(ziparchive &arch, vector<zipfile> &files, const char *mount
                 if(!mountdir) mountdir = "packages/maps/";
                 break;
             }
-        }    
+            mountdir = "packages/maps/";
+        }
     }
     string mdir = "", fname;
     if(mountdir)
@@ -256,26 +276,32 @@ static void mountzip(ziparchive &arch, vector<zipfile> &files, const char *mount
         zipfile &mf = arch.files[mname];
         mf = f;
         mf.name = mname;
+
+        if(extract)
+        {
+            if(fitspackage(fname, arch.type)) extractzipfile(&arch, &f, fname);
+            else conoutf("\f3could not extract \"%s\" : file extension not supported", fname);
+        }
     }
 }
 
-bool addzip(const char *name, const char *mount = NULL, const char *strip = NULL)
+bool addzip(const char *name, const char *mount, const char *strip, bool extract, int type)
 {
     string pname;
     copystring(pname, name);
     path(pname);
-    int plen = (int)strlen(pname);
-    if(plen < 4 || !strchr(&pname[plen-4], '.')) concatstring(pname, ".zip");
+    /*int plen = (int)strlen(pname);
+    if(plen < 4 || !strchr(&pname[plen-4], '.')) concatstring(pname, ".zip");*/
 
-    ziparchive *exists = findzip(pname);
-    if(exists) 
+    /*ziparchive *exists = findzip(pname);
+    if(exists)
     {
         conoutf("already added zip %s", pname);
         return true;
-    }
- 
+    }*/
+
     FILE *f = fopen(findfile(pname, "rb"), "rb");
-    if(!f) 
+    if(!f)
     {
         conoutf("could not open file %s", pname);
         return false;
@@ -288,24 +314,24 @@ bool addzip(const char *name, const char *mount = NULL, const char *strip = NULL
         fclose(f);
         return false;
     }
-    
+
     ziparchive *arch = new ziparchive;
     arch->name = newstring(pname);
     arch->data = f;
-    mountzip(*arch, files, mount, strip);
-    archives.add(arch);
-
-    conoutf("added zip %s", pname);
+    arch->type = type;
+    mountzip(*arch, files, mount, strip, extract);
+    if(!extract) archives.add(arch);
+    else delete arch;
     return true;
-} 
-     
+}
+
 bool removezip(const char *name)
 {
     string pname;
     copystring(pname, name);
     path(pname);
-    int plen = (int)strlen(pname);
-    if(plen < 4 || !strchr(&pname[plen-4], '.')) concatstring(pname, ".zip");
+    /*int plen = (int)strlen(pname);
+    if(plen < 4 || !strchr(&pname[plen-4], '.')) concatstring(pname, ".zip");*/
     ziparchive *exists = findzip(pname);
     if(!exists)
     {
@@ -317,8 +343,8 @@ bool removezip(const char *name)
         conoutf("zip %s has open files", pname);
         return false;
     }
-    conoutf("removed zip %s", exists->name);
-    archives.removeobj(exists); 
+    //conoutf("removed zip %s", exists->name);
+    archives.removeobj(exists);
     delete exists;
     return true;
 }
@@ -416,11 +442,11 @@ struct zipstream : stream
         {
             switch(whence)
             {
-                case SEEK_END: pos += info->offset + info->size; break; 
+                case SEEK_END: pos += info->offset + info->size; break;
                 case SEEK_CUR: pos += reading; break;
                 case SEEK_SET: pos += info->offset; break;
                 default: return false;
-            } 
+            }
             pos = clamp(pos, long(info->offset), long(info->offset + info->size));
             arch->owner = NULL;
             if(fseek(arch->data, pos, SEEK_SET) < 0) return false;
@@ -429,10 +455,10 @@ struct zipstream : stream
             ended = false;
             return true;
         }
- 
+
         switch(whence)
         {
-            case SEEK_END: pos += info->size; break; 
+            case SEEK_END: pos += info->size; break;
             case SEEK_CUR: pos += zfile.total_out; break;
             case SEEK_SET: break;
             default: return false;
@@ -443,7 +469,7 @@ struct zipstream : stream
             reading = info->offset + info->compressedsize;
             zfile.next_in += zfile.avail_in;
             zfile.avail_in = 0;
-            zfile.total_in = info->compressedsize; 
+            zfile.total_in = info->compressedsize;
             arch->owner = NULL;
             ended = false;
             return true;
@@ -451,7 +477,7 @@ struct zipstream : stream
 
         if(pos < 0) return false;
         if(pos >= (long)zfile.total_out) pos -= zfile.total_out;
-        else 
+        else
         {
             if(zfile.next_in && zfile.total_in <= uint(zfile.next_in - buf))
             {
@@ -491,7 +517,7 @@ struct zipstream : stream
                 if(fseek(arch->data, reading, SEEK_SET) < 0) { stopreading(); return 0; }
                 arch->owner = this;
             }
-              
+
             int n = (int)fread(buf, 1, min(len, int(info->size + info->offset - reading)), arch->data);
             reading += n;
             if(n < len) ended = true;
@@ -504,7 +530,7 @@ struct zipstream : stream
         {
             if(!zfile.avail_in) readbuf(BUFSIZE);
             int err = inflate(&zfile, Z_NO_FLUSH);
-            if(err != Z_OK) 
+            if(err != Z_OK)
             {
                 if(err == Z_STREAM_END) ended = true;
                 else
@@ -514,12 +540,32 @@ struct zipstream : stream
 #endif
                     stopreading();
                 }
-                break; 
+                break;
             }
         }
         return len - zfile.avail_out;
     }
 };
+
+bool extractzipfile(ziparchive *a, zipfile *f, const char *name)
+{
+    zipstream *s = new zipstream;
+    FILE *target;
+    defformatstring(fname)("%s", findfile(name, "wb"));
+    preparedir(fname);
+    bool error = false;
+    if(s->open(a, f) && (target = fopen(fname, "wb")))
+    {
+        size_t len;
+        uchar copybuf[1024];
+        while((len = s->read(copybuf, 1024))) fwrite(copybuf, 1, len, target);
+    }
+    else error = true;
+    if(error) conoutf("failed to extract zip file %s from archive %s", fname, a->name);
+    if(target) fclose(target);
+    delete s;
+    return !error;
+}
 
 stream *openzipfile(const char *name, const char *mode)
 {

@@ -97,6 +97,7 @@
 		B96D0D6D0920976E00B6C936 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = B96D0D6C0920976E00B6C936 /* main.m */; };
 		B9EF952411CEE3D300B773C1 /* i18n.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B914CE5111CAC42F009BA307 /* i18n.cpp */; };
 		B9FA3B7D0DD9E6E400581F8D /* OpenAL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B9FA3B7C0DD9E6E400581F8D /* OpenAL.framework */; };
+		D2C5486C145F6B6100345E9E /* libcurl.4.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = D2C5486B145F6B6100345E9E /* libcurl.4.dylib */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -253,6 +254,7 @@
 		B96D0D6C0920976E00B6C936 /* main.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		B975E7F30EBCC3A200880D5D /* map.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = map.icns; sourceTree = "<group>"; };
 		B9FA3B7C0DD9E6E400581F8D /* OpenAL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenAL.framework; path = /System/Library/Frameworks/OpenAL.framework; sourceTree = "<absolute>"; };
+		D2C5486B145F6B6100345E9E /* libcurl.4.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcurl.4.dylib; path = ../../../../../../../../../usr/lib/libcurl.4.dylib; sourceTree = "<group>"; };
 		F5A47A9D01A0482F01D3D55B /* SDLMain.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = SDLMain.h; sourceTree = SOURCE_ROOT; };
 		F5A47A9E01A0483001D3D55B /* SDLMain.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = SDLMain.m; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
@@ -270,6 +272,7 @@
 				9EB8172111ED9AEF00799589 /* Vorbis.framework in Frameworks */,
 				9EB8171D11ED9AEF00799589 /* SDL.framework in Frameworks */,
 				9EB8171E11ED9AEF00799589 /* SDL_image.framework in Frameworks */,
+				D2C5486C145F6B6100345E9E /* libcurl.4.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -334,6 +337,7 @@
 		29B97314FDCFA39411CA2CEA /* sauerbraten */ = {
 			isa = PBXGroup;
 			children = (
+				D2C5486B145F6B6100345E9E /* libcurl.4.dylib */,
 				080E96DDFE201D6D7F000001 /* Classes */,
 				29B97315FDCFA39411CA2CEA /* Other Sources */,
 				29B97317FDCFA39411CA2CEA /* Resources */,

@@ -354,7 +354,7 @@ bool silent_texture_load = false;
 VARFP(hirestextures, 0, 1, 1, initwarning("texture resolution", INIT_LOAD));
 bool uniformtexres = !hirestextures;
 
-GLuint loadsurface(const char *texname, int &xs, int &ys, int &bpp, int clamp = 0, bool mipmap = true, bool canreduce = false, float scale = 1.0f)
+GLuint loadsurface(const char *texname, int &xs, int &ys, int &bpp, int clamp = 0, bool mipmap = true, bool canreduce = false, float scale = 1.0f, bool trydl = false)
 {
     const char *file = texname;
     if(texname[0]=='<')
@@ -377,6 +377,11 @@ GLuint loadsurface(const char *texname, int &xs, int &ys, int &bpp, int clamp = 
         delete z;
     }
     if(!s) s = IMG_Load(findfile(file, "rb"));
+    if(!s && trydl)
+    {
+        requirepackage(PCK_TEXTURE, file);
+        return 0;
+    }
     if(!s) { if(!silent_texture_load) conoutf("couldn't load texture %s", texname); return 0; }
     s = fixsurfaceformat(s);
     Uint8 x = 0;
@@ -420,7 +425,7 @@ GLuint loadsurface(const char *texname, int &xs, int &ys, int &bpp, int clamp = 
 // each texture slot can have multiple texture frames, of which currently only the first is used
 // additional frames can be used for various shaders
 
-Texture *textureload(const char *name, int clamp, bool mipmap, bool canreduce, float scale)
+Texture *textureload(const char *name, int clamp, bool mipmap, bool canreduce, float scale, bool trydl)
 {
     string pname;
     copystring(pname, name);
@@ -428,7 +433,7 @@ Texture *textureload(const char *name, int clamp, bool mipmap, bool canreduce, f
     Texture *t = textures.access(pname);
     if(t) return t;
     int xs, ys, bpp;
-    GLuint id = loadsurface(pname, xs, ys, bpp, clamp, mipmap, canreduce, scale);
+    GLuint id = loadsurface(pname, xs, ys, bpp, clamp, mipmap, canreduce, scale, trydl);
     if(!id) return notexture;
     char *key = newstring(pname);
     t = &textures[key];
@@ -497,7 +502,7 @@ void texture(char *scale, char *name)
 COMMAND(texturereset, "");
 COMMAND(texture, "fs");
 
-Texture *lookuptexture(int tex, Texture *failtex)
+Texture *lookuptexture(int tex, Texture *failtex, bool trydl)
 {
     Texture *t = failtex;
     if(slots.inrange(tex))
@@ -506,9 +511,12 @@ Texture *lookuptexture(int tex, Texture *failtex)
         if(!s.loaded)
         {
             defformatstring(pname)("packages/textures/%s", s.name);
-            s.tex = textureload(pname, 0, true, true, s.scale);
+            s.tex = textureload(pname, 0, true, true, s.scale, trydl);
+            if(!trydl)
+            {
             if(s.tex==notexture) s.tex = failtex;
             s.loaded = true;
+        }
         }
         if(s.tex) t = s.tex;
     }
@@ -546,20 +554,27 @@ void reloadtextures()
 }
 
 Texture *sky[6] = {NULL, NULL, NULL, NULL, NULL, NULL};
+static string skybox;
 
-void loadsky(char *basename)
+void loadsky(char *basename, bool reload)
 {
     const char *side[] = { "lf", "rt", "ft", "bk", "dn", "up" };
+    if(reload) basename = skybox;
+    else copystring(skybox, basename);
     loopi(6)
     {
         defformatstring(name)("packages/%s_%s.jpg", basename, side[i]);
         sky[i] = textureload(name, 3);
-        if(!sky[i]) conoutf("could not load sky texture: %s", name);
+        if(sky[i] == notexture && !reload)
+        {
+            defformatstring(dl)("packages/%s", basename);
+            requirepackage(PCK_SKYBOX, dl);
+            break;
+    }
     }
 }
 
-COMMAND(loadsky, "s");
-
+COMMANDF(loadsky, "s", (char *name) { loadsky(name, false); intret(0); });
 void loadnotexture(char *c)
 {
     noworldtexture = notexture; // reset to default
