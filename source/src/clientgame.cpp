@@ -1111,7 +1111,10 @@ void showmapstats()
 }
 COMMAND(showmapstats, "");
 
-VARP(showmodedescriptions, 0, 1, 1);extern bool canceldownloads;void startmap(const char *name, bool reset)   // called just after a map load
+VARP(showmodedescriptions, 0, 1, 1);
+extern bool canceldownloads;
+
+void startmap(const char *name, bool reset)   // called just after a map load
 {
     canceldownloads = false;
     copystring(clientmap, name);

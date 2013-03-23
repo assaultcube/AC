@@ -565,12 +565,12 @@ void loadsky(char *basename, bool reload)
     {
         defformatstring(name)("packages/%s_%s.jpg", basename, side[i]);
         sky[i] = textureload(name, 3);
-        if(sky[i] == notexture && !reload)
+        if(sky[i] == notexture && !reload && autodownload)
         {
             defformatstring(dl)("packages/%s", basename);
             requirepackage(PCK_SKYBOX, dl);
             break;
-    }
+        }
     }
 }
 
