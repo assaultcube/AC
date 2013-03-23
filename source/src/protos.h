@@ -327,6 +327,7 @@ static inline Texture *lookupworldtexture(int tex, bool trydl = true)
 extern float skyfloor;
 extern void draw_envbox(int fogdist);
 
+extern int autodownload;
 extern void setupcurl();
 extern bool requirepackage(int type, const char *path);
 extern int downloadpackages();
