@@ -444,8 +444,9 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
                         if(pl->jumpnext)
                         {
                             pl->jumpnext = false;
+                            bool doublejump = pl->lastjump && lastmillis-pl->lastjump < 250 && pl->strafe != 0 && pl->lastjumpheight != 0 && pl->lastjumpheight != pl->o.z;
+                            pl->lastjumpheight = pl->o.z;
                             pl->vel.z = 2.0f; // physics impulse upwards
-                            bool doublejump = pl->lastjump && lastmillis-pl->lastjump < 250 && pl->strafe != 0;
                             if(doublejump) // more velocity on double jump
                             {
                                 pl->vel.mul(1.25f);

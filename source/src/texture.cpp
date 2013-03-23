@@ -842,8 +842,8 @@ void guidetoggle()
         Slot *sc = &slots[DEFAULT_CEIL];
 
         char swn[256] = "packages/textures/"; swn[255] = '\0';
-        char sfn[256] = "packages/textures/"; swn[255] = '\0';
-        char scn[256] = "packages/textures/"; swn[255] = '\0';
+        char sfn[256] = "packages/textures/"; sfn[255] = '\0';
+        char scn[256] = "packages/textures/"; scn[255] = '\0';
 
         strncat(swn, sw->name, 254);
         strncat(sfn, sf->name, 254);
