@@ -277,7 +277,7 @@ for file in $*; do
     echo "Converting skymap..."
     sed -i '/^loadsky/s/\<textures\/skymaps\/humus\/pow\>/skymaps\/humus\/powerlines/1' $file
     sed -i '/^loadsky/s/\<textures\/skymaps\/kothic\/atsea\>/skymaps\/kellmcdonald\/atsea/1' $file
-    sed -i '/^loadsky/s/\<textures\/skymaps\/ladynighthawk\/inhcanyons\>/skymaps\/ladynighthawk\/canyons1/1' $file
+    sed -i '/^loadsky/s/\<textures\/skymaps\/ladynighthawk\/inhcanyons1\>/skymaps\/ladynighthawk\/canyons1/1' $file
     sed -i '/^loadsky/s/\<textures\/skymaps\/makke\/mountain\>/skymaps\/makke\/mountain/1' $file
     sed -i '/^loadsky/s/\<textures\/skymaps\/makke\/rocky\>/skymaps\/makke\/rocky/1' $file
     sed -i '/^loadsky/s/\<textures\/skymaps\/makke\/sand\>/skymaps\/makke\/sand/1' $file
