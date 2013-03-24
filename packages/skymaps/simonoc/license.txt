@@ -1,5 +1,6 @@
 Skymaps within this folder were originally by:
 	Simon "sock" O'Callaghan (mememe@simonoc.com)
+	(AKA: Socksky)
 
 The files were obtained from here:
 	http://www.simonoc.com/pages/materials.htm
