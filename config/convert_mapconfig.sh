@@ -164,8 +164,8 @@ for file in $*; do
     sed -i '/^mapmodel/s/\<ladder_11x\>/makke\/ladder_11x/1' $file
     sed -i '/^mapmodel/s/\<ladder_15x\>/makke\/ladder_15x/1' $file
     sed -i '/^mapmodel/s/\<ladderx15_center3\>/makke\/ladder_15x_offset/1' $file
-    sed -i '/^mapmodel/s/\<gutter_h\>/makke\/grate_hor/1' $file
-    sed -i '/^mapmodel/s/\<gutter_v\>/makke\/grate_vert/1' $file
+    sed -i '/^mapmodel/s/\<gutter_h\>/cleaner\/grates\/grate_hor/1' $file
+    sed -i '/^mapmodel/s/\<gutter_v\>/cleaner\/grates\/grate_vert/1' $file
     sed -i '/^mapmodel/s/\<minelift\>/makke\/mine-shaft_elevator/1' $file
     sed -i '/^mapmodel/s/\<screw\>/makke\/bolt_nut/1' $file
     sed -i '/^mapmodel/s/\<sail\>/makke\/sail/1' $file
@@ -273,6 +273,20 @@ for file in $*; do
     sed -i '/^texture/s/\<rattrap\/rb_bricks_02.jpg\>/mayang\/rb_bricks_02.jpg/1' $file
     sed -i '/^texture/s/\<rattrap\/rb_bricks_03.jpg\>/mayang\/rb_bricks_03.jpg/1' $file
     sed -i '/^texture/s/\<rattrap\/rb_planks02_trim.jpg\>/noctua\/wood\/planks02_trim_vert.jpg/1' $file
+
+    echo "Converting skymap..."
+    sed -i '/^loadsky/s/\<textures\/skymaps\/humus\/pow\>/skymaps\/humus\/powerlines/1' $file
+    sed -i '/^loadsky/s/\<textures\/skymaps\/kothic\/atsea\>/skymaps\/kellmcdonald\/atsea/1' $file
+    sed -i '/^loadsky/s/\<textures\/skymaps\/ladynighthawk\/inhcanyons\>/skymaps\/ladynighthawk\/canyons1/1' $file
+    sed -i '/^loadsky/s/\<textures\/skymaps\/makke\/mountain\>/skymaps\/makke\/mountain/1' $file
+    sed -i '/^loadsky/s/\<textures\/skymaps\/makke\/rocky\>/skymaps\/makke\/rocky/1' $file
+    sed -i '/^loadsky/s/\<textures\/skymaps\/makke\/sand\>/skymaps\/makke\/sand/1' $file
+    sed -i '/^loadsky/s/\<textures\/skymaps\/socksky\/grave\>/skymaps\/simonoc\/graveyard/1' $file
+    sed -i '/^loadsky/s/\<textures\/skymaps\/iceflow\/iceflow\>/skymaps\/simonoc\/icestation/1' $file
+    sed -i '/^loadsky/s/\<textures\/skymaps\/socksky\/nightball\>/skymaps\/simonoc\/nightball/1' $file
+    sed -i '/^loadsky/s/\<textures\/skymaps\/steini\/steini2\>/skymaps\/steini\/steini2/1' $file
+    sed -i '/^loadsky/s/\<textures\/skymaps\/steini\/steini3\>/skymaps\/steini\/steini3/1' $file
+    sed -i '/^loadsky/s/\<textures\/skymaps\/steini\/steini4\>/skymaps\/steini\/steini4/1' $file
 
     echo -e "Successfully finished converting: "$file"\n"
   else
