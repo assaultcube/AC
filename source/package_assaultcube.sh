@@ -173,12 +173,12 @@ find ./packages/audio/ambience ./packages/textures -type f \
   -name "*.jpg" \
   -o -name "*.png" \
   -o -name "*.ogg" | \
-  grep -v ".svn" | \
+  grep -vE '(.svn|\/textures\/skymaps\/)' | \
   gawk -F'\\./' '{print $2}' > ./config/releasefiles.cfg
 find ./packages/models/mapmodels/* -type d | \
   grep -v ".svn" | \
   gawk -F'\\./' '{print $2}' >> ./config/releasefiles.cfg
-find ./packages/skymaps/* -type f -name "*.jpg" | \
+find ./packages/textures/skymaps/* -type f -name "*.jpg" | \
   grep -v ".svn" | \
   gawk -F'_' '{print $1}' | \
   sort -u | \
