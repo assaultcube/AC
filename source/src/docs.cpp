@@ -165,8 +165,6 @@ COMMANDN(docref, adddocref, "ssss");
 COMMANDN(docexample, adddocexample, "ss");
 COMMANDN(dockey, adddockey, "sss");
 
-int stringsort(const char **a, const char **b) { return strcmp(*a, *b); }
-
 char *cvecstr(vector<char *> &cvec, const char *substr, int *rline = NULL)
 {
     char *r = NULL;
