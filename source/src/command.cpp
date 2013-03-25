@@ -587,7 +587,12 @@ char *executeret(const char *p)                            // all evaluation hap
                             ((void (__cdecl *)(char *))id->fun)(r);
                             delete[] r;
                         }
-                        else if(strstr(id->sig, "d")) ((void (__cdecl *)(bool))id->fun)(addreleaseaction(id->name)!=NULL);
+                        else if(strstr(id->sig, "d"))
+                        {
+#ifndef STANDALONE
+                            ((void (__cdecl *)(bool))id->fun)(addreleaseaction(id->name)!=NULL);
+#endif
+                        }
                         else
                         {
                             int ib1, ib2, ib3, ib4, ib5, ib6, ib7, ib8;
@@ -1272,6 +1277,8 @@ void strreplace (const char *source, const char *search, const char *replace)
         }
     }
 }
+
+int stringsort(const char **a, const char **b) { return strcmp(*a, *b); }
 
 void sortlist(char *list)
  {
