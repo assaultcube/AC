@@ -293,7 +293,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/PROFILE"
-				AdditionalDependencies="enet.lib ogg.lib libvorbisfile.lib openal32.lib zdll.lib opengl32.lib SDL.lib SDL_image.lib ws2_32.lib winmm.lib Dbghelp.lib libintl.lib jpeg.lib"
+				AdditionalDependencies="enet.lib ogg.lib libvorbisfile.lib openal32.lib zdll.lib opengl32.lib SDL.lib SDL_image.lib ws2_32.lib winmm.lib Dbghelp.lib libintl.lib jpeg.lib libcurl.lib wldap32.lib"
 				OutputFile="..\..\bin_win32\ac_client.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
