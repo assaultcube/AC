@@ -841,18 +841,22 @@ void guidetoggle()
         Slot *sf = &slots[DEFAULT_FLOOR];
         Slot *sc = &slots[DEFAULT_CEIL];
 
-        char swn[256] = "packages/textures/"; swn[255] = '\0';
+        /*char swn[256] = "packages/textures/"; swn[255] = '\0';
         char sfn[256] = "packages/textures/"; sfn[255] = '\0';
-        char scn[256] = "packages/textures/"; scn[255] = '\0';
+        char scn[256] = "packages/textures/"; scn[255] = '\0';*/
+        
+        defformatstring(swn)("packages/textures/%s", path(sw->name));
+        defformatstring(sfn)("packages/textures/%s", path(sf->name));
+        defformatstring(scn)("packages/textures/%s", path(sc->name));
 
-        strncat(swn, sw->name, 254);
+        /*strncat(swn, sw->name, 254);
         strncat(sfn, sf->name, 254);
-        strncat(scn, sc->name, 254);
+        strncat(scn, sc->name, 254);*/
 
-        if( 0 //if textures match original texture name saved in Slot.name
-            == strcmp(sw->tex->name, path(swn))
-            == strcmp(sf->tex->name, path(sfn))
-            == strcmp(sc->tex->name, path(scn)) )
+        if( //if textures match original texture name saved in Slot.name
+            !strcmp(sw->tex->name, swn) &&
+            !strcmp(sf->tex->name, sfn) &&
+            !strcmp(sc->tex->name, scn) )
         {
             //replace defaults with grid texures
             e_wall = sw->tex;
