@@ -3,14 +3,12 @@
 
 # Run "sh configfolder_script.sh --all" to auto-accept "yes" as the answer to
 # all questions in this script.
-#===============================================================================
 
 # This is the main AssaultCube folder.
 PATHTOACDIR=~/AssaultCube/SVN_Trunk
 
 # This is the docs folder (which holds reference.xml)
 ABSOLUTEPATHTODOCS=~/AssaultCube/SVN_Website/htdocs/docs
-
 
 
 echo "Generate an updated ./config/securemaps.cfg (Y/N)?"
@@ -24,9 +22,9 @@ if [ "$ANSR" = "y" ] || [ "$ANSR" = "Y" ] || [ "$ANSR" = "yes" ] || [ "$ANSR" = 
     xargs -i basename {} .cgz | \
     xargs -i echo "securemap" {} | \
     sort -u >> ./config/securemaps.cfg
-  echo -e "Generated a new ./config/securemaps.cfg file."
+  echo -e "DONE.\n"
 else
-  echo -e "\a\E[1mNOTE:\E[0m ./config/securemaps.cfg hasn't been updated."
+  echo -e "\a\E[1mNOTE:\E[0m ./config/securemaps.cfg hasn't been updated.\n"
 fi
 
 echo "Generate an updated ./config/docs.cfg (Y/N)?"
@@ -36,9 +34,9 @@ fi
 if [ "$ANSR" = "y" ] || [ "$ANSR" = "Y" ] || [ "$ANSR" = "yes" ] || [ "$ANSR" = "YES" ] || [ "$1" = "--all" ]; then
   cd $ABSOLUTEPATHTODOCS
   xsltproc -o $PATHTOACDIR/config/docs.cfg ./xml/cuberef2cubescript.xslt ./reference.xml
-  echo -e "Generated a new ./config/docs.cfg file."
+  echo -e "DONE.\n"
 else
-  echo -e "\a\E[1mNOTE:\E[0m ./config/docs.cfg hasn't been updated."
+  echo -e "\a\E[1mNOTE:\E[0m ./config/docs.cfg hasn't been updated.\n"
 fi
 
 echo "Strip all \"official\" maps configs of cruft, leaving top-of-file comments alone (Y/N)?"
@@ -48,8 +46,9 @@ fi
 if [ "$ANSR" = "y" ] || [ "$ANSR" = "Y" ] || [ "$ANSR" = "yes" ] || [ "$ANSR" = "YES" ] || [ "$1" = "--all" ]; then
   cd $PATHTOACDIR
   sh config/convert_mapconfig.sh -osp ./packages/maps/official/*.cfg
+  echo -e "DONE.\n"
 else
-  echo -e "\a\E[1mNOTE:\E[0m Map config files have been left alone."
+  echo -e "\a\E[1mNOTE:\E[0m Map config files have been left alone.\n"
 fi
 
 echo "Strip all config files of trailing spaces/tabs (Y/N)?"
@@ -60,8 +59,9 @@ if [ "$ANSR" = "y" ] || [ "$ANSR" = "Y" ] || [ "$ANSR" = "yes" ] || [ "$ANSR" = 
   cd $PATHTOACDIR/config
   sed -i 's/^M$//' *
   sed -i 's/[ \t]*$//' *
+  echo -e "DONE.\n"
 else
-  echo -e "\a\E[1mNOTE:\E[0m Config files haven't had leading whitespace stripped."
+  echo -e "\a\E[1mNOTE:\E[0m Config files haven't had leading whitespace stripped.\n"
 fi
 
 echo "Update all menus with current \"official\" maps (Y/N)?"
@@ -71,42 +71,42 @@ fi
 if [ "$ANSR" = "y" ] || [ "$ANSR" = "Y" ] || [ "$ANSR" = "yes" ] || [ "$ANSR" = "YES" ] || [ "$1" = "--all" ]; then
   cd $PATHTOACDIR/config
 
-  # Auto-generates a list of maps, DO NOT change:
-  MAPSLIST=`cd $PATHTOACDIR && find ./packages/maps/official/*.cgz |  xargs -i basename {} .cgz | tr '\n' ' '`
-
-  # Start and end text for "const defaultmaps":
-  SDEFMAPS="const defaultmaps [ "
-  EDEFMAPS="]"
-  # Start and end text for the bot silders:
-  SBOTSLIDE='menuitemslider [Map: ] 0 (- (listlen $defaultmaps) 1) "$survMap" 1 [ '
-  EBOTSLIDE='] [ survMap = $arg1 ]'
-  # Start and end text for "const ctfmaps":
-  SCTFMAPS="const ctfmaps [ "
-  ECTFMAPS="]"
+  # Auto-generates a list of maps:
+  MAPSLIST=`cd "$PATHTOACDIR" && find ./packages/maps/official/*.cgz |  xargs -i basename {} .cgz | sort -u | sed 's/\n/ /g'`
 
   # Currently listed CTF maps:
-  CURCTFMAPS=`grep "const ctfmaps" menus.cfg | sed 's/const ctfmaps \[//g' | sed 's/\]//g'`
-  # Make a list of CTF maps, with new additions:
-  CTFOUT=`echo $CURCTFMAPS $NEWCTFMAPS | tr " " "\n" | sort -u | tr "\n" " "`
+  CURCTFMAPS=`sed -n 's/const ctfmaps \[//p' menus.cfg | sed 's/\]//g'`
 
-  sed -i "s/const defaultmaps..*/$SDEFMAPS$MAPSLIST$EDEFMAPS/g" menus.cfg
-  sed -i "s/menuitemslider \[Map: \] 0..*/$SBOTSLIDE$MAPSLIST$EBOTSLIDE/g" menus_bot.cfg
-  echo "The following official maps are listed for CTF mode:"
-  echo $CURCTFMAPS
-  echo "The following official maps are currently available:"
-  echo $MAPSLIST
+  # Replacement text for "const defaultmaps":
+  DEFLTMAPS=`echo "const defaultmaps [" $MAPSLIST "]"`
+
+  # Replacement text for the bot silders:
+  BOTSLIDER=`echo 'menuitemslider [Map: ] 0 (- (listlen $defaultmaps) 1) "$survMap" 1 [' $MAPSLIST '] [ survMap = $arg1 ]'`
+
+  # Replacement text for "const ctfmaps":
+  CTFMAPS=`echo "const ctfmaps [" $CTFLIST "]"`
+
+  # List of CTF maps, with new additions:
+  CTFLIST=`echo " " "$CURCTFMAPS" " " "$NEWCTFMAPS" " " | sed "s/ /\n/g" |  sed '/^$/d' | sort -u | sed "s/\n/ /g"`
+  
+  # List of non-CTF maps:
+  NONCTFLIST=`echo " " "$CURCTFMAPS" " " "$MAPSLIST" " " | sed "s/ /\n/g" |  sed '/^$/d' | sort | uniq -u`
+
+  sed -i 's/const defaultmaps..*/'"$DEFLTMAPS"'/g' menus.cfg
+  sed -i 's/menuitemslider \[Map: \] 0..*/'"$BOTSLIDER"'/g' menus_bot.cfg
+  echo "The following official maps are NOT listed for CTF mode currently:"
+  echo $NONCTFLIST
   echo "Add a map to this list (Y/N)?"
+  read ANSR
   if [ "$ANSR" = "y" ] || [ "$ANSR" = "Y" ] || [ "$ANSR" = "yes" ] || [ "$ANSR" = "YES" ]; then
     echo "Please type the names of maps to add to the CTF menu, seperated by spaces."
     read NEWCTFMAPS
-    sed -i "s/const ctfmaps..*/$SCTFMAPS$CTFOUT$ECTFMAPS/g" menus.cfg
+    sed -i 's/const ctfmaps..*/'"$CTFMAPS"'/g' menus.cfg
+    echo -e "DONE.\n"
   else
-    echo -e "\a\E[1mNOTE:\E[0m No changes have been made to the CTF map list."
+    echo -e "\a\E[1mNOTE:\E[0m DONE... no changes were made to the CTF maps list."
   fi
 else
-  echo -e "\a\E[1mNOTE:\E[0m All map menus have been updated."
+  echo -e "\a\E[1mNOTE:\E[0m No map menus have been updated."
 fi
-
-
-
 
