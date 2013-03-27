@@ -75,19 +75,13 @@ if [ "$ANSR" = "y" ] || [ "$ANSR" = "Y" ] || [ "$ANSR" = "yes" ] || [ "$ANSR" = 
   MAPSLIST=`cd "$PATHTOACDIR" && find ./packages/maps/official/*.cgz |  xargs -i basename {} .cgz | sort -u | sed 's/\n/ /g'`
 
   # Currently listed CTF maps:
-  CURCTFMAPS=`sed -n 's/const ctfmaps \[//p' menus.cfg | sed 's/\]//g'`
+  CURCTFMAPS="$(sed -n 's/const ctfmaps \[//p' menus.cfg | sed 's/\]//g')"
 
   # Replacement text for "const defaultmaps":
   DEFLTMAPS=`echo "const defaultmaps [" $MAPSLIST "]"`
 
   # Replacement text for the bot silders:
   BOTSLIDER=`echo 'menuitemslider [Map: ] 0 (- (listlen $defaultmaps) 1) "$survMap" 1 [' $MAPSLIST '] [ survMap = $arg1 ]'`
-
-  # Replacement text for "const ctfmaps":
-  CTFMAPS=`echo "const ctfmaps [" $CTFLIST "]"`
-
-  # List of CTF maps, with new additions:
-  CTFLIST=`echo " " "$CURCTFMAPS" " " "$NEWCTFMAPS" " " | sed "s/ /\n/g" |  sed '/^$/d' | sort -u | sed "s/\n/ /g"`
   
   # List of non-CTF maps:
   NONCTFLIST=`echo " " "$CURCTFMAPS" " " "$MAPSLIST" " " | sed "s/ /\n/g" |  sed '/^$/d' | sort | uniq -u`
@@ -101,6 +95,12 @@ if [ "$ANSR" = "y" ] || [ "$ANSR" = "Y" ] || [ "$ANSR" = "yes" ] || [ "$ANSR" = 
   if [ "$ANSR" = "y" ] || [ "$ANSR" = "Y" ] || [ "$ANSR" = "yes" ] || [ "$ANSR" = "YES" ]; then
     echo "Please type the names of maps to add to the CTF menu, seperated by spaces."
     read NEWCTFMAPS
+
+    # List of CTF maps, with new additions:
+    CTFLIST="$(echo " " "$CURCTFMAPS" " " "$NEWCTFMAPS" " " | sed "s/ /\n/g" |  sed '/^$/d' | sort -u | sed "s/\n/ /g")"
+    # Replacement text for "const ctfmaps":
+    CTFMAPS="$(echo "const ctfmaps [" $CTFLIST "]")"
+
     sed -i 's/const ctfmaps..*/'"$CTFMAPS"'/g' menus.cfg
     echo -e "DONE.\n"
   else
