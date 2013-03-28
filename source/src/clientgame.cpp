@@ -1254,7 +1254,7 @@ void flagmsg(int flag, int message, int actor, int flagtime)
             break;
         case FM_KTFSCORE:
         {
-            audiomgr.playsound(S_VOTEPASS, SP_HIGHEST); // need better ktf sound here
+            audiomgr.playsound(S_KTFSCORE, SP_HIGHEST);
             const char *ta = firstperson ? "you have" : colorname(act);
             const char *tb = firstperson ? "" : " has";
             const char *tc = firstperson ? "" : flagteam;
