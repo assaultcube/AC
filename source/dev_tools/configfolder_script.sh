@@ -4,11 +4,14 @@
 # Run "sh configfolder_script.sh --all" to auto-accept "yes" as the answer to
 # all questions in this script.
 
-# This is the main AssaultCube folder.
+# This is the main AssaultCube folder:
 PATHTOACDIR=~/AssaultCube/SVN_Trunk
 
-# This is the docs folder (which holds reference.xml)
+# This is the docs folder (which holds reference.xml):
 ABSOLUTEPATHTODOCS=~/AssaultCube/SVN_Website/htdocs/docs
+
+# Path to "official" folder:
+MAPSPATH="$PATHTOACDIR/packages/maps/official"
 
 
 echo "Generate an updated ./config/securemaps.cfg (Y/N)?"
@@ -64,6 +67,18 @@ else
   echo -e "\a\E[1mNOTE:\E[0m Config files haven't had leading whitespace stripped.\n"
 fi
 
+
+# Auto-generates a list of maps:
+MAPSLIST=`cd "$MAPSPATH" && find ./*.cgz |  xargs -i basename {} .cgz | sort -u | sed 's/\n/ /g'`
+
+# Currently listed CTF maps:
+CURCTFMAPS="$(cd $PATHTOACDIR/config && sed -n 's/const ctfmaps \[//p' menus.cfg | sed 's/\]//g')"
+
+# List of non-CTF maps:
+NONCTFLIST=`echo " " "$CURCTFMAPS" " " "$MAPSLIST" " " | sed "s/ /\n/g" |  sed '/^$/d' | sort | uniq -u`
+
+
+read
 echo "Update all menus with current \"official\" maps (Y/N)?"
 if [ "$1" != "--all" ]; then
   read ANSR
@@ -71,20 +86,11 @@ fi
 if [ "$ANSR" = "y" ] || [ "$ANSR" = "Y" ] || [ "$ANSR" = "yes" ] || [ "$ANSR" = "YES" ] || [ "$1" = "--all" ]; then
   cd $PATHTOACDIR/config
 
-  # Auto-generates a list of maps:
-  MAPSLIST=`cd "$PATHTOACDIR" && find ./packages/maps/official/*.cgz |  xargs -i basename {} .cgz | sort -u | sed 's/\n/ /g'`
-
-  # Currently listed CTF maps:
-  CURCTFMAPS="$(sed -n 's/const ctfmaps \[//p' menus.cfg | sed 's/\]//g')"
-
   # Replacement text for "const defaultmaps":
   DEFLTMAPS=`echo "const defaultmaps [" $MAPSLIST "]"`
 
   # Replacement text for the bot silders:
-  BOTSLIDER=`echo 'menuitemslider [Map: ] 0 (- (listlen $defaultmaps) 1) "$survMap" 1 [' $MAPSLIST '] [ survMap = $arg1 ]'`
-  
-  # List of non-CTF maps:
-  NONCTFLIST=`echo " " "$CURCTFMAPS" " " "$MAPSLIST" " " | sed "s/ /\n/g" |  sed '/^$/d' | sort | uniq -u`
+  BOTSLIDER=`echo 'menuitemslider (_ [Map: ]) 0 (- (listlen $defaultmaps) 1) "$survMap" 1 [' $MAPSLIST '] [ survMap = $arg1 ]'`
 
   sed -i 's/const defaultmaps..*/'"$DEFLTMAPS"'/g' menus.cfg
   sed -i 's/menuitemslider \[Map: \] 0..*/'"$BOTSLIDER"'/g' menus_bot.cfg
@@ -109,4 +115,5 @@ if [ "$ANSR" = "y" ] || [ "$ANSR" = "Y" ] || [ "$ANSR" = "yes" ] || [ "$ANSR" = 
 else
   echo -e "\a\E[1mNOTE:\E[0m No map menus have been updated."
 fi
+
 
