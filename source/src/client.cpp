@@ -786,7 +786,7 @@ void sendmap(char *mapname)
     conoutf(_("sending map %s to server..."), mapname);
 }
 
-void getmap(char *name)
+void getmap(char *name, char *callback)
 {
     if((!name || !*name)
         || (connected && !strcmp(name, getclientmap())) )
@@ -800,7 +800,11 @@ void getmap(char *name)
     {
         defformatstring(package)("packages/maps/%s.cgz", name);
         requirepackage(PCK_MAP, package);
-        if(downloadpackages()) conoutf("map %s installed successfully", name);
+        if(downloadpackages())
+        {
+            if(callback && *callback) execute(callback);
+            conoutf("map %s installed successfully", name);
+        }
         else conoutf("\f3map download failed.");
     }
 }
@@ -862,7 +866,7 @@ void rewinddemo(int *seconds)
 }
 
 COMMAND(sendmap, "s");
-COMMAND(getmap, "s");
+COMMAND(getmap, "ss");
 COMMAND(deleteservermap, "s");
 COMMAND(resetsecuremaps, "");
 COMMAND(securemap, "s");
