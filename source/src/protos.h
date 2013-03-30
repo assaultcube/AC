@@ -376,7 +376,7 @@ extern void c2skeepalive();
 extern void neterr(const char *s);
 extern int getclientnum();
 extern void changeteam(int team, bool respawn = true); // deprecated?
-extern void getmap(char *name = NULL);
+extern void getmap(char *name = NULL, char *callback = NULL);
 extern void newteam(char *name);
 extern bool securemapcheck(const char *map, bool msg = true);
 extern int getbuildtype();
