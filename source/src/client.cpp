@@ -157,12 +157,13 @@ void whereami()
     conoutf("you are at (%.2f,%.2f)", player1->o.x, player1->o.y);
 }
 
-void go_to(float *x, float *y)
+void go_to(float *x, float *y, char *showmsg)
 {
     if(player1->state != CS_EDITING) return;
     player1->newpos.x = *x;
     player1->newpos.y = *y;
-    conoutf("you are going to (%.2f; %.2f)", *x, *y);
+    if(!showmsg || !*showmsg || strcmp(showmsg, "0")!=0)
+        conoutf("you are going to (%.2f; %.2f)", *x, *y);
 }
 
 void disconnect(int onlyclean, int async)
@@ -339,7 +340,7 @@ COMMAND(modconnectadmin, "sis");
 COMMAND(modlanconnect, "");
 COMMANDN(disconnect, trydisconnect, "");
 COMMAND(whereami, "");
-COMMAND(go_to, "ff");
+COMMAND(go_to, "ffs");
 
 void current_version(char *text)
 {
