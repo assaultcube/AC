@@ -250,7 +250,7 @@ void renderentities()
             }
         }
     }
-    if(m_flags) loopi(2)
+    if(m_flags && !editmode) loopi(2)
     {
         flaginfo &f = flaginfos[i];
         switch(f.state)
