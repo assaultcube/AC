@@ -6,6 +6,8 @@ All files in this folder and their subfolders are by Markus "makkE" Bekel
 Originally created for the game AssaultCube:
 	http://assault.cubers.net/
 
+* Model "street_light_broken" is a modified version of "street_light" made by Cleaner to replace a redundant line in default_map_settings.cfg
+
 Shane Nieb (nieb_123@hotmail.com) modelled (but did not skin) the following:
 ================================================================================
 office_chair (Nieb did skin this one)
