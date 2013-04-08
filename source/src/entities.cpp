@@ -2,6 +2,9 @@
 
 #include "cube.h"
 
+VAR(showclips, 0, 1, 1);
+VAR(showmodelclipping, 0, 0, 1);
+
 vector<entity> ents;
 vector<int> eh_ents; // edithide entities
 const char *entmdlnames[] =
@@ -68,8 +71,6 @@ void rendermapmodels()
         }
     }
 }
-
-VAR(showmodelclipping, 0, 0, 1);
 
 void showedithide()
 {
@@ -219,8 +220,8 @@ void renderentities()
                 defformatstring(path)("pickups/flags/%s", team_basestring(e.attr2));
                 rendermodel(path, ANIM_FLAG|ANIM_LOOP, 0, 0, vec(e.x, e.y, (float)S(e.x, e.y)->floor), (float)((e.attr1+7)-(e.attr1+7)%15), 0, 120.0f);
             }
-            else if((e.type == CLIP || e.type == PLCLIP) && !stenciling) renderclip(e);
-            else if(showmodelclipping && e.type == MAPMODEL && !stenciling)
+            else if((e.type == CLIP || e.type == PLCLIP) && showclips && !stenciling) renderclip(e);
+            else if(e.type == MAPMODEL && showclips && showmodelclipping && !stenciling)
             {
                 mapmodelinfo &mmi = getmminfo(e.attr2);
                 if(&mmi && mmi.h)
