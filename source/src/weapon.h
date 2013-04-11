@@ -23,7 +23,7 @@ struct weapon
     virtual void attackfx(const vec &from, const vec &to, int millis) = 0;
     virtual void attackphysics(vec &from, vec &to);
     virtual void attacksound();
-    virtual bool reload();
+    virtual bool reload(bool autoreloaded);
     virtual void reset() {}
     virtual bool busy() { return false; }
 
@@ -105,7 +105,7 @@ struct sniperrifle : gun
 
     sniperrifle(playerent *owner);
     void attackfx(const vec &from, const vec &to, int millis);
-    bool reload();
+    bool reload(bool autoreloaded);
 
     int dynspread();
     float dynrecoil();
@@ -147,7 +147,7 @@ struct cpistol : gun
 {
     bool bursting;
     cpistol(playerent *owner);
-    bool reload();
+    bool reload(bool autoreloaded);
     bool selectable();
     void onselecting();
     void ondeselecting();

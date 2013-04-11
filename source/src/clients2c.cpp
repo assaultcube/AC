@@ -765,7 +765,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
             {
                 int cn = getint(p), gun = getint(p);
                 playerent *p = getclient(cn);
-                if(p && p!=player1) p->weapons[gun]->reload();
+                if(p && p!=player1) p->weapons[gun]->reload(false);
                 break;
             }
 

@@ -149,7 +149,7 @@ COMMAND(magreserve, "i");
 void tryreload(playerent *p)
 {
     if(!p || p->state!=CS_ALIVE || p->weaponsel->reloading || p->weaponchanging) return;
-    p->weaponsel->reload();
+    p->weaponsel->reload(false);
 }
 
 void selfreload() { tryreload(player1); }
@@ -812,7 +812,7 @@ void weapon::attacksound()
     audiomgr.playsound(info.sound, owner, local ? SP_HIGH : SP_NORMAL);
 }
 
-bool weapon::reload()
+bool weapon::reload(bool autoreloaded)
 {
     if(mag>=info.magsize || ammo<=0) return false;
     updatelastaction(owner);
@@ -828,7 +828,11 @@ bool weapon::reload()
     if(local)
     {
         addmsg(SV_RELOAD, "ri2", lastmillis, owner->weaponsel->type);
-        if(identexists("onReload")) execute("onReload");
+        if(identexists("onReload"))
+        {
+            defformatstring(str)("onReload %d", (int)autoreloaded);
+            execute(str);
+        }
     }
     return true;
 }
@@ -1270,7 +1274,7 @@ void gun::attackfx(const vec &from, const vec &to, int millis)
 }
 
 int gun::modelanim() { return modelattacking() ? ANIM_GUN_SHOOT|ANIM_LOOP : ANIM_GUN_IDLE; }
-void gun::checkautoreload() { if(autoreload && owner==player1 && !mag) reload(); }
+void gun::checkautoreload() { if(autoreload && owner==player1 && !mag) reload(true); }
 
 
 // shotgun
@@ -1331,9 +1335,9 @@ void sniperrifle::attackfx(const vec &from, const vec &to, int millis)
     attacksound();
 }
 
-bool sniperrifle::reload()
+bool sniperrifle::reload(bool autoreloaded)
 {
-    bool r = weapon::reload();
+    bool r = weapon::reload(autoreloaded);
     if(owner==player1 && r) { scoped = false; player1->scoping = false; }
     return r;
 }
@@ -1395,9 +1399,9 @@ cpistol::cpistol(playerent *owner) : gun(owner, GUN_CPISTOL), bursting(false) {}
 bool cpistol::selectable() { return false; /*return weapon::selectable() && !m_noprimary && this == owner->primweap;*/ }
 void cpistol::onselecting() { weapon::onselecting(); bursting = false; }
 void cpistol::ondeselecting() { bursting = false; }
-bool cpistol::reload()
+bool cpistol::reload(bool autoreloaded)
 {
-    bool r = weapon::reload();
+    bool r = weapon::reload(autoreloaded);
     if(owner==player1 && r) { bursting = false; }
     return r;
 }
