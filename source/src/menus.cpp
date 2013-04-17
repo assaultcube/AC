@@ -484,12 +484,16 @@ struct mitemtextinput : mitemtext
 {
     textinputbuffer input;
     char *defaultvalueexp;
-    bool modified;
+    bool modified, hideinput;
 
-    mitemtextinput(gmenu *parent, char *text, char *value, char *action, char *hoveraction, color *bgcolor, int maxchars) : mitemtext(parent, text, action, hoveraction, bgcolor), defaultvalueexp(value), modified(false)
+    mitemtextinput(gmenu *parent, char *text, char *value, char *action, char *hoveraction, color *bgcolor, int maxchars, int maskinput) : mitemtext(parent, text, action, hoveraction, bgcolor), defaultvalueexp(value), modified(false), hideinput(false)
     {
         copystring(input.buf, value);
         input.max = maxchars>0 ? maxchars : 15;
+        if(maskinput != NULL)
+        {
+            hideinput = (maskinput != 0);
+        }
     }
 
     virtual int width()
@@ -521,7 +525,18 @@ struct mitemtextinput : mitemtext
             sc++;
         }
         copystring(showinput, input.buf + iboff, sc + 1);
-        draw_text(showinput, x+w-tw, y, 255, 255, 255, 255, selection ? (input.pos>=0 ? (input.pos > sc ? sc : input.pos) : cibl) : -1);
+        
+        char *masked;
+        if(hideinput) // "mask" user input with asterisks, use for menuitemtextinputs that take passwords // TODO: better masking code?
+        {
+            masked = newstring(showinput);
+            for(unsigned int i = 0; i < strlen(masked); i++)
+            {
+                masked[i] = '*';
+            }
+        }
+        
+        draw_text(hideinput ? masked : showinput, x+w-tw, y, 255, 255, 255, 255, selection ? (input.pos>=0 ? (input.pos > sc ? sc : input.pos) : cibl) : -1);
     }
 
     virtual void focus(bool on)
@@ -936,10 +951,10 @@ void menuitemmapload(char *name, char *text)
     lastmenu->items.add(new mitemmapload(lastmenu, newstring(name), newstring(name), newstring(caction), NULL, NULL, NULL));
 }
 
-void menuitemtextinput(char *text, char *value, char *action, char *hoveraction, int *maxchars)
+void menuitemtextinput(char *text, char *value, char *action, char *hoveraction, int *maxchars, int *maskinput)
 {
     if(!lastmenu || !text || !value) return;
-    lastmenu->items.add(new mitemtextinput(lastmenu, newstring(text), newstring(value), action[0] ? newstring(action) : NULL, hoveraction[0] ? newstring(hoveraction) : NULL, NULL, *maxchars));
+    lastmenu->items.add(new mitemtextinput(lastmenu, newstring(text), newstring(value), action[0] ? newstring(action) : NULL, hoveraction[0] ? newstring(hoveraction) : NULL, NULL, *maxchars, *maskinput));
 }
 
 void menuitemslider(char *text, int *min_, int *max_, char *value, int *step, char *display, char *action)
@@ -1029,7 +1044,7 @@ COMMAND(menuitem, "sss");
 COMMAND(menuitemvar, "sss");
 COMMAND(menuitemimage, "ssss");
 COMMAND(menuitemmapload, "ss");
-COMMAND(menuitemtextinput, "ssssi");
+COMMAND(menuitemtextinput, "ssssii");
 COMMAND(menuitemslider, "siisiss");
 COMMAND(menuitemkeyinput, "ss");
 COMMAND(menuitemcheckbox, "sss");
