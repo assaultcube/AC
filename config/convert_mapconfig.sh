@@ -165,7 +165,7 @@ for file in $*; do
     sed -i '/^mapmodel/s/\<ladder_15x\>/makke\/ladder_15x/1' $file
     sed -i '/^mapmodel/s/\<ladderx15_center3\>/makke\/ladder_15x_offset/1' $file
     sed -i '/^mapmodel/s/\<gutter_h\>/cleaner\/grates\/grate_hor/1' $file
-    sed -i '/^mapmodel/s/\<gutter_v\>/cleaner\/grates\/grate_vert/1' $filee
+    sed -i '/^mapmodel/s/\<gutter_v\>/cleaner\/grates\/grate_vert/1' $file
     sed -i '/^mapmodel/s/\<minelift\>/makke\/mine-shaft_elevator/1' $file
     sed -i '/^mapmodel/s/\<screw\>/makke\/bolt_nut/1' $file
     sed -i '/^mapmodel/s/\<sail\>/makke\/sail/1' $file
