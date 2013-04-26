@@ -923,7 +923,8 @@ static size_t write_callback(void *ptr, size_t size, size_t nmemb, FILE *stream)
 int progress_callback(void *clientp, double dltotal, double dlnow, double ultotal, double ulnow)
 {
     package *pck = (package *)clientp;
-    loadingscreen(_("downloading...\n%s %.0f/%.0f KB (%.1f%%)\n(ESC to cancel)"), pck->name, dlnow/double(1000.0), dltotal/double(1000.0), dltotal == 0 ? 0 : (dlnow/dltotal * double(100.0)));
+    loadingscreen(_("downloading package %d out of %d...\n%s %.0f/%.0f KB (%.1f%%)\n(ESC to cancel)"), pck->number + 1, pck->number + pendingpackages.numelems,
+        pck->name, dlnow/double(1000.0), dltotal/double(1000.0), dltotal == 0 ? 0 : (dlnow/dltotal * double(100.0)));
     if(interceptkey(SDLK_ESCAPE))
     {
         canceldownloads = true;
@@ -1034,11 +1035,13 @@ double dlpackage(package *pck)
 int downloadpackages()
 {
     double total = 0;
+    int downloaded = 0;
     enumerate(pendingpackages, package *, pck,
     {
         if(!canceldownloads)
         {
             if(connected) c2skeepalive(); // try to avoid time out
+            pck->number = downloaded++;
             total += dlpackage(pck);
         }
         pendingpackages.remove(pck->name);
