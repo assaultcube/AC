@@ -663,10 +663,10 @@ enum { PCK_TEXTURE, PCK_SKYBOX, PCK_MAPMODEL, PCK_AUDIO, PCK_MAP, PCK_NUM };
 struct package
 {
     char *name;
-    int type;
+    int type, number;
     bool pending;
     pckserver *source;
     CURL *curl;
 
-    package() : name(NULL), type(-1), pending(false), source(NULL), curl(NULL) {}
+    package() : name(NULL), type(-1), number(0), pending(false), source(NULL), curl(NULL) {}
 };
