@@ -654,8 +654,9 @@ struct pckserver
 {
     char *addr;
     bool pending, responsive;
+    int ping;
 
-    pckserver() : addr(NULL), pending(false), responsive(true) {}
+    pckserver() : addr(NULL), pending(false), responsive(true), ping(-1) {}
 };
 
 enum { PCK_TEXTURE, PCK_SKYBOX, PCK_MAPMODEL, PCK_AUDIO, PCK_MAP, PCK_NUM };
