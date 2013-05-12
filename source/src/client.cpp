@@ -915,6 +915,72 @@ void setupcurl()
     }
 }
 
+// detect the "nearest" server
+int pckserversort(pckserver **a, pckserver **b)
+{
+    if((*a)->ping < 0) return ((*b)->ping < 0) ? 0 : 1;
+    if((*b)->ping < 0) return -1;
+    
+    return (*a)->ping == (*b)->ping ? 0 : ((*a)->ping < (*b)->ping ? -1 : 1);
+}
+
+SDL_Thread* pingpcksrvthread = NULL;
+SDL_mutex *pingpcksrvlock = NULL;
+int pingpckservers(void *data)
+{
+    SDL_mutexP(pingpcksrvlock);
+    vector<pckserver> serverstoping;
+    loopv(pckservers) serverstoping.add(*pckservers[i]);
+    SDL_mutexV(pingpcksrvlock);
+    // measure the time it took to receive each's server response
+    // not very accurate but it should do the trick
+    loopv(serverstoping)
+    {
+        double ping = 0, namelookup = 0;
+        pckserver *serv = &serverstoping[i];
+        CURL *cu = curl_easy_init();
+        curl_easy_setopt(cu, CURLOPT_URL, serv->addr);
+        curl_easy_setopt(cu, CURLOPT_NOPROGRESS, 1);
+        curl_easy_setopt(cu, CURLOPT_NOBODY, 1);            // don't download response body (as its size may vary a lot from one server to another)
+        curl_easy_setopt(cu, CURLOPT_CONNECTTIMEOUT, 10);   // the timeout should be large here
+        int result = curl_easy_perform(cu);
+        curl_easy_getinfo(cu, CURLINFO_TOTAL_TIME, &ping);
+        curl_easy_getinfo(cu, CURLINFO_NAMELOOKUP_TIME, &namelookup);
+        ping -= namelookup; // ignore DNS lookup time as it should be performed only once
+        curl_easy_cleanup(cu);
+        cu = NULL;
+        if(result == CURLE_OPERATION_TIMEDOUT || result == CURLE_COULDNT_RESOLVE_HOST)
+            serv->responsive = false;
+        else
+            serv->ping = (int)(ping*1000);
+    }
+    
+    SDL_mutexP(pingpcksrvlock);
+    loopv(serverstoping) loopvj(pckservers) if(!strcmp(serverstoping[i].addr, pckservers[j]->addr)) *pckservers[j] = serverstoping[i];
+    pckservers.sort(pckserversort);
+    // print the results. we should make it silent once tested enough
+    loopv(pckservers)
+    {
+        pckserver *serv = pckservers[i];
+        if(serv->ping > 0) conoutf("%d. %s (%d ms)", i+1, serv->addr, serv->ping);
+        else conoutf("%d. %s (did not reply)", i+1, serv->addr);
+    }
+    SDL_mutexV(pingpcksrvlock);
+
+    SDL_DestroyMutex(pingpcksrvlock);
+    pingpcksrvthread = NULL;
+    pingpcksrvlock = NULL;
+    return 0;
+}
+
+void sortpckservers()
+{
+    if(pingpcksrvthread || !havecurl) return;
+    pingpcksrvlock = SDL_CreateMutex();
+    pingpcksrvthread = SDL_CreateThread(pingpckservers, NULL);
+}
+COMMAND(sortpckservers, "");
+
 static size_t write_callback(void *ptr, size_t size, size_t nmemb, FILE *stream)
 {
     return fwrite(ptr, size, nmemb, stream);
