@@ -483,13 +483,13 @@ guninfo guns[NUMGUNS] =
     { "knife",      S_KNIFE,      S_NULL,     0,      500,    50, 100,     0,   0,  1,    1,   1,    0,  0,   0,   0,      0,      0,   1,      false },
     { "pistol",     S_PISTOL,     S_RPISTOL,  1400,   160,    18,   0,     0,   0, 53,   10,   10,   6,  5,   6,  35,     58,     125,  1,      false },
     { "carbine",    S_CARBINE,    S_RCARBINE, 1800,   720,    60,  40,     0,   0, 10,   60,   10,   4,  4,  10,  60,     60,     150,  1,      false },
-    { "shotgun",    S_SHOTGUN,    S_RSHOTGUN, 2400,   800,    1,    0,      0,   0,  1,   35,   7,    9,  9, 10, 140,    140,    125,   1,      false },   // CAUTION dmg only sane for server!
-    { "subgun",     S_SUBGUN,     S_RSUBGUN,  1650,   80,     16,   0,     0,   0, 45,   15,   30,   1,  2,   4,  30,     50,     188,  1,      true  },
-    { "sniper",     S_SNIPER,     S_RSNIPER,  1950,   1500,   82,  25,     0,   0, 50,   50,   5,    4,  4,  10,  85,     85,     100,  1,      false },
-    { "assault",    S_ASSAULT,    S_RASSAULT, 2000,   120,    22,   0,     0,   0, 18,   30,   20,   0,  2,   2,  22,     55,     115,  1,      true  },
-    { "cpistol",    S_PISTOL,     S_RPISTOL,  1400,   120,    19,   0,     0,   0, 35,   10,   15,   6,  5,   6,  35,     58,     125,  1,      false },   // temporary
-    { "grenade",    S_NULL,       S_NULL,     1000,   650,    200,  0,    20,  6,  1,    1,   1,    3,  1,    0,   0,      0,      0,   3,      false },
-    { "pistol",     S_PISTOL,     S_RAKIMBO,  1400,   80,     19,   0,     0,   0, 50,   10,   20,   6,  5,  10,  10,     18,     115,  1,      true  },
+    { "shotgun",    S_SHOTGUN,    S_RSHOTGUN, 2400,   800,    1,    0,     0,   0,  1,   35,    7,   9,  9,  10, 140,    140,    125,   1,      false },   // CAUTION dmg only sane for server!
+    { "subgun",     S_SUBGUN,     S_RSUBGUN,  1650,   80,     16,   0,     0,   0, 45,   15,   30,   1,  2,   5,  25,     50,     188,  1,      true  },
+    { "sniper",     S_SNIPER,     S_RSNIPER,  1950,   1500,   82,  25,     0,   0, 50,   50,    5,   4,  4,  10,  85,     85,     100,  1,      false },
+    { "assault",    S_ASSAULT,    S_RASSAULT, 2000,   120,    22,   0,     0,   0, 18,   30,   20,   0,  2,   3,  25,     50,     115,  1,      true  },
+    { "cpistol",    S_PISTOL,     S_RPISTOL,  1400,   120,    19,   0,     0,   0, 35,   10,   15,   6,  5,   6,  35,     50,     125,  1,      false },   // temporary
+    { "grenade",    S_NULL,       S_NULL,     1000,   650,    200,  0,    20,  6,  1,    1,   1,    3,   1,    0,   0,      0,      0,   3,      false },
+    { "pistol",     S_PISTOL,     S_RAKIMBO,  1400,   80,     19,   0,     0,   0, 50,   10,   20,   6,  5,   4,  15,     25,     115,  1,      true  },
 };
 
 const char *teamnames[TEAM_NUM+1] = {"CLA", "RVSF", "CLA-SPECT", "RVSF-SPECT", "SPECTATOR", "void"};
