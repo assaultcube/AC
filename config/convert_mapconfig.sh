@@ -117,7 +117,7 @@ for file in $*; do
     echo "Converting mapmodels..."
     sed -i '/^mapmodel/s/\<laptop1\>/jcdpc\/laptop/1' $file
     sed -i '/^mapmodel/s/\<rattrap\/cbbox\>/toca\/cardboardbox/1' $file
-    sed -i '/^mapmodel/s/\<rattrap\/rbbox\>/toca\/cardboardbox/1' $file
+    sed -i '/^mapmodel/s/\<rattrap\/rbbox\>/ratboy\/toca_cardboardbox_reskin/1' $file 
     sed -i '/^mapmodel/s/\<rattrap\/hanginlamp\>/jcdpc\/hanginglamp/1' $file
     sed -i '/^mapmodel/s/\<rattrap\/ventflap\>/jcdpc\/ventflap/1' $file
     sed -i '/^mapmodel/s/\<rattrap\/milkcrate2\>/ratboy\/toca_milkcrate_blue/1' $file
