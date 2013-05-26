@@ -225,7 +225,7 @@ bool mapstats::mapcheck()
             short *q = &this->entposs[j*3];
             float pz = SWS(serverworld, p[0], p[1], hdr.sfactor)->floor,
                   qz = SWS(serverworld, q[0], q[1], hdr.sfactor)->floor;
-            float r2 = vec(p[0], p[1], p[2] + pz).dist(vec(q[0], q[1], q[2] + qz));
+            float r2 = (vec(p[0], p[1], p[2] + pz).sub(vec(q[0], q[1], q[2] + qz))).squaredlen();
             if ( r2 == 0.0f) logmaperror("Items too close %s %s (%hd,%hd)", entnames[v], entnames[w], p[0], p[1]);
             r2 = 1/r2;
             if (r2 < 0.0025f) continue;
