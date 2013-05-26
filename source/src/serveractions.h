@@ -65,7 +65,12 @@ struct mapaction : serveraction
             bool notify = valid_client(caller);
             int maploc = MAP_NOTFOUND;
             mapstats *ms = map[0] ? getservermapstats(map, false, &maploc) : NULL;
-            mapok = (ms != NULL) && ( (mode != GMODE_COOPEDIT && mapisok(ms)) || (mode == GMODE_COOPEDIT && !readonlymap(maploc)) );
+             mapok = (ms != NULL) && mode == GMODE_COOPEDIT && !readonlymap(maploc);
+            if(ms && mode != GMODE_COOPEDIT && !ms->goodmap)
+            {
+                mapok = false;
+                loopv(ms->errors) if(ms->errors[i]) logline(ACLOG_INFO, "map check fail: %s", ms->errors[i]);
+            }
             if(!mapok)
             {
                 if(notify) sendservmsg(ms ?
