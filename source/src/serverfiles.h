@@ -232,6 +232,75 @@ struct configset
 };
 
 int FlagFlag = MINFF * 1000;
+int Mvolume, Marea, SHhits, Mopen = 0;
+float Mheight = 0;
+
+bool mapisok(mapstats *ms)
+{
+    if ( Mheight > MAXMHEIGHT ) { logline(ACLOG_INFO, "MAP CHECK FAIL: The overall ceil height is too high (%.1f cubes)", Mheight); return false; }
+    if ( Mopen > MAXMAREA ) { logline(ACLOG_INFO, "MAP CHECK FAIL: There is a big open area in this (hint: use more solid walls)", Mheight); return false; }
+    if ( SHhits > MAXHHITS ) { logline(ACLOG_INFO, "MAP CHECK FAIL: Too high height in some parts of the map (%d hits)", SHhits); return false; }
+
+    if ( ms->hasflags ) // Check if flags are ok
+    {
+        struct { short x, y; } fl[2];
+        loopi(2)
+        {
+            if(ms->flags[i] == 1)
+            {
+                short *fe = ms->entposs + ms->flagents[i] * 3;
+                fl[i].x = *fe; fe++; fl[i].y = *fe;
+            }
+            else fl[i].x = fl[i].y = 0; // the map has no valid flags
+        }
+        FlagFlag = pow2(fl[0].x - fl[1].x) + pow2(fl[0].y - fl[1].y);
+    }
+    else FlagFlag = MINFF * 1000; // the map has no flags
+
+    if ( FlagFlag < MINFF ) { logline(ACLOG_INFO, "MAP CHECK FAIL: The flags are too close to each other"); return false; }
+
+    for (int i = 0; i < ms->hdr.numents; i++)
+    {
+        int v = ms->enttypes[i];
+        if (v < I_CLIPS || v > I_AKIMBO) continue;
+        short *p = &ms->entposs[i*3];
+        float density = 0, hdensity = 0;
+        for(int j = 0; j < ms->hdr.numents; j++)
+        {
+            int w = ms->enttypes[j];
+            if (w < I_CLIPS || w > I_AKIMBO || i == j) continue;
+            short *q = &ms->entposs[j*3];
+            float r2 = 0;
+            loopk(3){ r2 += (p[k]-q[k])*(p[k]-q[k]); }
+            if ( r2 == 0.0f ) { logline(ACLOG_INFO, "MAP CHECK FAIL: Items too close %s %s (%hd,%hd)", entnames[v], entnames[w],p[0],p[1]); return false; }
+            r2 = 1/r2;
+            if (r2 < 0.0025f) continue;
+            if (w != v)
+            {
+                hdensity += r2;
+                continue;
+            }
+            density += r2;
+        }
+/*        if (hdensity > 0.0f) { logline(ACLOG_INFO, "ITEM CHECK H %s %f", entnames[v], hdensity); }
+        if (density > 0.0f) { logline(ACLOG_INFO, "ITEM CHECK D %s %f", entnames[v], density); }*/
+        if ( hdensity > 0.5f ) { logline(ACLOG_INFO, "MAP CHECK FAIL: Items too close %s %.2f (%hd,%hd)", entnames[v],hdensity,p[0],p[1]); return false; }
+        switch(v)
+        {
+#define LOGTHISSWITCH(X) if( density > X ) { logline(ACLOG_INFO, "MAP CHECK FAIL: Items too close %s %.2f (%hd,%hd)", entnames[v],density,p[0],p[1]); return false; }
+            case I_CLIPS:
+            case I_HEALTH: LOGTHISSWITCH(0.24f); break;
+            case I_AMMO: LOGTHISSWITCH(0.04f); break;
+            case I_HELMET: LOGTHISSWITCH(0.02f); break;
+            case I_ARMOUR:
+            case I_GRENADE:
+            case I_AKIMBO: LOGTHISSWITCH(0.005f); break;
+            default: break;
+#undef LOGTHISSWITCH
+        }
+    }
+    return true;
+}
 
 struct servermaprot : serverconfigfile
 {
@@ -302,8 +371,12 @@ struct servermaprot : serverconfigfile
             if((n >= c->minplayer || i >= csl) && (!c->maxplayer || n <= c->maxplayer || i >= 2 * csl))
             {
                 mapstats *ms = NULL;
-                if((ms = getservermapstats(c->mapname)) && ms->goodmap) break;
-                else logline(ACLOG_INFO, "maprot error: map '%s' %s", c->mapname, (ms ? "does not satisfy some basic requirements" : "not found"));
+                if((ms = getservermapstats(c->mapname)) && mapisok(ms)) break;
+                else 
+                {
+                    logline(ACLOG_INFO, "maprot error: map '%s' %s", c->mapname, (ms ? "does not satisfy some basic requirements" : "not found"));
+                    loopv(ms->errors) if(ms->errors[i]) logline(ACLOG_INFO, "map check fail: %s", ms->errors[i]);
+                }
             }
             if(i >= 3 * csl) fatal("maprot unusable"); // not a single map in rotation can be found...
         }

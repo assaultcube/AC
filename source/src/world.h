@@ -23,13 +23,6 @@ struct sqr
     uchar reserved[2];
 };
 
-// simplified square
-struct ssqr
-{
-    uchar type;
-    char floor, ceil;
-};
-
 enum                            // hardcoded texture numbers
 {
     DEFAULT_SKY = 0,
@@ -71,40 +64,6 @@ struct mapstats
     bool hasffaspawns;
     bool hasteamspawns;
     bool hasflags;
-
-    int area, volume;
-    float height; // average height
-    int heighthits; // sum (height-maxheight) for each cube if height > maxheight
-    int numheighthits; // number of cubes with height > maxheight
-    int maxopenarea; // biggest open area
-    bool goodmap; // pass requirements ?
-    vector<char *> errors;
-    ssqr *serverworld;
-    
-    void initworld()
-    {
-        DELETEA(serverworld);
-        int size = 1 << (hdr.sfactor*2);
-        serverworld = new ssqr[size];
-        memset(serverworld, 0, size*sizeof(ssqr));
-        loopi(size)
-        {
-            ssqr *ss = &serverworld[i];
-            if(!ss) continue;
-            ss->floor = 0;
-            ss->ceil = 16;
-            ss->type = SOLID;
-        }
-
-        volume = area = heighthits = numheighthits = 0;
-    }
-
-    bool mapstats::mapcheck();
-
-    ~mapstats()
-    {
-        DELETEA(serverworld);
-    }
 };
 
 #define TRANSFORMOLDENTITIES(headr) \
@@ -158,10 +117,6 @@ struct mapstats
 #define SWS(w,x,y,s) (&(w)[((y)<<(s))+(x)])
 #define SW(w,x,y) SWS(w,x,y,sfactor)
 #define S(x,y) SW(world,x,y)            // convenient lookup of a lowest mip cube
-
-#define SSW(w,x,y) SWS(w,x,y,smapstats.hdr.sfactor)
-#define SS(x,y) SSW(smapstats.serverworld,x,y)
-
 #define SMALLEST_FACTOR 6               // determines number of mips there can be
 #define DEFAULT_FACTOR 8
 #define LARGEST_FACTOR 11               // 10 is already insane

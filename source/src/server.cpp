@@ -1413,7 +1413,7 @@ bool serverpickup(int i, int sender)         // server side item pickup, acknowl
         if(cl->type==ST_TCPIP)
         {
             if( cl->state.state!=CS_ALIVE || !cl->state.canpickup(e.type) || ( m_arena && !free_items(sender) ) ) return false;
-            vec v(e.x, e.y, float(SS(e.x, e.y)->floor) + float(e.elevation));
+            vec v(e.x, e.y, cl->state.o.z);
             float dist = cl->state.o.dist(v);
             int pdist = check_pdist(cl,dist);
             if (pdist)
@@ -1955,12 +1955,12 @@ void startgame(const char *newname, int newmode, int newtime, bool notify)
             {
                 e.type = smapstats.enttypes[i];
                 e.transformtype(smode);
-                server_entity se = { e.type, false, false, false, 0, smapstats.entposs[i * 3], smapstats.entposs[i * 3 + 1], smapstats.entposs[i * 3 + 2] };
+                server_entity se = { e.type, false, false, false, 0, smapstats.entposs[i * 3], smapstats.entposs[i * 3 + 1]};
                 sents.add(se);
                 if(e.fitsmode(smode)) sents[i].spawned = sents[i].legalpickup = true;
             }
             mapbuffer.setrevision();
-            logline(ACLOG_INFO, "Map height density information for %s: AvgHeight = %.2f Vol = %d, Area = %d and MxOpenArea = %d", smapname, ms->height, ms->volume, ms->area, ms->maxopenarea);
+            logline(ACLOG_INFO, "Map height density information for %s: H = %.2f V = %d, A = %d and MA = %d", smapname, Mheight, Mvolume, Marea, Mopen);
             items_blocked = false;
         }
         else if(isdedicated) sendservmsg("\f3server error: map not found - please start another map or send this map to the server");

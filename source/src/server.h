@@ -371,7 +371,7 @@ struct server_entity            // server side version of "entity" type
     int type;
     bool spawned, legalpickup, twice;
     int spawntime;
-    short x, y, elevation;
+    short x, y;
 };
 
 struct clientidentity
