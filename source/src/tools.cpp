@@ -27,7 +27,8 @@ const char *numtime()
 int mapdims[8];     // min/max X/Y and delta X/Y and min/max Z
 
 extern char *maplayout, *testlayout;
-extern int maplayout_factor, testlayout_factor;
+extern int maplayout_factor, testlayout_factor, Mvolume, Marea, Mopen, SHhits;
+extern float Mheight;
 extern int checkarea(int, char *);
 
 mapstats *loadmapstats(const char *filename, bool getlayout)
@@ -66,7 +67,7 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
         if(e.type == CTF_FLAG && (e.attr2 == 0 || e.attr2 == 1)) { s.flags[e.attr2]++; s.flagents[e.attr2] = i; }
         s.entcnt[e.type]++;
         enttypes[i] = e.type;
-        entposs[i * 3] = e.x; entposs[i * 3 + 1] = e.y; entposs[i * 3 + 2] = e.attr1;
+        entposs[i * 3] = e.x; entposs[i * 3 + 1] = e.y; entposs[i * 3 + 2] = e.z + e.attr1;
     }
     DELETEA(testlayout);
     int minfloor = 0;
@@ -78,14 +79,13 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
         bool fail = false;
         testlayout = new char[layoutsize + 256];
         memset(testlayout, 0, layoutsize * sizeof(char));
-        ssqr *t = NULL;
+        char *t = NULL;
         char floor = 0, ceil;
         int diff = 0;
-        s.initworld();
+        Mvolume = Marea = SHhits = 0;
         loopk(layoutsize)
         {
             char *c = testlayout + k;
-            ssqr *ss = &s.serverworld[k];
             int type = f->getchar();
             int n = 1;
             switch(type)
@@ -93,23 +93,20 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
                 case 255:
                 {
                     if(!t || (n = f->getchar()) < 0) { fail = true; break; }
-                    char tmp = *(c-1);
-                    memset(c, tmp, n);
-                    for(int i = 0; i<n; i++, k++) memcpy(&s.serverworld[k], t, sizeof(ssqr));
-                    k--;
+                    memset(c, *t, n);
+                    k += n - 1;
                     break;
                 }
                 case 254: // only in MAPVERSION<=2
                     if(!t) { fail = true; break; }
-                    *c = *(c-1);
+                    *c = *t;
                     f->getchar(); f->getchar();
                     break;
                 default:
                     if(type<0 || type>=MAXTYPE)  { fail = true; break; }
-                    ss->type = type;
-                    ss->floor = floor = f->getchar();
-                    ss->ceil = ceil = f->getchar();
-                    if(floor >= ceil && ceil > -128) ss->floor = floor = ceil - 1;  // for pre 12_13
+                    floor = f->getchar();
+                    ceil = f->getchar();
+                    if(floor >= ceil && ceil > -128) floor = ceil - 1;  // for pre 12_13
                     diff = ceil - floor;
                     if(type == FHF) floor = -128;
                     if(floor!=-128 && floor<minfloor) minfloor = floor;
@@ -117,9 +114,8 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
                     f->getchar(); f->getchar();
                     if(s.hdr.version>=2) f->getchar();
                     if(s.hdr.version>=5) f->getchar();
-                    *c = ss->floor;
+
                 case SOLID:
-                    ss->type = SOLID;
                     *c = type == SOLID ? 127 : floor;
                     f->getchar(); f->getchar();
                     if(s.hdr.version<=2) { f->getchar(); f->getchar(); }
@@ -128,18 +124,18 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
             if ( type != SOLID && diff > 6 )
             {
                 // Lucas (10mar2013): Removed "pow2" because it was too strict
-                if (diff > MAXMHEIGHT) s.heighthits += /*pow2*/(diff-MAXMHEIGHT)*n; // linear is more permissive
-                s.area += n;
-                s.volume += diff * n;
+                if (diff > MAXMHEIGHT) SHhits += /*pow2*/(diff-MAXMHEIGHT)*n;
+                Marea += n;
+                Mvolume += diff * n;
             }
             if(fail) break;
-            t = ss;
+            t = c;
         }
         if(fail) { DELETEA(testlayout); }
         else
         {
-            s.height = s.area ? float(s.volume)/s.area : 0;
-            s.maxopenarea = checkarea(testlayout_factor, testlayout);
+            Mheight = Marea ? (float)Mvolume/Marea : 0;
+            Mopen = checkarea(testlayout_factor, testlayout);
         }
     }
     if(getlayout)
@@ -176,86 +172,8 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
     s.enttypes = enttypes;
     s.entposs = entposs;
     s.cgzsize = getfilesize(filename);
-    s.mapcheck();
     return &s;
 }
-
-#define logmaperror(format, ...) { if(this->errors.length() >= 20) return false; \
-    formatstring(error)(format, __VA_ARGS__); \
-    this->errors.add(newstring(error)); \
-    this->goodmap = false; } \
-
-bool mapstats::mapcheck()
-{
-    this->goodmap = true;
-    this->errors.deletearrays();
-    string error;
-    if(this->height > MAXMHEIGHT) logmaperror("The overall ceil height is too high (%.1f cubes)", this->height);
-    if(this->maxopenarea > MAXMAREA) logmaperror("There is a big open area in this map (%d cubes*cubes) (hint: use more solid walls)", this->maxopenarea);
-    if(this->heighthits > MAXHHITS) logmaperror("Too high height in some parts of the map (%d hits)", this->heighthits);
-
-    if (this->hasflags) // Check if flags are ok
-    {
-        struct { short x, y; } fl[2];
-        loopi(2)
-        {
-            if(this->flags[i] == 1)
-            {
-                short *fe = this->entposs + this->flagents[i] * 3;
-                fl[i].x = *fe; fe++; fl[i].y = *fe;
-            }
-            else fl[i].x = fl[i].y = 0; // the map has no valid flags
-        }
-        float FlagFlag = pow2(fl[0].x - fl[1].x) + pow2(fl[0].y - fl[1].y);
-
-        if (FlagFlag < MINFF) logmaperror("The flags are too close to each other (distance = %.1f, min required = %.1f)", sqrt(FlagFlag), sqrt(float(MINFF)));
-    }
-    //else FlagFlag = MINFF * 1000; // the map has no flags
-
-    for (int i = 0; i < this->hdr.numents; i++)
-    {
-        int v = this->enttypes[i];
-        if (v < I_CLIPS || v > I_AKIMBO) continue;
-        short *p = &this->entposs[i*3];
-        float density = 0, hdensity = 0;
-        for(int j = 0; j < this->hdr.numents; j++)
-        {
-            int w = this->enttypes[j];
-            if (w < I_CLIPS || w > I_AKIMBO || i == j) continue;
-            short *q = &this->entposs[j*3];
-            float pz = SWS(serverworld, p[0], p[1], hdr.sfactor)->floor,
-                  qz = SWS(serverworld, q[0], q[1], hdr.sfactor)->floor;
-            float r2 = (vec(p[0], p[1], p[2] + pz).sub(vec(q[0], q[1], q[2] + qz))).squaredlen();
-            if ( r2 == 0.0f) logmaperror("Items too close %s %s (%hd,%hd)", entnames[v], entnames[w], p[0], p[1]);
-            r2 = 1/r2;
-            if (r2 < 0.0025f) continue;
-            if (w != v)
-            {
-                hdensity += r2;
-                continue;
-            }
-            density += r2;
-        }
-/*        if (hdensity > 0.0f) { logline(ACLOG_INFO, "ITEM CHECK H %s %f", entnames[v], hdensity); }
-        if (density > 0.0f) { logline(ACLOG_INFO, "ITEM CHECK D %s %f", entnames[v], density); }*/
-        if (hdensity > 0.5f) logmaperror("Items too close %s %.2f (%hd,%hd)", entnames[v],hdensity,p[0],p[1]);
-        switch(v)
-        {
-#define LOGTHISSWITCH(X) if( density > X ) logmaperror("Items too close %s %.2f (%hd,%hd)", entnames[v],density,p[0],p[1]);
-            case I_CLIPS:
-            case I_HEALTH: LOGTHISSWITCH(0.24f); break;
-            case I_AMMO: LOGTHISSWITCH(0.04f); break;
-            case I_HELMET: LOGTHISSWITCH(0.02f); break;
-            case I_ARMOUR:
-            case I_GRENADE:
-            case I_AKIMBO: LOGTHISSWITCH(0.005f); break;
-            default: break;
-#undef LOGTHISSWITCH
-        }
-    }
-    return this->goodmap;
-}
-#undef logmaperror
 
 ///////////////////////// debugging ///////////////////////
 
