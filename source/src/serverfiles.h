@@ -372,11 +372,7 @@ struct servermaprot : serverconfigfile
             {
                 mapstats *ms = NULL;
                 if((ms = getservermapstats(c->mapname)) && mapisok(ms)) break;
-                else 
-                {
-                    logline(ACLOG_INFO, "maprot error: map '%s' %s", c->mapname, (ms ? "does not satisfy some basic requirements" : "not found"));
-                    loopv(ms->errors) if(ms->errors[i]) logline(ACLOG_INFO, "map check fail: %s", ms->errors[i]);
-                }
+                else logline(ACLOG_INFO, "maprot error: map '%s' %s", c->mapname, (ms ? "does not satisfy some basic requirements" : "not found"));
             }
             if(i >= 3 * csl) fatal("maprot unusable"); // not a single map in rotation can be found...
         }
