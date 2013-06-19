@@ -186,9 +186,11 @@ typedef int curl_socket_t;
 // avoid conflict with /usr/include/unistd.h (l.275ff here)
 // typedef __socklen_t socklen_t;
 #ifndef __socklen_t_defined
+#ifndef _SOCKLEN_T
 typedef int socklen_t;
 // original line was:
 //typedef int socklen_t;
+#endif
 #endif
 
 struct curl_httppost {
