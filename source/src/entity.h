@@ -650,6 +650,7 @@ inline const char *killmessage(int gun, bool gib = false)
     return killmessages[gib?1:0][gun];
 }
 
+#ifndef STANDALONE
 struct pckserver
 {
     char *addr;
@@ -671,3 +672,4 @@ struct package
 
     package() : name(NULL), type(-1), number(0), pending(false), source(NULL), curl(NULL) {}
 };
+#endif
