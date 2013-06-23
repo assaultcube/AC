@@ -75,4 +75,6 @@
 #ifndef CURL_STATICLIB
 #define CURL_STATICLIB
 #endif
+#ifndef STANDALONE
 #include "curl/curl.h"
+#endif
