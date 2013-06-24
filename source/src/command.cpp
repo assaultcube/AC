@@ -1253,12 +1253,12 @@ void testchar(char *s, int *type)
         intret(0);
 }
 
-void strreplace (const char *source, const char *search, const char *replace)
+char *strreplace(char *dest, const char *source, const char *search, const char *replace)
 {
     vector<char> buf;
 
     int searchlen = strlen(search);
-    if(!searchlen) { result(source); return; }
+    if(!searchlen) { copystring(dest, source); return dest; }
     for(;;)
     {
         const char *found = strstr(source, search);
@@ -1272,8 +1272,7 @@ void strreplace (const char *source, const char *search, const char *replace)
         {
             while(*source) buf.add(*source++);
             buf.add('\0');
-            result(buf.getbuf());
-            return;
+            return copystring(dest, buf.getbuf());
         }
     }
 }
@@ -1363,7 +1362,7 @@ COMMANDN(tolower, toLower, "s");
 COMMANDN(toupper, toUpper, "s");
 COMMAND(testchar, "si");
 COMMAND(sortlist, "c");
-COMMAND(strreplace, "sss");
+COMMANDF(strreplace, "sss", (const char *source, const char *search, const char *replace) { string d; result(strreplace(d, source, search, replace)); });
 COMMAND(swapelements, "ss");
 
 void add(int *a, int *b)   { intret(*a + *b); }            COMMANDN(+, add, "ii");

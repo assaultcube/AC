@@ -1044,8 +1044,8 @@ double dlpackage(package *pck)
 {
     if(!pck || !pck->source) return false;
     FILE *outfile = fopen(path("tmp", true), "wb");
-    string req;
-    sprintf(req, "%s/%s%s", pck->source->addr, pck->name, (pck->type==PCK_MAP || pck->type==PCK_MAPMODEL || pck->type==PCK_SKYBOX) ? ".zip" : "");
+    string req, pckname = "";
+    sprintf(req, "%s/%s%s", pck->source->addr, strreplace(pckname, pck->name, " ", "%20"), (pck->type==PCK_MAP || pck->type==PCK_MAPMODEL || pck->type==PCK_SKYBOX) ? ".zip" : "");
     conoutf(_("downloading %s from %s ..."), pck->name, pck->source->addr);
 
     int result, httpresult = 0;
