@@ -1300,14 +1300,7 @@ void shotgun::attackfx(const vec &from, const vec &to, int millis)
     loopi(SGRAYS) particle_splash(PART_SPARK, 5, 200, sgr[i].rv);
 
     if(addbullethole(owner, from, to))
-    {
-        loopk(3)
-        {
-            int holes = 1+rnd(3);
-            loopi(holes) addbullethole(owner, from, sgr[k*SGRAYS+i].rv, 0, false);
-        }
-
-    }
+        loopk(3) loopi(3) addbullethole(owner, from, sgr[k*SGRAYS+i*SGRAYS/3].rv, 0, false);
     adddynlight(owner, from, 4, 100, 50, 96, 80, 64);
     attacksound();
 }
