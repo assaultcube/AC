@@ -170,33 +170,36 @@ void createrays(vec &from, vec &to) // create random spread of rays for the shot
     spoke.normalize();
     spoke.mul(f);
     loopk(3)
-    loopi(SGRAYS)
     {
-        int j = k * SGRAYS;
-        sgr[j+i].ds = k; //2011jun18 - damage-independent-section-indicator .. not: k==0 ? SGSEGDMG_O : (k==1? SGSEGDMG_M: SGSEGDMG_C);
-        vec p(spoke);
-        float base = 0.0f;
-        int wrange = 50;
-        switch(sgr[j+i].ds)
+        float rnddir = rndscale(2*M_PI);
+        loopi(SGRAYS)
         {
-            case 0:/* SGSEGDMG_O:*/  base = SGCObase/100.0f; wrange = SGCOrange; break;
-            case 1:/* SGSEGDMG_M:*/  base = SGCMbase/100.0f; wrange = SGCMrange; break;
-            case 2:/* SGSEGDMG_C:*/
-            default:          base = SGCCbase/100.0f; wrange = SGCCrange; break;
+            int j = k * SGRAYS;
+            sgr[j+i].ds = k; //2011jun18 - damage-independent-section-indicator .. not: k==0 ? SGSEGDMG_O : (k==1? SGSEGDMG_M: SGSEGDMG_C);
+            vec p(spoke);
+            float base = 0.0f;
+            int wrange = 50;
+            switch(sgr[j+i].ds)
+            {
+                case 0:/* SGSEGDMG_O:*/  base = SGCObase/100.0f; wrange = SGCOrange; break;
+                case 1:/* SGSEGDMG_M:*/  base = SGCMbase/100.0f; wrange = SGCMrange; break;
+                case 2:/* SGSEGDMG_C:*/
+                default:          base = SGCCbase/100.0f; wrange = SGCCrange; break;
+            }
+            int rndmul = rnd(wrange);
+            float veclen = base + rndmul/100.0f;
+            p.mul( veclen );
+        
+            p.rotate( 2*M_PI/SGRAYS * i + rnddir , dir );
+            vec rray = vec(to);
+            float nvl = veclen / ( ( SGCObase / 100.0f ) + ( SGCOrange / 100.0f ) );
+            vec pbv = vec( nvl, 0, 0);
+            pbv.rotate( 2*M_PI/SGRAYS * i + rnddir, vec( 0, 0, 1) );
+            pat[j+i].ds = int(veclen*100);
+            pat[j+i].rv = pbv;
+            rray.add(p);
+            sgr[j+i].rv = rray;
         }
-        int rndmul = rnd(wrange);
-        float veclen = base + rndmul/100.0f;
-        p.mul( veclen );
-        int rnddir = rnd(15);
-        p.rotate( 2*M_PI/SGRAYS * i + rnddir , dir );
-        vec rray = vec(to);
-        float nvl = veclen / ( ( SGCObase / 100.0f ) + ( SGCOrange / 100.0f ) );
-        vec pbv = vec( nvl, 0, 0);
-        pbv.rotate( 2*M_PI/SGRAYS * i + rnddir, vec( 0, 0, 1) );
-        pat[j+i].ds = int(veclen*100);
-        pat[j+i].rv = pbv;
-        rray.add(p);
-        sgr[j+i].rv = rray;
     }
 }
 
