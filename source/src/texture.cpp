@@ -377,12 +377,13 @@ GLuint loadsurface(const char *texname, int &xs, int &ys, int &bpp, int clamp = 
         delete z;
     }
     if(!s) s = IMG_Load(findfile(file, "rb"));
-    if(!s && trydl)
+    if(!s)
     {
-        requirepackage(PCK_TEXTURE, file);
+        if(trydl)
+            requirepackage(PCK_TEXTURE, file);
+        else if(!silent_texture_load) conoutf("couldn't load texture %s", texname);
         return 0;
     }
-    if(!s) { if(!silent_texture_load) conoutf("couldn't load texture %s", texname); return 0; }
     s = fixsurfaceformat(s);
     Uint8 x = 0;
     if(strstr(texname,"playermodel") && (x = fixcl(s)) > 35) { fixcl(s,false,x,35); }
@@ -831,7 +832,7 @@ void blitsurface(SDL_Surface *dst, SDL_Surface *src, int x, int y)
     }
 }
 
-Texture *e_wall, *e_floor, *e_ceil;
+Texture *e_wall = NULL, *e_floor = NULL, *e_ceil = NULL;
 
 void guidetoggle()
 {
@@ -841,22 +842,8 @@ void guidetoggle()
         Slot *sf = &slots[DEFAULT_FLOOR];
         Slot *sc = &slots[DEFAULT_CEIL];
 
-        /*char swn[256] = "packages/textures/"; swn[255] = '\0';
-        char sfn[256] = "packages/textures/"; sfn[255] = '\0';
-        char scn[256] = "packages/textures/"; scn[255] = '\0';*/
-        
-        defformatstring(swn)("packages/textures/%s", path(sw->name));
-        defformatstring(sfn)("packages/textures/%s", path(sf->name));
-        defformatstring(scn)("packages/textures/%s", path(sc->name));
-
-        /*strncat(swn, sw->name, 254);
-        strncat(sfn, sf->name, 254);
-        strncat(scn, sc->name, 254);*/
-
-        if( //if textures match original texture name saved in Slot.name
-            !strcmp(sw->tex->name, swn) &&
-            !strcmp(sf->tex->name, sfn) &&
-            !strcmp(sc->tex->name, scn) )
+        //if textures match original texture
+        if(e_wall == NULL || e_floor == NULL || e_ceil == NULL)
         {
             //replace defaults with grid texures
             e_wall = sw->tex;
