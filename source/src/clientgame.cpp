@@ -681,7 +681,8 @@ void findplayerstart(playerent *d, bool mapcenter, int arenaspawn)
 
             loopi(r)
             {
-                spawncycle = m_ktf && numspawn[2] > 5 ? findentity(PLAYERSTART, spawncycle+1, 100) : findentity(PLAYERSTART, spawncycle+1);
+                // 2013jun28:lucas: SKB suggested to use FFA spawns only in FFA modes, which seems reasonable.
+                spawncycle = /*m_ktf && */numspawn[2] > 4 ? findentity(PLAYERSTART, spawncycle+1, 100) : findentity(PLAYERSTART, spawncycle+1);
                 if(spawncycle < 0) continue;
                 float dist = nearestenemy(vec(ents[spawncycle].x, ents[spawncycle].y, ents[spawncycle].z), d->team);
                 if(!e || dist < 0 || (bestdist >= 0 && dist > bestdist)) { e = &ents[spawncycle]; bestdist = dist; }
