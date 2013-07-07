@@ -1,4 +1,4 @@
-// example servercmdline.txt file (1.1)
+// example servercmdline.txt file (1.2)
 // to use this file, add -Cconfig/servercmdline.txt to your servers commandline
 //
 // * you can't use cubescript here!
@@ -20,7 +20,7 @@
 // -n1    // custom server description prefix
 // -n2    // custom server description suffix
 // -f     // port, 1..65534, default 28763
-// -c     // max client number, 1..20, default 6
+// -c     // max client number, 1..16, default 6
 // -D     // number of demos to keep in RAM, default 5
 
 // the switches o, n, n1 and n2 support coloring and character escaping; 'o' also supports escaped newlines
