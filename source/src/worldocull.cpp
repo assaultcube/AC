@@ -91,7 +91,7 @@ int isoccluded(float vx, float vy, float cx, float cy, float csize)     // v = v
     // find highest and lowest angle in the occlusion map that this cube spans, based on its most left and right
     // points on the border from the viewer pov... I see no easier way to do this than this silly code below
 
-    float xdist = 0, ydist = 0, h, l;
+    float xdist = 0, ydist = 0, h = 0, l = 0;
     if(cx<=vx)              // ABDFG
     {
         if(cx+csize<vx)     // ADF
