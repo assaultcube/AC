@@ -1281,64 +1281,80 @@ int stringsort(const char **a, const char **b) { return strcmp(*a, *b); }
 
 void sortlist(char *list)
  {
-     char* buf;
-     buf = new char [strlen(list)]; strcpy(buf, ""); //output
+    char* buf;
+    buf = new char [strlen(list)]; strcpy(buf, ""); //output
 
-     if (strcmp(list, "") == 0) {result(buf); return;} //no input
+    if(strcmp(list, "") == 0)
+    {
+        //no input
+        result(buf);
+        delete [] buf;
+        return;
+    }
 
-     vector<char *> elems;
-     explodelist(list, elems);
-     elems.sort(stringsort);
+    vector<char *> elems;
+    explodelist(list, elems);
+    elems.sort(stringsort);
 
-     strcpy(buf, elems[0]);
-     for(int i = 1; i < elems.length(); i++)
-     {
-         strcat(buf, " ");
-         strcat(buf, elems[i]);
-     }
+    strcpy(buf, elems[0]);
+    for(int i = 1; i < elems.length(); i++)
+    {
+        strcat(buf, " ");
+        strcat(buf, elems[i]);
+    }
 
-     result(buf); //result
-     delete [] buf;
+    result(buf); //result
+    delete [] buf;
  }
 
  void swapelements(char *list, char *v)
  {
-     char* buf;
-     buf = new char [strlen(list)]; strcpy(buf, ""); //output
+    char* buf;
+    buf = new char [strlen(list)]; strcpy(buf, ""); //output
 
-     if (strcmp(list, "") == 0) {result(buf); return;} //no input
+    if(strcmp(list, "") == 0)
+    {
+        // no input
+         result(buf);
+         delete [] buf;
+         return;
+    }
 
-     vector<char *> elems;
-     explodelist(list, elems);
+    vector<char *> elems;
+    explodelist(list, elems);
 
-     vector<char *> swap;
-     explodelist(v, swap);
+    vector<char *> swap;
+    explodelist(v, swap);
 
-     if (strcmp(v, "") == 0 || //no input
-     swap.length()%2 != 0) //incorrect input
-     {result(buf); return;}
+    if (strcmp(v, "") == 0 || //no input
+    swap.length()%2 != 0) //incorrect input
+    {
+        result(buf);
+        delete [] buf;
+        return;
+    }
 
-     char tmp[255]; strcpy (tmp, "");
+    char tmp[255]; strcpy (tmp, "");
 
-     for(int i = 0; i < swap.length(); i+=2)
-     {
-         if (elems.inrange(atoi(swap[i])) && elems.inrange(atoi(swap[i + 1])))
-         {
-             strcpy(tmp, elems[atoi(swap[i])]);
-             strcpy(elems[atoi(swap[i])], elems[atoi(swap[i+1])]);
-             strcpy(elems[atoi(swap[i+1])], tmp);
-         }
-     }
+    for(int i = 0; i < swap.length(); i+=2)
+    {
+        if (elems.inrange(atoi(swap[i])) && elems.inrange(atoi(swap[i + 1])))
+        {
+            strcpy(tmp, elems[atoi(swap[i])]);
+            strcpy(elems[atoi(swap[i])], elems[atoi(swap[i+1])]);
+            strcpy(elems[atoi(swap[i+1])], tmp);
+        }
+    }
 
-     strcpy(buf, elems[0]);
-     for(int i = 1; i < elems.length(); i++)
-     {
-         strcat(buf, " ");
-         strcat(buf, elems[i]);
-     }
+    strcpy(buf, elems[0]);
+    for(int i = 1; i < elems.length(); i++)
+    {
+        strcat(buf, " ");
+        strcat(buf, elems[i]);
+    }
 
-     result(buf); //result
-     delete [] buf;
+    result(buf); //result
+    delete [] buf;
  }
 
 COMMANDN(c, colora, "s");
