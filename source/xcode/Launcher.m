@@ -125,7 +125,9 @@ static int numberForKey(CFDictionaryRef desc, CFStringRef key)
 
 - (void)switchViews:(NSToolbarItem *)item 
 {
-    NSView *views[] = {view1, view3, view4};
+    //20/7/13: RR Removing keys submenu
+//    NSView *views[] = {view1, view3, view4};
+    NSView *views[] = {view1, view4};
     NSView *prefsView = views[[item tag]-1];
     
     //to stop flicker, we make a temp blank view.
@@ -159,7 +161,9 @@ static int numberForKey(CFDictionaryRef desc, CFStringRef key)
         SEL action = @selector(displayHelp:);
         id target = self;
         if(tag) {
-            NSString *names[] = {tkMAIN, tkKEYS, tkSERVER};
+            //20/7/13: RR Removing keys submenu
+//            NSString *names[] = {tkMAIN, tkKEYS, tkSERVER};
+            NSString *names[] = {tkMAIN, tkSERVER};
             name = names[tag-1];
             action = @selector(switchViews:);
             target = self;
@@ -209,7 +213,9 @@ static int numberForKey(CFDictionaryRef desc, CFStringRef key)
 - (NSArray *)toolbarSelectableItemIdentifiers: (NSToolbar *)toolbar 
 {
     NSMutableArray *array = [NSMutableArray array];
-    NSView *views[] = {view1, view3, view4};
+    //20/7/13: RR Removing keys submenu
+//    NSView *views[] = {view1, view3, view4};
+    NSView *views[] = {view1, view4};
     int i;
     for(i = 0; i < sizeof(views)/sizeof(NSView*); i++) if(views[i]) [array addObject:[NSString stringWithFormat:@"%d", i+1]];
     return array;

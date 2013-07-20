@@ -9,7 +9,8 @@
 	
     //able to leave these disconnected
     IBOutlet NSView *view1; //Main
-    IBOutlet NSView *view3; //Keys
+    //20/7/13: RR Removing keys submenu
+//    IBOutlet NSView *view3; //Keys
     IBOutlet NSView *view4; //Server
     
 	
