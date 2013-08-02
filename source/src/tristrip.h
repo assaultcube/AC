@@ -1,4 +1,5 @@
-VAR(dbgts, 0, 0, 1);
+//VAR(dbgts, 0, 0, 1);
+const int dbgts = 0;
 VAR(tsswap, 0, 1, 1);
 
 struct tristrip
