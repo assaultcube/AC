@@ -302,6 +302,9 @@ void playerinfo(int *cn, const char *attr)
     ATTR_INT(alive, p->state == CS_ALIVE ? 1 : 0);
     ATTR_INT(spect, p->team == TEAM_SPECT || p->spectatemode == SM_FLY ? 1 : 0);
     ATTR_INT(cn, p->clientnum); // only useful to get player1's client number.
+    ATTR_INT(skin_cla, p->skin(TEAM_CLA));
+    ATTR_INT(skin_rvsf, p->skin(TEAM_RVSF));
+    ATTR_INT(skin, p->skin(player1->team));
 
     string addrstr = "";
     uint2ip(p->address, addr);
