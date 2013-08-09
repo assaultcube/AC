@@ -1098,8 +1098,16 @@ double dlpackage(package *pck)
     return (!result && httpresult == 200) ? dlsize : 0;
 }
 
+int lastpackagesdownload = 0;
 int downloadpackages()
 {
+    if(!pendingpackages.numelems) return 0;
+    else if(totalmillis - lastpackagesdownload < 2000)
+    {
+        conoutf("\f3quick download attempt aborted");
+        return 0;
+    }
+
     double total = 0;
     int downloaded = 0;
     enumerate(pendingpackages, package *, pck,
@@ -1114,6 +1122,7 @@ int downloadpackages()
         delete pck;
     });
     canceldownloads = false;
+    lastpackagesdownload = lastmillis;
     return (int)total;
 }
 
