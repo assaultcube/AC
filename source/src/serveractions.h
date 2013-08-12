@@ -65,13 +65,22 @@ struct mapaction : serveraction
             bool notify = valid_client(caller);
             int maploc = MAP_NOTFOUND;
             mapstats *ms = map[0] ? getservermapstats(map, false, &maploc) : NULL;
-            mapok = (ms != NULL) && ( (mode != GMODE_COOPEDIT && mapisok(ms)) || (mode == GMODE_COOPEDIT && !readonlymap(maploc)) );
+            bool validname = validmapname(map);
+            mapok = (ms != NULL) && validname && ( (mode != GMODE_COOPEDIT && mapisok(ms)) || (mode == GMODE_COOPEDIT && !readonlymap(maploc)) );
             if(!mapok)
             {
-                if(notify) sendservmsg(ms ?
-                    ( mode == GMODE_COOPEDIT ? "this map cannot be coopedited in this server" : "sorry, but this map does not satisfy some quality requisites to be played in MultiPlayer Mode" ) :
-                    "the server does not have this map",
-                    caller);
+                if(notify)
+                {
+                    if(!validname)
+                        sendservmsg("invalid map name", caller);
+                    else
+                    {
+                        sendservmsg(ms ?
+                            ( mode == GMODE_COOPEDIT ? "this map cannot be coopedited in this server" : "sorry, but this map does not satisfy some quality requisites to be played in MultiPlayer Mode" ) :
+                            "the server does not have this map",
+                            caller);
+                    }
+                }
             }
             else
             { // check, if map supports mode
