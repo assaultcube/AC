@@ -160,6 +160,18 @@ inline bool issimilar (char s, char d)
     return false;
 }
 
+#define MAXMAPNAMELEN 64
+inline bool validmapname(char *s)
+{
+    if(strlen(s) > MAXMAPNAMELEN) return false;
+    while(*s != '\0') 
+    {
+        if(!isalnum(*s) && *s != '_' && *s != '-') return false;
+        ++s;
+    }
+    return true;
+}
+
 inline bool findpattern (char *s, char *d) // returns true if there is more than 80% of similarity
 {
     int len, hit = 0;

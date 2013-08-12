@@ -10,11 +10,11 @@ void backup(char *name, char *backupname)
     rename(findfile(name, "wb"), backupfile);
 }
 
-static string cgzname, ocgzname, bakname, pcfname, mcfname, omcfname;
+static string cgzname, ocgzname, bakname, pcfname, mcfname, omcfname, mapname;
 
 const char *setnames(const char *name)
 {
-    string pakname, mapname;
+    string pakname;
     const char *slash = strpbrk(name, "/\\");
     if(slash)
     {
@@ -205,6 +205,11 @@ void save_world(char *mname)
 {
     if(!*mname) mname = getclientmap();
     if(securemapcheck(mname)) return;
+    if(!validmapname(mname))
+    {
+        conoutf("\f3invalid map name. it must only contains letters, digits, '-', '_' and be less than %d characters long", MAXMAPNAMELEN);
+        return;
+    }
     voptimize();
     toptimize();
     setnames(mname);
@@ -322,6 +327,11 @@ bool load_world(char *mname)        // still supports all map formats that have 
         copystring(mcfname, omcfname);
     }
     else maploaded = getfilesize(cgzname);
+    if(!validmapname(mapname))
+    {
+        conoutf("\f3invalid map name. it must only contains letters, digits, '-', '_' and be less than %d characters long", MAXMAPNAMELEN);
+        return false;
+    }
     stream *f = opengzfile(cgzname, "rb");
     if(!f) { conoutf("\f3could not read map %s", cgzname); return false; }
     header tmp;
