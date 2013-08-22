@@ -207,7 +207,7 @@ void save_world(char *mname)
     if(securemapcheck(mname)) return;
     if(!validmapname(mname))
     {
-        conoutf("\f3invalid map name. it must only contains letters, digits, '-', '_' and be less than %d characters long", MAXMAPNAMELEN);
+        conoutf("\f3Invalid map name. It must only contain letters, digits, '-', '_' and be less than %d characters long", MAXMAPNAMELEN);
         return;
     }
     voptimize();
@@ -329,7 +329,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
     else maploaded = getfilesize(cgzname);
     if(!validmapname(mapname))
     {
-        conoutf("\f3invalid map name. it must only contains letters, digits, '-', '_' and be less than %d characters long", MAXMAPNAMELEN);
+        conoutf("\f3Invalid map name. It must only contain letters, digits, '-', '_' and be less than %d characters long", MAXMAPNAMELEN);
         return false;
     }
     stream *f = opengzfile(cgzname, "rb");
