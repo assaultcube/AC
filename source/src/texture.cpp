@@ -490,7 +490,7 @@ vector<Slot> slots;
 
 void texturereset() { if(execcontext==IEXC_MAPCFG) slots.setsize(0); }
 
-void texture(char *scale, char *name)
+void texture(float *scale, char *name)
 {
     Slot &s = slots.add();
     copystring(s.name, name);
