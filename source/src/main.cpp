@@ -888,6 +888,7 @@ static int clockrealbase = 0, clockvirtbase = 0;
 static void clockreset() { clockrealbase = SDL_GetTicks(); clockvirtbase = totalmillis; }
 VARFP(clockerror, 990000, 1000000, 1010000, clockreset());
 VARFP(clockfix, 0, 0, 1, clockreset());
+VARP(gamestarts, 0, 0, INT_MAX);
 
 const char *rndmapname()
 {
@@ -1231,6 +1232,9 @@ int main(int argc, char **argv)
     localconnect();
 
     if(initscript) execute(initscript);
+
+    gamestarts = max(1, gamestarts+1);
+    if(autodownload && (gamestarts % 100 == 1)) sortpckservers();
 
     initlog("mainloop");
 

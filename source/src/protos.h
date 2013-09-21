@@ -331,6 +331,7 @@ extern int autodownload;
 extern void setupcurl();
 extern bool requirepackage(int type, const char *path);
 extern int downloadpackages();
+extern void sortpckservers();
 extern void writepcksourcecfg();
 
 extern int maxtmus;
