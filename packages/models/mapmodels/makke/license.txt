@@ -8,6 +8,14 @@ Originally created for the game AssaultCube:
 
 * Model "street_light_broken" is a modified version of "street_light" made by Cleaner to replace a redundant line in default_map_settings.cfg
 
+* Models "fence_chainlink" "fence_chainlink_closed_gate" "fence_chainlink_no_gate" and "fence_chainlink_post" have been reworked by Boeufmironton to get rid of z-figthing and fix axis.
+Texture was also modified to fit changes.
+Note that 4 other models have been made using "fence_chainlink_closed_gate" as template to complete this nice set of fencing and can be found in their respective folders.
+By Boeufmironton: "fence_chainlink_open_gate" and 
+"fence_chainlink_hor_post"
+By Cleaner: "fence_chainlink_down" and "fence_chainlink_gate_down"
+The full set of models share the same license.
+
 Shane Nieb (nieb_123@hotmail.com) modelled (but did not skin) the following:
 ================================================================================
 office_chair (Nieb did skin this one)
