@@ -1338,7 +1338,7 @@ char *votestring(int type, const char *arg1, const char *arg2, const char *arg3)
 
             if ( n >= GMODE_NUM )
             {
-                formatstring(out)(msg, arg1, modestr(n, modeacronyms > 0)," (in the next game)", timestr);
+                formatstring(out)(msg, arg1, modestr(n-GMODE_NUM, modeacronyms > 0)," (in the next game)", timestr);
             }
             else
             {
@@ -1407,7 +1407,11 @@ void callvote(int type, const char *arg1, const char *arg2, const char *arg3)
                 putint(p, atoi(arg2));
                 break;
             default:
-                putint(p, atoi(arg1));
+
+				
+				
+				
+				putint(p, atoi(arg1));
                 break;
         }
         sendpackettoserv(1, p.finalize());
@@ -1524,28 +1528,36 @@ const char *modestrings[] =
     "osok", "tosok", "bosok", "htf", "tktf", "ktf", "tpf", "tlss", "bpf", "blss", "btsurv", "btosok"
 };
 
-void setnext(int *mode, char *arg2)
+void setnext(char *mode, char *map)
 {
-    if(!multiplayer()) { //RR 10/12/12 - Is this the action we want?
+    if(!multiplayer(false)) { //RR 10/12/12 - Is this the action we want?
         conoutf("You cannot use setnext in singleplayer.");
         return;
     }
-    if(*mode < 0 || *mode >= GMODE_NUM) return;
-
-    switch(*mode)
+    if(!mode || !map) return;
+    loopi(GMODE_NUM)
     {
-        case GMODE_COOPEDIT:
-        case GMODE_BOTTEAMDEATHMATCH:
-        case GMODE_BOTDEATHMATCH:
-        case GMODE_BOTONESHOTONEKILL:
-            return;
+        switch(i)
+        {
+            case GMODE_COOPEDIT:
+            case GMODE_BOTTEAMDEATHMATCH:
+            case GMODE_BOTDEATHMATCH:
+            case GMODE_BOTONESHOTONEKILL:
+            case GMODE_BOTLSS:
+			case GMODE_BOTPISTOLFRENZY:
+			case GMODE_BOTTEAMONESHOTONKILL:
+                continue;
+        }
+        if(!strcmp(mode, modestrings[i]))
+        {
+            nextmode=i+GMODE_NUM;
+			string nm = ""; itoa(nm, nextmode);
+            callvote(SA_MAP, map, nm, "0");
+            break;
+        }
     }
-
-    nextmode = *mode+GMODE_NUM;
-    callvote(SA_MAP, arg2, "-1");
-    return;
 }
-COMMAND(setnext, "is");
+COMMAND(setnext, "ss");
 
 void gonext(int *arg1)
 {
