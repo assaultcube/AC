@@ -473,6 +473,14 @@ string demofilenameformat = DEFDEMOFILEFMT;
 string demotimestampformat = DEFDEMOTIMEFMT;
 int demotimelocal = 0;
 
+#ifdef STANDALONE
+#define DEMOFORMAT scl.demofilenameformat
+#define DEMOTSFORMAT scl.demotimestampformat
+#else
+#define DEMOFORMAT demofilenameformat
+#define DEMOTSFORMAT demotimestampformat
+#endif
+
 const char *getDemoFilename(int gmode, int mplay, int mdrop, int tstamp, char *srvmap)
 {
     // we use the following internal mapping of formatchars:
@@ -486,18 +494,18 @@ const char *getDemoFilename(int gmode, int mplay, int mdrop, int tstamp, char *s
     copystring(dmofn, "");
     
     int cc = 0;
-    int mc = strlen(demofilenameformat);
+    int mc = strlen(DEMOFORMAT);
     
     while(cc<mc)
     {
-        switch(demofilenameformat[cc])
+        switch(DEMOFORMAT[cc])
         {
             case '%':
             {
                 if(cc<(mc-1))
                 {
                     string cfspp;
-                    switch(demofilenameformat[cc+1])
+                    switch(DEMOFORMAT[cc+1])
                     {
                         case 'F': formatstring(cfspp)("%s", fullmodestr(gmode)); break;
                         case 'g': formatstring(cfspp)("%d", gmode); break;
@@ -514,13 +522,12 @@ const char *getDemoFilename(int gmode, int mplay, int mdrop, int tstamp, char *s
                             time_t t = tstamp;
                             struct tm * timeinfo;
                             timeinfo = demotimelocal ? localtime(&t) : gmtime (&t);
-                            strftime(cfspp, sizeof(string) - 1, demotimestampformat, timeinfo);
+                            strftime(cfspp, sizeof(string) - 1, DEMOTSFORMAT, timeinfo);
                             break;
                         }
                         default: logline(ACLOG_INFO, "bad formatstring: demonameformat @ %d", cc); cc-=1; break; // don't drop the bad char
                     }
-                    defformatstring(fsbuf)("%s%s", dmofn, cfspp);
-                    copystring(dmofn, fsbuf);
+                    concatstring(dmofn, cfspp);
                 }
                 else
                 {
@@ -531,7 +538,7 @@ const char *getDemoFilename(int gmode, int mplay, int mdrop, int tstamp, char *s
             }
             default:
             {
-                defformatstring(fsbuf)("%s%c", dmofn, demofilenameformat[cc]);
+                defformatstring(fsbuf)("%s%c", dmofn, DEMOFORMAT[cc]);
                 copystring(dmofn, fsbuf);
                 break;
             }
@@ -540,6 +547,8 @@ const char *getDemoFilename(int gmode, int mplay, int mdrop, int tstamp, char *s
     }
     return dmofn;
 }
+#undef DEMOFORMAT
+#undef DEMOTSFORMAT
 
 void enddemorecord()
 {
