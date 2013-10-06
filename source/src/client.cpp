@@ -884,6 +884,7 @@ hashtable<const char *, package *> pendingpackages;
 
 // cubescript
 VARP(autodownload, 0, 1, 1);
+extern string homedir;
 
 void resetpckservers()
 {
@@ -1002,31 +1003,32 @@ int progress_callback(void *clientp, double dltotal, double dlnow, double ultota
 
 int processdownload(package *pck)
 {
+	string tmpname = "";
+	copystring(tmpname, findfile(path("tmp", true), "rb"));
     if(!pck->pending)
     {
         switch(pck->type)
         {
             case PCK_TEXTURE: case PCK_AUDIO:
             {
-                preparedir(pck->name);
+				const char *pckname = findfile(path(pck->name, true), "w+");
+				preparedir(pckname);
                 // with textures/sounds, the image/audio file itself is sent. Just need to copy it from the temporary file
-                if(!copyfile(path("tmp", true), pck->name)) conoutf(_("\f3failed to install %s"), pck->name);
+                if(!copyfile(tmpname, pckname)) conoutf(_("\f3failed to install"), pckname);
                 break;
             }
 
             case PCK_MAP: case PCK_MAPMODEL:
             {
-                const char *p = path("tmp", true);
-                addzip(p, pck->name, NULL, true, pck->type);
+                addzip(tmpname, pck->name, NULL, true, pck->type);
                 break;
             }
 
             case PCK_SKYBOX:
             {
-                const char *p = path("tmp", true);
                 char *fname = newstring(pck->name), *ls = strrchr(fname, '/');
                 if(ls) *ls = '\0';
-                addzip(p, fname, NULL, true, pck->type);
+                addzip(tmpname, fname, NULL, true, pck->type);
                 break;
             }
 
@@ -1034,7 +1036,7 @@ int processdownload(package *pck)
                 conoutf(_("could not install package %s"), pck->name);
                 break;
         }
-        delfile(path("tmp", true));
+        delfile(tmpname);
     }
     return 0;
 }
@@ -1043,14 +1045,15 @@ int processdownload(package *pck)
 double dlpackage(package *pck)
 {
     if(!pck || !pck->source) return false;
-    FILE *outfile = fopen(path("tmp", true), "wb");
+    const char *tmpname = findfile(path("tmp", true), "wb");
+    FILE *outfile = fopen(tmpname, "wb");
     string req, pckname = "";
     sprintf(req, "%s/%s%s", pck->source->addr, strreplace(pckname, pck->name, " ", "%20"), (pck->type==PCK_MAP || pck->type==PCK_MAPMODEL || pck->type==PCK_SKYBOX) ? ".zip" : "");
     conoutf(_("downloading %s from %s ..."), pck->name, pck->source->addr);
     if(!outfile)
     {
         pck->pending = false;
-        conoutf("\f3failed to write temporary file");
+        conoutf("\f3failed to write temporary file \"%s\"", tmpname);
         return 0;
     }
 
