@@ -1551,7 +1551,7 @@ void setnext(char *mode, char *map)
         if(!strcmp(mode, modestrings[i]))
         {
             nextmode=i+GMODE_NUM;
-			string nm = ""; itoa(nm, nextmode);
+	        string nm = ""; itoa(nm, nextmode);
             callvote(SA_MAP, map, nm, "0");
             break;
         }

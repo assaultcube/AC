@@ -884,7 +884,6 @@ hashtable<const char *, package *> pendingpackages;
 
 // cubescript
 VARP(autodownload, 0, 1, 1);
-extern string homedir;
 
 void resetpckservers()
 {
@@ -1003,16 +1002,16 @@ int progress_callback(void *clientp, double dltotal, double dlnow, double ultota
 
 int processdownload(package *pck)
 {
-	string tmpname = "";
-	copystring(tmpname, findfile(path("tmp", true), "rb"));
+    string tmpname = "";
+    copystring(tmpname, findfile(path("tmp", true), "rb"));
     if(!pck->pending)
     {
         switch(pck->type)
         {
             case PCK_TEXTURE: case PCK_AUDIO:
             {
-				const char *pckname = findfile(path(pck->name, true), "w+");
-				preparedir(pckname);
+                const char *pckname = findfile(path(pck->name, true), "w+");
+                preparedir(pckname);
                 // with textures/sounds, the image/audio file itself is sent. Just need to copy it from the temporary file
                 if(!copyfile(tmpname, pckname)) conoutf(_("\f3failed to install"), pckname);
                 break;
