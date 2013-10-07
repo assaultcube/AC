@@ -21,13 +21,14 @@ rem remove source files (those are available in the source pkg)
 rmdir /S /Q %acdir%\source
 
 rem use assaultcube_release as launcher
+IF EXIST %acdir%\assaultcube_release.bat (
 del %acdir%\assaultcube.bat
 ren %acdir%\assaultcube_release.bat assaultcube.bat
+)
 
 rem copy shadow files
 copy /Y %workingacdir%\packages\models\playermodels\shadows.dat %acdir%\packages\models\playermodels\shadows.dat
-copy /Y %workingacdir%\packages\models\misc\gib01\shadows.dat %acdir%\packages\models\misc\gib01\shadows.dat
-copy /Y %workingacdir%packages\models\misc\gib02\shadows.dat %acdir%\packages\models\misc\gib02\shadows.dat
+copy /Y %workingacdir%\packages\models\misc\gib02\shadows.dat %acdir%\packages\models\misc\gib02\shadows.dat
 copy /Y %workingacdir%\packages\models\misc\gib03\shadows.dat %acdir%\packages\models\misc\gib03\shadows.dat
 copy /Y %workingacdir%\packages\models\pickups\akimbo\shadows.dat %acdir%\packages\models\pickups\akimbo\shadows.dat
 copy /Y %workingacdir%\packages\models\pickups\ammobox\shadows.dat %acdir%\packages\models\pickups\ammobox\shadows.dat
