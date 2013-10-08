@@ -165,25 +165,6 @@ find ./packages/maps/official/*.cgz | \
   xargs -i echo "securemap" {} | \
   sort -u >> ./config/securemaps.cfg
 
-# Set up ./config/releasefiles.cfg - just in-case:
-# We should be forcing good standards, so don't worry about upper-case
-# extensions or leaving stuff out that isn't normally in the configs.
-echo "... Generating ./config/releasefiles.cfg"
-find ./packages/audio/ambience ./packages/textures -type f \
-  -name "*.jpg" \
-  -o -name "*.png" \
-  -o -name "*.ogg" | \
-  grep -vE '(.svn|\/textures\/skymaps\/)' | \
-  gawk -F'\\./' '{print $2}' > ./config/releasefiles.cfg
-find ./packages/models/mapmodels/* -type d | \
-  grep -v ".svn" | \
-  gawk -F'\\./' '{print $2}' >> ./config/releasefiles.cfg
-find ./packages/textures/skymaps/* -type f -name "*.jpg" | \
-  grep -v ".svn" | \
-  gawk -F'_' '{print $1}' | \
-  sort -u | \
-  gawk -F'\\./' '{print $2}' >> ./config/releasefiles.cfg
-
 # Create the linux tarball:
 echo -e "\n... Creating the Linux tarball..."
 cd .. && mv $ACDIRFOLDERNAME AssaultCube_v$NEWACVERSION
