@@ -1,0 +1,114 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+    <meta name="robots" content="NOODP">
+    <meta name="author" content="Rabid Viper Productions">
+    <meta name="copyright" content="You may be able to redistribute this content under specific conditions.
+    Please read the licensing information, available @ http://assault.cubers.net/docs/license.html for the
+    conditions that would apply to what you may be redistributing.">
+    <title>AssaultCube Documentation :: Custom mods</title>
+    <link rel="stylesheet" type="text/css" href="css/main.css">
+    <link rel="stylesheet" type="text/css" href="css/docs.css">
+    <!--#include virtual="/SSI-HTML/docs/invisibility.html" -->
+    <link rel="shortcut icon" href="images/favicon.ico">
+  </head>
+  <body>
+    <div id="container">
+      <div id="docsheader">
+        AssaultCube Documentation
+      </div>
+      <div id="logo">
+        <a href="index.html"><img src="images/aclogo.png"
+        alt="AssaultCube" width="193px" height="81px"></a>
+      </div>
+      <div id="menubar">
+	<!--#include virtual="/SSI-HTML/docs/navigation_box_docs.html" -->
+	&nbsp;
+      </div>
+      <!--#include virtual="/SSI-HTML/docs/docswarn.html" -->
+      <div class="docsmain">
+        <div id="gohome">
+          <a href="index.html">Go to documentation index &#8629;</a>
+        </div>
+	<h2>Custom mods</h2>
+	<p>
+	  AssaultCube allows <span class="titletext" title="Anybody that releases changed files for AssaultCube">3rd
+	  party developers</span> to "MOD" the game by using the existing 
+	  AssaultCube engine/data for their own modifications, so long as they don't break any of the 
+	  <a href="license.html">license agreements</a> for the particular media they're modifying.
+	</p>
+	<p>
+	  However, many don't realise that you can release your MOD without needing to overwrite existing
+	  data (a.k.a: content replacement). The advantage of this is that it allows you to add MODS cleanly
+	  without placing the files inside the main AssaultCube directory. This means, that if you don't
+	  want to play AssaultCube using the MOD, or want to play AssaultCube using a different MOD, you
+	  can without having to install several copies of AssaultCube.
+	</p>
+	<p>
+	  How to set up a MOD in this way is quite easy. How it works, is when AssaultCube loads files for
+	  the game, it looks into several directories to find the files needed to load the game.
+	  This list of directories can be simply extended, by using the <a href="commandline.html#--mod">--mod argument</a>
+	  which lets you add a custom directory to recursively load additional files from.
+	</p>
+	<p>
+	  While using the <a href="commandline.html#--mod">--mod argument</a>, when AssaultCube looks for 
+	  any resources it will load all its normal files first, then it will check your MOD folders for
+	  additional files and if any of the filepaths in that folder match files that need to be loaded,
+	  AssaultCube will then load these MOD files, instead of the original files.
+	</p>
+	<p>
+	  IMPORTANT: Please ensure that if your users are using a "<a href="commandline.html#client--home">--home</a>"
+	  directory, that they extract the mod into that directory (rather than the main AssaultCube directory), or
+	  else it won't work.
+	</p>
+	<p>
+	  Please note: AssaultCube's <a href="license.html">main license</a> forbids redistributing a
+	  MOD with ALL of AssaultCube's original files, as AssaultCube's files use a variety of different
+	  licenses. If you want to modify and/or redistribute anything from AssaultCube, you MUST
+	  check each redistributed file's license allows you to do this in the way you are redistributing
+	  it. This is the main reason that the <a href="commandline.html#--mod">--mod argument</a> exists
+	  to begin with.
+	</p>
+	<h4>Example:</h4>
+	<p>
+	  Assume you want to create a mod that provides a customized HUD-gun; here's how you would create a mod directory:
+	</p>
+	<ol>
+	  <li>
+	    Create a "MOD" directory in the AssaultCube folder: <span class="code">./mods/MyMod1/</span>
+	  </li>
+	  <li>
+	    Inside the MOD directory, place your customized HUD-gun files, using a folder scheme that
+	    matches how it would normally be placed within AssaultCube's packaging: 
+	    <span class="code">./mods/MyMod1/packages/models/hudguns/assaultrifle.md3</span>
+	  </li>
+	  <li>
+	    Now to make AssaultCube aware of this mod you'll need to start AssaultCube with the argument
+	    <span class="code">--mod="mods/MyMod1"</code>.
+	  </li>
+	</ol>
+	<p>
+	  To start AssaultCube with the mod argument all the time, you can create your own AssaultCube launcher
+	  (this option is not available on Apple Mac OS X).
+	  Simply copy/paste the existing assaultcube.sh (Linux) or assaultcube.bat (Windows) file
+	  with a new filename. Then edit it with a notepad application.
+	</p>
+	<p>
+	  For Windows users, add your new <b>--mod</b> command line option to the end of the file.<br>
+	  For Linux users, add your new <b>--mod</b> command line option into the <b>CUBE_OPTIONS</b>
+	  line.
+	</p>
+      </div>
+      <div id="author">
+        <a href="license.html">&copy; Copyright, Rabid Viper Productions</a>
+      </div>
+      <div id="donatedocs">
+        <a href="http://sourceforge.net/p/actiongame/donate/">
+          We would be grateful for any donations considered towards AssaultCube
+        </a>
+      </div>
+      <!--#include virtual="/SSI-HTML/adsense_footer.html" -->
+    </div>
+  </body>
+</html>

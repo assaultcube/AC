@@ -1,0 +1,122 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+    <meta name="robots" content="NOODP">
+    <meta name="author" content="Rabid Viper Productions">
+    <meta name="copyright" content="You may be able to redistribute this content under specific conditions.
+    Please read the licensing information, available @ http://assault.cubers.net/docs/license.html for the
+    conditions that would apply to what you may be redistributing.">
+    <title>AssaultCube Documentation :: Player skins</title>
+    <link rel="stylesheet" type="text/css" href="css/main.css">
+    <link rel="stylesheet" type="text/css" href="css/docs.css">
+    <!--#include virtual="/SSI-HTML/docs/invisibility.html" -->
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <style type="text/css">
+    ul {
+      margin-left : -20px;
+      list-style-type : square;
+    }
+    </style>
+  </head>
+  <body>
+    <div id="container">
+      <div id="docsheader">
+        AssaultCube Documentation
+      </div>
+      <div id="logo">
+        <a href="index.html"><img src="images/aclogo.png"
+        alt="AssaultCube" width="193px" height="81px"></a>
+      </div>
+      <div id="menubar">
+	<!--#include virtual="/SSI-HTML/docs/navigation_box_docs.html" -->
+	&nbsp;
+      </div>
+      <!--#include virtual="/SSI-HTML/docs/docswarn.html" -->
+      <div class="docsmain">
+        <div id="gohome">
+          <a href="index.html">Go to documentation index &#8629;</a>
+        </div>
+	<h2>Player skins</h2>
+        <p>
+          This page covers implementation/use of custom playerskins (not how to create/edit a custom playerskin).
+          To learn how to edit a playerskin, please refer elsewhere.<br>
+          <b>Note:</b> You can use <span class="code" style="font-weight : bold;">./packages/models/playermodels/skin.jpg</span>
+          as a template for a new playerskin.
+        </p>
+	<p>
+          The AssaultCube playermodel/playerskin was originally created by Darren <i>“HitmanDaz[MT]”</i> Pattenden.
+        </p>
+        <p>
+          Under the <a href="http://actiongame.svn.sourceforge.net/viewvc/actiongame/trunk/ac/packages/models/playermodels/license.txt">license</a>
+          provided by him, you may use these models/skins for personal use only (i.e. NOT for commercial use).
+          This also means any derivatives/modifications you make MUST also be licensed to ONLY allow personal use. We recommend
+          including the <span class="code" style="font-weight : bold;">./packages/models/playermodels/license.txt</span>
+          file whenever you redistribute a new player skin.
+        </p>
+        <h4>Single-name nickname skins</h4>
+        <p>
+          Single-name nickname skins allow you to assign <b>ONE</b> specific skin to <b>ONE</b> specific player's name.
+          This is great if you have, for example, an adversary in the game who you want to be able to always recognise
+          easily, so you can specifically target them.
+        </p>
+        <p>
+          To implement this, add your new skin file into the folder: <b>./packages/models/playermodels/custom</b> and then 
+          name it as below (note: nicknames and filenames are case sensitive).
+        </p>
+        <ul>
+          <li>
+            <b>[nickname]</b><i>_ffa.jpg</i> (for non-team modes. If this file is missing, one of the CLA or RVSF files will be automatically used).
+          </li>
+          <li>
+            <b>[nickname]</b><i>_cla.jpg</i> (For team CLA).
+          </li>
+          <li>
+            <b>[nickname]</b><i>_rvsf.jpg</i> (for team RVSF).
+          </li>
+        </ul>
+        <h4>Multi-name nickname skins</h4>
+        <p>
+          Multi-name nickname skins search for key words in a nickname instead. This is especially useful if you want
+          all of your clan to display the same skin, rather than a single person.
+        </p>
+        <p>
+          To implement this, add your new skin file into the folder: <b>./packages/models/playermodels/custom</b> and then 
+          name it as below (note: nicknames and filenames are case sensitive. Also note how there are <u>*TWO*</u>
+          underscores, not one!)
+        </p>
+        <ul>
+          <li>
+            <b>[nickname]</b><i>__ffa.jpg</i> (for non-team modes. If this file is missing, one of the CLA or RVSF files will be automatically used).
+          </li>
+          <li>
+            <b>[nickname]</b><i>__cla.jpg</i> (For team CLA).
+          </li>
+          <li>
+            <b>[nickname]</b><i>__rvsf.jpg</i> (for team RVSF).
+          </li>
+        </ul>
+        <p>
+          If you can't see your custom skins in-game, make sure you've selected the correct option under<br />
+          <b>Settings</b> &#8658; <b>Gameplay settings</b> &#8658; <b>Custom player skins</b>
+        </p>
+        <h4>File replacement</h4>
+        <p>
+          Some players prefer file replacement, where you simply replace the existing skin file with your new skin;
+          this way, anybody using the same skin that you replaced, would appear with your new skin.
+          This isn't recommended. If you do decide to do this however, it is best to implement it as a <a href="mods.html">mod</a>
+          so that none of your previous files are missing.
+        </p>
+      </div>
+      <div id="author">
+        <a href="license.html">&copy; Copyright, Rabid Viper Productions</a>
+      </div>
+      <div id="donatedocs">
+        <a href="http://sourceforge.net/p/actiongame/donate/">
+          We would be grateful for any donations considered towards AssaultCube
+        </a>
+      </div>
+      <!--#include virtual="/SSI-HTML/adsense_footer.html" -->
+    </div>
+  </body>
+</html>

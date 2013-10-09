@@ -1,0 +1,25 @@
+/* "invisibility.css" for the AssaultCube documentation.	*/
+/* Written by:	Rabid Viper Productions				*/
+
+/* Use this file to hide elements on the website, that you wish	*/
+/* normally to be visible when viewed offline.			*/
+/* If you wish to do the same, but vice-versa, just use SSI to  */
+/* gain the effect, instead.					*/
+
+/* How to use:							*/
+/*  Add the below SSI comment in the head of the webpage:	*/
+/*    <!--#include virtual="/SSI-HTML/visibility.html" -->	*/
+
+/* When the page is opened locally, your browser will interpret	*/
+/* the line as a comment and NOT open this visibility.css file.	*/
+/* However, when the server processes the page, it will add	*/
+/* this CSS file into the page.					*/
+
+/* You may be able to redistribute this content under specific 	*/
+/* conditions. Please read the licensing information, available	*/
+/* at http://assault.cubers.net/docs/license.html for the 	*/
+/* conditions that would apply to what you may be redistributing*/
+
+#docsheader {
+visibility : hidden;
+}

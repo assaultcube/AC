@@ -1,0 +1,246 @@
+/* Main CSS file for assault.cubers.net					*/
+
+/* Written by:	Rabid Viper Productions					*/
+
+/* You may be able to redistribute this content under specific 		*/
+/* conditions. Please read the licensing information, available		*/
+/* at http://assault.cubers.net/docs/license.html for the 		*/
+/* conditions that would apply to what you may be redistributing.	*/
+
+body {
+margin : 0;
+background : #222222 url('../images/bodybg.png') repeat-y center top;
+background-attachment : fixed;
+font-family : Verdana, Arial, Helvetica, sans-serif;
+color : #909090;
+}
+img {
+border : none;
+}
+a:link, a:visited {
+color : #909090;
+}
+a:hover, a:active {
+text-decoration : none;
+color : #c0c0c0;
+}
+h4 {
+margin : 24px 0 12px 0;
+padding : 4px 8px;
+}
+#container {
+margin : 0 auto 0 auto;
+width : 880px;
+}
+#logo {
+position : absolute;
+padding-left : 4px;
+}
+#menubar {
+margin : 0 auto 0 auto;
+padding-top : 81px;
+padding-bottom : 1px;
+background : url('../images/cla-rvsf.png') top right no-repeat;
+border-bottom : 1px solid #555555;
+text-align : left;
+font-size : 14px;
+white-space : nowrap;
+}
+#menubar a:link, #menubar a:visited {
+font-weight : bold;
+color : #909090;
+text-decoration : none;
+}
+#menubar a:hover, #menubar a:active {
+color : #c0c0c0;
+}
+#main {
+padding : 0 5px;
+padding-bottom : 10px;
+margin-top : 15px;
+margin-bottom : 15px;
+float : left;
+width : 640px;
+background-color : #101010;
+text-align : left;
+font-size : 13px;
+}
+#download {
+float : right;
+clear : right;
+margin-top : 15px;
+height : 300px;
+width : 220px;
+background-color : #101010;
+text-align : center;
+font-size : 15px;
+}
+#download td {
+padding : 4px;
+}
+#screenshot {
+text-align : center;
+}
+.dottedline {
+margin : 0;
+border-bottom : 2px dotted #555555;
+line-height : 0;
+}
+#howdoi {
+float : right;
+clear : right;
+margin-top : 10px;
+padding : 0 5px;
+height : 395px;
+width : 210px;
+background-color : #101010;
+text-align : left;
+font-size : 13px;
+}
+.downloadlink td a:link, .downloadlink td a:visited {
+text-decoration : none;
+}
+.downloadlink td a:hover, .downloadlink td a:active {
+text-decoration : underline;
+}
+.downloadlink {
+margin : auto auto;
+margin-top : 10px;
+text-align : left;
+}
+h2 {
+margin : 0;
+padding-top : 10px;
+text-align : center;
+}
+h3 {
+margin : 0;
+padding-top : 5px;
+text-align : center;
+font-size : 18px;
+}
+#nutshell {
+list-style-type : square;
+}
+.titletext {
+border-bottom : 1px dashed;
+cursor : help;
+display : inline;
+}
+#author {
+float : right;
+clear : right;
+width : 220px;
+height : 30px;
+margin-top : 5px;
+text-align : right;
+font-size : 10px;
+}
+#author a:link, #author a:visited {
+text-decoration : none;
+font-style : italic;
+}
+#author a:hover, #author a:active {
+text-decoration : underline;
+}
+#hotlinks {
+float : right;
+clear : right;
+width : 220px;
+height : 270px;
+margin-top : 10px;
+background-color : #101010;
+text-align : left;
+font-size : 13px;
+}
+#hotlinks ul {
+margin-top : 5px;
+list-style-type : square;
+}
+#socialmedia {
+float : right;
+clear : right;
+width : 220px;
+height : 175px;
+margin-top : 10px;
+background-color : #101010;
+text-align : left;
+font-size : 13px;
+}
+#socialmedia div {
+text-align : center;
+padding : 3px;
+}
+.errormain {
+padding : 0 5px;
+padding-bottom : 25px;
+margin-top : 15px;
+background-color : #101010;
+text-align : center;
+font-size : 13px;
+}
+.code {
+font-family : "Courier New", Courier, monospace;
+}
+.table1 {
+text-align : center;
+}
+.table1 tr td {
+vertical-align : text-top;
+}
+.tabletxt {
+padding : 10px 35px;
+vertical-align : text-top;
+text-align : left;
+}
+.tabletxt2 {
+padding : 5px 10px;
+vertical-align : text-top;
+text-align : left;
+}
+.releasedate {
+font-size : 75%;
+}
+.resources td {
+padding : 4px 16px 2px 4px;
+margin : 0;
+width : 150px;
+vertical-align : text-top;
+}
+#donate {
+float : right;
+clear : right;
+width : 210px;
+height : 180px;
+margin-top : 10px;
+padding : 0 5px;
+background-color : #101010;
+text-align : left;
+font-size : 13px;
+}
+.adsense200x200 {
+float : right;
+clear : right;
+margin : 5px;
+}
+.sponsors {
+margin-bottom : 2px;
+text-align : center;
+font-size : 10px;
+font-style : italic;
+text-decoration : underline;
+}
+.adsensefooter {
+text-align : center;
+}
+.footer1ad {
+margin : 0 25px;
+}
+.footer2ad {
+margin : 0 25px;
+}
+.adsense160x600 {
+margin : 0 30px;
+float : right;
+clear : right;
+}

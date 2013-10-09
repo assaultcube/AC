@@ -1,0 +1,367 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+    <meta name="robots" content="NOODP">
+    <meta name="author" content="Rabid Viper Productions">
+    <meta name="copyright" content="You may be able to redistribute this content under specific conditions.
+    Please read the licensing information, available @ http://assault.cubers.net/docs/license.html for the
+    conditions that would apply to what you may be redistributing.">
+    <title>AssaultCube Documentation :: Map editing - Interface &amp; controls</title>
+    <link rel="stylesheet" type="text/css" href="css/main.css">
+    <link rel="stylesheet" type="text/css" href="css/docs.css">
+    <!--#include virtual="/SSI-HTML/docs/invisibility.html" -->
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="stylesheet" type="text/css" href="css/fancytable.css">
+    <style type="text/css">
+      table, tr, td {
+        text-align : left;
+        vertical-align : middle;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="container">
+      <div id="docsheader">
+        AssaultCube Documentation
+      </div>
+      <div id="logo">
+        <a href="index.html"><img src="images/aclogo.png"
+        alt="AssaultCube" width="193px" height="81px"></a>
+      </div>
+      <div id="menubar">
+	<!--#include virtual="/SSI-HTML/docs/navigation_box_docs.html" -->
+	&nbsp;
+      </div>
+      <!--#include virtual="/SSI-HTML/docs/docswarn.html" -->
+      <div class="docsmain">
+        <div id="gohome">
+          <a href="index.html">Go to documentation index &#8629;</a>
+        </div>
+	<h2>Map editing - Interface &amp; controls</h2>
+	<p>
+	  Learning and understanding the interface and controls are the first step to map editing...
+	</p>
+	<h3>The interface</h3>
+	<table style="margin-top : 10px;">
+	  <tr>
+            <td><img src="images/editmode-grid.jpg" alt="The grid"></td>
+            <td>
+              <b>The cube grid</b>
+              <p>
+                This is shown as a white grid of squares drawn where ever you point. 
+                <br>Each of these small squares is a single cube. The cubes in AssaultCube are known as "geometry".
+                The bigger blue squares, indicate a selection of 8x8 cubes (to help make map editing easier).
+              </p>                        
+            </td>
+          </tr>
+          <tr>
+            <td><img src="images/editmode-heightfield.jpg" alt="Heightfield cubes"></td>
+            <td>
+              <b>Heightfield cubes</b><br>
+              <p>
+                These are the light green cubes in the grid.
+                <br>These cubes indicate heightfields, which will be explained later <a href="mapediting2.html#heightfield">here</a>.
+              </p>                        
+            </td>
+          </tr>
+          <tr>
+            <td><img src="images/editmode-selector.jpg" id="selector" alt="Cube selector"></td>
+            <td>
+              <b>Cube selector</b><br>
+              <p>
+                This appears as a small white box with a red mini-square in the corner. 
+                It will appear in the middle of the screen and you can use it to select geometry, a bit like a crosshair.
+                <br>The red mini-square indicates which corner of a cube you are manipulating if you're using 
+                <a href="mapediting2.html#heightfield">heightfields</a>, or where your <a href="mapediting3.html">entity</a> 
+                will be placed if you're creating an entity.
+              </p>                        
+            </td>
+          </tr>
+          <tr>
+            <td><img src="images/editmode-entity.jpg" id="sparkles" alt="Entity sparkles"></td>
+            <td>
+              <b>Entity sparkles</b><br>
+              <p>
+                These are shown as coloured sparkly dots. They are known as "entities", which will be explained later 
+                <a href="mapediting3.html">here</a>. Each entity is colour coded:
+              </p>
+              <ul>
+                <li>The nearest entity will be blue.</li>
+                <li><a href="mapediting3.html#light">Light entities</a> will be white.</li>
+                <li>
+                  <a href="mapediting3.html#pickup">Item pickups</a> will be red
+                  (for weapons) or yellow (for armour/health).
+                </li>
+                <li><a href="mapediting3.html#spawn">Spawn points</a> will be green.</li>
+                <li>
+                  <a href="mapediting3.html#models">Mapmodels</a> and 
+                  <a href="mapediting3.html#sounds">map sounds</a> will be magenta.
+                </li>
+                <li><a href="mapediting3.html#ctf">CTF flags</a> will be turquoise.</li>
+                <li>
+                  <a href="mapediting3.html#clips">Clip boxes</a> and 
+                  <a href="mapediting3.html#ladders">ladders</a> will be grey.
+                </li>
+                <li><a href="mapediting3.html#sounds">Map sounds</a> in magenta.</li>
+              </ul>
+            </td>
+          </tr>
+          <tr>
+            <td><img src="images/editmode-nearestent.jpg" alt="Nearest entity text"></td>
+            <td>
+              <b>"Closest entity" text</b><br>
+              <p>
+                This is the white writing along the bottom. It will tell you the location of the closest entity and its properties.
+                <b>Note:</b> The sparkly of the closest entity will show up blue.
+              </p>                        
+            </td>
+          </tr>
+          <tr>
+            <td><img src="images/editmode-clipbox.jpg" alt="Yellow clip box"></td>
+            <td>
+              <b>Yellow clip box</b><br>
+              <p>
+                These boxes will be shown where clip entities are used and depict the total size of the clip.
+                These clip boxes stop players and grenades passing through.
+                See the <a href="mapediting3.html#clips">clips section</a> on the entities page for more information.
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td><img src="images/editmode-plclipbox.jpg" alt="Purple clip box"></td>
+            <td>
+              <b>Purple clip box</b><br>
+              <p>
+                These boxes will be shown where clip entities are used and depict the total size of the clip.
+                These clip boxes stop players passing through, however, still allow grenades to pass.
+                See the <a href="mapediting3.html#clips">clips section</a> on the entities page for more information.
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td><img src="images/editmode-arrow.jpg" alt="Playerstart arrows"></td>
+            <td>
+              <b>Playerstart arrows</b><br>
+              <p>
+                These arrows show up for any entity that is a "playerstart". This is to help you judge the correct
+                direction for each player to face when they spawn.
+              </p>
+            </td>
+          </tr>
+        </table>
+        <p>
+          To get a feel for editmode, press E and float around. Try clicking and dragging the small white box at your crosshair over 
+          some cubes (you will see a red box over what you are selecting). This is how you select geometry.
+        </p>
+        <h3 id="controls">Map editing controls</h3>
+        <p>
+          Below are the controls that get used in map-editing, you will use most of these controls 
+          when creating a map, so it's good to learn them. Note: These controls can ONLY be used in map editing mode.
+        </p>
+        <h4>Changing geometry</h4>
+        <table>
+          <tr>
+            <td style="width : 60px;" class="head01">Control</td>
+            <td class="head01">Function</td>
+            <td rowspan="9" style="width : 10px; border-top : 1px solid #101010; border-bottom : 1px solid #101010;">&nbsp;</td>
+            <td style="width : 60px;" class="head01">Control</td>
+            <td class="head01">Function</td>
+          </tr>
+          <tr>
+            <td>[</td>
+            <td>Moves cubes in the floor downwards.</td>
+            <td>]</td>
+            <td>Moves cubes in the floor upwards.</td>
+          </tr>
+          <tr>
+            <td>O</td>
+            <td>Moves cubes in the ceiling downwards.</td>
+            <td>P</td>
+            <td>Moves cubes in the ceiling upwards.</td>
+          </tr>
+          <tr>
+            <td>U</td>
+            <td>Undoes the last action (only applies to geometry).</td>
+            <td>F</td>
+            <td>Makes selected cubes a solid.</td>
+          </tr>
+          <tr>
+            <td>G</td>
+            <td>Makes selected cubes a space/non-heightfield.</td>
+            <td>K</td>
+            <td>Makes selected cubes a corner.</td>
+          </tr>
+          <tr>
+            <td>C</td>
+            <td>Copy selected cubes.</td>
+            <td>V</td>
+            <td>Pastes copied cubes. Note: It pastes from the upper corner of the red mini-square.</td>
+          </tr>
+          <tr>
+            <td>,</td>
+            <td>Equalize the floor.</td>
+            <td>.</td>
+            <td>Equalize the ceiling.</td>
+          </tr>
+          <tr>
+            <td>H</td>
+            <td>Makes the floor a heightfield.</td>
+            <td>I</td>
+            <td>Makes the ceiling a heightfield.</td>
+          </tr>
+          <tr>
+            <td>9</td>
+            <td>
+              Manipulates upwards the corner of a cube where the red mini-square is positioned. 
+              This only works if the cube is a heightfield.
+            </td>
+            <td>8</td>
+            <td>
+              Manipulates downwards the corner of a cube where the red mini-square is positioned. 
+              This only works if the cube is a heightfield.
+            </td>
+          </tr>
+        </table>
+        <h4>Changing textures</h4>
+        <table>
+          <tr>
+            <td style="width : 60px;" class="head01">Control</td>
+            <td class="head01">Function</td>
+            <td rowspan="5" style="width : 10px; border-top : 1px solid #101010; border-bottom : 1px solid #101010;">&nbsp;</td>
+            <td style="width : 60px;" class="head01">Control</td>
+            <td class="head01">Function</td>
+          </tr>
+          <tr>
+            <td>Home</td>
+            <td>Browses forward through wall textures.</td>
+            <td>End</td>
+            <td>Browses backward through wall textures.</td>
+          </tr>
+          <tr>
+            <td><span class="titletext" title="On the keypad only">7</span></td>
+            <td>Browses forward through upper-wall textures.</td>
+            <td><span class="titletext" title="On the keypad only">4</span></td>
+            <td>Browses backward through upper-wall textures.</td>
+          </tr>
+          <tr>
+            <td>Insert</td>
+            <td>Browses forward through floor textures.</td>
+            <td>Delete</td>
+            <td>Browses backward through floor textures.</td>
+          </tr>
+          <tr>
+            <td>Page Up</td>
+            <td>Browses forward through ceiling textures.</td>
+            <td>Page Down</td>
+            <td>Browses backward through ceiling textures.</td>
+          </tr>
+        </table>
+        <h4 id="mouse">Mouse controls</h4>
+        <table>
+          <tr>
+            <td style="width : 60px;" class="head01">Control</td>
+            <td class="head01">Function</td>
+            <td rowspan="7" style="width : 10px; border-top : 1px solid #101010; border-bottom : 1px solid #101010;">&nbsp;</td>
+            <td style="width : 60px;" class="head01">Control</td>
+            <td class="head01">Function</td>
+          </tr>
+          <tr>
+            <td>Left-click</td>
+            <td>Allows you to select cubes. Hold CTRL for multiple selections.</td>
+            <td>Right-click</td>
+            <td>Show the editing menu.</td>
+          </tr>
+          <tr>
+            <td>Scrolling</td>
+            <td>Scrolling will move cubes up/down, depending on the direction you look.</td>
+            <td>Hold <b>Q</b> and scroll</td>
+            <td>
+              This will manipulate the corner of a cube where the red dot is positioned up/down. 
+              Only works if the cube is a heightfield.
+            </td>
+          </tr>
+          <tr>
+            <td>Hold <b>Z</b> and scroll</td>
+            <td>Scrolls forward/backwards through textures on the floor/ceiling, depending on the direction you look.</td>
+            <td>Hold <b>X</b> and scroll</td>
+            <td>Scrolls forward/backwards through textures on the wall/upper-wall, depending on the direction you look.</td>
+          </tr>
+          <tr>
+            <td>Hold <b>1</b> and scroll</td>
+            <td>Change the first attribute value of the closest entity.</td>
+            <td>Hold <b>2</b> and scroll</td>
+            <td>Change the second attribute value of the closest entity.</td>
+          </tr>
+          <tr>
+            <td>Hold <b>3</b> and scroll</td>
+            <td>Change the third attribute value of the closest entity.</td>
+            <td>Hold <b>4</b> and scroll</td>
+            <td>Change the fourth attribute value of the closest entity.</td>
+          </tr>
+          <tr>
+            <td>Hold <b>M</b> and scroll</td>
+            <td>Move the closest entity in the axis of the direction you look.</td>
+            <td>&nbsp;</td>
+            <td>&nbsp;</td>
+          </tr>
+        </table>
+        <h4>Misc</h4>
+        <table>
+          <tr>
+            <td style="width : 60px;" class="head01">Control</td>
+            <td class="head01">Function</td>
+            <td rowspan="5" style="width : 10px; border-top : 1px solid #101010; border-bottom : 1px solid #101010;">&nbsp;</td>
+            <td style="width : 60px;" class="head01">Control</td>
+            <td class="head01">Function</td>
+            <td rowspan="5" style="width : 10px; border-top : 1px solid #101010; border-bottom : 1px solid #101010;">&nbsp;</td>
+            <td style="width : 60px;" class="head01">Control</td>
+            <td class="head01">Function</td>
+          </tr>
+          <tr>
+            <td>E</td>
+            <td>Toggle edit mode.</td>
+            <td>Backspace</td>
+            <td>Delete entity.</td>
+            <td>;</td>
+            <td><a href="reference.xml#identifier_entset">Entset</a></td>
+          </tr>
+          <tr>
+            <td>L</td>
+            <td>Shows the lighting menu.</td>
+            <td>F5</td>
+            <td>Toggle <a href="reference.xml#identifier_toggleocull">occlusion</a> on/off.</td>
+            <td>F6</td>
+            <td>Toggle <a href="reference.xml#identifier_showmip">showmip</a> on/off.</td>
+          </tr>
+          <tr>
+            <td>-</td>
+            <td>Copies nearest entity into memory.</td>
+            <td>=</td>
+            <td>Pastes nearest entity out of memory.</td>
+            <td>7</td>
+            <td>Selects the next closest entity, to the one currently selected.</td>
+          </tr>
+          <tr>
+            <td>F7</td>
+            <td>Toggle <a href="reference.xml#identifier_fullbright">fullbright</a> on/off.</td>
+            <td>&nbsp;</td>
+            <td>&nbsp;</td>
+            <td>&nbsp;</td>
+            <td>&nbsp;</td>
+          </tr>
+        </table>
+        <br><h4 style="text-align : right;">The next step? Go to <a href="mapediting2.html">Map editing: Begin!</a> &#8594;</h4>
+      </div>
+      <div id="author">
+        <a href="license.html">&copy; Copyright, Rabid Viper Productions</a>
+      </div>
+      <div id="donatedocs">
+        <a href="http://sourceforge.net/p/actiongame/donate/">
+          We would be grateful for any donations considered towards AssaultCube
+        </a>
+      </div>
+      <!--#include virtual="/SSI-HTML/adsense_footer.html" -->
+    </div>
+  </body>
+</html>

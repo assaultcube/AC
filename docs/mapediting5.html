@@ -1,0 +1,327 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+    <meta name="robots" content="NOODP">
+    <meta name="author" content="Rabid Viper Productions">
+    <meta name="copyright" content="You may be able to redistribute this content under specific conditions.
+    Please read the licensing information, available @ http://assault.cubers.net/docs/license.html for the
+    conditions that would apply to what you may be redistributing.">
+    <title>AssaultCube Documentation :: Map editing - Config files</title>
+    <link rel="stylesheet" type="text/css" href="css/main.css">
+    <link rel="stylesheet" type="text/css" href="css/docs.css">
+    <!--#include virtual="/SSI-HTML/docs/invisibility.html" -->
+    <link rel="shortcut icon" href="images/favicon.ico">
+  </head>
+  <body>
+    <div id="container">
+      <div id="docsheader">
+        AssaultCube Documentation
+      </div>
+      <div id="logo">
+        <a href="index.html"><img src="images/aclogo.png"
+        alt="AssaultCube" width="193px" height="81px"></a>
+      </div>
+      <div id="menubar">
+	<!--#include virtual="/SSI-HTML/docs/navigation_box_docs.html" -->
+	&nbsp;
+      </div>
+      <!--#include virtual="/SSI-HTML/docs/docswarn.html" -->
+      <div class="docswarn">
+        <b style="color : #750000;">NOTE:</b> This page of the documentation has been quickly converted from 
+        <a href="http://actiongame.svn.sourceforge.net/viewvc/actiongame/tags/v01_10_04/docs/README.html?revision=5882">AssaultCubes old 
+        README</a> and has not yet been checked properly for mistakes/weird stylying/invalid markup/inconsistancies/etc.
+        We're on it though, check back soon!
+      </div>
+      <div class="docsmain">
+        <div id="gohome">
+          <a href="index.html">Go to documentation index &#8629;</a>
+        </div>
+	<h2>Map editing - Config files</h2>
+	
+	<!-- Remember to remove docwarning when fixed up! -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<p>
+     When you first start a map, be sure to use the <b>/newmap</b> command, rather than editing 
+     an existing map.
+     Issuing the <i>newmap</i> command ensures that your map uses the default map settings, rather than 
+     using the existing configuration for that map (if it did use the existing configuration, upon 2nd load, the map will become messed up).
+   </p>
+<p>
+      Map config files will <b>ONLY</b> be needed if you want to utilize any of the below:
+    </p>
+<ul>
+       <li>
+         <a href="#textures" shape="rect">Custom textures</a>
+       </li>
+       <li>
+         <a href="#models" shape="rect">Custom mapmodels</a>
+       </li>
+       <li>
+         <a href="#skymap" shape="rect">Custom skymaps</a>
+       </li>
+       <li>
+         <a href="#fog" shape="rect">Custom fog distances and colours</a>
+       </li>
+	   <li>
+	     <a href="#shadows" shape="rect">Changing the angle shadow stencils are drawn</a>
+	   </li>
+       <li>
+         <a href="#sounds" shape="rect">Ambient sounds</a>
+       </li>
+       <li>
+         <a href="#loadnotexture" shape="rect">Using the "loadnotexture" command</a>
+       </li>
+     </ul>
+<p>
+     The first step to using any of the above in your map is copying the 
+     <a href="../config/default_map_settings.cfg" shape="rect">/config/default_map_settings.cfg</a> file into your 
+     <a href="../packages/maps" shape="rect">/packages/maps</a> folder
+     and then renaming it to the same name as what your map will be called (i.e. foobar.cfg). 
+     Whenever your map is loaded, it will look for your maps config file (which it can only 
+     find if it's named the same as your map). If it can't find 
+     the config file for your map, it will automatically load 
+     <a href="../config/default_map_settings.cfg" shape="rect">the default config</a> instead.
+   </p>
+<p>
+     <b>Warning:</b> <u>PLEASE</u> be aware when adding custom content to your map, to make sure you use 
+     <u>LOWERCASE</u> through out the config file and make sure file names of your custom content also use lower case.
+     If you don't, some operating systems such as Linux, will not load the commands or files due to the fact that an
+     uppercase letter in Linux is counted as a completely different letter to a lower case letter. So it is absolutely
+     vital that the filenames match (even in the file-name extension!)
+   </p>
+<p>
+     <b>Warning:</b> Don't use single slashes in the config file to issue commands, as the commands won't work if you do.
+   </p>
+<p>
+     <b>Note:</b> You may see "comments" in the config files. Comments are lines of writing in the config file that
+     have had 2 forward-slashes put in front of them. Using comments is a good way to advise the reader of the config 
+     file about things in the config file. Comments are ignored by the AssaultCube engine. Below is an example of a comment:<br clear="none"/>
+     <b>// This is a comment!</b>
+   </p>
+<h2 id="textures">Custom textures</h2>
+<p>
+     When you want to add custom textures to your config file, be sure that the textures tile seamlessly.
+     This means that your texture, when lined up against itself in all directions, should match itself.
+   </p>
+<p>
+     Preferably, textures should be 256x256 pixels. But, each cube in AssaultCube measures 32x32 pixels, so, as
+     long as the image is a multiple of 32 pixels and doesn't take up too much space, the texture should work fine. If 
+     the image is not a multiple of 32 pixels, it will not fit on the cube properly and will be unaligned and look strange.
+     When creating/using custom textures, remember that too much detail/size could make that texture in the map too laggy!
+   </p>
+<p>
+     You will notice in the default config a command "texturereset". This ensures that all the textures
+     in your map are always shown in the correct order, so make sure you leave this where it is! Textures are in a numbered
+     list and the "texturereset" command resets that list, so that your map is not using the last maps texture list. 
+     The first and second textures in the list are hardcoded as the 
+     skymap and water textures.
+   </p>
+<p>
+     You are allowed to add new textures anywhere below where it says 
+     <b>// Texture #1</b> Putting it above this will
+     create some problems. If you are just starting your map, it would be fine to replace textures in the list, or slot
+     your textures anywhere between the current texture list. However, if you have already started your map and are just 
+     now adding a new texture, it would be wise to place your texture at the very end of the list, so that your map does
+     not get messed up!
+   </p>
+<p>
+     To add a new texture, use this format: <b>texture 0 "./raboof/foobar.jpg"</b> on a single line. 
+     Replace "raboof" with the folder name and "foobar" with the name of the image. Be sure to put all your content
+     inside a separate folder so that it does not get mixed in with everyone elses content. 
+   </p>
+<p>
+     <b>Note:</b> All textures <b>MUST</b> be placed inside <a href="../packages/textures" shape="rect">/packages/textures/</a>.
+   </p>
+<p>
+     <b>Warning:</b> There is a texture command in the default config that has the comment "dummy" after it. 
+     Do not touch or remove this texture command as it will break some configurations.
+   </p>
+<p>
+     <b>Warning:</b> There can only be maximum of 256 textures in your map! Any more won't be loaded.
+   </p>
+<h2 id="models">Custom mapmodels</h2>
+<p>
+     To use your own custom mapmodels in AssaultCube, all models must be of either md2 or md3 format and 
+     be placed inside <a href="../packages/models/mapmodels" shape="rect">/packages/models/mapmodels</a>. You will need
+     to create a separate folder for your mapmodel. Inside it, you will need to place the model with the name "tris" 
+     (and the .md2 or .md3 extension). You will also need to place the skin in the same folder with the name "skin.jpg".
+   </p>
+<p>
+     You will see a command called "mapmodelreset". All mapmodels can be placed below this. The mapmodelreset command 
+     ensures that the mapmodels in the numbered list are reset, meaning that everything appears as it should, rather than 
+     using the last maps mapmodel numbering.
+   </p>
+<p>
+     To add a mapmodel, use this format: <b>mapmodel X Y Z 0 "model-folder"</b> on a single line.
+     Replace "model-folder" with the name of the folder that the mapmodel is in (for example, if the file is
+     in /packages/models/mapmodels/tree, you would put "tree" there).|
+   </p>
+<p>
+      Mapmodels use an invisible force to make them feel solid (i.e. you colide against them, rather than falling through
+      them). This invisible force is called a "clip".
+    </p>
+<ul>
+     <li>
+       <b>W:</b> Defines the total width/length (in radius) that the invisible force (clip) should take up 
+       from the centre of the mapmodel.
+     </li>
+     <li>
+       <b>X:</b> Defines the total height that the invisible force (clip) should take up.
+     </li>
+     <li>
+       <b>Y:</b> Defines the initial height off the ground you would like the mapmodel to appear.
+     </li>
+     <li>
+       <b>0:</b> The last zero on the mapmodels clipping should be left alone. Do not touch this value and leave it assigned at zero. Changing or 
+       removing this number will break the mapmodel command.
+     </li>
+   </ul>
+<p>
+     <b>Note:</b> The mapmodel number is defined by where the mapmodel is placed inside the mapmodel list, i.e. the 21st
+     mapmodel command will be the 21st mapmodel
+   </p>
+<p>
+     <b>Tip:</b> If you define the mapmodel to have 0 clipping of the width/length but give it a height 
+     clipping (for example, a clipping of 8 high)
+     then that model will actually take up the width/length of 1 single cube with the height you defined
+     (if you define both to be 0, then it won't be clipped)
+   </p>
+<h2 id="skymap">Custom skymaps</h2>
+<p>
+      All skymaps should be placed in their own individual folder (based on the author) inside
+      <a href="../packages/textures/skymaps/" shape="rect">packages/textures/skymaps/</a>. <br clear="none"/>
+      Six pieces make up a skymap and should be named as below (replace "foobar" with the name of the skymap):
+    </p>
+<ul>
+       <li>
+         <b>foobar_bk.jpg</b> - For the back part of the skymap.
+       </li> 	
+       <li>
+         <b>foobar_dn.jpg</b> - For the bottom part of the skymap.
+       </li> 	
+       <li>
+         <b>foobar_ft.jpg</b> - For the front part of the skymap.
+       </li> 	
+       <li>
+         <b>foobar_lf.jpg</b> - For the left part of the skymap.
+       </li> 	
+       <li>
+         <b>foobar_rt.jpg</b> - For the right part of the skymap.
+       </li> 	
+       <li>
+         <b>foobar_up.jpg</b> - For the top part of the skymap.
+       </li>
+     </ul>
+<p>
+     Look for the part of the config with the commands "loadsky". Delete or "comment out" the current skymap
+     commands there so they don't conflict with your skymap. Then, on a single line, use this format to add your skymap:
+     <b>loadsky "textures/skymaps/foobars-skymaps/foobar1"</b> (where it says "<i>foobars-skymaps</i>", replace that with your folders name, where it 
+     says "<i>foobar1</i>", replace that with the skymap name). 
+   </p>
+<p>
+     <b>Note:</b> There are a selection of skymaps already available for you to use if needed. Just uncomment the one you want (comment the others).
+   </p>
+<p>
+     <b>Note:</b> The skymap is hardcoded as the first texture, in the texture list.
+   </p>
+<h2 id="fog">Custom fog distances and colours</h2>
+<p>
+     Fog is used in AssaultCube to help improve performance on some computers. However, it's not completely necessary
+     and as long as it doesn't make your map too laggy and will improve your maps look, then you can make the fog appear
+     at different distances and colours to add to your maps appearance.
+   </p>
+<p>
+     To change the distance at which fog will appear, add this command to a single line in your config file: <b>fog X</b><br clear="none"/>
+     Replace <b>X</b> with the distance at which you want the fog to start appearing (maximum of 1024, default is 160).
+   </p>
+<p>
+     To change the colour of the fog, add this command to a single line in your config file: <b>fogcolour X</b><br clear="none"/>
+     Replace <b>X</b> with the appropriate hexadecimal colour code.
+   </p>
+<h2 id="shadows">Changing the angle shadow stencils are drawn</h2>
+<p>
+     Changing the angle at which shadows stencils are drawn can have some nice effects on lighting in your map. 
+	 To change the angle, first experiment in the map by typing <i>"/shadowyaw <b>D</b>"</i> (replace "<b>D</b>"
+	 with an angle between 0 and 360). When you have found the appropriate angle you wish to use, simply add the command
+	 <b>shadowyaw D</b> to a single line in your configuration file (replacing "<b>D</b>"
+	 with an angle between 0 and 360).
+	</p>
+<h2 id="sounds">Ambient sounds</h2>
+<p>
+     To enable custom ambient sounds in your map, all sound files must be either <i>.wav</i> or <i>.ogg</i> format.
+     All files need to be put in the <a href="../packages/audio/sounds" shape="rect">/packages/audio/sounds</a> folder. Be
+     sure to put your sound files inside your own individual folder.
+   </p>
+   <p>
+     You will see a command called "mapsoundreset". All mapsounds can be placed below this. The mapsoundreset command ensures 
+	that the mapsounds in the numbered list are reset, meaning that everything sounds as it should, rather than using
+	 the last maps sound numbering. 
+</p>
+<p>
+     To add sounds to the config file, add this command to a single line: <b>mapsound "raboof/foobar.wav" X</b><br clear="none"/>
+     Replace "<i>raboof</i>" with your sounds folder name and replace "<i>foobar.wav</i>" with your sound files name.
+      Replace <b>X</b> with how many times the sound should be allowed to play at once (for example, if there are several of the same sound in one area, 
+     this would define how many of them should play at once, as too many might be a bit of an overkill). Using the
+     value "<i>-1</i>" (which is the default) will make it play an unlimited amount of times.
+   </p>
+<p>
+     The order that you place the mapsound commands in the config file, determines their slot number (i.e. the first one 
+     in the list would be slot 0, the second mapsound command would be slot 1).
+   </p>
+<h2 id="loadnotexture">Using the "loadnotexture" command</h2>
+<p>
+     Due to AssaultCube's light-weight approach to gaming, custom content from new custom maps are not downloaded 
+     automatically to a players computer system, as content size can be quite big, which is just not appropriate for
+     56k modem users and users with restricted bandwidth. Because of this, users will have to go and download
+     the content manually. Since the config and map files <b>are</b> downloaded (due to their small sizes), there is a 
+     command
+     you can use in the config which will automatically load all textures that aren't found to be a specific already 
+     existing texture.
+   </p>
+<p>
+     When using this command, the texture that you want to load must be found within the 
+     <a href="../packages/textures" shape="rect">/packages/textures/</a> folder. To use this feature, add this command 
+     to a single line: <b>loadnotexture "raboof/foobar.jpg"</b>. Replace "raboof" with the folder name and 
+     "foobar" with the name of the image. You will need to have commented-out or deleted the pre-existing "loadnotexture"
+     command. 
+   </p>
+
+
+
+
+
+
+
+
+
+
+      </div>
+      <div id="author">
+        <a href="license.html">&copy; Copyright, Rabid Viper Productions</a>
+      </div>
+      <div id="donatedocs">
+        <a href="http://sourceforge.net/p/actiongame/donate/">
+          We would be grateful for any donations considered towards AssaultCube
+        </a>
+      </div>
+      <!--#include virtual="/SSI-HTML/adsense_footer.html" -->
+    </div>
+  </body>
+</html>

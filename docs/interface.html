@@ -1,0 +1,197 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+    <meta name="robots" content="NOODP">
+    <meta name="author" content="Rabid Viper Productions">
+    <meta name="copyright" content="You may be able to redistribute this content under specific conditions.
+    Please read the licensing information, available @ http://assault.cubers.net/docs/license.html for the
+    conditions that would apply to what you may be redistributing.">
+    <title>AssaultCube Documentation :: AssaultCubes interface</title>
+    <link rel="stylesheet" type="text/css" href="css/main.css">
+    <link rel="stylesheet" type="text/css" href="css/docs.css">
+    <!--#include virtual="/SSI-HTML/docs/invisibility.html" -->
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <script type="text/javascript">
+      // Simple change-image script
+      function jsimg1()
+      {
+        document.getElementById("HUDIMG").src="images/ctf-hud.jpg";
+        document.getElementById("HUDIMG").onclick = function() {jsimg2()};
+      }
+      function jsimg2()
+      {
+        document.getElementById("HUDIMG").src="images/hud.jpg";
+        document.getElementById("HUDIMG").onclick = function() {jsimg1()};
+      }
+    </script>
+    <style type="text/css">
+      .scrboardlst {
+        float : left;
+        margin : 0px;
+        list-style-type : square;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="container">
+      <div id="docsheader">
+        AssaultCube Documentation
+      </div>
+      <div id="logo">
+        <a href="index.html"><img src="images/aclogo.png"
+        alt="AssaultCube" width="193px" height="81px"></a>
+      </div>
+      <div id="menubar">
+	<!--#include virtual="/SSI-HTML/docs/navigation_box_docs.html" -->
+	&nbsp;
+      </div>
+      <!--#include virtual="/SSI-HTML/docs/docswarn.html" -->
+      <div class="docsmain">
+        <div id="gohome">
+          <a href="index.html">Go to documentation index &#8629;</a>
+        </div>
+	<h2>AssaultCubes interface</h2>
+	<p>
+	  Simply, this is about how AssaultCube looks, feels and works. The interface should feel fairly familiar,
+	  echoing that of many other first-person shooters. Go ahead, jump right in!
+	</p>
+	<img style="float : right; margin-left : 20px; margin-bottom : 20px;" src="images/menus.jpg" alt="Main menu">
+	<h4>Menus</h4>
+	<p>
+	  While in-game, press ESC to access a menu. From there you can access almost anything and use all sorts of actions,
+	  like joining multiplayer games and changing settings, as well as using text inputs, checkboxes and menu sliders.
+        </p>
+        <p>
+          As an example, in multiplayer you can use the set mode/map submenu to vote on a new
+          <a href="introduction.html#gamemodes">mode/map</a>. Further customizations and actions
+          can be done to these menus using <a href="cubescript.html">CubeScript</a>.
+        </p>
+        <p>
+          In some circumstances, there may be more on a menu than what can be shown. In these cases, small arrows will 
+          show at the top/bottom right-side of the menu. Pressing page-up/page-down will then show the next page.
+        </p>
+        <h4 id="console">The console</h4>
+        <p>
+          Many actions in AssaultCube can be done in a console. Although not entirely necessary to use it
+          (the menu can be used to do most important commands - but not all of them)
+          it can be very useful and often faster to use the console.
+        </p>
+        <p>
+          To show the console, press T. This opens up the chat prompt. To turn it into a console, all you need to do
+          is add a <span class="code">/</span> (forward-slash) at the beginning of the prompt, followed by a command.
+        </p>
+        <p>
+          As an example, if you type the following into the chat prompt, your crosshair will change size:
+          <span class="code">/crosshairsize 25</span>
+        </p>
+        <p>
+          For a list of all possible commands, read the <a href="reference.xml#section_Game_Reference">CubeScript reference</a>.
+        </p>
+        <p>
+          Hint: You can toggle showing a longer command/chat history by pressing F11.
+        </p>
+        <h4 id="hud">The HUD</h4>
+        <p>
+          HUD stands for <i>Head-up display</i> and is a common term in video gaming.
+          The HUD is used to indicate things such as health, armour, ammo, etc when playing the AssaultCube.
+        </p>
+        <div style="text-align : center;">
+          <img src="images/hud.jpg" alt="The HUD" id="HUDIMG" onclick="jsimg1()">
+        </div>
+        <p>
+          You may notice small red markers at the edges of your screen during conflict. This is to indicate the direction
+          of where the damage that hit your player came from. The capture-the-flag HUD is different to the normal HUD, click the image
+          above to see the CTF HUD.
+        </p>
+        <h4 id="scoreboard">The scoreboard</h4>
+        <p>
+          Press TAB at any time to see the scoreboard, which will tell you (horizontally in this order):
+        </p>
+        <ul class="scrboardlst">
+          <li>          
+            CTF flags captured (if playing flag modes).
+          </li>
+          <li>
+            Death count.
+          </li>
+          <li>
+            Packet jump (PJ).
+          </li>
+          <li>
+            CN (Client number).
+          </li>
+        </ul>
+        <ul class="scrboardlst">
+          <li>
+            Frag count.
+          </li>
+          <li>
+            Score.
+          </li>	
+          <li>
+            The ping between the player and the server.
+          </li>
+          <li>
+            The players name.
+          </li>
+        </ul>
+        <div style="text-align : center;">
+          <img src="images/scoreboard.jpg" alt="The scoreboard">
+        </div>
+        <p>
+          Pressing page-up/page-down on the scoreboard will show the next page on the scoreboard.
+          You'll be able to tell if there is another page (this occurs when there are too many players to fit)
+          by the arrow at the bottom of the screen.
+        </p>
+        <p>
+          Packet jump (PJ) is the amount of milliseconds that have passed since you have received updates from players. 
+          A high (for example: 950) or variable (for example: The PJ is at 40 then jumps to 1000 and then 300 then 550) packet
+          jump is bad for gameplay, because these players may become difficult targets and "warp" around the map (warp means
+          they disappear, then reappear out of nowhere).<br>
+          If a players packet jump is bad enough, their PJ number will turn into the 
+          word LAG and they'll stand still and start saluting because they are lagging so badly. Special note: You cannot see 
+          your own packet jump.
+        </p>
+        <p>
+          Ping is the amount of time in milliseconds that it takes for your packets of data to get back and forth from the 
+          server.<br> The lower the ping, the better.
+        </p>
+        <p>
+          Client number is a number that is given out automatically by the server.<br> There is nothing particularly special about it
+          other than allowing people to identify players easier.
+        </p>
+        <p>
+          If a player name is red, then they are an administrator of that server and have full control over it.<br> 
+          Players names that are in grey, are currently in dead/spectate mode.
+        </p>
+        <h4 id="minimap">Mini-map</h4>
+        <p>
+          The mini-map shows your location on the map. To activate it, hold down ALT.
+        </p>
+        <p>
+          You can find yourself on the mini-map by looking for the symbol in green.
+          As well as showing your location on the map, it will also show your team-mates locations (if you're playing a team-based game).
+          X's mark dead team-mates, pulsating icons show team-mates that are attacking.
+        </p>
+        <p>
+          If you're playing CTF, then red and blue flags will show up in their respective locations on the mini-map, 
+          unless the enemy has your flag (then you won't be able to see it) OR if your team has the enemies flag (It will show
+          which team-member is carrying the flag).
+        </p>
+        <div style="text-align : center;">
+          <img src="images/minimap.jpg" alt="Mini-map">
+        </div>
+      </div>
+      <div id="author">
+        <a href="license.html">&copy; Copyright, Rabid Viper Productions</a>
+      </div>
+      <div id="donatedocs">
+        <a href="http://sourceforge.net/p/actiongame/donate/">
+          We would be grateful for any donations considered towards AssaultCube
+        </a>
+      </div>
+      <!--#include virtual="/SSI-HTML/adsense_footer.html" -->
+    </div>
+  </body>
+</html>

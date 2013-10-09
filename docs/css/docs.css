@@ -1,0 +1,66 @@
+/* Main "docs" CSS file for the AssaultCube documentation.		*/
+
+/* Written by:	Rabid Viper Productions					*/
+
+/* You may be able to redistribute this content under specific 		*/
+/* conditions. Please read the licensing information, available		*/
+/* at http://assault.cubers.net/docs/license.html for the 		*/
+/* conditions that would apply to what you may be redistributing.	*/
+
+.docsmain {
+padding : 0 5px;
+padding-bottom : 25px;
+margin-top : 15px;
+background-color : #101010;
+font-size : 13px;
+clear : both;
+}
+#docsheader {
+float : right;
+font-size : 18px;
+margin-top : 75px;
+visibility : visible;
+}
+#donatedocs {
+float : left;
+clear : none;
+width : 220px;
+height : 30px;
+margin-top : 5px;
+text-align : left;
+font-size : 10px;
+}
+#donatedocs a:link, #donatedocs a:visited {
+text-decoration : none;
+font-style : italic;
+}
+#donatedocs a:hover, #donatedocs a:active {
+text-decoration : underline;
+}
+#gohome {
+text-align : right;
+position : absolute;
+width : 870px;
+font-family : "Trebuchet MS", Arial, Helvetica, sans-serif;
+font-size : 11px;
+}
+h4 {
+padding : 0;
+margin : 5px 0;
+font-size : 16px;
+}
+.docswarn {
+padding : 5px;
+margin-top : 15px;
+background-color : #101010;
+font-size : 13px;
+clear : both;
+}
+.adsensefooter {
+clear : both;
+}
+.head01 {
+text-align : center;
+font-weight : bold;
+text-decoration : underline;
+}

@@ -1,0 +1,219 @@
+/* Main CSS file for the ../reference.xml document.			*/
+
+/* Written by:	Rabid Viper Productions					*/
+/* Special thanks to Adrian 'driAn' Henke for the original document	*/
+/* that all these XML-related files are based upon.			*/
+
+/* You may be able to redistribute this content under specific 		*/
+/* conditions. Please read the licensing information, available		*/
+/* at http://assault.cubers.net/docs/license.html for the 		*/
+/* conditions that would apply to what you may be redistributing.	*/
+
+
+/* MAIN DOCUMENT */
+.docsmain {
+clear : none;
+float : left;
+width : 720px;
+}
+#gohome {
+width : 720px;
+}
+/* CONTENTS PANEL */
+.commandlist {
+margin-top : 15px;
+font-size : 17px;
+text-align : center;
+padding : 5px 0;
+font-family : "Trebuchet MS", Arial, Helvetica, sans-serif;
+color : #ffffff;
+border : #00303d solid 2px;
+background-color : #101010;
+float : right;
+clear : right;
+width : 136px;
+}
+div#contentspanel {
+margin-top : 10px;
+float : right;
+clear : right;
+width : 140px;
+overflow-wrap : break-word;
+margin-left : 10px;
+font-family : "Trebuchet MS", Arial, Helvetica, sans-serif;
+font-size : 10px;
+text-align : left;
+background-color : #101010;
+}
+div#contentspanel div.sectiontitle {
+padding-left : 10px;
+height : 20px;
+background-color : #252525;
+border-top : 1px solid #000000;
+border-bottom : 1px solid #000000;
+font-size : 14px;
+font-weight : bold;
+margin : 0;
+line-height : 20px;
+white-space : nowrap;
+}
+div#contentspanel ul {
+list-style-type : none;
+margin : 0;
+padding : 5px;
+}
+div#contentspanel a {
+text-decoration : none;
+color : #e0e0e0;
+}
+div#contentspanel div.identifiers a {
+display : block;
+position : relative;
+width : 121px;
+overflow : hidden;
+}
+div#contentspanel div.identifiers a:hover {
+width : 128px;
+color : black;
+font-size : 12px;
+border : #000000 solid 1px;
+padding : 0;
+text-align : center;
+background-color : #666666;
+}
+/* TOP-OF-PAGE CATEGORY LIST */
+#categorylist {
+margin : 0;
+margin-top : 5px;
+padding : 0;
+padding-bottom : 20px;
+}
+#categorylist li {
+display : inline;
+list-style-type : none;
+font-size : 13px;
+padding-right : 20px;
+}
+div#topbutton a {
+position : fixed;
+padding : 5px 10px;
+right : 20px;
+bottom : 10px;
+font-size : 12px;
+font-family : "Trebuchet MS", Arial, Helvetica, sans-serif;
+font-weight : bold;
+text-decoration : none;
+border : black solid 2px;
+background-color : #444444;
+color : black;
+z-index : 1;
+}
+div#topbutton a:hover {
+background-color : #666666;
+}
+/* Identifier */
+div.section div.identifier {
+padding : 0 0 10px 0;
+margin : 0 0 0 20px;
+}
+/* Display name */
+div.section div.identifier div.displayname {
+font-family : "Courier New", Sans-Serif;
+margin : 1em 0 1em -20px;
+}
+div.section div.identifier div.displayname a {
+color : #007190;
+text-decoration : none;
+}
+/* Command arguments */
+div.section div.identifier div.argumentDescriptions {
+margin : 10px 0 0 0;
+padding : 0;
+}
+div.section div.identifier div.argumentDescriptions table {
+margin : 0;
+padding : 0;
+border-collapse : collapse;
+width : 100%;
+}
+div.section div.identifier div.argumentDescriptions table td {
+border : #777777 solid 1px;
+}
+div.section div.identifier div.argumentDescriptions table th {
+font-weight : normal;
+color : #000000;
+padding : 2px 3px;
+background-color : #666666;
+border : #444444 solid 1px;
+}
+div.section div.identifier div.argumentDescriptions table tr td.token {
+font-style : italic;
+width : 65px;
+}
+div.section div.identifier div.argumentDescriptions table tr td.description {
+width : 300px;
+}
+/* Variable value */
+div.section div.identifier div.valueDescription {
+margin : 10px 0 0 0;
+padding : 0;
+}
+div.section div.identifier div.valueDescription table {
+margin : 0;
+padding : 0;
+border-collapse : collapse;
+width : 100%;
+}
+div.section div.identifier div.valueDescription table td {
+border : #777777 solid 1px;
+}
+div.section div.identifier div.valueDescription table th {
+font-weight : normal;
+color : #333333;
+background-color : #777777;
+border : #777777 solid 1px;
+}
+div.section div.identifier div.valueDescription table tr td.token {
+font-style : italic;
+width : 65px;
+}
+div.section div.identifier div.valueDescription table tr td.values {
+width : 200px;
+}
+div.section div.identifier div.valueDescription table tr td.range {
+width : 50px;
+}
+div.section div.identifier div.valueDescription table tr td.defaultValue {
+text-align : right;
+width : 50px;
+}
+/* Remarks */
+div.section div.identifier div.remarks {
+margin : 10px 0 0 0;
+padding : 0;
+}
+div.section div.identifier div.remarks div.remark {
+margin : 10px 0 0 0;
+}
+div.section div.identifier div.references {
+margin : 10px 0 0 0;
+padding : 0;
+}
+/* References */
+div.section div.identifier div.references a.internal {
+font-family : "Courier New", Sans-Serif;
+text-decoration : none;
+}
+/* Examples */
+div.section div.identifier div.examples {
+margin : 0;
+padding : 0;
+}
+div.section div.identifier div.examples div.code {
+margin : 10px 0 10px 0;
+padding : 0;
+}
+div.section div.identifier div.examples div.exampleExplanation {
+margin : 0;
+padding : 0;
+}

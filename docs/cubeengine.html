@@ -1,0 +1,190 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+    <meta name="robots" content="NOODP">
+    <meta name="author" content="Rabid Viper Productions">
+    <meta name="copyright" content="You may be able to redistribute this content under specific conditions.
+    Please read the licensing information, available @ http://assault.cubers.net/docs/license.html for the
+    conditions that would apply to what you may be redistributing.">
+    <title>AssaultCube Documentation :: The AssaultCube/CUBE engine</title>
+    <link rel="stylesheet" type="text/css" href="css/main.css">
+    <link rel="stylesheet" type="text/css" href="css/docs.css">
+    <!--#include virtual="/SSI-HTML/docs/invisibility.html" -->
+    <link rel="shortcut icon" href="images/favicon.ico">
+  </head>
+  <body>
+    <div id="container">
+      <div id="docsheader">
+        AssaultCube Documentation
+      </div>
+      <div id="logo">
+        <a href="index.html"><img src="images/aclogo.png"
+        alt="AssaultCube" width="193px" height="81px"></a>
+      </div>
+      <div id="menubar">
+	<!--#include virtual="/SSI-HTML/docs/navigation_box_docs.html" -->
+	&nbsp;
+      </div>
+      <!--#include virtual="/SSI-HTML/docs/docswarn.html" -->
+      <div class="docswarn">
+        <b style="color : #750000;">NOTE:</b> This page of the documentation has been quickly converted from
+        <a href="http://actiongame.svn.sourceforge.net/viewvc/actiongame/tags/v01_10_04/docs/README.html?revision=5882">AssaultCube's old
+        README</a> and has not yet been checked properly for mistakes/weird stylying/invalid markup/inconsistencies/etc.
+        We're on it though, check back soon!
+      </div>
+      <div class="docsmain">
+        <div id="gohome">
+          <a href="index.html">Go to documentation index &#8629;</a>
+        </div>
+	<h2>The AssaultCube/CUBE engine</h2>
+
+	<!-- Remember to remove docwarning when fixed up! -->
+
+
+
+
+
+
+
+
+<p>
+      AssaultCube is based on the FPS <a href="http://cubeengine.com/" shape="rect">Cube</a> and so (apart from all the changes and also the
+      backports from Cube2/Sauerbraten) it works in quite the same way as Cube did.
+    </p>
+<h2>Rendering</h2>
+<p>
+      The AssaultCube/Cube engine is simplicity itself. The whole map consists of a large 2D array of "cubes",
+      each with a floor and ceiling height, textures (for floor/ceiling/wall) and other properties.
+      These cubes are grouped 2x2 at a time recursively into a "quad tree", which is used to hold bigger
+      cubes which can be rendered faster. For those who have edited doom, this is very similar to
+      having a lot of square sectors but at overlapping sizes. This results in a map that can't have
+      room over room (yet), and is pretty cubic, except for the odd slope/slant here and there.
+    </p>
+<p>
+      The floor size of a single unit (single cube) is similar to about 16x16 units in games such as
+      doom &amp; quake, so a staircase step is usually 1 unit, a wall 8 units high etc.
+    </p>
+<p>
+      AssaultCube/Cube renders this world by first determining which cubes are visible using a "dynamic occlusion culling"
+      algorithm and frustum culling. You can see the effect of this when you switch to edit mode (E),
+      and then fly out above a map: you'll see parts of the map dropping away as you move. The remaining
+      cubes are then rendered in their most efficient size (i.e. cube will render a mixture of 1x1 2x2 4x4
+      etc. size cubes, depending on whether they have the same properties: height, texturing etc.).
+    </p>
+<p>
+      If you are on a fast system, or you are playing a simple/small map, AssaultCube/Cube will simply render all
+      of these visible cubes (this is indicated by LOD at its maximum of 250 on the hud). AssaultCube/Cube can however
+      make complex maps run fast even on slower computers by a technique called LOD: this will render cubes
+      that are further away using bigger approximations (2x2 and up), even the properties of the constituent
+      cubes don't match exactly. This reduces the amount of polys to be rendered tremendously, and thus allows
+      even slow machines to have a consistent frame rate (cube will adapt the LOD figure every frame to aim
+      for the fps you specify). The downside is of course, that if the approximations are visible closeup, this
+      can lead to ugly graphical glitches (this is called "popup" because it changes as you move). So in the
+      end, the choice is up to you: good FPS or constant visual quality (most engines only cater for the latter).
+    </p>
+<h2>Networking</h2>
+<p>
+      You will notice that AssaultCube/Cube plays better on a high ping connection than most games out there.
+      The reason for this is that many things in AssaultCube/Cube are done clientside, not just
+      movement (as is common in games today) but also aim (the fat-client/thin-server model).
+    </p>
+<p>
+      The benefits of this are that the effects of lag are minimised, and someone on a 200 ping can
+      compete on an almost even playing field with someone with a 20 ping, the disadvantages are mainly
+      in that its harder to combat cheating. Recently though, AssaultCube has become <i>slightly</i> more
+      server side to add some cheat prevention into the game, but still does many things client-side.
+      Advantages for server administrators are that AssaultCube/Cube servers use virtually no CPU
+      and very little bandwidth, even with a lot of clients (you can host a 4 player game on a modem!).
+    </p>
+<p>
+      It is impossible to completely hide lag however, and these are some of the effects that can still
+      show lag if you or someone you play with has a high ping / bad connection:
+    </p>
+<ul>
+      <li>
+        <p>
+          If the connection has packetloss.
+          There is no direct indicator of packetloss, instead the "packet jump" figure is provided on the scoreboard.
+          Packet jump says as much as the amount of milliseconds that pass between updates from the indicated player.
+          If it is significantly unstable or very high (&gt;80) then your gameplay may be hampered (players jumping from place to place).
+          Ideally it is a steady 40 or lower. A consistent packet jump is more vital to gameplay than ping.
+        </p>
+        <p>
+          AssaultCube uses player prediction based on extrapolation using the physics model,
+          in an attempt to be both as up to date as possible with regard to the game state,
+          and as realistic with regard to physics. However, under packet loss this model breaks
+          down and player movement becomes choppy.
+        </p>
+      </li>
+      <li>
+        <p>
+          If ping is high (either yours or someone you play with), some actions may appear lagged.
+          The effect of ping is generally that the players in a game are effectively playing more
+          and more separate games, as someone with a high ping is "playing in the past". The local
+          effects of this are masked out by client side movement &amp; shooting, but may become noticable across players:
+        </p>
+        <ul>
+          <li>
+            <p>
+              You may get hit by someone even though you are already out of his view. This is because he is aiming at your movements of a while ago, and his hits take a while to arrive back at you. You may therefore be hit by gunfire up to his lag + your lag milliseconds after you leave his FOV. In a similar way, you may get killed by another player seemingly after you killed them.
+            </p>
+          </li>
+          <li>
+            <p>
+              Item pickup: you may be denied an item if you try to pick it up at virtually the same time as someone else (the server decides who was "first"). Item pickup is server side, only when you hear the sound effect have you actually picked up the item.
+            </p>
+          </li>
+          <li>
+            <p>
+              Players dying appear lagged. This will improve.
+            </p>
+          </li>
+        </ul>
+      </li>
+      <li>
+        <p>
+          If a player is severely lagged (or you are) he temporarily becomes a "ghost" that cannot be hit (if &gt;1sec packet jump).
+        </p>
+      </li>
+    </ul>
+<h2>Map editing</h2>
+<p>
+      All map editing is done internally within the game itself. Press E to enter map-editing mode.
+      In-game map editing promotes easy learning of how to edit maps, as well as co-operative
+      map editing. It also makes testing the map (using bots, seeing how it looks like within the game's environment, etc.) quite easy.
+      Creating a new map is quite easy, but it takes time to learn the skills needed to create one of fair quality.
+    </p>
+<p>
+      More information about map editing can be found <a href="mapediting1.html" shape="rect">here</a>.
+    </p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      </div>
+      <div id="author">
+        <a href="license.html">&copy; Copyright, Rabid Viper Productions</a>
+      </div>
+      <div id="donatedocs">
+        <a href="http://sourceforge.net/p/actiongame/donate/">
+          We would be grateful for any donations considered towards AssaultCube
+        </a>
+      </div>
+      <!--#include virtual="/SSI-HTML/adsense_footer.html" -->
+    </div>
+  </body>
+</html>

@@ -1,0 +1,340 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+    <meta name="robots" content="NOODP">
+    <meta name="author" content="Rabid Viper Productions">
+    <meta name="copyright" content="You may be able to redistribute this content under specific conditions.
+    Please read the licensing information, available @ http://assault.cubers.net/docs/license.html for the
+    conditions that would apply to what you may be redistributing.">
+    <title>AssaultCube Documentation :: Map editing - Entities</title>
+    <link rel="stylesheet" type="text/css" href="css/main.css">
+    <link rel="stylesheet" type="text/css" href="css/docs.css">
+    <!--#include virtual="/SSI-HTML/docs/invisibility.html" -->
+    <link rel="shortcut icon" href="images/favicon.ico">
+  </head>
+  <body>
+    <div id="container">
+      <div id="docsheader">
+        AssaultCube Documentation
+      </div>
+      <div id="logo">
+        <a href="index.html"><img src="images/aclogo.png"
+        alt="AssaultCube" width="193px" height="81px"></a>
+      </div>
+      <div id="menubar">
+	<!--#include virtual="/SSI-HTML/docs/navigation_box_docs.html" -->
+	&nbsp;
+      </div>
+      <!--#include virtual="/SSI-HTML/docs/docswarn.html" -->
+      <div class="docswarn">
+        <b style="color : #750000;">NOTE:</b> This page of the documentation has been quickly converted from 
+        <a href="http://actiongame.svn.sourceforge.net/viewvc/actiongame/tags/v01_10_04/docs/README.html?revision=5882">AssaultCubes old 
+        README</a> and has not yet been checked properly for mistakes/weird stylying/invalid markup/inconsistancies/etc.
+        We're on it though, check back soon!
+      </div>
+      <div class="docsmain">
+        <div id="gohome">
+          <a href="index.html">Go to documentation index &#8629;</a>
+        </div>
+	<h2>Map editing - Entities</h2>
+	
+	<!-- Remember to remove docwarning when fixed up! -->
+
+
+
+            <p>
+                <a href="mapediting1.html#sparkles" shape="rect">Entities</a> are shown as colour-coded
+                sparkly dots when in edit mode. They are used for adding non-geometry/non-texture items,
+                such as:
+            </p>
+              <ul>
+                <li>The nearest entity will be blue.</li>
+                <li><a href="mapediting3.html#light">Light entities</a> will be white.</li>
+                <li>
+                  <a href="mapediting3.html#pickup">Item pickups</a> will be red
+                  (for weapons) or yellow (for armour/health).
+                </li>
+                <li><a href="mapediting3.html#spawn">Spawn points</a> will be green.</li>
+                <li>
+                  <a href="mapediting3.html#models">Mapmodels</a> and 
+                  <a href="mapediting3.html#sounds">map sounds</a> will be magenta.
+                </li>
+                <li><a href="mapediting3.html#ctf">CTF flags</a> will be turquoise.</li>
+                <li>
+                  <a href="mapediting3.html#clips">Clip boxes</a> and 
+                  <a href="mapediting3.html#ladders">ladders</a> will be grey.
+                </li>
+                <li><a href="mapediting3.html#sounds">Map sounds</a> in magenta (like models)</li>
+              </ul>
+            <p>
+                Each of these entities will be explained soon. All entities are added by the <b>/newent</b>
+                command (or through the editing menu). When adding entities, they are always added
+                to the red dot on the corner of the cube that you selected and at the height of
+                which you are currently hovering (note: the physical entity created will always
+                drop down to the ground).
+            </p>
+            <p>
+                Some useful commands to use with entities:
+            </p>
+            <ul>
+                <li><b><a href="reference.xml#identifier_delent" shape="rect">/delent</a> </b>- Typing
+                    <i>/delent</i> (you can also press "backspace") will delete the nearest entity.
+                    The nearest entity can be found by reading the white text along the bottom of your
+                    screen which tells you the type of entity that you are nearest to and the properties
+                    of that entity. </li>
+                <li><b><a href="reference.xml#identifier_entset" shape="rect">/entset</a></b> - Pressing
+		the <b>;</b> button will bring up the command <i>/entset</i> plus all the values of the
+		entity closest to you. This allows you to easily change a value of the nearest entity to 
+		what you want it to be.
+                </b></li>
+                <li><b><a href="reference.xml#identifier_clearents" shape="rect">/clearents</a> </b>
+                </li>
+            </ul>
+            <h2 id="light">
+                Lighting</h2>
+            <p>
+                When lighting up a map, make sure to allow for contrast, as contrast is what makes
+                a map look atmospheric. Things that are naturally bright, should become naturally
+                bright (for example: outside areas, lights, lamps, etc). Places that are naturally
+                dark, should be a bit dim (for example: A room with no windows or lights).
+            </p>
+            <p>
+                <b>Tips:</b>
+            </p>
+            <ul>
+                <li>To temporarally light up a map so you can edit it easily, type: <b>/fullbright 1</b>.
+                    To remove fullbright, type: <b>/recalc</b>. </li>
+                <li>Make sure gamma is turned back to the defaults when you're editing so you can properly
+                    judge how a lighting will look to an average user. </li>
+            </ul>
+            <p>
+                Lights can be added typing "<b>/newent light</b>" and then a number between 1 and
+                32 to define the size of the light (the radius) and then a number between 1 and
+                255 to define the brightness.
+            </p>
+            <p>
+                Coloured lighting can be added typing "<b>/newent light</b>" and then a number between
+                1 and 32 to define the size of the light (the radius) and then a number between
+                1 and 255 to define the amount of red light and then a number between 1 and 255
+                to define the amount of green light and then a number between 1 and 255 to define
+                the amount of blue light.
+            </p>
+            <p>
+                <b>Note:</b> The radius and all 3 colour values must be defined for a coloured light
+                to be created correctly. You can't omit a value as it will not create the light
+                correctly. If you don't want any colour from a specific value, simply use the value
+                "1" as a place holder.
+            </p>
+            <p>
+                There is also a new handy menu that you can use to create lights by pressing L or
+                accessing it through the editing menu.
+            </p>
+            <p>
+                <b>Tip:</b> If you accidentally light a map too brightly (for example, you didn't
+                reset your gamma levels before editing), instead of deleting lights and starting
+                again, you could utilize the <b><a href="reference.xml#identifier_scalelights" shape="rect">
+                    /scalelights</a> </b>command.
+            </p>
+            <h2 id="pickup">
+                Item pickups</h2>
+            <p>
+                Pickups must be placed strategically through maps and do take some time to position
+                correctly. Powerful pickups should be few and not be too close to each other (unless
+                there is a good risk involved) and pickups should be well spread and not be too
+                high in number. Try to keep powerful pickups away from the spawn area so players
+                are encouraged to leave their bases. Strategy is key! A good idea to keep in mind
+                when mapping is "<i>what would I need here to help me pwn?</i>"
+            </p>
+            <p>
+                To place pickups, use the pickups menu inside the editing menu, otherwise type one
+                of the below...
+            </p>
+            <ul>
+                <li><b>/newent health</b> - To place a health pack. </li>
+                <li><b>/newent armour</b> - To place armour. </li>
+                <li><b>/newent helmet</b> - To place a helmet. </li>
+                <li><b>/newent akimbo</b> - To place akimbo. </li>
+                <li><b>/newent grenades</b> - To place grenades. </li>
+                <li><b>/newent clips</b> - To place a pistol magazine. </li>
+                <li><b>/newent ammobox</b> - To place an ammunition box. </li>
+            </ul>
+            <p>
+                If needed, you can apply height to the model by adding a figure after the command
+                indicating the vertical position of the pickup. This figure is allowed to be a negative
+                number if needed (for example: if you use a pickup on a heightfield and want the
+                pickup to appear at the correct height) to move it downwards instead of upwards.
+            </p>
+            <h2 id="spawn">
+                Spawn points</h2>
+            <p>
+                In AssaultCube, there are three types of spawn points: RVSF spawn points, CLA spawn
+                points and FFA spawn points (free-for-all).
+            </p>
+            <p>
+                As a general rule, you should place as many spawn points as possible in a spawn
+                area so that players aren't spawning from the same point too often. However, don't
+                over-do it. Make sure that spawn points are not too close to each other.
+            </p>
+            <p>
+                Also make sure that spawns are not too close to any walls and mapmodels so players
+                don't get stuck inside them. Take care when placing spawn points to make sure you
+                face the direction you would like the player to face when they spawn, so that they
+                spawn looking in that direction, rather than facing a wall!
+            </p>
+            <p>
+                RVSF and CLA spawn points should be placed in their respective bases. FFA spawns
+                should be placed all over the map in various places (FFA spawns are for non-team
+                type games, such as Deathmatch or One-shot, one-kill).
+            </p>
+            <p>
+                If spawn points are not created, players will just spawn in the middle of the map,
+                all next to each other, so please remember to add spawn points.
+            </p>
+            <p>
+                You can add spawn points through the editing menu, or you can type:
+            </p>
+            <ul>
+                <li><b>/newent playerstart 1</b> - To add an RVSF spawn point. </li>
+                <li><b>/newent playerstart 0</b> - To add a CLA spawn point. </li>
+                <li><b>/newent playerstart 100</b> - To add an FFA spawn point. </li>
+            </ul>
+            <h2 id="models">
+                Mapmodels</h2>
+            <p>
+                AssaultCube is packaged with many mapmodels to begin with, so there's a large choice
+                available. You can add your own custom models if you want through <a href="mapediting5.html"
+                    shape="rect">config files</a>. When adding mapmodels to your map, use them sparingly,
+                as mapmodels slow down gamespeed and too many in one place just looks plain ugly.
+            </p>
+            <p>
+                To add a mapmodel to a map, type: <b>/newent mapmodel X Y Z</b>.<br clear="none" />
+                Alternatively, you can use the very handy mapmodel menu inside the editing menu.
+            </p>
+            <p>
+                Replace <b>X</b> with the mapmodels number (you can find this out by opening <a href="../config/default_map_settings.cfg"
+                    shape="rect">/config/default_map_settings.cfg</a> - The mapmodels number is
+                written in a comment to the right of the mapmodel).
+            </p>
+            <p>
+                Replace <b>Y</b> with the height you would like the mapmodel to appear above the
+                cube that it is placed upon.
+            </p>
+            <p>
+                If you want a different texture to appear on the mapmodel, you can use <b>Z</b>
+                to define a texture number to apply to that mapmodel. Using this is unrecommended
+                as it's better to use the models default texture.
+            </p>
+            <p>
+                <b>Note:</b> Some mapmodels in the mapmodels menu do not appear instantly. Instead,
+                they bring up the text needed to place that mapmodel, giving you a chance to define
+                a height for that mapmodel if needed.
+            </p>
+            <h3>
+                Mapmodel platforms</h3>
+            <p>
+                Due to the AssaultCube engines limitations... you can't use geometry to create a
+                second level. But, you can use a mapmodel platform or bridge. Look in the editing
+                menu under "<i>Platforms/Clips</i>". Apply some height to these to create a second
+                floor. Using too many of these is unrecommended.
+            </p>
+            <h2 id="ctf">
+                CTF flags</h2>
+            <p>
+                If you want to enable CTF mode on your map, place a CTF flag in each respective
+                base using the menus or by typing:
+            </p>
+            <ul>
+                <li><b>/newent ctf-flag 0</b> - Adds the CLA flag. </li>
+                <li><b>/newent ctf-flag 1</b> - Adds the RVSF flag. </li>
+            </ul>
+            <h2 id="clips">
+                Clips</h2>
+            <p>
+                Clips can be used to block players from accessing
+                areas that they shouldn't be able to access (for example: over a fence). You can use clips through 
+		the editing menu through <b>Entities -> Clips</b>. <br clear="none" />You can also simply use the command by picking 
+		where you want the clips and typing:
+		<p><b>/newent clips W X Y Z</b></p>
+            </p>
+	    <p>
+		Replace <b>W</b> with the elevation from the ground of the clip.<br clear="none" />
+		Replace <b>X</b> with the length of the clip<br clear="none" />
+		Replace <b>Y</b> with the width of the clip<br clear="none" />
+		Replace <b>Z</b> with the height of the clip.
+	    </p>
+            <p>
+		<b>Note:</b> Some older maps, created prior to v1.0 may use a different technique of clipping that 
+		you can't visibly see in editmode, as the current way of using clips did not exist at the time.
+            </p>
+            <h2 id="ladders">
+                Ladders</h2>
+            <p>
+                Ladders are comprised of <b>TWO</b> pieces. One part is the ladder mapmodel which
+                gives the ladder an appearance. The other part is the "entity" which is an invisible
+                force that let's you climb the mapmodel like a ladder.
+            </p>
+            <h3>
+                To place the mapmodel</h3>
+            <p>
+                Choose the appropriate place for the model, then, pick the appropriate sized mapmodel
+                from the <i>Editing &gt; Mapmodels &gt; Ladders/stairs</i> menu. To place the model
+                with the <b>correct</b> orientation, turn 90 degrees to the left before placing
+                it.<br clear="none" />
+                There is a single ladder rung model that you can use to make different sized ladders
+                if needed (by applying height to the model, see <a href="#models" shape="rect">mapmodels</a>).
+            </p>
+            <h3>
+                To place the entity</h3>
+            <p>
+                On the same cube that you placed the mapmodel, type: <b>/newent ladder X</b>. Replace
+                "X" with the amount of cubes that the player will need to climb.
+            </p>
+            <h2 id="sounds">
+                Ambient sounds</h2>
+            <p>
+                So long as the sound is defined in the <a href="mapediting5.html" shape="rect">config
+                    files</a> you can use ambient sounds in a map. When using ambient sounds, sound
+                will be played to all players within the radius defined, from the source of the
+                entity.
+            </p>
+            <p>
+                To use an ambient sound, type: <b>/newent sound W X Y Z</b>
+            </p>
+            <p>
+                Replace <b>W</b> with the number for the sound (as defined by your custom <a href="mapediting5.html"
+                    shape="rect">config files</a>).<br clear="none" />
+                Replace <b>X</b> with the radius you want the sound to play for.<br clear="none" />
+                Replace <b>Y</b> with the amount of distance inside the radius you would like before
+                the sound starts to fade.<br clear="none" />
+                Replace <b>Z</b> with the volume of the sound (from 1-255).
+            </p>
+            <p>
+                For more information, see: <a href="reference.xml#identifier_newent_sound" shape="rect">
+                    newent sound</a>.
+            </p>
+
+
+
+
+
+
+
+
+
+
+
+
+      </div>
+      <div id="author">
+        <a href="license.html">&copy; Copyright, Rabid Viper Productions</a>
+      </div>
+      <div id="donatedocs">
+        <a href="http://sourceforge.net/p/actiongame/donate/">
+          We would be grateful for any donations considered towards AssaultCube
+        </a>
+      </div>
+      <!--#include virtual="/SSI-HTML/adsense_footer.html" -->
+    </div>
+  </body>
+</html>

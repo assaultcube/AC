@@ -1,0 +1,16 @@
+/* Fancy table file for the AssaultCube documentation.			*/
+
+/* Written by:	Rabid Viper Productions					*/
+
+/* You may be able to redistribute this content under specific 		*/
+/* conditions. Please read the licensing information, available		*/
+/* at http://assault.cubers.net/docs/license.html for the 		*/
+/* conditions that would apply to what you may be redistributing.	*/
+
+table, tr, td {
+border : #555555 dotted 1px;
+border-collapse : collapse;
+vertical-align : top;
+text-align : center;
+padding : 5px;
+}

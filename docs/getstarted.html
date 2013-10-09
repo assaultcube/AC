@@ -1,0 +1,266 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+    <meta name="robots" content="NOODP">
+    <meta name="author" content="Rabid Viper Productions">
+    <meta name="copyright" content="You may be able to redistribute this content under specific conditions.
+    Please read the licensing information, available @ http://assault.cubers.net/docs/license.html for the
+    conditions that would apply to what you may be redistributing.">
+    <title>AssaultCube Documentation :: How to get started</title>
+    <link rel="stylesheet" type="text/css" href="css/main.css">
+    <link rel="stylesheet" type="text/css" href="css/docs.css">
+    <!--#include virtual="/SSI-HTML/docs/invisibility.html" -->
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <style type="text/css">
+      td {
+        vertical-align : middle;
+        padding : 5px;
+        }
+    </style>
+  </head>
+  <body>
+    <div id="container">
+      <div id="docsheader">
+        AssaultCube Documentation
+      </div>
+      <div id="logo">
+        <a href="index.html"><img src="images/aclogo.png"
+        alt="AssaultCube" width="193px" height="81px"></a>
+      </div>
+      <div id="menubar">
+	<!--#include virtual="/SSI-HTML/docs/navigation_box_docs.html" -->
+	&nbsp;
+      </div>
+      <!--#include virtual="/SSI-HTML/docs/docswarn.html" -->
+      <div class="docsmain">
+        <div id="gohome">
+          <a href="index.html">Go to documentation index &#8629;</a>
+        </div>
+	<h2>How to get started</h2>
+        <p>
+          This page should help you with getting AssaultCube installed and making it work. If you've ever played
+          <a href="http://cubeengine.com/cube.php4">CUBE</a> or <a href="http://sauerbraten.org/">Sauerbraten</a> 
+          and either of them runs fine, then so should AssaultCube.
+        </p>
+        <h4 id="requirements">
+          System requirements
+        </h4>
+        <p id="minspecs">
+          The following are the bare minimum requirements. AssaultCube may require you to use very low graphics settings
+          to play on a system like this. As you would expect, the more powerful than this, the better!
+        </p>
+        <ul>
+          <li>Processor: Intel Pentium III or AMD K7 range.</li>
+          <li>GFX: NVIDIA GeForce 256 or ATi Radeon R7000.</li>
+          <li>RAM: 192 MB.</li>
+        </ul>
+        <p>
+          It will also require one of the following, capable operating systems:
+        </p>
+        <table>
+          <tr>
+            <td>
+              <img src="images/windows.png" alt="Microsoft Windows 2000/XP/Vista/7/8">
+            </td>
+            <td>
+              <b>Microsoft Windows 2000/XP/Vista/7/8</b><br>
+              Plus any derivatives of these systems.
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <img src="images/linux.png" alt="Linux">
+            </td>
+            <td>
+              <b>Linux</b><br>
+              You'll need to make sure the appropriate OpenGL drivers are installed, plus these libraries
+              (you may already have most of them installed by default):
+              <ul style="margin : 0;">
+                <li>SDL</li>
+                <li>SDL_image</li>
+                <li>zlib</li>
+                <li>libogg</li>
+                <li>libvorbis</li>
+                <li>OpenAL Soft</li>
+              </ul>
+              For RedHat based systems, type this at the command line:<br>
+              <span class="code" style="margin-left : 50px;">
+              sudo yum install SDL SDL_image zlib libogg libvorbis openal-soft<br></span>
+              For Debian based systems, type this at the command line:<br>
+              <span class="code" style="margin-left : 50px;">
+              sudo apt-get install libsdl1.2debian-all libsdl-image1.2 zlib1g libogg0 libvorbis0a libopenal1</span>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <img src="images/apple.png" alt="Apple Mac OS X 10.4">
+            </td>
+            <td>
+              <b>Mac OS X 10.4</b><br>
+              Version 10.4 or higher.                        
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <img src="images/otheros.png" alt="Any Other OS">
+            </td>
+            <td>
+              <b>Any other operating systems</b><br>
+              If you can run the neccesary libraries/drivers and are able to compile the AssaultCube source
+              code by yourself, then you may be able to port AssaultCube onto other platforms.
+              However, please note that we may be unable to support these platforms.
+            </td>
+          </tr>
+        </table>
+        <h4 id="lowend">
+          Enhancing performance for low-end machines
+        </h4>
+        <p>
+          As previously stated, the hardware specifications shown above are the bare minimums, so you may require a 
+          bit of adjustment to get AssaultCube to run on a system like that. Of course, we recommend that you run AssaultCube
+          on better hardware than this. Here's a few things to do to help AssaultCube can run well on such low specifications.
+        </p>
+        <ol>
+          <li>Firstly, ensure you have <a href="graphicsdrivers.html">updated your graphics drivers</a>!</li>
+          <li>Secondly, if you're using a laptop, plug in the power, then check if any power-saving features are hindering AssaultCube.</li>
+          <li>In your operating system, set your resolution to 800x600 and colour depth to 16-bit (high colour).</li>
+          <li>
+            In your graphics driver software, turn off or turn down as many "extra" options that your graphics card allows, 
+            such as anti-aliasing and anisotropic filtering.
+          </li>
+          <li>
+            Turn on "vsync" in your graphics driver software (however, turn this off again, if you find AssaultCube performs poorly).
+          </li>
+          <li>
+            In AssaultCube, set the resolution to be exactly the same as your operating systems resolution.<br>
+            This can be done in the &#8220;Settings&#8221; -&rsaquo; &#8220;Video Settings&#8221; menu; under the "Screen width" and "Screen height" options.
+          </li>
+          <li>
+            To make things easy, we've put most of AssaultCubes graphic options in one easy slider. In AssaultCube, you can go to the
+            &#8220;Settings&#8221; -&rsaquo; &#8220;Video Settings&#8221; menu &amp; slide the "Graphics detail" option to the lowest option.
+          </li>
+        </ol>
+        <p>
+          These links should be able to help further if you would like to know more about tweaking your graphics card settings:
+        </p>
+        <ul>
+   	  <li>
+ 	    <a href="http://www.tweakguides.com/Graphics_1.html">Tweakguide: Gamer's
+ 	    Graphics and Display Settings Guide</a>
+ 	  </li>
+ 	  <li>
+ 	    <a href="http://www.tweakguides.com/NVFORCE_1.html">Tweakguide: NVIDIA
+ 	    Forceware Tweak Guide</a>
+ 	  </li>
+ 	  <li>
+ 	    <a href="http://www.tweakguides.com/ATICAT_1.html">Tweakguide: ATi
+ 	    Catalyst Tweak Guide</a>
+          </li>
+ 	</ul> 
+        <h4>
+          Installing AssaultCube
+        </h4>
+        <table>
+          <tr>
+            <td>
+              <img src="images/windows.png" alt="Windows">
+            </td>
+            <td>
+              <b>Windows</b><br>
+              Download the executable from Sourceforge. Open it and follow the instructions.
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <img src="images/linux.png" alt="Linux">
+            </td>
+            <td>
+              <b>Linux</b><br>
+              Download the tarball from Sourceforge. Extract it somewhere where you have permissions
+              to read/write. If you want to set AssaultCube to play straight off your desktop application menu, you
+              have to run client_desktop_install.sh once.
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <img src="images/apple.png" alt="Apple">
+            </td>
+            <td>
+              <b>Mac OS X</b><br>
+              Download the diskimage from Sourceforge. Drag the contents to your <i>Applications</i> folder.
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <img src="images/otheros.png" alt="Any other OS">
+            </td>
+            <td>
+              <b>Other operating systems</b><br>
+              You'll need to gather the libraries and drivers needed for AssaultCube by yourself.
+              You will then need to compile AssaultCube from source. For this, you'll need to
+              download the tarball labelled "source" from Sourceforge as well as the linux tarball package.
+            </td>
+          </tr>
+        </table>
+        <p>
+          <i>More help for installing AssaultCube on different Operating Systems can be found
+          on the wiki <a href="http://wiki.cubers.net/action/view/Running_AC_on_different_platforms">here</a>.</i>
+        </p>
+        <h4>
+          Running AssaultCube
+        </h4>
+        <table>
+          <tr>
+            <td>
+              <img src="images/windows.png" alt="Windows">
+            </td>
+            <td>
+              <b>Windows</b><br>
+              Use the shortcut provided. Or execute the <i>assaultcube.bat</i> file in your AssaultCube folder.
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <img src="images/linux.png" alt="Linux">
+            </td>
+            <td>
+              <b>Linux</b><br>
+              In a console, change your location (cd) to the main AssaultCube directory and then
+              execute <i>assaultcube.sh</i>.
+              You can also click on AssaultCube from the 'Games' section of your desktop application menu.
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <img src="images/apple.png" alt="Apple">
+            </td>
+            <td>
+              <b>Mac OS X</b><br>
+              Open the applications folder. Click on AssaultCube. Select the options you want
+              to use to run AssaultCube and then press <i>play</i>.
+            </td>
+          </tr>
+        </table>
+        <h4>
+          Special notes
+        </h4>
+        <p>
+          Files that AssaultCube writes during the game (such as screenshots, settings and maps) get saved
+          into a seperate folder known as the "AssaultCube home folder". The location of this folder differs,
+          depending on your operating system.<br>
+          Read the <a href="faqs.html#n10">where is my AssaultCube home folder</a> FAQ for more details.
+        </p>
+      </div>
+      <div id="author">
+        <a href="license.html">&copy; Copyright, Rabid Viper Productions</a>
+      </div>
+      <div id="donatedocs">
+        <a href="http://sourceforge.net/p/actiongame/donate/">
+          We would be grateful for any donations considered towards AssaultCube
+        </a>
+      </div>
+      <!--#include virtual="/SSI-HTML/adsense_footer.html" -->
+    </div>
+  </body>
+</html>

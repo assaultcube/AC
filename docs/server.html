@@ -1,0 +1,616 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+    <meta name="robots" content="NOODP">
+    <meta name="author" content="Rabid Viper Productions">
+    <meta name="copyright" content="You may be able to redistribute this content under specific conditions.
+    Please read the licensing information, available @ http://assault.cubers.net/docs/license.html for the
+    conditions that would apply to what you may be redistributing.">
+    <title>AssaultCube Documentation :: AssaultCube servers</title>
+    <link rel="stylesheet" type="text/css" href="css/main.css">
+    <link rel="stylesheet" type="text/css" href="css/docs.css">
+    <!--#include virtual="/SSI-HTML/docs/invisibility.html" -->
+    <link rel="shortcut icon" href="images/favicon.ico">
+  </head>
+  <body>
+    <div id="container">
+      <div id="docsheader">
+        AssaultCube Documentation
+      </div>
+      <div id="logo">
+        <a href="index.html"><img src="images/aclogo.png"
+        alt="AssaultCube" width="193px" height="81px"></a>
+      </div>
+      <div id="menubar">
+    <!--#include virtual="/SSI-HTML/docs/navigation_box_docs.html" -->
+    &nbsp;
+      </div>
+      <div class="docsmain">
+        <div id="gohome">
+          <a href="index.html">Go to documentation index &#8629;</a>
+        </div>
+	<h1>AssaultCube servers</h1>
+	<h2 id="serverprocesses">
+	Server process
+	</h2>
+                <p>
+                    The dedicated server runs in the shell only (no graphics), with increased priority.
+                    However, it uses very little CPU time and memory, so you can run one in the background,
+                    or at the same time as the client if you want to host a game and play in it. The default
+                    server ports are UDP <b>28763</b> (game) and <b>28764</b> (info). If you choose to set
+                    your own port as X (with the <span class="code">-f</span> option) it will automatically
+                    use X+1 for the info port! See the <a href="getstarted.html" shape="rect">Get Started Guide</a>
+                    to find out how to join a server.
+                </p>
+                <h2 id="configuration">
+                    Main Configuration
+                </h2>
+                <p>
+                    The easiest way to configure the AssaultCube server is through the options in
+                    <i>config/servercmdline.txt</i>.
+                    The server scripts, <i>assaultcube_server.bat</i> on windows or
+                    <i>assaultcube_server.sh</i> on linux, use this method by default. All the possible command
+                    line options are documented in this file, and you simply have to uncomment (remove the //'s
+                    from the start of the line) and edit the ones you want to use.
+                </p>
+                <p>
+	     You can still assign the options on the command line if you have an existing server, or 
+	     you prefer this method. The command line options can also be obtained from the <a href=
+                    "commandline.html" shape="rect">command line section</a> of this documentation.
+                </p>
+                <p>
+                    When you've configured your server, run the script to start it. You should see the message:
+                    <pre xml:space="preserve">
+		looking up assault.cubers.net...
+		master server registration succeeded
+	     </pre>
+	     If you don't see this, use the <a href="http://assault.cubers.net/search.html">website search facility</a>
+	     to search for the output you do see. The most common reason for failure is incorrectly
+	     <a href="http://wiki.cubers.net/action/view/Port_forwarding">forwarded ports</a>.
+                </p>
+                <h2 id="lanprivate">
+                LAN/private server
+                </h2>
+                <p>
+                    A server automatically acts as a LAN server, and any clients on the same subnet will be able to
+                    connect through the <b>Join to a LAN server</b> menu option. If you want the server to remain
+                    private, and not be displayed on the public in-game server list, you must use the <span class="code">-m</span>
+                    option to change the master server. It's common to use <span class="code">-mlocalhost</span>
+                    to achieve this, but any other hostname or IP address will do.
+	 </p>
+                <h2 id="numberofclients">
+                    Number of clients
+                </h2>
+                <p>
+                    Deciding on the maximum number of clients (<span class="code">-c</span> option) that can connect
+                    to your server can be a difficult task.
+                    The maximum you can have, and still register with the Master Server, is 16, but the maximum
+                    that your server can <b>efficiently support</b> is dictated by the <b>upstream</b> bandwidth
+                    of your internet connection. If you overload your connection with too many clients, they will
+                    all suffer from lag spikes, regardless of geographical distance from the server.
+                </p>
+                <p>
+                    The server list gives an indication of a server's error rate; green is good, red is bad. Error rate
+                    can be affected by line quality and/or limited bandwidth. Pressing <b>F9</b>, followed by <b>F2</b>
+                    brings up a further graphic showing how the error rate is affected by client connections.
+                </p>
+                <table>
+                <tr>
+                <td>
+                <img src="images/server_error_rate_examples.jpg" alt="Server error rates">
+                </td>
+                <td width="40">
+                </td>
+                <td align="center">
+                <img src="images/server_error_stats.jpg" alt="Player/error stats"><br />
+                F9 &#8658; F2: It looks like this server could do with <br />
+                having its max. clients reduced to 6
+                </td>
+                </tr>
+                </table>
+                <h2 id="maprotation">
+                    Map rotation
+                </h2>
+                <p>
+                    In the map rotation file specified with the <span class="code">-r</span> option (default:
+                    <i>config/maprot.cfg</i>), you can specify the map, mode, time and voting for
+                    your server. Each line defines one round. The optional arguments of minplayer, maxplayer and skiplines
+                    empower you to change which lines will be played when your server is rather empty or closer to full.
+                </p>
+                <table>
+                    <tr>
+                        <td width="120" style="text-align: center;">
+                            map
+                        </td>
+                        <td>
+                            Map filename without extension. Only use standard maps and maps from
+                            your packages/maps/servermaps folder, otherwise the map won't start.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: center;">
+                            mode
+                        </td>
+                        <td>
+                            Game mode number. One of: Team Deathmatch (0), Deathmatch (2), Pistol
+                            Frenzy (6), Team Pistol Frenzy (16), Capture the Flag (5), Hunt the Flag (13),
+                            Keep the Flag (15), Team Keep the Flag (14), Team Survivor (4), Survivor (3), Last
+                            Swiss Standing (9), Team Last Swiss Standing (17), One Shot One Kill (10),
+                            Team One Shot One Kill (11)
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: center;">
+                            time
+                        </td>
+                        <td>
+                            Game time in minutes. Usually 15 minutes for flag modes, 10 minutes for
+                            all other modes.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: center;">
+                            vote
+                        </td>
+                        <td>
+                            1: allow players to vote for another map/mode, 0: only an admin can change the
+                            map/mode
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: center;">
+                            minplayer
+                        </td>
+                        <td>
+                            If specified, the server will skip the map if fewer than the required
+                            players are connected at time of game start.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: center;">
+                            maxplayer
+                        </td>
+                        <td>
+                            If specified, the server will skip the map if more than the allowed
+                            players are connected at time of game start.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: center;">
+                            skiplines
+                        </td>
+                        <td>
+                            If the map actually got played (depending on minplayer and maxplayer), the server
+                            will skip the specified number of (used) lines in the maprotation before picking the
+                            next map. This can be used to prevent the same map being played twice in a row.
+                        </td>
+                    </tr>
+                </table>
+                <p>
+                    Minplayer and maxplayer numbers are only checked when a new game is picked from
+                    the map rotation. If the player number changes during gameplay, no action will
+                    be taken.
+                </p>
+                <p>
+                    Example:
+                </p>
+                <pre xml:space="preserve">
+		// server side maprotations
+		// WARNING: You can NOT use CubeScript in there
+		// Use the following scheme...
+		// map:mode:time:allowVote[:minplayer[:maxplayer[:skiplines]]]
+
+		// tdm
+		ac_complex:0:10:1
+		ac_depot:0:10:1
+		ac_desert:0:10:1
+		ac_mines:0:10:1
+
+		// ctf
+		ac_mines:5:10:1
+		ac_depot:5:10:1
+
+		// ac_arctic
+		ac_arctic     : 0:10: 1: 4: 7: 1     // tdm, 10 minutes, 4..7 players
+		ac_arctic     :11:10: 1: 7: 0: 0     // tosok, 10 minutes, 8.. players
+
+		// one short game on ac_snow, either osok or deathmatch (pseudorandom)
+		ac_snow       :10: 6: 1: 0: 1: 7     // osok, 6 minutes, 0..1 players
+		ac_snow       : 2: 6: 1: 2: 2: 6     // dm, 6 minutes, 2 players
+		ac_snow       :10: 6: 1: 3: 3: 5     // osok, 6 minutes, 3 players
+		ac_snow       : 2: 6: 1: 4: 4: 4     // dm, 6 minutes, 4 players
+		ac_snow       :10: 6: 1: 5: 5: 3     // osok, 6 minutes, 5 players
+		ac_snow       : 2: 6: 1: 6: 6: 2     // dm, 6 minutes, 6 players
+		ac_snow       :10: 6: 1: 7: 7: 1     // osok, 6 minutes, 7 players
+		ac_snow       : 0: 6: 1: 8:11: 0     // tdm, 6 minutes, 8..11 players
+	 </pre>
+                <p>
+                    The first line, <span class="code">ac_complex:0:10:1</span>, means, the map
+                    <i>ac_complex</i> is played in mode 0 (Team Deathmatch) for 10 minutes. The
+                    connected players are allowed to vote for a different map/mode.
+                </p>
+                <p>
+                  The ac_arctic-block will play <i>team deathmatch</i> or <i>team one shot one kill</i>
+                  on ac_arctic, depending on the number of players;
+                  for 4 to 7 players it will be team deathmatch, for 8 or more players it will be tosok; if less than 4
+                  players are on the server, the map will be skipped.
+                  (Notice the <i>skipline = 1</i> in the first ac_arctic line (tdm) - this will skip the tosok line,
+                  if tdm actually gets played.)
+                </p>
+                <p>
+                  The last block will play only one match on ac_snow, but depending on the number of players with varying gamemode;
+                  for less than 8 players and an even number it will be deathmatch, for uneven numbers osok,
+                  with more than 8 players team deathmatch will be played.
+                </p>
+                <p>
+                <b>Important: Do not use the maprot file to force the same map or mode repeatedly. Servers with map rotations containing
+                less than two different maps (or three if they are all the same mode) may be removed from the public server list.
+                Also, do only use standard maps and maps from your packages/maps/servermaps folder!</b>
+                </p>
+                <h2 id="blacklist">
+                    IP Blacklist
+                </h2>
+                <p>
+                    In the blacklist file specified with the <span class="code">-B</span> option (default:
+                    <i>config/serverblacklist.cfg</i>), you can specify IP addresses and IP address ranges to be denied
+                    access to your server. Each line defines one IP address (range).
+                </p>
+                <p>
+                    You can use three different schemes to specify IP address ranges:
+                </p>
+                <p>
+                    1.2.3.4 &nbsp; &#8658; ban a single IP
+                </p>
+                <p>
+                    1.2.3.4/24 &nbsp; &#8658; ban an IP block using <a href="http://en.wikipedia.org/wiki/CIDR_notation">
+                    CIDR notation</a> (here: 1.2.3.0 - 1.2.3.255)
+                </p>
+                <p>
+                    1.2.3.4 - 2.3.4.5 &nbsp; &#8658; ban an IP range
+                </p>
+                <p>
+                    If a player from a banned IP address tries to connect to your server, he will get an
+                    error message: <i>"connection refused due to ban"</i>.
+                </p>
+                <p>
+                    <b>Important: The AC development team reserves the right to ban players centrally, usually proven cheats.
+                    This may result in players NOT in your blacklist being banned from your server.
+                    Everything possible is done to prevent innocent players from being banned.</b>
+                </p>
+                <h2 id="nickblacklist">
+                    Nickname Blacklist
+                </h2>
+                <p>
+                    In the nickname blacklist file specified with the <span class="code">-K</span> option (default:
+                    <i>config/nicknameblacklist.cfg</i>), you can configure the nickname blacklist and the nickname
+                    whitelist.
+                </p>
+                <p>
+                    Whenever a player connects to a server (or changes his nickname), the nickname is compared to the
+                    whitelist and the blacklist. First, the nickname (as a whole) is searched in the whitelist. If the
+                    nickname is in the whitelist, the player's IP and password are checked (if required). If an IP range
+                    or password requirement is not met, the player gets kicked. If the nickname is not in the whitelist,
+                    it is checked against the blacklist. If a blacklist entry matches, the player gets kicked.
+                </p>
+                <p>
+                    To prevent whitelist entries being misused by other players, each entry can be secured by one or more
+                    IP ranges and one or more passwords. IP ranges are very convenient to use. For players with static IP,
+                    this is a very secure method to prevent others from using the nickname. If the IP is dynamic, it
+                    depends on how big the used IP range is. A single /16 range should be secure enough for most cases.
+                    If the range is bigger, the IP range will not block others sufficiently. In those cases, passwords can
+                    be used.
+                </p>
+                <p>
+                    The following commands can be used in nicknameblacklist.cfg:
+                </p>
+                <dl>
+                    <dt>
+                        <b>accept</b> nickname [IP range ...] [password ...]
+                    </dt>
+                    <dd>
+                        Add <i>nickname</i> to the whitelist. IP ranges and passwords are optional; if IP ranges are
+                        specified, only connects from those ranges are allowed; if one or more passwords are specified,
+                        the connect password has to match one of them.
+                    </dd>
+                    <dt>
+                        <b>block</b> nicknamefragment1 [nicknamefragment2 ...]
+                    </dt>
+                    <dd>
+                        Block nicknames that contain <i>all</i> specified fragments (up to 5).
+                    </dd>
+                    <dt>
+                        <b>blocki</b> nicknamefragment1 [nicknamefragment2 ...]
+                    </dt>
+                    <dd>
+                        Block nicknames that contain <i>all</i> specified fragments (up to 5), ignoring case.
+                    </dd>
+                </dl>
+                <ul>
+                    <li>
+                        accept, block and blocki can be shortened to a, b and bi
+                    </li>
+                    <li>
+                        'accept' has higher priority than 'block'
+                    </li>
+                    <li>
+                        accept matches whole nicknames; block matches parts of nicknames
+                    </li>
+                    <li>
+                        accept and block commands are case sensitive; the blocki command ignores case
+                    </li>
+                    <li>
+                        the order of lines/commands in the file is irrelevant; no sorting or grouping is required
+                    </li>
+                    <li>
+                        'accept' commands can be split up into several commands by using the same nickname
+                    </li>
+                </ul>
+                <h2 id="forbidden">
+                    Forbidden words file
+                </h2>
+                <p>
+                    If there are things you just don't want people to say in your server, this file, specified
+                    with the <span class="code">-g</span> option (default: <i>config/forbidden.cfg</i>),
+                    contains example words and phrases which will be barred from public display. If a
+                    client types one of these words or phrases, it will be displayed on their HUD only, along
+                    with a warning. If you wish to disable this function, just remove every entry from the list.
+                </p>
+                <h2 id="serverpwd">
+                    Server password file
+                </h2>
+                <p>
+                    In the server password file specified with the <span class="code">-X</span> option (default:
+                    <i>config/serverpwd.cfg</i>), you can specify admin passwords and passwords
+                    to bypass server bans. Each line defines one password.
+                </p>
+                <p>
+                    Example:
+                </p>
+                <pre xml:space="preserve">
+		// list of additional server admin passwords
+		// WARNING: You can NOT use CubeScript in here!!
+		// one password per line
+
+		// Use the following scheme...
+		// password [denyadmin]
+		// optional: if denyadmin is set to '1' then
+		// the password can only be used to connect to the server in case of ban, not to claim admin
+
+		Lorem 1
+		ipsum
+		dolor 0
+	 </pre>
+                <p>
+                    In the above example three passwords are defined: <i>Lorem</i>, <i>ipsum</i> and <i>dolor</i>.
+                </p>
+                <p>
+                    <i>ipsum</i> and <i>dolor</i> are full admin passwords. They can be used to claim admin, connect
+                    to a full server and to get over a server ban.
+                </p>
+                <p>
+                    <i>Lorem</i> is a less powerful password: it can only be used to connect to a server that has a pending
+                    ban on the user. This kind of password is useful, whenever a blacklist range ban affects innocent players.
+                </p>
+                <h2 id="colouring">
+                    Colouring
+                </h2>
+                <p>
+                    You can use colours to set your server apart from the others. The "Message of the day" (MOTD), the server
+                    description and the additional server information can all be coloured.
+                </p>
+                <p>
+                    To change a colour to another, use \f plus a corresponding number or letter. The following colours are available.
+                </p>
+                <table>
+                    <tr style="color:#02FF80;">
+                        <td width="120" style="text-align: center;">0</td>
+                        <td>green</td>
+                    </tr>
+                    <tr style="color:#60A0FF;">
+                        <td style="text-align: center;">1</td>
+                        <td>blue</td>
+                    </tr>
+                    <tr style="color:#FFC040;">
+                        <td style="text-align: center;">2</td>
+                        <td>yellow</td>
+                    </tr>
+                    <tr style="color:#FF4140;">
+                        <td style="text-align: center;">3</td>
+                        <td>red</td>
+                    </tr>
+                    <tr style="color:#808080;">
+                        <td style="text-align: center;">4</td>
+                        <td>gray</td>
+                    </tr>
+                    <tr style="color:#FFFFFF;">
+                        <td style="text-align: center;">5</td>
+                        <td>white</td>
+                    </tr>
+                    <tr style="color:#603000;">
+                        <td style="text-align: center;">6</td>
+                        <td>dark brown</td>
+                    </tr>
+                    <tr style="color:#993033;">
+                        <td style="text-align: center;">7</td>
+                        <td>dark red</td>
+                    </tr>
+                    <tr style="color:#C040C0;">
+                        <td style="text-align: center;">8</td>
+                        <td>magenta</td>
+                    </tr>
+                    <tr style="color:#FF6600;">
+                        <td style="text-align: center;">9</td>
+                        <td>orange</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: center;"><font color=#FFB7B7>A</font> <font color=#CC3333>B</font> <font color=#663333>C</font> <font color=#F8984E>D</font></td>
+                        <td>red set</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: center;"><font color=#FFFFB7>E</font> <font color=#CCCC33>F</font> <font color=#666633>G</font> <font color=#CCFC58>H</font></td>
+                        <td>yellow set</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: center;"><font color=#B7FFB7>I</font> <font color=#33CC33>J</font> <font color=#336633>K</font> <font color=#3FFF98>L</font></td>
+                        <td>green set</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: center;"><font color=#B7FFFF>M</font> <font color=#33CCCC>N</font> <font color=#336666>O</font> <font color=#4FCCF8>P</font></td>
+                        <td>cyan set</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: center;"><font color=#B7B7FF>Q</font> <font color=#3333CC>R</font> <font color=#333366>S</font> <font color=#A049FF>T</font></td>
+                        <td>blue set</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: center;"><font color=#FFB7FF>U</font> <font color=#CC33CC>V</font> <font color=#663366>W</font> <font color=#FF01D5>X</font></td>
+                        <td>magenta set</td>
+                    </tr>
+                    <tr style="color:#C7D1E2;">
+                        <td style="text-align: center;">Y</td>
+                        <td>light gray</td>
+                    </tr>
+                    <tr style="color:#323232;">
+                        <td style="text-align: center;">Z</td>
+                        <td>dark gray</td>
+                    </tr>
+                </table>
+                <p>
+                    Example of usage:<br />
+                    &#92;f5This colour is &#92;f1blue&#92;f5 and this is a different &#92;fRblue&#92;f5.<br />
+                    ...produces:<br />
+                    <font color=#FFFFFF>This colour is </font><font color=#60A0FF>blue</font><font color=#FFFFFF>
+                    and this is a different </font><font color=#3333CC>blue</font><font color=#FFFFFF>.</font>
+                </p>
+                <h2>
+                    Additional Server Information
+                </h1>
+                <p>
+                    An important enhancement to your server description is the additional server information file
+                    specified by <span class="code">-I</span> (default: <i>config/serverinfo_en.txt</i>). The
+                    text in this can be seen in-game by pressing <b>F9</b> when your server is highlighted in
+                    the server list, or by pressing <b>Escape</b> and selecting <b>Get additional server
+                    information</b> when connected to the server. You can use this file to provide extended
+                    information about your server, such as contact details, server location, where demos
+                    can be downloaded from, clan information, etc. The file contains formatting help to assist you.
+                </p>
+                <h1>
+                    Administration
+                </h1>
+                <h2 id="cheating">
+                    Cheating
+                </h2>
+                <p>
+                    Cheating is a problem that can't be solved entirely. AssaultCube is open source,
+                    so everyone who knows how to compile it can easily modify the source to do
+                    whatever he wants; that's the problem of open source games. The fact that most of
+                    the game logic is client-side, to save bandwidth, makes it even easier
+                    to cheat. There is no way to completely avoid this abuse, but cheats should be kicked
+                    from the game as soon as possible, to ensure fair play for everyone else.
+                </p>
+                <h2 id="serveradmin">
+                    Server Admin
+                </h2>
+                <p>
+                    There is a client role a player can claim called <i>admin</i>. It can be
+                    claimed by the owner of a server (or players the owner trusts) to take control
+                    over what is happening when they are present. Claiming admin state requires a
+                    password that matches the server configuration.
+                </p>
+                <p>
+                    The main advantage of the admin role is its overriding vote power. A 'yes' (F1)
+                    or 'no' (F2) vote from an admin will be the deciding vote immediately. Read more about
+                    being an admin of a server on the <a href="http://wiki.cubers.net/action/view/Admin">AssaultCube wiki</a>.
+                <p>
+                    Related commands:
+                </p>
+                <ul>
+                    <li>
+                        <a href="reference.xml#identifier_setadmin" shape="rect">setadmin</a> -
+                        become admin on a server
+                    </li>
+                    <li>
+                        <a href="reference.xml#identifier_connectadmin" shape=
+                        "rect">connectadmin</a> - connect to a server and become admin
+                    </li>
+                    <li>
+                        <a href="reference.xml#identifier_giveadmin" shape="rect">giveadmin</a> -
+                        gives the master state to a player
+                    </li>
+                </ul>
+                <p>
+                    Use the <span class="code">setadmin</span> command to claim admin if you are
+                    already connected to a sever. However if you are locked out of your own server
+                    because you are banned, master mode is private or because all client slots are
+                    taken, you can use the <span class="code">connectadmin</span> command to get
+                    control back. If you want to leave the server in the hands of a certain
+                    player <span class="code">giveadmin</span> can be used to give control to a
+                    honest player.
+                </p>
+                <p>
+                    The admin password is best configured using the
+                    <a href="commandline.html#server-X" shape="rect">-X</a> option</a>, but can also
+                    be set with <a href="commandline.html#server-x" shape="rect">-x</a> on the command line.
+                </p>
+                <h2 id="serverlogs">
+                    Server logs
+                </h2>
+                <p>
+                    By default, a running server will log to a file in the main AssaultCube folder (Windows),
+                    or the </i>gamedata</i> folder (Mac) or to the syslog (linux). The level of detail in the
+                    log can be controlled with the <span class="code">-LF</span> or <span class="code">-LS</span>
+                    options.
+                </p>
+                <p>
+                    The log can be used as reference for IP addresses of connected clients, a record of
+                    things said during a game or an indication of suspicious client activity (using the game's
+                    anticheat coding), and contains many other pieces of information.
+	 </p>
+                <h2 id="killmessages">
+                    Kill Messages
+                </h2>
+                <p>
+                    You can control how kills are reported in your log with the kill messages file, specified
+                    with the <span class="code">-E</span> option (default: <i>config/serverkillmessages.cfg</i>).
+                    These messages will appear in your log only; you can't control what messages the clients see.
+                </p>
+	 <h2 id="serverdemos">
+	     Demos
+	 </h2>
+	 <p>
+	     By default, a server will store records of the previous 5 games in RAM, as downloadable demos.
+	     It's possible to change the number of stored demos with the <span class="code">-D</span> option,
+	     and you can also write the demos to disk, and change the location and file prefix, using the
+	     <span class="code">-W</span> option.
+	 </p>
+	 <p>
+	     As a responsible server owner, you may be approached by players who were on your server, requesting
+	     a demo they may have forgotten to get in-game, or a piece of information from the log. Releasing these
+	     is, of course, at your discretion.
+	 </p>
+	 <h1>
+	     Important: Server modifications
+	 </h1>
+	 <p>
+	     <b>Obviously AssaultCube is an open source game, and the server code is open to modification. You may
+	     find that some part of the server code can be improved (please let us know if this is the case), or
+	     that it doesn't provide a bit of functionality that you require. You're welcome to compile your own
+	     server binary, provided that any changes you make don't affect the gameplay. We want to ensure that
+	     all clients connecting to public servers are aware of the game modes, ammo and health settings, game
+	     physics, etc., and that there are no surprises. If your server is deemed to have a gameplay-affecting
+	     modification, it will be removed from the master server list.</b>
+	 </p>
+      </div>
+      <div id="author">
+        <a href="license.html">&copy; Copyright, Rabid Viper Productions</a>
+      </div>
+      <div id="donatedocs">
+        <a href="http://sourceforge.net/p/actiongame/donate/">
+          We would be grateful for any donations considered towards AssaultCube
+        </a>
+      </div>
+      <!--#include virtual="/SSI-HTML/adsense_footer.html" -->
+    </div>
+  </body>
+</html>

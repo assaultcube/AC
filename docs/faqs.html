@@ -1,0 +1,227 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+    <meta name="robots" content="NOODP">
+    <meta name="author" content="Rabid Viper Productions">
+    <meta name="copyright" content="You may be able to redistribute this content under specific conditions.
+    Please read the licensing information, available @ http://assault.cubers.net/docs/license.html for the
+    conditions that would apply to what you may be redistributing.">
+    <title>AssaultCube Documentation :: F.A.Q'S</title>
+    <link rel="stylesheet" type="text/css" href="css/main.css">
+    <link rel="stylesheet" type="text/css" href="css/docs.css">
+    <!--#include virtual="/SSI-HTML/docs/invisibility.html" -->
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <style type="text/css">
+      li {
+        font-weight : bold;
+      }
+      .ans {
+        margin-left : 20px;
+        list-style : none;
+        padding-bottom : 15px;
+        font-weight : normal;
+      }
+    </style>
+    <!-- Each question needs to have its own ID# (id="n11") appended, so players can be linked to the question if needed. -->
+    <!-- Each answer needs the class "ans" (class="ans") appended, to make this page look good. -->
+  </head>
+  <body>
+    <div id="container">
+      <div id="docsheader">
+        AssaultCube Documentation
+      </div>
+      <div id="logo">
+        <a href="index.html"><img src="images/aclogo.png"
+        alt="AssaultCube" width="193px" height="81px"></a>
+      </div>
+      <div id="menubar">
+	<!--#include virtual="/SSI-HTML/docs/navigation_box_docs.html" -->
+	&nbsp;
+      </div>
+      <!--#include virtual="/SSI-HTML/docs/docswarn.html" -->
+      <div class="docsmain">
+        <div id="gohome">
+          <a href="index.html">Go to documentation index &#8629;</a>
+        </div>
+	<h2>F.A.Q'S</h2>
+        <p>
+          Only frequently asked questions are answered on this page. If you've looked through the
+          rest of the official documentation and still can't find the answer you need, you might like 
+          to try <a href="http://wiki.cubers.net/action/view/Special:Search">searching the wiki</a> and the 
+          <a href="http://forum.cubers.net/search.php">forums</a>, and if you still can't find the
+          answer, post a thread on the forum explaining your situation.
+        </p>
+        <ul>
+          <li id="n01">
+            On the scoreboard, I've noticed the words "ping" and "pj", what are these?
+          </li>
+          <li class="ans">
+            PJ means packet jump. Information about what these are is covered in the 
+            <a href="interface.html#scoreboard">interface part</a> of the documentation.
+          </li>
+          <li id="n02">
+            Why do some players become semi-visible (transparent), stand still and start saluting?
+          </li>
+          <li class="ans">
+            This is because of <a href="http://en.wikipedia.org/wiki/Lag">network lag</a>. 
+            The AssaultCube server hasn't recieved a response from the player who is saluting for too long
+            and so the AssaultCube server has temporarally turned that player into a "ghost" that can't be 
+            shot (but don't worry, they can't shoot you either). This "ghost" player will eventually, either
+            disconnect, or their connection will catch-up and they will return to play.
+          </li>
+          <li id="n03">
+            Why is a player's name on the scoreboard red in colour?
+          </li>
+          <li class="ans">
+            This is because they're an administrator for this server. This means they know a password to that server,
+            probably because they own/run the server, or are a friend of the person who owns/runs the server. As they
+            have administrator access, they're able to do whatever they like on their server. Administrators can overide 
+            any votes initiated by normal players.
+          </li>
+          <li id="n04">
+            I experience some motion sickness... is there any way around this?
+          </li>
+          <li class="ans">
+            Try increasing your <b>Field of View</b> or resolution. You can change these settings through the 
+            "<b>Settings</b>" &#187; "<b>Video settings</b>" menu.
+          </li>
+          <li id="n05">
+            What's a good way to get a lot of points, fast?
+          </li>
+          <li class="ans">
+            Try honing your skills into "<a href="basics.html#gib">gibbing</a>" your enemies instead of 
+            just normal fragging. You get given 2 frags for gibbing an enemy with a knife or sniper-headshot.
+            Using grenades are also a great way for gibbing more than one enemy at once, but are only worth 1 frag.
+          </li>
+          <li id="n06">
+	    I seem to get strange walls appear out of nowhere on maps with far-away areas. How do I fix this?
+          </li>
+          <li class="ans">
+            This is a graphics glitch caused by low "minlod". In AssaultCube, type: <b>/minlod 250</b> to set minlod
+            to the maximum. You might like to try a lower value than 250 if you find this setting causes considerable
+            graphical lag for you.
+          </li>
+          <li id="n07">
+            Why doesn't AssaultCube have a feature that I've seen in a different game (example: Counter-Strike, etc.)?
+          </li>
+          <li class="ans">
+            Firstly, AssaultCube is not a Counter-Strike (etc.) clone! The quicker you understand this, 
+            the sooner you will be able to defeat your opponents with ease.
+            <br>
+            Secondly, just because a feature is available in some other game, it does not mean we have to implement it 
+            here. There are several reasons we might not add it, it might not suit the game style that AssaultCube has,
+            it might not fit-in with the CUBE engine, etc. The best thing to do, is request it on our
+            <a href="http://sourceforge.net/tracker/?group_id=123597&amp;atid=697092&amp;status=1">feature request</a>
+            page and we may consider it.
+          </li>
+          <li id="n08">
+            I shoot at players/bots, but NONE of my shots seem to hit them. What's going on?
+          </li>
+          <li class="ans">
+            AssaultCube uses OpenGL to find the position in the 3D world your crosshair is pointing at - so this error
+            occurs when buggy graphics cards aren't allowing OpenGL to do this properly. If you're able to, the best thing to
+            do first is <a href="graphicsdrivers.html">update your graphics drivers</a> in an attempt to fix it permanently.
+            <br>If this isn't possible or doesn't work, the next thing to try is changing your resolution <b>WITHIN</b>
+            AssaultCube. You can change the resolution through the "<b>Settings</b>" &#187; "<b>Video settings</b>"
+            menu.
+            <br>In most cases, this should be enough to fix it. For the new resolutions, first try setting the resolution
+            to be the same as your native resolution, if that doesn't work, next try 1024x768 (and then 800x600, then 640x480).
+            <br>Failing this, there isn't much else that can be done, you may need to replace your graphics card.
+          </li>
+          <li id="n09">
+            Why are my settings wiped everytime I start AssaultCube?
+          </li>
+          <li class="ans">
+            If this occurs, it is because you need to enable write-access to your "AssaultCube home folder":
+            <ul>
+              <li><a href="http://support.microsoft.com/kb/308419#4">Changing access permissions on Windows</a></li>
+              <li><a href="https://help.ubuntu.com/community/FilePermissions#Changing%20Permissions">Changing access permissions on Linux</a></li>
+            </ul>
+            Although it is not recommended because of security reasons, as a last resort, you may try running AssaultCube
+            as administrator/root to fix this issue:
+            <ul>
+              <li><a href="http://support.microsoft.com/kb/305780">Run as administrator on Windows</a></li>
+              <li><a href="https://help.ubuntu.com/community/RootSudo#Graphical%20sudo">Run as root using "gksudo" on Linux</a></li>
+            </ul>
+          </li>
+          <li id="n10">
+            Where is my "AssaultCube home folder"?
+          </li>
+          <li class="ans">
+            The "AssaultCube home folder" is used to save all of your AssaultCube screenshots, settings and maps.
+            You may also use this directory to add new content to the game found elsewhere, such as 
+            <a href="http://akimbo-ac.net">Akimbo</a> or <a href="http://quadropolis.us/taxonomy/term/24">Quadropolis</a>.
+            <br>Your home folder is either:
+            <ul>
+              <li style="font-weight : normal;">On Linux or Mac based systems: <i>~/.assaultcube_</i>
+              <li style="font-weight : normal;">On Windows based systems: <i>My Documents &#187; AssaultCube_</i>
+            </ul>
+            Note 1: There will always be a version number appended to the end of the folder name. 
+            <br>Note 2: In Linux/Mac based systems, ~/ stands for "/home/YOUR_USERNAME". 
+          </li>
+          <li id="n11">
+            I've just installed a new AssaultCube package and I'm getting a lot of weird error messages, what do I do?
+          </li>
+          <li class="ans">
+            Sometimes after re-installing or upgrading AssaultCube the old configuration files still exist and the game is
+            referencing those configuration files. But don't worry, there's an easy fix. Try typing the command 
+            <span class="code">/resetcfg 1</span> and then restart AssaultCube. If this doesn't work however, consult the
+            <a href="index.html#helpmeplease">Help?!</a> section of the documentation.
+          </li>
+          <li id="n12">
+            Why are my mouse clicks delayed when trying to fire rapidly in Linux?
+          </li>
+          <li class="ans">
+            This is a common problem on Linux and isn't specific to AssaultCube. You'll need to edit your
+            xorg.conf and set the value of <i>Emulate3Buttons</i> to OFF.
+          </li>
+          <li id="n13">
+            Why does aiming seem difficult?
+          </li>
+          <li class="ans">
+            Sometimes, your operating system has "mouse acceleration" activated, which can make aiming difficult, so
+            you may need to turn this off. Another common problem is that the sensors on some "cheap" optical mice
+            tend to miss detecting quick movements.
+          </li>
+          <li id="n14">
+            How and where are settings saved?
+          </li>
+          <li class="ans">
+            When AssaultCube is run for the first time, it executes:
+            <ul class="code">
+              <li style="font-weight : normal;">./config/defaults.cfg</li>
+              <li style="font-weight : normal;">./config/firstrun.cfg</li>
+              <li style="font-weight : normal;">./config/autoexec.cfg</li>
+            </ul>
+            Once you quit AssaultCube, the settings in these files and your changes to them during the course of playing
+            AssaultCube gets stored in <span class="code">./config/saved.cfg</span> and <span class="code">./config/init.cfg</span>
+            (in your <a href="#n10">home folder</a>), so that upon the next load of AssaultCube, the game reads those files instead.
+            The file <span class="code">./config/autoexec.cfg</span> is always executed upon every run of AssaultCube, this is
+            so you can place scripts and commands you prefer inside this file, so they're automatically executed.
+            If <span class="code">./config/init.cfg</span> doesn't exist, AssaultCube will prompt you with the 
+            quick setup menu.
+            <br>To wipe settings to their default values, do one of the following:
+            <ol>
+              <li style="font-weight : normal;">
+                Delete <span class="code">./config/saved.cfg</span> 
+                and <span class="code">./config/init.cfg</span>
+              </li>
+              <li style="font-weight : normal;">Type <span class="code">/resetcfg 1</span> while playing, then restart AssaultCube.</li>
+              <li style="font-weight : normal;">Press ESCAPE and go to Settings &#8658; Reset all settings.</li>
+            </ol>
+          </li>
+        </ul>
+      </div>
+      <div id="author">
+        <a href="license.html">&copy; Copyright, Rabid Viper Productions</a>
+      </div>
+      <div id="donatedocs">
+        <a href="http://sourceforge.net/p/actiongame/donate/">
+          We would be grateful for any donations considered towards AssaultCube
+        </a>
+      </div>
+      <!--#include virtual="/SSI-HTML/adsense_footer.html" -->
+    </div>
+  </body>
+</html>

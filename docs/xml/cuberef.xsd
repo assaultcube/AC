@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 
+  XML schema for types in the ../reference.xml document.
+
+  Written by:	Adrian 'driAn' Henke (of Rabid Viper Productions).
+
+  You may be able to redistribute this content under specific
+  conditions. Please read the licensing information, available
+  at http://assault.cubers.net/docs/license.html for the
+  conditions that would apply to what you may be redistributing.
+-->
+
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://assault.cubers.net/docs/xml" xmlns="http://assault.cubers.net/docs/xml">
+
+  <!-- simple types -->
+  
+  <xs:simpleType name="nameType">
+    <xs:restriction base="xs:string">
+      <xs:maxLength value="32" />
+    </xs:restriction>
+  </xs:simpleType>
+  
+  <xs:simpleType name="descriptionType">
+    <xs:restriction base="xs:string">
+      <xs:maxLength value="128" />
+    </xs:restriction>
+  </xs:simpleType>
+  
+  <xs:simpleType name="remarkType">
+    <xs:restriction base="xs:string">
+      <xs:maxLength value="1024" />
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="codeType">
+    <xs:restriction base="xs:string">
+      <xs:maxLength value="256" />
+    </xs:restriction>
+  </xs:simpleType>
+  
+  <xs:simpleType name="urlType">
+    <xs:restriction base="xs:string">
+      <xs:maxLength value="256">
+      </xs:maxLength>
+    </xs:restriction>
+  </xs:simpleType>
+  
+  <xs:simpleType name="tokenType">
+    <xs:restriction base="xs:string">
+      <xs:maxLength value="8" />
+    </xs:restriction>
+  </xs:simpleType>
+  
+  <xs:simpleType name="valueNotesType">
+    <xs:restriction base="xs:string">
+      <xs:maxLength value="128" />
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="keyAliasType">
+    <xs:restriction base="xs:string">
+      <xs:maxLength value="16" />
+    </xs:restriction>
+  </xs:simpleType>
+  
+  <!-- complex types -->
+  
+    <!-- value descriptions -->
+  
+  <xs:complexType name="valueDescriptionType">
+    <xs:attribute name="token" use="required" type="tokenType"/>
+    <xs:attribute name="description" use="required" type="descriptionType"/>
+    <xs:attribute name="valueNotes" use="optional" type="valueNotesType"/>    
+  </xs:complexType>
+
+  <xs:complexType name="intVariableValueDescriptionType">
+    <xs:complexContent>
+      <xs:extension base="valueDescriptionType">
+        <xs:attribute name="minValue" use="required" type="xs:int"/>
+        <xs:attribute name="maxValue" use="required" type="xs:int"/>
+        <xs:attribute name="defaultValue" use="required" type="xs:int"/>
+        <xs:attribute name="readOnly" use="optional" type="xs:boolean" default="false"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="returnValueDescriptionType">
+    <xs:complexContent>
+      <xs:extension base="valueDescriptionType">
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="argumentValueDescriptionType">
+    <xs:complexContent>
+      <xs:extension base="valueDescriptionType">
+        <xs:attribute name="optional" use="optional" type="xs:boolean" default="false"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="variableArgumentValueDescriptionType">
+    <xs:complexContent>
+      <xs:extension base="argumentValueDescriptionType">
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="argumentValueDescriptionCollectionType">
+    <xs:sequence>
+      <xs:element name="argument" type="argumentValueDescriptionType" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="variableArgument" type="variableArgumentValueDescriptionType" minOccurs="0" maxOccurs="1"/>
+    </xs:sequence>
+  </xs:complexType>
+  
+  <!-- keys -->
+
+  <xs:complexType name="keyType">
+    <xs:attribute name="alias" type="keyAliasType" use="required"/>
+    <xs:attribute name="name" type="nameType" use="optional"/>
+    <xs:attribute name="description" type="descriptionType" use="optional"/>
+  </xs:complexType>
+
+  <xs:complexType name="keyCollectionType">
+    <xs:sequence>
+      <xs:element name="key" type="keyType" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- references -->
+    
+  <xs:complexType name="referenceType">
+    <xs:attribute name="name" use="optional" type="nameType"/>
+  </xs:complexType>
+
+  <xs:complexType name="identifierReferenceType">
+    <xs:complexContent>
+      <xs:extension base="referenceType">
+        <xs:attribute name="identifier" use="required" type="nameType" />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="webReferenceType">
+    <xs:complexContent>
+      <xs:extension base="referenceType">
+        <xs:attribute name="url" use="required" type="urlType"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="wikiReferenceType">
+    <xs:complexContent>
+      <xs:extension base="referenceType">
+        <xs:attribute name="article" use="required" type="urlType"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="referenceCollectionType">
+    <xs:sequence>
+      <xs:element name="identifierReference" type="identifierReferenceType" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="webReference" type="webReferenceType" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType> 
+  
+    <!-- remarks -->
+  
+  <xs:complexType name="remarkCollectionType">
+    <xs:sequence>
+      <xs:element name="remark" type="remarkType" minOccurs="1" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- examples -->
+
+  <xs:complexType name="exampleType">
+    <xs:sequence>
+      <xs:element name="code" type="codeType" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="explanation" type="descriptionType" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="exampleCollectionType">
+    <xs:sequence>
+      <xs:element name="example" type="exampleType" minOccurs="1" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  
+  <!-- identifiers -->
+  
+  <xs:complexType name="identifierType" abstract="true">
+    <xs:choice maxOccurs="unbounded">
+      <xs:element name="description" type="descriptionType" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="remarks" type="remarkCollectionType" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="examples" type="exampleCollectionType" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="references" type="referenceCollectionType" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="defaultKeys" type="keyCollectionType" minOccurs="0" maxOccurs="1"/>
+    </xs:choice>
+    <xs:attribute name="name" use="required" type="nameType"/>
+  </xs:complexType>
+
+  <xs:complexType name="identifierCollectionType">
+    <xs:sequence>
+      <xs:element name="command" type="commandType" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="variable" type="variableType" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="scriptalias" type="scriptaliasType" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute name="sort" type="xs:boolean" default="true"/>
+  </xs:complexType>
+
+  <xs:complexType name="commandType">
+    <xs:complexContent>
+      <xs:extension base="identifierType">
+        <xs:choice maxOccurs="unbounded">
+          <xs:element name="arguments" type="argumentValueDescriptionCollectionType" minOccurs="0" maxOccurs="1"/>
+          <xs:element name="return" type="returnValueDescriptionType" minOccurs="0" maxOccurs="1"/>
+        </xs:choice>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="variableType">
+    <xs:complexContent>
+      <xs:extension base="identifierType">
+        <xs:sequence>
+          <xs:element name="value" type="intVariableValueDescriptionType" minOccurs="1" maxOccurs="1"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="scriptaliasType">
+    <xs:complexContent>
+      <xs:extension base="identifierType">
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+    <!-- sections -->
+  
+  <xs:complexType name="sectionType">
+    <xs:sequence>
+      <xs:element name="description" type="descriptionType" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="identifiers" type="identifierCollectionType" minOccurs="1" maxOccurs="1"/>
+    </xs:sequence>
+    <xs:attribute name="name" use="required" type="nameType"/>
+    <xs:attribute name="sortindex" use="optional" type="xs:int"/>
+  </xs:complexType>
+
+  <xs:complexType name="sectionCollectionType">
+    <xs:sequence>
+      <xs:element name="section" type="sectionType" minOccurs="1" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute name="sort" type="xs:boolean" default="true"/>
+  </xs:complexType>
+
+    <!-- document root -->
+  
+  <xs:complexType name="cuberefType">
+    <xs:sequence>
+      <xs:element name="description" type="descriptionType" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="sections" type="sectionCollectionType" minOccurs="1" maxOccurs="1"/>
+    </xs:sequence>
+    <xs:attribute name="name" type="nameType" use="required"/>
+    <xs:attribute name="version" type="nameType" use="optional"/>
+  </xs:complexType>
+
+  <xs:element name="cuberef" type="cuberefType"/>
+  
+</xs:schema>

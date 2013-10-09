@@ -1,0 +1,268 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+    <meta name="robots" content="NOODP">
+    <meta name="author" content="Rabid Viper Productions">
+    <meta name="copyright" content="You may be able to redistribute this content under specific conditions.
+    Please read the licensing information, available @ http://assault.cubers.net/docs/license.html for the
+    conditions that would apply to what you may be redistributing.">
+    <title>AssaultCube Documentation :: Map editing - Tips, tricks and advice</title>
+    <link rel="stylesheet" type="text/css" href="css/main.css">
+    <link rel="stylesheet" type="text/css" href="css/docs.css">
+    <!--#include virtual="/SSI-HTML/docs/invisibility.html" -->
+    <link rel="shortcut icon" href="images/favicon.ico">
+  </head>
+  <body>
+    <div id="container">
+      <div id="docsheader">
+        AssaultCube Documentation
+      </div>
+      <div id="logo">
+        <a href="index.html"><img src="images/aclogo.png"
+        alt="AssaultCube" width="193px" height="81px"></a>
+      </div>
+      <div id="menubar">
+	<!--#include virtual="/SSI-HTML/docs/navigation_box_docs.html" -->
+	&nbsp;
+      </div>
+      <!--#include virtual="/SSI-HTML/docs/docswarn.html" -->
+      <div class="docswarn">
+        <b style="color : #750000;">NOTE:</b> This page of the documentation has been quickly converted from 
+        <a href="http://actiongame.svn.sourceforge.net/viewvc/actiongame/tags/v01_10_04/docs/README.html?revision=5882">AssaultCubes old 
+        README</a> and has not yet been checked properly for mistakes/weird stylying/invalid markup/inconsistancies/etc.
+        We're on it though, check back soon!
+      </div>
+      <div class="docsmain">
+        <div id="gohome">
+          <a href="index.html">Go to documentation index &#8629;</a>
+        </div>
+	<h2>Map editing - Tips, tricks and advice</h2>
+	
+	<!-- Remember to remove docwarning when fixed up! -->
+
+
+
+
+<p>Covered in this article:</p>
+<ul>
+  <li>
+    <a href="#size">Size matters!</a>
+	<ul>
+	  <li>
+	    <a href="#wqd">World quads (WQD)</a>
+	  </li>
+	</ul>
+  <li>
+    <a href="#layout">Layout and design</a>
+  </li>
+  <ul>
+    <li>
+      <a href="#2ndfloor">Second floors</a>
+    </li>
+  </ul>
+  <li>
+    <a href="#texture">Texture use</a>
+  </li>
+  <li>
+    <a href="#models">Mapmodel usage</a>
+  </li>
+  <li>
+    <a href="#lights">Lighting</a>
+  </li>
+  <li>
+    <a href="#items">Item placement</a>
+  </li>
+  <li>
+    <a href="#spawns">Spawn points</a>
+  </li>
+  <li>
+    <a href="#co-op">Co-operative map editing</a>
+  </li>
+</ul>
+<h2 id="size">Size Matters!</h2>
+<p>
+      Size DOES matter in AssaultCube! Don't make fanatically huge maps as they will lag players down.
+      Not to mention, it will take forever for players to find/frag each other, in what's supposed to be a fast paced game.
+	  Due to the restrictions of the cube engine, it is generally a BAD idea to try and rebuild your favourite map from
+	  a different game, as most engines allow for larger rooms and bigger lines-of-sight than the Cube engine does!
+    </p>
+<p>
+    <h3 id="wqd">World Quads (WQD)</h3> 
+      The WQD count can be found by typing <b>/showstats 2</b>. Some figures will appear at the right of 
+      your screen, one of them will be <i>WQD</i>...
+    </p>
+<p>
+      WQD is a good way to measure how good your map will or won't lag. Maps should ideally 
+      average a maximum of 5000 WQD (less is better). It's okay for your map to exceed this if it's only a 
+      little bit more in a short area. Keep in mind that lights and details will raise the WQD counts, so a rough layout
+	  won't really represent the final WQD values of a map. In an empty map (layout is the only completed part)
+	   which only has corridors and basic geometry, WQD shouldn't be above 1000. This leaves enough overhang for details, lightning and mapmodels.
+	   </p>
+	   <p>
+	  The key to getting a good WQD count is by using occluders or "solids" (press <b>F</b>). These are full-sized walls 
+	  that block the view, and it allows the engine to know that it can stop rendering whatever is behind it.<br clear="none"/>
+	   To undersand the concept of occluding, do the following: 
+	   </p>
+	   <ol>
+	     <li>
+	       Load one of the official AssaultCube maps.
+	     </li>
+	     <li>
+	       Enter edit-mode (Press <b>E</b>).
+	     </li>
+	     <li>
+	       Fly above the map (beyond the skymap).
+	     </li>
+	     <li>
+	       You will now see occlusion at work. The blacked out parts of the map are where solids exist, 
+	       and the engine has decided not to render past them. Parts you can see have, of course, not been occluded.
+	     </li>
+	   </ol>
+	   <p>
+	     You can toggle occlusion on and off by using the <b>F5</b> key (<b>Warning: This may be very laggy!</b>). 
+	     Viewing occlusion at work will give you an idea on where to place solid cubes while creating the layout for your map.
+	   </p>
+             Keep in mind, the better your map runs, the more people will want to play it. If your map looks awesome, but
+             can only be run on a decent, new computer, then people won't play it as their computer simply won't be able to 
+             handle it. Many AssaultCube players are still using quite old hardware!
+           </p>
+<h2 id="layout">Layout and design</h2>
+  <p>
+    When creating a map, make sure not to make areas far too small. Six or more cubes wide is a good dimension for 
+    doorways, to allow people to pass through them easily. Take reality as your guide. If you're unsure 
+    about how large your door/window/stairs should be, look at those in your house or outside somewhere. 
+    If players block a doorway for teammates, just because the doorway is only 4 cubes wide, people won't like 
+    the map very much. Another up-side to allowing enough space in the map, is that it also gives room to plays to 
+	<i>"<a href="maneuvers.html#straferunning">strafe-run</a>"</i>.
+  </p>
+  <p>
+    When you build your map, use more than  one level. Flat maps are boring. By adding vertical variety, you also
+    make the gameplay more intresting. Even small alterations in floor height usually makes things more diverse.
+  </p>
+  <p>
+    Be sure that players aren't <i>"fighting the map"</i> too much. They should be fighting each other after all.
+    Also make sure that players aren't constantly bumping 
+    their heads, especially against the skymap, as it can be annoying, and unrealistic.
+  </p>
+  <p>
+    Try to keep wall sizes about 3-4 cubes thick, to allow for detail and realism.
+  </p>
+  <h3 id="2ndfloor">Second floors</h3>
+	  Due to the limitations of the Cube engine, it's simply not possible to build a second floor out of geometry. 
+	  You can however use architectural <a href="mapediting3.html#models">mapmodels</a> 
+	  to create them... but don't try to build a 5-storey building with them, otherwise it will be impossible to make it look 
+	  right, especially with lighting, since lights in the Cube engine are circular (not spherical), meaning you can't change
+	  the lighting on each level of the platform. 
+	  By creative use of levels, you can make maps that very well give the impression of multiple floors!
+	  If you use the bridge mapmodels, use it with care!
+
+    <h2 id="texture">Texture use</h2>
+    <p>
+      Take your time in chosing textures. Don't just decide by "how it looks", consider reality to be your guide.<br clear="none"/>
+	  Don't put a floor texture on the ceiling, or wall textures on the floor (although there are exeptions). Try to use
+	  some common sense. A nice wooden structure will probably not support a concrete roof too well, or your factory
+	  will probably not have a wooden flooring. Brickwalls on the ground are very uncommon... etc, etc.
+	</p>
+	<p>
+	  At the end of the texture list is a texture imprinted with the words "missing content". <b>DON'T</b> use it, it's not a texture, 
+      in-fact, it's lack of a texture. It looks ugly and shouldn't be used in any map, because it's actually there to show if 
+      textures and skins did not load properly.
+    </p>
+	<h2 id="models">Mapmodel usage</h2>
+    <p>
+      Though they can add some nice and neccesary detail to your map, don't heavily rely on them! It is advised to add 
+	  mapmodels at a late stage in mapping. Think of them more like the icing on the cake. 
+      A boring room won't look better if you add lots of mapmodels.
+	  When you add them, less is often more. If every square metre has a cigarette and a leaflet on the ground, the
+	  effect will be lost. 
+    </p>
+	<h2 id="lights">Lighting</h2>
+	<p>
+	  Careful placing of lights can produce different effects. Contrast in lighting is what makes a map look atmospheric.
+	  Be sure to take time placing lights correctly, don't use very bright lights to light the whole map, instead, use
+	  medium-sized, mid-brightness, ambient style lights instead. <br clear="none"/>
+	  A good approach is to imagine that the map is real, and then use what is appropriate for the situation!<br clear="none"/>
+	  Small, bright lights (i.e. 255 brightness, 4 radius) should be used as highlights for actual light sources, 
+	  such as lamps and lightbulbs.
+	</p>
+	<p>
+	  <b>Coloured lights:</b><br clear="none"/>
+	  When adding coloured lights, be careful. Some textures can become bland if exposed to certain colours. 
+      Also make sure you keep a consistent colour theme. Don't add a red, a blue and a yellow light to the same area...
+	</p>
+	<h2 id="items">Item placement</h2>
+	<p>
+	  Pickups must be placed strategically through maps and do take some time to position
+      correctly. Powerful pickups should be few and not be too close to each other (unless
+      there is a good risk involved) and pickups should be well spread and not be too
+      high in number, this encourages players to move around. 
+	  Try to keep powerful pickups away from the spawn area so players
+      are encouraged to leave their bases. Strategy is key! A good idea to keep in mind
+      when mapping is "<i>what would I need here to help me pwn?</i>"
+	</p>
+	<p>
+	  If you want a spot to have grenades for when players are playing the mode <i>Last Swiss Standing</i>, but not for other
+	  modes, be advised, that pistol magazines turn into grenades during <i>Last Swiss Standing</i> mode... so if you want, 
+	  you can strategically place pistol magazines with this thought in mind.
+	</p>
+	<p>
+	  It's a good idea to put powerful pickups in risky areas, this helps keep balance and makes it harder for
+	  players to hog them.
+	</p>
+	<h2 id="spawns">Spawn points</h2>
+	<p>
+	  Rule of thumb: The more, the better. Try to add as many as you can.
+	  Avoid creating spawnpoints that are in the middle of a room, or a corridor. Spawning and being instantly killed 
+	  just because you're in the line of fire of some other players is frustrating.  
+	</p>
+	  It's a common mistake to new map editors to place spawn points with an incorrect orientation. If you want to add a spawn 
+	  in a corner, select the cube you want the spawn to be and fly over it, then add the entity while looking in the desired direction!
+	</p>
+	<p>
+	  Be sure not to use too many models. Mapmodels slow down the gamespeed and that's a problem on older machines, so 
+	  a map that's heavily laden with models just isn't good for those players.
+	</p>
+<h2 id="co-op">Co-operative map editing</h2>
+<p>
+      If you'd like to create a map with friends, you can use co-operative map editing to let you build and modify maps with others online easily.
+      This mode allows you to edit maps online with other players
+      who could help speed up repetitive or boring tasks, bring in fresh ideas or spot errors you may have missed.
+    </p>
+<p>
+      To start co-operative map editing, when in a server, type: <i>/mode 1</i> and then type: <i>/map</i> and then your mapnames name and press ENTER.
+      You will have to of made a "newmap" previous to entering the server to be able to co-op edit it. Alternatively, you can type: <i>/coop MAP</i>     
+      (replace <b>MAP</b> with your maps name).
+    </p>
+<p>
+      You will then need to <b>send</b> the map. You can do this by typing: <i>/sendmap</i> and then your mapnames name and press ENTER. Note: Custom 
+      materials can't be sent, they will have to be downloaded another way if you are using them. If you are using a custom "cfg" file, it will automatically
+      be sent with the map, if there is a cfg file present.
+    </p>
+<p>
+      Note: Some useful editing commands can't be used in co-op editing, such as: copy, paste, slope, arch, undo, etc.
+    </p>
+
+
+
+
+
+
+
+
+
+
+
+      </div>
+      <div id="author">
+        <a href="license.html">&copy; Copyright, Rabid Viper Productions</a>
+      </div>
+      <div id="donatedocs">
+        <a href="http://sourceforge.net/p/actiongame/donate/">
+          We would be grateful for any donations considered towards AssaultCube
+        </a>
+      </div>
+      <!--#include virtual="/SSI-HTML/adsense_footer.html" -->
+    </div>
+  </body>
+</html>

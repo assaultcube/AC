@@ -1,0 +1,373 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+    <meta name="robots" content="NOODP">
+    <meta name="author" content="Rabid Viper Productions">
+    <meta name="copyright" content="You may be able to redistribute this content under specific conditions.
+    Please read the licensing information, available @ http://assault.cubers.net/docs/license.html for the
+    conditions that would apply to what you may be redistributing.">
+    <title>AssaultCube Documentation :: Map editing - Begin!</title>
+    <link rel="stylesheet" type="text/css" href="css/main.css">
+    <link rel="stylesheet" type="text/css" href="css/docs.css">
+    <!--#include virtual="/SSI-HTML/docs/invisibility.html" -->
+    <link rel="shortcut icon" href="images/favicon.ico">
+  </head>
+  <body>
+    <div id="container">
+      <div id="docsheader">
+        AssaultCube Documentation
+      </div>
+      <div id="logo">
+        <a href="index.html"><img src="images/aclogo.png"
+        alt="AssaultCube" width="193px" height="81px"></a>
+      </div>
+      <div id="menubar">
+	<!--#include virtual="/SSI-HTML/docs/navigation_box_docs.html" -->
+	&nbsp;
+      </div>
+      <!--#include virtual="/SSI-HTML/docs/docswarn.html" -->
+      <div class="docswarn">
+        <b style="color : #750000;">NOTE:</b> This page of the documentation has been quickly converted from 
+        <a href="http://actiongame.svn.sourceforge.net/viewvc/actiongame/tags/v01_10_04/docs/README.html?revision=5882">AssaultCubes old 
+        README</a> and has not yet been checked properly for mistakes/weird stylying/invalid markup/inconsistancies/etc.
+        We're on it though, check back soon!
+      </div>
+      <div class="docsmain">
+        <div id="gohome">
+          <a href="index.html">Go to documentation index &#8629;</a>
+        </div>
+	<h2>Map editing - Begin!</h2>
+	
+	<!-- Remember to remove docwarning when fixed up! -->
+
+
+
+<p>
+      Prior to reading this, please learn the controls and interface <a href="mapediting1.html" shape="rect">here</a>.
+    </p>
+<p> 
+      To begin map editing, while in AssaultCube, press the letter <b>E</b> which toggles editmode. AssaultCubes map editor is built into the game,
+      so its easy to learn and you don't need to download any special tools to get started. 
+      <br clear="none"/>Note: Because of how the <a href="cubeengine.html" shape="rect">cube engine works</a> there are some limitations to what you can create, but 
+      there are also some clever work-arounds you can use to get what you want.
+    </p>
+<p>
+      In editmode (<b>press E</b>) you can fly around in any direction you 
+      like and you can even go through walls. <br clear="none"/>This is to make map-editing easier...
+    </p>
+<p>
+      <b>Tip:</b> When editing a map, make sure you have your settings set back to the defaults, so you can see what your map looks like to the
+      average player (example: set gamma back to 100, so you can judge lighting correctly).
+    </p>
+<p>
+      <b>Covered on this page...</b>
+    </p>
+<ul>
+      <li>
+        <a href="#startmap" shape="rect">Starting, saving and loading a map</a>
+      </li>
+      <li>
+        <a href="#geometry" shape="rect">Manipulating geometry</a>
+          <ol>
+            <li>
+              <a href="#solids" shape="rect">Solids and spaces</a>
+            </li>
+            <li>
+              <a href="#movingcubes" shape="rect">Moving cubes</a>
+            </li>
+            <li>
+              <a href="#corners" shape="rect">Corners</a>
+            </li>
+            <li>
+              <a href="#heightfield" shape="rect">Heightfields</a>
+            </li>
+          </ol>
+        </li>
+        <li>
+          <a href="#textures" shape="rect">Textures</a>
+        </li>
+        <li>
+          <a href="#commands" shape="rect">Useful commands</a>
+          <ol>
+            <li>
+              <a href="#copypaste" shape="rect">Copy/paste</a>
+            </li>
+            <li>
+              <a href="#water" shape="rect">Water</a>
+            </li>
+            <li>
+              <a href="#mapmsg" shape="rect">Map messages</a>
+            </li>
+            <li>
+              <a href="#undo" shape="rect">Undo</a>
+            </li>
+          </ol>
+        </li>
+      </ul>
+<h2 id="startmap">Starting, saving and loading a map</h2>
+<p>
+      If you would like to start creating a new map, type: <i>/newmap</i> and then the size you would like (7 is the sensible default) and 
+      then press ENTER. If you made your mapsize too small, you can easily make it double in size, simply by typing <i>/mapenlarge</i>.
+    </p>
+<p>
+      You can save your map at any time by typing: <i>/savemap</i> and then the name you would like it saved as (after you have chosen the filename,
+      there is no need to type the name every time you save from then on. Instead, you can simply type <i>/savemap</i>). The map gets
+      saved in the <i>packages/maps</i> directory. Save your map often, to avoid the frustration of losing all of your work if something goes wrong. 
+      Each time you do save your map, a backup of your last save is created with a timestamp that ends with the extension ".BAK". 
+      If you need to utilize these backups, all you will need to do, is rename the ".BAK" extension to ".cgz".
+    </p>
+<p>
+      <b>Note:</b> Make sure when you start a map, to use the <i>/newmap</i> command, rather than editing an existing map, otherwise your map may get saved
+      a bit strangely. Also note: you cannot put spaces or any illegal characters in the name you wish to save it as.
+    </p>
+<p>
+      To load your map, type /map and the file name you chose for your map. If you have not placed lighting in your map yet, your map will turn up dark. 
+      To temporarily fix this problem, type: <i>/fullbright 1</i>  - this will fill your whole map with light. The fullbright command only works in edit
+      mode and is not a permanent fix. To remove fullbright mode, reload the map, or type: <i>/recalc</i>. 
+      Note: Fullbright can be turned on/off in the lighting menu (press <b>L</b>).
+    </p>
+<h2 id="geometry">Manipulating geometry</h2>
+<p>
+      The ceiling and floor of AssaultCube are made up of individual cubes, which can be made into various objects that you choose, such as walls, 
+      by simply manipulating the geometry.
+    </p>
+<p>
+      There are six different ways to manipulate geometry:
+    </p>
+<ul>
+      <li>
+        Make cubes "<a href="#solids" shape="rect">solid</a>".
+      </li>
+      <li>
+        Make cubes "<a href="#solids" shape="rect">space</a>".
+      </li>
+      <li>
+        <a href="#movingcubes" shape="rect">Move cubes</a> in the floor.
+      </li>
+      <li>
+        <a href="#movingcubes" shape="rect">Move cubes</a> in the ceiling.
+      </li>
+      <li>
+        Turn a cube into a <a href="#corners" shape="rect">corner</a>.
+      </li>
+      <li>
+        Manipulate cubes by using <a href="#heightfield" shape="rect">heightfields</a>.
+      </li>
+    </ul>
+<h3 id="solids">Solids and spaces</h3>
+<p>
+      The reason we are covering solids and spaces, before moving cubes, is because solids block visibility and do not need to be rendered, so they 
+      are more efficient to use in maps. The use of solids in a map is <u>essential</u> to creating a good map. Without enough solids AssaultCube maps 
+      would lag too much for the average user and would be unplayable. Solids are also easy to create and can be used to make walls with a single keystroke!
+      <br clear="none"/><b>Tip:</b> When you've finished your map, change any unused space into solids.
+    </p>
+<ul>
+      <li>
+        To make a cube into a solid wall, press <b>F</b>.
+      </li>
+      <li>
+        To make a solid wall turn back into space, select it and press <b>G</b>.
+      </li>
+    </ul>
+<h3 id="movingcubes">Moving cubes</h3>
+<p>
+      Moving cubes is simple and can be done, either with your mouse or keyboard...
+    </p>
+<ul>
+      <li>
+        Using your mouse
+        <p>
+          Move your scroll wheel backward/forward to lower/raise cubes.<br clear="none"/>
+          Be sure to look in the direction of the cubes you want to move to raise/lower those cubes.
+        </p>
+      </li>
+      <li>
+        Using your keyboard
+        <p>
+          To move cubes in the floor, press <b>[</b> to raise them and <b>]</b> to lower them.<br clear="none"/>
+          To move cubes in the ceiling, press <b>P</b> to raise them and <b>O</b> to lower them.
+        </p>
+      </li>
+    </ul>
+<h3 id="corners">Corners</h3>
+<p>
+      Corners can be used to create a 45 degree corner (instead of a 90 degree one) where 2 walls meet. They are very simple to create. 
+      Select a cube where 2 walls meet and press <b>K</b>. This will cut the cube in half diagonally, keeping one 
+      half and giving the other half to the nearest cube - making it a corner. To undo this as a corner, press <b>G</b>.
+    </p>
+<h3 id="heightfield">Heightfields</h3>
+<p>
+      You can use heightfields to manipulate the corners of cubes and create slopes/arches. Heightfields are somewhat restrictive, so there are a
+      few things to know about before creating a heightfield:
+    </p>
+<ol>
+        <li>
+          On a single cube, only the floor <b>OR</b> the ceiling can be a heightfield. A single cube can't have both.
+        </li>
+        <li>
+          All cubes that are going to be heightfielded need to be level (the same height) as each other if they are right next to each other. 
+          If they aren't, they will become glitchy.
+        </li>
+        <li>
+          Heightfields <b>can't</b> be a solid or a corner!
+        </li>
+        <li>
+          Pickups placed on heightfields will remain at the original height of the cube that was heightfielded, unless 
+		  <a href="mapediting3.html#pickup" shape="rect">height is applied to the pickup</a>.
+        </li>
+        <li>
+          Sometimes, when saved, textures on the wall/upper-wall part of a heightfield (or its surrounding cubes) may change. 
+          To fix this, try selecting all cubes in the surrounding area of this heightfield and change them to the 
+		  texture you wanted.
+        </li>
+      </ol>
+<p>
+      To create a heightfield, select a cube and press "<b>H</b>" or "<b>I</b>". "H" allows the heightfield to occur on the 
+      floor and "I" allows the heightfield to occur on the ceiling. You can hold down <b>Q and scroll</b> to manipulate each 
+      corner that the red dot on the <a href="mapediting1.html#selector" shape="rect">cube selector</a> is, or you can use <b>8</b> or <b>9</b>
+      to move the cubes corner up/down. To undo a heightfield, press <b>G</b>.
+    </p>
+<p>
+      After making it a heightfield, slopes and arches can be created by selecting an area and using the arch or slope command.
+    </p>
+<p>	
+      <b>Slopes</b> - Type <b>/slope X Y</b>. Replace "X" and "Y" with different numbers to make your slope shape in different 
+      directions (you can use negative values here, for example: <i>/slope 0 -2</i>).
+    </p>
+<p>
+      <b>Arches</b> - Type <b>/arch X</b> and replace "X" with a number to create different types of arches.
+    </p>
+<h2 id="textures">Textures</h2>
+<p>
+      There are four different parts of the cube world that you can change textures on (see below)...
+    </p>
+<table>
+      <tr>
+        <td width="100" rowspan="1" colspan="1">
+          <u><b>Cubes</b></u>
+        </td>
+        <td width="140" rowspan="1" colspan="1">
+          <b><u>Browse forwards</u></b>
+        </td>
+        <td width="140" rowspan="1" colspan="1">
+          <b><u>Browse backwards</u></b>
+        </td>
+      </tr>
+      <tr>
+        <td rowspan="1" colspan="1">
+          <b>Floor</b>
+        </td>
+        <td rowspan="1" colspan="1">
+          Insert
+        </td>
+        <td rowspan="1" colspan="1">
+          Delete
+        </td>
+      </tr>
+      <tr>
+        <td rowspan="1" colspan="1">
+          <b>Ceiling</b>
+        </td>
+        <td rowspan="1" colspan="1">
+          Page up
+        </td>
+        <td rowspan="1" colspan="1">
+          Page down
+        </td>
+      </tr>
+      <tr>
+        <td rowspan="1" colspan="1">
+          <b>Wall</b>
+        </td>
+        <td rowspan="1" colspan="1">
+          Home
+        </td>
+        <td rowspan="1" colspan="1">
+          End
+        </td>
+      </tr>
+      <tr>
+        <td rowspan="1" colspan="1">
+          <b>Upper-Wall</b>
+        </td>
+        <td rowspan="1" colspan="1">
+          Number pad 7
+        </td>
+        <td rowspan="1" colspan="1">
+          Number pad 4
+        </td>
+      </tr>
+    </table>
+<p>
+      There is 1 key allocated to move forwards through the textures for each of these and one key to move backwards. When selecting textures, 
+      the AssaultCube engine automatically puts the last chosen texture at the start of the list, so commonly used textures become easier to find.
+      <br clear="none"/>Note: The "upper-wall" are the sides of the wall that protrudes from the ceiling.
+    </p>
+<h2 id="commands">Useful commands</h2>
+<h3 id="copypaste">Copy/paste</h3>
+<p>
+      Selecting some cubes and pressing <b>C</b> will copy them. Then, select a cube and press <b>V</b> to paste it. 
+      The cubes will be pasted from the red dot on the <a href="mapediting1.html#selector" shape="rect">cube selector</a>.
+    </p>
+<p>
+      <b>Note:</b> Only geometry can be copied.
+    </p>
+<h3 id="water">Water</h3>
+<p>
+      In AssaultCube, water is placed by selecting a level at which the water will be present. It will then settle throughout the whole map
+      at that level. You can't have water in just one place, it can only be put through the whole map.
+    </p>
+<p>
+     To add water to your map, type: <b>/waterlevel X</b><br clear="none"/>
+     Replace <b>X</b> with the level that you would like the water to settle at. To remove water, use the same command to make the water settle 
+     lower than the geometry (for example: <i>/waterlevel -128</i> ).
+    </p>
+<p>
+      You can also change the colour of the water. Simply type: <b>/watercolour R G B</b><br clear="none"/>
+      Replace <b>R</b> with the red colour for the water, <b>G</b> with the green colour for the water and <b>B</b> with the blue
+      colour for the water to choose your colouring mix. When using this command, ensure that you create a value for each
+      colour (even if the value is just "1"), otherwise, the command may not work correctly. It does not harm to add this command into the 
+      <a href="mapediting5.html" shape="rect">map cfg file</a> but <u>it is not neccesary</u>!
+    </p>
+<h3 id="mapmsg">Map messages</h3>
+<p>
+      When your map is loaded up, there is always a message stated. This message is used to advise players of the map name and author.
+      This "map message" can be added to any map by using the "<i>mapmsg</i>" command.
+      When using this command, be sure to use quote marks at the beginning and end of the phrase you use, otherwise it will not put the full message
+      onto the map. Be sure to save your map afterwards. Below is an example of how to use the "<i>mapmsg</i>" command.
+    </p>
+<p>
+      Example: <b>/mapmsg "Foobar by Raboof"</b>
+    </p>
+<h3 id="undo">Undo</h3>
+<p>
+      Pressing <b>U</b> will undo the last texture/geometry action that was done. It will not undo entities.
+    </p>
+<h4>
+      The next step? Go to <a href="mapediting3.html" shape="rect">Map editing: Entities</a> to learn how to place lights, spawns, etc.
+    </h4>
+
+
+
+
+
+
+
+
+
+
+
+      </div>
+      <div id="author">
+        <a href="license.html">&copy; Copyright, Rabid Viper Productions</a>
+      </div>
+      <div id="donatedocs">
+        <a href="http://sourceforge.net/p/actiongame/donate/">
+          We would be grateful for any donations considered towards AssaultCube
+        </a>
+      </div>
+      <!--#include virtual="/SSI-HTML/adsense_footer.html" -->
+    </div>
+  </body>
+</html>
