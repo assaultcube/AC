@@ -1702,7 +1702,7 @@ void setfollowplayer(int cn)
 // set new spect mode
 void spectatemode(int mode)
 {
-    if(!m_teammode && !team_isspect(player1->team) && servstate.mastermode == MM_MATCH) return;  // during ffa matches only SPECTATORS can spectate
+    if(player1->state != CS_SPECTATE || (!m_teammode && !team_isspect(player1->team) && servstate.mastermode == MM_MATCH)) return;  // during ffa matches only SPECTATORS can spectate
     if(mode == player1->spectatemode) return;
     showscores(false);
     switch(mode)
