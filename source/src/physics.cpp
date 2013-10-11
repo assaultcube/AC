@@ -652,7 +652,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
     if(pl->type==ENT_PLAYER || pl->type==ENT_BOT)
     {
 //         if(pl==player1 && !(intermission || player1->onladder || (pl->trycrouch && !player1->onfloor && player1->timeinair > 50))) updatecrouch(player1, player1->trycrouch);
-        if(!intermission) updatecrouch((playerent *)pl, pl->trycrouch);
+        if(!intermission && (pl == player1 || pl->type == ENT_BOT)) updatecrouch((playerent *)pl, pl->trycrouch);
         const float croucheyeheight = pl->maxeyeheight*3.0f/4.0f;
         resizephysent(pl, moveres, curtime, croucheyeheight, pl->maxeyeheight);
     }
