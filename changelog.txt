@@ -3,4 +3,15 @@ AssaultCube ChangeLog
 1.2.0.0 -> 1.2.0.1
 ---------------------
 
+Bug fixes
+---------------------
 
+[*] Crouch bug fix
+[*] Spectate mode bug fix
+[*] whois -1 fixed
+
+Demos / Spectating
+---------------------
+
+[*] Clicking while being in spectate mode now always switch you to active play
+    (as it used to do)
