@@ -1583,19 +1583,15 @@ void cleanplayervotes(playerent *p)
 
 void whois(int *cn)
 {
-    playerent *p = getclient(*cn);
-    if(!p)
+    loopv(players) if(players[i] && players[i]->type == ENT_PLAYER && (*cn == -1 || players[i]->clientnum == *cn))
     {
-        conoutf(_("invalid player name"));
-        return;
+        playerent *p = players[i];
+        uint2ip(p->address, ip);
+        if(m_teammode) conoutf(_("%c0INFO: %c5%s has %d teamkills."), CC, CC, p->name, p->tks);
+        if(ip[3] != 0 || player1->clientrole==CR_ADMIN)
+            conoutf("WHOIS client %d:\n\f5name\t%s\n\f5IP\t%d.%d.%d.%d", *cn, colorname(p), ip[0], ip[1], ip[2], ip[3]); // full IP
+        else conoutf("WHOIS client %d:\n\f5name\t%s\n\f5IP\t%d.%d.%d.x", *cn, colorname(p), ip[0], ip[1], ip[2]); // censored IP
     }
-
-    uint2ip(p->address, ip);
-
-    if(m_teammode) conoutf(_("%c0INFO: %c5%s has %d teamkills."), CC, CC, p->name, p->tks);
-    if(ip[3] != 0 || player1->clientrole==CR_ADMIN)
-        conoutf("WHOIS client %d:\n\f5name\t%s\n\f5IP\t%d.%d.%d.%d", *cn, colorname(p), ip[0], ip[1], ip[2], ip[3]); // full IP
-    else conoutf("WHOIS client %d:\n\f5name\t%s\n\f5IP\t%d.%d.%d.x", *cn, colorname(p), ip[0], ip[1], ip[2]); // censored IP
 }
 COMMAND(whois, "i");
 
