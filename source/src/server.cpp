@@ -722,7 +722,7 @@ void senddemo(int cn, int num)
     demofile &d = demofiles[num-1];
     loopv(d.clientssent) if(d.clientssent[i].ip == cl->peer->address.host && d.clientssent[i].clientnum == cl->clientnum)
     {
-        sendservmsg("\f3Sorry, you have already downloaded this demo.");
+        sendservmsg("\f3Sorry, you have already downloaded this demo.", cl->clientnum);
         return;
     }
     clientidentity &ci = d.clientssent.add();
