@@ -3827,7 +3827,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
     {
         readdemo();
         extern void silenttimeupdate(int milliscur, int millismax);
-        silenttimeupdate(gamemillis, gamelimit);
+        silenttimeupdate(gamemillis, gametimemaximum);
     }
 #endif
 
