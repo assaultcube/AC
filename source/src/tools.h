@@ -166,7 +166,7 @@ inline bool validmapname(char *s)
     if(strlen(s) > MAXMAPNAMELEN) return false;
     while(*s != '\0') 
     {
-        if(!isalnum(*s) && *s != '_' && *s != '-') return false;
+        if(!isalnum(*s) && *s != '_' && *s != '-' && *s != '.') return false;
         ++s;
     }
     return true;
