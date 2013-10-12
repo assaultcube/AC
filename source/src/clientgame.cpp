@@ -810,7 +810,7 @@ bool tryrespawn()
     return false;
 }
 
-VARP(hitsound, 0, 0, 1);
+VARP(hitsound, 0, 0, 2);
 
 // client kill messages
 void setkillmessage(int gun, bool gib, const char *message)
@@ -861,7 +861,7 @@ void dodamage(int damage, playerent *pl, playerent *actor, int gun, bool gib, bo
     }
     if(actor==h && pl!=actor)
     {
-        if(hitsound && lasthit != lastmillis) audiomgr.playsound(S_HITSOUND, SP_HIGH);
+        if( (hitsound == 1 || (hitsound && h != player1) ) && lasthit != lastmillis) audiomgr.playsound(S_HITSOUND, SP_HIGH);
         lasthit = lastmillis;
     }
 
