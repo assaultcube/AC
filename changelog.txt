@@ -9,6 +9,13 @@ Bug fixes
 [*] Crouch bug fix
 [*] Spectate mode bug fix
 [*] whois -1 fixed
+[*] Demo time limit fixed
+[*] "you have already downloaded this demo" bug fix
+
+Weapons
+---------------------
+
+[*] Instant hitsound
 
 Demos / Spectating
 ---------------------
