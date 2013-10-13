@@ -11,6 +11,7 @@ Bug fixes
 [*] whois -1 fixed
 [*] Demo time limit fixed
 [*] "you have already downloaded this demo" bug fix
+[*] ACAC issues fixed
 
 Weapons
 ---------------------
