@@ -849,7 +849,7 @@ VARP(oldfashionedgunstats, 0, 0, 1);
 void weapon::renderstats()
 {
     char gunstats[64];
-    sprintf(gunstats, oldfashionedgunstats ? "%i/%i" : "%i", mag, ammo);
+    if(oldfashionedgunstats) sprintf(gunstats, "%i/%i", mag, ammo); else sprintf(gunstats, "%i", mag);
     draw_text(gunstats, 590, 823);
     if(!oldfashionedgunstats)
     {
