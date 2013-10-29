@@ -8,8 +8,7 @@ CUBE_DIR=$(dirname "$(readlink -f "${0}")")
 
 # CUBE_OPTIONS starts AssaultCube with any command line options you choose.
 #CUBE_OPTIONS="-f"
-#CUBE_OPTIONS="--home=${HOME}/.assaultcube_v1.2 --init"
-CUBE_OPTIONS="--home=${HOME}/.assaultcube_svn --init"
+CUBE_OPTIONS="--home=${HOME}/.assaultcube_v1.2 --init"
 
 # SYSTEM_NAME should be set to the name of your operating system.
 #SYSTEM_NAME=Linux
@@ -58,7 +57,7 @@ else
   echo "Your platform does not have a pre-compiled AssaultCube client."
   echo "Please follow the following steps to build a native client:"
   echo "1) Ensure you have the following DEVELOPMENT libraries installed:"
-  echo "   OpenGL, SDL, SDL_image, zib, libogg, libvorbis, OpenAL Soft, libcurl"
+  echo "   OpenGL, SDL, SDL_image, zlib, libogg, libvorbis, OpenAL Soft, libcurl"
   echo "2) Ensure clang++ and any other required build tools are installed.
   echo "3) Change directory to ./source/src/ and type \"make install\"."
   echo "4) If the compile succeeds, return to this directory and re-run this script."
