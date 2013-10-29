@@ -59,7 +59,7 @@ else
   echo "Please follow the following steps to build a native client:"
   echo "1) Ensure you have the following DEVELOPMENT libraries installed:"
   echo "   SDL, zlib, libcurl"
-  echo "2) Ensure clang++ and any other required build tools are installed.
+  echo "2) Ensure clang++ and any other required build tools are installed."
   echo "3) Change directory to ./source/src/ and type \"make server_install\"."
   echo "4) If the compile succeeds, return to this directory and re-run this script."
   exit 1
