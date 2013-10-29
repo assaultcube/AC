@@ -1,20 +1,21 @@
 #!/bin/sh
-# CUBE_DIR should refer to the directory in which Cube is placed.
-#CUBE_DIR=~/cube
-#CUBE_DIR=/usr/local/cube
+
+# CUBE_DIR should refer to the directory in which AssaultCube is placed.
+#CUBE_DIR=~/assaultcube
+#CUBE_DIR=/usr/local/assaultcube
 CUBE_DIR=./
 
-# CUBE_OPTIONS contains any command line options you would like to start Cube with.
+# CUBE_OPTIONS starts AssaultCube with any command line options you choose.
 CUBE_OPTIONS=
 
-# comment this to disable reading command line options from config/servercmdline.txt
+# Comment this out, to disable reading command line options from config/servercmdline.txt
 CUBE_OPTIONFILE=-Cconfig/servercmdline.txt
 
 # SYSTEM_NAME should be set to the name of your operating system.
 #SYSTEM_NAME=Linux
 SYSTEM_NAME=`uname -s`
 
-# MACHINE_NAME should be set to the name of your processor.
+# MACHINE_NAME should be set to the architecture of your processor.
 #MACHINE_NAME=i686
 MACHINE_NAME=`uname -m`
 
@@ -54,11 +55,13 @@ then
   cd "${CUBE_DIR}"
   exec "${CUBE_DIR}/bin_unix/${SYSTEM_NAME}${MACHINE_NAME}server" "${CUBE_OPTIONS}" "${CUBE_OPTIONFILE}" "$@"
 else
-  echo "Your platform does not have a pre-compiled Cube server."
-  echo "Please follow the following steps to build a native server:"
-  echo "1) Ensure you have the SDL, SDL-image, OpenAL, and OpenGL libraries installed."
-  echo "2) Change directory to source/src/ and type \"make install\"."
-  echo "3) If the build succeeds, return to this directory and run this script again."
+  echo "Your platform does not have a pre-compiled AssaultCube server."
+  echo "Please follow the following steps to build a native client:"
+  echo "1) Ensure you have the following DEVELOPMENT libraries installed:"
+  echo "   SDL, zlib, libcurl"
+  echo "2) Ensure clang++ and any other required build tools are installed.
+  echo "3) Change directory to ./source/src/ and type \"make server_install\"."
+  echo "4) If the compile succeeds, return to this directory and re-run this script."
   exit 1
 fi
 
