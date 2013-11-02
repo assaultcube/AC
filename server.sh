@@ -6,9 +6,10 @@
 CUBE_DIR=./
 
 # CUBE_OPTIONS starts AssaultCube with any command line options you choose.
-CUBE_OPTIONS=
+CUBE_OPTIONS=""
 
 # Comment this out, to disable reading command line options from config/servercmdline.txt
+# If enabled, any options under CUBE_OPTIONS are superseded by options in servercmdline.txt
 CUBE_OPTIONFILE=-Cconfig/servercmdline.txt
 
 # SYSTEM_NAME should be set to the name of your operating system.
@@ -67,8 +68,8 @@ fi
 
 if [ -x "${CUBE_DIR}/bin_unix/${SYSTEM_NAME}${MACHINE_NAME}server" ]; then
   cd "${CUBE_DIR}"
-  exec "${CUBE_DIR}/bin_unix/${SYSTEM_NAME}${MACHINE_NAME}server" "${CUBE_OPTIONS}" "${CUBE_OPTIONFILE}" "$@"
-elif [ -e "${CUBE_DIR}/bin_unix/${SYSTEM_NAME}${MACHINE_NAME}server" ]
+  exec "${CUBE_DIR}/bin_unix/${SYSTEM_NAME}${MACHINE_NAME}server" ${CUBE_OPTIONS} ${CUBE_OPTIONFILE} "$@"
+elif [ -e "${CUBE_DIR}/bin_unix/${SYSTEM_NAME}${MACHINE_NAME}server" ]; then
   echo "Insufficient permissons to run AssaultCube."
   echo "Please change (chmod) the AssaultCube server in the bin_unix folder to be readable/executable."
 else
