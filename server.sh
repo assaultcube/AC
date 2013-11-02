@@ -50,10 +50,27 @@ then
   MACHINE_NAME=
 fi
 
-if [ -x "${CUBE_DIR}/bin_unix/${SYSTEM_NAME}${MACHINE_NAME}server" ]
-then
+if [ -x "/sbin/ldconfig" ]; then
+  if [ -z "$(/sbin/ldconfig -p | grep "libSDL-1.2")" ]; then
+    echo "To run AssaultCube, please ensure SDL v1.2 libraries are installed."
+    exit 1
+  fi
+  if [ -z "$(/sbin/ldconfig -p | grep "libz")" ]; then
+    echo "To run AssaultCube, please ensure z libraries are installed."
+    exit 1
+  fi
+  if [ -z "$(/sbin/ldconfig -p | grep "libcurl")" ]; then
+    echo "To run AssaultCube, please ensure Curl libraries are installed."
+    exit 1
+  fi
+fi
+
+if [ -x "${CUBE_DIR}/bin_unix/${SYSTEM_NAME}${MACHINE_NAME}server" ]; then
   cd "${CUBE_DIR}"
   exec "${CUBE_DIR}/bin_unix/${SYSTEM_NAME}${MACHINE_NAME}server" "${CUBE_OPTIONS}" "${CUBE_OPTIONFILE}" "$@"
+elif [ -e "${CUBE_DIR}/bin_unix/${SYSTEM_NAME}${MACHINE_NAME}server" ]
+  echo "Insufficient permissons to run AssaultCube."
+  echo "Please change (chmod) the AssaultCube server in the bin_unix folder to be readable/executable."
 else
   echo "Your platform does not have a pre-compiled AssaultCube server."
   echo "Please follow the following steps to build a native client:"

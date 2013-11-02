@@ -75,7 +75,7 @@ if [ -x "/sbin/ldconfig" ]; then
     echo "To run AssaultCube, please ensure vorbis libraries are installed."
     exit 1
   fi
-  if [ -z "$(/sbin/ldconfig -p | grep "libopepnal")" ]; then
+  if [ -z "$(/sbin/ldconfig -p | grep "libopenal")" ]; then
     echo "To run AssaultCube, please ensure OpenAL-Soft libraries are installed."
     exit 1
   fi
