@@ -20,7 +20,7 @@
 
 //If you make a MOD then please change this, the bundle indentifier, the file extensions (.cgz, .dmo), and the url registration.
 #define kASSAULTCUBE @"assaultcube"
-#define kUSERCONFGIDIR @"assaultcube_1.2"
+#define kUSERCONFGIDIR @"assaultcube_1.2r"
 
 //tab names, i.e. image names (text is localised)
 #define tkMAIN @"Main"
