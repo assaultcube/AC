@@ -80,7 +80,7 @@ void connectserv_(const char *servername, int serverport = 0, const char *passwo
     if(servername)
     {
         addserver(servername, serverport, 0);
-        conoutf(_("%c2attempting to %sconnect to %c5%s%c4%s%d%c2"), CC, role==CR_DEFAULT?"":"\f8admin\f2", CC, servername, CC, address.port != CUBE_DEFAULT_SERVER_PORT?":":"", serverport, CC);
+        conoutf(_("%c2attempting to %sconnect to %c5%s%c4:%d%c2"), CC, role==CR_DEFAULT?"":"\f8admin\f2", CC, servername, CC, serverport, CC);
         if(!resolverwait(servername, &address))
         {
             conoutf(_("%c2could %c3not resolve%c2 server %c5%s%c2"), CC, CC, CC, CC, servername, CC);
