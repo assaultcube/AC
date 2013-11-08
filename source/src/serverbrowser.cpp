@@ -1294,55 +1294,119 @@ static size_t write_callback(void *ptr, size_t size, size_t nmemb, FILE *stream)
     return fwrite(ptr, size, nmemb, stream);
 }
 
+int mastertype = 1; //0: UDP, 1: TCP
 void retrieveservers(vector<char> &data)
 {
-    string request;
-    sprintf(request, "http://%s/retrieve.do?action=list&name=%s&version=%d&build=%d",mastername, global_name, AC_VERSION, getbuildtype());
-
-    const char *tmpname = findfile(path("config/servers_tmp.cfg", true), "wb");
-    FILE *outfile = fopen(tmpname, "w+");
-    if(!outfile)
-    {
-        conoutf("\f3cannot write server list");
-        return;
-    }
-
-    resolver_data *rd = new resolver_data();
-    formatstring(rd->text)("retrieving servers from %s:%d... (esc to abort)", mastername, masterport);
-    show_out_of_renderloop_progress(0, rd->text);
-    
-    rd->starttime = SDL_GetTicks();
-    rd->timeout = 0;
-
-    CURL *curl = curl_easy_init();
-    int result = 0, httpresult = 0;
-
-    curl_easy_setopt(curl, CURLOPT_URL, request);
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, outfile);
-    curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progress_callback);
-    curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, rd);
-    curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 10);
-    result = curl_easy_perform(curl);
-    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &httpresult);
-    curl_easy_cleanup(curl);
-    curl = NULL;
-    if(outfile) fclose(outfile);
-    
-    if(result == CURLE_OPERATION_TIMEDOUT || result == CURLE_COULDNT_RESOLVE_HOST)
-    {
-        clfail = true;
-    }
-
-    if(!result && httpresult == 200)
-    {
-        int size = 0;
-        char *content = loadfile(tmpname, &size);
-        data.shrink(0);
-        data.insert(0, content, size);
+    if (mastertype==0) {
+        conoutf("Contacting masterserver %s using UDP.", mastername);
+        ENetSocket sock = connectmaster();
+        if(sock == ENET_SOCKET_NULL)
+        {
+            conoutf("Master server is not replying.");
+            clfail = true;
+            return;
+        }
+        clfail = false;
+        
+        defformatstring(text)("retrieving servers from %s:%d... (esc to abort)", mastername, masterport);
+        show_out_of_renderloop_progress(0, text);
+        
+        int starttime = SDL_GetTicks(), timeout = 0;
+        string request;
+        sprintf(request, "list %s %d %d\n",global_name,AC_VERSION,getbuildtype());
+        const char *req = request;
+        int reqlen = strlen(req);
+        ENetBuffer buf;
+        while(reqlen > 0)
+        {
+            enet_uint32 events = ENET_SOCKET_WAIT_SEND;
+            if(enet_socket_wait(sock, &events, 250) >= 0 && events)
+            {
+                buf.data = (void *)req;
+                buf.dataLength = reqlen;
+                int sent = enet_socket_send(sock, NULL, &buf, 1);
+                if(sent < 0) break;
+                req += sent;
+                reqlen -= sent;
+                if(reqlen <= 0) break;
+            }
+            timeout = SDL_GetTicks() - starttime;
+            show_out_of_renderloop_progress(min(float(timeout)/RETRIEVELIMIT, 1.0f), text);
+            if(interceptkey(SDLK_ESCAPE)) timeout = RETRIEVELIMIT + 1;
+            if(timeout > RETRIEVELIMIT) break;
+        }
+        
+        if(reqlen <= 0) for(;;)
+        {
+            enet_uint32 events = ENET_SOCKET_WAIT_RECEIVE;
+            if(enet_socket_wait(sock, &events, 250) >= 0 && events)
+            {
+                if(data.length() >= data.capacity()) data.reserve(4096);
+                buf.data = data.getbuf() + data.length();
+                buf.dataLength = data.capacity() - data.length();
+                int recv = enet_socket_receive(sock, NULL, &buf, 1);
+                if(recv <= 0) break;
+                data.advance(recv);
+            }
+            timeout = SDL_GetTicks() - starttime;
+            show_out_of_renderloop_progress(min(float(timeout)/RETRIEVELIMIT, 1.0f), text);
+            if(interceptkey(SDLK_ESCAPE)) timeout = RETRIEVELIMIT + 1;
+            if(timeout > RETRIEVELIMIT) break;
+        }
+        
         if(data.length()) data.add('\0');
+        enet_socket_destroy(sock);
     }
-    DELETEP(rd);
+    else if(mastertype==1) {
+        conoutf("Contacting masterserver %s using HTTP.", mastername);
+        string request;
+        sprintf(request, "http://%s/retrieve.do?action=list&name=%s&version=%d&build=%d",mastername, global_name, AC_VERSION, getbuildtype());
+        
+        const char *tmpname = findfile(path("config/servers_tmp.cfg", true), "wb");
+        FILE *outfile = fopen(tmpname, "w+");
+        if(!outfile)
+        {
+            conoutf("\f3cannot write server list");
+            return;
+        }
+        
+        resolver_data *rd = new resolver_data();
+        formatstring(rd->text)("retrieving servers from %s:%d... (esc to abort)", mastername, masterport);
+        show_out_of_renderloop_progress(0, rd->text);
+        
+        rd->starttime = SDL_GetTicks();
+        rd->timeout = 0;
+        
+        CURL *curl = curl_easy_init();
+        int result = 0, httpresult = 0;
+        
+        curl_easy_setopt(curl, CURLOPT_URL, request);
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, outfile);
+        curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progress_callback);
+        curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, rd);
+        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 10);
+        result = curl_easy_perform(curl);
+        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &httpresult);
+        curl_easy_cleanup(curl);
+        curl = NULL;
+        if(outfile) fclose(outfile);
+        
+        if(result == CURLE_OPERATION_TIMEDOUT || result == CURLE_COULDNT_RESOLVE_HOST)
+        {
+            clfail = true;
+        }
+        
+        if(!result && httpresult == 200)
+        {
+            int size = 0;
+            char *content = loadfile(tmpname, &size);
+            data.shrink(0);
+            data.insert(0, content, size);
+            if(data.length()) data.add('\0');
+        }
+        DELETEP(rd);
+    }
 }
 
 VARP(masterupdatefrequency, 1, 60*60, 24*60*60);

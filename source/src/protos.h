@@ -876,6 +876,7 @@ extern void startintermission();
 extern void restoreserverstate(vector<entity> &ents);
 extern string mastername;
 extern int masterport;
+extern int mastertype;
 extern ENetSocket connectmaster();
 extern uchar *retrieveservers(uchar *buf, int buflen);
 extern void serverms(int mode, int numplayers, int minremain, char *smapname, int millis, const ENetAddress &localaddr, int *mnum, int *msend, int *mrec, int *cnum, int *csend, int *crec, int protocol_version);
@@ -980,6 +981,11 @@ struct servercommandline
                     {
                         int ai = atoi(arg+13);
                         masterport = ai == 0 ? AC_MASTER_PORT : ai;
+                    }
+                    else if(!strncmp(arg, "--mastertype=", 13))
+                    {
+                        int ai = atoi(arg+13);
+                        mastertype = ai > 0 ? 1 : 0;
                     }
                     else return false;
                     break;
