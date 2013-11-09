@@ -19,7 +19,7 @@ int connectwithtimeout(ENetSocket sock, const char *hostname, ENetAddress &remot
 ENetSocket mastersock = ENET_SOCKET_NULL;
 ENetAddress masteraddress = { ENET_HOST_ANY, ENET_PORT_ANY }, serveraddress = { ENET_HOST_ANY, ENET_PORT_ANY };
 string mastername = AC_MASTER_URI;
-int masterport = AC_MASTER_PORT;
+int masterport = AC_MASTER_PORT, mastertype = AC_MASTER_HTTP;
 int lastupdatemaster = 0;
 vector<char> masterout, masterin;
 int masteroutpos = 0, masterinpos = 0;
@@ -218,7 +218,6 @@ void serverms(int mode, int numplayers, int minremain, char *smapname, int milli
 
         // ping & pong buf
         ucharbuf pi(data, len), po(&data[len], sizeof(data)-len);
-
         bool std = false;
         if(getint(pi) != 0) // std pong
         {
