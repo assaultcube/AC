@@ -1400,7 +1400,7 @@ void retrieveservers(vector<char> &data)
         if(!result && httpresult == 200)
         {
             int size = 0;
-            char *content = loadfile(tmpname, &size);
+            char *content = loadfile(path("config/servers_tmp.cfg", true), &size);
             data.shrink(0);
             data.insert(0, content, size);
             if(data.length()) data.add('\0');
