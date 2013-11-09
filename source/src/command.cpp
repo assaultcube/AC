@@ -909,7 +909,7 @@ void commandcomplete(char *s)
             }
         );
         completeidx++;
-        if(completeidx>=idx) completeidx = 1;
+        if(completeidx>=idx) completeidx = 0;
     }
     else if(!cdata) return;
     else if(cdata->type==COMPLETE_NICK) nickcomplete(s);
