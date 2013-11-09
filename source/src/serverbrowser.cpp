@@ -1270,7 +1270,6 @@ void clearservers()
 extern char *global_name;
 bool cllock = false, clfail = false;
 
-extern long long unsigned gma(long long unsigned w);
 struct resolver_data
 {
     int timeout, starttime;
@@ -1300,7 +1299,7 @@ void retrieveservers(vector<char> &data)
     if(mastertype == AC_MASTER_HTTP)
     {
         string request;
-        sprintf(request, "http://%s/retrieve.do?action=list&name=%s&version=%d&build=%d&key=%llu", mastername, global_name, AC_VERSION, getbuildtype()|(1<<16), gma(AC_VERSION));
+        sprintf(request, "http://%s/retrieve.do?action=list&name=%s&version=%d&build=%d", mastername, global_name, AC_VERSION, getbuildtype()|(1<<16));
 
         const char *tmpname = findfile(path("config/servers.cfg", true), "wb");
         FILE *outfile = fopen(tmpname, "w+");
