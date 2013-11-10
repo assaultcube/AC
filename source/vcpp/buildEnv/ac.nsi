@@ -115,11 +115,11 @@ FunctionEnd
 SetCompressor /SOLID lzma
 
 !define CURPATH ".\" ; must include the installer graphics and the \ac\ directory
-!define AC_FULLVERSION "v1.2.0.1"
-!define AC_FULLVERSIONINT "1.2.0.1"
+!define AC_FULLVERSION "v1.2.0.2"
+!define AC_FULLVERSIONINT "1.2.0.2"
 !define AC_SHORTNAME "AssaultCube"
-!define AC_FULLNAME "AssaultCube v1.2.0.1"
-!define AC_FULLNAMESAVE "AssaultCube_v1.2.0.1"
+!define AC_FULLNAME "AssaultCube v1.2.0.2"
+!define AC_FULLNAMESAVE "AssaultCube_v1.2.0.2"
 !define AC_URLPROTOCOL "assaultcube"
 !define AC_MAJORVERSIONINT 1
 !define AC_MINORVERSIONINT 2
