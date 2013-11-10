@@ -34,7 +34,7 @@ read DUMMY
 echo "\033[1mDid you strip symbols when compiling?\033[0m"
 echo " * If so, press ENTER to continue, otherwise press ctrl+c to exit."
 read DUMMY
-echo "\033[1mIs the versioning in assaultcube.sh and install.sh correct?\033[0m"
+echo "\033[1mIs the save-path in assaultcube.sh correct?\033[0m"
 echo " * If so, press ENTER to continue, otherwise press ctrl+c to exit."
 read DUMMY
 echo "\033[1mHave you checked all 4 variables in this script are set correctly?\033[0m"
