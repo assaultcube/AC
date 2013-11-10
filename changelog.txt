@@ -1,25 +1,11 @@
 AssaultCube ChangeLog
 
-1.2.0.0 -> 1.2.0.1
+1.2.0.1 -> 1.2.0.2
 ---------------------
 
 Bug fixes
 ---------------------
 
-[*] Crouch bug fix
-[*] Spectate mode bug fix
-[*] whois -1 fixed
-[*] Demo time limit fixed
-[*] "you have already downloaded this demo" bug fix
-[*] ACAC issues fixed
-
-Weapons
----------------------
-
-[*] Instant hitsound
-
-Demos / Spectating
----------------------
-
-[*] Clicking while being in spectate mode now always switch you to active play
-    (as it used to do)
+[*] browsing masterserver fix
+[*] libcurl error on Linux fix
+[*] Tab completion cycle returns to first item
