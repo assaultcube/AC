@@ -940,6 +940,7 @@ int pingpckservers(void *data)
         pckserver *serv = &serverstoping[i];
         CURL *cu = curl_easy_init();
         curl_easy_setopt(cu, CURLOPT_URL, serv->addr);
+        curl_easy_setopt(cu, CURLOPT_NOSIGNAL, 1);	    // Fixes crashbug for some buggy libcurl versions (Linux)
         curl_easy_setopt(cu, CURLOPT_NOPROGRESS, 1);
         curl_easy_setopt(cu, CURLOPT_NOBODY, 1);            // don't download response body (as its size may vary a lot from one server to another)
         curl_easy_setopt(cu, CURLOPT_CONNECTTIMEOUT, 10);   // the timeout should be large here
@@ -954,7 +955,7 @@ int pingpckservers(void *data)
         else
             serv->ping = (int)(ping*1000);
     }
-    
+
     SDL_mutexP(pingpcksrvlock);
     loopv(serverstoping) loopvj(pckservers) if(!strcmp(serverstoping[i].addr, pckservers[j]->addr)) *pckservers[j] = serverstoping[i];
     pckservers.sort(pckserversort);
@@ -1060,6 +1061,7 @@ double dlpackage(package *pck)
     double dlsize;
     pck->curl = curl_easy_init();
     curl_easy_setopt(pck->curl, CURLOPT_URL, req);
+    curl_easy_setopt(pck->curl, CURLOPT_NOSIGNAL, 1);		 // Fixes crashbug for some buggy libcurl versions (Linux)
     curl_easy_setopt(pck->curl, CURLOPT_WRITEFUNCTION, write_callback);
     curl_easy_setopt(pck->curl, CURLOPT_WRITEDATA, outfile);
     curl_easy_setopt(pck->curl, CURLOPT_NOPROGRESS, 0);

@@ -1312,7 +1312,7 @@ void retrieveservers(vector<char> &data)
         resolver_data *rd = new resolver_data();
         formatstring(rd->text)("retrieving servers from %s:%d... (esc to abort)", mastername, masterport);
         show_out_of_renderloop_progress(0, rd->text);
-    
+
         rd->starttime = SDL_GetTicks();
         rd->timeout = 0;
 
@@ -1320,6 +1320,7 @@ void retrieveservers(vector<char> &data)
         int result = 0, httpresult = 0;
 
         curl_easy_setopt(curl, CURLOPT_URL, request);
+        curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);	// Fixes crashbug for some buggy libcurl versions (Linux)
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, outfile);
         curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0);
@@ -1331,7 +1332,7 @@ void retrieveservers(vector<char> &data)
         curl_easy_cleanup(curl);
         curl = NULL;
         if(outfile) fclose(outfile);
-    
+
         if(result == CURLE_OPERATION_TIMEDOUT || result == CURLE_COULDNT_RESOLVE_HOST)
         {
             clfail = true;
