@@ -1298,14 +1298,19 @@ void retrieveservers(vector<char> &data)
 {
     if(mastertype == AC_MASTER_HTTP)
     {
+        CURL *curl = curl_easy_init();
+        
+        char *pname = curl_easy_escape(curl, global_name, 0);
         string request;
-        sprintf(request, "http://%s/retrieve.do?action=list&name=%s&version=%d&build=%d", mastername, global_name, AC_VERSION, getbuildtype()|(1<<16));
+        sprintf(request, "http://%s/retrieve.do?action=list&name=%s&version=%d&build=%d", mastername, pname, AC_VERSION, getbuildtype()|(1<<16));
+        curl_free(pname);
 
         const char *tmpname = findfile(path("config/servers.cfg", true), "wb");
         FILE *outfile = fopen(tmpname, "w+");
         if(!outfile)
         {
             conoutf("\f3cannot write server list");
+            curl_easy_cleanup(curl);
             return;
         }
 
@@ -1315,8 +1320,6 @@ void retrieveservers(vector<char> &data)
 
         rd->starttime = SDL_GetTicks();
         rd->timeout = 0;
-
-        CURL *curl = curl_easy_init();
         int result = 0, httpresult = 0;
 
         curl_easy_setopt(curl, CURLOPT_URL, request);
