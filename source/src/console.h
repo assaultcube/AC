@@ -258,3 +258,5 @@ struct textinputbuffer_wip
     }
 };
 
+void savehistory();
+void loadhistory();

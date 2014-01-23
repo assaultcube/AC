@@ -475,6 +475,25 @@ void history_(int *n)
 
 COMMANDN(history, history_, "i");
 
+void savehistory() {
+    stream *f = openfile(path("config/history", true), "w");
+    if(!f) return;
+    loopv(history) {
+        f->printf("%s\n",history[i]->buf);
+    }
+}
+
+void loadhistory() {
+    char *histbuf = loadfile(path("config/history", true),NULL);
+    char *line = NULL;
+    line = strtok(histbuf, "\n");
+    while (line) {
+        history.add(new hline)->buf = line;
+        line = strtok(NULL, "\n");
+    }
+    histpos = history.length();
+}
+
 void execbind(keym &k, bool isdown)
 {
     loopv(releaseactions)
