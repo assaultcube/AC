@@ -1635,7 +1635,10 @@ bool updateclientteam(int cln, int newteam, int ftr)
     if(ftr != FTR_INFO && (team_isspect(newteam) || (team_isactive(newteam) && team_isactive(cl.team)))) forcedeath(&cl);
     sendf(-1, 1, "riii", SV_SETTEAM, cln, newteam | ((ftr == FTR_SILENTFORCE ? FTR_INFO : ftr) << 4));
     if(ftr != FTR_INFO && !team_isspect(newteam) && team_isspect(cl.team)) sendspawn(&cl);
-    if (team_isspect(newteam)) cl.state.state = CS_SPECTATE;
+    if (team_isspect(newteam)) {
+        cl.state.state = CS_SPECTATE;
+        cl.state.lastdeath = gamemillis;
+    }
     cl.team = newteam;
     return true;
 }
