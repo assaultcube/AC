@@ -1,5 +1,20 @@
 AssaultCube ChangeLog
 
+1.2.0.2 -> 1.
+---------------------
+
+Features
+---------------------
+
+[*] Added command line history
+
+
+Misc
+---------------------
+
+[*] Removed cubescript lasttarget
+
+
 1.2.0.1 -> 1.2.0.2
 ---------------------
 
