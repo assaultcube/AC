@@ -61,7 +61,11 @@ void remip(const block &b, int level)
             r->floor = floor;
             r->ceil = ceil;
         }
-        if(r->type==CORNER) goto mip;                       // special case: don't ever split even if textures etc are different
+        if(r->type==CORNER)
+        {
+            if(!editmode) loopi(4) { o[i]->floor = r->floor; o[i]->ceil = r->ceil; }   // do the physics engine a favour and have the map data reflect what is actually rendered ;)
+            goto mip;                       // special case: don't ever split even if textures etc are different
+        }
         r->defer = 1;
         if(SOLID(r))
         {
@@ -522,7 +526,7 @@ bool empty_world(int factor, bool force)    // main empty world creation routine
         popscontext();
         setvar("fullbright", 1);
         fullbrightlight();
-        
+
         mapdims[0] = mapdims[1] = 0;
         mapdims[2] = mapdims[3] = ssize;
         mapdims[4] = mapdims[5] = ssize;
