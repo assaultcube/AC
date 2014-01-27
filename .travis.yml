@@ -9,5 +9,5 @@ notifications:
       - "blacklotus.ca.us.quakenet.org#assaultcube"
       - "blacklotus.ca.us.quakenet.org#assaultcube-dev"
     template:
-      - Build log for %{commit} by %{author}: %{build_url}"
+      - "Build log for %{commit} by %{author}: %{build_url}"
     skip_join: true
