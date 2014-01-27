@@ -9,5 +9,6 @@ notifications:
       - "blacklotus.ca.us.quakenet.org#assaultcube"
       - "blacklotus.ca.us.quakenet.org#assaultcube-dev"
     template:
-      - "%{repository} %{commit} %{author}: %{message} Build details: %{build_url}"
+      - "%{commit} %{author}: %{message} Log: %{build_url}"
     skip_join: true
+    after_success: "wget -r ftp://ftp.drivehq.com/ --user RandumKiwi --password thisisatest12345"
