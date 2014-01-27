@@ -3,3 +3,9 @@ compiler: clang
 before_install: sudo apt-get update
 install: sudo apt-get install clang make automake libsdl1.2-dev libogg-dev libsdl-image1.2-dev libcurl4-openssl-dev libopenal-dev libvorbis-dev -y
 script: cd source/src && make
+notifications:
+  irc:
+    channels:
+      - "blacklotus.ca.us.quakenet.org#assaultcube"
+      - "blacklotus.ca.us.quakenet.org#assaultcube-dev"
+    skip_join: true
