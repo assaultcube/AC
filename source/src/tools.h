@@ -907,6 +907,8 @@ struct stream
 extern const char *timestring(bool local = false, const char *fmt = NULL);
 extern const char *asctime();
 extern const char *numtime();
+extern void transformoldentities(int mapversion, uchar &enttype);
+extern int fixmapheadersize(int version, int headersize);
 extern char *path(char *s);
 extern char *path(const char *s, bool copy);
 extern char *unixpath(char *s);

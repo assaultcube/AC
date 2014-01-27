@@ -32,7 +32,8 @@ enum                            // hardcoded texture numbers
     DEFAULT_CEIL
 };
 
-#define MAPVERSION 9            // bump if map format changes, see worldio.cpp
+#define MAXMAPVERSION 10        // defines the highest readable format
+#define MAPVERSION 9            // default map format version to be written (bump if map format changes, see worldio.cpp)
 
 struct header                   // map file format header
 {
@@ -66,54 +67,6 @@ struct mapstats
     bool hasflags;
 };
 
-#define TRANSFORMOLDENTITIES(headr) \
-        if(e.type==LIGHT) \
-        { \
-            if(!e.attr2) e.attr2 = 255; /* needed for MAPVERSION<=2 */ \
-            if(e.attr1>32) e.attr1 = 32; /* 12_03 and below */ \
-        } \
-        if(headr.version<6  && strncmp(headr.head,"CUBE",4)==0)  /* only render lights, pl starts and map models on old maps // <6 was <MAPVERSION but we're now at #7 (flowtron) */ \
-        { \
-            switch(e.type) \
-            { \
-                case 1: /* old light */ \
-                    e.type=LIGHT; \
-                    break; \
-                case 2: /* old player start */ \
-                    e.type=PLAYERSTART; \
-                    break; \
-                case 3: \
-                case 4: \
-                case 5: \
-                case 6: \
-                    e.type=I_AMMO; \
-                    break; \
-                case 7: /* old health */ \
-                    e.type=I_HEALTH; \
-                    break; \
-                case 8: /* old boost */ \
-                    e.type=I_HEALTH; \
-                    break; \
-                case 9: /* armour */ \
-                    e.type=I_HELMET; \
-                    break; \
-                case 10: /* armor */ \
-                    e.type=I_ARMOUR; \
-                    break; \
-                case 11: /* quad */ \
-                    e.type=I_AKIMBO; \
-                    break; \
-                case 14: /* old map model */ \
-                    e.type=MAPMODEL; \
-                    break; \
-                default: \
-                    e.type=NOTUSED; \
-            } \
-        } \
-        if(headr.version>=6 && headr.version<8) { \
-            if( e.type >= I_HELMET && e.type < (MAXENTTYPES - 1) ) { e.type += 1; } \
-        }
-
 #define SWS(w,x,y,s) (&(w)[((y)<<(s))+(x)])
 #define SW(w,x,y) SWS(w,x,y,sfactor)
 #define S(x,y) SW(world,x,y)            // convenient lookup of a lowest mip cube
@@ -121,6 +74,7 @@ struct mapstats
 #define DEFAULT_FACTOR 8
 #define LARGEST_FACTOR 11               // 10 is already insane
 #define MAXENTITIES 65535
+#define MAXHEADEREXTRA (1<<20)
 #define SOLID(x) ((x)->type==SOLID)
 #define MINBORD 2                       // 2 cubes from the edge of the world are always solid
 #define OUTBORD(x,y) ((x)<MINBORD || (y)<MINBORD || (x)>=ssize-MINBORD || (y)>=ssize-MINBORD)

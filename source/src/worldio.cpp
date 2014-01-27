@@ -218,6 +218,7 @@ void save_world(char *mname)
     if(!f) { conoutf("could not write map to %s", cgzname); return; }
     strncpy(hdr.head, "ACMP", 4); // ensure map now declares itself as an AssaultCube map, even if imported as CUBE
     hdr.version = MAPVERSION;
+    hdr.headersize = sizeof(header);
     hdr.numents = 0;
     loopv(ents) if(ents[i].type!=NOTUSED) hdr.numents++;
     if(hdr.numents > MAXENTITIES)
@@ -226,11 +227,15 @@ void save_world(char *mname)
         hdr.numents = MAXENTITIES;
     }
     header tmp = hdr;
+    int writeextra = 0;
+    if(headerextra) tmp.headersize += writeextra = clamp(headerextrasize, 0, MAXHEADEREXTRA);
+    if(writeextra) tmp.version = 10;   // 9 and 10 are the same, but in 10 the headersize is reliable - if we don't need it, stick to 9
     lilswap(&tmp.version, 4);
     lilswap(&tmp.waterlevel, 1);
     tmp.maprevision += advancemaprevision;
     lilswap(&tmp.maprevision, 2);
     f->write(&tmp, sizeof(header));
+    if(writeextra) f->write(headerextra, writeextra);
     int ne = hdr.numents;
     loopv(ents)
     {
@@ -315,6 +320,7 @@ extern float Mh;
 
 bool load_world(char *mname)        // still supports all map formats that have existed since the earliest cube betas!
 {
+    const int sizeof_header = sizeof(header), sizeof_baseheader = sizeof_header - sizeof(int) * 16;
     stopwatch watch;
     watch.start();
 
@@ -335,14 +341,28 @@ bool load_world(char *mname)        // still supports all map formats that have 
     stream *f = opengzfile(cgzname, "rb");
     if(!f) { conoutf("\f3could not read map %s", cgzname); return false; }
     header tmp;
-    memset(&tmp, 0, sizeof(header));
-    if(f->read(&tmp, sizeof(header)-sizeof(int)*16)!=sizeof(header)-sizeof(int)*16) { conoutf("\f3while reading map: header malformatted"); delete f; return false; }
-    lilswap(&tmp.version, 4);
-    if(strncmp(tmp.head, "CUBE", 4)!=0 && strncmp(tmp.head, "ACMP",4)!=0) { conoutf("\f3while reading map: header malformatted"); delete f; return false; }
-    if(tmp.version>MAPVERSION) { conoutf("\f3this map requires a newer version of AssaultCube"); delete f; return false; }
+    memset(&tmp, 0, sizeof_header);
+    if(f->read(&tmp, sizeof_baseheader) != sizeof_baseheader ||
+       (strncmp(tmp.head, "CUBE", 4)!=0 && strncmp(tmp.head, "ACMP",4)!=0)) { conoutf("\f3while reading map: header malformatted (1)"); delete f; return false; }
+    lilswap(&tmp.version, 4); // version, headersize, sfactor, numents
+    if(tmp.version > MAXMAPVERSION) { conoutf("\f3this map requires a newer version of AssaultCube"); delete f; return false; }
     if(tmp.sfactor<SMALLEST_FACTOR || tmp.sfactor>LARGEST_FACTOR || tmp.numents > MAXENTITIES) { conoutf("\f3illegal map size"); delete f; return false; }
-    if(tmp.version>=4 && f->read(&tmp.waterlevel, sizeof(int)*16)!=sizeof(int)*16) { conoutf("\f3while reading map: header malformatted"); delete f; return false; }
-    if((tmp.version==7 || tmp.version==8) && !f->seek(sizeof(char)*128, SEEK_CUR)) { conoutf("\f3while reading map: header malformatted"); delete f; return false; }
+    tmp.headersize = fixmapheadersize(tmp.version, tmp.headersize);
+    DELETEA(headerextra);
+    int restofhead = min(tmp.headersize, sizeof_header) - sizeof_baseheader;
+    if(f->read(&tmp.waterlevel, restofhead) != restofhead) { conoutf("\f3while reading map: header malformatted (2)"); delete f; return false; }
+    if(tmp.headersize > sizeof_header)
+    {
+        headerextrasize = tmp.headersize - sizeof_header;
+        if(tmp.version < 9) headerextrasize = 0;  // throw away mediareq...
+        else if(headerextrasize > MAXHEADEREXTRA) headerextrasize = MAXHEADEREXTRA;
+        if(headerextrasize)
+        { // map file actually has extra header data that we want too preserve
+            headerextra = new uchar[headerextrasize];
+            if(f->read(headerextra, headerextrasize) != headerextrasize) { conoutf("\f3while reading map: header malformatted (3)"); delete f; return false; }
+        }
+        f->seek(tmp.headersize - sizeof_header - headerextrasize, SEEK_CUR);  // (equivalent to SEEK_SET to tmp.headersize)
+    }
     hdr = tmp;
     loadingscreen("%s", hdr.maptitle);
     resetmap();
@@ -367,7 +387,12 @@ bool load_world(char *mname)        // still supports all map formats that have 
         f->read(&e, sizeof(persistent_entity));
         lilswap((short *)&e, 4);
         e.spawned = false;
-        TRANSFORMOLDENTITIES(hdr)
+        if(e.type == LIGHT)
+        {
+            if(!e.attr2) e.attr2 = 255; // needed for MAPVERSION<=2
+            if(e.attr1>32) e.attr1 = 32; // 12_03 and below
+        }
+        transformoldentities(hdr.version, e.type);
         if(e.type == PLAYERSTART && (e.attr2 == 0 || e.attr2 == 1 || e.attr2 == 100))
         {
             if(e.attr2 == 100)
