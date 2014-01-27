@@ -550,7 +550,7 @@ struct zipstream : stream
 bool extractzipfile(ziparchive *a, zipfile *f, const char *name)
 {
     zipstream *s = new zipstream;
-    FILE *target;
+    FILE *target = NULL;
     defformatstring(fname)("%s", findfile(name, "wb"));
     preparedir(fname);
     bool error = false;

@@ -848,7 +848,7 @@ void CWaypointClass::DeleteWaypoint(vec v_src)
 
      if (!pWP)
      {
-          conoutf("Error: Couldn´t find near waypoint");
+          conoutf("Error: Couldn't find near waypoint");
           return;
      }
 
