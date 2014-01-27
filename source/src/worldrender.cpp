@@ -238,20 +238,18 @@ void render_seg_new(float vx, float vy, float vh, int mip, int x, int y, int xs,
 
         if(normalwall)
         {
-            bool inner = xx!=sz-1 && yy!=sz-1;
-
-            if(xx>=vxx && xx!=0 && yy!=sz-1 && !SOLID(z) && (!SOLID(s) || z->type!=CORNER)
+            if(xx>=vxx && xx!=0    && !SOLID(z) && (!SOLID(s) || z->type!=CORNER)
                 && (z->type!=SEMISOLID || issemi(mip, xx-1, yy, 1, 0, 1, 1)))
-                render_wall(s, z, xx,   yy,   xx,   yy+1, mip, s, v, true, 0);
-            if(xx<=vxx && inner && !SOLID(t) && (!SOLID(s) || t->type!=CORNER)
+                render_wall(s, z, xx,   yy,   xx,   yy+1, mip, s, v, true, 0);  // left
+            if(xx<=vxx && xx!=sz-1 && !SOLID(t) && (!SOLID(s) || t->type!=CORNER)
                 && (t->type!=SEMISOLID || issemi(mip, xx+1, yy, 0, 0, 0, 1)))
-                render_wall(s, t, xx+1, yy,   xx+1, yy+1, mip, t, u, false, 1);
-            if(yy>=vyy && yy!=0 && xx!=sz-1 && !SOLID(w) && (!SOLID(s) || w->type!=CORNER)
+                render_wall(s, t, xx+1, yy,   xx+1, yy+1, mip, t, u, false, 1);  // right
+            if(yy>=vyy && yy!=0    && !SOLID(w) && (!SOLID(s) || w->type!=CORNER)
                 && (w->type!=SEMISOLID || issemi(mip, xx, yy-1, 0, 1, 1, 1)))
-                render_wall(s, w, xx,   yy,   xx+1, yy,   mip, s, t, false, 2);
-            if(yy<=vyy && inner && !SOLID(v) && (!SOLID(s) || v->type!=CORNER)
+                render_wall(s, w, xx,   yy,   xx+1, yy,   mip, s, t, false, 2);  // top
+            if(yy<=vyy && yy!=sz-1 && !SOLID(v) && (!SOLID(s) || v->type!=CORNER)
                 && (v->type!=SEMISOLID || issemi(mip, xx, yy+1, 0, 0, 1, 0)))
-                render_wall(s, v, xx,   yy+1, xx+1, yy+1, mip, v, u, true, 3);
+                render_wall(s, v, xx,   yy+1, xx+1, yy+1, mip, v, u, true, 3);  // bot
         }
     }}
 }
