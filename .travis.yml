@@ -1,7 +1,7 @@
 language: cpp
 compiler: clang
 before_install: sudo apt-get update
-install: sudo apt-get install clang make automake libsdl1.2-dev libogg-dev libsdl-image1.2-dev libcurl4-openssl-dev libopenal-dev libvorbis-dev wget curl -y
+install: sudo apt-get install clang make automake libsdl1.2-dev libogg-dev libsdl-image1.2-dev libcurl4-openssl-dev libopenal-dev libvorbis-dev wget -y
 script: cd source/src && make
 notifications:
   irc:
@@ -9,12 +9,5 @@ notifications:
       - "blacklotus.ca.us.quakenet.org#assaultcube"
       - "blacklotus.ca.us.quakenet.org#assaultcube-dev"
     template:
-      - "%{message} for %{commit} by %{author}. Log: %{build_url}"
+      - Build log for %{commit} by %{author}: %{build_url}"
     skip_join: true
-after_success: 
-  - CLIENTUPLOADDATE="linux_64_client_$(date --utc +%F_%H.%M.%S)"
-  - SERVERUPLOADDATE="linux_64_server_$(date --utc +%F_%H.%M.%S)"
-  - mv ac_client "$CLIENTUPLOADDATE"
-  - mv ac_server "$SERVERUPLOADDATE"
-  - curl -T "$CLIENTUPLOADDATE" ftp://RandumKiwi:thisisatest12345@ftp.drivehq.com
-  - curl -T "$SERVERUPLOADDATE" ftp://RandumKiwi:thisisatest12345@ftp.drivehq.com
