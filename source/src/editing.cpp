@@ -760,3 +760,42 @@ COMMANDF(selectionrotate, "i", (int *d) { selectionrotate(*d); });
 COMMAND(selectionflip, "s");
 COMMAND(countwalls, "i");
 COMMANDF(settex, "ii", (int *texture, int *type) { settex(*texture, *type); });
+
+void transformclipentities()  // transforms all clip entities to tag clips, if they are big enough (so, that no player could be above or below them)
+{
+    EDITMP;
+    int entsdone = 0;
+    loopv(ents)
+    {
+        entity &e = ents[i];
+        if((e.type == CLIP || e.type == PLCLIP) && e.attr2 && e.attr3 && e.attr4)
+        {
+            int allowedspace = e.type == CLIP ? 1 : 4;
+            int x1 = e.x - e.attr2, x2 = e.x + e.attr2 - 1, y1 = e.y - e.attr3, y2 = e.y + e.attr3 - 1;
+            int z1 = S(e.x, e.y)->floor + e.attr1, z2 = z1 + e.attr4;
+            bool bigenough = true;
+            for(int xx = x1; xx <= x2; xx++) for(int yy = y1; yy <= y2; yy++)
+            {
+                if(OUTBORD(xx,yy) || SOLID(S(xx,yy))) continue;
+                sqr *s[4] = { S(xx, yy), S(xx + 1, yy), S(xx, yy + 1), S(xx + 1, yy + 1) };
+                int vdeltamax = 0;
+                loopj(4) if(s[j]->vdelta > vdeltamax) vdeltamax = s[j]->vdelta;
+                int floor = s[0]->floor - (s[0]->type == FHF ? (vdeltamax + 3) / 4 : 0),
+                    ceil = s[0]->ceil - (s[0]->type == CHF ? (vdeltamax + 3) / 4 : 0);
+                if(z1 - floor > allowedspace || ceil - z2 > allowedspace) bigenough = false;
+            }
+            if(bigenough)
+            {
+                for(int xx = x1; xx <= x2; xx++) for(int yy = y1; yy <= y2; yy++)
+                {
+                    if(!OUTBORD(xx,yy) && !SOLID(S(xx,yy))) S(xx, yy)->tag |= e.type == CLIP ? TAGCLIP : TAGPLCLIP;
+                }
+                e.type = NOTUSED;
+                entsdone++;
+            }
+        }
+    }
+    conoutf("changed %d clip entities to tagged clip areas", entsdone);
+}
+
+COMMAND(transformclipentities, "");
