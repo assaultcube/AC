@@ -178,7 +178,7 @@ bool collide(physent *d, bool spawn, float drop, float rise, int level) // level
     float hi = 127, lo = -128;
     const float eyeheight = d->eyeheight;
     const float playerheight = eyeheight + d->aboveeye;
-    const int applyclip = d->type == ENT_PLAYER ? TAGCLIP|TAGPLCLIP : TAGCLIP;
+    const int applyclip = d->type == ENT_BOT || d->type == ENT_PLAYER || (d->type == ENT_BOUNCE && ((bounceent *)d)->plclipped) ? TAGCLIP|TAGPLCLIP : TAGCLIP;
 
     if(level&1) for(int y = y1; y<=y2; y++) for(int x = x1; x<=x2; x++)     // collide with map
     {
