@@ -32,6 +32,13 @@ enum                            // hardcoded texture numbers
     DEFAULT_CEIL
 };
 
+enum                            // stuff encoded in sqr.tag
+{
+    TAGTRIGGERMASK = 0x3F,      // room for old fashioned cube 1 triggers
+    TAGCLIP = 0x40,             // clips all objects
+    TAGPLCLIP = 0x80            // clips only players
+};
+
 #define MAXMAPVERSION 10        // defines the highest readable format
 #define MAPVERSION 9            // default map format version to be written (bump if map format changes, see worldio.cpp)
 
