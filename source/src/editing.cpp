@@ -86,12 +86,17 @@ char *editinfo()
 {
     static string info;
     if(!editmode) return NULL;
+    info[0] = '\0';
     int e = closestent();
-    if(e<0) return NULL;
-    entity &c = ents[e];
-    string selinfo = "no selection";
-    if(selset()) formatstring(selinfo)("selection = (%d, %d)", (sels.last()).xs, (sels.last()).ys);
-    formatstring(info)("closest entity = %s (%d, %d, %d, %d), %s", entnames[c.type], c.attr1, c.attr2, c.attr3, c.attr4, selinfo);
+    if(e >= 0)
+    {
+        entity &c = ents[e];
+        formatstring(info)("closest entity = %s (%d, %d, %d, %d), ", entnames[c.type], c.attr1, c.attr2, c.attr3, c.attr4);
+    }
+    if(selset()) concatformatstring(info, "selection = (%d, %d)", (sels.last()).xs, (sels.last()).ys);
+    else concatformatstring(info, "no selection");
+    sqr *s;
+    if(!OUTBORD(cx, cy) && (s = S(cx,cy)) && !SOLID(s) && s->tag) concatformatstring(info, ", tag 0x%02X", s->tag);
     return info;
 }
 
@@ -151,6 +156,11 @@ VARP(showgrid,0,1,1);
 // VC8 optimizer screws up rendering somehow if this is an actual function
 #define sheight(s,t,z) (!flrceil ? (s->type==FHF ? s->floor-t->vdelta/4.0f : (float)s->floor) : (s->type==CHF ? s->ceil+t->vdelta/4.0f : (float)s->ceil))
 
+// remove those two after playing with the values a bit :)
+VAR(tagnum, 1, 3, 100);
+VAR(taglife, 1, 30, 1000);
+// and have mercy with old graphics cards...
+
 void cursorupdate()                                     // called every frame from hud
 {
     flrceil = ((int)(camera1->pitch>=0))*2;
@@ -200,6 +210,7 @@ void cursorupdate()                                     // called every frame fr
             float h2 = sheight(s, SWS(s,1,0,sfactor), z);
             float h3 = sheight(s, SWS(s,1,1,sfactor), z);
             float h4 = sheight(s, SWS(s,0,1,sfactor), z);
+            if(s->tag & (TAGCLIP|TAGPLCLIP)) particle_cube(s->tag & TAGCLIP ? PART_EPICKUP : PART_EMODEL, tagnum, taglife, ix, iy);
             if(s->tag) linestyle(GRIDW, 0xFF, 0x40, 0x40);
             else if(s->type==FHF || s->type==CHF) linestyle(GRIDW, 0x80, 0xFF, 0x80);
             else linestyle(GRIDW, 0x80, 0x80, 0x80);

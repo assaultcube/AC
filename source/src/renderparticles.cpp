@@ -582,6 +582,18 @@ void particle_splash(int type, int num, int fade, const vec &p)
     }
 }
 
+void particle_cube(int type, int num, int fade, int x, int y)
+{
+    sqr *s = S(x, y);
+    const int fc = s->ceil - s->floor;
+    if(SOLID(s) || fc < 1) return;
+    loopi(num * fc / 3)
+    {
+        vec p(float(rnd(100)) / 100.0 + x, float(rnd(100)) / 100.0 + y, float(rnd(100) * fc) / 100 + s->floor), d(0, 0, 0);
+        newparticle(p, d, rnd(fade*3), type);
+    }
+}
+
 VARP(maxtrail, 1, 500, 10000);
 
 void particle_trail(int type, int fade, const vec &s, const vec &e)
