@@ -253,24 +253,24 @@ void render_seg_new(float vx, float vy, float vh, int mip, int x, int y, int xs,
         }
     }}
 
-    extern vector<short> tagclipcubes;
+    extern vector<int> tagclipcubes;
     extern bool showtagclipfocus;
     extern int showtagclips;
     if(editmode && !showtagclipfocus && showtagclips) LOOPH continue; // tag clips
-        loopi(1<<mip)
+        if(mip)
         {
-            int iy = (yy<<mip) + i;
-            loopj(1<<mip)
+            int ix1 = xx<<mip, ix2 = (xx+1)<<mip, iy1 = yy<<mip, iy2 = (yy+1)<<mip;
+            sqr *tt = S(ix1, iy1), *t;
+            for(int iy = iy1; iy < iy2; iy++, tt += ssize)
             {
-                int ix = (xx<<mip) + j;
-                sqr *t = S(ix, iy);
-                if(!SOLID(t) && t->tag & TAGANYCLIP)
+                t = tt;
+                for(int ix = ix1; ix < ix2; ix++, t++)
                 {
-                    tagclipcubes.add(ix);
-                    tagclipcubes.add(iy);
+                    if(t->tag & TAGANYCLIP && t->type != SOLID) tagclipcubes.add(ix + (iy << 16));
                 }
             }
         }
+        else if(s->tag & TAGANYCLIP && s->type != SOLID) tagclipcubes.add(xx + (yy << 16));
     }}
 }
 

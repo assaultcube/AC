@@ -162,7 +162,7 @@ VAR(tagnumfull, 0, 0, 100);
 VAR(taglife, 1, 30, 1000);
 // and have mercy with old graphics cards...
 
-vector<short> tagclipcubes;
+vector<int> tagclipcubes;
 bool showtagclipfocus = false;
 COMMANDF(showtagclipfocus, "d", (bool on) { showtagclipfocus = on; } );
 VAR(showtagclips, 0, 1, 1);
@@ -258,7 +258,7 @@ void cursorupdate()                                     // called every frame fr
         const int xo[] = { 0, 0, 1, 1, 0 }, yo[] = {0, 1, 1, 0, 0 };
         loopv(tagclipcubes) // all non-solid & have clips
         {
-            int x = tagclipcubes[i++]; int y = tagclipcubes[i];
+            int x = tagclipcubes[i] & 0xFFFF, y = tagclipcubes[i] >> 16;
             ASSERT(!OUTBORD(x, y));
             sqr *s = S(x,y), *o[9];
             if(s->tag & TAGCLIP) linestyle(tagcliplinewidth, 0xFF, 0xFF, 0); // yello
@@ -274,8 +274,8 @@ void cursorupdate()                                     // called every frame fr
             bool clipped[9];
             loopj(9) clipped[j] = !SOLID(o[j]) && (o[j]->tag & TAGANYCLIP) > 0;
             int h = s->floor - (s->type == FHF ? (s->vdelta + 3) / 4 : 0), c = s->ceil + (s->type == CHF ? (s->vdelta + 3) / 4 : 0);
-            loopk(4) if((!clipped[k] && !clipped[k+1]) || (clipped[k] && clipped[k+1] && !clipped[k + 5])) line(x + xo[k+1], y + yo[k+1], h, x + xo[k+1], y + yo[k+1], c);
-            for( ; h <= c; h++)
+            loopk(4) if((clipped[k] == clipped[k+1]) && !(clipped[k] && clipped[k + 5])) line(x + xo[k+1], y + yo[k+1], h, x + xo[k+1], y + yo[k+1], c);
+            for( ; h < c; h++)
             {
                 int k = (h + x + y) & 3;
                 if(k < 2 && !clipped[k]) line(x + xo[k], y + yo[k], h + 1, x + xo[k+1], y + yo[k+1], h);
