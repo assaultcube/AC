@@ -157,9 +157,16 @@ VARP(showgrid,0,1,1);
 #define sheight(s,t,z) (!flrceil ? (s->type==FHF ? s->floor-t->vdelta/4.0f : (float)s->floor) : (s->type==CHF ? s->ceil+t->vdelta/4.0f : (float)s->ceil))
 
 // remove those two after playing with the values a bit :)
-VAR(tagnum, 1, 3, 100);
+VAR(tagnum, 1, 14, 100);
+VAR(tagnumfull, 0, 0, 100);
 VAR(taglife, 1, 30, 1000);
 // and have mercy with old graphics cards...
+
+vector<short> tagclipcubes;
+bool showtagclipfocus = false;
+COMMANDF(showtagclipfocus, "d", (bool on) { showtagclipfocus = on; } );
+VAR(showtagclips, 0, 1, 1);
+FVAR(tagcliplinewidth, 0.2, 1, 3);
 
 void cursorupdate()                                     // called every frame from hud
 {
@@ -214,7 +221,8 @@ void cursorupdate()                                     // called every frame fr
             float h2 = sheight(s, SWS(s,1,0,sfactor), z);
             float h3 = sheight(s, SWS(s,1,1,sfactor), z);
             float h4 = sheight(s, SWS(s,0,1,sfactor), z);
-            if(sparkletime && s->tag & (TAGCLIP|TAGPLCLIP)) particle_cube(s->tag & TAGCLIP ? PART_EPICKUP : PART_EMODEL, tagnum, taglife, ix, iy);
+            if(sparkletime && showtagclips && showtagclipfocus && s->tag & TAGANYCLIP)
+                particle_cube(s->tag & TAGCLIP ? PART_EPICKUP : PART_EMODEL, tagnum, taglife, ix, iy);
             if(s->tag) linestyle(GRIDW, 0xFF, 0x40, 0x40);
             else if(s->type==FHF || s->type==CHF) linestyle(GRIDW, 0x80, 0xFF, 0x80);
             else linestyle(GRIDW, 0x80, 0x80, 0x80);
@@ -243,6 +251,39 @@ void cursorupdate()                                     // called every frame fr
     {
         linestyle(GRIDS, 0xFF, 0x40, 0x40);
         loopv(sels) box(sels[i], (float)sels[i].h, (float)sels[i].h, (float)sels[i].h, (float)sels[i].h);
+    }
+
+    if(!showtagclipfocus && showtagclips)
+    {
+        const int xo[] = { 0, 0, 1, 1, 0 }, yo[] = {0, 1, 1, 0, 0 };
+        loopv(tagclipcubes) // all non-solid & have clips
+        {
+            int x = tagclipcubes[i++]; int y = tagclipcubes[i];
+            ASSERT(!OUTBORD(x, y));
+            sqr *s = S(x,y), *o[9];
+            if(s->tag & TAGCLIP) linestyle(tagcliplinewidth, 0xFF, 0xFF, 0); // yello
+            else linestyle(tagcliplinewidth, 0xFF, 0, 0xFF); // magenta
+            o[8] = SWS(s,-1,-1,sfactor);
+            o[3] = o[8] + 1;                    // 837
+            o[7] = o[3] + 1;                    // 0s2
+            o[0] = o[4] = SWS(s,-1,0,sfactor);  // 516
+            o[2] = o[0] + 2;
+            o[5] = SWS(s,-1,1,sfactor);
+            o[1] = o[5] + 1;
+            o[6] = o[1] + 1;
+            bool clipped[9];
+            loopj(9) clipped[j] = !SOLID(o[j]) && (o[j]->tag & TAGANYCLIP) > 0;
+            int h = s->floor - (s->type == FHF ? (s->vdelta + 3) / 4 : 0), c = s->ceil + (s->type == CHF ? (s->vdelta + 3) / 4 : 0);
+            loopk(4) if((!clipped[k] && !clipped[k+1]) || (clipped[k] && clipped[k+1] && !clipped[k + 5])) line(x + xo[k+1], y + yo[k+1], h, x + xo[k+1], y + yo[k+1], c);
+            for( ; h <= c; h++)
+            {
+                int k = (h + x + y) & 3;
+                if(k < 2 && !clipped[k]) line(x + xo[k], y + yo[k], h + 1, x + xo[k+1], y + yo[k+1], h);
+                k = (h - x - y) & 3;
+                if(k > 1 && !clipped[k]) line(x + xo[k], y + yo[k], h + 1, x + xo[k+1], y + yo[k+1], h);
+            }
+            if(sparkletime && tagnumfull) particle_cube(s->tag & TAGCLIP ? PART_EPICKUP : PART_EMODEL, tagnumfull, 30, x, y);
+        }
     }
 
     glLineWidth(1);

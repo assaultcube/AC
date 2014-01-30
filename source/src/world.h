@@ -38,6 +38,7 @@ enum                            // stuff encoded in sqr.tag
     TAGCLIP = 0x40,             // clips all objects
     TAGPLCLIP = 0x80            // clips only players
 };
+#define TAGANYCLIP (TAGCLIP|TAGPLCLIP)
 
 #define MAXMAPVERSION 10        // defines the highest readable format
 #define MAPVERSION 9            // default map format version to be written (bump if map format changes, see worldio.cpp)

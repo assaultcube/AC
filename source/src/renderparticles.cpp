@@ -588,7 +588,7 @@ void particle_cube(int type, int num, int fade, int x, int y)
     const int fc = s->ceil - s->floor + (s->vdelta + 3) / 4;
     const float floor = s->floor - (s->type == FHF ? float(s->vdelta) / 4 : 0);
     if(SOLID(s) || fc < 1) return;
-    loopi(num * fc / 3)
+    loopi(num * fc / 12)
     {
         vec p(float(rnd(100)) / 100.0 + x, float(rnd(100)) / 100.0 + y, float(rnd(100) * fc) / 100 + floor), d(0, 0, 0);
         newparticle(p, d, rnd(fade*3), type);
