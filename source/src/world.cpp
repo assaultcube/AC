@@ -8,6 +8,8 @@ sqr *world = NULL;
 int sfactor, ssize, cubicsize, mipsize;
 
 header hdr;
+uchar *headerextra = NULL;
+int headerextrasize;
 
 // main geometric mipmapping routine, recursively rebuild mipmaps within block b.
 // tries to produce cube out of 4 lower level mips as well as possible,
@@ -481,10 +483,6 @@ bool empty_world(int factor, bool force)    // main empty world creation routine
 
     checkselections(); // assert no selection became invalid
 
-    strncpy(hdr.head, "ACMP", 4);
-    hdr.version = MAPVERSION;
-    hdr.headersize = sizeof(header);
-    hdr.sfactor = sfactor;
     if(copy)
     {
         ow->x = ow->y = shrink ? 0 : ssize/4;
@@ -501,17 +499,21 @@ bool empty_world(int factor, bool force)    // main empty world creation routine
         entinmap(player1);
     }
     else
-    {
-        copystring(hdr.maptitle, "Untitled Map by Unknown", 128);
+    {   // all-new map
+        memset(&hdr, 0, sizeof(header));
+        formatstring(hdr.maptitle)("Untitled Map by %s", player1->name);
         hdr.waterlevel = -100000;
-        hdr.ambient = 0;
         setwatercolor();
-        loopi(sizeof(hdr.reserved)/sizeof(hdr.reserved[0])) hdr.reserved[i] = 0;
         loopk(3) loopi(256) hdr.texlists[k][i] = i;
         ents.shrink(0);
         block b = { 8, 8, ssize-16, ssize - 16};
         edittypexy(SPACE, b);
+        DELETEA(headerextra);
     }
+    strncpy(hdr.head, "ACMP", 4);
+    hdr.version = MAPVERSION;
+    hdr.headersize = sizeof(header);
+    hdr.sfactor = sfactor;
 
     calclight();
     resetmap(!copy);

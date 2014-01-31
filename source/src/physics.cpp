@@ -178,11 +178,13 @@ bool collide(physent *d, bool spawn, float drop, float rise, int level) // level
     float hi = 127, lo = -128;
     const float eyeheight = d->eyeheight;
     const float playerheight = eyeheight + d->aboveeye;
+    const int applyclip = d->type == ENT_BOT || d->type == ENT_PLAYER || (d->type == ENT_BOUNCE && ((bounceent *)d)->plclipped) ? TAGANYCLIP : TAGCLIP;
 
     if(level&1) for(int y = y1; y<=y2; y++) for(int x = x1; x<=x2; x++)     // collide with map
     {
         if(OUTBORD(x,y)) return true;
         sqr *s = S(x,y);
+        if(s->tag & applyclip) return true;  // tagged clips feel like solids
         float ceil = s->ceil;
         float floor = s->floor;
         switch(s->type)

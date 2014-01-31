@@ -252,6 +252,26 @@ void render_seg_new(float vx, float vy, float vh, int mip, int x, int y, int xs,
                 render_wall(s, v, xx,   yy+1, xx+1, yy+1, mip, v, u, true, 3);  // bot
         }
     }}
+
+    extern vector<int> tagclipcubes;
+    extern bool showtagclipfocus;
+    extern int showtagclips;
+    if(editmode && !showtagclipfocus && showtagclips) LOOPH continue; // tag clips
+        if(mip)
+        {
+            int ix1 = xx<<mip, ix2 = (xx+1)<<mip, iy1 = yy<<mip, iy2 = (yy+1)<<mip;
+            sqr *tt = S(ix1, iy1), *t;
+            for(int iy = iy1; iy < iy2; iy++, tt += ssize)
+            {
+                t = tt;
+                for(int ix = ix1; ix < ix2; ix++, t++)
+                {
+                    if(t->tag & TAGANYCLIP && t->type != SOLID) tagclipcubes.add(ix + (iy << 16));
+                }
+            }
+        }
+        else if(s->tag & TAGANYCLIP && s->type != SOLID) tagclipcubes.add(xx + (yy << 16));
+    }}
 }
 
 void distlod(int &low, int &high, int angle, float widef)

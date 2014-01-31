@@ -24,6 +24,41 @@ const char *numtime()
     return numt;
 }
 
+static const uchar transformenttab[] = {
+            /* mapformat     1..5                               6..7     */
+            /*  0 */   /* NOTUSED        */ NOTUSED,      /* NOTUSED     */ NOTUSED,
+            /*  1 */   /* LIGHT          */ LIGHT,        /* LIGHT       */ LIGHT,
+            /*  2 */   /* PLAYERSTART    */ PLAYERSTART,  /* PLAYERSTART */ PLAYERSTART,
+            /*  3 */   /* I_SHELLS       */ I_AMMO,       /* I_CLIPS     */ I_CLIPS,
+            /*  4 */   /* I_BULLETS      */ I_AMMO,       /* I_AMMO      */ I_AMMO,
+            /*  5 */   /* I_ROCKETS      */ I_AMMO,       /* I_GRENADE   */ I_GRENADE,
+            /*  6 */   /* I_ROUNDS       */ I_AMMO,       /* I_HEALTH    */ I_HEALTH,
+            /*  7 */   /* I_HEALTH       */ I_HEALTH,     /* I_ARMOUR    */ I_ARMOUR,
+            /*  8 */   /* I_BOOST        */ I_HEALTH,     /* I_AKIMBO    */ I_AKIMBO,
+            /*  9 */   /* I_GREENARMOUR  */ I_HELMET,     /* MAPMODEL    */ MAPMODEL,
+            /* 10 */   /* I_YELLOWARMOUR */ I_ARMOUR,     /* CARROT      */ CARROT,
+            /* 11 */   /* I_QUAD         */ I_AKIMBO,     /* LADDER      */ LADDER,
+            /* 12 */   /* TELEPORT       */ NOTUSED,      /* CTF_FLAG    */ CTF_FLAG,
+            /* 13 */   /* TELEDEST       */ NOTUSED,      /* SOUND       */ SOUND,
+            /* 14 */   /* MAPMODEL       */ MAPMODEL,     /* CLIP        */ CLIP,
+            /* 15 */   /* MONSTER        */ NOTUSED,      /* PLCLIP      */ PLCLIP,
+            /* 16 */   /* CARROT         */ NOTUSED,                        16,
+            /* 17 */   /* JUMPPAD        */ NOTUSED,                        17      };
+
+void transformoldentities(int mapversion, uchar &enttype)
+{
+    const uchar *usetab = transformenttab + (mapversion > 5 ? 1 : 0);
+    if(mapversion < 8 && enttype < 18) enttype = usetab[enttype * 2];
+}
+
+int fixmapheadersize(int version, int headersize)   // we can't trust hdr.headersize for file versions < 10 (thx flow)
+{
+    if(version < 4) return sizeof(header) - sizeof(int) * 16;
+    else if(version == 7 || version == 8) return sizeof(header) + sizeof(char) * 128;  // mediareq
+    else if(version < 10 || headersize < int(sizeof(header))) return sizeof(header);
+    return headersize;
+}
+
 int mapdims[8];     // min/max X/Y and delta X/Y and min/max Z
 
 extern char *maplayout, *testlayout;
@@ -33,6 +68,7 @@ extern int checkarea(int, char *);
 
 mapstats *loadmapstats(const char *filename, bool getlayout)
 {
+    const int sizeof_header = sizeof(header), sizeof_baseheader = sizeof_header - sizeof(int) * 16;
     static mapstats s;
     static uchar *enttypes = NULL;
     static short *entposs = NULL;
@@ -44,11 +80,14 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
 
     stream *f = opengzfile(filename, "rb");
     if(!f) return NULL;
-    memset(&s.hdr, 0, sizeof(header));
-    if(f->read(&s.hdr, sizeof(header)-sizeof(int)*16)!=sizeof(header)-sizeof(int)*16 || (strncmp(s.hdr.head, "CUBE", 4) && strncmp(s.hdr.head, "ACMP",4))) { delete f; return NULL; }
+    memset(&s.hdr, 0, sizeof_header);
+    if(f->read(&s.hdr, sizeof_baseheader) != sizeof_baseheader || (strncmp(s.hdr.head, "CUBE", 4) && strncmp(s.hdr.head, "ACMP",4))) { delete f; return NULL; }
     lilswap(&s.hdr.version, 4);
-    if(s.hdr.version>MAPVERSION || s.hdr.numents > MAXENTITIES || (s.hdr.version>=4 && f->read(&s.hdr.waterlevel, sizeof(int)*16)!=sizeof(int)*16)) { delete f; return NULL; }
-    if((s.hdr.version==7 || s.hdr.version==8) && !f->seek(sizeof(char)*128, SEEK_CUR)) { delete f; return NULL; }
+    s.hdr.headersize = fixmapheadersize(s.hdr.version, s.hdr.headersize);
+    int restofhead = min(s.hdr.headersize, sizeof_header) - sizeof_baseheader;
+    if(s.hdr.version > MAXMAPVERSION || s.hdr.numents > MAXENTITIES ||
+       f->read(&s.hdr.waterlevel, restofhead) != restofhead ||
+       !f->seek(clamp(s.hdr.headersize - sizeof_header, 0, MAXHEADEREXTRA), SEEK_CUR)) { delete f; return NULL; }
     if(s.hdr.version>=4)
     {
         lilswap(&s.hdr.waterlevel, 1);
@@ -62,7 +101,7 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
     {
         f->read(&e, sizeof(persistent_entity));
         lilswap((short *)&e, 4);
-        TRANSFORMOLDENTITIES(s.hdr)
+        transformoldentities(s.hdr.version, e.type);
         if(e.type == PLAYERSTART && (e.attr2 == 0 || e.attr2 == 1 || e.attr2 == 100)) s.spawns[e.attr2 == 100 ? 2 : e.attr2]++;
         if(e.type == CTF_FLAG && (e.attr2 == 0 || e.attr2 == 1)) { s.flags[e.attr2]++; s.flagents[e.attr2] = i; }
         s.entcnt[e.type]++;

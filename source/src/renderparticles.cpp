@@ -258,7 +258,7 @@ static struct parttype { int type; float r, g, b; int gr, tex; float sz; } partt
     { PT_FIREBALL,   1.0f, 0.5f, 0.5f, 0,  2, 7.0f  }, // explosion fireball
     { PT_SHOTLINE,   1.0f, 1.0f, 0.7f, 0, -1, 0.0f  }, // yellow: shotline
     { PT_BULLETHOLE, 1.0f, 1.0f, 1.0f, 0,  3, 0.3f  }, // hole decal
-    
+
     { PT_STAIN,      0.5f, 0.0f, 0.0f, 0,  4, 0.6f  }, // red:    blood stain
     { PT_DECAL,      1.0f, 1.0f, 1.0f, 0,  5, 1.5f  }, // scorch decal
     { PT_HUDFLASH,   1.0f, 1.0f, 1.0f, 0,  6, 0.7f  }, // hudgun muzzle flash
@@ -578,6 +578,19 @@ void particle_splash(int type, int num, int fade, const vec &p)
         }
         while(x*x+y*y+z*z>radius*radius);
         vec d((float)x, (float)y, (float)z);
+        newparticle(p, d, rnd(fade*3), type);
+    }
+}
+
+void particle_cube(int type, int num, int fade, int x, int y)
+{
+    sqr *s = S(x, y);
+    const int fc = s->ceil - s->floor + (s->vdelta + 3) / 4;
+    const float floor = s->floor - (s->type == FHF ? float(s->vdelta) / 4 : 0);
+    if(SOLID(s) || fc < 1) return;
+    loopi(num * fc / 12)
+    {
+        vec p(float(rnd(100)) / 100.0 + x, float(rnd(100)) / 100.0 + y, float(rnd(100) * fc) / 100 + floor), d(0, 0, 0);
         newparticle(p, d, rnd(fade*3), type);
     }
 }

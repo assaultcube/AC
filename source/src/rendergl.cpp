@@ -1125,6 +1125,8 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         disablepolygonoffset(GL_POLYGON_OFFSET_LINE, false);
     }
+    extern vector<int> tagclipcubes;
+    tagclipcubes.setsize(0);
 
     extern vector<vertex> verts;
     gl_drawhud(w, h, (int)round(curfps), nquads, verts.length(), underwater);

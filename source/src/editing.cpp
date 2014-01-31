@@ -86,12 +86,17 @@ char *editinfo()
 {
     static string info;
     if(!editmode) return NULL;
+    info[0] = '\0';
     int e = closestent();
-    if(e<0) return NULL;
-    entity &c = ents[e];
-    string selinfo = "no selection";
-    if(selset()) formatstring(selinfo)("selection = (%d, %d)", (sels.last()).xs, (sels.last()).ys);
-    formatstring(info)("closest entity = %s (%d, %d, %d, %d), %s", entnames[c.type], c.attr1, c.attr2, c.attr3, c.attr4, selinfo);
+    if(e >= 0)
+    {
+        entity &c = ents[e];
+        formatstring(info)("closest entity = %s (%d, %d, %d, %d), ", entnames[c.type], c.attr1, c.attr2, c.attr3, c.attr4);
+    }
+    if(selset()) concatformatstring(info, "selection = (%d, %d)", (sels.last()).xs, (sels.last()).ys);
+    else concatformatstring(info, "no selection");
+    sqr *s;
+    if(!OUTBORD(cx, cy) && (s = S(cx,cy)) && !SOLID(s) && s->tag) concatformatstring(info, ", tag 0x%02X", s->tag);
     return info;
 }
 
@@ -151,6 +156,18 @@ VARP(showgrid,0,1,1);
 // VC8 optimizer screws up rendering somehow if this is an actual function
 #define sheight(s,t,z) (!flrceil ? (s->type==FHF ? s->floor-t->vdelta/4.0f : (float)s->floor) : (s->type==CHF ? s->ceil+t->vdelta/4.0f : (float)s->ceil))
 
+// remove those two after playing with the values a bit :)
+VAR(tagnum, 1, 14, 100);
+VAR(tagnumfull, 0, 0, 100);
+VAR(taglife, 1, 30, 1000);
+// and have mercy with old graphics cards...
+
+vector<int> tagclipcubes;
+bool showtagclipfocus = false;
+COMMANDF(showtagclipfocus, "d", (bool on) { showtagclipfocus = on; } );
+VAR(showtagclips, 0, 1, 1);
+FVAR(tagcliplinewidth, 0.2, 1, 3);
+
 void cursorupdate()                                     // called every frame from hud
 {
     flrceil = ((int)(camera1->pitch>=0))*2;
@@ -186,6 +203,10 @@ void cursorupdate()                                     // called every frame fr
     const float GRIDS = 2.0f;
     const int GRIDM = 0x7;
 
+    static int lastsparkle = 0;
+    bool sparkletime = lastmillis - lastsparkle >= 20;
+    if(sparkletime) lastsparkle = lastmillis - (lastmillis%20);    // clip adding sparklies at 50 fps
+
     // render editing grid
 
     if(showgrid)
@@ -200,6 +221,8 @@ void cursorupdate()                                     // called every frame fr
             float h2 = sheight(s, SWS(s,1,0,sfactor), z);
             float h3 = sheight(s, SWS(s,1,1,sfactor), z);
             float h4 = sheight(s, SWS(s,0,1,sfactor), z);
+            if(sparkletime && showtagclips && showtagclipfocus && s->tag & TAGANYCLIP)
+                particle_cube(s->tag & TAGCLIP ? PART_EPICKUP : PART_EMODEL, tagnum, taglife, ix, iy);
             if(s->tag) linestyle(GRIDW, 0xFF, 0x40, 0x40);
             else if(s->type==FHF || s->type==CHF) linestyle(GRIDW, 0x80, 0xFF, 0x80);
             else linestyle(GRIDW, 0x80, 0x80, 0x80);
@@ -228,6 +251,39 @@ void cursorupdate()                                     // called every frame fr
     {
         linestyle(GRIDS, 0xFF, 0x40, 0x40);
         loopv(sels) box(sels[i], (float)sels[i].h, (float)sels[i].h, (float)sels[i].h, (float)sels[i].h);
+    }
+
+    if(!showtagclipfocus && showtagclips)
+    {
+        const int xo[] = { 0, 0, 1, 1, 0 }, yo[] = {0, 1, 1, 0, 0 };
+        loopv(tagclipcubes) // all non-solid & have clips
+        {
+            int x = tagclipcubes[i] & 0xFFFF, y = tagclipcubes[i] >> 16;
+            ASSERT(!OUTBORD(x, y));
+            sqr *s = S(x,y), *o[9];
+            if(s->tag & TAGCLIP) linestyle(tagcliplinewidth, 0xFF, 0xFF, 0); // yello
+            else linestyle(tagcliplinewidth, 0xFF, 0, 0xFF); // magenta
+            o[8] = SWS(s,-1,-1,sfactor);
+            o[3] = o[8] + 1;                    // 837
+            o[7] = o[3] + 1;                    // 0s2
+            o[0] = o[4] = SWS(s,-1,0,sfactor);  // 516
+            o[2] = o[0] + 2;
+            o[5] = SWS(s,-1,1,sfactor);
+            o[1] = o[5] + 1;
+            o[6] = o[1] + 1;
+            bool clipped[9];
+            loopj(9) clipped[j] = !SOLID(o[j]) && (o[j]->tag & TAGANYCLIP) > 0;
+            int h = s->floor - (s->type == FHF ? (s->vdelta + 3) / 4 : 0), c = s->ceil + (s->type == CHF ? (s->vdelta + 3) / 4 : 0);
+            loopk(4) if((clipped[k] == clipped[k+1]) && !(clipped[k] && clipped[k + 5])) line(x + xo[k+1], y + yo[k+1], h, x + xo[k+1], y + yo[k+1], c);
+            for( ; h < c; h++)
+            {
+                int k = (h + x + y) & 3;
+                if(k < 2 && !clipped[k]) line(x + xo[k], y + yo[k], h + 1, x + xo[k+1], y + yo[k+1], h);
+                k = (h - x - y) & 3;
+                if(k > 1 && !clipped[k]) line(x + xo[k], y + yo[k], h + 1, x + xo[k+1], y + yo[k+1], h);
+            }
+            if(sparkletime && tagnumfull) particle_cube(s->tag & TAGCLIP ? PART_EPICKUP : PART_EMODEL, tagnumfull, 30, x, y);
+        }
     }
 
     glLineWidth(1);
@@ -745,3 +801,50 @@ COMMANDF(selectionrotate, "i", (int *d) { selectionrotate(*d); });
 COMMAND(selectionflip, "s");
 COMMAND(countwalls, "i");
 COMMANDF(settex, "ii", (int *texture, int *type) { settex(*texture, *type); });
+
+void transformclipentities()  // transforms all clip entities to tag clips, if they are big enough (so, that no player could be above or below them)
+{
+    EDITMP;
+    int total = 0, thisrun;
+    do
+    {
+        thisrun = 0;
+        loopv(ents)
+        {
+            entity &e = ents[i];
+            if((e.type == CLIP || e.type == PLCLIP) && e.attr2 && e.attr3 && e.attr4)
+            {
+                int allowedspace = e.type == CLIP ? 1 : 4;
+                int clipmask = e.type == CLIP ? TAGCLIP : TAGPLCLIP;
+                int x1 = e.x - e.attr2, x2 = e.x + e.attr2 - 1, y1 = e.y - e.attr3, y2 = e.y + e.attr3 - 1;
+                int z1 = S(e.x, e.y)->floor + e.attr1, z2 = z1 + e.attr4;
+                bool bigenough = true;
+                for(int xx = x1; xx <= x2; xx++) for(int yy = y1; yy <= y2; yy++)
+                {
+                    if(OUTBORD(xx,yy) || SOLID(S(xx,yy))) continue;
+                    sqr *s[4] = { S(xx, yy), S(xx + 1, yy), S(xx, yy + 1), S(xx + 1, yy + 1) };
+                    int vdeltamax = 0;
+                    loopj(4) if(s[j]->vdelta > vdeltamax) vdeltamax = s[j]->vdelta;
+                    int floor = s[0]->floor - (s[0]->type == FHF ? (vdeltamax + 3) / 4 : 0),
+                        ceil = s[0]->ceil - (s[0]->type == CHF ? (vdeltamax + 3) / 4 : 0);
+                    if((z1 - floor > allowedspace || ceil - z2 > allowedspace) && !(s[0]->tag & (TAGCLIP | clipmask))) bigenough = false;
+                }
+                if(bigenough)
+                {
+                    for(int xx = x1; xx <= x2; xx++) for(int yy = y1; yy <= y2; yy++)
+                    {
+                        if(!OUTBORD(xx,yy) && !SOLID(S(xx,yy))) S(xx, yy)->tag |= clipmask;
+                    }
+                    e.type = NOTUSED;
+                    thisrun++;
+                }
+            }
+        }
+        total += thisrun;
+    }
+    while(thisrun);
+    loopi(ssize) loopj(ssize) { sqr *s = S(i,j); if(s->tag & TAGCLIP) s->tag &= ~TAGPLCLIP; }
+    conoutf("changed %d clip entities to tagged clip areas", total);
+}
+
+COMMAND(transformclipentities, "");
