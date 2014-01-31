@@ -481,6 +481,7 @@ void savehistory() {
     loopv(history) {
         f->printf("%s\n",history[i]->buf);
     }
+    delete f;
 }
 
 void loadhistory() {
@@ -488,9 +489,10 @@ void loadhistory() {
     char *line = NULL;
     line = strtok(histbuf, "\n");
     while (line) {
-        history.add(new hline)->buf = line;
+        history.add(new hline)->buf = newstring(line);
         line = strtok(NULL, "\n");
     }
+    DELETEA(histbuf);
     histpos = history.length();
 }
 
