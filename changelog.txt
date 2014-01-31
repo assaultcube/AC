@@ -7,6 +7,7 @@ Features
 ---------------------
 
 [*] Added command line history
+[*] Added support for tag clips
 
 
 Misc
