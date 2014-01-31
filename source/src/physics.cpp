@@ -91,22 +91,42 @@ bool plcollide(physent *d, physent *o, float &headspace, float &hi, float &lo)  
     return false;
 }
 
-bool cornertest(int mip, int x, int y, int dx, int dy, int &bx, int &by, int &bs)    // recursively collide with a mipmapped corner cube
+int cornertest(int x, int y, int &bx, int &by, int &bs, sqr *&s, sqr *&h)    // iteratively collide with a mipmapped corner cube
 {
-    sqr *w = wmip[mip];
+    int mip = 1, res = -1;
+    while(SWS(wmip[mip], x>>mip, y>>mip, sfactor-mip)->type==CORNER) mip++;
+    mip--;
+    x >>= mip;
+    y >>= mip;
     int mfactor = sfactor - mip;
-    bool stest = SOLID(SWS(w, x+dx, y, mfactor)) && SOLID(SWS(w, x, y+dy, mfactor));
-    mip++;
-    x /= 2;
-    y /= 2;
-    if(SWS(wmip[mip], x, y, mfactor-1)->type==CORNER)
+    bx = x<<mip;
+    by = y<<mip;
+    bs = 1<<mip;
+    sqr *z = SWS(wmip[mip],x - 1, y,mfactor);
+    sqr *t = SWS(z,2,0,mfactor);     //   w
+    sqr *w = SWS(z,1,-1,mfactor);    //  zst
+    sqr *v = SWS(z,1,1,mfactor);     //   v
+    s = SWS(z,1,0,mfactor);
+
+    // now, this is _exactly_ how the renderer interprets map geometry...
+    if(SOLID(z))
     {
-        bx = x<<mip;
-        by = y<<mip;
-        bs = 1<<mip;
-        return cornertest(mip, x, y, dx, dy, bx, by, bs);
+        if(SOLID(w)) res = 2; // corners between solids are solid behind the wall or SPACE in front of it
+        else if(SOLID(v)) res = 3;
     }
-    return stest;
+    else if(SOLID(t))
+    {
+        if(SOLID(w)) res = 1;
+        else if(SOLID(v)) res = 0;
+    }
+    else
+    { // not a corner between solids
+        bool wv = w->ceil-w->floor < v->ceil-v->floor;
+        h = wv ? v : w;  // in front of the corner, use floor and ceil from h
+        if(z->ceil-z->floor < t->ceil-t->floor) res = wv ? 2 : 3;
+        else res = wv ? 1 : 0;
+    }            //  03
+    return res;  //  12
 }
 
 bool mmcollide(physent *d, float &hi, float &lo)           // collide with a mapmodel
@@ -164,7 +184,7 @@ bool objcollide(physent *d, const vec &objpos, float objrad, float objheight) //
 // drop & rise are supplied by the physics below to indicate gravity/push for current mini-timestep
 static int cornersurface = 0;
 
-bool collide(physent *d, bool spawn, float drop, float rise, int level) // levels 1 = map, 2 = players, 4 = models, default: 1+2+4
+bool collide(physent *d, bool spawn, float drop, float rise)
 {
     cornersurface = 0;
     const float fx1 = d->o.x-d->radius;     // figure out integer cube rectangle this entity covers in map
@@ -178,9 +198,11 @@ bool collide(physent *d, bool spawn, float drop, float rise, int level) // level
     float hi = 127, lo = -128;
     const float eyeheight = d->eyeheight;
     const float playerheight = eyeheight + d->aboveeye;
+    float z1 = d->o.z-eyeheight, z2 = z1 + playerheight;
+    if(d->type != ENT_BOUNCE) z1 += 1.26;
     const int applyclip = d->type == ENT_BOT || d->type == ENT_PLAYER || (d->type == ENT_BOUNCE && ((bounceent *)d)->plclipped) ? TAGANYCLIP : TAGCLIP;
 
-    if(level&1) for(int y = y1; y<=y2; y++) for(int x = x1; x<=x2; x++)     // collide with map
+    for(int y = y1; y<=y2; y++) for(int x = x1; x<=x2; x++)     // collide with map
     {
         if(OUTBORD(x,y)) return true;
         sqr *s = S(x,y);
@@ -194,13 +216,38 @@ bool collide(physent *d, bool spawn, float drop, float rise, int level) // level
 
             case CORNER:
             {
+                sqr *ns = NULL, *h = NULL;
                 int bx = x, by = y, bs = 1;
-                cornersurface = 1;
-                if((x==x1 && y==y2 && cornertest(0, x, y, -1,  1, bx, by, bs) && fx1-bx<=fy2-by)
-                || (x==x2 && y==y1 && cornertest(0, x, y,  1, -1, bx, by, bs) && fx2-bx>=fy1-by) || !(++cornersurface)
-                || (x==x1 && y==y1 && cornertest(0, x, y, -1, -1, bx, by, bs) && fx1-bx+fy1-by<=bs)
-                || (x==x2 && y==y2 && cornertest(0, x, y,  1,  1, bx, by, bs) && fx2-bx+fy2-by>=bs))
-                    return true;
+                int q = cornertest(x, y, bx, by, bs, ns, h);
+                bool matter = false, match = false;
+                switch(q)                          //  0XX3
+                {                                  //  XXXX
+                    case 0:                        //  1XX2
+                        match = x==x2 && y==y2;
+                        matter = fx2-bx+fy2-by>=bs;
+                        break;
+                    case 1:
+                        match = x==x2 && y==y1;
+                        matter = fx2-bx>=fy1-by;
+                        break;
+                    case 2:
+                        match = x==x1 && y==y1;
+                        matter = fx1-bx+fy1-by<=bs;
+                        break;
+                    case 3:
+                        match = x==x1 && y==y2;
+                        matter = fx1-bx<=fy2-by;
+                        break;
+                }
+                cornersurface = (q & 1) ? 1 : 2;
+                sqr *n = h && !matter ? h : ns;
+                ceil = n->ceil;  // use floor & ceil from higher mips (like the renderer)
+                floor = n->floor;
+                if(match && matter)
+                {
+                    if(!h) return true; // we hit a corner between solids...
+                    else if(z1 < ns->floor || z2 > ns->ceil) return true; // corner is not between solids, but we hit it...
+                }
                 cornersurface = 0;
                 break;
             }
@@ -217,11 +264,11 @@ bool collide(physent *d, bool spawn, float drop, float rise, int level) // level
         if(floor>lo) lo = floor;
     }
 
-    if(level&1 && hi-lo < playerheight) return true;
+    if(hi - lo < playerheight) return true;
 
     float headspace = 10.0f;
 
-    if( level&2 && d->type!=ENT_CAMERA)
+    if(d->type!=ENT_CAMERA)
     {
         loopv(players)       // collide with other players
         {
@@ -233,7 +280,7 @@ bool collide(physent *d, bool spawn, float drop, float rise, int level) // level
     }
 
     headspace -= 0.01f;
-    if( level&4 && mmcollide(d, hi, lo)) return true;    // collide with map models
+    if(mmcollide(d, hi, lo)) return true;    // collide with map models
 
     if(spawn)
     {
@@ -350,7 +397,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         if(pl->onfloor) // apply friction
         {
             pl->vel.mul(fpsfric-1);
-        pl->vel.div(fpsfric);
+            pl->vel.div(fpsfric);
         }
         else // apply gravity
         {
