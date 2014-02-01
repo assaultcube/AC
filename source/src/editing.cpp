@@ -195,7 +195,7 @@ void cursorupdate()                                     // called every frame fr
         if(OUTBORD(cx, cy)) return;
     }
 
-    if(dragging) { makesel(false); };
+    if(dragging) makesel(false);
 
     const int GRIDSIZE = 5;
     const float GRIDW = 0.5f;
@@ -290,7 +290,7 @@ void cursorupdate()                                     // called every frame fr
 }
 
 vector<block *> undos;                                  // unlimited undo
-VAR(undomegs, 0, 1, 10);                                // bounded by n megs
+VAR(undomegs, 0, 5, 50);                                // bounded by n megs
 
 void pruneundos(int maxremain)                          // bound memory
 {
@@ -344,7 +344,7 @@ void paste()
 
     loopv(sels)
     {
-        block &sel = sels[i];
+        block sel = sels[i];
         int selx = sel.x;
         int sely = sel.y;
 
@@ -361,7 +361,6 @@ void paste()
             makeundo(sel);
             blockpaste(*copyblock, sel.x, sel.y, true);
         }
-        remipmore(sel);
     }
 }
 
@@ -395,6 +394,9 @@ void tofronttex()                                       // maintain most recentl
     }
 }
 
+bool editmetakeydown = false;
+COMMANDF(editmeta, "d", (bool on) { editmetakeydown = on; } );
+
 void editdrag(bool isdown)
 {
     if((dragging = isdown))
@@ -403,28 +405,20 @@ void editdrag(bool isdown)
         lasty = cy;
         lasth = ch;
         tofronttex();
-        
-        bool ctrlpressed = false;
-        
-        if (identexists("newselkeys"))
-        {
-            extern vector<keym> keyms;
-            vector<char *> elems;
-            explodelist(getalias("newselkeys"), elems);
 
-            loopi(keyms.length()) if(keyms[i].pressed) loopj(elems.length())
-            {
-                if (strcmp(keyms[i].name, elems[j]) == 0)
-                {
-                    ctrlpressed = true;
-                    break;
-                }
-            }
-        }
-
-        if(!ctrlpressed) resetselections();
+        if(!editmetakeydown) resetselections();
     }
     makesel(isdown);
+    if(!isdown) for(int i = sels.length() - 2; i >= 0; i--)
+    {
+        block &a = sels.last(), &b = sels[i];
+        if(a.x == b.x && a.y == b.y && a.xs == b.xs && a.ys == b.ys)
+        { // making a selection twice will deselect both of it
+            sels.drop();
+            sels.remove(i);
+            break;
+        }
+    }
 }
 
 // the core editing function. all the *xy functions perform the core operations
@@ -540,11 +534,13 @@ void edittype(int type)
     loopv(sels)
     {
         block &sel = sels[i];
-        if(type==CORNER && (sel.xs!=sel.ys || sel.xs==3 || (sel.xs>4 && sel.xs!=8)
-                       || sel.x&~-sel.xs || sel.y&~-sel.ys))
-                       { conoutf("corner selection must be power of 2 aligned"); return; }
-        edittypexy(type, sel);
-        addmsg(SV_EDITS, "ri5", sel.x, sel.y, sel.xs, sel.ys, type);
+        if(type == CORNER && (sel.xs != sel.ys || sel.xs != (1 << (ffs(sel.xs) - 1)) || (sel.x | sel.y) & (sel.xs - 1)))
+            conoutf("corner selection must be power of 2 aligned");
+        else
+        {
+            edittypexy(type, sel);
+            addmsg(SV_EDITS, "ri5", sel.x, sel.y, sel.xs, sel.ys, type);
+        }
     }
 }
 
@@ -655,7 +651,7 @@ void perlin(int scale, int seed, int psize)
     EDITSELMP;
     loopv(sels)
     {
-        block &sel = sels[i];
+        block sel = sels[i];
         sel.xs++;
         sel.ys++;
         makeundo(sel);
@@ -665,8 +661,6 @@ void perlin(int scale, int seed, int psize)
         sel.xs++;
         sel.ys++;
         remipmore(sel);
-        sel.xs--;
-        sel.ys--;
     }
 }
 
@@ -761,21 +755,18 @@ void selfliprotate(block &sel, int dir)
 void selectionrotate(int dir)
 {
     EDITSELMP;
-    dir %= 4;
-    if(dir < 0) dir += 4;
+    dir &= 3;
     if(!dir) return;
     loopv(sels)
     {
         block &sel = sels[i];
-        if(sel.xs != sel.ys) dir = 2;
-        selfliprotate(sel, dir);
+        if(sel.xs == sel.ys || dir ==  2) selfliprotate(sel, dir);
     }
 }
 
 void selectionflip(char *axis)
 {
     EDITSELMP;
-    if(!axis || !*axis) return;
     char c = toupper(*axis);
     if(c != 'X' && c != 'Y') return;
     loopv(sels) selfliprotate(sels[i], c == 'X' ? 11 : 12);
