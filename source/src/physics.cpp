@@ -238,11 +238,14 @@ bool collide(physent *d, bool spawn, float drop, float rise)
                         match = x==x1 && y==y2;
                         matter = fx1-bx<=fy2-by;
                         break;
+                    default:
+                        return true; // mapper's fault: corner with unsufficient solids: renderer can't handle those anyway: treat as solid
                 }
                 cornersurface = (q & 1) ? 1 : 2;
                 sqr *n = h && !matter ? h : ns;
                 ceil = n->ceil;  // use floor & ceil from higher mips (like the renderer)
                 floor = n->floor;
+                if(!match && d->type == ENT_BOUNCE) match = q == (d->vel.x < 0) * 2 + (d->vel.y * d->vel.x < 0); // when coming towards corner surface: prefer corner bounce
                 if(match && matter)
                 {
                     if(!h) return true; // we hit a corner between solids...
