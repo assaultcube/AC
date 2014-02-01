@@ -362,7 +362,8 @@ void blockpaste(const block &b, int bx, int by, bool light)
             dest->b = tb;
         }
     }
-    remipmore(b);
+    block bb = { bx, by, b.xs, b.ys };
+    remipmore(bb);
 }
 
 void blockpaste(const block &b)
