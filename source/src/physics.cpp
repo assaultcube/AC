@@ -692,7 +692,11 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
             }
             if(pl==player1) pl->vel.z = 0;
         }
-        else if(pl->inwater && !water) audiomgr.playsound(S_SPLASH1, &pl->o);
+        else if(pl->inwater && !water)
+        {
+            audiomgr.playsound(S_SPLASH1, &pl->o);
+            if(pl->type == ENT_BOUNCE) pl->maxspeed /= 8; // prevent nades from jumping out of water
+        }
         pl->inwater = water;
     }
 
