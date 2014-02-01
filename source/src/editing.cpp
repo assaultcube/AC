@@ -360,7 +360,6 @@ void paste()
             if(!correctsel(sel) || sel.xs!=copyblock->xs || sel.ys!=copyblock->ys) { conoutf("incorrect selection"); return; }
             makeundo(sel);
             blockpaste(*copyblock, sel.x, sel.y, true);
-            remipmore(sel);
         }
     }
 }
