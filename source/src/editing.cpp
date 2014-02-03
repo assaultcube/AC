@@ -402,9 +402,9 @@ void editdrag(bool isdown)
         lasty = cy;
         lasth = ch;
         tofronttex();
-        
+
         bool ctrlpressed = false;
-        
+
         if (identexists("newselkeys"))
         {
             extern vector<keym> keyms;
@@ -416,8 +416,8 @@ void editdrag(bool isdown)
                 if (strcmp(keyms[i].name, elems[j]) == 0)
                 {
                     ctrlpressed = true;
-                    break;
                 }
+                delete[] elems[j];
             }
         }
 
