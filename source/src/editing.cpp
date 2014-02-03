@@ -344,7 +344,7 @@ void paste()
 
     loopv(sels)
     {
-        block &sel = sels[i];
+        block sel = sels[i];
         int selx = sel.x;
         int sely = sel.y;
 
