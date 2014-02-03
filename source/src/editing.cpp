@@ -409,6 +409,16 @@ void editdrag(bool isdown)
         if(!editmetakeydown) resetselections();
     }
     makesel(isdown);
+    if(!isdown) for(int i = sels.length() - 2; i >= 0; i--)
+    {
+        block &a = sels.last(), &b = sels[i];
+        if(a.x == b.x && a.y == b.y && a.xs == b.xs && a.ys == b.ys)
+        { // making a selection twice will deselect both of it
+            sels.drop();
+            sels.remove(i);
+            break;
+        }
+    }
 }
 
 // the core editing function. all the *xy functions perform the core operations
