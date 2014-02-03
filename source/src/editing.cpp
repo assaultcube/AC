@@ -195,7 +195,7 @@ void cursorupdate()                                     // called every frame fr
         if(OUTBORD(cx, cy)) return;
     }
 
-    if(dragging) { makesel(false); };
+    if(dragging) makesel(false);
 
     const int GRIDSIZE = 5;
     const float GRIDW = 0.5f;
@@ -651,7 +651,7 @@ void perlin(int scale, int seed, int psize)
     EDITSELMP;
     loopv(sels)
     {
-        block &sel = sels[i];
+        block sel = sels[i];
         sel.xs++;
         sel.ys++;
         makeundo(sel);
@@ -661,8 +661,6 @@ void perlin(int scale, int seed, int psize)
         sel.xs++;
         sel.ys++;
         remipmore(sel);
-        sel.xs--;
-        sel.ys--;
     }
 }
 
@@ -757,21 +755,18 @@ void selfliprotate(block &sel, int dir)
 void selectionrotate(int dir)
 {
     EDITSELMP;
-    dir %= 4;
-    if(dir < 0) dir += 4;
+    dir &= 3;
     if(!dir) return;
     loopv(sels)
     {
         block &sel = sels[i];
-        if(sel.xs != sel.ys) dir = 2;
-        selfliprotate(sel, dir);
+        if(sel.xs == sel.ys || dir ==  2) selfliprotate(sel, dir);
     }
 }
 
 void selectionflip(char *axis)
 {
     EDITSELMP;
-    if(!axis || !*axis) return;
     char c = toupper(*axis);
     if(c != 'X' && c != 'Y') return;
     loopv(sels) selfliprotate(sels[i], c == 'X' ? 11 : 12);
