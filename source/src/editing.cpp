@@ -708,7 +708,7 @@ void movemap(int xo, int yo, int zo) // move whole map
             S(x,y)->floor = max(-128, S(x,y)->floor + zo);
             S(x,y)->ceil = min(127, S(x,y)->ceil + zo);
         }
-        hdr.waterlevel += zo;
+        setvar("waterlevel", (hdr.waterlevel += zo));
     }
     loopv(ents)
     {
