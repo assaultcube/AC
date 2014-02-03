@@ -394,6 +394,9 @@ void tofronttex()                                       // maintain most recentl
     }
 }
 
+bool editmetakeydown = false;
+COMMANDF(editmeta, "d", (bool on) { editmetakeydown = on; } );
+
 void editdrag(bool isdown)
 {
     if((dragging = isdown))
@@ -403,25 +406,7 @@ void editdrag(bool isdown)
         lasth = ch;
         tofronttex();
 
-        bool ctrlpressed = false;
-
-        if (identexists("newselkeys"))
-        {
-            extern vector<keym> keyms;
-            vector<char *> elems;
-            explodelist(getalias("newselkeys"), elems);
-
-            loopi(keyms.length()) if(keyms[i].pressed) loopj(elems.length())
-            {
-                if (strcmp(keyms[i].name, elems[j]) == 0)
-                {
-                    ctrlpressed = true;
-                }
-                delete[] elems[j];
-            }
-        }
-
-        if(!ctrlpressed) resetselections();
+        if(!editmetakeydown) resetselections();
     }
     makesel(isdown);
 }
