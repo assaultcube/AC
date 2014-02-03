@@ -539,11 +539,13 @@ void edittype(int type)
     loopv(sels)
     {
         block &sel = sels[i];
-        if(type==CORNER && (sel.xs!=sel.ys || sel.xs==3 || (sel.xs>4 && sel.xs!=8)
-                       || sel.x&~-sel.xs || sel.y&~-sel.ys))
-                       { conoutf("corner selection must be power of 2 aligned"); return; }
-        edittypexy(type, sel);
-        addmsg(SV_EDITS, "ri5", sel.x, sel.y, sel.xs, sel.ys, type);
+        if(type == CORNER && (sel.xs != sel.ys || sel.xs != (1 << (ffs(sel.xs) - 1)) || (sel.x | sel.y) & (sel.xs - 1)))
+            conoutf("corner selection must be power of 2 aligned");
+        else
+        {
+            edittypexy(type, sel);
+            addmsg(SV_EDITS, "ri5", sel.x, sel.y, sel.xs, sel.ys, type);
+        }
     }
 }
 
