@@ -96,7 +96,7 @@ char *editinfo()
     if(selset()) concatformatstring(info, "selection = (%d, %d)", (sels.last()).xs, (sels.last()).ys);
     else concatformatstring(info, "no selection");
     sqr *s;
-    if(!OUTBORD(cx, cy) && (s = S(cx,cy)) && !SOLID(s) && s->tag) concatformatstring(info, ", tag 0x%02X", s->tag);
+    if(!OUTBORD(cx, cy) && (s = S(cx,cy)) && !editfocusdetails(s) && !SOLID(s) && s->tag) concatformatstring(info, ", tag 0x%02X", s->tag);
     return info;
 }
 
