@@ -136,7 +136,7 @@ int firstindex;
 bool showm = false;
 
 void showmip() { showm = !showm; }
-void mipstats(int a, int b, int c) { if(showm) conoutf("1x1/2x2/4x4: %d / %d / %d", a, b, c); }
+void mipstats(const int a[]) { if(showm) hudeditf(HUDMSG_MIPSTATS, "1x1/2x2/4x4/8x8: %d / %d / %d / %d", a[0], a[1], a[2], a[3]); }
 
 COMMAND(showmip, "");
 
