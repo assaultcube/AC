@@ -325,6 +325,6 @@ void render_world(float vx, float vy, float vh, float changelod, int yaw, int pi
     render_ceil  = -pitch<0.5f*fovy;
 
     render_seg_new(vx, vy, vh, MAX_MIP, 0, 0, ssize>>MAX_MIP, ssize>>MAX_MIP);
-    mipstats(stats[0], stats[1], stats[2]);
+    mipstats(stats);
 }
 

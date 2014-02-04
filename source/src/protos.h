@@ -344,7 +344,7 @@ extern void setuptmu(int n, const char *rgbfunc = NULL, const char *alphafunc = 
 struct zone { int x1, x2, y1, y2, color; }; // zones (drawn on the minimap)
 
 // rendercubes
-extern void mipstats(int a, int b, int c);
+extern void mipstats(const int a[]);
 extern void render_flat(int tex, int x, int y, int size, int h, sqr *l1, sqr *l2, sqr *l3, sqr *l4, bool isceil);
 extern void render_flatdelta(int wtex, int x, int y, int size, float h1, float h2, float h3, float h4, sqr *l1, sqr *l2, sqr *l3, sqr *l4, bool isceil);
 extern void render_square(int wtex, float floor1, float floor2, float ceil1, float ceil2, int x1, int y1, int x2, int y2, int size, sqr *l1, sqr *l2, bool topleft, int dir);
@@ -593,6 +593,7 @@ enum
 {
     HUDMSG_INFO = 0,
     HUDMSG_TIMER,
+    HUDMSG_MIPSTATS,
 
     HUDMSG_TYPE = 0xFF,
     HUDMSG_OVERWRITE = 1<<8
