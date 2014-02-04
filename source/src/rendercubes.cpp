@@ -133,12 +133,26 @@ int ol1r, ol1g, ol1b, ol2r, ol2g, ol2b;
 float ofloor, oceil;
 bool ohf;
 int firstindex;
-bool showm = false;
+bool showm = false, showef = false;
 
-void showmip() { showm = !showm; }
+COMMANDF(showmip, "",() { showm = !showm; });
+COMMANDF(showfocuscubedetails, "",() { showef = !showef; });
+
+const char *cubetypes[] = {"SOLID", "CORNER", "FHF", "CHF", "SPACE"};
+const char *cubetypename(int t) { return t >= 0 && t < SEMISOLID ? cubetypes[t] : "unknown"; }
+
 void mipstats(const int a[]) { if(showm) hudeditf(HUDMSG_MIPSTATS, "1x1/2x2/4x4/8x8: %d / %d / %d / %d", a[0], a[1], a[2], a[3]); }
 
-COMMAND(showmip, "");
+bool editfocusdetails(sqr *s)
+{
+    if(showef && !showm)
+    {
+        const char *g = SOLID(s) ? "\f4" : "";
+        hudeditf(HUDMSG_EDITFOCUS, "%s: \fs%s%d..%d\fr W:%d \fs%sU:%d F:%d C:%d v:%d t:0x%X\fr", cubetypename(s->type), g, s->floor, s->ceil, s->wtex, g, s->utex, s->ftex, s->ctex, s->vdelta, s->tag);
+        return true;
+    }
+    return false;
+}
 
 VAR(mergestrips, 0, 1, 1);
 
