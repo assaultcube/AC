@@ -141,11 +141,11 @@ COMMANDF(showfocuscubedetails, "",() { showef = !showef; });
 const char *cubetypes[] = {"SOLID", "CORNER", "FHF", "CHF", "SPACE"};
 const char *cubetypename(int t) { return t >= 0 && t < SEMISOLID ? cubetypes[t] : "unknown"; }
 
-void mipstats(const int a[]) { if(showm) hudeditf(HUDMSG_MIPSTATS, "1x1/2x2/4x4/8x8: %d / %d / %d / %d", a[0], a[1], a[2], a[3]); }
+void mipstats(const int a[]) { if(showm && !showef) hudeditf(HUDMSG_MIPSTATS, "1x1/2x2/4x4/8x8: %d / %d / %d / %d", a[0], a[1], a[2], a[3]); }
 
 bool editfocusdetails(sqr *s)
 {
-    if(showef && !showm)
+    if(showef)
     {
         const char *g = SOLID(s) ? "\f4" : "";
         hudeditf(HUDMSG_EDITFOCUS, "%s: \fs%s%d..%d\fr W:%d \fs%sU:%d F:%d C:%d v:%d t:0x%X\fr", cubetypename(s->type), g, s->floor, s->ceil, s->wtex, g, s->utex, s->ftex, s->ctex, s->vdelta, s->tag);
