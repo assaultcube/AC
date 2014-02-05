@@ -2,6 +2,12 @@
 # A simple script using SED to make map configs
 # compatible with the new layout.
 
+# KSH causes conflicts, allow BASH only:
+if [ -z "$(echo "$BASH")" ]; then
+  echo "FAILURE: Please run this script with BASH, not SH/KSH/ZSH, etc"
+  exit
+fi
+
 # HELP file:
 if [ "$1" = "-h" ] || [ "$1" = "--help" ] || [ "$1" = "" ]; then
   echo "Usage: "$0" MAP_CONFIG_FILE(S)"

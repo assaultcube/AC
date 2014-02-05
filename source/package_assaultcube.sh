@@ -20,7 +20,7 @@ ABSOLUTEPATHTODOCS=~/AssaultCube/GIT_Website/htdocs/docs
 NEWACVERSION=1.2.0.2
 
 # KSH won't work, as this script uses echo throughout it, echo's options are shell-specific:
-if [ -z "$(echo -e "$BASH")" ]; then
+if [ -z "$(echo "$BASH")" ]; then
   echo "FAILURE: Please run this script with BASH, not SH/KSH/ZSH, etc"
   exit
 fi
