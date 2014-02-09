@@ -578,6 +578,7 @@ extern void text_endcolumns();
 extern void cursorupdate();
 extern void toggleedit(bool force = false);
 extern char *editinfo();
+extern void makeundo(block &sel);
 extern void editdrag(bool isdown);
 extern void checkselections();
 extern void setvdeltaxy(int delta, block &sel);
