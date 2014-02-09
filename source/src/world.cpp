@@ -62,11 +62,7 @@ void remip(const block &b, int level)
             r->floor = floor;
             r->ceil = ceil;
         }
-        if(r->type==CORNER)
-        {
-            if(!editmode) loopi(4) { o[i]->floor = r->floor; o[i]->ceil = r->ceil; }   // do the physics engine a favour and have the map data reflect what is actually rendered ;)
-            goto mip;                       // special case: don't ever split even if textures etc are different
-        }
+        if(r->type==CORNER) goto mip;                       // special case: don't ever split even if textures etc are different
         r->defer = 1;
         if(SOLID(r))
         {
