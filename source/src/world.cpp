@@ -46,10 +46,9 @@ void remip(const block &b, int level)
         loopk(MAXTYPE) if(nums[k]==4) r->type = k;
         if(!SOLID(r))
         {
-            int floor = 127, ceil = -128, num = 0;
+            int floor = 127, ceil = -128;
             loopi(4) if(!SOLID(o[i]))
             {
-                num++;
                 int fh = o[i]->floor;
                 int ch = o[i]->ceil;
                 if(r->type==SEMISOLID)
