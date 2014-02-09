@@ -318,6 +318,25 @@ extern char *mlayout;
 extern int Mv, Ma, Hhits;
 extern float Mh;
 
+void rebuildtexlists()  // checks the texlists, if they still contain all possible textures
+{
+    short h[256];
+    vector<uchar> missing;
+    loopk(3)
+    {
+        missing.setsize(0);
+        uchar *p = hdr.texlists[k];
+        loopi(256) h[i] = 0;
+        loopi(256) h[p[i]]++;
+        loopi(256) if(h[i] == 0) missing.add(i);
+        loopi(256) if(h[p[i]] > 1)
+        {
+            h[p[i]]--;
+            p[i] = missing.pop();
+        }
+    }
+}
+
 bool load_world(char *mname)        // still supports all map formats that have existed since the earliest cube betas!
 {
     const int sizeof_header = sizeof(header), sizeof_baseheader = sizeof_header - sizeof(int) * 16;
@@ -364,6 +383,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
         f->seek(tmp.headersize - sizeof_header - headerextrasize, SEEK_CUR);  // (equivalent to SEEK_SET to tmp.headersize)
     }
     hdr = tmp;
+    rebuildtexlists();
     loadingscreen("%s", hdr.maptitle);
     resetmap();
     if(hdr.version>=4)
