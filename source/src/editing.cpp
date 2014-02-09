@@ -290,7 +290,7 @@ void cursorupdate()                                     // called every frame fr
 }
 
 vector<block *> undos;                                  // unlimited undo
-VAR(undomegs, 0, 1, 10);                                // bounded by n megs
+VAR(undomegs, 0, 5, 50);                                // bounded by n megs
 
 void pruneundos(int maxremain)                          // bound memory
 {
