@@ -599,7 +599,7 @@ void addsleep_(int *msec, char *cmd, int *persist)
 
 void resetsleep(bool force)
 {
-    loopv(sleeps) if(!sleeps[i].persist || force)
+    loopvrev(sleeps) if(!sleeps[i].persist || force)
     {
         DELETEA(sleeps[i].cmd);
         sleeps.remove(i);
