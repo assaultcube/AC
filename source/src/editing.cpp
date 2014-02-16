@@ -289,16 +289,22 @@ void cursorupdate()                                     // called every frame fr
     glLineWidth(1);
 }
 
-vector<block *> undos;                                  // unlimited undo
+vector<block *> undos, redos;                           // unlimited undo
 VAR(undomegs, 0, 5, 50);                                // bounded by n megs
 
 void pruneundos(int maxremain)                          // bound memory
 {
-    int t = 0;
+    int u = 0, r = 0;
+    maxremain /= sizeof(sqr);
     loopvrev(undos)
     {
-        t += undos[i]->xs*undos[i]->ys*sizeof(sqr);
-        if(t>maxremain) delete[] (uchar *)undos.remove(i);
+        u += undos[i]->xs * undos[i]->ys;
+        if(u > maxremain) delete[] (uchar *)undos.remove(i);
+    }
+    loopvrev(redos)
+    {
+        r += redos[i]->xs * redos[i]->ys;
+        if(r > maxremain) delete[] (uchar *)redos.remove(i);
     }
 }
 
@@ -313,6 +319,17 @@ void editundo()
     EDITMP;
     if(undos.empty()) { conoutf("nothing more to undo"); return; }
     block *p = undos.pop();
+    redos.add(blockcopy(*p));
+    blockpaste(*p);
+    freeblock(p);
+}
+
+void editredo()
+{
+    EDITMP;
+    if(redos.empty()) { conoutf("nothing more to redo"); return; }
+    block *p = redos.pop();
+    undos.add(blockcopy(*p));
     blockpaste(*p);
     freeblock(p);
 }
@@ -782,6 +799,7 @@ COMMAND(arch, "i");
 COMMANDF(slope, "ii", (int *xd, int *yd) { slope(*xd, *yd); });
 COMMANDF(vdelta, "i", (int *d) { setvdelta(*d); });
 COMMANDN(undo, editundo, "");
+COMMANDN(redo, editredo, "");
 COMMAND(copy, "");
 COMMAND(paste, "");
 COMMANDF(edittex, "ii", (int *type, int *dir) { edittex(*type, *dir); });
