@@ -420,9 +420,9 @@ void setupworld(int factor)
     loopi(LARGEST_FACTOR*2) { wmip[i] = w; w += cubicsize>>(i*2); }
 }
 
-sqr *sqrdefault(sqr *s)
+void sqrdefault(sqr *s)
 {
-    if(!s) return s;
+    if(!s) return;
     s->r = s->g = s->b = 150;
     s->ftex = DEFAULT_FLOOR;
     s->ctex = DEFAULT_CEIL;
@@ -430,9 +430,7 @@ sqr *sqrdefault(sqr *s)
     s->type = SOLID;
     s->floor = 0;
     s->ceil = 16;
-    s->vdelta = 0;
-    s->defer = 0;
-    return s;
+    s->vdelta = s->defer = s->tag = 0;
 }
 
 bool worldbordercheck(int x1, int x2, int y1, int y2, int z1, int z2)  // check for solid world border
@@ -583,15 +581,18 @@ COMMANDF(calcmipstats, "", ()
 #define INVISUTEX (1<<1)
 #define INVISIBLE (1<<2)
 
-void mapmrproper()
+void mapmrproper(bool manual)
 {
-    if(noteditmode("mapmrproper") || multiplayer()) return;
     int sta[SMALLEST_FACTOR + 1], stb[SMALLEST_FACTOR + 1], stc[SMALLEST_FACTOR + 1];
     sqr *s, *r, *o[4];
     block b = { 0, 0, ssize, ssize };
-    makeundo(b);
+    if(manual)
+    {
+        if(noteditmode("mapmrproper") || multiplayer()) return;
+        makeundo(b);
+    }
     remip(b);
-    countperfectmips(SMALLEST_FACTOR, 0, 0, 0, sta);
+    if(manual) countperfectmips(SMALLEST_FACTOR, 0, 0, 0, sta);
 
     // basic corner cleanup: do that now
     // corners are rendered at the highest possible mip - squash data of lower mips (except vdelta and tag)
@@ -615,7 +616,7 @@ void mapmrproper()
     sqr *worldbackup = (sqr *) memcpy(new sqr[ssize*ssize], world, ssize*ssize*sizeof(sqr));
     r = world; loopirev(ssize * ssize) { r->wtex = r->utex = r->r = r->g = r->b = 0; r++; }
     remip(b);
-    countperfectmips(SMALLEST_FACTOR, 0, 0, 0, stb);
+    if(manual) countperfectmips(SMALLEST_FACTOR, 0, 0, 0, stb);
     memcpy(world, worldbackup, ssize*ssize*sizeof(sqr));
     delete[] worldbackup;
 
@@ -739,10 +740,12 @@ void mapmrproper()
     // recalc everything with the optimized data
     calclight();
     remip(b);
-    countperfectmips(SMALLEST_FACTOR, 0, 0, 0, stc);
-    conoutf("before: %d / %d / %d / %d / %d / %d / %d", sta[0], sta[1], sta[2], sta[3], sta[4], sta[5], sta[6]);
-    conoutf("idealized: %d / %d / %d / %d / %d / %d / %d", stb[0], stb[1], stb[2], stb[3], stb[4], stb[5], stb[6]);
-    conoutf("final count: %d / %d / %d / %d / %d / %d / %d", stc[0], stc[1], stc[2], stc[3], stc[4], stc[5], stc[6]);
-
+    if(manual)
+    {
+        countperfectmips(SMALLEST_FACTOR, 0, 0, 0, stc);
+        conoutf("before: %d / %d / %d / %d / %d / %d / %d", sta[0], sta[1], sta[2], sta[3], sta[4], sta[5], sta[6]);
+        conoutf("idealized: %d / %d / %d / %d / %d / %d / %d", stb[0], stb[1], stb[2], stb[3], stb[4], stb[5], stb[6]);
+        conoutf("final count: %d / %d / %d / %d / %d / %d / %d", stc[0], stc[1], stc[2], stc[3], stc[4], stc[5], stc[6]);
+    }
 }
-COMMAND(mapmrproper, "");
+COMMANDF(mapmrproper, "", () { mapmrproper(true); });
