@@ -475,6 +475,7 @@ extern void teamflagscores(int &team1, int &team2);
 
 // world
 extern void setupworld(int factor);
+extern void sqrdefault(sqr *s);
 extern bool worldbordercheck(int x1, int x2, int y1, int y2, int z1, int z2);
 extern bool empty_world(int factor, bool force);
 extern void remip(const block &b, int level = 0);
@@ -484,6 +485,7 @@ extern int findtype(char *what);
 extern int findentity(int type, int index = 0);
 extern int findentity(int type, int index, uchar attr2);
 extern entity *newentity(int index, int x, int y, int z, char *what, int v1, int v2, int v3, int v4);
+extern void mapmrproper(bool manual);
 
 // worldlight
 extern int lastcalclight;

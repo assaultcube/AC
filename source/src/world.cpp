@@ -424,9 +424,9 @@ void setupworld(int factor)
     loopi(LARGEST_FACTOR*2) { wmip[i] = w; w += cubicsize>>(i*2); }
 }
 
-sqr *sqrdefault(sqr *s)
+void sqrdefault(sqr *s)
 {
-    if(!s) return s;
+    if(!s) return;
     s->r = s->g = s->b = 150;
     s->ftex = DEFAULT_FLOOR;
     s->ctex = DEFAULT_CEIL;
@@ -434,9 +434,7 @@ sqr *sqrdefault(sqr *s)
     s->type = SOLID;
     s->floor = 0;
     s->ceil = 16;
-    s->vdelta = 0;
-    s->defer = 0;
-    return s;
+    s->vdelta = s->defer = s->tag = 0;
 }
 
 bool worldbordercheck(int x1, int x2, int y1, int y2, int z1, int z2)  // check for solid world border

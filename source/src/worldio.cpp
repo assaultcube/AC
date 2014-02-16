@@ -56,70 +56,6 @@ void voptimize()        // reset vdeltas on non-hf cubes
     }
 }
 
-void topt(sqr *s, bool &wf, bool &uf, int &wt, int &ut)
-{
-    sqr *o[4];
-    o[0] = SWS(s,0,-1,sfactor);
-    o[1] = SWS(s,0,1,sfactor);
-    o[2] = SWS(s,1,0,sfactor);
-    o[3] = SWS(s,-1,0,sfactor);
-     wf = true;
-    uf = true;
-    if(SOLID(s))
-    {
-        loopi(4) if(!SOLID(o[i]))
-        {
-            wf = false;
-            wt = s->wtex;
-            ut = s->utex;
-            return;
-         }
-    }
-    else
-    {
-        loopi(4) if(!SOLID(o[i]))
-        {
-            //don't corrupt non-matching cube types
-            if (o[i]->type != s->type)
-            {
-                wf = false;
-                uf = false;
-                wt = s->wtex;
-                ut = s->utex;
-                return;
-            }
-
-            //wall
-            if(o[i]->floor < s->floor)
-            { wt = s->wtex; wf = false; }
-
-            //upper wall
-            if(o[i]->ceil > s->ceil)
-             { ut = s->utex; uf = false; }
-        }
-    }
-}
-
-void toptimize() // FIXME: only does 2x2, make atleast for 4x4 also
-{
-    bool wf[4], uf[4];
-    sqr *s[4];
-    for(int y = 2; y<ssize-4; y += 2) for(int x = 2; x<ssize-4; x += 2)
-    {
-        s[0] = S(x,y);
-        int wt = s[0]->wtex, ut = s[0]->utex;
-        topt(s[0], wf[0], uf[0], wt, ut);
-        topt(s[1] = SWS(s[0],0,1,sfactor), wf[1], uf[1], wt, ut);
-        topt(s[2] = SWS(s[0],1,1,sfactor), wf[2], uf[2], wt, ut);
-        topt(s[3] = SWS(s[0],1,0,sfactor), wf[3], uf[3], wt, ut);
-        loopi(4)
-        {
-            if(wf[i]) s[i]->wtex = wt;
-            if(uf[i]) s[i]->utex = ut;
-        }
-    }
-}
-
 // these two are used by getmap/sendmap.. transfers compressed maps directly
 
 void writemap(char *name, int msize, uchar *mdata)
@@ -197,6 +133,133 @@ uchar *readmcfggz(char *name, int *size, int *sizegz)
 // encoding and leaves out data for certain kinds of cubes, then zlib removes the
 // last bits of redundancy. Both passes contribute greatly to the miniscule map sizes.
 
+void rlencodecubes(vector<uchar> &f, sqr *s, int len, bool preservesolids) // run-length encoding and serialisation of a series of cubes
+{
+    sqr *t = NULL;
+    int sc = 0;
+    #define spurge while(sc) { f.add(255); if(sc>255) { f.add(255); sc -= 255; } else { f.add(sc); sc = 0; } }
+    #define c(f) (s->f==t->f)
+    while(len-- > 0)
+    {
+        // 4 types of blocks, to compress a bit:
+        // 255 (2): same as previous block + count
+        // 254 (3): same as previous, except light // deprecated
+        // SOLID (5)
+        // anything else (9)
+
+        if(SOLID(s) && !preservesolids)
+        {
+            if(t && c(type) && c(wtex) && c(vdelta))
+            {
+                sc++;
+            }
+            else
+            {
+                spurge;
+                f.add(s->type);
+                f.add(s->wtex);
+                f.add(s->vdelta);
+            }
+        }
+        else
+        {
+            if(t && c(type) && c(floor) && c(ceil) && c(ctex) && c(ftex) && c(utex) && c(wtex) && c(vdelta) && c(tag))
+            {
+                sc++;
+            }
+            else
+            {
+                spurge;
+                f.add(s->type == SOLID ? 253 : s->type);
+                f.add(s->floor);
+                f.add(s->ceil);
+                f.add(s->wtex);
+                f.add(s->ftex);
+                f.add(s->ctex);
+                f.add(s->vdelta);
+                f.add(s->utex);
+                f.add(s->tag);
+            }
+        }
+        t = s;
+        s++;
+    }
+    spurge;
+}
+
+void rldecodecubes(ucharbuf &f, sqr *s, int len, int version, bool silent) // run-length decoding of a series of cubes (version is only relevant, if < 6)
+{
+    sqr *t = NULL, *e = s + len;
+    while(s < e)
+    {
+        int type = f.overread() ? -1 : f.get();
+        switch(type)
+        {
+            case -1:
+            {
+                if(!silent) conoutf("while reading map at %d: unexpected end of file", cubicsize - (e - s));
+                f.forceoverread();
+                silent = true;
+                sqrdefault(s);
+                break;
+            }
+            case 255:
+            {
+                if(!t) { f.forceoverread(); continue; }
+                int n = f.get();
+                loopi(n) memcpy(s++, t, sizeof(sqr));
+                s--;
+                break;
+            }
+            case 254: // only in MAPVERSION<=2
+            {
+                if(!t) { f.forceoverread(); continue; }
+                memcpy(s, t, sizeof(sqr));
+                f.get(); f.get();
+                break;
+            }
+            case SOLID:
+            {
+                s->type = SOLID;
+                s->utex = s->wtex = f.get();
+                s->vdelta = f.get();
+                if(version<=2) { f.get(); f.get(); }
+                s->ftex = DEFAULT_FLOOR;
+                s->ctex = DEFAULT_CEIL;
+                s->floor = 0;
+                s->ceil = 16;
+                s->tag = 0;
+                break;
+            }
+            case 253: // SOLID with all textures during editing (undo)
+                type = SOLID;
+            default:
+            {
+                if(type<0 || type>=MAXTYPE)
+                {
+                    if(!silent) conoutf("while reading map at %d: type %d out of range", cubicsize - (e - s), type);
+                    f.overread();
+                    continue;
+                }
+                s->type = type;
+                s->floor = f.get();
+                s->ceil = f.get();
+                if(s->floor>=s->ceil) s->floor = s->ceil-1;  // for pre 12_13
+                s->wtex = f.get();
+                s->ftex = f.get();
+                s->ctex = f.get();
+                if(version<=2) { f.get(); f.get(); }
+                s->vdelta = f.get();
+                s->utex = (version>=2) ? f.get() : s->wtex;
+                s->tag = (version>=5) ? f.get() : 0;
+            }
+        }
+        s->defer = 0;
+        t = s;
+        s++;
+    }
+}
+
 VAR(advancemaprevision, 1, 1, 100);
 
 VARP(mapbackupsonsave, 0, 1, 1);
@@ -211,7 +274,7 @@ void save_world(char *mname)
         return;
     }
     voptimize();
-    toptimize();
+    mapmrproper(false);
     setnames(mname);
     if(mapbackupsonsave) backup(cgzname, bakname);
     stream *f = opengzfile(cgzname, "wb");
@@ -247,56 +310,10 @@ void save_world(char *mname)
             f->write(&tmp, sizeof(persistent_entity));
         }
     }
-    sqr *t = NULL;
-    int sc = 0;
-    #define spurge while(sc) { f->putchar(255); if(sc>255) { f->putchar(255); sc -= 255; } else { f->putchar(sc); sc = 0; } }
-    loopk(cubicsize)
-    {
-        sqr *s = &world[k];
-        #define c(f) (s->f==t->f)
-        // 4 types of blocks, to compress a bit:
-        // 255 (2): same as previous block + count
-        // 254 (3): same as previous, except light // deprecated
-        // SOLID (5)
-        // anything else (9)
 
-        if(SOLID(s))
-        {
-            if(t && c(type) && c(wtex) && c(vdelta))
-            {
-                sc++;
-            }
-            else
-            {
-                spurge;
-                f->putchar(s->type);
-                f->putchar(s->wtex);
-                f->putchar(s->vdelta);
-            }
-        }
-        else
-        {
-            if(t && c(type) && c(floor) && c(ceil) && c(ctex) && c(ftex) && c(utex) && c(wtex) && c(vdelta) && c(tag))
-            {
-                sc++;
-            }
-            else
-            {
-                spurge;
-                f->putchar(s->type);
-                f->putchar(s->floor);
-                f->putchar(s->ceil);
-                f->putchar(s->wtex);
-                f->putchar(s->ftex);
-                f->putchar(s->ctex);
-                f->putchar(s->vdelta);
-                f->putchar(s->utex);
-                f->putchar(s->tag);
-            }
-        }
-        t = s;
-    }
-    spurge;
+    vector<uchar> rawcubes;
+    rlencodecubes(rawcubes, world, cubicsize, false);
+    f->write(rawcubes.getbuf(), rawcubes.length());
     delete f;
     conoutf("wrote map file %s", cgzname);
 }
@@ -425,132 +442,59 @@ bool load_world(char *mname)        // still supports all map formats that have 
     }
     delete[] world;
     setupworld(hdr.sfactor);
+    if(!mapinfo.numelems || (mapinfo.access(mname) && !cmpf(cgzname, mapinfo[mname]))) world = (sqr *)ents.getbuf();
+    c2skeepalive();
 
+    vector<uchar> rawcubes; // fetch whole file into buffer
+    loopi(9)
+    {
+        ucharbuf q = rawcubes.reserve(cubicsize);
+        q.len = f->read(q.buf, cubicsize);
+        rawcubes.addbuf(q);
+        if(q.len < cubicsize) break;
+    }
+    ucharbuf uf(rawcubes.getbuf(), rawcubes.length());
+    rldecodecubes(uf, world, cubicsize, hdr.version, false); // decode file
+    c2skeepalive();
+
+    // calculate map statistics
     DELETEA(mlayout);
     mlayout = new char[cubicsize + 256];
     memset(mlayout, 0, cubicsize * sizeof(char));
-    int diff = 0;
     Mv = Ma = Hhits = 0;
-
-    if(!mapinfo.numelems || (mapinfo.access(mname) && !cmpf(cgzname, mapinfo[mname]))) world = (sqr *)ents.getbuf();
-    c2skeepalive();
     char texuse[256];
     loopi(256) texuse[i] = 0;
-    sqr *t = NULL;
+    loopk(8) mapdims[k] = k < 2 ? ssize : 0;
     loopk(cubicsize)
     {
-        char *c = mlayout + k;
         sqr *s = &world[k];
-        int type = f ? f->getchar() : -1;
-        int n = 1;
-        switch(type)
+        if(SOLID(s)) mlayout[k] = 127;
+        else
         {
-            case -1:
+            mlayout[k] = s->floor; // FIXME
+            int diff = s->ceil - s->floor;
+            if(diff > 6)
             {
-                if(f)
-                {
-                    conoutf("while reading map at %d: type %d out of range", k, type);
-                    delete f;
-                    f = NULL;
-                }
-                *c = 127;
-                s->type = SOLID;
-                s->ftex = DEFAULT_FLOOR;
-                s->ctex = DEFAULT_CEIL;
-                s->wtex = s->utex = DEFAULT_WALL;
-                s->tag = 0;
-                s->floor = 0;
-                s->ceil = 16;
-                s->vdelta = 0;
-                break;
+                if(diff > MAXMHEIGHT) Hhits += diff - MAXMHEIGHT;
+                Ma += 1;
+                Mv += diff;
             }
-            case 255:
-            {
-                if(!t || (n = f->getchar()) < 0) { delete f; f = NULL; k--; continue; }
-                char tmp = *(c-1);
-                memset(c, tmp, n);
-                for(int i = 0; i<n; i++, k++) memcpy(&world[k], t, sizeof(sqr));
-                k--;
-                break;
-            }
-            case 254: // only in MAPVERSION<=2
-            {
-                if(!t) { delete f; f = NULL; k--; continue; }
-                *c = *(c-1);
-                memcpy(s, t, sizeof(sqr));
-                s->r = s->g = s->b = f->getchar();
-                f->getchar();
-                break;
-            }
-            case SOLID:
-            {
-                *c = 127;
-                s->type = SOLID;
-                s->wtex = f->getchar();
-                s->vdelta = f->getchar();
-                if(hdr.version<=2) { f->getchar(); f->getchar(); }
-                s->ftex = DEFAULT_FLOOR;
-                s->ctex = DEFAULT_CEIL;
-                s->utex = s->wtex;
-                s->tag = 0;
-                s->floor = 0;
-                s->ceil = 16;
-                break;
-            }
-            default:
-            {
-                if(type<0 || type>=MAXTYPE)
-                {
-                    conoutf("while reading map at %d: type %d out of range", k, type);
-                    delete f;
-                    f = NULL;
-                    k--;
-                    continue;
-                }
-                s->type = type;
-                s->floor = f->getchar();
-                s->ceil = f->getchar();
-                if(s->floor>=s->ceil) s->floor = s->ceil-1;  // for pre 12_13
-                diff = s->ceil - s->floor;
-                *c = s->floor; // FIXME
-                s->wtex = f->getchar();
-                s->ftex = f->getchar();
-                s->ctex = f->getchar();
-                if(hdr.version<=2) { f->getchar(); f->getchar(); }
-                s->vdelta = f->getchar();
-                s->utex = (hdr.version>=2) ? f->getchar() : s->wtex;
-                s->tag = (hdr.version>=5) ? f->getchar() : 0;
-            }
+            texuse[s->utex] = texuse[s->ftex] = texuse[s->ctex] = 1;
+            int cwx = k%ssize,
+                cwy = k/ssize;
+            if(cwx < mapdims[0]) mapdims[0] = cwx;
+            if(cwy < mapdims[1]) mapdims[1] = cwy;
+            if(cwx > mapdims[2]) mapdims[2] = cwx;
+            if(cwy > mapdims[3]) mapdims[3] = cwy;
+            if(s->floor != -128 && s->floor < mapdims[6]) mapdims[6] = s->floor;
+            if(s->ceil  > mapdims[7]) mapdims[7] = s->ceil;
         }
-        if ( type != SOLID && diff > 6 )
-        {
-            // Lucas (10mar2013): Removed "pow2" because it was too strict
-            if (diff > MAXMHEIGHT) Hhits += (diff-MAXMHEIGHT)*n;
-            Ma += n;
-            Mv += diff * n;
-        }
-        s->defer = 0;
-        t = s;
         texuse[s->wtex] = 1;
-        if(!SOLID(s)) texuse[s->utex] = texuse[s->ftex] = texuse[s->ctex] = 1;
     }
     Mh = Ma ? (float)Mv/Ma : 0;
-    if(f) delete f;
-    c2skeepalive();
-    loopk(8) mapdims[k] = k < 2 ? ssize : 0;
-    loopk(cubicsize) if (world[k].type != SOLID)
-    {
-        int cwx = k%ssize,
-            cwy = k/ssize;
-        if(cwx < mapdims[0]) mapdims[0] = cwx;
-        if(cwy < mapdims[1]) mapdims[1] = cwy;
-        if(cwx > mapdims[2]) mapdims[2] = cwx;
-        if(cwy > mapdims[3]) mapdims[3] = cwy;
-        if(world[k].floor != -128 && world[k].floor < mapdims[6]) mapdims[6] = world[k].floor;
-        if(world[k].ceil  > mapdims[7]) mapdims[7] = world[k].ceil;
-
-    }
     loopk(2) mapdims[k+4] = mapdims[k+2] + 1 - mapdims[k]; // 8..15 ^= 8 cubes - minimal X/Y == 2 - != 0 !!
+    c2skeepalive();
+
     calclight();
     conoutf("read map %s rev %d (%d milliseconds)", cgzname, hdr.maprevision, watch.stop());
     conoutf("%s", hdr.maptitle);
@@ -586,7 +530,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
 
     watch.start();
     int downloaded = downloadpackages();
-    if(downloaded > 0) printf("downloaded content (%d KB in %d seconds)\n", downloaded/1000, watch.stop()/1000);
+    if(downloaded > 0) clientlogf("downloaded content (%d KB in %d seconds)", downloaded/1000, watch.stop()/1000);
 
     c2skeepalive();
 
@@ -594,15 +538,15 @@ bool load_world(char *mname)        // still supports all map formats that have 
 
     watch.start();
     loopi(256) if(texuse[i]) lookupworldtexture(i, false);
-    printf("loaded textures (%d milliseconds)\n", texloadtime+watch.stop());
+    clientlogf("loaded textures (%d milliseconds)", texloadtime+watch.stop());
     c2skeepalive();
     watch.start();
     preload_mapmodels(false);
-    printf("loaded mapmodels (%d milliseconds)\n", mdlloadtime+watch.stop());
+    clientlogf("loaded mapmodels (%d milliseconds)", mdlloadtime+watch.stop());
     c2skeepalive();
     watch.start();
     audiomgr.preloadmapsounds(false);
-    printf("loaded mapsounds (%d milliseconds)\n", audioloadtime+watch.stop());
+    clientlogf("loaded mapsounds (%d milliseconds)", audioloadtime+watch.stop());
     c2skeepalive();
 
     defformatstring(startmillis)("%d", millis_());
