@@ -129,11 +129,10 @@ void calclightsource(const persistent_entity &l, float fade = 1, bool flicker = 
     for(float sy2 = sy+s; sy2<=ey-s; sy2+=s*2)    { lightray((float)sx, sy2, l, fade, flicker); lightray((float)ex, sy2, l, fade, flicker); }
 }
 
-void postlightarea(const block &a)    // median filter, smooths out random noise in light and makes it more mipable
+void postlightarealine(sqr *s, int len)
 {
-    loop(x,a.xs) loop(y,a.ys)   // assumes area not on edge of world
+    loopirev(len)
     {
-        sqr *s = S(x+a.x,y+a.y);
         #define median(m) s->m = (s->m*2 + SW(s,1,0)->m*2  + SW(s,0,1)->m*2 \
                                          + SW(s,-1,0)->m*2 + SW(s,0,-1)->m*2 \
                                          + SW(s,1,1)->m    + SW(s,1,-1)->m \
@@ -141,8 +140,25 @@ void postlightarea(const block &a)    // median filter, smooths out random noise
         median(r);
         median(g);
         median(b);
+        s += 2;
     }
+}
 
+void postlightarea(const block &a)    // median filter, smooths out random noise in light and makes it more mipable
+{
+    int ia = (a.xs + 1) >> 1, ib = a.xs - ia;;
+    for(int y = a.ys - 1; y >= 0; y -= 2)
+    {
+        sqr *s = S(a.x,y+a.y);
+        postlightarealine(s, ia);
+        postlightarealine(s + 1, ib);
+    }
+    for(int y = a.ys - 2; y >= 0; y -= 2)
+    {
+        sqr *s = S(a.x,y+a.y);
+        postlightarealine(s, ia);
+        postlightarealine(s + 1, ib);
+    }
     remip(a);
 }
 
