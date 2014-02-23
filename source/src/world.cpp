@@ -30,75 +30,75 @@ void remip(const block &b, int level)
     if(s.y&1) { s.y--; s.ys++; }
     s.xs = (s.xs+1)&~1;
     s.ys = (s.ys+1)&~1;
-    for(int y = s.y; y<s.y+s.ys; y+=2) for(int x = s.x; x<s.x+s.xs; x+=2)
+    for(int y = s.y; y<s.y+s.ys; y+=2)
     {
         sqr *o[4];
-        o[0] = SWS(w,x,y,wfactor);                               // the 4 constituent cubes
-        o[1] = SWS(w,x+1,y,wfactor);
-        o[2] = SWS(w,x+1,y+1,wfactor);
-        o[3] = SWS(w,x,y+1,wfactor);
-        sqr *r = SWS(v,x/2,y/2,vfactor);                         // the target cube in the higher mip level
-        *r = *o[0];
-        uchar nums[MAXTYPE];
-        loopi(MAXTYPE) nums[i] = 0;
-        loopj(4) nums[o[j]->type]++;
-        r->type = SEMISOLID;                                // cube contains both solid and space, treated specially in the renderer
-        loopk(MAXTYPE) if(nums[k]==4) r->type = k;
-        if(!SOLID(r))
+        o[0] = SWS(w,s.x,y,wfactor);                               // the 4 constituent cubes
+        o[1] = SWS(o[0],1,0,wfactor);
+        o[3] = SWS(o[0],0,1,wfactor);
+        o[2] = SWS(o[3],1,0,wfactor);
+        sqr *r = SWS(v,s.x/2,y/2,vfactor);                         // the target cube in the higher mip level
+
+        for(int x = s.x; x<s.x+s.xs; x+=2)
         {
-            int floor = 127, ceil = -128;
-            loopi(4) if(!SOLID(o[i]))
+            *r = *o[0];
+            r->type = o[0]->type == o[1]->type && o[0]->type == o[2]->type && o[0]->type == o[3]->type ? o[0]->type : SEMISOLID;
+            if(!SOLID(r))
             {
-                int fh = o[i]->floor;
-                int ch = o[i]->ceil;
-                if(r->type==SEMISOLID)
+                int floor = 127, ceil = -128;
+                loopi(4) if(!SOLID(o[i]))
                 {
-                    if(o[i]->type==FHF) fh -= o[i]->vdelta/4+2;     // crap hack, needed for rendering large mips next to hfs
-                    if(o[i]->type==CHF) ch += o[i]->vdelta/4+2;     // FIXME: needs to somehow take into account middle vertices on higher mips
+                    int fh = o[i]->floor;
+                    int ch = o[i]->ceil;
+                    if(r->type==SEMISOLID)
+                    {
+                        if(o[i]->type==FHF) fh -= o[i]->vdelta/4+2;     // crap hack, needed for rendering large mips next to hfs
+                        if(o[i]->type==CHF) ch += o[i]->vdelta/4+2;     // FIXME: needs to somehow take into account middle vertices on higher mips
+                    }
+                    if(fh<floor) floor = fh;  // take lowest floor and highest ceil, so we never have to see missing lower/upper from the side
+                    if(ch>ceil) ceil = ch;
                 }
-                if(fh<floor) floor = fh;  // take lowest floor and highest ceil, so we never have to see missing lower/upper from the side
-                if(ch>ceil) ceil = ch;
+                r->floor = floor;
+                r->ceil = ceil;
             }
-            r->floor = floor;
-            r->ceil = ceil;
-        }
-        if(r->type==CORNER) goto mip;                       // special case: don't ever split even if textures etc are different
-        r->defer = 1;
-        if(SOLID(r))
-        {
-            loopi(3)
+            if(r->type==CORNER) goto mip;                       // special case: don't ever split even if textures etc are different
+            r->defer = 1;
+            if(level) { loopi(4) if(o[i]->defer) goto c; }        // if any of the constituents is not perfect, then this one isn't either
+            if(SOLID(r))
             {
-                if(o[i]->wtex!=o[3]->wtex) goto c;          // on an all solid cube, only thing that needs to be equal for a perfect mip is the wall texture
+                loopi(3)
+                {
+                    if(o[i]->wtex != o[3]->wtex) goto c;          // on an all solid cube, only thing that needs to be equal for a perfect mip is the wall texture
+                }
             }
-        }
-        else
-        {
-            loopi(3)
+            else
             {
-                if(o[i]->type!=o[3]->type
-                || o[i]->floor!=o[3]->floor
-                || o[i]->ceil!=o[3]->ceil
-                || o[i]->ftex!=o[3]->ftex
-                || o[i]->ctex!=o[3]->ctex
-                || abs(o[i+1]->r-o[0]->r)>lighterr          // perfect mip even if light is not exactly equal
-                || abs(o[i+1]->g-o[0]->g)>lighterr
-                || abs(o[i+1]->b-o[0]->b)>lighterr
-                || o[i]->utex!=o[3]->utex
-                || o[i]->wtex!=o[3]->wtex) goto c;
+                loopi(3)
+                {
+                    sqr *q = o[i + 1];
+                    if(*((uint32_t *)q) != *((uint32_t *)o[0])  // type, floor, ceil, wtex
+                    || abs(q->b - o[0]->b) > lighterr
+                    || q->ftex != o[0]->ftex
+                    || q->ctex != o[0]->ctex
+                    || abs(q->r - o[0]->r) > lighterr           // perfect mip even if light is not exactly equal
+                    || abs(q->g - o[0]->g) > lighterr
+                    || q->utex != o[0]->utex) goto c;
+                }
+                if(r->type==CHF || r->type==FHF)                // can make a perfect mip out of a hf if slopes lie on one line
+                {
+                    if(o[0]->vdelta-o[1]->vdelta != o[1]->vdelta-SWS(w,x+2,y,wfactor)->vdelta
+                    || o[0]->vdelta-o[2]->vdelta != o[2]->vdelta-SWS(w,x+2,y+2,wfactor)->vdelta
+                    || o[0]->vdelta-o[3]->vdelta != o[3]->vdelta-SWS(w,x,y+2,wfactor)->vdelta
+                    || o[3]->vdelta-o[2]->vdelta != o[2]->vdelta-SWS(w,x+2,y+1,wfactor)->vdelta
+                    || o[1]->vdelta-o[2]->vdelta != o[2]->vdelta-SWS(w,x+1,y+2,wfactor)->vdelta) goto c;
+                }
             }
-            if(r->type==CHF || r->type==FHF)                // can make a perfect mip out of a hf if slopes lie on one line
-            {
-                if(o[0]->vdelta-o[1]->vdelta != o[1]->vdelta-SWS(w,x+2,y,wfactor)->vdelta
-                || o[0]->vdelta-o[2]->vdelta != o[2]->vdelta-SWS(w,x+2,y+2,wfactor)->vdelta
-                || o[0]->vdelta-o[3]->vdelta != o[3]->vdelta-SWS(w,x,y+2,wfactor)->vdelta
-                || o[3]->vdelta-o[2]->vdelta != o[2]->vdelta-SWS(w,x+2,y+1,wfactor)->vdelta
-                || o[1]->vdelta-o[2]->vdelta != o[2]->vdelta-SWS(w,x+1,y+2,wfactor)->vdelta) goto c;
-            }
+            mip:
+            r->defer = 0;
+            c:;
+            loopi(4) o[i] += 2;
+            r++;
         }
-        { loopi(4) if(o[i]->defer) goto c; }               // if any of the constituents is not perfect, then this one isn't either
-        mip:
-        r->defer = 0;
-        c:;
     }
     s.x  /= 2;
     s.y  /= 2;
