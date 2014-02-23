@@ -162,19 +162,20 @@ VARF(ambient, 0, 0, 0xFFFFFF, if(!noteditmode("ambient")) { hdr.ambient = ambien
 
 void calclight()
 {
-    bvec acol((hdr.ambient>>16)&0xFF, (hdr.ambient>>8)&0xFF, hdr.ambient&0xFF);
-    if(!acol.x && !acol.y)
+    uchar r = (hdr.ambient>>16) & 0xFF, g = (hdr.ambient>>8) & 0xFF, b = hdr.ambient & 0xFF;
+    if(!r && !g)
     {
-        if(!acol.z) acol.z = 10;
-        acol.x = acol.y = acol.z;
+        if(!b) b = 10;
+        r = g = b;
     }
-    else if(!maxtmus) acol.x = acol.y = acol.z = max(max(acol.x, acol.y), acol.z); // the old (white) light code, here for the few people with old video cards that don't support overbright
-    loop(x,ssize) loop(y,ssize)
+    else if(!maxtmus) r = g = b = max(max(r, g), b); // the old (white) light code, here for the few people with old video cards that don't support overbright
+    sqr *s = S(0,0);
+    loopirev(cubicsize)
     {
-        sqr *s = S(x,y);
-        s->r = acol.x;
-        s->g = acol.y;
-        s->b = acol.z;
+        s->r = r;
+        s->g = g;
+        s->b = b;
+        s++;
     }
 
     uint keep = randomMT();
