@@ -332,12 +332,13 @@ block *blockcopy(const block &s)
 {
     block *b = (block *)new uchar[sizeof(block)+s.xs*s.ys*sizeof(sqr)];
     *b = s;
-    sqr *q = (sqr *)(b+1);
-    for(int y = s.y; y<s.ys+s.y; y++) for(int x = s.x; x<s.xs+s.x; x++) *q++ = *S(x,y);
+    sqr *q = (sqr *)(b+1), *r = S(s.x,s.y);
+    size_t bs = s.xs * sizeof(sqr);
+    loopirev(s.ys) { memcpy(q, r, bs); q += s.xs; r += ssize; }
     return b;
 }
 
-void blockpaste(const block &b, int bx, int by, bool light)
+void blockpaste(const block &b, int bx, int by, bool light)  // slow version, editmode only
 {
     const sqr *q = (const sqr *)((&b)+1);
     sqr *dest = 0;
@@ -366,9 +367,13 @@ void blockpaste(const block &b, int bx, int by, bool light)
     remipmore(bb);
 }
 
-void blockpaste(const block &b)
+void blockpaste(const block &b) // fast version, used by dynlight
 {
-    blockpaste(b, b.x, b.y, false);
+    const sqr *q = (const sqr *)((&b)+1);
+    sqr *r = S(b.x, b.y);
+    const size_t bs = b.xs * sizeof(sqr);
+    loopirev(b.ys) { memcpy(r, q, bs); r += ssize; q += b.xs; }
+    remipmore(b);
 }
 
 void freeblock(block *&b)
