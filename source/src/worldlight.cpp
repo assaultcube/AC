@@ -177,14 +177,19 @@ void calclight()
         s->b = acol.z;
     }
 
+    uint keep = randomMT();
+    seedMT(ents.length() + hdr.maprevision);
+
     loopv(ents)
     {
         entity &e = ents[i];
         if(e.type==LIGHT) calclightsource(e);
     }
 
-    block b = { 1, 1, ssize-2, ssize-2 };
-    postlightarea(b);
+    seedMT(keep);
+
+    block bb = { 1, 1, ssize-2, ssize-2 };
+    postlightarea(bb);
     setvar("fullbright", 0);
     lastcalclight = totalmillis;
 }
