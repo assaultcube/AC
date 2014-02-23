@@ -2,9 +2,12 @@
 
 #include "cube.h"
 
-#define NUMRAYS 512
+#define NUMRAYBITS 9
+#define NUMRAYS (1 << NUMRAYBITS)
+#define NUMRAYS4 (NUMRAYS * 4)
 
 float rdist[NUMRAYS];
+
 bool ocull = true;
 float odist = 256;
 
@@ -23,26 +26,27 @@ void disableraytable()
 
 void computeraytable(float vx, float vy, float fov)
 {
+    static int ndist[NUMRAYS];
     if(!ocull) { disableraytable(); return; }
-
     odist = getvar("fog")*1.5f;
 
     float apitch = (float)fabs(camera1->pitch);
-    float af = fov/2+apitch/1.5f+3;
+    float af = fov/2+max(apitch/1.5f,4.2f);
     float byaw = (camera1->yaw-90+af)/360*PI2;
     float syaw = (camera1->yaw-90-af)/360*PI2;
+    const bool vinside = !OUTBORD(vx, vy) && !SOLID(S(int(vx), int(vy)));
 
-    loopi(NUMRAYS)
+    loopj(NUMRAYS4)
     {
-        float angle = i*PI2/NUMRAYS;
+        int i = ((j << 2) & (NUMRAYS4 - 1)) | (j >> NUMRAYBITS), k = i / 4;  // interleaved ray calculation
+        bool firstquarter = j < NUMRAYS;
+        float angle = i*PI2/NUMRAYS4;
         if((apitch>45 // must be bigger if fov>120
         || (angle<byaw && angle>syaw)
         || (angle<byaw-PI2 && angle>syaw-PI2)
-        || (angle<byaw+PI2 && angle>syaw+PI2))
-        && !OUTBORD(vx, vy)
-        && !SOLID(S(int(vx), int(vy))))       // try to avoid tracing ray if outside of frustrum
+        || (angle<byaw+PI2 && angle>syaw+PI2)) && vinside)        // try to avoid tracing ray if outside of frustrum
         {
-            float ray = i*8/(float)NUMRAYS;
+            float ray = i*8/(float)NUMRAYS4;
             float dx, dy;
             if(ray>1 && ray<3) { dx = -(ray-2); dy = 1; }
             else if(ray>=3 && ray<5) { dx = -1; dy = -(ray-4); }
@@ -50,20 +54,33 @@ void computeraytable(float vx, float vy, float fov)
             else { dx = 1; dy = ray>4 ? ray-8 : ray; }
             float sx = vx;
             float sy = vy;
+            if(!firstquarter)
+            {
+                int m = min(ndist[k], ndist[(k + 1) & (NUMRAYS - 1)]);
+                if(m-- > 3)
+                {
+                    if(m > 100) m = 100;
+                    sx += dx * m; // skip to the nearest already found wall, so the last three quarters only clean out the edges
+                    sy += dy * m;
+                }
+            }
             for(;;)
             {
                 sx += dx;
                 sy += dy;
                 if(SOLID(S(int(sx), int(sy))))    // 90% of time spend in this function is on this line
                 {
-                    rdist[i] = (float)(fabs(sx-vx)+fabs(sy-vy));
+                    float dist = (float)(fabs(sx-vx)+fabs(sy-vy));
+                    if(firstquarter || dist > rdist[k]) rdist[k] = dist;
+                    if(firstquarter) ndist[k] = max(abs(sx-vx), abs(sy-vy));
                     break;
                 }
             }
         }
         else
         {
-            rdist[i] = 2;
+            rdist[k] = 2;
+            ndist[k] = 0;
         }
     }
 }
