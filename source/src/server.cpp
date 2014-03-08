@@ -25,7 +25,7 @@ killmessagesfile killmsgs;
 bool isdedicated = false;
 ENetHost *serverhost = NULL;
 
-int nextstatus = 0, servmillis = 0, lastfillup = 0;
+int laststatus = 0, servmillis = 0, lastfillup = 0;
 
 vector<client *> clients;
 vector<worldstate *> worldstates;
@@ -492,10 +492,10 @@ const char *getDemoFilename(int gmode, int mplay, int mdrop, int tstamp, char *s
     // %w : timestamp "when"
     static string dmofn;
     copystring(dmofn, "");
-    
+
     int cc = 0;
     int mc = strlen(DEMOFORMAT);
-    
+
     while(cc<mc)
     {
         switch(DEMOFORMAT[cc])
@@ -3906,9 +3906,9 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
         lastThrottleEpoch = serverhost->bandwidthThrottleEpoch;
     }
 
-    if(servmillis>nextstatus)   // display bandwidth stats, useful for server ops
+    if(servmillis - laststatus > 60 * 1000)   // display bandwidth stats, useful for server ops
     {
-        nextstatus = servmillis + 60 * 1000;
+        laststatus = servmillis;
         rereadcfgs();
         if(nonlocalclients || serverhost->totalSentData || serverhost->totalReceivedData)
         {
