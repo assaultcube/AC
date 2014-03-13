@@ -25,6 +25,9 @@ sqr rtex;
 
 VAR(editing, 1, 0, 0);
 
+bool editmetakeydown = false;
+COMMANDF(editmeta, "d", (bool on) { editmetakeydown = on; } );
+
 void toggleedit(bool force)
 {
     if(player1->state==CS_DEAD) return;                   // do not allow dead players to edit to avoid state confusion
@@ -310,8 +313,22 @@ void pruneundos(int maxremain)                          // bound memory
 
 void makeundo(block &sel)
 {
+    loopi(3) sel.p[i] = player1->o.v[i] * DMF;
+    sel.p[3] = player1->yaw;
+    sel.p[4] = player1->pitch;
     undos.add(blockcopy(sel));
     pruneundos(undomegs<<20);
+}
+
+void restoreposition(block &sel)
+{
+    loopi(3) player1->o.v[i] = float(sel.p[i]) / DMF;
+    player1->yaw = sel.p[3];
+    player1->pitch = sel.p[4];
+    player1->resetinterp();
+    resetselections();
+    addselection(sel.x, sel.y, sel.xs, sel.ys, sel.h); // select undone area
+    checkselections();
 }
 
 void editundo()
@@ -320,6 +337,7 @@ void editundo()
     if(undos.empty()) { conoutf("nothing more to undo"); return; }
     block *p = undos.pop();
     redos.add(blockcopy(*p));
+    if(editmetakeydown) restoreposition(*p);
     blockpaste(*p);
     freeblock(p);
 }
@@ -330,6 +348,7 @@ void editredo()
     if(redos.empty()) { conoutf("nothing more to redo"); return; }
     block *p = redos.pop();
     undos.add(blockcopy(*p));
+    if(editmetakeydown) restoreposition(*p);
     blockpaste(*p);
     freeblock(p);
 }
@@ -410,9 +429,6 @@ void tofronttex()                                       // maintain most recentl
         }
     }
 }
-
-bool editmetakeydown = false;
-COMMANDF(editmeta, "d", (bool on) { editmetakeydown = on; } );
 
 void editdrag(bool isdown)
 {
