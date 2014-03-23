@@ -1,1 +1,16 @@
 .travis.yml
+*.o
+*.lo
+bin_unix/native_client
+bin_unix/native_server
+source/enet/.deps/
+source/enet/.libs/
+source/enet/Makefile
+source/enet/config.log
+source/enet/config.status
+source/enet/libenet.la
+source/enet/libenet.pc
+source/enet/libtool
+source/src/ac_client
+source/src/ac_server
+source/src/cube.h.gch
