@@ -1,8 +1,13 @@
 .travis.yml
 *.o
 *.lo
+shadows.dat
 bin_unix/native_client
 bin_unix/native_server
+config/history
+config/init.cfg
+config/saved.cfg
+config/servers.cfg
 source/enet/.deps/
 source/enet/.libs/
 source/enet/Makefile
