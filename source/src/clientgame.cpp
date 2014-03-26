@@ -599,7 +599,7 @@ void addsleep_(int *msec, char *cmd, int *persist)
 
 void resetsleep(bool force)
 {
-    loopv(sleeps) if(!sleeps[i].persist || force)
+    loopvrev(sleeps) if(!sleeps[i].persist || force)
     {
         DELETEA(sleeps[i].cmd);
         sleeps.remove(i);
@@ -1687,7 +1687,7 @@ void setfollowplayer(int cn)
     // silently ignores invalid player-cn value passed
     if(players.inrange(cn) && players[cn])
     {
-        if(!(m_teammode && !watchingdemo && team_base(players[cn]->team) != team_base(player1->team)))
+        if(!(m_teammode && player1->team != TEAM_SPECT && !watchingdemo && team_base(players[cn]->team) != team_base(player1->team)))
         {
             player1->followplayercn = cn;
             if(player1->spectatemode == SM_FLY) player1->spectatemode = SM_FOLLOW1ST;
