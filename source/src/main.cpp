@@ -895,9 +895,13 @@ const char *rndmapname()
 {
     vector<char *> maps;
     listfiles("packages/maps/official", "cgz", maps);
-    char *map = newstring(maps[rnd(maps.length())]);
-    maps.deletearrays();
-    return map;
+    if (maps.length() > 0)
+    {
+        char *map = newstring(maps[rnd(maps.length())]);
+        maps.deletearrays();
+        return map;
+    }
+    else return "";
 }
 
 extern void connectserv(char *, int *, char *);
