@@ -77,8 +77,8 @@ bool initwarning(const char *desc, int level, int type)
     return false;
 }
 
-VARF(scr_w, 320, 1024, 10000, initwarning("screen resolution"));
-VARF(scr_h, 200, 768, 10000, initwarning("screen resolution"));
+VARF(scr_w, 0, 0, 10000, initwarning("screen resolution"));
+VARF(scr_h, 0, 0, 10000, initwarning("screen resolution"));
 VARF(colorbits, 0, 0, 32, initwarning("color depth"));
 VARF(depthbits, 0, 0, 32, initwarning("depth-buffer precision"));
 VARF(stencilbits, 0, 0, 32, initwarning("stencil-buffer precision"));
