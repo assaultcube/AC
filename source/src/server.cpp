@@ -1690,6 +1690,12 @@ void shuffleteams(int ftr = FTR_AUTOTEAM)
             team = !team;
         }
     }
+
+    if(m_ctf || m_htf)
+    {
+        ctfreset();
+        sendflaginfo();
+    }
 }
 
 bool balanceteams(int ftr)  // pro vs noobs never more
