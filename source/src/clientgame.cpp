@@ -173,7 +173,6 @@ void newname(const char *name)
         addmsg(SV_SWITCHNAME, "rs", player1->name);
     }
     else conoutf(_("your name is: %s"), player1->name);
-    //alias(_("curname"), player1->name); // WTF? stef went crazy - this isn't something to translate either.
     alias("curname", player1->name);
 }
 
