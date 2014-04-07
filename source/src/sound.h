@@ -438,8 +438,9 @@ public:
 };
 
 void alclearerr();
-bool alerr(bool msg = true, int line = 0);
+bool alerr(bool msg = true, int line = 0, const char *s = NULL, ...);
 #define ALERR alerr(true, __LINE__)
+#define ALERRF(fmt, ...) alerr(true, __LINE__, fmt, __VA_ARGS__)
 
 extern vector<soundconfig> gamesounds, mapsounds;
 extern ov_callbacks oggcallbacks;
