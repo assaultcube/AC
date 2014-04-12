@@ -220,7 +220,7 @@ void findkey(int *code)
     result("-255");
     return;
 }
- 
+
 void findkeycode(const char* s)
 {
      for (int i = 0; i < keyms.length(); i++)
@@ -475,20 +475,25 @@ void history_(int *n)
 
 COMMANDN(history, history_, "i");
 
-void savehistory() {
+void savehistory()
+{
     stream *f = openfile(path("config/history", true), "w");
     if(!f) return;
-    loopv(history) {
+    loopv(history)
+    {
         f->printf("%s\n",history[i]->buf);
     }
     delete f;
 }
 
-void loadhistory() {
-    char *histbuf = loadfile(path("config/history", true),NULL);
+void loadhistory()
+{
+    char *histbuf = loadfile(path("config/history", true), NULL);
+    if(!histbuf) return;
     char *line = NULL;
     line = strtok(histbuf, "\n");
-    while (line) {
+    while(line)
+    {
         history.add(new hline)->buf = newstring(line);
         line = strtok(NULL, "\n");
     }
@@ -572,7 +577,7 @@ void consolekey(int code, bool isdown, int cooked)
         {
             // make laptop users happy; LMB shall only work with history
             if(code == SDL_AC_BUTTON_LEFT && histpos == history.length()) return;
-        
+
             hline *h = NULL;
             if(cmdline.buf[0])
             {
