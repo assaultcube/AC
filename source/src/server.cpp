@@ -3007,7 +3007,7 @@ void process(ENetPacket *packet, int sender, int chan)
             case SV_PRIMARYWEAP:
             {
                 int nextprimary = getint(p);
-                if(nextprimary<0 && nextprimary>=NUMGUNS) break;
+                if (nextprimary < 0 || nextprimary >= NUMGUNS) break;
                 cl->state.nextprimary = nextprimary;
                 break;
             }
