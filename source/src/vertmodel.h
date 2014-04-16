@@ -179,6 +179,9 @@ struct vertmodel : model
             numdyndraws = draws.length();
         }
 
+#if defined(__GNUC__) && defined(__OPTIMIZE__)
+__attribute__((optimize(2)))
+#endif
         dyncacheentry *gendynverts(animstate &as, anpos &cur, anpos *prev, float ai_t)
         {
             dyncacheentry *d = dyncache.start();
@@ -290,6 +293,9 @@ struct vertmodel : model
             }
         }
 
+#if defined(__GNUC__) && defined(__OPTIMIZE__)
+__attribute__((optimize(2)))
+#endif
         shadowcacheentry *genshadowvolume(animstate &as, anpos &cur, anpos *prev, float ai_t, vec *buf)
         {
             if(!shareverts) return NULL;
@@ -350,6 +356,9 @@ struct vertmodel : model
             return d;
         }
 
+#if defined(__GNUC__) && defined(__OPTIMIZE__)
+__attribute__((optimize(2)))
+#endif
         lightcacheentry *lightvertexes(animstate &as, anpos &cur, anpos *prev, float ai_t, vec *buf)
         {
             if(dbgvlight) return NULL;
