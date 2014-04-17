@@ -760,13 +760,28 @@ bool hashstring(const char *str, char *result, int maxlen)
     return true;
 }
 
+static const char *hashchunktoa(tiger::chunk h)   // portable solution instead of printf("%llx")
+{                                                 // use next protocol bump to switch to hashstring() above!
+    static string buf;
+    static int bufidx;
+    bufidx = (bufidx + 1) & 0x3;
+    char *s = buf + (bufidx * 33) + 33;
+    *s-- = '\0';
+    while(h)
+    {
+        *s-- = "0123456789abcdef"[h & 0xf];
+        h >>= 4;
+    }
+    return s + 1;
+}
+
 const char *genpwdhash(const char *name, const char *pwd, int salt)
 {
     static string temp;
     formatstring(temp)("%s %d %s %s %d", pwd, salt, name, pwd, abs(PROTOCOL_VERSION));
     tiger::hashval hash;
     tiger::hash((uchar *)temp, (int)strlen(temp), hash);
-    formatstring(temp)("%llx %llx %llx", hash.chunks[0], hash.chunks[1], hash.chunks[2]);
+    formatstring(temp)("%s %s %s", hashchunktoa(hash.chunks[0]), hashchunktoa(hash.chunks[1]), hashchunktoa(hash.chunks[2]));
     return temp;
 }
 
