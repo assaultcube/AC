@@ -281,6 +281,18 @@ void hudecho(char *text)
     while(s);
 }
 
+void upperhudecho(char *text)
+{
+    const char *s = strtok(text, "\n");
+    void (*outf)(const char *s, ...) = allowhudechos ? upperhudoutf : conoutf;
+    do
+    {
+        outf("%s", s ? s : "");
+        s = strtok(NULL, "\n");
+    }
+    while(s);
+}
+
 void pm(char *text)
 {
     if(!text || !text[0]) return;
@@ -330,6 +342,7 @@ COMMAND(pm, "c");
 
 COMMAND(echo, "c");
 COMMAND(hudecho, "c");
+COMMAND(upperhudecho, "c");
 COMMANDN(say, toserver, "c");
 COMMANDN(me, toserverme, "c");
 COMMANDN(connect, connectserv, "sis");
@@ -920,7 +933,7 @@ int pckserversort(pckserver **a, pckserver **b)
 {
     if((*a)->ping < 0) return ((*b)->ping < 0) ? 0 : 1;
     if((*b)->ping < 0) return -1;
-    
+
     return (*a)->ping == (*b)->ping ? 0 : ((*a)->ping < (*b)->ping ? -1 : 1);
 }
 

@@ -262,16 +262,16 @@ void loadcrosshair(char *c, char *name)
         }
         return;
     }
- 
+
     int n = -1;
- 
+
     for (int i = 0; i < CROSSHAIR_NUM; i++)
     {
        if(strcmp(crosshairnames[i], name) == 0) { n = i; break; }
     }
- 
+
     if (n < 0 || n >= CROSSHAIR_NUM) return;
- 
+
     crosshairs[n] = loadcrosshairtexture(c);
 }
 
@@ -419,7 +419,9 @@ struct hudline : cline
 
 struct hudmessages : consolebuffer<hudline>
 {
-    hudmessages() : consolebuffer<hudline>(20) {}
+    bool upper;
+
+    hudmessages(bool isupper = false) : consolebuffer<hudline>(20), upper(isupper) {}
 
     void addline(const char *sf)
     {
@@ -431,6 +433,7 @@ struct hudmessages : consolebuffer<hudline>
         }
         else consolebuffer<hudline>::addline(sf, totalmillis);
     }
+
     void editline(int type, const char *sf)
     {
         if(conlines.length() && ((conlines[0].type&HUDMSG_TYPE)==(type&HUDMSG_TYPE) || conlines[0].type&HUDMSG_OVERWRITE))
@@ -441,6 +444,7 @@ struct hudmessages : consolebuffer<hudline>
         }
         else consolebuffer<hudline>::addline(sf, totalmillis).type = type;
     }
+
     void render()
     {
         if(!conlines.length()) return;
@@ -448,17 +452,29 @@ struct hudmessages : consolebuffer<hudline>
         glLoadIdentity();
         glOrtho(0, VIRTW*0.9f, VIRTH*0.9f, 0, -1, 1);
         int dispmillis = arenaintermission ? 6000 : 3000;
+        if(!upper)
+        {
+            loopi(min(conlines.length(), 3)) if(totalmillis-conlines[i].millis<dispmillis)
+            {
+                cline &c = conlines[i];
+                int tw = text_width(c.line);
+                draw_text(c.line, int(tw > VIRTW*0.9f ? 0 : (VIRTW*0.9f-tw)/2), int(((VIRTH*0.9f)/4*3)+FONTH*i+pow((totalmillis-c.millis)/(float)dispmillis, 4)*VIRTH*0.9f/4.0f));
+            }
+            glPopMatrix();
+            return;
+        }
         loopi(min(conlines.length(), 3)) if(totalmillis-conlines[i].millis<dispmillis)
         {
             cline &c = conlines[i];
             int tw = text_width(c.line);
-            draw_text(c.line, int(tw > VIRTW*0.9f ? 0 : (VIRTW*0.9f-tw)/2), int(((VIRTH*0.9f)/4*3)+FONTH*i+pow((totalmillis-c.millis)/(float)dispmillis, 4)*VIRTH*0.9f/4.0f));
+            draw_text(c.line, int(tw > VIRTW*0.9f ? 0 : (VIRTW*0.9f-tw)/2), int( (VIRTH*0.9f-(VIRTH/4*3))-FONTH*i-pow((totalmillis-c.millis)/(float)dispmillis, 4)*VIRTH*0.9f/4.0f));
         }
         glPopMatrix();
     }
 };
 
 hudmessages hudmsgs;
+hudmessages upperhudmsg(true);
 
 void hudoutf(const char *s, ...)
 {
@@ -477,6 +493,19 @@ void hudeditf(int type, const char *s, ...)
 {
     defvformatstring(sf, s, s);
     hudmsgs.editline(type, sf);
+}
+
+void upperhudoutf(const char *s, ...)
+{
+    defvformatstring(sf, s, s);
+    upperhudmsg.addline(sf);
+    conoutf("%s", sf);
+}
+
+void upperhudonlyf(const char *s, ...)
+{
+    defvformatstring(sf, s, s);
+    upperhudmsg.addline(sf);
 }
 
 bool insideradar(const vec &centerpos, float radius, const vec &o)
@@ -1020,8 +1049,11 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     if(menu) rendermenu();
     else if(command) renderdoc(40, VIRTH, max(commandh*2 - VIRTH, 0));
 
-    if(!hidehudmsgs) hudmsgs.render();
-
+    if(!hidehudmsgs)
+    {
+        hudmsgs.render();
+        upperhudmsg.render();
+    }
 
     if(!hidespecthud && !menu && p->state==CS_DEAD && p->spectatemode<=SM_DEATHCAM)
     {

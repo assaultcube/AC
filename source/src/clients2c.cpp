@@ -309,13 +309,13 @@ bool good_map() // call this function only at startmap
     return map_quality > 0;
 }
 
-VARP(hudextras, 0, 0, 3);
+VARP(hudextras, 0, 0, 5); // 0 none, 1 conoutf, 2 hudoutf, 3 hudoutf+caps, 4 upperhudoutf, 5 upperhudoutf+caps
 
 int teamworkid = -1;
 
-void showhudextras(char hudextras, char value){
-    void (*outf)(const char *s, ...) = (hudextras > 1 ? hudoutf : conoutf);
-    bool caps = hudextras < 3 ? false : true;
+void showhudextras(char hudextras, char value) {
+    void (*outf)(const char *s, ...) = (hudextras > 1 ? ((hudextras > 3) ? upperhudoutf : hudoutf) : conoutf);
+    bool caps = (hudextras==3 || hudextras==5) ? true : false;
     switch(value)
     {
         case HE_COMBO:
@@ -380,6 +380,7 @@ void onChangeVote(int mod, int id)
 }
 
 VARP(voicecomsounds, 0, 1, 2);
+VARP(spampoints, 0, 0, 2);
 bool medals_arrived=0;
 medalsst a_medals[END_MDS];
 void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
@@ -823,6 +824,10 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                         int pcn = getint(p); int score = getint(p);
                         playerent *ppl = getclient(pcn);
                         if (!ppl) break;
+                        if(spampoints && ppl == player1) {
+                            if(spampoints==2) upperhudonlyf("\f9%s%d", score > 0 ? "+" : "", score);
+                            else if(score>0) upperhudonlyf("\f9%s%d", "+", score);
+                        }
                         ppl->points += score;
                     }
                 } else {
