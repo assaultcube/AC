@@ -5,6 +5,14 @@
 		<Option title="AssaultCube" />
 		<Option pch_mode="2" />
 		<Option compiler="gcc" />
+		<MakeCommands>
+			<Build command="cd ../src;$make -f $makefile $target" />
+			<CompileFile command="$make -f $makefile $file" />
+			<Clean command="cd ../src;$make -f $makefile clean" />
+			<DistClean command="$make -f $makefile distclean$target" />
+			<AskRebuildNeeded command="$make -q -f $makefile $target" />
+			<SilentBuild command="$make -s -f $makefile $target" />
+		</MakeCommands>
 		<Build>
 			<Target title="default">
 				<Option output="../../bin_win32/ac_client.exe" prefix_auto="0" extension_auto="0" />
@@ -14,16 +22,17 @@
 				<Option compiler="gcc" />
 				<Option projectResourceIncludeDirsRelation="1" />
 				<Compiler>
+					<Add option="-fomit-frame-pointer" />
 					<Add option="-O3" />
 					<Add option="-Wall" />
 					<Add option="-fsigned-char" />
-					<Add option="-fomit-frame-pointer" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="../vcpp" />
 				</ResourceCompiler>
 				<Linker>
 					<Add option="-mwindows" />
+					<Add library="..\lib\curl_mingw\libcurl.a" />
 					<Add library="SDL" />
 					<Add library="SDL_image" />
 					<Add library="SDL_ttf" />
@@ -31,11 +40,17 @@
 					<Add library="opengl32" />
 					<Add library="enet" />
 					<Add library="OpenAL32" />
-					<Add library="../lib/libvorbisfile.lib" />
+					<Add library="..\lib\libvorbisfile.lib" />
 					<Add library="jpeg" />
-					<Add library="../lib/libintl.lib" />
+					<Add library="..\lib\libintl.lib" />
+					<Add library="wldap32" />
 					<Add library="ws2_32" />
 					<Add library="winmm" />
+					<Add library="..\lib\curl_mingw\libidn.a" />
+					<Add library="..\lib\curl_mingw\librtmp.a" />
+					<Add library="..\lib\curl_mingw\libssl.a" />
+					<Add library="..\lib\curl_mingw\libssh2.a" />
+					<Add library="..\lib\curl_mingw\libcrypto.a" />
 					<Add directory="../lib" />
 				</Linker>
 			</Target>
@@ -45,17 +60,19 @@
 				<Option object_output=".objs/debug" />
 				<Option type="1" />
 				<Option compiler="gcc" />
+				<Option parameters="-t" />
 				<Option projectResourceIncludeDirsRelation="1" />
 				<Compiler>
 					<Add option="-Wall" />
 					<Add option="-g" />
 					<Add option="-fsigned-char" />
+					<Add option="-D_DEBUG" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="../vcpp" />
 				</ResourceCompiler>
 				<Linker>
-					<Add option="-mwindows" />
+					<Add library="..\lib\curl_mingw\libcurl.a" />
 					<Add library="SDL" />
 					<Add library="SDL_image" />
 					<Add library="SDL_ttf" />
@@ -63,12 +80,18 @@
 					<Add library="opengl32" />
 					<Add library="enet" />
 					<Add library="OpenAL32" />
-					<Add library="../lib/libvorbisfile.lib" />
+					<Add library="..\lib\libvorbisfile.lib" />
 					<Add library="jpeg" />
-			<Add library="libcurl.lib" />
-					<Add library="../lib/libintl.lib" />
+					<Add library="..\lib\libintl.lib" />
+					<Add library="wldap32" />
 					<Add library="ws2_32" />
 					<Add library="winmm" />
+					<Add library="..\lib\curl_mingw\libidn.a" />
+					<Add library="..\lib\curl_mingw\librtmp.a" />
+					<Add library="..\lib\curl_mingw\libssl.a" />
+					<Add library="..\lib\curl_mingw\libssh2.a" />
+					<Add library="..\lib\curl_mingw\libcrypto.a" />
+					<Add library="gdi32" />
 					<Add directory="../lib" />
 				</Linker>
 			</Target>
@@ -80,12 +103,15 @@
 				<Option compiler="gcc" />
 				<Option projectResourceIncludeDirsRelation="1" />
 				<Compiler>
-					<Add option="-DSTANDALONE" />
+					<Add option="-fomit-frame-pointer" />
 					<Add option="-O3" />
 					<Add option="-Wall" />
 					<Add option="-fsigned-char" />
-					<Add option="-fomit-frame-pointer" />
+					<Add option="-DSTANDALONE" />
 				</Compiler>
+				<ResourceCompiler>
+					<Add directory="../vcpp" />
+				</ResourceCompiler>
 				<Linker>
 					<Add library="zdll" />
 					<Add library="enet" />
@@ -97,18 +123,22 @@
 			<Target title="server-debug">
 				<Option output="../../bin_win32/ac_server.exe" prefix_auto="0" extension_auto="0" />
 				<Option working_dir="../../" />
-				<Option parameters="-mlocalhost" />
 				<Option object_output=".objs/server-debug" />
 				<Option type="1" />
 				<Option compiler="gcc" />
+				<Option parameters="-mlocalhost" />
 				<Option projectResourceIncludeDirsRelation="1" />
 				<Compiler>
-					<Add option="-DSTANDALONE" />
-					<Add option="-O0" />
 					<Add option="-Wall" />
 					<Add option="-g" />
+					<Add option="-O0" />
 					<Add option="-fsigned-char" />
+					<Add option="-D_DEBUG" />
+					<Add option="-DSTANDALONE" />
 				</Compiler>
+				<ResourceCompiler>
+					<Add directory="../vcpp" />
+				</ResourceCompiler>
 				<Linker>
 					<Add library="zdll" />
 					<Add library="enet" />
@@ -125,12 +155,15 @@
 				<Option compiler="gcc" />
 				<Option projectResourceIncludeDirsRelation="1" />
 				<Compiler>
-					<Add option="-DSTANDALONE" />
+					<Add option="-fomit-frame-pointer" />
 					<Add option="-O3" />
 					<Add option="-Wall" />
 					<Add option="-fsigned-char" />
-					<Add option="-fomit-frame-pointer" />
+					<Add option="-DSTANDALONE" />
 				</Compiler>
+				<ResourceCompiler>
+					<Add directory="../vcpp" />
+				</ResourceCompiler>
 				<Linker>
 					<Add library="zdll" />
 					<Add library="enet" />
@@ -148,14 +181,6 @@
 			<Add directory="../include" />
 			<Add directory="../src" />
 		</Compiler>
-		<MakeCommands>
-			<Build command="cd ../src;$make -f $makefile $target" />
-			<CompileFile command="$make -f $makefile $file" />
-			<Clean command="cd ../src;$make -f $makefile clean" />
-			<DistClean command="$make -f $makefile distclean$target" />
-			<AskRebuildNeeded command="$make -q -f $makefile $target" />
-			<SilentBuild command="$make -s -f $makefile $target" />
-		</MakeCommands>
 		<Unit filename="../src/audiomanager.cpp">
 			<Option target="default" />
 			<Option target="debug" />
@@ -273,6 +298,10 @@
 			<Option target="default" />
 			<Option target="debug" />
 		</Unit>
+		<Unit filename="../src/jpegenc.h">
+			<Option target="default" />
+			<Option target="debug" />
+		</Unit>
 		<Unit filename="../src/log.cpp">
 			<Option target="default" />
 			<Option target="debug" />
@@ -299,6 +328,10 @@
 			<Option target="debug" />
 		</Unit>
 		<Unit filename="../src/model.h">
+			<Option target="default" />
+			<Option target="debug" />
+		</Unit>
+		<Unit filename="../src/modelcache.h">
 			<Option target="default" />
 			<Option target="debug" />
 		</Unit>
@@ -365,6 +398,10 @@
 			<Option target="debug" />
 		</Unit>
 		<Unit filename="../src/rndmap.cpp">
+			<Option target="default" />
+			<Option target="debug" />
+		</Unit>
+		<Unit filename="../src/scale.h">
 			<Option target="default" />
 			<Option target="debug" />
 		</Unit>
@@ -531,8 +568,6 @@
 		</Unit>
 		<Unit filename="../vcpp/cube.rc">
 			<Option compilerVar="WINDRES" />
-			<Option target="default" />
-			<Option target="debug" />
 		</Unit>
 		<Extensions>
 			<code_completion />
