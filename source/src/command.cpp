@@ -223,6 +223,7 @@ void modifyvar(const char *name, int arg, char op)
         scripterr();
         return;
     }
+    if((id->type == ID_VAR && id->minval > id->maxval) || (id->type == ID_FVAR && id->minvalf > id->maxvalf)) { conoutf("variable %s is read-only", id->name); return; }
     int val = 0;
     switch(id->type)
     {
@@ -259,6 +260,7 @@ void modifyfvar(const char *name, float arg, char op)
         scripterr();
         return;
     }
+    if((id->type == ID_VAR && id->minval > id->maxval) || (id->type == ID_FVAR && id->minvalf > id->maxvalf)) { conoutf("variable %s is read-only", id->name); return; }
     float val = 0;
     switch(id->type)
     {
