@@ -797,7 +797,7 @@ void freepubkey(void *pubkey)
 void *genchallenge(void *pubkey, const void *seed, int seedlen, vector<char> &challengestr)
 {
     tiger::hashval hash;
-    tiger::hash((const uchar *)seed, sizeof(seed), hash);
+    tiger::hash((const uchar *)seed, seedlen, hash);
     gfint challenge;
     memcpy(challenge.digits, hash.bytes, sizeof(challenge.digits));
     challenge.len = 8*sizeof(hash.bytes)/BI_DIGIT_BITS;
