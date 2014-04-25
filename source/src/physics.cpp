@@ -184,7 +184,7 @@ bool objcollide(physent *d, const vec &objpos, float objrad, float objheight) //
 // drop & rise are supplied by the physics below to indicate gravity/push for current mini-timestep
 static int cornersurface = 0;
 
-bool collide(physent *d, bool spawn, float drop, float rise)
+bool collide(physent *d, bool spawn = false, float drop = 0, float rise = 0)
 {
     cornersurface = 0;
     const float fx1 = d->o.x-d->radius;     // figure out integer cube rectangle this entity covers in map
@@ -560,11 +560,13 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         pl->o.z += f*d.z;
         hitplayer = NULL;
         if(!collide(pl, false, drop, rise)) continue;
-        else collided = true;
-        if(pl->type==ENT_BOUNCE && cornersurface)
+        int cornersurface1 = cornersurface;
+        collided = true;
+        vec oo = pl->o;
+        if(pl->type==ENT_BOUNCE && cornersurface1)
         { // try corner bounce
-            float ct2f = cornersurface == 2 ? -1.0 : 1.0;
-            vec oo = pl->o, xd = d;
+            float ct2f = cornersurface1 == 2 ? -1.0 : 1.0;
+            vec xd = d;
             xd.x = d.y * ct2f;
             xd.y = d.x * ct2f;
             pl->o.x += f * (-d.x + xd.x);
@@ -600,14 +602,17 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
             pl->o.x += f*d.x*push;
             pl->o.y += f*d.y*push;
         }
-        if (cornersurface)
+        // the desired direction didn't work
+        pl->o.x -= f*d.x;
+        pl->o.y -= f*d.y;
+        oo = pl->o;
+        // try sliding
+        if(cornersurface1)
         {
-            float ct2f = (cornersurface == 2 ? -1.0 : 1.0);
+            // along a corner wall
+            float ct2f = cornersurface1 == 2 ? -1.0 : 1.0;
             float diag = f*d.magnitudexy()*2;
             vec vd = vec((d.y*ct2f+d.x >= 0.0f ? diag : -diag), (d.x*ct2f+d.y >= 0.0f ? diag : -diag), 0);
-            pl->o.x -= f*d.x;
-            pl->o.y -= f*d.y;
-
             pl->o.x += vd.x;
             pl->o.y += vd.y;
             if(!collide(pl, false, drop, rise))
@@ -615,28 +620,30 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
                 d.x = vd.x; d.y = vd.y;
                 continue;
             }
-            pl->o.x -= vd.x;
-            pl->o.y -= vd.y;
+            pl->o = oo;
         }
         else
         {
-#define WALKALONGAXIS(x,y) \
-            pl->o.x -= f*d.x; \
-            if(!collide(pl, false, drop, rise)) \
-            { \
-                d.x = 0; \
-                if(pl->type==ENT_BOUNCE) { pl->vel.x = -pl->vel.x; pl->vel.mul(0.7f); } \
-                continue; \
-            } \
+            // try slide along y axis
+            pl->o.y += f*d.y;
+            if(!collide(pl, false, drop, rise))
+            {
+                d.x = 0;
+                if(pl->type==ENT_BOUNCE) { pl->vel.x = -pl->vel.x; pl->vel.mul(0.7f); }
+                continue;
+            }
+            pl->o.y = oo.y;
+            // try x axis
             pl->o.x += f*d.x;
-            // player stuck, try slide along y axis
-            WALKALONGAXIS(x,y);
-            // still stuck, try x axis
-            WALKALONGAXIS(y,x);
+            if(!collide(pl, false, drop, rise))
+            {
+                d.y = 0;
+                if(pl->type==ENT_BOUNCE) { pl->vel.y = -pl->vel.y; pl->vel.mul(0.7f); }
+                continue;
+            }
+            pl->o.x = oo.x;
         }
-//         try just dropping down
-        pl->o.x -= f*d.x;
-        pl->o.y -= f*d.y;
+        // try just dropping down
         if(!collide(pl, false, drop, rise))
         {
             d.y = d.x = 0;
