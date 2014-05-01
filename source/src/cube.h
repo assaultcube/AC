@@ -34,8 +34,6 @@ extern sqr *world, *wmip[];             // map data, the mips are sequential 2D 
 extern header hdr;                      // current map header
 extern int sfactor, ssize;              // ssize = 2^sfactor
 extern int cubicsize, mipsize;          // cubicsize = ssize^2
-extern uchar *headerextra;              // special feature map data
-extern int headerextrasize;
 extern physent *camera1;                // camera representing perspective of player, usually player1
 extern playerent *player1;              // special client ent that receives input and acts as camera
 extern vector<playerent *> players;     // all the other clients (in multiplayer)

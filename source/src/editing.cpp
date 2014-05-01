@@ -363,6 +363,87 @@ void editredo()
     freeblock(p);
 }
 
+extern int worldiodebug;
+
+void restoreeditundo(ucharbuf &q)
+{
+    int type, len, explen;
+    while(!q.overread() && (type = getuint(q)))
+    {
+        int bx = getuint(q), by = getuint(q), bxs = getuint(q), bys = getuint(q);
+        short pp[5];
+        loopi(5) pp[i] = getint(q);
+        len = getuint(q);
+        if((bx | by | (bx + bxs) | (by + bys)) & ~(ssize - 1)) continue;
+        explen = bxs * bys;
+        block *b = (block *)new uchar[sizeof(block) + explen * sizeof(sqr)];
+        b->x = bx; b->y = by; b->xs = bxs; b->ys = bys;
+        loopi(5) b->p[i] = pp[i];
+        ucharbuf p = q.subbuf(len);
+        rldecodecubes(p, (sqr *)(b+1), explen, 6, true);
+        switch(type)
+        {
+            case 10: undos.insert(0, b); break;
+            case 20: redos.insert(0, b); break;
+            default: freeblock(b); break;
+        }
+        #ifdef _DEBUG
+        if(worldiodebug) switch(type)
+        {
+            case 10:
+            case 20:
+                clientlogf("  got %sdo x %d, y %d, xs %d, ys %d, remaining %d, overread %d", type == 10 ? "un" : "re", b->x, b->y, b->xs, b->ys, q.remaining(), int(q.overread()));
+                break;
+        }
+        #endif
+    }
+    if(undos.length() || redos.length()) conoutf("restored editing history: %d undos and %d redos", undos.length(), redos.length());
+}
+
+int rlencodeundo(int type, vector<uchar> &t, block *s)
+{
+    putuint(t, type);
+    putuint(t, s->x);
+    putuint(t, s->y);
+    putuint(t, s->xs);
+    putuint(t, s->ys);
+    loopi(5) putint(t, s->p[i]);
+    vector<uchar> tmp;
+    rlencodecubes(tmp, (sqr *)(s+1), s->xs * s->ys, true);
+    putuint(t, tmp.length());
+    t.put(tmp.getbuf(), tmp.length());
+    #ifdef _DEBUG
+    if(worldiodebug) clientlogf("    compressing redo/undo x %d, y %d, xs %d, ys %d, compressed length %d, cubes %d", s->x, s->y, s->xs, s->ys, tmp.length(), s->xs * s->ys);
+    #endif
+    return t.length();
+}
+
+void backupeditundo(vector<uchar> &buf, int undolimit, int redolimit)
+{
+    vector<uchar> tmp;
+    loopvrev(undos)
+    {
+        tmp.setsize(0);
+        undolimit -= rlencodeundo(10, tmp, undos[i]);
+        if(undolimit < 0) break;
+        buf.put(tmp.getbuf(), tmp.length());
+        #ifdef _DEBUG
+        if(worldiodebug) clientlogf("  written undo x %d, y %d, xs %d, ys %d, compressed length %d", undos[i]->x, undos[i]->y, undos[i]->xs, undos[i]->ys, tmp.length());
+        #endif
+    }
+    loopvrev(redos)
+    {
+        tmp.setsize(0);
+        redolimit -= rlencodeundo(20, tmp, redos[i]);
+        if(redolimit < 0) break;
+        buf.put(tmp.getbuf(), tmp.length());
+        #ifdef _DEBUG
+        if(worldiodebug) clientlogf("  written redo x %d, y %d, xs %d, ys %d, compressed length %d", redos[i]->x, redos[i]->y, redos[i]->xs, redos[i]->ys, tmp.length());
+        #endif
+    }
+    putuint(buf, 0);
+}
+
 vector<block *> copybuffers;
 
 void resetcopybuffers()

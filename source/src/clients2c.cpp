@@ -410,7 +410,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
             DEBUGVAR(d);
             ASSERT(type>=0 && type<SV_NUM);
             DEBUGVAR(messagenames[type]);
-            protocoldebug(true);
+            protocoldebug(DEBUGCOND);
         }
         else protocoldebug(false);
         #endif

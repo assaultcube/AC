@@ -752,7 +752,7 @@ void sendmap(char *mapname)
 {
     if(!*mapname) mapname = getclientmap();
     if(securemapcheck(mapname)) return;
-    if(gamemode == GMODE_COOPEDIT && !strcmp(getclientmap(), mapname)) save_world(mapname);
+    if(gamemode == GMODE_COOPEDIT && !strcmp(getclientmap(), mapname)) save_world(mapname, true, false); // skip optimisations, don't add undos
 
     int mapsize, cfgsize, cfgsizegz, revision;
     uchar *mapdata = readmap(path(mapname), &mapsize, &revision);

@@ -591,6 +591,8 @@ extern void editheightxy(bool isfloor, int amount, block &sel);
 //extern bool noteditmode();
 extern bool noteditmode(const char* func = NULL);
 extern void pruneundos(int maxremain = 0);
+extern void restoreeditundo(ucharbuf &q);
+extern void backupeditundo(vector<uchar> &buf, int undolimit, int redolimit);
 
 // renderhud
 enum
@@ -669,12 +671,15 @@ extern void render_particles(int time, int typemask = ~0);
 // worldio
 extern int mapdims[8];
 extern const char *setnames(const char *name);
-extern void save_world(char *fname);
+extern void save_world(char *mname, bool skipoptimise = false, bool addcomfort = false);
 extern bool load_world(char *mname);
 extern void writemap(char *name, int size, uchar *data);
 extern void writecfggz(char *name, int size, int sizegz, uchar *data);
 extern uchar *readmap(char *name, int *size, int *revision);
 extern uchar *readmcfggz(char *name, int *size, int *sizegz);
+extern void rlencodecubes(vector<uchar> &f, sqr *s, int len, bool preservesolids);
+extern void rldecodecubes(ucharbuf &f, sqr *s, int len, int version, bool silent);
+extern void clearheaderextras();
 
 // physics
 extern float raycube(const vec &o, const vec &ray, vec &surface);

@@ -8,8 +8,6 @@ sqr *world = NULL;
 int sfactor, ssize, cubicsize, mipsize;
 
 header hdr;
-uchar *headerextra = NULL;
-int headerextrasize;
 
 // main geometric mipmapping routine, recursively rebuild mipmaps within block b.
 // tries to produce cube out of 4 lower level mips as well as possible,
@@ -501,7 +499,7 @@ bool empty_world(int factor, bool force)    // main empty world creation routine
         ents.shrink(0);
         block b = { 8, 8, ssize-16, ssize - 16};
         edittypexy(SPACE, b);
-        DELETEA(headerextra);
+        clearheaderextras();
     }
     strncpy(hdr.head, "ACMP", 4);
     hdr.version = MAPVERSION;
