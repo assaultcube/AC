@@ -492,10 +492,10 @@ const char *getDemoFilename(int gmode, int mplay, int mdrop, int tstamp, char *s
     // %w : timestamp "when"
     static string dmofn;
     copystring(dmofn, "");
-    
+
     int cc = 0;
     int mc = strlen(DEMOFORMAT);
-    
+
     while(cc<mc)
     {
         switch(DEMOFORMAT[cc])
@@ -1268,6 +1268,7 @@ void arenacheck()
         }
     }
 
+    if(autoteam && m_teammode && mastermode != MM_MATCH && (!numteamclients()[0] || !numteamclients()[1]) && (numteamclients()[0] > 1 || numteamclients()[1] > 1)) refillteams(true, FTR_AUTOTEAM);
     if(!dead || gamemillis < lastdeath + 500) return;
     items_blocked = true;
     sendf(-1, 1, "ri2", SV_ARENAWIN, alive ? alive->clientnum : -1);
