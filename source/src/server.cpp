@@ -1273,6 +1273,11 @@ void arenacheck()
         }
     }
 
+    if(autoteam && m_teammode && mastermode != MM_MATCH)
+    {
+        int *ntc = numteamclients();
+        if((!ntc[0] || !ntc[1]) && (ntc[0] > 1 || ntc[1] > 1)) refillteams(true, FTR_AUTOTEAM);
+    }
     if(!dead || gamemillis < lastdeath + 500) return;
     items_blocked = true;
     sendf(-1, 1, "ri2", SV_ARENAWIN, alive ? alive->clientnum : -1);
