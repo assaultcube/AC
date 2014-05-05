@@ -8,6 +8,7 @@ VARP(altconsize, 0, 0, 100);
 VARP(fullconsize, 0, 40, 100);
 VARP(consize, 0, 6, 100);
 VARP(confade, 0, 20, 60);
+VARP(conalpha, 0, 255, 255);
 VAR(conopen, 0, 0, 1);
 VAR(numconlines, 0, 0, 1);
 
@@ -68,7 +69,7 @@ struct console : consolebuffer<cline>
         {
             int idx = offset + numl-i-1;
             char *line = conlines[idx].line;
-            draw_text(line, CONSPAD+FONTH/3, y, 0xFF, 0xFF, 0xFF, 0xFF, -1, conwidth);
+            draw_text(line, CONSPAD+FONTH/3, y, 0xFF, 0xFF, 0xFF, fullconsole ? 0xFF : conalpha, -1, conwidth);
             int width, height;
             text_bounds(line, width, height, conwidth);
             y += height;
