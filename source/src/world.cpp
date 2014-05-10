@@ -538,7 +538,7 @@ bool empty_world(int factor, bool force)    // main empty world creation routine
     if(!copy)
     {
         findplayerstart(player1, true);
-        startmap("", false);
+        startmap("newmap", false);
     }
     else conoutf("new map size: %d", sfactor);
     freeblock(ow);
@@ -549,6 +549,7 @@ void mapenlarge()  { if(empty_world(-1, false)) addmsg(SV_NEWMAP, "ri", -1); }
 void mapshrink()   { if(empty_world(-2, false)) addmsg(SV_NEWMAP, "ri", -2); }
 void newmap(int *i)
 {
+    if(m_botmode) { conoutf("newmap not supported in bot mode"); return; }
     if(empty_world(*i, false))
     {
         addmsg(SV_NEWMAP, "ri", max(*i, 0));

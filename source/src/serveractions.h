@@ -129,7 +129,14 @@ struct mapaction : serveraction
                 if(sl == strlen(m) && !strncmp(m, scl.adminonlymaps[i], sl)) role = CR_ADMIN;
             }
         }
-        else mapok = true;
+        else
+        {
+            int mp = findmappath(map);
+            mapok = mp == MAP_LOCAL || mp == MAP_OFFICIAL;    // clients can only load from packages/maps and packages/maps/official
+#ifndef STANDALONE
+            if(!mapok) conoutf("\f3map '%s' not found", map);
+#endif
+        }
         area |= EE_LOCAL_SERV; // local too
         formatstring(desc)("load map '%s' in mode '%s'", map, modestr(mode));
         if(q) concatstring(desc, " (in the next game)");
