@@ -4,7 +4,7 @@ int wx1, wy1, wx2, wy2;
 float wsx1, wsy1, wsx2, wsy2;
 
 VARP(watersubdiv, 1, 4, 64);
-VARF(waterlevel, -128, -128, 127, if(!noteditmode("waterlevel")) hdr.waterlevel = waterlevel);
+VARF(waterlevel, -128, -128, 127, if(!noteditmode("waterlevel")) { hdr.waterlevel = waterlevel; unsavededits = 1; });
 
 void setwatercolor(const char *r, const char *g, const char *b, const char *a)
 {
@@ -22,6 +22,7 @@ void setwatercolor(const char *r, const char *g, const char *b, const char *a)
         hdr.watercolor[2] = 20;
         hdr.watercolor[3] = 178;
     }
+    unsavededits = 1;
 }
 
 COMMANDN(watercolour, setwatercolor, "ssss");

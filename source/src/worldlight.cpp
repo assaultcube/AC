@@ -174,7 +174,7 @@ void fullbrightlight(int level)
     lastcalclight = totalmillis;
 }
 
-VARF(ambient, 0, 0, 0xFFFFFF, if(!noteditmode("ambient")) { hdr.ambient = ambient; calclight(); });
+VARF(ambient, 0, 0, 0xFFFFFF, if(!noteditmode("ambient")) { hdr.ambient = ambient; calclight(); unsavededits = 1;});
 
 void calclight()
 {
@@ -398,8 +398,21 @@ void blockpaste(const block &b) // fast version, used by dynlight
     remipmore(b);
 }
 
+void freeblockp(block *b)
+{
+    delete[] (uchar *)b;
+}
+
 void freeblock(block *&b)
 {
-    if(b) { delete[] (uchar *)b; b = NULL; }
+    if(b) { freeblockp(b); b = NULL; }
+}
+
+block *duplicateblock(const block *s)
+{
+    size_t len = sizeof(block) + s->xs * s->ys * sizeof(sqr);
+    block *b = (block *)new uchar[len];
+    memcpy(b, s, len);
+    return b;
 }
 

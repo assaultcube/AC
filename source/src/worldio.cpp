@@ -273,6 +273,7 @@ struct headerextra
     headerextra() : len(0), flags(0), data(NULL) {}
     headerextra(int l, int f, uchar *d) : len(l), flags(f), data(NULL) { if(d) { data = new uchar[len]; memcpy(data, d, len); } }
     ~headerextra() { DELETEA(data); }
+    headerextra *duplicate() { return new headerextra(len, flags, data); }
 };
 vector<headerextra *> headerextras;
 
@@ -464,6 +465,7 @@ void save_world(char *mname, bool skipoptimise, bool addcomfort)
     rlencodecubes(rawcubes, world, cubicsize, skipoptimise);  // if skipoptimize -> keep properties of solid cubes (forces format 10)
     f->write(rawcubes.getbuf(), rawcubes.length());
     delete f;
+    unsavededits = 0;
     conoutf("wrote map file %s %s%s", cgzname, skipoptimise ? "without optimisation" : "(optimised)", addcomfort ? " (including editing history)" : "");
 }
 VARP(preserveundosonsave, 0, 0, 1);
@@ -506,6 +508,8 @@ void rebuildtexlists()  // checks the texlists, if they still contain all possib
     }
 }
 
+static string lastloadedconfigfile;
+
 bool load_world(char *mname)        // still supports all map formats that have existed since the earliest cube betas!
 {
     const int sizeof_header = sizeof(header), sizeof_baseheader = sizeof_header - sizeof(int) * 16;
@@ -528,6 +532,8 @@ bool load_world(char *mname)        // still supports all map formats that have 
     }
     stream *f = opengzfile(cgzname, "rb");
     if(!f) { conoutf("\f3could not read map %s", cgzname); return false; }
+    if(unsavededits) xmapbackup("load_map_", mname);
+    unsavededits = 0;
     DEBUG("reading map \"" << cgzname << "\"");
     header tmp;
     memset(&tmp, 0, sizeof_header);
@@ -660,6 +666,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
     execfile("config/default_map_settings.cfg");
     execfile(pcfname);
     execfile(mcfname);
+    copystring(lastloadedconfigfile, mcfname);
     parseheaderextra();
     neverpersist = false;
     per_idents = true;
@@ -710,4 +717,362 @@ bool load_world(char *mname)        // still supports all map formats that have 
     alias("gametimestart", startmillis);
     startmap(mname);
     return true;
+}
+
+// support reading and writing binary data in config files
+
+static bool hexbinenabled = false;
+static vector<uchar> hexbin;
+
+void hexbinwrite(stream *f, void *data, int len, bool ascii = true)   // write block of binary data as hex values with up to 24 bytes per line
+{
+    string asc;
+    uchar *s = (uchar *) data;
+    while(len > 0)
+    {
+        int chunk = min(len, 24);
+        f->printf("hexbinchunk");
+        loopi(chunk)
+        {
+            asc[i] = isalnum(*s) ? *s : '.'; asc[i + 1] = '\0';
+            f->printf(" %02x", int(*s++));
+        }
+        f->printf(ascii ? "   // %s\n" : "\n", asc);
+        len -= chunk;
+    }
+}
+
+COMMANDF(hexbinchunk, "v", (char **args, int numargs)      // read up to 24 bytes from the command's arguments to the hexbin buffer
+{
+    if(!hexbinenabled) { conoutf("hexbinchunk out of context"); return; }
+    loopi(numargs) hexbin.add(strtol(args[i], NULL, 16));
+});
+
+
+// multi-map editmode extensions (xmap)
+//
+// keep several (versions of) maps in memory at the same time
+// compare maps and visualise differences
+//
+// the general assumption is, that ram is cheap, and that a copy of a size-9 map should be below 10MB (including undo data)
+
+#define XMAPVERSION  1001001
+
+VARP(persistentxmaps, 0, 1, 1);    // save all xmaps on exit, restore them at game start
+
+struct xmap
+{
+    string nick;      // unique handle
+    string name;
+    vector<headerextra *> headerextras;
+    vector<persistent_entity> ents;
+    sqr *world;
+    header hdr;
+    int ssize, cubicsize, numundo;
+    string mcfname;
+    short position[5];
+
+    xmap() : world(NULL), ssize(0), cubicsize(0), numundo(0) { *nick = *name = *mcfname = '\0'; }
+
+    xmap(const char *nnick)    // take the current map and store it in an xmap
+    {
+        copystring(nick, nnick);
+        copystring(name, getclientmap());
+        hdr = ::hdr; ssize = ::ssize; cubicsize = ::cubicsize;
+        loopv(::headerextras) headerextras.add(::headerextras[i]->duplicate());
+        world = new sqr[cubicsize];
+        memcpy(world, ::world, cubicsize * sizeof(sqr));
+        loopv(::ents) if(::ents[i].type != NOTUSED) ents.add() = ::ents[i];
+        copystring(mcfname, lastloadedconfigfile);   // may have been "official" or not
+        storeposition(position);
+        vector<uchar> tmp;  // add undo/redo data in compressed form as temporary headerextra
+        numundo = backupeditundo(tmp, MAXHEADEREXTRA, MAXHEADEREXTRA);
+        headerextras.add(new headerextra(tmp.length(), HX_EDITUNDO, tmp.getbuf()));
+    }
+
+    ~xmap()
+    {
+        headerextras.deletecontents();
+        delete world;
+        ents.setsize(0);
+    }
+
+    void restoreent(int i)
+    {
+        entity &e = ::ents.add();
+        memcpy(&e, &ents[i], sizeof(persistent_entity));
+        e.spawned = true;
+    }
+
+    void restore()      // overwrite the current map with the contents of an xmap
+    {
+        setnames(name);
+        copystring(lastloadedconfigfile, mcfname);
+        ::hdr = hdr;
+        clearheaderextras();
+        resetmap(true);
+        curmaprevision = hdr.maprevision;
+        setvar("waterlevel", hdr.waterlevel);
+        ::ents.shrink(0);
+        loopv(ents) restoreent(i);
+        delete[] ::world;
+        setupworld(hdr.sfactor);
+        memcpy(::world, world, cubicsize * sizeof(sqr));
+        calclight();  // includes full remip()
+        loopv(headerextras) ::headerextras.add(headerextras[i]->duplicate());
+        pushscontext(IEXC_MAPCFG); // untrusted altogether
+        per_idents = false;
+        neverpersist = true;
+        execfile("config/default_map_settings.cfg");
+        execfile(pcfname);
+        execfile(lastloadedconfigfile);
+        parseheaderextra();
+        neverpersist = false;
+        per_idents = true;
+        popscontext();
+        loadsky(NULL, true);
+        startmap(name, false, true);      // "start" but don't respawn: basically just set clientmap
+        restoreposition(position);
+    }
+
+    void write(stream *f)   // write xmap as cubescript to a file
+    {
+        f->printf("restorexmap version %d %d %d\n", XMAPVERSION, isbigendian() ? 1 : 0, sizeof(world));  // it is a non-portable binary file format, so we have to check...
+        f->printf("restorexmap names \"%s\" \"%s\"\n", name, mcfname);
+        f->printf("restorexmap sizes %d %d %d\n", ssize, cubicsize, numundo);
+        hexbinwrite(f, &hdr, sizeof(header));
+        f->printf("restorexmap header\n");
+        uLongf worldsize = cubicsize * sizeof(sqr), gzbufsize = (worldsize * 11) / 10;     // gzip the world, so the file will only be big instead of huge
+        uchar *gzbuf = new uchar[gzbufsize];
+        if(compress2(gzbuf, &gzbufsize, (uchar *)world, worldsize, 9) != Z_OK) gzbufsize = 0;
+        hexbinwrite(f, gzbuf, gzbufsize, false);
+        f->printf("restorexmap world\n");
+        DELETEA(gzbuf);
+        loopv(headerextras)
+        {
+            hexbinwrite(f, headerextras[i]->data, headerextras[i]->len);
+            f->printf("restorexmap headerextra %d  // %s\n", headerextras[i]->flags, hx_name(headerextras[i]->flags));
+        }
+        loopv(ents) // entities are stored as plain text - you may edit them
+        {
+            persistent_entity &e = ents[i];
+            f->printf("restorexmap ent %d  %d %d %d  %d %d %d %d // %s\n", e.type, e.x, e.y, e.z, e.attr1, e.attr2, e.attr3, e.attr4, e.type >= 0 && e.type < MAXENTTYPES ? entnames[e.type] : "unknown");
+        }
+        f->printf("restorexmap position %d %d %d %d %d  // EOF, don't touch this\n\n", position[0], position[1], position[2], position[3], position[4]);
+    }
+};
+
+static vector<xmap *> xmaps;
+static xmap *bak, *xmjigsaw;                               // only bak needs to be deleted before reuse
+
+#define SPEDIT if(noteditmode("xmap") || multiplayer()) return    // only allowed in non-coop editmode
+#define SPEDITDIFF if(noteditmode("xmap") || multiplayer() || nodiff()) return    // only allowed in non-coop editmode after xmap_diff
+
+void xmapdelete(xmap *&xm)  // make sure, we don't point to deleted xmaps
+{
+    DELETEP(xm);
+}
+
+void xmapbackup(const char *nickprefix, const char *nick)   // throw away existing backup and make a new one
+{
+    xmapdelete(bak);
+    defformatstring(text)("%s%s", nickprefix, nick);
+    bak = new xmap(text);
+    if(unsavededits) conoutf("\f3stored backup of unsaved edits on map '%s'; to restore, type \"/xmap_restore\"", bak->name);
+}
+
+const char *xmapdescstring(xmap *xm, bool shortform = false)
+{
+    static string s[2];
+    static int toggle;
+    toggle = !toggle;
+    formatstring(s[toggle])("\"%s\": %s rev %d, %d ents%c size %d, hdrs %d, %d undo steps", xm->nick, xm->name, xm->hdr.maprevision, xm->ents.length(),
+                        shortform ? '\0' : ',', xm->hdr.sfactor, xm->headerextras.length() - 1, xm->numundo);
+    return s[toggle];
+}
+
+xmap *getxmapbynick(const char *nick, int *index = NULL, bool errmsg = true)
+{
+    if(*nick) loopvrev(xmaps)
+    {
+        if(!strcmp(nick, xmaps[i]->nick))
+        {
+            if(index) *index = i;
+            return xmaps[i];
+        }
+    }
+    if(errmsg) conoutf("xmap \"%s\" not found", nick);
+    return NULL;
+}
+
+COMMANDF(xmap_list, "", ()                       // list xmaps (and status)
+{
+    loopv(xmaps) conoutf("xmap %d %s", i, xmapdescstring(xmaps[i]));
+    if(xmaps.length() == 0) conoutf("no xmaps in memory");
+    if(bak) conoutf("backup stored before %s", xmapdescstring(bak));
+} );
+
+COMMANDF(xmap_store, "s", (const char *nick)     // store current map in an xmap buffer
+{
+    if(noteditmode("xmap_store")) return;   // (may also be used in coopedit)
+    if(!*nick) return;
+    if(!validmapname(nick)) { conoutf("sry, %s is not a valid xmap nickname", nick); return; }
+    int i;
+    if(getxmapbynick(nick, &i, false)) { xmap *xm = xmaps.remove(i); xmapdelete(xm); }   // overwrite existing same nick
+    xmaps.add(new xmap(nick));
+    unsavededits = 0;
+    conoutf("stored xmap %s", xmapdescstring(xmaps.last()));
+} );
+
+COMMANDF(xmap_delete, "s", (const char *nick)     // delete xmap buffer
+{
+    if(!*nick) return;
+    int i;
+    if(getxmapbynick(nick, &i))
+    {
+        xmap *xm = xmaps.remove(i);
+        xmapdelete(xm);
+        conoutf("deleted xmap \"%s\"", nick);
+    }
+} );
+
+COMMANDF(xmap_restore, "s", (const char *nick)     // use xmap as current map
+{
+    SPEDIT;
+    if(*nick)
+    {
+        xmap *xm = getxmapbynick(nick);
+        if(!xm) return;
+        xmapbackup("restore_xmap_", nick);  // keep backup, so we can restore from the restore :)
+        xm->restore();
+        unsavededits = 0;
+        conoutf("restored xmap %s", xmapdescstring(xm));
+    }
+    else if(bak)
+    {
+        bak->restore();
+        unsavededits = 0;
+        conoutf("restored backup created before %s", xmapdescstring(bak));
+    }
+} );
+
+void restorexmap(char **args, int numargs)   // read an xmap from a cubescript file
+{
+    const char *cmdnames[] = { "version", "names", "sizes", "header", "world", "headerextra", "ent", "position" };
+    const char cmdnumarg[] = {         3,       2,       3,        0,       0,             1,     8,          5 };
+
+    if(!xmjigsaw || numargs < 1) return; // { conoutf("restorexmap out of context"); return; }
+    bool abort = false;
+    int cmd = -1;
+    loopi(sizeof(cmdnames)/sizeof(cmdnames[0])) if(!strcmp(cmdnames[i], args[0])) { cmd = i; break; }
+    if(cmd < 0 || numargs != cmdnumarg[cmd] + 1) { conoutf("restorexmap error"); return; }
+    switch(cmd)
+    {
+        case 0:     // version
+            if(ATOI(args[1]) != XMAPVERSION || ATOI(args[2]) != (isbigendian() ? 1 : 0) || ATOI(args[3]) != sizeof(world))
+            {
+                conoutf("restorexmap: file is from different game version");
+                abort = true;
+            }
+            break;
+        case 1:     // names
+            copystring(xmjigsaw->name, args[1]);
+            copystring(xmjigsaw->mcfname, args[2]);
+            break;
+        case 2:     // sizes
+            xmjigsaw->ssize = ATOI(args[1]);
+            xmjigsaw->cubicsize = ATOI(args[2]);
+            xmjigsaw->numundo = ATOI(args[3]);
+            break;
+        case 3:     // header
+            if(hexbin.length() == sizeof(header)) memcpy(&xmjigsaw->hdr, hexbin.getbuf(), sizeof(header));
+            else abort = true;
+            break;
+        case 4:     // world
+        {
+            int rawworldsize = xmjigsaw->cubicsize * sizeof(sqr);
+            xmjigsaw->world = new sqr[rawworldsize];
+            uLongf rawsize = rawworldsize;
+            if(uncompress((uchar *)xmjigsaw->world, &rawsize, hexbin.getbuf(), hexbin.length()) != Z_OK || rawsize - rawworldsize != 0) abort = true;
+            break;
+        }
+        case 5:     // headerextra
+            xmjigsaw->headerextras.add(new headerextra(hexbin.length(), ATOI(args[1]), hexbin.getbuf()));
+            break;
+        case 6:     // ent
+        {
+            persistent_entity &e = xmjigsaw->ents.add();
+            int a[8];
+            loopi(8) a[i] = ATOI(args[i + 1]);
+            e.type = a[0]; e.x = a[1]; e.y = a[2]; e.z = a[3]; e.attr1 = a[4]; e.attr2 = a[5]; e.attr3 = a[6]; e.attr4 = a[7];
+            break;
+        }
+        case 7:     // position - this is also the last command and will finish the xmap
+        {
+            loopi(5) xmjigsaw->position[i] = ATOI(args[i + 1]);
+            int i;
+            if(getxmapbynick(xmjigsaw->nick, &i, false)) { xmap *xm = xmaps.remove(i); xmapdelete(xm); }   // overwrite existing same nick
+            if(!xmjigsaw->world) abort = true;
+            else
+            {
+                xmaps.add(xmjigsaw);
+                xmjigsaw = NULL;  // no abort!
+            }
+        }
+    }
+    hexbin.setsize(0);
+    if(abort) DELETEP(xmjigsaw);
+}
+COMMAND(restorexmap, "v");
+
+static const char *bakprefix = "__.backup.__", *xmapspath = "mapediting/xmaps";
+char *xmapfilename(const char *nick, const char *prefix = "") { static defformatstring(fn)("%s/%s%s.xmap", xmapspath, prefix, nick); return fn; }
+
+void writexmap(xmap *xm, const char *prefix = "")
+{
+    stream *f = openfile(xmapfilename(xm->nick, prefix), "w");
+    xm->write(f);
+    delete f;
+}
+
+void writeallxmaps()   // at game exit, write all xmaps to cubescript files in mapediting/xmaps
+{
+    if(!persistentxmaps) return;
+    loopv(xmaps) writexmap(xmaps[i]);
+    if(unsavededits) xmapbackup("gameend", "");
+    if(bak) writexmap(bak, bakprefix);
+}
+
+void loadxmap(const char *nick)
+{
+    DELETEP(xmjigsaw);
+    xmjigsaw = new xmap();
+    copystring(xmjigsaw->nick, nick);
+    hexbinenabled = true;
+    execfile(xmapfilename(nick));
+    hexbinenabled = false;
+    hexbin.setsize(0);    // just to make sure
+}
+
+int loadallxmaps()     // at game start, load all xmaps from mapediting/xmaps
+{
+    vector<char *> xmapnames;
+    string filename;
+    listfiles(xmapspath, "xmap", xmapnames);
+    xmapnames.sort(stringsort);
+    loopv(xmapnames)
+    {
+        loadxmap(xmapnames[i]);
+        copystring(filename, xmapfilename(xmapnames[i]));
+        backup(filename, xmapfilename(xmapnames[i], "backups/"));   // move to backup folder - we will write new files at exit
+        delete[] xmapnames[i];
+    }
+    loopv(xmaps) if(!strncmp(xmaps[i]->nick, bakprefix, strlen(bakprefix)))
+    {
+        xmapdelete(bak);
+        bak = xmaps.remove(i);
+        copystring(bak->nick, bak->nick + strlen(bakprefix));
+        break;
+    }
+    return xmapnames.length();
 }

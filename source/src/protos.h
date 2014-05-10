@@ -403,7 +403,7 @@ struct serverstate { int autoteam; int mastermode; int matchteamsize; void reset
 extern struct serverstate servstate;
 extern void updateworld(int curtime, int lastmillis);
 extern void resetmap(bool mrproper = true);
-extern void startmap(const char *name, bool reset = true);
+extern void startmap(const char *name, bool reset = true, bool norespawn = false);
 extern void changemap(const char *name);
 extern void initclient();
 extern void deathstate(playerent *pl);
@@ -500,7 +500,9 @@ extern void removedynlights(physent *owner);
 extern block *blockcopy(const block &b);
 extern void blockpaste(const block &b, int bx, int by, bool light);
 extern void blockpaste(const block &b);
+extern void freeblockp(block *b);
 extern void freeblock(block *&b);
+extern block *duplicateblock(const block *s);
 
 // worldrender
 extern void render_world(float vx, float vy, float vh, float changelod, int yaw, int pitch, float fov, float fovy, int w, int h);
@@ -591,8 +593,10 @@ extern void editheightxy(bool isfloor, int amount, block &sel);
 //extern bool noteditmode();
 extern bool noteditmode(const char* func = NULL);
 extern void pruneundos(int maxremain = 0);
+extern void storeposition(short p[]);
+extern void restoreposition(short p[]);
 extern void restoreeditundo(ucharbuf &q);
-extern void backupeditundo(vector<uchar> &buf, int undolimit, int redolimit);
+extern int backupeditundo(vector<uchar> &buf, int undolimit, int redolimit);
 
 // renderhud
 enum
@@ -680,6 +684,9 @@ extern uchar *readmcfggz(char *name, int *size, int *sizegz);
 extern void rlencodecubes(vector<uchar> &f, sqr *s, int len, bool preservesolids);
 extern void rldecodecubes(ucharbuf &f, sqr *s, int len, int version, bool silent);
 extern void clearheaderextras();
+extern void xmapbackup(const char *nickprefix, const char *nick);
+extern void writeallxmaps();
+extern int loadallxmaps();
 
 // physics
 extern float raycube(const vec &o, const vec &ray, vec &surface);

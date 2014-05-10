@@ -946,6 +946,8 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             formatstring(c_val)("%d", xtraverts);
             c_num = xtraverts>3999?(xtraverts>5999?(xtraverts>7999?3:2):1):0; TXTCOLRGB
             draw_text(c_val, ttll - text_width(c_val), top+320, c_r, c_g, c_b);
+
+            if(unsavededits) draw_text("U", ttll - text_width("U"), top - 90);
         }
         else
         {
@@ -966,6 +968,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             }
             defformatstring(c_val)("fps %d", curfps);
             draw_text(c_val, VIRTW*2 - ( text_width(c_val) + FONTH ), VIRTH*2 - 3*FONTH/2);
+            if(unsavededits) draw_text("U", VIRTW*2 - text_width("U") - FONTH, VIRTH*2 - 5*FONTH/2);
         }
     }
     if(!intermission && clockdisplay!=0 && lastgametimeupdate!=0)

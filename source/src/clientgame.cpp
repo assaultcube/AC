@@ -1117,15 +1117,16 @@ COMMAND(showmapstats, "");
 VARP(showmodedescriptions, 0, 1, 1);
 extern bool canceldownloads;
 
-void startmap(const char *name, bool reset)   // called just after a map load
+void startmap(const char *name, bool reset, bool norespawn)   // called just after a map load
 {
     canceldownloads = false;
     copystring(clientmap, name);
+
+    if(norespawn) return;
+
     sendmapidenttoserver = true;
-    // Added by Rick
     if(m_botmode) BotManager.BeginMap(name);
     else kickallbots();
-    // End add by Rick
     clearbounceents();
     preparectf(!m_flags);
     suicided = -1;

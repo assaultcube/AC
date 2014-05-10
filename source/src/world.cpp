@@ -191,6 +191,7 @@ void entproperty(int prop, int amount)
                 loc->drop();
     }
     if(changedents.find(n) == -1) changedents.add(n);   // apply ent changes later (reduces network traffic)
+    unsavededits = 1;
 }
 
 hashtable<char *, enet_uint32> mapinfo, &resdata = mapinfo;
@@ -246,6 +247,7 @@ void delent()
     {
         case LIGHT: calclight(); break;
     }
+    unsavededits = 1;
 }
 
 int findtype(char *what)
@@ -310,6 +312,7 @@ entity *newentity(int index, int x, int y, int z, char *what, int v1, int v2, in
         case LIGHT: calclight(); break;
         case SOUND: audiomgr.preloadmapsound(e); break;
     }
+    unsavededits = 1;
     return index<0 ? &ents.last() : &ents[index];
 }
 
@@ -333,6 +336,7 @@ void clearents(char *name)
     {
         entity &e = ents[i];
         if(e.type==type) e.type = NOTUSED;
+        unsavededits = 1;
     }
     switch(type)
     {
@@ -365,6 +369,7 @@ void scalelights(int f, int intens)
             scalecomp(e.attr3, intens);
             scalecomp(e.attr4, intens);
         }
+        unsavededits = 1;
     }
     calclight();
 }
@@ -460,6 +465,7 @@ bool empty_world(int factor, bool force)    // main empty world creation routine
     if(copy && oldfactor == factor) return false;
     bool shrink = factor < oldfactor;
     bool clearmap = !copy && world;
+    if(clearmap && unsavededits) { xmapbackup("newmap", ""); unsavededits = 0; }
     if(copy) ow = blockcopy(shrink ? bs : be);
 
     extern char *mlayout;
@@ -491,6 +497,7 @@ bool empty_world(int factor, bool force)    // main empty world creation routine
     }
     else
     {   // all-new map
+        int oldunsavededits = unsavededits;
         memset(&hdr, 0, sizeof(header));
         formatstring(hdr.maptitle)("Untitled Map by %s", player1->name);
         setvar("waterlevel", (hdr.waterlevel = -100000));
@@ -500,6 +507,7 @@ bool empty_world(int factor, bool force)    // main empty world creation routine
         block b = { 8, 8, ssize-16, ssize - 16};
         edittypexy(SPACE, b);
         clearheaderextras();
+        unsavededits = oldunsavededits;
     }
     strncpy(hdr.head, "ACMP", 4);
     hdr.version = MAPVERSION;
@@ -744,6 +752,7 @@ void mapmrproper(bool manual)
         conoutf("before: %d / %d / %d / %d / %d / %d / %d", sta[0], sta[1], sta[2], sta[3], sta[4], sta[5], sta[6]);
         conoutf("idealized: %d / %d / %d / %d / %d / %d / %d", stb[0], stb[1], stb[2], stb[3], stb[4], stb[5], stb[6]);
         conoutf("final count: %d / %d / %d / %d / %d / %d / %d", stc[0], stc[1], stc[2], stc[3], stc[4], stc[5], stc[6]);
+        unsavededits = 1;
     }
 }
 COMMANDF(mapmrproper, "", () { mapmrproper(true); });

@@ -38,6 +38,7 @@ void quit()                     // normal exit
     if(resetcfg) deletecfg();
     else writecfg();
     savehistory();
+    writeallxmaps();
     cleanup(NULL);
     popscontext();
     exit(EXIT_SUCCESS);
@@ -1176,6 +1177,8 @@ int main(int argc, char **argv)
     exec("config/admin.cfg");
     execfile("config/servers.cfg");
     loadhistory();
+    int xmn = loadallxmaps();
+    if(xmn) conoutf("loaded %d xmaps", xmn);
     per_idents = true;
 
     static char resdata[] = { 112, 97, 99, 107, 97, 103, 101, 115, 47, 116, 101, 120, 116, 117, 114, 101, 115, 47, 107, 117, 114, 116, 47, 107, 108, 105, 116, 101, 50, 46, 106, 112, 103, 0 };

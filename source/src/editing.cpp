@@ -24,6 +24,7 @@ int lasttype = 0, lasttex = 0;
 sqr rtex;
 
 VAR(editing, 1, 0, 0);
+VAR(unsavededits, 1, 0, 0);
 
 bool editmetakeydown = false;
 COMMANDF(editmeta, "d", (bool on) { editmetakeydown = on; } );
@@ -302,12 +303,12 @@ void pruneundos(int maxremain)                          // bound memory
     loopvrev(undos)
     {
         u += undos[i]->xs * undos[i]->ys;
-        if(u > maxremain) delete[] (uchar *)undos.remove(i);
+        if(u > maxremain) freeblockp(undos.remove(i));
     }
     loopvrev(redos)
     {
         r += redos[i]->xs * redos[i]->ys;
-        if(r > maxremain) delete[] (uchar *)redos.remove(i);
+        if(r > maxremain) freeblockp(redos.remove(i));
     }
 }
 
@@ -323,6 +324,7 @@ void makeundo(block &sel)
     storeposition(sel.p);
     undos.add(blockcopy(sel));
     pruneundos(undomegs<<20);
+    unsavededits = 1;
 }
 
 void restoreposition(short p[])
@@ -350,6 +352,7 @@ void editundo()
     if(editmetakeydown) restoreposition(*p);
     blockpaste(*p);
     freeblock(p);
+    unsavededits = 1;
 }
 
 void editredo()
@@ -361,6 +364,7 @@ void editredo()
     if(editmetakeydown) restoreposition(*p);
     blockpaste(*p);
     freeblock(p);
+    unsavededits = 1;
 }
 
 extern int worldiodebug;
@@ -418,8 +422,9 @@ int rlencodeundo(int type, vector<uchar> &t, block *s)
     return t.length();
 }
 
-void backupeditundo(vector<uchar> &buf, int undolimit, int redolimit)
+int backupeditundo(vector<uchar> &buf, int undolimit, int redolimit)
 {
+    int numundo = 0;
     vector<uchar> tmp;
     loopvrev(undos)
     {
@@ -427,6 +432,7 @@ void backupeditundo(vector<uchar> &buf, int undolimit, int redolimit)
         undolimit -= rlencodeundo(10, tmp, undos[i]);
         if(undolimit < 0) break;
         buf.put(tmp.getbuf(), tmp.length());
+        numundo++;
         #ifdef _DEBUG
         if(worldiodebug) clientlogf("  written undo x %d, y %d, xs %d, ys %d, compressed length %d", undos[i]->x, undos[i]->y, undos[i]->xs, undos[i]->ys, tmp.length());
         #endif
@@ -442,6 +448,7 @@ void backupeditundo(vector<uchar> &buf, int undolimit, int redolimit)
         #endif
     }
     putuint(buf, 0);
+    return numundo;
 }
 
 vector<block *> copybuffers;
@@ -604,6 +611,7 @@ void edittex(int type, int dir)
         edittexxy(type, t, sels[i]);
         addmsg(SV_EDITT, "ri6", sels[i].x, sels[i].y, sels[i].xs, sels[i].ys, type, t);
     }
+    unsavededits = 1;
 }
 
 void settex(int texture, int type)
@@ -627,6 +635,7 @@ void settex(int texture, int type)
         edittexxy(type, t, sels[i]);
         addmsg(SV_EDITT, "ri6", sels[i].x, sels[i].y, sels[i].xs, sels[i].ys, type, t);
     }
+    unsavededits = 1;
 }
 
 void replace()
@@ -645,6 +654,7 @@ void replace()
     }
     block b = { 0, 0, ssize, ssize };
     remip(b);
+    unsavededits = 1;
 }
 
 void edittypexy(int type, block &sel)
@@ -846,6 +856,7 @@ void movemap(int xo, int yo, int zo) // move whole map
     entinmap(player1);
     calclight();
     resetmap(false);
+    unsavededits = 1;
 }
 
 void selfliprotate(block &sel, int dir)
@@ -961,6 +972,7 @@ void transformclipentities()  // transforms all clip entities to tag clips, if t
     while(thisrun);
     loopi(ssize) loopj(ssize) { sqr *s = S(i,j); if(s->tag & TAGCLIP) s->tag &= ~TAGPLCLIP; }
     conoutf("changed %d clip entities to tagged clip areas", total);
+    unsavededits = 1;
 }
 
 COMMAND(transformclipentities, "");
