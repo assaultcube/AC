@@ -134,14 +134,14 @@ bool source::gain(float g)
 {
     alclearerr();
     alSourcef(id, AL_GAIN, g);
-    return !ALERR;
+    return !ALERRF("gain: %f", g);
 }
 
 bool source::pitch(float p)
 {
     alclearerr();
     alSourcef(id, AL_PITCH, p);
-    return !ALERR;
+    return !ALERRF("pitch: %f", p);
 }
 
 bool source::position(const vec &pos)
@@ -153,14 +153,16 @@ bool source::position(float x, float y, float z)
 {
     alclearerr();
     alSource3f(id, AL_POSITION, x, y, z);
-    return !ALERR;
+    if(x < 0 || y < 0 || z < -128 || x > ssize || y > ssize || z > 128) clientlogf("warning: sound position out of range (%f,%f,%f)", x, y, z);
+    return !ALERRF("id %u, %d, x: %f, y: %f, z: %f", id, alIsSource(id) == AL_TRUE ? 1 : 0,  x, y, z);
+//    return !ALERRF("x: %f, y: %f, z: %f", x, y, z);   // when sound bug has been absent for a while, switch to this version
 }
 
 bool source::velocity(float x, float y, float z)
 {
     alclearerr();
     alSource3f(id, AL_VELOCITY, x, y, z);
-    return !ALERR;
+    return !ALERRF("dx: %f, dy: %f, dz: %f", x, y, z);
 }
 
 vec source::position()
@@ -391,7 +393,7 @@ void alclearerr()
     alGetError();
 }
 
-bool alerr(bool msg, int line)
+bool alerr(bool msg, int line, const char *s, ...)
 {
     ALenum er = alGetError();
     if(er && msg)
@@ -405,7 +407,12 @@ bool alerr(bool msg, int line)
             case AL_INVALID_OPERATION: desc = "invalid operation"; break;
             case AL_OUT_OF_MEMORY: desc = "out of memory"; break;
         }
-        if(line) conoutf("\f3OpenAL Error (%X): %s, line %d", er, desc, line);
+        if(s)
+        {
+            defvformatstring(p, s, s);
+            conoutf("\f3OpenAL Error (%X): %s, line %d, (%s)", er, desc, line, p);
+        }
+        else if(line) conoutf("\f3OpenAL Error (%X): %s, line %d", er, desc, line);
         else conoutf("\f3OpenAL Error (%X): %s", er, desc);
     }
     return er > 0;
