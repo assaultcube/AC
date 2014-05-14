@@ -845,9 +845,9 @@ bool checkchallenge(const char *answerstr, void *correct)
 
 ////////////////////////// crypto rand ////////////////////////////////////////
 
-#define N (624)             
-#define M (397)                
-#define K (0x9908B0DFU)       
+#define N (624)
+#define M (397)
+#define K (0x9908B0DFU)
 
 static uint state[N];
 static int next = N;

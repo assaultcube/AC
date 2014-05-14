@@ -387,15 +387,15 @@ public:
             case 3: ad = (int) (4.0f/25.0f * armour) + 25; break;         // 41
             default: break;
         }
-        
+
         //ra - reduced armor
         //rd - reduced damage
         int ra = (int) (ad * damage/100.0f);
         int rd = ra-(ra*(gi.piercing/100.0f)); //Who cares about rounding errors anyways?
-        
+
         armour -= ra;
         damage -= rd;
-            
+
         health -= damage;
         return damage;
     }

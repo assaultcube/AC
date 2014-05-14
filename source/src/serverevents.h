@@ -75,7 +75,7 @@ void processevent(client *c, shotevent &e)
                     int numhits_c = (h.info & 0x0000FF00) >> 8, numhits_m = (h.info & 0x00FF0000) >> 16, numhits_o = (h.info & 0xFF000000) >> 24;
                     tothits_c += numhits_c; tothits_m += numhits_m; tothits_o += numhits_o;
                     rays = numhits_c + numhits_m + numhits_o;
-                    
+
                     if(rays < 1 || tothits_c > SGRAYS || tothits_m > SGRAYS || tothits_o > SGRAYS || bonusdist > SGDMGBONUS) continue;
 
                     gib = rays == maxrays;

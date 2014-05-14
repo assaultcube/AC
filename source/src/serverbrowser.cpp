@@ -1299,7 +1299,7 @@ void retrieveservers(vector<char> &data)
     if(mastertype == AC_MASTER_HTTP)
     {
         CURL *curl = curl_easy_init();
-        
+
         char *pname = curl_easy_escape(curl, global_name, 0);
         string request;
         sprintf(request, "http://%s/retrieve.do?action=list&name=%s&version=%d&build=%d", mastername, pname, AC_VERSION, getbuildtype()|(1<<16));
@@ -1406,7 +1406,7 @@ void retrieveservers(vector<char> &data)
             if(timeout > RETRIEVELIMIT) break;
         }
         if(data.length()) data.add('\0');
-        enet_socket_destroy(sock); 
+        enet_socket_destroy(sock);
     }
 }
 

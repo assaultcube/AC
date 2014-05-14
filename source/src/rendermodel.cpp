@@ -45,12 +45,12 @@ void mdlalphatest(int *alphatest)
 COMMAND(mdlalphatest, "i");
 
 void mdlalphablend(int *alphablend) //ALX Alpha channel models
-{ 	 
+{
     checkmdl;
     loadingmodel->alphablend = *alphablend!=0;
 }
 COMMAND(mdlalphablend, "i");
-	 
+
 void mdlscale(int *percent)
 {
     checkmdl;

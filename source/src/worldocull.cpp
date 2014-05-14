@@ -80,7 +80,7 @@ static inline float ca(float x, float y) { return x>y ? y/x : 2-x/y; }
 static inline float ma(float x, float y) { return x==0 ? (y>0 ? 2 : -2) : y/x; }
 #endif
 
-int isoccluded(float vx, float vy, float cx, float cy, float csize)     // v = viewer, c = cube to test 
+int isoccluded(float vx, float vy, float cx, float cy, float csize)     // v = viewer, c = cube to test
 {
     // ABC
     // D E
@@ -127,7 +127,7 @@ int isoccluded(float vx, float vy, float cx, float cy, float csize)     // v = v
 
     float dist = xdist+ydist-1; // 1 needed?
     int si = int(h*(NUMRAYS/8))+NUMRAYS;     // get indexes into occlusion map from angles
-    int ei = int(l*(NUMRAYS/8))+NUMRAYS+1; 
+    int ei = int(l*(NUMRAYS/8))+NUMRAYS+1;
     if(ei<=si) ei += NUMRAYS;
 
     for(int i = si; i<=ei; i++)

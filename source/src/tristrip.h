@@ -11,7 +11,7 @@ struct tristrip
         GLsizei count;
 
         drawcall() {}
-        drawcall(GLenum type, GLuint start, GLsizei count = 0) : type(type), start(start), minvert(~0U), maxvert(0), count(count) {} 
+        drawcall(GLenum type, GLuint start, GLsizei count = 0) : type(type), start(start), minvert(~0U), maxvert(0), count(count) {}
     };
 
     enum
@@ -34,13 +34,13 @@ struct tristrip
             }
             if(dbgts && old==UNUSED) conoutf("excessive links");
             return false;
-        }    
- 
+        }
+
         void unlink(ushort neighbor, ushort unused = UNUSED)
         {
             loopi(3) if(n[i]==neighbor) n[i] = unused;
         }
- 
+
         int numlinks() const { int num = 0; loopi(3) if(n[i]<UNUSED) num++; return num; }
 
         bool hasvert(ushort idx) const { loopi(3) if(v[i]==idx) return true; return false; }
@@ -60,7 +60,7 @@ struct tristrip
         loopi(numtris)
         {
             triangle &tri = triangles.add();
-            loopj(3) 
+            loopj(3)
             {
                 tri.v[j] = tris[i].vert[j];
                 tri.n[j] = UNUSED;
@@ -141,8 +141,8 @@ struct tristrip
 
     ushort leastconnected()
     {
-        loopi(4) if(!connectivity[i].empty()) 
-        { 
+        loopi(4) if(!connectivity[i].empty())
+        {
             ushort least = connectivity[i].pop();
             removeconnectivity(least);
             return least;
@@ -173,8 +173,8 @@ struct tristrip
         {
             triangle &nexttri = triangles[tri.n[i]];
             int score = nexttri.numlinks();
-            bool swap = false; 
-            if(v1!=UNUSED) 
+            bool swap = false;
+            if(v1!=UNUSED)
             {
                 if(!nexttri.hasvert(v1))
                 {
@@ -188,7 +188,7 @@ struct tristrip
             }
             if(score < nextscore) { next = tri.n[i]; nextswap = swap; nextscore = score; }
         }
-        if(next!=UNUSED) 
+        if(next!=UNUSED)
         {
             tri.unlink(next, REMOVED);
             connectivity[triangles[next].numlinks()].replacewithlast(next);
@@ -209,9 +209,9 @@ struct tristrip
             loopi(3) strip.add(first.v[!prims && reverse && i>=1 ? 3-i : i]);
             return;
         }
-        int from = findedge(first, triangles[cur]), 
+        int from = findedge(first, triangles[cur]),
             to = findedge(first, triangles[cur], first.v[from]);
-        if(from+1!=to) swap(from, to); 
+        if(from+1!=to) swap(from, to);
         strip.add(first.v[(to+1)%3]);
         if(reverse) swap(from, to);
         strip.add(first.v[from]);
@@ -252,7 +252,7 @@ struct tristrip
             if(!strips.empty() && degen) { strips.dup(); strips.add(strip[0]); }
             else draws.add(drawcall(GL_TRIANGLE_STRIP, strips.length()));
             drawcall &d = draws.last();
-            loopv(strip) 
+            loopv(strip)
             {
                 ushort index = strip[i];
                 strips.add(index);
@@ -264,7 +264,7 @@ struct tristrip
         if(prims && !singles.empty())
         {
             drawcall &d = draws.add(drawcall(GL_TRIANGLES, strips.length()));
-            loopv(singles) 
+            loopv(singles)
             {
                 ushort index = singles[i];
                 strips.add(index);
@@ -280,4 +280,4 @@ struct tristrip
 
 static inline uint hthash(const tristrip::edge &x) { return x.from^x.to; }
 static inline bool htcmp(const tristrip::edge &x, const tristrip::edge &y) { return x.from==y.from && x.to==y.to; }
-            
+

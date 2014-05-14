@@ -920,7 +920,7 @@ int pckserversort(pckserver **a, pckserver **b)
 {
     if((*a)->ping < 0) return ((*b)->ping < 0) ? 0 : 1;
     if((*b)->ping < 0) return -1;
-    
+
     return (*a)->ping == (*b)->ping ? 0 : ((*a)->ping < (*b)->ping ? -1 : 1);
 }
 

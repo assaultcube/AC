@@ -1306,7 +1306,7 @@ int main(int argc, char **argv)
             // in the screenshot regardless of which frame buffer is current
             if (!minimized)
             {
-                gl_drawframe(screen->w, screen->h, fps<lowfps ? fps/lowfps : (fps>highfps ? fps/highfps : 1.0f), fps);           
+                gl_drawframe(screen->w, screen->h, fps<lowfps ? fps/lowfps : (fps>highfps ? fps/highfps : 1.0f), fps);
             }
             addsleep(0, "screenshot");
             needsautoscreenshot = false;

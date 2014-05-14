@@ -403,9 +403,9 @@ void editdrag(bool isdown)
         lasty = cy;
         lasth = ch;
         tofronttex();
-        
+
         bool ctrlpressed = false;
-        
+
         if (identexists("newselkeys"))
         {
             extern vector<keym> keyms;

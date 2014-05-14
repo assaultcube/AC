@@ -438,7 +438,7 @@ char *conc(char **w, int n, bool space)
     {
         strcat(r, w[i]);  // make string-list out of all arguments
         if(i==n-1) break;
-        bool col = w[i][0] == '\f' && w[i][2] == '\0';
+        bool col = w[i][0] == '\f' && w[i][1] && w[i][2] == '\0';
         if(space && !col) strcat(r, " ");
     }
     return r;
@@ -1128,7 +1128,7 @@ void looplist(char *list, char *var, char *body)
         if(loop_break)
         {
             loop_break = false;
-            break;
+            break;   // FIXME (leaking memory)
         }
     }
     popident(*id);
@@ -1282,11 +1282,11 @@ char *strreplace(char *dest, const char *source, const char *search, const char 
 int stringsort(const char **a, const char **b) { return strcmp(*a, *b); }
 
 void sortlist(char *list)
- {
+{
     char* buf;
     buf = new char [strlen(list)]; strcpy(buf, ""); //output
 
-    if(strcmp(list, "") == 0)
+    if(*list == '\0')
     {
         //no input
         result(buf);
@@ -1295,7 +1295,7 @@ void sortlist(char *list)
     }
 
     vector<char *> elems;
-    explodelist(list, elems);
+    explodelist(list, elems);    // FIXME (leaking memory)
     elems.sort(stringsort);
 
     strcpy(buf, elems[0]);
@@ -1314,7 +1314,7 @@ void sortlist(char *list)
     char* buf;
     buf = new char [strlen(list)]; strcpy(buf, ""); //output
 
-    if(strcmp(list, "") == 0)
+    if(*list == '\0')
     {
         // no input
          result(buf);
@@ -1328,12 +1328,12 @@ void sortlist(char *list)
     vector<char *> swap;
     explodelist(v, swap);
 
-    if (strcmp(v, "") == 0 || //no input
-    swap.length()%2 != 0) //incorrect input
+    if(*v == '\0' || //no input
+       swap.length()%2 != 0) //incorrect input
     {
         result(buf);
         delete [] buf;
-        return;
+        return;  // FIXME (leaking memory)
     }
 
     char tmp[255]; strcpy (tmp, "");
@@ -1357,6 +1357,7 @@ void sortlist(char *list)
 
     result(buf); //result
     delete [] buf;
+    // FIXME (leaking memory)
  }
 
 COMMANDN(c, colora, "s");
@@ -1606,7 +1607,7 @@ void substr_(char *fs, int *pa, int *len)
     if(ia>fslen || ia < 0 || ilen < 0) return;
 
     if(!ilen) ilen = fslen-ia;
-    (fs+ia)[ilen] = '\0';
+    if(ilen >= 0 && ilen < int(strlen(fs+ia))) (fs+ia)[ilen] = '\0';
     result(fs+ia);
 }
 
