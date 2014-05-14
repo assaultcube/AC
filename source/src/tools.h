@@ -163,8 +163,25 @@ inline bool issimilar (char s, char d)
 #define MAXMAPNAMELEN 64
 inline bool validmapname(char *s)
 {
-    if(strlen(s) > MAXMAPNAMELEN) return false;
-    while(*s != '\0') 
+    int len = strlen(s);
+    if(len > MAXMAPNAMELEN) return false;
+    if(len == 3 || len == 4)
+    {
+        char uc[4];
+        loopi(3) uc[i] = toupper(s[i]);
+        uc[3] = '\0';
+        const char *resd = "COMLPTCONPRNAUXNUL", *fnd = strstr(resd, uc);
+        if(fnd)
+        {
+            int pos = (int) (fnd - resd);
+            if(pos == 0 || pos == 3)
+            {
+                if(isdigit(s[3])) return false; // COMx, LPTx
+            }
+            else if(pos % 3 == 0) return false; // CON, PRN, AUX, NUL
+        }
+    }
+    while(*s != '\0')
     {
         if(!isalnum(*s) && *s != '_' && *s != '-' && *s != '.') return false;
         ++s;
