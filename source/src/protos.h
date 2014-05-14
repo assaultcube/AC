@@ -344,7 +344,8 @@ extern void setuptmu(int n, const char *rgbfunc = NULL, const char *alphafunc = 
 struct zone { int x1, x2, y1, y2, color; }; // zones (drawn on the minimap)
 
 // rendercubes
-extern void mipstats(int a, int b, int c);
+extern void mipstats(const int a[]);
+extern bool editfocusdetails(sqr *s);
 extern void render_flat(int tex, int x, int y, int size, int h, sqr *l1, sqr *l2, sqr *l3, sqr *l4, bool isceil);
 extern void render_flatdelta(int wtex, int x, int y, int size, float h1, float h2, float h3, float h4, sqr *l1, sqr *l2, sqr *l3, sqr *l4, bool isceil);
 extern void render_square(int wtex, float floor1, float floor2, float ceil1, float ceil2, int x1, int y1, int x2, int y2, int size, sqr *l1, sqr *l2, bool topleft, int dir);
@@ -474,6 +475,7 @@ extern void teamflagscores(int &team1, int &team2);
 
 // world
 extern void setupworld(int factor);
+extern void sqrdefault(sqr *s);
 extern bool worldbordercheck(int x1, int x2, int y1, int y2, int z1, int z2);
 extern bool empty_world(int factor, bool force);
 extern void remip(const block &b, int level = 0);
@@ -483,6 +485,7 @@ extern int findtype(char *what);
 extern int findentity(int type, int index = 0);
 extern int findentity(int type, int index, uchar attr2);
 extern entity *newentity(int index, int x, int y, int z, char *what, int v1, int v2, int v3, int v4);
+extern void mapmrproper(bool manual);
 
 // worldlight
 extern int lastcalclight;
@@ -577,6 +580,7 @@ extern void text_endcolumns();
 extern void cursorupdate();
 extern void toggleedit(bool force = false);
 extern char *editinfo();
+extern void makeundo(block &sel);
 extern void editdrag(bool isdown);
 extern void checkselections();
 extern void setvdeltaxy(int delta, block &sel);
@@ -593,6 +597,8 @@ enum
 {
     HUDMSG_INFO = 0,
     HUDMSG_TIMER,
+    HUDMSG_MIPSTATS,
+    HUDMSG_EDITFOCUS,
 
     HUDMSG_TYPE = 0xFF,
     HUDMSG_OVERWRITE = 1<<8
@@ -682,7 +688,6 @@ extern void mousemove(int dx, int dy);
 extern void fixcamerarange(physent *cam = camera1);
 extern void updatecrouch(playerent *p, bool on);
 extern bool objcollide(physent *d, const vec &objpos, float objrad, float objheight);
-extern bool collide(physent *d, bool spawn = false, float drop = 0, float rise = 0, int level = 7);
 extern void attack(bool on);
 extern void vecfromyawpitch(float yaw, float pitch, int move, int strafe, vec &m);
 extern void vectoyawpitch(const vec &v, float &yaw, float &pitch);

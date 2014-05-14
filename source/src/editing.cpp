@@ -25,6 +25,9 @@ sqr rtex;
 
 VAR(editing, 1, 0, 0);
 
+bool editmetakeydown = false;
+COMMANDF(editmeta, "d", (bool on) { editmetakeydown = on; } );
+
 void toggleedit(bool force)
 {
     if(player1->state==CS_DEAD) return;                   // do not allow dead players to edit to avoid state confusion
@@ -96,7 +99,7 @@ char *editinfo()
     if(selset()) concatformatstring(info, "selection = (%d, %d)", (sels.last()).xs, (sels.last()).ys);
     else concatformatstring(info, "no selection");
     sqr *s;
-    if(!OUTBORD(cx, cy) && (s = S(cx,cy)) && !SOLID(s) && s->tag) concatformatstring(info, ", tag 0x%02X", s->tag);
+    if(!OUTBORD(cx, cy) && (s = S(cx,cy)) && !editfocusdetails(s) && !SOLID(s) && s->tag) concatformatstring(info, ", tag 0x%02X", s->tag);
     return info;
 }
 
@@ -195,7 +198,7 @@ void cursorupdate()                                     // called every frame fr
         if(OUTBORD(cx, cy)) return;
     }
 
-    if(dragging) { makesel(false); };
+    if(dragging) makesel(false);
 
     const int GRIDSIZE = 5;
     const float GRIDW = 0.5f;
@@ -289,23 +292,43 @@ void cursorupdate()                                     // called every frame fr
     glLineWidth(1);
 }
 
-vector<block *> undos;                                  // unlimited undo
-VAR(undomegs, 0, 1, 10);                                // bounded by n megs
+vector<block *> undos, redos;                           // unlimited undo
+VAR(undomegs, 0, 5, 50);                                // bounded by n megs
 
 void pruneundos(int maxremain)                          // bound memory
 {
-    int t = 0;
+    int u = 0, r = 0;
+    maxremain /= sizeof(sqr);
     loopvrev(undos)
     {
-        t += undos[i]->xs*undos[i]->ys*sizeof(sqr);
-        if(t>maxremain) delete[] (uchar *)undos.remove(i);
+        u += undos[i]->xs * undos[i]->ys;
+        if(u > maxremain) delete[] (uchar *)undos.remove(i);
+    }
+    loopvrev(redos)
+    {
+        r += redos[i]->xs * redos[i]->ys;
+        if(r > maxremain) delete[] (uchar *)redos.remove(i);
     }
 }
 
 void makeundo(block &sel)
 {
+    loopi(3) sel.p[i] = player1->o.v[i] * DMF;
+    sel.p[3] = player1->yaw;
+    sel.p[4] = player1->pitch;
     undos.add(blockcopy(sel));
     pruneundos(undomegs<<20);
+}
+
+void restoreposition(block &sel)
+{
+    loopi(3) player1->o.v[i] = float(sel.p[i]) / DMF;
+    player1->yaw = sel.p[3];
+    player1->pitch = sel.p[4];
+    player1->resetinterp();
+    resetselections();
+    addselection(sel.x, sel.y, sel.xs, sel.ys, sel.h); // select undone area
+    checkselections();
 }
 
 void editundo()
@@ -313,6 +336,19 @@ void editundo()
     EDITMP;
     if(undos.empty()) { conoutf("nothing more to undo"); return; }
     block *p = undos.pop();
+    redos.add(blockcopy(*p));
+    if(editmetakeydown) restoreposition(*p);
+    blockpaste(*p);
+    freeblock(p);
+}
+
+void editredo()
+{
+    EDITMP;
+    if(redos.empty()) { conoutf("nothing more to redo"); return; }
+    block *p = redos.pop();
+    undos.add(blockcopy(*p));
+    if(editmetakeydown) restoreposition(*p);
     blockpaste(*p);
     freeblock(p);
 }
@@ -344,7 +380,7 @@ void paste()
 
     loopv(sels)
     {
-        block &sel = sels[i];
+        block sel = sels[i];
         int selx = sel.x;
         int sely = sel.y;
 
@@ -361,7 +397,6 @@ void paste()
             makeundo(sel);
             blockpaste(*copyblock, sel.x, sel.y, true);
         }
-        remipmore(sel);
     }
 }
 
@@ -403,28 +438,20 @@ void editdrag(bool isdown)
         lasty = cy;
         lasth = ch;
         tofronttex();
-        
-        bool ctrlpressed = false;
-        
-        if (identexists("newselkeys"))
-        {
-            extern vector<keym> keyms;
-            vector<char *> elems;
-            explodelist(getalias("newselkeys"), elems);
 
-            loopi(keyms.length()) if(keyms[i].pressed) loopj(elems.length())
-            {
-                if (strcmp(keyms[i].name, elems[j]) == 0)
-                {
-                    ctrlpressed = true;
-                    break;
-                }
-            }
-        }
-
-        if(!ctrlpressed) resetselections();
+        if(!editmetakeydown) resetselections();
     }
     makesel(isdown);
+    if(!isdown) for(int i = sels.length() - 2; i >= 0; i--)
+    {
+        block &a = sels.last(), &b = sels[i];
+        if(a.x == b.x && a.y == b.y && a.xs == b.xs && a.ys == b.ys)
+        { // making a selection twice will deselect both of it
+            sels.drop();
+            sels.remove(i);
+            break;
+        }
+    }
 }
 
 // the core editing function. all the *xy functions perform the core operations
@@ -540,11 +567,13 @@ void edittype(int type)
     loopv(sels)
     {
         block &sel = sels[i];
-        if(type==CORNER && (sel.xs!=sel.ys || sel.xs==3 || (sel.xs>4 && sel.xs!=8)
-                       || sel.x&~-sel.xs || sel.y&~-sel.ys))
-                       { conoutf("corner selection must be power of 2 aligned"); return; }
-        edittypexy(type, sel);
-        addmsg(SV_EDITS, "ri5", sel.x, sel.y, sel.xs, sel.ys, type);
+        if(type == CORNER && (sel.xs != sel.ys || sel.xs != (1 << (ffs(sel.xs) - 1)) || (sel.x | sel.y) & (sel.xs - 1)))
+            conoutf("corner selection must be power of 2 aligned");
+        else
+        {
+            edittypexy(type, sel);
+            addmsg(SV_EDITS, "ri5", sel.x, sel.y, sel.xs, sel.ys, type);
+        }
     }
 }
 
@@ -655,7 +684,7 @@ void perlin(int scale, int seed, int psize)
     EDITSELMP;
     loopv(sels)
     {
-        block &sel = sels[i];
+        block sel = sels[i];
         sel.xs++;
         sel.ys++;
         makeundo(sel);
@@ -665,8 +694,6 @@ void perlin(int scale, int seed, int psize)
         sel.xs++;
         sel.ys++;
         remipmore(sel);
-        sel.xs--;
-        sel.ys--;
     }
 }
 
@@ -714,7 +741,7 @@ void movemap(int xo, int yo, int zo) // move whole map
             S(x,y)->floor = max(-128, S(x,y)->floor + zo);
             S(x,y)->ceil = min(127, S(x,y)->ceil + zo);
         }
-        hdr.waterlevel += zo;
+        setvar("waterlevel", (hdr.waterlevel += zo));
     }
     loopv(ents)
     {
@@ -761,21 +788,18 @@ void selfliprotate(block &sel, int dir)
 void selectionrotate(int dir)
 {
     EDITSELMP;
-    dir %= 4;
-    if(dir < 0) dir += 4;
+    dir &= 3;
     if(!dir) return;
     loopv(sels)
     {
         block &sel = sels[i];
-        if(sel.xs != sel.ys) dir = 2;
-        selfliprotate(sel, dir);
+        if(sel.xs == sel.ys || dir ==  2) selfliprotate(sel, dir);
     }
 }
 
 void selectionflip(char *axis)
 {
     EDITSELMP;
-    if(!axis || !*axis) return;
     char c = toupper(*axis);
     if(c != 'X' && c != 'Y') return;
     loopv(sels) selfliprotate(sels[i], c == 'X' ? 11 : 12);
@@ -791,6 +815,7 @@ COMMAND(arch, "i");
 COMMANDF(slope, "ii", (int *xd, int *yd) { slope(*xd, *yd); });
 COMMANDF(vdelta, "i", (int *d) { setvdelta(*d); });
 COMMANDN(undo, editundo, "");
+COMMANDN(redo, editredo, "");
 COMMAND(copy, "");
 COMMAND(paste, "");
 COMMANDF(edittex, "ii", (int *type, int *dir) { edittex(*type, *dir); });
