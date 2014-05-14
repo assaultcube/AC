@@ -337,7 +337,7 @@ bool preparedir(const char *destination)
         dirs.add(newstring(dir));
         copystring(dir, parentdir(dir));
     }
-    
+
     loopvrev(dirs) if(!createdir(dirs[i])) return false;
     return true;
 }

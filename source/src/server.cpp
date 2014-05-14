@@ -25,7 +25,7 @@ killmessagesfile killmsgs;
 bool isdedicated = false;
 ENetHost *serverhost = NULL;
 
-int nextstatus = 0, servmillis = 0, lastfillup = 0;
+int laststatus = 0, servmillis = 0, lastfillup = 0;
 
 vector<client *> clients;
 vector<worldstate *> worldstates;
@@ -492,10 +492,10 @@ const char *getDemoFilename(int gmode, int mplay, int mdrop, int tstamp, char *s
     // %w : timestamp "when"
     static string dmofn;
     copystring(dmofn, "");
-    
+
     int cc = 0;
     int mc = strlen(DEMOFORMAT);
-    
+
     while(cc<mc)
     {
         switch(DEMOFORMAT[cc])
@@ -1565,8 +1565,8 @@ int canspawn(client *c)   // beware: canspawn() doesn't check m_arena!
 {
     if(!c || c->type == ST_EMPTY || !c->isauthed || !team_isvalid(c->team) ||
         (c->type == ST_TCPIP && (c->state.lastdeath > 0 ? gamemillis - c->state.lastdeath : servmillis - c->connectmillis) < (m_arena ? 0 : (m_flags ? 5000 : 2000))) ||
-        (servmillis - c->connectmillis < 1000 + c->state.reconnections * 2000 &&
-          gamemillis > 10000 && totalclients > 3 && !team_isspect(c->team))) return SP_OK_NUM; // equivalent to SP_DENY
+        (c->type == ST_TCPIP && (servmillis - c->connectmillis < 1000 + c->state.reconnections * 2000 &&
+          gamemillis > 10000 && totalclients > 3 && !team_isspect(c->team)))) return SP_OK_NUM; // equivalent to SP_DENY
     if(!c->isonrightmap) return SP_WRONGMAP;
     if(mastermode == MM_MATCH && matchteamsize)
     {
@@ -3906,9 +3906,9 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
         lastThrottleEpoch = serverhost->bandwidthThrottleEpoch;
     }
 
-    if(servmillis>nextstatus)   // display bandwidth stats, useful for server ops
+    if(servmillis - laststatus > 60 * 1000)   // display bandwidth stats, useful for server ops
     {
-        nextstatus = servmillis + 60 * 1000;
+        laststatus = servmillis;
         rereadcfgs();
         if(nonlocalclients || serverhost->totalSentData || serverhost->totalReceivedData)
         {
@@ -4128,6 +4128,7 @@ void localconnect()
     client &c = addclient();
     c.type = ST_LOCAL;
     c.role = CR_ADMIN;
+    c.salt = 0;
     copystring(c.hostname, "local");
     sendservinfo(c);
 }

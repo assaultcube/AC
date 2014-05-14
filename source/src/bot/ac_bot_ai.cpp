@@ -46,7 +46,7 @@ bool CACBot::ChoosePreferredWeapon()
     {
         sWeaponScore = 0; // Minimal score for a weapon
         sWeaponScore = i > 1 ? 5 : 0; // Primary are usually better
-        
+
         if (!m_pMyEnt->mag[i] && WeaponInfoTable[i].eWeaponType != TYPE_MELEE)
         {
              continue;
@@ -127,7 +127,7 @@ bool CACBot::ChoosePreferredWeapon()
     if (WeaponInfoTable[m_pMyEnt->gunselect].eWeaponType == TYPE_ROCKET)
     {
         m_bShootAtFeet = true;
-    
+
     }
     if(lastmillis > m_iChangeWeaponDelay)
     {

@@ -54,7 +54,7 @@ namespace varray
     template<size_t N, class T>
     static inline void attribv(const T *v)
     {
-        data.put((const uchar *)v, N*sizeof(T)); 
+        data.put((const uchar *)v, N*sizeof(T));
     }
 
     extern int end();

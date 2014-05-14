@@ -189,7 +189,7 @@ void createrays(vec &from, vec &to) // create random spread of rays for the shot
             int rndmul = rnd(wrange);
             float veclen = base + rndmul/100.0f;
             p.mul( veclen );
-        
+
             p.rotate( 2*M_PI/SGRAYS * i + rnddir , dir );
             vec rray = vec(to);
             float nvl = veclen / ( ( SGCObase / 100.0f ) + ( SGCOrange / 100.0f ) );

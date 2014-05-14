@@ -127,7 +127,7 @@ bool CBot::FindEnemy(void)
         {
             m_pMyEnt->enemy = player1;
         }
-       
+
         return m_pMyEnt->enemy != NULL;
     }
 
@@ -2035,7 +2035,7 @@ bool CBot::IsInFOV(const vec &o)
     dir = forward;
     dir.z = 0; // Make 2D
 
-    // ideal direction 
+    // ideal direction
     target = o;
     target.sub(m_pMyEnt->o);
     target.z = 0.0f; // Make 2D
@@ -2045,5 +2045,5 @@ bool CBot::IsInFOV(const vec &o)
     flAngle = acos(flDot/(target.magnitude() * dir.magnitude()));
 
     return m_pBotSkill->iFov/2.0f >= flAngle/RAD;
-} 
+}
 // Code of CBot - End

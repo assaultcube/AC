@@ -44,27 +44,27 @@ struct waypoint_version_1_s
      int iFlags;
      vec v_origin;
      TLinkedList<waypoint_version_1_s *> ConnectedWPs;
-     
+
      // A* stuff
      float f, g;
      waypoint_version_1_s *pParent;
-     
+
      // Construction
-     waypoint_version_1_s(void) : iFlags(0), f(0.0f), g(0.0f), pParent(NULL) { };     
+     waypoint_version_1_s(void) : iFlags(0), f(0.0f), g(0.0f), pParent(NULL) { };
 };
 
 struct node_s
 {
-     vec v_origin;     
+     vec v_origin;
      int iFlags;
      short sTriggerNr;
      short sYaw;
      short sCost; // Base and static cost
      TLinkedList<node_s *> ConnectedWPs;
      TLinkedList<node_s *> ConnectedWPsWithMe;
-     
+
      TLinkedList<node_s *> FailedGoalList;
-          
+
      // Construction
      node_s(void) : iFlags(0), sTriggerNr(0), sYaw(-1), sCost(10) { };
      node_s(const vec &o, const int &f, const short t=0, const short y=-1) : v_origin(o),
@@ -80,11 +80,11 @@ struct waypoint_s
      short g[2];
      waypoint_s *pParent[2];
      bool bIsOpen[2], bIsClosed[2];
-     
+
      // Construction
      waypoint_s(void) : pNode(NULL) { bIsOpen[0] = bIsOpen[1] = bIsClosed[0] =
                                       bIsClosed[1] = false; pParent[0] =  pParent[1] = NULL;
-                                      g[0] = g[1] = 0; };     
+                                      g[0] = g[1] = 0; };
 };
 
 class CWaypointClass
@@ -98,7 +98,7 @@ protected:
      vec m_vLastCreatedWP;
      float m_fPathDrawTime;
      char m_szMapName[32];
-     
+
 #ifdef WP_FLOOD
      bool m_bFlooding; // True if flooding map with waypoints
      bool m_bFilteringNodes;
@@ -106,9 +106,9 @@ protected:
      int m_iCurFloodX, m_iCurFloodY;
      int m_iFloodSize;
      int m_iFilteredNodes;
-#endif        
+#endif
      friend class CBot;
-     
+
 public:
      TLinkedList<node_s *> m_Waypoints[MAX_MAP_GRIDS][MAX_MAP_GRIDS];
      int m_iWaypointCount; // number of waypoints currently in use
@@ -153,7 +153,7 @@ public:
      void CalcCost(node_s *pNode);
      void ReCalcCosts(void);
 
-     
+
 #ifdef WP_FLOOD
      // Flood functions
      virtual void StartFlood(void);

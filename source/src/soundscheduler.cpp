@@ -61,7 +61,7 @@ void sourcescheduler::reset()
 
 source *sourcescheduler::newsource(int priority, const vec &o)
 {
-    if(!sources.length()) 
+    if(!sources.length())
     {
         DEBUG("empty source collection");
         return NULL;
@@ -72,9 +72,9 @@ source *sourcescheduler::newsource(int priority, const vec &o)
     // reserve some sources for sounds of higher priority
     int reserved = (SP_HIGHEST-priority)*soundschedreserve;
     DEBUGVAR(reserved);
-    
+
     // search unused source
-    loopv(sources) 
+    loopv(sources)
     {
         if(!sources[i]->locked && reserved--<=0)
         {
@@ -84,7 +84,7 @@ source *sourcescheduler::newsource(int priority, const vec &o)
         }
     }
 
-    if(!src) 
+    if(!src)
     {
         DEBUG("no empty source found");
 
@@ -108,7 +108,7 @@ source *sourcescheduler::newsource(int priority, const vec &o)
         {
             source *s = sources[i];
             if(s->priority==SP_HIGHEST) continue; // highest priority sounds can't be replaced
-            
+
             const vec & otherpos = s->position();
             float otherdist = otherpos.iszero() ? 0.0f : camera1->o.dist(otherpos);
             float otherscore = (s->priority*soundschedpriorityscore) - (otherdist*soundscheddistancescore) + soundschedoldbonus;
@@ -128,7 +128,7 @@ source *sourcescheduler::newsource(int priority, const vec &o)
         }
     }
 
-    if(!src) 
+    if(!src)
     {
         DEBUG("sound aborted, no channel takeover possible");
         return NULL;
@@ -147,9 +147,9 @@ void sourcescheduler::releasesource(source *src)
     ASSERT(src->locked); // detect double release
 
     if(!src) return;
-    
+
     DEBUG("unlocking source");
-    
+
     src->unlock();
 
     if(sources.length() > numsoundchannels)

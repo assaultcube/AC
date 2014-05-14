@@ -263,16 +263,16 @@ void loadcrosshair(char *c, char *name)
         }
         return;
     }
- 
+
     int n = -1;
- 
+
     for (int i = 0; i < CROSSHAIR_NUM; i++)
     {
        if(strcmp(crosshairnames[i], name) == 0) { n = i; break; }
     }
- 
+
     if (n < 0 || n >= CROSSHAIR_NUM) return;
- 
+
     crosshairs[n] = loadcrosshairtexture(c);
 }
 

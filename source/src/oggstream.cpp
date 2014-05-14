@@ -32,12 +32,12 @@ static long oggcallbacktell(void *datasource)
     return s ? s->tell() : -1;
 }
 
-ov_callbacks oggcallbacks = { oggcallbackread, oggcallbackseek, oggcallbackclose, oggcallbacktell }; 
+ov_callbacks oggcallbacks = { oggcallbackread, oggcallbackseek, oggcallbackclose, oggcallbacktell };
 
 // ogg audio streaming
 
 oggstream::oggstream() : valid(false), isopen(false), src(NULL)
-{ 
+{
     reset();
 
     // grab a source and keep it during the whole lifetime
@@ -55,7 +55,7 @@ oggstream::oggstream() : valid(false), isopen(false), src(NULL)
             src = NULL;
         }
     }
-    
+
     if(!src) return;
 
     alclearerr();
@@ -63,12 +63,12 @@ oggstream::oggstream() : valid(false), isopen(false), src(NULL)
     valid = !ALERR;
 }
 
-oggstream::~oggstream() 
-{ 
+oggstream::~oggstream()
+{
     reset();
 
     if(src) sourcescheduler::instance().releasesource(src);
-    
+
     if(alIsBuffer(bufferids[0]) || alIsBuffer(bufferids[1]))
     {
         alclearerr();
@@ -91,13 +91,13 @@ void oggstream::reset()
     format = AL_NONE;
 
     // reset file handler
-    if(isopen) 
+    if(isopen)
     {
         isopen = !ov_clear(&oggfile);
     }
     info = NULL;
     totalseconds = 0.0f;
-    
+
     // default settings
     startmillis = endmillis = startfademillis = endfademillis = 0;
     gain = 1.0f; // reset gain but not volume setting
@@ -108,7 +108,7 @@ bool oggstream::open(const char *f)
 {
     ASSERT(valid);
     if(!f) return false;
-    if(playing() || isopen) reset(); 
+    if(playing() || isopen) reset();
 
     const char *exts[] = { "", ".wav", ".ogg" };
     string filepath;
@@ -163,7 +163,7 @@ bool oggstream::stream(ALuint bufid)
             else if (bytes < 0) return false;
             else break; // done
         }
-        
+
         if(size==0)
         {
             if(looping && !ov_pcm_seek(&oggfile, 0)) continue; // try again to replay
@@ -174,7 +174,7 @@ bool oggstream::stream(ALuint bufid)
         alBufferData(bufid, format, pcm, size, info->rate);
         return !ALERR;
     }
-    
+
     return false;
 }
 
@@ -182,7 +182,7 @@ bool oggstream::update()
 {
     ASSERT(valid);
     if(!isopen || !playing()) return false;
-    
+
     // update buffer queue
     ALint processed;
     bool active = true;
@@ -231,20 +231,20 @@ bool oggstream::update()
     return active;
 }
 
-bool oggstream::playing() 
-{ 
+bool oggstream::playing()
+{
     ASSERT(valid);
     return src->playing();
 }
 
-void oggstream::updategain() 
-{ 
+void oggstream::updategain()
+{
     ASSERT(valid);
     src->gain(gain*volume);
 }
 
 void oggstream::setgain(float g)
-{ 
+{
     ASSERT(valid);
     gain = g;
     updategain();
@@ -279,7 +279,7 @@ bool oggstream::playback(bool looping)
     this->looping = looping;
     if(!stream(bufferids[0]) || !stream(bufferids[1])) return false;
     if(!startmillis && !endmillis && !startfademillis && !endfademillis) setgain(1.0f);
-   
+
     updategain();
     src->queuebuffers(2, bufferids);
     src->play();

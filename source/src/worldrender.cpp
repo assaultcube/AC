@@ -74,7 +74,7 @@ int stats[LARGEST_FACTOR];
 // detect those cases where a higher mip solid has a visible wall next to lower mip cubes
 // (used for wall rendering below)
 
-bool issemi(int mip, int x, int y, int x1, int y1, int x2, int y2)      
+bool issemi(int mip, int x, int y, int x1, int y1, int x2, int y2)
 {
     if(!(mip--)) return true;
     sqr *w = wmip[mip];
@@ -121,18 +121,18 @@ void render_seg_new(float vx, float vy, float vh, int mip, int x, int y, int xs,
     {
         SWS(w,ox,oy,mfactor)->occluded = isoccluded(camera1->o.x, camera1->o.y, (float)(ox<<mip), (float)(oy<<mip), fsize);
     }
-    
+
     int pvx = (int)vx>>mip;
     int pvy = (int)vy>>mip;
     if(pvx>=0 && pvy>=0 && pvx<sz && pvy<sz)
     {
-        //SWS(w,vxx,vyy,mfactor)->occluded = 0; 
+        //SWS(w,vxx,vyy,mfactor)->occluded = 0;
         SWS(w, pvx, pvy, mfactor)->occluded = 0;  // player cell never occluded
     }
 
     #define df(x) s->floor-(x->vdelta/4.0f)
     #define dc(x) s->ceil+(x->vdelta/4.0f)
-    
+
     // loop through the rect 3 times (for floor/ceil/walls seperately, to facilitate dynamic stripify)
     // for each we skip occluded cubes (occlusion at higher mip levels is a big time saver!).
     // during the first loop (ceil) we collect cubes that lie within the lower mip rect and are

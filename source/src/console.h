@@ -22,7 +22,7 @@ template<class LINE> struct consolebuffer
         while(conlines.length() > maxlines) delete[] conlines.pop().line;
     }
 
-    virtual ~consolebuffer() 
+    virtual ~consolebuffer()
     {
         while(conlines.length()) delete[] conlines.pop().line;
     }
@@ -52,13 +52,13 @@ struct textinputbuffer
             case SDLK_KP_ENTER:
                 break;
 
-            case SDLK_HOME: 
-                if(strlen(buf)) pos = 0; 
-                break; 
+            case SDLK_HOME:
+                if(strlen(buf)) pos = 0;
+                break;
 
-            case SDLK_END: 
-                pos = -1; 
-                break; 
+            case SDLK_END:
+                pos = -1;
+                break;
 
             case SDLK_DELETE:
             {
@@ -91,7 +91,7 @@ struct textinputbuffer
             case SDLK_v:
                 extern void pasteconsole(char *dst);
 #ifdef __APPLE__
-#define MOD_KEYS (KMOD_LMETA|KMOD_RMETA) 
+#define MOD_KEYS (KMOD_LMETA|KMOD_RMETA)
 #else
 #define MOD_KEYS (KMOD_LCTRL|KMOD_RCTRL)
 #endif
@@ -111,7 +111,7 @@ struct textinputbuffer
                     if(len+1 < sizeof(buf))
                     {
                         if(pos < 0) buf[len] = unicode;
-                        else 
+                        else
                         {
                             memmove(&buf[pos+1], &buf[pos], len - pos);
                             buf[pos++] = unicode;
@@ -146,13 +146,13 @@ struct textinputbuffer_wip
             case SDLK_KP_ENTER:
                 break;
 
-            case SDLK_HOME: 
-                if(strlen(buf)) pos = 0; 
-                break; 
+            case SDLK_HOME:
+                if(strlen(buf)) pos = 0;
+                break;
 
-            case SDLK_END: 
-                pos = -1; 
-                break; 
+            case SDLK_END:
+                pos = -1;
+                break;
 
             case SDLK_DELETE:
             {
@@ -211,7 +211,7 @@ struct textinputbuffer_wip
             case SDLK_v:
                 extern void pasteconsole(char *dst);
 #ifdef __APPLE__
-#define MOD_KEYS (KMOD_LMETA|KMOD_RMETA) 
+#define MOD_KEYS (KMOD_LMETA|KMOD_RMETA)
 #else
 #define MOD_KEYS (KMOD_LCTRL|KMOD_RCTRL)
 #endif

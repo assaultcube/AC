@@ -83,7 +83,7 @@ static void extrudeshadowtiles(int x1, int y1, int x2, int y2, int x3, int y3)
         }
         fracl = 0;
     }
-    if(x2 > x3 || y1 == cy) 
+    if(x2 > x3 || y1 == cy)
     {
         if(x2 > rx) rx = x2;
         drx = x3 - rx; dry = y3 - cy;
@@ -160,7 +160,7 @@ bool addshadowbox(const vec &bbmin, const vec &bbmax, const vec &extrude, const 
     loopi(8)
     {
         vec4 &p = v[i];
-        mat.transform(vec(i&1 ? bbmax.x : bbmin.x, i&2 ? bbmax.y : bbmin.y, i&4 ? bbmax.z : bbmin.z), p); 
+        mat.transform(vec(i&1 ? bbmax.x : bbmin.x, i&2 ? bbmax.y : bbmin.y, i&4 ? bbmax.z : bbmin.z), p);
         if(p.z >= -p.w)
         {
             float x = p.x / p.w, y = p.y / p.w;
@@ -177,7 +177,7 @@ bool addshadowbox(const vec &bbmin, const vec &bbmax, const vec &extrude, const 
     if(front < 8 || ev.z < -ev.w) loopi(8)
     {
         const vec4 &p = v[i];
-        if(p.z >= -p.w) 
+        if(p.z >= -p.w)
         {
             if(ev.z >= -ev.w) continue;
             float t = ev.z/(ev.z - p.z),

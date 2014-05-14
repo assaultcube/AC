@@ -86,7 +86,7 @@ struct vec
     float magnitude() const { return sqrtf(squaredlen()); }
     vec &normalize() { div(magnitude()); return *this; }
 
-    // should NOT be used 
+    // should NOT be used
     float fmag() const { return fSqrt(squaredlen()); }
     float ufmag() const { return ufSqrt(squaredlen()); }
     float fmagxy() const { return fSqrt(x*x + y*y); }
@@ -365,7 +365,7 @@ struct glmatrixf
     {
         return vec(v[12], v[13], v[14]);
     }
-    
+
     float determinant() const;
     void adjoint(const glmatrixf &m);
     bool invert(const glmatrixf &m, float mindet = 1.0e-10f);
