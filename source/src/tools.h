@@ -67,6 +67,7 @@ static inline float round(float x) { return floor(x + 0.5f); }
 #define loopj(m) loop(j,m)
 #define loopk(m) loop(k,m)
 #define loopl(m) loop(l,m)
+#define loopirev(m) for(int i = int(m) - 1; i >= 0; i--)
 
 
 #define DELETEP(p) if(p) { delete   p; p = 0; }

@@ -46,10 +46,9 @@ void remip(const block &b, int level)
         loopk(MAXTYPE) if(nums[k]==4) r->type = k;
         if(!SOLID(r))
         {
-            int floor = 127, ceil = -128, num = 0;
+            int floor = 127, ceil = -128;
             loopi(4) if(!SOLID(o[i]))
             {
-                num++;
                 int fh = o[i]->floor;
                 int ch = o[i]->ceil;
                 if(r->type==SEMISOLID)
@@ -566,3 +565,193 @@ COMMANDN(recalc, calclight, "");
 COMMAND(delent, "");
 COMMANDF(entproperty, "ii", (int *p, int *a) { entproperty(*p, *a); });
 
+void countperfectmips(int mip, int xx, int yy, int bs, int *stats)
+{
+    int mfactor = sfactor - mip;
+    if(!bs) bs = 1 << mfactor;
+    for(int y = yy; y < yy + bs; y++) for(int x = xx; x < xx + bs; x++)
+    {
+        sqr *r = SWS(wmip[mip], x, y, mfactor);
+        if(r->defer && mip > 0) countperfectmips(mip - 1, x * 2, y * 2, 2, stats);
+        else stats[mip]++;
+    }
+}
+
+COMMANDF(calcmipstats, "", ()
+{
+    int st[SMALLEST_FACTOR + 1];
+    countperfectmips(SMALLEST_FACTOR, 0, 0, 0, st);
+    conoutf("current mips: %d / %d / %d / %d / %d / %d / %d", st[0], st[1], st[2], st[3], st[4], st[5], st[6]);
+});
+
+#define INVISWTEX (1<<0)
+#define INVISUTEX (1<<1)
+#define INVISIBLE (1<<2)
+
+void mapmrproper(bool manual)
+{
+    int sta[SMALLEST_FACTOR + 1], stb[SMALLEST_FACTOR + 1], stc[SMALLEST_FACTOR + 1];
+    sqr *s, *r, *o[4];
+    block b = { 0, 0, ssize, ssize };
+    if(manual)
+    {
+        if(noteditmode("mapmrproper") || multiplayer()) return;
+        makeundo(b);
+    }
+    remip(b);
+    if(manual) countperfectmips(SMALLEST_FACTOR, 0, 0, 0, sta);
+
+    // basic corner cleanup: do that now
+    // corners are rendered at the highest possible mip - squash data of lower mips (except vdelta and tag)
+    for(int mip = SMALLEST_FACTOR; mip > 0; mip--)
+    {
+        int mfactor = sfactor - mip, bs = 1 << mfactor;
+        for(int y = 1; y < bs - 1; y++) for(int x = 1; x < bs - 1; x++)
+        {
+            r = SWS(wmip[mip], x, y, mfactor);
+            if(r->type == CORNER) loopi(4)
+            {
+                #define cc(p) s->p = r->p
+                s = SWS(wmip[mip - 1], x * 2 + (i & 1), y * 2 + i / 2, mfactor + 1);
+                cc(floor); cc(ceil); cc(wtex); cc(ftex); cc(ctex); cc(utex);
+                #undef cc
+            }
+        }
+    }
+
+    // generate special mipmap without considering light or utex/wtex -> we'll try to reach this by optimization...
+    sqr *worldbackup = (sqr *) memcpy(new sqr[ssize*ssize], world, ssize*ssize*sizeof(sqr));
+    r = world; loopirev(ssize * ssize) { r->wtex = r->utex = r->r = r->g = r->b = 0; r++; }
+    remip(b);
+    if(manual) countperfectmips(SMALLEST_FACTOR, 0, 0, 0, stb);
+    memcpy(world, worldbackup, ssize*ssize*sizeof(sqr));
+    delete[] worldbackup;
+
+    // default to invisible, we'll mark all visible afterwards
+    r = world; loopirev(ssize * ssize) (r++)->reserved[0] = INVISUTEX|INVISWTEX;
+
+    // check visibility of wall & upper wall in mip 0
+    for(int y = 0; y < ssize; y++) for(int x = 0; x < ssize; x++)
+    {
+        s = S(x,y); uchar &rs = s->reserved[0];
+        if(x < 1 || x > ssize - 2 || y < 1 || y > ssize - 2) continue; // we need 1 cube safety-space - all outside is invisible anyway
+        o[0] = s - ssize;
+        o[1] = s + ssize;
+        o[2] = s + 1;
+        o[3] = s - 1;
+        loopi(4) if(!SOLID(o[i]))
+        {
+            if(SOLID(s) || s->floor > o[i]->floor || (o[i]->type == FHF && (s->type != FHF || s->floor != o[i]->floor))) rs &= ~INVISWTEX; // wall texture visible
+            if(!SOLID(s) && (s->ceil < o[i]->ceil || (o[i]->type == CHF && (s->type != CHF || s->ceil != o[i]->ceil)))) rs &= ~INVISUTEX; // upper wall texture visible
+        }
+        if(SOLID(s) && SOLID(o[0]) && SOLID(o[1]) && SOLID(o[2]) && SOLID(o[3])) rs |= INVISIBLE;
+    }
+
+    // corners are rendered at the highest possible mip - make sure, the right helper cubes are marked visible (including actually hidden ones)
+    // (this is a lot of effort, but there's no easier way... savemap's toptimize() does it wrong, for example
+    for(int mip = SMALLEST_FACTOR; mip > 0; mip--)
+    {
+        int mfactor = sfactor - mip, bs = 1 << mfactor;
+        for(int y = 1; y < bs - 1; y++) for(int x = 1; x < bs - 1; x++)
+        {
+            s = SWS(wmip[mip], x, y, mfactor);
+            if(s->type == CORNER && (mip == SMALLEST_FACTOR || SWS(wmip[mip + 1], x / 2, y / 2, mfactor - 1)->type != CORNER))
+            { // highest corner mip (this one is rendered) - mark helper cubes
+                sqr *z = SWS(s,-1,0,mfactor);
+                sqr *t = SWS(s,1,0,mfactor);
+                sqr *v = SWS(s,0,1,mfactor);
+                sqr *w = SWS(s,0,-1,mfactor);
+                if(SOLID(z) || SOLID(t))
+                {
+                    if(SOLID(w))      S(x << mip, (y - 1) << mip)->reserved[0] &= ~(INVISWTEX|INVISIBLE);
+                    else if(SOLID(v)) S(x << mip, (y + 1) << mip)->reserved[0] &= ~(INVISWTEX|INVISIBLE);
+                }
+            }
+        }
+    }
+
+    // propagate visibility and visible textures into higher mips
+    for(int mip = 0; mip < SMALLEST_FACTOR; mip++)
+    {
+        int mfactor = sfactor - mip, bs = 1 << mfactor;
+        for(int y = 0; y < bs; y++) for(int x = 0; x < bs; x++)
+        {
+            s = SWS(wmip[mip], x, y, mfactor);
+            r = SWS(wmip[mip + 1], x / 2, y / 2, mfactor - 1);
+            uchar &rs = s->reserved[0], &rr = r->reserved[0];
+            if(!((x | y) & 1)) rr = rs;
+            else rr &= rs;
+            if(!(rs & INVISWTEX)) r->wtex = s->wtex;
+            if(!(rs & INVISUTEX)) r->utex = s->utex;
+        }
+    }
+
+    // corners are rendered at the highest possible mip - make sure, the right cubes of the lot is marked visible (including actually hidden ones)
+    for(int mip = SMALLEST_FACTOR; mip > 0; mip--)
+    {
+        int mfactor = sfactor - mip, bs = 1 << mfactor;
+        for(int y = 1; y < bs - 1; y++) for(int x = 1; x < bs - 1; x++)
+        {
+            s = SWS(wmip[mip], x, y, mfactor);
+            if(s->type == CORNER && (mip == SMALLEST_FACTOR || SWS(wmip[mip + 1], x / 2, y / 2, mfactor - 1)->type != CORNER))
+            { // highest mip - mark the important cube like the highest mip
+                S(x << mip, y << mip)->reserved[0] = s->reserved[0];
+            }
+        }
+    }           // visibility flags complete ;)
+    //r = world; loopirev(ssize * ssize) { r->tag = (r->tag & 0xc0) + r->reserved[0]; r++; }  // easy debugging
+
+    // optimize utex & wtex according to mips & visibility
+    #define domip0(b) for(int yy = y << mip; yy < (y + 1) << mip; yy++) for(int xx = x << mip; xx < (x + 1) << mip; xx++) { s = S(xx,yy); uchar &rs = s->reserved[0]; b ; }
+    for(int mip = SMALLEST_FACTOR; mip > 0; mip--)
+    {
+        int mfactor = sfactor - mip, bs = 1 << mfactor;
+        for(int y = 0; y < bs; y++) for(int x = 0; x < bs; x++)
+        {
+            r = SWS(wmip[mip], x, y, mfactor);
+            if(mip > 1) loopi(4)
+            {
+                s = SWS(wmip[mip - 1], x * 2 + (i & 1), y * 2 + i / 2, mfactor + 1);
+                uchar &rs = s->reserved[0];
+                if(rs & INVISWTEX) s->wtex = r->wtex;
+                if(rs & INVISUTEX) s->utex = r->utex;
+            }
+            if(r->defer) continue;
+            if(r->reserved[0] & INVISIBLE)
+            {
+                domip0(rs &= INVISIBLE;);
+                continue; // do not touch hidden solid blocks... for some reason it messes up filesize
+            }
+            int utex = -1, wtex = -1, udiff = 0, wdiff = 0;
+            domip0(
+                if(!(rs & INVISWTEX) && s->wtex != wtex)
+                {
+                    wtex = s->wtex;
+                    wdiff++;
+                }
+                if(!(rs & INVISUTEX) && s->utex != utex)
+                {
+                    utex = s->utex;
+                    udiff++;
+                }
+            );
+            if(!wdiff) wtex = r->wtex;
+            if(!udiff) utex = r->utex;
+            if(wdiff < 2) domip0(if(rs & INVISWTEX) s->wtex = wtex; rs &= ~(INVISWTEX|INVISIBLE); );
+            if(udiff < 2) domip0(if(rs & INVISUTEX) s->utex = utex; rs &= ~INVISUTEX; );
+        }
+    }
+
+    loopirev(ssize * ssize) world[i].reserved[0] = 0;  // cleanup
+
+    // recalc everything with the optimized data
+    calclight();
+    if(manual)
+    {
+        countperfectmips(SMALLEST_FACTOR, 0, 0, 0, stc);
+        conoutf("before: %d / %d / %d / %d / %d / %d / %d", sta[0], sta[1], sta[2], sta[3], sta[4], sta[5], sta[6]);
+        conoutf("idealized: %d / %d / %d / %d / %d / %d / %d", stb[0], stb[1], stb[2], stb[3], stb[4], stb[5], stb[6]);
+        conoutf("final count: %d / %d / %d / %d / %d / %d / %d", stc[0], stc[1], stc[2], stc[3], stc[4], stc[5], stc[6]);
+    }
+}
+COMMANDF(mapmrproper, "", () { mapmrproper(true); });
