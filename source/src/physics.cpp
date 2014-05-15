@@ -617,6 +617,8 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
             }
             pl->o.x -= vd.x;
             pl->o.y -= vd.y;
+            pl->o.x += f*d.x;
+            pl->o.y += f*d.y;
         }
         else
         {
