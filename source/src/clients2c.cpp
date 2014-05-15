@@ -228,7 +228,7 @@ void parsepositions(ucharbuf &p)
             // when playing a demo spectate first player we know about
             if(player1->isspectating() && player1->spectatemode==SM_NONE) togglespect();
             extern void clamproll(physent *pl);
-            if(maxrollremote) clamproll((physent *) d);
+            clamproll((physent *) d);
             break;
         }
 
@@ -707,7 +707,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 arenaintermission = 0;
                 if(m_arena && !localwrongmap)
                 {
-                    closemenu(NULL);
+                    if(connected) closemenu(NULL);
                     conoutf(_("new round starting... fight!"));
                     hudeditf(HUDMSG_TIMER, "FIGHT!");
                     if(m_botmode) BotManager.RespawnBots();
