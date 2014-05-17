@@ -179,7 +179,7 @@ struct vertmodel : model
             numdyndraws = draws.length();
         }
 
-#if defined(__GNUC__) && defined(__OPTIMIZE__)
+#if defined(__GNUC__) && defined(__OPTIMIZE__) && !defined(__clang__) && !defined(__ICL) && __GNUC__ >= 4 && __GNUC_MINOR__ > 4
 __attribute__((optimize(2)))
 #endif
         dyncacheentry *gendynverts(animstate &as, anpos &cur, anpos *prev, float ai_t)
@@ -293,7 +293,7 @@ __attribute__((optimize(2)))
             }
         }
 
-#if defined(__GNUC__) && defined(__OPTIMIZE__)
+#if defined(__GNUC__) && defined(__OPTIMIZE__) && !defined(__clang__) && !defined(__ICL) && __GNUC__ >= 4 && __GNUC_MINOR__ > 4
 __attribute__((optimize(2)))
 #endif
         shadowcacheentry *genshadowvolume(animstate &as, anpos &cur, anpos *prev, float ai_t, vec *buf)
@@ -356,7 +356,7 @@ __attribute__((optimize(2)))
             return d;
         }
 
-#if defined(__GNUC__) && defined(__OPTIMIZE__)
+#if defined(__GNUC__) && defined(__OPTIMIZE__) && !defined(__clang__) && !defined(__ICL) && __GNUC__ >= 4 && __GNUC_MINOR__ > 4
 __attribute__((optimize(2)))
 #endif
         lightcacheentry *lightvertexes(animstate &as, anpos &cur, anpos *prev, float ai_t, vec *buf)
