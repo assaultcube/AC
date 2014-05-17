@@ -142,7 +142,7 @@ clean:
 #	-$(MAKE) -C ../enet/ clean
 
 %.h.gch: %.h
-	$(CXX) $(CXXFLAGS) -o $@.tmp $(subst .h.gch,.h,$@)
+	$(CXX) $(CXXFLAGS) -x c++-header -o $@.tmp $(subst .h.gch,.h,$@)
 	$(MV) $@.tmp $@
 
 %-standalone.o: %.cpp
