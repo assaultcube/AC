@@ -1086,6 +1086,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             {
                 glMatrixMode(GL_MODELVIEW);
                 if (p->weaponsel->type!=GUN_GRENADE) p->weaponsel->renderstats();
+                else if (p->prevweaponsel->type==GUN_AKIMBO && !p->akimbo) p->weapons[GUN_PISTOL]->renderstats();
                 else p->prevweaponsel->renderstats();
                 if(p->mag[GUN_GRENADE]) p->weapons[GUN_GRENADE]->renderstats();
                 glMatrixMode(GL_PROJECTION);
