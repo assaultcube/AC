@@ -1260,16 +1260,16 @@ void arenacheck()
     loopv(clients)
     {
         client &c = *clients[i];
-        if(c.type==ST_EMPTY || !c.isauthed || !c.isonrightmap || team_isspect(c.team)) continue; /// TODO: simplify the team/state sysmtem, it is not smart to have SPECTATE in both, for example
-        if (c.state.lastspawn < 0 && (c.state.state==CS_DEAD || c.state.state==CS_SPECTATE))
-        {
-            dead = true;
-            lastdeath = max(lastdeath, c.state.lastdeath);
-        }
-        else if(c.state.state==CS_ALIVE)
+        if(c.type==ST_EMPTY || !c.isauthed || !c.isonrightmap || team_isspect(c.team)) continue;
+        if(c.state.state==CS_ALIVE || ((c.state.state==CS_DEAD || c.state.state==CS_SPECTATE) && c.state.lastspawn>=0))
         {
             if(!alive) alive = &c;
             else if(!m_teammode || alive->team != c.team) return;
+        }
+        else if(c.state.state==CS_DEAD || c.state.state==CS_SPECTATE)
+        {
+            dead = true;
+            lastdeath = max(lastdeath, c.state.lastdeath);
         }
     }
 
