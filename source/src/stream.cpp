@@ -217,26 +217,22 @@ void addpackagedir(const char *dir)
 const char *findfile(const char *filename, const char *mode)
 {
     static string s;
-    if(homedir[0])
-    {
-        formatstring(s)("%s%s", homedir, filename);
-        if(fileexists(s, mode)) return s;
-        if(mode[0]=='w' || mode[0]=='a')
+    formatstring(s)("%s%s", homedir, filename);         // homedir may be ""
+    if(fileexists(s, mode)) return s;
+    if(mode[0]=='w' || mode[0]=='a')
+    { // create missing directories, if necessary
+        string dirs;
+        copystring(dirs, s);
+        char *dir = strchr(dirs[0]==PATHDIV ? dirs+1 : dirs, PATHDIV);
+        while(dir)
         {
-            string dirs;
-            copystring(dirs, s);
-            char *dir = strchr(dirs[0]==PATHDIV ? dirs+1 : dirs, PATHDIV);
-            while(dir)
-            {
-                *dir = '\0';
-                if(!fileexists(dirs, "r") && !createdir(dirs)) return s;
-                *dir = PATHDIV;
-                dir = strchr(dir+1, PATHDIV);
-            }
-            return s;
+            *dir = '\0';
+            if(!fileexists(dirs, "r") && !createdir(dirs)) return s;
+            *dir = PATHDIV;
+            dir = strchr(dir+1, PATHDIV);
         }
+        return s;
     }
-    if(mode[0]=='w' || mode[0]=='a') return filename;
     loopv(packagedirs)
     {
         formatstring(s)("%s%s", packagedirs[i], filename);
@@ -332,7 +328,7 @@ bool preparedir(const char *destination)
     string dir;
     copystring(dir, parentdir(destination));
     vector<char *> dirs;
-    while(!fileexists(dir, "r"))
+    while(*dir && !fileexists(dir, "r"))
     {
         dirs.add(newstring(dir));
         copystring(dir, parentdir(dir));
