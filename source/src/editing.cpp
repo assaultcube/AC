@@ -324,7 +324,7 @@ void makeundo(block &sel)
     storeposition(sel.p);
     undos.add(blockcopy(sel));
     pruneundos(undomegs<<20);
-    unsavededits = 1;
+    unsavededits++;
 }
 
 void restoreposition(short p[])
@@ -352,7 +352,7 @@ void editundo()
     if(editmetakeydown) restoreposition(*p);
     blockpaste(*p);
     freeblock(p);
-    unsavededits = 1;
+    unsavededits++;
 }
 
 void editredo()
@@ -364,7 +364,7 @@ void editredo()
     if(editmetakeydown) restoreposition(*p);
     blockpaste(*p);
     freeblock(p);
-    unsavededits = 1;
+    unsavededits++;
 }
 
 extern int worldiodebug;
@@ -611,7 +611,7 @@ void edittex(int type, int dir)
         edittexxy(type, t, sels[i]);
         addmsg(SV_EDITT, "ri6", sels[i].x, sels[i].y, sels[i].xs, sels[i].ys, type, t);
     }
-    unsavededits = 1;
+    unsavededits++;
 }
 
 void settex(int texture, int type)
@@ -635,7 +635,7 @@ void settex(int texture, int type)
         edittexxy(type, t, sels[i]);
         addmsg(SV_EDITT, "ri6", sels[i].x, sels[i].y, sels[i].xs, sels[i].ys, type, t);
     }
-    unsavededits = 1;
+    unsavededits++;
 }
 
 void replace()
@@ -654,7 +654,7 @@ void replace()
     }
     block b = { 0, 0, ssize, ssize };
     remip(b);
-    unsavededits = 1;
+    unsavededits++;
 }
 
 void edittypexy(int type, block &sel)
@@ -856,7 +856,7 @@ void movemap(int xo, int yo, int zo) // move whole map
     entinmap(player1);
     calclight();
     resetmap(false);
-    unsavededits = 1;
+    unsavededits++;
 }
 
 void selfliprotate(block &sel, int dir)
@@ -972,7 +972,7 @@ void transformclipentities()  // transforms all clip entities to tag clips, if t
     while(thisrun);
     loopi(ssize) loopj(ssize) { sqr *s = S(i,j); if(s->tag & TAGCLIP) s->tag &= ~TAGPLCLIP; }
     conoutf("changed %d clip entities to tagged clip areas", total);
-    unsavededits = 1;
+    if(total) unsavededits++;
 }
 
 COMMAND(transformclipentities, "");

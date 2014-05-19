@@ -174,7 +174,7 @@ void fullbrightlight(int level)
     lastcalclight = totalmillis;
 }
 
-VARF(ambient, 0, 0, 0xFFFFFF, if(!noteditmode("ambient")) { hdr.ambient = ambient; calclight(); unsavededits = 1;});
+VARF(ambient, 0, 0, 0xFFFFFF, if(!noteditmode("ambient")) { hdr.ambient = ambient; calclight(); unsavededits++;});
 
 void calclight()
 {

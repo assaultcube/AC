@@ -347,7 +347,7 @@ void mapmsg(char *s)
     filterrichtext(text, s);
     filterservdesc(text, text);
     copystring(hdr.maptitle, text, 128);
-    unsavededits = 1;
+    if(editmode) unsavededits++;
 }
 
 void getmapmsg(void)

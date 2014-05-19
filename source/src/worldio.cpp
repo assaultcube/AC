@@ -858,7 +858,7 @@ struct xmap
             persistent_entity &e = ents[i];
             f->printf("restorexmap ent %d  %d %d %d  %d %d %d %d // %s\n", e.type, e.x, e.y, e.z, e.attr1, e.attr2, e.attr3, e.attr4, e.type >= 0 && e.type < MAXENTTYPES ? entnames[e.type] : "unknown");
         }
-        f->printf("restorexmap position %d %d %d %d %d  // EOF, don't touch this\n\n", position[0], position[1], position[2], position[3], position[4]);
+        f->printf("restorexmap position %d %d %d %d %d  // EOF, don't touch this\n\n", int(position[0]), int(position[1]), int(position[2]), int(position[3]), int(position[4]));
     }
 };
 
@@ -867,6 +867,8 @@ static xmap *bak, *xmjigsaw;                               // only bak needs to 
 
 #define SPEDIT if(noteditmode("xmap") || multiplayer()) return    // only allowed in non-coop editmode
 #define SPEDITDIFF if(noteditmode("xmap") || multiplayer() || nodiff()) return    // only allowed in non-coop editmode after xmap_diff
+
+bool validxmapname(const char *nick) { if(validmapname(nick)) return true; conoutf("sry, %s is not a valid xmap nickname", nick); return false; }
 
 void xmapdelete(xmap *&xm)  // make sure, we don't point to deleted xmaps
 {
@@ -915,8 +917,7 @@ COMMANDF(xmap_list, "", ()                       // list xmaps (and status)
 COMMANDF(xmap_store, "s", (const char *nick)     // store current map in an xmap buffer
 {
     if(noteditmode("xmap_store")) return;   // (may also be used in coopedit)
-    if(!*nick) return;
-    if(!validmapname(nick)) { conoutf("sry, %s is not a valid xmap nickname", nick); return; }
+    if(!*nick || !validxmapname(nick)) return;
     int i;
     if(getxmapbynick(nick, &i, false)) { xmap *xm = xmaps.remove(i); xmapdelete(xm); }   // overwrite existing same nick
     xmaps.add(new xmap(nick));
@@ -934,6 +935,31 @@ COMMANDF(xmap_delete, "s", (const char *nick)     // delete xmap buffer
         xmapdelete(xm);
         conoutf("deleted xmap \"%s\"", nick);
     }
+} );
+
+COMMANDF(xmap_delete_backup, "", () { if(bak) { xmapdelete(bak); conoutf("deleted backup xmap"); }} );
+
+COMMANDF(xmap_keep_backup, "s", (const char *nick)     // move backup xmap to more permanent position
+{
+    if(!bak) { conoutf("no backup xmap available"); return ; }
+    defformatstring(bakdesc)("%s", bak->nick);
+    if(*nick)
+    {
+        if(validxmapname(nick)) copystring(bak->nick, nick);
+        else return;
+    }
+    loopi(42) if(getxmapbynick(bak->nick, NULL, false)) concatstring(bak->nick, "_");  // evade existing nicknames
+    xmaps.add(bak);
+    bak = NULL;
+    conoutf("stored backup xmap \"%s\" as xmap %s", bakdesc, xmapdescstring(xmaps.last()));
+} );
+
+COMMANDF(xmap_rename, "ss", (const char *oldnick, const char *newnick)     // rename xmap buffer
+{
+    if(!*oldnick || !*newnick) return;
+    xmap *xm = getxmapbynick(oldnick);
+    if(!xm || !validxmapname(newnick) || getxmapbynick(newnick, NULL, false)) return;
+    copystring(xm->nick, newnick);
 } );
 
 COMMANDF(xmap_restore, "s", (const char *nick)     // use xmap as current map
@@ -1025,14 +1051,17 @@ void restorexmap(char **args, int numargs)   // read an xmap from a cubescript f
 }
 COMMAND(restorexmap, "v");
 
-static const char *bakprefix = "__.backup.__", *xmapspath = "mapediting/xmaps";
-char *xmapfilename(const char *nick, const char *prefix = "") { static defformatstring(fn)("%s/%s%s.xmap", xmapspath, prefix, nick); return fn; }
+static const char *bakprefix = "(backup)", *xmapspath = "mapediting/xmaps";
+char *xmapfilename(const char *nick, const char *prefix = "") { static defformatstring(fn)("%s/%s%s.xmap", xmapspath, prefix, nick); return path(fn); }
 
 void writexmap(xmap *xm, const char *prefix = "")
 {
     stream *f = openfile(xmapfilename(xm->nick, prefix), "w");
-    xm->write(f);
-    delete f;
+    if(f)
+    {
+        xm->write(f);
+        delete f;
+    }
 }
 
 void writeallxmaps()   // at game exit, write all xmaps to cubescript files in mapediting/xmaps
