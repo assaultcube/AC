@@ -1012,9 +1012,8 @@ int processdownload(package *pck)
             case PCK_TEXTURE: case PCK_AUDIO:
             {
                 const char *pckname = findfile(path(pck->name, true), "w+");
-                preparedir(pckname);
                 // with textures/sounds, the image/audio file itself is sent. Just need to copy it from the temporary file
-                if(!copyfile(tmpname, pckname)) conoutf(_("\f3failed to install"), pckname);
+                if(rename(tmpname, pckname)) conoutf(_("\f3failed to install"), pckname);
                 break;
             }
 

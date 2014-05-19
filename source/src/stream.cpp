@@ -306,38 +306,6 @@ bool delfile(const char *path)
     return !remove(path);
 }
 
-bool copyfile(const char *source, const char *destination)
-{
-    FILE *from = fopen(source, "rb");
-    FILE *dest = fopen(destination, "wb");
-
-    if(!from || !dest) return false;
-    size_t len;
-    uchar buf[1024];
-    while((len = fread(&buf, sizeof(uchar), 1024, from)))
-    {
-        fwrite(&buf, sizeof(uchar), len, dest);
-    }
-    fclose(from);
-    fclose(dest);
-    return true;
-}
-
-bool preparedir(const char *destination)
-{
-    string dir;
-    copystring(dir, parentdir(destination));
-    vector<char *> dirs;
-    while(*dir && !fileexists(dir, "r"))
-    {
-        dirs.add(newstring(dir));
-        copystring(dir, parentdir(dir));
-    }
-
-    loopvrev(dirs) if(!createdir(dirs[i])) return false;
-    return true;
-}
-
 #ifndef STANDALONE
 static int rwopsseek(SDL_RWops *rw, int offset, int whence)
 {
