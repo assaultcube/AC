@@ -959,11 +959,13 @@ void silenttimeupdate(int milliscur, int millismax)
 
 void timeupdate(int milliscur, int millismax)
 {
-    bool display = lastmillis - lastgametimeupdate > 1000; // avoid double-output
+    static int lastgametimedisplay = 0;
 
     silenttimeupdate(milliscur, millismax);
+    int lastdisplay = lastmillis - lastgametimedisplay;
+    if(lastdisplay >= 0 && lastdisplay <= 1000) return; // avoid double-output
+    lastgametimedisplay = lastmillis;
 
-    if(!display) return;
     if(!minutesremaining)
     {
         intermission = true;
