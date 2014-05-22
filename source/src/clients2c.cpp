@@ -1145,7 +1145,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 }
                 else
                 {
-                    conoutf(_("you can't change to %s mode"), team_isspect(t) ? _("spectate") : _("active"));
+                    if(team_isspect(t)) conoutf(_("you can't change to spectate mode"));
+                    else if (player1->state!=CS_ALIVE) conoutf(_("you can't change to active mode"));
+                    else conoutf(_("you can't switch teams while being alive"));
                 }
                 break;
             }
@@ -1197,7 +1199,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                             if(you && !team_isspect(d->team) && team_isspect(fnt) && d->state == CS_DEAD) spectatemode(SM_FLY);
                         }
                     }
-                    else if(d->team != fnt && ftr == FTR_PLAYERWISH) conoutf(_("%s changed to active play"), you ? _("you") : colorname(d));
+                    else if(d->team != fnt && ftr == FTR_PLAYERWISH && !team_isactive(d->team)) conoutf(_("%s changed to active play"), you ? _("you") : colorname(d));
                     d->team = fnt;
                     if(team_isspect(d->team)) d->state = CS_SPECTATE;
                 }
