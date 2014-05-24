@@ -476,7 +476,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
                     }
                 }
 
-                if(timeinair > 200 && !pl->timeinair)
+                if(timeinair > 200 && !pl->timeinair && pl->inwater == water)
                 {
                     int sound = timeinair > 800 ? S_HARDLAND : S_SOFTLAND;
                     if(pl->state!=CS_DEAD)
