@@ -1437,9 +1437,8 @@ void scallvote(int *type, const char *arg1, const char *arg2)
             {
                 //FIXME: this stupid conversion of ints to strings and back should
                 //  really be replaced with a saner method
-                char m[4];
-                sprintf(&m[0], "%d", nextmode);
-                callvote(t, arg1, &m[0], arg2);
+                defformatstring(m)("%d", nextmode);
+                callvote(t, arg1, m, arg2);
                 break;
             }
             case SA_KICK:
