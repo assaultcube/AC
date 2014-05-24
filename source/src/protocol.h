@@ -134,6 +134,7 @@ enum
 #define m_demo        (gamemode==-1)
 #define m_coop        (gamemode==1)
 #define m_flags       (m_ctf || m_htf || m_ktf)
+#define m_isdemo(x)   ((x) == -1)
 
 // single filter modes
 #define FTXT_NOWHITE     (1<<8)
@@ -152,7 +153,8 @@ enum
 // character classes
 #define FTXT__SERVDESC   (FTXT_NOWHITE | FTXT_ALLOWBLANKS | FTXT_TABTOBLANK)
 #define FTXT__MAPMSG     (FTXT_NOWHITE | FTXT_ALLOWBLANKS | FTXT_TABTOBLANK)
-#define FTXT__MAPNAME    (FTXT_NOCOLOR | FTXT_MAPNAME | FTXT_TOLOWER)  // FTXT_FILENAME and FTXT_NOCOLOR not needed, since FTXT_MAPNAME is very strict; can not be used with paths
+#define FTXT__MAPNAME    (FTXT_NOCOLOR | FTXT_MAPNAME | FTXT_TOLOWER)
+#define FTXT__DEMONAME   (FTXT_NOCOLOR | FTXT_MAPNAME)
 #define FTXT__PLAYERNAME (FTXT_NOWHITE | FTXT_NOCOLOR)
 #define FTXT__SERVERINFO (FTXT_ALLOWTAB)
 #define FTXT__MOTD       (FTXT_TABTOBLANK)

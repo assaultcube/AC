@@ -169,7 +169,7 @@ char *filtertext(char *dst, const char *src, int flags, int len)
             if(filename)
             {
                 const char *org = "*?![]{};:/\\",
-                           *asc = "__o()()____",   // 'o' -> ignore
+                           *asc = "__o()()__oo",   // 'o' -> ignore
                            *a = strchr(org, c);
                 if(a)
                 {
@@ -196,7 +196,7 @@ char *filtertext(char *dst, const char *src, int flags, int len)
             }
             pass = true;
         }
-        if(mapname && !islower(c) && !isdigit(c) && !strchr("_-.", c)) continue;
+        if(mapname && !isalnum(c) && !strchr("_-./\\", c)) continue;
         if(isspace(c))
         {
             if(nowhite && !((c == ' ' && allowblanks) || (c == '\n' && allownl)) && !pass) continue;

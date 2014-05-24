@@ -487,7 +487,7 @@ void checkpings()
         si->numplayers = getint(p);
         si->minremain = getint(p);
         getstring(text, p);
-        filtertext(si->map, text, FTXT__MAPNAME);
+        filtertext(si->map, behindpath(text), FTXT__MAPNAME);
         getstring(text, p);
         filtertext(si->sdesc, text, FTXT__SERVDESC);
         copystring(si->description, si->sdesc);
@@ -552,7 +552,7 @@ void checkpings()
                         while(p.remaining())
                         {
                             getstring(text, p);
-                            filtertext(text, text, FTXT__MAPNAME);
+                            filtertext(text, behindpath(text), FTXT__MAPNAME);
                             if(*text && !p.overread())
                             {
                                 text[MAXINFOLINELEN] = '\0';

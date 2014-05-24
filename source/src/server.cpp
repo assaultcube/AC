@@ -3450,11 +3450,12 @@ void process(ENetPacket *packet, int sender, int chan)
                     case SA_MAP:
                     {
                         getstring(text, p);
-                        filtertext(text, text, FTXT__MAPNAME);
                         int mode = getint(p), time = getint(p);
+                        vi->gonext = text[0]=='+' && text[1]=='1';
+                        if(m_isdemo(mode)) filtertext(text, text, FTXT__DEMONAME);
+                        else filtertext(text, behindpath(text), FTXT__MAPNAME);
                         if(time <= 0) time = -1;
                         time = min(time, 60);
-                        vi->gonext = text[0]=='+' && text[1]=='1';
                         if (vi->gonext)
                         {
                             int ccs = mode ? maprot.next(false,false) : maprot.get_next();

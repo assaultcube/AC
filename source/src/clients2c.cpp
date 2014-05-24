@@ -1234,12 +1234,16 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 switch(type)
                 {
                     case SA_MAP:
+                    {
                         getstring(text, p);
-                        filtertext(text, text, FTXT__MAPNAME);
-                        itoa(a1, getint(p));
+                        int mode = getint(p);
+                        if(m_isdemo(mode)) filtertext(text, text, FTXT__DEMONAME);
+                        else filtertext(text, behindpath(text), FTXT__MAPNAME);
+                        itoa(a1, mode);
                         defformatstring(t)("%d", getint(p));
                         v = newvotedisplayinfo(d, type, text, a1, t);
                         break;
+                    }
                     case SA_KICK:
                     case SA_BAN:
                     {

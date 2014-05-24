@@ -1280,9 +1280,8 @@ void gmenu::init()
                     }
                 }
                 defformatstring(fullname)("%s%s%s", dirlist->dir[0]?dirlist->dir+diroffset:"", dirlist->dir[0]?"/":"", f);
-                defformatstring(caction)("map %s", fullname);
                 defformatstring(title)("%s", f);
-                items.add(new mitemmapload(this, newstring(fullname), newstring(title), newstring(caction), NULL, NULL, NULL));
+                items.add(new mitemmapload(this, newstring(fullname), newstring(title), newstring(dirlist->action), NULL, NULL, NULL));
             }
             else items.add(new mitemtext(this, f, newstring(dirlist->action), NULL, NULL, d));
         }
