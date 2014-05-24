@@ -480,7 +480,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
             {
                 int cn = getint(p);
                 getstring(text, p);
-                filtertext(text, text);
+                filtertext(text, text, FTXT__CHAT);
                 playerent *d = getclient(cn);
                 if(!d) break;
                 if(d->ignored) clientlogf("ignored: %s%s %s", colorname(d), type == SV_TEAMTEXT ? ":" : "", text);
@@ -503,7 +503,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 else if(d)
                 {
                     getstring(text, p);
-                    filtertext(text, text);
+                    filtertext(text, text, FTXT__CHAT);
                     if(d->ignored && d->clientrole != CR_ADMIN) clientlogf("ignored: %s%s %s", colorname(d), type == SV_TEXT ? ":" : "", text);
                     else conoutf(type == SV_TEXTME ? "\f0%s %s" : "%s:\f0 %s", colorname(d), highlight(text));
                 }
@@ -514,7 +514,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
             {
                 int cn = getint(p);
                 getstring(text, p);
-                filtertext(text, text);
+                filtertext(text, text, FTXT__CHAT);
                 playerent *d = getclient(cn);
                 if(!d) break;
                 if(d->ignored) clientlogf("ignored: pm %s %s", colorname(d), text);
@@ -560,7 +560,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
 
             case SV_SWITCHNAME:
                 getstring(text, p);
-                filtertext(text, text, 0, MAXNAMELEN);
+                filtertext(text, text, FTXT__PLAYERNAME, MAXNAMELEN);
                 if(!text[0]) copystring(text, "unarmed");
                 if(d)
                 {
@@ -601,7 +601,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     break;
                 }
                 getstring(text, p);
-                filtertext(text, text, 0, MAXNAMELEN);
+                filtertext(text, text, FTXT__PLAYERNAME, MAXNAMELEN);
                 if(!text[0]) copystring(text, "unarmed");
                 if(d->name[0])          // already connected
                 {
@@ -912,7 +912,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     discscore &ds = discscores.add();
                     ds.team = team;
                     getstring(text, p);
-                    filtertext(ds.name, text, 0, MAXNAMELEN);
+                    filtertext(ds.name, text, FTXT__PLAYERNAME, MAXNAMELEN);
                     ds.flags = getint(p);
                     ds.frags = getint(p);
                     ds.deaths = getint(p);
@@ -1235,7 +1235,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 {
                     case SA_MAP:
                         getstring(text, p);
-                        filtertext(text, text);
+                        filtertext(text, text, FTXT__MAPNAME);
                         itoa(a1, getint(p));
                         defformatstring(t)("%d", getint(p));
                         v = newvotedisplayinfo(d, type, text, a1, t);
@@ -1245,13 +1245,13 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     {
                         itoa(a1, getint(p));
                         getstring(text, p);
-                        filtertext(text, text);
+                        filtertext(text, text, FTXT__CHAT);
                         v = newvotedisplayinfo(d, type, a1, text);
                         break;
                     }
                     case SA_SERVERDESC:
                         getstring(text, p);
-                        filtertext(text, text);
+                        filtertext(text, text, FTXT__SERVDESC);
                         v = newvotedisplayinfo(d, type, text, NULL);
                         break;
                     case SA_STOPDEMO:

@@ -2426,7 +2426,7 @@ void tryauth(client *cl, const char *user)
     extern bool requestmasterf(const char *fmt, ...);
     if(!nextauthreq) nextauthreq = 1;
     cl->authreq = nextauthreq++;
-    filtertext(cl->authname, user, false, 100);
+    filtertext(cl->authname, user, FTXT__AUTH, 100);
     if(!requestmasterf("reqauth %u %s\n", cl->authreq, cl->authname))
     {
         cl->authreq = 0;
@@ -2674,7 +2674,7 @@ void process(ENetPacket *packet, int sender, int chan)
             cl->acbuildtype = getint(p);
             defformatstring(tags)(", AC: %d|%x", cl->acversion, cl->acbuildtype);
             getstring(text, p);
-            filtertext(text, text, 0, MAXNAMELEN);
+            filtertext(text, text, FTXT__PLAYERNAME, MAXNAMELEN);
             if(!text[0]) copystring(text, "unarmed");
             copystring(cl->name, text, MAXNAMELEN+1);
             getstring(text, p);
@@ -2816,7 +2816,7 @@ void process(ENetPacket *packet, int sender, int chan)
             case SV_TEAMTEXTME:
             case SV_TEAMTEXT:
                 getstring(text, p);
-                filtertext(text, text);
+                filtertext(text, text, FTXT__CHAT);
                 trimtrailingwhitespace(text);
                 if(*text)
                 {
@@ -2849,7 +2849,7 @@ void process(ENetPacket *packet, int sender, int chan)
             {
                 int mid1 = curmsg, mid2 = p.length();
                 getstring(text, p);
-                filtertext(text, text);
+                filtertext(text, text, FTXT__CHAT);
                 trimtrailingwhitespace(text);
                 if(*text)
                 {
@@ -2891,7 +2891,7 @@ void process(ENetPacket *packet, int sender, int chan)
             {
                 int targ = getint(p);
                 getstring(text, p);
-                filtertext(text, text);
+                filtertext(text, text, FTXT__CHAT);
                 trimtrailingwhitespace(text);
 
                 if(!valid_client(targ)) break;
@@ -3016,7 +3016,7 @@ void process(ENetPacket *packet, int sender, int chan)
             {
                 QUEUE_MSG;
                 getstring(text, p);
-                filtertext(text, text, 0, MAXNAMELEN);
+                filtertext(text, text, FTXT__PLAYERNAME, MAXNAMELEN);
                 if(!text[0]) copystring(text, "unarmed");
                 QUEUE_STR(text);
                 bool namechanged = strcmp(cl->name, text) != 0;
@@ -3311,7 +3311,7 @@ void process(ENetPacket *packet, int sender, int chan)
             case SV_SENDMAP:
             {
                 getstring(text, p);
-                filtertext(text, text);
+                filtertext(text, text, FTXT__MAPNAME);
                 const char *sentmap = behindpath(text), *reject = NULL;
                 int mapsize = getint(p);
                 int cfgsize = getint(p);
@@ -3393,7 +3393,7 @@ void process(ENetPacket *packet, int sender, int chan)
             case SV_REMOVEMAP:
             {
                 getstring(text, p);
-                filtertext(text, text);
+                filtertext(text, text, FTXT__MAPNAME);
                 string filename;
                 const char *rmmap = behindpath(text), *reject = NULL;
                 int mp = findmappath(rmmap);
@@ -3450,7 +3450,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     case SA_MAP:
                     {
                         getstring(text, p);
-                        filtertext(text, text);
+                        filtertext(text, text, FTXT__MAPNAME);
                         int mode = getint(p), time = getint(p);
                         if(time <= 0) time = -1;
                         time = min(time, 60);
@@ -3486,7 +3486,7 @@ void process(ENetPacket *packet, int sender, int chan)
                         vi->num1 = cn2boot = getint(p);
                         getstring(text, p);
                         strncpy(vi->text,text,128);
-                        filtertext(text, text);
+                        filtertext(text, text, FTXT__KICKBANREASON);
                         trimtrailingwhitespace(text);
                         vi->action = new kickaction(cn2boot, newstring(text, 128));
                         vi->boot = 1;
@@ -3497,7 +3497,7 @@ void process(ENetPacket *packet, int sender, int chan)
                         vi->num1 = cn2boot = getint(p);
                         getstring(text, p);
                         strncpy(vi->text,text,128);
-                        filtertext(text, text);
+                        filtertext(text, text, FTXT__KICKBANREASON);
                         trimtrailingwhitespace(text);
                         vi->action = new banaction(cn2boot, newstring(text, 128));
                         vi->boot = 2;
@@ -3535,7 +3535,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     case SA_SERVERDESC:
                         getstring(text, p);
                         strncpy(vi->text,text,MAXTRANS-1);
-                        filtertext(text, text);
+                        filtertext(text, text, FTXT__SERVDESC);
                         vi->action = new serverdescaction(newstring(text), sender);
                         break;
                 }
@@ -4036,7 +4036,7 @@ void extping_maprot(ucharbuf &po)
     {
         if(po.remaining() < 100) abort = true;
         configset &c = maprot.configsets[i];
-        filtertext(text, c.mapname, 0);
+        filtertext(text, c.mapname, FTXT__MAPNAME);
         text[30] = '\0';
         sendstring(abort ? "-- list truncated --" : text, po);
         loopi(CONFIG_MAXPAR) putint(po, c.par[i]);
@@ -4201,7 +4201,7 @@ void initserver(bool dedicated, int argc, char **argv)
     smapname[0] = '\0';
 
     string identity;
-    if(scl.logident[0]) filtertext(identity, scl.logident, 0);
+    if(scl.logident[0]) filtertext(identity, scl.logident, FTXT__LOGIDENT);
     else formatstring(identity)("%s#%d", scl.ip[0] ? scl.ip : "local", scl.serverport);
     int conthres = scl.verbose > 1 ? ACLOG_DEBUG : (scl.verbose ? ACLOG_VERBOSE : ACLOG_INFO);
     if(dedicated && !initlogging(identity, scl.syslogfacility, conthres, scl.filethres, scl.syslogthres, scl.logtimestamp))

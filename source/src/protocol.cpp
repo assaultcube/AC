@@ -119,101 +119,98 @@ void getstring(char *text, ucharbuf &p, int len)
     DEBUGVAR(text);
 }
 
-#define follower(x) (((x) & 0xc0) == 0x80)
+// filter text according to rules
+// dst can be identical to src; dst needs to be of size "min(len, strlen(s)) + 1"
+// returns dst
 
-int getutf8char(const uchar *&s)
+char *filtertext(char *dst, const char *src, int flags, int len)
 {
-    int res = *s++;
-    if(res < 0x80) return res;
-    if((res & 0xe0) == 0xc0)
-    { // 2-Byte
-        if(follower(s[0]))
-        {
-            res &= 0x1f;
-            res <<= 6;
-            res |= *s++ & 0x3f;
-            return res;
-        }
-        return -1;
+    char *res = dst;
+    bool nowhite = flags & FTXT_NOWHITE,             // removes all whitespace; adding ALLOWBLANKS, ALLOWNL or ALLOWTAB enables exceptions
+         allowblanks = flags & FTXT_ALLOWBLANKS,     // only in combination with FTXT_NOWHITE
+         allownl = flags & FTXT_ALLOWNL,             // only in combination with FTXT_NOWHITE
+         allowtab = flags & FTXT_ALLOWTAB,           // only in combination with FTXT_NOWHITE
+         nocolor = flags & FTXT_NOCOLOR,             // removes all '\f' + following char
+         tabtoblank = flags & FTXT_TABTOBLANK,       // replaces \t with single blanks
+         fillblanks = flags & FTXT_FILLBLANKS,       // convert ' ' to '_'
+         safecs = flags & FTXT_SAFECS,               // removes all special chars that may execute commands when evaluate arguments; the argument still requires encapsulation by ""
+         leet = flags & FTXT_LEET,                   // translates leetspeak
+         toupp = flags & FTXT_TOUPPER,               // translates to all-uppercase
+         tolow = flags & FTXT_TOLOWER,               // translates to all-lowercase
+         filename = flags & FTXT_FILENAME,           // removes characters, that are not allowed in filenames on all supported systems - does not filter COM, PRN, etc.
+         mapname = flags & FTXT_MAPNAME,             // only allows lowercase chars, digits, '_', '-' and '.'; probably should be used in combination with TOLOWER
+         pass = false;
+#if 1 // classic mode (will be removed, as soon as all sources are clear of it)
+    switch(flags)
+    { // whitespace: no whitespace at all (0), blanks only (1), blanks & newline (2)
+        case -1: nowhite = nocolor = fillblanks = true; break;
+        case 2: allownl = allowtab = true;
+        case 1: allowblanks = true;
+        case 0: nowhite = true;
+            nocolor = true;
+            break;
     }
-    if((res & 0xf0) == 0xe0)
-    { // 3-Byte
-        if(follower(s[0]) && follower(s[1]))
-        {
-            res &= 0x0f;
-            loopi(2)
-            {
-                res <<= 6;
-                res |= *s++ & 0x3f;
-            }
-            return res;
-        }
-        return -1;
-    }
-    if((res & 0xf8) == 0xf0)
-    { // 4-Byte
-        if(follower(s[0]) && follower(s[1]) && follower(s[2]))
-        {
-            res &= 0x07;
-            loopi(3)
-            {
-                res <<= 6;
-                res |= *s++ & 0x3f;
-            }
-            return res;
-        }
-        return -1;
-    }
-    return -1;
-}
-
-int pututf8char(uchar *&d, int s)
-{
-    if(s < 0 || s > 0x1fffff) return 0;
-    if(s < 0x80)
-    {
-        *d++ = s;
-        return 1;
-    }
-    if(s < 0x800)
-    {
-        *d++ = ((s >> 6) & 0x1f) | 0xc0;
-        *d++ = (s & 0x3f) | 0x80;
-        return 2;
-    }
-    if(s < 0x10000)
-    {
-        *d++ = ((s >> 12) & 0x0f) | 0xe0;
-        *d++ = ((s >> 6) & 0x3f) | 0x80;
-        *d++ = (s & 0x3f) | 0x80;
-        return 3;
-    }
-    *d++ = ((s >> 18) & 0x07) | 0xf0;
-    *d++ = ((s >> 12) & 0x3f) | 0x80;
-    *d++ = ((s >> 6) & 0x3f) | 0x80;
-    *d++ = (s & 0x3f) | 0x80;
-    return 4;
-}
-
-void filtertext(char *dst, const char *src, int whitespace, int len)
-{ // whitespace: no whitespace at all (0), blanks only (1), blanks & newline (2), spaces for underlines (-1)
+#endif
+    if(leet || mapname) nocolor = true;
+    bool trans = toupp || tolow || leet || filename || fillblanks;
     for(int c = *src; c; c = *++src)
     {
-        c &= 0x7F; // 7-bit ascii
+        c &= 0x7F; // 7-bit ascii. not negotiable.
+        pass = false;
+        if(trans)
+        {
+            if(leet)
+            {
+                const char *org = "1374@5$2!*#%80|+",
+                           *asc = "letaassziohzhoit",
+                           *a = strchr(org, c);
+                if(a) c = asc[a - org];
+            }
+            if(filename)
+            {
+                const char *org = "*?![]{};:/\\",
+                           *asc = "__o()()____",   // 'o' -> ignore
+                           *a = strchr(org, c);
+                if(a)
+                {
+                    c = asc[a - org];
+                    if(c == 'o') continue;
+                }
+            }
+            if(tolow) c = tolower(c);
+            else if(toupp) c = toupper(c);
+            if(fillblanks && c == ' ') c = '_';
+        }
+        if(safecs && strchr("($)\"", c)) continue;
+        if(c == '\t')
+        {
+            if(tabtoblank) c = ' ';
+            else if(allowtab) pass = true;
+        }
         if(c == '\f')
         {
-            if(!*++src) break;
-            continue;
+            if(nocolor)
+            {
+                if(src[1]) ++src;
+                continue;
+            }
+            pass = true;
         }
-        if(isspace(c) ? whitespace && (whitespace>1 || c == ' '): isprint(c))
+        if(mapname && !islower(c) && !isdigit(c) && !strchr("_-.", c)) continue;
+        if(isspace(c))
         {
-            if ( whitespace < 0 && c == ' ' ) c = '_';
-            *dst++ = c;
-            if(!--len) break;
+            if(nowhite && !((c == ' ' && allowblanks) || (c == '\n' && allownl)) && !pass) continue;
         }
+        else if(!pass && !isprint(c)) continue;
+        *dst++ = c;
+        if(!--len || !*src) break;
     }
     *dst = '\0';
+    return res;
 }
+
+// translate certain escape sequences
+// dst can be identical to src; dst needs to be of size "min(len, strlen(s)) + 1"
 
 void filterrichtext(char *dst, const char *src, int len)
 {
@@ -239,7 +236,7 @@ void filterrichtext(char *dst, const char *src, int len)
                     if(b == 0 && !isdigit(c)) break;
                     ul = strtoul(src, (char **) &src, b);
                     --src;
-                    c = (int) ul;
+                    c = (int) ul & 0x7f;
                     if(!c) continue; // number conversion failed
                     break;
             }
@@ -250,26 +247,13 @@ void filterrichtext(char *dst, const char *src, int len)
     *dst = '\0';
 }
 
-void filterservdesc(char *dst, const char *src, int len)
-{ // only colors and spaces allowed
-    for(int c = *src; c; c = *++src)
-    {
-        c &= 0x7F; // 7-bit ascii
-        if((!isspace(c) && isprint(c)) || c == ' ' || c == '\f')
-        {
-            *dst++ = c;
-            if(!--len) break;
-        }
-    }
-    *dst = '\0';
-}
+// ensures, that d is either two lowercase chars or ""
 
 void filterlang(char *d, const char *s)
 {
     if(strlen(s) == 2)
     {
-        loopi(2) d[i] = tolower(s[i]);
-        d[2] = '\0';
+        filtertext(d, s, FTXT_TOLOWER, 2);
         if(islower(d[0]) && islower(d[1])) return;
     }
     *d = '\0';

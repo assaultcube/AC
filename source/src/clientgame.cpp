@@ -161,7 +161,7 @@ void newname(const char *name)
     if(name[0])
     {
         string tmpname;
-        filtertext(tmpname, name, 0, MAXNAMELEN);
+        filtertext(tmpname, name, FTXT__PLAYERNAME, MAXNAMELEN);
         if(identexists("onNameChange"))
         {
             defformatstring(onnamechange)("onNameChange %d \"%s\"", player1->clientnum, tmpname);

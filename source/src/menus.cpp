@@ -439,7 +439,7 @@ struct mitemmaploadmanual : mitemmanual
                     string showt;
                     string restt;
                     restt[0] = '\0';
-                    filtertext(showt, maptitle, 1);
+                    filtertext(showt, maptitle, FTXT__MAPMSG);
                     if(mlil && mlil != 255) // 0 && 255 are 'off'
                     {
                         int tl = strlen(showt);

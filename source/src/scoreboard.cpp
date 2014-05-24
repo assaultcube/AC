@@ -394,7 +394,7 @@ void renderscores(void *menu, bool init)
             // for now we'll just cut it off, same as the serverbrowser
             // but we might want to consider wrapping the bottom-line to accomodate longer descriptions - to a limit.
             string text;
-            filtertext(text, s->sdesc);
+            filtertext(text, s->sdesc, FTXT__SERVDESC);
             //for(char *p = text; (p = strchr(p, '\"')); *p++ = ' ');
             //text[30] = '\0'; // serverbrowser has less room - +8 chars here - 2010AUG03 - seems it was too much, falling back to 30 (for now): TODO get real width of menu as reference-width. FIXME: cutoff
             concatformatstring(serverline, "%s:%d %s", s->name, s->port, text);
@@ -450,7 +450,7 @@ const char *asciiscores(bool destjpg)
         if(s)
         {
             string sdesc;
-            filtertext(sdesc, s->sdesc, 1);
+            filtertext(sdesc, s->sdesc, FTXT__SERVDESC);
             formatstring(text)(", %s:%d %s", s->name, s->port, sdesc);
             addstr(buf, text);
         }

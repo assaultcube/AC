@@ -885,9 +885,8 @@ extern void sendstring(const char *t, ucharbuf &p);
 extern void sendstring(const char *t, packetbuf &p);
 extern void sendstring(const char *t, vector<uchar> &p);
 extern void getstring(char *t, ucharbuf &p, int len = MAXTRANS);
-extern void filtertext(char *dst, const char *src, int whitespace = 1, int len = sizeof(string)-1);
+extern char *filtertext(char *dst, const char *src, int flags = 1, int len = sizeof(string)-1);
 extern void filterrichtext(char *dst, const char *src, int len = sizeof(string)-1);
-extern void filterservdesc(char *dst, const char *src, int len = sizeof(string)-1);
 extern void filterlang(char *d, const char *s);
 extern void trimtrailingwhitespace(char *s);
 extern void cutcolorstring(char *text, int len);
@@ -1069,7 +1068,7 @@ struct servercommandline
                     case '2': t = servdesc_suf; a += 1 + strspn(a + 1, " "); break;
                 }
                 filterrichtext(t, a);
-                filterservdesc(t, t);
+                filtertext(t, t, FTXT__SERVDESC);
                 break;
             }
             case 'P': concatstring(voteperm, a); break;

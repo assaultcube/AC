@@ -236,7 +236,7 @@ void _toserver(char *text, int msg, int msgt)
     bool toteam = text && text[0] == '%' && (m_teammode || team_isspect(player1->team));
     if(!toteam && text[0] == '%' && strlen(text) > 1) text++; // convert team-text to normal-text if no team-mode is active
     if(toteam) text++;
-    filtertext(text, text);
+    filtertext(text, text, FTXT__CHAT);
     trimtrailingwhitespace(text);
     if(servstate.mastermode == MM_MATCH && servstate.matchteamsize && !team_isactive(player1->team) && !(player1->team == TEAM_SPECT && player1->clientrole == CR_ADMIN)) toteam = true; // spect chat
     if(*text)
@@ -320,7 +320,7 @@ void pm(char *text)
     if(*numend) numend++;*/
     // :FIXME
 
-    filtertext(text, text);
+    filtertext(text, text, FTXT__CHAT);
     trimtrailingwhitespace(text);
 
     addmsg(SV_TEXTPRIVATE, "ris", cn, text);

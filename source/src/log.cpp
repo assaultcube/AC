@@ -81,7 +81,7 @@ bool logline(int level, const char *msg, ...)
     if(!enabled) return false;
     if(level < 0 || level >= ACLOG_NUM) return false;
     defvformatstring(sf, msg, msg);
-    filtertext(sf, sf, 2);
+    filtertext(sf, sf, FTXT__LOG);
     const char *ts = timestamp ? timestring(true, "%b %d %H:%M:%S ") : "", *ld = levelprefix[level];
     char *p, *l = sf;
     do
