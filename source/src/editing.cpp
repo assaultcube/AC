@@ -35,7 +35,9 @@ void toggleedit(bool force)
     if(!force && !editmode && !allowedittoggle()) return; // not in most multiplayer modes
     if(!(editmode = !editmode))
     {
+        float oldz = player1->o.z;
         entinmap(player1);                                // find spawn closest to current floating pos
+        player1->timeinair = player1->o.z == oldz ? 0: 300;
     }
     else
     {
