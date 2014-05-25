@@ -4,6 +4,8 @@
 
 bool editmode = false;
 
+int globalfps = 0; // allows functions in other files access to current FPS (for increment timing independent of client FPS)
+
 // the current selections, used by almost all editing commands
 // invariant: all code assumes that these are kept inside MINBORD distance of the edge of the map
 // => selections are checked when they are made or when the world is reloaded
@@ -172,8 +174,32 @@ COMMANDF(showtagclipfocus, "d", (bool on) { showtagclipfocus = on; } );
 VAR(showtagclips, 0, 1, 1);
 FVAR(tagcliplinewidth, 0.2, 1, 3);
 
-void cursorupdate()                                     // called every frame from hud
+int gridalpha = 255; // helper int for cursorupdate(), not controllable by player (maybe should use uint8 type but value wrapping is a little problematic)
+int delay = 128; // delay (mouse idle time) before fading out grid
+float old_p, old_y; // tracks camera Pitch and Yaw to detect mouse movement
+
+void cursorupdate() // called every frame from hud
 {
+    if (old_p != camera1->pitch || old_y != camera1->yaw) // mouse movement detected
+    {gridalpha = 255; delay = 128;} // reset alpha and idle timer
+
+    else // mouse is idle
+    {
+        delay -= ((255 / globalfps) + 1 ); // start counting down before fading grid
+        if (delay < 0) delay = 0; // clamp to 0
+
+        if (!delay) // ready to fade
+        gridalpha -= ((gridalpha * 3 / globalfps) + 1 ); // decrease alpha
+
+        if (gridalpha < 0) gridalpha = 0; // clamp to 0
+    }
+
+    if (!gridalpha)
+    return; // skip logic as grid is not visible (formerly the logic wasn't needed, some was added after 1.2 so this should be reviewed)
+
+    old_p = camera1->pitch; // camera (mouse) tracking
+    old_y = camera1->yaw; // camera (mouse) tracking
+
     flrceil = ((int)(camera1->pitch>=0))*2;
     int cyaw = ((int) camera1->yaw) % 180;
     editaxis = editmode ? (fabs(camera1->pitch) > 65 ? 13 : (cyaw < 45 || cyaw > 135 ? 12 : 11)) : 0;
@@ -213,48 +239,117 @@ void cursorupdate()                                     // called every frame fr
 
     // render editing grid
 
+    glEnable(GL_BLEND);
+    glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
     if(showgrid)
     {
         for(int ix = cx-GRIDSIZE; ix<=cx+GRIDSIZE; ix++) for(int iy = cy-GRIDSIZE; iy<=cy+GRIDSIZE; iy++)
         {
-
             if(OUTBORD(ix, iy)) continue;
             sqr *s = S(ix,iy);
-            if(SOLID(s)) continue;
+
             float h1 = sheight(s, s, z);
             float h2 = sheight(s, SWS(s,1,0,sfactor), z);
             float h3 = sheight(s, SWS(s,1,1,sfactor), z);
             float h4 = sheight(s, SWS(s,0,1,sfactor), z);
-            if(sparkletime && showtagclips && showtagclipfocus && s->tag & TAGANYCLIP)
-                particle_cube(s->tag & TAGCLIP ? PART_EPICKUP : PART_EMODEL, tagnum, taglife, ix, iy);
-            if(s->tag) linestyle(GRIDW, 0xFF, 0x40, 0x40);
-            else if(s->type==FHF || s->type==CHF) linestyle(GRIDW, 0x80, 0xFF, 0x80);
-            else linestyle(GRIDW, 0x80, 0x80, 0x80);
-            block b = { ix, iy, 1, 1 };
-            box(b, h1, h2, h3, h4);
-            linestyle(GRID8, 0x40, 0x40, 0xFF);
-            if(!(ix&GRIDM))   line(ix,   iy,   h1, ix,   iy+1, h4);
-            if(!((ix+1)&GRIDM)) line(ix+1, iy,   h2, ix+1, iy+1, h3);
-            if(!(iy&GRIDM))   line(ix,   iy,   h1, ix+1, iy,   h2);
-            if(!((iy+1)&GRIDM)) line(ix,   iy+1, h4, ix+1, iy+1, h3);
+
+            /** "Tag" cube style **/
+
+            if(s->tag)
+            {
+                glLineWidth(GRIDW);
+                glColor4ub(0x40, 0x40, 0xFF, (unsigned char)gridalpha); // blue-indigo
+            }
+
+            /** Heightfield Style **/
+
+            else if(s->type==FHF || s->type==CHF)
+            {
+                glLineWidth(GRIDW);
+                glColor4ub(0x80, 0xFF, 0x80, (unsigned char)gridalpha); // green
+            }
+
+            /** Solid cube style (previously ignored) **/
+
+            else if(SOLID(s))
+            {
+                glLineWidth(GRID8);
+                glColor4ub(0xAB, 0x40, 0xFE, (unsigned char)gridalpha); // purple
+            }
+
+            /** Normal cube style **/
+
+            else
+            {
+                glLineWidth(GRIDW);
+                glColor4ub(0x80, 0x80, 0x80, (unsigned char)gridalpha); // grey
+            }
+
+            /** Actually drawing the grid **/
+
+            block b = { ix, iy, 1, 1 }; // set destination coordinates to draw to
+            box(b, h1, h2, h3, h4); // draw
+
+            /** The repeating 8 x 8 grid **/
+
+            /* Choosing color */
+
+            int temp = 255 - ((255-gridalpha)*3/2); // the thicker blue appears more opaque than other lines
+            if (temp < 0) temp = 0;
+
+            glLineWidth(GRID8);
+            glColor4ub(0x40, 0x40, 0xFF, (unsigned char)temp); // blue
+
+            /* Drawing lines on this grid */
+
+            if(!(ix&GRIDM))
+            line(ix, iy, h1, ix, iy+1, h4);
+
+            if(!((ix+1)&GRIDM))
+            line(ix+1, iy, h2, ix+1, iy+1, h3);
+
+            if(!(iy&GRIDM))
+            line(ix, iy, h1, ix+1, iy, h2);
+
+            if(!((iy+1)&GRIDM))
+            line(ix, iy+1, h4, ix+1, iy+1, h3);
         }
 
-        if(!SOLID(s))
+        /** Draw white square around cube cursor is over **/
+
+        float ih = sheight(s, s, z);
         {
-            float ih = sheight(s, s, z);
-            linestyle(GRIDS, 0xFF, 0xFF, 0xFF);
-            block b = { cx, cy, 1, 1 };
-            box(b, ih, sheight(s, SWS(s,1,0,sfactor), z), sheight(s, SWS(s,1,1,sfactor), z), sheight(s, SWS(s,0,1,sfactor), z));
-            linestyle(GRIDS, 0xFF, 0x00, 0x00);
-            dot(cx, cy, ih);
-            ch = (int)ih;
+            glLineWidth(GRIDS);
+            glColor4ub(0xFF, 0xFF, 0xFF, (unsigned char)gridalpha); //white
         }
+
+        block b = { cx, cy, 1, 1 };
+        box(b, ih, sheight(s, SWS(s,1,0,sfactor), z), sheight(s, SWS(s,1,1,sfactor), z), sheight(s, SWS(s,0,1,sfactor), z));
+
+        /** And the orienting little square in the corner **/
+
+        glLineWidth(GRIDS);
+        glColor4ub(0xFF, 0x00, 0x00, (unsigned char)gridalpha); //red
+        dot(cx, cy, ih);
+
+        ch = (int)ih; // updates height of selection box (the red boxes) to the correct height
+
     }
+
+    /** Draw selection(s) **/
 
     if(selset())
     {
-        linestyle(GRIDS, 0xFF, 0x40, 0x40);
-        loopv(sels) box(sels[i], (float)sels[i].h, (float)sels[i].h, (float)sels[i].h, (float)sels[i].h);
+        /* Choosing color */
+
+        glLineWidth(GRIDS);
+        glColor4ub(0xFF, 0x40, 0x40, (unsigned char)gridalpha); //red
+
+        /* Drawing */
+
+        loopv(sels) //for each selection
+        box(sels[i], (float)sels[i].h, (float)sels[i].h, (float)sels[i].h, (float)sels[i].h);
     }
 
     if(!showtagclipfocus && showtagclips)
@@ -290,6 +385,7 @@ void cursorupdate()                                     // called every frame fr
         }
     }
 
+    glDisable(GL_BLEND);
     glLineWidth(1);
 }
 
