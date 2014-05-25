@@ -45,6 +45,7 @@ extern vector<int> eh_ents;             // edithide entities
 extern vec worldpos, camup, camright, camdir; // current target of the crosshair in the world
 extern int lastmillis, totalmillis, nextmillis; // last time
 extern int curtime;                     // current frame time
+extern int globalfps;                   // allows functions in other files access to current FPS (for increment timing independent of client FPS)
 extern int interm;
 extern int gamemode, nextmode;
 extern int gamespeed;
