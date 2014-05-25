@@ -5,6 +5,8 @@
 VAR(showclips, 0, 1, 1);
 VAR(showmodelclipping, 0, 0, 1);
 
+extern bool cleanedit;
+
 vector<entity> ents;
 vector<int> eh_ents; // edithide entities
 const char *entmdlnames[] =
@@ -27,6 +29,8 @@ const char *entmdlnames[] =
 
 void renderclip(entity &e)
 {
+    if (cleanedit) return;
+
     float xradius = max(float(e.attr2), 0.1f), yradius = max(float(e.attr3), 0.1f);
     vec bbmin(e.x - xradius, e.y - yradius, float(S(e.x, e.y)->floor+e.attr1)),
         bbmax(e.x + xradius, e.y + yradius, bbmin.z + max(float(e.attr4), 0.1f));
@@ -125,7 +129,8 @@ COMMAND(seteditshow, "s");
 
 void renderentarrow(const entity &e, const vec &dir, float radius)
 {
-    if(radius <= 0) return;
+    if(cleanedit || radius <= 0) return;
+
     float arrowsize = min(radius/8, 0.5f);
     vec epos(e.x, e.y, e.z);
     vec target = vec(dir).mul(radius).add(epos), arrowbase = vec(dir).mul(radius - arrowsize).add(epos), spoke;
@@ -157,7 +162,7 @@ void renderentarrow(const entity &e, const vec &dir, float radius)
 void renderentities()
 {
     int closest = editmode ? closestent() : -1;
-    if(editmode && !reflecting && !refracting && !stenciling)
+    if(editmode && !reflecting && !refracting && !stenciling && !cleanedit)
     {
         static int lastsparkle = 0;
         if(lastmillis - lastsparkle >= 20)

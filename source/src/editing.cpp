@@ -8,6 +8,9 @@ bool editmode = false;
 // invariant: all code assumes that these are kept inside MINBORD distance of the edge of the map
 // => selections are checked when they are made or when the world is reloaded
 
+VAR(cleanedit, 0, 0, 1); // hides everything in edit mode you can't see in regular mode
+COMMANDF(togglecleanedit, "", () {cleanedit = !cleanedit;}); // CS toggle for above
+
 vector<block> sels;
 
 #define loopselxy(sel, b) { makeundo(sel); loop(x,(sel).xs) loop(y,(sel).ys) { sqr *s = S((sel).x+x, (sel).y+y); b; } remip(sel); }
@@ -176,6 +179,8 @@ FVAR(tagcliplinewidth, 0.2, 1, 3);
 
 void cursorupdate()                                     // called every frame from hud
 {
+    if (cleanedit) return;
+
     flrceil = ((int)(camera1->pitch>=0))*2;
     int cyaw = ((int) camera1->yaw) % 180;
     editaxis = editmode ? (fabs(camera1->pitch) > 65 ? 13 : (cyaw < 45 || cyaw > 135 ? 12 : 11)) : 0;

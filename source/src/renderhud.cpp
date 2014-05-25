@@ -2,6 +2,8 @@
 
 #include "cube.h"
 
+extern bool cleanedit;
+
 void drawicon(Texture *tex, float x, float y, float s, int col, int row, float ts)
 {
     if(tex && tex->xs == tex->ys) quad(tex->id, x, y, s, ts*col, ts*row, ts);
@@ -280,6 +282,8 @@ COMMAND(loadcrosshair, "ss");
 
 void drawcrosshair(playerent *p, int n, color *c, float size)
 {
+    if (cleanedit && editmode) return;
+
     Texture *crosshair = crosshairs[n];
     if(!crosshair)
     {
@@ -886,7 +890,22 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     char *infostr = editinfo();
     int commandh = 1570 + FONTH;
     if(command) commandh -= rendercommand(20, 1570, VIRTW);
-    else if(infostr) draw_text(infostr, 20, 1570);
+
+    else if(infostr)
+    {
+        if (cleanedit) // smaller text
+        {
+            glPushMatrix();
+            glLoadIdentity();
+            glOrtho(0, VIRTW*2, VIRTH*2, 0, -1, 1);
+            glScalef(1.0, 1.0, 1.0); //set scale
+            draw_text(infostr, 48, VIRTH*2 - 3*FONTH);
+            glPopMatrix();
+        }
+        else
+        draw_text(infostr, 20, 1570);
+    }
+
     else if(targetplayer && showtargetname) draw_text(colorname(targetplayer), 20, 1570);
     glLoadIdentity();
     glOrtho(0, VIRTW*2, VIRTH*2, 0, -1, 1);
