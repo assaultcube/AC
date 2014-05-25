@@ -1293,6 +1293,8 @@ int main(int argc, char **argv)
         if(elapsed) fps = (1000.0f/elapsed+fps*10)/11; // avoid DIV-by-0
         frames++;
 
+        globalfps = fps; // allows functions in other files access to current FPS (for increment timing independent of client FPS)
+
         audiomgr.updateaudio();
 
         computeraytable(camera1->o.x, camera1->o.y, dynfov());
