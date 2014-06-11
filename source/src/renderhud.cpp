@@ -988,7 +988,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             }
         }
         formatstring(gtime)("%02d:%02d", gtmin, gtsec);
-        draw_text(gtime, (2*VIRTW - text_width(gtime))/2, 2);
+        draw_text(gtime, (VIRTW-225-10)*2 - (text_width(gtime)/2 + FONTH/2), 20);
     }
 
     if(hidevote < 2 && multiplayer(false))
