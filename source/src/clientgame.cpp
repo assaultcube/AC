@@ -398,7 +398,6 @@ void deathstate(playerent *pl)
         damageblend(-1);
         if(pl->team == TEAM_SPECT) spectatemode(SM_FLY);
         else if(team_isspect(pl->team)) spectatemode(SM_FOLLOW1ST);
-        if(pl->spectatemode == SM_DEATHCAM) player1->followplayercn = FPCN_DEATHCAM;
     }
     else pl->resetinterp();
 }
@@ -1134,6 +1133,7 @@ void startmap(const char *name, bool reset, bool norespawn)   // called just aft
     suicided = -1;
     spawncycle = -1;
     lasthit = 0;
+    player1->followplayercn = -1;
     if(m_valid(gamemode) && !m_mp(gamemode)) respawnself();
     else findplayerstart(player1);
     if(good_map()==MAP_IS_BAD) conoutf(_("You cannot play in this map due to quality requisites. Please, report this incident."));
@@ -1724,13 +1724,11 @@ void spectatemode(int mode)
                     player1->resetinterp();
                 }
                 else entinmap(player1); // or drop 'em at a random place
-                player1->followplayercn = FPCN_FLY;
             }
             break;
         }
         case SM_OVERVIEW:
-            player1->followplayercn = FPCN_OVERVIEW;
-        break;
+            break;
         default: break;
     }
     player1->spectatemode = mode;
