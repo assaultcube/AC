@@ -658,6 +658,16 @@ float nearestenemy(vec place, int team)
     else return nearestenemydist;
 }
 
+void gotoplayerstart(playerent *d, entity *e)
+{
+    d->o.x = e->x;
+    d->o.y = e->y;
+    d->o.z = e->z;
+    d->yaw = e->attr1;
+    d->pitch = 0;
+    d->roll = 0;
+}
+
 void findplayerstart(playerent *d, bool mapcenter, int arenaspawn)
 {
     int r = fixspawn-->0 ? 4 : rnd(10)+1;
@@ -693,12 +703,7 @@ void findplayerstart(playerent *d, bool mapcenter, int arenaspawn)
 
     if(e)
     {
-        d->o.x = e->x;
-        d->o.y = e->y;
-        d->o.z = e->z;
-        d->yaw = e->attr1;
-        d->pitch = 0;
-        d->roll = 0;
+        gotoplayerstart(d, e);
     }
     else
     {

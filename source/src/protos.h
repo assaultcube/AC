@@ -436,6 +436,7 @@ extern void flagidle(int flag);
 extern void flagmsg(int flag, int message, int actor, int flagtime);
 extern void arenarespawn();
 extern bool tryrespawn();
+extern void gotoplayerstart(playerent *d, entity *e);
 extern void findplayerstart(playerent *d, bool mapcenter = false, int arenaspawn = -1);
 extern void serveropcommand(int cmd, int arg1);
 extern void refreshsopmenu(void *menu, bool init);

@@ -277,8 +277,8 @@ struct headerextra
 };
 vector<headerextra *> headerextras;
 
-enum { HX_UNUSED = 0, HX_MAPINFO, HX_MODEINFO, HX_ARTIST, HX_EDITUNDO, HX_CONFIG, HX_NUM, HX_TYPEMASK = 0x3f, HX_FLAG_PERSIST = 0x40 };
-const char *hx_names[] = { "unused", "mapinfo", "modeinfo", "artist", "editundo", "config", "unknown" };
+enum { HX_UNUSED = 0, HX_MAPINFO, HX_MODEINFO, HX_ARTIST, HX_EDITUNDO, HX_CONFIG, HX_VANTAGEPOINT, HX_NUM, HX_TYPEMASK = 0x3f, HX_FLAG_PERSIST = 0x40 };
+const char *hx_names[] = { "unused", "mapinfo", "modeinfo", "artist", "editundo", "config", "vantage point", "unknown" };
 #define addhxpacket(p, len, flags, buffer) { if(p.length() + len < MAXHEADEREXTRA) { putuint(p, len); putuint(p, flags); p.put(buffer, len); } }
 #define hx_name(t) hx_names[min((t) & HX_TYPEMASK, int(HX_NUM))]
 
@@ -401,6 +401,51 @@ void extractconfigfile()
     }
 }
 COMMAND(extractconfigfile, "");
+
+bool clearvantagepoint()
+{
+    bool yep = false;
+    for(int n; (n = findheaderextra(HX_VANTAGEPOINT)) >= 0; yep = true) deleteheaderextra(n);
+    unsavededits++;
+    return yep;
+}
+COMMANDF(clearvantagepoint, "", () { if(!noteditmode("clearvantagepoint") && !multiplayer() && clearvantagepoint()) conoutf("cleared vantage point"); });
+
+void setvantagepoint()
+{
+    if(noteditmode("setvantagepoint") || multiplayer()) return;
+    clearvantagepoint();
+    short p[5];
+    storeposition(p);
+    vector<uchar> buf;
+    loopi(5) putint(buf, p[i]);
+    headerextras.add(new headerextra(buf.length(), HX_VANTAGEPOINT|HX_FLAG_PERSIST, buf.getbuf()));
+    conoutf("vantage point set");
+}
+COMMAND(setvantagepoint, "");
+
+bool gotovantagepoint()
+{
+    short p[5];
+    int n = findheaderextra(HX_VANTAGEPOINT);
+    if(n >= 0)
+    {
+        ucharbuf q(headerextras[n]->data, headerextras[n]->len);
+        loopi(5) p[i] = getint(q);
+        restoreposition(p);
+        physent d = *player1;
+        d.radius = d.eyeheight = d.maxeyeheight = d.aboveeye = 0.1;
+        if(collide(&d, false)) n = -1;       // don't use out-of-map vantage points
+    }
+    if(n < 0)  // if there is no vantage point set, we go to the first playerstart instead
+    {
+        int s = findentity(PLAYERSTART, 0);
+        if(ents.inrange(s)) gotoplayerstart(player1, &ents[s]);
+        entinmap(player1);
+    }
+    return n >= 0;
+}
+COMMANDF(gotovantagepoint, "", () { if(editmode) gotovantagepoint(); });
 
 VAR(advancemaprevision, 1, 1, 100);
 

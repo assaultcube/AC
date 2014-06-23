@@ -399,13 +399,7 @@ void nextplayerstart(int *type)
     cycle = findentity(PLAYERSTART, cycle + 1, *type);
     if(cycle >= 0)
     {
-        entity &e = ents[cycle];
-        player1->o.x = e.x;
-        player1->o.y = e.y;
-        player1->o.z = e.z;
-        player1->yaw = e.attr1;
-        player1->pitch = 0;
-        player1->roll = 0;
+        gotoplayerstart(player1, &ents[cycle]);
         entinmap(player1);
     }
 }
