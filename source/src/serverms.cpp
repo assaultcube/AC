@@ -170,7 +170,7 @@ static inline void updatemasterserver(int millis, int port)
 {
     if(!lastupdatemaster || ((millis-lastupdatemaster)>40*60*1000 && (interm || !totalclients)))
     {
-        char servername[30]; memset(servername,'\0',30); filtertext(servername,global_name,-1,20);
+        char servername[30]; memset(servername,'\0',30); filtertext(servername, global_name, FTXT__GLOBALNAME, 20);
         if(mastername[0]) requestmasterf("regserv %d %s %d\n", port, servername[0] ? servername : "noname", AC_VERSION);
         lastupdatemaster = millis + 1;
     }

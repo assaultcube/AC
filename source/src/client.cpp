@@ -236,7 +236,7 @@ void _toserver(char *text, int msg, int msgt)
     bool toteam = text && text[0] == '%' && (m_teammode || team_isspect(player1->team));
     if(!toteam && text[0] == '%' && strlen(text) > 1) text++; // convert team-text to normal-text if no team-mode is active
     if(toteam) text++;
-    filtertext(text, text);
+    filtertext(text, text, FTXT__CHAT);
     trimtrailingwhitespace(text);
     if(servstate.mastermode == MM_MATCH && servstate.matchteamsize && !team_isactive(player1->team) && !(player1->team == TEAM_SPECT && player1->clientrole == CR_ADMIN)) toteam = true; // spect chat
     if(*text)
@@ -320,7 +320,7 @@ void pm(char *text)
     if(*numend) numend++;*/
     // :FIXME
 
-    filtertext(text, text);
+    filtertext(text, text, FTXT__CHAT);
     trimtrailingwhitespace(text);
 
     addmsg(SV_TEXTPRIVATE, "ris", cn, text);
@@ -1012,9 +1012,8 @@ int processdownload(package *pck)
             case PCK_TEXTURE: case PCK_AUDIO:
             {
                 const char *pckname = findfile(path(pck->name, true), "w+");
-                preparedir(pckname);
                 // with textures/sounds, the image/audio file itself is sent. Just need to copy it from the temporary file
-                if(!copyfile(tmpname, pckname)) conoutf(_("\f3failed to install"), pckname);
+                if(rename(tmpname, pckname)) conoutf(_("\f3failed to install"), pckname);
                 break;
             }
 

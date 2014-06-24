@@ -191,7 +191,7 @@ void entproperty(int prop, int amount)
                 loc->drop();
     }
     if(changedents.find(n) == -1) changedents.add(n);   // apply ent changes later (reduces network traffic)
-    unsavededits = 1;
+    unsavededits++;
 }
 
 hashtable<char *, enet_uint32> mapinfo, &resdata = mapinfo;
@@ -247,7 +247,7 @@ void delent()
     {
         case LIGHT: calclight(); break;
     }
-    unsavededits = 1;
+    unsavededits++;
 }
 
 int findtype(char *what)
@@ -312,7 +312,7 @@ entity *newentity(int index, int x, int y, int z, char *what, int v1, int v2, in
         case LIGHT: calclight(); break;
         case SOUND: audiomgr.preloadmapsound(e); break;
     }
-    unsavededits = 1;
+    unsavededits++;
     return index<0 ? &ents.last() : &ents[index];
 }
 
@@ -332,16 +332,17 @@ void clearents(char *name)
 {
     int type = findtype(name);
     if(noteditmode("clearents") || multiplayer()) return;
+    bool found = false;
     loopv(ents)
     {
         entity &e = ents[i];
-        if(e.type==type) e.type = NOTUSED;
-        unsavededits = 1;
+        if(e.type==type) { e.type = NOTUSED; found = true; }
     }
     switch(type)
     {
         case LIGHT: calclight(); break;
     }
+    if(found) unsavededits++;
 }
 
 COMMAND(clearents, "s");
@@ -369,7 +370,7 @@ void scalelights(int f, int intens)
             scalecomp(e.attr3, intens);
             scalecomp(e.attr4, intens);
         }
-        unsavededits = 1;
+        unsavededits++;
     }
     calclight();
 }
@@ -398,13 +399,7 @@ void nextplayerstart(int *type)
     cycle = findentity(PLAYERSTART, cycle + 1, *type);
     if(cycle >= 0)
     {
-        entity &e = ents[cycle];
-        player1->o.x = e.x;
-        player1->o.y = e.y;
-        player1->o.z = e.z;
-        player1->yaw = e.attr1;
-        player1->pitch = 0;
-        player1->roll = 0;
+        gotoplayerstart(player1, &ents[cycle]);
         entinmap(player1);
     }
 }
@@ -752,7 +747,7 @@ void mapmrproper(bool manual)
         conoutf("before: %d / %d / %d / %d / %d / %d / %d", sta[0], sta[1], sta[2], sta[3], sta[4], sta[5], sta[6]);
         conoutf("idealized: %d / %d / %d / %d / %d / %d / %d", stb[0], stb[1], stb[2], stb[3], stb[4], stb[5], stb[6]);
         conoutf("final count: %d / %d / %d / %d / %d / %d / %d", stc[0], stc[1], stc[2], stc[3], stc[4], stc[5], stc[6]);
-        unsavededits = 1;
+        unsavededits++;
     }
 }
 COMMANDF(mapmrproper, "", () { mapmrproper(true); });

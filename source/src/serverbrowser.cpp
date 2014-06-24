@@ -487,9 +487,9 @@ void checkpings()
         si->numplayers = getint(p);
         si->minremain = getint(p);
         getstring(text, p);
-        filtertext(si->map, text, 1);
+        filtertext(si->map, behindpath(text), FTXT__MAPNAME);
         getstring(text, p);
-        filterservdesc(si->sdesc, text);
+        filtertext(si->sdesc, text, FTXT__SERVDESC);
         copystring(si->description, si->sdesc);
         si->maxclients = getint(p);
         if(p.remaining())
@@ -510,7 +510,7 @@ void checkpings()
                         loopi(si->numplayers)
                         {
                             getstring(text, p);
-                            filtertext(text, text, 0);
+                            filtertext(text, text, FTXT__PLAYERNAME);
                             if(text[0] && !p.overread())
                             {
                                 si->playernames.add((const char *)si->namedata + q.length());
@@ -552,7 +552,7 @@ void checkpings()
                         while(p.remaining())
                         {
                             getstring(text, p);
-                            filtertext(text, text, 0);
+                            filtertext(text, behindpath(text), FTXT__MAPNAME);
                             if(*text && !p.overread())
                             {
                                 text[MAXINFOLINELEN] = '\0';
@@ -689,8 +689,8 @@ int sicompare(serverinfo **ap, serverinfo **bp)
         case SBS_DESC: // description
         {
             static string ad, bd;
-            filtertext(ad, a->sdesc);
-            filtertext(bd, b->sdesc);
+            filtertext(ad, a->sdesc, FTXT__SERVDESC);
+            filtertext(bd, b->sdesc, FTXT__SERVDESC);
             if(!ad[0] && bd[0]) return dir;
             if(ad[0] && !bd[0]) return -dir;
             int mdir = dir * strcasecmp(ad, bd);
@@ -782,7 +782,7 @@ void addfavcategory(const char *refdes)
     string text, val;
     char alx[FC_NUM];
     if(!refdes) { intret(0); return; }
-    filtertext(text, refdes);
+    filtertext(text, refdes, FTXT__FAVCATEGORY);
     if(!text[0]) { intret(0); return; }
     loopv(favcats) if(!strcmp(favcats[i], text)) { intret(i + 1); return; }
     favcats.add(newstring(text));
@@ -835,14 +835,14 @@ bool favcatcheckkey(serverinfo &si, const char *key)
             if(key[1])
             {
                 formatstring(text)("%s \"%s\" %d %d, %d %d %d \"%s\" %d %d", key + 1, si.map, si.mode, si.ping, si.minremain, si.numplayers, si.maxclients, si.name, si.port, si.pongflags);
-                filtertext(text, text, 1);
+                filtertext(text, text, FTXT_NOCOLOR|FTXT_NOWHITE|FTXT_ALLOWBLANKS);
                 int cnt = 0;
                 for(const char *p = text; (p = strchr(p, '\"')); p++) cnt++;
                 return cnt == 4 && execute(text);
             }
             break;
         default:
-            filtertext(text, si.sdesc);
+            filtertext(text, si.sdesc, FTXT_NOCOLOR|FTXT_NOWHITE|FTXT_ALLOWBLANKS);
             return *key && strstr(text, key);
     }
     return false;
@@ -1079,7 +1079,7 @@ void refreshservers(void *menu, bool init)
                 cutcolorstring(si.description, 76);
                 if(sbconnectexists)
                 {
-                    filtertext(text, si.sdesc);
+                    filtertext(text, si.sdesc, FTXT_NOCOLOR|FTXT_NOWHITE|FTXT_ALLOWBLANKS);
                     for(char *p = text; (p = strchr(p, '\"')); *p++ = ' ');
                     text[30] = '\0';
                     formatstring(si.cmd)("sbconnect %s %d %d %d %d %d \"%s\"", si.name, si.port, serverfull ?1:0, needspasswd ?1:0, mmode, banned, text);

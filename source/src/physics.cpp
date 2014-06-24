@@ -423,7 +423,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
     {
         const int timeinair = pl->timeinair;
         int move = pl->onladder && !pl->onfloor && pl->move == -1 ? 0 : pl->move; // movement on ladder
-        water = hdr.waterlevel>pl->o.z-0.5f;
+        if(!editfly) water = hdr.waterlevel>pl->o.z-0.5f;
 
         float chspeed = 0.4f;
         if(!(pl->onfloor || pl->onladder)) chspeed = 1.0f;
@@ -526,7 +526,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
                     }
                 }
 
-                if(timeinair > 200 && !pl->timeinair)
+                if(timeinair > 200 && !pl->timeinair && pl->inwater == water)
                 {
                     int sound = timeinair > 800 ? S_HARDLAND : S_SOFTLAND;
                     if(pl->state!=CS_DEAD)

@@ -97,7 +97,7 @@ void renderconsole() { con.render(); }
 void clientlogf(const char *s, ...)
 {
     defvformatstring(sp, s, s);
-    filtertext(sp, sp, 2);
+    filtertext(sp, sp, FTXT__LOG);
     extern struct servercommandline scl;
     const char *ts = scl.logtimestamp ? timestring(true, "%b %d %H:%M:%S ") : "";
     char *p, *l = sp;
@@ -345,9 +345,9 @@ void mapmsg(char *s)
 {
     string text;
     filterrichtext(text, s);
-    filterservdesc(text, text);
+    filtertext(text, text, FTXT__MAPMSG);
     copystring(hdr.maptitle, text, 128);
-    unsavededits = 1;
+    if(editmode) unsavededits++;
 }
 
 void getmapmsg(void)

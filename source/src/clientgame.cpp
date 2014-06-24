@@ -161,7 +161,7 @@ void newname(const char *name)
     if(name[0])
     {
         string tmpname;
-        filtertext(tmpname, name, 0, MAXNAMELEN);
+        filtertext(tmpname, name, FTXT__PLAYERNAME, MAXNAMELEN);
         if(identexists("onNameChange"))
         {
             defformatstring(onnamechange)("onNameChange %d \"%s\"", player1->clientnum, tmpname);
@@ -398,7 +398,6 @@ void deathstate(playerent *pl)
         damageblend(-1);
         if(pl->team == TEAM_SPECT) spectatemode(SM_FLY);
         else if(team_isspect(pl->team)) spectatemode(SM_FOLLOW1ST);
-        if(pl->spectatemode == SM_DEATHCAM) player1->followplayercn = FPCN_DEATHCAM;
     }
     else pl->resetinterp();
 }
@@ -659,6 +658,16 @@ float nearestenemy(vec place, int team)
     else return nearestenemydist;
 }
 
+void gotoplayerstart(playerent *d, entity *e)
+{
+    d->o.x = e->x;
+    d->o.y = e->y;
+    d->o.z = e->z;
+    d->yaw = e->attr1;
+    d->pitch = 0;
+    d->roll = 0;
+}
+
 void findplayerstart(playerent *d, bool mapcenter, int arenaspawn)
 {
     int r = fixspawn-->0 ? 4 : rnd(10)+1;
@@ -694,12 +703,7 @@ void findplayerstart(playerent *d, bool mapcenter, int arenaspawn)
 
     if(e)
     {
-        d->o.x = e->x;
-        d->o.y = e->y;
-        d->o.z = e->z;
-        d->yaw = e->attr1;
-        d->pitch = 0;
-        d->roll = 0;
+        gotoplayerstart(d, e);
     }
     else
     {
@@ -959,11 +963,13 @@ void silenttimeupdate(int milliscur, int millismax)
 
 void timeupdate(int milliscur, int millismax)
 {
-    bool display = lastmillis - lastgametimeupdate > 1000; // avoid double-output
+    static int lastgametimedisplay = 0;
 
     silenttimeupdate(milliscur, millismax);
+    int lastdisplay = lastmillis - lastgametimedisplay;
+    if(lastdisplay >= 0 && lastdisplay <= 1000) return; // avoid double-output
+    lastgametimedisplay = lastmillis;
 
-    if(!display) return;
     if(!minutesremaining)
     {
         intermission = true;
@@ -1132,6 +1138,7 @@ void startmap(const char *name, bool reset, bool norespawn)   // called just aft
     suicided = -1;
     spawncycle = -1;
     lasthit = 0;
+    player1->followplayercn = -1;
     if(m_valid(gamemode) && !m_mp(gamemode)) respawnself();
     else findplayerstart(player1);
     if(good_map()==MAP_IS_BAD) conoutf(_("You cannot play in this map due to quality requisites. Please, report this incident."));
@@ -1435,9 +1442,8 @@ void scallvote(int *type, const char *arg1, const char *arg2)
             {
                 //FIXME: this stupid conversion of ints to strings and back should
                 //  really be replaced with a saner method
-                char m[4];
-                sprintf(&m[0], "%d", nextmode);
-                callvote(t, arg1, &m[0], arg2);
+                defformatstring(m)("%d", nextmode);
+                callvote(t, arg1, m, arg2);
                 break;
             }
             case SA_KICK:
@@ -1723,13 +1729,11 @@ void spectatemode(int mode)
                     player1->resetinterp();
                 }
                 else entinmap(player1); // or drop 'em at a random place
-                player1->followplayercn = FPCN_FLY;
             }
             break;
         }
         case SM_OVERVIEW:
-            player1->followplayercn = FPCN_OVERVIEW;
-        break;
+            break;
         default: break;
     }
     player1->spectatemode = mode;
