@@ -1151,6 +1151,9 @@ void startmap(const char *name, bool reset, bool norespawn)   // called just aft
     if(editmode) toggleedit(true);
     intermission = false;
     showscores(false);
+    closemenu("Download demo");    // close and reset demo list, because it may be no longer accurate, since a new game has started
+    extern void *downloaddemomenu;
+    menureset(downloaddemomenu);
     needscoresreorder = true;
     minutesremaining = -1;
     lastgametimeupdate = 0;
@@ -1628,7 +1631,6 @@ void setadmin(int *claim, char *password)
 
 COMMAND(setadmin, "is");
 
-struct mline { string name, cmd; };
 static vector<mline> mlines;
 
 void *kickmenu = NULL, *banmenu = NULL, *forceteammenu = NULL, *giveadminmenu = NULL;

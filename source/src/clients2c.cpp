@@ -9,6 +9,9 @@ VARP(networkdebug, 0, 0, 1);
 extern bool watchingdemo;
 extern string clientpassword;
 
+void *downloaddemomenu = NULL;
+static vector<mline> demo_mlines;
+
 packetqueue pktlogger;
 
 void neterr(const char *s)
@@ -1334,11 +1337,27 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
             case SV_SENDDEMOLIST:
             {
                 int demos = getint(p);
-                if(!demos) conoutf(_("no demos available"));
-                else loopi(demos)
+                menureset(downloaddemomenu);
+                demo_mlines.shrink(0);
+                if(!demos)
                 {
-                    getstring(text, p);
-                    conoutf("%d. %s", i+1, text);
+                    conoutf(_("no demos available"));
+                    mline &m = demo_mlines.add();
+                    copystring(m.name, "no demos available");
+                    menumanual(downloaddemomenu,m.name);
+                }
+                else
+                {
+                    demo_mlines.reserve(demos);
+                    loopi(demos)
+                    {
+                        getstring(text, p);
+                        conoutf("%d. %s", i+1, text);
+                        mline &m = demo_mlines.add();
+                        formatstring(m.name)("%d. %s", i+1, text);
+                        formatstring(m.cmd)("getdemo %d", i+1);
+                        menumanual(downloaddemomenu, m.name, m.cmd);
+                    }
                 }
                 break;
             }
