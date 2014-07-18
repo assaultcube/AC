@@ -820,6 +820,11 @@ void deleteservermap(char *mapname)
 string demosubpath;
 void getdemo(int *idx, char *dsp)
 {
+    if(!multiplayer(false))
+    {
+        conoutf("%c3Getting demo from server is not available in singleplayer", CC);
+        return;
+    }
     if(dsp && dsp[0]) formatstring(demosubpath)("%s/", dsp);
     else copystring(demosubpath, "");
     if(*idx<=0) conoutf(_("getting demo..."));
@@ -829,6 +834,11 @@ void getdemo(int *idx, char *dsp)
 
 void listdemos()
 {
+    if(!multiplayer(false))
+    {
+        conoutf("%c3Listing demos from server is not available in singleplayer", CC);
+        return;
+    }
     conoutf(_("listing demos..."));
     addmsg(SV_LISTDEMOS, "r");
 }
