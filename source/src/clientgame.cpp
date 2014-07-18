@@ -191,11 +191,6 @@ void newteam(char *name)
         int nt = teamatoi(name);
         if(nt == player1->team) return; // same team
         if(!team_isvalid(nt)) { conoutf(_("%c3\"%s\" is not a valid team name (try CLA, RVSF or SPECTATOR)"), CC, name); return; }
-        if(team_isspect(nt))
-        {
-            if(player1->state != CS_DEAD) { conoutf(_("you'll need to be in a \"dead\" state to become a spectator")); return; }
-            if(!multiplayer()) { conoutf(_("you cannot spectate in singleplayer")); return; }
-        }
         if(player1->state == CS_EDITING) conoutf(_("you can't change team while editing"));
         else addmsg(SV_SWITCHTEAM, "ri", nt);
     }
