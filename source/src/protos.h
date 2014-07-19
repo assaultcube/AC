@@ -180,6 +180,8 @@ struct gmenu
     void init();
 };
 
+struct mline { string name, cmd; };
+
 // serverbrowser
 extern void addserver(const char *servername, int serverport, int weight);
 extern char *getservername(int n);

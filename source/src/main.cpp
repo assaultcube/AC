@@ -1154,7 +1154,7 @@ int main(int argc, char **argv)
     audiomgr.initsound();
 
     initlog("cfg");
-    extern void *scoremenu, *servmenu, *searchmenu, *serverinfomenu, *kickmenu, *banmenu, *forceteammenu, *giveadminmenu, *docmenu, *applymenu;
+    extern void *scoremenu, *servmenu, *searchmenu, *serverinfomenu, *kickmenu, *banmenu, *forceteammenu, *giveadminmenu, *docmenu, *applymenu, *downloaddemomenu;
     scoremenu = addmenu("score", "columns", false, renderscores, NULL, false, true);
     servmenu = addmenu("server", NULL, true, refreshservers, serverskey);
     searchmenu = addmenu("search", NULL, true, refreshservers, serverskey);
@@ -1165,6 +1165,7 @@ int main(int argc, char **argv)
     giveadminmenu = addmenu("give admin", NULL, true, refreshsopmenu);
     docmenu = addmenu("reference", NULL, true, renderdocmenu);
     applymenu = addmenu("apply", "apply changes now?", true, refreshapplymenu);
+    downloaddemomenu = addmenu("Download demo", NULL, true);
 
     exec("config/scontext.cfg");
     exec("config/locale.cfg");

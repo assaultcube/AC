@@ -191,11 +191,6 @@ void newteam(char *name)
         int nt = teamatoi(name);
         if(nt == player1->team) return; // same team
         if(!team_isvalid(nt)) { conoutf(_("%c3\"%s\" is not a valid team name (try CLA, RVSF or SPECTATOR)"), CC, name); return; }
-        if(team_isspect(nt))
-        {
-            if(player1->state != CS_DEAD) { conoutf(_("you'll need to be in a \"dead\" state to become a spectator")); return; }
-            if(!multiplayer()) { conoutf(_("you cannot spectate in singleplayer")); return; }
-        }
         if(player1->state == CS_EDITING) conoutf(_("you can't change team while editing"));
         else addmsg(SV_SWITCHTEAM, "ri", nt);
     }
@@ -979,6 +974,7 @@ void timeupdate(int milliscur, int millismax)
         conoutf(_("intermission:"));
         conoutf(_("game has ended!"));
         consolescores();
+        ((sniperrifle *)player1->weaponsel)->scoped = false;
         showscores(true);
         if(identexists("start_intermission")) execute("start_intermission");
     }
@@ -1151,6 +1147,9 @@ void startmap(const char *name, bool reset, bool norespawn)   // called just aft
     if(editmode) toggleedit(true);
     intermission = false;
     showscores(false);
+    closemenu("Download demo");    // close and reset demo list, because it may be no longer accurate, since a new game has started
+    extern void *downloaddemomenu;
+    menureset(downloaddemomenu);
     needscoresreorder = true;
     minutesremaining = -1;
     lastgametimeupdate = 0;
@@ -1628,7 +1627,6 @@ void setadmin(int *claim, char *password)
 
 COMMAND(setadmin, "is");
 
-struct mline { string name, cmd; };
 static vector<mline> mlines;
 
 void *kickmenu = NULL, *banmenu = NULL, *forceteammenu = NULL, *giveadminmenu = NULL;

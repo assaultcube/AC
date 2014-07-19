@@ -128,7 +128,7 @@ void menuselect(void *menu, int sel)
         {
             if(sel!=oldsel)
             {
-                m.items[oldsel]->focus(false);
+                if(m.items.inrange(oldsel)) m.items[oldsel]->focus(false);
                 m.items[sel]->focus(true);
                 audiomgr.playsound(S_MENUSELECT, SP_HIGHEST);
             }
@@ -1210,9 +1210,11 @@ void rendermenumdl()
 
 void gmenu::refresh()
 {
-    if(!refreshfunc) return;
-    (*refreshfunc)(this, !inited);
-    inited = true;
+    if(refreshfunc)
+    {
+        (*refreshfunc)(this, !inited);
+        inited = true;
+    }
     if(menusel>=items.length()) menusel = max(items.length()-1, 0);
 }
 

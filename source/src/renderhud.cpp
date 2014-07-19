@@ -1032,7 +1032,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     {
         glLoadIdentity();
         glOrtho(0, VIRTW*3/2, VIRTH*3/2, 0, -1, 1);
-        const int left = (VIRTW*3/2)*6/8, top = (VIRTH*3/2)*3/4;
+        const int left = (VIRTW*3/2)*8/11, top = (VIRTH*3/2)*3/4;
         draw_textf("SPACE to change view", left, top);
         draw_textf("SCROLL to change player", left, top+80);
     }
