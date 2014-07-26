@@ -42,7 +42,7 @@ void audiomanager::initsound()
             copystring(d, "Audio devices: ");
 
             // null separated device string
-            for(const ALchar *c = devices; c[strlen(c)+1]; c += strlen(c)+1)
+            for(const ALchar *c = devices; *c; c += strlen(c)+1)
             {
                 if(c!=devices) concatstring(d, ", ");
                 concatstring(d, c);

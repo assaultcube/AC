@@ -1089,25 +1089,31 @@ int main(int argc, char **argv)
 
     initing = NOT_INITING;
 
-    initlog("sdl");
+    #define STRINGIFY_(x) #x
+    #define STRINGIFY(x) STRINGIFY_(x)
+    #define SDLVERSIONSTRING  STRINGIFY(SDL_MAJOR_VERSION) "." STRINGIFY(SDL_MINOR_VERSION) "." STRINGIFY(SDL_PATCHLEVEL)
+    initlog("sdl (" SDLVERSIONSTRING ")");
     int par = 0;
 #ifdef _DEBUG
     par = SDL_INIT_NOPARACHUTE;
 #endif
     if(SDL_Init(SDL_INIT_TIMER|SDL_INIT_VIDEO|par)<0) fatal("Unable to initialize SDL");
+    const SDL_version *sdlver = SDL_Linked_Version();
+    if(SDL_COMPILEDVERSION != SDL_VERSIONNUM(sdlver->major, sdlver->minor, sdlver->patch))
+        clientlogf("SDL: compiled version " SDLVERSIONSTRING ", linked version %u.%u.%u", sdlver->major, sdlver->minor, sdlver->patch);
 
 #if 0
     if(highprocesspriority) setprocesspriority(true);
 #endif
 
-    if (!dedicated) initlog("net");
+    if (!dedicated) initlog("net (" STRINGIFY(ENET_VERSION_MAJOR) "." STRINGIFY(ENET_VERSION_MINOR) "." STRINGIFY(ENET_VERSION_PATCH) ")");
     if(enet_initialize()<0) fatal("Unable to initialise network module");
 
     if (!dedicated) initclient();
         //FIXME the server executed in this way does not catch the SIGTERM or ^C
     initserver(dedicated,argc,argv);  // never returns if dedicated
 
-    initlog("world");
+    initlog("world (" STRINGIFY(AC_VERSION) ")");
     empty_world(7, true);
 
     initlog("video: sdl");
