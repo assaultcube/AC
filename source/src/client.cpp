@@ -973,8 +973,8 @@ int pingpckservers(void *data)
     loopv(pckservers)
     {
         pckserver *serv = pckservers[i];
-        if(serv->ping > 0) conoutf("%d. %s (%d ms)", i+1, serv->addr, serv->ping);
-        else conoutf("%d. %s (did not reply)", i+1, serv->addr);
+        if(serv->ping > 0) clientlogf("%d. %s (%d ms)", i+1, serv->addr, serv->ping);
+        else clientlogf("%d. %s (did not reply)", i+1, serv->addr);
     }
     SDL_mutexV(pingpcksrvlock);
 
