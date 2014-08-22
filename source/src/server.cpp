@@ -1593,7 +1593,7 @@ int canspawn(client *c)   // beware: canspawn() doesn't check m_arena!
 void autospawncheck()
 {
     if(mastermode != MM_MATCH || !m_autospawn || interm) return;
-    
+
     loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->isauthed && team_isactive(clients[i]->team))
     {
         client *cl = clients[i];
@@ -1606,7 +1606,6 @@ void autospawncheck()
     }
 }
 
-/** FIXME: this function is unnecessarily complicated */
 bool updateclientteam(int cln, int newteam, int ftr)
 {
     if(!valid_client(cln)) return false;
