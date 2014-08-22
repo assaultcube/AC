@@ -486,3 +486,144 @@ bool glmatrixf::invert(const glmatrixf &m, float mindet)
     return true;
 }
 
+// multithreading and ipc tools wrapper for the server
+// all embedded servers and all standalone servers except on linux use SDL
+// the standalone linux version uses native linux libraries - and also makes use of shared memory
+
+#ifdef AC_USE_SDL_THREADS
+    #include "SDL_thread.h"      // also fetches SDL_mutex.h
+#else
+    #include <pthread.h>
+    #include <semaphore.h>
+    #include <sys/shm.h>
+#endif
+
+static int sl_sem_errorcountdummy = 0;
+
+#ifdef AC_USE_SDL_THREADS
+sl_semaphore::sl_semaphore(int init, int *ecnt)
+{
+    data = (void *)SDL_CreateSemaphore(init);
+    errorcount = ecnt ? ecnt : &sl_sem_errorcountdummy;
+    if(data == NULL) (*errorcount)++;
+}
+
+sl_semaphore::~sl_semaphore()
+{
+    if(data) SDL_DestroySemaphore((SDL_sem *) data);
+}
+
+void sl_semaphore::wait()
+{
+    if(SDL_SemWait((SDL_sem *) data) != 0) (*errorcount)++;
+}
+
+int sl_semaphore::trywait()
+{
+    return SDL_SemTryWait((SDL_sem *) data);
+}
+
+int sl_semaphore::getvalue()
+{
+    return SDL_SemValue((SDL_sem *) data);
+}
+
+void sl_semaphore::post()
+{
+    if(SDL_SemPost((SDL_sem *) data) != 0) (*errorcount)++;
+}
+#else
+sl_semaphore::sl_semaphore(int init, int *ecnt)
+{
+    errorcount = ecnt ? ecnt : &sl_sem_errorcountdummy;
+    data = (void *) new sem_t;
+    if(data == NULL || sem_init((sem_t *) data, 0, init) != 0) (*errorcount)++;
+}
+
+sl_semaphore::~sl_semaphore()
+{
+    if(data)
+    {
+        if(sem_destroy((sem_t *) data) != 0) (*errorcount)++;
+        delete (sem_t *)data;
+    }
+}
+
+void sl_semaphore::wait()
+{
+    if(sem_wait((sem_t *) data) != 0) (*errorcount)++;
+}
+
+int sl_semaphore::trywait()
+{
+    return sem_trywait((sem_t *) data);
+}
+
+int sl_semaphore::getvalue()
+{
+    int ret;
+    if(sem_getvalue((sem_t *) data, &ret) != 0) (*errorcount)++;
+    return ret;
+}
+
+void sl_semaphore::post()
+{
+    if(sem_post((sem_t *) data) != 0) (*errorcount)++;
+}
+#endif
+
+// (wrapping threads is slightly ugly, since SDL threads use a different return value (int) than pthreads (void *) - and that can't be solved with a typecast)
+#ifdef AC_USE_SDL_THREADS
+struct sl_threadinfo { int (*fn)(void *); void *data; SDL_Thread *handle; };
+
+static int sl_thread_indir(void *info) { return (*((sl_threadinfo*)info)->fn)(((sl_threadinfo*)info)->data); }
+
+void *sl_createthread(int (*fn)(void *), void *data)
+{
+    sl_threadinfo *ti = new sl_threadinfo;
+    ti->data = data;
+    ti->fn = fn;
+    ti->handle = SDL_CreateThread(sl_thread_indir, ti);
+    return (void *) ti;
+}
+
+int sl_waitthread(void *ti)
+{
+    int res;
+    SDL_WaitThread(((sl_threadinfo *)ti)->handle, &res);
+    delete (sl_threadinfo *) ti;
+    return res;
+}
+#else
+struct sl_threadinfo { int (*fn)(void *); void *data; pthread_t handle; int res; };
+
+static void *sl_thread_indir(void *info)
+{
+    sl_threadinfo *ti = (sl_threadinfo*) info;
+    ti->res = (ti->fn)(ti->data);
+    return &ti->res;
+}
+
+void *sl_createthread(int (*fn)(void *), void *data)
+{
+    sl_threadinfo *ti = new sl_threadinfo;
+    ti->data = data;
+    ti->fn = fn;
+    pthread_create(&(ti->handle), NULL, sl_thread_indir, ti);
+    return (void *) ti;
+}
+
+int sl_waitthread(void *ti)
+{
+    void *res;
+    pthread_join(((sl_threadinfo *)ti)->handle, &res);
+    int ires = *((int *)res);
+    delete (sl_threadinfo *) ti;
+    return ires;
+}
+#endif
+
+
+
+
+

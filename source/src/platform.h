@@ -72,6 +72,10 @@
     #include <setjmp.h>
 #endif
 
+#if defined(WIN32) || defined(__APPLE__) || !defined(STANDALONE) || defined(AC_FORCE_SDL_THREADS)
+    #define AC_USE_SDL_THREADS
+#endif
+
 #ifndef CURL_STATICLIB
 #define CURL_STATICLIB
 #endif

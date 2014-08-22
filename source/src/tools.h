@@ -979,5 +979,21 @@ extern const char *hiddenpwd(const char *pwd, int showchars = 0);
 extern void stackdumper(unsigned int type, EXCEPTION_POINTERS *ep);
 #endif
 
+struct sl_semaphore
+{
+    void *data;
+    int *errorcount;
+
+    sl_semaphore(int init, int *errorcount);  // init: initial semaphore value; errorcount: pointer to error counter for semaphore-related errors or NULL
+    ~sl_semaphore();
+    void wait();     // blocks, until semaphore gets available
+    int trywait();   // returns 0, if semaphore was locked (like wait(), but returns !=0 instead of blocking)
+    int getvalue();  // returns current semaphore value
+    void post();     // increments (unlocks) semaphore
+};
+
+extern void *sl_createthread(int (*fn)(void *), void *data);
+extern int sl_waitthread(void *ti);
+
 #endif
 
