@@ -946,12 +946,12 @@ struct killmessagesfile : serverconfigfile
                     {
                         if(fragmsg)
                         {
-                            copystring(killmessages[0][gun], message);
+                            copystring(killmessages[0][gun], message, MAXKILLMSGLEN);
                             logline(ACLOG_VERBOSE, " added msg '%s' for frags with weapon %i ", message, gun);
                         }
                         else
                         {
-                            copystring(killmessages[1][gun], message);
+                            copystring(killmessages[1][gun], message, MAXKILLMSGLEN);
                             logline(ACLOG_VERBOSE, " added msg '%s' for gibs with weapon %i ", message, gun);
                         }
                     }
