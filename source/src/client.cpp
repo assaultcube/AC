@@ -345,7 +345,11 @@ COMMAND(go_to, "ffs");
 void current_version(char *text)
 {
     int version = atoi(text);
-    if (version && AC_VERSION<version) conoutf("YOUR VERSION OF ASSAULTCUBE IS OUTDATED!\nYOU MUST UPDATE ASSAULTCUBE\nplease visit %s for more information",AC_MASTER_URI);
+    if (version && AC_VERSION<version)
+    {
+        hudoutf("\f3YOUR VERSION OF ASSAULTCUBE IS OUTDATED!");
+        conoutf("\f3YOU MUST UPDATE ASSAULTCUBE\nplease visit \f2http://assault.cubers.net \f3for more information");
+    }
 }
 COMMAND(current_version, "s");
 
