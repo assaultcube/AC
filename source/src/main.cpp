@@ -41,6 +41,8 @@ void quit()                     // normal exit
     writeallxmaps();
     cleanup(NULL);
     popscontext();
+    extern stream *clientlogfile;
+    DELETEP(clientlogfile);
     exit(EXIT_SUCCESS);
 }
 
@@ -988,6 +990,24 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int sw)
 }
 #endif
 
+void initclientlog()  // rotate old logfiles and create new one
+{
+    extern stream *clientlogfile;
+    const int MAXROT = 5;    // keep five old logfiles
+    string fname1, fname2 = "";
+    const char *basename = findfile("clientlog", "w");
+    for(int i = MAXROT; i >= 0; i--)
+    {
+        formatstring(fname1)(i > 0 ? "%s-old-%d.txt" : "%s.txt", basename, i);
+        if(fname2[0]) rename(fname1, fname2);
+        else remove(fname1);
+        copystring(fname2, fname1);
+    }
+    clientlogfile = openfile(fname2, "w");
+    if(clientlogfile) clientlogfile->printf("######## start logging: %s\n", timestring(true));
+    else conoutf("could not create logfile \"%s\"", fname2);
+}
+
 VARP(compatibilitymode, 0, 1, 1); // FIXME : find a better place to put this ?
 
 int main(int argc, char **argv)
@@ -1009,6 +1029,8 @@ int main(int argc, char **argv)
     bool direct_connect = false;               // to connect via assaultcube:// browser switch
     string servername, password;
     int serverport;
+
+    initclientlog();
 
     const char *initmap = rndmapname();
 
@@ -1262,6 +1284,11 @@ int main(int argc, char **argv)
 #ifdef _DEBUG
     int lastflush = 0;
 #endif
+    if(scl.logident[0])
+    { // "-Nxxx" sets the number of client log lines to xxx (after init)
+        extern int clientloglinesremaining;
+        clientloglinesremaining = atoi(scl.logident);  // dual-use for scl.logident
+    }
     for(;;)
     {
         static int frames = 0;
