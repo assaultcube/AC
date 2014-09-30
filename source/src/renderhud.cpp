@@ -1025,9 +1025,6 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     if(menu) rendermenu();
     else if(command) renderdoc(40, VIRTH, max(commandh*2 - VIRTH, 0));
 
-    if(!hidehudmsgs) hudmsgs.render();
-
-
     if(!hidespecthud && !menu && p->state==CS_DEAD && p->spectatemode<=SM_DEATHCAM)
     {
         glLoadIdentity();
@@ -1036,6 +1033,8 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         draw_textf("SPACE to change view", left, top);
         draw_textf("SCROLL to change player", left, top+80);
     }
+
+    if(!hidehudmsgs) hudmsgs.render();
 
     /* * /
     glLoadIdentity();
