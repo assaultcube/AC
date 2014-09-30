@@ -726,6 +726,11 @@ void respawnself()
     if( m_mp(gamemode) ) addmsg(SV_TRYSPAWN, "r");
     else
     {
+        if(team_isspect(player1->team))
+        {
+            addmsg(SV_SWITCHTEAM, "ri", m_teammode ? teamatoi(BotManager.GetBotTeam()) : rnd(2));
+            return;
+        }
         showscores(false);
         setscope(false);
         setburst(false);
