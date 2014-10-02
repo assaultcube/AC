@@ -3,7 +3,12 @@
 
 #include "cube.h"
 
+#ifdef STANDALONE
 #define DEBUGCOND (true)
+#else
+VARP(serverdebug, 0, 0, 1);
+#define DEBUGCOND (serverdebug==1)
+#endif
 
 #include "server.h"
 #include "servercontroller.h"
@@ -25,7 +30,7 @@ killmessagesfile killmsgs;
 bool isdedicated = false;
 ENetHost *serverhost = NULL;
 
-int nextstatus = 0, servmillis = 0, lastfillup = 0;
+int laststatus = 0, servmillis = 0, lastfillup = 0;
 
 vector<client *> clients;
 vector<worldstate *> worldstates;
@@ -492,10 +497,10 @@ const char *getDemoFilename(int gmode, int mplay, int mdrop, int tstamp, char *s
     // %w : timestamp "when"
     static string dmofn;
     copystring(dmofn, "");
-    
+
     int cc = 0;
     int mc = strlen(DEMOFORMAT);
-    
+
     while(cc<mc)
     {
         switch(DEMOFORMAT[cc])
@@ -1255,19 +1260,24 @@ void arenacheck()
     loopv(clients)
     {
         client &c = *clients[i];
-        if(c.type==ST_EMPTY || !c.isauthed || !c.isonrightmap || team_isspect(c.team)) continue; /// TODO: simplify the team/state sysmtem, it is not smart to have SPECTATE in both, for example
-        if (c.state.lastspawn < 0 && (c.state.state==CS_DEAD || c.state.state==CS_SPECTATE))
-        {
-            dead = true;
-            lastdeath = max(lastdeath, c.state.lastdeath);
-        }
-        else if(c.state.state==CS_ALIVE)
+        if(c.type==ST_EMPTY || !c.isauthed || !c.isonrightmap || team_isspect(c.team)) continue;
+        if(c.state.state==CS_ALIVE || ((c.state.state==CS_DEAD || c.state.state==CS_SPECTATE) && c.state.lastspawn>=0))
         {
             if(!alive) alive = &c;
             else if(!m_teammode || alive->team != c.team) return;
         }
+        else if(c.state.state==CS_DEAD || c.state.state==CS_SPECTATE)
+        {
+            dead = true;
+            lastdeath = max(lastdeath, c.state.lastdeath);
+        }
     }
 
+    if(autoteam && m_teammode && mastermode != MM_MATCH)
+    {
+        int *ntc = numteamclients();
+        if((!ntc[0] || !ntc[1]) && (ntc[0] > 1 || ntc[1] > 1)) refillteams(true, FTR_AUTOTEAM);
+    }
     if(!dead || gamemillis < lastdeath + 500) return;
     items_blocked = true;
     sendf(-1, 1, "ri2", SV_ARENAWIN, alive ? alive->clientnum : -1);
@@ -1565,8 +1575,8 @@ int canspawn(client *c)   // beware: canspawn() doesn't check m_arena!
 {
     if(!c || c->type == ST_EMPTY || !c->isauthed || !team_isvalid(c->team) ||
         (c->type == ST_TCPIP && (c->state.lastdeath > 0 ? gamemillis - c->state.lastdeath : servmillis - c->connectmillis) < (m_arena ? 0 : (m_flags ? 5000 : 2000))) ||
-        (servmillis - c->connectmillis < 1000 + c->state.reconnections * 2000 &&
-          gamemillis > 10000 && totalclients > 3 && !team_isspect(c->team))) return SP_OK_NUM; // equivalent to SP_DENY
+        (c->type == ST_TCPIP && (servmillis - c->connectmillis < 1000 + c->state.reconnections * 2000 &&
+          gamemillis > 10000 && totalclients > 3 && !team_isspect(c->team)))) return SP_OK_NUM; // equivalent to SP_DENY
     if(!c->isonrightmap) return SP_WRONGMAP;
     if(mastermode == MM_MATCH && matchteamsize)
     {
@@ -1689,6 +1699,12 @@ void shuffleteams(int ftr = FTR_AUTOTEAM)
             updateclientteam(shuffle[i], team, ftr);
             team = !team;
         }
+    }
+
+    if(m_ctf || m_htf)
+    {
+        ctfreset();
+        sendflaginfo();
     }
 }
 
@@ -2410,7 +2426,7 @@ void tryauth(client *cl, const char *user)
     extern bool requestmasterf(const char *fmt, ...);
     if(!nextauthreq) nextauthreq = 1;
     cl->authreq = nextauthreq++;
-    filtertext(cl->authname, user, false, 100);
+    filtertext(cl->authname, user, FTXT__AUTH, 100);
     if(!requestmasterf("reqauth %u %s\n", cl->authreq, cl->authname))
     {
         cl->authreq = 0;
@@ -2658,7 +2674,7 @@ void process(ENetPacket *packet, int sender, int chan)
             cl->acbuildtype = getint(p);
             defformatstring(tags)(", AC: %d|%x", cl->acversion, cl->acbuildtype);
             getstring(text, p);
-            filtertext(text, text, 0, MAXNAMELEN);
+            filtertext(text, text, FTXT__PLAYERNAME, MAXNAMELEN);
             if(!text[0]) copystring(text, "unarmed");
             copystring(cl->name, text, MAXNAMELEN+1);
             getstring(text, p);
@@ -2789,7 +2805,7 @@ void process(ENetPacket *packet, int sender, int chan)
             DEBUGVAR(cl->name);
             ASSERT(type>=0 && type<SV_NUM);
             DEBUGVAR(messagenames[type]);
-            protocoldebug(true);
+            protocoldebug(DEBUGCOND);
         }
         else protocoldebug(false);
         #endif
@@ -2800,7 +2816,7 @@ void process(ENetPacket *packet, int sender, int chan)
             case SV_TEAMTEXTME:
             case SV_TEAMTEXT:
                 getstring(text, p);
-                filtertext(text, text);
+                filtertext(text, text, FTXT__CHAT);
                 trimtrailingwhitespace(text);
                 if(*text)
                 {
@@ -2833,7 +2849,7 @@ void process(ENetPacket *packet, int sender, int chan)
             {
                 int mid1 = curmsg, mid2 = p.length();
                 getstring(text, p);
-                filtertext(text, text);
+                filtertext(text, text, FTXT__CHAT);
                 trimtrailingwhitespace(text);
                 if(*text)
                 {
@@ -2875,7 +2891,7 @@ void process(ENetPacket *packet, int sender, int chan)
             {
                 int targ = getint(p);
                 getstring(text, p);
-                filtertext(text, text);
+                filtertext(text, text, FTXT__CHAT);
                 trimtrailingwhitespace(text);
 
                 if(!valid_client(targ)) break;
@@ -2991,7 +3007,7 @@ void process(ENetPacket *packet, int sender, int chan)
             case SV_PRIMARYWEAP:
             {
                 int nextprimary = getint(p);
-                if(nextprimary<0 && nextprimary>=NUMGUNS) break;
+                if (nextprimary < 0 || nextprimary >= NUMGUNS) break;
                 cl->state.nextprimary = nextprimary;
                 break;
             }
@@ -3000,7 +3016,7 @@ void process(ENetPacket *packet, int sender, int chan)
             {
                 QUEUE_MSG;
                 getstring(text, p);
-                filtertext(text, text, 0, MAXNAMELEN);
+                filtertext(text, text, FTXT__PLAYERNAME, MAXNAMELEN);
                 if(!text[0]) copystring(text, "unarmed");
                 QUEUE_STR(text);
                 bool namechanged = strcmp(cl->name, text) != 0;
@@ -3012,7 +3028,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     if(servmillis - cl->lastprofileupdate < 1000)
                     {
                         ++cl->fastprofileupdates;
-                        if(cl->fastprofileupdates == 3) sendservmsg("\f3Please do not spam");
+                        if(cl->fastprofileupdates == 3) sendservmsg("\f3Please do not spam", sender);
                         if(cl->fastprofileupdates >= 5) { disconnect_client(sender, DISC_ABUSE); break; }
                     }
                     else if(servmillis - cl->lastprofileupdate > 10000) cl->fastprofileupdates = 0;
@@ -3056,7 +3072,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 if(servmillis - cl->lastprofileupdate < 1000)
                 {
                     ++cl->fastprofileupdates;
-                    if(cl->fastprofileupdates == 3) sendservmsg("\f3Please do not spam");
+                    if(cl->fastprofileupdates == 3) sendservmsg("\f3Please do not spam", sender);
                     if(cl->fastprofileupdates >= 5) disconnect_client(sender, DISC_ABUSE);
                 }
                 else if(servmillis - cl->lastprofileupdate > 10000) cl->fastprofileupdates = 0;
@@ -3295,7 +3311,7 @@ void process(ENetPacket *packet, int sender, int chan)
             case SV_SENDMAP:
             {
                 getstring(text, p);
-                filtertext(text, text);
+                filtertext(text, text, FTXT__MAPNAME);
                 const char *sentmap = behindpath(text), *reject = NULL;
                 int mapsize = getint(p);
                 int cfgsize = getint(p);
@@ -3377,7 +3393,7 @@ void process(ENetPacket *packet, int sender, int chan)
             case SV_REMOVEMAP:
             {
                 getstring(text, p);
-                filtertext(text, text);
+                filtertext(text, text, FTXT__MAPNAME);
                 string filename;
                 const char *rmmap = behindpath(text), *reject = NULL;
                 int mp = findmappath(rmmap);
@@ -3434,11 +3450,12 @@ void process(ENetPacket *packet, int sender, int chan)
                     case SA_MAP:
                     {
                         getstring(text, p);
-                        filtertext(text, text);
                         int mode = getint(p), time = getint(p);
+                        vi->gonext = text[0]=='+' && text[1]=='1';
+                        if(m_isdemo(mode)) filtertext(text, text, FTXT__DEMONAME);
+                        else filtertext(text, behindpath(text), FTXT__MAPNAME);
                         if(time <= 0) time = -1;
                         time = min(time, 60);
-                        vi->gonext = text[0]=='+' && text[1]=='1';
                         if (vi->gonext)
                         {
                             int ccs = mode ? maprot.next(false,false) : maprot.get_next();
@@ -3470,7 +3487,7 @@ void process(ENetPacket *packet, int sender, int chan)
                         vi->num1 = cn2boot = getint(p);
                         getstring(text, p);
                         strncpy(vi->text,text,128);
-                        filtertext(text, text);
+                        filtertext(text, text, FTXT__KICKBANREASON);
                         trimtrailingwhitespace(text);
                         vi->action = new kickaction(cn2boot, newstring(text, 128));
                         vi->boot = 1;
@@ -3481,7 +3498,7 @@ void process(ENetPacket *packet, int sender, int chan)
                         vi->num1 = cn2boot = getint(p);
                         getstring(text, p);
                         strncpy(vi->text,text,128);
-                        filtertext(text, text);
+                        filtertext(text, text, FTXT__KICKBANREASON);
                         trimtrailingwhitespace(text);
                         vi->action = new banaction(cn2boot, newstring(text, 128));
                         vi->boot = 2;
@@ -3519,7 +3536,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     case SA_SERVERDESC:
                         getstring(text, p);
                         strncpy(vi->text,text,MAXTRANS-1);
-                        filtertext(text, text);
+                        filtertext(text, text, FTXT__SERVDESC);
                         vi->action = new serverdescaction(newstring(text), sender);
                         break;
                 }
@@ -3900,9 +3917,9 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
         lastThrottleEpoch = serverhost->bandwidthThrottleEpoch;
     }
 
-    if(servmillis>nextstatus)   // display bandwidth stats, useful for server ops
+    if(servmillis - laststatus > 60 * 1000)   // display bandwidth stats, useful for server ops
     {
-        nextstatus = servmillis + 60 * 1000;
+        laststatus = servmillis;
         rereadcfgs();
         if(nonlocalclients || serverhost->totalSentData || serverhost->totalReceivedData)
         {
@@ -4020,7 +4037,7 @@ void extping_maprot(ucharbuf &po)
     {
         if(po.remaining() < 100) abort = true;
         configset &c = maprot.configsets[i];
-        filtertext(text, c.mapname, 0);
+        filtertext(text, c.mapname, FTXT__MAPNAME);
         text[30] = '\0';
         sendstring(abort ? "-- list truncated --" : text, po);
         loopi(CONFIG_MAXPAR) putint(po, c.par[i]);
@@ -4122,6 +4139,7 @@ void localconnect()
     client &c = addclient();
     c.type = ST_LOCAL;
     c.role = CR_ADMIN;
+    c.salt = 0;
     copystring(c.hostname, "local");
     sendservinfo(c);
 }
@@ -4184,7 +4202,7 @@ void initserver(bool dedicated, int argc, char **argv)
     smapname[0] = '\0';
 
     string identity;
-    if(scl.logident[0]) filtertext(identity, scl.logident, 0);
+    if(scl.logident[0]) filtertext(identity, scl.logident, FTXT__LOGIDENT);
     else formatstring(identity)("%s#%d", scl.ip[0] ? scl.ip : "local", scl.serverport);
     int conthres = scl.verbose > 1 ? ACLOG_DEBUG : (scl.verbose ? ACLOG_VERBOSE : ACLOG_INFO);
     if(dedicated && !initlogging(identity, scl.syslogfacility, conthres, scl.filethres, scl.syslogthres, scl.logtimestamp))

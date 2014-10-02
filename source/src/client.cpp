@@ -236,7 +236,7 @@ void _toserver(char *text, int msg, int msgt)
     bool toteam = text && text[0] == '%' && (m_teammode || team_isspect(player1->team));
     if(!toteam && text[0] == '%' && strlen(text) > 1) text++; // convert team-text to normal-text if no team-mode is active
     if(toteam) text++;
-    filtertext(text, text);
+    filtertext(text, text, FTXT__CHAT);
     trimtrailingwhitespace(text);
     if(servstate.mastermode == MM_MATCH && servstate.matchteamsize && !team_isactive(player1->team) && !(player1->team == TEAM_SPECT && player1->clientrole == CR_ADMIN)) toteam = true; // spect chat
     if(*text)
@@ -320,7 +320,7 @@ void pm(char *text)
     if(*numend) numend++;*/
     // :FIXME
 
-    filtertext(text, text);
+    filtertext(text, text, FTXT__CHAT);
     trimtrailingwhitespace(text);
 
     addmsg(SV_TEXTPRIVATE, "ris", cn, text);
@@ -345,7 +345,11 @@ COMMAND(go_to, "ffs");
 void current_version(char *text)
 {
     int version = atoi(text);
-    if (version && AC_VERSION<version) conoutf("YOUR VERSION OF ASSAULTCUBE IS OUTDATED!\nYOU MUST UPDATE ASSAULTCUBE\nplease visit %s for more information",AC_MASTER_URI);
+    if (version && AC_VERSION<version)
+    {
+        hudoutf("\f3YOUR VERSION OF ASSAULTCUBE IS OUTDATED!");
+        conoutf("\f3YOU MUST UPDATE ASSAULTCUBE\nplease visit \f2http://assault.cubers.net \f3for more information");
+    }
 }
 COMMAND(current_version, "s");
 
@@ -752,7 +756,7 @@ void sendmap(char *mapname)
 {
     if(!*mapname) mapname = getclientmap();
     if(securemapcheck(mapname)) return;
-    if(gamemode == GMODE_COOPEDIT && !strcmp(getclientmap(), mapname)) save_world(mapname);
+    if(gamemode == GMODE_COOPEDIT && !strcmp(getclientmap(), mapname)) save_world(mapname, true, false); // skip optimisations, don't add undos
 
     int mapsize, cfgsize, cfgsizegz, revision;
     uchar *mapdata = readmap(path(mapname), &mapsize, &revision);
@@ -820,6 +824,11 @@ void deleteservermap(char *mapname)
 string demosubpath;
 void getdemo(int *idx, char *dsp)
 {
+    if(!multiplayer(false))
+    {
+        conoutf("%c3Getting demo from server is not available in singleplayer", CC);
+        return;
+    }
     if(dsp && dsp[0]) formatstring(demosubpath)("%s/", dsp);
     else copystring(demosubpath, "");
     if(*idx<=0) conoutf(_("getting demo..."));
@@ -829,6 +838,11 @@ void getdemo(int *idx, char *dsp)
 
 void listdemos()
 {
+    if(!multiplayer(false))
+    {
+        conoutf("%c3Listing demos from server is not available in singleplayer", CC);
+        return;
+    }
     conoutf(_("listing demos..."));
     addmsg(SV_LISTDEMOS, "r");
 }
@@ -920,7 +934,7 @@ int pckserversort(pckserver **a, pckserver **b)
 {
     if((*a)->ping < 0) return ((*b)->ping < 0) ? 0 : 1;
     if((*b)->ping < 0) return -1;
-    
+
     return (*a)->ping == (*b)->ping ? 0 : ((*a)->ping < (*b)->ping ? -1 : 1);
 }
 
@@ -963,8 +977,8 @@ int pingpckservers(void *data)
     loopv(pckservers)
     {
         pckserver *serv = pckservers[i];
-        if(serv->ping > 0) conoutf("%d. %s (%d ms)", i+1, serv->addr, serv->ping);
-        else conoutf("%d. %s (did not reply)", i+1, serv->addr);
+        if(serv->ping > 0) clientlogf("%d. %s (%d ms)", i+1, serv->addr, serv->ping);
+        else clientlogf("%d. %s (did not reply)", i+1, serv->addr);
     }
     SDL_mutexV(pingpcksrvlock);
 
@@ -1012,9 +1026,8 @@ int processdownload(package *pck)
             case PCK_TEXTURE: case PCK_AUDIO:
             {
                 const char *pckname = findfile(path(pck->name, true), "w+");
-                preparedir(pckname);
                 // with textures/sounds, the image/audio file itself is sent. Just need to copy it from the temporary file
-                if(!copyfile(tmpname, pckname)) conoutf(_("\f3failed to install"), pckname);
+                if(rename(tmpname, pckname)) conoutf(_("\f3failed to install"), pckname);
                 break;
             }
 

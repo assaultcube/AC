@@ -161,7 +161,7 @@ void newname(const char *name)
     if(name[0])
     {
         string tmpname;
-        filtertext(tmpname, name, 0, MAXNAMELEN);
+        filtertext(tmpname, name, FTXT__PLAYERNAME, MAXNAMELEN);
         if(identexists("onNameChange"))
         {
             defformatstring(onnamechange)("onNameChange %d \"%s\"", player1->clientnum, tmpname);
@@ -173,7 +173,6 @@ void newname(const char *name)
         addmsg(SV_SWITCHNAME, "rs", player1->name);
     }
     else conoutf(_("your name is: %s"), player1->name);
-    //alias(_("curname"), player1->name); // WTF? stef went crazy - this isn't something to translate either.
     alias("curname", player1->name);
 }
 
@@ -192,11 +191,6 @@ void newteam(char *name)
         int nt = teamatoi(name);
         if(nt == player1->team) return; // same team
         if(!team_isvalid(nt)) { conoutf(_("%c3\"%s\" is not a valid team name (try CLA, RVSF or SPECTATOR)"), CC, name); return; }
-        if(team_isspect(nt))
-        {
-            if(player1->state != CS_DEAD) { conoutf(_("you'll need to be in a \"dead\" state to become a spectator")); return; }
-            if(!multiplayer()) { conoutf(_("you cannot spectate in singleplayer")); return; }
-        }
         if(player1->state == CS_EDITING) conoutf(_("you can't change team while editing"));
         else addmsg(SV_SWITCHTEAM, "ri", nt);
     }
@@ -399,7 +393,6 @@ void deathstate(playerent *pl)
         damageblend(-1);
         if(pl->team == TEAM_SPECT) spectatemode(SM_FLY);
         else if(team_isspect(pl->team)) spectatemode(SM_FOLLOW1ST);
-        if(pl->spectatemode == SM_DEATHCAM) player1->followplayercn = FPCN_DEATHCAM;
     }
     else pl->resetinterp();
 }
@@ -599,7 +592,7 @@ void addsleep_(int *msec, char *cmd, int *persist)
 
 void resetsleep(bool force)
 {
-    loopv(sleeps) if(!sleeps[i].persist || force)
+    loopvrev(sleeps) if(!sleeps[i].persist || force)
     {
         DELETEA(sleeps[i].cmd);
         sleeps.remove(i);
@@ -660,6 +653,16 @@ float nearestenemy(vec place, int team)
     else return nearestenemydist;
 }
 
+void gotoplayerstart(playerent *d, entity *e)
+{
+    d->o.x = e->x;
+    d->o.y = e->y;
+    d->o.z = e->z;
+    d->yaw = e->attr1;
+    d->pitch = 0;
+    d->roll = 0;
+}
+
 void findplayerstart(playerent *d, bool mapcenter, int arenaspawn)
 {
     int r = fixspawn-->0 ? 4 : rnd(10)+1;
@@ -695,12 +698,7 @@ void findplayerstart(playerent *d, bool mapcenter, int arenaspawn)
 
     if(e)
     {
-        d->o.x = e->x;
-        d->o.y = e->y;
-        d->o.z = e->z;
-        d->yaw = e->attr1;
-        d->pitch = 0;
-        d->roll = 0;
+        gotoplayerstart(d, e);
     }
     else
     {
@@ -728,6 +726,11 @@ void respawnself()
     if( m_mp(gamemode) ) addmsg(SV_TRYSPAWN, "r");
     else
     {
+        if(team_isspect(player1->team))
+        {
+            addmsg(SV_SWITCHTEAM, "ri", m_teammode ? teamatoi(BotManager.GetBotTeam()) : rnd(2));
+            return;
+        }
         showscores(false);
         setscope(false);
         setburst(false);
@@ -960,11 +963,13 @@ void silenttimeupdate(int milliscur, int millismax)
 
 void timeupdate(int milliscur, int millismax)
 {
-    bool display = lastmillis - lastgametimeupdate > 1000; // avoid double-output
+    static int lastgametimedisplay = 0;
 
     silenttimeupdate(milliscur, millismax);
+    int lastdisplay = lastmillis - lastgametimedisplay;
+    if(lastdisplay >= 0 && lastdisplay <= 1000) return; // avoid double-output
+    lastgametimedisplay = lastmillis;
 
-    if(!display) return;
     if(!minutesremaining)
     {
         intermission = true;
@@ -974,6 +979,7 @@ void timeupdate(int milliscur, int millismax)
         conoutf(_("intermission:"));
         conoutf(_("game has ended!"));
         consolescores();
+        ((sniperrifle *)player1->weapons[GUN_SNIPER])->scoped = false;
         showscores(true);
         if(identexists("start_intermission")) execute("start_intermission");
     }
@@ -1118,20 +1124,22 @@ COMMAND(showmapstats, "");
 VARP(showmodedescriptions, 0, 1, 1);
 extern bool canceldownloads;
 
-void startmap(const char *name, bool reset)   // called just after a map load
+void startmap(const char *name, bool reset, bool norespawn)   // called just after a map load
 {
     canceldownloads = false;
     copystring(clientmap, name);
+
+    if(norespawn) return;
+
     sendmapidenttoserver = true;
-    // Added by Rick
     if(m_botmode) BotManager.BeginMap(name);
     else kickallbots();
-    // End add by Rick
     clearbounceents();
     preparectf(!m_flags);
     suicided = -1;
     spawncycle = -1;
     lasthit = 0;
+    player1->followplayercn = -1;
     if(m_valid(gamemode) && !m_mp(gamemode)) respawnself();
     else findplayerstart(player1);
     if(good_map()==MAP_IS_BAD) conoutf(_("You cannot play in this map due to quality requisites. Please, report this incident."));
@@ -1144,6 +1152,9 @@ void startmap(const char *name, bool reset)   // called just after a map load
     if(editmode) toggleedit(true);
     intermission = false;
     showscores(false);
+    closemenu("Download demo");    // close and reset demo list, because it may be no longer accurate, since a new game has started
+    extern void *downloaddemomenu;
+    menureset(downloaddemomenu);
     needscoresreorder = true;
     minutesremaining = -1;
     lastgametimeupdate = 0;
@@ -1408,9 +1419,9 @@ void callvote(int type, const char *arg1, const char *arg2, const char *arg3)
                 break;
             default:
 
-				
-				
-				
+
+
+
 				putint(p, atoi(arg1));
                 break;
         }
@@ -1435,9 +1446,8 @@ void scallvote(int *type, const char *arg1, const char *arg2)
             {
                 //FIXME: this stupid conversion of ints to strings and back should
                 //  really be replaced with a saner method
-                char m[4];
-                sprintf(&m[0], "%d", nextmode);
-                callvote(t, arg1, &m[0], arg2);
+                defformatstring(m)("%d", nextmode);
+                callvote(t, arg1, m, arg2);
                 break;
             }
             case SA_KICK:
@@ -1622,7 +1632,6 @@ void setadmin(int *claim, char *password)
 
 COMMAND(setadmin, "is");
 
-struct mline { string name, cmd; };
 static vector<mline> mlines;
 
 void *kickmenu = NULL, *banmenu = NULL, *forceteammenu = NULL, *giveadminmenu = NULL;
@@ -1687,7 +1696,7 @@ void setfollowplayer(int cn)
     // silently ignores invalid player-cn value passed
     if(players.inrange(cn) && players[cn])
     {
-        if(!(m_teammode && !watchingdemo && team_base(players[cn]->team) != team_base(player1->team)))
+        if(!(m_teammode && player1->team != TEAM_SPECT && !watchingdemo && team_base(players[cn]->team) != team_base(player1->team)))
         {
             player1->followplayercn = cn;
             if(player1->spectatemode == SM_FLY) player1->spectatemode = SM_FOLLOW1ST;
@@ -1723,13 +1732,11 @@ void spectatemode(int mode)
                     player1->resetinterp();
                 }
                 else entinmap(player1); // or drop 'em at a random place
-                player1->followplayercn = FPCN_FLY;
             }
             break;
         }
         case SM_OVERVIEW:
-            player1->followplayercn = FPCN_OVERVIEW;
-        break;
+            break;
         default: break;
     }
     player1->spectatemode = mode;

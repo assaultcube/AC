@@ -552,7 +552,6 @@ bool extractzipfile(ziparchive *a, zipfile *f, const char *name)
     zipstream *s = new zipstream;
     FILE *target = NULL;
     defformatstring(fname)("%s", findfile(name, "wb"));
-    preparedir(fname);
     bool error = false;
     if(s->open(a, f) && (target = fopen(fname, "wb")))
     {

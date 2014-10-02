@@ -10,7 +10,7 @@
 // who are innocently affect by an IP range ban.
 // You can also use this page to advertize your clan or provide contact
 // information for recruiting.
-// 
+//
 // Don't use more than 80 characters per line. You can use colors and TABs.
 // Color usage: \f plus a corresponding number/character.
 // The available colors are: 0: green, 1: blue, 2: yellow, 3: red, 4: gray, 5: white,

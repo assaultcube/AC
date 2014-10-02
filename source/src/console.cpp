@@ -8,6 +8,7 @@ VARP(altconsize, 0, 0, 100);
 VARP(fullconsize, 0, 40, 100);
 VARP(consize, 0, 6, 100);
 VARP(confade, 0, 20, 60);
+VARP(conalpha, 0, 255, 255);
 VAR(conopen, 0, 0, 1);
 VAR(numconlines, 0, 0, 1);
 
@@ -68,7 +69,7 @@ struct console : consolebuffer<cline>
         {
             int idx = offset + numl-i-1;
             char *line = conlines[idx].line;
-            draw_text(line, CONSPAD+FONTH/3, y, 0xFF, 0xFF, 0xFF, 0xFF, -1, conwidth);
+            draw_text(line, CONSPAD+FONTH/3, y, 0xFF, 0xFF, 0xFF, fullconsole ? 0xFF : conalpha, -1, conwidth);
             int width, height;
             text_bounds(line, width, height, conwidth);
             y += height;
@@ -93,10 +94,13 @@ COMMANDN(toggleconsole, toggleconsole, "");
 
 void renderconsole() { con.render(); }
 
+stream *clientlogfile = NULL;
+int clientloglinesremaining = INT_MAX;
+
 void clientlogf(const char *s, ...)
 {
     defvformatstring(sp, s, s);
-    filtertext(sp, sp, 2);
+    filtertext(sp, sp, FTXT__LOG);
     extern struct servercommandline scl;
     const char *ts = scl.logtimestamp ? timestring(true, "%b %d %H:%M:%S ") : "";
     char *p, *l = sp;
@@ -104,6 +108,11 @@ void clientlogf(const char *s, ...)
     { // break into single lines first
         if((p = strchr(l, '\n'))) *p = '\0';
         printf("%s%s\n", ts, l);
+        if(clientlogfile)
+        {
+            clientlogfile->printf("%s%s\n", ts, l);
+            if(--clientloglinesremaining <= 0) DELETEP(clientlogfile);
+        }
         l = p + 1;
     }
     while(p);
@@ -119,18 +128,14 @@ void conoutf(const char *s, ...)
 
 COMMANDF(strstr, "ss", (char *a, char *b) { intret(strstr(a, b) ? 1 : 0); });
 
-/** This is the 1.0.4 function
-    It will substituted by rendercommand_wip
-    I am putting this temporarily here because it is very difficult to chat in game with the current cursor behavior,
-    and chatting in this test period is extremelly important : Brahma */
 int rendercommand(int x, int y, int w)
 {
-    defformatstring(s)("# %s", cmdline.buf); /** I changed the symbol here to differentiate from the > (new talk symbol),
-                                             and make clear the console changed to the old players (like me) : Brahma */
+    const char *useprompt = cmdprompt ? cmdprompt : "#";
+    defformatstring(s)("%s %s", useprompt, cmdline.buf);
     int width, height;
     text_bounds(s, width, height, w);
     y -= height - FONTH;
-    draw_text(s, x, y, 0xFF, 0xFF, 0xFF, 0xFF, cmdline.pos>=0 ? cmdline.pos+2 : (int)strlen(s), w);
+    draw_text(s, x, y, 0xFF, 0xFF, 0xFF, 0xFF, cmdline.pos>=0 ? cmdline.pos + strlen(useprompt) + 1  : (int)strlen(s), w);
     return height;
 }
 
@@ -220,7 +225,7 @@ void findkey(int *code)
     result("-255");
     return;
 }
- 
+
 void findkeycode(const char* s)
 {
      for (int i = 0; i < keyms.length(); i++)
@@ -348,8 +353,9 @@ void mapmsg(char *s)
 {
     string text;
     filterrichtext(text, s);
-    filterservdesc(text, text);
+    filtertext(text, text, FTXT__MAPMSG);
     copystring(hdr.maptitle, text, 128);
+    if(editmode) unsavededits++;
 }
 
 void getmapmsg(void)
@@ -475,20 +481,25 @@ void history_(int *n)
 
 COMMANDN(history, history_, "i");
 
-void savehistory() {
+void savehistory()
+{
     stream *f = openfile(path("config/history", true), "w");
     if(!f) return;
-    loopv(history) {
+    loopv(history)
+    {
         f->printf("%s\n",history[i]->buf);
     }
     delete f;
 }
 
-void loadhistory() {
-    char *histbuf = loadfile(path("config/history", true),NULL);
+void loadhistory()
+{
+    char *histbuf = loadfile(path("config/history", true), NULL);
+    if(!histbuf) return;
     char *line = NULL;
     line = strtok(histbuf, "\n");
-    while (line) {
+    while(line)
+    {
         history.add(new hline)->buf = newstring(line);
         line = strtok(NULL, "\n");
     }
@@ -572,7 +583,7 @@ void consolekey(int code, bool isdown, int cooked)
         {
             // make laptop users happy; LMB shall only work with history
             if(code == SDL_AC_BUTTON_LEFT && histpos == history.length()) return;
-        
+
             hline *h = NULL;
             if(cmdline.buf[0])
             {

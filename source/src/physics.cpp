@@ -373,7 +373,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
     {
         const int timeinair = pl->timeinair;
         int move = pl->onladder && !pl->onfloor && pl->move == -1 ? 0 : pl->move; // movement on ladder
-        water = hdr.waterlevel>pl->o.z-0.5f;
+        if(!editfly) water = hdr.waterlevel>pl->o.z-0.5f;
 
         float chspeed = 0.4f;
         if(!(pl->onfloor || pl->onladder)) chspeed = 1.0f;
@@ -434,7 +434,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
                     const float climbspeed = 1.0f;
 
                     if(pl->type==ENT_BOT && pl->state == CS_ALIVE) pl->vel.z = climbspeed; // bots climb upwards only
-                    else if(pl->type==ENT_PLAYER)
+                    else if(pl->type==ENT_PLAYER && pl->state == CS_ALIVE)
                     {
                         if(((playerent *)pl)->k_up) pl->vel.z = climbspeed;
                         else if(((playerent *)pl)->k_down) pl->vel.z = -climbspeed;
@@ -476,7 +476,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
                     }
                 }
 
-                if(timeinair > 200 && !pl->timeinair)
+                if(timeinair > 200 && !pl->timeinair && pl->inwater == water)
                 {
                     int sound = timeinair > 800 ? S_HARDLAND : S_SOFTLAND;
                     if(pl->state!=CS_DEAD)

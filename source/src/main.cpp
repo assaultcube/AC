@@ -38,8 +38,11 @@ void quit()                     // normal exit
     if(resetcfg) deletecfg();
     else writecfg();
     savehistory();
+    writeallxmaps();
     cleanup(NULL);
     popscontext();
+    extern stream *clientlogfile;
+    DELETEP(clientlogfile);
     exit(EXIT_SUCCESS);
 }
 
@@ -895,9 +898,13 @@ const char *rndmapname()
 {
     vector<char *> maps;
     listfiles("packages/maps/official", "cgz", maps);
-    char *map = newstring(maps[rnd(maps.length())]);
-    maps.deletearrays();
-    return map;
+    if (maps.length() > 0)
+    {
+        char *map = newstring(maps[rnd(maps.length())]);
+        maps.deletearrays();
+        return map;
+    }
+    else return "";
 }
 
 extern void connectserv(char *, int *, char *);
@@ -983,6 +990,24 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int sw)
 }
 #endif
 
+void initclientlog()  // rotate old logfiles and create new one
+{
+    extern stream *clientlogfile;
+    const int MAXROT = 5;    // keep five old logfiles
+    string fname1, fname2 = "";
+    const char *basename = findfile("clientlog", "w");
+    for(int i = MAXROT; i >= 0; i--)
+    {
+        formatstring(fname1)(i > 0 ? "%s-old-%d.txt" : "%s.txt", basename, i);
+        if(fname2[0]) rename(fname1, fname2);
+        else remove(fname1);
+        copystring(fname2, fname1);
+    }
+    clientlogfile = openfile(fname2, "w");
+    if(clientlogfile) clientlogfile->printf("######## start logging: %s\n", timestring(true));
+    else conoutf("could not create logfile \"%s\"", fname2);
+}
+
 VARP(compatibilitymode, 0, 1, 1); // FIXME : find a better place to put this ?
 
 int main(int argc, char **argv)
@@ -1004,6 +1029,8 @@ int main(int argc, char **argv)
     bool direct_connect = false;               // to connect via assaultcube:// browser switch
     string servername, password;
     int serverport;
+
+    initclientlog();
 
     const char *initmap = rndmapname();
 
@@ -1084,25 +1111,31 @@ int main(int argc, char **argv)
 
     initing = NOT_INITING;
 
-    initlog("sdl");
+    #define STRINGIFY_(x) #x
+    #define STRINGIFY(x) STRINGIFY_(x)
+    #define SDLVERSIONSTRING  STRINGIFY(SDL_MAJOR_VERSION) "." STRINGIFY(SDL_MINOR_VERSION) "." STRINGIFY(SDL_PATCHLEVEL)
+    initlog("sdl (" SDLVERSIONSTRING ")");
     int par = 0;
 #ifdef _DEBUG
     par = SDL_INIT_NOPARACHUTE;
 #endif
     if(SDL_Init(SDL_INIT_TIMER|SDL_INIT_VIDEO|par)<0) fatal("Unable to initialize SDL");
+    const SDL_version *sdlver = SDL_Linked_Version();
+    if(SDL_COMPILEDVERSION != SDL_VERSIONNUM(sdlver->major, sdlver->minor, sdlver->patch))
+        clientlogf("SDL: compiled version " SDLVERSIONSTRING ", linked version %u.%u.%u", sdlver->major, sdlver->minor, sdlver->patch);
 
 #if 0
     if(highprocesspriority) setprocesspriority(true);
 #endif
 
-    if (!dedicated) initlog("net");
+    if (!dedicated) initlog("net (" STRINGIFY(ENET_VERSION_MAJOR) "." STRINGIFY(ENET_VERSION_MINOR) "." STRINGIFY(ENET_VERSION_PATCH) ")");
     if(enet_initialize()<0) fatal("Unable to initialise network module");
 
     if (!dedicated) initclient();
         //FIXME the server executed in this way does not catch the SIGTERM or ^C
     initserver(dedicated,argc,argv);  // never returns if dedicated
 
-    initlog("world");
+    initlog("world (" STRINGIFY(AC_VERSION) ")");
     empty_world(7, true);
 
     initlog("video: sdl");
@@ -1118,6 +1151,8 @@ int main(int argc, char **argv)
 
     initlog("video: misc");
     SDL_WM_SetCaption("AssaultCube", NULL);
+    SDL_Surface *icon = IMG_Load("packages/misc/icon.bmp");
+    SDL_WM_SetIcon(icon, NULL);
     keyrepeat(false);
     SDL_ShowCursor(0);
 
@@ -1147,7 +1182,7 @@ int main(int argc, char **argv)
     audiomgr.initsound();
 
     initlog("cfg");
-    extern void *scoremenu, *servmenu, *searchmenu, *serverinfomenu, *kickmenu, *banmenu, *forceteammenu, *giveadminmenu, *docmenu, *applymenu;
+    extern void *scoremenu, *servmenu, *searchmenu, *serverinfomenu, *kickmenu, *banmenu, *forceteammenu, *giveadminmenu, *docmenu, *applymenu, *downloaddemomenu;
     scoremenu = addmenu("score", "columns", false, renderscores, NULL, false, true);
     servmenu = addmenu("server", NULL, true, refreshservers, serverskey);
     searchmenu = addmenu("search", NULL, true, refreshservers, serverskey);
@@ -1158,6 +1193,7 @@ int main(int argc, char **argv)
     giveadminmenu = addmenu("give admin", NULL, true, refreshsopmenu);
     docmenu = addmenu("reference", NULL, true, renderdocmenu);
     applymenu = addmenu("apply", "apply changes now?", true, refreshapplymenu);
+    downloaddemomenu = addmenu("Download demo", NULL, true);
 
     exec("config/scontext.cfg");
     exec("config/locale.cfg");
@@ -1170,6 +1206,8 @@ int main(int argc, char **argv)
     exec("config/admin.cfg");
     execfile("config/servers.cfg");
     loadhistory();
+    int xmn = loadallxmaps();
+    if(xmn) conoutf("loaded %d xmaps", xmn);
     per_idents = true;
 
     static char resdata[] = { 112, 97, 99, 107, 97, 103, 101, 115, 47, 116, 101, 120, 116, 117, 114, 101, 115, 47, 107, 117, 114, 116, 47, 107, 108, 105, 116, 101, 50, 46, 106, 112, 103, 0 };
@@ -1246,6 +1284,11 @@ int main(int argc, char **argv)
 #ifdef _DEBUG
     int lastflush = 0;
 #endif
+    if(scl.logident[0])
+    { // "-Nxxx" sets the number of client log lines to xxx (after init)
+        extern int clientloglinesremaining;
+        clientloglinesremaining = atoi(scl.logident);  // dual-use for scl.logident
+    }
     for(;;)
     {
         static int frames = 0;
@@ -1300,7 +1343,7 @@ int main(int argc, char **argv)
             // in the screenshot regardless of which frame buffer is current
             if (!minimized)
             {
-                gl_drawframe(screen->w, screen->h, fps<lowfps ? fps/lowfps : (fps>highfps ? fps/highfps : 1.0f), fps);           
+                gl_drawframe(screen->w, screen->h, fps<lowfps ? fps/lowfps : (fps>highfps ? fps/highfps : 1.0f), fps);
             }
             addsleep(0, "screenshot");
             needsautoscreenshot = false;

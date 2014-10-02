@@ -19,15 +19,15 @@ struct winservice : servercontroller
     HANDLE stopevent;
     const char *name;
 
-    winservice(const char *name) : name(name) 
-    { 
-        callbacks::svc = this; 
+    winservice(const char *name) : name(name)
+    {
+        callbacks::svc = this;
         statushandle = 0;
     };
 
-    ~winservice() 
-    { 
-        if(status.dwCurrentState != SERVICE_STOPPED) stop(); 
+    ~winservice()
+    {
+        if(status.dwCurrentState != SERVICE_STOPPED) stop();
         callbacks::svc = NULL;
     }
 
@@ -39,10 +39,10 @@ struct winservice : servercontroller
     }
 
     void keepalive()
-    { 
+    {
         if(statushandle)
         {
-            report(SERVICE_RUNNING, 0); 
+            report(SERVICE_RUNNING, 0);
             handleevents();
         }
     };
@@ -54,7 +54,7 @@ struct winservice : servercontroller
             report(SERVICE_STOP_PENDING, 0);
             if(stopevent) CloseHandle(stopevent);
             status.dwControlsAccepted &= ~(SERVICE_ACCEPT_STOP | SERVICE_ACCEPT_SHUTDOWN);
-            report(SERVICE_STOPPED, 0);    
+            report(SERVICE_STOPPED, 0);
         }
     }
 
@@ -108,7 +108,7 @@ struct winservice : servercontroller
         extern int main(int argc, char **argv);
         return main(argc, argv);
     }
-   
+
 
     struct callbacks
     {
@@ -121,7 +121,7 @@ struct winservice : servercontroller
     {
         HANDLE eventsrc = RegisterEventSource(NULL, "AC Server");
         if(eventsrc)
-        {          
+        {
             int eventid = ((error ? 0x11 : 0x1) << 10) & (0x1 << 9) & (FACILITY_NULL << 6) & 0x1; // TODO: create event definitions
             LPCTSTR msgs[1] = { msg };
             int r = ReportEvent(eventsrc, error ? EVENTLOG_ERROR_TYPE : EVENTLOG_INFORMATION_TYPE, 0, 4, NULL, 1, 0, msgs, NULL);

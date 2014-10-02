@@ -675,6 +675,7 @@ void addshotline(dynent *pl, const vec &from, const vec &to)
     int start = (camera1->o.dist(to) <= 10.0f) ? 8 : 5;
     vec unitv;
     float dist = to.dist(from, unitv);
+    if(dist < 1) return;
     unitv.div(dist);
 
     // shotline visuals

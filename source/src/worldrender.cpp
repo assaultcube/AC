@@ -74,7 +74,7 @@ int stats[LARGEST_FACTOR];
 // detect those cases where a higher mip solid has a visible wall next to lower mip cubes
 // (used for wall rendering below)
 
-bool issemi(int mip, int x, int y, int x1, int y1, int x2, int y2)      
+bool issemi(int mip, int x, int y, int x1, int y1, int x2, int y2)
 {
     if(!(mip--)) return true;
     sqr *w = wmip[mip];
@@ -117,82 +117,91 @@ void render_seg_new(float vx, float vy, float vh, int mip, int x, int y, int xs,
     int ry = vyy+lodbot;
 
     float fsize = (float)(1<<mip);
-    for(int oy = y; oy<ys; oy++) for(int ox = x; ox<xs; ox++)       // first collect occlusion information for this block
+    for(int oy = y; oy<ys; oy++)       // first collect occlusion information for this block
     {
-        SWS(w,ox,oy,mfactor)->occluded = isoccluded(camera1->o.x, camera1->o.y, (float)(ox<<mip), (float)(oy<<mip), fsize);
+        sqr *s = SWS(w,x,oy,mfactor);
+        for(int ox = x; ox<xs; ox++, s++) s->occluded = isoccluded(camera1->o.x, camera1->o.y, (float)(ox<<mip), (float)(oy<<mip), fsize);
     }
-    
+
     int pvx = (int)vx>>mip;
     int pvy = (int)vy>>mip;
     if(pvx>=0 && pvy>=0 && pvx<sz && pvy<sz)
     {
-        //SWS(w,vxx,vyy,mfactor)->occluded = 0; 
+        //SWS(w,vxx,vyy,mfactor)->occluded = 0;
         SWS(w, pvx, pvy, mfactor)->occluded = 0;  // player cell never occluded
     }
 
     #define df(x) s->floor-(x->vdelta/4.0f)
     #define dc(x) s->ceil+(x->vdelta/4.0f)
-    
+
     // loop through the rect 3 times (for floor/ceil/walls seperately, to facilitate dynamic stripify)
     // for each we skip occluded cubes (occlusion at higher mip levels is a big time saver!).
     // during the first loop (ceil) we collect cubes that lie within the lower mip rect and are
     // also deferred, and render them recursively. Anything left (perfect mips and higher lods) we
     // render here.
 
-    #define LOOPH {for(int yy = y; yy<ys; yy++) for(int xx = x; xx<xs; xx++) { \
-                  sqr *s = SWS(w,xx,yy,mfactor); if(s->occluded) continue; \
-                  if(s->defer && mip && xx>=lx && xx<rx && yy>=ly && yy<ry)
+    #define LOOPH {for(int yy = y; yy<ys; yy++) { sqr *s = SWS(w,x,yy,mfactor); \
+                  for(int xx = x; xx<xs; xx++, s++) { if(s->occluded) continue;
     #define LOOPD sqr *t = SWS(s,1,0,mfactor); \
-                  sqr *u = SWS(s,1,1,mfactor); \
-                  sqr *v = SWS(s,0,1,mfactor);
+                  sqr *v = SWS(s,0,1,mfactor); \
+                  sqr *u = SWS(v,1,0,mfactor);
 
     int rendered = 0;
-    LOOPH // floors
+    LOOPH   // floors
+        if(s->defer && mip && xx>=lx && xx<rx && yy>=ly && yy<ry)
         {
+            s->occluded = 1; // shortcut for the other LOOPHs
             int start = xx;
-            sqr *next;
-            while(xx<xs-1 && (next = SWS(w,xx+1,yy,mfactor))->defer && !next->occluded) xx++;    // collect 2xN rect of lower mip
+            while(xx<xs-1 && s[1].defer && !s[1].occluded) {xx++; s++; if(xx<rx) s->occluded = 1;}    // collect 2xN rect of lower mip
             render_seg_new(vx, vy, vh, mip-1, start*2, yy*2, xx*2+2, yy*2+2);
             continue;
         }
         rendered++;
-        LOOPD
         switch(s->type)
         {
             case SPACE:
             case CHF:
                 if(s->floor<=vh && render_floor)
                 {
-                    render_flat(s->ftex, xx<<mip, yy<<mip, 1<<mip, s->floor, s, t, u, v, false);
+                    sqr *v = SWS(s,0,1,mfactor);
+                    render_flat(s->ftex, xx<<mip, yy<<mip, 1<<mip, s->floor, s, s + 1, v + 1, v, false);
                     if(s->floor<hdr.waterlevel && !reflecting) addwaterquad(xx<<mip, yy<<mip, 1<<mip);
                 }
                 break;
             case FHF:
+            {
+                LOOPD
                 render_flatdelta(s->ftex, xx<<mip, yy<<mip, 1<<mip, df(s), df(t), df(u), df(v), s, t, u, v, false);
                 if(s->floor-s->vdelta/4.0f<hdr.waterlevel && !reflecting) addwaterquad(xx<<mip, yy<<mip, 1<<mip);
                 break;
+            }
         }
-    }}
+    }}}
 
     if(!rendered) return;
     stats[mip] += rendered;
 
-    if(!minimap) LOOPH continue; // ceils
-        LOOPD
+    if(!minimap) LOOPH   // ceils
         switch(s->type)
         {
             case SPACE:
             case FHF:
                 if(s->ceil>=vh && render_ceil)
-                    render_flat(s->ctex, xx<<mip, yy<<mip, 1<<mip, s->ceil, s, t, u, v, true);
+                {
+                    sqr *v = SWS(s,0,1,mfactor);
+                    render_flat(s->ctex, xx<<mip, yy<<mip, 1<<mip, s->ceil, s, s + 1, v + 1, v, true);
+                }
                 break;
             case CHF:
+            {
+                LOOPD
                 render_flatdelta(s->ctex, xx<<mip, yy<<mip, 1<<mip, dc(s), dc(t), dc(u), dc(v), s, t, u, v, true);
                 break;
+            }
         }
-    }}
+    }}}
 
-    LOOPH continue; // walls
+    LOOPH   // walls
         LOOPD
         //  w
         // zSt
@@ -251,12 +260,12 @@ void render_seg_new(float vx, float vy, float vh, int mip, int x, int y, int xs,
                 && (v->type!=SEMISOLID || issemi(mip, xx, yy+1, 0, 0, 1, 0)))
                 render_wall(s, v, xx,   yy+1, xx+1, yy+1, mip, v, u, true, 3);  // bot
         }
-    }}
+    }}}
 
     extern vector<int> tagclipcubes;
     extern bool showtagclipfocus;
     extern int showtagclips;
-    if(editmode && !showtagclipfocus && showtagclips) LOOPH continue; // tag clips
+    if(editmode && !showtagclipfocus && showtagclips) LOOPH   // tag clips
         if(mip)
         {
             int ix1 = xx<<mip, ix2 = (xx+1)<<mip, iy1 = yy<<mip, iy2 = (yy+1)<<mip;
@@ -271,7 +280,7 @@ void render_seg_new(float vx, float vy, float vh, int mip, int x, int y, int xs,
             }
         }
         else if(s->tag & TAGANYCLIP && s->type != SOLID) tagclipcubes.add(xx + (yy << 16));
-    }}
+    }}}
 }
 
 void distlod(int &low, int &high, int angle, float widef)
@@ -325,6 +334,6 @@ void render_world(float vx, float vy, float vh, float changelod, int yaw, int pi
     render_ceil  = -pitch<0.5f*fovy;
 
     render_seg_new(vx, vy, vh, MAX_MIP, 0, 0, ssize>>MAX_MIP, ssize>>MAX_MIP);
-    mipstats(stats[0], stats[1], stats[2]);
+    mipstats(stats);
 }
 

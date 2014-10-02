@@ -2,6 +2,9 @@
 
 #include "cube.h"
 
+#define DEBUGCOND (worldiodebug==1)
+VARP(worldiodebug, 0, 0, 1);
+
 void backup(char *name, char *backupname)
 {
     string backupfile;
@@ -10,7 +13,7 @@ void backup(char *name, char *backupname)
     rename(findfile(name, "wb"), backupfile);
 }
 
-static string cgzname, ocgzname, bakname, pcfname, mcfname, omcfname, mapname;
+static string cgzname, ocgzname, bakname, cbakname, pcfname, mcfname, omcfname, mapname;
 
 const char *setnames(const char *name)
 {
@@ -29,12 +32,14 @@ const char *setnames(const char *name)
     formatstring(cgzname)("packages/%s/%s.cgz",      pakname, mapname);
     formatstring(ocgzname)("packages/maps/official/%s.cgz",   mapname);
     formatstring(bakname)("packages/%s/%s_%s.BAK",   pakname, mapname, numtime());
+    formatstring(cbakname)("packages/%s/%s.cfg_%s.BAK",   pakname, mapname, numtime());
     formatstring(pcfname)("packages/%s/package.cfg", pakname);
     formatstring(mcfname)("packages/%s/%s.cfg",      pakname, mapname);
     formatstring(omcfname)("packages/maps/official/%s.cfg",   mapname);
 
     path(cgzname);
     path(bakname);
+    path(cbakname);
     return cgzname;
 }
 
@@ -53,70 +58,6 @@ void voptimize()        // reset vdeltas on non-hf cubes
         sqr *s = S(x, y);
         if(x && y) { if(nhf(s) && nhf(S(x-1, y)) && nhf(S(x-1, y-1)) && nhf(S(x, y-1))) s->vdelta = 0; }
         else s->vdelta = 0;
-    }
-}
-
-void topt(sqr *s, bool &wf, bool &uf, int &wt, int &ut)
-{
-    sqr *o[4];
-    o[0] = SWS(s,0,-1,sfactor);
-    o[1] = SWS(s,0,1,sfactor);
-    o[2] = SWS(s,1,0,sfactor);
-    o[3] = SWS(s,-1,0,sfactor);
-     wf = true;
-    uf = true;
-    if(SOLID(s))
-    {
-        loopi(4) if(!SOLID(o[i]))
-        {
-            wf = false;
-            wt = s->wtex;
-            ut = s->utex;
-            return;
-         }
-    }
-    else
-    {
-        loopi(4) if(!SOLID(o[i]))
-        {
-            //don't corrupt non-matching cube types
-            if (o[i]->type != s->type)
-            {
-                wf = false;
-                uf = false;
-                wt = s->wtex;
-                ut = s->utex;
-                return;
-            }
-
-            //wall
-            if(o[i]->floor < s->floor)
-            { wt = s->wtex; wf = false; }
-
-            //upper wall
-            if(o[i]->ceil > s->ceil)
-             { ut = s->utex; uf = false; }
-        }
-    }
-}
-
-void toptimize() // FIXME: only does 2x2, make atleast for 4x4 also
-{
-    bool wf[4], uf[4];
-    sqr *s[4];
-    for(int y = 2; y<ssize-4; y += 2) for(int x = 2; x<ssize-4; x += 2)
-    {
-        s[0] = S(x,y);
-        int wt = s[0]->wtex, ut = s[0]->utex;
-        topt(s[0], wf[0], uf[0], wt, ut);
-        topt(s[1] = SWS(s[0],0,1,sfactor), wf[1], uf[1], wt, ut);
-        topt(s[2] = SWS(s[0],1,1,sfactor), wf[2], uf[2], wt, ut);
-        topt(s[3] = SWS(s[0],1,0,sfactor), wf[3], uf[3], wt, ut);
-        loopi(4)
-        {
-            if(wf[i]) s[i]->wtex = wt;
-            if(uf[i]) s[i]->utex = ut;
-        }
     }
 }
 
@@ -197,21 +138,335 @@ uchar *readmcfggz(char *name, int *size, int *sizegz)
 // encoding and leaves out data for certain kinds of cubes, then zlib removes the
 // last bits of redundancy. Both passes contribute greatly to the miniscule map sizes.
 
+void rlencodecubes(vector<uchar> &f, sqr *s, int len, bool preservesolids) // run-length encoding and serialisation of a series of cubes
+{
+    sqr *t = NULL;
+    int sc = 0;
+    #define spurge while(sc) { f.add(255); if(sc>255) { f.add(255); sc -= 255; } else { f.add(sc); sc = 0; } }
+    #define c(f) (s->f==t->f)
+    while(len-- > 0)
+    {
+        // 4 types of blocks, to compress a bit:
+        // 255 (2): same as previous block + count
+        // 254 (3): same as previous, except light // deprecated
+        // SOLID (5)
+        // anything else (9)
+
+        if(SOLID(s) && !preservesolids)
+        {
+            if(t && c(type) && c(wtex) && c(vdelta))
+            {
+                sc++;
+            }
+            else
+            {
+                spurge;
+                f.add(s->type);
+                f.add(s->wtex);
+                f.add(s->vdelta);
+            }
+        }
+        else
+        {
+            if(t && c(type) && c(floor) && c(ceil) && c(ctex) && c(ftex) && c(utex) && c(wtex) && c(vdelta) && c(tag))
+            {
+                sc++;
+            }
+            else
+            {
+                spurge;
+                f.add(s->type == SOLID ? 253 : s->type);
+                f.add(s->floor);
+                f.add(s->ceil);
+                f.add(s->wtex);
+                f.add(s->ftex);
+                f.add(s->ctex);
+                f.add(s->vdelta);
+                f.add(s->utex);
+                f.add(s->tag);
+            }
+        }
+        t = s;
+        s++;
+    }
+    spurge;
+}
+
+void rldecodecubes(ucharbuf &f, sqr *s, int len, int version, bool silent) // run-length decoding of a series of cubes (version is only relevant, if < 6)
+{
+    sqr *t = NULL, *e = s + len;
+    while(s < e)
+    {
+        int type = f.overread() ? -1 : f.get();
+        switch(type)
+        {
+            case -1:
+            {
+                if(!silent) conoutf("while reading map at %d: unexpected end of file", cubicsize - (e - s));
+                f.forceoverread();
+                silent = true;
+                sqrdefault(s);
+                break;
+            }
+            case 255:
+            {
+                if(!t) { f.forceoverread(); continue; }
+                int n = f.get();
+                loopi(n) memcpy(s++, t, sizeof(sqr));
+                s--;
+                break;
+            }
+            case 254: // only in MAPVERSION<=2
+            {
+                if(!t) { f.forceoverread(); continue; }
+                memcpy(s, t, sizeof(sqr));
+                f.get(); f.get();
+                break;
+            }
+            case SOLID:
+            {
+                sqrdefault(s);                  // takes care of ftex, ctex, floor, ceil and tag
+                s->type = SOLID;
+                s->utex = s->wtex = f.get();
+                s->vdelta = f.get();
+                if(version<=2) { f.get(); f.get(); }
+                break;
+            }
+            case 253: // SOLID with all textures during editing (undo)
+                type = SOLID;
+            default:
+            {
+                if(type<0 || type>=MAXTYPE)
+                {
+                    if(!silent) conoutf("while reading map at %d: type %d out of range", cubicsize - (e - s), type);
+                    f.overread();
+                    continue;
+                }
+                sqrdefault(s);
+                s->type = type;
+                s->floor = f.get();
+                s->ceil = f.get();
+                if(s->floor>=s->ceil) s->floor = s->ceil-1;  // for pre 12_13
+                s->wtex = f.get();
+                s->ftex = f.get();
+                s->ctex = f.get();
+                if(version<=2) { f.get(); f.get(); }
+                s->vdelta = f.get();
+                s->utex = (version>=2) ? f.get() : s->wtex;
+                s->tag = (version>=5) ? f.get() : 0;
+            }
+        }
+        s->defer = 0;
+        t = s;
+        s++;
+    }
+}
+
+// headerextra stores additional data in a map file (support since format 10)
+// data can be persistent or oneway
+// the format and handling is explicitly designed to handle yet unknown header types to avoid further format version bumps
+
+struct headerextra
+{
+    int len, flags;
+    uchar *data;
+    headerextra() : len(0), flags(0), data(NULL) {}
+    headerextra(int l, int f, uchar *d) : len(l), flags(f), data(NULL) { if(d) { data = new uchar[len]; memcpy(data, d, len); } }
+    ~headerextra() { DELETEA(data); }
+    headerextra *duplicate() { return new headerextra(len, flags, data); }
+};
+vector<headerextra *> headerextras;
+
+enum { HX_UNUSED = 0, HX_MAPINFO, HX_MODEINFO, HX_ARTIST, HX_EDITUNDO, HX_CONFIG, HX_VANTAGEPOINT, HX_NUM, HX_TYPEMASK = 0x3f, HX_FLAG_PERSIST = 0x40 };
+const char *hx_names[] = { "unused", "mapinfo", "modeinfo", "artist", "editundo", "config", "vantage point", "unknown" };
+#define addhxpacket(p, len, flags, buffer) { if(p.length() + len < MAXHEADEREXTRA) { putuint(p, len); putuint(p, flags); p.put(buffer, len); } }
+#define hx_name(t) hx_names[min((t) & HX_TYPEMASK, int(HX_NUM))]
+
+void clearheaderextras() { loopvrev(headerextras) delete headerextras.remove(i); }
+
+void deleteheaderextra(int n) { if(headerextras.inrange(n)) delete headerextras.remove(n); }
+
+COMMANDF(listheaderextras, "", ()
+{
+    loopv(headerextras) conoutf("extra header record %d: %s, %d bytes", i, hx_name(headerextras[i]->flags), headerextras[i]->len);
+    if(!headerextras.length()) conoutf("no extra header records found");
+});
+
+int findheaderextra(int type)
+{
+    loopv(headerextras) if((headerextras[i]->flags & HX_TYPEMASK) == type) return i;
+    return -1;
+}
+
+void unpackheaderextra(uchar *buf, int len)  // break the extra data from the mapheader into its pieces
+{
+    ucharbuf p(buf, len);
+    DEBUG("unpacking " << len << " bytes");
+    while(1)
+    {
+        int len = getuint(p), flags = getuint(p), type = flags & HX_TYPEMASK;
+        if(p.overread() || len > p.remaining()) break;
+        clientlogf(" found headerextra \"%s\", %d bytes%s", hx_name(type), len, flags & HX_FLAG_PERSIST ? "persistent" : "");  // debug info
+        headerextras.add(new headerextra(len, flags, p.subbuf(len).buf));
+    }
+}
+
+void parseheaderextra(bool clearnonpersist = true, int ignoretypes = 0)  // parse all headerextra packets, delete the nonpersistent ones (like editundos)
+{
+    DEBUG("parsing " << headerextras.length() << " packets");
+    loopv(headerextras)
+    {
+        ucharbuf q(headerextras[i]->data, headerextras[i]->len);
+        int type = headerextras[i]->flags & HX_TYPEMASK;
+        DEBUG("packet " << i << " type " << type);
+        bool deletethis = false;                               // (set deletethis for headers that persist outside headerextras and get reinserted by packheaderextras())
+        if(!(ignoretypes & (1 << type))) switch(type)
+        {
+            case HX_EDITUNDO:
+                restoreeditundo(q);
+                break;
+
+            case HX_CONFIG:
+                setcontext("map", "embedded");
+                execute((const char *)q.buf);
+                resetcontext();
+                break;
+
+            case HX_MAPINFO:
+            case HX_MODEINFO:
+            case HX_ARTIST:
+            default:
+                break;
+        }
+        if(deletethis || (clearnonpersist && !(headerextras[i]->flags & HX_FLAG_PERSIST))) delete headerextras.remove(i--);
+    }
+}
+
+ucharbuf packheaderextras(int ignoretypes = 0)  // serialise all extra data packets to save with the map header
+{
+    vector<uchar> buf, tmp;
+    loopv(headerextras) if(!(ignoretypes & (1 << (headerextras[i]->flags & HX_TYPEMASK))))
+    { // copy existing persistent hx packets
+        addhxpacket(buf, headerextras[i]->len, headerextras[i]->flags, headerextras[i]->data);
+    }
+    // create non-persistent ones, if wanted
+    if(!(ignoretypes & (1 << HX_EDITUNDO)))
+    {
+        int limit = (MAXHEADEREXTRA - buf.length()) / 3;
+        backupeditundo(tmp, limit, limit);
+        addhxpacket(buf, tmp.length(), HX_EDITUNDO, tmp.getbuf());
+    }
+    ucharbuf q(new uchar[buf.length()], buf.length());
+    memcpy(q.buf, buf.getbuf(), q.maxlen);
+    DEBUG("packed " << q.maxlen << " bytes");
+    return q;
+}
+
+bool embedconfigfile()
+{
+    if(securemapcheck(getclientmap())) return false;
+    setnames(getclientmap());
+    int len;
+    uchar *buf = (uchar *)loadfile(path(mcfname), &len);
+    if(buf)
+    {
+        for(int n; (n = findheaderextra(HX_CONFIG)) >= 0; ) deleteheaderextra(n);
+        headerextras.add(new headerextra(len + 1, HX_CONFIG|HX_FLAG_PERSIST, NULL))->data = buf;
+        backup(mcfname, cbakname); // don't delete the config file, just rename
+        conoutf("embedded map config file \"%s\"", mcfname);
+    }
+    else conoutf("\f3failed to load config file %s", mcfname);
+    return buf != NULL;
+}
+COMMANDF(embedconfigfile, "", () { if(embedconfigfile()) save_world(getclientmap()); });
+
+void extractconfigfile()
+{
+    if(securemapcheck(getclientmap())) return;
+    setnames(getclientmap());
+    int n = findheaderextra(HX_CONFIG);
+    if(n < 0) conoutf("no embedded config found");
+    else
+    {
+        backup(mcfname, cbakname); // don't overwrite an existing config file, just rename it
+        stream *f = openfile(mcfname, "w");
+        if(f)
+        {
+            f->write(headerextras[n]->data, headerextras[n]->len);
+            delete f;
+            conoutf("extracted embedded map config to file %s", mcfname);
+            deleteheaderextra(n);
+        }
+        else conoutf("\f3failed to write config to %s", mcfname);
+    }
+}
+COMMAND(extractconfigfile, "");
+
+bool clearvantagepoint()
+{
+    bool yep = false;
+    for(int n; (n = findheaderextra(HX_VANTAGEPOINT)) >= 0; yep = true) deleteheaderextra(n);
+    unsavededits++;
+    return yep;
+}
+COMMANDF(clearvantagepoint, "", () { if(!noteditmode("clearvantagepoint") && !multiplayer() && clearvantagepoint()) conoutf("cleared vantage point"); });
+
+void setvantagepoint()
+{
+    if(noteditmode("setvantagepoint") || multiplayer()) return;
+    clearvantagepoint();
+    short p[5];
+    storeposition(p);
+    vector<uchar> buf;
+    loopi(5) putint(buf, p[i]);
+    headerextras.add(new headerextra(buf.length(), HX_VANTAGEPOINT|HX_FLAG_PERSIST, buf.getbuf()));
+    conoutf("vantage point set");
+}
+COMMAND(setvantagepoint, "");
+
+bool gotovantagepoint()
+{
+    short p[5];
+    int n = findheaderextra(HX_VANTAGEPOINT);
+    if(n >= 0)
+    {
+        ucharbuf q(headerextras[n]->data, headerextras[n]->len);
+        loopi(5) p[i] = getint(q);
+        restoreposition(p);
+        physent d = *player1;
+        d.radius = d.eyeheight = d.maxeyeheight = d.aboveeye = 0.1;
+        if(collide(&d, false)) n = -1;       // don't use out-of-map vantage points
+    }
+    if(n < 0)  // if there is no vantage point set, we go to the first playerstart instead
+    {
+        int s = findentity(PLAYERSTART, 0);
+        if(ents.inrange(s)) gotoplayerstart(player1, &ents[s]);
+        entinmap(player1);
+    }
+    return n >= 0;
+}
+COMMANDF(gotovantagepoint, "", () { if(editmode) gotovantagepoint(); });
+
 VAR(advancemaprevision, 1, 1, 100);
 
 VARP(mapbackupsonsave, 0, 1, 1);
 
-void save_world(char *mname)
+void save_world(char *mname, bool skipoptimise, bool addcomfort)
 {
     if(!*mname) mname = getclientmap();
     if(securemapcheck(mname)) return;
+    DEBUG("writing map \"" << mname << "\"");
     if(!validmapname(mname))
     {
         conoutf("\f3Invalid map name. It must only contain letters, digits, '-', '_' and be less than %d characters long", MAXMAPNAMELEN);
         return;
     }
-    voptimize();
-    toptimize();
+    if(!skipoptimise)
+    {
+        voptimize();
+        mapmrproper(false);
+        addcomfort = false; // "optimized + undos" is not useful
+    }
     setnames(mname);
     if(mapbackupsonsave) backup(cgzname, bakname);
     stream *f = opengzfile(cgzname, "wb");
@@ -227,15 +482,18 @@ void save_world(char *mname)
         hdr.numents = MAXENTITIES;
     }
     header tmp = hdr;
+    ucharbuf hx = packheaderextras(addcomfort ? 0 : (1 << HX_EDITUNDO));   // if addcomfort -> add undos/redos
     int writeextra = 0;
-    if(headerextra) tmp.headersize += writeextra = clamp(headerextrasize, 0, MAXHEADEREXTRA);
-    if(writeextra) tmp.version = 10;   // 9 and 10 are the same, but in 10 the headersize is reliable - if we don't need it, stick to 9
+    if(hx.maxlen) tmp.headersize += writeextra = clamp(hx.maxlen, 0, MAXHEADEREXTRA);
+    if(writeextra || skipoptimise) tmp.version = 10;   // 9 and 10 are the same, but in 10 the headersize is reliable - if we don't need it, stick to 9
+    tmp.maprevision += advancemaprevision;
+    DEBUG("version " << tmp.version << " headersize " << tmp.headersize << " entities " << tmp.numents << " factor " << tmp.sfactor << " revision " << tmp.maprevision);
     lilswap(&tmp.version, 4);
     lilswap(&tmp.waterlevel, 1);
-    tmp.maprevision += advancemaprevision;
     lilswap(&tmp.maprevision, 2);
     f->write(&tmp, sizeof(header));
-    if(writeextra) f->write(headerextra, writeextra);
+    if(writeextra) f->write(hx.buf, writeextra);
+    delete[] hx.buf;
     int ne = hdr.numents;
     loopv(ents)
     {
@@ -247,59 +505,17 @@ void save_world(char *mname)
             f->write(&tmp, sizeof(persistent_entity));
         }
     }
-    sqr *t = NULL;
-    int sc = 0;
-    #define spurge while(sc) { f->putchar(255); if(sc>255) { f->putchar(255); sc -= 255; } else { f->putchar(sc); sc = 0; } }
-    loopk(cubicsize)
-    {
-        sqr *s = &world[k];
-        #define c(f) (s->f==t->f)
-        // 4 types of blocks, to compress a bit:
-        // 255 (2): same as previous block + count
-        // 254 (3): same as previous, except light // deprecated
-        // SOLID (5)
-        // anything else (9)
 
-        if(SOLID(s))
-        {
-            if(t && c(type) && c(wtex) && c(vdelta))
-            {
-                sc++;
-            }
-            else
-            {
-                spurge;
-                f->putchar(s->type);
-                f->putchar(s->wtex);
-                f->putchar(s->vdelta);
-            }
-        }
-        else
-        {
-            if(t && c(type) && c(floor) && c(ceil) && c(ctex) && c(ftex) && c(utex) && c(wtex) && c(vdelta) && c(tag))
-            {
-                sc++;
-            }
-            else
-            {
-                spurge;
-                f->putchar(s->type);
-                f->putchar(s->floor);
-                f->putchar(s->ceil);
-                f->putchar(s->wtex);
-                f->putchar(s->ftex);
-                f->putchar(s->ctex);
-                f->putchar(s->vdelta);
-                f->putchar(s->utex);
-                f->putchar(s->tag);
-            }
-        }
-        t = s;
-    }
-    spurge;
+    vector<uchar> rawcubes;
+    rlencodecubes(rawcubes, world, cubicsize, skipoptimise);  // if skipoptimize -> keep properties of solid cubes (forces format 10)
+    f->write(rawcubes.getbuf(), rawcubes.length());
     delete f;
-    conoutf("wrote map file %s", cgzname);
+    unsavededits = 0;
+    conoutf("wrote map file %s %s%s", cgzname, skipoptimise ? "without optimisation" : "(optimised)", addcomfort ? " (including editing history)" : "");
 }
+VARP(preserveundosonsave, 0, 0, 1);
+COMMANDF(savemap, "s", (char *name) { save_world(name, preserveundosonsave && editmode, preserveundosonsave && editmode); } );
+COMMANDF(savemapoptimised, "s", (char *name) { save_world(name, false, false); } );
 
 extern int mapdims[8];     // min/max X/Y and delta X/Y and min-floor/max-ceil
 void showmapdims()
@@ -317,6 +533,27 @@ VAR(curmaprevision, 1, 0, 0);
 extern char *mlayout;
 extern int Mv, Ma, Hhits;
 extern float Mh;
+
+void rebuildtexlists()  // checks the texlists, if they still contain all possible textures
+{
+    short h[256];
+    vector<uchar> missing;
+    loopk(3)
+    {
+        missing.setsize(0);
+        uchar *p = hdr.texlists[k];
+        loopi(256) h[i] = 0;
+        loopi(256) h[p[i]]++;
+        loopi(256) if(h[i] == 0) missing.add(i);
+        loopi(256) if(h[p[i]] > 1)
+        {
+            h[p[i]]--;
+            p[i] = missing.pop();
+        }
+    }
+}
+
+static string lastloadedconfigfile;
 
 bool load_world(char *mname)        // still supports all map formats that have existed since the earliest cube betas!
 {
@@ -340,6 +577,9 @@ bool load_world(char *mname)        // still supports all map formats that have 
     }
     stream *f = opengzfile(cgzname, "rb");
     if(!f) { conoutf("\f3could not read map %s", cgzname); return false; }
+    if(unsavededits) xmapbackup("load_map_", mname);
+    unsavededits = 0;
+    DEBUG("reading map \"" << cgzname << "\"");
     header tmp;
     memset(&tmp, 0, sizeof_header);
     if(f->read(&tmp, sizeof_baseheader) != sizeof_baseheader ||
@@ -348,22 +588,26 @@ bool load_world(char *mname)        // still supports all map formats that have 
     if(tmp.version > MAXMAPVERSION) { conoutf("\f3this map requires a newer version of AssaultCube"); delete f; return false; }
     if(tmp.sfactor<SMALLEST_FACTOR || tmp.sfactor>LARGEST_FACTOR || tmp.numents > MAXENTITIES) { conoutf("\f3illegal map size"); delete f; return false; }
     tmp.headersize = fixmapheadersize(tmp.version, tmp.headersize);
-    DELETEA(headerextra);
     int restofhead = min(tmp.headersize, sizeof_header) - sizeof_baseheader;
     if(f->read(&tmp.waterlevel, restofhead) != restofhead) { conoutf("\f3while reading map: header malformatted (2)"); delete f; return false; }
+    DEBUG("version " << tmp.version << " headersize " << tmp.headersize << " headerextrasize " << tmp.headersize - int(sizeof(header)) << " entities " << tmp.numents << " factor " << tmp.sfactor << " revision " << tmp.maprevision);
+    clearheaderextras();
     if(tmp.headersize > sizeof_header)
     {
-        headerextrasize = tmp.headersize - sizeof_header;
-        if(tmp.version < 9) headerextrasize = 0;  // throw away mediareq...
-        else if(headerextrasize > MAXHEADEREXTRA) headerextrasize = MAXHEADEREXTRA;
-        if(headerextrasize)
+        int extrasize = tmp.headersize - sizeof_header;
+        if(tmp.version < 9) extrasize = 0;  // throw away mediareq...
+        else if(extrasize > MAXHEADEREXTRA) extrasize = MAXHEADEREXTRA;
+        if(extrasize)
         { // map file actually has extra header data that we want too preserve
-            headerextra = new uchar[headerextrasize];
-            if(f->read(headerextra, headerextrasize) != headerextrasize) { conoutf("\f3while reading map: header malformatted (3)"); delete f; return false; }
+            uchar *extrabuf = new uchar[extrasize];
+            if(f->read(extrabuf, extrasize) != extrasize) { conoutf("\f3while reading map: header malformatted (3)"); delete f; return false; }
+            unpackheaderextra(extrabuf, extrasize);
+            delete[] extrabuf;
         }
-        f->seek(tmp.headersize - sizeof_header - headerextrasize, SEEK_CUR);  // (equivalent to SEEK_SET to tmp.headersize)
+        f->seek(tmp.headersize, SEEK_SET);
     }
     hdr = tmp;
+    rebuildtexlists();
     loadingscreen("%s", hdr.maptitle);
     resetmap();
     if(hdr.version>=4)
@@ -378,6 +622,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
         hdr.waterlevel = -100000;
         hdr.ambient = 0;
     }
+    setvar("waterlevel", hdr.waterlevel);
     ents.shrink(0);
     loopi(3) numspawn[i] = 0;
     loopi(2) numflagspawn[i] = 0;
@@ -404,132 +649,59 @@ bool load_world(char *mname)        // still supports all map formats that have 
     }
     delete[] world;
     setupworld(hdr.sfactor);
+    if(!mapinfo.numelems || (mapinfo.access(mname) && !cmpf(cgzname, mapinfo[mname]))) world = (sqr *)ents.getbuf();
+    c2skeepalive();
 
+    vector<uchar> rawcubes; // fetch whole file into buffer
+    loopi(9)
+    {
+        ucharbuf q = rawcubes.reserve(cubicsize);
+        q.len = f->read(q.buf, cubicsize);
+        rawcubes.addbuf(q);
+        if(q.len < cubicsize) break;
+    }
+    ucharbuf uf(rawcubes.getbuf(), rawcubes.length());
+    rldecodecubes(uf, world, cubicsize, hdr.version, false); // decode file
+    c2skeepalive();
+
+    // calculate map statistics
     DELETEA(mlayout);
     mlayout = new char[cubicsize + 256];
     memset(mlayout, 0, cubicsize * sizeof(char));
-    int diff = 0;
     Mv = Ma = Hhits = 0;
-
-    if(!mapinfo.numelems || (mapinfo.access(mname) && !cmpf(cgzname, mapinfo[mname]))) world = (sqr *)ents.getbuf();
-    c2skeepalive();
     char texuse[256];
     loopi(256) texuse[i] = 0;
-    sqr *t = NULL;
+    loopk(8) mapdims[k] = k < 2 ? ssize : 0;
     loopk(cubicsize)
     {
-        char *c = mlayout + k;
         sqr *s = &world[k];
-        int type = f ? f->getchar() : -1;
-        int n = 1;
-        switch(type)
+        if(SOLID(s)) mlayout[k] = 127;
+        else
         {
-            case -1:
+            mlayout[k] = s->floor; // FIXME
+            int diff = s->ceil - s->floor;
+            if(diff > 6)
             {
-                if(f)
-                {
-                    conoutf("while reading map at %d: type %d out of range", k, type);
-                    delete f;
-                    f = NULL;
-                }
-                *c = 127;
-                s->type = SOLID;
-                s->ftex = DEFAULT_FLOOR;
-                s->ctex = DEFAULT_CEIL;
-                s->wtex = s->utex = DEFAULT_WALL;
-                s->tag = 0;
-                s->floor = 0;
-                s->ceil = 16;
-                s->vdelta = 0;
-                break;
+                if(diff > MAXMHEIGHT) Hhits += diff - MAXMHEIGHT;
+                Ma += 1;
+                Mv += diff;
             }
-            case 255:
-            {
-                if(!t || (n = f->getchar()) < 0) { delete f; f = NULL; k--; continue; }
-                char tmp = *(c-1);
-                memset(c, tmp, n);
-                for(int i = 0; i<n; i++, k++) memcpy(&world[k], t, sizeof(sqr));
-                k--;
-                break;
-            }
-            case 254: // only in MAPVERSION<=2
-            {
-                if(!t) { delete f; f = NULL; k--; continue; }
-                *c = *(c-1);
-                memcpy(s, t, sizeof(sqr));
-                s->r = s->g = s->b = f->getchar();
-                f->getchar();
-                break;
-            }
-            case SOLID:
-            {
-                *c = 127;
-                s->type = SOLID;
-                s->wtex = f->getchar();
-                s->vdelta = f->getchar();
-                if(hdr.version<=2) { f->getchar(); f->getchar(); }
-                s->ftex = DEFAULT_FLOOR;
-                s->ctex = DEFAULT_CEIL;
-                s->utex = s->wtex;
-                s->tag = 0;
-                s->floor = 0;
-                s->ceil = 16;
-                break;
-            }
-            default:
-            {
-                if(type<0 || type>=MAXTYPE)
-                {
-                    conoutf("while reading map at %d: type %d out of range", k, type);
-                    delete f;
-                    f = NULL;
-                    k--;
-                    continue;
-                }
-                s->type = type;
-                s->floor = f->getchar();
-                s->ceil = f->getchar();
-                if(s->floor>=s->ceil) s->floor = s->ceil-1;  // for pre 12_13
-                diff = s->ceil - s->floor;
-                *c = s->floor; // FIXME
-                s->wtex = f->getchar();
-                s->ftex = f->getchar();
-                s->ctex = f->getchar();
-                if(hdr.version<=2) { f->getchar(); f->getchar(); }
-                s->vdelta = f->getchar();
-                s->utex = (hdr.version>=2) ? f->getchar() : s->wtex;
-                s->tag = (hdr.version>=5) ? f->getchar() : 0;
-            }
+            texuse[s->utex] = texuse[s->ftex] = texuse[s->ctex] = 1;
+            int cwx = k%ssize,
+                cwy = k/ssize;
+            if(cwx < mapdims[0]) mapdims[0] = cwx;
+            if(cwy < mapdims[1]) mapdims[1] = cwy;
+            if(cwx > mapdims[2]) mapdims[2] = cwx;
+            if(cwy > mapdims[3]) mapdims[3] = cwy;
+            if(s->floor != -128 && s->floor < mapdims[6]) mapdims[6] = s->floor;
+            if(s->ceil  > mapdims[7]) mapdims[7] = s->ceil;
         }
-        if ( type != SOLID && diff > 6 )
-        {
-            // Lucas (10mar2013): Removed "pow2" because it was too strict
-            if (diff > MAXMHEIGHT) Hhits += (diff-MAXMHEIGHT)*n;
-            Ma += n;
-            Mv += diff * n;
-        }
-        s->defer = 0;
-        t = s;
         texuse[s->wtex] = 1;
-        if(!SOLID(s)) texuse[s->utex] = texuse[s->ftex] = texuse[s->ctex] = 1;
     }
     Mh = Ma ? (float)Mv/Ma : 0;
-    if(f) delete f;
-    c2skeepalive();
-    loopk(8) mapdims[k] = k < 2 ? ssize : 0;
-    loopk(cubicsize) if (world[k].type != SOLID)
-    {
-        int cwx = k%ssize,
-            cwy = k/ssize;
-        if(cwx < mapdims[0]) mapdims[0] = cwx;
-        if(cwy < mapdims[1]) mapdims[1] = cwy;
-        if(cwx > mapdims[2]) mapdims[2] = cwx;
-        if(cwy > mapdims[3]) mapdims[3] = cwy;
-        if(world[k].floor != -128 && world[k].floor < mapdims[6]) mapdims[6] = world[k].floor;
-        if(world[k].ceil  > mapdims[7]) mapdims[7] = world[k].ceil;
-
-    }
     loopk(2) mapdims[k+4] = mapdims[k+2] + 1 - mapdims[k]; // 8..15 ^= 8 cubes - minimal X/Y == 2 - != 0 !!
+    c2skeepalive();
+
     calclight();
     conoutf("read map %s rev %d (%d milliseconds)", cgzname, hdr.maprevision, watch.stop());
     conoutf("%s", hdr.maptitle);
@@ -539,6 +711,8 @@ bool load_world(char *mname)        // still supports all map formats that have 
     execfile("config/default_map_settings.cfg");
     execfile(pcfname);
     execfile(mcfname);
+    copystring(lastloadedconfigfile, mcfname);
+    parseheaderextra();
     neverpersist = false;
     per_idents = true;
     popscontext();
@@ -565,7 +739,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
 
     watch.start();
     int downloaded = downloadpackages();
-    if(downloaded > 0) printf("downloaded content (%d KB in %d seconds)\n", downloaded/1000, watch.stop()/1000);
+    if(downloaded > 0) clientlogf("downloaded content (%d KB in %d seconds)", downloaded/1000, watch.stop()/1000);
 
     c2skeepalive();
 
@@ -573,15 +747,15 @@ bool load_world(char *mname)        // still supports all map formats that have 
 
     watch.start();
     loopi(256) if(texuse[i]) lookupworldtexture(i, false);
-    printf("loaded textures (%d milliseconds)\n", texloadtime+watch.stop());
+    clientlogf("loaded textures (%d milliseconds)", texloadtime+watch.stop());
     c2skeepalive();
     watch.start();
     preload_mapmodels(false);
-    printf("loaded mapmodels (%d milliseconds)\n", mdlloadtime+watch.stop());
+    clientlogf("loaded mapmodels (%d milliseconds)", mdlloadtime+watch.stop());
     c2skeepalive();
     watch.start();
     audiomgr.preloadmapsounds(false);
-    printf("loaded mapsounds (%d milliseconds)\n", audioloadtime+watch.stop());
+    clientlogf("loaded mapsounds (%d milliseconds)", audioloadtime+watch.stop());
     c2skeepalive();
 
     defformatstring(startmillis)("%d", millis_());
@@ -590,4 +764,389 @@ bool load_world(char *mname)        // still supports all map formats that have 
     return true;
 }
 
-COMMANDN(savemap, save_world, "s");
+// support reading and writing binary data in config files
+
+static bool hexbinenabled = false;
+static vector<uchar> hexbin;
+
+void hexbinwrite(stream *f, void *data, int len, bool ascii = true)   // write block of binary data as hex values with up to 24 bytes per line
+{
+    string asc;
+    uchar *s = (uchar *) data;
+    while(len > 0)
+    {
+        int chunk = min(len, 24);
+        f->printf("hexbinchunk");
+        loopi(chunk)
+        {
+            asc[i] = isalnum(*s) ? *s : '.'; asc[i + 1] = '\0';
+            f->printf(" %02x", int(*s++));
+        }
+        f->printf(ascii ? "   // %s\n" : "\n", asc);
+        len -= chunk;
+    }
+}
+
+COMMANDF(hexbinchunk, "v", (char **args, int numargs)      // read up to 24 bytes from the command's arguments to the hexbin buffer
+{
+    if(!hexbinenabled) { conoutf("hexbinchunk out of context"); return; }
+    loopi(numargs) hexbin.add(strtol(args[i], NULL, 16));
+});
+
+
+// multi-map editmode extensions (xmap)
+//
+// keep several (versions of) maps in memory at the same time
+// compare maps and visualise differences
+//
+// the general assumption is, that ram is cheap, and that a copy of a size-9 map should be below 10MB (including undo data)
+
+#define XMAPVERSION  1001001
+
+VARP(persistentxmaps, 0, 1, 1);    // save all xmaps on exit, restore them at game start
+
+struct xmap
+{
+    string nick;      // unique handle
+    string name;
+    vector<headerextra *> headerextras;
+    vector<persistent_entity> ents;
+    sqr *world;
+    header hdr;
+    int ssize, cubicsize, numundo;
+    string mcfname;
+    short position[5];
+
+    xmap() : world(NULL), ssize(0), cubicsize(0), numundo(0) { *nick = *name = *mcfname = '\0'; }
+
+    xmap(const char *nnick)    // take the current map and store it in an xmap
+    {
+        copystring(nick, nnick);
+        copystring(name, getclientmap());
+        hdr = ::hdr; ssize = ::ssize; cubicsize = ::cubicsize;
+        loopv(::headerextras) headerextras.add(::headerextras[i]->duplicate());
+        world = new sqr[cubicsize];
+        memcpy(world, ::world, cubicsize * sizeof(sqr));
+        loopv(::ents) if(::ents[i].type != NOTUSED) ents.add() = ::ents[i];
+        copystring(mcfname, lastloadedconfigfile);   // may have been "official" or not
+        storeposition(position);
+        vector<uchar> tmp;  // add undo/redo data in compressed form as temporary headerextra
+        numundo = backupeditundo(tmp, MAXHEADEREXTRA, MAXHEADEREXTRA);
+        headerextras.add(new headerextra(tmp.length(), HX_EDITUNDO, tmp.getbuf()));
+    }
+
+    ~xmap()
+    {
+        headerextras.deletecontents();
+        delete world;
+        ents.setsize(0);
+    }
+
+    void restoreent(int i)
+    {
+        entity &e = ::ents.add();
+        memcpy(&e, &ents[i], sizeof(persistent_entity));
+        e.spawned = true;
+    }
+
+    void restore()      // overwrite the current map with the contents of an xmap
+    {
+        setnames(name);
+        copystring(lastloadedconfigfile, mcfname);
+        ::hdr = hdr;
+        clearheaderextras();
+        resetmap(true);
+        curmaprevision = hdr.maprevision;
+        setvar("waterlevel", hdr.waterlevel);
+        ::ents.shrink(0);
+        loopv(ents) restoreent(i);
+        delete[] ::world;
+        setupworld(hdr.sfactor);
+        memcpy(::world, world, cubicsize * sizeof(sqr));
+        calclight();  // includes full remip()
+        loopv(headerextras) ::headerextras.add(headerextras[i]->duplicate());
+        pushscontext(IEXC_MAPCFG); // untrusted altogether
+        per_idents = false;
+        neverpersist = true;
+        execfile("config/default_map_settings.cfg");
+        execfile(pcfname);
+        execfile(lastloadedconfigfile);
+        parseheaderextra();
+        neverpersist = false;
+        per_idents = true;
+        popscontext();
+        loadsky(NULL, true);
+        startmap(name, false, true);      // "start" but don't respawn: basically just set clientmap
+        restoreposition(position);
+    }
+
+    void write(stream *f)   // write xmap as cubescript to a file
+    {
+        f->printf("restorexmap version %d %d %d\n", XMAPVERSION, isbigendian() ? 1 : 0, sizeof(world));  // it is a non-portable binary file format, so we have to check...
+        f->printf("restorexmap names \"%s\" \"%s\"\n", name, mcfname);
+        f->printf("restorexmap sizes %d %d %d\n", ssize, cubicsize, numundo);
+        hexbinwrite(f, &hdr, sizeof(header));
+        f->printf("restorexmap header\n");
+        uLongf worldsize = cubicsize * sizeof(sqr), gzbufsize = (worldsize * 11) / 10;     // gzip the world, so the file will only be big instead of huge
+        uchar *gzbuf = new uchar[gzbufsize];
+        if(compress2(gzbuf, &gzbufsize, (uchar *)world, worldsize, 9) != Z_OK) gzbufsize = 0;
+        hexbinwrite(f, gzbuf, gzbufsize, false);
+        f->printf("restorexmap world\n");
+        DELETEA(gzbuf);
+        loopv(headerextras)
+        {
+            hexbinwrite(f, headerextras[i]->data, headerextras[i]->len);
+            f->printf("restorexmap headerextra %d  // %s\n", headerextras[i]->flags, hx_name(headerextras[i]->flags));
+        }
+        loopv(ents) // entities are stored as plain text - you may edit them
+        {
+            persistent_entity &e = ents[i];
+            f->printf("restorexmap ent %d  %d %d %d  %d %d %d %d // %s\n", e.type, e.x, e.y, e.z, e.attr1, e.attr2, e.attr3, e.attr4, e.type >= 0 && e.type < MAXENTTYPES ? entnames[e.type] : "unknown");
+        }
+        f->printf("restorexmap position %d %d %d %d %d  // EOF, don't touch this\n\n", int(position[0]), int(position[1]), int(position[2]), int(position[3]), int(position[4]));
+    }
+};
+
+static vector<xmap *> xmaps;
+static xmap *bak, *xmjigsaw;                               // only bak needs to be deleted before reuse
+
+#define SPEDIT if(noteditmode("xmap") || multiplayer()) return    // only allowed in non-coop editmode
+#define SPEDITDIFF if(noteditmode("xmap") || multiplayer() || nodiff()) return    // only allowed in non-coop editmode after xmap_diff
+
+bool validxmapname(const char *nick) { if(validmapname(nick)) return true; conoutf("sry, %s is not a valid xmap nickname", nick); return false; }
+
+void xmapdelete(xmap *&xm)  // make sure, we don't point to deleted xmaps
+{
+    DELETEP(xm);
+}
+
+void xmapbackup(const char *nickprefix, const char *nick)   // throw away existing backup and make a new one
+{
+    xmapdelete(bak);
+    defformatstring(text)("%s%s", nickprefix, nick);
+    bak = new xmap(text);
+    if(unsavededits) conoutf("\f3stored backup of unsaved edits on map '%s'; to restore, type \"/xmap_restore\"", bak->name);
+}
+
+const char *xmapdescstring(xmap *xm, bool shortform = false)
+{
+    static string s[2];
+    static int toggle;
+    toggle = !toggle;
+    formatstring(s[toggle])("\"%s\": %s rev %d, %d ents%c size %d, hdrs %d, %d undo steps", xm->nick, xm->name, xm->hdr.maprevision, xm->ents.length(),
+                        shortform ? '\0' : ',', xm->hdr.sfactor, xm->headerextras.length() - 1, xm->numundo);
+    return s[toggle];
+}
+
+xmap *getxmapbynick(const char *nick, int *index = NULL, bool errmsg = true)
+{
+    if(*nick) loopvrev(xmaps)
+    {
+        if(!strcmp(nick, xmaps[i]->nick))
+        {
+            if(index) *index = i;
+            return xmaps[i];
+        }
+    }
+    if(errmsg) conoutf("xmap \"%s\" not found", nick);
+    return NULL;
+}
+
+COMMANDF(xmap_list, "", ()                       // list xmaps (and status)
+{
+    loopv(xmaps) conoutf("xmap %d %s", i, xmapdescstring(xmaps[i]));
+    if(xmaps.length() == 0) conoutf("no xmaps in memory");
+    if(bak) conoutf("backup stored before %s", xmapdescstring(bak));
+} );
+
+COMMANDF(xmap_store, "s", (const char *nick)     // store current map in an xmap buffer
+{
+    if(noteditmode("xmap_store")) return;   // (may also be used in coopedit)
+    if(!*nick || !validxmapname(nick)) return;
+    int i;
+    if(getxmapbynick(nick, &i, false)) { xmap *xm = xmaps.remove(i); xmapdelete(xm); }   // overwrite existing same nick
+    xmaps.add(new xmap(nick));
+    unsavededits = 0;
+    conoutf("stored xmap %s", xmapdescstring(xmaps.last()));
+} );
+
+COMMANDF(xmap_delete, "s", (const char *nick)     // delete xmap buffer
+{
+    if(!*nick) return;
+    int i;
+    if(getxmapbynick(nick, &i))
+    {
+        xmap *xm = xmaps.remove(i);
+        xmapdelete(xm);
+        conoutf("deleted xmap \"%s\"", nick);
+    }
+} );
+
+COMMANDF(xmap_delete_backup, "", () { if(bak) { xmapdelete(bak); conoutf("deleted backup xmap"); }} );
+
+COMMANDF(xmap_keep_backup, "s", (const char *nick)     // move backup xmap to more permanent position
+{
+    if(!bak) { conoutf("no backup xmap available"); return ; }
+    defformatstring(bakdesc)("%s", bak->nick);
+    if(*nick)
+    {
+        if(validxmapname(nick)) copystring(bak->nick, nick);
+        else return;
+    }
+    loopi(42) if(getxmapbynick(bak->nick, NULL, false)) concatstring(bak->nick, "_");  // evade existing nicknames
+    xmaps.add(bak);
+    bak = NULL;
+    conoutf("stored backup xmap \"%s\" as xmap %s", bakdesc, xmapdescstring(xmaps.last()));
+} );
+
+COMMANDF(xmap_rename, "ss", (const char *oldnick, const char *newnick)     // rename xmap buffer
+{
+    if(!*oldnick || !*newnick) return;
+    xmap *xm = getxmapbynick(oldnick);
+    if(!xm || !validxmapname(newnick) || getxmapbynick(newnick, NULL, false)) return;
+    copystring(xm->nick, newnick);
+} );
+
+COMMANDF(xmap_restore, "s", (const char *nick)     // use xmap as current map
+{
+    SPEDIT;
+    if(*nick)
+    {
+        xmap *xm = getxmapbynick(nick);
+        if(!xm) return;
+        xmapbackup("restore_xmap_", nick);  // keep backup, so we can restore from the restore :)
+        xm->restore();
+        unsavededits = 0;
+        conoutf("restored xmap %s", xmapdescstring(xm));
+    }
+    else if(bak)
+    {
+        bak->restore();
+        unsavededits = 0;
+        conoutf("restored backup created before %s", xmapdescstring(bak));
+    }
+} );
+
+void restorexmap(char **args, int numargs)   // read an xmap from a cubescript file
+{
+    const char *cmdnames[] = { "version", "names", "sizes", "header", "world", "headerextra", "ent", "position" };
+    const char cmdnumarg[] = {         3,       2,       3,        0,       0,             1,     8,          5 };
+
+    if(!xmjigsaw || numargs < 1) return; // { conoutf("restorexmap out of context"); return; }
+    bool abort = false;
+    int cmd = -1;
+    loopi(sizeof(cmdnames)/sizeof(cmdnames[0])) if(!strcmp(cmdnames[i], args[0])) { cmd = i; break; }
+    if(cmd < 0 || numargs != cmdnumarg[cmd] + 1) { conoutf("restorexmap error"); return; }
+    switch(cmd)
+    {
+        case 0:     // version
+            if(ATOI(args[1]) != XMAPVERSION || ATOI(args[2]) != (isbigendian() ? 1 : 0) || ATOI(args[3]) != sizeof(world))
+            {
+                conoutf("restorexmap: file is from different game version");
+                abort = true;
+            }
+            break;
+        case 1:     // names
+            copystring(xmjigsaw->name, args[1]);
+            copystring(xmjigsaw->mcfname, args[2]);
+            break;
+        case 2:     // sizes
+            xmjigsaw->ssize = ATOI(args[1]);
+            xmjigsaw->cubicsize = ATOI(args[2]);
+            xmjigsaw->numundo = ATOI(args[3]);
+            break;
+        case 3:     // header
+            if(hexbin.length() == sizeof(header)) memcpy(&xmjigsaw->hdr, hexbin.getbuf(), sizeof(header));
+            else abort = true;
+            break;
+        case 4:     // world
+        {
+            int rawworldsize = xmjigsaw->cubicsize * sizeof(sqr);
+            xmjigsaw->world = new sqr[rawworldsize];
+            uLongf rawsize = rawworldsize;
+            if(uncompress((uchar *)xmjigsaw->world, &rawsize, hexbin.getbuf(), hexbin.length()) != Z_OK || rawsize - rawworldsize != 0) abort = true;
+            break;
+        }
+        case 5:     // headerextra
+            xmjigsaw->headerextras.add(new headerextra(hexbin.length(), ATOI(args[1]), hexbin.getbuf()));
+            break;
+        case 6:     // ent
+        {
+            persistent_entity &e = xmjigsaw->ents.add();
+            int a[8];
+            loopi(8) a[i] = ATOI(args[i + 1]);
+            e.type = a[0]; e.x = a[1]; e.y = a[2]; e.z = a[3]; e.attr1 = a[4]; e.attr2 = a[5]; e.attr3 = a[6]; e.attr4 = a[7];
+            break;
+        }
+        case 7:     // position - this is also the last command and will finish the xmap
+        {
+            loopi(5) xmjigsaw->position[i] = ATOI(args[i + 1]);
+            int i;
+            if(getxmapbynick(xmjigsaw->nick, &i, false)) { xmap *xm = xmaps.remove(i); xmapdelete(xm); }   // overwrite existing same nick
+            if(!xmjigsaw->world) abort = true;
+            else
+            {
+                xmaps.add(xmjigsaw);
+                xmjigsaw = NULL;  // no abort!
+            }
+        }
+    }
+    hexbin.setsize(0);
+    if(abort) DELETEP(xmjigsaw);
+}
+COMMAND(restorexmap, "v");
+
+static const char *bakprefix = "(backup)", *xmapspath = "mapediting/xmaps";
+char *xmapfilename(const char *nick, const char *prefix = "") { static defformatstring(fn)("%s/%s%s.xmap", xmapspath, prefix, nick); return path(fn); }
+
+void writexmap(xmap *xm, const char *prefix = "")
+{
+    stream *f = openfile(xmapfilename(xm->nick, prefix), "w");
+    if(f)
+    {
+        xm->write(f);
+        delete f;
+    }
+}
+
+void writeallxmaps()   // at game exit, write all xmaps to cubescript files in mapediting/xmaps
+{
+    if(!persistentxmaps) return;
+    loopv(xmaps) writexmap(xmaps[i]);
+    if(unsavededits) xmapbackup("gameend", "");
+    if(bak) writexmap(bak, bakprefix);
+}
+
+void loadxmap(const char *nick)
+{
+    DELETEP(xmjigsaw);
+    xmjigsaw = new xmap();
+    copystring(xmjigsaw->nick, nick);
+    hexbinenabled = true;
+    execfile(xmapfilename(nick));
+    hexbinenabled = false;
+    hexbin.setsize(0);    // just to make sure
+}
+
+int loadallxmaps()     // at game start, load all xmaps from mapediting/xmaps
+{
+    vector<char *> xmapnames;
+    string filename;
+    listfiles(xmapspath, "xmap", xmapnames);
+    xmapnames.sort(stringsort);
+    loopv(xmapnames)
+    {
+        loadxmap(xmapnames[i]);
+        copystring(filename, xmapfilename(xmapnames[i]));
+        backup(filename, xmapfilename(xmapnames[i], "backups/"));   // move to backup folder - we will write new files at exit
+        delete[] xmapnames[i];
+    }
+    loopv(xmaps) if(!strncmp(xmaps[i]->nick, bakprefix, strlen(bakprefix)))
+    {
+        xmapdelete(bak);
+        bak = xmaps.remove(i);
+        copystring(bak->nick, bak->nick + strlen(bakprefix));
+        break;
+    }
+    return xmapnames.length();
+}

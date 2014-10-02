@@ -24,6 +24,10 @@ int lasttype = 0, lasttex = 0;
 sqr rtex;
 
 VAR(editing, 1, 0, 0);
+VAR(unsavededits, 1, 0, 0);
+
+bool editmetakeydown = false;
+COMMANDF(editmeta, "d", (bool on) { editmetakeydown = on; } );
 
 void toggleedit(bool force)
 {
@@ -31,7 +35,9 @@ void toggleedit(bool force)
     if(!force && !editmode && !allowedittoggle()) return; // not in most multiplayer modes
     if(!(editmode = !editmode))
     {
+        float oldz = player1->o.z;
         entinmap(player1);                                // find spawn closest to current floating pos
+        player1->timeinair = player1->o.z == oldz ? 0: 300;
     }
     else
     {
@@ -45,6 +51,7 @@ void toggleedit(bool force)
     player1->state = player1->state==CS_SPECTATE?CS_SPECTATE:(editing ? CS_EDITING : CS_ALIVE);
     if(editing && player1->onladder) player1->onladder = false;
     if(editing && (player1->weaponsel->type == GUN_SNIPER && ((sniperrifle *)player1->weaponsel)->scoped)) ((sniperrifle *)player1->weaponsel)->onownerdies(); // or ondeselecting()
+    if(editing && (player1->weaponsel->type == GUN_GRENADE)) ((grenades *)player1->weaponsel)->onownerdies();
     if(!force) addmsg(SV_EDITMODE, "ri", editing);
 }
 
@@ -96,7 +103,7 @@ char *editinfo()
     if(selset()) concatformatstring(info, "selection = (%d, %d)", (sels.last()).xs, (sels.last()).ys);
     else concatformatstring(info, "no selection");
     sqr *s;
-    if(!OUTBORD(cx, cy) && (s = S(cx,cy)) && !SOLID(s) && s->tag) concatformatstring(info, ", tag 0x%02X", s->tag);
+    if(!OUTBORD(cx, cy) && (s = S(cx,cy)) && !editfocusdetails(s) && !SOLID(s) && s->tag) concatformatstring(info, ", tag 0x%02X", s->tag);
     return info;
 }
 
@@ -130,10 +137,10 @@ void checkselections()
 // update current selection, or add a new one
 void makesel(bool isnew)
 {
-    block &cursel = sels.last(); //RR 10/12/12 - FIXEME, error checking should happen with "isnew", not here checking if it really is new.
     if(isnew || sels.length() == 0) addselection(min(lastx, cx), min(lasty, cy), abs(lastx-cx)+1, abs(lasty-cy)+1, max(lasth, ch));
     else
     {
+        block &cursel = sels.last();
         cursel.x = min(lastx, cx); cursel.y = min(lasty, cy);
         cursel.xs = abs(lastx-cx)+1; cursel.ys = abs(lasty-cy)+1;
         cursel.h = max(lasth, ch);
@@ -195,7 +202,7 @@ void cursorupdate()                                     // called every frame fr
         if(OUTBORD(cx, cy)) return;
     }
 
-    if(dragging) { makesel(false); };
+    if(dragging) makesel(false);
 
     const int GRIDSIZE = 5;
     const float GRIDW = 0.5f;
@@ -289,23 +296,54 @@ void cursorupdate()                                     // called every frame fr
     glLineWidth(1);
 }
 
-vector<block *> undos;                                  // unlimited undo
-VAR(undomegs, 0, 1, 10);                                // bounded by n megs
+vector<block *> undos, redos;                           // unlimited undo
+VAR(undomegs, 0, 5, 50);                                // bounded by n megs
 
 void pruneundos(int maxremain)                          // bound memory
 {
-    int t = 0;
+    int u = 0, r = 0;
+    maxremain /= sizeof(sqr);
     loopvrev(undos)
     {
-        t += undos[i]->xs*undos[i]->ys*sizeof(sqr);
-        if(t>maxremain) delete[] (uchar *)undos.remove(i);
+        u += undos[i]->xs * undos[i]->ys;
+        if(u > maxremain) freeblockp(undos.remove(i));
     }
+    loopvrev(redos)
+    {
+        r += redos[i]->xs * redos[i]->ys;
+        if(r > maxremain) freeblockp(redos.remove(i));
+    }
+}
+
+void storeposition(short p[])
+{
+    loopi(3) p[i] = player1->o.v[i] * DMF;
+    p[3] = player1->yaw;
+    p[4] = player1->pitch;
 }
 
 void makeundo(block &sel)
 {
+    storeposition(sel.p);
     undos.add(blockcopy(sel));
     pruneundos(undomegs<<20);
+    unsavededits++;
+}
+
+void restoreposition(short p[])
+{
+    loopi(3) player1->o.v[i] = float(p[i]) / DMF;
+    player1->yaw = p[3];
+    player1->pitch = p[4];
+    player1->resetinterp();
+}
+
+void restoreposition(block &sel)
+{
+    restoreposition(sel.p);
+    resetselections();
+    addselection(sel.x, sel.y, sel.xs, sel.ys, sel.h); // select undone area
+    checkselections();
 }
 
 void editundo()
@@ -313,8 +351,107 @@ void editundo()
     EDITMP;
     if(undos.empty()) { conoutf("nothing more to undo"); return; }
     block *p = undos.pop();
+    redos.add(blockcopy(*p));
+    if(editmetakeydown) restoreposition(*p);
     blockpaste(*p);
     freeblock(p);
+    unsavededits++;
+}
+
+void editredo()
+{
+    EDITMP;
+    if(redos.empty()) { conoutf("nothing more to redo"); return; }
+    block *p = redos.pop();
+    undos.add(blockcopy(*p));
+    if(editmetakeydown) restoreposition(*p);
+    blockpaste(*p);
+    freeblock(p);
+    unsavededits++;
+}
+
+extern int worldiodebug;
+
+void restoreeditundo(ucharbuf &q)
+{
+    int type, len, explen;
+    while(!q.overread() && (type = getuint(q)))
+    {
+        int bx = getuint(q), by = getuint(q), bxs = getuint(q), bys = getuint(q);
+        short pp[5];
+        loopi(5) pp[i] = getint(q);
+        len = getuint(q);
+        if((bx | by | (bx + bxs) | (by + bys)) & ~(ssize - 1)) continue;
+        explen = bxs * bys;
+        block *b = (block *)new uchar[sizeof(block) + explen * sizeof(sqr)];
+        b->x = bx; b->y = by; b->xs = bxs; b->ys = bys;
+        loopi(5) b->p[i] = pp[i];
+        ucharbuf p = q.subbuf(len);
+        rldecodecubes(p, (sqr *)(b+1), explen, 6, true);
+        switch(type)
+        {
+            case 10: undos.insert(0, b); break;
+            case 20: redos.insert(0, b); break;
+            default: freeblock(b); break;
+        }
+        #ifdef _DEBUG
+        if(worldiodebug) switch(type)
+        {
+            case 10:
+            case 20:
+                clientlogf("  got %sdo x %d, y %d, xs %d, ys %d, remaining %d, overread %d", type == 10 ? "un" : "re", b->x, b->y, b->xs, b->ys, q.remaining(), int(q.overread()));
+                break;
+        }
+        #endif
+    }
+    if(undos.length() || redos.length()) conoutf("restored editing history: %d undos and %d redos", undos.length(), redos.length());
+}
+
+int rlencodeundo(int type, vector<uchar> &t, block *s)
+{
+    putuint(t, type);
+    putuint(t, s->x);
+    putuint(t, s->y);
+    putuint(t, s->xs);
+    putuint(t, s->ys);
+    loopi(5) putint(t, s->p[i]);
+    vector<uchar> tmp;
+    rlencodecubes(tmp, (sqr *)(s+1), s->xs * s->ys, true);
+    putuint(t, tmp.length());
+    t.put(tmp.getbuf(), tmp.length());
+    #ifdef _DEBUG
+    if(worldiodebug) clientlogf("    compressing redo/undo x %d, y %d, xs %d, ys %d, compressed length %d, cubes %d", s->x, s->y, s->xs, s->ys, tmp.length(), s->xs * s->ys);
+    #endif
+    return t.length();
+}
+
+int backupeditundo(vector<uchar> &buf, int undolimit, int redolimit)
+{
+    int numundo = 0;
+    vector<uchar> tmp;
+    loopvrev(undos)
+    {
+        tmp.setsize(0);
+        undolimit -= rlencodeundo(10, tmp, undos[i]);
+        if(undolimit < 0) break;
+        buf.put(tmp.getbuf(), tmp.length());
+        numundo++;
+        #ifdef _DEBUG
+        if(worldiodebug) clientlogf("  written undo x %d, y %d, xs %d, ys %d, compressed length %d", undos[i]->x, undos[i]->y, undos[i]->xs, undos[i]->ys, tmp.length());
+        #endif
+    }
+    loopvrev(redos)
+    {
+        tmp.setsize(0);
+        redolimit -= rlencodeundo(20, tmp, redos[i]);
+        if(redolimit < 0) break;
+        buf.put(tmp.getbuf(), tmp.length());
+        #ifdef _DEBUG
+        if(worldiodebug) clientlogf("  written redo x %d, y %d, xs %d, ys %d, compressed length %d", redos[i]->x, redos[i]->y, redos[i]->xs, redos[i]->ys, tmp.length());
+        #endif
+    }
+    putuint(buf, 0);
+    return numundo;
 }
 
 vector<block *> copybuffers;
@@ -344,7 +481,7 @@ void paste()
 
     loopv(sels)
     {
-        block &sel = sels[i];
+        block sel = sels[i];
         int selx = sel.x;
         int sely = sel.y;
 
@@ -361,7 +498,6 @@ void paste()
             makeundo(sel);
             blockpaste(*copyblock, sel.x, sel.y, true);
         }
-        remipmore(sel);
     }
 }
 
@@ -403,28 +539,20 @@ void editdrag(bool isdown)
         lasty = cy;
         lasth = ch;
         tofronttex();
-        
-        bool ctrlpressed = false;
-        
-        if (identexists("newselkeys"))
-        {
-            extern vector<keym> keyms;
-            vector<char *> elems;
-            explodelist(getalias("newselkeys"), elems);
 
-            loopi(keyms.length()) if(keyms[i].pressed) loopj(elems.length())
-            {
-                if (strcmp(keyms[i].name, elems[j]) == 0)
-                {
-                    ctrlpressed = true;
-                    break;
-                }
-            }
-        }
-
-        if(!ctrlpressed) resetselections();
+        if(!editmetakeydown) resetselections();
     }
     makesel(isdown);
+    if(!isdown) for(int i = sels.length() - 2; i >= 0; i--)
+    {
+        block &a = sels.last(), &b = sels[i];
+        if(a.x == b.x && a.y == b.y && a.xs == b.xs && a.ys == b.ys)
+        { // making a selection twice will deselect both of it
+            sels.drop();
+            sels.remove(i);
+            break;
+        }
+    }
 }
 
 // the core editing function. all the *xy functions perform the core operations
@@ -486,6 +614,7 @@ void edittex(int type, int dir)
         edittexxy(type, t, sels[i]);
         addmsg(SV_EDITT, "ri6", sels[i].x, sels[i].y, sels[i].xs, sels[i].ys, type, t);
     }
+    unsavededits++;
 }
 
 void settex(int texture, int type)
@@ -509,6 +638,7 @@ void settex(int texture, int type)
         edittexxy(type, t, sels[i]);
         addmsg(SV_EDITT, "ri6", sels[i].x, sels[i].y, sels[i].xs, sels[i].ys, type, t);
     }
+    unsavededits++;
 }
 
 void replace()
@@ -527,6 +657,7 @@ void replace()
     }
     block b = { 0, 0, ssize, ssize };
     remip(b);
+    unsavededits++;
 }
 
 void edittypexy(int type, block &sel)
@@ -540,11 +671,13 @@ void edittype(int type)
     loopv(sels)
     {
         block &sel = sels[i];
-        if(type==CORNER && (sel.xs!=sel.ys || sel.xs==3 || (sel.xs>4 && sel.xs!=8)
-                       || sel.x&~-sel.xs || sel.y&~-sel.ys))
-                       { conoutf("corner selection must be power of 2 aligned"); return; }
-        edittypexy(type, sel);
-        addmsg(SV_EDITS, "ri5", sel.x, sel.y, sel.xs, sel.ys, type);
+        if(type == CORNER && (sel.xs != sel.ys || (sel.xs != 1 && sel.xs != 2 && sel.xs != 4 && sel.xs != 8 && sel.xs != 16) || (sel.x | sel.y) & (sel.xs - 1)))
+            conoutf("corner selection must be power of 2 aligned");
+        else
+        {
+            edittypexy(type, sel);
+            addmsg(SV_EDITS, "ri5", sel.x, sel.y, sel.xs, sel.ys, type);
+        }
     }
 }
 
@@ -655,7 +788,7 @@ void perlin(int scale, int seed, int psize)
     EDITSELMP;
     loopv(sels)
     {
-        block &sel = sels[i];
+        block sel = sels[i];
         sel.xs++;
         sel.ys++;
         makeundo(sel);
@@ -665,8 +798,6 @@ void perlin(int scale, int seed, int psize)
         sel.xs++;
         sel.ys++;
         remipmore(sel);
-        sel.xs--;
-        sel.ys--;
     }
 }
 
@@ -714,7 +845,7 @@ void movemap(int xo, int yo, int zo) // move whole map
             S(x,y)->floor = max(-128, S(x,y)->floor + zo);
             S(x,y)->ceil = min(127, S(x,y)->ceil + zo);
         }
-        hdr.waterlevel += zo;
+        setvar("waterlevel", (hdr.waterlevel += zo));
     }
     loopv(ents)
     {
@@ -728,6 +859,7 @@ void movemap(int xo, int yo, int zo) // move whole map
     entinmap(player1);
     calclight();
     resetmap(false);
+    unsavededits++;
 }
 
 void selfliprotate(block &sel, int dir)
@@ -761,21 +893,18 @@ void selfliprotate(block &sel, int dir)
 void selectionrotate(int dir)
 {
     EDITSELMP;
-    dir %= 4;
-    if(dir < 0) dir += 4;
+    dir &= 3;
     if(!dir) return;
     loopv(sels)
     {
         block &sel = sels[i];
-        if(sel.xs != sel.ys) dir = 2;
-        selfliprotate(sel, dir);
+        if(sel.xs == sel.ys || dir ==  2) selfliprotate(sel, dir);
     }
 }
 
 void selectionflip(char *axis)
 {
     EDITSELMP;
-    if(!axis || !*axis) return;
     char c = toupper(*axis);
     if(c != 'X' && c != 'Y') return;
     loopv(sels) selfliprotate(sels[i], c == 'X' ? 11 : 12);
@@ -791,6 +920,7 @@ COMMAND(arch, "i");
 COMMANDF(slope, "ii", (int *xd, int *yd) { slope(*xd, *yd); });
 COMMANDF(vdelta, "i", (int *d) { setvdelta(*d); });
 COMMANDN(undo, editundo, "");
+COMMANDN(redo, editredo, "");
 COMMAND(copy, "");
 COMMAND(paste, "");
 COMMANDF(edittex, "ii", (int *type, int *dir) { edittex(*type, *dir); });
@@ -845,6 +975,7 @@ void transformclipentities()  // transforms all clip entities to tag clips, if t
     while(thisrun);
     loopi(ssize) loopj(ssize) { sqr *s = S(i,j); if(s->tag & TAGCLIP) s->tag &= ~TAGPLCLIP; }
     conoutf("changed %d clip entities to tagged clip areas", total);
+    if(total) unsavededits++;
 }
 
 COMMAND(transformclipentities, "");

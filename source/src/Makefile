@@ -1,9 +1,23 @@
-CXXFLAGS= -O3 -fomit-frame-pointer
-CXX=clang++	# Use clang++, as g++ optimizations cause crashes...
-override CXXFLAGS+= -Wall -fsigned-char
+CXX=clang++		# override from commandline or in Makefile_local
+ACDEBUG=no		# add ACDEBUG=yes to the commandline or to Makefile_local to compile debug binaries
 
 PLATFORM= $(shell uname -s)
 PLATFORM_PREFIX=native
+
+-include Makefile_local   # optional file, not in repository
+
+ifeq ($(ACDEBUG),yes)
+	CXXFLAGS= -O0
+	override CXXFLAGS+= -g -D_DEBUG
+endif
+
+ifneq (,$(findstring clang,$(CXX)))
+	CXXFLAGS= -O3 -fomit-frame-pointer
+	override CXXFLAGS+= -Wall -fsigned-char
+else
+	CXXFLAGS= -O3 -fomit-frame-pointer
+	override CXXFLAGS+= -Wall -fsigned-char -ffast-math -rdynamic
+endif
 
 INCLUDES= -I. -Ibot -I../enet/include
 
@@ -21,7 +35,6 @@ CLIENT_INCLUDES= $(INCLUDES) -I../include
 CLIENT_LIBS= -mwindows -L../lib -lSDL -lSDL_image -lzdll -lopengl32 -lenet -lOpenAL32 -llibvorbisfile -llibintl -lws2_32 -lwinmm -lcurl
 else
 USRLIB=$(shell if [ -e /usr/lib64 ]; then echo "/usr/lib64"; else echo "/usr/lib"; fi)
-# override CXXFLAGS+= -rdynamic		# clang++ doesn't use this...
 CLIENT_INCLUDES= $(INCLUDES) -I/usr/include `sdl-config --cflags` -idirafter ../include
 CLIENT_LIBS= -L../enet/.libs -lenet -L$(USRLIB) -lX11 `sdl-config --libs` -lSDL_image -lz -lGL -lopenal -lvorbisfile -lcurl
 endif
@@ -129,7 +142,7 @@ clean:
 #	-$(MAKE) -C ../enet/ clean
 
 %.h.gch: %.h
-	$(CXX) $(CXXFLAGS) -o $@.tmp $(subst .h.gch,.h,$@)
+	$(CXX) $(CXXFLAGS) -x c++-header -o $@.tmp $(subst .h.gch,.h,$@)
 	$(MV) $@.tmp $@
 
 %-standalone.o: %.cpp

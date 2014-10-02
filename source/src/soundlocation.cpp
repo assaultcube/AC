@@ -9,8 +9,8 @@ int warn_about_unregistered_sound = 0;
 location::location(int sound, const worldobjreference &r, int priority) : cfg(NULL), src(NULL), ref(NULL), stale(false), playmillis(0)
 {
     vector<soundconfig> &sounds = (r.type==worldobjreference::WR_ENTITY ? mapsounds : gamesounds);
-    if(!sounds.inrange(sound)) 
-    { 
+    if(!sounds.inrange(sound))
+    {
         if (lastmillis - warn_about_unregistered_sound > 30 * 1000) // delay message to every 30 secs so console is not spammed.
         {
             // occurs when a map contains an ambient sound entity, but sound entity is not found in map cfg file.
@@ -28,12 +28,12 @@ location::location(int sound, const worldobjreference &r, int priority) : cfg(NU
     if((r.type==worldobjreference::WR_ENTITY && cfg->maxuses >= 0 && cfg->uses >= cfg->maxuses) || cfg->muted || (cfg->audibleradius && dist>cfg->audibleradius)) // check max-use limits and audible radius
     {
         stale = true;
-        return; 
+        return;
     }
 
     // assign buffer
     sbuffer *buf = cfg->buf;
-    if(!buf || !buf->id) 
+    if(!buf || !buf->id)
     {
         stale = true;
         return;
@@ -53,10 +53,10 @@ location::location(int sound, const worldobjreference &r, int priority) : cfg(NU
     attachworldobjreference(r);
 }
 
-location::~location() 
+location::~location()
 {
     if(src) sourcescheduler::instance().releasesource(src);
-    if(cfg) cfg->ondetach(); 
+    if(cfg) cfg->ondetach();
     if(ref)
     {
         ref->detach();
@@ -75,7 +75,7 @@ void location::attachworldobjreference(const worldobjreference &r)
         ref->detach();
         DELETEP(ref);
     }
-    ref = r.clone(); 
+    ref = r.clone();
     evaluateworldobjref();
     ref->attach();
 }
@@ -91,7 +91,7 @@ void location::onsourcereassign(source *s)
 {
     if(s==src)
     {
-        stale = true; 
+        stale = true;
         src = NULL;
     }
 }
@@ -133,7 +133,7 @@ void location::updatepos()
             if(ref->nodistance())
             {
                 // own distance model for entities/mapsounds: linear & clamping
-                
+
                 const float innerradius = float(eref.ent->attr3); // full gain area / size property
                 const float outerradius = float(eref.ent->attr2); // fading gain area / radius property
 
@@ -175,7 +175,7 @@ void location::update()
         case AL_STOPPED:
         case AL_PAUSED:
         case AL_INITIAL:
-            stale = true;   
+            stale = true;
             DEBUG("location is stale");
             break;
     }
@@ -216,7 +216,7 @@ float location::offset()
     return src->secoffset();
 }
 
-void location::drop() 
+void location::drop()
 {
     src->stop();
     stale = true; // drop from collection on next update cycle
@@ -226,7 +226,7 @@ void location::drop()
 // location collection
 
 location *locvector::find(int sound, worldobjreference *ref, const vector<soundconfig> &soundcollection /* = gamesounds*/)
-{ 
+{
     if(sound<0 || sound>=soundcollection.length()) return NULL;
     loopi(ulen) if(buf[i] && !buf[i]->stale)
     {
@@ -279,7 +279,7 @@ void locvector::updatelocations()
 // force pitch across all locations
 void locvector::forcepitch(float pitch)
 {
-    loopv(*this) 
+    loopv(*this)
     {
         location *l = buf[i];
         if(!l) continue;

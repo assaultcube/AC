@@ -9,6 +9,9 @@ VARP(networkdebug, 0, 0, 1);
 extern bool watchingdemo;
 extern string clientpassword;
 
+void *downloaddemomenu = NULL;
+static vector<mline> demo_mlines;
+
 packetqueue pktlogger;
 
 void neterr(const char *s)
@@ -228,7 +231,7 @@ void parsepositions(ucharbuf &p)
             // when playing a demo spectate first player we know about
             if(player1->isspectating() && player1->spectatemode==SM_NONE) togglespect();
             extern void clamproll(physent *pl);
-            if(maxrollremote) clamproll((physent *) d);
+            clamproll((physent *) d);
             break;
         }
 
@@ -410,7 +413,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
             DEBUGVAR(d);
             ASSERT(type>=0 && type<SV_NUM);
             DEBUGVAR(messagenames[type]);
-            protocoldebug(true);
+            protocoldebug(DEBUGCOND);
         }
         else protocoldebug(false);
         #endif
@@ -480,7 +483,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
             {
                 int cn = getint(p);
                 getstring(text, p);
-                filtertext(text, text);
+                filtertext(text, text, FTXT__CHAT);
                 playerent *d = getclient(cn);
                 if(!d) break;
                 if(d->ignored) clientlogf("ignored: %s%s %s", colorname(d), type == SV_TEAMTEXT ? ":" : "", text);
@@ -503,7 +506,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 else if(d)
                 {
                     getstring(text, p);
-                    filtertext(text, text);
+                    filtertext(text, text, FTXT__CHAT);
                     if(d->ignored && d->clientrole != CR_ADMIN) clientlogf("ignored: %s%s %s", colorname(d), type == SV_TEXT ? ":" : "", text);
                     else conoutf(type == SV_TEXTME ? "\f0%s %s" : "%s:\f0 %s", colorname(d), highlight(text));
                 }
@@ -514,7 +517,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
             {
                 int cn = getint(p);
                 getstring(text, p);
-                filtertext(text, text);
+                filtertext(text, text, FTXT__CHAT);
                 playerent *d = getclient(cn);
                 if(!d) break;
                 if(d->ignored) clientlogf("ignored: pm %s %s", colorname(d), text);
@@ -560,7 +563,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
 
             case SV_SWITCHNAME:
                 getstring(text, p);
-                filtertext(text, text, 0, MAXNAMELEN);
+                filtertext(text, text, FTXT__PLAYERNAME, MAXNAMELEN);
                 if(!text[0]) copystring(text, "unarmed");
                 if(d)
                 {
@@ -601,7 +604,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     break;
                 }
                 getstring(text, p);
-                filtertext(text, text, 0, MAXNAMELEN);
+                filtertext(text, text, FTXT__PLAYERNAME, MAXNAMELEN);
                 if(!text[0]) copystring(text, "unarmed");
                 if(d->name[0])          // already connected
                 {
@@ -707,7 +710,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 arenaintermission = 0;
                 if(m_arena && !localwrongmap)
                 {
-                    closemenu(NULL);
+                    if(connected) closemenu(NULL);
                     conoutf(_("new round starting... fight!"));
                     hudeditf(HUDMSG_TIMER, "FIGHT!");
                     if(m_botmode) BotManager.RespawnBots();
@@ -912,7 +915,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     discscore &ds = discscores.add();
                     ds.team = team;
                     getstring(text, p);
-                    filtertext(ds.name, text, 0, MAXNAMELEN);
+                    filtertext(ds.name, text, FTXT__PLAYERNAME, MAXNAMELEN);
                     ds.flags = getint(p);
                     ds.frags = getint(p);
                     ds.deaths = getint(p);
@@ -1145,7 +1148,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 }
                 else
                 {
-                    conoutf(_("you can't change to %s mode"), team_isspect(t) ? _("spectate") : _("active"));
+                    if(team_isspect(t)) conoutf(_("you can't change to spectate mode"));
+                    else if (player1->state!=CS_ALIVE) conoutf(_("you can't change to active mode"));
+                    else conoutf(_("you can't switch teams while being alive"));
                 }
                 break;
             }
@@ -1197,7 +1202,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                             if(you && !team_isspect(d->team) && team_isspect(fnt) && d->state == CS_DEAD) spectatemode(SM_FLY);
                         }
                     }
-                    else if(d->team != fnt && ftr == FTR_PLAYERWISH) conoutf(_("%s changed to active play"), you ? _("you") : colorname(d));
+                    else if(d->team != fnt && ftr == FTR_PLAYERWISH && !team_isactive(d->team)) conoutf(_("%s changed to active play"), you ? _("you") : colorname(d));
                     d->team = fnt;
                     if(team_isspect(d->team)) d->state = CS_SPECTATE;
                 }
@@ -1232,24 +1237,28 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 switch(type)
                 {
                     case SA_MAP:
+                    {
                         getstring(text, p);
-                        filtertext(text, text);
-                        itoa(a1, getint(p));
+                        int mode = getint(p);
+                        if(m_isdemo(mode)) filtertext(text, text, FTXT__DEMONAME);
+                        else filtertext(text, behindpath(text), FTXT__MAPNAME);
+                        itoa(a1, mode);
                         defformatstring(t)("%d", getint(p));
                         v = newvotedisplayinfo(d, type, text, a1, t);
                         break;
+                    }
                     case SA_KICK:
                     case SA_BAN:
                     {
                         itoa(a1, getint(p));
                         getstring(text, p);
-                        filtertext(text, text);
+                        filtertext(text, text, FTXT__CHAT);
                         v = newvotedisplayinfo(d, type, a1, text);
                         break;
                     }
                     case SA_SERVERDESC:
                         getstring(text, p);
-                        filtertext(text, text);
+                        filtertext(text, text, FTXT__SERVDESC);
                         v = newvotedisplayinfo(d, type, text, NULL);
                         break;
                     case SA_STOPDEMO:
@@ -1328,11 +1337,27 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
             case SV_SENDDEMOLIST:
             {
                 int demos = getint(p);
-                if(!demos) conoutf(_("no demos available"));
-                else loopi(demos)
+                menureset(downloaddemomenu);
+                demo_mlines.shrink(0);
+                if(!demos)
                 {
-                    getstring(text, p);
-                    conoutf("%d. %s", i+1, text);
+                    conoutf(_("no demos available"));
+                    mline &m = demo_mlines.add();
+                    copystring(m.name, "no demos available");
+                    menumanual(downloaddemomenu,m.name);
+                }
+                else
+                {
+                    demo_mlines.reserve(demos);
+                    loopi(demos)
+                    {
+                        getstring(text, p);
+                        conoutf("%d. %s", i+1, text);
+                        mline &m = demo_mlines.add();
+                        formatstring(m.name)("%d. %s", i+1, text);
+                        formatstring(m.cmd)("getdemo %d", i+1);
+                        menumanual(downloaddemomenu, m.name, m.cmd);
+                    }
                 }
                 break;
             }

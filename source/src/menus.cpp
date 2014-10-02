@@ -128,7 +128,7 @@ void menuselect(void *menu, int sel)
         {
             if(sel!=oldsel)
             {
-                m.items[oldsel]->focus(false);
+                if(m.items.inrange(oldsel)) m.items[oldsel]->focus(false);
                 m.items[sel]->focus(true);
                 audiomgr.playsound(S_MENUSELECT, SP_HIGHEST);
             }
@@ -439,7 +439,7 @@ struct mitemmaploadmanual : mitemmanual
                     string showt;
                     string restt;
                     restt[0] = '\0';
-                    filtertext(showt, maptitle, 1);
+                    filtertext(showt, maptitle, FTXT__MAPMSG);
                     if(mlil && mlil != 255) // 0 && 255 are 'off'
                     {
                         int tl = strlen(showt);
@@ -1210,9 +1210,11 @@ void rendermenumdl()
 
 void gmenu::refresh()
 {
-    if(!refreshfunc) return;
-    (*refreshfunc)(this, !inited);
-    inited = true;
+    if(refreshfunc)
+    {
+        (*refreshfunc)(this, !inited);
+        inited = true;
+    }
     if(menusel>=items.length()) menusel = max(items.length()-1, 0);
 }
 
@@ -1280,9 +1282,8 @@ void gmenu::init()
                     }
                 }
                 defformatstring(fullname)("%s%s%s", dirlist->dir[0]?dirlist->dir+diroffset:"", dirlist->dir[0]?"/":"", f);
-                defformatstring(caction)("map %s", fullname);
                 defformatstring(title)("%s", f);
-                items.add(new mitemmapload(this, newstring(fullname), newstring(title), newstring(caction), NULL, NULL, NULL));
+                items.add(new mitemmapload(this, newstring(fullname), newstring(title), newstring(dirlist->action), NULL, NULL, NULL));
             }
             else items.add(new mitemtext(this, f, newstring(dirlist->action), NULL, NULL, d));
         }

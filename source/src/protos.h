@@ -180,6 +180,8 @@ struct gmenu
     void init();
 };
 
+struct mline { string name, cmd; };
+
 // serverbrowser
 extern void addserver(const char *servername, int serverport, int weight);
 extern char *getservername(int n);
@@ -344,7 +346,8 @@ extern void setuptmu(int n, const char *rgbfunc = NULL, const char *alphafunc = 
 struct zone { int x1, x2, y1, y2, color; }; // zones (drawn on the minimap)
 
 // rendercubes
-extern void mipstats(int a, int b, int c);
+extern void mipstats(const int a[]);
+extern bool editfocusdetails(sqr *s);
 extern void render_flat(int tex, int x, int y, int size, int h, sqr *l1, sqr *l2, sqr *l3, sqr *l4, bool isceil);
 extern void render_flatdelta(int wtex, int x, int y, int size, float h1, float h2, float h3, float h4, sqr *l1, sqr *l2, sqr *l3, sqr *l4, bool isceil);
 extern void render_square(int wtex, float floor1, float floor2, float ceil1, float ceil2, int x1, int y1, int x2, int y2, int size, sqr *l1, sqr *l2, bool topleft, int dir);
@@ -402,7 +405,7 @@ struct serverstate { int autoteam; int mastermode; int matchteamsize; void reset
 extern struct serverstate servstate;
 extern void updateworld(int curtime, int lastmillis);
 extern void resetmap(bool mrproper = true);
-extern void startmap(const char *name, bool reset = true);
+extern void startmap(const char *name, bool reset = true, bool norespawn = false);
 extern void changemap(const char *name);
 extern void initclient();
 extern void deathstate(playerent *pl);
@@ -435,6 +438,7 @@ extern void flagidle(int flag);
 extern void flagmsg(int flag, int message, int actor, int flagtime);
 extern void arenarespawn();
 extern bool tryrespawn();
+extern void gotoplayerstart(playerent *d, entity *e);
 extern void findplayerstart(playerent *d, bool mapcenter = false, int arenaspawn = -1);
 extern void serveropcommand(int cmd, int arg1);
 extern void refreshsopmenu(void *menu, bool init);
@@ -474,6 +478,7 @@ extern void teamflagscores(int &team1, int &team2);
 
 // world
 extern void setupworld(int factor);
+extern void sqrdefault(sqr *s);
 extern bool worldbordercheck(int x1, int x2, int y1, int y2, int z1, int z2);
 extern bool empty_world(int factor, bool force);
 extern void remip(const block &b, int level = 0);
@@ -483,6 +488,7 @@ extern int findtype(char *what);
 extern int findentity(int type, int index = 0);
 extern int findentity(int type, int index, uchar attr2);
 extern entity *newentity(int index, int x, int y, int z, char *what, int v1, int v2, int v3, int v4);
+extern void mapmrproper(bool manual);
 
 // worldlight
 extern int lastcalclight;
@@ -497,7 +503,9 @@ extern void removedynlights(physent *owner);
 extern block *blockcopy(const block &b);
 extern void blockpaste(const block &b, int bx, int by, bool light);
 extern void blockpaste(const block &b);
+extern void freeblockp(block *b);
 extern void freeblock(block *&b);
+extern block *duplicateblock(const block *s);
 
 // worldrender
 extern void render_world(float vx, float vy, float vh, float changelod, int yaw, int pitch, float fov, float fovy, int w, int h);
@@ -577,6 +585,7 @@ extern void text_endcolumns();
 extern void cursorupdate();
 extern void toggleedit(bool force = false);
 extern char *editinfo();
+extern void makeundo(block &sel);
 extern void editdrag(bool isdown);
 extern void checkselections();
 extern void setvdeltaxy(int delta, block &sel);
@@ -587,12 +596,18 @@ extern void editheightxy(bool isfloor, int amount, block &sel);
 //extern bool noteditmode();
 extern bool noteditmode(const char* func = NULL);
 extern void pruneundos(int maxremain = 0);
+extern void storeposition(short p[]);
+extern void restoreposition(short p[]);
+extern void restoreeditundo(ucharbuf &q);
+extern int backupeditundo(vector<uchar> &buf, int undolimit, int redolimit);
 
 // renderhud
 enum
 {
     HUDMSG_INFO = 0,
     HUDMSG_TIMER,
+    HUDMSG_MIPSTATS,
+    HUDMSG_EDITFOCUS,
 
     HUDMSG_TYPE = 0xFF,
     HUDMSG_OVERWRITE = 1<<8
@@ -663,12 +678,18 @@ extern void render_particles(int time, int typemask = ~0);
 // worldio
 extern int mapdims[8];
 extern const char *setnames(const char *name);
-extern void save_world(char *fname);
+extern void save_world(char *mname, bool skipoptimise = false, bool addcomfort = false);
 extern bool load_world(char *mname);
 extern void writemap(char *name, int size, uchar *data);
 extern void writecfggz(char *name, int size, int sizegz, uchar *data);
 extern uchar *readmap(char *name, int *size, int *revision);
 extern uchar *readmcfggz(char *name, int *size, int *sizegz);
+extern void rlencodecubes(vector<uchar> &f, sqr *s, int len, bool preservesolids);
+extern void rldecodecubes(ucharbuf &f, sqr *s, int len, int version, bool silent);
+extern void clearheaderextras();
+extern void xmapbackup(const char *nickprefix, const char *nick);
+extern void writeallxmaps();
+extern int loadallxmaps();
 
 // physics
 extern float raycube(const vec &o, const vec &ray, vec &surface);
@@ -867,9 +888,8 @@ extern void sendstring(const char *t, ucharbuf &p);
 extern void sendstring(const char *t, packetbuf &p);
 extern void sendstring(const char *t, vector<uchar> &p);
 extern void getstring(char *t, ucharbuf &p, int len = MAXTRANS);
-extern void filtertext(char *dst, const char *src, int whitespace = 1, int len = sizeof(string)-1);
+extern char *filtertext(char *dst, const char *src, int flags = 1, int len = sizeof(string)-1);
 extern void filterrichtext(char *dst, const char *src, int len = sizeof(string)-1);
-extern void filterservdesc(char *dst, const char *src, int len = sizeof(string)-1);
 extern void filterlang(char *d, const char *s);
 extern void trimtrailingwhitespace(char *s);
 extern void cutcolorstring(char *text, int len);
@@ -1051,7 +1071,7 @@ struct servercommandline
                     case '2': t = servdesc_suf; a += 1 + strspn(a + 1, " "); break;
                 }
                 filterrichtext(t, a);
-                filterservdesc(t, t);
+                filtertext(t, t, FTXT__SERVDESC);
                 break;
             }
             case 'P': concatstring(voteperm, a); break;

@@ -67,6 +67,7 @@ static inline float round(float x) { return floor(x + 0.5f); }
 #define loopj(m) loop(j,m)
 #define loopk(m) loop(k,m)
 #define loopl(m) loop(l,m)
+#define loopirev(m) for(int i = int(m) - 1; i >= 0; i--)
 
 
 #define DELETEP(p) if(p) { delete   p; p = 0; }
@@ -161,10 +162,27 @@ inline bool issimilar (char s, char d)
 }
 
 #define MAXMAPNAMELEN 64
-inline bool validmapname(char *s)
+inline bool validmapname(const char *s)
 {
-    if(strlen(s) > MAXMAPNAMELEN) return false;
-    while(*s != '\0') 
+    int len = strlen(s);
+    if(len > MAXMAPNAMELEN) return false;
+    if(len == 3 || len == 4)
+    {
+        char uc[4];
+        loopi(3) uc[i] = toupper(s[i]);
+        uc[3] = '\0';
+        const char *resd = "COMLPTCONPRNAUXNUL", *fnd = strstr(resd, uc);
+        if(fnd)
+        {
+            int pos = (int) (fnd - resd);
+            if(pos == 0 || pos == 3)
+            {
+                if(isdigit(s[3])) return false; // COMx, LPTx
+            }
+            else if(pos % 3 == 0) return false; // CON, PRN, AUX, NUL
+        }
+    }
+    while(*s != '\0')
     {
         if(!isalnum(*s) && *s != '_' && *s != '-' && *s != '.') return false;
         ++s;
@@ -422,9 +440,9 @@ template <class T> struct vector
     bool inrange(size_t i) const { return i<size_t(ulen); }
     bool inrange(int i) const { return i>=0 && i<ulen; }
 
-    T &pop() { return buf[--ulen]; }
-    T &last() { return buf[ulen-1]; }
-    void drop() { buf[--ulen].~T(); }
+    T &pop() { ASSERT(ulen > 0); return buf[--ulen]; }
+    T &last() { ASSERT(ulen > 0); return buf[ulen-1]; }
+    void drop() { ASSERT(ulen > 0); buf[--ulen].~T(); }
     bool empty() const { return ulen==0; }
 
     int capacity() const { return alen; }
@@ -432,8 +450,8 @@ template <class T> struct vector
     T &operator[](int i) { ASSERT(i>=0 && i<ulen); return buf[i]; }
     const T &operator[](int i) const { ASSERT(i >= 0 && i<ulen); return buf[i]; }
 
-    void shrink(int i)         { ASSERT(i<=ulen); while(ulen>i) drop(); }
-    void setsize(int i) { ASSERT(i<=ulen); ulen = i; }
+    void shrink(int i)         { ASSERT(i>=0 && i<=ulen); while(ulen>i) drop(); }
+    void setsize(int i) { ASSERT(i>=0 && i<=ulen); ulen = i; }
 
     void deletecontents() { while(!empty()) delete   pop(); }
     void deletearrays() { while(!empty()) delete[] pop(); }
@@ -931,8 +949,6 @@ extern bool listdir(const char *dir, const char *ext, vector<char *> &files);
 extern int listfiles(const char *dir, const char *ext, vector<char *> &files);
 extern int listzipfiles(const char *dir, const char *ext, vector<char *> &files);
 extern bool delfile(const char *path);
-extern bool copyfile(const char *source, const char *destination);
-extern bool preparedir(const char *destination);
 extern bool addzip(const char *name, const char *mount = NULL, const char *strip = NULL, bool extract = false, int type = -1);
 extern bool removezip(const char *name);
 extern struct mapstats *loadmapstats(const char *filename, bool getlayout);

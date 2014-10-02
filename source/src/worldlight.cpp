@@ -129,11 +129,10 @@ void calclightsource(const persistent_entity &l, float fade = 1, bool flicker = 
     for(float sy2 = sy+s; sy2<=ey-s; sy2+=s*2)    { lightray((float)sx, sy2, l, fade, flicker); lightray((float)ex, sy2, l, fade, flicker); }
 }
 
-void postlightarea(const block &a)    // median filter, smooths out random noise in light and makes it more mipable
+void postlightarealine(sqr *s, int len)
 {
-    loop(x,a.xs) loop(y,a.ys)   // assumes area not on edge of world
+    loopirev(len)
     {
-        sqr *s = S(x+a.x,y+a.y);
         #define median(m) s->m = (s->m*2 + SW(s,1,0)->m*2  + SW(s,0,1)->m*2 \
                                          + SW(s,-1,0)->m*2 + SW(s,0,-1)->m*2 \
                                          + SW(s,1,1)->m    + SW(s,1,-1)->m \
@@ -141,8 +140,25 @@ void postlightarea(const block &a)    // median filter, smooths out random noise
         median(r);
         median(g);
         median(b);
+        s += 2;
     }
+}
 
+void postlightarea(const block &a)    // median filter, smooths out random noise in light and makes it more mipable
+{
+    int ia = (a.xs + 1) >> 1, ib = a.xs - ia;;
+    for(int y = a.ys - 1; y >= 0; y -= 2)
+    {
+        sqr *s = S(a.x,y+a.y);
+        postlightarealine(s, ia);
+        postlightarealine(s + 1, ib);
+    }
+    for(int y = a.ys - 2; y >= 0; y -= 2)
+    {
+        sqr *s = S(a.x,y+a.y);
+        postlightarealine(s, ia);
+        postlightarealine(s + 1, ib);
+    }
     remip(a);
 }
 
@@ -158,24 +174,28 @@ void fullbrightlight(int level)
     lastcalclight = totalmillis;
 }
 
-VARF(ambient, 0, 0, 0xFFFFFF, if(!noteditmode("ambient")) { hdr.ambient = ambient; calclight(); });
+VARF(ambient, 0, 0, 0xFFFFFF, if(!noteditmode("ambient")) { hdr.ambient = ambient; calclight(); unsavededits++;});
 
 void calclight()
 {
-    bvec acol((hdr.ambient>>16)&0xFF, (hdr.ambient>>8)&0xFF, hdr.ambient&0xFF);
-    if(!acol.x && !acol.y)
+    uchar r = (hdr.ambient>>16) & 0xFF, g = (hdr.ambient>>8) & 0xFF, b = hdr.ambient & 0xFF;
+    if(!r && !g)
     {
-        if(!acol.z) acol.z = 10;
-        acol.x = acol.y = acol.z;
+        if(!b) b = 10;
+        r = g = b;
     }
-    else if(!maxtmus) acol.x = acol.y = acol.z = max(max(acol.x, acol.y), acol.z); // the old (white) light code, here for the few people with old video cards that don't support overbright
-    loop(x,ssize) loop(y,ssize)
+    else if(!maxtmus) r = g = b = max(max(r, g), b); // the old (white) light code, here for the few people with old video cards that don't support overbright
+    sqr *s = S(0,0);
+    loopirev(cubicsize)
     {
-        sqr *s = S(x,y);
-        s->r = acol.x;
-        s->g = acol.y;
-        s->b = acol.z;
+        s->r = r;
+        s->g = g;
+        s->b = b;
+        s++;
     }
+
+    uint keep = randomMT();
+    seedMT(ents.length() + hdr.maprevision);
 
     loopv(ents)
     {
@@ -183,8 +203,10 @@ void calclight()
         if(e.type==LIGHT) calclightsource(e);
     }
 
-    block b = { 1, 1, ssize-2, ssize-2 };
-    postlightarea(b);
+    seedMT(keep);
+
+    block bb = { 1, 1, ssize-2, ssize-2 };
+    postlightarea(bb);
     setvar("fullbright", 0);
     lastcalclight = totalmillis;
 }
@@ -332,12 +354,13 @@ block *blockcopy(const block &s)
 {
     block *b = (block *)new uchar[sizeof(block)+s.xs*s.ys*sizeof(sqr)];
     *b = s;
-    sqr *q = (sqr *)(b+1);
-    for(int y = s.y; y<s.ys+s.y; y++) for(int x = s.x; x<s.xs+s.x; x++) *q++ = *S(x,y);
+    sqr *q = (sqr *)(b+1), *r = S(s.x,s.y);
+    size_t bs = s.xs * sizeof(sqr);
+    loopirev(s.ys) { memcpy(q, r, bs); q += s.xs; r += ssize; }
     return b;
 }
 
-void blockpaste(const block &b, int bx, int by, bool light)
+void blockpaste(const block &b, int bx, int by, bool light)  // slow version, editmode only
 {
     const sqr *q = (const sqr *)((&b)+1);
     sqr *dest = 0;
@@ -362,16 +385,34 @@ void blockpaste(const block &b, int bx, int by, bool light)
             dest->b = tb;
         }
     }
+    block bb = { bx, by, b.xs, b.ys };
+    remipmore(bb);
+}
+
+void blockpaste(const block &b) // fast version, used by dynlight
+{
+    const sqr *q = (const sqr *)((&b)+1);
+    sqr *r = S(b.x, b.y);
+    const size_t bs = b.xs * sizeof(sqr);
+    loopirev(b.ys) { memcpy(r, q, bs); r += ssize; q += b.xs; }
     remipmore(b);
 }
 
-void blockpaste(const block &b)
+void freeblockp(block *b)
 {
-    blockpaste(b, b.x, b.y, false);
+    delete[] (uchar *)b;
 }
 
 void freeblock(block *&b)
 {
-    if(b) { delete[] (uchar *)b; b = NULL; }
+    if(b) { freeblockp(b); b = NULL; }
+}
+
+block *duplicateblock(const block *s)
+{
+    size_t len = sizeof(block) + s->xs * s->ys * sizeof(sqr);
+    block *b = (block *)new uchar[len];
+    memcpy(b, s, len);
+    return b;
 }
 

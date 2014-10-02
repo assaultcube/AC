@@ -45,7 +45,7 @@ struct model
     float alphatest, translucency, scale, radius, shadowdist;
     vec translate;
     int cachelimit, batch;
-    
+
     //model() : cullface(true), vertexlight(false), alphatest(0.9f), translucency(0.25f), scale(1), radius(0), shadowdist(0), translate(0, 0, 0), cachelimit(8), batch(-1) {}
     model() : cullface(true), vertexlight(false),  alphablend(false), alphatest(0.9f), translucency(0.25f), scale(1), radius(0), shadowdist(0), translate(0, 0, 0), cachelimit(8), batch(-1) {}
     virtual ~model() {}

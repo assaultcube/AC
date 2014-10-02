@@ -206,8 +206,8 @@ void renderscore(playerent *d)
     const char *status = "";
     string lagping;
     static color localplayerc(0.2f, 0.2f, 0.2f, 0.2f);
-    if(d->clientrole==CR_ADMIN) status = d->state==CS_DEAD ? "\f7" : "\f3";
-    else if(d->state==CS_DEAD) status = "\f4";
+    if(d->clientrole==CR_ADMIN) status = d->state!=CS_ALIVE ? "\f7" : "\f3";
+    else if(d->state!=CS_ALIVE) status = "\f4";
     if (team_isspect(d->team)) copystring(lagping, "SPECT");
     else if (d->state==CS_LAGGED || (d->ping > 999 && d->plag > 99)) copystring(lagping, "LAG");
     else
@@ -323,7 +323,7 @@ void renderscores(void *menu, bool init)
         winner = m_flags ?
             (teamscores[sort].flagscore > teamscores[team_opposite(sort)].flagscore ? sort : -1) :
             (teamscores[sort].frags > teamscores[team_opposite(sort)].frags ? sort : -1);
-                   
+
     }
     else
     { // ffa mode
@@ -361,7 +361,7 @@ void renderscores(void *menu, bool init)
         if(!minutesremaining)
         {
             concatstring(modeline, ", intermission");
-            
+
             if (m_teammode) // Add in the winning team
             {
                 switch(winner)
@@ -394,7 +394,7 @@ void renderscores(void *menu, bool init)
             // for now we'll just cut it off, same as the serverbrowser
             // but we might want to consider wrapping the bottom-line to accomodate longer descriptions - to a limit.
             string text;
-            filtertext(text, s->sdesc);
+            filtertext(text, s->sdesc, FTXT__SERVDESC);
             //for(char *p = text; (p = strchr(p, '\"')); *p++ = ' ');
             //text[30] = '\0'; // serverbrowser has less room - +8 chars here - 2010AUG03 - seems it was too much, falling back to 30 (for now): TODO get real width of menu as reference-width. FIXME: cutoff
             concatformatstring(serverline, "%s:%d %s", s->name, s->port, text);
@@ -450,7 +450,7 @@ const char *asciiscores(bool destjpg)
         if(s)
         {
             string sdesc;
-            filtertext(sdesc, s->sdesc, 1);
+            filtertext(sdesc, s->sdesc, FTXT__SERVDESC);
             formatstring(text)(", %s:%d %s", s->name, s->port, sdesc);
             addstr(buf, text);
         }

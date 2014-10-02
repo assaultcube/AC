@@ -109,7 +109,6 @@ enum { ENT_PLAYER = 0, ENT_BOT, ENT_CAMERA, ENT_BOUNCE };
 enum { CS_ALIVE = 0, CS_DEAD, CS_SPAWNING, CS_LAGGED, CS_EDITING, CS_SPECTATE };
 enum { CR_DEFAULT = 0, CR_ADMIN };
 enum { SM_NONE = 0, SM_DEATHCAM, SM_FOLLOW1ST, SM_FOLLOW3RD, SM_FOLLOW3RD_TRANSPARENT, SM_FLY, SM_OVERVIEW, SM_NUM };
-enum { FPCN_VOID = -4, FPCN_DEATHCAM = -2, FPCN_FLY = -2, FPCN_OVERVIEW = -1 };
 
 class worldobject
 {
@@ -387,15 +386,15 @@ public:
             case 3: ad = (int) (4.0f/25.0f * armour) + 25; break;         // 41
             default: break;
         }
-        
+
         //ra - reduced armor
         //rd - reduced damage
         int ra = (int) (ad * damage/100.0f);
         int rd = ra-(ra*(gi.piercing/100.0f)); //Who cares about rounding errors anyways?
-        
+
         armour -= ra;
         damage -= rd;
-            
+
         health -= damage;
         return damage;
     }
@@ -440,7 +439,7 @@ public:
     bool ignored, muted;
 
     playerent() : curskin(0), clientnum(-1), lastupdate(0), plag(0), ping(0), address(0), lifesequence(0), frags(0), flagscore(0), deaths(0), points(0), tks(0), lastpain(0), lastvoicecom(0), clientrole(CR_DEFAULT),
-                  team(TEAM_SPECT), spectatemode(SM_NONE), followplayercn(FPCN_VOID), eardamagemillis(0), respawnoffset(0),
+                  team(TEAM_SPECT), spectatemode(SM_NONE), eardamagemillis(0), respawnoffset(0),
                   prevweaponsel(NULL), weaponsel(NULL), nextweaponsel(NULL), primweap(NULL), nextprimweap(NULL), lastattackweapon(NULL),
                   smoothmillis(-1),
                   head(-1, -1, -1), ignored(false), muted(false)
@@ -493,7 +492,6 @@ public:
     void resetspec()
     {
         spectatemode = SM_NONE;
-        followplayercn = FPCN_VOID;
     }
 
     void respawn()

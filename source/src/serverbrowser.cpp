@@ -487,9 +487,9 @@ void checkpings()
         si->numplayers = getint(p);
         si->minremain = getint(p);
         getstring(text, p);
-        filtertext(si->map, text, 1);
+        filtertext(si->map, behindpath(text), FTXT__MAPNAME);
         getstring(text, p);
-        filterservdesc(si->sdesc, text);
+        filtertext(si->sdesc, text, FTXT__SERVDESC);
         copystring(si->description, si->sdesc);
         si->maxclients = getint(p);
         if(p.remaining())
@@ -510,7 +510,7 @@ void checkpings()
                         loopi(si->numplayers)
                         {
                             getstring(text, p);
-                            filtertext(text, text, 0);
+                            filtertext(text, text, FTXT__PLAYERNAME);
                             if(text[0] && !p.overread())
                             {
                                 si->playernames.add((const char *)si->namedata + q.length());
@@ -552,7 +552,7 @@ void checkpings()
                         while(p.remaining())
                         {
                             getstring(text, p);
-                            filtertext(text, text, 0);
+                            filtertext(text, behindpath(text), FTXT__MAPNAME);
                             if(*text && !p.overread())
                             {
                                 text[MAXINFOLINELEN] = '\0';
@@ -689,8 +689,8 @@ int sicompare(serverinfo **ap, serverinfo **bp)
         case SBS_DESC: // description
         {
             static string ad, bd;
-            filtertext(ad, a->sdesc);
-            filtertext(bd, b->sdesc);
+            filtertext(ad, a->sdesc, FTXT__SERVDESC);
+            filtertext(bd, b->sdesc, FTXT__SERVDESC);
             if(!ad[0] && bd[0]) return dir;
             if(ad[0] && !bd[0]) return -dir;
             int mdir = dir * strcasecmp(ad, bd);
@@ -782,7 +782,7 @@ void addfavcategory(const char *refdes)
     string text, val;
     char alx[FC_NUM];
     if(!refdes) { intret(0); return; }
-    filtertext(text, refdes);
+    filtertext(text, refdes, FTXT__FAVCATEGORY);
     if(!text[0]) { intret(0); return; }
     loopv(favcats) if(!strcmp(favcats[i], text)) { intret(i + 1); return; }
     favcats.add(newstring(text));
@@ -834,16 +834,17 @@ bool favcatcheckkey(serverinfo &si, const char *key)
         case '$':
             if(key[1])
             {
-                formatstring(text)("%s \"%s\" %d %d, %d %d %d \"%s\" %d %d", key + 1, si.map, si.mode, si.ping, si.minremain, si.numplayers, si.maxclients, si.name, si.port, si.pongflags);
-                filtertext(text, text, 1);
+                formatstring(text)("%s \"%s\" %d %d %d %d %d \"%s\" %d %d", key + 1, si.map, si.mode, si.ping, si.minremain, si.numplayers, si.maxclients, si.name, si.port, si.pongflags);
+                filtertext(text, text, FTXT_NOCOLOR|FTXT_NOWHITE|FTXT_ALLOWBLANKS);
                 int cnt = 0;
                 for(const char *p = text; (p = strchr(p, '\"')); p++) cnt++;
                 return cnt == 4 && execute(text);
             }
             break;
         default:
-            filtertext(text, si.sdesc);
-            return *key && strstr(text, key);
+            filtertext(text, si.sdesc, FTXT_NOCOLOR|FTXT_NOWHITE|FTXT_ALLOWBLANKS|(showonlyfavourites > 0 ? FTXT_TOUPPER : 0));
+            strtoupper(keyuc, key);
+            return *key && strstr(text, showonlyfavourites > 0 ? keyuc : key);
     }
     return false;
 }
@@ -909,6 +910,7 @@ bool assignserverfavourites()
                             if(!si.bgcolor) si.bgcolor = new color;
                             new (si.bgcolor) color(((float)alxn[FC_RED])/100, ((float)alxn[FC_GREEN])/100, ((float)alxn[FC_BLUE])/100, ((float)alxn[FC_ALPHA])/100);
                         }
+                        else DELETEP(si.bgcolor)
                     }
                 }
             }
@@ -1029,7 +1031,7 @@ void refreshservers(void *menu, bool init)
         {
             serverinfo &si = *servers[i];
             si.menuline_to = si.menuline_from = ((gmenu *)menu)->items.length();
-            if( (!showallservers && si.lastpingmillis < servermenumillis) || (si.maxclients>MAXCL && searchlan<2) ) continue; // no pong yet or forbidden
+            if( (!showallservers && si.lastpingmillis <= servermenumillis) || (si.maxclients>MAXCL && searchlan<2) ) continue; // no pong yet or forbidden
             int banned = ((si.pongflags >> PONGFLAG_BANNED) & 1) | ((si.pongflags >> (PONGFLAG_BLACKLIST - 1)) & 2);
             bool showthisone = !(banned && showonlygoodservers) && !(showonlyfavourites > 0 && si.favcat != showonlyfavourites - 1);
             bool serverfull = si.numplayers >= si.maxclients;
@@ -1079,7 +1081,7 @@ void refreshservers(void *menu, bool init)
                 cutcolorstring(si.description, 76);
                 if(sbconnectexists)
                 {
-                    filtertext(text, si.sdesc);
+                    filtertext(text, si.sdesc, FTXT_NOCOLOR|FTXT_NOWHITE|FTXT_ALLOWBLANKS);
                     for(char *p = text; (p = strchr(p, '\"')); *p++ = ' ');
                     text[30] = '\0';
                     formatstring(si.cmd)("sbconnect %s %d %d %d %d %d \"%s\"", si.name, si.port, serverfull ?1:0, needspasswd ?1:0, mmode, banned, text);
@@ -1299,7 +1301,7 @@ void retrieveservers(vector<char> &data)
     if(mastertype == AC_MASTER_HTTP)
     {
         CURL *curl = curl_easy_init();
-        
+
         char *pname = curl_easy_escape(curl, global_name, 0);
         string request;
         sprintf(request, "http://%s/retrieve.do?action=list&name=%s&version=%d&build=%d", mastername, pname, AC_VERSION, getbuildtype()|(1<<16));
@@ -1406,7 +1408,7 @@ void retrieveservers(vector<char> &data)
             if(timeout > RETRIEVELIMIT) break;
         }
         if(data.length()) data.add('\0');
-        enet_socket_destroy(sock); 
+        enet_socket_destroy(sock);
     }
 }
 
