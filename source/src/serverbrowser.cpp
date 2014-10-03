@@ -834,7 +834,7 @@ bool favcatcheckkey(serverinfo &si, const char *key)
         case '$':
             if(key[1])
             {
-                formatstring(text)("%s \"%s\" %d %d, %d %d %d \"%s\" %d %d", key + 1, si.map, si.mode, si.ping, si.minremain, si.numplayers, si.maxclients, si.name, si.port, si.pongflags);
+                formatstring(text)("%s \"%s\" %d %d %d %d %d \"%s\" %d %d", key + 1, si.map, si.mode, si.ping, si.minremain, si.numplayers, si.maxclients, si.name, si.port, si.pongflags);
                 filtertext(text, text, FTXT_NOCOLOR|FTXT_NOWHITE|FTXT_ALLOWBLANKS);
                 int cnt = 0;
                 for(const char *p = text; (p = strchr(p, '\"')); p++) cnt++;
@@ -842,8 +842,9 @@ bool favcatcheckkey(serverinfo &si, const char *key)
             }
             break;
         default:
-            filtertext(text, si.sdesc, FTXT_NOCOLOR|FTXT_NOWHITE|FTXT_ALLOWBLANKS);
-            return *key && strstr(text, key);
+            filtertext(text, si.sdesc, FTXT_NOCOLOR|FTXT_NOWHITE|FTXT_ALLOWBLANKS|(showonlyfavourites > 0 ? FTXT_TOUPPER : 0));
+            strtoupper(keyuc, key);
+            return *key && strstr(text, showonlyfavourites > 0 ? keyuc : key);
     }
     return false;
 }
@@ -909,6 +910,7 @@ bool assignserverfavourites()
                             if(!si.bgcolor) si.bgcolor = new color;
                             new (si.bgcolor) color(((float)alxn[FC_RED])/100, ((float)alxn[FC_GREEN])/100, ((float)alxn[FC_BLUE])/100, ((float)alxn[FC_ALPHA])/100);
                         }
+                        else DELETEP(si.bgcolor)
                     }
                 }
             }
