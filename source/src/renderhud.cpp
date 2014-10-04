@@ -1025,9 +1025,6 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     if(menu) rendermenu();
     else if(command) renderdoc(40, VIRTH, max(commandh*2 - VIRTH, 0));
 
-    if(!hidehudmsgs) hudmsgs.render();
-
-
     if(!hidespecthud && !menu && p->state==CS_DEAD && p->spectatemode<=SM_DEATHCAM)
     {
         glLoadIdentity();
@@ -1071,6 +1068,8 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             draw_text(name, VIRTW/40, VIRTH/10*8);
         }
     }
+
+    if(!hidehudmsgs) hudmsgs.render();
 
     if(p->state==CS_ALIVE)
     {
