@@ -905,6 +905,39 @@ const char *rndmapname()
     else return "";
 }
 
+void createconfigtemplates(const char *templatezip)  // create customisable config files in homedir - only if missing
+{
+    if(addzip(templatezip))
+    {
+        vector<char *> files;
+        listzipfiles("", "cfg", files);  // only look for config files in the root dir of the zip file
+        loopv(files)
+        {
+            defformatstring(fname)("config%c%s.cfg", PATHDIV, behindpath(files[i]));  // (the "behindpath()" should not be necessary, but we want to be careful: the zip may be weird)
+            stream *f = openrawfile(fname, "rb");
+            if(f) delete f; // config already exists
+            else
+            {
+                int flen;
+                char *buf = loadfile(behindpath(fname), &flen);  // fetch file content from zip
+                if(buf)
+                {
+                    f = openfile(fname, "wb");
+                    if(f)
+                    {
+                        f->write(buf, flen);
+                        delete f;
+                        conoutf("created %s from template %s", fname, templatezip);
+                    }
+                    delete[] buf;
+                }
+            }
+            delete[] files[i];
+        }
+        removezip(templatezip);
+    }
+}
+
 extern void connectserv(char *, int *, char *);
 
 void connectprotocol(char *protocolstring, string &servername, int &serverport, string &password, bool &direct_connect)
@@ -1084,6 +1117,8 @@ int main(int argc, char **argv)
         }
     }
     if(quitdirectly) return EXIT_SUCCESS;
+
+    createconfigtemplates("config/configtemplates.zip");
 
     i18nmanager i18n("AC", path("packages/locale", true));
 
