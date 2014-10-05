@@ -1301,6 +1301,7 @@ void clearservers()
 }
 
 #define RETRIEVELIMIT 5000
+extern size_t write_callback(void *ptr, size_t size, size_t nmemb, FILE *stream);
 extern char *global_name;
 bool cllock = false, clfail = false;
 
@@ -1310,7 +1311,7 @@ struct resolver_data
     string text;
 };
 
-static int progress_callback(void *clientp, double dltotal, double dlnow, double ultotal, double ulnow)
+int progress_callback_retrieveservers(void *clientp, double dltotal, double dlnow, double ultotal, double ulnow)
 {
     resolver_data *rd = (resolver_data *)clientp;
     rd->timeout = SDL_GetTicks() - rd->starttime;
@@ -1321,11 +1322,6 @@ static int progress_callback(void *clientp, double dltotal, double dlnow, double
         return 1;
     }
     return 0;
-}
-
-static size_t write_callback(void *ptr, size_t size, size_t nmemb, FILE *stream)
-{
-    return fwrite(ptr, size, nmemb, stream);
 }
 
 void retrieveservers(vector<char> &data)
@@ -1361,7 +1357,7 @@ void retrieveservers(vector<char> &data)
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, outfile);
         curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0);
-        curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progress_callback);
+        curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progress_callback_retrieveservers);
         curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, rd);
         curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, RETRIEVELIMIT/1000);
         result = curl_easy_perform(curl);

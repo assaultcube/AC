@@ -142,11 +142,6 @@ model *loadmodel(const char *name, int i, bool trydl)
                     defformatstring(dl)("packages/models/%s", name);
                     requirepackage(PCK_MAPMODEL, dl);
                 }
-                else
-                {
-                    mdllookup.access(newstring(name), nomodel);
-                    conoutf("\f3failed to load model %s", name);
-                }
             }
         }
         popscontext();
@@ -154,7 +149,7 @@ model *loadmodel(const char *name, int i, bool trydl)
         {
             if(!trydl)
             {
-                conoutf(_("failed to load model %s"), name);
+                conoutf("\f3failed to load model %s", name);
                 if(!nomodel) nomodel = new md2("nomodel");
                 m = nomodel;
                 mdllookup.access(newstring(name), m);

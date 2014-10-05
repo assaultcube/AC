@@ -742,7 +742,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
 
     watch.start();
     int downloaded = downloadpackages();
-    if(downloaded > 0) clientlogf("downloaded content (%d KB in %d seconds)", downloaded/1000, watch.stop()/1000);
+    if(downloaded > 0) clientlogf("downloaded content (%d KB in %d seconds)", downloaded/1024, watch.stop()/1000);
 
     c2skeepalive();
 
