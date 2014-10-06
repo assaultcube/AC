@@ -52,6 +52,9 @@ struct authkey // for AUTH
 };
 
 // console
+extern stream *clientlogfile;
+extern vector<char> *bootclientlog;
+
 extern void keypress(int code, bool isdown, int cooked, SDLMod mod = KMOD_NONE);
 extern int rendercommand(int x, int y, int w);
 extern void renderconsole();

@@ -403,6 +403,14 @@ char *concatformatstring(char *d, const char *s, ...)
     return concatstring(d, temp);
 }
 
+int cvecprintf(vector<char> &v, const char *s, ...)
+{
+    defvformatstring(temp, s, s);
+    int len = strlen(temp);
+    if(len) v.put(temp, len);
+    return len;
+}
+
 const char *hiddenpwd(const char *pwd, int showchars)
 {
     static int sc = 3;

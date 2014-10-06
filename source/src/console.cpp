@@ -95,6 +95,7 @@ COMMANDN(toggleconsole, toggleconsole, "");
 void renderconsole() { con.render(); }
 
 stream *clientlogfile = NULL;
+vector<char> *bootclientlog = new vector<char>;
 int clientloglinesremaining = INT_MAX;
 
 void clientlogf(const char *s, ...)
@@ -113,6 +114,7 @@ void clientlogf(const char *s, ...)
             clientlogfile->printf("%s%s\n", ts, l);
             if(--clientloglinesremaining <= 0) DELETEP(clientlogfile);
         }
+        else if(bootclientlog) cvecprintf(*bootclientlog, "%s%s\n", ts, l);
         l = p + 1;
     }
     while(p);

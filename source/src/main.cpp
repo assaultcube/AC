@@ -992,7 +992,6 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int sw)
 
 void initclientlog()  // rotate old logfiles and create new one
 {
-    extern stream *clientlogfile;
     const int MAXROT = 5;    // keep five old logfiles
     string fname1, fname2 = "";
     const char *basename = findfile("clientlog", "w");
@@ -1003,9 +1002,13 @@ void initclientlog()  // rotate old logfiles and create new one
         else remove(fname1);
         copystring(fname2, fname1);
     }
-    clientlogfile = openfile(fname2, "w");
-    if(clientlogfile) clientlogfile->printf("######## start logging: %s\n", timestring(true));
+    clientlogfile = openfile("clientlog.txt", "w");
+    if(clientlogfile)
+    {
+        if(bootclientlog && bootclientlog->length()) clientlogfile->write(bootclientlog->getbuf(), bootclientlog->length());
+    }
     else conoutf("could not create logfile \"%s\"", fname2);
+    DELETEP(bootclientlog);
 }
 
 VARP(compatibilitymode, 0, 1, 1); // FIXME : find a better place to put this ?
@@ -1030,7 +1033,7 @@ int main(int argc, char **argv)
     string servername, password;
     int serverport;
 
-    initclientlog();
+    if(bootclientlog) cvecprintf(*bootclientlog, "######## start logging: %s\n", timestring(true));
 
     const char *initmap = rndmapname();
 
@@ -1041,6 +1044,7 @@ int main(int argc, char **argv)
     initing = INIT_RESET;
     for(int i = 1; i<argc; i++)
     {
+        clientlogf("parsing commandline argument %d: \"%s\"", i, argv[i]);
         // server: ufimNFTLAckyxpDWrXBKIoOnPMVC
         if(!scl.checkarg(argv[i]))
         {
@@ -1105,6 +1109,7 @@ int main(int argc, char **argv)
             else conoutf("\f3unknown commandline argument: %c", argv[i][0]);
         }
     }
+    initclientlog();
     if(quitdirectly) return EXIT_SUCCESS;
 
     i18nmanager i18n("AC", path("packages/locale", true));
