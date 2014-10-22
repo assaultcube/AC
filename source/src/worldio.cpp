@@ -486,6 +486,7 @@ void save_world(char *mname, bool skipoptimise, bool addcomfort)
     int writeextra = 0;
     if(hx.maxlen) tmp.headersize += writeextra = clamp(hx.maxlen, 0, MAXHEADEREXTRA);
     if(writeextra || skipoptimise) tmp.version = 10;   // 9 and 10 are the same, but in 10 the headersize is reliable - if we don't need it, stick to 9
+    bool oldmapmodelscaling = tmp.version < 10;
     tmp.maprevision += advancemaprevision;
     DEBUG("version " << tmp.version << " headersize " << tmp.headersize << " entities " << tmp.numents << " factor " << tmp.sfactor << " revision " << tmp.maprevision);
     lilswap(&tmp.version, 4);
@@ -501,6 +502,7 @@ void save_world(char *mname, bool skipoptimise, bool addcomfort)
         {
             if(!ne--) break;
             persistent_entity tmp = ents[i];
+            if(oldmapmodelscaling && tmp.type == MAPMODEL) tmp.attr1 = tmp.attr1 / 4;
             lilswap((short *)&tmp, 4);
             f->write(&tmp, sizeof(persistent_entity));
         }
@@ -638,6 +640,17 @@ bool load_world(char *mname)        // still supports all map formats that have 
             if(e.attr1>32) e.attr1 = 32; // 12_03 and below
         }
         transformoldentities(hdr.version, e.type);
+        if(hdr.version < 10)
+        {
+            switch(e.type)
+            {
+                case CTF_FLAG:
+                case MAPMODEL:
+                    e.attr1 = e.attr1 + 7 - (e.attr1 + 7) % 15;  // round the angle to the nearest 15-degree-step
+                    e.attr1 = (e.attr1 % 360) * 4;    // cut down to less that one rotation and set resolution to 0.25 degree
+                    break;
+            }
+        }
         if(e.type == PLAYERSTART && (e.attr2 == 0 || e.attr2 == 1 || e.attr2 == 100))
         {
             if(e.attr2 == 100)

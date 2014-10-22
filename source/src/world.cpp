@@ -286,11 +286,11 @@ entity *newentity(int index, int x, int y, int z, char *what, int v1, int v2, in
         case MAPMODEL:
             e.attr4 = e.attr3;
             e.attr3 = e.attr2;
-            e.attr2 = (uchar)e.attr1;
         case PLAYERSTART:
         case CTF_FLAG:
             e.attr2 = v1;
             e.attr1 = (int)camera1->yaw;
+            if(type != PLAYERSTART) e.attr1 = (e.attr1 + 7 - (e.attr1 + 7) % 15) * 4;
             break;
     }
     syncentchanges(true);

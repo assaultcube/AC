@@ -26,8 +26,8 @@ sqr rtex;
 VAR(editing, 1, 0, 0);
 VAR(unsavededits, 1, 0, 0);
 
-bool editmetakeydown = false;
-COMMANDF(editmeta, "d", (bool on) { editmetakeydown = on; } );
+VAR(editmetakeydown, 1, 0, 0);
+COMMANDF(editmeta, "d", (bool on) { editmetakeydown = on ? 1 : 0; } );
 
 void toggleedit(bool force)
 {

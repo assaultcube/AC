@@ -67,7 +67,7 @@ void rendermapmodels()
         {
             mapmodelinfo &mmi = getmminfo(e.attr2);
             if(!&mmi) continue;
-            rendermodel(mmi.name, ANIM_MAPMODEL|ANIM_LOOP, e.attr4, 0, vec(e.x, e.y, (float)S(e.x, e.y)->floor+mmi.zoff+e.attr3), (float)((e.attr1+7)-(e.attr1+7)%15), 0, 10.0f);
+            rendermodel(mmi.name, ANIM_MAPMODEL|ANIM_LOOP, e.attr4, 0, vec(e.x, e.y, (float)S(e.x, e.y)->floor+mmi.zoff+e.attr3), e.attr1 / 4.0f, 0, 10.0f);
         }
     }
 }
@@ -218,7 +218,7 @@ void renderentities()
             if(e.type==CTF_FLAG)
             {
                 defformatstring(path)("pickups/flags/%s", team_basestring(e.attr2));
-                rendermodel(path, ANIM_FLAG|ANIM_LOOP, 0, 0, vec(e.x, e.y, (float)S(e.x, e.y)->floor), (float)((e.attr1+7)-(e.attr1+7)%15), 0, 120.0f);
+                rendermodel(path, ANIM_FLAG|ANIM_LOOP, 0, 0, vec(e.x, e.y, (float)S(e.x, e.y)->floor), e.attr1 / 4.0f, 0, 120.0f);
             }
             else if((e.type == CLIP || e.type == PLCLIP) && showclips && !stenciling) renderclip(e);
             else if(e.type == MAPMODEL && showclips && showmodelclipping && !stenciling)
@@ -271,7 +271,7 @@ void renderentities()
                 if(OUTBORD(f.pos.x, f.pos.y)) break;
                 entity &e = *f.flagent;
                 defformatstring(path)("pickups/flags/%s%s", m_ktf ? "" : team_basestring(i),  m_htf ? "_htf" : m_ktf ? "ktf" : "");
-                if(f.flagent->spawned) rendermodel(path, ANIM_FLAG|ANIM_LOOP, 0, 0, vec(f.pos.x, f.pos.y, f.state==CTFF_INBASE ? (float)S(int(f.pos.x), int(f.pos.y))->floor : f.pos.z), (float)((e.attr1+7)-(e.attr1+7)%15), 0, 120.0f);
+                if(f.flagent->spawned) rendermodel(path, ANIM_FLAG|ANIM_LOOP, 0, 0, vec(f.pos.x, f.pos.y, f.state==CTFF_INBASE ? (float)S(int(f.pos.x), int(f.pos.y))->floor : f.pos.z), e.attr1 / 4.0f, 0, 120.0f);
                 break;
             }
             case CTFF_IDLE:

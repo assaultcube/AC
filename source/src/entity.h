@@ -6,13 +6,13 @@ enum                            // static entity types
     I_CLIPS, I_AMMO, I_GRENADE,
     I_HEALTH, I_HELMET, I_ARMOUR, I_AKIMBO,
                                 // helmet : 2010may16 -> mapversion:8
-    MAPMODEL,                   // attr1 = angle, attr2 = idx
+    MAPMODEL,                   // attr1 = angle, attr2 = idx, attr3 = elevation, attr4 = texture
     CARROT,                     // attr1 = tag, attr2 = type
     LADDER,
     CTF_FLAG,                   // attr1 = angle, attr2 = red/blue
     SOUND,
-    CLIP,
-    PLCLIP,
+    CLIP,                       // attr1 = elevation, attr2 = xradius, attr3 = yradius, attr4 = height
+    PLCLIP,                     // attr1 = elevation, attr2 = xradius, attr3 = yradius, attr4 = height
     MAXENTTYPES
 };
 
