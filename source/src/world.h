@@ -75,6 +75,14 @@ struct mapstats
     bool hasflags;
 };
 
+struct mapdim
+{   //   0   2   1   3     6         7
+    int x1, x2, y1, y2, minfloor, maxceil;       // outer borders (points to last used cube)
+    //    4      5
+    int xspan, yspan;                            // size of area between x1|y1 and x2|y2
+    float xm, ym;                                // middle of the map
+};
+
 #define SWS(w,x,y,s) (&(w)[((y)<<(s))+(x)])
 #define SW(w,x,y) SWS(w,x,y,sfactor)
 #define S(x,y) SW(world,x,y)            // convenient lookup of a lowest mip cube

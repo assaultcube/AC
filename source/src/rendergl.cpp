@@ -506,9 +506,9 @@ void recomputecamera()
             case SM_OVERVIEW:
             {
                 // TODO : fix water rendering
-                camera1->o.x = mapdims[0] + mapdims[4]/2;
-                camera1->o.y = mapdims[1] + mapdims[5]/2;
-                camera1->o.z = mapdims[7] + 1;
+                camera1->o.x = mapdims.xm;
+                camera1->o.y = mapdims.ym;
+                camera1->o.z = mapdims.maxceil + 1;
                 camera1->pitch = -90;
                 camera1->yaw = 0;
 
@@ -798,14 +798,14 @@ void drawminimap(int w, int h)
     physent minicam;
     camera1 = &minicam;
     camera1->type = ENT_CAMERA;
-    camera1->o.x = mapdims[0] + mapdims[4]/2.0f;
-    camera1->o.y = mapdims[1] + mapdims[5]/2.0f;
+    camera1->o.x = mapdims.xm;
+    camera1->o.y = mapdims.ym;
 
-    //float gdim = max(mapdims[4], mapdims[5])+2.0f; //make 1 cube smaller to give it a black edge
-    float gdim = max(mapdims[4], mapdims[5]); //no border
+    //float gdim = max(mapdims.xspan, mapdims.yspan)+2.0f; //make 1 cube smaller to give it a black edge
+    float gdim = max(mapdims.xspan, mapdims.yspan); //no border
 
-    if(!gdim) gdim = ssize/2.0f;
-    camera1->o.z = mapdims[7] + 1;
+    if(gdim < 1) gdim = ssize/2.0f;
+    camera1->o.z = mapdims.maxceil + 1;
     camera1->pitch = -90;
     camera1->yaw = 0;
 
@@ -820,7 +820,7 @@ void drawminimap(int w, int h)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT); // stencil added 2010jul22
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(-orthd, orthd, -orthd, orthd, 0, (mapdims[7]-mapdims[6])+2); // depth of map +2 covered
+    glOrtho(-orthd, orthd, -orthd, orthd, 0, (mapdims.maxceil - mapdims.minfloor) + 2); // depth of map +2 covered
     glScalef(1, -1, 1);
     glMatrixMode(GL_MODELVIEW);
     glCullFace(GL_BACK);
@@ -836,7 +836,7 @@ void drawminimap(int w, int h)
     renderstrips();
     glDepthFunc(GL_LESS);
     rendermapmodels();
-    renderzones(mapdims[7]);
+    renderzones(mapdims.maxceil);
     //renderentities();// IMHO better done by radar itself, if at all
     resettmu(0);
     float hf = hdr.waterlevel-0.3f;
@@ -849,10 +849,10 @@ void drawminimap(int w, int h)
     glColor3f(0, 0, 0);
     glLineWidth(2.0f);
     glBegin(GL_LINE_LOOP);
-        glVertex3f(mapdims[0]+0.02f,            mapdims[1]+0.02f, mapdims[7]);
-        glVertex3f(mapdims[0]+mapdims[4]-0.02f, mapdims[1]+0.02f, mapdims[7]);
-        glVertex3f(mapdims[0]+mapdims[4]-0.02f, mapdims[1]+mapdims[5]-0.02f, mapdims[7]);
-        glVertex3f(mapdims[0]+0.02f,            mapdims[1]+mapdims[5]-0.02f, mapdims[7]);
+        glVertex3f(mapdims.x1 + 0.02f,                 mapdims.y1 + 0.02f,                 mapdims.maxceil);
+        glVertex3f(mapdims.x1 + mapdims.xspan - 0.02f, mapdims.y1 + 0.02f,                 mapdims.maxceil);
+        glVertex3f(mapdims.x1 + mapdims.xspan - 0.02f, mapdims.y1 + mapdims.yspan - 0.02f, mapdims.maxceil);
+        glVertex3f(mapdims.x1 + 0.02f,                 mapdims.y1 + mapdims.yspan - 0.02f, mapdims.maxceil);
     glEnd();
     glLineWidth(prevLineWidth);
     glEnable(GL_BLEND);
@@ -904,10 +904,10 @@ void setperspective(float fovy, float aspect, float nearplane, float farplane)
     GLdouble ydist = nearplane * tan(fovy/2*RAD), xdist = ydist * aspect;
     if(player1->isspectating() && player1->spectatemode == SM_OVERVIEW)
     {
-        int gdim = max(mapdims[4], mapdims[5]);
+        int gdim = max(mapdims.xspan, mapdims.yspan);
         if(!gdim) gdim = ssize/2;
         int orthd = 2 + gdim/2;
-        glOrtho(-orthd, orthd, -orthd, orthd, 0, (mapdims[7]-mapdims[6])+2); // depth of map +2 covered
+        glOrtho(-orthd, orthd, -orthd, orthd, 0, (mapdims.maxceil - mapdims.minfloor) + 2); // depth of map +2 covered
     }
     else
     {

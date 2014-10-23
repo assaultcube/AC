@@ -483,6 +483,7 @@ extern void teamflagscores(int &team1, int &team2);
 extern void setupworld(int factor);
 extern void sqrdefault(sqr *s);
 extern bool worldbordercheck(int x1, int x2, int y1, int y2, int z1, int z2);
+extern void calcmapdims();
 extern bool empty_world(int factor, bool force);
 extern void remip(const block &b, int level = 0);
 extern void remipmore(const block &b, int level = 0);
@@ -679,7 +680,7 @@ extern bool addscorchmark(vec &o, float radius = 7);
 extern void render_particles(int time, int typemask = ~0);
 
 // worldio
-extern int mapdims[8];
+extern mapdim mapdims;
 extern const char *setnames(const char *name);
 extern void save_world(char *mname, bool skipoptimise = false, bool addcomfort = false);
 extern bool load_world(char *mname);

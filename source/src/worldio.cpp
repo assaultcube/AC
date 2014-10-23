@@ -519,12 +519,11 @@ VARP(preserveundosonsave, 0, 0, 1);
 COMMANDF(savemap, "s", (char *name) { save_world(name, preserveundosonsave && editmode, preserveundosonsave && editmode); } );
 COMMANDF(savemapoptimised, "s", (char *name) { save_world(name, false, false); } );
 
-extern int mapdims[8];     // min/max X/Y and delta X/Y and min-floor/max-ceil
 void showmapdims()
 {
-    conoutf("  min X|Y|Z: %3d : %3d : %3d", mapdims[0], mapdims[1], mapdims[6]);
-    conoutf("  max X|Y|Z: %3d : %3d : %3d", mapdims[2], mapdims[3], mapdims[7]);
-    conoutf("delta X|Y|Z: %3d : %3d : %3d", mapdims[4], mapdims[5], mapdims[7]-mapdims[6]);
+    conoutf("  min X|Y|Z: %3d : %3d : %3d", mapdims.x1, mapdims.y1, mapdims.minfloor);
+    conoutf("  max X|Y|Z: %3d : %3d : %3d", mapdims.x2, mapdims.y2, mapdims.maxceil);
+    conoutf("delta X|Y|Z: %3d : %3d : %3d", mapdims.xspan, mapdims.yspan, mapdims.maxceil - mapdims.minfloor);
 }
 COMMAND(showmapdims, "");
 
@@ -684,7 +683,6 @@ bool load_world(char *mname)        // still supports all map formats that have 
     Mv = Ma = Hhits = 0;
     char texuse[256];
     loopi(256) texuse[i] = 0;
-    loopk(8) mapdims[k] = k < 2 ? ssize : 0;
     loopk(cubicsize)
     {
         sqr *s = &world[k];
@@ -700,21 +698,13 @@ bool load_world(char *mname)        // still supports all map formats that have 
                 Mv += diff;
             }
             texuse[s->utex] = texuse[s->ftex] = texuse[s->ctex] = 1;
-            int cwx = k%ssize,
-                cwy = k/ssize;
-            if(cwx < mapdims[0]) mapdims[0] = cwx;
-            if(cwy < mapdims[1]) mapdims[1] = cwy;
-            if(cwx > mapdims[2]) mapdims[2] = cwx;
-            if(cwy > mapdims[3]) mapdims[3] = cwy;
-            if(s->floor != -128 && s->floor < mapdims[6]) mapdims[6] = s->floor;
-            if(s->ceil  > mapdims[7]) mapdims[7] = s->ceil;
         }
         texuse[s->wtex] = 1;
     }
     Mh = Ma ? (float)Mv/Ma : 0;
-    loopk(2) mapdims[k+4] = mapdims[k+2] + 1 - mapdims[k]; // 8..15 ^= 8 cubes - minimal X/Y == 2 - != 0 !!
-    c2skeepalive();
 
+    c2skeepalive();
+    calcmapdims();
     calclight();
     conoutf("read map %s rev %d (%d milliseconds)", cgzname, hdr.maprevision, watch.stop());
     conoutf("%s", hdr.maptitle);
