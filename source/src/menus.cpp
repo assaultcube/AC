@@ -293,7 +293,7 @@ struct mitemimagemanual : mitemmanual
             if(image)
             {
                 glBindTexture(GL_TEXTURE_2D, image->id);
-                glDisable(GL_BLEND);
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
                 glColor3f(1, 1, 1);
                 xs = (FONTH*image->xs)/image->ys;
                 glBegin(GL_TRIANGLE_STRIP);
@@ -303,7 +303,6 @@ struct mitemimagemanual : mitemmanual
                 glTexCoord2f(1, 1); glVertex2f(x+xs, y+FONTH);
                 glEnd();
                 xtraverts += 4;
-                glEnable(GL_BLEND);
             }
             draw_text(text, !image || *text == '\t' ? x : x+xs + FONTH/2, y);
             if(altfont && strchr(text, '\a'))
@@ -326,8 +325,8 @@ struct mitemimagemanual : mitemmanual
                 int xs = (2 * VIRTW - w) / 5, ys = (xs * image->ys) / image->xs;
                 x = (6 * VIRTW + w - 2 * xs) / 4; y = VIRTH - ys / 2;
                 blendbox(x - FONTH, y - FONTH, x + xs + FONTH, y + ys + FONTH, false);
-                glBindTexture(GL_TEXTURE_2D, image->id);               // I just copy&pasted this...
-                glDisable(GL_BLEND);
+                glBindTexture(GL_TEXTURE_2D, image->id);
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
                 glColor3f(1, 1, 1);
                 glBegin(GL_TRIANGLE_STRIP);
                 glTexCoord2f(0, 0); glVertex2f(x,    y);
@@ -336,7 +335,6 @@ struct mitemimagemanual : mitemmanual
                 glTexCoord2f(1, 1); glVertex2f(x+xs, y+ys);
                 glEnd();
                 xtraverts += 4;
-                glEnable(GL_BLEND);
             }
         }
         else mitemmanual::render(x, y, w);
