@@ -1430,6 +1430,7 @@ COMMANDF(rnd, "i", (int *a) { intret(*a>0 ? rnd(*a) : 0); });
 #ifndef STANDALONE
 void writecfg()
 {
+    filerotate("config/saved", "cfg", CONFIGROTATEMAX); // keep five old config sets
     stream *f = openfile(path("config/saved.cfg", true), "w");
     if(!f) return;
     f->printf("// automatically written on exit, DO NOT MODIFY\n// delete this file to have defaults.cfg overwrite these settings\n// modify settings in game, or put settings in autoexec.cfg to override anything\n\n");

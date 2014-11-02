@@ -787,3 +787,19 @@ char *loadfile(const char *fn, int *size, const char *mode)
     return buf;
 }
 
+void filerotate(const char *basename, const char *ext, int keepold, const char *oldformat)  // rotate old logfiles
+{
+    char fname1[MAXSTRLEN * 2], fname2[MAXSTRLEN] = "";
+    copystring(fname1, findfile(basename, "w"));
+    int mid = strlen(fname1);
+    if(!oldformat) oldformat = "-old-%d";
+    for(; keepold >= 0; keepold--)
+    {
+        formatstring(fname1 + mid)(keepold ? oldformat : "", keepold);
+        concatformatstring(fname1 + mid, ".%s", ext);
+        if(fname2[0]) rename(fname1, fname2);
+        else remove(fname1);
+        copystring(fname2, fname1);
+    }
+}
+

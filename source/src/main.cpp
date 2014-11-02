@@ -123,6 +123,7 @@ VARF(fullscreen, 0, 1, 1, setfullscreen(fullscreen!=0));
 void writeinitcfg()
 {
     if(!restoredinits) return;
+    filerotate("config/init", "cfg", CONFIGROTATEMAX); // keep five old init config sets
     stream *f = openfile(path("config/init.cfg", true), "w");
     if(!f) return;
     f->printf("// automatically written on exit, DO NOT MODIFY\n// modify settings in game\n");
@@ -992,22 +993,13 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int sw)
 
 void initclientlog()  // rotate old logfiles and create new one
 {
-    const int MAXROT = 5;    // keep five old logfiles
-    string fname1, fname2 = "";
-    const char *basename = findfile("clientlog", "w");
-    for(int i = MAXROT; i >= 0; i--)
-    {
-        formatstring(fname1)(i > 0 ? "%s-old-%d.txt" : "%s.txt", basename, i);
-        if(fname2[0]) rename(fname1, fname2);
-        else remove(fname1);
-        copystring(fname2, fname1);
-    }
+    filerotate("clientlog", "txt", 5); // keep five old logfiles
     clientlogfile = openfile("clientlog.txt", "w");
     if(clientlogfile)
     {
         if(bootclientlog && bootclientlog->length()) clientlogfile->write(bootclientlog->getbuf(), bootclientlog->length());
     }
-    else conoutf("could not create logfile \"%s\"", fname2);
+    else conoutf("could not create logfile \"%s\"", findfile("clientlog.txt", "w"));
     DELETEP(bootclientlog);
 }
 
