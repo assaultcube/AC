@@ -3458,12 +3458,13 @@ void process(ENetPacket *packet, int sender, int chan)
                         time = min(time, 60);
                         if (vi->gonext)
                         {
-                            int ccs = mode ? maprot.next(false,false) : maprot.get_next();
+                            int ccs = rnd(maprot.configsets.length());
                             configset *c = maprot.get(ccs);
                             if(c)
                             {
                                 strcpy(vi->text,c->mapname);
                                 mode = vi->num1 = c->mode;
+                                time = vi->num2 = c->time;
                             }
                             else fatal("unable to get next map in maprot");
                         }
