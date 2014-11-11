@@ -1092,12 +1092,14 @@ bool menukey(int code, bool isdown, int unicode, SDLMod mod)
             case SDLK_UP:
             case SDL_AC_BUTTON_WHEELUP:
                 if(iskeypressed(SDLK_LCTRL)) return menukey(SDLK_LEFT, isdown, 0);
+                if(iskeypressed(SDLK_LALT)) return menukey(SDLK_RIGHTBRACKET, isdown, 0);
                 if(!curmenu->allowinput) return false;
                 menusel--;
                 break;
             case SDLK_DOWN:
             case SDL_AC_BUTTON_WHEELDOWN:
                 if(iskeypressed(SDLK_LCTRL)) return menukey(SDLK_RIGHT, isdown, 0);
+                if(iskeypressed(SDLK_LALT)) return menukey(SDLK_LEFTBRACKET, isdown, 0);
                 if(!curmenu->allowinput) return false;
                 menusel++;
                 break;

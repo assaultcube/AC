@@ -877,6 +877,30 @@ const char *favcatcheck(serverinfo &si, const char *ckeys, char *autokeys = NULL
     return res ? nkeys : NULL;
 }
 
+void serverbrowseralternativeviews(int shiftdirection)
+{
+    const char *ckeys = getalias("serverbrowseraltviews");
+    if(!ckeys) return;
+    const char *sep = " \t\n\r";
+    char *keys = newstring(ckeys), *k = strtok(keys, sep);
+    vector<int> cats;
+    cats.add(0);
+    while(k)
+    {
+        loopv(favcats) if(!strcmp(favcats[i], k)) cats.add(i + 1);
+        k = strtok(NULL, sep);
+    }
+    delete[] keys;
+    if(cats.length())
+    {
+        loopv(cats)
+        {
+           if(cats[i] == showonlyfavourites) { showonlyfavourites = cats[(i + shiftdirection + cats.length()) % cats.length()]; return; }
+        }
+    }
+    showonlyfavourites = 0;
+}
+
 vector<const char *> favcattags;
 
 bool assignserverfavourites()
@@ -1049,7 +1073,7 @@ void refreshservers(void *menu, bool init)
                 }
                 else
                 {
-                    if(!hidefavicons && showfavtag && si.favcat > -1) favimage = getalias(favcatargname(favcats[si.favcat], FC_IMAGE));
+                    if(!hidefavicons && !showweights && showfavtag && si.favcat > -1) favimage = getalias(favcatargname(favcats[si.favcat], FC_IMAGE));
                     filterrichtext(text, si.favcat > -1 && !favimage ? favcattags[si.favcat] : "");
                     if(showweights) concatformatstring(text, "(%d)", si.weight);
                     formatstring(si.full)(showfavtag ? (favimage ? "\t" : "\fs%s\fr\t") : "", text);
@@ -1187,6 +1211,14 @@ bool serverskey(void *menu, int code, bool isdown, int unicode)
 
         case SDLK_RIGHT:
             serversort = (serversort+1) % NUMSERVSORT;
+            return true;
+
+        case SDLK_LEFTBRACKET:
+            serverbrowseralternativeviews(-1);
+            return true;
+
+        case SDLK_RIGHTBRACKET:
+            serverbrowseralternativeviews(1);
             return true;
 
         case SDLK_F5:
