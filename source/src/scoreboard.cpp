@@ -450,7 +450,7 @@ const char *asciiscores(bool destjpg)
         if(s)
         {
             string sdesc;
-            filtertext(sdesc, s->sdesc, FTXT__SERVDESC);
+            filtertext(sdesc, s->sdesc, FTXT__SERVDESC | FTXT_NOCOLOR);
             formatstring(text)(", %s:%d %s", s->name, s->port, sdesc);
             addstr(buf, text);
         }
