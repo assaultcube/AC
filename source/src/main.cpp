@@ -1238,7 +1238,7 @@ int main(int argc, char **argv)
         exec("config/defaults.cfg");
         firstrun = true;
     }
-    if(identexists("afterinit")) execute("afterinit");
+    exechook(HOOK_SP_MP, "afterinit", "");
     if(compatibilitymode)
     {
         per_idents = false;

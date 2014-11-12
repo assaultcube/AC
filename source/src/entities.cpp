@@ -311,7 +311,6 @@ void pickupeffects(int n, playerent *d)
             */
             if(identexists("onPickup"))
             {
-                string o;
                 itemstat *tmp = NULL;
                 switch(e.type)
                 {
@@ -324,11 +323,7 @@ void pickupeffects(int n, playerent *d)
                     case I_ARMOUR:  tmp = &powerupstats[e.type-I_HEALTH]; break;
                     default: break;
                 }
-                if(tmp)
-                {
-                    formatstring(o)("onPickup %d %d", e.type - 3, m_lss && e.type == I_GRENADE ? 2 : tmp->add);
-                    execute(o);
-                }
+                if(tmp) exechook(HOOK_SP, "onPickup", "%d %d", e.type - 3, m_lss && e.type == I_GRENADE ? 2 : tmp->add);
             }
         }
         else audiomgr.playsound(is.sound, d);

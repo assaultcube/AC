@@ -547,7 +547,7 @@ void newmap(int *i)
     if(empty_world(*i, false))
     {
         addmsg(SV_NEWMAP, "ri", max(*i, 0));
-        if(identexists("onNewMap")) execute("onNewMap");
+        exechook(HOOK_SP_MP, "onNewMap", "");
     }
     defformatstring(startmillis)("%d", millis_());
     alias("gametimestart", startmillis);

@@ -46,12 +46,7 @@ void selectweapon(weapon *w)
         if(w->type==GUN_PISTOL && akimbo->selectable()) w = akimbo;
 
         player1->weaponswitch(w);
-        if(identexists("onWeaponSwitch"))
-        {
-            string o;
-            formatstring(o)("onWeaponSwitch %d", i);
-            execute(o);
-        }
+        exechook(HOOK_SP, "onWeaponSwitch", "%d", i);
     }
 }
 
@@ -395,11 +390,7 @@ hitweap accuracym[NUMGUNS];
 
 inline void attackevent(playerent *owner, int weapon)
 {
-    if(owner == player1 && identexists("onAttack"))
-    {
-        defformatstring(onattackevent)("onAttack %d", weapon);
-        execute(onattackevent);
-    }
+    if(owner == player1) exechook(HOOK_SP, "onAttack", "%d", weapon);
 }
 
 vector<hitmsg> hits;
@@ -837,11 +828,7 @@ bool weapon::reload(bool autoreloaded)
     if(local)
     {
         addmsg(SV_RELOAD, "ri2", lastmillis, owner->weaponsel->type);
-        if(identexists("onReload"))
-        {
-            defformatstring(str)("onReload %d", (int)autoreloaded);
-            execute(str);
-        }
+        exechook(HOOK_SP, "onReload", "%d", (int)autoreloaded);
     }
     return true;
 }

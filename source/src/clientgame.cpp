@@ -162,11 +162,7 @@ void newname(const char *name)
     {
         string tmpname;
         filtertext(tmpname, name, FTXT__PLAYERNAME, MAXNAMELEN);
-        if(identexists("onNameChange"))
-        {
-            defformatstring(onnamechange)("onNameChange %d \"%s\"", player1->clientnum, tmpname);
-            execute(onnamechange);
-        }
+        exechook(HOOK_SP, "onNameChange", "%d \"%s\"", player1->clientnum, tmpname);
         copystring(player1->name, tmpname);//12345678901234//
         if(!player1->name[0]) copystring(player1->name, "unarmed");
         updateclientname(player1);
@@ -706,11 +702,7 @@ void findplayerstart(playerent *d, bool mapcenter, int arenaspawn)
         d->o.z = 4;
     }
     entinmap(d);
-    if(identexists("onSpawn")/* && (m_teammode && d->team == player1->team)*/)
-    {
-        defformatstring(onspawn)("onSpawn %d", d->clientnum);
-        execute(onspawn);
-    }
+    exechook(HOOK_SP, "onSpawn", "%d", d->clientnum);
 }
 
 void spawnplayer(playerent *d)
@@ -852,11 +844,8 @@ void dodamage(int damage, playerent *pl, playerent *actor, int gun, bool gib, bo
     // I suppose someone wanted to play the hitsound for player1 or spectated player (lucas:2011may22)
     playerent *h = player1->isspectating() && player1->followplayercn >= 0 && (player1->spectatemode == SM_FOLLOW1ST || player1->spectatemode == SM_FOLLOW3RD || player1->spectatemode == SM_FOLLOW3RD_TRANSPARENT) ? getclient(player1->followplayercn) : NULL;
     if(!h) h = player1;
-    if(identexists("onHit"))
-    {
-        defformatstring(o)("onHit %d %d %d %d %d", actor->clientnum, pl->clientnum, damage, gun, gib ? 1 : 0);
-        execute(o);
-    }
+    exechook(HOOK_SP, "onHit", "%d %d %d %d %d", actor->clientnum, pl->clientnum, damage, gun, gib ? 1 : 0);
+
     if(actor==h && pl!=actor)
     {
         if( (hitsound == 1 || (hitsound && h != player1) ) && lasthit != lastmillis) audiomgr.playsound(S_HITSOUND, SP_HIGH);
@@ -888,11 +877,7 @@ void dokill(playerent *pl, playerent *act, bool gib, int gun)
 {
     if(pl->state!=CS_ALIVE || intermission) return;
 
-    if(identexists("onKill"))
-    {
-        defformatstring(killevent)("onKill %d %d %d %d", act->clientnum, pl->clientnum, gun, gib ? 1 : 0);
-        execute(killevent);
-    }
+    exechook(HOOK_SP, "onKill", "%d %d %d %d", act->clientnum, pl->clientnum, gun, gib ? 1 : 0);
 
     string pname, aname, death;
     copystring(pname, pl==player1 ? "you" : colorname(pl));
@@ -976,7 +961,7 @@ void timeupdate(int milliscur, int millismax)
         consolescores();
         ((sniperrifle *)player1->weaponsel)->scoped = false;
         showscores(true);
-        if(identexists("start_intermission")) execute("start_intermission");
+        exechook(HOOK_SP_MP, "start_intermission", "");
     }
     else
     {
@@ -985,7 +970,7 @@ void timeupdate(int milliscur, int millismax)
         {
             audiomgr.musicsuggest(M_LASTMINUTE1 + rnd(2), 70*1000, true);
             hudoutf("1 minute left!");
-            if(identexists("onLastMin")) execute("onLastMin");
+            exechook(HOOK_SP_MP, "onLastMin", "");
         }
         else if(clockdisplay==0) conoutf(_("time remaining: %d minutes"), minutesremaining);
     }
@@ -1217,11 +1202,7 @@ void flagmsg(int flag, int message, int actor, int flagtime)
     const char *teamstr = m_ktf ? "the" : neutral ? ownerstr : own ? "your" : "the enemy";
     const char *flagteam = (m_ktf && !neutral) ? (teammate ? "your teammate " : "your enemy ") : "";
 
-    if(identexists("onFlag"))
-    {
-        defformatstring(onflagevent)("onFlag %d %d %d", message, actor, flag);
-        execute(onflagevent);
-    }
+    exechook(HOOK_SP, "onFlag", "%d %d %d", message, actor, flag);
 
     switch(message)
     {
@@ -1421,11 +1402,7 @@ void callvote(int type, const char *arg1, const char *arg2, const char *arg3)
                 break;
         }
         sendpackettoserv(1, p.finalize());
-        if(identexists("onCallVote"))
-        {
-            defformatstring(runas)("%s %d %d [%s] [%s]", "onCallVote", type, player1->clientnum, arg1, arg2);
-            execute(runas);
-        }
+        exechook(HOOK_SP_MP, "onCallVote", "%d %d [%s] [%s]", type, player1->clientnum, arg1, arg2);
     }
     else conoutf(_("%c3invalid vote"), CC);
 }
@@ -1520,7 +1497,7 @@ void voteresult(int v)
         curvote->millis = totalmillis + 5000;
         conoutf(_("vote %s"), v == VOTE_YES ? _("passed") : _("failed"));
         if(multiplayer(false)) audiomgr.playsound(v == VOTE_YES ? S_VOTEPASS : S_VOTEFAIL, SP_HIGH);
-        if(identexists("onVoteEnd")) execute("onVoteEnd");
+        exechook(HOOK_SP_MP, "onVoteEnd", "");
         votepending = 0;
     }
 }

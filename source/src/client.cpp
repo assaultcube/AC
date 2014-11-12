@@ -208,11 +208,8 @@ void disconnect(int onlyclean, int async)
     }
 #endif
     if(!onlyclean) localconnect();
-    if(identexists("onDisconnect"))
-    {
-        defformatstring(ondisconnect)("onDisconnect %d", -1);
-        execute(ondisconnect);
-    }}
+    exechook(HOOK_SP_MP, "onDisconnect", "%d", -1);
+}
 
 void trydisconnect()
 {
@@ -611,11 +608,7 @@ void gets2c()           // get updates from the server
             connpeer = NULL;
             connected = 1;
             conoutf(_("connected to server"));
-            if(identexists("onConnect"))
-            {
-                defformatstring(onconnect)("onConnect %d", -1);
-                execute(onconnect);
-            }
+            exechook(HOOK_SP_MP, "onConnect", "%d", -1);
             throttle();
             if(editmode) toggleedit(true);
             break;

@@ -826,6 +826,8 @@ extern int getvar(const char *name);
 extern bool identexists(const char *name);
 extern bool addcommand(const char *name, void (*fun)(), const char *sig);
 extern int execute(const char *p);
+enum { HOOK_SP_MP = 1, HOOK_SP, HOOK_MP, HOOK_FLAGMASK = 0xff, HOOK_TEAM = 0x100, HOOK_NOTEAM = 0x200, HOOK_BOTMODE = 0x400, HOOK_FLAGMODE = 0x800, HOOK_ARENA = 0x1000 };
+extern bool exechook(int context, const char *ident, const char *body,...);  // execute cubescript hook if available and allowed in current context/gamemode
 extern char *executeret(const char *p);
 extern char *conc(char **w, int n, bool space);
 extern void intret(int v);

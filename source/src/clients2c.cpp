@@ -366,20 +366,12 @@ int lastspawn = 0;
 
 void onCallVote(int type, int vcn, char *text, char *a)
 {
-    if(identexists("onCallVote"))
-    {
-        defformatstring(runas)("%s %d %d [%s] [%s]", "onCallVote", type, vcn, text, a);
-        execute(runas);
-    }
+    exechook(HOOK_SP_MP, "onCallVote", "%d %d [%s] [%s]", type, vcn, text, a);
 }
 
 void onChangeVote(int mod, int id)
 {
-    if(identexists("onChangeVote"))
-    {
-        defformatstring(runas)("%s %d %d", "onChangeVote", mod, id);
-        execute(runas);
-    }
+    exechook(HOOK_SP_MP, "onChangeVote", "%d %d", mod, id);
 }
 
 VARP(voicecomsounds, 0, 1, 2);
@@ -525,11 +517,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 {
                     conoutf("%s (PM):\f9 %s", colorname(d), highlight(text));
                     lastpm = d->clientnum;
-                    if(identexists("onPM"))
-                    {
-                        defformatstring(onpm)("onPM %d [%s]", d->clientnum, text);
-                        execute(onpm);
-                    }
+                    exechook(HOOK_SP_MP, "onPM", "%d [%s]", d->clientnum, text);
                 }
                 break;
             }
@@ -567,13 +555,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 if(!text[0]) copystring(text, "unarmed");
                 if(d)
                 {
-                    if(strcmp(d->name, text))
-                        conoutf(_("%s is now known as %s"), colorname(d), colorname(d, text));
-                    if(identexists("onNameChange"))
-                    {
-                        defformatstring(onnamechange)("onNameChange %d \"%s\"", d->clientnum, text);
-                        execute(onnamechange);
-                    }
+                    if(strcmp(d->name, text)) conoutf(_("%s is now known as %s"), colorname(d), colorname(d, text));
+                    exechook(HOOK_SP, "onNameChange", "%d \"%s\"", d->clientnum, text);
                     copystring(d->name, text, MAXNAMELEN+1);
                     updateclientname(d);
                 }
@@ -616,11 +599,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     conoutf(_("connected: %s"), colorname(d, text));
                 }
                 copystring(d->name, text, MAXNAMELEN+1);
-                if(identexists("onConnect"))
-                {
-                    defformatstring(onconnect)("onConnect %d", d->clientnum);
-                    execute(onconnect);
-                }
+                exechook(HOOK_SP_MP, "onConnect", "%d", d->clientnum);
                 loopi(2) d->setskin(i, getint(p));
                 d->team = getint(p);
 
@@ -642,11 +621,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 if(!d) break;
                 if(d->name[0]) conoutf(_("player %s disconnected"), colorname(d));
                 zapplayer(players[cn]);
-                if(identexists("onDisconnect"))
-                {
-                    defformatstring(ondisconnect)("onDisconnect %d", d->clientnum);
-                    execute(ondisconnect);
-                }
+                exechook(HOOK_SP_MP, "onDisconnect", "%d", d->clientnum);
                 break;
             }
 

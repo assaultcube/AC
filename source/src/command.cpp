@@ -700,6 +700,24 @@ int execute(const char *p)
     return i;
 }
 
+bool exechook(int context, const char *ident, const char *body,...)  // execute cubescript hook if available and allowed in current context/gamemode
+{ // always use one of HOOK_SP_MP, HOOK_SP or HOOK_MP and then OR them (as needed) with HOOK_TEAM, HOOK_NOTEAM, HOOK_BOTMODE, HOOK_FLAGMODE, HOOK_ARENA
+    if(multiplayer(NULL) && (context & HOOK_FLAGMASK) != HOOK_MP && (context & HOOK_FLAGMASK) != HOOK_SP_MP) return false; // hook is singleplayer-only
+    if(((context & HOOK_TEAM) && !m_teammode) ||
+       ((context & HOOK_NOTEAM) && m_teammode) ||
+       ((context & HOOK_BOTMODE) && !m_botmode) ||
+       ((context & HOOK_FLAGMODE) && m_flags) ||
+       ((context & HOOK_ARENA) && m_arena)) return false; // wrong gamemode
+    if(identexists(ident))
+    {
+        defvformatstring(arglist, body, body);
+        defformatstring(execbody)("%s%c%s", ident, *arglist ? ' ' : '\0', arglist);
+        execute(execbody);
+        return true;
+    }
+    return false;
+}
+
 #ifndef STANDALONE
 // tab-completion of all idents
 
