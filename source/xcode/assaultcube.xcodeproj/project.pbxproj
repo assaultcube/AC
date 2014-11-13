@@ -7,8 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		4FD7C9D3171F34D400D81258 /* libcurl.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4FD7C9D2171F34D300D81258 /* libcurl.framework */; };
-		4FD7C9D5171F355200D81258 /* libcurl.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 4FD7C9D4171F355200D81258 /* libcurl.framework */; };
+		4FEAF3331A14757700B42D47 /* libcurl.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4FEAF3321A14757700B42D47 /* libcurl.framework */; };
+		4FEAF3341A1475E600B42D47 /* libcurl.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 4FEAF3321A14757700B42D47 /* libcurl.framework */; };
+		4FEAF3381A147F9F00B42D47 /* SDL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9EB8171511ED9AEF00799589 /* SDL.framework */; };
+		4FEAF3391A147FAE00B42D47 /* SDL.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9EB8171511ED9AEF00799589 /* SDL.framework */; };
 		665CDCA60AFE7ECD0030D605 /* callbacks.c in Sources */ = {isa = PBXBuildFile; fileRef = 665CDC6B0AFE7ECC0030D605 /* callbacks.c */; };
 		665CDCB80AFE7ECD0030D605 /* host.c in Sources */ = {isa = PBXBuildFile; fileRef = 665CDC7E0AFE7ECD0030D605 /* host.c */; };
 		665CDCCB0AFE7ECD0030D605 /* list.c in Sources */ = {isa = PBXBuildFile; fileRef = 665CDC930AFE7ECD0030D605 /* list.c */; };
@@ -33,7 +35,6 @@
 		9EB8172111ED9AEF00799589 /* Vorbis.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9EB8171911ED9AEF00799589 /* Vorbis.framework */; };
 		9EB8179311ED9EDF00799589 /* INTL.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9EB8171211ED9AEF00799589 /* INTL.framework */; };
 		9EB8179511ED9EDF00799589 /* Ogg.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9EB8171411ED9AEF00799589 /* Ogg.framework */; };
-		9EB8179611ED9EDF00799589 /* SDL.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9EB8171511ED9AEF00799589 /* SDL.framework */; };
 		9EB8179711ED9EDF00799589 /* SDL_image.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9EB8171611ED9AEF00799589 /* SDL_image.framework */; };
 		9EB8179A11ED9EDF00799589 /* Vorbis.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9EB8171911ED9AEF00799589 /* Vorbis.framework */; };
 		9EB8181D11EDA56D00799589 /* assaultcube.icns in Resources */ = {isa = PBXBuildFile; fileRef = 9EB817DE11EDA3A300799589 /* assaultcube.icns */; };
@@ -98,7 +99,6 @@
 		B9EF952411CEE3D300B773C1 /* i18n.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B914CE5111CAC42F009BA307 /* i18n.cpp */; };
 		B9FA3B7D0DD9E6E400581F8D /* OpenAL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B9FA3B7C0DD9E6E400581F8D /* OpenAL.framework */; };
 		D23715801690FCA500AB6EDD /* SDL_image.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D237157E1690FCA500AB6EDD /* SDL_image.framework */; };
-		D23715811690FCA500AB6EDD /* SDL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D237157F1690FCA500AB6EDD /* SDL.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -118,10 +118,10 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				4FD7C9D5171F355200D81258 /* libcurl.framework in CopyFiles */,
+				4FEAF3391A147FAE00B42D47 /* SDL.framework in CopyFiles */,
+				4FEAF3341A1475E600B42D47 /* libcurl.framework in CopyFiles */,
 				9EB8179311ED9EDF00799589 /* INTL.framework in CopyFiles */,
 				9EB8179511ED9EDF00799589 /* Ogg.framework in CopyFiles */,
-				9EB8179611ED9EDF00799589 /* SDL.framework in CopyFiles */,
 				9EB8179711ED9EDF00799589 /* SDL_image.framework in CopyFiles */,
 				9EB8179A11ED9EDF00799589 /* Vorbis.framework in CopyFiles */,
 			);
@@ -134,8 +134,7 @@
 		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
-		4FD7C9D2171F34D300D81258 /* libcurl.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = libcurl.framework; path = Frameworks/libcurl.framework; sourceTree = "<group>"; };
-		4FD7C9D4171F355200D81258 /* libcurl.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = libcurl.framework; path = Frameworks/libcurl.framework; sourceTree = "<group>"; };
+		4FEAF3321A14757700B42D47 /* libcurl.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = libcurl.framework; path = Frameworks/libcurl.framework; sourceTree = "<group>"; };
 		665CDC6B0AFE7ECC0030D605 /* callbacks.c */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.c; path = callbacks.c; sourceTree = "<group>"; };
 		665CDC7E0AFE7ECD0030D605 /* host.c */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.c; path = host.c; sourceTree = "<group>"; };
 		665CDC930AFE7ECD0030D605 /* list.c */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.c; path = list.c; sourceTree = "<group>"; };
@@ -259,7 +258,6 @@
 		B975E7F30EBCC3A200880D5D /* map.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = map.icns; sourceTree = "<group>"; };
 		B9FA3B7C0DD9E6E400581F8D /* OpenAL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenAL.framework; path = /System/Library/Frameworks/OpenAL.framework; sourceTree = "<absolute>"; };
 		D237157E1690FCA500AB6EDD /* SDL_image.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL_image.framework; path = ../../../../../../../../../../Library/Frameworks/SDL_image.framework; sourceTree = "<group>"; };
-		D237157F1690FCA500AB6EDD /* SDL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL.framework; path = ../../../../../../../../../../Library/Frameworks/SDL.framework; sourceTree = "<group>"; };
 		F5A47A9D01A0482F01D3D55B /* SDLMain.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = SDLMain.h; sourceTree = SOURCE_ROOT; };
 		F5A47A9E01A0483001D3D55B /* SDLMain.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = SDLMain.m; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
@@ -269,9 +267,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4FD7C9D3171F34D400D81258 /* libcurl.framework in Frameworks */,
+				4FEAF3381A147F9F00B42D47 /* SDL.framework in Frameworks */,
+				4FEAF3331A14757700B42D47 /* libcurl.framework in Frameworks */,
 				D23715801690FCA500AB6EDD /* SDL_image.framework in Frameworks */,
-				D23715811690FCA500AB6EDD /* SDL.framework in Frameworks */,
 				B94198C309207E810029DAD1 /* Cocoa.framework in Frameworks */,
 				B9FA3B7D0DD9E6E400581F8D /* OpenAL.framework in Frameworks */,
 				B94198C409207E810029DAD1 /* OpenGL.framework in Frameworks */,
@@ -342,10 +340,7 @@
 		29B97314FDCFA39411CA2CEA /* sauerbraten */ = {
 			isa = PBXGroup;
 			children = (
-				4FD7C9D4171F355200D81258 /* libcurl.framework */,
-				4FD7C9D2171F34D300D81258 /* libcurl.framework */,
 				D237157E1690FCA500AB6EDD /* SDL_image.framework */,
-				D237157F1690FCA500AB6EDD /* SDL.framework */,
 				080E96DDFE201D6D7F000001 /* Classes */,
 				29B97315FDCFA39411CA2CEA /* Other Sources */,
 				29B97317FDCFA39411CA2CEA /* Resources */,
@@ -385,6 +380,7 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				4FEAF3321A14757700B42D47 /* libcurl.framework */,
 				1058C7A0FEA54F0111CA2CBB /* Linked Frameworks */,
 				1058C7A2FEA54F0111CA2CBB /* Other Frameworks */,
 			);
@@ -752,6 +748,8 @@
 					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_TARGET_1)",
 					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_TARGET_2)",
 					"\"$(SRCROOT)/Frameworks\"",
+					"$(PROJECT_DIR)/Frameworks",
+					"$(LOCAL_LIBRARY_DIR)/Frameworks",
 				);
 				FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_TARGET_1 = "\"$(SRCROOT)/Frameworks\"";
 				FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_TARGET_2 = "\"$(SRCROOT)/Frameworks\"";
@@ -768,14 +766,16 @@
 					../include/,
 				);
 				INFOPLIST_FILE = assaultcube.plist;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/../lib\"",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.4;
+				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				MACOSX_DEPLOYMENT_TARGET_i386 = 10.5;
 				OTHER_LDFLAGS = "-lz";
 				PRODUCT_NAME = assaultcube;
-				SDKROOT = macosx;
+				SDKROOT = macosx10.8;
 				STRIP_STYLE = all;
 			};
 			name = Debug;
@@ -788,6 +788,8 @@
 					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_TARGET_1)",
 					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_TARGET_2)",
 					"\"$(SRCROOT)/Frameworks\"",
+					"$(PROJECT_DIR)/Frameworks",
+					"$(LOCAL_LIBRARY_DIR)/Frameworks",
 				);
 				FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_TARGET_1 = "\"$(SRCROOT)/Frameworks\"";
 				FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_TARGET_2 = "\"$(SRCROOT)/Frameworks\"";
@@ -804,14 +806,16 @@
 					../include/,
 				);
 				INFOPLIST_FILE = assaultcube.plist;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/../lib\"",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.4;
+				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				MACOSX_DEPLOYMENT_TARGET_i386 = 10.5;
 				OTHER_LDFLAGS = "-lz";
 				PRODUCT_NAME = assaultcube;
-				SDKROOT = macosx;
+				SDKROOT = macosx10.8;
 				STRIP_STYLE = all;
 			};
 			name = Release;
@@ -826,6 +830,8 @@
 					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_TARGET_1)",
 					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_TARGET_2)",
 					"\"$(SRCROOT)/Frameworks\"",
+					"$(PROJECT_DIR)/Frameworks",
+					"$(LOCAL_LIBRARY_DIR)/Frameworks",
 				);
 				FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_TARGET_1 = "\"$(SRCROOT)/Frameworks\"";
 				FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_TARGET_2 = "\"$(SRCROOT)/Frameworks\"";
@@ -846,15 +852,17 @@
 					../include/,
 				);
 				INFOPLIST_FILE = assaultcube.plist;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/../lib\"",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.4;
+				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				MACOSX_DEPLOYMENT_TARGET_i386 = 10.5;
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_LDFLAGS = "-lz";
 				PRODUCT_NAME = assaultcube;
-				SDKROOT = macosx;
+				SDKROOT = macosx10.8;
 				STRIP_STYLE = all;
 			};
 			name = "Release-Deployment";
@@ -867,11 +875,10 @@
 				DEPLOYMENT_POSTPROCESSING = YES;
 				FRAMEWORK_SEARCH_PATHS = "";
 				GCC_OPTIMIZATION_LEVEL = 3;
-				GCC_VERSION = com.apple.compilers.llvmgcc42;
-				MACOSX_DEPLOYMENT_TARGET = "";
+				GCC_VERSION = "";
 				MACOSX_DEPLOYMENT_TARGET_i386 = 10.4;
 				MACOSX_DEPLOYMENT_TARGET_ppc = 10.3;
-				SDKROOT = macosx;
+				SDKROOT = macosx10.8;
 				STRIP_INSTALLED_PRODUCT = NO;
 			};
 			name = "Release-Deployment";
@@ -883,12 +890,11 @@
 				COPY_PHASE_STRIP = NO;
 				FRAMEWORK_SEARCH_PATHS = "";
 				GCC_OPTIMIZATION_LEVEL = 0;
-				GCC_VERSION = com.apple.compilers.llvmgcc42;
-				MACOSX_DEPLOYMENT_TARGET = "";
+				GCC_VERSION = "";
 				MACOSX_DEPLOYMENT_TARGET_i386 = 10.4;
 				MACOSX_DEPLOYMENT_TARGET_ppc = 10.3;
 				ONLY_ACTIVE_ARCH = YES;
-				SDKROOT = macosx;
+				SDKROOT = macosx10.8;
 				STRIP_INSTALLED_PRODUCT = NO;
 			};
 			name = Debug;
@@ -900,11 +906,10 @@
 				COPY_PHASE_STRIP = NO;
 				FRAMEWORK_SEARCH_PATHS = "";
 				GCC_OPTIMIZATION_LEVEL = 3;
-				GCC_VERSION = com.apple.compilers.llvmgcc42;
-				MACOSX_DEPLOYMENT_TARGET = "";
+				GCC_VERSION = "";
 				MACOSX_DEPLOYMENT_TARGET_i386 = 10.4;
 				MACOSX_DEPLOYMENT_TARGET_ppc = 10.3;
-				SDKROOT = macosx;
+				SDKROOT = macosx10.8;
 				STRIP_INSTALLED_PRODUCT = NO;
 			};
 			name = Release;
