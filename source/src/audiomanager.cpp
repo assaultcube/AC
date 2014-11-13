@@ -268,10 +268,11 @@ void audiomanager::soundcleanup()
     mapsounds.shrink(0);
     locations.deletecontents();
     gamesounds.shrink(0);
-    bufferpool.clear();
 
     // kill scheduler
     sourcescheduler::instance().reset();
+    
+    bufferpool.clear();
 
     // shutdown openal
     alcMakeContextCurrent(NULL);
