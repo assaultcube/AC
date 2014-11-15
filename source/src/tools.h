@@ -95,10 +95,12 @@ static inline float round(float x) { return floor(x + 0.5f); }
 #define strcasecmp(a,b) _stricmp(a,b)
 #define strncasecmp(a,b,n) _strnicmp(a,b,n)
 #define PATHDIV '\\'
+#define PATHDIVS "\\"
 #else
 #define __cdecl
 #define _vsnprintf vsnprintf
 #define PATHDIV '/'
+#define PATHDIVS "/"
 #endif
 
 // easy safe strings
@@ -110,6 +112,7 @@ inline void vformatstring(char *d, const char *fmt, va_list v, int len = MAXSTRL
 inline char *copystring(char *d, const char *s, size_t len = MAXSTRLEN) { strncpy(d, s, len); d[len-1] = 0; return d; }
 inline char *concatstring(char *d, const char *s, size_t len = MAXSTRLEN) { size_t used = strlen(d); return used < len ? copystring(d+used, s, len-used) : d; }
 extern char *concatformatstring(char *d, const char *s, ...);
+extern char *tempformatstring(const char *s, ...);
 
 struct stringformatter
 {
@@ -831,6 +834,7 @@ inline char *newstring(const char *s, size_t l) { return copystring(newstring(l)
 inline char *newstring(const char *s)           { return newstring(s, strlen(s)); }
 inline char *newstringbuf()                     { return newstring(MAXSTRLEN-1); }
 inline char *newstringbuf(const char *s)        { return newstring(s, MAXSTRLEN-1); }
+inline void delstring(const char *s)            { delete[] (char *)s; }
 
 #ifndef STANDALONE
 inline const char *_gettext(const char *msgid)

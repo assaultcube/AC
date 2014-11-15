@@ -403,6 +403,12 @@ char *concatformatstring(char *d, const char *s, ...)
     return concatstring(d, temp);
 }
 
+char *tempformatstring(const char *s, ...)
+{
+    static defvformatstring(temp, s, s);
+    return temp;
+}
+
 const char *hiddenpwd(const char *pwd, int showchars)
 {
     static int sc = 3;
