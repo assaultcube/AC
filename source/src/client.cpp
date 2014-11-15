@@ -891,6 +891,8 @@ VARP(autodownload, 0, 1, 1);
 void resetpckservers()
 {
     pckservers.deletecontents();
+    delfile(findfile("config" PATHDIVS "pcksources.cfg", "w"));
+    conoutf("%c3Restart AssaultCube to take effect after resetting the list of packages source servers", CC);
 }
 
 void addpckserver(char *addr)
@@ -1157,10 +1159,12 @@ bool requirepackage(int type, const char *path)
 
 void writepcksourcecfg()
 {
-    stream *f = openfile(path("config/pcksources.cfg", true), "w");
-    if(!f) return;
-    f->printf("// list of package source servers (only add servers you trust!)\n");
-    loopv(pckservers) f->printf("\naddpckserver %s", pckservers[i]->addr);
-    f->printf("\n");
-    delete f;
+    if(pckservers.length())
+    {
+        stream *f = openfile("config" PATHDIVS "pcksources.cfg", "w");
+        if(!f) return;
+        f->printf("// list of package source servers (only add servers you trust!)\n\n");
+        loopv(pckservers) f->printf("addpckserver %s\n", pckservers[i]->addr);
+        delete f;
+    }
 }
