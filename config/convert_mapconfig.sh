@@ -35,7 +35,7 @@ if [ "$1" = "-h" ] || [ "$1" = "--help" ] || [ "$1" = "" ]; then
   exit
 # REVERT command:
 elif [ "$1" = "-r" ] || [ "$1" = "--revert" ]; then
-  for file in $*; do
+  for file in "$@"; do
     if [ "$file" = "-r" ] || [ "$file" = "--revert" ]; then
       continue
     elif [[ -w "$file" && "$file" = *.cfg && -r "$file".BAK ]]; then
@@ -51,7 +51,7 @@ fi
 # Alias to define if anything failed (but the script continued).
 CONTFAILED="0"
 
-for file in $*; do
+for file in "$@"; do
   if [[ -r "$file" && -w "$file" && "$file" = *.cfg ]] || [ "$file" = "-s" ] || [ "$file" = "--strip" ] || [ "$file" = "-os" ] || [ "$file" = "-sp" ] || [ "$file" = "-osp" ]; then
     if [ "$file" = "-s" ] || [ "$file" = "--strip" ] || [ "$file" = "-os" ] || [ "$file" = "-sp" ] || [ "$file" = "-osp" ]; then
       continue
