@@ -307,6 +307,16 @@ void calcentitystats(entitystats_s &es, const persistent_entity *pents, int pent
     }
     es.pickups = picks.length();
 }
+#if 0
+const char *rateentitystats(entitystats_s &es)
+{
+    static char res[LARGEST_FACTOR + 1];
+
+
+}
+#endif
+
+
 
 int cmpintasc(const int *a, const int *b) { return *a - *b; } // leads to ascending sort order
 int cmpintdesc(const int *a, const int *b) { return *b - *a; } // leads to descending sort order
@@ -465,6 +475,21 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
     s.cgzsize = getfilesize(filename);
     return &s;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 ///////////////////////// debugging ///////////////////////

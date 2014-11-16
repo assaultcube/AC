@@ -253,7 +253,6 @@ struct headerextra
 };
 vector<headerextra *> headerextras;
 
-enum { HX_UNUSED = 0, HX_MAPINFO, HX_MODEINFO, HX_ARTIST, HX_EDITUNDO, HX_CONFIG, HX_VANTAGEPOINT, HX_NUM, HX_TYPEMASK = 0x3f, HX_FLAG_PERSIST = 0x40 };
 const char *hx_names[] = { "unused", "mapinfo", "modeinfo", "artist", "editundo", "config", "vantage point", "unknown" };
 #define addhxpacket(p, len, flags, buffer) { if(p.length() + len < MAXHEADEREXTRA) { putuint(p, len); putuint(p, flags); p.put(buffer, len); } }
 #define hx_name(t) hx_names[min((t) & HX_TYPEMASK, int(HX_NUM))]
@@ -898,6 +897,8 @@ bool load_world(char *mname)        // still supports all map formats that have 
     int we = calcmapdims(clmapdims, smallworld, ssize);
     if(we) conoutf("world error %d", we);
     delete[] smallworld;
+
+
 
     DELETEA(mlayout);
     mlayout = new char[cubicsize + 256];
