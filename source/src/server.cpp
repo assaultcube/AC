@@ -15,7 +15,10 @@ VARP(serverdebug, 0, 0, 1);
 #include "serverfiles.h"
 // 2011feb05:ft: quitproc
 #include "signal.h"
+
 // config
+vector<servermap *> servermaps;             // all available maps kept in memory
+
 servercontroller *svcctrl = NULL;
 servercommandline scl;
 servermaprot maprot;
@@ -66,6 +69,92 @@ char *global_name;
 int totalclients = 0;
 int cn2boot;
 int servertime = 0, serverlagged = 0;
+
+// synchronising the worker threads...
+
+void poll_serverthreads()       // called once per mainloop-timeslice
+{
+    static vector<servermap *> servermapstodelete;
+    static int stage = 0, lastworkerthreadstart = 0;
+
+    switch(stage)
+    {
+        default: // start first thread
+        {
+            if(startnewservermapsepoch || readmapsthread_sem->getvalue()) fatal("thread management mishap");  // zero tolerance...
+
+            // wake readmapsthread
+            logline(ACLOG_INFO,"waking readmapsthread");
+            startnewservermapsepoch = true;
+            readmapsthread_sem->post();
+            stage = 1;
+            lastworkerthreadstart = servmillis;
+            break;
+        }
+        case 1:  // readmapsthread building/updating the list of maps in memory
+        {
+            servermap *fresh = (servermap *) servermapdropbox;
+            if(fresh)
+            {
+                if(fresh == servermapdropbox)
+                {
+                    // got new servermap...
+                    loopv(servermaps)
+                    {
+                        if(!strcmp(servermaps[i]->fname, fresh->fname))   // we don't check paths here - map filenames have to be unique
+                        {  // found map of same name
+                            logline(ACLOG_INFO,"marked servermap %s%s for deletion", servermaps[i]->fpath, servermaps[i]->fname);
+                            servermapstodelete.add(servermaps.remove(i)); // mark old version for deletion
+                        }
+                    }
+                    if(fresh->isok)
+                    {
+                        servermaps.add(fresh);
+                        logline(ACLOG_INFO,"added servermap %s%s", fresh->fpath, fresh->fname);
+                    }
+                    servermapdropbox = NULL;
+                }
+                readmapsthread_sem->post();
+            }
+            else if(!startnewservermapsepoch)
+            {
+                // readmapsthread is done
+                while(!readmapsthread_sem->trywait())
+                    ;
+                stage++;
+            }
+            break;
+        }
+
+        case 2:  // wake readconfigsthread
+#if 0
+        {
+            readallconfigfiles = true;
+            readconfigsthread_sem.post();
+            stage++;
+            break;
+        }
+
+        case 3:  // readconfigsthread
+        {
+            stage++;
+            break;
+        }
+
+        case 4:  // pause worker threads for a while (restart once a minute)
+#endif
+        {
+            if(servmillis - lastworkerthreadstart > 60 * 1000) stage = 0;
+            else if(numclients() == 0)
+            {   // empty server and nothing to do:
+                loopvrev(servermapstodelete) delete servermapstodelete.remove(i);    // delete outdated servermaps
+            }
+            break;
+        }
+    }
+}
+
+
 
 bool valid_client(int cn)
 {
@@ -3923,6 +4012,8 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 
     if(!isdedicated) return;     // below is network only
 
+    poll_serverthreads();
+
     serverms(smode, numclients(), minremain, smapname, servmillis, serverhost->address, &mnum, &msend, &mrec, &cnum, &csend, &crec, SERVER_PROTOCOL_VERSION);
 
     if(autoteam && m_teammode && !m_arena && !interm && servmillis - lastfillup > 5000 && refillteams()) lastfillup = servmillis;
@@ -4284,6 +4375,11 @@ void initserver(bool dedicated, int argc, char **argv)
         atexit(enet_deinitialize);
         atexit(cleanupserver);
         enet_time_set(0);
+
+        // start file-IO threads
+        readmapsthread_sem = new sl_semaphore(0, NULL);
+        sl_createthread(readmapsthread, (void *)"xxxx");
+
         for(;;) serverslice(5);
     }
 }
