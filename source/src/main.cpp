@@ -1160,9 +1160,6 @@ int main(int argc, char **argv)
     notexture = noworldtexture = textureload("packages/misc/notexture.jpg");
     if(!notexture) fatal("could not find core textures (hint: run AssaultCube from the parent of the bin directory)");
 
-    nomodel = loadmodel("misc/gib01", -1);      //FIXME: need actual placeholder model
-    if(!notexture) fatal("could not find core models");
-
     initlog("console");
     per_idents = false;
     // Main font file, all other font files execute from here.
