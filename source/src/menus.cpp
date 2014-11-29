@@ -15,7 +15,7 @@ char *getfiledesc(const char *dir, const char *name, const char *ext)
     if(!browsefiledesc || !dir || !name || !ext) return NULL;
     defformatstring(fn)("%s/%s.%s", dir, name, ext);
     path(fn);
-    string text;
+    string text, demodescalias;
     if(!strcmp(ext, "dmo"))
     {
         stream *f = opengzfile(fn, "rb");
@@ -33,6 +33,15 @@ char *getfiledesc(const char *dir, const char *name, const char *ext)
         }
         formatstring(text)("%s%s", tag, hdr.desc);
         text[DHDR_DESCCHARS - 1] = '\0';
+        formatstring(demodescalias)("demodesc_%s", name);
+        const char *customdesc = getalias(demodescalias);
+        if(customdesc)
+        {
+            int textlen = strlen(text);
+            concatformatstring(text, " \n\f4(Description: \f0%s\f4)", customdesc);
+            ASSERT(MAXSTRLEN > 2 * DHDR_DESCCHARS);
+            text[textlen + DHDR_DESCCHARS - 1] = '\0';
+        }
         return newstring(text);
     }
     else if(!strcmp(ext, "cgz"))

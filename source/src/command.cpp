@@ -1478,7 +1478,14 @@ void writecfg()
     writebinds(f);
     f->printf("\n// aliases\n\n");
     enumerate(*idents, ident, id,
-        if(id.type==ID_ALIAS && id.persist && id.action[0])
+        if(id.type==ID_ALIAS && id.persist && id.action[0] && strncmp(id.name, "demodesc_", 9))
+        {
+            f->printf("%s = [%s]\n", id.name, id.action);
+        }
+    );
+    f->printf("\n// demo descriptions\n\n");
+    enumerate(*idents, ident, id,
+        if(id.type==ID_ALIAS && id.persist && id.action[0] && !strncmp(id.name, "demodesc_", 9) && id.action)
         {
             f->printf("%s = [%s]\n", id.name, id.action);
         }
