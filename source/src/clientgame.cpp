@@ -1653,14 +1653,15 @@ void refreshsopmenu(void *menu, bool init)
 }
 
 extern bool watchingdemo;
+VARP(spectatepersistent,0,1,1);
 
 // rotate through all spec-able players
 playerent *updatefollowplayer(int shiftdirection)
 {
+    playerent *f = players.inrange(player1->followplayercn) ? players[player1->followplayercn] : NULL;
     if(!shiftdirection)
     {
-        playerent *f = players.inrange(player1->followplayercn) ? players[player1->followplayercn] : NULL;
-        if(f && (watchingdemo || !f->isspectating())) return f;
+        if(f && (watchingdemo || !f->isspectating() || spectatepersistent || (!spectatepersistent && !m_arena) )) return f;
     }
 
     // collect spec-able players
@@ -1671,7 +1672,7 @@ playerent *updatefollowplayer(int shiftdirection)
         if(players[i]->state==CS_DEAD || players[i]->isspectating()) continue;
         available.add(players[i]);
     }
-    if(!available.length()) return NULL;
+    if(!available.length()) return f;
 
     // rotate
     int oldidx = -1;
