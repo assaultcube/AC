@@ -462,13 +462,13 @@ public:
         extern void zapplayerflags(playerent *owner);
         extern void cleanplayervotes(playerent *owner);
         extern physent *camera1;
-        extern void togglespect();
+        extern void spectatemode(int mode);
         removebounceents(this);
         audiomgr.detachsounds(this);
         removedynlights(this);
         zapplayerflags(this);
         cleanplayervotes(this);
-        if(this==camera1) togglespect();
+        if(this==camera1) spectatemode(SM_FOLLOW1ST);
     }
 
     void damageroll(float damage)
