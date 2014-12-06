@@ -800,10 +800,12 @@ string enginestateinfo = "";
 void CSgetEngineState() { result(enginestateinfo); }
 COMMANDN(getEngineState, CSgetEngineState, "");
 
-VARP(clockdisplay,0,0,2);
+VARP(clockdisplay,0,1,1);
+VARP(clockcount,0,0,1);
 VARP(dbgpos,0,0,1);
 VARP(showtargetname,0,1,1);
 VARP(showspeed, 0, 0, 1);
+string gtime;
 
 void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwater)
 {
@@ -970,13 +972,12 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             if(unsavededits) draw_text("U", VIRTW*2 - text_width("U") - FONTH, VIRTH*2 - 5*FONTH/2);
         }
     }
-    if(!intermission && clockdisplay!=0 && lastgametimeupdate!=0)
+    if(!intermission && lastgametimeupdate!=0)
     {
-        string gtime;
         int cssec = (gametimecurrent+(lastmillis-lastgametimeupdate))/1000;
         int gtsec = cssec%60;
         int gtmin = cssec/60;
-        if(clockdisplay==1)
+        if(!clockcount)
         {
             int gtmax = gametimemaximum/60000;
             gtmin = gtmax - gtmin;
@@ -987,7 +988,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             }
         }
         formatstring(gtime)("%02d:%02d", gtmin, gtsec);
-        draw_text(gtime, (VIRTW-225-10)*2 - (text_width(gtime)/2 + FONTH/2), 20);
+        if(clockdisplay) draw_text(gtime, (VIRTW-225-10)*2 - (text_width(gtime)/2 + FONTH/2), 20);
     }
 
     if(hidevote < 2 && multiplayer(false))

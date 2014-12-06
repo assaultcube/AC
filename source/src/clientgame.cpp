@@ -992,7 +992,7 @@ void timeupdate(int milliscur, int millismax)
             hudoutf("1 minute left!");
             if(identexists("onLastMin")) execute("onLastMin");
         }
-        else if(clockdisplay==0) conoutf(_("time remaining: %d minutes"), minutesremaining);
+        else if(!clockdisplay) conoutf(_("time remaining: %d minutes"), minutesremaining);
         else clientlogf(_("time remaining: %d minutes"), minutesremaining);
     }
 }
