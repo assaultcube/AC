@@ -1092,7 +1092,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 playerent *alive = getclient(acn);
                 conoutf(_("the round is over! next round in 5 seconds..."));
                 if(m_botmode && acn==-2) hudoutf(_("the bots have won the round!"));
-                else if(!alive) hudoutf(_("everyone died!"));
+                else if(acn==-1) hudoutf(_("everyone died!"));
                 else if(m_teammode) hudoutf(_("team %s has won the round!"), team_string(alive->team));
                 else if(alive==player1) hudoutf(_("you are the survivor!"));
                 else hudoutf(_("%s is the survivor!"), colorname(alive));
@@ -1194,7 +1194,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                                         conoutf(_("player %s switched to team %s"), pls, nts); // new message
                                         break;
                                     case FTR_AUTOTEAM:
-                                        if(watchingdemo) conoutf(_("the server forced %s to team %s"), colorname(d), nts);
+                                        if(watchingdemo || team_isspect(player1->team)) conoutf(_("the server forced %s to team %s"), colorname(d), nts);
                                         else hudoutf(_("the server forced %s to %s team"), colorname(d), et ? _("the enemy") : _("your"));
                                         break;
                                 }

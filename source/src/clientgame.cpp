@@ -993,6 +993,7 @@ void timeupdate(int milliscur, int millismax)
             if(identexists("onLastMin")) execute("onLastMin");
         }
         else if(clockdisplay==0) conoutf(_("time remaining: %d minutes"), minutesremaining);
+        else clientlogf(_("time remaining: %d minutes"), minutesremaining);
     }
 }
 
@@ -1344,7 +1345,7 @@ char *votestring(int type, const char *arg1, const char *arg2, const char *arg3)
             if(arg3 && arg3[0])
             {
                 int time = atoi(arg3);
-                if(time > 0 && time != defaultgamelimit(n)) formatstring(timestr)(" for %d minutes", time);
+                if(time > 0 && time != defaultgamelimit(n)) formatstring(timestr)(" for %d minute%s", time, time == 1 ? "" : "s");
             }
 
             if ( n >= GMODE_NUM )
