@@ -195,8 +195,7 @@ void calclight()
         s++;
     }
 
-    uint keep = randomMT();
-    seedMT(ents.length() + hdr.maprevision);
+    seedMT(ents.length() + hdr.maprevision);   // static seed -> nothing random here
 
     loopv(ents)
     {
@@ -204,7 +203,7 @@ void calclight()
         if(e.type==LIGHT) calclightsource(e);
     }
 
-    seedMT(keep);
+    popMT();   // undo the static seedMT() from above
 
     block bb = { mapdims.x1 - 1, mapdims.y1 - 1, mapdims.xspan + 2, mapdims.yspan + 2 };
     postlightarea(bb);

@@ -967,6 +967,7 @@ extern bool isbigendian();
 extern void strtoupper(char *t, const char *s = NULL);
 extern void seedMT(uint seed);
 extern uint randomMT(void);
+extern void popMT(void);
 
 struct iprange { enet_uint32 lr, ur; };
 extern const char *atoip(const char *s, enet_uint32 *ip);
