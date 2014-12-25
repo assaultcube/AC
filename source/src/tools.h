@@ -851,15 +851,18 @@ const int islittleendian = 1;
 #ifdef SDL_BYTEORDER
 #define endianswap16 SDL_Swap16
 #define endianswap32 SDL_Swap32
+#define endianswap64 SDL_Swap64
 #else
 inline ushort endianswap16(ushort n) { return (n<<8) | (n>>8); }
 inline uint endianswap32(uint n) { return (n<<24) | (n>>24) | ((n>>8)&0xFF00) | ((n<<8)&0xFF0000); }
+inline uint64_t endianswap64(uint64_t n) { return ((uint64_t)endianswap32((uint)n) << 32) | ((uint64_t)endianswap32((uint)(n >> 32))); }
 #endif
 template<class T> inline T endianswap(T n) { union { T t; uint i; } conv; conv.t = n; conv.i = endianswap32(conv.i); return conv.t; }
 template<> inline ushort endianswap<ushort>(ushort n) { return endianswap16(n); }
 template<> inline short endianswap<short>(short n) { return endianswap16(n); }
 template<> inline uint endianswap<uint>(uint n) { return endianswap32(n); }
 template<> inline int endianswap<int>(int n) { return endianswap32(n); }
+template<> inline uint64_t endianswap<uint64_t>(uint64_t n) { return endianswap64(n); }
 template<class T> inline void endianswap(T *buf, int len) { for(T *end = &buf[len]; buf < end; buf++) *buf = endianswap(*buf); }
 template<class T> inline T endiansame(T n) { return n; }
 template<class T> inline void endiansame(T *buf, int len) {}
