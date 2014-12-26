@@ -979,7 +979,6 @@ void timeupdate(int milliscur, int millismax)
         conoutf(_("intermission:"));
         conoutf(_("game has ended!"));
         consolescores();
-        ((sniperrifle *)player1->weapons[GUN_SNIPER])->scoped = false;
         showscores(true);
         if(identexists("start_intermission")) execute("start_intermission");
     }
