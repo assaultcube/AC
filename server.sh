@@ -52,16 +52,8 @@ then
 fi
 
 if [ -x "/sbin/ldconfig" ]; then
-  if [ -z "$(/sbin/ldconfig -p | grep "libSDL-1.2")" ]; then
-    echo "To run AssaultCube, please ensure SDL v1.2 libraries are installed."
-    exit 1
-  fi
   if [ -z "$(/sbin/ldconfig -p | grep "libz")" ]; then
     echo "To run AssaultCube, please ensure z libraries are installed."
-    exit 1
-  fi
-  if [ -z "$(/sbin/ldconfig -p | grep "libcurl")" ]; then
-    echo "To run AssaultCube, please ensure Curl libraries are installed."
     exit 1
   fi
 fi
@@ -76,7 +68,7 @@ else
   echo "Your platform does not have a pre-compiled AssaultCube server."
   echo "Please follow the following steps to build a native client:"
   echo "1) Ensure you have the following DEVELOPMENT libraries installed:"
-  echo "   SDL, zlib, libcurl"
+  echo "   zlib"
   echo "2) Ensure clang++ and any other required build tools are installed."
   echo "3) Change directory to ./source/src/ and type \"make server_install\"."
   echo "4) If the compile succeeds, return to this directory and re-run this script."
