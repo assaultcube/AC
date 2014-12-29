@@ -984,6 +984,11 @@ extern void strtoupper(char *t, const char *s = NULL);
 extern void seedMT(uint seed);
 extern uint randomMT(void);
 extern void popMT(void);
+extern void entropy_init(uint seed);
+extern void entropy_save();
+extern void entropy_add_byte(uchar b);
+extern void entropy_add_block(const uchar *s, int len);
+extern void entropy_get(uchar *buf, int len);
 
 struct iprange { enet_uint32 lr, ur; };
 extern const char *atoip(const char *s, enet_uint32 *ip);

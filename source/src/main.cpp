@@ -43,6 +43,7 @@ void quit()                     // normal exit
     else writecfg();
     savehistory();
     writemapmodelattributes();
+    entropy_save();
     writeallxmaps();
     cleanup(NULL);
     popscontext();
@@ -188,7 +189,8 @@ void bmp_screenshot(const char *imagepath, bool mapshot = false)
     int th = mapshot ? ih : ih*screenshotscale;
     SDL_Surface *image = creatergbsurface(tw, th);
     if(!image) return;
-    uchar *tmp = new uchar[iw*ih*3];
+    int tmpsize = iw * ih * 3;
+    uchar *tmp = new uchar[tmpsize];
     uchar *dst = (uchar *)image->pixels;
     if(mapshot)
     {
@@ -222,6 +224,7 @@ void bmp_screenshot(const char *imagepath, bool mapshot = false)
         memcpy(dst, &tmp[3*tw*(th-i-1)], 3*tw);
         dst += image->pitch;
     }
+    entropy_add_block(tmp, tmpsize);
     delete[] tmp;
     const char *filename = screenshotpath(imagepath, "bmp");
     stream *file = openfile(filename, "wb");
@@ -247,7 +250,8 @@ void jpeg_screenshot(const char *imagepath, bool mapshot = false)
     int tw = mapshot ? iw : iw*screenshotscale;
     int th = mapshot ? ih : ih*screenshotscale;
 
-    uchar *pixels = new uchar[3*tw*th];
+    int pixelssize = 3 * tw * th;
+    uchar *pixels = new uchar[pixelssize];
 
     if(mapshot)
     {
@@ -296,6 +300,7 @@ void jpeg_screenshot(const char *imagepath, bool mapshot = false)
     jpegencoder->encode(filename, (colorRGB *)pixels, tw, th, jpegquality);
     delete jpegencoder;
 
+    entropy_add_block(pixels, pixelssize);
     delete[] pixels;
 }
 
@@ -412,7 +417,8 @@ void png_screenshot(const char *imagepath, bool mapshot = false)
     SDL_Surface *image = creatergbsurface(tw, th);
     if(!image) return;
 
-    uchar *tmp = new uchar[tw*th*3];
+    int tmpsize = tw * th * 3;
+    uchar *tmp = new uchar[tmpsize];
     uchar *dst = (uchar *)image->pixels;
 
     if(mapshot)
@@ -447,6 +453,7 @@ void png_screenshot(const char *imagepath, bool mapshot = false)
         memcpy(dst, &tmp[3*tw*(th-i-1)], 3*tw);
         dst += image->pitch;
     }
+    entropy_add_block(tmp, tmpsize);
     delete[] tmp;
 
     const char *filename = screenshotpath(imagepath, "png");
@@ -847,6 +854,7 @@ void checkinput()
             case SDL_KEYDOWN:
             case SDL_KEYUP:
                 extern bool senst;
+                entropy_add_byte(event.key.keysym.sym ^ totalmillis);
                 if (event.key.keysym.sym <= SDLK_5 && event.key.keysym.sym >= SDLK_1 && senst)
                 {
                     if (event.key.state==SDL_PRESSED)
@@ -876,6 +884,7 @@ void checkinput()
                 if(grabinput && !skipmousemotion(event))
                 {
                     int dx = event.motion.xrel, dy = event.motion.yrel;
+                    entropy_add_byte(dx ^ (256 - dy));
                     checkmousemotion(dx, dy);
                     resetmousemotion();
                     tdx+=dx;tdy+=dy;
@@ -891,7 +900,11 @@ void checkinput()
                 break;
         }
     }
-    if(tdx || tdy) mousemove(tdx, tdy);
+    if(tdx || tdy)
+    {
+        entropy_add_byte(tdy + 5 * tdx);
+        mousemove(tdx, tdy);
+    }
 }
 
 VARF(gamespeed, 10, 100, 1000, if(multiplayer()) gamespeed = 100);
@@ -1096,6 +1109,7 @@ int main(int argc, char **argv)
     crosshairnames[CROSSHAIR_SCOPE] = "scope";
     crosshairnames[CROSSHAIR_EDIT] = "edit";
     crosshairnames[CROSSHAIR_NUM] = gunnames[NUMGUNS] = "";
+    entropy_init(time(NULL) + (uint)(size_t)&serverport + (uint)(size_t)entropy_init);
 
     pushscontext(IEXC_CFG);
 
@@ -1353,6 +1367,7 @@ int main(int argc, char **argv)
         if(millis<totalmillis) millis = totalmillis;
         limitfps(millis, totalmillis);
         int elapsed = millis-totalmillis;
+        entropy_add_byte(elapsed);
         if(multiplayer(false)) curtime = elapsed;
         else
         {
