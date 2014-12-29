@@ -1300,7 +1300,6 @@ int main(int argc, char **argv)
     exechook(HOOK_SP_MP, "afterinit", "");
     autostartscripts("");    // all remaining scripts
     execfile("config/autoexec.cfg");
-    execfile("config/auth.cfg");
     execute("addallfavcatmenus");  // exec here, to add all categories (including those defined in autoexec.cfg)
     initing = NOT_INITING;
     uniformtexres = !hirestextures;

@@ -651,6 +651,7 @@ void gets2c()           // get updates from the server
     }
 }
 
+#if 0
 // for AUTH:
 
 vector<authkey *> authkeys;
@@ -719,6 +720,8 @@ COMMAND(saveauthkeys, "");
 COMMANDF(auth, "s", (char *desc) { intret(tryauth(desc)); });
 
 // :for AUTH
+
+#endif
 
 // sendmap/getmap commands, should be replaced by more intuitive map downloading
 

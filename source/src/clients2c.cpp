@@ -749,24 +749,24 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
 
             case SV_AUTHREQ:
             {
-                extern int autoauth;
+//                extern int autoauth;
                 getstring(text, p);
-                if(autoauth && text[0] && tryauth(text)) conoutf("server requested authkey \"%s\"", text);
+            //    if(autoauth && text[0] && tryauth(text)) conoutf("server requested authkey \"%s\"", text);
                 break;
             }
 
             case SV_AUTHCHAL:
             {
                 getstring(text, p);
-                authkey *a = findauthkey(text);
-                uint id = (uint)getint(p);
+           //     authkey *a = findauthkey(text);
+           //     uint id = (uint)getint(p);
                 getstring(text, p);
-                if(a && a->lastauth && lastmillis - a->lastauth < 60*1000)
+           //     if(a && a->lastauth && lastmillis - a->lastauth < 60*1000)
                 {
-                    vector<char> buf;
-                    answerchallenge(a->key, text, buf);
+             //       vector<char> buf;
+           //         answerchallenge(a->key, text, buf);
                     //conoutf("answering %u, challenge %s with %s", id, text, buf.getbuf());
-                    addmsg(SV_AUTHANS, "rsis", a->desc, id, buf.getbuf());
+           //         addmsg(SV_AUTHANS, "rsis", a->desc, id, buf.getbuf());
                 }
                 break;
             }

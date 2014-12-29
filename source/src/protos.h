@@ -444,8 +444,8 @@ extern int getbuildtype();
 extern void sendintro();
 extern void getdemo(int *idx, char *dsp);
 extern void listdemos();
-extern bool tryauth(const char *desc);
-extern authkey *findauthkey(const char *desc);
+//extern bool tryauth(const char *desc);
+//extern authkey *findauthkey(const char *desc);
 
 // serverms
 bool requestmasterf(const char *fmt, ...); // for AUTH et al
@@ -869,16 +869,17 @@ extern const char *acronymmodestr(int n);
 extern const char *fullmodestr(int n);
 extern int defaultgamelimit(int gamemode);
 
+#if 0
 // crypto // for AUTH
 extern void genprivkey(const char *seed, vector<char> &privstr, vector<char> &pubstr);
 extern bool hashstring(const char *str, char *result, int maxlen);
-const char *genpwdhash(const char *name, const char *pwd, int salt);
 extern void answerchallenge(const char *privstr, const char *challenge, vector<char> &answerstr);
 extern void *parsepubkey(const char *pubstr);
 extern void freepubkey(void *pubkey);
 extern void *genchallenge(void *pubkey, const void *seed, int seedlen, vector<char> &challengestr);
 extern void freechallenge(void *answer);
 extern bool checkchallenge(const char *answerstr, void *correct);
+#endif
 
 // console
 extern void conoutf(const char *s, ...) PRINTFARGS(1, 2);
