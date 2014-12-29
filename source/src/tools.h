@@ -808,9 +808,9 @@ template <class T, int SIZE> struct ringbuf
 // ease time measurement
 struct stopwatch
 {
-    int millis;
+    uint millis;                                // SDL_GetTicks() returns an uint value
 
-    stopwatch() : millis(-1) {}
+    stopwatch() : millis(0) {}
 
     void start()
     {
@@ -818,11 +818,9 @@ struct stopwatch
     }
 
     // returns elapsed time
-    int stop()
+    int elapsed()
     {
-        ASSERT(millis >= 0);
-        int time = SDL_GetTicks() - millis;
-        millis = -1;
+        uint time = SDL_GetTicks() - millis;    // subtraction also works in case of timer wraparounds
         return time;
     }
 };

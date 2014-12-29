@@ -706,7 +706,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
     c2skeepalive();
     calcmapdims();
     calclight();
-    conoutf("read map %s rev %d (%d milliseconds)", cgzname, hdr.maprevision, watch.stop());
+    conoutf("read map %s rev %d (%d milliseconds)", cgzname, hdr.maprevision, watch.elapsed());
     conoutf("%s", hdr.maptitle);
     pushscontext(IEXC_MAPCFG); // untrusted altogether
     per_idents = false;
@@ -724,25 +724,25 @@ bool load_world(char *mname)        // still supports all map formats that have 
 
     watch.start();
     loopi(256) if(texuse[i]) lookupworldtexture(i, autodownload ? true : false);
-    int texloadtime = watch.stop();
+    int texloadtime = watch.elapsed();
 
     c2skeepalive();
 
     watch.start();
     preload_mapmodels(autodownload ? true : false);
-    int mdlloadtime = watch.stop();
+    int mdlloadtime = watch.elapsed();
 
     c2skeepalive();
 
     watch.start();
     audiomgr.preloadmapsounds(autodownload ? true : false);
-    int audioloadtime = watch.stop();
+    int audioloadtime = watch.elapsed();
 
     c2skeepalive();
 
     watch.start();
     int downloaded = downloadpackages();
-    if(downloaded > 0) clientlogf("downloaded content (%d KB in %d seconds)", downloaded/1024, watch.stop()/1000);
+    if(downloaded > 0) clientlogf("downloaded content (%d KB in %d seconds)", downloaded/1024, watch.elapsed()/1000);
 
     c2skeepalive();
 
@@ -750,15 +750,15 @@ bool load_world(char *mname)        // still supports all map formats that have 
 
     watch.start();
     loopi(256) if(texuse[i]) lookupworldtexture(i, false);
-    clientlogf("loaded textures (%d milliseconds)", texloadtime+watch.stop());
+    clientlogf("loaded textures (%d milliseconds)", texloadtime+watch.elapsed());
     c2skeepalive();
     watch.start();
     preload_mapmodels(false);
-    clientlogf("loaded mapmodels (%d milliseconds)", mdlloadtime+watch.stop());
+    clientlogf("loaded mapmodels (%d milliseconds)", mdlloadtime+watch.elapsed());
     c2skeepalive();
     watch.start();
     audiomgr.preloadmapsounds(false);
-    clientlogf("loaded mapsounds (%d milliseconds)", audioloadtime+watch.stop());
+    clientlogf("loaded mapsounds (%d milliseconds)", audioloadtime+watch.elapsed());
     c2skeepalive();
 
     defformatstring(startmillis)("%d", millis_());
