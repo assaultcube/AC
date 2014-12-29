@@ -375,6 +375,77 @@ void entropy_get(uchar *buf, int len)
 }
 
 #ifndef STANDALONE
+///////////////////////////////////////////////  key derivation function  ////////////////////////////////////////////////////////////////////////
+// * basically a hash function that delivers keylen bytes calculated from pass and salt
+// * but uses a lot of memory and a quite complex algorithm, to make brute-force offline-attacks on short passwords as hard as possible
+// * last line of defense against "evil little brothers"
+
+void passphrase2key(const char *pass, const uchar *salt, int saltlen, uchar *key, int keylen, int *iterations, int maxtime, int memusage)
+{
+    memset(key, 0, keylen);
+    if(!*pass) return;                       // password "" ->
+    memusage = clamp(memusage, 1, 1024);     // keep memory usage between 1MB and 1GB
+    int memsize = (1<<20) * memusage, passlen = strlen(pass), tmpbuflen = 2 * SHA512SIZE, pplen = 2 * saltlen + passlen;
+
+    // prepare the passphrase (including salt)
+    uchar *pp = new uchar[pplen];
+    memcpy(pp, salt, saltlen);
+    memcpy(pp + saltlen, pass, passlen);
+    memcpy(pp + saltlen + passlen, salt, saltlen);
+
+    // mix up the passphrase a bit
+    uchar *tmpbuf = new uchar[tmpbuflen + sizeof(uint)];
+    memset(tmpbuf, 0, tmpbuflen + sizeof(uint));
+    sha512(tmpbuf, pp, pplen);
+    xor_block(pp, tmpbuf, min(pplen, tmpbuflen));
+    sha512(tmpbuf + SHA512SIZE, pp, pplen);
+    tiger::hash(pp, pplen, *((tiger::hashval *)tmpbuf));
+
+    // initialise the huge buffer
+    uchar *hugebuf = new uchar[memsize];
+    memset(hugebuf, 0, memsize);
+    int memchunk = memsize / tmpbuflen;
+    loopi(tmpbuflen) seedMT_do(*((uint*)(tmpbuf + i)), (uint*)(hugebuf + memchunk * i), memchunk / sizeof(uint));   // spread the passphrase all over the huge buffer
+
+    // start mixing
+    #define mixit(x, y) (((((uint*)tmpbuf)[(roundsdone ^ (x)) % (tmpbuflen / sizeof(uint))]) % ((y) / 8 - (x) % 11)) * 8)
+    stopwatch watch;
+    watch.start();
+    int roundsdone = 0;
+    uint shortseed = 0;
+    do
+    {
+        loopirev(memsize / 127) shortseed = ((uint*)hugebuf)[shortseed % (memsize / sizeof(uint))];
+        seedMT_do(shortseed, (uint*)tmpbuf, tmpbuflen / sizeof(uint));
+        loopi(2999) sha512_compress((uint64_t*)(hugebuf + mixit(i * 5, memsize - SHA512SIZE)), hugebuf + mixit(i * 17, memsize - 128));
+        roundsdone++;
+    }
+    while((!*iterations && watch.elapsed() < maxtime) || (*iterations && *iterations > roundsdone));     // *iterations == 0: time-limited, otherwise rounds-limited
+
+    // extract the key
+    if(keylen * 8 > 192) sha512(tmpbuf, hugebuf, memsize);
+    else tiger::hash(hugebuf, memsize, *((tiger::hashval *)tmpbuf));
+    loopi(SHA512SIZE) sha512_compress(((uint64_t*)tmpbuf) + (i / 8), hugebuf + (((tmpbuf[i] * 68111) % (memsize - 128)) & ~7));
+    memcpy(key, tmpbuf, min(keylen, tmpbuflen));                     // max keylen is 2 * SHA512SIZE
+conoutf("passphrase2key: %d ms, %d rounds, %d bytes used", watch.elapsed(), roundsdone, memsize);
+    *iterations = roundsdone;
+    delete[] hugebuf;
+    delete[] tmpbuf;
+    delete[] pp;
+    #undef mixit
+}
+#endif
+
+#ifndef STANDALONE
+COMMANDF(passkey, "ssiii", (const char *pass, const char *salt, int *keylen, int *rounds, int *memusage)
+{
+    uchar buf[*keylen];
+    passphrase2key(pass, (const uchar *)salt, strlen(salt), buf, *keylen, rounds, 1000, *memusage);
+    defformatstring(erg)("passkey (%d rounds): ", *rounds);
+    loopi(*keylen) concatformatstring(erg, "%02x", buf[i]);
+    conoutf("%s", erg);
+});
+
 COMMANDF(entropy, "", ()
 {
     uchar buf[32];
