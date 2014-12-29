@@ -221,7 +221,7 @@ depend:
 
 crypto.o: cube.h platform.h tools.h geom.h model.h protocol.h sound.h
 crypto.o: weapon.h entity.h world.h command.h varray.h vote.h
-crypto.o: console.h protos.h
+crypto.o: console.h protos.h crypto_tools.h ge25519_base.data
 audiomanager.o: cube.h platform.h tools.h geom.h model.h protocol.h sound.h
 audiomanager.o: weapon.h entity.h world.h command.h varray.h vote.h
 audiomanager.o: console.h protos.h
@@ -392,7 +392,8 @@ cube.h.gch: protos.h
 
 crypto-standalone.o: cube.h platform.h tools.h geom.h model.h protocol.h
 crypto-standalone.o: sound.h weapon.h entity.h world.h command.h
-crypto-standalone.o: varray.h vote.h console.h protos.h
+crypto-standalone.o: varray.h vote.h console.h protos.h crypto_tools.h
+crypto-standalone.o: ge25519_base.data
 log-standalone.o: cube.h platform.h tools.h geom.h model.h protocol.h sound.h
 log-standalone.o: weapon.h entity.h world.h command.h varray.h vote.h
 log-standalone.o: console.h protos.h

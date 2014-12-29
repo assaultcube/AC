@@ -227,6 +227,7 @@ void sha512(uchar *hash, const uchar *msg, int msglen)
 #undef SHA512ROUND
 
 #ifndef STANDALONE
+#ifdef _DEBUG
 COMMANDF(sha512, "s", (char *msg)   // SHA512 debug command
 {
     uchar hash[SHA512SIZE];
@@ -245,7 +246,7 @@ COMMANDF(tiger, "s", (char *msg)    // tiger debug command
     conoutf("%s", erg);
 });
 #endif
-
+#endif
 
 ////////////////////////// crypto rand (Mersenne twister) ////////////////////////////////////////
 
@@ -357,7 +358,7 @@ void entropy_add_block(const uchar *s, int len)
     for( ; len > 0; s += 128, len -= 128)
     {
         int bl = min(len, 128);
-        xor_block(entpool + rnd(ENTPOOLSIZE / 8 - 16) * 8, s, bl);
+        xor_block(entpool + rnd(ENTPOOLSIZE / 8 - 16) * 8, s, bl);      // use pseudorandom to mix entropy into the pool in a hard to predict fashion
         mix_block(entpool + rnd(ENTPOOLSIZE - bl), s, bl);
     }
 }
@@ -377,7 +378,7 @@ void entropy_get(uchar *buf, int len)
 #ifndef STANDALONE
 ///////////////////////////////////////////////  key derivation function  ////////////////////////////////////////////////////////////////////////
 // * basically a hash function that delivers keylen bytes calculated from pass and salt
-// * but uses a lot of memory and a quite complex algorithm, to make brute-force offline-attacks on short passwords as hard as possible
+// * but uses a lot of memory and a quite complex algorithm, to make brute-force offline-attacks on short passwords as hard as possible (even if someone uses fpgas)
 // * last line of defense against "evil little brothers"
 
 void passphrase2key(const char *pass, const uchar *salt, int saltlen, uchar *key, int keylen, int *iterations, int maxtime, int memusage)
@@ -436,25 +437,106 @@ conoutf("passphrase2key: %d ms, %d rounds, %d bytes used", watch.elapsed(), roun
 }
 #endif
 
-#ifndef STANDALONE
-COMMANDF(passkey, "ssiii", (const char *pass, const char *salt, int *keylen, int *rounds, int *memusage)
-{
-    uchar buf[*keylen];
-    passphrase2key(pass, (const uchar *)salt, strlen(salt), buf, *keylen, rounds, 1000, *memusage);
-    defformatstring(erg)("passkey (%d rounds): ", *rounds);
-    loopi(*keylen) concatformatstring(erg, "%02x", buf[i]);
-    conoutf("%s", erg);
-});
+///////////////////////////////////////////////  Ed25519: high-speed high-security signatures  //////////////////////////////////////////////////////
 
-COMMANDF(entropy, "", ()
+#include "crypto_tools.h"
+
+void ed25519_pubkey_from_private(uchar *pubkey, const uchar *privkey)
 {
-    uchar buf[32];
-    entropy_get(buf, 32);
-    defformatstring(erg)("entropy: ");
-    loopi(32) concatformatstring(erg, "%02x", buf[i]);
-    conoutf("%s", erg);
-});
-#endif
+    unsigned char az[64];
+    sc25519 scsk;
+    ge25519 gepk;
+
+    sha512(az, privkey, 32);
+    az[0] &= 248;
+    az[31] &= 127;
+    az[31] |= 64;
+
+    sc25519_from32bytes(&scsk,az);
+
+    ge25519_scalarmult_base(&gepk, &scsk);
+    ge25519_pack(pubkey, &gepk);
+}
+
+void privkey_from_prepriv(unsigned char *privkey, const unsigned char *prepriv, int preprivlen, unsigned char *privpriv = NULL) // derive private key from even more secret bulk of entropy
+{
+    uchar temp[SHA512SIZE], pub[32], testpriv[32];
+    sha512(temp, prepriv, preprivlen);
+    int esc, minesc = 32, minescpos = 0;
+    loopi(33)
+    { // find privte key with the public key with the least getint() escape codes (yes, that decreases the keyrange. sue me.)
+        ed25519_pubkey_from_private(testpriv, temp + i);
+        ed25519_pubkey_from_private(pub, testpriv);
+        esc = 0;
+        loopj(32) if((pub[j] & 0xfe) == 0x80) esc++;
+        if(esc < minesc) { minesc = esc; minescpos = i; }
+        if(esc == 0) break;
+    }
+    ed25519_pubkey_from_private(privkey, temp + minescpos);  // (the resulting private key is actually itself a public key of a private derived from prepriv)
+    if(privpriv) memcpy(privpriv, temp + minescpos, 32);
+}
+
+void ed25519_sign(uchar *sm, int *smlen, const uchar *m, int mlen, const uchar *sk)
+{                                           // sk: 32-byte private key + 32-byte public key
+    uchar pk[32], az[64], nonce[64], hram[64];
+    sc25519 sck, scs, scsk;
+    ge25519 ger;
+
+    memmove(pk, sk + 32, 32);               // pk: 32-byte public key A
+
+    sha512(az, sk, 32);
+    az[0] &= 248;
+    az[31] &= 127;
+    az[31] |= 64;                           // az: 32-byte scalar a, 32-byte randomizer z
+
+    if(smlen) *smlen = mlen + 64;
+    memmove(sm + 64, m, mlen);              // need memmove here: m and sm may overlap
+    memmove(sm + 32, az + 32, 32);          // sm: 32-byte uninit, 32-byte z, mlen-byte m
+    sha512(nonce, sm + 32, mlen + 32);      // nonce: 64-byte H(z,m)
+
+    sc25519_from64bytes(&sck, nonce);
+    ge25519_scalarmult_base(&ger, &sck);
+    ge25519_pack(sm, &ger);                 // sm: 32-byte R, 32-byte z, mlen-byte m
+
+    memmove(sm + 32, pk, 32);               // sm: 32-byte R, 32-byte A, mlen-byte m
+    sha512(hram, sm, mlen + 64);            // hram: 64-byte H(R,A,m)
+
+    sc25519_from64bytes(&scs, hram);
+    sc25519_from32bytes(&scsk, az);
+    sc25519_mul(&scs, &scs, &scsk);
+    sc25519_add(&scs, &scs, &sck);          // scs: S = nonce + H(R,A,m)a
+
+    sc25519_to32bytes(sm + 32, &scs);       // sm: 32-byte R, 32-byte S, mlen-byte m
+}
+
+uchar *ed25519_sign_check(uchar *sm, int smlen, const uchar *pk)
+{
+    uchar scopy[32], hram[64], rcheck[32];
+    ge25519 get1, get2;
+    sc25519 schram, scs;
+
+    if(smlen < 64 || (sm[63] & 224) || ge25519_unpackneg_vartime(&get1, pk)) return NULL;  // frame error
+
+    memmove(scopy, sm + 32, 32);
+    sc25519_from32bytes(&scs, sm + 32);
+
+    memmove(sm + 32, pk, 32);
+    sha512(hram, sm, smlen);
+
+    sc25519_from64bytes(&schram, hram);
+
+    ge25519_double_scalarmult_vartime(&get2, &get1, &schram, &ge25519_base, &scs);
+    ge25519_pack(rcheck, &get2);
+
+    memmove(sm + 32, scopy, 32);        // restore sm
+
+    return memcmp(rcheck, sm, 32) ? NULL : sm + 64;
+}
+
+
+
+
+
 
 
 /////////////////// misc helper functions ////////////////////////////////////////////////////////////////
@@ -483,7 +565,6 @@ const char *genpwdhash(const char *name, const char *pwd, int salt)
     formatstring(temp)("%s %s %s", hashchunktoa(hash.chunks[0]), hashchunktoa(hash.chunks[1]), hashchunktoa(hash.chunks[2]));
     return temp;
 }
-
 
 
 
