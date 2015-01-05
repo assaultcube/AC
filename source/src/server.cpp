@@ -1590,6 +1590,22 @@ int canspawn(client *c)   // beware: canspawn() doesn't check m_arena!
     return SP_OK;
 }
 
+void autospawncheck()
+{
+    if(mastermode != MM_MATCH || !m_autospawn || interm) return;
+    
+    loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->isauthed && team_isactive(clients[i]->team))
+    {
+        client *cl = clients[i];
+        if((cl->state.state == CS_DEAD || cl->state.state == CS_SPECTATE)
+            && canspawn(cl) == SP_OK && !cl->autospawn)
+        {
+            sendspawn(cl);
+            cl->autospawn = true;
+        }
+    }
+}
+
 /** FIXME: this function is unnecessarily complicated */
 bool updateclientteam(int cln, int newteam, int ftr)
 {
@@ -3099,6 +3115,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     ls!=cl->state.lifesequence || cl->state.lastspawn<0 || gunselect<0 || gunselect>=NUMGUNS || gunselect == GUN_CPISTOL) break;
                 cl->state.lastspawn = -1;
                 cl->state.spawn = gamemillis;
+				cl->autospawn = false;
                 cl->upspawnp = false;
                 cl->state.state = CS_ALIVE;
                 cl->state.gunselect = gunselect;
@@ -3873,6 +3890,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
         }
         if(m_ktf && !ktfflagingame) flagaction(rnd(2), FA_RESET, -1); // ktf flag watchdog
         if(m_arena) arenacheck();
+        else if(m_autospawn) autospawncheck();
 //        if(m_lms) lmscheck();
         sendextras();
         if ( scl.afk_limit && mastermode == MM_OPEN && next_afk_check < servmillis && gamemillis > 20 * 1000 ) check_afk();
