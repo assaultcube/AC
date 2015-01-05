@@ -271,7 +271,7 @@ void audiomanager::soundcleanup()
 
     // kill scheduler
     sourcescheduler::instance().reset();
-    
+
     bufferpool.clear();
 
     // shutdown openal
@@ -560,7 +560,7 @@ void audiomanager::updateaudio()
 
     alcSuspendContext(context); // don't process sounds while we mess around
 
-    bool alive = player1->state!=CS_DEAD;
+    bool alive = player1->state==CS_ALIVE;
     bool firstperson = camera1==player1 || (player1->isspectating() && player1->spectatemode==SM_DEATHCAM);
 
     // footsteps
