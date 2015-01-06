@@ -1285,6 +1285,7 @@ void gun::attackfx(const vec &from, const vec &to, int millis)
 
 int gun::modelanim() { return modelattacking() ? ANIM_GUN_SHOOT|ANIM_LOOP : ANIM_GUN_IDLE; }
 void gun::checkautoreload() { if(autoreload && owner==player1 && !mag) reload(true); }
+void gun::onownerdies() { shots = 0; }
 
 
 // shotgun
@@ -1365,7 +1366,7 @@ float sniperrifle::dynrecoil() { return scoped && lastmillis - scoped_since > SC
 bool sniperrifle::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
 void sniperrifle::onselecting() { weapon::onselecting(); scoped = false; player1->scoping = false; }
 void sniperrifle::ondeselecting() { scoped = false; player1->scoping = false; }
-void sniperrifle::onownerdies() { scoped = false; player1->scoping = false; }
+void sniperrifle::onownerdies() { scoped = false; player1->scoping = false; shots = 0; }
 void sniperrifle::renderhudmodel() { if(!scoped) weapon::renderhudmodel(); }
 
 void sniperrifle::renderaimhelp(bool teamwarning)
