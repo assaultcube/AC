@@ -571,14 +571,17 @@ void showrespawntimer()
 
 struct scriptsleep { int wait, millis; char *cmd; bool persist; };
 vector<scriptsleep> sleeps;
+sl_semaphore *sleepssemaphore = new sl_semaphore(1, NULL);    // guard the sleeps-vector with a semaphore, so we can add sleeps from other threads
 
 void addsleep(int msec, const char *cmd, bool persist)
 {
+    sleepssemaphore->wait();
     scriptsleep &s = sleeps.add();
     s.wait = max(msec, 1);
     s.millis = lastmillis;
     s.cmd = newstring(cmd);
     s.persist = persist;
+    sleepssemaphore->post();
 }
 
 void addsleep_(int *msec, char *cmd, int *persist)
@@ -588,11 +591,13 @@ void addsleep_(int *msec, char *cmd, int *persist)
 
 void resetsleep(bool force)
 {
+    sleepssemaphore->wait();
     loopvrev(sleeps) if(!sleeps[i].persist || force)
     {
-        DELETEA(sleeps[i].cmd);
+        DELSTRING(sleeps[i].cmd);
         sleeps.remove(i);
     }
+    sleepssemaphore->post();
 }
 
 COMMANDN(sleep, addsleep_, "isi");
@@ -601,18 +606,21 @@ COMMANDF(resetsleeps, "", (void) { resetsleep(true); });
 void updateworld(int curtime, int lastmillis)        // main game update loop
 {
     // process command sleeps
+    sleepssemaphore->wait();
     loopv(sleeps)
     {
         if(lastmillis - sleeps[i].millis >= sleeps[i].wait)
         {
             char *cmd = sleeps[i].cmd;
             sleeps[i].cmd = NULL;
+            sleeps.remove(i--);
+            sleepssemaphore->post();
             execute(cmd);
             delete[] cmd;
-            if(sleeps[i].cmd || !sleeps.inrange(i)) break;
-            sleeps.remove(i--);
+            sleepssemaphore->wait();
         }
     }
+    sleepssemaphore->post();
 
     syncentchanges();
     physicsframe();
