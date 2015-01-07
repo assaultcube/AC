@@ -1,5 +1,8 @@
 #include "cube.h"
 
+static const char *hexdigits = "0123456789abcdef";
+
+
 ///////////////////////// cryptography /////////////////////////////////
 
 /* Based off the reference implementation of Tiger, a cryptographically
@@ -248,6 +251,23 @@ COMMANDF(tiger, "s", (char *msg)    // tiger debug command
 #endif
 #endif
 
+
+/////////////////////////////////////////////////////////  FNV-1a  ///////////////////////////////////////////////////////////////////
+// Fowler–Noll–Vo is a non-cryptographic hash function created by Glenn Fowler, Landon Curt Noll, and Phong Vo. It is public domain.
+// We use the 32-bit-version here.
+
+inline void fnv1a_init(uint32_t &hash)
+{
+    hash = 2166136261UL;
+}
+
+inline void fnv1a_add(uint32_t &hash, uchar byte)
+{
+    hash ^= byte;
+    hash *= 16777619;
+}
+
+
 ////////////////////////// crypto rand (Mersenne twister) ////////////////////////////////////////
 
 #define MT_N (624)
@@ -437,6 +457,29 @@ conoutf("passphrase2key: %d ms, %d rounds, %d bytes used", watch.elapsed(), roun
 }
 #endif
 
+/////////////////////////////////////////////// hex converters /////////////////////////////////////////////////////////////////////////////////////
+
+const char *bin2hex(char *d, const uchar *s, int len)
+{ // d needs to be at least of size 2 * len + 1
+    len *= 2;
+    loopi(len) d[i] = hexdigits[(s[i / 2] >> ((i & 1) ? 0 : 4)) & 0xf];
+    d[len] = '\0';
+    return d;
+}
+
+int hex2bin(uchar *d, const char *s, int maxlen)
+{
+    memset(d, 0, maxlen);
+    int len;
+    for(len = 0; s[len] && len < maxlen * 2; len++)
+    {
+        const char *hd = strchr(hexdigits, tolower(s[len]));
+        if(!hd) break; // -> not a hex digit
+        d[len / 2] |= (hd - hexdigits) << ((len & 1) ? 0 : 4);
+    }
+    return len / 2;
+}
+
 ///////////////////////////////////////////////  Ed25519: high-speed high-security signatures  //////////////////////////////////////////////////////
 
 #include "crypto_tools.h"
@@ -532,6 +575,73 @@ uchar *ed25519_sign_check(uchar *sm, int smlen, const uchar *pk)
 
     return memcmp(rcheck, sm, 32) ? NULL : sm + 64;
 }
+
+
+#ifndef STANDALONE
+#ifdef _DEBUG
+void ed25519test(char *vectorfilename)  // check ed25519 functions with test vectors from http://ed25519.cr.yp.to/python/sign.input
+{
+    path(vectorfilename);
+    stopwatch watch;
+    int vectorfilesize = 0;
+    char *vectorfile = loadfile(vectorfilename, &vectorfilesize);
+    if(!vectorfile) { conoutf("could not read test vector file %s", vectorfilename); return; }
+    conoutf("loaded %d bytes from %s", vectorfilesize, vectorfilename);
+    watch.start();
+    int lines = 0, inputerrors = 0, pubfail = 0, signfail = 0, verifyfail = 0, verifyfail2 = 0;
+    for(char *l = strtok(vectorfile, "\n"); l; l = strtok(NULL, "\n"))
+    { // a line consists of 32 bytes private key, 32 byte public key, ":", 32 byte public key (again), ":", message, ":", signed message, ":"
+        char *vprivpub = l, *vpub = strchr(l, ':'), *vmsg, *vsmsg, hextemp[65];
+        int linelen = strlen(l), msglen = 0;
+        uchar privpub[64], pub[32], msg[linelen], smsg[linelen], temp[64];
+        lines++;
+        if(!vpub || !(vmsg = strchr(vpub + 1, ':')) || !(vsmsg = strchr(vmsg + 1, ':')) ||
+           hex2bin(privpub, vprivpub, 64) != 64 || hex2bin(pub, ++vpub, 32) != 32 || (msglen = hex2bin(msg, ++vmsg, linelen)) < 0 || hex2bin(smsg, ++vsmsg, linelen) != (msglen + 64) ||
+           memcmp(msg, smsg + 64, msglen) || memcmp(privpub + 32, pub, 32)) { inputerrors++; continue; } // line does not match template
+        ed25519_pubkey_from_private(temp, privpub);
+        if(strncmp(bin2hex(hextemp, temp, 32), vpub, 64)) { pubfail++; continue; }   // private and public key don't match
+        ed25519_sign(msg, &linelen, msg, msglen, privpub);
+        if(linelen != msglen + 64 || memcmp(msg, smsg, linelen)) { signfail++; continue; }   // newly signed message doesn't match vector data
+        if(!ed25519_sign_check(smsg, msglen + 64, pub)) { verifyfail++; continue; }     // verification of signed message failed
+        smsg[msglen % 64]++;
+        if(ed25519_sign_check(smsg, msglen + 64, pub)) { verifyfail2++; continue; }     // verification of altered signed message didn't fail (...but should've)
+        smsg[msglen % 64]--;
+        if(msglen)
+        {
+            smsg[42 % msglen]++;
+            if(ed25519_sign_check(smsg, msglen + 64, pub)) { verifyfail2++; continue; }     // verification of altered signed message didn't fail (...but should've)
+            smsg[42 % msglen]--;
+        }
+        pub[msglen % 32]++;
+        if(ed25519_sign_check(smsg, msglen + 64, pub)) { verifyfail2++; continue; }     // verification of altered signed message didn't fail (...but should've)
+    }
+    DELETEA(vectorfile);
+    conoutf("processed %d lines in %d milliseconds", lines, watch.elapsed());
+    conoutf("%d vector file errors, %d private-pubkey mismatches, %d sign fails, %d verify fails, %d missed verify fails", inputerrors, pubfail, signfail, verifyfail, verifyfail2);
+}
+COMMAND(ed25519test, "s");
+
+void ed25519speedtest()  // check speed of ed25519 functions
+{
+    uchar priv[32], pub[32], msg[64], smsg[128], sk[64];
+    entropy_get(priv, 32);
+    entropy_get(msg, 32);
+    stopwatch watch;
+    watch.start();
+    loopi(200) ed25519_pubkey_from_private(pub, priv);
+    conoutf("create public key from private key: %.2f ms", watch.elapsed() / 200.0f);
+    memcpy(sk, priv, 32);
+    memcpy(sk + 32, pub, 32);
+    watch.start();
+    loopi(200) ed25519_sign(smsg, NULL, msg, 64, sk);
+    conoutf("signing 64-byte message: %.2f ms", watch.elapsed() / 200.0f);
+    watch.start();
+    loopi(200) ed25519_sign_check(smsg, 128, pub);
+    conoutf("verify signature of 64-byte message: %.2f ms", watch.elapsed() / 200.0f);
+}
+COMMAND(ed25519speedtest, "");
+#endif
+#endif
 
 
 
