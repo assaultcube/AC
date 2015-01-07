@@ -586,6 +586,16 @@ static inline bool htcmp(const char *x, const char *y)
     return !strcmp(x, y);
 }
 
+static inline uint hthash(const uchar *key)
+{
+    return *((uint *)key);
+}
+
+static inline bool htcmp(const uchar *x, const uchar *y)  // assume "uchar *" points to 32byte public keys
+{
+    return !memcmp(x, y, 32);
+}
+
 static inline uint hthash(int key)
 {
     return key;
@@ -832,6 +842,7 @@ inline char *newstring(const char *s)           { return newstring(s, strlen(s))
 inline char *newstringbuf()                     { return newstring(MAXSTRLEN-1); }
 inline char *newstringbuf(const char *s)        { return newstring(s, MAXSTRLEN-1); }
 inline void delstring(const char *s)            { delete[] (char *)s; }
+#define DELSTRING(s) if(s) { delstring(s); s = NULL; }
 
 #ifndef STANDALONE
 inline const char *_gettext(const char *msgid)
@@ -976,6 +987,7 @@ extern int cmpiprange(const struct iprange *a, const struct iprange *b);
 extern int cmpipmatch(const struct iprange *a, const struct iprange *b);
 extern int cvecprintf(vector<char> &v, const char *s, ...);
 extern const char *hiddenpwd(const char *pwd, int showchars = 0);
+extern int getlistindex(const char *key, const char *list[], bool acceptnumeric = true, int deflt = -1);
 
 #if defined(WIN32) && !defined(_DEBUG) && !defined(__GNUC__)
 extern void stackdumper(unsigned int type, EXCEPTION_POINTERS *ep);

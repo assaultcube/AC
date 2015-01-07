@@ -422,6 +422,19 @@ const char *hiddenpwd(const char *pwd, int showchars)
     for(int i = (int)strlen(text) - 1; i >= sc; i--) text[i] = '*';
     return text;
 }
+
+int getlistindex(const char *key, const char *list[], bool acceptnumeric, int deflt)
+{
+    int max = 0;
+    while(list[max][0]) if(!strcasecmp(key, list[max])) return max; else max++;
+    if(acceptnumeric && isdigit(key[0]))
+    {
+        int i = (int)strtol(key, NULL, 0);
+        if(i >= 0 && i < max) return i;
+    }
+    return deflt;
+}
+
 //////////////// geometry utils ////////////////
 
 static inline float det2x2(float a, float b, float c, float d) { return a*d - b*c; }
