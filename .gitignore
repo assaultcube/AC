@@ -4,6 +4,8 @@
 shadows.dat
 bin_unix/native_client
 bin_unix/native_server
+config/authpreprivate.cfg
+config/authprivate.cfg
 config/history
 config/init.cfg
 config/saved*.cfg

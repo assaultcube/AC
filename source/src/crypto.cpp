@@ -1,5 +1,12 @@
 #include "cube.h"
 
+#ifdef STANDALONE
+#define DEBUGCOND (true)
+#else
+VARP(cryptodebug, 0, 0, 1);
+#define DEBUGCOND (cryptodebug==1)
+#endif
+
 static const char *hexdigits = "0123456789abcdef";
 
 
@@ -405,14 +412,16 @@ void passphrase2key(const char *pass, const uchar *salt, int saltlen, uchar *key
 {
     memset(key, 0, keylen);
     if(!*pass) return;                       // password "" ->
-    memusage = clamp(memusage, 1, 1024);     // keep memory usage between 1MB and 1GB
-    int memsize = (1<<20) * memusage, passlen = strlen(pass), tmpbuflen = 2 * SHA512SIZE, pplen = 2 * saltlen + passlen;
+    memusage = clamp(memusage, 2, 1024);     // keep memory usage between 2MB and 1GB
+    int memsize = (1<<20) * memusage, passlen = strlen(pass), tmpbuflen = 2 * SHA512SIZE, pplen = 2 * (saltlen + passlen);
 
     // prepare the passphrase (including salt)
     uchar *pp = new uchar[pplen];
     memcpy(pp, salt, saltlen);
     memcpy(pp + saltlen, pass, passlen);
-    memcpy(pp + saltlen + passlen, salt, saltlen);
+    memcpy(pp + saltlen + passlen, pass, passlen);
+    memcpy(pp + saltlen + 2 * passlen, salt, saltlen);
+    if((memusage & 1) && passlen + saltlen >= 8) identhash((uint64_t *)(pp + saltlen + passlen));
 
     // mix up the passphrase a bit
     uchar *tmpbuf = new uchar[tmpbuflen + sizeof(uint)];
@@ -448,7 +457,7 @@ void passphrase2key(const char *pass, const uchar *salt, int saltlen, uchar *key
     else tiger::hash(hugebuf, memsize, *((tiger::hashval *)tmpbuf));
     loopi(SHA512SIZE) sha512_compress(((uint64_t*)tmpbuf) + (i / 8), hugebuf + (((tmpbuf[i] * 68111) % (memsize - 128)) & ~7));
     memcpy(key, tmpbuf, min(keylen, tmpbuflen));                     // max keylen is 2 * SHA512SIZE
-conoutf("passphrase2key: %d ms, %d rounds, %d bytes used", watch.elapsed(), roundsdone, memsize);
+    DEBUG("passphrase2key: " << watch.elapsed() << " ms, " << roundsdone << " rounds, " << memsize << " bytes used");
     *iterations = roundsdone;
     delete[] hugebuf;
     delete[] tmpbuf;
@@ -642,6 +651,230 @@ void ed25519speedtest()  // check speed of ed25519 functions
 COMMAND(ed25519speedtest, "");
 #endif
 #endif
+
+
+#ifndef STANDALONE
+
+//////////////////////////////////// game key management ////////////////////////////////////////////////////////////////////////
+// * the game key is the primary player key that is associated with his player account
+// * it is used during playing to authenticate the player to the server
+// * needs special protection...
+
+#define AUTHPREPRIVATECFGFILE  "config" PATHDIVS "authpreprivate.cfg"
+#define AUTHPRIVATECFGFILE     "config" PATHDIVS "authprivate.cfg"
+
+VARP(authmemusage, 2, 24, (1<<10) - 1);     // megabytes of RAM to use for password hash (when using a new password)
+VARP(authrounds, 0, 0, INT_MAX - 1);        // create new password hashes with a fixed number of rounds (if authrounds > 0)
+VARP(authmaxtime, 1<<9, 1<<12, 1<<16);      // create new password hashes with a fixed amount of time (in ms)
+
+static uchar *sk = NULL;                    // game key
+static struct { uchar *salt, *priv; uint pwdcfg; } passdargs;
+
+static int passdeferred(void *pass)   // decrypt the private key in the background
+{
+    uchar keyhash[32];
+    int iterations = passdargs.pwdcfg >> 10;
+    passphrase2key((char*)pass, passdargs.salt, 16, keyhash, 32, &iterations, 0, passdargs.pwdcfg & 0x3ff);
+    xor_block(passdargs.priv, keyhash, 32);
+    delstring((char *)pass);
+    extern void authsetup(char **args, int numargs);
+    authsetup(NULL, -1);  // tell authsetup, that the passwd is done
+    return 0;
+}
+
+void authsetup(char **args, int numargs)  // set up private and public keys
+{
+    const int preprivminlen = 32, preprivmaxlen = 128;
+    static uchar *buf = NULL, pub[32], keyhash[128], psalt[16], salt[16], preprivlen = 0;
+    static uint preprivpwdcfg = 0, privpwdcfg = 0;
+    static void *passdrunning = NULL, *passdcleanup = NULL;
+    static char *sleepcmd = NULL;
+    if(!buf) entropy_get((buf = new uchar[1536]), 1536);
+    uint32_t offs = 7337;
+    loopi(16) fnv1a_add(offs, buf[i]);
+    uchar *priv = buf + 24 + (offs & 0xfc), *prepriv = priv + 112 + ((offs >> 9) & 0xfc), res = 0;
+    char hextemp[2 * preprivmaxlen + 1];
+
+    if(passdrunning)
+    {
+        if(numargs < 0)
+        {   // finish password decryption (background mode)
+            privpwdcfg = 0;
+            passdcleanup = passdrunning;
+            passdrunning = NULL;
+            if(sleepcmd) addsleep(0, sleepcmd);
+            DELSTRING(sleepcmd);
+        }
+        else return;  // ignore further "authsetup" commands while a password decryption is running in the background
+    }
+    else
+    {
+        if(numargs < 0) return;  // should not happen
+        else if(passdcleanup)
+        {
+            sl_waitthread(passdcleanup);
+            passdcleanup = NULL;
+        }
+    }
+
+    if(numargs > 0)
+    {
+        if(!strcasecmp(args[0], "PRE"))
+        {
+            // authsetup pre preprivhex [psalthex pwdcfg]
+            preprivlen = numargs > 1 ? clamp(int(strlen(args[1])) / 2, preprivminlen, preprivmaxlen) : 32;
+            if(numargs > 1) hex2bin(prepriv, args[1], preprivlen);
+            if(numargs > 2) hex2bin(psalt, args[2], 16);
+            preprivpwdcfg = numargs > 3 ? atoi(args[3]) : 0;
+        }
+        else if(!strcasecmp(args[0], "PRIV"))
+        {
+            // authsetup priv privhex [salthex pwdcfg]
+            if(numargs > 1) hex2bin(priv, args[1], 32);
+            if(numargs > 2) hex2bin(salt, args[2], 16);
+            privpwdcfg = numargs > 3 ? atoi(args[3]) : 0;
+            sk = NULL;
+        }
+        else if(!strcasecmp(args[0], "PUB"))
+        {
+            // authsetup pub pubhex
+            if(numargs > 1) hex2bin(pub, args[1], 32);
+            sk = NULL;
+        }
+        else if(!strcasecmp(args[0], "PPASS"))
+        {
+            // authsetup ppass preprivpass
+            int iterations = preprivpwdcfg >> 10;
+            if(iterations) passphrase2key(numargs > 1 ? args[1] : "", psalt, 16, keyhash, preprivlen, &iterations, 0, preprivpwdcfg & 0x3fe);
+            xor_block(prepriv, keyhash, preprivlen);
+            preprivpwdcfg = 0;
+        }
+        else if(!strcasecmp(args[0], "PASS"))
+        {
+            // authsetup pass privpass
+            int iterations = privpwdcfg >> 10;
+            if(iterations) passphrase2key(numargs > 1 ? args[1] : "", salt, 16, keyhash, 32, &iterations, 0, privpwdcfg & 0x3ff);
+            xor_block(priv, keyhash, 32);
+            privpwdcfg = 0;
+        }
+        else if(!strcasecmp(args[0], "PASSD"))
+        {
+            // authsetup passd privpass [commandwhendone]
+            if(!passdrunning && privpwdcfg)
+            {
+                passdargs.salt = salt;
+                passdargs.priv = priv;
+                passdargs.pwdcfg = privpwdcfg;
+                passdrunning = sl_createthread(passdeferred, newstring(numargs > 1 ? args[1] : ""));
+                sleepcmd = numargs > 2 ? newstring(args[2]) : NULL;
+            }
+        }
+        else if(!strcasecmp(args[0], "NEEDPASS"))
+        {
+            // authsetup needpass
+            if(privpwdcfg) res = 1;
+        }
+        else if(!strcasecmp(args[0], "GENPRE"))
+        {
+            // authsetup genpre prelen
+            preprivlen = clamp((numargs > 1) ? atoi(args[1]) : 42, preprivminlen, preprivmaxlen);
+            entropy_get(prepriv, preprivlen);
+            preprivpwdcfg = 0;
+        }
+        else if(!strcasecmp(args[0], "GENPRIV"))
+        {
+            // authsetup genpriv
+            if(!preprivpwdcfg) privkey_from_prepriv(priv, prepriv, preprivlen);
+            privpwdcfg = 0;
+        }
+        else if(!strcasecmp(args[0], "GENPUB"))
+        {
+            // authsetup genpub
+            ed25519_pubkey_from_private(pub, priv);
+            privpwdcfg = 0;
+        }
+        else if(!strcasecmp(args[0], "NEWPPASS"))
+        {
+            // authsetup newppass preprivpass [preprivfilename]
+            if(preprivlen && !preprivpwdcfg)
+            {
+                if(numargs > 1 && args[1][0])  // new password
+                {
+                    entropy_get(psalt, 16);
+                    int iterations = authrounds;
+                    passphrase2key(args[1], psalt, 16, keyhash, preprivlen, &iterations, authmaxtime, authmemusage & 0x3fe);
+                    preprivpwdcfg = (iterations << 10) | authmemusage;
+                    xor_block(prepriv, keyhash, preprivlen);
+                }
+                const char *fn = numargs > 2 && args[2][0] ? path(args[2]) : AUTHPREPRIVATECFGFILE;
+                char *oldfile = loadfile(fn, NULL);
+                stream *f = openfile(fn, "wb");
+                if(f)
+                {
+                    f->printf("\n"  "// remove this file from your computer immediately!\n"
+                                    "// either print it out and delete it or move it to a thumbdrive.\n"
+                                    "// YOU DO NOT NEED THIS FILE TO PLAY AC!\n" "\n");
+                    if(oldfile) for(char *l = strtok(oldfile, "\n\r"); l; l = strtok(NULL, "\n\r")) if(*l) f->printf("// %s\n", l);
+                    f->printf("authsetup pre %s", bin2hex(hextemp, prepriv, preprivlen));
+                    if(preprivpwdcfg) f->printf(" %s %u", bin2hex(hextemp, psalt, 16), preprivpwdcfg & ~1);
+                    f->printf("\n\n");
+                    delete f;
+                }
+                DELETEA(oldfile);
+            }
+        }
+        else if(!strcasecmp(args[0], "NEWPASS"))
+        {
+            // authsetup newpass privpass [privatefilename]
+            if(!privpwdcfg)
+            {
+                ed25519_pubkey_from_private(keyhash + 32, priv);
+                if(numargs > 1 && args[1][0])  // new password
+                {
+                    entropy_get(salt, 16);
+                    int iterations = authrounds;
+                    passphrase2key(args[1], salt, 16, keyhash, 32, &iterations, authmaxtime, authmemusage);
+                    privpwdcfg = (iterations << 10) | authmemusage;
+                    xor_block(priv, keyhash, 32);
+                }
+                const char *fn = numargs > 2 && args[2][0] ? path(args[2]) : AUTHPRIVATECFGFILE;
+                char *oldfile = loadfile(fn, NULL);
+                stream *f = openfile(fn, "wb");
+                if(f)
+                {
+                    if(oldfile) for(char *l = strtok(oldfile, "\n\r"); l; l = strtok(NULL, "\n\r")) if(*l) f->printf("// %s\n", l);
+                    f->printf("\nauthsetup priv %s", bin2hex(hextemp, priv, 32));
+                    if(privpwdcfg) f->printf(" %s %u", bin2hex(hextemp, salt, 16), privpwdcfg);
+                    f->printf("\nauthsetup pub %s\n\n", bin2hex(hextemp, keyhash + 32, 32));
+                    delete f;
+                }
+                DELETEA(oldfile);
+            }
+        }
+        else if(!strcasecmp(args[0], "UNARMED"))  // FIXME: this is for testing purposes only - to test simultaneous logins from the same account - delete before release!
+        {
+            // authsetup unarmed
+            // pub aa55aab6d746c2000f3f6dc133c49c5d0485e0e44cbf036757e7945bca20106f  priv aa55aa55aa55aa55aa55aa55aa55aae5a973aa55aa55aa55aa55aa55aa55aa55
+            hex2bin(priv, "aa55aa55aa55aa55aa55aa55aa55aae5a973aa55aa55aa55aa55aa55aa55aa55", 32);
+            ed25519_pubkey_from_private(pub, priv);
+            privpwdcfg = 0;
+        }
+    }
+    ed25519_pubkey_from_private(keyhash, priv);
+    if(!privpwdcfg && !memcmp(pub, keyhash, 32))
+    {
+        // priv matches pub: yay
+        memcpy(priv + 32, pub, 32);
+        sk = priv;
+        if(!numargs) res = 1;  // "authsetup" with no arguments just checks the status
+        DEBUG("successfully found keypair for pub " << bin2hex(hextemp, pub, 32));
+    }
+    else sk = NULL;
+    intret(res);
+}
+COMMAND(authsetup, "v");
+#endif
+
 
 
 
