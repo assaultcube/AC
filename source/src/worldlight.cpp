@@ -206,7 +206,7 @@ void calclight()
 
     seedMT(keep);
 
-    block bb = { mapdims.x1 - 1, mapdims.y1 - 1, mapdims.x2 + 1, mapdims.y2 + 1 };
+    block bb = { mapdims.x1 - 1, mapdims.y1 - 1, mapdims.xspan + 2, mapdims.yspan + 2 };
     postlightarea(bb);
     setvar("fullbright", 0);
     lastcalclight = totalmillis;
