@@ -1,23 +1,22 @@
 /*
-    SDL_image:  An example image loading library for use with SDL
-    Copyright (C) 1997-2009 Sam Lantinga
+  SDL_image:  An example image loading library for use with SDL
+  Copyright (C) 1997-2012 Sam Lantinga <slouken@libsdl.org>
 
-    This library is free software; you can redistribute it and/or
-    modify it under the terms of the GNU Lesser General Public
-    License as published by the Free Software Foundation; either
-    version 2.1 of the License, or (at your option) any later version.
+  This software is provided 'as-is', without any express or implied
+  warranty.  In no event will the authors be held liable for any damages
+  arising from the use of this software.
 
-    This library is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-    Lesser General Public License for more details.
+  Permission is granted to anyone to use this software for any purpose,
+  including commercial applications, and to alter it and redistribute it
+  freely, subject to the following restrictions:
 
-    You should have received a copy of the GNU Lesser General Public
-    License along with this library; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-
-    Sam Lantinga
-    slouken@libsdl.org
+  1. The origin of this software must not be misrepresented; you must not
+     claim that you wrote the original software. If you use this software
+     in a product, an acknowledgment in the product documentation would be
+     appreciated but is not required.
+  2. Altered source versions must be plainly marked as such, and must not be
+     misrepresented as being the original software.
+  3. This notice may not be removed or altered from any source distribution.
 */
 
 /* A simple library to load images of various formats as SDL surfaces */
@@ -38,7 +37,7 @@ extern "C" {
 */
 #define SDL_IMAGE_MAJOR_VERSION	1
 #define SDL_IMAGE_MINOR_VERSION	2
-#define SDL_IMAGE_PATCHLEVEL	10
+#define SDL_IMAGE_PATCHLEVEL	12
 
 /* This macro can be used to fill a version structure with the compile-time
  * version of the SDL_image library.
@@ -60,7 +59,8 @@ typedef enum
 {
     IMG_INIT_JPG = 0x00000001,
     IMG_INIT_PNG = 0x00000002,
-    IMG_INIT_TIF = 0x00000004
+    IMG_INIT_TIF = 0x00000004,
+    IMG_INIT_WEBP = 0x00000008
 } IMG_InitFlags;
 
 /* Loads dynamic libraries and prepares them for use.  Flags should be
@@ -104,6 +104,7 @@ extern DECLSPEC int SDLCALL IMG_isTIF(SDL_RWops *src);
 extern DECLSPEC int SDLCALL IMG_isXCF(SDL_RWops *src);
 extern DECLSPEC int SDLCALL IMG_isXPM(SDL_RWops *src);
 extern DECLSPEC int SDLCALL IMG_isXV(SDL_RWops *src);
+extern DECLSPEC int SDLCALL IMG_isWEBP(SDL_RWops *src);
 
 /* Individual loading functions */
 extern DECLSPEC SDL_Surface * SDLCALL IMG_LoadICO_RW(SDL_RWops *src);
@@ -120,6 +121,7 @@ extern DECLSPEC SDL_Surface * SDLCALL IMG_LoadTIF_RW(SDL_RWops *src);
 extern DECLSPEC SDL_Surface * SDLCALL IMG_LoadXCF_RW(SDL_RWops *src);
 extern DECLSPEC SDL_Surface * SDLCALL IMG_LoadXPM_RW(SDL_RWops *src);
 extern DECLSPEC SDL_Surface * SDLCALL IMG_LoadXV_RW(SDL_RWops *src);
+extern DECLSPEC SDL_Surface * SDLCALL IMG_LoadWEBP_RW(SDL_RWops *src);
 
 extern DECLSPEC SDL_Surface * SDLCALL IMG_ReadXPMFromArray(char **xpm);
 
