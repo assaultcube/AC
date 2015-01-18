@@ -3,7 +3,7 @@
 # CUBE_DIR should refer to the directory in which AssaultCube is placed.
 #CUBE_DIR=~/assaultcube
 #CUBE_DIR=/usr/local/assaultcube
-#CUBE_DIR=./
+#CUBE_DIR=.
 CUBE_DIR=$(dirname "$(readlink -f "${0}")")
 
 # CUBE_OPTIONS starts AssaultCube with any command line options you choose.
@@ -49,47 +49,14 @@ then
   MACHINE_NAME=
 fi
 
-if [ -x "/sbin/ldconfig" ]; then
-  if [ -z "$(/sbin/ldconfig -p | grep "libX11")" ]; then
-    echo "To run AssaultCube, please ensure X11 libraries are installed."
-    exit 1
-  fi
-  if [ -z "$(/sbin/ldconfig -p | grep "libSDL-1.2")" ]; then
-    echo "To run AssaultCube, please ensure SDL v1.2 libraries are installed."
-    exit 1
-  fi
-  if [ -z "$(/sbin/ldconfig -p | grep "libSDL_image")" ]; then
-    echo "To run AssaultCube, please ensure SDL_image libraries are installed."
-    exit 1
-  fi
-  if [ -z "$(/sbin/ldconfig -p | grep "libz")" ]; then
-    echo "To run AssaultCube, please ensure z libraries are installed."
-    exit 1
-  fi
-  if [ -z "$(/sbin/ldconfig -p | grep "libogg")" ]; then
-    echo "To run AssaultCube, please ensure ogg libraries are installed."
-    exit 1
-  fi
-  if [ -z "$(/sbin/ldconfig -p | grep "libvorbis")" ]; then
-    echo "To run AssaultCube, please ensure vorbis libraries are installed."
-    exit 1
-  fi
-  if [ -z "$(/sbin/ldconfig -p | grep "libopenal")" ]; then
-    echo "To run AssaultCube, please ensure OpenAL-Soft libraries are installed."
-    exit 1
-  fi
-  if [ -z "$(/sbin/ldconfig -p | grep "libcurl")" ]; then
-    echo "To run AssaultCube, please ensure Curl libraries are installed."
-    exit 1
-  fi
-fi
+BINARYPATH="${CUBE_DIR}/bin_unix/${SYSTEM_NAME}${MACHINE_NAME}client"
 
-if [ -x "${CUBE_DIR}/bin_unix/${SYSTEM_NAME}${MACHINE_NAME}client" ]; then
+if [ "$1" = "--outputbinarypath" ]; then
+  echo "${BINARYPATH}"
+  exit 0
+elif [ -x "${BINARYPATH}" ]; then
   cd "${CUBE_DIR}"
-  exec "${CUBE_DIR}/bin_unix/${SYSTEM_NAME}${MACHINE_NAME}client" ${CUBE_OPTIONS} "$@"
-elif [ -e "${CUBE_DIR}/bin_unix/${SYSTEM_NAME}${MACHINE_NAME}client" ]; then
-  echo "Insufficient permissons to run AssaultCube."
-  echo "Please change (chmod) the AssaultCube client in the bin_unix folder to be readable/executable."
+  exec "${BINARYPATH}" ${CUBE_OPTIONS} "$@"
 else
   echo "Your platform does not have a pre-compiled AssaultCube client."
   echo "Please follow the following steps to build a native client:"
@@ -100,3 +67,4 @@ else
   echo "4) If the compile succeeds, return to this directory and re-run this script."
   exit 1
 fi
+

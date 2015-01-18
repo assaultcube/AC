@@ -9,6 +9,7 @@ config/init.cfg
 config/saved.cfg
 config/servers.cfg
 config/configtemplates.zip
+packages/misc/checksums_md5.txt
 source/enet/.deps/
 source/enet/.libs/
 source/enet/Makefile

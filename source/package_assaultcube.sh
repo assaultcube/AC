@@ -183,6 +183,9 @@ find ./packages/maps/official/*.cgz | \
   xargs -i echo -e "securemap" {} | \
   sort -u >> ./config/securemaps.cfg
 
+# update checksum file
+$PATHTOACDIR/source/dev_tools/generate_md5_checksums.sh
+
 # Create the linux tarball:
 echo -e "\n... Creating the Linux tarball..."
 cd .. && mv $ACDIRFOLDERNAME AssaultCube_v$NEWACVERSION
