@@ -161,4 +161,12 @@ enet_crc32 (const ENetBuffer * buffers, size_t bufferCount)
     return ENET_HOST_TO_NET_32 (~ crc);
 }
 
+void
+enet_crc32_inc (enet_uint32 *crc, enet_uint8 byte)
+{
+    if (! initializedCRC32) initialize_crc32 ();
+
+    *crc = (*crc >> 8) ^ crcTable [(*crc & 0xFF) ^ byte];
+}
+
 /** @} */

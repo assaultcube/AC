@@ -519,6 +519,7 @@ ENET_API ENetPacket * enet_packet_create (const void *, size_t, enet_uint32);
 ENET_API void         enet_packet_destroy (ENetPacket *);
 ENET_API int          enet_packet_resize  (ENetPacket *, size_t);
 ENET_API enet_uint32  enet_crc32 (const ENetBuffer *, size_t);
+ENET_API void         enet_crc32_inc (enet_uint32 *crc, enet_uint8 byte);
 
 ENET_API ENetHost * enet_host_create (const ENetAddress *, size_t, size_t, enet_uint32, enet_uint32);
 ENET_API void       enet_host_destroy (ENetHost *);
