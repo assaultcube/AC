@@ -139,7 +139,10 @@ clean-enet: ../enet/Makefile
 
 clean:
 	-$(RM) $(CLIENT_PCH) $(CLIENT_OBJS) $(SERVER_OBJS) $(MASTER_OBJS) ac_client ac_server ac_master
-#	-$(MAKE) -C ../enet/ clean
+
+mrproper: clean ../enet/Makefile
+	$(MAKE) -C ../enet/ distclean
+	-$(RM) ../enet/Makefile
 
 %.h.gch: %.h
 	$(CXX) $(CXXFLAGS) -x c++-header -o $@.tmp $(subst .h.gch,.h,$@)
