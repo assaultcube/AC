@@ -1695,7 +1695,7 @@ void spectate()
 void setfollowplayer(int cn)
 {
     // silently ignores invalid player-cn value passed
-    if(players.inrange(cn) && players[cn])
+    if(players.inrange(cn) && players[cn] && !m_botmode)
     {
         if(!(m_teammode && player1->team != TEAM_SPECT && !watchingdemo && team_base(players[cn]->team) != team_base(player1->team)))
         {
@@ -1709,7 +1709,7 @@ void setfollowplayer(int cn)
 void spectatemode(int mode)
 {
     if((player1->state != CS_DEAD && player1->state != CS_SPECTATE && !team_isspect(player1->team)) || (!m_teammode && !team_isspect(player1->team) && servstate.mastermode == MM_MATCH)) return;  // during ffa matches only SPECTATORS can spectate
-    if(mode == player1->spectatemode) return;
+    if(mode == player1->spectatemode || (m_botmode && mode != SM_FLY)) return;
     showscores(false);
     switch(mode)
     {
@@ -1758,7 +1758,7 @@ void togglespect() // cycle through all spectating modes
 
 void changefollowplayer(int shift)
 {
-    updatefollowplayer(shift);
+    if(!m_botmode) updatefollowplayer(shift);
 }
 
 COMMAND(spectate, "");
