@@ -883,7 +883,7 @@ void checkinput()
                 break;
         }
     }
-    mousemove(tdx, tdy);
+    if(tdx || tdy) mousemove(tdx, tdy);
 }
 
 VARF(gamespeed, 10, 100, 1000, if(multiplayer()) gamespeed = 100);
