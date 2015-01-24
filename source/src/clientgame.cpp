@@ -984,10 +984,11 @@ void timeupdate(int milliscur, int millismax)
     else
     {
         extern int clockdisplay; // only output to console if no hud-clock is being shown
+        int sec = 60 - ( (gametimecurrent + ( lastmillis - lastgametimeupdate ) ) / 1000) % 60;
         if(minutesremaining==1)
         {
             audiomgr.musicsuggest(M_LASTMINUTE1 + rnd(2), 70*1000, true);
-            hudoutf("1 minute left!");
+            hudoutf("%s1 minute left!", sec==60 ? "" : "less than ");
             if(identexists("onLastMin")) execute("onLastMin");
         }
         else if(!clockdisplay) conoutf(_("time remaining: %d minutes"), minutesremaining);
