@@ -77,7 +77,7 @@ void drawvoteicon(float x, float y, int col, int row, bool noblend)
 
 VARP(crosshairsize, 0, 15, 50);
 VARP(showstats, 0, 1, 2);
-VARP(crosshairfx, 0, 1, 1);
+VARP(crosshairfx, 0, 1, 3);
 VARP(crosshairteamsign, 0, 1, 1);
 VARP(hideradar, 0, 0, 1);
 VARP(hidecompass, 0, 0, 1);
@@ -292,7 +292,7 @@ void drawcrosshair(playerent *p, int n, color *c, float size)
     glBindTexture(GL_TEXTURE_2D, crosshair->id);
     glColor3ub(255,255,255);
     if(c) glColor3f(c->r, c->g, c->b);
-    else if(crosshairfx || n==CROSSHAIR_TEAMMATE)
+    else if(crosshairfx==1 || crosshairfx==2 || n==CROSSHAIR_TEAMMATE)
     {
         if(n==CROSSHAIR_TEAMMATE) glColor3ub(255, 0, 0);
         else if(!m_osok)
@@ -302,7 +302,7 @@ void drawcrosshair(playerent *p, int n, color *c, float size)
         }
     }
     float s = size>0 ? size : (float)crosshairsize;
-    float chsize = s * (p->weaponsel->type==GUN_ASSAULT && p->weaponsel->shots > 3 ? 1.4f : 1.0f) * (n==CROSSHAIR_TEAMMATE ? 2.0f : 1.0f);
+    float chsize = s * ((p->weaponsel->type==GUN_ASSAULT && p->weaponsel->shots > 3) && (crosshairfx==1 || crosshairfx==3) ? 1.4f : 1.0f) * (n==CROSSHAIR_TEAMMATE ? 2.0f : 1.0f);
     glBegin(GL_TRIANGLE_STRIP);
     glTexCoord2f(0, 0); glVertex2f(VIRTW/2 - chsize, VIRTH/2 - chsize);
     glTexCoord2f(1, 0); glVertex2f(VIRTW/2 + chsize, VIRTH/2 - chsize);
