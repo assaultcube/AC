@@ -965,6 +965,7 @@ extern bool listdir(const char *dir, const char *ext, vector<char *> &files);
 extern int listfiles(const char *dir, const char *ext, vector<char *> &files);
 extern int listzipfiles(const char *dir, const char *ext, vector<char *> &files);
 extern bool delfile(const char *path);
+extern void backup(char *name, char *backupname);
 extern bool addzip(const char *name, const char *mount = NULL, const char *strip = NULL, bool extract = false, int type = -1);
 extern bool removezip(const char *name);
 extern struct mapstats *loadmapstats(const char *filename, bool getlayout);

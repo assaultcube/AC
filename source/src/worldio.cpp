@@ -5,14 +5,6 @@
 #define DEBUGCOND (worldiodebug==1)
 VARP(worldiodebug, 0, 0, 1);
 
-void backup(char *name, char *backupname)
-{
-    string backupfile;
-    copystring(backupfile, findfile(backupname, "wb"));
-    remove(backupfile);
-    rename(findfile(name, "wb"), backupfile);
-}
-
 static string cgzname, ocgzname, bakname, cbakname, pcfname, mcfname, omcfname, mapname;
 
 const char *setnames(const char *name)

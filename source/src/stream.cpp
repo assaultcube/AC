@@ -307,6 +307,14 @@ bool delfile(const char *path)
     return !remove(path);
 }
 
+void backup(char *name, char *backupname)
+{
+    string backupfile;
+    copystring(backupfile, findfile(backupname, "wb"));
+    remove(backupfile);
+    rename(findfile(name, "wb"), backupfile);
+}
+
 #ifndef STANDALONE
 static int rwopsseek(SDL_RWops *rw, int offset, int whence)
 {
