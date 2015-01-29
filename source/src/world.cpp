@@ -457,6 +457,7 @@ void calcmapdims()
     {
         if(!SOLID(s))
         {
+            if(OUTBORD(x, y)) conoutf("non-solid cube in world border found: x %d, y %d", x, y); // will also go fatal() below
             if(x < mapdims.x1) mapdims.x1 = x;
             if(x > mapdims.x2) mapdims.x2 = x;
             if(y < mapdims.y1) mapdims.y1 = y;
@@ -473,7 +474,8 @@ void calcmapdims()
         mapdims.minfloor = 0;
         mapdims.maxceil = 16;
     }
-    if(mapdims.x1 < 2 || mapdims.y1 < 2 || mapdims.x2 > ssize - 3 || mapdims.y2 > ssize - 3) fatal("calcmapdims(): border violation");
+    if(mapdims.x1 < MINBORD || mapdims.y1 < MINBORD || mapdims.x2 >= ssize - MINBORD || mapdims.y2 >= ssize - MINBORD)
+        fatal("calcmapdims(): world border violation (x:%d..%d, y:%d..%d)", mapdims.x1, mapdims.x2, mapdims.y1, mapdims.y2);
     mapdims.xspan = mapdims.x2 - mapdims.x1 + 1;
     mapdims.yspan = mapdims.y2 - mapdims.y1 + 1;
     mapdims.xm = mapdims.x1 + mapdims.xspan / 2.0f;
