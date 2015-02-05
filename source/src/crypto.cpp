@@ -873,6 +873,129 @@ void authsetup(char **args, int numargs)  // set up private and public keys
     intret(res);
 }
 COMMAND(authsetup, "v");
+
+/////////////////////////////////////////////////  misc key management  //////////////////////////////////////////////////////
+// * used to sign certs or other stuff
+// * dev/admin/master keys
+// * clanboss keys
+//
+
+#define AUTHKEYSCFGFILE     "config" PATHDIVS "authkeys.cfg"
+
+vector<authkey *> authkeys;
+
+authkey::authkey(const char *aname, const char *privkey) : name(NULL)
+{
+    if(*aname && strlen(privkey) == 64 && hex2bin(sk, privkey, 32) == 32)
+    {
+        ed25519_pubkey_from_private(sk + 32, sk);
+        name = newstring(aname);
+    }
+}
+
+bool delauthkey(const char *name)
+{
+    int before = authkeys.length();
+    loopvrev(authkeys) if(!strcmp(authkeys[i]->name, name)) delete authkeys.remove(i);
+    return authkeys.length() < before;
+}
+
+const uchar *getauthkey(const char *name)
+{
+    loopvrev(authkeys) if(!strcmp(authkeys[i]->name, name)) return authkeys[i]->sk;
+    return NULL;
+}
+
+void authkey_(char **args, int numargs)  // set up misc keys
+{
+    if(numargs > 0)
+    {
+        string buf;
+        if(!strcasecmp(args[0], "CLEAR"))
+        { // authkey clear
+            if(authkeys.length())
+            {
+                char *oldfile = loadfile(AUTHKEYSCFGFILE, NULL);
+                if(oldfile)
+                {
+                    stream *f = openfile(AUTHKEYSCFGFILE, "wb");
+                    if(f)
+                    { // don't really delete the old keys, just comment them out
+                        for(char *l = strtok(oldfile, "\n\r"); l; l = strtok(NULL, "\n\r")) if(*l) f->printf("// %s\n", l);
+                        delete f;
+                    }
+                    delete[] oldfile;
+                }
+                authkeys.shrink(0);
+                conoutf("all authkeys deleted");
+            }
+        }
+        else if(!strcasecmp(args[0], "LIST"))
+        { // authkey list
+            if(authkeys.length())
+            {
+                conoutf("name\tpubkey");
+                loopv(authkeys) conoutf("%s\t%s", authkeys[i]->name, bin2hex(buf, authkeys[i]->sk + 32, 32));
+            }
+            else conoutf("no authkeys");
+        }
+        else if(!strcasecmp(args[0], "DELETE"))
+        { // authkey delete name
+            if(numargs > 1) delauthkey(args[1]);
+        }
+        else if(!strcasecmp(args[0], "NEW"))
+        { // authkey new name
+            if(numargs > 1 && args[1][0])
+            {
+                uchar prepriv[42], priv[32], pub[32];
+                delauthkey(args[1]);
+                entropy_get(prepriv, 42);
+                privkey_from_prepriv(priv, prepriv, 42);
+                ed25519_pubkey_from_private(pub, priv);
+                authkey *ak = new authkey(args[1], bin2hex(buf, priv, 32));
+                if(ak->name)
+                {
+                    authkeys.add(ak);
+                    stream *f = openfile(AUTHKEYSCFGFILE, "ab");
+                    if(f)
+                    {
+                        f->printf("// authkey \"%s\", generated %s\n", ak->name, timestring("%c"));
+                        f->printf("//  prepriv %s\n", bin2hex(buf, prepriv, 42));
+                        f->printf("//  priv %s\n", bin2hex(buf, priv, 32));
+                        f->printf("//  pub %s\n", bin2hex(buf, pub, 32));
+                        f->printf("authkey add %s %s\n\n", ak->name, bin2hex(buf, priv, 32));
+                        delete f;
+                    }
+                    conoutf("authkey %s generated.", ak->name);
+                }
+            }
+        }
+        else if(!strcasecmp(args[0], "ADD"))
+        { // authkey add name privkey
+            if(numargs > 2)
+            {
+                delauthkey(args[1]);
+                authkey *ak = new authkey(args[1], args[2]);
+                if(ak->name) authkeys.add(ak);
+            }
+        }
+        else if(!strcasecmp(args[0], "SELFCERT"))
+        { // authkey selfcert name
+            const uchar *sk;
+            if(numargs > 1 && (sk = getauthkey(args[1])))
+            {
+                defformatstring(cmd)("newcert start\n"
+                                     "newcert line pubkey %s\n"
+                                     "newcert line name \"%s\" \"%s\"\n"
+                                     "newcert sign \"%s\" \"self-signed cert\"\n"
+                                     "\n", bin2hex(buf, sk + 32, 32), args[1], numargs > 2 ? args[2] : "", args[1]);
+                execute(cmd);
+            }
+        }
+    }
+}
+COMMANDN(authkey,authkey_, "v");
+
 #endif
 
 

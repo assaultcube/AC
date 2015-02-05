@@ -1283,6 +1283,7 @@ int main(int argc, char **argv)
     exec("config/admin.cfg");
     execfile("config/servers.cfg");
     execfile("config/pcksources.cfg");
+    execfile("config/authkeys.cfg");
     execfile("config/authprivate.cfg");
     loadhistory();
     setupautodownload();

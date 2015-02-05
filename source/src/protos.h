@@ -1,5 +1,19 @@
 // protos for ALL external functions in cube...
 
+struct authkey
+{
+    const char *name;
+    uchar sk[64];
+
+    authkey(const char *aname, const char *privkey);
+
+    ~authkey()
+    {
+        if(name) printf("deleting %s\n", name);
+        DELSTRING(name);
+    }
+};
+
 #ifndef STANDALONE
 
 extern bool hasTE, hasMT, hasMDA, hasDRE, hasstencil, hasST2, hasSTW, hasSTS, hasAF;
@@ -30,25 +44,6 @@ struct color
     color(){}
     color(float r, float g, float b) : r(r), g(g), b(b), alpha(1.0f) {}
     color(float r, float g, float b, float a) : r(r), g(g), b(b), alpha(a) {}
-};
-
-struct authkey // for AUTH
-{
-    char *name, *key, *desc;
-    int lastauth;
-
-    authkey(const char *name, const char *key, const char *desc)
-        : name(newstring(name)), key(newstring(key)), desc(newstring(desc)),
-          lastauth(0)
-    {
-    }
-
-    ~authkey()
-    {
-        DELETEA(name);
-        DELETEA(key);
-        DELETEA(desc);
-    }
 };
 
 // console
