@@ -47,7 +47,7 @@ bool changemapserv(char *name, int mode, int download, int revision)        // f
         bool revmatch = hdr.maprevision == revision || revision == 0;
         if(watchingdemo)
         {
-            if(!revmatch) conoutf(_("%c3demo was recorded on map revision %d, you have map revision %d"), CC, revision, hdr.maprevision);
+            if(loaded && !revmatch) conoutf(_("%c3demo was recorded on map revision %d, you have map revision %d"), CC, revision, hdr.maprevision);
         }
         else
         {
