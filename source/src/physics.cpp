@@ -637,7 +637,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         {
             if(!pl->lastsplash || lastmillis-pl->lastsplash>500)
             {
-                audiomgr.playsound(S_SPLASH2, pl);
+                audiomgr.playsound(S_SPLASH2, &pl->o);
                 pl->lastsplash = lastmillis;
             }
             if(pl==player1) pl->vel.z = 0;
