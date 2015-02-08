@@ -1448,6 +1448,7 @@ COMMANDF(rnd, "i", (int *a) { intret(*a>0 ? rnd(*a) : 0); });
 #ifndef STANDALONE
 void writecfg()
 {
+    filerotate("config/saved", "cfg", CONFIGROTATEMAX); // keep five old config sets
     stream *f = openfile(path("config/saved.cfg", true), "w");
     if(!f) return;
     f->printf("// automatically written on exit, DO NOT MODIFY\n// delete this file to have defaults.cfg overwrite these settings\n// modify settings in game, or put settings in autoexec.cfg to override anything\n\n");
@@ -1495,7 +1496,14 @@ void writecfg()
     writebinds(f);
     f->printf("\n// aliases\n\n");
     enumerate(*idents, ident, id,
-        if(id.type==ID_ALIAS && id.persist && id.action[0])
+        if(id.type==ID_ALIAS && id.persist && id.action[0] && strncmp(id.name, "demodesc_", 9))
+        {
+            f->printf("%s = [%s]\n", id.name, id.action);
+        }
+    );
+    f->printf("\n// demo descriptions\n\n");
+    enumerate(*idents, ident, id,
+        if(id.type==ID_ALIAS && id.persist && id.action[0] && !strncmp(id.name, "demodesc_", 9) && id.action)
         {
             f->printf("%s = [%s]\n", id.name, id.action);
         }

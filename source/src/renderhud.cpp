@@ -534,15 +534,14 @@ void drawradar_showmap(playerent *p, int w, int h)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glDisable(GL_BLEND);
 
-    float gdim = max(mapdims[4], mapdims[5]); //no border
-    float coordtrans = (minimapviewsize)/(gdim);
-
-    float offd = fabs(float(mapdims[5])-float(mapdims[4])) /2.0f;
+    float gdim = max(mapdims.xspan, mapdims.yspan); //no border
+    float offd = fabs((mapdims.yspan - mapdims.xspan) / 2.0f);
     if(!gdim) { gdim = ssize/2.0f; offd = 0; }
-    float offx = gdim==mapdims[5] ? offd : 0;
-    float offy = gdim==mapdims[4] ? offd : 0;
+    float coordtrans = minimapviewsize / gdim;
+    float offx = gdim == mapdims.yspan ? offd : 0;
+    float offy = gdim == mapdims.xspan ? offd : 0;
 
-    vec mdd = vec(mapdims[0]-offx, mapdims[1]-offy, 0);
+    vec mdd = vec(mapdims.x1 - offx, mapdims.y1 - offy, 0);
     vec cod(offx, offy, 0);
     vec ppv = vec(p->o).sub(mdd).mul(coordtrans);
 
@@ -600,18 +599,18 @@ void drawradar_showmap(playerent *p, int w, int h)
 void drawradar_vicinity(playerent *p, int w, int h)
 {
     extern GLuint minimaptex;
-    int gdim = max(mapdims[4], mapdims[5]);
+    int gdim = max(mapdims.xspan, mapdims.yspan);
     float radarviewsize = min(VIRTW,VIRTH)/5;
     float halfviewsize = radarviewsize/2.0f;
     float iconsize = radarentsize/0.4f;
     float scaleh = radarheight/(2.0f*gdim);
     float scaled = radarviewsize/float(radarheight);
-    float offd = fabs((mapdims[5]-mapdims[4]) /2.0f);
-    if(!gdim) { gdim = ssize/2; offd = 0; }
-    float offx = gdim==mapdims[5]?offd:0;
-    float offy = gdim==mapdims[4]?offd:0;
-    vec rtr = vec(mapdims[0]-offx, mapdims[1]-offy, 0);
-    vec rsd = vec(mapdims[0]+mapdims[4]/2, mapdims[1]+mapdims[5]/2, 0);
+    float offd = fabs((mapdims.yspan - mapdims.xspan) / 2.0f);
+    if(gdim < 1) { gdim = ssize/2; offd = 0; }
+    float offx = gdim == mapdims.yspan ? offd : 0;
+    float offy = gdim==mapdims.xspan ? offd : 0;
+    vec rtr = vec(mapdims.x1 - offx, mapdims.y1 - offy, 0);
+    vec rsd = vec(mapdims.xm, mapdims.ym, 0);
     float d2s = radarheight/2.0f;
     glColor3f(1.0f, 1.0f, 1.0f);
     glPushMatrix();
@@ -801,10 +800,12 @@ string enginestateinfo = "";
 void CSgetEngineState() { result(enginestateinfo); }
 COMMANDN(getEngineState, CSgetEngineState, "");
 
-VARP(clockdisplay,0,0,2);
+VARP(clockdisplay,0,1,1);
+VARP(clockcount,0,0,1);
 VARP(dbgpos,0,0,1);
 VARP(showtargetname,0,1,1);
 VARP(showspeed, 0, 0, 1);
+string gtime;
 
 void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwater)
 {
@@ -971,13 +972,12 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             if(unsavededits) draw_text("U", VIRTW*2 - text_width("U") - FONTH, VIRTH*2 - 5*FONTH/2);
         }
     }
-    if(!intermission && clockdisplay!=0 && lastgametimeupdate!=0)
+    if(!intermission && lastgametimeupdate!=0)
     {
-        string gtime;
         int cssec = (gametimecurrent+(lastmillis-lastgametimeupdate))/1000;
         int gtsec = cssec%60;
         int gtmin = cssec/60;
-        if(clockdisplay==1)
+        if(!clockcount)
         {
             int gtmax = gametimemaximum/60000;
             gtmin = gtmax - gtmin;
@@ -988,7 +988,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             }
         }
         formatstring(gtime)("%02d:%02d", gtmin, gtsec);
-        draw_text(gtime, (VIRTW-225-10)*2 - (text_width(gtime)/2 + FONTH/2), 20);
+        if(clockdisplay) draw_text(gtime, (VIRTW-225-10)*2 - (text_width(gtime)/2 + FONTH/2), 20);
     }
 
     if(hidevote < 2 && multiplayer(false))
@@ -1025,16 +1025,13 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     if(menu) rendermenu();
     else if(command) renderdoc(40, VIRTH, max(commandh*2 - VIRTH, 0));
 
-    if(!hidehudmsgs) hudmsgs.render();
-
-
     if(!hidespecthud && !menu && p->state==CS_DEAD && p->spectatemode<=SM_DEATHCAM)
     {
         glLoadIdentity();
         glOrtho(0, VIRTW*3/2, VIRTH*3/2, 0, -1, 1);
-        const int left = (VIRTW*3/2)*8/11, top = (VIRTH*3/2)*3/4;
-        draw_textf("SPACE to change view", left, top);
-        draw_textf("SCROLL to change player", left, top+80);
+        const int left = (VIRTW)*3/2, top = (VIRTH*3/2)*3/4;
+        draw_textf("SPACE to change view", left - (text_width("SCROLL to change player") + FONTH/2), top);
+        if(!m_botmode) draw_textf("SCROLL to change player", left - (text_width("SCROLL to change player") + FONTH/2), top+80);
     }
 
     /* * /
@@ -1071,6 +1068,8 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             draw_text(name, VIRTW/40, VIRTH/10*8);
         }
     }
+
+    if(!hidehudmsgs) hudmsgs.render();
 
     if(p->state==CS_ALIVE)
     {

@@ -834,7 +834,7 @@ bool favcatcheckkey(serverinfo &si, const char *key)
         case '$':
             if(key[1])
             {
-                formatstring(text)("%s \"%s\" %d %d, %d %d %d \"%s\" %d %d", key + 1, si.map, si.mode, si.ping, si.minremain, si.numplayers, si.maxclients, si.name, si.port, si.pongflags);
+                formatstring(text)("%s \"%s\" %d %d %d %d %d \"%s\" %d %d", key + 1, si.map, si.mode, si.ping, si.minremain, si.numplayers, si.maxclients, si.name, si.port, si.pongflags);
                 filtertext(text, text, FTXT_NOCOLOR|FTXT_NOWHITE|FTXT_ALLOWBLANKS);
                 int cnt = 0;
                 for(const char *p = text; (p = strchr(p, '\"')); p++) cnt++;
@@ -842,8 +842,9 @@ bool favcatcheckkey(serverinfo &si, const char *key)
             }
             break;
         default:
-            filtertext(text, si.sdesc, FTXT_NOCOLOR|FTXT_NOWHITE|FTXT_ALLOWBLANKS);
-            return *key && strstr(text, key);
+            filtertext(text, si.sdesc, FTXT_NOCOLOR|FTXT_NOWHITE|FTXT_ALLOWBLANKS|(showonlyfavourites > 0 ? FTXT_TOUPPER : 0));
+            strtoupper(keyuc, key);
+            return *key && strstr(text, showonlyfavourites > 0 ? keyuc : key);
     }
     return false;
 }
@@ -874,6 +875,30 @@ const char *favcatcheck(serverinfo &si, const char *ckeys, char *autokeys = NULL
     }
     delete[] keys;
     return res ? nkeys : NULL;
+}
+
+void serverbrowseralternativeviews(int shiftdirection)
+{
+    const char *ckeys = getalias("serverbrowseraltviews");
+    if(!ckeys) return;
+    const char *sep = " \t\n\r";
+    char *keys = newstring(ckeys), *k = strtok(keys, sep);
+    vector<int> cats;
+    cats.add(0);
+    while(k)
+    {
+        loopv(favcats) if(!strcmp(favcats[i], k)) cats.add(i + 1);
+        k = strtok(NULL, sep);
+    }
+    delete[] keys;
+    if(cats.length())
+    {
+        loopv(cats)
+        {
+           if(cats[i] == showonlyfavourites) { showonlyfavourites = cats[(i + shiftdirection + cats.length()) % cats.length()]; return; }
+        }
+    }
+    showonlyfavourites = 0;
 }
 
 vector<const char *> favcattags;
@@ -909,6 +934,7 @@ bool assignserverfavourites()
                             if(!si.bgcolor) si.bgcolor = new color;
                             new (si.bgcolor) color(((float)alxn[FC_RED])/100, ((float)alxn[FC_GREEN])/100, ((float)alxn[FC_BLUE])/100, ((float)alxn[FC_ALPHA])/100);
                         }
+                        else DELETEP(si.bgcolor)
                     }
                 }
             }
@@ -1047,7 +1073,7 @@ void refreshservers(void *menu, bool init)
                 }
                 else
                 {
-                    if(!hidefavicons && showfavtag && si.favcat > -1) favimage = getalias(favcatargname(favcats[si.favcat], FC_IMAGE));
+                    if(!hidefavicons && !showweights && showfavtag && si.favcat > -1) favimage = getalias(favcatargname(favcats[si.favcat], FC_IMAGE));
                     filterrichtext(text, si.favcat > -1 && !favimage ? favcattags[si.favcat] : "");
                     if(showweights) concatformatstring(text, "(%d)", si.weight);
                     formatstring(si.full)(showfavtag ? (favimage ? "\t" : "\fs%s\fr\t") : "", text);
@@ -1187,6 +1213,14 @@ bool serverskey(void *menu, int code, bool isdown, int unicode)
             serversort = (serversort+1) % NUMSERVSORT;
             return true;
 
+        case SDLK_LEFTBRACKET:
+            serverbrowseralternativeviews(-1);
+            return true;
+
+        case SDLK_RIGHTBRACKET:
+            serverbrowseralternativeviews(1);
+            return true;
+
         case SDLK_F5:
             updatefrommaster(1);
             return true;
@@ -1267,6 +1301,7 @@ void clearservers()
 }
 
 #define RETRIEVELIMIT 5000
+extern size_t write_callback(void *ptr, size_t size, size_t nmemb, FILE *stream);
 extern char *global_name;
 bool cllock = false, clfail = false;
 
@@ -1276,7 +1311,7 @@ struct resolver_data
     string text;
 };
 
-static int progress_callback(void *clientp, double dltotal, double dlnow, double ultotal, double ulnow)
+int progress_callback_retrieveservers(void *clientp, double dltotal, double dlnow, double ultotal, double ulnow)
 {
     resolver_data *rd = (resolver_data *)clientp;
     rd->timeout = SDL_GetTicks() - rd->starttime;
@@ -1287,11 +1322,6 @@ static int progress_callback(void *clientp, double dltotal, double dlnow, double
         return 1;
     }
     return 0;
-}
-
-static size_t write_callback(void *ptr, size_t size, size_t nmemb, FILE *stream)
-{
-    return fwrite(ptr, size, nmemb, stream);
 }
 
 void retrieveservers(vector<char> &data)
@@ -1327,7 +1357,7 @@ void retrieveservers(vector<char> &data)
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, outfile);
         curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0);
-        curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progress_callback);
+        curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progress_callback_retrieveservers);
         curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, rd);
         curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, RETRIEVELIMIT/1000);
         result = curl_easy_perform(curl);

@@ -109,34 +109,35 @@ COMMAND(mapmodel, "iiiss");
 COMMAND(mapmodelreset, "");
 
 hashtable<const char *, model *> mdllookup;
-model *nomodel = NULL;
+hashtable<const char *, char> mdlnotfound;
 
-model *loadmodel(const char *name, int i, bool trydl)
+model *loadmodel(const char *name, int i, bool trydl)     // load model by name (optional) or from mapmodels[i]
 {
-    if(!name)
+    if(!name)                                   // name == NULL -> get index i from mapmodels[]
     {
         if(!mapmodels.inrange(i)) return NULL;
         mapmodelinfo &mmi = mapmodels[i];
-        if(mmi.m) return mmi.m;
+        if(mmi.m) return mmi.m;                 // mapmodels[i] was already loaded
         name = mmi.name;
     }
+    if(mdlnotfound.access(name)) return NULL;   // already tried to find that earlier -> not available
     model **mm = mdllookup.access(name);
     model *m;
-    if(mm) m = *mm;
+    if(mm) m = *mm;                             // a model of that name is already loaded
     else
     {
         pushscontext(IEXC_MDLCFG);
-        m = new md2(name);
+        m = new md2(name);                      // try md2
         loadingmodel = m;
-        if(!m->load())
+        if(!m->load())                          // md2 didn't load
         {
             delete m;
-            m = new md3(name);
+            m = new md3(name);                  // try md3
             loadingmodel = m;
-            if(!m->load())
+            if(!m->load())                      // md3 didn't load -> we don't have that model
             {
                 delete m;
-                loadingmodel = NULL;
+                m = loadingmodel = NULL;
                 if(trydl)
                 {
                     defformatstring(dl)("packages/models/%s", name);
@@ -144,26 +145,15 @@ model *loadmodel(const char *name, int i, bool trydl)
                 }
                 else
                 {
-                    mdllookup.access(newstring(name), nomodel);
                     conoutf("\f3failed to load model %s", name);
+                    mdlnotfound.access(newstring(name), 0);  // do not search for this name again
                 }
             }
         }
         popscontext();
-        if(!loadingmodel)
-        {
-            if(!trydl)
-            {
-                conoutf(_("failed to load model %s"), name);
-                if(!nomodel) nomodel = new md2("nomodel");
-                m = nomodel;
-                mdllookup.access(newstring(name), m);
-            }
-        }
-        else mdllookup.access(m->name(), m);
+        if(loadingmodel && m) mdllookup.access(m->name(), m);
         loadingmodel = NULL;
     }
-    if(m == nomodel) return NULL;
     if(mapmodels.inrange(i) && !mapmodels[i].m) mapmodels[i].m = m;
     return m;
 }

@@ -87,6 +87,7 @@ struct gun : weapon
     virtual void attackfx(const vec &from, const vec &to, int millis);
     int modelanim();
     void checkautoreload();
+    void onownerdies();
 };
 
 

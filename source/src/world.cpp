@@ -286,11 +286,11 @@ entity *newentity(int index, int x, int y, int z, char *what, int v1, int v2, in
         case MAPMODEL:
             e.attr4 = e.attr3;
             e.attr3 = e.attr2;
-            e.attr2 = (uchar)e.attr1;
         case PLAYERSTART:
         case CTF_FLAG:
             e.attr2 = v1;
             e.attr1 = (int)camera1->yaw;
+            if(type != PLAYERSTART) e.attr1 = (e.attr1 + 7 - (e.attr1 + 7) % 15) * 4;
             break;
     }
     syncentchanges(true);
@@ -447,6 +447,41 @@ bool worldbordercheck(int x1, int x2, int y1, int y2, int z1, int z2)  // check 
     return true;
 }
 
+void calcmapdims()
+{
+    mapdims.x1 = mapdims.y1 = ssize;
+    mapdims.x2 = mapdims.y2 = 0;
+    mapdims.minfloor = 127; mapdims.maxceil = -128;   // flow initialised those two with "0", but i'd guess, that was by mistake
+    sqr *s = world;
+    for(int y = 0; y < ssize; y++) for(int x = 0; x < ssize; x++)
+    {
+        if(!SOLID(s))
+        {
+            if(OUTBORD(x, y)) conoutf("non-solid cube in world border found: x %d, y %d", x, y); // will also go fatal() below
+            if(x < mapdims.x1) mapdims.x1 = x;
+            if(x > mapdims.x2) mapdims.x2 = x;
+            if(y < mapdims.y1) mapdims.y1 = y;
+            mapdims.y2 = y;
+            if(s->floor < mapdims.minfloor) mapdims.minfloor = s->floor;   // for some reason, flow excluded cubes with floor == -128 here -  let's try without that...
+            if(s->ceil > mapdims.maxceil) mapdims.maxceil = s->ceil;
+        }
+        s++;
+    }
+    if(mapdims.x2 < mapdims.x1 || mapdims.y2 < mapdims.y1)
+    { // map is completely solid -> default to empty map values
+        mapdims.x1 = mapdims.y1 = 2;
+        mapdims.x2 = mapdims.y2 = ssize - 3;
+        mapdims.minfloor = 0;
+        mapdims.maxceil = 16;
+    }
+    if(mapdims.x1 < MINBORD || mapdims.y1 < MINBORD || mapdims.x2 >= ssize - MINBORD || mapdims.y2 >= ssize - MINBORD)
+        fatal("calcmapdims(): world border violation (x:%d..%d, y:%d..%d)", mapdims.x1, mapdims.x2, mapdims.y1, mapdims.y2);
+    mapdims.xspan = mapdims.x2 - mapdims.x1 + 1;
+    mapdims.yspan = mapdims.y2 - mapdims.y1 + 1;
+    mapdims.xm = mapdims.x1 + mapdims.xspan / 2.0f;
+    mapdims.ym = mapdims.y1 + mapdims.yspan / 2.0f;
+}
+
 bool empty_world(int factor, bool force)    // main empty world creation routine, if passed factor -1 will enlarge old world by 1, factor -2 will shrink old world by 1
 {
     if(!force && noteditmode("empty world")) return false;
@@ -509,6 +544,7 @@ bool empty_world(int factor, bool force)    // main empty world creation routine
     hdr.headersize = sizeof(header);
     hdr.sfactor = sfactor;
 
+    calcmapdims();
     calclight();
     resetmap(!copy);
     if(clearmap)
@@ -522,12 +558,6 @@ bool empty_world(int factor, bool force)    // main empty world creation routine
         popscontext();
         setvar("fullbright", 1);
         fullbrightlight();
-
-        mapdims[0] = mapdims[1] = 0;
-        mapdims[2] = mapdims[3] = ssize;
-        mapdims[4] = mapdims[5] = ssize;
-        mapdims[6] = 0;
-        mapdims[7] = 16;
     }
     if(!copy)
     {

@@ -112,7 +112,6 @@ inline void vformatstring(char *d, const char *fmt, va_list v, int len = MAXSTRL
 inline char *copystring(char *d, const char *s, size_t len = MAXSTRLEN) { strncpy(d, s, len); d[len-1] = 0; return d; }
 inline char *concatstring(char *d, const char *s, size_t len = MAXSTRLEN) { size_t used = strlen(d); return used < len ? copystring(d+used, s, len-used) : d; }
 extern char *concatformatstring(char *d, const char *s, ...);
-extern char *tempformatstring(const char *s, ...);
 
 struct stringformatter
 {
@@ -949,6 +948,7 @@ extern stream *openfile(const char *filename, const char *mode);
 extern stream *opentempfile(const char *filename, const char *mode);
 extern stream *opengzfile(const char *filename, const char *mode, stream *file = NULL, int level = Z_BEST_COMPRESSION);
 extern char *loadfile(const char *fn, int *size, const char *mode = NULL);
+extern void filerotate(const char *basename, const char *ext, int keepold, const char *oldformat = NULL);
 extern bool listdir(const char *dir, const char *ext, vector<char *> &files);
 extern int listfiles(const char *dir, const char *ext, vector<char *> &files);
 extern int listzipfiles(const char *dir, const char *ext, vector<char *> &files);
@@ -972,6 +972,7 @@ extern const char *iptoa(const enet_uint32 ip);
 extern const char *iprtoa(const struct iprange &ipr);
 extern int cmpiprange(const struct iprange *a, const struct iprange *b);
 extern int cmpipmatch(const struct iprange *a, const struct iprange *b);
+extern int cvecprintf(vector<char> &v, const char *s, ...);
 extern const char *hiddenpwd(const char *pwd, int showchars = 0);
 
 #if defined(WIN32) && !defined(_DEBUG) && !defined(__GNUC__)

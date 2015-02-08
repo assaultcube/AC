@@ -256,6 +256,7 @@ struct client                   // server side version of "dynent" type
     bool at3_dontmove;
     int spawnindex;
     int spawnperm, spawnpermsent;
+	bool autospawn;
     int salt;
     string pwd;
     uint authreq; // for AUTH
@@ -294,6 +295,7 @@ struct client                   // server side version of "dynent" type
         isonrightmap = m_coop;
         spawnperm = SP_WRONGMAP;
         spawnpermsent = servmillis;
+		autospawn = false;
         if(!getmap)
         {
             loggedwrongmap = false;

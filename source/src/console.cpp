@@ -94,6 +94,10 @@ COMMANDN(toggleconsole, toggleconsole, "");
 
 void renderconsole() { con.render(); }
 
+stream *clientlogfile = NULL;
+vector<char> *bootclientlog = new vector<char>;
+int clientloglinesremaining = INT_MAX;
+
 void clientlogf(const char *s, ...)
 {
     defvformatstring(sp, s, s);
@@ -105,6 +109,12 @@ void clientlogf(const char *s, ...)
     { // break into single lines first
         if((p = strchr(l, '\n'))) *p = '\0';
         printf("%s%s\n", ts, l);
+        if(clientlogfile)
+        {
+            clientlogfile->printf("%s%s\n", ts, l);
+            if(--clientloglinesremaining <= 0) DELETEP(clientlogfile);
+        }
+        else if(bootclientlog) cvecprintf(*bootclientlog, "%s%s\n", ts, l);
         l = p + 1;
     }
     while(p);

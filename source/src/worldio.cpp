@@ -486,6 +486,7 @@ void save_world(char *mname, bool skipoptimise, bool addcomfort)
     int writeextra = 0;
     if(hx.maxlen) tmp.headersize += writeextra = clamp(hx.maxlen, 0, MAXHEADEREXTRA);
     if(writeextra || skipoptimise) tmp.version = 10;   // 9 and 10 are the same, but in 10 the headersize is reliable - if we don't need it, stick to 9
+    bool oldmapmodelscaling = tmp.version < 10;
     tmp.maprevision += advancemaprevision;
     DEBUG("version " << tmp.version << " headersize " << tmp.headersize << " entities " << tmp.numents << " factor " << tmp.sfactor << " revision " << tmp.maprevision);
     lilswap(&tmp.version, 4);
@@ -501,6 +502,7 @@ void save_world(char *mname, bool skipoptimise, bool addcomfort)
         {
             if(!ne--) break;
             persistent_entity tmp = ents[i];
+            if(oldmapmodelscaling && tmp.type == MAPMODEL) tmp.attr1 = tmp.attr1 / 4;
             lilswap((short *)&tmp, 4);
             f->write(&tmp, sizeof(persistent_entity));
         }
@@ -517,12 +519,11 @@ VARP(preserveundosonsave, 0, 0, 1);
 COMMANDF(savemap, "s", (char *name) { save_world(name, preserveundosonsave && editmode, preserveundosonsave && editmode); } );
 COMMANDF(savemapoptimised, "s", (char *name) { save_world(name, false, false); } );
 
-extern int mapdims[8];     // min/max X/Y and delta X/Y and min-floor/max-ceil
 void showmapdims()
 {
-    conoutf("  min X|Y|Z: %3d : %3d : %3d", mapdims[0], mapdims[1], mapdims[6]);
-    conoutf("  max X|Y|Z: %3d : %3d : %3d", mapdims[2], mapdims[3], mapdims[7]);
-    conoutf("delta X|Y|Z: %3d : %3d : %3d", mapdims[4], mapdims[5], mapdims[7]-mapdims[6]);
+    conoutf("  min X|Y|Z: %3d : %3d : %3d", mapdims.x1, mapdims.y1, mapdims.minfloor);
+    conoutf("  max X|Y|Z: %3d : %3d : %3d", mapdims.x2, mapdims.y2, mapdims.maxceil);
+    conoutf("delta X|Y|Z: %3d : %3d : %3d", mapdims.xspan, mapdims.yspan, mapdims.maxceil - mapdims.minfloor);
 }
 COMMAND(showmapdims, "");
 
@@ -638,6 +639,17 @@ bool load_world(char *mname)        // still supports all map formats that have 
             if(e.attr1>32) e.attr1 = 32; // 12_03 and below
         }
         transformoldentities(hdr.version, e.type);
+        if(hdr.version < 10)
+        {
+            switch(e.type)
+            {
+                case CTF_FLAG:
+                case MAPMODEL:
+                    e.attr1 = e.attr1 + 7 - (e.attr1 + 7) % 15;  // round the angle to the nearest 15-degree-step
+                    e.attr1 = (e.attr1 % 360) * 4;    // cut down to less that one rotation and set resolution to 0.25 degree
+                    break;
+            }
+        }
         if(e.type == PLAYERSTART && (e.attr2 == 0 || e.attr2 == 1 || e.attr2 == 100))
         {
             if(e.attr2 == 100)
@@ -671,7 +683,6 @@ bool load_world(char *mname)        // still supports all map formats that have 
     Mv = Ma = Hhits = 0;
     char texuse[256];
     loopi(256) texuse[i] = 0;
-    loopk(8) mapdims[k] = k < 2 ? ssize : 0;
     loopk(cubicsize)
     {
         sqr *s = &world[k];
@@ -687,21 +698,13 @@ bool load_world(char *mname)        // still supports all map formats that have 
                 Mv += diff;
             }
             texuse[s->utex] = texuse[s->ftex] = texuse[s->ctex] = 1;
-            int cwx = k%ssize,
-                cwy = k/ssize;
-            if(cwx < mapdims[0]) mapdims[0] = cwx;
-            if(cwy < mapdims[1]) mapdims[1] = cwy;
-            if(cwx > mapdims[2]) mapdims[2] = cwx;
-            if(cwy > mapdims[3]) mapdims[3] = cwy;
-            if(s->floor != -128 && s->floor < mapdims[6]) mapdims[6] = s->floor;
-            if(s->ceil  > mapdims[7]) mapdims[7] = s->ceil;
         }
         texuse[s->wtex] = 1;
     }
     Mh = Ma ? (float)Mv/Ma : 0;
-    loopk(2) mapdims[k+4] = mapdims[k+2] + 1 - mapdims[k]; // 8..15 ^= 8 cubes - minimal X/Y == 2 - != 0 !!
-    c2skeepalive();
 
+    c2skeepalive();
+    calcmapdims();
     calclight();
     conoutf("read map %s rev %d (%d milliseconds)", cgzname, hdr.maprevision, watch.stop());
     conoutf("%s", hdr.maptitle);
@@ -739,7 +742,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
 
     watch.start();
     int downloaded = downloadpackages();
-    if(downloaded > 0) clientlogf("downloaded content (%d KB in %d seconds)", downloaded/1000, watch.stop()/1000);
+    if(downloaded > 0) clientlogf("downloaded content (%d KB in %d seconds)", downloaded/1024, watch.stop()/1000);
 
     c2skeepalive();
 

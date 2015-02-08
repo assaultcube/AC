@@ -26,8 +26,8 @@ sqr rtex;
 VAR(editing, 1, 0, 0);
 VAR(unsavededits, 1, 0, 0);
 
-bool editmetakeydown = false;
-COMMANDF(editmeta, "d", (bool on) { editmetakeydown = on; } );
+VAR(editmetakeydown, 1, 0, 0);
+COMMANDF(editmeta, "d", (bool on) { editmetakeydown = on ? 1 : 0; } );
 
 void toggleedit(bool force)
 {
@@ -175,6 +175,12 @@ COMMANDF(showtagclipfocus, "d", (bool on) { showtagclipfocus = on; } );
 VAR(showtagclips, 0, 1, 1);
 FVAR(tagcliplinewidth, 0.2, 1, 3);
 
+inline void forceinsideborders(int &xy)
+{
+    if(xy < MINBORD) xy = MINBORD;
+    if(xy >= ssize - MINBORD) xy = ssize - MINBORD - 1;
+}
+
 void cursorupdate()                                     // called every frame from hud
 {
     flrceil = ((int)(camera1->pitch>=0))*2;
@@ -188,7 +194,13 @@ void cursorupdate()                                     // called every frame fr
     cx = (int)x;
     cy = (int)y;
 
-    if(OUTBORD(cx, cy)) return;
+    if(OUTBORD(cx, cy))
+    {
+        forceinsideborders(cx);
+        forceinsideborders(cy);
+        return;
+    }
+
     sqr *s = S(cx,cy);
 
     if(fabs(sheight(s,s,z)-z)>1)                        // selected wall
@@ -199,7 +211,12 @@ void cursorupdate()                                     // called every frame fr
         cx = (int)x;
         cy = (int)y;
 
-        if(OUTBORD(cx, cy)) return;
+        if(OUTBORD(cx, cy))
+        {
+            forceinsideborders(cx);
+            forceinsideborders(cy);
+            return;
+        }
     }
 
     if(dragging) makesel(false);

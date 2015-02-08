@@ -52,6 +52,9 @@ struct authkey // for AUTH
 };
 
 // console
+extern stream *clientlogfile;
+extern vector<char> *bootclientlog;
+
 extern void keypress(int code, bool isdown, int cooked, SDLMod mod = KMOD_NONE);
 extern int rendercommand(int x, int y, int w);
 extern void renderconsole();
@@ -480,6 +483,7 @@ extern void teamflagscores(int &team1, int &team2);
 extern void setupworld(int factor);
 extern void sqrdefault(sqr *s);
 extern bool worldbordercheck(int x1, int x2, int y1, int y2, int z1, int z2);
+extern void calcmapdims();
 extern bool empty_world(int factor, bool force);
 extern void remip(const block &b, int level = 0);
 extern void remipmore(const block &b, int level = 0);
@@ -676,7 +680,7 @@ extern bool addscorchmark(vec &o, float radius = 7);
 extern void render_particles(int time, int typemask = ~0);
 
 // worldio
-extern int mapdims[8];
+extern mapdim mapdims;
 extern const char *setnames(const char *name);
 extern void save_world(char *mname, bool skipoptimise = false, bool addcomfort = false);
 extern bool load_world(char *mname);
@@ -735,7 +739,6 @@ extern void clearmodelbatches();
 extern mapmodelinfo &getmminfo(int i);
 extern int findanim(const char *name);
 extern void loadskin(const char *dir, const char *altdir, Texture *&skin);
-extern model *nomodel;
 extern model *loadmodel(const char *name, int i = -1, bool trydl = false);
 extern void preload_playermodels();
 extern void preload_entmodels();

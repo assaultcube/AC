@@ -355,7 +355,9 @@ void renderscores(void *menu, bool init)
         formatstring(modeline)("\"%s\" on map %s", modestr(gamemode, modeacronyms > 0), fldrprefix ? getclientmap()+strlen("maps/") : getclientmap());
     }
 
-    extern int minutesremaining;
+    extern int minutesremaining, clockcount;
+    extern string gtime;
+
     if((gamemode>1 || (gamemode==0 && (multiplayer(false) || watchingdemo))) && minutesremaining >= 0)
     {
         if(!minutesremaining)
@@ -380,7 +382,12 @@ void renderscores(void *menu, bool init)
                 else concatformatstring(modeline, ", \f1%s wins!", scores[0]->name);
             }
         }
-        else concatformatstring(modeline, ", %d %s remaining", minutesremaining, minutesremaining==1 ? "minute" : "minutes");
+        else
+        {
+            concatformatstring(modeline, ", %s", gtime);
+            if(!clockcount) concatformatstring(modeline, " remaining");
+            else concatformatstring(modeline, " / %d:00", gametimemaximum/60000);
+        }
     }
 
     if(multiplayer(false))
@@ -450,7 +457,7 @@ const char *asciiscores(bool destjpg)
         if(s)
         {
             string sdesc;
-            filtertext(sdesc, s->sdesc, FTXT__SERVDESC);
+            filtertext(sdesc, s->sdesc, FTXT__SERVDESC | FTXT_NOCOLOR);
             formatstring(text)(", %s:%d %s", s->name, s->port, sdesc);
             addstr(buf, text);
         }

@@ -42,7 +42,7 @@ void audiomanager::initsound()
             copystring(d, "Audio devices: ");
 
             // null separated device string
-            for(const ALchar *c = devices; c[strlen(c)+1]; c += strlen(c)+1)
+            for(const ALchar *c = devices; *c; c += strlen(c)+1)
             {
                 if(c!=devices) concatstring(d, ", ");
                 concatstring(d, c);
@@ -268,10 +268,11 @@ void audiomanager::soundcleanup()
     mapsounds.shrink(0);
     locations.deletecontents();
     gamesounds.shrink(0);
-    bufferpool.clear();
 
     // kill scheduler
     sourcescheduler::instance().reset();
+
+    bufferpool.clear();
 
     // shutdown openal
     alcMakeContextCurrent(NULL);
@@ -559,7 +560,7 @@ void audiomanager::updateaudio()
 
     alcSuspendContext(context); // don't process sounds while we mess around
 
-    bool alive = player1->state!=CS_DEAD;
+    bool alive = player1->state==CS_ALIVE;
     bool firstperson = camera1==player1 || (player1->isspectating() && player1->spectatemode==SM_DEATHCAM);
 
     // footsteps

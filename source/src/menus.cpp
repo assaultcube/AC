@@ -15,7 +15,7 @@ char *getfiledesc(const char *dir, const char *name, const char *ext)
     if(!browsefiledesc || !dir || !name || !ext) return NULL;
     defformatstring(fn)("%s/%s.%s", dir, name, ext);
     path(fn);
-    string text;
+    string text, demodescalias;
     if(!strcmp(ext, "dmo"))
     {
         stream *f = opengzfile(fn, "rb");
@@ -33,6 +33,15 @@ char *getfiledesc(const char *dir, const char *name, const char *ext)
         }
         formatstring(text)("%s%s", tag, hdr.desc);
         text[DHDR_DESCCHARS - 1] = '\0';
+        formatstring(demodescalias)("demodesc_%s", name);
+        const char *customdesc = getalias(demodescalias);
+        if(customdesc)
+        {
+            int textlen = strlen(text);
+            concatformatstring(text, " \n\f4(Description: \f0%s\f4)", customdesc);
+            ASSERT(MAXSTRLEN > 2 * DHDR_DESCCHARS);
+            text[textlen + DHDR_DESCCHARS - 1] = '\0';
+        }
         return newstring(text);
     }
     else if(!strcmp(ext, "cgz"))
@@ -293,7 +302,7 @@ struct mitemimagemanual : mitemmanual
             if(image)
             {
                 glBindTexture(GL_TEXTURE_2D, image->id);
-                glDisable(GL_BLEND);
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
                 glColor3f(1, 1, 1);
                 xs = (FONTH*image->xs)/image->ys;
                 glBegin(GL_TRIANGLE_STRIP);
@@ -303,7 +312,6 @@ struct mitemimagemanual : mitemmanual
                 glTexCoord2f(1, 1); glVertex2f(x+xs, y+FONTH);
                 glEnd();
                 xtraverts += 4;
-                glEnable(GL_BLEND);
             }
             draw_text(text, !image || *text == '\t' ? x : x+xs + FONTH/2, y);
             if(altfont && strchr(text, '\a'))
@@ -326,8 +334,8 @@ struct mitemimagemanual : mitemmanual
                 int xs = (2 * VIRTW - w) / 5, ys = (xs * image->ys) / image->xs;
                 x = (6 * VIRTW + w - 2 * xs) / 4; y = VIRTH - ys / 2;
                 blendbox(x - FONTH, y - FONTH, x + xs + FONTH, y + ys + FONTH, false);
-                glBindTexture(GL_TEXTURE_2D, image->id);               // I just copy&pasted this...
-                glDisable(GL_BLEND);
+                glBindTexture(GL_TEXTURE_2D, image->id);
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
                 glColor3f(1, 1, 1);
                 glBegin(GL_TRIANGLE_STRIP);
                 glTexCoord2f(0, 0); glVertex2f(x,    y);
@@ -336,7 +344,6 @@ struct mitemimagemanual : mitemmanual
                 glTexCoord2f(1, 1); glVertex2f(x+xs, y+ys);
                 glEnd();
                 xtraverts += 4;
-                glEnable(GL_BLEND);
             }
         }
         else mitemmanual::render(x, y, w);
@@ -1094,12 +1101,14 @@ bool menukey(int code, bool isdown, int unicode, SDLMod mod)
             case SDLK_UP:
             case SDL_AC_BUTTON_WHEELUP:
                 if(iskeypressed(SDLK_LCTRL)) return menukey(SDLK_LEFT, isdown, 0);
+                if(iskeypressed(SDLK_LALT)) return menukey(SDLK_RIGHTBRACKET, isdown, 0);
                 if(!curmenu->allowinput) return false;
                 menusel--;
                 break;
             case SDLK_DOWN:
             case SDL_AC_BUTTON_WHEELDOWN:
                 if(iskeypressed(SDLK_LCTRL)) return menukey(SDLK_RIGHT, isdown, 0);
+                if(iskeypressed(SDLK_LALT)) return menukey(SDLK_LEFTBRACKET, isdown, 0);
                 if(!curmenu->allowinput) return false;
                 menusel++;
                 break;

@@ -718,6 +718,10 @@ void respawnself()
     if( m_mp(gamemode) ) addmsg(SV_TRYSPAWN, "r");
     else
     {
+        if(team_isspect(player1->team))
+        {
+            addmsg(SV_SWITCHTEAM, "ri", m_teammode ? teamatoi(BotManager.GetBotTeam()) : rnd(2));
+        }
         showscores(false);
         setscope(false);
         setburst(false);
@@ -959,20 +963,21 @@ void timeupdate(int milliscur, int millismax)
         conoutf(_("intermission:"));
         conoutf(_("game has ended!"));
         consolescores();
-        ((sniperrifle *)player1->weaponsel)->scoped = false;
         showscores(true);
         exechook(HOOK_SP_MP, "start_intermission", "");
     }
     else
     {
         extern int clockdisplay; // only output to console if no hud-clock is being shown
+        int sec = 60 - ( (gametimecurrent + ( lastmillis - lastgametimeupdate ) ) / 1000) % 60;
         if(minutesremaining==1)
         {
             audiomgr.musicsuggest(M_LASTMINUTE1 + rnd(2), 70*1000, true);
-            hudoutf("1 minute left!");
+            hudoutf("%s1 minute left!", sec==60 ? "" : "less than ");
             exechook(HOOK_SP_MP, "onLastMin", "");
         }
-        else if(clockdisplay==0) conoutf(_("time remaining: %d minutes"), minutesremaining);
+        else if(!clockdisplay) conoutf(_("time remaining: %d minutes"), minutesremaining);
+        else clientlogf(_("time remaining: %d minutes"), minutesremaining);
     }
 }
 
@@ -1320,7 +1325,7 @@ char *votestring(int type, const char *arg1, const char *arg2, const char *arg3)
             if(arg3 && arg3[0])
             {
                 int time = atoi(arg3);
-                if(time > 0 && time != defaultgamelimit(n)) formatstring(timestr)(" for %d minutes", time);
+                if(time > 0 && time != defaultgamelimit(n)) formatstring(timestr)(" for %d minute%s", time, time == 1 ? "" : "s");
             }
 
             if ( n >= GMODE_NUM )
@@ -1625,14 +1630,15 @@ void refreshsopmenu(void *menu, bool init)
 }
 
 extern bool watchingdemo;
+VARP(spectatepersistent,0,1,1);
 
 // rotate through all spec-able players
 playerent *updatefollowplayer(int shiftdirection)
 {
+    playerent *f = players.inrange(player1->followplayercn) ? players[player1->followplayercn] : NULL;
     if(!shiftdirection)
     {
-        playerent *f = players.inrange(player1->followplayercn) ? players[player1->followplayercn] : NULL;
-        if(f && (watchingdemo || !f->isspectating())) return f;
+        if(f && (watchingdemo || !f->isspectating() || spectatepersistent || (!spectatepersistent && !m_arena) )) return f;
     }
 
     // collect spec-able players
@@ -1643,7 +1649,7 @@ playerent *updatefollowplayer(int shiftdirection)
         if(players[i]->state==CS_DEAD || players[i]->isspectating()) continue;
         available.add(players[i]);
     }
-    if(!available.length()) return NULL;
+    if(!available.length()) return f;
 
     // rotate
     int oldidx = -1;
@@ -1666,7 +1672,7 @@ void spectate()
 void setfollowplayer(int cn)
 {
     // silently ignores invalid player-cn value passed
-    if(players.inrange(cn) && players[cn])
+    if(players.inrange(cn) && players[cn] && !m_botmode)
     {
         if(!(m_teammode && player1->team != TEAM_SPECT && !watchingdemo && team_base(players[cn]->team) != team_base(player1->team)))
         {
@@ -1680,7 +1686,7 @@ void setfollowplayer(int cn)
 void spectatemode(int mode)
 {
     if((player1->state != CS_DEAD && player1->state != CS_SPECTATE && !team_isspect(player1->team)) || (!m_teammode && !team_isspect(player1->team) && servstate.mastermode == MM_MATCH)) return;  // during ffa matches only SPECTATORS can spectate
-    if(mode == player1->spectatemode) return;
+    if(mode == player1->spectatemode || (m_botmode && mode != SM_FLY)) return;
     showscores(false);
     switch(mode)
     {
@@ -1729,7 +1735,7 @@ void togglespect() // cycle through all spectating modes
 
 void changefollowplayer(int shift)
 {
-    updatefollowplayer(shift);
+    if(!m_botmode) updatefollowplayer(shift);
 }
 
 COMMAND(spectate, "");

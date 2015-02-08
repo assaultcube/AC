@@ -484,7 +484,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
                     const float climbspeed = 1.0f;
 
                     if(pl->type==ENT_BOT && pl->state == CS_ALIVE) pl->vel.z = climbspeed; // bots climb upwards only
-                    else if(pl->type==ENT_PLAYER)
+                    else if(pl->type==ENT_PLAYER && pl->state == CS_ALIVE)
                     {
                         if(((playerent *)pl)->k_up) pl->vel.z = climbspeed;
                         else if(((playerent *)pl)->k_down) pl->vel.z = -climbspeed;
@@ -694,7 +694,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         {
             if(!pl->lastsplash || lastmillis-pl->lastsplash>500)
             {
-                audiomgr.playsound(S_SPLASH2, pl);
+                audiomgr.playsound(S_SPLASH2, &pl->o);
                 pl->lastsplash = lastmillis;
             }
             if(pl==player1) pl->vel.z = 0;
@@ -832,12 +832,6 @@ void crouch(bool on)
     player1->trycrouch = on;
 }
 
-int inWater(int *type)
-{
-    if(hdr.waterlevel > (*type ? player1->o.z : (player1->o.z - player1->eyeheight))) return 1;
-    else return 0;
-}
-
 COMMAND(backward, "d");
 COMMAND(forward, "d");
 COMMAND(left, "d");
@@ -845,7 +839,6 @@ COMMAND(right, "d");
 COMMANDN(jump, jumpn, "d");
 COMMAND(attack, "d");
 COMMAND(crouch, "d");
-COMMAND(inWater, "i");
 
 void fixcamerarange(physent *cam)
 {

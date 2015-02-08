@@ -192,12 +192,11 @@ void sethomedir(const char *dir)
     }
 #endif
 
-#ifndef STANDALONE
-    clientlogf("Using home directory: %s", tmpdir);
-#endif
-
     if(fixpackagedir(tmpdir) > 0)
     {
+#ifndef STANDALONE
+        clientlogf("Using home directory: %s", tmpdir);
+#endif
         copystring(homedir, tmpdir);
         createdir(homedir);
     }
@@ -205,20 +204,22 @@ void sethomedir(const char *dir)
 
 void addpackagedir(const char *dir)
 {
-#ifndef STANDALONE
-    clientlogf("Adding package directory: %s", dir);
-#endif
-
     string pdir;
     copystring(pdir, dir);
-    if(fixpackagedir(pdir) > 0) packagedirs.add(newstring(pdir));
+    if(fixpackagedir(pdir) > 0)
+    {
+#ifndef STANDALONE
+        clientlogf("Adding package directory: %s", pdir);
+#endif
+        packagedirs.add(newstring(pdir));
+    }
 }
 
 const char *findfile(const char *filename, const char *mode)
 {
     static string s;
     formatstring(s)("%s%s", homedir, filename);         // homedir may be ""
-    if(fileexists(s, mode)) return s;
+    if(homedir[0] && fileexists(s, mode)) return s;
     if(mode[0]=='w' || mode[0]=='a')
     { // create missing directories, if necessary
         string dirs;
@@ -784,5 +785,21 @@ char *loadfile(const char *fn, int *size, const char *mode)
     }
     if(size!=NULL) *size = len;
     return buf;
+}
+
+void filerotate(const char *basename, const char *ext, int keepold, const char *oldformat)  // rotate old logfiles
+{
+    char fname1[MAXSTRLEN * 2], fname2[MAXSTRLEN] = "";
+    copystring(fname1, findfile(basename, "w"));
+    int mid = strlen(fname1);
+    if(!oldformat) oldformat = "-old-%d";
+    for(; keepold >= 0; keepold--)
+    {
+        formatstring(fname1 + mid)(keepold ? oldformat : "", keepold);
+        concatformatstring(fname1 + mid, ".%s", ext);
+        if(fname2[0]) rename(fname1, fname2);
+        else remove(fname1);
+        copystring(fname2, fname1);
+    }
 }
 

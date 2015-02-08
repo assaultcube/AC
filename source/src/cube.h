@@ -66,6 +66,7 @@ extern int verbose;
 #define AC_MASTER_HTTP 1 // default
 #define AC_MASTER_RAW 0
 #define MAXCL 16
+#define CONFIGROTATEMAX 5               // keep 5 old versions of saved.cfg and init.cfg around
 
 #include "protos.h"                     // external function decls
 

@@ -59,7 +59,7 @@ int fixmapheadersize(int version, int headersize)   // we can't trust hdr.header
     return headersize;
 }
 
-int mapdims[8];     // min/max X/Y and delta X/Y and min/max Z
+mapdim mapdims;     // min/max X/Y and delta X/Y and min/max Z
 
 extern char *maplayout, *testlayout;
 extern int maplayout_factor, testlayout_factor, Mvolume, Marea, Mopen, SHhits;
@@ -189,19 +189,21 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
             maplayout = new char[layoutsize + 256];
             memcpy(maplayout, testlayout, layoutsize * sizeof(char));
 
-            loopk(8) mapdims[k] = k < 2 ? maplayoutssize : 0;
+            memset(&mapdims, 0, sizeof(struct mapdim));
+            mapdims.x1 = mapdims.y1 = maplayoutssize;
             loopk(layoutsize) if (testlayout[k] != 127)
             {
                 int cwx = k%maplayoutssize,
                 cwy = k/maplayoutssize;
-                if(cwx < mapdims[0]) mapdims[0] = cwx;
-                if(cwy < mapdims[1]) mapdims[1] = cwy;
-                if(cwx > mapdims[2]) mapdims[2] = cwx;
-                if(cwy > mapdims[3]) mapdims[3] = cwy;
+                if(cwx < mapdims.x1) mapdims.x1 = cwx;
+                if(cwy < mapdims.y1) mapdims.y1 = cwy;
+                if(cwx > mapdims.x2) mapdims.x2 = cwx;
+                if(cwy > mapdims.y2) mapdims.y2 = cwy;
             }
-            loopk(2) mapdims[k+4] = mapdims[k+2] - mapdims[k];
-            mapdims[6] = minfloor;
-            mapdims[7] = maxceil;
+            mapdims.xspan = mapdims.x2 - mapdims.x1;
+            mapdims.yspan = mapdims.y2 - mapdims.y1;
+            mapdims.minfloor = minfloor;
+            mapdims.maxceil = maxceil;
         }
     }
     delete f;
@@ -403,10 +405,12 @@ char *concatformatstring(char *d, const char *s, ...)
     return concatstring(d, temp);
 }
 
-char *tempformatstring(const char *s, ...)
+int cvecprintf(vector<char> &v, const char *s, ...)
 {
-    static defvformatstring(temp, s, s);
-    return temp;
+    defvformatstring(temp, s, s);
+    int len = strlen(temp);
+    if(len) v.put(temp, len);
+    return len;
 }
 
 const char *hiddenpwd(const char *pwd, int showchars)

@@ -29,7 +29,8 @@ VAR(resetcfg, 0, 0, 1);
 
 void quit()                     // normal exit
 {
-    const char *onquit = getalias("onQuit");
+    const char *mapstartonce = getalias("mapstartonce"), *onquit = getalias("onQuit");
+    if(mapstartonce && mapstartonce[0]) alias("mapstartonce", "");
     if(onquit && onquit[0]) { execute(onquit); alias("onQuit", ""); }
     extern void writeinitcfg();
     writeinitcfg();
@@ -41,6 +42,8 @@ void quit()                     // normal exit
     writeallxmaps();
     cleanup(NULL);
     popscontext();
+    extern stream *clientlogfile;
+    DELETEP(clientlogfile);
     exit(EXIT_SUCCESS);
 }
 
@@ -121,6 +124,7 @@ VARF(fullscreen, 0, 1, 1, setfullscreen(fullscreen!=0));
 void writeinitcfg()
 {
     if(!restoredinits) return;
+    filerotate("config/init", "cfg", CONFIGROTATEMAX); // keep five old init config sets
     stream *f = openfile(path("config/init.cfg", true), "w");
     if(!f) return;
     f->printf("// automatically written on exit, DO NOT MODIFY\n// modify settings in game\n");
@@ -879,7 +883,7 @@ void checkinput()
                 break;
         }
     }
-    mousemove(tdx, tdy);
+    if(tdx || tdy) mousemove(tdx, tdy);
 }
 
 VARF(gamespeed, 10, 100, 1000, if(multiplayer()) gamespeed = 100);
@@ -1021,6 +1025,18 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int sw)
 }
 #endif
 
+void initclientlog()  // rotate old logfiles and create new one
+{
+    filerotate("clientlog", "txt", 5); // keep five old logfiles
+    clientlogfile = openfile("clientlog.txt", "w");
+    if(clientlogfile)
+    {
+        if(bootclientlog && bootclientlog->length()) clientlogfile->write(bootclientlog->getbuf(), bootclientlog->length());
+    }
+    else conoutf("could not create logfile \"%s\"", findfile("clientlog.txt", "w"));
+    DELETEP(bootclientlog);
+}
+
 VARP(compatibilitymode, 0, 1, 1); // FIXME : find a better place to put this ?
 
 int main(int argc, char **argv)
@@ -1043,6 +1059,8 @@ int main(int argc, char **argv)
     string servername, password;
     int serverport;
 
+    if(bootclientlog) cvecprintf(*bootclientlog, "######## start logging: %s\n", timestring(true));
+
     const char *initmap = rndmapname();
 
     pushscontext(IEXC_CFG);
@@ -1052,6 +1070,7 @@ int main(int argc, char **argv)
     initing = INIT_RESET;
     for(int i = 1; i<argc; i++)
     {
+        clientlogf("parsing commandline argument %d: \"%s\"", i, argv[i]);
         // server: ufimNFTLAckyxpDWrXBKIoOnPMVC
         if(!scl.checkarg(argv[i]))
         {
@@ -1116,6 +1135,7 @@ int main(int argc, char **argv)
             else conoutf("\f3unknown commandline argument: %c", argv[i][0]);
         }
     }
+    initclientlog();
     if(quitdirectly) return EXIT_SUCCESS;
 
     createconfigtemplates("config/configtemplates.zip");
@@ -1124,25 +1144,31 @@ int main(int argc, char **argv)
 
     initing = NOT_INITING;
 
-    initlog("sdl");
+    #define STRINGIFY_(x) #x
+    #define STRINGIFY(x) STRINGIFY_(x)
+    #define SDLVERSIONSTRING  STRINGIFY(SDL_MAJOR_VERSION) "." STRINGIFY(SDL_MINOR_VERSION) "." STRINGIFY(SDL_PATCHLEVEL)
+    initlog("sdl (" SDLVERSIONSTRING ")");
     int par = 0;
 #ifdef _DEBUG
     par = SDL_INIT_NOPARACHUTE;
 #endif
     if(SDL_Init(SDL_INIT_TIMER|SDL_INIT_VIDEO|par)<0) fatal("Unable to initialize SDL");
+    const SDL_version *sdlver = SDL_Linked_Version();
+    if(SDL_COMPILEDVERSION != SDL_VERSIONNUM(sdlver->major, sdlver->minor, sdlver->patch))
+        clientlogf("SDL: compiled version " SDLVERSIONSTRING ", linked version %u.%u.%u", sdlver->major, sdlver->minor, sdlver->patch);
 
 #if 0
     if(highprocesspriority) setprocesspriority(true);
 #endif
 
-    if (!dedicated) initlog("net");
+    if (!dedicated) initlog("net (" STRINGIFY(ENET_VERSION_MAJOR) "." STRINGIFY(ENET_VERSION_MINOR) "." STRINGIFY(ENET_VERSION_PATCH) ")");
     if(enet_initialize()<0) fatal("Unable to initialise network module");
 
     if (!dedicated) initclient();
         //FIXME the server executed in this way does not catch the SIGTERM or ^C
     initserver(dedicated,argc,argv);  // never returns if dedicated
 
-    initlog("world");
+    initlog("world (" STRINGIFY(AC_VERSION) ")");
     empty_world(7, true);
 
     initlog("video: sdl");
@@ -1169,9 +1195,6 @@ int main(int argc, char **argv)
 
     notexture = noworldtexture = textureload("packages/misc/notexture.jpg");
     if(!notexture) fatal("could not find core textures (hint: run AssaultCube from the parent of the bin directory)");
-
-    nomodel = loadmodel("misc/gib01", -1);      //FIXME: need actual placeholder model
-    if(!notexture) fatal("could not find core models");
 
     initlog("console");
     per_idents = false;
@@ -1291,6 +1314,11 @@ int main(int argc, char **argv)
 #ifdef _DEBUG
     int lastflush = 0;
 #endif
+    if(scl.logident[0])
+    { // "-Nxxx" sets the number of client log lines to xxx (after init)
+        extern int clientloglinesremaining;
+        clientloglinesremaining = atoi(scl.logident);  // dual-use for scl.logident
+    }
     for(;;)
     {
         static int frames = 0;

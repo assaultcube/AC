@@ -178,6 +178,7 @@ VARF(ambient, 0, 0, 0xFFFFFF, if(!noteditmode("ambient")) { hdr.ambient = ambien
 
 void calclight()
 {
+    if(editmode) calcmapdims();
     uchar r = (hdr.ambient>>16) & 0xFF, g = (hdr.ambient>>8) & 0xFF, b = hdr.ambient & 0xFF;
     if(!r && !g)
     {
@@ -205,7 +206,7 @@ void calclight()
 
     seedMT(keep);
 
-    block bb = { 1, 1, ssize-2, ssize-2 };
+    block bb = { mapdims.x1 - 1, mapdims.y1 - 1, mapdims.xspan + 2, mapdims.yspan + 2 };
     postlightarea(bb);
     setvar("fullbright", 0);
     lastcalclight = totalmillis;

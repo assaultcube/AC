@@ -342,7 +342,11 @@ COMMAND(go_to, "ffs");
 void current_version(char *text)
 {
     int version = atoi(text);
-    if (version && AC_VERSION<version) conoutf("YOUR VERSION OF ASSAULTCUBE IS OUTDATED!\nYOU MUST UPDATE ASSAULTCUBE\nplease visit %s for more information",AC_MASTER_URI);
+    if (version && AC_VERSION<version)
+    {
+        hudoutf("\f3YOUR VERSION OF ASSAULTCUBE IS OUTDATED!");
+        conoutf("\f3YOU MUST UPDATE ASSAULTCUBE\nplease visit \f2http://assault.cubers.net \f3for more information");
+    }
 }
 COMMAND(current_version, "s");
 
@@ -968,8 +972,8 @@ int pingpckservers(void *data)
     loopv(pckservers)
     {
         pckserver *serv = pckservers[i];
-        if(serv->ping > 0) conoutf("%d. %s (%d ms)", i+1, serv->addr, serv->ping);
-        else conoutf("%d. %s (did not reply)", i+1, serv->addr);
+        if(serv->ping > 0) clientlogf("%d. %s (%d ms)", i+1, serv->addr, serv->ping);
+        else clientlogf("%d. %s (did not reply)", i+1, serv->addr);
     }
     SDL_mutexV(pingpcksrvlock);
 
@@ -987,16 +991,16 @@ void sortpckservers()
 }
 COMMAND(sortpckservers, "");
 
-static size_t write_callback(void *ptr, size_t size, size_t nmemb, FILE *stream)
+size_t write_callback(void *ptr, size_t size, size_t nmemb, FILE *stream)
 {
     return fwrite(ptr, size, nmemb, stream);
 }
 
-static int progress_callback(void *clientp, double dltotal, double dlnow, double ultotal, double ulnow)
+int progress_callback_dlpackage(void *clientp, double dltotal, double dlnow, double ultotal, double ulnow)
 {
     package *pck = (package *)clientp;
     loadingscreen(_("downloading package %d out of %d...\n%s %.0f/%.0f KB (%.1f%%)\n(ESC to cancel)"), pck->number + 1, pck->number + pendingpackages.numelems,
-        pck->name, dlnow/double(1000.0), dltotal/double(1000.0), dltotal == 0 ? 0 : (dlnow/dltotal * double(100.0)));
+        pck->name, dlnow/double(1024.0), dltotal/double(1024.0), dltotal == 0 ? 0 : (dlnow/dltotal * double(100.0)));
     if(interceptkey(SDLK_ESCAPE))
     {
         canceldownloads = true;
@@ -1069,7 +1073,7 @@ double dlpackage(package *pck)
     curl_easy_setopt(pck->curl, CURLOPT_WRITEFUNCTION, write_callback);
     curl_easy_setopt(pck->curl, CURLOPT_WRITEDATA, outfile);
     curl_easy_setopt(pck->curl, CURLOPT_NOPROGRESS, 0);
-    curl_easy_setopt(pck->curl, CURLOPT_PROGRESSFUNCTION, progress_callback);
+    curl_easy_setopt(pck->curl, CURLOPT_PROGRESSFUNCTION, progress_callback_dlpackage);
     curl_easy_setopt(pck->curl, CURLOPT_PROGRESSDATA, pck);
     curl_easy_setopt(pck->curl, CURLOPT_CONNECTTIMEOUT, 10);     // generous timeout for Bukz ;)
     result = curl_easy_perform(pck->curl);

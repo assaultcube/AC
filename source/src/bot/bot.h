@@ -355,7 +355,6 @@ class CBotManager
      void LoadBotNamesFile(void);
      const char *GetBotName(void);
      void LoadBotTeamsFile(void);
-     const char *GetBotTeam(void);
      void CreateSkillData(void);
      void InitSkillData(void);
      void InitBotItems(void);
@@ -398,6 +397,7 @@ public:
      void ViewBot(void);
      void CalculateMaxAStarCount(void);
      void PickNextTrigger(void);
+     const char *GetBotTeam(void);
 
      void MakeBotFileName(const char *szFileName, const char *szDir1, const char *szDir2,
                           char *szOutput);

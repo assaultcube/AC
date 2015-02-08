@@ -398,18 +398,6 @@ struct servermaprot : serverconfigfile
 
     configset *current() { return configsets.inrange(curcfgset) ? &configsets[curcfgset] : NULL; }
     configset *get(int ccs) { return configsets.inrange(ccs) ? &configsets[ccs] : NULL; }
-    int get_next()
-    {
-        int ccs = curcfgset;
-        while(!strcmp(configsets[curcfgset].mapname,configsets[ccs].mapname))
-        {
-            ccs++;
-            if(!configsets.inrange(ccs)) ccs=0;
-            if (ccs == curcfgset) break;
-        }
-        curcfgset = ccs;
-        return ccs;
-    }
 };
 
 // serverblacklist.cfg
@@ -946,12 +934,12 @@ struct killmessagesfile : serverconfigfile
                     {
                         if(fragmsg)
                         {
-                            copystring(killmessages[0][gun], message);
+                            copystring(killmessages[0][gun], message, MAXKILLMSGLEN);
                             logline(ACLOG_VERBOSE, " added msg '%s' for frags with weapon %i ", message, gun);
                         }
                         else
                         {
-                            copystring(killmessages[1][gun], message);
+                            copystring(killmessages[1][gun], message, MAXKILLMSGLEN);
                             logline(ACLOG_VERBOSE, " added msg '%s' for gibs with weapon %i ", message, gun);
                         }
                     }
