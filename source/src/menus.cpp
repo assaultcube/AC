@@ -170,9 +170,11 @@ bool menuvisible()
     return true;
 }
 
+extern void *scoremenu;
+
 void rendermenu()
 {
-    setscope(false);
+    if(curmenu != scoremenu) setscope(false);
     gmenu &m = *curmenu;
     m.refresh();
     m.render();
@@ -1460,7 +1462,6 @@ void setscorefont();
 VARFP(scorefont, 0, 0, 1, setscorefont());
 void setscorefont()
 {
-    extern void *scoremenu;
     switch(scorefont)
     {
         case 1: menufont(scoremenu, "mono"); break;
