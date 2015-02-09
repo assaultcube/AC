@@ -996,7 +996,396 @@ void authkey_(char **args, int numargs)  // set up misc keys
 }
 COMMANDN(authkey,authkey_, "v");
 
+
+
 #endif
+
+
+///////////////////////// manage tree of certificates ///////////////////////////////////////////////////
+
+#define CERTFILEDIR "config" PATHDIVS "certs" PATHDIVS
+#define CERTFILEEXT "acc"
+#define CERTTIMEDAY (24 * 60)
+#define CERTTIMEMONTH (30 * 24 * 60)
+
+// FIXME: replace this for release
+// pub aa558eb043105536d72a433d8fa121797f134805c526727c43f57cefdaec289b  priv aa55aa55aa55aa55aa55aa55aa55aac97034aa55aa55aa55aa55aa55aa55aa55
+uchar rootcert[] = { 0xaa, 0x55, 0x8e, 0xb0, 0x43, 0x10, 0x55, 0x36, 0xd7, 0x2a, 0x43, 0x3d, 0x8f, 0xa1, 0x21, 0x79,
+                     0x7f, 0x13, 0x48, 0x05, 0xc5, 0x26, 0x72, 0x7c, 0x43, 0xf5, 0x7c, 0xef, 0xda, 0xec, 0x28, 0x9b };
+
+static const char *certheader = "AC-CERT v1 ";
+static const int certheaderlen = strlen(certheader), certheaderlenfull = certheaderlen + 128 + 1;
+static const char *certtypekeywords[] = { "misc", "dev", "master", "server", "player", "clanboss", "clan" }; // needs to match the enums!
+static int certtypemaxrank[] = { 0, 1, 2, 3, 3, 3, 0 };  // max allowed rank of some cert types
+static int certtypeexpiration[] = { 0, 0, 0, 2 * CERTTIMEMONTH, CERTTIMEMONTH, 3 * CERTTIMEMONTH, CERTTIMEMONTH }; // time after which certs are usually re-signed, after 3x the time they expire
+
+vector<cert *> certs;
+hashtable<const uchar *, char> certblacklist;
+
+static inline int aktcerttime() { return time(NULL) / (time_t) 60; }      // use minutes instead of seconds as timebase, so int will be more than enough
+
+bool cert::parse()  // parse orgmsg[] and check the signature
+{
+    isvalid = ischecked = needsrenewal = expired = false;
+    pubkey = signedby = NULL; name = NULL;
+    type = CERT_MISC;
+    DELETEA(workmsg);
+    lines.setsize(0);
+    if(orglen > certheaderlenfull && orglen < (1<<20) && !strncmp(orgmsg, certheader, certheaderlen) && orgmsg[certheaderlen + 128] == '\n')
+    { // frame ok
+        workmsg = new char[orglen + 1];
+        memcpy(workmsg, orgmsg, orglen + 1);
+        uchar *signature = (uchar*) orgmsg + certheaderlenfull - 64;
+        if(hex2bin(signature, workmsg + certheaderlen, 64) == 64)
+        { // parse all lines
+            certline line;
+            for(char *l = strtok(workmsg + certheaderlenfull, "\n\r"); l; l = strtok(NULL, "\n\r"))
+            {
+                // get comment
+                line.comment = strstr(l, "//");
+                if(line.comment)
+                {
+                    *line.comment = '\0';
+                    line.comment += 2 + strspn(line.comment + 2, " ");
+                    trimtrailingwhitespace(line.comment);
+                }
+                trimtrailingwhitespace(l);
+
+                // get keyword and value, separated by ":"
+                l += strspn(l, " \t");
+                line.val = strchr(l, ':');
+                if(line.val && line.val > l)
+                {
+                    line.key = l;
+                    *line.val++ = '\0';
+                    line.val += strspn(line.val, " \t");
+                    trimtrailingwhitespace(line.key);
+                    trimtrailingwhitespace(line.val);
+                    if(!strcasecmp(line.key, "signed-by"))
+                    { // parse "signed-by" key directly
+                        if(!(strlen(line.val) == 64 && (signedby = (uchar*)line.val) && hex2bin(signedby, orgmsg + (line.val - workmsg), 32) == 32)) signedby = NULL;
+                    }
+                    else if(!strcasecmp(line.key, "signed-date"))
+                    { // parse "signed-date" key directly
+                        signeddate = atoi(line.val);
+                    }
+                    else if(!strcasecmp(line.key, "pubkey"))
+                    { // parse "pubkey" key directly
+                        if(!(strlen(line.val) == 64 && (pubkey = (uchar*)line.val) && hex2bin(pubkey, orgmsg + (line.val - workmsg), 32) == 32)) pubkey = NULL;
+                    }
+                    else if(!strcasecmp(line.key, "name"))
+                    { // parse "name" key directly
+                        name = line.val;
+                    }
+                    else
+                    { // add to list
+                        lines.add(line);
+                        if(!strcasecmp(line.key, "type")) type = getlistindex(line.val, certtypekeywords, false, 0);
+                    }
+                }
+            }
+            if(signedby)
+            { // check signature (if signature contained a "signed-by" line)
+                if(ed25519_sign_check(signature, orglen - certheaderlenfull + 64, signedby))
+                {
+                    ischecked = true;
+                    if(certtypeexpiration[type])
+                    {
+                        int age = aktcerttime() - signeddate;
+                        if(age > certtypeexpiration[type]) needsrenewal = true;
+                        if(age > 3 * certtypeexpiration[type]) expired = true;
+                    }
+                    isvalid = !expired;
+                }
+            }
+        }
+        memcpy(orgmsg, workmsg, certheaderlenfull); // restore original message
+        if(ischecked && pubkey && !name) bin2hex((name = workmsg), pubkey, 32); // if cert has no name, use pubkey as name
+    }
+    return ischecked;
+}
+
+struct certline *cert::getline(const char *key)
+{
+    loopv(lines) if(!strcasecmp(lines[i].key, key)) return &lines[i];
+    return NULL;
+}
+
+const char *cert::getval(const char *key)
+{
+    loopv(lines) if(!strcasecmp(lines[i].key, key)) return lines[i].val;
+    return NULL;
+}
+
+char *cert::getcertfilename(const char *subpath)
+{
+    if(!orgfilename) return NULL;
+    defformatstring(s)(CERTFILEDIR "%s%s%s." CERTFILEEXT, subpath ? subpath : "", subpath ? PATHDIVS : "", orgfilename);
+    return newstring(s);
+}
+
+char *cert::getnewcertfilename(const char *subpath)
+{
+    string fname;
+    filtertext(fname, name ? name : "", FTXT__CERTFILENAME);
+    defformatstring(s)(CERTFILEDIR "%s%s%s_%s_%d." CERTFILEEXT, subpath ? subpath : "", subpath ? PATHDIVS : "", certtypekeywords[type], fname, signeddate);
+    return newstring(s);
+}
+void cert::movecertfile(const char *subpath)
+{
+    char *ofn = getcertfilename(NULL), *nfn = getcertfilename(subpath);
+    if(subpath && ofn && nfn) backup(ofn, nfn);
+    DELSTRING(ofn);
+    DELSTRING(nfn);
+}
+
+makecert::makecert(int bufsize)
+{
+    curbuf = buf = new char[1 << bufsize];
+    endbuf = buf + (1 << bufsize) - 1;
+    c = new cert(NULL);
+}
+
+makecert::~makecert()
+{
+    DELETEP(c);
+    DELETEA(buf);
+}
+
+void makecert::addline(const char *key, const char *val, const char *com)
+{
+    if(!com || !*com) com = "";
+    int keylen = strlen(key), vallen = strlen(val), comlen = strlen(com);
+    if(*key && *val && endbuf - curbuf > keylen + vallen + comlen + 3)
+    {
+        certline &l = c->lines.add();
+        l.key = curbuf;
+        strcpy(curbuf, key);
+        curbuf += keylen + 1;
+        l.val = curbuf;
+        strcpy(curbuf, val);
+        curbuf += vallen + 1;
+        l.comment = curbuf;
+        strcpy(curbuf, com);
+        curbuf += comlen + 1;
+        // extract name and type for the filename
+        if(!strcasecmp(l.key, "name")) c->name = l.val;
+        else if(!strcasecmp(l.key, "type")) c->type = getlistindex(l.val, certtypekeywords, false, 0);
+    }
+}
+
+char *makecert::sign(const uchar *keypair, const char *com)
+{
+    char hextemp[129];
+    vector<char> msg;
+    cvecprintf(msg, "signed-by: %s%s%s\n", bin2hex(hextemp, keypair + 32, 32), com && *com ? "  // " : "", com ? com : "");
+    loopv(c->lines) cvecprintf(msg, "%s: %s%s%s\n", c->lines[i].key, c->lines[i].val, c->lines[i].comment[0] ? " // " : "", c->lines[i].comment);
+    cvecprintf(msg, "signed-date: %d // %s\n", (c->signeddate = aktcerttime()), timestring("%c"));
+    int len = msg.length();
+    loopi(64) msg.add(0);    // make room for the signature
+    uchar *msgbuf = (uchar*)msg.getbuf();
+    ed25519_sign(msgbuf, NULL, msgbuf, len, keypair);
+    char *signedmsg = new char[certheaderlenfull + len + 1];
+    sprintf(signedmsg, "%s%s\n", certheader, bin2hex(hextemp, msgbuf, 64));   // header line
+    memcpy(signedmsg + certheaderlenfull, msgbuf + 64, len);                  // body
+    signedmsg[certheaderlenfull + len] = '\0';
+    return signedmsg;
+}
+
+#ifndef STANDALONE
+
+COMMANDF(newcert, "v", (char **args, int numargs)  // create and sign certs from cubescript
+{
+    static makecert *mc = NULL;
+
+    if(!mc) mc = new makecert(20);
+
+    if(numargs > 0)
+    {
+        if(!strcasecmp(args[0], "CLEAR"))
+        {
+            DELETEP(mc);
+        }
+        else if(!strcasecmp(args[0], "LINE"))
+        {
+            // newcert line key val [comment]
+            if(numargs > 2 && args[1][0] && args[2][0]) mc->addline(args[1], args[2], numargs > 3 ? args[3] : "");
+        }
+        else if(!strcasecmp(args[0], "SIGN"))
+        {
+            // newcert sign privkey|authkeyname [comment]
+            uchar keypair[64];   // 32byte private + 32byte public
+            if(numargs > 1 && ((getauthkey(args[1]) && memcpy(keypair, getauthkey(args[1]), 32)) || (strlen(args[1]) == 64 && hex2bin(keypair, args[1], 32) == 32)))
+            { // sign cert and write to file
+                ed25519_pubkey_from_private(keypair + 32, keypair);
+                char *msg = mc->sign(keypair, numargs > 2 ? args[2] : NULL);
+                char *fname = mc->c->getnewcertfilename(NULL);
+                stream *f = openfile(fname, "wb");
+                f->write(msg, strlen(msg));
+                delete f;
+                DELETEP(mc);
+            }
+        }
+    }
+});
+
+#endif
+
+void marksuperseded(cert *chain)  // checks all
+{
+    for(cert *c = chain; c; c = c->next)
+    {
+        if(c->isvalid) for(cert *r = c->next; r; r = r->next)
+        {
+            if(r->isvalid && c->isvalid)
+            {
+                if((c->type == r->type && c->name && r->name && !strcmp(c->name, r->name)) || (c->pubkey && r->pubkey && !memcmp(c->pubkey, r->pubkey, 32)))
+                { // same name and type or same pubkey
+                    cert *x = c->signeddate < r->signeddate ? c : r;   // older one has to go
+                    x->superseded = true;
+                    x->isvalid = false;
+                }
+            }
+        }
+    }
+    for(cert *c = chain; c; c = c->next)
+    { // check, if certs lost their parent during the cleanup above
+        if(c->isvalid && c->parent && (!c->parent->isvalid || !c->parent->rank)) c->rank = 0;
+    }
+}
+
+void rebuildcerttree()       // determines the rank of all certs; ages them; removes all kinds of illegal certs
+{
+    int act = aktcerttime();
+    cert *treechain = NULL; // all nested list searches are done on a chain of relevant certs, to keep complexity from reaching n^2
+    loopv(certs)  // 1st run: cleanup, age, check if signed by root
+    {
+        cert *c = certs[i];
+        c->parent = c->next = NULL;
+        c->rank = !memcmp(rootcert, c->signedby, 32) ? 1 : 0;
+        c->superseded = false;
+        c->days2expire = c->days2renew = 365;
+        if(certtypeexpiration[c->type])   // age the certs
+        {
+            int age = act - c->signeddate;
+            c->days2renew = certtypeexpiration[c->type] - age;
+            c->days2expire = 3 * certtypeexpiration[c->type] - age;
+            if(c->days2renew < 0) c->needsrenewal = true;
+            if(c->days2expire < 0) { c->expired = true; c->isvalid = false; }
+        }
+        if(c->pubkey && certblacklist.access(c->pubkey))
+        {
+            c->blacklisted = true;
+            c->isvalid = false;
+        }
+        if(c->isvalid && c->rank)
+        {
+            c->next = treechain;
+            treechain = c;
+        }
+    }
+    marksuperseded(treechain);
+    loopk(200)
+    {
+        bool onemoreround = false;
+        loopv(certs)  // build tree, rank by rank
+        {
+            cert *c = certs[i];
+            if(c->isvalid && !c->rank)
+            {
+                for(cert *r = treechain; r; r = r->next)
+                {
+                    if(r->rank && r->isvalid && r->pubkey && !memcmp(r->pubkey, c->signedby, 32))
+                    {
+                        c->rank = r->rank + 1;
+                        if(c->rank > certtypemaxrank[c->type])
+                        { // maxrank exceeded (no, you can not sign your own master cert...)
+                            c->isvalid = false;
+                            c->illegal = true;
+                        }
+                        else
+                        { // include cert into tree
+                            c->parent = r;
+                            c->next = treechain;
+                            treechain = c;
+                            if(c->pubkey) onemoreround = true;     // more public keys in the tree -> need to check the remaining certs again
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+        marksuperseded(treechain);
+        if(!onemoreround) break;
+    } // tree itself is now complete and valid - clean up the rest a bit
+    treechain = NULL;
+    loopv(certs)
+    {
+        cert *c = certs[i];
+        if(c->isvalid && !c->rank)
+        {
+            c->next = treechain;
+            treechain = c;
+        }
+    }
+    marksuperseded(treechain);  // of the valid certs that are not in the tree: remove outdated ones, where newer versions exist
+    loopv(certs)  // move files of invalid certs to subdirectories
+    {
+        cert *c = certs[i];
+        if(!c->isvalid)
+        {
+            if(c->superseded) c->movecertfile("superseded");
+            else if(c->blacklisted) c->movecertfile("blacklisted");
+            else if(c->illegal) c->movecertfile("illegal");
+            else if(c->expired) {}// c->movecertfile("expired");
+            else c->movecertfile("invalid2");
+        }
+    }
+}
+
+void loadcert(const char *fname)
+{
+    cert *c = new cert(fname);
+    if(c->ischecked && c->name)
+    {
+        certs.add(c);       // certs in "certs" are required to have a name
+        DEBUG("loaded cert " << c->name << ", type " << certtypekeywords[c->type] << ", signed-date " << c->signeddate);
+    }
+    else delete c;
+}
+
+void loadcertdir()     // load all certs in "config/certs"
+{
+    vector<char *> certfiles;
+
+    listfiles(CERTFILEDIR, CERTFILEEXT, certfiles);
+    loopv(certfiles)
+    {
+        loadcert(certfiles[i]);
+        delstring(certfiles[i]);
+    }
+    rebuildcerttree();
+}
+
+#ifndef STANDALONE
+void listcerts()
+{
+    loopv(certs)
+    {
+        cert *c = certs[i];
+        conoutf("certs[%d]: %16s, t:%s, r:%d, l:%d, sd:%d, d2e:%d, d2r:%d, parent:%d%s%s%s%s%s%s%s",
+                i, c->name, certtypekeywords[c->type], c->rank, c->lines.length(), c->signeddate, c->days2expire, c->days2renew, certs.find(c->parent),
+                c->ischecked ? ", ischecked" : "", c->isvalid ? ", isvalid" : "", c->needsrenewal ? ", needsrenewal" : "", c->expired ? ", expired" : "",
+                c->superseded ? ", superseded" : "", c->blacklisted ? ", blacklisted" : "", c->illegal ? ", illegal" : "");
+    }
+}
+COMMAND(listcerts, "");
+#endif
+
+
+
+
+
 
 
 

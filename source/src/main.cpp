@@ -1285,6 +1285,7 @@ int main(int argc, char **argv)
     execfile("config/pcksources.cfg");
     execfile("config/authkeys.cfg");
     execfile("config/authprivate.cfg");
+    loadcertdir();
     loadhistory();
     setupautodownload();
     int xmn = loadallxmaps();

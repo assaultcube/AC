@@ -14,6 +14,80 @@ struct authkey
     }
 };
 
+enum { CERT_MISC = 0, CERT_DEV, CERT_MASTER, CERT_SERVER, CERT_PLAYER, CERT_CLANBOSS, CERT_CLAN, CERT_NUM };   // keep the lists of certtype-attributes in crypto.cpp in sync with this!
+
+struct certline { char *key, *val, *comment; };
+
+struct cert
+{
+    char *orgmsg,               // original file content, unchanged
+         *workmsg,              // copy of orgmsg, with changes
+         *name,                 // name of the cert (player name, clan name, etc), needs to be unique (in combination with type)
+         *orgfilename;          // name of the file, the cert was loaded from - without path or extension
+    uchar *signedby,            // public key the cert was signed with
+          *pubkey;              // public key of the cert
+    int orglen,                 // original filesize
+        signeddate,             // date, the cert was signed, in _minutes_ since the epoch
+        days2expire, days2renew;
+
+    struct cert *parent,        // cert of the signedby-key, if in tree
+                *next;          // used to chain certs
+
+    vector<certline> lines;
+
+    uchar rank,                 // hierarchy level of the cert, 0 if not in tree
+          type;                 // parsed type (value has to be in range all the time!)
+    bool isvalid,               // signature is valid and cert is not expired
+         ischecked,             // signature is checked valid
+         needsrenewal,          // cert is valid, but should be renewed
+         expired,               // true, if the cert type does expire and the cert is properly signed, but the expired-date is passed
+         superseded,            // a newer valid cert of same type and name exists
+         blacklisted,           // pubkey of the cert is listed on the blacklist
+         illegal;               // cert has too high rank for its type
+
+    bool parse();
+    struct certline *getline(const char *key);
+    const char *getval(const char *key);
+    char *getcertfilename(const char *subpath);
+    char *getnewcertfilename(const char *subpath);
+    void movecertfile(const char *subpath);
+
+    cert(const char *filename) : orgmsg(NULL), workmsg(NULL), name(NULL), signedby(NULL), pubkey(NULL),
+                                 signeddate(0),
+                                 parent(NULL), next(NULL),
+                                 rank(0), type(CERT_MISC),
+                                 isvalid(false), ischecked(false), needsrenewal(false), expired(false), superseded(false), blacklisted(false), illegal(false)
+    {
+        orgfilename = filename ? newstring(filename) : NULL;
+        if(orgfilename)
+        {
+            char *ofn = getcertfilename(NULL);
+            orgmsg = loadfile(ofn, &orglen);
+            if(orgmsg) parse();
+            if(!ischecked) movecertfile("invalid");   // move invalid certs out of the way
+            delstring(ofn);
+        }
+    }
+
+    ~cert()
+    {
+        DELETEA(workmsg);
+        DELETEA(orgmsg);
+        DELSTRING(orgfilename);
+    }
+};
+
+struct makecert
+{
+    char *buf, *curbuf, *endbuf;
+    cert *c;
+
+    makecert(int bufsize = 10);
+    ~makecert();
+    void addline(const char *key, const char *val, const char *com);
+    char *sign(const uchar *keypair, const char *com);
+};
+
 #ifndef STANDALONE
 
 extern bool hasTE, hasMT, hasMDA, hasDRE, hasstencil, hasST2, hasSTW, hasSTS, hasAF;
@@ -864,6 +938,8 @@ extern const char *acronymmodestr(int n);
 extern const char *fullmodestr(int n);
 extern int defaultgamelimit(int gamemode);
 
+// crypto
+extern void loadcertdir();     // load all certs in "config/certs"
 #if 0
 // crypto // for AUTH
 extern void genprivkey(const char *seed, vector<char> &privstr, vector<char> &pubstr);
