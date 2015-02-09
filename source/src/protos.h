@@ -114,7 +114,7 @@ struct mitem
     struct gmenu *parent;
     color *bgcolor;
 
-    mitem(gmenu *parent, color *bgcolor, int type) : parent(parent), bgcolor(bgcolor), type(type) {}
+    mitem(gmenu *parent, color *bgcolor, int type) : parent(parent), bgcolor(bgcolor), mitemtype(type) {}
     virtual ~mitem() {}
 
     virtual void render(int x, int y, int w);
@@ -129,7 +129,7 @@ struct mitem
     bool isselection();
     void renderbg(int x, int y, int w, color *c);
     static color gray, white, whitepulse;
-    int type;
+    int mitemtype;
 
     enum { TYPE_TEXTINPUT, TYPE_KEYINPUT, TYPE_CHECKBOX, TYPE_MANUAL, TYPE_SLIDER };
 };

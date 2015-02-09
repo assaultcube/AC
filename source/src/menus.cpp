@@ -60,6 +60,13 @@ char *getfiledesc(const char *dir, const char *name, const char *ext)
     return NULL;
 }
 
+inline gmenu *setcurmenu(gmenu *newcurmenu)      // only change curmenu through here!
+{
+    curmenu = newcurmenu;
+    if(!editmode) keyrepeat(curmenu && curmenu->allowinput && !curmenu->hotkeys);
+    return curmenu;
+}
+
 void menuset(void *m, bool save)
 {
     if(curmenu==m) return;
@@ -68,14 +75,14 @@ void menuset(void *m, bool save)
         if(save && curmenu->allowinput) menustack.add(curmenu);
         else curmenu->close();
     }
-    if((curmenu = (gmenu *)m)) curmenu->open();
+    if(setcurmenu((gmenu *)m)) curmenu->open();
 }
 
 void showmenu(const char *name, bool top)
 {
     if(!name)
     {
-        curmenu = NULL;
+        setcurmenu(NULL);
         return;
     }
     gmenu *m = menus.access(name);
@@ -101,7 +108,7 @@ void closemenu(const char *name)
             m = menustack.pop();
             if(m) m->close();
         }
-        curmenu = NULL;
+        setcurmenu(NULL);
         return;
     }
     m = menus.access(name);
@@ -497,12 +504,10 @@ struct mitemtextinput : mitemtext
 
     mitemtextinput(gmenu *parent, char *text, char *value, char *action, char *hoveraction, color *bgcolor, int maxchars, int maskinput) : mitemtext(parent, text, action, hoveraction, bgcolor), defaultvalueexp(value), modified(false), hideinput(false)
     {
+        mitemtype = TYPE_TEXTINPUT;
         copystring(input.buf, value);
-        input.max = maxchars>0 ? maxchars : 15;
-        if(maskinput != NULL)
-        {
-            hideinput = (maskinput != 0);
-        }
+        input.max = maxchars > 0 ? maxchars : 15;
+        hideinput = (maskinput != 0);
     }
 
     virtual int width()
@@ -535,17 +540,13 @@ struct mitemtextinput : mitemtext
         }
         copystring(showinput, input.buf + iboff, sc + 1);
 
-        char *masked = NULL;
-        if(hideinput) // "mask" user input with asterisks, use for menuitemtextinputs that take passwords // TODO: better masking code?
+        if(hideinput) // "mask" user input with asterisks, use for menuitemtextinputs that take passwords
         {
-            masked = newstring(showinput);
-            for(unsigned int i = 0; i < strlen(masked); i++)
-            {
-                masked[i] = '*';
-            }
+            for(char *c = showinput; *c; c++)
+                *c = '*';
         }
 
-        draw_text(hideinput ? masked : showinput, x+w-tw, y, 255, 255, 255, 255, selection ? (input.pos>=0 ? (input.pos > sc ? sc : input.pos) : cibl) : -1);
+        draw_text(showinput, x+w-tw, y, 255, 255, 255, 255, selection ? (input.pos>=0 ? (input.pos > sc ? sc : input.pos) : cibl) : -1);
     }
 
     virtual void focus(bool on)
@@ -1080,7 +1081,7 @@ bool menukey(int code, bool isdown, int unicode, SDLMod mod)
         if(curmenu->items.inrange(menusel))
         {
             mitem *m = curmenu->items[menusel];
-            if(m->type == mitem::TYPE_KEYINPUT && ((mitemkeyinput *)m)->capture && code != SDLK_ESCAPE)
+            if(m->mitemtype == mitem::TYPE_KEYINPUT && ((mitemkeyinput *)m)->capture && code != SDLK_ESCAPE)
             {
                 m->key(code, isdown, unicode);
                 return true;
@@ -1120,18 +1121,6 @@ bool menukey(int code, bool isdown, int unicode, SDLMod mod)
                 else menusel++;
                 break;
 
-            case SDLK_PRINT:
-                curmenu->conprintmenu();
-                return true;
-
-            case SDLK_F12:
-            {
-                extern void screenshot(const char *imagepath);
-                if(!curmenu->allowinput) return false;
-                screenshot(NULL);
-                break;
-            }
-
             case SDLK_1:
             case SDLK_2:
             case SDLK_3:
@@ -1168,6 +1157,20 @@ bool menukey(int code, bool isdown, int unicode, SDLMod mod)
     }
     else
     {
+        switch(code)   // action on keyup to avoid repeats
+        {
+            case SDLK_PRINT:
+                curmenu->conprintmenu();
+                return true;
+
+            case SDLK_F12:
+                if(curmenu->allowinput)
+                {
+                    extern void screenshot(const char *imagepath);
+                    screenshot(NULL);
+                }
+                break;
+        }
         if(!curmenu->allowinput || !curmenu->items.inrange(menusel)) return false;
         mitem &m = *curmenu->items[menusel];
         if(code==SDLK_RETURN || code==SDLK_SPACE || code==SDL_AC_BUTTON_LEFT || code==SDL_AC_BUTTON_MIDDLE)
