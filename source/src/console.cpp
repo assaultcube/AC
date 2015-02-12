@@ -540,6 +540,8 @@ void execbind(keym &k, bool isdown)
 
 void consolekey(int code, bool isdown, int cooked, SDLMod mod)
 {
+    static char *beforecomplete = NULL;
+    static bool ignoreescup = false;
     if(isdown)
     {
         switch(code)
@@ -570,13 +572,24 @@ void consolekey(int code, bool isdown, int cooked, SDLMod mod)
             case SDLK_TAB:
                 if(!cmdaction)
                 {
+                    if(!beforecomplete) beforecomplete = newstring(cmdline.buf);
                     complete(cmdline.buf, (mod & KMOD_LSHIFT) ? true : false);
                     if(cmdline.pos >= 0 && cmdline.pos >= (int)strlen(cmdline.buf)) cmdline.pos = -1;
                 }
                 break;
 
+            case SDLK_ESCAPE:
+                if(mod & KMOD_LSHIFT)    // LSHIFT+ESC restores buffer from before complete()
+                {
+                    if(beforecomplete) copystring(cmdline.buf, beforecomplete);
+                    ignoreescup = true;
+                }
+                else ignoreescup = false;
+                break;
+
             default:
                 resetcomplete();
+                DELETEA(beforecomplete);
             case SDLK_LSHIFT:
                 cmdline.key(code, isdown, cooked);
                 break;
@@ -607,7 +620,7 @@ void consolekey(int code, bool isdown, int cooked, SDLMod mod)
             saycommand(NULL);
             if(h) h->run();
         }
-        else if(code==SDLK_ESCAPE || code== SDL_AC_BUTTON_RIGHT)
+        else if((code==SDLK_ESCAPE && !ignoreescup) || code== SDL_AC_BUTTON_RIGHT)
         {
             histpos = history.length();
             saycommand(NULL);
