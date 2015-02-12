@@ -720,42 +720,38 @@ bool exechook(int context, const char *ident, const char *body,...)  // execute 
 
 #ifndef STANDALONE
 // tab-completion of all idents
+// always works at the end of the command line - the cursor position does not matter
 
-static int completesize = -1, completeidx = 0;
-static playerent *completeplayer = NULL;
+static int completesize = -1, nickcompletesize = -1;
 
 void resetcomplete()
 {
-    completesize = -1;
-    completeplayer = NULL;
+    nickcompletesize = completesize = -1;
 }
 
-bool nickcomplete(char *s)
+bool nickcomplete(char *s, bool reversedirection)
 {
+    static int nickcompleteidx;
     if(!players.length()) return false;
 
-    char *cp = s;
-    for(int i = (int)strlen(s) - 1; i > 0; i--)
-        if(s[i] == ' ') { cp = s + i + 1; break; }
-    if(completesize < 0) { completesize = (int)strlen(cp); completeidx = 0; }
+    char *cp = strrchr(s, ' '); // find last space
+    cp = cp ? cp + 1 : s;
 
-    int idx = 0;
-    if(completeplayer!=NULL)
+    if(nickcompletesize < 0)
     {
-        idx = players.find(completeplayer)+1;
-        if(!players.inrange(idx)) idx = 0;
+        nickcompletesize = (int)strlen(cp);
+        nickcompleteidx = reversedirection ? 0 : -1;
     }
 
-    for(int i=idx; i<idx+players.length(); i++)
+    vector<int> matchingnames;
+    loopv(players) if(players[i] && !strncasecmp(players[i]->name, cp, nickcompletesize)) matchingnames.add(i);   // find all matching player names first
+    if(matchingnames.length())
     {
-        playerent *p = players[i % players.length()];
-        if(p && !strncasecmp(p->name, cp, completesize))
-        {
-            *cp = '\0';
-            concatstring(s, p->name);
-            completeplayer = p;
-            return true;
-        }
+        nickcompleteidx += reversedirection ? matchingnames.length() - 1 : 1;
+        nickcompleteidx %= matchingnames.length();
+        *cp = '\0';
+        concatstring(s, players[matchingnames[nickcompleteidx]]->name);
+        return true;
     }
     return false;
 }
@@ -852,9 +848,10 @@ COMMANDN(complete, addfilecomplete, "sss");
 COMMANDN(listcomplete, addlistcomplete, "ss");
 COMMANDN(nickcomplete, addnickcomplete, "s");
 
-void commandcomplete(char *s)
-{
-    if(*s!='/')
+void commandcomplete(char *s, bool reversedirection)
+{ // s is required to be of size "string"!
+    static int completeidx;
+    if(*s != '/')
     {
         string t;
         copystring(t, s);
@@ -863,101 +860,85 @@ void commandcomplete(char *s)
     }
     if(!s[1]) return;
 
-    int o = 0; //offset
+    // find start position of last command
+    char *cmd = strrchr(s, ';'); // find last ';' (this will not always work properly, because it doesn't take quoted texts into account)
+    if(!cmd) cmd = s;  // no ';' found: command starts after '/'
 
-    while(*s) {s++; o++;} //seek to end
-    s--; //last character
+    char *openblock = strrchr(cmd + 1, '('), *closeblock = strrchr(cmd + 1, ')'); // find last open and closed parenthesis
+    if(openblock && (!closeblock || closeblock < openblock)) cmd = openblock; // found opening parenthesis inside the command: assume, a new command starts here
 
-    for (int i = o; i > 1; i--) //seek backwards
-    {
-        s--;
-        o--;
-        if (*s == ';') //until ';' is found
-        {
-            s++; break; //string after ';'
-        }
-    }
+    cmd += strspn(cmd + 1, " ") + 1;  // skip blanks and one of "/;( ", cmd now points to the first char of the command
 
-    char *openblock = strrchr(s+1, '('); //find last open parenthesis
-    char *closeblock = strrchr(s+1, ')'); //find last closed parenthesis
-
-    if (openblock)
-    {
-        if (!closeblock || closeblock < openblock) //open block
-        s = openblock;
-    }
-
-    char *cp = s; //part to complete
-
-    for(int i = (int)strlen(s) - 1; i > 0; i--)
-        if(s[i] == ' ') { cp = s + i; break; } //testing for command/argument needs completion
-
-    bool init = false;
-    if(completesize < 0)
-    {
-        completesize = (int)strlen(cp)-1;
-        completeidx = 0;
-        if(*cp == ' ') init = true;
-    }
+    // check, if the command is complete, and we want argument completion instead
+    char *arg = strrchr(cmd, ' ');  // find last space in command -> if there is one, we use argument completion
 
     completeval *cdata = NULL;
-
-    char *end = strchr(s+1, ' '); //find end of command name
-
-    if(end && end <= cp) //full command is present
-    {
+    if(arg)  // full command is present
+    { // extract command name to find argument list
         string command;
-        copystring(command, s+1, min(size_t(end-s), sizeof(command)));
+        copystring(command, cmd);
+        command[strcspn(cmd, " ")] = '\0';
         completeval **hascomplete = completions.access(command);
-         if(hascomplete) cdata = *hascomplete;
-    }
-    if(init && cdata && cdata->type==COMPLETE_FILE)
-    {
-       cdata->list.deletearrays();
-       loopv(cdata->dirlist) listfiles(cdata->dirlist[i], cdata->ext, cdata->list);
+        if(hascomplete) cdata = *hascomplete;
+
+        if(completesize < 0 && cdata && cdata->type == COMPLETE_FILE)
+        { // get directory contents on first run
+           cdata->list.deletearrays();
+           vector<char *> files;
+           loopv(cdata->dirlist)
+           {
+               listfiles(cdata->dirlist[i], cdata->ext, files);
+               files.sort(stringsort);
+               loopv(files) cdata->list.add(files[i]);
+               files.setsize(0);
+           }
+        }
     }
 
-    if(*cp == '/' || *cp == ';'
-    || (cp == s && (*cp == ' ' || *cp == '(')))
+    char *cp = arg ? arg + 1 : cmd; // part of string to complete
+    if(completesize < 0)
+    { // first run since resetcomplete()
+        completesize = (int)strlen(cp);
+        completeidx = reversedirection ? 0 : -1;
+    }
+
+    if(!arg)
     { // commandname completion
-        int idx = 0;
+        vector<const char *> matchingidents;
         enumerate(*idents, ident, id,
-            if(!strncasecmp(id.name, cp+1, completesize) && idx++==completeidx)
-            {
-                cp[1] = '\0';
-                strcpy(s+1, id.name); //concatstring/copystring will crash because of overflow
-            }
+            if(!strncasecmp(id.name, cp, completesize)) matchingidents.add(id.name);     // find all matching possibilities to get the list length (and give an opportunity to sort the list first)
         );
-        completeidx++;
-        if(completeidx>=idx) completeidx = 0;
+        if(matchingidents.length())
+        {
+            completeidx += reversedirection ? matchingidents.length() - 1 : 1;
+            completeidx %= matchingidents.length();
+            *cp = '\0';
+            matchingidents.sort(stringsortignorecase);
+            concatstring(s, matchingidents[completeidx]);
+        }
     }
     else if(!cdata) return;
-    else if(cdata->type==COMPLETE_NICK) nickcomplete(s);
+    else if(cdata->type == COMPLETE_NICK) nickcomplete(s, reversedirection);
     else
     { // argument completion
-        loopv(cdata->list)
+        vector<int> matchingargs;
+        loopv(cdata->list) if(!strncasecmp(cdata->list[i], cp, completesize)) matchingargs.add(i);   // find all matching args first
+        if(matchingargs.length())
         {
-            int j = (i + completeidx) % cdata->list.length();
-            if(!strncasecmp(cdata->list[j], cp + 1, completesize))
-            {
-                cp[1] = '\0';
-                strcpy(cp+1, cdata->list[j]); //concatstring/copystring will crash because of overflow
-                completeidx = j;
-                break;
-            }
+            completeidx += reversedirection ? matchingargs.length() - 1 : 1;
+            completeidx %= matchingargs.length();
+            *cp = '\0';
+            concatstring(s, cdata->list[matchingargs[completeidx]]);
         }
-        completeidx++;
-        if(completeidx >= cdata->list.length()) completeidx = 1;
     }
 }
 
-void complete(char *s)
+void complete(char *s, bool reversedirection)
 {
-    if(*s!='/')
+    if(*s == '/' || !nickcomplete(s, reversedirection))
     {
-        if(nickcomplete(s)) return;
+        commandcomplete(s, reversedirection);
     }
-    commandcomplete(s);
 }
 #endif
 
@@ -1298,6 +1279,7 @@ char *strreplace(char *dest, const char *source, const char *search, const char 
 }
 
 int stringsort(const char **a, const char **b) { return strcmp(*a, *b); }
+int stringsortignorecase(const char **a, const char **b) { return strcasecmp(*a, *b); }
 
 void sortlist(char *list)
 {

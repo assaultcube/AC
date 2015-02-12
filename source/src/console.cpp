@@ -536,7 +536,7 @@ void execbind(keym &k, bool isdown)
     k.pressed = isdown;
 }
 
-void consolekey(int code, bool isdown, int cooked)
+void consolekey(int code, bool isdown, int cooked, SDLMod mod)
 {
     if(isdown)
     {
@@ -568,13 +568,14 @@ void consolekey(int code, bool isdown, int cooked)
             case SDLK_TAB:
                 if(!cmdaction)
                 {
-                    complete(cmdline.buf);
-                    if(cmdline.pos>=0 && cmdline.pos>=(int)strlen(cmdline.buf)) cmdline.pos = -1;
+                    complete(cmdline.buf, (mod & KMOD_LSHIFT) ? true : false);
+                    if(cmdline.pos >= 0 && cmdline.pos >= (int)strlen(cmdline.buf)) cmdline.pos = -1;
                 }
                 break;
 
             default:
                 resetcomplete();
+            case SDLK_LSHIFT:
                 cmdline.key(code, isdown, cooked);
                 break;
         }
@@ -617,7 +618,7 @@ void keypress(int code, bool isdown, int cooked, SDLMod mod)
     keym *haskey = NULL;
     loopv(keyms) if(keyms[i].code==code) { haskey = &keyms[i]; break; }
     if(haskey && haskey->pressed) execbind(*haskey, isdown); // allow pressed keys to release
-    else if(saycommandon) consolekey(code, isdown, cooked);  // keystrokes go to commandline
+    else if(saycommandon) consolekey(code, isdown, cooked, mod);  // keystrokes go to commandline
     else if(!menukey(code, isdown, cooked, mod))                  // keystrokes go to menu
     {
         if(haskey) execbind(*haskey, isdown);

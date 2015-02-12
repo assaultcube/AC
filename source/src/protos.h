@@ -796,6 +796,7 @@ extern void renderdocmenu(void *menu, bool init);
 extern void toggledoc();
 extern void scrolldoc(int i);
 extern int stringsort(const char **a, const char **b);
+extern int stringsortignorecase(const char **a, const char **b);
 #endif
 
 // protocol [client and server]
@@ -840,7 +841,7 @@ extern void result(const char *s);
 extern void exec(const char *cfgfile);
 extern bool execfile(const char *cfgfile);
 extern void resetcomplete();
-extern void complete(char *s);
+extern void complete(char *s, bool reversedirection);
 extern void push(const char *name, const char *action);
 extern void pop(const char *name);
 extern void alias(const char *name, const char *action, bool constant = false);
