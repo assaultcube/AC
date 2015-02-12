@@ -141,44 +141,6 @@ int rendercommand(int x, int y, int w)
     return height;
 }
 
-const char *getCONprefix(int n)
-{
-    const char* CONpreSTR[] = {
-        ">", // ">>>", // "TALK" // "T" // ">"
-        "/", // "CFG", // "EXEC" // "!" // "!"
-        "%", // "TEAM" // ">" // "T"
-    };
-    return (n>=0 && size_t(n) < sizeof(CONpreSTR)/sizeof(CONpreSTR[0])) ? CONpreSTR[n] : "#";
-}
-
-int getCONlength(int n)
-{
-    const char* CURpreSTR = getCONprefix(n);
-    return strlen(CURpreSTR);
-}
-
-/** WIP ALERT */
-int rendercommand_wip(int x, int y, int w)
-{
-    int width, height = 0;
-    if( strlen(cmdline.buf) > 0 )
-    {
-        int ctx = -1;
-        switch( cmdline.buf[0] )
-        {
-            case '>': ctx = 0; break;
-            case '/': ctx = 1; break;
-            case '%': ctx = 2; break;
-            default: break;
-        }
-        defformatstring(s)("%s %s", getCONprefix(ctx), cmdline.buf+1);
-        text_bounds(s, width, height, w);
-        y -= height - FONTH;
-        draw_text(s, x, y, 0xFF, 0xFF, 0xFF, 0xFF, cmdline.pos>=0 ? cmdline.pos/*+1*/+getCONlength(ctx) : (int)strlen(s), w);
-    }
-    return height;
-}
-
 // keymap is defined externally in keymap.cfg
 
 vector<keym> keyms;
@@ -338,11 +300,12 @@ void saycommand(char *init)                         // turns input to the comman
     setscope(false);
     setburst(false);
     if(!editmode) keyrepeat(saycommandon);
-    copystring(cmdline.buf, init ? init : ">"); // ALL cmdline.buf[0] ARE flag-chars ! ">" is for talk - the previous "no flag-char" item
+    copystring(cmdline.buf, init ? init : "");
     DELETEA(cmdaction);
     DELETEA(cmdprompt);
     cmdline.pos = -1;
 }
+COMMAND(saycommand, "c");
 
 void inputcommand(char *init, char *action, char *prompt)
 {
@@ -350,6 +313,7 @@ void inputcommand(char *init, char *action, char *prompt)
     if(action[0]) cmdaction = newstring(action);
     if(prompt[0]) cmdprompt = newstring(prompt);
 }
+COMMAND(inputcommand, "sss");
 
 void mapmsg(char *s)
 {
@@ -359,6 +323,7 @@ void mapmsg(char *s)
     copystring(hdr.maptitle, text, 128);
     if(editmode) unsavededits++;
 }
+COMMAND(mapmsg, "s");
 
 void getmapmsg(void)
 {
@@ -366,10 +331,6 @@ void getmapmsg(void)
     copystring(text, hdr.maptitle, 128);
     result(text);
 }
-
-COMMAND(saycommand, "c");
-COMMAND(inputcommand, "sss");
-COMMAND(mapmsg, "s");
 COMMAND(getmapmsg, "");
 
 #if !defined(WIN32) && !defined(__APPLE__)
@@ -459,9 +420,7 @@ struct hline
             execute(action);
         }
         else if(buf[0]=='/') execute(buf+1);
-        else if(buf[0]=='>') toserver(buf+1);
-        else if(buf[0]=='%') toserver(buf);
-        else toserver(buf); // execute(buf); // still default to simple "say".
+        else toserver(buf);
         popscontext();
     }
 };

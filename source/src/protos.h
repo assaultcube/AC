@@ -60,6 +60,8 @@ extern int rendercommand(int x, int y, int w);
 extern void renderconsole();
 extern char *getcurcommand();
 extern char *addreleaseaction(const char *s);
+extern void savehistory();
+extern void loadhistory();
 extern void writebinds(stream *f);
 extern void pasteconsole(char *dst);
 extern void clientlogf(const char *s, ...);
@@ -547,11 +549,6 @@ struct font
     struct charinfo
     {
         short x, y, w, h;
-    };
-
-    struct utf8charinfo : charinfo
-    {
-        int code;
     };
 
     char *name;
