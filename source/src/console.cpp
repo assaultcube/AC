@@ -489,7 +489,9 @@ void savehistory()
     if(!f) return;
     loopv(history)
     {
-        f->printf("%s\n",history[i]->buf);
+        hline *h = history[i];
+        if(!h->action && !h->prompt && strncmp(h->buf, "/ ", 2))
+            f->printf("%s\n",h->buf);
     }
     delete f;
 }
