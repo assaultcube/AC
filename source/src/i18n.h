@@ -12,8 +12,3 @@ struct i18nmanager
 };
 
 extern char *lang;
-
-enum { CF_NONE = 0, CF_OK, CF_FAIL, CF_SIZE };
-
-#define FONTSTART 33
-#define FONTCHARS 94

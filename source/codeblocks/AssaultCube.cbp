@@ -35,7 +35,6 @@
 					<Add library="..\lib\curl_mingw\libcurl.a" />
 					<Add library="SDL" />
 					<Add library="SDL_image" />
-					<Add library="SDL_ttf" />
 					<Add library="zdll" />
 					<Add library="opengl32" />
 					<Add library="enet" />
@@ -75,7 +74,6 @@
 					<Add library="..\lib\curl_mingw\libcurl.a" />
 					<Add library="SDL" />
 					<Add library="SDL_image" />
-					<Add library="SDL_ttf" />
 					<Add library="zdll" />
 					<Add library="opengl32" />
 					<Add library="enet" />

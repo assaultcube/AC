@@ -84,7 +84,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="enet.lib ogg.lib libvorbisfile.lib openal32.lib efx-util.lib odbc32.lib odbccp32.lib zdll.lib opengl32.lib SDL.lib SDL_image.lib ws2_32.lib winmm.lib Dbghelp.lib jpeg.lib libintl.lib SDL_ttf.lib libcurl.lib wldap32.lib"
+				AdditionalDependencies="enet.lib ogg.lib libvorbisfile.lib openal32.lib efx-util.lib odbc32.lib odbccp32.lib zdll.lib opengl32.lib SDL.lib SDL_image.lib ws2_32.lib winmm.lib Dbghelp.lib jpeg.lib libintl.lib libcurl.lib wldap32.lib"
 				OutputFile="../../bin_win32/ac_client.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
@@ -186,7 +186,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="enet.lib ogg.lib libvorbisfile.lib openal32.lib zdll.lib opengl32.lib SDL.lib SDL_image.lib ws2_32.lib winmm.lib Dbghelp.lib jpeg.lib libintl.lib SDL_ttf.lib libcurl.lib wldap32.lib"
+				AdditionalDependencies="enet.lib ogg.lib libvorbisfile.lib openal32.lib zdll.lib opengl32.lib SDL.lib SDL_image.lib ws2_32.lib winmm.lib Dbghelp.lib jpeg.lib libintl.lib libcurl.lib wldap32.lib"
 				OutputFile="../../bin_win32/ac_client.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"

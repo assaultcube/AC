@@ -566,8 +566,6 @@ struct font
 extern int VIRTW; // virtual screen size for text & HUD
 extern bool ignoreblinkingbit;
 extern font *curfont;
-
-extern void initfont();
 extern bool setfont(const char *name);
 extern font *getfont(const char *name);
 extern void pushfont(const char *name);
