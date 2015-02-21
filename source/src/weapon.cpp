@@ -50,14 +50,16 @@ void selectweapon(weapon *w)
     }
 }
 
-void requestweapon(int *w)
+void requestweapon(char *ws)
 {
-    if(keypressed && player1->state == CS_ALIVE && *w >= 0 && *w < NUMGUNS )
+    int w = getlistindex(ws, gunnames, true, 0);
+    if(keypressed && player1->state == CS_ALIVE && w >= 0)
     {
-        if (player1->akimbo && *w==GUN_PISTOL) *w = GUN_AKIMBO;
-        selectweapon(player1->weapons[*w]);
+        if (player1->akimbo && w == GUN_PISTOL) w = GUN_AKIMBO;
+        selectweapon(player1->weapons[w]);
     }
 }
+COMMANDN(weapon, requestweapon, "s");
 
 void shiftweapon(int *s)
 {
@@ -103,6 +105,7 @@ void shiftweapon(int *s)
     }
     else if(player1->isspectating()) updatefollowplayer(*s);
 }
+COMMAND(shiftweapon, "i");
 
 bool quicknade = false;
 
@@ -126,22 +129,25 @@ void quicknadethrow(bool on)
         if(player1->weaponsel->type == GUN_GRENADE) quicknade = true;
     }
 }
-
-void currentprimary() { intret(player1->primweap->type); }
-void prevweapon() { intret(player1->prevweaponsel->type); }
-void curweapon() { intret(player1->weaponsel->type); }
-
-void magcontent(int *w) { if(*w >= 0 && *w < NUMGUNS) intret(player1->weapons[*w]->mag); else intret(-1); }
-void magreserve(int *w) { if(*w >= 0 && *w < NUMGUNS) intret(player1->weapons[*w]->ammo); else intret(-1); }
-
-COMMANDN(weapon, requestweapon, "i");
-COMMAND(shiftweapon, "i");
 COMMAND(quicknadethrow, "d");
-COMMAND(currentprimary, "");
-COMMAND(prevweapon, "");
-COMMAND(curweapon, "");
-COMMAND(magcontent, "i");
-COMMAND(magreserve, "i");
+
+COMMANDF(currentprimary, "", () { intret(player1->primweap->type); });
+COMMANDF(prevweapon, "", () { intret(player1->prevweaponsel->type); });
+COMMANDF(curweapon, "", () { intret(player1->weaponsel->type); });
+
+COMMANDF(magcontent, "s", (char *ws)
+{
+    int w = getlistindex(ws, gunnames, true, -1);
+    if(w >= 0) intret(player1->weapons[w]->mag);
+    else intret(-1);
+});
+
+COMMANDF(magreserve, "s", (char *ws)
+{
+    int w = getlistindex(ws, gunnames, true, -1);
+    if(w >= 0) intret(player1->weapons[w]->ammo);
+    else intret(-1);
+});
 
 void tryreload(playerent *p)
 {
@@ -149,8 +155,7 @@ void tryreload(playerent *p)
     p->weaponsel->reload(false);
 }
 
-void selfreload() { tryreload(player1); }
-COMMANDN(reload, selfreload, "");
+COMMANDF(reload, "", () { tryreload(player1); });
 
 int lastsgs_hits = 0;
 int lastsgs_dmgt = 0;

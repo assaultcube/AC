@@ -429,7 +429,7 @@ char *parseword(const char *&p, int arg, int &infix)                       // pa
     return s;
 }
 
-char *conc(char **w, int n, bool space)
+char *conc(const char **w, int n, bool space)
 {
     int len = space ? max(n-1, 0) : 0;
     loopj(n) len += (int)strlen(w[j]);
@@ -585,7 +585,7 @@ char *executeret(const char *p)                            // all evaluation hap
                         if(strstr(id->sig, "v")) ((void (__cdecl *)(char **, int))id->fun)(&w[1], numargs-1);
                         else if(strstr(id->sig, "c") || strstr(id->sig, "w"))
                         {
-                            char *r = conc(w+1, numargs-1, strstr(id->sig, "c") != NULL);
+                            char *r = conc((const char **)w+1, numargs-1, strstr(id->sig, "c") != NULL);
                             ((void (__cdecl *)(char *))id->fun)(r);
                             delete[] r;
                         }
@@ -1204,18 +1204,20 @@ void colora(char *s)
 }
 
 // Easily inject a string into various CubeScript punctuations
-void addpunct(char *s, int *type)
+const char *punctnames[] = { "QUOTES", "BRACKETS", "PARENTHESIS", "_$_", "QUOTE", "PERCENT", "" };
+
+void addpunct(char *s, char *type)
 {
-    switch(*type)
+    int t = getlistindex(type, punctnames, true, 0);
+    const char *puncts[] = { "\"%s\"", "[%s]", "(%s)", "$%s", "\"", "%" }, *punct = puncts[t];
+    if(strchr(punct, 's'))
     {
-        case 1:  defformatstring(o1)("[%s]", s);   result(o1); break;
-        case 2:  defformatstring(o2)("(%s)", s);   result(o2); break;
-        case 3:  defformatstring(o3)("$%s", s);    result(o3); break;
-        case 4:  result("\""); break;
-        case 5:  result("%");  break;
-        default: defformatstring(o4)("\"%s\"", s); result(o4); break;
+        defformatstring(res)(punct, s);
+        result(res);
     }
+    else result(punct);
 }
+COMMAND(addpunct, "ss");
 
 void toLower(char *s) { result(strcaps(s, false)); }
 void toUpper(char *s) { result(strcaps(s, true)); }
@@ -1379,7 +1381,6 @@ COMMAND(execute, "s");
 COMMAND(at, "si");
 COMMANDF(listlen, "s", (char *l) { intret(listlen(l)); });
 COMMAND(findlist, "ss");
-COMMAND(addpunct, "si");
 COMMANDN(tolower, toLower, "s");
 COMMANDN(toupper, toUpper, "s");
 COMMAND(testchar, "si");
@@ -1669,6 +1670,17 @@ COMMAND(datestring, "");
 COMMANDN(timestring, timestring_, "");
 COMMANDF(getmode, "i", (int *acr) { result(modestr(gamemode, *acr != 0)); });
 COMMAND(getscrext, "");
+
+void listoptions(char *s)
+{
+    const char *optionnames[] = { "entities", "ents", "weapons", "teamnames", "teamnames-abbrv", "punctuations", "" };
+    const char **optionlists[] = { optionnames, entnames + 1, entnames + 1, gunnames, teamnames, teamnames_s, punctnames };
+    const char **listp = optionlists[getlistindex(s, optionnames, true, -1) + 1];
+    int num = 0;
+    while(listp[num] && listp[num][0]) num++;
+    commandret = conc(listp, num, true);
+}
+COMMAND(listoptions, "s");
 
 const char *currentserver(int i) // [client version]
 {

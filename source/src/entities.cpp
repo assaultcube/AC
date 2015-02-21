@@ -475,29 +475,24 @@ void setspawn(int i, bool on)
     }
 }
 
-bool selectnextprimary(int num)
+SVARFP(nextprimary, guns[GUN_ASSAULT].modelname,
 {
-    switch(num)
+    int n = getlistindex(nextprimary, gunnames, true, -1);
+    switch(n)
     {
-//         case GUN_CPISTOL:
+        default:
+            conoutf("\"%s\" is not a valid primary weapon", nextprimary);
+            n = GUN_ASSAULT;
         case GUN_CARBINE:
         case GUN_SHOTGUN:
         case GUN_SUBGUN:
         case GUN_SNIPER:
         case GUN_ASSAULT:
-            player1->setnextprimary(num);
+            player1->setnextprimary(n);
             addmsg(SV_PRIMARYWEAP, "ri", player1->nextprimweap->type);
-            return true;
-
-        default:
-            conoutf("this is not a valid primary weapon");
-            return false;
+            nextprimary = exchangestr(nextprimary, gunnames[player1->nextprimweap->type]);
+            break;
     }
-}
-
-VARFP(nextprimary, 0, GUN_ASSAULT, NUMGUNS,
-{
-    if(!selectnextprimary(nextprimary)) selectnextprimary((nextprimary = GUN_ASSAULT));
 });
 
 // flag ent actions done by the local player

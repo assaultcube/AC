@@ -252,9 +252,9 @@ void delent()
 
 int findtype(char *what)
 {
-    loopi(MAXENTTYPES) if(strcmp(what, entnames[i])==0) return i;
-    conoutf("unknown entity type \"%s\"", what);
-    return NOTUSED;
+    int t = getlistindex(what, entnames, true, NOTUSED);
+    if(t == NOTUSED) conoutf("unknown entity type \"%s\"", what);
+    return t;
 }
 
 entity *newentity(int index, int x, int y, int z, char *what, int v1, int v2, int v3, int v4)

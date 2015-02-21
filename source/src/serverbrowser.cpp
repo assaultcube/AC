@@ -804,7 +804,7 @@ void addfavcategory(const char *refdes)
 
 void listfavcats()
 {
-    const char *str = conc(&favcats[0], favcats.length(), true);
+    const char *str = conc((const char **)&favcats[0], favcats.length(), true);
     result(str);
     delete [] str;
 }

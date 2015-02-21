@@ -1062,6 +1062,9 @@ int main(int argc, char **argv)
     if(bootclientlog) cvecprintf(*bootclientlog, "######## start logging: %s\n", timestring(true));
 
     const char *initmap = rndmapname();
+    loopi(NUMGUNS) gunnames[i] = guns[i].modelname;
+    gunnames[GUN_AKIMBO] = "akimbo";
+    gunnames[NUMGUNS] = "";
 
     pushscontext(IEXC_CFG);
 

@@ -174,10 +174,7 @@ void newname(const char *name)
 
 int teamatoi(const char *name)
 {
-    string uc;
-    strtoupper(uc, name);
-    loopi(TEAM_NUM) if(!strcmp(teamnames[i], uc)) return i;
-    return -1;
+    return getlistindex(name, teamnames, true, -1);
 }
 
 void newteam(char *name)
@@ -815,36 +812,39 @@ bool tryrespawn()
 VARP(hitsound, 0, 0, 2);
 
 // client kill messages
-void setkillmessage(int gun, bool gib, const char *message)
+void setkillmessage(const char *gun, bool gib, const char *message)
 {
-    if(!message || !*message)
-    {
-        result(killmessage(gun, gib));
-        return;
-    }
-    if(gun < 0 || gun >= NUMGUNS)
+    int guni = getlistindex(gun, gunnames, true, -1);
+    if(guni < 0)
     {
         conoutf("invalid gun specified");
-        return;
     }
-    copystring(killmessages[gib?1:0][gun], message, sizeof(killmessages[gib?1:0][gun]));
+    else
+    {
+        if(!message || !*message)
+        {
+            result(killmessage(guni, gib));
+        }
+        else
+        {
+            copystring(killmessages[gib ? 1 : 0][guni], message, sizeof(killmessages[gib ? 1 : 0][guni]));
+        }
+    }
 }
 
-COMMANDF(fragmessage, "is", (int *gun, const char *message) { setkillmessage(*gun, false, message); });
-COMMANDF(gibmessage, "is", (int *gun, const char *message) { setkillmessage(*gun, true, message); });
+COMMANDF(fragmessage, "ss", (const char *gun, const char *message) { setkillmessage(gun, false, message); });
+COMMANDF(gibmessage, "ss", (const char *gun, const char *message) { setkillmessage(gun, true, message); });
 
-void burstshots(int gun, int shots)
+COMMANDF(burstshots, "si", (char *gun, int *shots)
 {
-    // args are passed as strings to differentiate 2 cases : shots_str == "0" or shots_str is empty (not specified from cubescript).
-    if(gun >= 0 && gun < NUMGUNS && guns[gun].isauto)
+    int guni = getlistindex(gun, gunnames, true, -1);
+    if(guni >= 0 && guns[guni].isauto)
     {
-        if(shots >= 0) burstshotssettings[gun] = min(shots, (guns[gun].magsize-1));
-        else intret(burstshotssettings[gun]);
+        if(*shots >= 0) burstshotssettings[guni] = min(*shots, (guns[guni].magsize-1));
+        else intret(burstshotssettings[guni]);
     }
     else conoutf(_("invalid gun specified"));
-}
-
-COMMANDF(burstshots, "ii", (int *g, int *s) { burstshots(*g, *s); });
+});
 
 // damage arriving from the network, monsters, yourself, all ends up here.
 

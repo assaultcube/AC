@@ -443,12 +443,12 @@ const char *messagenames[SV_NUM] =
     "SV_MAPIDENT", "SV_HUDEXTRAS", "SV_POINTS"
 };
 
-const char *entnames[MAXENTTYPES] =
+const char *entnames[] =
 {
     "none?",
     "light", "playerstart", "pistol", "ammobox","grenades",
     "health", "helmet", "armour", "akimbo",
-    "mapmodel", "trigger", "ladder", "ctf-flag", "sound", "clip", "plclip"
+    "mapmodel", "trigger", "ladder", "ctf-flag", "sound", "clip", "plclip", ""
 };
 
 // see entity.h:61: struct itemstat { int add, start, max, sound; };
@@ -494,8 +494,10 @@ guninfo guns[NUMGUNS] =
     { "pistol",     S_PISTOL,     S_RAKIMBO,  1400,   80,     19,   0,     0,   0, 50,   10,   20,   6,  5,   4,  15,     25,     115,  1,      true  },
 };
 
-const char *teamnames[TEAM_NUM+1] = {"CLA", "RVSF", "CLA-SPECT", "RVSF-SPECT", "SPECTATOR", "void"};
-const char *teamnames_s[TEAM_NUM+1] = {"CLA", "RVSF", "CSPC", "RSPC", "SPEC", "void"};
+const char *gunnames[NUMGUNS + 1];
+
+const char *teamnames[] = {"CLA", "RVSF", "CLA-SPECT", "RVSF-SPECT", "SPECTATOR", "", "void"};
+const char *teamnames_s[] = {"CLA", "RVSF", "CSPC", "RSPC", "SPEC", "", "void"};
 
 // for both client and server
 // default messages are hardcoded !
