@@ -1103,36 +1103,40 @@ void explodelist(const char *s, vector<char *> &elems)
     }
 }
 
-void looplist(char *list, char *var, char *body)
+void looplist(char *list, char *varlist, char *body)
 {
-    ident *id = newident(var, execcontext);
-    if(id->type!=ID_ALIAS) return;
-    char *buf = newstring(MAXSTRLEN);
-
-    vector<char *> elems;
-    explodelist(list, elems);
-
-    loop_level++;
-    loopv(elems)
+    vector<char *> vars;
+    explodelist(varlist, vars);
+    if(vars.length() < 1) return;
+    vector<ident *> ids;
+    bool ok = true;
+    loopv(vars) { ok = ok && ids.add(newident(vars[i]))->type == ID_ALIAS; }
+    if(ok)
     {
-        const char *elem = elems[i];
-        if(buf != id->action)
+        vector<char *> elems;
+        explodelist(list, elems);
+        loopv(ids) pushident(*ids[i], newstring(""));
+        loop_level++;
+        for(int i = 0; i <= elems.length() - vars.length(); i += vars.length())
         {
-            if(id->action != id->executing) delete[] id->action;
-            id->action = buf = newstring(MAXSTRLEN);
+            loopvj(vars)
+            {
+                if(ids[j]->action != ids[j]->executing) delete[] ids[j]->action;
+                ids[j]->action = elems[i + j];
+                elems[i + j] = NULL;
+            }
+            execute(body);
+            loop_skip = false;
+            if(loop_break) break;
         }
-        copystring(id->action, elem);
-        execute(body);
-        if(loop_skip) loop_skip = false;
-        if(loop_break)
-        {
-            loop_break = false;
-            break;   // FIXME (leaking memory)
-        }
+        loopv(ids) popident(*ids[i]);
+        loopv(elems) if(elems[i]) delete[] elems[i];
+        loop_break = false;
+        loop_level--;
     }
-    popident(*id);
-    loop_level--;
+    loopv(vars) delete[] vars[i];
 }
+COMMAND(looplist, "sss");
 
 char *indexlist(const char *s, int pos)
 {
@@ -1362,7 +1366,6 @@ void sortlist(char *list)
 
 COMMANDN(c, colora, "s");
 COMMANDN(loop, loopa, "sis");
-COMMAND(looplist, "sss");
 COMMANDN(while, whilea, "ss");
 COMMANDN(break, breaka, "");
 COMMANDN(continue, continuea, "");
