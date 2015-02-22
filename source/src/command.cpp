@@ -389,6 +389,16 @@ char *parseexp(const char *&p, int right)             // parse any nested set of
 
 char *lookup(char *n)                           // find value of ident referenced with $ in exp
 {
+    if(n[1] == '$') // nested ("$$var")
+    {
+        char *nn = lookup(newstring(n + 1));
+        delete[] n;
+        int nnl = strlen(nn);
+        n = newstring(nnl + 1);
+        n[0] = '$';
+        copystring(n + 1, nn, nnl + 1);
+        delete[] nn;
+    }
     ident *id = idents->access(n+1);
     if(id) switch(id->type)
     {
