@@ -1387,7 +1387,7 @@ COMMAND(concat, "c");
 COMMAND(concatword, "w");
 COMMAND(format, "v");
 COMMAND(result, "s");
-COMMAND(execute, "s");
+COMMANDF(execute, "s", (char *s) { intret(execute(s)); });
 COMMAND(at, "si");
 COMMANDF(listlen, "s", (char *l) { intret(listlen(l)); });
 COMMAND(findlist, "ss");
