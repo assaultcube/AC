@@ -1299,82 +1299,41 @@ int stringsortignorecase(const char **a, const char **b) { return strcasecmp(*a,
 
 void sortlist(char *list)
 {
-    char* buf;
-    buf = new char [strlen(list)]; strcpy(buf, ""); //output
-
-    if(*list == '\0')
-    {
-        //no input
-        result(buf);
-        delete [] buf;
-        return;
-    }
-
     vector<char *> elems;
-    explodelist(list, elems);    // FIXME (leaking memory)
+    explodelist(list, elems);
     elems.sort(stringsort);
+    commandret = conc((const char **)elems.getbuf(), elems.length(), true);
+    elems.deletearrays();
+}
+COMMAND(sortlist, "c");
 
-    strcpy(buf, elems[0]);
-    for(int i = 1; i < elems.length(); i++)
-    {
-        strcat(buf, " ");
-        strcat(buf, elems[i]);
-    }
-
-    result(buf); //result
-    delete [] buf;
- }
-
- void swapelements(char *list, char *v)
- {
-    char* buf;
-    buf = new char [strlen(list)]; strcpy(buf, ""); //output
-
-    if(*list == '\0')
-    {
-        // no input
-         result(buf);
-         delete [] buf;
-         return;
-    }
-
+void swapelements(char *list, char *v)
+{
     vector<char *> elems;
     explodelist(list, elems);
 
     vector<char *> swap;
     explodelist(v, swap);
+    vector<int> swapi;
+    loopv(swap) swapi.add(atoi(swap[i]));
 
-    if(*v == '\0' || //no input
-       swap.length()%2 != 0) //incorrect input
+    if(swapi.length() && !(swapi.length() & 1)) // swap needs to have an even number of elements
     {
-        result(buf);
-        delete [] buf;
-        return;  // FIXME (leaking memory)
-    }
-
-    char tmp[255]; strcpy (tmp, "");
-
-    for(int i = 0; i < swap.length(); i+=2)
-    {
-        if (elems.inrange(atoi(swap[i])) && elems.inrange(atoi(swap[i + 1])))
+        for(int i = 0; i < swapi.length(); i += 2)
         {
-            strcpy(tmp, elems[atoi(swap[i])]);
-            strcpy(elems[atoi(swap[i])], elems[atoi(swap[i+1])]);
-            strcpy(elems[atoi(swap[i+1])], tmp);
+            if (elems.inrange(swapi[i]) && elems.inrange(swapi[i + 1]))
+            {
+                char *tmp = elems[swapi[i]];
+                elems[swapi[i]] = elems[swapi[i + 1]];
+                elems[swapi[i + 1]] = tmp;
+            }
         }
     }
-
-    strcpy(buf, elems[0]);
-    for(int i = 1; i < elems.length(); i++)
-    {
-        strcat(buf, " ");
-        strcat(buf, elems[i]);
-    }
-
-    result(buf); //result
-    delete [] buf;
-    // FIXME (leaking memory)
- }
+    commandret = conc((const char **)elems.getbuf(), elems.length(), true);
+    elems.deletearrays();
+    swap.deletearrays();
+}
+COMMAND(swapelements, "ss");
 
 COMMANDN(c, colora, "s");
 COMMANDN(loop, loopa, "sis");
@@ -1394,9 +1353,7 @@ COMMAND(findlist, "ss");
 COMMANDN(tolower, toLower, "s");
 COMMANDN(toupper, toUpper, "s");
 COMMAND(testchar, "si");
-COMMAND(sortlist, "c");
 COMMANDF(strreplace, "sss", (const char *source, const char *search, const char *replace) { string d; result(strreplace(d, source, search, replace)); });
-COMMAND(swapelements, "ss");
 
 void add(int *a, int *b)   { intret(*a + *b); }            COMMANDN(+, add, "ii");
 void mul(int *a, int *b)   { intret(*a * *b); }            COMMANDN(*, mul, "ii");
