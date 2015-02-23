@@ -39,22 +39,24 @@ struct ident
     {
         void (*getfun)();    // ID_SVAR   (called /before/ reading the value string, as a chance for last-minute updates)
         char *executing;     // ID_ALIAS
-    };
+        int defaultval;      // ID_VAR
+        float defaultvalf;   // ID_FVAR
+     };
     short context;
     bool persist;
 
     ident() {}
 
     // ID_VAR
-    ident(int type, const char *name, int minval, int maxval, int *i, void (*fun)(), bool persist, int context)
+    ident(int type, const char *name, int minval, int maxval, int *i, int defval, void (*fun)(), bool persist, int context)
         : type(type), name(name), isconst(false), minval(minval), maxval(maxval), fun(fun),
-          sig(NULL), action(NULL), executing(NULL), context(context), persist(persist)
+          sig(NULL), action(NULL), defaultval(defval), context(context), persist(persist)
     { storage.i = i; }
 
     // ID_FVAR
-    ident(int type, const char *name, float minval, float maxval, float *f, void (*fun)(), bool persist, int context)
+    ident(int type, const char *name, float minval, float maxval, float *f, float defval, void (*fun)(), bool persist, int context)
         : type(type), name(name), isconst(false), minvalf(minval), maxvalf(maxval), fun(fun),
-          sig(NULL), action(NULL), executing(NULL), context(context), persist(persist)
+          sig(NULL), action(NULL), defaultvalf(defval), context(context), persist(persist)
     { storage.f = f; }
 
     // ID_SVAR

@@ -169,7 +169,7 @@ COMMANDF(isconst, "s", (const char *name) { ident *id = idents->access(name); in
 int variable(const char *name, int minval, int cur, int maxval, int *storage, void (*fun)(), bool persist)
 {
     if(!idents) idents = new hashtable<const char *, ident>;
-    ident v(ID_VAR, name, minval, maxval, storage, fun, persist, IEXC_CORE);
+    ident v(ID_VAR, name, minval, maxval, storage, cur, fun, persist, IEXC_CORE);
     idents->access(name, v);
     return cur;
 }
@@ -177,7 +177,7 @@ int variable(const char *name, int minval, int cur, int maxval, int *storage, vo
 float fvariable(const char *name, float minval, float cur, float maxval, float *storage, void (*fun)(), bool persist)
 {
     if(!idents) idents = new hashtable<const char *, ident>;
-    ident v(ID_FVAR, name, minval, maxval, storage, fun, persist, IEXC_CORE);
+    ident v(ID_FVAR, name, minval, maxval, storage, cur, fun, persist, IEXC_CORE);
     idents->access(name, v);
     return cur;
 }
@@ -1440,8 +1440,16 @@ void writecfg()
         if(!id.persist) continue;
         switch(id.type)
         {
-            case ID_VAR: f->printf("%s %d\n", id.name, *id.storage.i); break;
-            case ID_FVAR: f->printf("%s %s\n", id.name, floatstr(*id.storage.f)); break;
+            case ID_VAR:
+            {
+                if(*id.storage.i != id.defaultval) f->printf("%s %d\n", id.name, *id.storage.i);
+                break;
+            }
+            case ID_FVAR:
+            {
+                if(*id.storage.f != id.defaultvalf) f->printf("%s %s\n", id.name, floatstr(*id.storage.f));
+                break;
+            }
             case ID_SVAR: f->printf("%s [%s]\n", id.name, *id.storage.s); break;
         }
     );
