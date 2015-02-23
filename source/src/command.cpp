@@ -691,12 +691,14 @@ char *executeret(const char *p)                            // all evaluation hap
                             }
                             pushident(*argids[i-1], w[i]); // set any arguments as (global) arg values so functions can access them
                         }
+                        int old_numargs = _numargs;
                         _numargs = numargs-1;
                         char *wasexecuting = id->executing;
                         id->executing = id->action;
                         setretval(executeret(id->action));
                         if(id->executing!=id->action && id->executing!=wasexecuting) delete[] id->executing;
                         id->executing = wasexecuting;
+                        _numargs = old_numargs;
                         for(int i = 1; i<numargs; i++) popident(*argids[i-1]);
                         continue;
                 }
