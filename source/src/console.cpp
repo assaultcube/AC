@@ -606,7 +606,7 @@ void writebinds(stream *f)
     loopv(keyms)
     {
         keym *km = &keyms[i];
-        loopj(3) if(*km->actions[j]) f->printf("%s \"%s\" [%s]\n", keycmd(j), km->name, km->actions[j]);
+        loopj(3) if(*km->actions[j]) f->printf("%s \"%s\" %s\n", keycmd(j), km->name, escapestring(km->actions[j]));
     }
 }
 

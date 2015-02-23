@@ -419,11 +419,18 @@ char *parseword(const char *&p, int arg, int &infix)                       // pa
     if(p[0]=='/' && p[1]=='/') p += strcspn(p, "\n\0");
     if(*p=='\"')
     {
-        p++;
-        const char *word = p;
-        p += strcspn(p, "\"\r\n\0");
-        char *s = newstring(word, p-word);
+        const char *word = p + 1;
+        do
+        {
+            p++;
+            p += strcspn(p, "\"\n\r");
+        }
+        while(*p == '\"' && p[-1] == '\\');                                 // skip escaped quotes
+        char *s = newstring(word, p - word);
         if(*p=='\"') p++;
+#ifndef STANDALONE
+        filterrichtext(s, s, strlen(s));
+#endif
         return s;
     }
     if(*p=='(') return parseexp(p, ')');
@@ -1053,6 +1060,7 @@ void loopa(char *var, int *times, char *body)
     popident(*id);
     loop_level--;
 }
+
 void whilea(char *cond, char *body)
 {
     loop_level++;
@@ -1106,7 +1114,7 @@ void format(char **args, int numargs)
 }
 
 #define whitespaceskip s += strspn(s, "\n\t \r")
-#define elementskip *s=='"' ? (++s, s += strcspn(s, "\"\n\0"), s += *s=='"') : s += strcspn(s, "\n\t \0")
+#define elementskip { if(*s=='"') { do { ++s; s += strcspn(s, "\"\n"); } while(*s == '\"' && s[-1] == '\\'); s += *s=='"'; } else s += strcspn(s, "\n\t "); }
 
 void explodelist(const char *s, vector<char *> &elems)
 {
@@ -1115,7 +1123,11 @@ void explodelist(const char *s, vector<char *> &elems)
     {
         const char *elem = s;
         elementskip;
-        elems.add(*elem=='"' ? newstring(elem+1, s-elem-(s[-1]=='"' ? 2 : 1)) : newstring(elem, s-elem));
+        char *newelem = *elem == '"' ? newstring(elem + 1, s - elem - (s[-1]=='"' ? 2 : 1)) : newstring(elem, s-elem);
+#ifndef STANDALONE
+        if(*elem == '\"') filterrichtext(newelem, newelem, strlen(newelem));
+#endif
+        elems.add(newelem);
         whitespaceskip;
     }
 }
@@ -1165,52 +1177,61 @@ char *indexlist(const char *s, int pos)
         if(!*s) break;
     }
     const char *e = s;
+    char *res;
     elementskip;
     if(*e=='"')
     {
         e++;
         if(s[-1]=='"') --s;
+        res = newstring(e, s - e);
+#ifndef STANDALONE
+        filterrichtext(res, res, s - e);
+#endif
     }
-    return newstring(e, s-e);
+    else res = newstring(e, s-e);
+    return res;
 }
+COMMANDF(at, "si", (char *s, int *pos) { commandret = indexlist(s, *pos); });
 
 int listlen(char *s)
 {
     int n = 0;
     whitespaceskip;
-    for(; *s; n++) elementskip, whitespaceskip;
+    for(; *s; n++) { elementskip; whitespaceskip; }
     return n;
 }
 
-void at(char *s, int *pos)
-{
-    commandret = indexlist(s, *pos);
-}
-
-int find(const char *s, const char *key)
+int find(char *s, const char *key)
 {
     whitespaceskip;
     int len = strlen(key);
     for(int i = 0; *s; i++)
     {
-        const char *a = s, *e = s;
+        char *e = s;
         elementskip;
-        if(*e=='"')
+        char *a = s;
+        if(*e == '"')
         {
             e++;
-            if(s[-1]=='"') --s;
+            if(s[-1] == '"') --s;
+            if(s - e >= len)
+            {
+                *s = '\0';
+#ifndef STANDALONE
+                filterrichtext(e, e, s - e);
+#endif
+                if(int(strlen(e)) == len && !strncmp(e, key, len)) return i;
+                *s = ' ';
+            }
         }
-        if(s-e==len && !strncmp(e, key, s-e)) return i;
-        else s = a;
-        elementskip, whitespaceskip;
+        else if(s - e == len && !strncmp(e, key, s - e)) return i;
+        s = a;
+        whitespaceskip;
     }
     return -1;
 }
+COMMANDF(findlist, "ss", (char *s, char *key) { intret(find(s, key)); });
 
-void findlist(char *s, char *key)
-{
-    intret(find(s, key));
-}
 void colora(char *s)
 {
     if(s[0] && s[1]=='\0')
@@ -1354,9 +1375,7 @@ COMMAND(concatword, "w");
 COMMAND(format, "v");
 COMMAND(result, "s");
 COMMANDF(execute, "s", (char *s) { intret(execute(s)); });
-COMMAND(at, "si");
 COMMANDF(listlen, "s", (char *l) { intret(listlen(l)); });
-COMMAND(findlist, "ss");
 COMMANDN(tolower, toLower, "s");
 COMMANDN(toupper, toUpper, "s");
 COMMAND(testchar, "si");
@@ -1406,6 +1425,31 @@ COMMANDF(strcmp, "ss", (char *a, char *b) { intret((strcmp(a, b) == 0) ? 1 : 0);
 COMMANDF(rnd, "i", (int *a) { intret(*a>0 ? rnd(*a) : 0); });
 
 #ifndef STANDALONE
+
+const char *escapestring(const char *s, bool force)
+{
+    static vector<char> strbuf[3];
+    static int stridx = 0;
+    if(!s) return force ? "\"\"" : "";
+    if(!force && !*(s + strcspn(s, "\"/\\;()[] \f\t\r\n"))) return s;
+    stridx = (stridx + 1) % 3;
+    vector<char> &buf = strbuf[stridx];
+    buf.setsize(0);
+    buf.add('"');
+    for(; *s; s++) switch(*s)
+    {
+        case '\n': buf.put("\\n", 2); break;
+        case '\t': buf.put("\\t", 2); break;
+        case '\f': buf.put("\\f", 2); break;
+        case '"': buf.put("\\\"", 2); break;
+        case '\\': buf.put("\\\\", 2); break;
+        default: buf.add(*s); break;
+    }
+    buf.put("\"\0", 2);
+    return buf.getbuf();
+}
+COMMANDF(escape, "s", (const char *s) { result(escapestring(s));});
+
 void writecfg()
 {
     filerotate("config/saved", "cfg", CONFIGROTATEMAX); // keep five old config sets
@@ -1413,7 +1457,7 @@ void writecfg()
     if(!f) return;
     f->printf("// automatically written on exit, DO NOT MODIFY\n// delete this file to have defaults.cfg overwrite these settings\n// modify settings in game, or put settings in autoexec.cfg to override anything\n\n");
     f->printf("// basic settings\n\n");
-    f->printf("name \"%s\"\n", player1->name);
+    f->printf("name %s\n", escapestring(player1->name, false));
     loopi(CROSSHAIR_NUM) if(crosshairs[i] && crosshairs[i] != notexture)
     {
         f->printf("loadcrosshair %s %s\n", crosshairnames[i], behindpath(crosshairs[i]->name));
@@ -1448,7 +1492,7 @@ void writecfg()
                 if(*id.storage.f != id.defaultvalf) f->printf("%s %s\n", id.name, floatstr(*id.storage.f));
                 break;
             }
-            case ID_SVAR: f->printf("%s [%s]\n", id.name, *id.storage.s); break;
+            case ID_SVAR: f->printf("%s %s\n", id.name, escapestring(*id.storage.s, false)); break;
         }
     );
     f->printf("\n// weapon settings\n\n");
@@ -1462,14 +1506,14 @@ void writecfg()
     enumerate(*idents, ident, id,
         if(id.type==ID_ALIAS && id.persist && id.action[0] && strncmp(id.name, "demodesc_", 9))
         {
-            f->printf("%s = [%s]\n", id.name, id.action);
+            f->printf("alias %s %s\n", escapestring(id.name, false), escapestring(id.action, false));
         }
     );
     f->printf("\n// demo descriptions\n\n");
     enumerate(*idents, ident, id,
         if(id.type==ID_ALIAS && id.persist && id.action[0] && !strncmp(id.name, "demodesc_", 9) && id.action)
         {
-            f->printf("%s = [%s]\n", id.name, id.action);
+            f->printf("alias %s %s\n", escapestring(id.name, false), escapestring(id.action, false));
         }
     );
     f->printf("\n");

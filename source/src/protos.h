@@ -847,6 +847,7 @@ extern char *strreplace(char *dest, const char *source, const char *search, cons
 extern void pushscontext(int newcontext);
 extern int popscontext();
 extern int curscontext();
+extern const char *escapestring(const char *s, bool force = true);
 extern int execcontext;
 extern const char *currentserver(int i);
 extern void setcontext(const char *context, const char *info);
