@@ -300,7 +300,7 @@ void saycommand(char *init)                         // turns input to the comman
     setscope(false);
     setburst(false);
     if(!editmode) keyrepeat(saycommandon);
-    copystring(cmdline.buf, init ? init : "");
+    copystring(cmdline.buf, init ? escapestring(init, false, true) : "");
     DELETEA(cmdaction);
     DELETEA(cmdprompt);
     cmdline.pos = -1;
@@ -322,8 +322,7 @@ SVARFF(mapmsg,
 },
 { // set new mapmsg
     string text;
-    filterrichtext(text, mapmsg);
-    filtertext(text, text, FTXT__MAPMSG);
+    filtertext(text, mapmsg, FTXT__MAPMSG);
     copystring(hdr.maptitle, text, 128);
     if(editmode) unsavededits++;
 });

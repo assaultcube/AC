@@ -39,7 +39,7 @@ void clearstack(ident &id)
 
 void pushident(ident &id, char *val, int context = execcontext)
 {
-    if(id.type != ID_ALIAS) return;
+    if(id.type != ID_ALIAS) { delete[] val; return; }
     identstack *stack = new identstack;
     stack->action = id.executing==id.action ? newstring(id.action) : id.action;
     stack->context = id.context;
@@ -1426,16 +1426,17 @@ COMMANDF(rnd, "i", (int *a) { intret(*a>0 ? rnd(*a) : 0); });
 
 #ifndef STANDALONE
 
-const char *escapestring(const char *s, bool force)
+const char *escapestring(const char *s, bool force, bool noquotes)
 {
     static vector<char> strbuf[3];
     static int stridx = 0;
+    if(noquotes) force = false;
     if(!s) return force ? "\"\"" : "";
     if(!force && !*(s + strcspn(s, "\"/\\;()[] \f\t\r\n"))) return s;
     stridx = (stridx + 1) % 3;
     vector<char> &buf = strbuf[stridx];
     buf.setsize(0);
-    buf.add('"');
+    if(!noquotes) buf.add('"');
     for(; *s; s++) switch(*s)
     {
         case '\n': buf.put("\\n", 2); break;
@@ -1445,7 +1446,8 @@ const char *escapestring(const char *s, bool force)
         case '\\': buf.put("\\\\", 2); break;
         default: buf.add(*s); break;
     }
-    buf.put("\"\0", 2);
+    if(!noquotes) buf.add('"');
+    buf.add(0);
     return buf.getbuf();
 }
 COMMANDF(escape, "s", (const char *s) { result(escapestring(s));});
