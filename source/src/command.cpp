@@ -1452,6 +1452,8 @@ const char *escapestring(const char *s, bool force, bool noquotes)
 }
 COMMANDF(escape, "s", (const char *s) { result(escapestring(s));});
 
+int sortident(ident **a, ident **b) { return strcasecmp((*a)->name, (*b)->name); }
+
 void writecfg()
 {
     filerotate("config/saved", "cfg", CONFIGROTATEMAX); // keep five old config sets
@@ -1460,7 +1462,7 @@ void writecfg()
     f->printf("// automatically written on exit, DO NOT MODIFY\n// delete this file to have defaults.cfg overwrite these settings\n// modify settings in game, or put settings in autoexec.cfg to override anything\n\n");
     f->printf("// basic settings\n\n");
     f->printf("name %s\n", escapestring(player1->name, false));
-    loopi(CROSSHAIR_NUM) if(crosshairs[i] && crosshairs[i] != notexture)
+    for(int i = CROSSHAIR_DEFAULT; i < CROSSHAIR_NUM; i++) if(crosshairs[i] && crosshairs[i] != notexture)
     {
         f->printf("loadcrosshair %s %s\n", crosshairnames[i], behindpath(crosshairs[i]->name));
     }
@@ -1471,53 +1473,67 @@ void writecfg()
     f->printf("\n");
     audiomgr.writesoundconfig(f);
     f->printf("\n");
-    f->printf("// kill messages for each weapon\n");
-    loopi(NUMGUNS)
-    {
-        const char *fragmsg = killmessage(i, false);
-        const char *gibmsg = killmessage(i, true);
-        f->printf("\nfragmessage %d [%s]", i, fragmsg);
-        f->printf("\ngibmessage %d [%s]", i, gibmsg);
-    }
-    f->printf("\n\n// client variables\n\n");
+    f->printf("// crosshairs and kill messages for each weapon\n\nlooplist [\n");
+    loopi(NUMGUNS) f->printf("  %-7s %-11s %-12s %s\n", gunnames[i], crosshairs[i] && crosshairs[i] != notexture ? behindpath(crosshairs[i]->name) : "\"\"", escapestring(killmessage(i, false)), escapestring(killmessage(i, true)));
+    f->printf("] [ w c f g ] [ loadcrosshair $w $c ; fragmessage $w $f ; gibmessage $w $g ]\n");
+    f->printf("\n\n// client variables\n");
+    vector<ident *> sids;
     enumerate(*idents, ident, id,
-        if(!id.persist) continue;
-        switch(id.type)
+        if(id.persist) switch(id.type)
         {
             case ID_VAR:
-            {
-                if(*id.storage.i != id.defaultval) f->printf("%s %d\n", id.name, *id.storage.i);
-                break;
-            }
+                if(*id.storage.i == id.defaultval) break;
             case ID_FVAR:
-            {
-                if(*id.storage.f != id.defaultvalf) f->printf("%s %s\n", id.name, floatstr(*id.storage.f));
+                if(id.type == ID_FVAR && *id.storage.f == id.defaultvalf) break;
+            case ID_SVAR:
+                sids.add(&id);
                 break;
-            }
-            case ID_SVAR: f->printf("%s %s\n", id.name, escapestring(*id.storage.s, false)); break;
         }
     );
-    f->printf("\n// weapon settings\n\n");
+    sids.sort(sortident);
+    const char *rep = "";
+    int repn = 0;
+    loopv(sids)
+    {
+        ident &id = *sids[i];
+        f->printf("%s", !strncmp(rep, id.name, 3) && ++repn < 4 ? " ; " : (repn = 0, "\n"));
+        rep = id.name;
+        switch(id.type)
+        {
+            case ID_VAR:  f->printf("%s %d", id.name, *id.storage.i); break;
+            case ID_FVAR: f->printf("%s %s", id.name, floatstr(*id.storage.f)); break;
+            case ID_SVAR: f->printf("%s %s", id.name, escapestring(*id.storage.s, false)); break;
+        }
+    }
+    f->printf("\n\n// weapon settings\n\n");
     loopi(NUMGUNS) if(guns[i].isauto)
     {
-        f->printf("burstshots %d %d\n", i, burstshotssettings[i]);
+        f->printf("burstshots %s %d\n", gunnames[i], burstshotssettings[i]);
     }
     f->printf("\n// key binds\n\n");
     writebinds(f);
     f->printf("\n// aliases\n\n");
-    enumerate(*idents, ident, id,
-        if(id.type==ID_ALIAS && id.persist && id.action[0] && strncmp(id.name, "demodesc_", 9))
+    sids.setsize(0);
+    enumerate(*idents, ident, id, if(id.type==ID_ALIAS && id.persist && id.action[0]) sids.add(&id); );
+    sids.sort(sortident);
+    loopv(sids)
+    {
+        ident &id = *sids[i];
+        if(strncmp(id.name, "demodesc_", 9))
         {
             f->printf("alias %s %s\n", escapestring(id.name, false), escapestring(id.action, false));
+            sids.remove(i--);
         }
-    );
-    f->printf("\n// demo descriptions\n\n");
-    enumerate(*idents, ident, id,
-        if(id.type==ID_ALIAS && id.persist && id.action[0] && !strncmp(id.name, "demodesc_", 9) && id.action)
+    }
+    if(sids.length())
+    {
+        f->printf("\n// demo descriptions\n\n");
+        loopv(sids)
         {
+            ident &id = *sids[i];
             f->printf("alias %s %s\n", escapestring(id.name, false), escapestring(id.action, false));
         }
-    );
+    }
     f->printf("\n");
     delete f;
 }

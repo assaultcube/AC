@@ -410,8 +410,9 @@ struct hline
         pushscontext(IEXC_PROMPT);
         if(action)
         {
-            alias("cmdbuf", buf);
+            push("cmdbuf", buf);
             execute(action);
+            pop("cmdbuf");
         }
         else if(buf[0]=='/') execute(buf+1);
         else toserver(buf);

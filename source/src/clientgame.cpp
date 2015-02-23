@@ -169,8 +169,9 @@ void newname(const char *name)
         addmsg(SV_SWITCHNAME, "rs", player1->name);
     }
     else conoutf(_("your name is: %s"), player1->name);
-    alias("curname", player1->name);
 }
+
+SVARFF(curname, { curname = exchangestr(curname, player1->name); }, {} );
 
 int teamatoi(const char *name)
 {
