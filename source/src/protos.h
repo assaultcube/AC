@@ -275,26 +275,6 @@ extern void drawscope(bool preload = false);
 extern float dynfov();
 extern void damageblend(int n);
 
-enum
-{
-    CROSSHAIR_DEFAULT = 0,
-    CROSSHAIR_TEAMMATE,
-    CROSSHAIR_SCOPE,
-    CROSSHAIR_KNIFE,
-    CROSSHAIR_PISTOL,
-    CROSSHAIR_CARBINE,
-    CROSSHAIR_SHOTGUN,
-    CROSSHAIR_SMG,
-    CROSSHAIR_SNIPER,
-    CROSSHAIR_AR,
-    CROSSHAIR_CPISTOL,
-    CROSSHAIR_GRENADES,
-    CROSSHAIR_AKIMBO,
-    CROSSHAIR_NUM,
-};
-
-extern void drawcrosshair(playerent *p, int n, struct color *c = NULL, float size = -1.0f);
-
 // shadow
 extern bool addshadowbox(const vec &bbmin, const vec &bbmax, const vec &extrude, const glmatrixf &mat);
 extern void drawstencilshadows();
@@ -334,6 +314,20 @@ static inline Texture *lookupworldtexture(int tex, bool trydl = true)
 extern float skyfloor;
 extern void draw_envbox(int fogdist);
 
+// renderhud
+enum
+{
+    CROSSHAIR_DEFAULT = NUMGUNS,
+    CROSSHAIR_TEAMMATE,
+    CROSSHAIR_SCOPE,
+    CROSSHAIR_NUM
+};
+
+extern const char *crosshairnames[];
+extern Texture *crosshairs[];
+extern void drawcrosshair(playerent *p, int n, struct color *c = NULL, float size = -1.0f);
+
+// client
 extern int autodownload;
 extern void setupcurl();
 extern bool requirepackage(int type, const char *path);

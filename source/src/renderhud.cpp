@@ -241,39 +241,40 @@ void drawscope(bool preload)
     glEnable(GL_BLEND);
 }
 
-const char *crosshairnames[CROSSHAIR_NUM] = { "default", "teammate", "scope", "knife", "pistol", "carbine", "shotgun", "smg", "sniper", "ar", "cpistol", "grenades", "akimbo" };
+const char *crosshairnames[CROSSHAIR_NUM + 1];  // filled in main.cpp
 Texture *crosshairs[CROSSHAIR_NUM] = { NULL }; // weapon specific crosshairs
 
 Texture *loadcrosshairtexture(const char *c)
 {
-    defformatstring(p)("packages/crosshairs/%s", c);
+    defformatstring(p)("packages/crosshairs/%s", behindpath(c));
     Texture *crosshair = textureload(p, 3);
     if(crosshair==notexture) crosshair = textureload("packages/crosshairs/default.png", 3);
     return crosshair;
 }
 
-void loadcrosshair(char *c, char *name)
+void loadcrosshair(char *type, char *filename)
 {
-    if (strcmp(name, "") == 0 || strcmp(name, "all") == 0)
-    {
-        for (int i = 0; i < CROSSHAIR_NUM; i++)
-        {
-            if (i == CROSSHAIR_TEAMMATE || i == CROSSHAIR_SCOPE) continue;
-            crosshairs[i] = loadcrosshairtexture(c);
-        }
-        return;
+    int index = 0;
+    if(strchr(type, '.'))
+    {   // old syntax "loadcrosshair filename type", remove this in 2020
+        const char *oldcrosshairnames[CROSSHAIR_NUM + 1] = { "default", "teammate", "scope", "knife", "pistol", "carbine", "shotgun", "smg", "sniper", "ar", "cpistol", "grenades", "akimbo", "" };
+        index = getlistindex(filename, oldcrosshairnames, false, 0);
+        if(index > 2) index -= 3;
+        else index += NUMGUNS;
+        filename = type;
     }
-
-    int n = -1;
-
-    for (int i = 0; i < CROSSHAIR_NUM; i++)
-    {
-       if(strcmp(crosshairnames[i], name) == 0) { n = i; break; }
+    else
+    {   // new syntax with proper gun names
+        index = getlistindex(type, crosshairnames, false, CROSSHAIR_DEFAULT);
     }
-
-    if (n < 0 || n >= CROSSHAIR_NUM) return;
-
-    crosshairs[n] = loadcrosshairtexture(c);
+    if(!crosshairs[CROSSHAIR_DEFAULT] && index == CROSSHAIR_DEFAULT)
+    {
+        loopi(CROSSHAIR_NUM) if(!crosshairs[i]) crosshairs[i] = loadcrosshairtexture(filename);
+    }
+    else
+    {
+        crosshairs[index] = loadcrosshairtexture(filename);
+    }
 }
 
 COMMAND(loadcrosshair, "ss");

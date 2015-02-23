@@ -1414,13 +1414,9 @@ void writecfg()
     f->printf("// automatically written on exit, DO NOT MODIFY\n// delete this file to have defaults.cfg overwrite these settings\n// modify settings in game, or put settings in autoexec.cfg to override anything\n\n");
     f->printf("// basic settings\n\n");
     f->printf("name \"%s\"\n", player1->name);
-    extern const char *crosshairnames[CROSSHAIR_NUM];
-    extern Texture *crosshairs[CROSSHAIR_NUM];
-    loopi(CROSSHAIR_NUM) if(crosshairs[i] && crosshairs[i]!=notexture)
+    loopi(CROSSHAIR_NUM) if(crosshairs[i] && crosshairs[i] != notexture)
     {
-        const char *fname = crosshairs[i]->name+strlen("packages/crosshairs/");
-        if(i==CROSSHAIR_DEFAULT) f->printf("loadcrosshair %s\n", fname);
-        else f->printf("loadcrosshair %s %s\n", fname, crosshairnames[i]);
+        f->printf("loadcrosshair %s %s\n", crosshairnames[i], behindpath(crosshairs[i]->name));
     }
     extern int lowfps, highfps;
     f->printf("fpsrange %d %d\n", lowfps, highfps);
@@ -1655,8 +1651,8 @@ COMMAND(getscrext, "");
 
 void listoptions(char *s)
 {
-    const char *optionnames[] = { "entities", "ents", "weapons", "teamnames", "teamnames-abbrv", "punctuations", "" };
-    const char **optionlists[] = { optionnames, entnames + 1, entnames + 1, gunnames, teamnames, teamnames_s, punctnames };
+    const char *optionnames[] = { "entities", "ents", "weapons", "teamnames", "teamnames-abbrv", "punctuations", "crosshairnames", "" };
+    const char **optionlists[] = { optionnames, entnames + 1, entnames + 1, gunnames, teamnames, teamnames_s, punctnames, crosshairnames };
     const char **listp = optionlists[getlistindex(s, optionnames, true, -1) + 1];
     int num = 0;
     while(listp[num] && listp[num][0]) num++;

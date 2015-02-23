@@ -1062,9 +1062,12 @@ int main(int argc, char **argv)
     if(bootclientlog) cvecprintf(*bootclientlog, "######## start logging: %s\n", timestring(true));
 
     const char *initmap = rndmapname();
-    loopi(NUMGUNS) gunnames[i] = guns[i].modelname;
+    loopi(NUMGUNS) crosshairnames[i] = gunnames[i] = guns[i].modelname;
     gunnames[GUN_AKIMBO] = "akimbo";
-    gunnames[NUMGUNS] = "";
+    crosshairnames[CROSSHAIR_DEFAULT] = "default";
+    crosshairnames[CROSSHAIR_TEAMMATE] = "teammate";
+    crosshairnames[CROSSHAIR_SCOPE] = "scope";
+    crosshairnames[CROSSHAIR_NUM] = gunnames[NUMGUNS] = "";
 
     pushscontext(IEXC_CFG);
 
