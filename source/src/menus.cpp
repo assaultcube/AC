@@ -63,7 +63,8 @@ char *getfiledesc(const char *dir, const char *name, const char *ext)
 inline gmenu *setcurmenu(gmenu *newcurmenu)      // only change curmenu through here!
 {
     curmenu = newcurmenu;
-    if(!editmode) keyrepeat(curmenu && curmenu->allowinput && !curmenu->hotkeys);
+    extern bool saycommandon;
+    if(!editmode && !saycommandon) keyrepeat(curmenu && curmenu->allowinput && !curmenu->hotkeys);
     return curmenu;
 }
 
