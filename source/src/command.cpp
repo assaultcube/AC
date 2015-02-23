@@ -182,10 +182,10 @@ float fvariable(const char *name, float minval, float cur, float maxval, float *
     return cur;
 }
 
-char *svariable(const char *name, const char *cur, char **storage, void (*fun)(), bool persist)
+char *svariable(const char *name, const char *cur, char **storage, void (*fun)(), void (*getfun)(), bool persist)
 {
     if(!idents) idents = new hashtable<const char *, ident>;
-    ident v(ID_SVAR, name, storage, fun, persist, IEXC_CORE);
+    ident v(ID_SVAR, name, storage, fun, getfun, persist, IEXC_CORE);
     idents->access(name, v);
     return newstring(cur);
 }
@@ -229,7 +229,7 @@ void modifyvar(const char *name, int arg, char op)
     {
         case ID_VAR: val = *id->storage.i; break;
         case ID_FVAR: val = int(*id->storage.f); break;
-        case ID_SVAR: val = ATOI(*id->storage.s); break;
+        case ID_SVAR: { { if(id->getfun) ((void (__cdecl *)())id->getfun)(); } val = ATOI(*id->storage.s); break; }
         case ID_ALIAS: val = ATOI(id->action); break;
     }
     switch(op)
@@ -266,7 +266,7 @@ void modifyfvar(const char *name, float arg, char op)
     {
         case ID_VAR: val = *id->storage.i; break;
         case ID_FVAR: val = *id->storage.f; break;
-        case ID_SVAR: val = atof(*id->storage.s); break;
+        case ID_SVAR: { { if(id->getfun) ((void (__cdecl *)())id->getfun)(); } val = atof(*id->storage.s); break; }
         case ID_ALIAS: val = atof(id->action); break;
     }
     switch(op)
@@ -336,6 +336,7 @@ void _getalias(char *name)
                 result(o);
                 break;
             case ID_SVAR:
+                if(id->getfun) ((void (__cdecl *)())id->getfun)();
                 formatstring(o)("%s", *id->storage.s);
                 result(o);
                 break;
@@ -404,7 +405,7 @@ char *lookup(char *n)                           // find value of ident reference
     {
         case ID_VAR: { string t; itoa(t, *id->storage.i); return exchangestr(n, t); }
         case ID_FVAR: return exchangestr(n, floatstr(*id->storage.f));
-        case ID_SVAR: return exchangestr(n, *id->storage.s);
+        case ID_SVAR: { { if(id->getfun) ((void (__cdecl *)())id->getfun)(); } return exchangestr(n, *id->storage.s); }
         case ID_ALIAS: return exchangestr(n, id->action);
     }
     conoutf("unknown alias lookup: %s", n+1);
@@ -666,7 +667,11 @@ char *executeret(const char *p)                            // all evaluation hap
                         break;
 
                     case ID_SVAR:                        // game defined variables
-                        if(!w[1][0]) conoutf(strchr(*id->storage.s, '"') ? "%s = [%s]" : "%s = \"%s\"", c, *id->storage.s); // var with no value just prints its current value
+                        if(!w[1][0])
+                        {
+                            if(id->getfun) ((void (__cdecl *)())id->getfun)();
+                            conoutf(strchr(*id->storage.s, '"') ? "%s = [%s]" : "%s = \"%s\"", c, *id->storage.s); // var with no value just prints its current value
+                        }
                         else
                         {
                             *id->storage.s = exchangestr(*id->storage.s, newstring(w[1]));

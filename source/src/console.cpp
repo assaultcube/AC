@@ -315,23 +315,18 @@ void inputcommand(char *init, char *action, char *prompt)
 }
 COMMAND(inputcommand, "sss");
 
-void mapmsg(char *s)
-{
+SVARFF(mapmsg,
+{ // read mapmsg
+    hdr.maptitle[127] = '\0';
+    mapmsg = exchangestr(mapmsg, hdr.maptitle);
+},
+{ // set new mapmsg
     string text;
-    filterrichtext(text, s);
+    filterrichtext(text, mapmsg);
     filtertext(text, text, FTXT__MAPMSG);
     copystring(hdr.maptitle, text, 128);
     if(editmode) unsavededits++;
-}
-COMMAND(mapmsg, "s");
-
-void getmapmsg(void)
-{
-    string text;
-    copystring(text, hdr.maptitle, 128);
-    result(text);
-}
-COMMAND(getmapmsg, "");
+});
 
 #if !defined(WIN32) && !defined(__APPLE__)
 #include <X11/Xlib.h>

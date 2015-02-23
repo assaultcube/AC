@@ -34,42 +34,45 @@ struct ident
         identstack *stack;  // ID_ALIAS
     };
     const char *sig;        // command signature
-    char *action, *executing; // ID_ALIAS
+    char *action;           // ID_ALIAS
+    union
+    {
+        void (*getfun)();    // ID_SVAR   (called /before/ reading the value string, as a chance for last-minute updates)
+        char *executing;     // ID_ALIAS
+    };
+    short context;
     bool persist;
-
-    int context;
-
 
     ident() {}
 
     // ID_VAR
     ident(int type, const char *name, int minval, int maxval, int *i, void (*fun)(), bool persist, int context)
         : type(type), name(name), isconst(false), minval(minval), maxval(maxval), fun(fun),
-          sig(NULL), action(NULL), executing(NULL), persist(persist), context(context)
+          sig(NULL), action(NULL), executing(NULL), context(context), persist(persist)
     { storage.i = i; }
 
     // ID_FVAR
     ident(int type, const char *name, float minval, float maxval, float *f, void (*fun)(), bool persist, int context)
         : type(type), name(name), isconst(false), minvalf(minval), maxvalf(maxval), fun(fun),
-          sig(NULL), action(NULL), executing(NULL), persist(persist), context(context)
+          sig(NULL), action(NULL), executing(NULL), context(context), persist(persist)
     { storage.f = f; }
 
     // ID_SVAR
-    ident(int type, const char *name, char **s, void (*fun)(), bool persist, int context)
+    ident(int type, const char *name, char **s, void (*fun)(), void (*getfun)(), bool persist, int context)
         : type(type), name(name), isconst(false), minval(0), maxval(0), fun(fun),
-          sig(NULL), action(NULL), executing(NULL), persist(persist), context(context)
+          sig(NULL), action(NULL), getfun(getfun), context(context), persist(persist)
     { storage.s = s; }
 
     // ID_ALIAS
     ident(int type, const char *name, char *action, bool persist, int context)
         : type(type), name(name), isconst(false), minval(0), maxval(0), stack(0),
-          sig(NULL), action(action), executing(NULL), persist(persist), context(context)
+          sig(NULL), action(action), executing(NULL), context(context), persist(persist)
     { storage.i = NULL; }
 
     // ID_COMMAND
     ident(int type, const char *name, void (*fun)(), const char *sig, int context)
         : type(type), name(name), isconst(false), minval(0), maxval(0), fun(fun),
-          sig(sig), action(NULL), executing(NULL), persist(false), context(context)
+          sig(sig), action(NULL), executing(NULL), context(context), persist(false)
     { storage.i = NULL; }
 };
 
@@ -92,10 +95,12 @@ enum { IEXC_CORE = 0, IEXC_CFG, IEXC_PROMPT, IEXC_MAPCFG, IEXC_MDLCFG, IEXC_NUM 
 #define FVARF(name, min, cur, max, body)  extern float name; void var_##name() { body; } float name = fvariable(#name, min, cur, max, &name, var_##name, false)
 #define FVARFP(name, min, cur, max, body) extern float name; void var_##name() { body; } float name = fvariable(#name, min, cur, max, &name, var_##name, true)
 
-#define SVARP(name, cur) char *name = svariable(#name, cur, &name, NULL, true)
-#define SVAR(name, cur)  char *name = svariable(#name, cur, &name, NULL, false)
-#define SVARF(name, cur, body)  extern char *name; void var_##name() { body; } char *name = svariable(#name, cur, &name, var_##name, false)
-#define SVARFP(name, cur, body) extern char *name; void var_##name() { body; } char *name = svariable(#name, cur, &name, var_##name, true)
+// SVARs are represented by "char *name" which has to be a valid "newstring()" all the time
+#define SVARP(name, cur) char *name = svariable(#name, cur, &name, NULL, NULL, true)
+#define SVAR(name, cur)  char *name = svariable(#name, cur, &name, NULL, NULL, false)
+#define SVARF(name, cur, body)  extern char *name; void var_##name() { body; } char *name = svariable(#name, cur, &name, var_##name, NULL, false)
+#define SVARFP(name, cur, body) extern char *name; void var_##name() { body; } char *name = svariable(#name, cur, &name, var_##name, NULL, true)
+#define SVARFF(name, getb, checkb)  extern char *name; void var_get##name() { getb; } void var_check##name() { checkb; } char *name = svariable(#name, "", &name, var_check##name, var_get##name, false)
 
 #define ATOI(s) strtol(s, NULL, 0)      // supports hexadecimal numbers
 
