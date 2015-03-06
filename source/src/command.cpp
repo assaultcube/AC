@@ -934,7 +934,7 @@ void commandcomplete(char *s, bool reversedirection)
     { // commandname completion
         vector<const char *> matchingidents;
         enumerate(*idents, ident, id,
-            if(!strncasecmp(id.name, cp, completesize)) matchingidents.add(id.name);     // find all matching possibilities to get the list length (and give an opportunity to sort the list first)
+            if(!strncasecmp(id.name, cp, completesize) && (id.type != ID_ALIAS || *id.action)) matchingidents.add(id.name);     // find all matching possibilities to get the list length (and give an opportunity to sort the list first)
         );
         if(matchingidents.length())
         {
