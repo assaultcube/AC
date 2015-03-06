@@ -835,7 +835,7 @@ extern void resetcomplete();
 extern void complete(char *s, bool reversedirection);
 extern void push(const char *name, const char *action);
 extern void pop(const char *name);
-extern void alias(const char *name, const char *action, bool constant = false);
+extern void alias(const char *name, const char *action, bool temp = false, bool constant = false);
 extern const char *getalias(const char *name);
 extern void writecfg();
 extern void deletecfg();

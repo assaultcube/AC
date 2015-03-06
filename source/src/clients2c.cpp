@@ -61,7 +61,7 @@ bool changemapserv(char *name, int mode, int download, int revision)        // f
                 else
                 {
                     defformatstring(msg)("map '%s' revision: local %d, provided by server %d", name, hdr.maprevision, revision);
-                    alias("__getmaprevisions", msg);
+                    alias("__getmaprevisions", msg, true);
                     showmenu("getmap");
                 }
             }

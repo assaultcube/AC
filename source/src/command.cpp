@@ -117,13 +117,14 @@ void delalias(const char *name)
 }
 COMMAND(delalias, "s");
 
-void alias(const char *name, const char *action, bool constant)
+void alias(const char *name, const char *action, bool temp, bool constant)
 {
     ident *b = idents->access(name);
     if(!b)
     {
-        ident b(ID_ALIAS, newstring(name), newstring(action), persistidents && !constant, execcontext);
+        ident b(ID_ALIAS, newstring(name), newstring(action), persistidents && !constant && !temp, execcontext);
         b.isconst = constant;
+        b.istemp = temp;
         idents->access(b.name, b);
         return;
     }
@@ -144,12 +145,14 @@ void alias(const char *name, const char *action, bool constant)
         }
 
         b->isconst = constant;
+        if(temp) b->istemp = true;
         if(!constant || (action && action[0]))
         {
             if(b->action!=b->executing) delete[] b->action;
             b->action = newstring(action);
             b->persist = persistidents != 0;
         }
+        if(b->istemp) b->persist = false;
     }
     else
     {
@@ -158,8 +161,9 @@ void alias(const char *name, const char *action, bool constant)
     }
 }
 
-COMMANDF(alias, "ss", (const char *name, const char *action) { alias(name, action, false); });
-COMMANDF(const, "ss", (const char *name, const char *action) { alias(name, action, true); });
+COMMANDF(alias, "ss", (const char *name, const char *action) { alias(name, action, false, false); });
+COMMANDF(tempalias, "ss", (const char *name, const char *action) { alias(name, action, true, false); });
+COMMANDF(const, "ss", (const char *name, const char *action) { alias(name, action, false, true); });
 
 COMMANDF(checkalias, "s", (const char *name) { intret(getalias(name) ? 1 : 0); });
 COMMANDF(isconst, "s", (const char *name) { ident *id = idents->access(name); intret(id && id->isconst ? 1 : 0); });

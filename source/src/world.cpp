@@ -580,7 +580,7 @@ void newmap(int *i)
         exechook(HOOK_SP_MP, "onNewMap", "");
     }
     defformatstring(startmillis)("%d", millis_());
-    alias("gametimestart", startmillis);
+    alias("gametimestart", startmillis, true);
 }
 
 COMMAND(mapenlarge, "");

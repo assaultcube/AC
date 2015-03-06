@@ -11,7 +11,6 @@ struct ident
 {
     int type;           // one of ID_* above
     const char *name;
-    bool isconst;
     union
     {
         int minval;    // ID_VAR
@@ -42,39 +41,41 @@ struct ident
         int defaultval;      // ID_VAR
         float defaultvalf;   // ID_FVAR
      };
-    short context;
-    bool persist;
+    short context;          // one of IEXC_* below
+    bool persist;           // if true, value gets written to saved.cfg on exit; set to true, if it's an ID_ALIAS and the value gets changed
+    bool isconst;           // ID_ALIAS: value may not be overwritten
+    bool istemp;            // ID_ALIAS: if value is changed, "persist" will not be set true
 
     ident() {}
 
     // ID_VAR
     ident(int type, const char *name, int minval, int maxval, int *i, int defval, void (*fun)(), bool persist, int context)
-        : type(type), name(name), isconst(false), minval(minval), maxval(maxval), fun(fun),
-          sig(NULL), action(NULL), defaultval(defval), context(context), persist(persist)
+        : type(type), name(name), minval(minval), maxval(maxval), fun(fun),
+          sig(NULL), action(NULL), defaultval(defval), context(context), persist(persist), isconst(false), istemp(false)
     { storage.i = i; }
 
     // ID_FVAR
     ident(int type, const char *name, float minval, float maxval, float *f, float defval, void (*fun)(), bool persist, int context)
-        : type(type), name(name), isconst(false), minvalf(minval), maxvalf(maxval), fun(fun),
-          sig(NULL), action(NULL), defaultvalf(defval), context(context), persist(persist)
+        : type(type), name(name), minvalf(minval), maxvalf(maxval), fun(fun),
+          sig(NULL), action(NULL), defaultvalf(defval), context(context), persist(persist), isconst(false), istemp(false)
     { storage.f = f; }
 
     // ID_SVAR
     ident(int type, const char *name, char **s, void (*fun)(), void (*getfun)(), bool persist, int context)
-        : type(type), name(name), isconst(false), minval(0), maxval(0), fun(fun),
-          sig(NULL), action(NULL), getfun(getfun), context(context), persist(persist)
+        : type(type), name(name), minval(0), maxval(0), fun(fun),
+          sig(NULL), action(NULL), getfun(getfun), context(context), persist(persist), isconst(false), istemp(false)
     { storage.s = s; }
 
     // ID_ALIAS
     ident(int type, const char *name, char *action, bool persist, int context)
-        : type(type), name(name), isconst(false), minval(0), maxval(0), stack(0),
-          sig(NULL), action(action), executing(NULL), context(context), persist(persist)
+        : type(type), name(name), minval(0), maxval(0), stack(0),
+          sig(NULL), action(action), executing(NULL), context(context), persist(persist), isconst(false), istemp(false)
     { storage.i = NULL; }
 
     // ID_COMMAND
     ident(int type, const char *name, void (*fun)(), const char *sig, int context)
-        : type(type), name(name), isconst(false), minval(0), maxval(0), fun(fun),
-          sig(sig), action(NULL), executing(NULL), context(context), persist(false)
+        : type(type), name(name), minval(0), maxval(0), fun(fun),
+          sig(sig), action(NULL), executing(NULL), context(context), persist(false), isconst(false), istemp(false)
     { storage.i = NULL; }
 };
 

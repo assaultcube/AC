@@ -754,7 +754,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
     c2skeepalive();
 
     defformatstring(startmillis)("%d", millis_());
-    alias("gametimestart", startmillis);
+    alias("gametimestart", startmillis, true);
     startmap(mname);
     return true;
 }

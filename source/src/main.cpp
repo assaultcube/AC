@@ -29,9 +29,10 @@ VAR(resetcfg, 0, 0, 1);
 
 void quit()                     // normal exit
 {
-    const char *mapstartonce = getalias("mapstartonce"), *onquit = getalias("onQuit");
-    if(mapstartonce && mapstartonce[0]) alias("mapstartonce", "");
-    if(onquit && onquit[0]) { execute(onquit); alias("onQuit", ""); }
+    const char *onquit = getalias("onQuit");
+    if(onquit && onquit[0]) execute(onquit);
+    alias("onQuit", "");
+    alias("mapstartonce", "");
     extern void writeinitcfg();
     writeinitcfg();
     writeservercfg();
