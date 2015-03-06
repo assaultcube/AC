@@ -1064,7 +1064,7 @@ int main(int argc, char **argv)
 
     const char *initmap = rndmapname();
     loopi(NUMGUNS) crosshairnames[i] = gunnames[i] = guns[i].modelname;
-    gunnames[GUN_AKIMBO] = "akimbo";
+    crosshairnames[GUN_AKIMBO] = gunnames[GUN_AKIMBO] = "akimbo";
     crosshairnames[CROSSHAIR_DEFAULT] = "default";
     crosshairnames[CROSSHAIR_TEAMMATE] = "teammate";
     crosshairnames[CROSSHAIR_SCOPE] = "scope";
