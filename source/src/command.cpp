@@ -11,6 +11,7 @@ vector<int> contextstack;
 bool contextsealed = false;
 bool contextisolated[IEXC_NUM] = { false };
 int execcontext;
+char *commandret = NULL;
 
 bool loop_break = false, loop_skip = false;             // break or continue (skip) current loop
 int loop_level = 0;                                      // avoid bad calls of break & continue
@@ -102,7 +103,16 @@ void pop(const char *name)
 }
 
 COMMAND(push, "ss");
-COMMAND(pop, "s");
+COMMANDF(pop, "v", (char **args, int numargs)
+{
+    if(numargs > 0)
+    {
+        const char *beforepopval = getalias(args[0]);
+        if(beforepopval) commandret = newstring(beforepopval);
+    }
+    loopi(numargs) pop(args[i]);
+});
+
 void delalias(const char *name)
 {
     ident *id = idents->access(name);
@@ -467,8 +477,6 @@ char *conc(const char **w, int n, bool space)
 }
 
 VARN(numargs, _numargs, 25, 0, 0);
-
-char *commandret = NULL;
 
 void intret(int v)
 {
