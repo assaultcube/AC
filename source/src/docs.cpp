@@ -165,6 +165,12 @@ COMMANDN(docref, adddocref, "ssss");
 COMMANDN(docexample, adddocexample, "ss");
 COMMANDN(dockey, adddockey, "sss");
 
+const char *docgetdesc(const char *name)
+{
+    docident *id = docidents.access(name);
+    return id ? id->desc : NULL;
+}
+
 char *cvecstr(vector<char *> &cvec, const char *substr, int *rline = NULL)
 {
     char *r = NULL;

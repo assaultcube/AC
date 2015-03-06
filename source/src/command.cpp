@@ -1454,6 +1454,9 @@ COMMANDF(escape, "s", (const char *s) { result(escapestring(s));});
 
 int sortident(ident **a, ident **b) { return strcasecmp((*a)->name, (*b)->name); }
 
+VARP(omitunchangeddefaults, 0, 0, 1);
+VAR(groupvariables, 0, 4, 10);
+
 void writecfg()
 {
     filerotate("config/saved", "cfg", CONFIGROTATEMAX); // keep five old config sets
@@ -1476,15 +1479,13 @@ void writecfg()
     f->printf("// crosshairs and kill messages for each weapon\n\nlooplist [\n");
     loopi(NUMGUNS) f->printf("  %-7s %-11s %-12s %s\n", gunnames[i], crosshairs[i] && crosshairs[i] != notexture ? behindpath(crosshairs[i]->name) : "\"\"", escapestring(killmessage(i, false)), escapestring(killmessage(i, true)));
     f->printf("] [ w c f g ] [ loadcrosshair $w $c ; fragmessage $w $f ; gibmessage $w $g ]\n");
-    f->printf("\n\n// client variables\n");
+    f->printf("\n\n// client variables (unchanged default values %s)\n", omitunchangeddefaults ? "omitted" : "commented out");
     vector<ident *> sids;
     enumerate(*idents, ident, id,
         if(id.persist) switch(id.type)
         {
             case ID_VAR:
-                if(*id.storage.i == id.defaultval) break;
             case ID_FVAR:
-                if(id.type == ID_FVAR && *id.storage.f == id.defaultvalf) break;
             case ID_SVAR:
                 sids.add(&id);
                 break;
@@ -1493,16 +1494,28 @@ void writecfg()
     sids.sort(sortident);
     const char *rep = "";
     int repn = 0;
+    bool lastdef = false, curdef;
     loopv(sids)
     {
         ident &id = *sids[i];
-        f->printf("%s", !strncmp(rep, id.name, 3) && ++repn < 4 ? " ; " : (repn = 0, "\n"));
+        curdef = (id.type == ID_VAR && *id.storage.i == id.defaultval) || (id.type == ID_FVAR && *id.storage.f == id.defaultvalf);
+        if(curdef && omitunchangeddefaults) continue;
+        f->printf("%s", !strncmp(rep, id.name, curdef ? 1 : 3) && ++repn < groupvariables && lastdef == curdef ? " ; " : (repn = 0, "\n"));
         rep = id.name;
+        lastdef = curdef;
+        if(curdef && repn == 0) f->printf("// ");
         switch(id.type)
         {
             case ID_VAR:  f->printf("%s %d", id.name, *id.storage.i); break;
             case ID_FVAR: f->printf("%s %s", id.name, floatstr(*id.storage.f)); break;
             case ID_SVAR: f->printf("%s %s", id.name, escapestring(*id.storage.s, false)); break;
+        }
+        if(!groupvariables)
+        {
+            if(id.type == ID_VAR) f->printf("  // min: %d, max: %d, def: %d", id.minval, id.maxval, id.defaultval);
+            if(id.type == ID_FVAR) f->printf("  // min: %s, max: %s, def: %s", floatstr(id.minvalf), floatstr(id.maxvalf), floatstr(id.defaultvalf));
+            const char *doc = docgetdesc(id.name);
+            if(doc) f->printf(id.type == ID_SVAR ? "  // %s" : ",  %s", doc);
         }
     }
     f->printf("\n\n// weapon settings\n\n");

@@ -786,6 +786,7 @@ extern void toggledoc();
 extern void scrolldoc(int i);
 extern int stringsort(const char **a, const char **b);
 extern int stringsortignorecase(const char **a, const char **b);
+extern const char *docgetdesc(const char *name);
 #endif
 
 // protocol [client and server]
