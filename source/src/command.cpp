@@ -1514,14 +1514,16 @@ void writecfg()
     writebinds(f);
     f->printf("\n// aliases\n\n");
     sids.setsize(0);
-    enumerate(*idents, ident, id, if(id.type==ID_ALIAS && id.persist && id.action[0]) sids.add(&id); );
+    enumerate(*idents, ident, id, if(id.type == ID_ALIAS && id.persist) sids.add(&id); );
     sids.sort(sortident);
     loopv(sids)
     {
         ident &id = *sids[i];
         if(strncmp(id.name, "demodesc_", 9))
         {
-            f->printf("alias %s %s\n", escapestring(id.name, false), escapestring(id.action, false));
+            const char *action = id.action;
+            for(identstack *s = id.stack; s; s = s->next) action = s->action;
+            if(action[0]) f->printf("alias %s %s\n", escapestring(id.name, false), escapestring(action, false));
             sids.remove(i--);
         }
     }
@@ -1531,7 +1533,9 @@ void writecfg()
         loopv(sids)
         {
             ident &id = *sids[i];
-            f->printf("alias %s %s\n", escapestring(id.name, false), escapestring(id.action, false));
+            const char *action = id.action;
+            for(identstack *s = id.stack; s; s = s->next) action = s->action;
+            if(action[0]) f->printf("alias %s %s\n", escapestring(id.name, false), escapestring(action, false));
         }
     }
     f->printf("\n");
