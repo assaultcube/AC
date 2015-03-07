@@ -595,6 +595,13 @@ extern void restoreeditundo(ucharbuf &q);
 extern int backupeditundo(vector<uchar> &buf, int undolimit, int redolimit);
 
 // renderhud
+#define HUDPOS_ICONSPACING 235
+#define HUDPOS_HEALTH 10
+#define HUDPOS_ARMOUR (HUDPOS_HEALTH + HUDPOS_ICONSPACING)
+#define HUDPOS_WEAPON (HUDPOS_ARMOUR + HUDPOS_ICONSPACING)
+#define HUDPOS_GRENADE (HUDPOS_WEAPON + HUDPOS_ICONSPACING)
+#define HUDPOS_NUMBERSPACING 70
+
 enum
 {
     HUDMSG_INFO = 0,

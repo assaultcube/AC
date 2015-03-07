@@ -844,13 +844,13 @@ void weapon::renderstats()
 {
     char gunstats[64];
     if(oldfashionedgunstats) sprintf(gunstats, "%i/%i", mag, ammo); else sprintf(gunstats, "%i", mag);
-    draw_text(gunstats, 590, 823);
+    draw_text(gunstats, HUDPOS_WEAPON + HUDPOS_NUMBERSPACING, 823);
     if(!oldfashionedgunstats)
     {
         int offset = text_width(gunstats);
         glScalef(0.5f, 0.5f, 1.0f);
         sprintf(gunstats, "%i", ammo);
-        draw_text(gunstats, (590 + offset)*2, 826*2);
+        draw_text(gunstats, (HUDPOS_WEAPON + HUDPOS_NUMBERSPACING + offset)*2, 826*2);
         glLoadIdentity();
     }
 }
@@ -1187,7 +1187,7 @@ void grenades::renderstats()
 {
     char gunstats[64];
     sprintf(gunstats, "%i", mag);
-    draw_text(gunstats, 830, 823);
+    draw_text(gunstats, oldfashionedgunstats ? HUDPOS_GRENADE + HUDPOS_NUMBERSPACING + 25 : HUDPOS_GRENADE + HUDPOS_NUMBERSPACING, 823);
 }
 
 bool grenades::selectable() { return weapon::selectable() && state != GST_INHAND && mag; }
