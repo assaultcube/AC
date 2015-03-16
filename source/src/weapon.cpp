@@ -1638,7 +1638,7 @@ void checkakimbo()
             // fix akimbo magcontent
             a.mag = 0;
             a.ammo = 0;
-            if(player1->weaponsel->type==GUN_AKIMBO)
+            if(player1->weaponsel->type==GUN_AKIMBO || (player1->weaponchanging && player1->nextweaponsel->type==GUN_AKIMBO))
             {
 
                 switch(akimboendaction)
