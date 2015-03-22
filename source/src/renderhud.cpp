@@ -14,7 +14,7 @@ inline void turn_on_transparency(int alpha = 255)
     glColor4ub(255, 255, 255, alpha);
 }
 
-void drawequipicon(float x, float y, int col, int row, float blend)
+void drawequipicon(float x, float y, int col, int row)
 {
     static Texture *tex = NULL;
     if(!tex) tex = textureload("packages/misc/items.png", 4);
@@ -377,9 +377,9 @@ void drawequipicons(playerent *p)
     glColor4f(1.0f, 1.0f, 1.0f, 0.2f+(sinf(lastmillis/100.0f)+1.0f)/2.0f);
 
     // health & armor
-    if(p->armour) drawequipicon(HUDPOS_ARMOUR*2, 1650, (p->armour-1)/25, 2, false);
-    drawequipicon(HUDPOS_HEALTH*2, 1650, 2, 3, (p->state!=CS_DEAD && p->health<=20 && !m_osok));
-    if(p->mag[GUN_GRENADE]) drawequipicon(oldfashionedgunstats ? (HUDPOS_GRENADE + 25)*2 : HUDPOS_GRENADE*2, 1650, 3, 1, false);
+    if(p->armour) drawequipicon(HUDPOS_ARMOUR*2, 1650, (p->armour-1)/25, 2);
+    drawequipicon(HUDPOS_HEALTH*2, 1650, 2, 3);
+    if(p->mag[GUN_GRENADE]) drawequipicon(oldfashionedgunstats ? (HUDPOS_GRENADE + 25)*2 : HUDPOS_GRENADE*2, 1650, 3, 1);
 
     // weapons
     int c = p->weaponsel->type != GUN_GRENADE ? p->weaponsel->type : p->prevweaponsel->type, r = 0;
@@ -387,7 +387,7 @@ void drawequipicons(playerent *p)
     if(c>3) { c -= 4; r = 1; }
 
     if(p->weaponsel && p->weaponsel->type>=GUN_KNIFE && p->weaponsel->type<NUMGUNS)
-        drawequipicon(HUDPOS_WEAPON*2, 1650, c, r, (!p->weaponsel->mag && p->weaponsel->type != GUN_KNIFE && p->weaponsel->type != GUN_GRENADE));
+        drawequipicon(HUDPOS_WEAPON*2, 1650, c, r);
     glEnable(GL_BLEND);
 }
 
