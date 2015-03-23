@@ -1026,16 +1026,17 @@ void exec(const char *cfgfile)
 
 void execdir(const char *dir)
 {
-        if(dir[0])
+    if(dir[0])
+    {
+        vector<char *> files;
+        listfiles(dir, "cfg", files);
+        loopv(files)
         {
-            vector<char *> files;
-            listfiles(dir, "cfg", files);
-            loopv(files)
-            {
-                defformatstring(d)("%s/%s.cfg",dir,files[i]);
-                exec(d);
-            }
+            defformatstring(d)("%s/%s.cfg",dir,files[i]);
+            exec(d);
+            delstring(files[i]);
         }
+    }
 }
 COMMAND(execdir, "s");
 
