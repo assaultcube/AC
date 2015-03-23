@@ -1125,7 +1125,7 @@ void format(char **args, int numargs)
     result(s.getbuf());
 }
 
-#define whitespaceskip s += strspn(s, "\n\t \r")
+#define whitespaceskip do { s += strspn(s, "\n\t \r"); } while(s[0] == '/' && s[1] == '/' && (s += strcspn(s, "\n\0")))
 #define elementskip { if(*s=='"') { do { ++s; s += strcspn(s, "\"\n"); } while(*s == '\"' && s[-1] == '\\'); s += *s=='"'; } else s += strcspn(s, "\n\t "); }
 
 void explodelist(const char *s, vector<char *> &elems)
