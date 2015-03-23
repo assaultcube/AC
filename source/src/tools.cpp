@@ -432,6 +432,11 @@ int getlistindex(const char *key, const char *list[], bool acceptnumeric, int de
         int i = (int)strtol(key, NULL, 0);
         if(i >= 0 && i < max) return i;
     }
+#if !defined(STANDALONE) && defined(_DEBUG)
+    char *opts = conc(list, -1, true);
+    if(*key) clientlogf("warning: unknown token \"%s\" (not in list [%s])", key, opts);
+    delstring(opts);
+#endif
     return deflt;
 }
 

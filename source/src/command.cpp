@@ -463,6 +463,11 @@ char *parseword(const char *&p, int arg, int &infix)                       // pa
 
 char *conc(const char **w, int n, bool space)
 {
+    if(n < 0)
+    {  // auto-determine number of strings
+        n = 0;
+        while(w[n] && w[n][0]) n++;
+    }
     int len = space ? max(n-1, 0) : 0;
     loopj(n) len += (int)strlen(w[j]);
     char *r = newstring("", len);
@@ -1745,9 +1750,7 @@ void listoptions(char *s)
     const char *optionnames[] = { "entities", "ents", "weapons", "teamnames", "teamnames-abbrv", "punctuations", "crosshairnames", "" };
     const char **optionlists[] = { optionnames, entnames + 1, entnames + 1, gunnames, teamnames, teamnames_s, punctnames, crosshairnames };
     const char **listp = optionlists[getlistindex(s, optionnames, true, -1) + 1];
-    int num = 0;
-    while(listp[num] && listp[num][0]) num++;
-    commandret = conc(listp, num, true);
+    commandret = conc(listp, -1, true);
 }
 COMMAND(listoptions, "s");
 
