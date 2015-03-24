@@ -910,6 +910,30 @@ const char *rndmapname()
     else return "";
 }
 
+#define AUTOSTARTPATH "config" PATHDIVS "autostart" PATHDIVS
+
+void autostartscripts(const char *prefix)
+{
+    static vector<char *> *files = NULL;
+    if(!files)
+    {  // first run: fetch file names and sort them
+        files = new vector<char *>;
+        listfiles(AUTOSTARTPATH, "cfg", *files);
+        files->sort(stringsort);
+        for(int i = files->length() - 1; i > 0; i--)
+        {
+            if(!strcmp((*files)[i], (*files)[i - 1])) delstring(files->remove(i));   // delete doubles
+        }
+    }
+    loopv(*files)
+    {
+        if(*prefix && strncmp((*files)[i], prefix, strlen(prefix))) continue;
+        defformatstring(p)(AUTOSTARTPATH "%s.cfg", (*files)[i]);
+        execfile(p);
+        delstring(files->remove(i--));
+    }
+}
+
 void createconfigtemplates(const char *templatezip)  // create customisable config files in homedir - only if missing
 {
     if(addzip(templatezip))
@@ -941,6 +965,7 @@ void createconfigtemplates(const char *templatezip)  // create customisable conf
         }
         removezip(templatezip);
     }
+    findfile(AUTOSTARTPATH "dummy", "w"); // create empty autostart directory, if it doesn't exist yet
 }
 
 extern void connectserv(char *, int *, char *);
@@ -1205,6 +1230,7 @@ int main(int argc, char **argv)
 
     initlog("console");
     per_idents = false;
+    autostartscripts("_veryfirst_");
     // Main font file, all other font files execute from here.
     if(!execfile("config/font.cfg")) fatal("cannot find default font definitions");
     // Check these 2 standard fonts have been executed.
@@ -1262,12 +1288,14 @@ int main(int argc, char **argv)
         delete f;
     }
 
+    autostartscripts("_beforesaved_");
     initing = INIT_LOAD;
     if(!execfile("config/saved.cfg"))
     {
         exec("config/defaults.cfg");
         firstrun = true;
     }
+    autostartscripts("_aftersaved_");
     exechook(HOOK_SP_MP, "afterinit", "");
     if(compatibilitymode)
     {
@@ -1275,6 +1303,7 @@ int main(int argc, char **argv)
         exec("config/compatibility.cfg"); // exec after saved.cfg to get "compatibilitymode", but before user scripts..
         per_idents = true;
     }
+    autostartscripts("");    // all remaining scripts
     execfile("config/autoexec.cfg");
     execfile("config/auth.cfg");
     execute("addallfavcatmenus");  // exec here, to add all categories (including those defined in autoexec.cfg)
