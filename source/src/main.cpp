@@ -4,6 +4,7 @@
 
 void cleanup(char *msg)         // single program exit point;
 {
+    if(clientlogfile) clientlogfile->fflush();
     if(!msg)
     {
         cleanupclient();
@@ -29,6 +30,7 @@ VAR(resetcfg, 0, 0, 1);
 
 void quit()                     // normal exit
 {
+    if(clientlogfile) clientlogfile->fflush();
     const char *onquit = getalias("onQuit");
     if(onquit && onquit[0]) execute(onquit);
     alias("onQuit", "");
@@ -43,7 +45,6 @@ void quit()                     // normal exit
     writeallxmaps();
     cleanup(NULL);
     popscontext();
-    extern stream *clientlogfile;
     DELETEP(clientlogfile);
     exit(EXIT_SUCCESS);
 }

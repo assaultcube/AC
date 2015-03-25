@@ -14,9 +14,9 @@ typedef unsigned int uint;
 
 #ifdef _DEBUG
 #ifdef __GNUC__
-#define ASSERT(c) if(!(c)) { asm("int $3"); }
+#define ASSERT(c) if(!(c)) { fflush(NULL); asm("int $3"); }
 #else
-#define ASSERT(c) if(!(c)) { __asm int 3 }
+#define ASSERT(c) if(!(c)) { fflush(NULL); { __asm int 3 } }
 #endif
 
 #include <iostream>
@@ -914,6 +914,7 @@ struct stream
     virtual long tell() { return -1; }
     virtual bool seek(long offset, int whence = SEEK_SET) { return false; }
     virtual long size();
+    virtual void fflush() {}
     virtual int read(void *buf, int len) { return 0; }
     virtual int write(const void *buf, int len) { return 0; }
     virtual int getchar() { uchar c; return read(&c, 1) == 1 ? c : -1; }
