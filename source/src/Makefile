@@ -1,10 +1,24 @@
-CXX=clang++		# override from commandline or in Makefile_local
-ACDEBUG=no		# add ACDEBUG=yes to the commandline or to Makefile_local to compile debug binaries
+# Ideally, you can override these parameters directly via the commandline, or by
+# creating a seperate 'Makefile_local' file (this way, your changes aren't
+# accidentaly commited to the AssaultCube repository).
 
-PLATFORM= $(shell uname -s)
+# AssaultCube now uses clang++ as a compiler, as there have been random crashes
+# found to have been caused by the g++ compiler in the past. This seems to have
+# been fixed now by relaxing the optimization that g++ does, so although we'll
+# continue using clang++ (just in case), you can use g++ if you prefer.
+CXX=clang++
+
+# Changing this to ACDEBUG=yes will compile a debug version of AssaultCube.
+ACDEBUG=no
+
+PLATFORM=$(shell uname -s)
+
+# This prefix is only used to name the installed executables.
 PLATFORM_PREFIX=native
 
--include Makefile_local   # optional file, not in repository
+# As above, this file is optional only.
+-include Makefile_local
+
 
 ifeq ($(ACDEBUG),yes)
 	CXXFLAGS= -O0
