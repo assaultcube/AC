@@ -254,8 +254,12 @@ Texture *loadcrosshairtexture(const char *c)
 
 void loadcrosshair(char *type, char *filename)
 {
-    int index = 0;
-    if(strchr(type, '.'))
+    int index = CROSSHAIR_DEFAULT;
+    if(!*filename)
+    {   // special form: loadcrosshair filename   // short for "loadcrosshair default filename"
+        filename = type;
+    }
+    else if(strchr(type, '.'))
     {   // old syntax "loadcrosshair filename type", remove this in 2020
         const char *oldcrosshairnames[CROSSHAIR_NUM + 1] = { "default", "teammate", "scope", "knife", "pistol", "carbine", "shotgun", "smg", "sniper", "ar", "cpistol", "grenades", "akimbo", "" };
         index = getlistindex(filename, oldcrosshairnames, false, 0);
@@ -267,9 +271,9 @@ void loadcrosshair(char *type, char *filename)
     {   // new syntax with proper gun names
         index = getlistindex(type, crosshairnames, false, CROSSHAIR_DEFAULT);
     }
-    if(!crosshairs[CROSSHAIR_DEFAULT] && index == CROSSHAIR_DEFAULT)
+    if(index == CROSSHAIR_DEFAULT)
     {
-        loopi(CROSSHAIR_NUM) if(!crosshairs[i]) crosshairs[i] = loadcrosshairtexture(filename);
+        loopi(CROSSHAIR_NUM) if(i != CROSSHAIR_TEAMMATE && i != CROSSHAIR_SCOPE) crosshairs[i] = loadcrosshairtexture(filename);
     }
     else
     {
