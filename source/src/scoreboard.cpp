@@ -268,6 +268,7 @@ extern bool watchingdemo;
 
 void reorderscorecolumns()
 {
+    static string scoreboardtitle;
     needscoresreorder = false;
     extern void *scoremenu;
     sline sscore;
@@ -283,7 +284,8 @@ void reorderscorecolumns()
     }
     sscore.addcol(sc_clientnum, "cn");
     sscore.addcol(sc_name, "name");
-    menutitle(scoremenu, newstring(sscore.getcols()));
+    copystring(scoreboardtitle, sscore.getcols());
+    menutitle(scoremenu, scoreboardtitle);
 }
 
 void renderscores(void *menu, bool init)
