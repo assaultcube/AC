@@ -1049,7 +1049,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     draw_textf("!TEST BUILD!", tbMSGleft, tbMSGtop);
     / * */
 
-    if(showspeed)
+    if(showspeed && !menu)
     {
         glLoadIdentity();
         glPushMatrix();
