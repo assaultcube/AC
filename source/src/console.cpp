@@ -9,7 +9,7 @@ VARP(fullconsize, 0, 40, 100);
 VARP(consize, 0, 6, 100);
 VARP(confade, 0, 20, 60);
 VARP(conalpha, 0, 255, 255);
-VAR(conopen, 0, 0, 1);
+VAR(conopen, 1, 0, 0);
 VAR(numconlines, 0, 0, 1);
 
 struct console : consolebuffer<cline>
