@@ -8,6 +8,7 @@ color *menuselbgcolor = NULL;
 
 vector<gmenu *> menustack;
 
+COMMANDF(curmenu, "", () {result(curmenu ? curmenu->name : "");} );
 VARP(browsefiledesc, 0, 1, 1);
 
 char *getfiledesc(const char *dir, const char *name, const char *ext)
