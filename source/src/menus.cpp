@@ -1037,7 +1037,7 @@ bool parsecolor(color *col, const char *r, const char *g, const char *b, const c
 void menuselectionbgcolor(char *r, char *g, char *b, char *a)
 {
     if(!menuselbgcolor) menuselbgcolor = new color;
-    if(!r[0]) { DELETEA(menuselbgcolor); return; }
+    if(!r[0]) { DELETEP(menuselbgcolor); return; }
     parsecolor(menuselbgcolor, r, g, b, a);
 }
 
