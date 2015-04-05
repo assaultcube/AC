@@ -1257,14 +1257,21 @@ void gmenu::conprintmenu()
     loopv(items) { conoutf("%03d: %s%s%s", 1+i, items[i]->gettext(), items[i]->getaction()?"|\t|":"", items[i]->getaction()?items[i]->getaction():""); }
 }
 
+const char *menufilesortorders[] = { "normal", "reverse", "ignorecase", "ignorecase_reverse", "" };
+int (*menufilesortcmp[])(const char **, const char **) = { stringsort, stringsortrev, stringsortignorecase, stringsortignorecaserev };
+
 void gmenu::init()
 {
-    if(dirlist && ((dirlist->dir != NULL) && (dirlist->ext != NULL)))
+    if(dirlist && dirlist->dir && dirlist->ext)
     {
         items.deletecontents();
         vector<char *> files;
         listfiles(dirlist->dir, dirlist->ext, files);
-        files.sort(stringsort);
+        defformatstring(sortorderalias)("menufilesort_%s", dirlist->ext);
+        int sortorderindex = 0;
+        const char *customsortorder = getalias(sortorderalias);
+        if(customsortorder) sortorderindex = getlistindex(customsortorder, menufilesortorders, true, 0);
+        files.sort(menufilesortcmp[sortorderindex]);
         loopv(files)
         {
             char *f = files[i];

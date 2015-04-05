@@ -1343,7 +1343,9 @@ char *strreplace(char *dest, const char *source, const char *search, const char 
 }
 
 int stringsort(const char **a, const char **b) { return strcmp(*a, *b); }
+int stringsortrev(const char **a, const char **b) { return strcmp(*b, *a); }
 int stringsortignorecase(const char **a, const char **b) { return strcasecmp(*a, *b); }
+int stringsortignorecaserev(const char **a, const char **b) { return strcasecmp(*b, *a); }
 
 void sortlist(char *list)
 {
@@ -1750,8 +1752,9 @@ COMMAND(getscrext, "");
 
 void listoptions(char *s)
 {
-    const char *optionnames[] = { "entities", "ents", "weapons", "teamnames", "teamnames-abbrv", "punctuations", "crosshairnames", "" };
-    const char **optionlists[] = { optionnames, entnames + 1, entnames + 1, gunnames, teamnames, teamnames_s, punctnames, crosshairnames };
+    extern const char *menufilesortorders[];
+    const char *optionnames[] = { "entities", "ents", "weapons", "teamnames", "teamnames-abbrv", "punctuations", "crosshairnames", "menufilesortorders", "" };
+    const char **optionlists[] = { optionnames, entnames + 1, entnames + 1, gunnames, teamnames, teamnames_s, punctnames, crosshairnames, menufilesortorders };
     const char **listp = optionlists[getlistindex(s, optionnames, true, -1) + 1];
     commandret = conc(listp, -1, true);
 }
