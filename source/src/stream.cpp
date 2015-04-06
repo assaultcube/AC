@@ -796,6 +796,7 @@ char *loadfile(const char *fn, int *size, const char *mode)
     return buf;
 }
 
+#ifndef STANDALONE
 void filerotate(const char *basename, const char *ext, int keepold, const char *oldformat)  // rotate old logfiles
 {
     char fname1[MAXSTRLEN * 2], fname2[MAXSTRLEN] = "";
@@ -811,4 +812,4 @@ void filerotate(const char *basename, const char *ext, int keepold, const char *
         copystring(fname2, fname1);
     }
 }
-
+#endif

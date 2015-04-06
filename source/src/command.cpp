@@ -741,6 +741,7 @@ int execute(const char *p)
     return i;
 }
 
+#ifndef STANDALONE
 bool exechook(int context, const char *ident, const char *body,...)  // execute cubescript hook if available and allowed in current context/gamemode
 { // always use one of HOOK_SP_MP, HOOK_SP or HOOK_MP and then OR them (as needed) with HOOK_TEAM, HOOK_NOTEAM, HOOK_BOTMODE, HOOK_FLAGMODE, HOOK_ARENA
     if(multiplayer(NULL) && (context & HOOK_FLAGMASK) != HOOK_MP && (context & HOOK_FLAGMASK) != HOOK_SP_MP) return false; // hook is singleplayer-only
@@ -759,7 +760,6 @@ bool exechook(int context, const char *ident, const char *body,...)  // execute 
     return false;
 }
 
-#ifndef STANDALONE
 // tab-completion of all idents
 // always works at the end of the command line - the cursor position does not matter
 
@@ -1259,6 +1259,7 @@ void colora(char *s)
     }
 }
 
+#ifndef STANDALONE
 // Easily inject a string into various CubeScript punctuations
 const char *punctnames[] = { "QUOTES", "BRACKETS", "PARENTHESIS", "_$_", "QUOTE", "PERCENT", "" };
 
@@ -1274,6 +1275,7 @@ void addpunct(char *s, char *type)
     else result(punct);
 }
 COMMAND(addpunct, "ss");
+#endif
 
 void toLower(char *s) { result(strcaps(s, false)); }
 void toUpper(char *s) { result(strcaps(s, true)); }
