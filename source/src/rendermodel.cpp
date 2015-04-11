@@ -86,6 +86,8 @@ void mdlcachelimit(int *limit)
 
 COMMAND(mdlcachelimit, "i");
 
+VAR(mapmodelchanged, 0, 0, 1);
+
 vector<mapmodelinfo> mapmodels;
 
 void mapmodel(int *rad, int *h, int *zoff, char *snap, char *name)
@@ -96,17 +98,27 @@ void mapmodel(int *rad, int *h, int *zoff, char *snap, char *name)
     mmi.zoff = *zoff;
     mmi.m = NULL;
     formatstring(mmi.name)("mapmodels/%s", name);
+    mapmodelchanged = 1;
 }
 
 void mapmodelreset()
 {
     if(execcontext==IEXC_MAPCFG) mapmodels.shrink(0);
+    mapmodelchanged = 1;
 }
 
 mapmodelinfo &getmminfo(int i) { return mapmodels.inrange(i) ? mapmodels[i] : *(mapmodelinfo *)0; }
 
 COMMAND(mapmodel, "iiiss");
 COMMAND(mapmodelreset, "");
+
+COMMANDF(mapmodelname, "i", (int *idx) { result(mapmodels.inrange(*idx) ? mapmodels[*idx].name : ""); });
+COMMANDF(mapmodelbyname, "s", (char *name)
+{
+    string res = "";
+    loopv(mapmodels) if(!strcmp(name, mapmodels[i].name)) concatformatstring(res, "%s%d", *res ? " " : "", i);
+    result(res);
+});
 
 hashtable<const char *, model *> mdllookup;
 hashtable<const char *, char> mdlnotfound;

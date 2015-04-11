@@ -813,25 +813,29 @@ struct mitemcheckbox : mitem
 
 void *addmenu(const char *name, const char *title, bool allowinput, void (__cdecl *refreshfunc)(void *, bool), bool (__cdecl *keyfunc)(void *, int, bool, int), bool hotkeys, bool forwardkeys)
 {
-    name = newstring(name);
-    gmenu &menu = menus[name];
-    menu.name = name;
-    menu.title = title;
-    menu.header = menu.footer = NULL;
-    menu.menusel = 0;
-    menu.mdl = NULL;
-    menu.allowinput = allowinput;
-    menu.inited = false;
-    menu.hotkeys = hotkeys;
-    menu.refreshfunc = refreshfunc;
-    menu.keyfunc = keyfunc;
-    menu.initaction = NULL;
-    menu.usefont = NULL;
-    menu.allowblink = false;
-    menu.dirlist = NULL;
-    menu.forwardkeys = forwardkeys;
-    lastmenu = &menu;
-    return &menu;
+    gmenu *m = menus.access(name);
+    if(!m)
+    {
+        name = newstring(name);
+        m = &menus[name];
+        m->name = name;
+        m->initaction = NULL;
+        m->header = m->footer = NULL;
+    }
+    m->title = title;
+    m->menusel = 0;
+    m->mdl = NULL;
+    m->allowinput = allowinput;
+    m->inited = false;
+    m->hotkeys = hotkeys;
+    m->refreshfunc = refreshfunc;
+    m->keyfunc = keyfunc;
+    m->usefont = NULL;
+    m->allowblink = false;
+    m->dirlist = NULL;
+    m->forwardkeys = forwardkeys;
+    lastmenu = m;
+    return m;
 }
 
 void newmenu(char *name, int *hotkeys, int *forwardkeys)
@@ -1199,9 +1203,10 @@ void rendermenumdl()
     glScalef(1, -1, 1);
 
     bool isplayermodel = !strncmp(m.mdl, "playermodels", strlen("playermodels"));
+    bool isweapon = !strncmp(m.mdl, "weapons", strlen("weapons"));
 
     vec pos;
-    if(isplayermodel) pos = vec(2.0f, 1.2f, -0.4f);
+    if(!isweapon) pos = vec(2.0f, 1.2f, -0.4f);
     else pos = vec(2.0f, 0, 1.7f);
 
     float yaw = 1.0f;
