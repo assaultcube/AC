@@ -3,7 +3,7 @@
 #ifdef STANDALONE
 #define DEBUGCOND (true)
 #else
-VARP(cryptodebug, 0, 0, 1);
+VARP(cryptodebug, 0, 1, 1);
 #define DEBUGCOND (cryptodebug==1)
 #endif
 
@@ -159,6 +159,12 @@ namespace tiger
         lilswap(val.chunks, 3);
     }
 }
+
+void tigerhash(uchar *hash, const uchar *msg, int len)
+{
+    tiger::hash(msg, len, *((tiger::hashval *) hash));
+}
+
 #undef sb1
 #undef sb2
 #undef sb3

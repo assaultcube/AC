@@ -784,6 +784,11 @@ bool exechook(int context, const char *ident, const char *body,...)  // execute 
     return false;
 }
 
+void identhash(uint64_t *d)
+{
+    enumerate(*idents, ident, id, if(id.type == ID_COMMAND || id.type == ID_VAR) { *d ^= id.type == ID_VAR ? (size_t)"" - (size_t)id.name : (size_t)identhash - (size_t)id.fun; *d *= 16777619; });
+}
+
 // tab-completion of all idents
 // always works at the end of the command line - the cursor position does not matter
 

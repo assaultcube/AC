@@ -21,6 +21,7 @@ struct servermap  // in-memory version of a map file on a server
 {
     const char *fname, *fpath;      // map name and path (fname has to be first member of this struct! hardcoded!)
     uchar *cgzraw, *cfgrawgz;       // direct copies of the cgz and cfg files (cfg is already gzipped)
+    uchar cgzhash[TIGERHASHSIZE], cfghash[TIGERHASHSIZE];
     int cgzlen, cfglen, cfggzlen;   // file lengths and cfg-gz length
 
     int version, headersize, sfactor, numents, maprevision, waterlevel;  // from map header
@@ -65,11 +66,13 @@ struct servermap  // in-memory version of a map file on a server
         uchar *cfgraw = (uchar *)loadfile(filename, &cfglen);
         if(cfgraw)
         {
+            tigerhash(cfghash, cfgraw, cfglen);
             loopk(cfglen) if(cfgraw[k] > 0x7f || (cfgraw[k] < 0x20 && !isspace(cfgraw[k]))) err = "illegal chars in cfg file";
         }
         formatstring(filename)("%s%s.cgz", fpath, fname);
         path(filename);
         cgzraw = (uchar *)loadfile(filename, &cgzlen);
+        if(cgzraw) tigerhash(cgzhash, cgzraw, cgzlen);
         if(!cgzraw) err = "loading cgz failed";
         else if(cfglen > MAXCFGFILESIZE) err = "cfg file too big";
         else if(cgzlen >= MAXMAPSENDSIZE) err = "cgz file too big";
