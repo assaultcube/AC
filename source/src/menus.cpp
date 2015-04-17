@@ -451,26 +451,10 @@ struct mitemmaploadmanual : mitemmanual
                 glEnd();
                 xtraverts += 4;
                 glEnable(GL_BLEND);
-                if(maptitle[0]) // 2011feb09:ft: TODO - this would be better as bottom line in the menu, just need to ensure it doesn't make the menu change width all the time!
+                if(maptitle[0])
                 {
-                    int mlil = maploaditemlength;
-                    string showt;
-                    string restt;
-                    restt[0] = '\0';
-                    filtertext(showt, maptitle, FTXT__MAPMSG);
-                    if(mlil && mlil != 255) // 0 && 255 are 'off'
-                    {
-                        int tl = strlen(showt);
-                        if(tl>mlil)
-                        {
-                            int cr = 0;
-                            int mr = min(max(0, tl-mlil), mlil);
-                            for(cr=0;cr<mr;cr++) { restt[cr] = showt[cr+mlil]; }
-                            if(cr>0) { restt[cr+1] = '\0'; showt[mlil] = '\0'; }
-                        }
-                    }
-                    draw_text(showt, 1*FONTH/2, VIRTH - FONTH/2);
-                    draw_text(restt, 3*FONTH/2, VIRTH + FONTH/2);
+                    filtertext(maptitle, maptitle, FTXT__MAPMSG);
+                    draw_text(maptitle, FONTH/2, VIRTH - FONTH/2, 0xFF, 0xFF, 0xFF, 0xFF, -1, maploaditemlength*FONTH/2);
                 }
                 //if(mapstats[0]) draw_text(mapstats, x, y+ys+5*FONTH/2);
             }
