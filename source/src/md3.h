@@ -268,6 +268,7 @@ void md3skin(char *objname, char *skin)
     if(!objname || !skin) return;
     if(!loadingmd3 || loadingmd3->parts.empty()) { conoutf("not loading an md3"); return; };
     md3::part &mdl = *loadingmd3->parts.last();
+    bool used = false;
     loopv(mdl.meshes)
     {
         md3::mesh &m = *mdl.meshes[i];
@@ -275,7 +276,14 @@ void md3skin(char *objname, char *skin)
         {
             defformatstring(spath)("%s/%s", md3dir, skin);
             m.skin = textureload(spath);
+            used = true;
         }
+    }
+    if(!used)
+    {
+        defformatstring(s)(", possibilities are: *");
+        loopv(mdl.meshes) concatformatstring(s, "|%s", mdl.meshes[i]->name);
+        conoutf("mesh \"%s\" not found in model %s, skin %s not loaded%s", objname, loadingmd3->loadname, skin, mdl.meshes.length() ? s : "");
     }
 }
 
