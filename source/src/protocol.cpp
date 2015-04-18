@@ -126,19 +126,19 @@ void getstring(char *text, ucharbuf &p, int len)
 char *filtertext(char *dst, const char *src, int flags, int len)
 {
     char *res = dst;
-    bool nowhite = flags & FTXT_NOWHITE,             // removes all whitespace; adding ALLOWBLANKS, ALLOWNL or ALLOWTAB enables exceptions
-         allowblanks = flags & FTXT_ALLOWBLANKS,     // only in combination with FTXT_NOWHITE
-         allownl = flags & FTXT_ALLOWNL,             // only in combination with FTXT_NOWHITE
-         allowtab = flags & FTXT_ALLOWTAB,           // only in combination with FTXT_NOWHITE
-         nocolor = flags & FTXT_NOCOLOR,             // removes all '\f' + following char
-         tabtoblank = flags & FTXT_TABTOBLANK,       // replaces \t with single blanks
-         fillblanks = flags & FTXT_FILLBLANKS,       // convert ' ' to '_'
-         safecs = flags & FTXT_SAFECS,               // removes all special chars that may execute commands when evaluate arguments; the argument still requires encapsulation by ""
-         leet = flags & FTXT_LEET,                   // translates leetspeak
-         toupp = flags & FTXT_TOUPPER,               // translates to all-uppercase
-         tolow = flags & FTXT_TOLOWER,               // translates to all-lowercase
-         filename = flags & FTXT_FILENAME,           // removes characters, that are not allowed in filenames on all supported systems - does not filter COM, PRN, etc.
-         mapname = flags & FTXT_MAPNAME,             // only allows lowercase chars, digits, '_', '-' and '.'; probably should be used in combination with TOLOWER
+    bool nowhite = (flags & FTXT_NOWHITE) != 0,             // removes all whitespace; adding ALLOWBLANKS, ALLOWNL or ALLOWTAB enables exceptions
+         allowblanks = (flags & FTXT_ALLOWBLANKS) != 0,     // only in combination with FTXT_NOWHITE
+         allownl = (flags & FTXT_ALLOWNL) != 0,             // only in combination with FTXT_NOWHITE
+         allowtab = (flags & FTXT_ALLOWTAB) != 0,           // only in combination with FTXT_NOWHITE
+         nocolor = (flags & FTXT_NOCOLOR) != 0,             // removes all '\f' + following char
+         tabtoblank = (flags & FTXT_TABTOBLANK) != 0,       // replaces \t with single blanks
+         fillblanks = (flags & FTXT_FILLBLANKS) != 0,       // convert ' ' to '_'
+         safecs = (flags & FTXT_SAFECS) != 0,               // removes all special chars that may execute commands when evaluate arguments; the argument still requires encapsulation by ""
+         leet = (flags & FTXT_LEET) != 0,                   // translates leetspeak
+         toupp = (flags & FTXT_TOUPPER) != 0,               // translates to all-uppercase
+         tolow = (flags & FTXT_TOLOWER) != 0,               // translates to all-lowercase
+         filename = (flags & FTXT_FILENAME) != 0,           // removes characters, that are not allowed in filenames on all supported systems - does not filter COM, PRN, etc.
+         mapname = (flags & FTXT_MAPNAME) != 0,             // only allows lowercase chars, digits, '_', '-' and '.'; probably should be used in combination with TOLOWER
          pass = false;
 #if 1 // classic mode (will be removed, as soon as all sources are clear of it)
     switch(flags)
