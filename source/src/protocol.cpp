@@ -139,6 +139,7 @@ char *filtertext(char *dst, const char *src, int flags, int len)
          tolow = (flags & FTXT_TOLOWER) != 0,               // translates to all-lowercase
          filename = (flags & FTXT_FILENAME) != 0,           // removes characters, that are not allowed in filenames on all supported systems - does not filter COM, PRN, etc.
          mapname = (flags & FTXT_MAPNAME) != 0,             // only allows lowercase chars, digits, '_', '-' and '.'; probably should be used in combination with TOLOWER
+         cropwhite = (flags & FTXT_CROPWHITE) != 0,         // removes leading and trailing whitespace
          pass = false;
 #if 1 // classic mode (will be removed, as soon as all sources are clear of it)
     switch(flags)
@@ -153,6 +154,8 @@ char *filtertext(char *dst, const char *src, int flags, int len)
 #endif
     if(leet || mapname) nocolor = true;
     bool trans = toupp || tolow || leet || filename || fillblanks;
+    bool leadingwhite = cropwhite;
+    char *lastwhite = NULL;
     for(int c = *src; c; c = *++src)
     {
         c &= 0x7F; // 7-bit ascii. not negotiable.
@@ -199,12 +202,17 @@ char *filtertext(char *dst, const char *src, int flags, int len)
         if(mapname && !isalnum(c) && !strchr("_-./\\", c)) continue;
         if(isspace(c))
         {
+            if(leadingwhite) continue;
+            if(!lastwhite) lastwhite = dst;
             if(nowhite && !((c == ' ' && allowblanks) || (c == '\n' && allownl)) && !pass) continue;
         }
         else if(!pass && !isprint(c)) continue;
+        leadingwhite = false;
+        lastwhite = NULL;
         *dst++ = c;
         if(!--len || !*src) break;
     }
+    if(cropwhite && lastwhite) *lastwhite = '\0';
     *dst = '\0';
     return res;
 }

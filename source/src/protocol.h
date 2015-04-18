@@ -151,6 +151,7 @@ enum
 #define FTXT_TOLOWER     (1<<18)
 #define FTXT_FILENAME    (1<<19)
 #define FTXT_MAPNAME     (1<<20)
+#define FTXT_CROPWHITE   (1<<21)
 // character classes
 #define FTXT__SERVDESC   (FTXT_NOWHITE | FTXT_ALLOWBLANKS | FTXT_TABTOBLANK)
 #define FTXT__MAPMSG     (FTXT_NOWHITE | FTXT_ALLOWBLANKS | FTXT_TABTOBLANK)
