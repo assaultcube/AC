@@ -1132,7 +1132,7 @@ void format(char **args, int numargs)
 }
 
 #define whitespaceskip do { s += strspn(s, "\n\t \r"); } while(s[0] == '/' && s[1] == '/' && (s += strcspn(s, "\n\0")))
-#define elementskip { if(*s=='"') { do { ++s; s += strcspn(s, "\"\n"); } while(*s == '\"' && s[-1] == '\\'); s += *s=='"'; } else s += strcspn(s, "\n\t "); }
+#define elementskip { if(*s=='"') { do { ++s; s += strcspn(s, "\"\n"); } while(*s == '\"' && s[-1] == '\\'); s += *s=='"'; } else s += strcspn(s, "\r\n\t "); }
 
 void explodelist(const char *s, vector<char *> &elems)
 {
@@ -1462,6 +1462,7 @@ const char *escapestring(const char *s, bool force, bool noquotes)
     for(; *s; s++) switch(*s)
     {
         case '\n': buf.put("\\n", 2); break;
+        case '\r': buf.put("\\n", 2); break;
         case '\t': buf.put("\\t", 2); break;
         case '\f': buf.put("\\f", 2); break;
         case '"': buf.put("\\\"", 2); break;
