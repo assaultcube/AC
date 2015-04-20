@@ -68,3 +68,13 @@ struct model
 };
 
 struct mapmodelinfo { int rad, h, zoff; string name; model *m; };
+
+enum { MMA_KEYWORDS = 0, MMA_DESC, MMA_DEFAULTPARAMS, MMA_USAGE, MMA_AUTHOR, MMA_LICENSE, MMA_DISTRIBUTION, MMA_VERSION, MMA_NUM };
+
+struct mapmodelattributes
+{
+    string name;
+    const char *n[MMA_NUM];
+    int tmp;
+    mapmodelattributes() { memset(this, 0, sizeof(*this)); }
+};

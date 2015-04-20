@@ -1209,7 +1209,7 @@ char *indexlist(const char *s, int pos)
 }
 COMMANDF(at, "si", (char *s, int *pos) { commandret = indexlist(s, *pos); });
 
-int listlen(char *s)
+int listlen(const char *s)
 {
     int n = 0;
     whitespaceskip;

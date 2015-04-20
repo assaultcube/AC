@@ -3,6 +3,7 @@
 VARP(animationinterpolationtime, 0, 150, 1000);
 
 model *loadingmodel = NULL;
+mapmodelattributes loadingattributes;
 
 #include "tristrip.h"
 #include "modelcache.h"
@@ -86,9 +87,26 @@ void mdlcachelimit(int *limit)
 
 COMMAND(mdlcachelimit, "i");
 
+const char *mdlattrnames[] = { "keywords", "desc", "defaults", "usage", "author", "license", "distribution", "version", "" };
+
+void mdlattribute(char *attrname, char *val)
+{
+    checkmdl;
+    int i = getlistindex(attrname, mdlattrnames, true, MMA_NUM);
+    if(i < MMA_NUM)
+    {
+        DELSTRING(loadingattributes.n[i]);
+        filtertext(val, val, FTXT__MDLATTR);
+        if(*val) loadingattributes.n[i] = newstring(val);
+    }
+}
+
+COMMAND(mdlattribute, "ss");
+
 VAR(mapmodelchanged, 0, 0, 1);
 
 vector<mapmodelinfo> mapmodels;
+const char *mmpath = "mapmodels/";
 
 void mapmodel(int *rad, int *h, int *zoff, char *snap, char *name)
 {
@@ -97,7 +115,7 @@ void mapmodel(int *rad, int *h, int *zoff, char *snap, char *name)
     mmi.h = *h;
     mmi.zoff = *zoff;
     mmi.m = NULL;
-    formatstring(mmi.name)("mapmodels/%s", name);
+    formatstring(mmi.name)("%s%s", mmpath, name);
     mapmodelchanged = 1;
 }
 
@@ -120,6 +138,43 @@ COMMANDF(mapmodelbyname, "s", (char *name)
     result(res);
 });
 
+hashtable<const char *, mapmodelattributes *> mdlregistry;
+
+void setmodelattributes(const char *name, mapmodelattributes &ma)
+{
+    if(!strchr(name, ' ') && !strncmp(name, mmpath, strlen(mmpath))) name += strlen(mmpath); // for now: ignore mapmodels with spaces in the path (next release: ban them)
+    else return; // we only want mapmodels
+    mapmodelattributes **mrp = mdlregistry.access(name), *mr = mrp ? *mrp : NULL, *r = mr;
+    if(!r)
+    {
+        r = new mapmodelattributes;
+        copystring(r->name, name);
+    }
+    loopi(MMA_NUM)
+    {
+        if(ma.n[i])
+        {
+            if(!r->n[i]) mapmodelchanged = 1;
+            DELSTRING(r->n[i]);  // overwrite existing attributes
+            r->n[i] = ma.n[i];
+            ma.n[i] = NULL;
+        }
+    }
+    if(!mr) mdlregistry.access(r->name, r);
+}
+
+void mapmodelregister_(char **args, int numargs)  // read model attributes without loading the model
+{
+    mapmodelattributes ma;
+    if(numargs > 0)  // need a name at least
+    {
+        defformatstring(p)("%s%s", mmpath, args[0]);
+        loopirev(--numargs < MMA_NUM ? numargs : MMA_NUM) ma.n[i] = *args[i + 1] ? newstring(args[i + 1]) : NULL;
+        setmodelattributes(p, ma);
+    }
+}
+COMMANDN(mapmodelregister, mapmodelregister_, "v");
+
 hashtable<const char *, model *> mdllookup;
 hashtable<const char *, char> mdlnotfound;
 
@@ -141,6 +196,7 @@ model *loadmodel(const char *name, int i, bool trydl)     // load model by name 
         pushscontext(IEXC_MDLCFG);
         m = new md2(name);                      // try md2
         loadingmodel = m;
+        loopi(MMA_NUM) DELSTRING(loadingattributes.n[i]);
         if(!m->load())                          // md2 didn't load
         {
             delete m;
@@ -163,7 +219,11 @@ model *loadmodel(const char *name, int i, bool trydl)     // load model by name 
             }
         }
         popscontext();
-        if(loadingmodel && m) mdllookup.access(m->name(), m);
+        if(loadingmodel && m)
+        {
+            mdllookup.access(m->name(), m);
+            setmodelattributes(m->name(), loadingattributes);
+        }
         loadingmodel = NULL;
     }
     if(mapmodels.inrange(i) && !mapmodels[i].m) mapmodels[i].m = m;
@@ -174,6 +234,101 @@ void cleanupmodels()
 {
     enumerate(mdllookup, model *, m, m->cleanup());
 }
+
+void mapmodelattributes_(char *name, char *attr)    // mostly for debugging purposes...
+{
+    const char *res = NULL;
+    mapmodelattributes **ap = mdlregistry.access(name), *a = ap ? *ap : NULL;
+    if(a)
+    {
+        int i = getlistindex(attr, mdlattrnames, true, MMA_NUM);
+        if(i < MMA_NUM) res = a->n[i];
+        else
+        {
+            string s = "";
+            loopi(MMA_NUM) if(a->n[i]) concatformatstring(s, " %s:\"%s\"", mdlattrnames[i], a->n[i]);
+            conoutf("%s:%s", a->name, *s ? s : " <no attributes set>");
+        }
+    }
+    result(res ? res : "");
+}
+COMMANDN(mapmodelattributes, mapmodelattributes_, "is");
+
+static int mmasortorder = 0;
+int mmasort(mapmodelattributes **a, mapmodelattributes **b) { return strcmp((*a)->name, (*b)->name); }
+int mmasort2(mapmodelattributes **a, mapmodelattributes **b)
+{
+    const char *aa = (*a)->n[mmasortorder], *bb = (*b)->n[mmasortorder], nn[2] = { 127, 0 };
+    int i = strcmp(aa ? aa : nn, bb ? bb : nn);
+    return i ? i : (*a)->tmp - (*b)->tmp;
+}
+
+void writemapmodelattributes()
+{
+    stream *f = openfile("config" PATHDIVS "mapmodelattributes.cfg", "w");
+    vector<mapmodelattributes *> mmas;
+    enumerate(mdlregistry, mapmodelattributes *, m, mmas.add(m));
+    mmas.sort(mmasort);
+    f->printf("// automatically written on exit. this is cached information extracted from model configs. no point in editing it.\n// [path %s]\n", conc(mdlattrnames, MMA_NUM, true)); // memory leak, but w/e
+    loopv(mmas)
+    {
+        f->printf("\nmapmodelregister %s", mmas[i]->name);
+        loopj(MMA_NUM) f->printf(" %s", escapestring(mmas[i]->n[j]));  // escapestring can handle NULL
+    }
+    f->printf("\n\n");
+    delete f;
+}
+
+void getmapmodelattributes(char **args, int numargs) // create a list of mapmodel paths and selected attributes
+{
+    // parse argument list
+    vector<const char *> opts;
+    loopi(MMA_NUM) opts.add(mdlattrnames[i]);
+    opts.add("sortby:"); opts.add("explodekeywords"); opts.add("");
+    vector<int> a;
+    loopi(numargs) a.add(getlistindex(args[i], (const char **)opts.getbuf(), false, opts.length()));
+    bool explodekeywords = false;
+    loopi(numargs) if(a[i] == MMA_NUM + 1) explodekeywords = true;
+
+    // build list of mapmodels (explode if necessary)
+    vector<mapmodelattributes *> mmas, emmas;
+    enumerate(mdlregistry, mapmodelattributes *, m,
+    {
+        if(explodekeywords && m->n[MMA_KEYWORDS] && listlen(m->n[MMA_KEYWORDS]) > 1)
+        {
+            vector<char *> keys;
+            explodelist(m->n[MMA_KEYWORDS], keys);
+            loopv(keys)
+            {
+                mmas.add(new mapmodelattributes(*m));
+                emmas.add(mmas.last())->n[MMA_KEYWORDS] = keys[i];
+            }
+        }
+        else mmas.add(m);
+    });
+
+    // sort the list
+    mmas.sort(mmasort);
+    loopirev(numargs - 1) if(a[i] == MMA_NUM) // sortby:
+    {
+        loopvj(mmas) mmas[j]->tmp = j; // store last sort order, because quicksort is not stable
+        if((mmasortorder = a[i + 1]) < MMA_NUM) mmas.sort(mmasort2);
+    }
+
+    // assemble output
+    vector<char> res;
+    loopv(mmas)
+    {
+        cvecprintf(res, "%s", mmas[i]->name);
+        loopvj(a) if(a[j] < MMA_NUM) cvecprintf(res, " %s", escapestring(mmas[i]->n[a[j]]));
+        res.add('\n');
+    }
+    if(res.length()) res.last() = '\0';
+    else res.add('\0');
+    loopv(emmas) { delstring(emmas[i]->n[MMA_KEYWORDS]); delete emmas[i]; } // only delete what was exploded
+    result(res.getbuf());
+}
+COMMAND(getmapmodelattributes, "v");
 
 VARP(dynshadow, 0, 40, 100);
 VARP(dynshadowdecay, 0, 1000, 3000);
@@ -772,3 +927,19 @@ void renderclients()
     loopv(players) if((d = players[i]) && d->state!=CS_SPAWNING && d->state!=CS_SPECTATE && (!player1->isspectating() || player1->spectatemode != SM_FOLLOW1ST || player1->followplayercn != i)) renderclient(d);
     if(player1->state==CS_DEAD || (reflecting && !refracting)) renderclient(player1);
 }
+
+void loadallmapmodels()  // try to find all mapmodels in packages/models/mapmodels
+{
+    vector<char *> files;
+    listfilesrecursive("packages/models/mapmodels", files);
+    loopvrev(files) if(strchr(files[i], '.')) delstring(files.remove(i)); // poor man's solution to remove ordinary files from the list: remove everything containing '.'
+    files.sort(stringsort);
+    loopvrev(files) if(files.inrange(i + 1) && !strcmp(files[i], files[i + 1])) delstring(files.remove(i + 1)); // remove doubles
+    loopv(files)
+    {
+        const char *mn = files[i] + strlen("packages/models/");
+        clientlogf("loadallmaps: %s %s", mn, loadmodel(mn) ? "loaded" : "failed to load");
+        delstring(files[i]);
+    }
+}
+COMMAND(loadallmapmodels, "");

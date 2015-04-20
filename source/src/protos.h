@@ -744,6 +744,7 @@ extern void renderclients();
 extern void renderclient(playerent *d);
 extern void renderclient(playerent *d, const char *mdlname, const char *vwepname, int tex = 0);
 extern void updateclientname(playerent *d);
+extern void writemapmodelattributes();
 
 // weapon
 extern void shoot(playerent *d, vec &to);
@@ -840,6 +841,7 @@ extern void floatret(float v);
 extern void result(const char *s);
 extern void exec(const char *cfgfile);
 extern bool execfile(const char *cfgfile);
+extern int listlen(const char *s);
 extern void resetcomplete();
 extern void complete(char *s, bool reversedirection);
 extern void push(const char *name, const char *action);

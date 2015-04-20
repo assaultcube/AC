@@ -42,6 +42,7 @@ void quit()                     // normal exit
     if(resetcfg) deletecfg();
     else writecfg();
     savehistory();
+    writemapmodelattributes();
     writeallxmaps();
     cleanup(NULL);
     popscontext();
@@ -1263,6 +1264,7 @@ int main(int argc, char **argv)
     exec("config/scontext.cfg");
     exec("config/locale.cfg");
     exec("config/keymap.cfg");
+    execfile("config/mapmodelattributes.cfg");
     exec("config/menus.cfg");
     exec("config/scripts.cfg");
     exec("config/prefabs.cfg");

@@ -964,6 +964,7 @@ extern char *loadfile(const char *fn, int *size, const char *mode = NULL);
 extern void filerotate(const char *basename, const char *ext, int keepold, const char *oldformat = NULL);
 extern bool listdir(const char *dir, const char *ext, vector<char *> &files);
 extern int listfiles(const char *dir, const char *ext, vector<char *> &files);
+extern void listfilesrecursive(const char *dir, vector<char *> &files, int level = 0);
 extern int listzipfiles(const char *dir, const char *ext, vector<char *> &files);
 extern bool delfile(const char *path);
 extern void backup(char *name, char *backupname);

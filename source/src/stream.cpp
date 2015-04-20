@@ -302,6 +302,25 @@ int listfiles(const char *dir, const char *ext, vector<char *> &files)
     return dirs;
 }
 
+#ifndef STANDALONE
+void listfilesrecursive(const char *dir, vector<char *> &files, int level)
+{
+    if(level > 8) return; // 8 levels is insane enough...
+    vector<char *> thisdir;
+    listfiles(dir, NULL, thisdir);
+    loopv(thisdir)
+    {
+        if(thisdir[i][0] != '.')  // ignore "." and ".." (and also other directories starting with '.', like it is unix-convention - and doesn't hurt on windows)
+        {
+            defformatstring(name)("%s/%s", dir, thisdir[i]);
+            files.add(newstring(name));
+            listfilesrecursive(name, files, level + 1);
+        }
+        delstring(thisdir[i]);
+    }
+}
+#endif
+
 bool delfile(const char *path)
 {
     return !remove(path);
