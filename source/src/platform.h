@@ -19,6 +19,9 @@
 #include <ctype.h>
 #include <time.h>
 #include <limits.h>
+#ifdef __MINGW32__
+    #include <stdint.h>
+#endif
 #ifdef __GNUC__
     #include <new>
     #include <signal.h>
