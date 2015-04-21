@@ -919,11 +919,11 @@ void menuselection(char *menu, int *line)
     menuselect(&m, *line);
 }
 
-void menuitem(char *text, char *action, char *hoveraction)
+void menuitem(char *text, char *action, char *hoveraction, char *desc)
 {
     if(!lastmenu) return;
     char *t = newstring(text);
-    lastmenu->items.add(new mitemtext(lastmenu, t, newstring(action[0] ? action : text), hoveraction[0] ? newstring(hoveraction) : NULL, NULL));
+    lastmenu->items.add(new mitemtext(lastmenu, t, newstring(action[0] ? action : text), hoveraction[0] ? newstring(hoveraction) : NULL, NULL, *desc ? newstring(desc) : NULL));
 }
 
 void menuitemvar(char *eval, char *action, char *hoveraction)
@@ -1040,7 +1040,7 @@ COMMANDN(menucanblink, setmenublink, "i");
 COMMAND(menuinit, "s");
 COMMAND(menuinitselection, "i");
 COMMAND(menuselection, "si");
-COMMAND(menuitem, "sss");
+COMMAND(menuitem, "ssss");
 COMMAND(menuitemvar, "sss");
 COMMAND(menuitemimage, "ssss");
 COMMAND(menuitemmapload, "ss");
