@@ -212,6 +212,7 @@ bool extractzipfile(ziparchive *a, zipfile *f, const char *name);
 bool fitspackage(char *filename, int type)
 {
     char *extension = strrchr(filename, '.');
+    if(!extension) return false;
     ++extension;
     switch(type)
     {
