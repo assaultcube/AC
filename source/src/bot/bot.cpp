@@ -289,7 +289,6 @@ bool CBot::SelectGun(int Gun)
     m_pMyEnt->gunselect = Gun;
     if(m_pMyEnt->weaponsel->type != Gun)
     {
-        audiomgr.playsound(S_GUNCHANGE, m_pMyEnt);
         m_pMyEnt->weaponswitch(m_pMyEnt->weapons[Gun]);
         m_iChangeWeaponDelay = lastmillis + 1000;
     }

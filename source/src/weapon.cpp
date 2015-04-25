@@ -918,7 +918,8 @@ void weapon::updatetimers(int millis)
 void weapon::onselecting()
 {
     updatelastaction(owner);
-    audiomgr.playsound(S_GUNCHANGE, owner == player1? SP_HIGH : SP_NORMAL);
+    bool local = (owner == player1);
+    audiomgr.playsound(S_GUNCHANGE, owner, local ? SP_HIGH : SP_NORMAL);
 }
 
 void weapon::renderhudmodel() { renderhudmodel(owner->lastaction); }
@@ -1193,7 +1194,13 @@ void grenades::renderstats()
 bool grenades::selectable() { return weapon::selectable() && state != GST_INHAND && mag; }
 void grenades::reset() { throwmillis = 0; quicknade = false; state = GST_NONE; }
 
-void grenades::onselecting() { reset(); audiomgr.playsound(S_GUNCHANGE); }
+void grenades::onselecting()
+{
+    reset();
+    bool local = (owner == player1);
+    audiomgr.playsound(S_GUNCHANGE, owner, local ? SP_HIGH : SP_NORMAL);
+}
+
 void grenades::onownerdies()
 {
     reset();
@@ -1226,7 +1233,8 @@ bool gun::attack(vec &targ)
     updatelastaction(owner, attackmillis);
     if(!mag)
     {
-        audiomgr.playsoundc(S_NOAMMO);
+        bool local = (owner == player1);
+        audiomgr.playsound(S_NOAMMO, owner, local ? SP_HIGH : SP_NORMAL);
         gunwait += 250;
         owner->lastattackweapon = NULL;
         shots = 0;
