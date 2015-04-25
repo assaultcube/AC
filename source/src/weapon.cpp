@@ -1627,7 +1627,7 @@ void checkakimbo()
     if(player1->akimbo)
     {
         akimbo &a = *((akimbo *)player1->weapons[GUN_AKIMBO]);
-        if(a.timerout() || player1->state == CS_DEAD)
+        if(a.timerout() || player1->state == CS_DEAD || player1->state == CS_SPECTATE)
         {
             weapon &p = *player1->weapons[GUN_PISTOL];
             player1->akimbo = false;
@@ -1694,7 +1694,7 @@ void checkakimbo()
                 */
                 }
             }
-            if(player1->state != CS_DEAD) audiomgr.playsoundc(S_AKIMBOOUT);
+            if(player1->state != CS_DEAD && player1->state != CS_SPECTATE) audiomgr.playsoundc(S_AKIMBOOUT);
         }
     }
 }
