@@ -26,4 +26,4 @@ source/src/ac_server
 source/src/cube.h.gch
 source/src/Makefile_local
 clientlog*.txt
-
+dumpmapconfig.txt

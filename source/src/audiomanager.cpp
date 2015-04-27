@@ -790,9 +790,14 @@ COMMANDF(soundmuted, "i", (int *n)
     intret(audiomgr.soundmuted(*n));
 });
 
+VAR(mapsoundchanged, 0, 0, 1);
+
 COMMANDF(mapsoundreset, "", ()
 {
     audiomgr.mapsoundreset();
+    mapconfigdata.mapsoundlines.shrink(0);
+    mapsoundchanged = 1;
+    flagmapconfigchange();
 });
 
 VARF(soundchannels, 4, 32, 1024, audiomgr.setchannels(soundchannels); );
@@ -807,6 +812,11 @@ COMMANDF(registersound, "siii", (char *name, int *vol, int *loop, int *audiblera
 COMMANDF(mapsound, "si", (char *name, int *maxuses)
 {
     audiomgr.addsound(name, 255, *maxuses, true, mapsounds, false, 0);
+    intret(mapconfigdata.mapsoundlines.length());
+    copystring(mapconfigdata.mapsoundlines.add().name, name);
+    mapconfigdata.mapsoundlines.last().maxuses = *maxuses;
+    mapsoundchanged = 1;
+    flagmapconfigchange();
 });
 
 COMMANDF(registermusic, "s", (char *name)

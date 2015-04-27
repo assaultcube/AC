@@ -481,27 +481,48 @@ Texture *createtexturefromsurface(const char *name, SDL_Surface *s)
 struct Slot
 {
     string name;
-    float scale;
+    float scale, orgscale;
     Texture *tex;
     bool loaded;
 };
 
 vector<Slot> slots;
 
-void texturereset() { if(execcontext==IEXC_MAPCFG) slots.setsize(0); }
+COMMANDF(texturereset, "", ()
+{
+    if(execcontext==IEXC_MAPCFG)
+    {
+        slots.setsize(0);
+        flagmapconfigchange();
+    }
+});
 
 void texture(float *scale, char *name)
 {
+    intret(slots.length());
     Slot &s = slots.add();
     copystring(s.name, name);
-    path(s.name);
     s.tex = NULL;
     s.loaded = false;
+    s.orgscale = *scale;
     s.scale = (*scale > 0 && *scale <= 2.0f) ? *scale : 1.0f;
+    flagmapconfigchange();
 }
 
-COMMAND(texturereset, "");
 COMMAND(texture, "fs");
+
+const char *gettextureslot(int i)
+{
+    static string res;
+    if(slots.inrange(i))
+    {
+        Slot &s = slots[i];
+        defformatstring(d)("%d", int(s.orgscale));
+        formatstring(res)("texture %s \"%s\"", s.orgscale == int(s.orgscale) ? d : floatstr(s.orgscale), s.name);
+        return res;
+    }
+    else return NULL;
+}
 
 Texture *lookuptexture(int tex, Texture *failtex, bool trydl)
 {
@@ -511,13 +532,13 @@ Texture *lookuptexture(int tex, Texture *failtex, bool trydl)
         Slot &s = slots[tex];
         if(!s.loaded)
         {
-            defformatstring(pname)("packages/textures/%s", s.name);
+            defformatstring(pname)("packages/textures/%s", path(s.name, true));
             s.tex = textureload(pname, 0, true, true, s.scale, trydl);
             if(!trydl)
             {
-            if(s.tex==notexture) s.tex = failtex;
-            s.loaded = true;
-        }
+                if(s.tex==notexture) s.tex = failtex;
+                s.loaded = true;
+            }
         }
         if(s.tex) t = s.tex;
     }
@@ -555,38 +576,52 @@ void reloadtextures()
 }
 
 Texture *sky[6] = {NULL, NULL, NULL, NULL, NULL, NULL};
-static string skybox;
 
-void loadsky(char *basename, bool reload)
+SVARF(loadsky, "", { loadskymap(false); });
+
+void loadskymap(bool reload)
 {
     const char *side[] = { "lf", "rt", "ft", "bk", "dn", "up" };
-    if(reload) basename = skybox;
-    else copystring(skybox, basename);
+    const char *legacyprefix = "textures/skymaps/";
+    if(!reload)
+    {
+        int n = strlen(legacyprefix);
+        if(!strncmp(loadsky, legacyprefix, n))
+        { // remove the prefix
+            char *t = loadsky;
+            loadsky = newstring(loadsky + n);
+            delstring(t);
+        }
+        flagmapconfigchange();
+    }
     loopi(6)
     {
-        defformatstring(name)("packages/%s_%s.jpg", basename, side[i]);
+        defformatstring(name)("packages/%s%s_%s.jpg", legacyprefix, loadsky, side[i]);
         sky[i] = textureload(name, 3);
         if(sky[i] == notexture && !reload && autodownload)
         {
-            defformatstring(dl)("packages/%s", basename);
+            defformatstring(dl)("packages/%s%s", legacyprefix, loadsky);
             requirepackage(PCK_SKYBOX, dl);
             break;
         }
     }
 }
 
-COMMANDF(loadsky, "s", (char *name) { loadsky(name, false); intret(0); });
 void loadnotexture(char *c)
 {
     noworldtexture = notexture; // reset to default
+    *mapconfigdata.notexturename = '\0';
     if(c[0])
     {
         defformatstring(p)("packages/textures/%s", c);
         noworldtexture = textureload(p);
         if(noworldtexture==notexture) conoutf("could not load alternative texture '%s'.", p);
     }
+    flagmapconfigchange();
 }
+
 COMMAND(loadnotexture, "s");
+COMMANDF(getnotexture, "", () { result(mapconfigdata.notexturename); });
 
 void draw_envbox_face(float s0, float t0, float x0, float y0, float z0,
                       float s1, float t1, float x1, float y1, float z1,

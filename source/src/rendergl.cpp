@@ -468,8 +468,9 @@ float dynfov()
     else return (float)fov;
 }
 
-VAR(fog, 64, 180, 1024);
-VAR(fogcolour, 0, 0x8099B3, 0xFFFFFF);
+VARF(fog, 64, DEFAULT_FOG, 1024, flagmapconfigchange());
+VARF(fogcolour, 0, DEFAULT_FOGCOLOUR, 0xFFFFFF, flagmapconfigchange());
+
 float fovy, aspect;
 int farplane;
 

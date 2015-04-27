@@ -8,6 +8,7 @@ sqr *world = NULL;
 int sfactor, ssize, cubicsize, mipsize;
 
 header hdr;
+_mapconfigdata mapconfigdata;
 
 // main geometric mipmapping routine, recursively rebuild mipmaps within block b.
 // tries to produce cube out of 4 lower level mips as well as possible,
@@ -529,6 +530,7 @@ bool empty_world(int factor, bool force)    // main empty world creation routine
     {   // all-new map
         int oldunsavededits = unsavededits;
         memset(&hdr, 0, sizeof(header));
+        mapconfigdata.clear();
         formatstring(hdr.maptitle)("Untitled Map by %s", player1->name);
         setvar("waterlevel", (hdr.waterlevel = -100000));
         setwatercolor();

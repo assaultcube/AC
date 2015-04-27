@@ -107,9 +107,11 @@ VAR(mapmodelchanged, 0, 0, 1);
 
 vector<mapmodelinfo> mapmodels;
 const char *mmpath = "mapmodels/";
+const char *mmshortname(const char *name) { return !strncmp(name, mmpath, strlen(mmpath)) ? name + strlen(mmpath) : name; }
 
 void mapmodel(int *rad, int *h, int *zoff, char *snap, char *name)
 {
+    intret(mapmodels.length());
     mapmodelinfo &mmi = mapmodels.add();
     mmi.rad = *rad;
     mmi.h = *h;
@@ -117,21 +119,25 @@ void mapmodel(int *rad, int *h, int *zoff, char *snap, char *name)
     mmi.m = NULL;
     formatstring(mmi.name)("%s%s", mmpath, name);
     mapmodelchanged = 1;
+    flagmapconfigchange();
 }
+COMMAND(mapmodel, "iiiss");
 
 void mapmodelreset()
 {
-    if(execcontext==IEXC_MAPCFG) mapmodels.shrink(0);
-    mapmodelchanged = 1;
+    if(execcontext==IEXC_MAPCFG)
+    {
+        mapmodels.shrink(0);
+        mapmodelchanged = 1;
+        flagmapconfigchange();
+    }
 }
+COMMAND(mapmodelreset, "");
 
 mapmodelinfo &getmminfo(int i) { return mapmodels.inrange(i) ? mapmodels[i] : *(mapmodelinfo *)0; }
 
-COMMAND(mapmodel, "iiiss");
-COMMAND(mapmodelreset, "");
-
-COMMANDF(mapmodelname, "i", (int *idx) { result(mapmodels.inrange(*idx) ? mapmodels[*idx].name : ""); });
-COMMANDF(mapmodelbyname, "s", (char *name)
+COMMANDF(mapmodelslotname, "i", (int *idx) { result(mapmodels.inrange(*idx) ? mmshortname(mapmodels[*idx].name) : ""); }); // returns the model name that is configured in a certain slot
+COMMANDF(mapmodelslotbyname, "s", (char *name) // returns the slot(s) that a certain mapmodel is configured in
 {
     string res = "";
     loopv(mapmodels) if(!strcmp(name, mapmodels[i].name)) concatformatstring(res, "%s%d", *res ? " " : "", i);

@@ -388,11 +388,65 @@ void extractconfigfile()
             delete f;
             conoutf("extracted embedded map config to file %s", mcfname);
             deleteheaderextra(n);
+            hdr.flags &= ~MHF_AUTOMAPCONFIG; // external config file, manually edited
         }
         else conoutf("\f3failed to write config to %s", mcfname);
     }
 }
 COMMAND(extractconfigfile, "");
+
+void flagmapconfigchange()
+{
+    if(hdr.flags & MHF_AUTOMAPCONFIG) unsavededits++;
+}
+
+void getcurrentmapconfig(vector<char> &f, bool onlysounds)
+{
+    if(!onlysounds)
+    {
+        extern int fog, fogcolour, shadowyaw;
+        extern char *loadsky;
+        if(fog != DEFAULT_FOG)             cvecprintf(f, "fog %d\n", fog);
+        if(fogcolour != DEFAULT_FOGCOLOUR) cvecprintf(f, "fogcolour 0x%06x\n", fogcolour);
+        if(shadowyaw != DEFAULT_SHADOWYAW) cvecprintf(f, "shadowyaw %d\n", shadowyaw);
+        if(*mapconfigdata.notexturename)   cvecprintf(f, "loadnotexture \"%s\"\n", mapconfigdata.notexturename);
+        if(*loadsky)                       cvecprintf(f, "loadsky \"%s\"\n", loadsky);
+        cvecprintf(f, "%smapmodelreset\n", f.length() ? "\n" : "");
+        loopi(256)
+        {
+            mapmodelinfo &mmi = getmminfo(i);
+            if(!&mmi) break;
+            cvecprintf(f, "mapmodel %d %d %d 0 \"%s\"\n", mmi.rad, mmi.h, mmi.zoff, mmshortname(mmi.name));
+        }
+        cvecprintf(f, "\ntexturereset\n");
+        loopi(256)
+        {
+            const char *t = gettextureslot(i);
+            if(!t) break;
+            cvecprintf(f, "%s\n", t);
+        }
+        cvecprintf(f, "\n");
+    }
+    cvecprintf(f, "mapsoundreset\n");
+    loopv(mapconfigdata.mapsoundlines)
+    {
+        mapsoundline &s = mapconfigdata.mapsoundlines[i];
+        cvecprintf(f, "mapsound \"%s\" %d\n", s.name, s.maxuses);
+    }
+    cvecprintf(f, "\n");
+}
+
+#ifdef _DEBUG
+COMMANDF(dumpmapconfig, "", ()
+{
+    vector<char> buf;
+    getcurrentmapconfig(buf, false);
+    stream *f = openfile("dumpmapconfig.txt", "w");
+    if(f) f->write(buf.getbuf(), buf.length());
+    DELETEP(f);
+    hdr.flags |= MHF_AUTOMAPCONFIG;
+});
+#endif
 
 bool clearvantagepoint()
 {
@@ -463,6 +517,17 @@ void save_world(char *mname, bool skipoptimise, bool addcomfort)
     if(mapbackupsonsave) backup(cgzname, bakname);
     stream *f = opengzfile(cgzname, "wb");
     if(!f) { conoutf("could not write map to %s", cgzname); return; }
+    bool autoembedconfig = (hdr.flags & MHF_AUTOMAPCONFIG) != 0;
+    if(autoembedconfig)
+    { // write embedded map config
+        backup(mcfname, cbakname); // rename possibly existing external map config file
+        for(int n; (n = findheaderextra(HX_CONFIG)) >= 0; ) deleteheaderextra(n);  // delete existing embedded config
+        vector<char> ec;
+        getcurrentmapconfig(ec, false);
+        uchar *ecu = new uchar[ec.length()];
+        memcpy(ecu, ec.getbuf(), ec.length());
+        headerextras.add(new headerextra(ec.length(), HX_CONFIG|HX_FLAG_PERSIST, NULL))->data = ecu;
+    }
     strncpy(hdr.head, "ACMP", 4); // ensure map now declares itself as an AssaultCube map, even if imported as CUBE
     hdr.version = MAPVERSION;
     hdr.headersize = sizeof(header);
@@ -481,9 +546,9 @@ void save_world(char *mname, bool skipoptimise, bool addcomfort)
     bool oldmapmodelscaling = tmp.version < 10;
     tmp.maprevision += advancemaprevision;
     DEBUG("version " << tmp.version << " headersize " << tmp.headersize << " entities " << tmp.numents << " factor " << tmp.sfactor << " revision " << tmp.maprevision);
-    lilswap(&tmp.version, 4);
+    lilswap(&tmp.version, 4); // version, headersize, sfactor, numents
     lilswap(&tmp.waterlevel, 1);
-    lilswap(&tmp.maprevision, 2);
+    lilswap(&tmp.maprevision, 3); // maprevision, ambient, flags
     f->write(&tmp, sizeof(header));
     if(writeextra) f->write(hx.buf, writeextra);
     delete[] hx.buf;
@@ -505,7 +570,7 @@ void save_world(char *mname, bool skipoptimise, bool addcomfort)
     f->write(rawcubes.getbuf(), rawcubes.length());
     delete f;
     unsavededits = 0;
-    conoutf("wrote map file %s %s%s", cgzname, skipoptimise ? "without optimisation" : "(optimised)", addcomfort ? " (including editing history)" : "");
+    conoutf("wrote map file %s %s%s%s", cgzname, skipoptimise ? "without optimisation" : "(optimised)", addcomfort ? " (including editing history)" : "", autoembedconfig ? " (including map config)" : "");
 }
 VARP(preserveundosonsave, 0, 0, 1);
 COMMANDF(savemap, "s", (char *name) { save_world(name, preserveundosonsave && editmode, preserveundosonsave && editmode); } );
@@ -600,6 +665,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
         f->seek(tmp.headersize, SEEK_SET);
     }
     hdr = tmp;
+    mapconfigdata.clear();
     rebuildtexlists();
     loadingscreen("%s", hdr.maptitle);
     resetmap();
@@ -607,7 +673,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
     {
         lilswap(&hdr.waterlevel, 1);
         if(!hdr.watercolor[3]) setwatercolor();
-        lilswap(&hdr.maprevision, 2);
+        lilswap(&hdr.maprevision, 3); // maprevision, ambient, flags
         curmaprevision = hdr.maprevision;
     }
     else
@@ -703,10 +769,18 @@ bool load_world(char *mname)        // still supports all map formats that have 
     pushscontext(IEXC_MAPCFG); // untrusted altogether
     per_idents = false;
     neverpersist = true;
-    execfile("config/default_map_settings.cfg");
-    execfile(pcfname);
-    execfile(mcfname);
-    copystring(lastloadedconfigfile, mcfname);
+    if(hdr.flags & MHF_AUTOMAPCONFIG)
+    { // full featured embedded config: no need to read any other map config files
+        copystring(lastloadedconfigfile, "");
+        unsavededits = 0;
+    }
+    else
+    { // map config from files
+        execfile("config/default_map_settings.cfg");
+        execfile(pcfname);
+        execfile(mcfname);
+        copystring(lastloadedconfigfile, mcfname);
+    }
     parseheaderextra();
     neverpersist = false;
     per_idents = true;
@@ -738,7 +812,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
 
     c2skeepalive();
 
-    loadsky(NULL, true);
+    loadskymap(true);
 
     watch.start();
     loopi(256) if(texuse[i]) lookupworldtexture(i, false);
@@ -870,7 +944,7 @@ struct xmap
         neverpersist = false;
         per_idents = true;
         popscontext();
-        loadsky(NULL, true);
+        loadskymap(true);
         startmap(name, false, true);      // "start" but don't respawn: basically just set clientmap
         restoreposition(position);
     }

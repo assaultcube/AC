@@ -301,12 +301,13 @@ extern SDL_Surface *forcergbsurface(SDL_Surface *os);
 extern SDL_Surface *forcergbasurface(SDL_Surface *os);
 extern Texture *textureload(const char *name, int clamp = 0, bool mipmap = true, bool canreduce = false, float scale = 1.0f, bool trydl = false);
 extern Texture *lookuptexture(int tex, Texture *failtex = notexture, bool trydl = false);
+extern const char *gettextureslot(int i);
 extern bool reloadtexture(Texture &t);
 extern bool reloadtexture(const char *name);
 extern void reloadtextures();
 Texture *createtexturefromsurface(const char *name, SDL_Surface *s);
 extern void blitsurface(SDL_Surface *dst, SDL_Surface *src, int x, int y);
-void loadsky(char *basename, bool reload);
+void loadskymap(bool reload);
 
 static inline Texture *lookupworldtexture(int tex, bool trydl = true)
 { return lookuptexture(tex, noworldtexture, trydl); }
@@ -687,6 +688,8 @@ extern uchar *readmcfggz(char *name, int *size, int *sizegz);
 extern void rlencodecubes(vector<uchar> &f, sqr *s, int len, bool preservesolids);
 extern void rldecodecubes(ucharbuf &f, sqr *s, int len, int version, bool silent);
 extern void clearheaderextras();
+extern void flagmapconfigchange();
+extern void getcurrentmapconfig(vector<char> &f, bool onlysounds);
 extern void xmapbackup(const char *nickprefix, const char *nick);
 extern void writeallxmaps();
 extern int loadallxmaps();
@@ -745,6 +748,7 @@ extern void renderclient(playerent *d);
 extern void renderclient(playerent *d, const char *mdlname, const char *vwepname, int tex = 0);
 extern void updateclientname(playerent *d);
 extern void writemapmodelattributes();
+extern const char *mmshortname(const char *name);
 
 // weapon
 extern void shoot(playerent *d, vec &to);

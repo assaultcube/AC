@@ -40,6 +40,8 @@ enum                            // stuff encoded in sqr.tag
 };
 #define TAGANYCLIP (TAGCLIP|TAGPLCLIP)
 
+enum { MHF_AUTOMAPCONFIG = 1<<0 };
+
 #define MAXMAPVERSION 10        // defines the highest readable format
 #define MAPVERSION 9            // default map format version to be written (bump if map format changes, see worldio.cpp)
 
@@ -56,8 +58,22 @@ struct header                   // map file format header
     uchar watercolor[4];
     int maprevision;
     int ambient;
-    int reserved[12];
+    int flags;                  // MHF_*
+    int reserved[11];
     //char mediareq[128];         // version 7 and 8 only.
+};
+
+struct mapsoundline { string name; int maxuses; };
+
+struct _mapconfigdata
+{
+    string notexturename;
+    vector<mapsoundline> mapsoundlines;
+    void clear()
+    {
+        *notexturename = '\0';
+        mapsoundlines.shrink(0);
+    }
 };
 
 struct mapstats

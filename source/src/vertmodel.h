@@ -4,7 +4,7 @@ VARP(saveshadows, 0, 1, 1);
 
 VARP(dynshadowquad, 0, 0, 1);
 
-VAR(shadowyaw, 0, 45, 360);
+VARF(shadowyaw, 0, DEFAULT_SHADOWYAW, 360, flagmapconfigchange());
 vec shadowdir(0, 0, -1), shadowpos(0, 0, 0);
 
 const int dbgstenc = 0;
