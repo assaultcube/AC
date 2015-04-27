@@ -1155,7 +1155,7 @@ void looplist(char *list, char *varlist, char *body)
     if(vars.length() < 1) return;
     vector<ident *> ids;
     bool ok = true;
-    loopv(vars) { ok = ok && ids.add(newident(vars[i]))->type == ID_ALIAS; }
+    loopv(vars) if(ids.add(newident(vars[i]))->type != ID_ALIAS) { conoutf("looplist error: \"%s\" is readonly", vars[i]); ok = false; }
     if(ok)
     {
         vector<char *> elems;
