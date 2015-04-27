@@ -123,6 +123,8 @@ void getstring(char *text, ucharbuf &p, int len)
 // dst can be identical to src; dst needs to be of size "min(len, strlen(s)) + 1"
 // returns dst
 
+//#define FILENAMESALLLOWERCASE
+
 char *filtertext(char *dst, const char *src, int flags, int len)
 {
     char *res = dst;
@@ -137,7 +139,8 @@ char *filtertext(char *dst, const char *src, int flags, int len)
          leet = (flags & FTXT_LEET) != 0,                   // translates leetspeak
          toupp = (flags & FTXT_TOUPPER) != 0,               // translates to all-uppercase
          tolow = (flags & FTXT_TOLOWER) != 0,               // translates to all-lowercase
-         filename = (flags & FTXT_FILENAME) != 0,           // removes characters, that are not allowed in filenames on all supported systems - does not filter COM, PRN, etc.
+         filename = (flags & FTXT_FILENAME) != 0,           // strict a-z, 0-9 and "-_.()" (also translates "[]" and "{}" to "()"), removes everything between '<' and '>'
+         allowslash = (flags & FTXT_ALLOWSLASH) != 0,       // only in combination with FTXT_FILENAME
          mapname = (flags & FTXT_MAPNAME) != 0,             // only allows lowercase chars, digits, '_', '-' and '.'; probably should be used in combination with TOLOWER
          cropwhite = (flags & FTXT_CROPWHITE) != 0,         // removes leading and trailing whitespace
          pass = false;
@@ -153,9 +156,13 @@ char *filtertext(char *dst, const char *src, int flags, int len)
     }
 #endif
     if(leet || mapname) nocolor = true;
+#ifdef FILENAMESALLLOWERCASE
+    if(filename) tolow = true;
+#endif
     bool trans = toupp || tolow || leet || filename || fillblanks;
     bool leadingwhite = cropwhite;
     char *lastwhite = NULL;
+    bool insidepointybrackets = false;
     for(int c = *src; c; c = *++src)
     {
         c &= 0x7F; // 7-bit ascii. not negotiable.
@@ -171,19 +178,23 @@ char *filtertext(char *dst, const char *src, int flags, int len)
             }
             if(filename)
             {
-                const char *org = "*?![]{};:/\\",
-                           *asc = "__o()()__oo",   // 'o' -> ignore
+                if(c == '>') insidepointybrackets = false;
+                else if(c == '<') insidepointybrackets = true;
+                if(insidepointybrackets || c == '>') continue; // filter anything between '<' and '>' as this may contain commands for texture loading
+                const char *org = "[]{}\\",
+                           *asc = "()()/",
                            *a = strchr(org, c);
-                if(a)
-                {
-                    c = asc[a - org];
-                    if(c == 'o') continue;
-                }
+                if(a) c = asc[a - org];
             }
             if(tolow) c = tolower(c);
             else if(toupp) c = toupper(c);
             if(fillblanks && c == ' ') c = '_';
         }
+        if(filename && !(islower(c)
+#ifndef FILENAMESALLLOWERCASE
+                    || isupper(c)
+#endif
+                    || isdigit(c) || strchr("._-()", c) || (allowslash && c == '/'))) continue;
         if(safecs && strchr("($)\"", c)) continue;
         if(c == '\t')
         {

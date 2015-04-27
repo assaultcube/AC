@@ -1146,20 +1146,23 @@ int downloadpackages()
 
 bool requirepackage(int type, const char *path)
 {
-    if(!havecurl || canceldownloads || type < 0 || type >= PCK_NUM || pendingpackages.access(path)) return false;
+    pckserver *source = NULL;
+    loopv(pckservers) if(pckservers[i]->responsive) { source = pckservers[i]; break; }
+    if(!source) { conoutf(_("\f3no responsive source server found, can't download")); return false; }
+
+    char *cleanpath = unixpath(newstring(path));
+    filtertext(cleanpath, cleanpath, FTXT__MEDIAFILEPATH);
+    if(strcmp(path, cleanpath)) { conoutf("refuse to download \"%s\": illegal characters", path); delstring(cleanpath); return false; }
+    if(!havecurl || canceldownloads || type < 0 || type >= PCK_NUM || pendingpackages.access(cleanpath)) { delstring(cleanpath); return false; }
 
     package *pck = new package;
-    pck->name = unixpath(newstring(path));
+    pck->name = cleanpath;
     pck->type = type;
-    loopv(pckservers) if(pckservers[i]->responsive) { pck->source = pckservers[i]; break; }
-    if(!pck->source) { conoutf(_("\f3no responsive source server found, can't download")); return false; }
+    pck->source = source;
     pck->pending = true;
-
     pendingpackages.access(pck->name, pck);
-
     return true;
 }
-
 
 void writepcksourcecfg()
 {

@@ -255,6 +255,7 @@ struct md3 : vertmodel
 void md3load(char *model)
 {
     if(!loadingmd3) { conoutf("not loading an md3"); return; };
+    filtertext(model, model, FTXT__MEDIAFILEPATH);
     defformatstring(filename)("%s/%s", md3dir, model);
     md3::md3part &mdl = *new md3::md3part;
     loadingmd3->parts.add(&mdl);
@@ -265,7 +266,7 @@ void md3load(char *model)
 
 void md3skin(char *objname, char *skin)
 {
-    if(!objname || !skin) return;
+    filtertext(skin, skin, FTXT__MEDIAFILEPATH);
     if(!loadingmd3 || loadingmd3->parts.empty()) { conoutf("not loading an md3"); return; };
     md3::part &mdl = *loadingmd3->parts.last();
     bool used = false;

@@ -111,15 +111,19 @@ const char *mmshortname(const char *name) { return !strncmp(name, mmpath, strlen
 
 void mapmodel(int *rad, int *h, int *zoff, char *snap, char *name)
 {
-    intret(mapmodels.length());
-    mapmodelinfo &mmi = mapmodels.add();
-    mmi.rad = *rad;
-    mmi.h = *h;
-    mmi.zoff = *zoff;
-    mmi.m = NULL;
-    formatstring(mmi.name)("%s%s", mmpath, name);
-    mapmodelchanged = 1;
-    flagmapconfigchange();
+    if(*snap && *name) // ignore "mapmodel" commands with insufficient parameters
+    {
+        intret(mapmodels.length());
+        mapmodelinfo &mmi = mapmodels.add();
+        mmi.rad = *rad;
+        mmi.h = *h;
+        mmi.zoff = *zoff;
+        mmi.m = NULL;
+        filtertext(name, name, FTXT__MEDIAFILEPATH);
+        formatstring(mmi.name)("%s%s", mmpath, name);
+        mapmodelchanged = 1;
+        flagmapconfigchange();
+    }
 }
 COMMAND(mapmodel, "iiiss");
 

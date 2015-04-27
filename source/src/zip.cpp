@@ -211,6 +211,7 @@ bool extractzipfile(ziparchive *a, zipfile *f, const char *name);
 
 bool fitspackage(char *filename, int type)
 {
+    if(strchr(filename, ' ')) return false; // refuse all filenames with spaces
     char *extension = strrchr(filename, '.');
     if(!extension) return false;
     ++extension;

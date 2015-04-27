@@ -811,6 +811,7 @@ COMMANDF(registersound, "siii", (char *name, int *vol, int *loop, int *audiblera
 
 COMMANDF(mapsound, "si", (char *name, int *maxuses)
 {
+    filtertext(name, name, FTXT__MEDIAFILEPATH);
     audiomgr.addsound(name, 255, *maxuses, true, mapsounds, false, 0);
     intret(mapconfigdata.mapsoundlines.length());
     copystring(mapconfigdata.mapsoundlines.add().name, name);

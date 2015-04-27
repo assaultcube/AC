@@ -501,7 +501,23 @@ void texture(float *scale, char *name)
 {
     intret(slots.length());
     Slot &s = slots.add();
-    copystring(s.name, name);
+    filtertext(s.name, parentdir(name), FTXT__MEDIAFILEPATH); // filter parts separately, because filename may (legally) contain "<decal>"
+    if(*s.name) concatstring(s.name, "/");
+    name = (char *)behindpath(name);
+    if(*name == '<')
+    {
+        char *endcmd = strchr(name, '>');
+        if(endcmd)
+        {
+            *endcmd = '\0';
+            concatstring(s.name, name);
+            concatstring(s.name, ">");
+            name = endcmd + 1;
+        }
+    }
+    filtertext(name, name, FTXT__MEDIAFILENAME);
+    concatstring(s.name, name);
+
     s.tex = NULL;
     s.loaded = false;
     s.orgscale = *scale;
@@ -586,6 +602,7 @@ void loadskymap(bool reload)
     if(!reload)
     {
         int n = strlen(legacyprefix);
+        filtertext(loadsky, loadsky, FTXT__MEDIAFILEPATH);
         if(!strncmp(loadsky, legacyprefix, n))
         { // remove the prefix
             char *t = loadsky;
@@ -613,7 +630,8 @@ void loadnotexture(char *c)
     *mapconfigdata.notexturename = '\0';
     if(c[0])
     {
-        defformatstring(p)("packages/textures/%s", c);
+        filtertext(mapconfigdata.notexturename, c, FTXT__MEDIAFILEPATH);
+        defformatstring(p)("packages/textures/%s", mapconfigdata.notexturename);
         noworldtexture = textureload(p);
         if(noworldtexture==notexture) conoutf("could not load alternative texture '%s'.", p);
     }
