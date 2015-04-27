@@ -370,6 +370,21 @@ void restoreposition(block &sel)
     checkselections();
 }
 
+void gotoentity(int *n)
+{
+    if(noteditmode("gotoentity")) return;
+    if(ents.inrange(*n) && ents[*n].type != NOTUSED)
+    {
+        player1->o.x = ents[*n].x;
+        player1->o.y = ents[*n].y;
+        player1->o.z = ents[*n].z;
+        player1->yaw = (ents[*n].attr1 % 360 + 360) % 360; // works for most ;)
+        player1->pitch = 0;
+        player1->resetinterp();
+    }
+}
+COMMAND(gotoentity, "i");
+
 void editundo()
 {
     EDITMP;
