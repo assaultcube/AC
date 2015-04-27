@@ -1,16 +1,16 @@
 enum                            // static entity types
 {
-    NOTUSED = 0,                // entity slot not in use in map
+    NOTUSED = 0,                // entity slot not in use in map (usually seen at deleted entities)
     LIGHT,                      // lightsource, attr1 = radius, attr2 = intensity
     PLAYERSTART,                // attr1 = angle, attr2 = team
     I_CLIPS, I_AMMO, I_GRENADE,
     I_HEALTH, I_HELMET, I_ARMOUR, I_AKIMBO,
-                                // helmet : 2010may16 -> mapversion:8
+                                // (helmet since mapversion 8)
     MAPMODEL,                   // attr1 = angle, attr2 = idx, attr3 = elevation, attr4 = texture
     CARROT,                     // attr1 = tag, attr2 = type
-    LADDER,
+    LADDER,                     // attr1 = height
     CTF_FLAG,                   // attr1 = angle, attr2 = red/blue
-    SOUND,
+    SOUND,                      // attr1 = idx, attr2 = radius, attr3 = size, attr4 = volume
     CLIP,                       // attr1 = elevation, attr2 = xradius, attr3 = yradius, attr4 = height
     PLCLIP,                     // attr1 = elevation, attr2 = xradius, attr3 = yradius, attr4 = height
     MAXENTTYPES

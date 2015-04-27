@@ -492,8 +492,6 @@ void intret(int v)
 
 const char *floatstr(float v)
 {
-    static string l;
-    ftoa(l, 0.5);
     static int n = 0;
     static string t[3];
     n = (n + 1)%3;
