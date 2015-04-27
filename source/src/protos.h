@@ -485,6 +485,7 @@ extern bool empty_world(int factor, bool force);
 extern void remip(const block &b, int level = 0);
 extern void remipmore(const block &b, int level = 0);
 extern int closestent();
+extern void deletesoundentity(entity &e);
 extern int findtype(char *what);
 extern int findentity(int type, int index = 0);
 extern int findentity(int type, int index, uchar attr2);

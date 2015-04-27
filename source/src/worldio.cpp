@@ -395,6 +395,13 @@ void extractconfigfile()
 }
 COMMAND(extractconfigfile, "");
 
+void automapconfig()
+{
+    conoutf("\"automatic embedded map config data\" %senabled", hdr.flags & MHF_AUTOMAPCONFIG ? "was already " : "");
+    hdr.flags |= MHF_AUTOMAPCONFIG;
+}
+COMMAND(automapconfig, "");
+
 void flagmapconfigchange()
 {
     if(hdr.flags & MHF_AUTOMAPCONFIG) unsavededits++;

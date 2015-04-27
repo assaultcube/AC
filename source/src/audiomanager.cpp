@@ -835,3 +835,70 @@ COMMANDF(music, "sis", (char *name, int *millis, char *cmd)
     audiomgr.music(name, *millis, cmd);
 });
 
+void mapsoundslotusage(int *n) // returns all entity indices that use a mapsound of slot n
+{
+    string res = "";
+    loopv(ents) if(ents[i].type == SOUND && ents[i].attr1 == *n) concatformatstring(res, "%s%d", i ? " " : "", i);
+    result(res);
+}
+COMMAND(mapsoundslotusage, "i");
+
+void reloadmapsoundconfig()
+{
+    vector<char> sc;
+    getcurrentmapconfig(sc, true); // only soundconfig
+    sc.add('\0');
+    execute(sc.getbuf()); // cheap and easy way ;)
+}
+
+void deletemapsoundslot(int *n, char *opt) // delete mapsound slot - only if unused or "purge" is specified
+{
+    if(noteditmode("deletemapsoundslot") || multiplayer(true) || !mapconfigdata.mapsoundlines.inrange(*n)) return;
+    bool purgeall = !strcmp(opt, "purge"), slotused = false;
+    loopv(ents) if(ents[i].type == SOUND && ents[i].attr1 == *n) slotused = true;
+    if(!purgeall && slotused) { conoutf("mapsound slot #%d is in use: can't delete", *n); return; }
+    audiomgr.mapsoundreset();
+    int deld = 0;
+    loopv(ents) if(ents[i].type == SOUND)
+    {
+        entity &e = ents[i];
+        if(e.attr1 == *n)
+        { // delete entity
+            deletesoundentity(e);
+            memset(&e, 0, sizeof(persistent_entity));
+            e.type = NOTUSED;
+            deld++;
+        }
+        else if(e.attr1 > *n) e.attr1--; // adjust models in higher slots
+    }
+    mapconfigdata.mapsoundlines.remove(*n);
+    reloadmapsoundconfig();
+    defformatstring(s)(" (%d mapsounds purged)", deld);
+    conoutf("mapsound slot #%d deleted%s", *n, deld ? s : "");
+    mapsoundchanged = 1;
+    unsavededits++;
+    hdr.flags |= MHF_AUTOMAPCONFIG; // requires automapcfg
+}
+COMMAND(deletemapsoundslot, "is");
+
+void editmapsoundslot(int *n, char *name, char *maxuses) // edit slot parameters != ""
+{
+    string res = "";
+    if(!noteditmode("editmapsoundslot") && !multiplayer(true) && mapconfigdata.mapsoundlines.inrange(*n))
+    {
+        mapsoundline &msl = mapconfigdata.mapsoundlines[*n];
+        if(*name || *maxuses)
+        { // change attributes
+            if(*maxuses) msl.maxuses = strtol(maxuses, NULL, 0);
+            if(*name) copystring(msl.name, name);
+            reloadmapsoundconfig();
+            mapsoundchanged = 1;
+            unsavededits++;
+            hdr.flags |= MHF_AUTOMAPCONFIG; // requires automapcfg
+        }
+        formatstring(res)("\"%s\" %d", msl.name, msl.maxuses); // give back all current attributes
+    }
+    result(res);
+}
+COMMAND(editmapsoundslot, "isssss");
+

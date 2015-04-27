@@ -497,35 +497,44 @@ COMMANDF(texturereset, "", ()
     }
 });
 
-void texture(float *scale, char *name)
+void _texture(Slot &s, float *scale, char *name)
+{
+    if(name)
+    {
+        filtertext(s.name, parentdir(name), FTXT__MEDIAFILEPATH); // filter parts separately, because filename may (legally) contain "<decal>"
+        if(*s.name) concatstring(s.name, "/");
+        name = (char *)behindpath(name);
+        if(*name == '<')
+        {
+            char *endcmd = strchr(name, '>');
+            if(endcmd)
+            {
+                *endcmd = '\0';
+                concatstring(s.name, name);
+                concatstring(s.name, ">");
+                name = endcmd + 1;
+            }
+        }
+        filtertext(name, name, FTXT__MEDIAFILENAME);
+        concatstring(s.name, name);
+    }
+    s.tex = NULL;
+    s.loaded = false;
+    if(scale)
+    {
+        s.orgscale = *scale;
+        s.scale = (*scale > 0 && *scale <= 2.0f) ? *scale : 1.0f;
+    }
+}
+
+COMMANDF(texture, "fs", (float *scale, char *name)
 {
     intret(slots.length());
     Slot &s = slots.add();
-    filtertext(s.name, parentdir(name), FTXT__MEDIAFILEPATH); // filter parts separately, because filename may (legally) contain "<decal>"
-    if(*s.name) concatstring(s.name, "/");
-    name = (char *)behindpath(name);
-    if(*name == '<')
-    {
-        char *endcmd = strchr(name, '>');
-        if(endcmd)
-        {
-            *endcmd = '\0';
-            concatstring(s.name, name);
-            concatstring(s.name, ">");
-            name = endcmd + 1;
-        }
-    }
-    filtertext(name, name, FTXT__MEDIAFILENAME);
-    concatstring(s.name, name);
-
-    s.tex = NULL;
-    s.loaded = false;
-    s.orgscale = *scale;
-    s.scale = (*scale > 0 && *scale <= 2.0f) ? *scale : 1.0f;
+    _texture(s, scale, name);
     flagmapconfigchange();
-}
+});
 
-COMMAND(texture, "fs");
 
 const char *gettextureslot(int i)
 {
@@ -926,3 +935,146 @@ void guidetoggle()
 }
 
 COMMAND(guidetoggle, "");
+
+void gettexturelist(char *_filter, char *_exclude, char *_exts) // create a list of texture paths and filenames
+{
+    vector<char *> filter, exclude, exts, files;
+    vector<int> filter_n, exclude_n, exts_n;
+    explodelist(_filter, filter);       // path has to start with one of these
+    explodelist(_exclude, exclude);     // path may not start with one of these
+    explodelist(_exts, exts);           // file needs to have one of those extensions (or ".jpg" by default)
+    if(!exts.length()) exts.add(newstring(".jpg"));
+    loopv(filter) filter_n.add((int) strlen(filter[i]));
+    loopv(exclude) exclude_n.add((int) strlen(exclude[i]));
+    loopv(exts) exts_n.add((int) strlen(exts[i]));
+    listfilesrecursive("packages/textures", files);
+    files.sort(stringsort);
+    loopvrev(files) if(files.inrange(i + 1) && !strcmp(files[i], files[i + 1])) delstring(files.remove(i + 1)); // remove doubles
+    int pn = strlen("packages/textures/");
+    loopvrev(files)
+    {
+        bool filtered = filter.length() == 0, excluded = false, extmatch = false;
+        if(!strncmp(files[i], "packages/textures/", pn))
+        {
+            const char *s = files[i] + pn;
+            loopvj(filter) if(!strncmp(s, filter[j], filter_n[j])) filtered = true;
+            loopvj(exclude) if(!strncmp(s, exclude[j], exclude_n[j])) excluded = true;
+            int n = strlen(s);
+            loopvj(exts) if(n > exts_n[j] && !strcmp(s + n - exts_n[j], exts[j])) extmatch = true;
+        }
+        if(!extmatch || !filtered || excluded) delstring(files.remove(i));
+    }
+    vector<char> res;
+    bool cutprefix = filter.length() == 1;
+    bool cutext = exts.length() == 1 && exts[0][0] != '.';
+    loopv(files)
+    {
+        char *f = files[i] += pn;
+        const char *p = parentdir(f), *b = behindpath(f);
+        cvecprintf(res, "\"%s\" \"%s\"", p, b);  // always add columns for path (without "packages/textures/") and filename
+        if(cutprefix) cvecprintf(res, " \"%s\"", int(strlen(p)) > filter_n[0] ? p + filter_n[0] : "");  // if there's exactly one filter string, add column with that string omitted
+        if(cutext)
+        {
+            int n = strlen(b);
+            if(n > exts_n[0]) ((char *)b)[n - exts_n[0]] = '\0';
+            cvecprintf(res, " \"%s\"", b);  // if there's only one allowed extension and it does not start with '.', add column of filenames without extension
+        }
+        res.add('\n');
+    }
+    if(res.length()) res.last() = '\0';
+    else res.add('\0');
+    filter.deletearrays();
+    exclude.deletearrays();
+    exts.deletearrays();
+    result(res.getbuf());
+}
+COMMAND(gettexturelist, "sss");
+
+bool testworldtexusage(int n)
+{
+    sqr *s = world;
+    loopirev(cubicsize)
+    {
+        if(s->wtex == n || s->ctex == n || s->ftex == n || s->utex == n) return true;
+        s++;
+    }
+    return false;
+}
+
+void textureslotusage(int *n) // returns all mapmodel entity indices that use a certain texture to skin the model
+                              // if the texture is used in map geometry, at least a space is returned
+                              // if the texture is unused, an empty string is returned
+{
+    string res = "";
+    loopv(ents) if(ents[i].type == MAPMODEL && ents[i].attr4 == *n) concatformatstring(res, "%s%d", i ? " " : "", i);
+    if(!*res)
+    { // not used to skin a mapmodel: check world usage...
+        if(testworldtexusage(*n)) copystring(res, " ");
+    }
+    result(res);
+}
+COMMAND(textureslotusage, "i");
+
+void deletetextureslot(int *n, char *opt) // delete texture slot - only if unused or "purge" is specified
+{
+    if(noteditmode("deletetextureslot") || multiplayer(true) || !slots.inrange(*n)) return;
+    bool purgeall = !strcmp(opt, "purge");
+    bool mmused = false;
+    loopv(ents) if(ents[i].type == MAPMODEL && ents[i].attr4 == *n) mmused = true;
+    if(!purgeall && *n <= DEFAULT_CEIL) { conoutf("texture slots below #%d should usually not be deleted", DEFAULT_CEIL + 1); return; }
+    if(!purgeall && (mmused || testworldtexusage(*n))) { conoutf("texture slot #%d is in use: can't delete", *n); return; }
+    int deld = 0;
+    sqr *s = world;
+    loopirev(cubicsize)
+    { // check, if cubes use the texture
+        if(s->wtex == *n) { s->wtex = 255; deld++; }
+        else if(s->wtex > *n) s->wtex--;
+        if(s->ctex == *n) { s->ctex = 255; deld++; }
+        else if(s->ctex > *n) s->ctex--;
+        if(s->ftex == *n) { s->ftex = 255; deld++; }
+        else if(s->ftex > *n) s->ftex--;
+        if(s->utex == *n) { s->utex = 255; deld++; }
+        else if(s->utex > *n) s->utex--;
+        s++;
+    }
+    block bb = { mapdims.x1 - 1, mapdims.y1 - 1, mapdims.xspan + 2, mapdims.yspan + 2 };
+    remip(bb);
+    loopv(ents) if(ents[i].type == MAPMODEL)
+    { // check, if mapmodels use the texture
+        entity &e = ents[i];
+        if(e.attr4 == *n)
+        { // use default model texture instead
+            e.attr4 = 0;
+            deld++;
+        }
+        else if(e.attr4 > *n) e.attr4--; // adjust models in higher slots
+    }
+    // FIXME: texlists...
+    slots.remove(*n);
+    defformatstring(m)(" (%d uses removed)", deld);
+    conoutf("texture slot #%d deleted%s", *n, deld ? m : "");
+    unsavededits++;
+    hdr.flags |= MHF_AUTOMAPCONFIG; // requires automapcfg
+}
+COMMAND(deletetextureslot, "is");
+
+void edittextureslot(int *n, char *scale, char *name) // edit slot parameters != ""
+{
+    string res = "";
+    if(!noteditmode("edittextureslot") && !multiplayer(true) && slots.inrange(*n))
+    {
+        Slot &s = slots[*n];
+        if(*scale || *name)
+        { // change attributes
+            float newscale = atof(scale);
+            _texture(s, *scale ? &newscale : NULL, *name ? name : NULL);
+            unsavededits++;
+            hdr.flags |= MHF_AUTOMAPCONFIG; // requires automapcfg
+        }
+        defformatstring(d)("%d", int(s.orgscale));
+        formatstring(res)("%s \"%s\"", s.orgscale == int(s.orgscale) ? d : floatstr(s.orgscale), s.name);
+    }
+    result(res);
+}
+COMMAND(edittextureslot, "iss");
+

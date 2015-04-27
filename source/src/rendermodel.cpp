@@ -148,6 +148,63 @@ COMMANDF(mapmodelslotbyname, "s", (char *name) // returns the slot(s) that a cer
     result(res);
 });
 
+void mapmodelslotusage(int *n) // returns all entity indices that contain a mapmodel of slot n
+{
+    string res = "";
+    loopv(ents) if(ents[i].type == MAPMODEL && ents[i].attr2 == *n) concatformatstring(res, "%s%d", i ? " " : "", i);
+    result(res);
+}
+COMMAND(mapmodelslotusage, "i");
+
+void deletemapmodelslot(int *n, char *opt) // delete mapmodel slot - only if unused or "purge" is specified
+{
+    if(noteditmode("deletemapmodelslot") || multiplayer(true) || !mapmodels.inrange(*n)) return;
+    bool purgeall = !strcmp(opt, "purge");
+    if(!purgeall) loopv(ents) if(ents[i].type == MAPMODEL && ents[i].attr2 == *n) { conoutf("mapmodel slot #%d is in use: can't delete", *n); return; }
+    int deld = 0;
+    loopv(ents) if(ents[i].type == MAPMODEL)
+    {
+        entity &e = ents[i];
+        if(e.attr2 == *n)
+        { // delete entity
+            memset(&e, 0, sizeof(persistent_entity));
+            e.type = NOTUSED;
+            deld++;
+        }
+        else if(e.attr2 > *n) e.attr2--; // adjust models in higher slots
+    }
+    mapmodels.remove(*n);
+    defformatstring(s)(" (%d mapmodels purged)", deld);
+    conoutf("mapmodel slot #%d deleted%s", *n, deld ? s : "");
+    unsavededits++;
+    mapmodelchanged = 1;
+    hdr.flags |= MHF_AUTOMAPCONFIG; // requires automapcfg
+}
+COMMAND(deletemapmodelslot, "is");
+
+void editmapmodelslot(int *n, char *rad, char *h, char *zoff, char *snap, char *name) // edit slot parameters != ""
+{
+    string res = "";
+    if(!noteditmode("editmapmodelslot") && !multiplayer(true) && mapmodels.inrange(*n))
+    {
+        mapmodelinfo &mmi = mapmodels[*n];
+        if(*rad || *h || *zoff || *snap || *name)
+        { // change attributes
+            if(*rad) mmi.rad = strtol(rad, NULL, 0);
+            if(*h) mmi.h = strtol(h, NULL, 0);
+            if(*zoff) mmi.zoff = strtol(zoff, NULL, 0);
+            mmi.m = NULL;
+            if(*name) formatstring(mmi.name)("%s%s", mmpath, name);
+            unsavededits++;
+            mapmodelchanged = 1;
+            hdr.flags |= MHF_AUTOMAPCONFIG; // requires automapcfg
+        }
+        formatstring(res)("%d %d %d 0 \"%s\"", mmi.rad, mmi.h, mmi.zoff, mmshortname(mmi.name)); // give back all current attributes
+    }
+    result(res);
+}
+COMMAND(editmapmodelslot, "isssss");
+
 hashtable<const char *, mapmodelattributes *> mdlregistry;
 
 void setmodelattributes(const char *name, mapmodelattributes &ma)

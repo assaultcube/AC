@@ -1010,6 +1010,9 @@ int progress_callback_dlpackage(void *clientp, double dltotal, double dlnow, dou
     return 0;
 }
 
+VAR(rereadtexturelists, 0, 1, 1); // flag to indicate additional texture files to trigger a menu rebuild (defaults to "1" to build the menus after startup)
+VAR(rereadsoundlists, 0, 1, 1); // same for map sounds
+
 int processdownload(package *pck)
 {
     string tmpname = "";
@@ -1023,6 +1026,8 @@ int processdownload(package *pck)
                 const char *pckname = findfile(path(pck->name, true), "w+");
                 // with textures/sounds, the image/audio file itself is sent. Just need to copy it from the temporary file
                 if(rename(tmpname, pckname)) conoutf(_("\f3failed to install"), pckname);
+                if(pck->type == PCK_TEXTURE) rereadtexturelists = 1;
+                else rereadsoundlists = 1;
                 break;
             }
 
@@ -1037,6 +1042,7 @@ int processdownload(package *pck)
                 char *fname = newstring(pck->name), *ls = strrchr(fname, '/');
                 if(ls) *ls = '\0';
                 addzip(tmpname, fname, NULL, true, pck->type);
+                rereadtexturelists = 1;
                 break;
             }
 

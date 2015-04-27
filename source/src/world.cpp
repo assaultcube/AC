@@ -171,6 +171,7 @@ void entproperty(int prop, int amount)
     int n = closestent();
     if(n<0) return;
     entity &e = ents[n];
+    int old_a1 = e.attr1;
     switch(prop)
     {
         case 0: e.attr1 += amount; break;
@@ -187,7 +188,7 @@ void entproperty(int prop, int amount)
         case SOUND:
             audiomgr.preloadmapsound(e);
             entityreference entref(&e);
-            location *loc = audiomgr.locations.find(e.attr1-amount, &entref, mapsounds);
+            location *loc = audiomgr.locations.find(old_a1, &entref, mapsounds);
             if(loc)
                 loc->drop();
     }
@@ -222,6 +223,13 @@ void getentattr(int *attr)
 COMMAND(getenttype, "");
 COMMAND(getentattr, "i");
 
+void deletesoundentity(entity &e)
+{
+    entityreference entref(&e);
+    location *loc = audiomgr.locations.find(e.attr1, &entref, mapsounds);
+    if(loc) loc->drop();
+}
+
 void delent()
 {
     int n = closestent();
@@ -234,11 +242,7 @@ void delent()
 
     if (t == SOUND) //stop playing sound
     {
-        entityreference entref(&e);
-        location *loc = audiomgr.locations.find(e.attr1, &entref, mapsounds);
-
-        if(loc)
-            loc->drop();
+        deletesoundentity(e);
     }
 
     ents[n].type = NOTUSED;
@@ -347,6 +351,70 @@ void clearents(char *name)
 }
 
 COMMAND(clearents, "s");
+
+// entity commands based on entity number (for scripts, singleplayer only)
+
+void deleteentity(char *ns)
+{
+    int n = ATOI(ns);
+    if(noteditmode("deleteentity") || multiplayer(true) || !*ns || !ents.inrange(n)) return;
+    entity &e = ents[n];
+    int t = e.type;
+    if(t == SOUND) deletesoundentity(e);
+    conoutf("deleted entity #%d (%s)", n, entnames[e.type]);
+    memset(&e, 0, sizeof(persistent_entity));
+    e.type = NOTUSED;
+    if(t == LIGHT) calclight();
+    unsavededits++;
+}
+COMMAND(deleteentity, "s");
+
+void editentity(char **args, int numargs) // index x y z a1 a2 a3 a4 ...
+{
+    string res = "";
+    if(numargs > 0)
+    {
+        int n = ATOI(args[0]);
+        if(noteditmode("editentity") || multiplayer(true) || !*args[0] || !ents.inrange(n)) return;
+        entity &e = ents[n];
+        bool edit = false;
+        for(int i = 1; i < numargs; i++) if(*args[i]) edit = true; // only arguments other than empty strings can edit anything - otherwise we're just browsing
+        if(edit)
+        {
+            if(e.type == SOUND)
+            { // disable sound /before/ changing it
+                entityreference entref(&e);
+                location *loc = audiomgr.locations.find(e.attr1, &entref, mapsounds);
+                if(loc) loc->drop();
+            }
+            for(int i = 1; i < numargs; i++) if(*args[i])
+            {
+                int v = ATOI(args[i]);
+                switch(i)
+                {
+                    case 1: e.x = v; break;
+                    case 2: e.y = v; break;
+                    case 3: e.z = v; break;
+                    case 4: e.attr1 = v; break;
+                    case 5: e.attr2 = v; break;
+                    case 6: e.attr3 = v; break;
+                    case 7: e.attr4 = v; break;
+                }
+            }
+            switch(e.type)
+            {
+                case LIGHT: calclight(); break;
+                case SOUND: audiomgr.preloadmapsound(e); break;
+            }
+            unsavededits++;
+        }
+        // give back unchanged or new entity properties
+        formatstring(res)("%s %d %d %d  %d %d %d %d", entnames[e.type], e.x, e.y, e.z, e.attr1, e.attr2, e.attr3, e.attr4);
+    }
+    result(res);
+}
+COMMAND(editentity, "v");
+
 
 void scalecomp(uchar &c, int intens)
 {
