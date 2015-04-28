@@ -923,7 +923,11 @@ void weapon::onselecting()
 }
 
 void weapon::renderhudmodel() { renderhudmodel(owner->lastaction); }
-void weapon::renderaimhelp(bool teamwarning) { drawcrosshair(owner, teamwarning ? CROSSHAIR_TEAMMATE : owner->weaponsel->type); }
+void weapon::renderaimhelp(bool teamwarning)
+{
+    if(!editmode) drawcrosshair(owner, teamwarning ? CROSSHAIR_TEAMMATE : owner->weaponsel->type);
+    else drawcrosshair(owner, CROSSHAIR_EDIT);
+}
 int weapon::dynspread() { return info.spread; }
 float weapon::dynrecoil() { return info.recoil; }
 bool weapon::selectable() { return this != owner->weaponsel && owner->state == CS_ALIVE && !owner->weaponchanging; }
@@ -1372,7 +1376,11 @@ void sniperrifle::renderhudmodel() { if(!scoped) weapon::renderhudmodel(); }
 void sniperrifle::renderaimhelp(bool teamwarning)
 {
     if(scoped) drawscope();
-    if(scoped || teamwarning) drawcrosshair(owner, teamwarning ? CROSSHAIR_TEAMMATE : CROSSHAIR_SCOPE, NULL, 24.0f);
+    if(!editmode)
+    {
+        if(scoped || teamwarning) drawcrosshair(owner, teamwarning ? CROSSHAIR_TEAMMATE : CROSSHAIR_SCOPE, NULL, 24.0f);
+    }
+    else drawcrosshair(owner, CROSSHAIR_EDIT);
 }
 
 void sniperrifle::setscope(bool enable)

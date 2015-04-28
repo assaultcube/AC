@@ -1094,6 +1094,7 @@ int main(int argc, char **argv)
     crosshairnames[CROSSHAIR_DEFAULT] = "default";
     crosshairnames[CROSSHAIR_TEAMMATE] = "teammate";
     crosshairnames[CROSSHAIR_SCOPE] = "scope";
+    crosshairnames[CROSSHAIR_EDIT] = "edit";
     crosshairnames[CROSSHAIR_NUM] = gunnames[NUMGUNS] = "";
 
     pushscontext(IEXC_CFG);
