@@ -554,7 +554,7 @@ char *executeret(const char *p)                            // all evaluation hap
     }
 #endif
     const int MAXWORDS = 25;                    // limit, remove
-    char *w[MAXWORDS];
+    char *w[MAXWORDS], emptychar = '\0';
     char *retval = NULL;
     #define setretval(v) { char *rv = v; if(rv) retval = rv; }
     if(noproblem) // if the "seer"-algorithm doesn't object
@@ -565,7 +565,7 @@ char *executeret(const char *p)                            // all evaluation hap
             int numargs = MAXWORDS, infix = 0;
             loopi(MAXWORDS)                         // collect all argument values
             {
-                w[i] = (char *)"";
+                w[i] = &emptychar;
                 if(i>numargs) continue;
                 char *s = parseword(p, i, infix);   // parse and evaluate exps
                 if(s) w[i] = s;
