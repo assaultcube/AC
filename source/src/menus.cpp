@@ -1230,8 +1230,8 @@ void gmenu::open()
     if(!forwardkeys) player1->stopmoving();
     if(items.inrange(menusel)) items[menusel]->focus(true);
     setcontext("menu", name);
-    init();
     if(initaction) execute(initaction);
+    init();
     resetcontext();
 }
 
