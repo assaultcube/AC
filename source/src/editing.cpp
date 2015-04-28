@@ -385,6 +385,20 @@ void gotoentity(int *n)
 }
 COMMAND(gotoentity, "i");
 
+void gotoposition(char *x, char *y, char *z, char *yaw, char *pitch)
+{
+    if(noteditmode("gotoposition")) return;
+    if(*x) player1->o.x = atof(x);
+    if(*y) player1->o.y = atof(y);
+    if(*z) player1->o.z = atof(z);
+    if(*yaw) player1->yaw = (atoi(yaw) % 360 + 360) % 360;
+    if(*pitch) player1->pitch = atoi(pitch) % 90;
+    player1->resetinterp();
+    defformatstring(res)("%s %s %s %d %d", floatstr(player1->o.x), floatstr(player1->o.y), floatstr(player1->o.z), int(player1->yaw), int(player1->pitch));
+    result(res);
+}
+COMMAND(gotoposition, "sssss");
+
 void editundo()
 {
     EDITMP;
