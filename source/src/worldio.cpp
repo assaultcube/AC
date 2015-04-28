@@ -357,6 +357,7 @@ ucharbuf packheaderextras(int ignoretypes = 0)  // serialise all extra data pack
 bool embedconfigfile()
 {
     if(securemapcheck(getclientmap())) return false;
+    if(unsavededits) { conoutf("There are unsaved edits: they need to be saved or discarded before a config file can be embedded."); return false; }
     setnames(getclientmap());
     int len;
     uchar *buf = (uchar *)loadfile(path(mcfname), &len);
@@ -375,6 +376,7 @@ COMMANDF(embedconfigfile, "", () { if(embedconfigfile()) save_world(getclientmap
 void extractconfigfile()
 {
     if(securemapcheck(getclientmap())) return;
+    if(unsavededits) { conoutf("There are unsaved edits: they need to be saved or discarded before the config file can be extracted."); return; }
     setnames(getclientmap());
     int n = findheaderextra(HX_CONFIG);
     if(n < 0) conoutf("no embedded config found");
@@ -887,6 +889,7 @@ struct xmap
     string name;
     vector<headerextra *> headerextras;
     vector<persistent_entity> ents;
+    vector<char> mapconfig;
     sqr *world;
     header hdr;
     int ssize, cubicsize, numundo;
@@ -905,6 +908,11 @@ struct xmap
         memcpy(world, ::world, cubicsize * sizeof(sqr));
         loopv(::ents) if(::ents[i].type != NOTUSED) ents.add() = ::ents[i];
         copystring(mcfname, lastloadedconfigfile);   // may have been "official" or not
+        if(hdr.flags & MHF_AUTOMAPCONFIG)
+        {
+            getcurrentmapconfig(mapconfig, false);
+            mapconfig.add('\0');
+        }
         storeposition(position);
         vector<uchar> tmp;  // add undo/redo data in compressed form as temporary headerextra
         numundo = backupeditundo(tmp, MAXHEADEREXTRA, MAXHEADEREXTRA);
@@ -916,6 +924,7 @@ struct xmap
         headerextras.deletecontents();
         delete world;
         ents.setsize(0);
+        mapconfig.setsize(0);
     }
 
     void restoreent(int i)
@@ -944,9 +953,13 @@ struct xmap
         pushscontext(IEXC_MAPCFG); // untrusted altogether
         per_idents = false;
         neverpersist = true;
-        execfile("config/default_map_settings.cfg");
-        execfile(pcfname);
-        execfile(lastloadedconfigfile);
+        if(mapconfig.length()) execute(mapconfig.getbuf());
+        else
+        {
+            execfile("config/default_map_settings.cfg");
+            execfile(pcfname);
+            execfile(lastloadedconfigfile);
+        }
         parseheaderextra();
         neverpersist = false;
         per_idents = true;
@@ -978,6 +991,18 @@ struct xmap
         {
             persistent_entity &e = ents[i];
             f->printf("restorexmap ent %d  %d %d %d  %d %d %d %d // %s\n", e.type, e.x, e.y, e.z, e.attr1, e.attr2, e.attr3, e.attr4, e.type >= 0 && e.type < MAXENTTYPES ? entnames[e.type] : "unknown");
+        }
+        if(mapconfig.length())
+        {
+            char *t = newstring(mapconfig.getbuf()), *p, *l = t;
+            do
+            {
+                if((p = strchr(l, '\n'))) *p = '\0';
+                f->printf("restorexmap config %s\n", escapestring(l));
+                l = p + 1;
+            }
+            while(p);
+            delstring(t);
         }
         f->printf("restorexmap position %d %d %d %d %d  // EOF, don't touch this\n\n", int(position[0]), int(position[1]), int(position[2]), int(position[3]), int(position[4]));
     }
@@ -1105,13 +1130,12 @@ COMMANDF(xmap_restore, "s", (const char *nick)     // use xmap as current map
 
 void restorexmap(char **args, int numargs)   // read an xmap from a cubescript file
 {
-    const char *cmdnames[] = { "version", "names", "sizes", "header", "world", "headerextra", "ent", "position" };
-    const char cmdnumarg[] = {         3,       2,       3,        0,       0,             1,     8,          5 };
+    const char *cmdnames[] = { "version", "names", "sizes", "header", "world", "headerextra", "ent", "config", "position", "" };
+    const char cmdnumarg[] = {         3,       2,       3,        0,       0,             1,     8,        1,          5     };
 
     if(!xmjigsaw || numargs < 1) return; // { conoutf("restorexmap out of context"); return; }
     bool abort = false;
-    int cmd = -1;
-    loopi(sizeof(cmdnames)/sizeof(cmdnames[0])) if(!strcmp(cmdnames[i], args[0])) { cmd = i; break; }
+    int cmd = getlistindex(args[0], cmdnames, false, -1);
     if(cmd < 0 || numargs != cmdnumarg[cmd] + 1) { conoutf("restorexmap error"); return; }
     switch(cmd)
     {
@@ -1154,7 +1178,10 @@ void restorexmap(char **args, int numargs)   // read an xmap from a cubescript f
             e.type = a[0]; e.x = a[1]; e.y = a[2]; e.z = a[3]; e.attr1 = a[4]; e.attr2 = a[5]; e.attr3 = a[6]; e.attr4 = a[7];
             break;
         }
-        case 7:     // position - this is also the last command and will finish the xmap
+        case 7:     // config
+            cvecprintf(xmjigsaw->mapconfig, "%s\n", args[1]);
+            break;
+        case 8:     // position - this is also the last command and will finish the xmap
         {
             loopi(5) xmjigsaw->position[i] = ATOI(args[i + 1]);
             int i;
@@ -1162,6 +1189,7 @@ void restorexmap(char **args, int numargs)   // read an xmap from a cubescript f
             if(!xmjigsaw->world) abort = true;
             else
             {
+                if(xmjigsaw->mapconfig.length()) xmjigsaw->mapconfig.add('\0');
                 xmaps.add(xmjigsaw);
                 xmjigsaw = NULL;  // no abort!
             }
