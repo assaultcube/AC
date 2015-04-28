@@ -805,9 +805,9 @@ void *addmenu(const char *name, const char *title, bool allowinput, void (__cdec
         m->name = name;
         m->initaction = NULL;
         m->header = m->footer = NULL;
+        m->menusel = 0;
     }
     m->title = title;
-    m->menusel = 0;
     m->mdl = NULL;
     m->allowinput = allowinput;
     m->inited = false;
@@ -1228,9 +1228,9 @@ void gmenu::open()
     inited = false;
     if(!allowinput) menusel = 0;
     if(!forwardkeys) player1->stopmoving();
-    if(items.inrange(menusel)) items[menusel]->focus(true);
     setcontext("menu", name);
     if(initaction) execute(initaction);
+    if(items.inrange(menusel)) items[menusel]->focus(true);
     init();
     resetcontext();
 }
