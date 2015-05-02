@@ -17,34 +17,37 @@
 #include "command.h"
 
 #ifndef STANDALONE
- #include "varray.h"
- #include "vote.h"
- #include "console.h"
- enum
- {
-   SDL_AC_BUTTON_WHEELDOWN = -5,
-   SDL_AC_BUTTON_WHEELUP = -4,
-   SDL_AC_BUTTON_RIGHT = -3,
-   SDL_AC_BUTTON_MIDDLE = -2,
-   SDL_AC_BUTTON_LEFT = -1
- };
+#include "varray.h"
+#include "vote.h"
+#include "console.h"
+enum {
+    SDL_AC_BUTTON_WHEELDOWN = -5,
+    SDL_AC_BUTTON_WHEELUP = -4,
+    SDL_AC_BUTTON_RIGHT = -3,
+    SDL_AC_BUTTON_MIDDLE = -2,
+    SDL_AC_BUTTON_LEFT = -1
+};
 #endif
 
-extern sqr *world, *wmip[];             // map data, the mips are sequential 2D arrays in memory
-extern header hdr;                      // current map header
-extern int sfactor, ssize;              // ssize = 2^sfactor
-extern int cubicsize, mipsize;          // cubicsize = ssize^2
-extern physent *camera1;                // camera representing perspective of player, usually player1
-extern playerent *player1;              // special client ent that receives input and acts as camera
-extern vector<playerent *> players;     // all the other clients (in multiplayer)
-extern vector<bounceent *> bounceents;
+extern sqr* world,
+    *wmip[]; // map data, the mips are sequential 2D arrays in memory
+extern header hdr; // current map header
+extern int sfactor, ssize; // ssize = 2^sfactor
+extern int cubicsize, mipsize; // cubicsize = ssize^2
+extern physent*
+    camera1; // camera representing perspective of player, usually player1
+extern playerent*
+    player1; // special client ent that receives input and acts as camera
+extern vector<playerent*> players; // all the other clients (in multiplayer)
+extern vector<bounceent*> bounceents;
 extern bool editmode;
 extern int unsavededits;
-extern vector<entity> ents;             // map entities
-extern vector<int> eh_ents;             // edithide entities
-extern vec worldpos, camup, camright, camdir; // current target of the crosshair in the world
+extern vector<entity> ents; // map entities
+extern vector<int> eh_ents; // edithide entities
+extern vec worldpos, camup, camright,
+    camdir; // current target of the crosshair in the world
 extern int lastmillis, totalmillis, nextmillis; // last time
-extern int curtime;                     // current frame time
+extern int curtime; // current frame time
 extern int interm;
 extern int gamemode, nextmode;
 extern int gamespeed;
@@ -55,7 +58,7 @@ extern bool minimap, reflecting, refracting;
 extern int stenciling, stencilshadow;
 extern bool intermission;
 extern int arenaintermission;
-extern hashtable<char *, enet_uint32> mapinfo;
+extern hashtable<char*, enet_uint32> mapinfo;
 extern int hwtexsize, hwmaxaniso;
 extern int numspawn[3], maploaded, numflagspawn[2];
 extern int verbose;
@@ -66,9 +69,9 @@ extern int verbose;
 #define AC_MASTER_HTTP 1 // default
 #define AC_MASTER_RAW 0
 #define MAXCL 16
-#define CONFIGROTATEMAX 5               // keep 5 old versions of saved.cfg and init.cfg around
+#define CONFIGROTATEMAX \
+    5 // keep 5 old versions of saved.cfg and init.cfg around
 
-#include "protos.h"                     // external function decls
+#include "protos.h" // external function decls
 
 #endif
-
