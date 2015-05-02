@@ -11,11 +11,15 @@ float rdist[NUMRAYS];
 bool ocull = true;
 float odist = 256;
 
-void toggleocull() { ocull = !ocull; }
+void toggleocull()
+{
+    ocull = !ocull;
+}
 
 COMMAND(toggleocull, "");
 
-// constructs occlusion map: cast rays in all directions on the 2d plane and record distance.
+// constructs occlusion map: cast rays in all directions on the 2d plane and
+// record distance.
 // done exactly once per frame.
 
 void disableraytable()
@@ -27,77 +31,106 @@ void disableraytable()
 void computeraytable(float vx, float vy, float fov)
 {
     static int ndist[NUMRAYS];
-    if(!ocull) { disableraytable(); return; }
-    odist = getvar("fog")*1.5f;
+    if (!ocull) {
+        disableraytable();
+        return;
+    }
+    odist = getvar("fog") * 1.5f;
 
     float apitch = (float)fabs(camera1->pitch);
-    float af = fov/2+max(apitch/1.5f,4.2f);
-    float byaw = (camera1->yaw-90+af)/360*PI2;
-    float syaw = (camera1->yaw-90-af)/360*PI2;
+    float af = fov / 2 + max(apitch / 1.5f, 4.2f);
+    float byaw = (camera1->yaw - 90 + af) / 360 * PI2;
+    float syaw = (camera1->yaw - 90 - af) / 360 * PI2;
     const bool vinside = !OUTBORD(vx, vy) && !SOLID(S(int(vx), int(vy)));
 
-    loopj(NUMRAYS4)
-    {
-        int i = ((j << 2) & (NUMRAYS4 - 1)) | (j >> NUMRAYBITS), k = i / 4;  // interleaved ray calculation
+    loopj(NUMRAYS4) {
+        int i = ((j << 2) & (NUMRAYS4 - 1)) | (j >> NUMRAYBITS),
+            k = i / 4; // interleaved ray calculation
         bool firstquarter = j < NUMRAYS;
-        float angle = i*PI2/NUMRAYS4;
-        if((apitch>45 // must be bigger if fov>120
-        || (angle<byaw && angle>syaw)
-        || (angle<byaw-PI2 && angle>syaw-PI2)
-        || (angle<byaw+PI2 && angle>syaw+PI2)) && vinside)        // try to avoid tracing ray if outside of frustrum
-        {
-            float ray = i*8/(float)NUMRAYS4;
+        float angle = i * PI2 / NUMRAYS4;
+        if ((apitch > 45 // must be bigger if fov>120
+             || (angle < byaw && angle > syaw)
+             || (angle < byaw - PI2 && angle > syaw - PI2)
+             || (angle < byaw + PI2 && angle > syaw + PI2))
+            && vinside) { // try to avoid tracing ray if outside of frustrum
+            float ray = i * 8 / (float)NUMRAYS4;
             float dx, dy;
-            if(ray>1 && ray<3) { dx = -(ray-2); dy = 1; }
-            else if(ray>=3 && ray<5) { dx = -1; dy = -(ray-4); }
-            else if(ray>=5 && ray<7) { dx = ray-6; dy = -1; }
-            else { dx = 1; dy = ray>4 ? ray-8 : ray; }
+            if (ray > 1 && ray < 3) {
+                dx = -(ray - 2);
+                dy = 1;
+            } else if (ray >= 3 && ray < 5) {
+                dx = -1;
+                dy = -(ray - 4);
+            } else if (ray >= 5 && ray < 7) {
+                dx = ray - 6;
+                dy = -1;
+            } else {
+                dx = 1;
+                dy = ray > 4 ? ray - 8 : ray;
+            }
             float sx = vx;
             float sy = vy;
-            if(!firstquarter)
-            {
+            if (!firstquarter) {
                 int m = min(ndist[k], ndist[(k + 1) & (NUMRAYS - 1)]);
-                if(m-- > 3)
-                {
-                    if(m > 100) m = 100;
-                    sx += dx * m; // skip to the nearest already found wall, so the last three quarters only clean out the edges
+                if (m-- > 3) {
+                    if (m > 100)
+                        m = 100;
+                    sx += dx * m; // skip to the nearest already found wall, so
+                    // the last three quarters only clean out the
+                    // edges
                     sy += dy * m;
                 }
             }
-            for(;;)
-            {
+            for (;;) {
                 sx += dx;
                 sy += dy;
-                if(SOLID(S(int(sx), int(sy))))    // 90% of time spend in this function is on this line
+                if (SOLID(S(int(sx), int(sy)))) // 90% of time spend in this
+                    // function is on this line
                 {
-                    float dist = (float)(fabs(sx-vx)+fabs(sy-vy));
-                    if(firstquarter || dist > rdist[k]) rdist[k] = dist;
-                    if(firstquarter) ndist[k] = max(abs(sx-vx), abs(sy-vy));
+                    float dist = (float)(fabs(sx - vx) + fabs(sy - vy));
+                    if (firstquarter || dist > rdist[k])
+                        rdist[k] = dist;
+                    if (firstquarter)
+                        ndist[k] = max(abs(sx - vx), abs(sy - vy));
                     break;
                 }
             }
-        }
-        else
-        {
+        } else {
             rdist[k] = 2;
             ndist[k] = 0;
         }
     }
 }
 
-// test occlusion for a cube... one of the most computationally expensive functions in the engine
+// test occlusion for a cube... one of the most computationally expensive
+// functions in the engine
 // as its done for every cube and entity, but its effect is more than worth it!
 
 #ifdef __GNUC__
 // GCC seems to have trouble inlining these
-#define ca(xv, yv) ({ float x = (xv), y = (yv); x>y ? y/x : 2-x/y; })
-#define ma(xv, yv) ({ float x = (xv), y = (yv); x==0 ? (y>0 ? 2 : -2) : y/x; })
+#define ca(xv, yv)                 \
+    ({                             \
+        float x = (xv), y = (yv);  \
+        x > y ? y / x : 2 - x / y; \
+    })
+#define ma(xv, yv)                         \
+    ({                                     \
+        float x = (xv), y = (yv);          \
+        x == 0 ? (y > 0 ? 2 : -2) : y / x; \
+    })
 #else
-static inline float ca(float x, float y) { return x>y ? y/x : 2-x/y; }
-static inline float ma(float x, float y) { return x==0 ? (y>0 ? 2 : -2) : y/x; }
+static inline float ca(float x, float y)
+{
+    return x > y ? y / x : 2 - x / y;
+}
+static inline float ma(float x, float y)
+{
+    return x == 0 ? (y > 0 ? 2 : -2) : y / x;
+}
 #endif
 
-int isoccluded(float vx, float vy, float cx, float cy, float csize)     // v = viewer, c = cube to test
+int isoccluded(float vx, float vy, float cx, float cy,
+               float csize) // v = viewer, c = cube to test
 {
     // ABC
     // D E
@@ -105,53 +138,81 @@ int isoccluded(float vx, float vy, float cx, float cy, float csize)     // v = v
 
     // - check middle cube? BG
 
-    // find highest and lowest angle in the occlusion map that this cube spans, based on its most left and right
-    // points on the border from the viewer pov... I see no easier way to do this than this silly code below
+    // find highest and lowest angle in the occlusion map that this cube spans,
+    // based on its most left and right
+    // points on the border from the viewer pov... I see no easier way to do
+    // this than this silly code below
 
     float xdist = 0, ydist = 0, h = 0, l = 0;
-    if(cx<=vx)              // ABDFG
-    {
-        if(cx+csize<vx)     // ADF
-        {
-            if((xdist = vx-(cx+csize)) > odist) return 2;
-            if(cy<=vy)      // AD
-            {
-                if(cy+csize<vy) { if((ydist = vy-(cy+csize)) > odist) return 2; h = ca(-(cx-vx), ydist)+4; l = ca(xdist, -(cy-vy))+4; }        // A
-                else            {                                               h = ma(xdist, -(cy+csize-vy))+4; l = ma(xdist, -(cy-vy))+4; }  // D
+    if (cx <= vx) { // ABDFG
+        if (cx + csize < vx) { // ADF
+            if ((xdist = vx - (cx + csize)) > odist)
+                return 2;
+            if (cy <= vy) { // AD
+                if (cy + csize < vy) {
+                    if ((ydist = vy - (cy + csize)) > odist)
+                        return 2; // A
+                    h = ca(-(cx - vx), ydist) + 4;
+                    l = ca(xdist, -(cy - vy)) + 4;
+                } else {
+                    h = ma(xdist, -(cy + csize - vy)) + 4; // D
+                    l = ma(xdist, -(cy - vy)) + 4;
+                }
+            } else {
+                if ((ydist = cy - vy) > odist)
+                    return 2; // F
+                h = ca(cy + csize - vy, xdist) + 2;
+                l = ca(ydist, -(cx - vx)) + 2;
             }
-            else                { if((ydist = cy-vy) > odist) return 2;         h = ca(cy+csize-vy, xdist)+2; l = ca(ydist, -(cx-vx))+2; }     // F
-        }
-        else                // BG
-        {
-            if(cy<=vy)
-            {
-                if(cy+csize<vy) { if((ydist = vy-(cy+csize)) > odist) return 2; h = ma(ydist, cx-vx)+6; l = ma(ydist, cx+csize-vx)+6; }        // B
-                else return 0;
+        } else { // BG
+            if (cy <= vy) {
+                if (cy + csize < vy) {
+                    if ((ydist = vy - (cy + csize)) > odist)
+                        return 2; // B
+                    h = ma(ydist, cx - vx) + 6;
+                    l = ma(ydist, cx + csize - vx) + 6;
+                } else
+                    return 0;
+            } else {
+                if ((ydist = cy - vy) > odist)
+                    return 2; // G
+                h = ma(ydist, -(cx + csize - vx)) + 2;
+                l = ma(ydist, -(cx - vx)) + 2;
             }
-            else                { if((ydist = cy-vy) > odist) return 2;         h = ma(ydist, -(cx+csize-vx))+2; l = ma(ydist, -(cx-vx))+2; }  // G
+        }
+    } else { // CEH
+        if ((xdist = cx - vx) > odist)
+            return 2;
+        if (cy <= vy) { // CE
+            if (cy + csize < vy) {
+                if ((ydist = vy - (cy + csize)) > odist)
+                    return 2; // C
+                h = ca(-(cy - vy), xdist) + 6;
+                l = ca(ydist, cx + csize - vx) + 6;
+            } else {
+                h = ma(xdist, cy - vy); // E
+                l = ma(xdist, cy + csize - vy);
+            }
+        } else {
+            if ((ydist = cy - vy) > odist)
+                return 2; // H
+            h = ca(cx + csize - vx, ydist);
+            l = ca(xdist, cy + csize - vy);
         }
     }
-    else                    // CEH
-    {
-        if((xdist = cx-vx) > odist) return 2;
-        if(cy<=vy)          // CE
-        {
-            if(cy+csize<vy) { if((ydist = vy-(cy+csize)) > odist) return 2;     h = ca(-(cy-vy), xdist)+6; l = ca(ydist, cx+csize-vx)+6; }     // C
-            else            {                                                   h = ma(xdist, cy-vy); l = ma(xdist, cy+csize-vy); }            // E
-        }
-        else                { if((ydist = cy-vy) > odist) return 2;             h = ca(cx+csize-vx, ydist); l = ca(xdist, cy+csize-vy); }      // H
+
+    float dist = xdist + ydist - 1; // 1 needed?
+    int si = int(h * (NUMRAYS / 8))
+             + NUMRAYS; // get indexes into occlusion map from angles
+    int ei = int(l * (NUMRAYS / 8)) + NUMRAYS + 1;
+    if (ei <= si)
+        ei += NUMRAYS;
+
+    for (int i = si; i <= ei; i++) {
+        if (dist < rdist[i & (NUMRAYS - 1)])
+            return 0; // if any value in this segment of the occlusion map is
+        // further away then cube is not occluded
     }
 
-    float dist = xdist+ydist-1; // 1 needed?
-    int si = int(h*(NUMRAYS/8))+NUMRAYS;     // get indexes into occlusion map from angles
-    int ei = int(l*(NUMRAYS/8))+NUMRAYS+1;
-    if(ei<=si) ei += NUMRAYS;
-
-    for(int i = si; i<=ei; i++)
-    {
-        if(dist<rdist[i&(NUMRAYS-1)]) return 0;     // if any value in this segment of the occlusion map is further away then cube is not occluded
-    }
-
-    return 1;                                       // cube is entirely occluded
+    return 1; // cube is entirely occluded
 }
-

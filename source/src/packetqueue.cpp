@@ -12,27 +12,31 @@ packetqueue::~packetqueue()
 }
 
 // adds packet to log buffer
-void packetqueue::queue(ENetPacket *p)
+void packetqueue::queue(ENetPacket* p)
 {
-    if(packets.length() >= packets.maxsize()) enet_packet_destroy(packets.remove());
+    if (packets.length() >= packets.maxsize())
+        enet_packet_destroy(packets.remove());
     packets.add(p);
 }
 
 // writes all currently queued packets to disk and clears the queue
-bool packetqueue::flushtolog(const char *logfile)
+bool packetqueue::flushtolog(const char* logfile)
 {
-    if(packets.empty()) return false;
+    if (packets.empty())
+        return false;
 
-    stream *f = NULL;
-    if(logfile && logfile[0]) f = openfile(logfile, "w");
-    if(!f) return false;
+    stream* f = NULL;
+    if (logfile && logfile[0])
+        f = openfile(logfile, "w");
+    if (!f)
+        return false;
 
     // header
-    f->printf("AC v%d PACKET LOG : proto %d : @ %11s\n\n", AC_VERSION, PROTOCOL_VERSION, numtime());
+    f->printf("AC v%d PACKET LOG : proto %d : @ %11s\n\n", AC_VERSION,
+              PROTOCOL_VERSION, numtime());
     // serialize each packet
-    loopv(packets)
-    {
-        ENetPacket *p = packets[i];
+    loopv(packets) {
+        ENetPacket* p = packets[i];
 
         f->printf("ENET PACKET\n");
         f->printf("flags == %d\n", p->flags);
@@ -40,8 +44,7 @@ bool packetqueue::flushtolog(const char *logfile)
         f->printf("dataLength == %d\n", (int)p->dataLength);
         f->printf("data == \n");
         // print whole buffer char-wise
-        loopj(p->dataLength)
-        {
+        loopj(p->dataLength) {
             f->printf("%16d\n", p->data[j]);
         }
     }
@@ -57,4 +60,3 @@ void packetqueue::clear()
     loopv(packets) enet_packet_destroy(packets[i]);
     packets.clear();
 }
-

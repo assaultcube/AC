@@ -7,8 +7,9 @@
 
 typedef unsigned int uint;
 
-#define rndmt(x) ((int)(randomMT()&0xFFFFFF)%(x))
-#define rndscale(x) (float((randomMT()&0xFFFFFF)*double(x)/double(0xFFFFFF)))
+#define rndmt(x) ((int)(randomMT() & 0xFFFFFF) % (x))
+#define rndscale(x) \
+    (float((randomMT() & 0xFFFFFF) * double(x) / double(0xFFFFFF)))
 
 extern void seedMT(uint seed);
 extern uint randomMT(void);

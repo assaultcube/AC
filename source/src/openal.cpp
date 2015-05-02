@@ -2,14 +2,19 @@
 
 #include "cube.h"
 
-#define DEBUGCOND (audiodebug==1)
+#define DEBUGCOND (audiodebug == 1)
 
 VAR(al_referencedistance, 0, 400, 1000000);
 VAR(al_rollofffactor, 0, 100, 1000000);
 
 // represents an OpenAL source, an audio emitter in the 3D world
 
-source::source() : id(0), owner(NULL), locked(false), valid(false), priority(SP_NORMAL)
+source::source()
+    : id(0)
+    , owner(NULL)
+    , locked(false)
+    , valid(false)
+    , priority(SP_NORMAL)
 {
     valid = generate();
     ASSERT(!valid || alIsSource(id));
@@ -17,7 +22,8 @@ source::source() : id(0), owner(NULL), locked(false), valid(false), priority(SP_
 
 source::~source()
 {
-    if(valid) delete_();
+    if (valid)
+        delete_();
 }
 
 void source::lock()
@@ -56,12 +62,11 @@ void source::reset()
     sourcerelative(false);
 
     // fit into distance model
-    alSourcef(id, AL_REFERENCE_DISTANCE, al_referencedistance/100.0f);
-    alSourcef(id, AL_ROLLOFF_FACTOR, al_rollofffactor/100.0f);
+    alSourcef(id, AL_REFERENCE_DISTANCE, al_referencedistance / 100.0f);
+    alSourcef(id, AL_ROLLOFF_FACTOR, al_rollofffactor / 100.0f);
 }
 
-
-void source::init(sourceowner *o)
+void source::init(sourceowner* o)
 {
     ASSERT(o);
     owner = o;
@@ -69,8 +74,7 @@ void source::init(sourceowner *o)
 
 void source::onreassign()
 {
-    if(owner)
-    {
+    if (owner) {
         owner->onsourcereassign(this);
         owner = NULL;
     }
@@ -94,7 +98,7 @@ bool source::delete_()
 bool source::buffer(ALuint buf_id)
 {
     alclearerr();
-#ifdef __APPLE__    // weird bug
+#ifdef __APPLE__ // weird bug
     if (buf_id)
 #endif
         alSourcei(id, AL_BUFFER, buf_id);
@@ -109,7 +113,7 @@ bool source::looping(bool enable)
     return !ALERR;
 }
 
-bool source::queuebuffers(ALsizei n, const ALuint *buffer_ids)
+bool source::queuebuffers(ALsizei n, const ALuint* buffer_ids)
 {
     alclearerr();
     alSourceQueueBuffers(id, n, buffer_ids);
@@ -122,8 +126,7 @@ bool source::unqueueallbuffers()
     ALint queued;
     alGetSourcei(id, AL_BUFFERS_QUEUED, &queued);
     ALERR;
-    loopi(queued)
-    {
+    loopi(queued) {
         ALuint buffer;
         alSourceUnqueueBuffers(id, 1, &buffer);
     }
@@ -144,7 +147,7 @@ bool source::pitch(float p)
     return !ALERRF("pitch: %f", p);
 }
 
-bool source::position(const vec &pos)
+bool source::position(const vec& pos)
 {
     return position(pos.x, pos.y, pos.z);
 }
@@ -153,9 +156,12 @@ bool source::position(float x, float y, float z)
 {
     alclearerr();
     alSource3f(id, AL_POSITION, x, y, z);
-    if(x < 0 || y < 0 || z < -128 || x > ssize || y > ssize || z > 128) clientlogf("warning: sound position out of range (%f,%f,%f)", x, y, z);
-    return !ALERRF("id %u, %d, x: %f, y: %f, z: %f", id, alIsSource(id) == AL_TRUE ? 1 : 0,  x, y, z);
-//    return !ALERRF("x: %f, y: %f, z: %f", x, y, z);   // when sound bug has been absent for a while, switch to this version
+    if (x < 0 || y < 0 || z < -128 || x > ssize || y > ssize || z > 128)
+        clientlogf("warning: sound position out of range (%f,%f,%f)", x, y, z);
+    return !ALERRF("id %u, %d, x: %f, y: %f, z: %f", id,
+                   alIsSource(id) == AL_TRUE ? 1 : 0, x, y, z);
+    //    return !ALERRF("x: %f, y: %f, z: %f", x, y, z);   // when sound bug
+    //    has been absent for a while, switch to this version
 }
 
 bool source::velocity(float x, float y, float z)
@@ -170,8 +176,10 @@ vec source::position()
     alclearerr();
     ALfloat v[3];
     alGetSourcefv(id, AL_POSITION, v);
-    if(ALERR) return vec(0,0,0);
-    else return vec(v[0], v[1], v[2]);
+    if (ALERR)
+        return vec(0, 0, 0);
+    else
+        return vec(v[0], v[1], v[2]);
 }
 
 bool source::sourcerelative(bool enable)
@@ -244,10 +252,11 @@ void source::printposition()
     ALERR;
 }
 
-
 // represents an OpenAL sound buffer
 
-sbuffer::sbuffer() : id(0), name(NULL)
+sbuffer::sbuffer()
+    : id(0)
+    , name(NULL)
 {
 }
 
@@ -258,95 +267,98 @@ sbuffer::~sbuffer()
 
 bool sbuffer::load(bool trydl)
 {
-    if(!name) return false;
-    if(id) return true;
+    if (!name)
+        return false;
+    if (id)
+        return true;
     alclearerr();
     alGenBuffers(1, &id);
-    if(!ALERR)
-    {
-        const char *exts[] = { "", ".wav", ".ogg" };
+    if (!ALERR) {
+        const char* exts[] = { "", ".wav", ".ogg" };
         string filepath;
-        loopk(2)
-        {
-            loopi(sizeof(exts)/sizeof(exts[0]))
-            {
+        loopk(2) {
+            loopi(sizeof(exts) / sizeof(exts[0])) {
                 formatstring(filepath)("packages/audio/%s%s", name, exts[i]);
-                stream *f = openfile(path(filepath), "rb");
-                if(!f && k>0 && trydl) // only try donwloading after trying all extensions
+                stream* f = openfile(path(filepath), "rb");
+                if (!f && k > 0 && trydl) // only try donwloading after trying
+                    // all extensions
                 {
                     requirepackage(PCK_AUDIO, filepath);
                     bool skip = false;
-                    loopj(sizeof(exts)/sizeof(exts[0])) if(strstr(name, exts[j])) skip = true;  // don't try extensions if name already has a known extension
-                    if(skip) break;
+                    loopj(sizeof(exts)
+                          / sizeof(exts[0])) if (strstr(name, exts[j])) skip
+                            = true; // don't try extensions if name already has a
+                    // known extension
+                    if (skip)
+                        break;
                     continue;
                 }
-                if(!f) continue;
+                if (!f)
+                    continue;
 
                 size_t len = strlen(filepath);
-                if(len >= 4 && !strcasecmp(filepath + len - 4, ".ogg"))
-                {
+                if (len >= 4 && !strcasecmp(filepath + len - 4, ".ogg")) {
                     OggVorbis_File oggfile;
-                    if(!ov_open_callbacks(f, &oggfile, NULL, 0, oggcallbacks))
-                    {
-                        vorbis_info *info = ov_info(&oggfile, -1);
+                    if (!ov_open_callbacks(f, &oggfile, NULL, 0,
+                                           oggcallbacks)) {
+                        vorbis_info* info = ov_info(&oggfile, -1);
 
-                        const size_t BUFSIZE = 32*1024;
+                        const size_t BUFSIZE = 32 * 1024;
                         vector<char> buf;
                         int bitstream;
                         long bytes;
 
-                        do
-                        {
+                        do {
                             char buffer[BUFSIZE];
-                            bytes = ov_read(&oggfile, buffer, BUFSIZE, isbigendian(), 2, 1, &bitstream);
+                            bytes = ov_read(&oggfile, buffer, BUFSIZE,
+                                            isbigendian(), 2, 1, &bitstream);
                             loopi(bytes) buf.add(buffer[i]);
-                        } while(bytes > 0);
+                        } while (bytes > 0);
 
-                        alBufferData(id, info->channels == 2 ? AL_FORMAT_STEREO16 : AL_FORMAT_MONO16, buf.getbuf(), buf.length(), info->rate);
+                        alBufferData(id,
+                                     info->channels == 2 ? AL_FORMAT_STEREO16
+                                     : AL_FORMAT_MONO16,
+                                     buf.getbuf(), buf.length(), info->rate);
                         ov_clear(&oggfile);
-                    }
-                    else
-                    {
+                    } else {
                         delete f;
                         continue;
                     }
-                }
-                else
-                {
+                } else {
                     SDL_AudioSpec wavspec;
                     uint32_t wavlen;
-                    uint8_t *wavbuf;
+                    uint8_t* wavbuf;
 
-                    if(!SDL_LoadWAV_RW(f->rwops(), 1, &wavspec, &wavbuf, &wavlen))
-                    {
+                    if (!SDL_LoadWAV_RW(f->rwops(), 1, &wavspec, &wavbuf,
+                                        &wavlen)) {
                         SDL_ClearError();
                         continue;
                     }
 
                     ALenum format;
-                    switch(wavspec.format) // map wav header to openal format
-                    {
-                        case AUDIO_U8:
-                        case AUDIO_S8:
-                            format = wavspec.channels==2 ? AL_FORMAT_STEREO8 : AL_FORMAT_MONO8;
-                            break;
-                        case AUDIO_U16:
-                        case AUDIO_S16:
-                            format = wavspec.channels==2 ? AL_FORMAT_STEREO16 : AL_FORMAT_MONO16;
-                            break;
-                        default:
-                            SDL_FreeWAV(wavbuf);
-                            delete f;
-                            unload();
-                            return false;
+                    switch (wavspec.format) { // map wav header to openal format
+                    case AUDIO_U8:
+                    case AUDIO_S8:
+                        format = wavspec.channels == 2 ? AL_FORMAT_STEREO8
+                                 : AL_FORMAT_MONO8;
+                        break;
+                    case AUDIO_U16:
+                    case AUDIO_S16:
+                        format = wavspec.channels == 2 ? AL_FORMAT_STEREO16
+                                 : AL_FORMAT_MONO16;
+                        break;
+                    default:
+                        SDL_FreeWAV(wavbuf);
+                        delete f;
+                        unload();
+                        return false;
                     }
 
                     alBufferData(id, format, wavbuf, wavlen, wavspec.freq);
                     SDL_FreeWAV(wavbuf);
                     delete f;
 
-                    if(ALERR)
-                    {
+                    if (ALERR) {
                         unload();
                         return false;
                     };
@@ -362,29 +374,31 @@ bool sbuffer::load(bool trydl)
 
 void sbuffer::unload()
 {
-    if(!id) return;
+    if (!id)
+        return;
     alclearerr();
-    if(alIsBuffer(id)) alDeleteBuffers(1, &id);
+    if (alIsBuffer(id))
+        alDeleteBuffers(1, &id);
     id = 0;
     ALERR;
 }
 
 // buffer collection, find or load data
 
-bufferhashtable::~bufferhashtable() {}
-
-sbuffer *bufferhashtable::find(char *name)
+bufferhashtable::~bufferhashtable()
 {
-    sbuffer *b = access(name);
-    if(!b)
-    {
+}
+
+sbuffer* bufferhashtable::find(char* name)
+{
+    sbuffer* b = access(name);
+    if (!b) {
         name = newstring(name);
         b = &(*this)[name];
         b->name = name;
     }
     return b;
 }
-
 
 // OpenAL error handling
 
@@ -393,27 +407,36 @@ void alclearerr()
     alGetError();
 }
 
-bool alerr(bool msg, int line, const char *s, ...)
+bool alerr(bool msg, int line, const char* s, ...)
 {
     ALenum er = alGetError();
-    if(er && msg)
-    {
-        const char *desc = "unknown";
-        switch(er)
-        {
-            case AL_INVALID_NAME: desc = "invalid name"; break;
-            case AL_INVALID_ENUM: desc = "invalid enum"; break;
-            case AL_INVALID_VALUE: desc = "invalid value"; break;
-            case AL_INVALID_OPERATION: desc = "invalid operation"; break;
-            case AL_OUT_OF_MEMORY: desc = "out of memory"; break;
+    if (er && msg) {
+        const char* desc = "unknown";
+        switch (er) {
+        case AL_INVALID_NAME:
+            desc = "invalid name";
+            break;
+        case AL_INVALID_ENUM:
+            desc = "invalid enum";
+            break;
+        case AL_INVALID_VALUE:
+            desc = "invalid value";
+            break;
+        case AL_INVALID_OPERATION:
+            desc = "invalid operation";
+            break;
+        case AL_OUT_OF_MEMORY:
+            desc = "out of memory";
+            break;
         }
-        if(s)
-        {
+        if (s) {
             defvformatstring(p, s, s);
-            conoutf("\f3OpenAL Error (%X): %s, line %d, (%s)", er, desc, line, p);
-        }
-        else if(line) conoutf("\f3OpenAL Error (%X): %s, line %d", er, desc, line);
-        else conoutf("\f3OpenAL Error (%X): %s", er, desc);
+            conoutf("\f3OpenAL Error (%X): %s, line %d, (%s)", er, desc, line,
+                    p);
+        } else if (line)
+            conoutf("\f3OpenAL Error (%X): %s, line %d", er, desc, line);
+        else
+            conoutf("\f3OpenAL Error (%X): %s", er, desc);
     }
     return er > 0;
 }
