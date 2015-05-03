@@ -33,6 +33,15 @@ void toggleedit(bool force)
 {
     if(player1->state==CS_DEAD) return;                   // do not allow dead players to edit to avoid state confusion
     if(!force && !editmode && !allowedittoggle()) return; // not in most multiplayer modes
+    if(player1->state == CS_SPECTATE)
+    {
+        if(watchingdemo)
+        {
+            if(player1->spectatemode != SM_FLY) spectatemode(SM_FLY); // release in a place of followed player
+        }
+        else return;
+    }
+
     if(!(editmode = !editmode))
     {
         float oldz = player1->o.z;
@@ -46,9 +55,7 @@ void toggleedit(bool force)
     }
     keyrepeat(editmode);
     editing = editmode ? 1 : 0;
-    //2011oct16:flowtron:keep spectator state
-    //spectators are ghosts, no toggling of editmode for them!
-    player1->state = player1->state==CS_SPECTATE?CS_SPECTATE:(editing ? CS_EDITING : CS_ALIVE);
+    player1->state = editing ? CS_EDITING : (watchingdemo ? CS_SPECTATE : CS_ALIVE);
     if(editing && player1->onladder) player1->onladder = false;
     if(editing && (player1->weaponsel->type == GUN_SNIPER && ((sniperrifle *)player1->weaponsel)->scoped)) ((sniperrifle *)player1->weaponsel)->onownerdies(); // or ondeselecting()
     if(editing && (player1->weaponsel->type == GUN_GRENADE)) ((grenades *)player1->weaponsel)->onownerdies();

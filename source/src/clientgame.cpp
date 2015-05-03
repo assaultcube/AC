@@ -1673,7 +1673,7 @@ playerent *updatefollowplayer(int shiftdirection)
 
 void spectate()
 {
-    if(m_demo) return;
+    if(m_demo || editmode) return;
     if(!team_isspect(player1->team)) addmsg(SV_SWITCHTEAM, "ri", TEAM_SPECT);
     else tryrespawn();
 }
