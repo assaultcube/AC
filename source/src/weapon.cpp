@@ -543,7 +543,7 @@ void renderbounceents()
             }
         }
         path(model);
-        rendermodel(model, anim|ANIM_LOOP|ANIM_DYNALLOC, 0, 1.1f, o, p->yaw+90, p->pitch, 0, basetime);
+        rendermodel(model, anim|ANIM_LOOP|ANIM_DYNALLOC, 0, 1.1f, o, 0, p->yaw+90, p->pitch, 0, basetime);
     }
 }
 
@@ -907,7 +907,7 @@ void weapon::renderhudmodel(int lastaction, int index)
     defformatstring(path)("weapons/%s", identexists(widn)?getalias(widn):info.modelname);
     bool emit = (wm.anim&ANIM_INDEX)==ANIM_GUN_SHOOT && (lastmillis - lastaction) < flashtime();
 //    bool emit = (wm.anim&ANIM_INDEX)==ANIM_GUN_SHOOT && (lastmillis - p->lastaction) < flashtime();
-    rendermodel(path, wm.anim|ANIM_DYNALLOC|(righthanded==index ? ANIM_MIRROR : 0)|(emit ? ANIM_PARTICLE : 0), 0, -1, wm.pos, p->yaw+90, p->pitch+wm.k_rot, 40.0f, wm.basetime, NULL, NULL, 1.28f);
+    rendermodel(path, wm.anim|ANIM_DYNALLOC|(righthanded==index ? ANIM_MIRROR : 0)|(emit ? ANIM_PARTICLE : 0), 0, -1, wm.pos, 0, p->yaw+90, p->pitch+wm.k_rot, 40.0f, wm.basetime, NULL, NULL, 1.28f);
 }
 
 void weapon::updatetimers(int millis)

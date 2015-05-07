@@ -105,7 +105,7 @@ char *editinfo()
     if(e >= 0)
     {
         entity &c = ents[e];
-        formatstring(info)("closest entity = %s (%d, %d, %d, %d), ", entnames[c.type], c.attr1, c.attr2, c.attr3, c.attr4);
+        formatstring(info)("closest entity = %s (%d, %d, %d, %d, %d, %d, %d), ", entnames[c.type], c.attr1, c.attr2, c.attr3, c.attr4, c.attr5, c.attr6, c.attr7);
     }
     if(selset()) concatformatstring(info, "selection = (%d, %d)", (sels.last()).xs, (sels.last()).ys);
     else concatformatstring(info, "no selection");

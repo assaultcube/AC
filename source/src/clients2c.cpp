@@ -965,6 +965,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 ents[i].attr2 = getint(p);
                 ents[i].attr3 = getint(p);
                 ents[i].attr4 = getint(p);
+                ents[i].attr5 = getint(p);
+                ents[i].attr6 = getint(p);
+                ents[i].attr7 = getint(p);
                 ents[i].spawned = false;
                 if(ents[i].type==LIGHT || to==LIGHT) calclight();
                 if(ents[i].type==SOUND) audiomgr.preloadmapsound(ents[i]);

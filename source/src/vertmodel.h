@@ -15,7 +15,7 @@ const int dbgvlight = 0;
 VARP(mdldlist, 0, 1, 1);
 
 vec modelpos;
-float modelyaw, modelpitch;
+float modelroll, modelyaw, modelpitch;
 
 struct vertmodel : model
 {
@@ -116,7 +116,7 @@ struct vertmodel : model
         float t;
         int lastcalclight;
         vec pos;
-        float yaw, pitch;
+        float roll, yaw, pitch;
 
         lightvert *verts() { return (lightvert *)getdata(); }
         int numverts() { return int((size - sizeof(lightcacheentry)) / sizeof(lightvert)); }
@@ -367,7 +367,7 @@ __attribute__((optimize(2)))
             int cachelen = 0;
             for(; d != lightcache.end(); d = d->next, cachelen++)
             {
-                if(d->lastcalclight != lastcalclight || d->pos != modelpos || d->yaw != modelyaw || d->pitch != modelpitch || d->cur != cur) continue;
+                if(d->lastcalclight != lastcalclight || d->pos != modelpos || d->roll != modelroll || d->yaw != modelyaw || d->pitch != modelpitch || d->cur != cur) continue;
                 if(prev)
                 {
                     if(d->prev == *prev && d->t == ai_t) return d;
@@ -387,6 +387,7 @@ __attribute__((optimize(2)))
             lightcache.addfirst(d);
             d->lastcalclight = lastcalclight;
             d->pos = modelpos;
+            d->roll = modelroll;
             d->yaw = modelyaw;
             d->pitch = modelpitch;
             d->cur = cur;

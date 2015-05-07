@@ -22,7 +22,7 @@ const char *entmdlnames[] =
      entmdlnames[e.type-I_CLIPS+(m_lss && e.type==I_GRENADE ? 5:0)]);
 
      float z = (float)(1+sinf(lastmillis/100.0f+e.x+e.y)/20), yaw = lastmillis/10.0f;
-     rendermodel(mdlname, ANIM_MAPMODEL|ANIM_LOOP|ANIM_DYNALLOC, 0, 0, vec(e.x, e.y, z+S(e.x, e.y)->floor+e.attr1), yaw, 0);
+     rendermodel(mdlname, ANIM_MAPMODEL|ANIM_LOOP|ANIM_DYNALLOC, 0, 0, vec(e.x, e.y, z+S(e.x, e.y)->floor+e.attr1), 0, yaw, 0);
  }
 
 void renderclip(entity &e)
@@ -67,7 +67,7 @@ void rendermapmodels()
         {
             mapmodelinfo &mmi = getmminfo(e.attr2);
             if(!&mmi) continue;
-            rendermodel(mmi.name, ANIM_MAPMODEL|ANIM_LOOP, e.attr4, 0, vec(e.x, e.y, (float)S(e.x, e.y)->floor+mmi.zoff+e.attr3), e.attr1 / 4.0f, 0, 10.0f);
+            rendermodel(mmi.name, ANIM_MAPMODEL|ANIM_LOOP, e.attr4, 0, vec(e.x, e.y, (float)S(e.x, e.y)->floor+mmi.zoff+e.attr3), e.attr6, e.attr1 / 4.0f, e.attr5 / 4.0f, 10.0f);
         }
     }
 }
@@ -218,7 +218,7 @@ void renderentities()
             if(e.type==CTF_FLAG)
             {
                 defformatstring(path)("pickups/flags/%s", team_basestring(e.attr2));
-                rendermodel(path, ANIM_FLAG|ANIM_LOOP, 0, 0, vec(e.x, e.y, (float)S(e.x, e.y)->floor), e.attr1 / 4.0f, 0, 120.0f);
+                rendermodel(path, ANIM_FLAG|ANIM_LOOP, 0, 0, vec(e.x, e.y, (float)S(e.x, e.y)->floor), 0, e.attr1 / 4.0f, 0, 120.0f);
             }
             else if((e.type == CLIP || e.type == PLCLIP) && showclips && !stenciling) renderclip(e);
             else if(e.type == MAPMODEL && showclips && showmodelclipping && !stenciling)
@@ -261,7 +261,7 @@ void renderentities()
                 {
                     if(OUTBORD(f.actor->o.x, f.actor->o.y)) break;
                     defformatstring(path)("pickups/flags/small_%s%s", m_ktf ? "" : team_basestring(i), m_htf ? "_htf" : m_ktf ? "ktf" : "");
-                    rendermodel(path, ANIM_FLAG|ANIM_START|ANIM_DYNALLOC, 0, 0, vec(f.actor->o).add(vec(0, 0, 0.3f+(sinf(lastmillis/100.0f)+1)/10)), lastmillis/2.5f, 0, 120.0f);
+                    rendermodel(path, ANIM_FLAG|ANIM_START|ANIM_DYNALLOC, 0, 0, vec(f.actor->o).add(vec(0, 0, 0.3f+(sinf(lastmillis/100.0f)+1)/10)), 0, lastmillis/2.5f, 0, 120.0f);
                 }
                 break;
             case CTFF_INBASE:
@@ -271,7 +271,7 @@ void renderentities()
                 if(OUTBORD(f.pos.x, f.pos.y)) break;
                 entity &e = *f.flagent;
                 defformatstring(path)("pickups/flags/%s%s", m_ktf ? "" : team_basestring(i),  m_htf ? "_htf" : m_ktf ? "ktf" : "");
-                if(f.flagent->spawned) rendermodel(path, ANIM_FLAG|ANIM_LOOP, 0, 0, vec(f.pos.x, f.pos.y, f.state==CTFF_INBASE ? (float)S(int(f.pos.x), int(f.pos.y))->floor : f.pos.z), e.attr1 / 4.0f, 0, 120.0f);
+                if(f.flagent->spawned) rendermodel(path, ANIM_FLAG|ANIM_LOOP, 0, 0, vec(f.pos.x, f.pos.y, f.state==CTFF_INBASE ? (float)S(int(f.pos.x), int(f.pos.y))->floor : f.pos.z), 0, e.attr1 / 4.0f, 0, 120.0f);
                 break;
             }
             case CTFF_IDLE:
@@ -657,7 +657,7 @@ void syncentchanges(bool force)
     loopv(changedents) if(ents.inrange(changedents[i]))
     {
         entity &e = ents[changedents[i]];
-        addmsg(SV_EDITENT, "ri9", changedents[i], e.type, e.x, e.y, e.z, e.attr1, e.attr2, e.attr3, e.attr4);
+        addmsg(SV_EDITENT, "ri9i3", changedents[i], e.type, e.x, e.y, e.z, e.attr1, e.attr2, e.attr3, e.attr4, e.attr5, e.attr6, e.attr7);
     }
     changedents.setsize(0);
     lastentsync = lastmillis;

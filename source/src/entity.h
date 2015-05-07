@@ -1,12 +1,11 @@
 enum                            // static entity types
 {
     NOTUSED = 0,                // entity slot not in use in map (usually seen at deleted entities)
-    LIGHT,                      // lightsource, attr1 = radius, attr2 = intensity
+    LIGHT,                      // lightsource, attr1 = radius, attr2 = intensity (or attr2..4 = r-g-b)
     PLAYERSTART,                // attr1 = angle, attr2 = team
-    I_CLIPS, I_AMMO, I_GRENADE,
+    I_CLIPS, I_AMMO, I_GRENADE, // attr1 = elevation
     I_HEALTH, I_HELMET, I_ARMOUR, I_AKIMBO,
-                                // (helmet since mapversion 8)
-    MAPMODEL,                   // attr1 = angle, attr2 = idx, attr3 = elevation, attr4 = texture
+    MAPMODEL,                   // attr1 = angle, attr2 = idx, attr3 = elevation, attr4 = texture, attr5 = pitch, attr6 = roll
     CARROT,                     // attr1 = tag, attr2 = type
     LADDER,                     // attr1 = height
     CTF_FLAG,                   // attr1 = angle, attr2 = red/blue
@@ -27,7 +26,10 @@ struct persistent_entity        // map entity
     short attr1;
     uchar type;                 // type is one of the above
     uchar attr2, attr3, attr4;
-    persistent_entity(short x, short y, short z, uchar type, short attr1, uchar attr2, uchar attr3, uchar attr4) : x(x), y(y), z(z), attr1(attr1), type(type), attr2(attr2), attr3(attr3), attr4(attr4) {}
+    short attr5;
+    char attr6;
+    unsigned char attr7;
+    persistent_entity(short x, short y, short z, uchar type, short attr1, uchar attr2, uchar attr3, uchar attr4) : x(x), y(y), z(z), attr1(attr1), type(type), attr2(attr2), attr3(attr3), attr4(attr4), attr5(0), attr6(0), attr7(0) {}
     persistent_entity() {}
 };
 

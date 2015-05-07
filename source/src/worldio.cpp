@@ -552,7 +552,7 @@ void save_world(char *mname, bool skipoptimise, bool addcomfort)
     int writeextra = 0;
     if(hx.maxlen) tmp.headersize += writeextra = clamp(hx.maxlen, 0, MAXHEADEREXTRA);
     if(writeextra || skipoptimise) tmp.version = 10;   // 9 and 10 are the same, but in 10 the headersize is reliable - if we don't need it, stick to 9
-    bool oldmapmodelscaling = tmp.version < 10;
+    bool oldentityformat = tmp.version < 10;
     tmp.maprevision += advancemaprevision;
     DEBUG("version " << tmp.version << " headersize " << tmp.headersize << " entities " << tmp.numents << " factor " << tmp.sfactor << " revision " << tmp.maprevision);
     lilswap(&tmp.version, 4); // version, headersize, sfactor, numents
@@ -568,9 +568,10 @@ void save_world(char *mname, bool skipoptimise, bool addcomfort)
         {
             if(!ne--) break;
             persistent_entity tmp = ents[i];
-            if(oldmapmodelscaling && tmp.type == MAPMODEL) tmp.attr1 = tmp.attr1 / 4;
+            if(oldentityformat && tmp.type == MAPMODEL) tmp.attr1 = tmp.attr1 / 4;
             lilswap((short *)&tmp, 4);
-            f->write(&tmp, sizeof(persistent_entity));
+            lilswap(&tmp.attr5, 1);
+            f->write(&tmp, oldentityformat ? 12 : sizeof(persistent_entity));
         }
     }
 
@@ -694,11 +695,14 @@ bool load_world(char *mname)        // still supports all map formats that have 
     ents.shrink(0);
     loopi(3) numspawn[i] = 0;
     loopi(2) numflagspawn[i] = 0;
+    bool oldentityformat = hdr.version < 10;
     loopi(hdr.numents)
     {
         entity &e = ents.add();
-        f->read(&e, sizeof(persistent_entity));
+        f->read(&e, oldentityformat ? 12 : sizeof(persistent_entity));
         lilswap((short *)&e, 4);
+        if(oldentityformat) e.attr5 = e.attr6 = e.attr7 = 0;
+        else lilswap(&e.attr5, 1);
         e.spawned = false;
         if(e.type == LIGHT)
         {
@@ -706,7 +710,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
             if(e.attr1>32) e.attr1 = 32; // 12_03 and below
         }
         transformoldentities(hdr.version, e.type);
-        if(hdr.version < 10)
+        if(oldentityformat)
         {
             switch(e.type)
             {
@@ -990,7 +994,7 @@ struct xmap
         loopv(ents) // entities are stored as plain text - you may edit them
         {
             persistent_entity &e = ents[i];
-            f->printf("restorexmap ent %d  %d %d %d  %d %d %d %d // %s\n", e.type, e.x, e.y, e.z, e.attr1, e.attr2, e.attr3, e.attr4, e.type >= 0 && e.type < MAXENTTYPES ? entnames[e.type] : "unknown");
+            f->printf("restorexmap ent %d  %d %d %d  %d %d %d %d %d %d %d // %s\n", e.type, e.x, e.y, e.z, e.attr1, e.attr2, e.attr3, e.attr4, e.attr5, e.attr6, e.attr7, e.type >= 0 && e.type < MAXENTTYPES ? entnames[e.type] : "unknown");
         }
         if(mapconfig.length())
         {
@@ -1131,7 +1135,7 @@ COMMANDF(xmap_restore, "s", (const char *nick)     // use xmap as current map
 void restorexmap(char **args, int numargs)   // read an xmap from a cubescript file
 {
     const char *cmdnames[] = { "version", "names", "sizes", "header", "world", "headerextra", "ent", "config", "position", "" };
-    const char cmdnumarg[] = {         3,       2,       3,        0,       0,             1,     8,        1,          5     };
+    const char cmdnumarg[] = {         3,       2,       3,        0,       0,             1,    11,        1,          5     };
 
     if(!xmjigsaw || numargs < 1) return; // { conoutf("restorexmap out of context"); return; }
     bool abort = false;
@@ -1173,9 +1177,9 @@ void restorexmap(char **args, int numargs)   // read an xmap from a cubescript f
         case 6:     // ent
         {
             persistent_entity &e = xmjigsaw->ents.add();
-            int a[8];
-            loopi(8) a[i] = ATOI(args[i + 1]);
-            e.type = a[0]; e.x = a[1]; e.y = a[2]; e.z = a[3]; e.attr1 = a[4]; e.attr2 = a[5]; e.attr3 = a[6]; e.attr4 = a[7];
+            int a[11];
+            loopi(11) a[i] = ATOI(args[i + 1]);
+            e.type = a[0]; e.x = a[1]; e.y = a[2]; e.z = a[3]; e.attr1 = a[4]; e.attr2 = a[5]; e.attr3 = a[6]; e.attr4 = a[7]; e.attr5 = a[8]; e.attr6 = a[9]; e.attr7 = a[10];
             break;
         }
         case 7:     // config

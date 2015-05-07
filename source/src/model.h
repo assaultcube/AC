@@ -56,7 +56,7 @@ struct model
 
     virtual void cleanup() = 0;
 
-    virtual void render(int anim, int varseed, float speed, int basetime, const vec &o, float yaw, float pitch, dynent *d, modelattach *a = NULL, float scale = 1.0f) = 0;
+    virtual void render(int anim, int varseed, float speed, int basetime, const vec &o, float roll, float yaw, float pitch, dynent *d, modelattach *a = NULL, float scale = 1.0f) = 0;
     virtual void setskin(int tex = 0) = 0;
 
     virtual void genshadows(float height, float rad) {}

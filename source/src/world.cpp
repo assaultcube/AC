@@ -178,6 +178,9 @@ void entproperty(int prop, int amount)
         case 1: e.attr2 += amount; break;
         case 2: e.attr3 += amount; break;
         case 3: e.attr4 += amount; break;
+        case 4: e.attr5 += amount; break;
+        case 5: e.attr6 += amount; break;
+        case 6: e.attr7 += amount; break;
         case 11: e.x += amount; break;
         case 12: e.y += amount; break;
         case 13: e.z += amount; break;
@@ -246,7 +249,7 @@ void delent()
     }
 
     ents[n].type = NOTUSED;
-    addmsg(SV_EDITENT, "ri9", n, NOTUSED, 0, 0, 0, 0, 0, 0, 0);
+    addmsg(SV_EDITENT, "ri9i3", n, NOTUSED, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
     switch(t)
     {
@@ -299,7 +302,7 @@ entity *newentity(int index, int x, int y, int z, char *what, int v1, int v2, in
             break;
     }
     syncentchanges(true);
-    addmsg(SV_EDITENT, "ri9", index<0 ? ents.length() : index, type, e.x, e.y, e.z, e.attr1, e.attr2, e.attr3, e.attr4);
+    addmsg(SV_EDITENT, "ri9i3", index<0 ? ents.length() : index, type, e.x, e.y, e.z, e.attr1, e.attr2, e.attr3, e.attr4, e.attr5, e.attr6, e.attr7);
     e.spawned = true;
     int oldtype = type;
     if(index<0) ents.add(e);

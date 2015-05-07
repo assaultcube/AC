@@ -99,7 +99,7 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
     entposs = new short[s.hdr.numents * 3];
     loopi(s.hdr.numents)
     {
-        f->read(&e, sizeof(persistent_entity));
+        f->read(&e, s.hdr.version < 10 ? 12 : sizeof(persistent_entity));
         lilswap((short *)&e, 4);
         transformoldentities(s.hdr.version, e.type);
         if(e.type == PLAYERSTART && (e.attr2 == 0 || e.attr2 == 1 || e.attr2 == 100)) s.spawns[e.attr2 == 100 ? 2 : e.attr2]++;
