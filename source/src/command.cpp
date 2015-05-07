@@ -1488,6 +1488,7 @@ void writecfg()
     f->printf("// automatically written on exit, DO NOT MODIFY\n// delete this file to have defaults.cfg overwrite these settings\n// modify settings in game, or put settings in autoexec.cfg to override anything\n\n");
     f->printf("// basic settings\n\n");
     f->printf("name %s\n", escapestring(player1->name, false));
+    f->printf("skin_cla %d\nskin_rvsf %d\n", player1->skin(TEAM_CLA), player1->skin(TEAM_RVSF));
     for(int i = CROSSHAIR_DEFAULT; i < CROSSHAIR_NUM; i++) if(crosshairs[i] && crosshairs[i] != notexture)
     {
         f->printf("loadcrosshair %s %s\n", crosshairnames[i], behindpath(crosshairs[i]->name));
