@@ -133,7 +133,6 @@ void mapmodelreset()
     {
         mapmodels.shrink(0);
         mapmodelchanged = 1;
-        flagmapconfigchange();
     }
 }
 COMMAND(mapmodelreset, "");

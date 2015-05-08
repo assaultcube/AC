@@ -405,8 +405,8 @@ void automapconfig()
 COMMAND(automapconfig, "");
 
 void flagmapconfigchange()
-{
-    if(hdr.flags & MHF_AUTOMAPCONFIG) unsavededits++;
+{ // if changes are tracked, because automapcfg is enabled and the change is not read from a config file -> set unsaved edits flag
+    if(execcontext != IEXC_MAPCFG && hdr.flags & MHF_AUTOMAPCONFIG) unsavededits++;
 }
 
 void getcurrentmapconfig(vector<char> &f, bool onlysounds)
@@ -785,7 +785,6 @@ bool load_world(char *mname)        // still supports all map formats that have 
     if(hdr.flags & MHF_AUTOMAPCONFIG)
     { // full featured embedded config: no need to read any other map config files
         copystring(lastloadedconfigfile, "");
-        unsavededits = 0;
     }
     else
     { // map config from files

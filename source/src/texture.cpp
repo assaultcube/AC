@@ -488,14 +488,7 @@ struct Slot
 
 vector<Slot> slots;
 
-COMMANDF(texturereset, "", ()
-{
-    if(execcontext==IEXC_MAPCFG)
-    {
-        slots.setsize(0);
-        flagmapconfigchange();
-    }
-});
+COMMANDF(texturereset, "", () { if(execcontext==IEXC_MAPCFG) slots.setsize(0); });
 
 void _texture(Slot &s, float *scale, char *name)
 {
