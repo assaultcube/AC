@@ -418,6 +418,16 @@ void editentity(char **args, int numargs) // index x y z a1 a2 a3 a4 ...
 }
 COMMAND(editentity, "v");
 
+void enumentities(char *type)
+{
+    vector<char> res;
+    int t = getlistindex(type, entnames, false, -1);
+    loopv(ents) if(ents[i].type == t) cvecprintf(res, "%d ", i);
+    if(!res.length()) res.add('\0');
+    else res.last() = '\0';
+    result(res.getbuf());
+}
+COMMAND(enumentities, "s");
 
 void scalecomp(uchar &c, int intens)
 {
