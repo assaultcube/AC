@@ -206,6 +206,7 @@ char *svariable(const char *name, const char *cur, char **storage, void (*fun)()
 
 #define _GETVAR(id, vartype, name, retval) \
     ident *id = idents->access(name); \
+    ASSERT(id && id->type == vartype); \
     if(!id || id->type!=vartype) return retval;
 #define GETVAR(id, name, retval) _GETVAR(id, ID_VAR, name, retval)
 void setvar(const char *name, int i, bool dofunc)
