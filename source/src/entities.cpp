@@ -588,7 +588,7 @@ void flagdropped(int flag, float x, float y, float z)
     f.pos.x = round(p.o.x);
     f.pos.y = round(p.o.y);
     f.pos.z = round(p.o.z);
-    if(f.pos.z < hdr.waterlevel) f.pos.z = (short) hdr.waterlevel;
+    if(f.pos.z < waterlevel) f.pos.z = waterlevel;
     f.flagent->spawned = true;
     f.ack = true;
 }

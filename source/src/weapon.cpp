@@ -567,7 +567,7 @@ void addgib(playerent *d)
 
         p->o = d->o;
         p->o.z -= d->aboveeye;
-        p->inwater = hdr.waterlevel>p->o.z;
+        p->inwater = waterlevel > p->o.z;
 
         p->yaw = (float)rnd(360);
         p->pitch = (float)rnd(360);
@@ -1037,7 +1037,7 @@ void grenadeent::_throw(const vec &from, const vec &vel)
     this->vel = vel;
     this->o = from;
     this->resetinterp();
-    inwater = hdr.waterlevel>o.z;
+    inwater = waterlevel > o.z;
     if(local)
     {
         addmsg(SV_THROWNADE, "ri7", int(o.x*DMF), int(o.y*DMF), int(o.z*DMF), int(vel.x*DMF), int(vel.y*DMF), int(vel.z*DMF), lastmillis-millis);
@@ -1050,7 +1050,7 @@ void grenadeent::moveoutsidebbox(const vec &direction, playerent *boundingbox)
 {
     vel = direction;
     o = boundingbox->o;
-    inwater = hdr.waterlevel>o.z;
+    inwater = waterlevel > o.z;
 
     boundingbox->cancollide = false;
     loopi(10) moveplayer(this, 10, true, 10);

@@ -17,8 +17,8 @@ bool FileIsOlder(const char *szFileName1, const char *szFileName2);
 vec PredictPos(vec pos, vec vel, float Time);
 vec Normalize(vec v);
 inline void makevec(vec *v, float x, float y, float z) { v->x=x; v->y=y; v->z=z; }
-inline bool UnderWater(const vec &o) { return hdr.waterlevel>o.z-0.5f; }
-inline bool InWater(const vec &o) { return hdr.waterlevel>=o.z; }
+inline bool UnderWater(const vec &o) { return waterlevel > o.z - 0.5f; }
+inline bool InWater(const vec &o) { return waterlevel >= o.z; }
 float GetYawDiff(float curyaw, vec v1, vec v2);
 vec CrossProduct(const vec &a, const vec &b);
 int GetDirection(const vec &angles, const vec &v1, const vec &v2);

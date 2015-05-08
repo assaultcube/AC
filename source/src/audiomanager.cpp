@@ -331,15 +331,10 @@ void audiomanager::updateplayerfootsteps(playerent *p)
     {
         // play footsteps
 
-        int grounddist;
-        if( ((int)p->o.x) >= 0 && ((int)p->o.y) >= 0 && ((int)p->o.x) < ssize && ((int)p->o.y) < ssize) { // sam's fix to the sound crash
-            grounddist = hdr.waterlevel-S((int)p->o.x, (int)p->o.y)->floor;
-        }else{
-            grounddist = 0;
-        }
-//        int grounddist = hdr.waterlevel-S((int)p->o.x, (int)p->o.y)->floor;
-        bool water = p->o.z-p->eyeheight+0.25f<hdr.waterlevel;
-        if(water && grounddist>p->eyeheight) return; // don't play step sound when jumping into water
+        float grounddist = 0;
+        if(!((int(p->o.x) | int(p->o.y)) & ~(ssize - 1))) grounddist = waterlevel - S((int)p->o.x, (int)p->o.y)->floor;
+        bool water = p->o.z - p->eyeheight+0.25f < waterlevel;
+        if(water && grounddist > p->eyeheight) return; // don't play step sound when jumping into water
 
         int stepsound;
         if(p->crouching) stepsound = water ? S_WATERFOOTSTEPSCROUCH : S_FOOTSTEPSCROUCH; // crouch
@@ -573,7 +568,7 @@ void audiomanager::updateaudio()
     }
 
     // water
-    bool underwater = /*alive &&*/ firstperson && hdr.waterlevel>player1->o.z+player1->aboveeye;
+    bool underwater = /*alive &&*/ firstperson && waterlevel > player1->o.z + player1->aboveeye;
     updateloopsound(S_UNDERWATER, underwater);
 
     // tinnitus

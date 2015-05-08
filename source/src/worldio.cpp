@@ -691,7 +691,8 @@ bool load_world(char *mname)        // still supports all map formats that have 
         hdr.waterlevel = -100000;
         hdr.ambient = 0;
     }
-    setvar("waterlevel", hdr.waterlevel);
+    if(hdr.version < 10) hdr.waterlevel *= WATERLEVELSCALING;
+    setfvar("waterlevel", float(hdr.waterlevel) / WATERLEVELSCALING);
     ents.shrink(0);
     loopi(3) numspawn[i] = 0;
     loopi(2) numflagspawn[i] = 0;
@@ -945,7 +946,7 @@ struct xmap
         clearheaderextras();
         resetmap(true);
         curmaprevision = hdr.maprevision;
-        setvar("waterlevel", hdr.waterlevel);
+        setfvar("waterlevel", float(hdr.waterlevel) / WATERLEVELSCALING);
         ::ents.shrink(0);
         loopv(ents) restoreent(i);
         delete[] ::world;

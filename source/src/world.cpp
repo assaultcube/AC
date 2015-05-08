@@ -613,7 +613,8 @@ bool empty_world(int factor, bool force)    // main empty world creation routine
         memset(&hdr, 0, sizeof(header));
         mapconfigdata.clear();
         formatstring(hdr.maptitle)("Untitled Map by %s", player1->name);
-        setvar("waterlevel", (hdr.waterlevel = -100000));
+        setfvar("waterlevel", -10000);
+        hdr.waterlevel = waterlevel * WATERLEVELSCALING;
         setwatercolor();
         loopk(3) loopi(256) hdr.texlists[k][i] = i;
         ents.shrink(0);

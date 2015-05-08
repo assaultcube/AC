@@ -1744,7 +1744,7 @@ bool CBot::WaterNav()
 
                 if (UnderWater(v)) continue; // Skip, cube is underwater
 
-                if (hdr.waterlevel < (v.z - 2.0f)) continue; // Cube is too high
+                if (waterlevel < (v.z - 2.0f)) continue; // Cube is too high
 
                 // Check if the bot 'can fit' on the cube(no near obstacles)
                 bool small_ = false;

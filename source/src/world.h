@@ -115,6 +115,7 @@ struct mapdim
 #define MAXMAREA 10000
 #define MAXHHITS 50000                  // was 6000, which denied my fav. maps - jamz, 2012-06-12; 15000 denies sane map too - lucas
 #define MINFF 2500
+#define WATERLEVELSCALING 10
 
 struct block { int x, y, xs, ys, h; short p[5]; };
 

@@ -4,7 +4,15 @@ int wx1, wy1, wx2, wy2;
 float wsx1, wsy1, wsx2, wsy2;
 
 VARP(watersubdiv, 1, 4, 64);
-VARF(waterlevel, -128, -128, 127, if(!noteditmode("waterlevel")) { hdr.waterlevel = waterlevel; unsavededits++; });
+FVARF(waterlevel, -10000, -10000, 127,
+{
+    if(!noteditmode("waterlevel"))
+    {
+        hdr.waterlevel = waterlevel * WATERLEVELSCALING;
+        unsavededits++;
+    }
+    waterlevel = float(hdr.waterlevel) / WATERLEVELSCALING; // waterlevel and hdr.waterlevel need to be kept in sync
+});
 
 void setwatercolor(const char *r, const char *g, const char *b, const char *a)
 {
@@ -274,7 +282,7 @@ void calcwaterscissor()
     loopi(4)
     {
         vec4 &p = v[i];
-        mvpmatrix.transform(vec(i&1 ? wx2 : wx1, i&2 ? wy2 : wy1, hdr.waterlevel-0.3f), p);
+        mvpmatrix.transform(vec(i&1 ? wx2 : wx1, i&2 ? wy2 : wy1, waterlevel - 0.3f), p);
         if(p.z >= 0)
         {
             float x = p.x / p.w, y = p.y / p.w;

@@ -840,7 +840,7 @@ void drawminimap(int w, int h)
     renderzones(mapdims.maxceil);
     //renderentities();// IMHO better done by radar itself, if at all
     resettmu(0);
-    float hf = hdr.waterlevel-0.3f;
+    float hf = waterlevel - 0.3f;
     renderwater(hf, 0, 0);
 
     //draw a black border to prevent the minimap texture edges from bleeding in radarview
@@ -1001,7 +1001,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
     aspect = float(w)/h;
     fovy = 2*atan2(tan(float(dynfov())/2*RAD), aspect)/RAD;
 
-    float hf = hdr.waterlevel-0.3f;
+    float hf = waterlevel - 0.3f;
     bool underwater = camera1->o.z<hf;
 
     glFogi(GL_FOG_START, (fog+64)/8);

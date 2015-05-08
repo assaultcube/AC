@@ -328,7 +328,7 @@ void resizephysent(physent *pl, int moveres, int curtime, float min, float max)
 {
     if(pl->eyeheightvel==0.0f) return;
 
-    const bool water = hdr.waterlevel>pl->o.z;
+    const bool water = waterlevel > pl->o.z;
     const float speed = curtime*pl->maxspeed/(water ? 2000.0f : 1000.0f);
     float h = pl->eyeheightvel * speed / moveres;
 
@@ -391,7 +391,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
     if(pl->type==ENT_BOUNCE)
     {
         bounceent* bounce = (bounceent *) pl;
-        water = hdr.waterlevel>pl->o.z;
+        water = waterlevel > pl->o.z;
 
         const float speed = curtime*pl->maxspeed/(water ? 2000.0f : 1000.0f);
         const float friction = water ? 20.0f : (pl->onfloor || isfly ? 6.0f : 30.0f);
@@ -423,7 +423,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
     {
         const int timeinair = pl->timeinair;
         int move = pl->onladder && !pl->onfloor && pl->move == -1 ? 0 : pl->move; // movement on ladder
-        if(!editfly) water = hdr.waterlevel>pl->o.z-0.5f;
+        if(!editfly) water = waterlevel > pl->o.z - 0.5f;
 
         float chspeed = 0.4f;
         if(!(pl->onfloor || pl->onladder)) chspeed = 1.0f;

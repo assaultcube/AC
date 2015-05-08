@@ -390,7 +390,7 @@ void render_particles(int time, int typemask)
                     bool inside = p->o.dist(camera1->o) <= sz*1.25f; //1.25 is max wobble scale
                     vec oc(p->o);
                     oc.sub(camera1->o);
-                    if(reflecting && !refracting) oc.z = p->o.z - (hdr.waterlevel-0.3f);
+                    if(reflecting && !refracting) oc.z = p->o.z - (waterlevel - 0.3f);
                     glRotatef(inside ? camera1->yaw - 180 : atan2(oc.y, oc.x)/RAD - 90, 0, 0, 1);
                     glRotatef((inside ? camera1->pitch : asin(oc.z/oc.magnitude())/RAD) - 90, 1, 0, 0);
 
@@ -641,7 +641,7 @@ bool addbullethole(dynent *d, const vec &from, const vec &to, float radius, bool
     //newparticle(o, surface, bulletholettl, 7);
     if(noisy && bulletbouncesound && bulletbouncesoundrad && d!=player1 && o.dist(camera1->o) <= bulletbouncesoundrad)
     {
-        audiomgr.playsound(o.z<hdr.waterlevel ? S_BULLETWATERHIT : S_BULLETHIT, &o, SP_LOW);
+        audiomgr.playsound(o.z < waterlevel ? S_BULLETWATERHIT : S_BULLETHIT, &o, SP_LOW);
     }
     return true;
 }
