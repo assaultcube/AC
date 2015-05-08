@@ -15,6 +15,11 @@ enum                            // static entity types
     MAXENTTYPES
 };
 
+extern short entwraparound[MAXENTTYPES][7];
+extern uchar entscale[MAXENTTYPES][7];
+#define ENTSCALE10 10
+#define ENTSCALE5 5
+
 enum {MAP_IS_BAD, MAP_IS_EDITABLE, MAP_IS_GOOD};
 
 extern const char *entnames[];

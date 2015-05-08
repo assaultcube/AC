@@ -551,7 +551,7 @@ void save_world(char *mname, bool skipoptimise, bool addcomfort)
     ucharbuf hx = packheaderextras(addcomfort ? 0 : (1 << HX_EDITUNDO));   // if addcomfort -> add undos/redos
     int writeextra = 0;
     if(hx.maxlen) tmp.headersize += writeextra = clamp(hx.maxlen, 0, MAXHEADEREXTRA);
-    if(writeextra || skipoptimise) tmp.version = 10;   // 9 and 10 are the same, but in 10 the headersize is reliable - if we don't need it, stick to 9
+    if(writeextra || skipoptimise || true) tmp.version = 10;   // use format 10, if required
     bool oldentityformat = tmp.version < 10;
     tmp.maprevision += advancemaprevision;
     DEBUG("version " << tmp.version << " headersize " << tmp.headersize << " entities " << tmp.numents << " factor " << tmp.sfactor << " revision " << tmp.maprevision);
@@ -568,7 +568,16 @@ void save_world(char *mname, bool skipoptimise, bool addcomfort)
         {
             if(!ne--) break;
             persistent_entity tmp = ents[i];
-            if(oldentityformat && tmp.type == MAPMODEL) tmp.attr1 = tmp.attr1 / 4;
+            if(oldentityformat && tmp.type < MAXENTTYPES)
+            {
+                tmp.attr1 = tmp.attr1 / entscale[tmp.type][0];
+                tmp.attr2 = tmp.attr2 / entscale[tmp.type][1];
+                tmp.attr3 = tmp.attr3 / entscale[tmp.type][2];
+                tmp.attr4 = tmp.attr4 / entscale[tmp.type][3];
+                tmp.attr5 = tmp.attr5 / entscale[tmp.type][4];
+                tmp.attr6 = tmp.attr6 / entscale[tmp.type][5];
+                tmp.attr7 = tmp.attr7 / entscale[tmp.type][6];
+            }
             lilswap((short *)&tmp, 4);
             lilswap(&tmp.attr5, 1);
             f->write(&tmp, oldentityformat ? 12 : sizeof(persistent_entity));
@@ -696,7 +705,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
     ents.shrink(0);
     loopi(3) numspawn[i] = 0;
     loopi(2) numflagspawn[i] = 0;
-    bool oldentityformat = hdr.version < 10;
+    bool oldentityformat = hdr.version < 10; // version < 10 have only 4 attributes and no scaling
     loopi(hdr.numents)
     {
         entity &e = ents.add();
@@ -705,22 +714,29 @@ bool load_world(char *mname)        // still supports all map formats that have 
         if(oldentityformat) e.attr5 = e.attr6 = e.attr7 = 0;
         else lilswap(&e.attr5, 1);
         e.spawned = false;
-        if(e.type == LIGHT)
+        if(e.type == LIGHT && e.attr1 >= 0)
         {
             if(!e.attr2) e.attr2 = 255; // needed for MAPVERSION<=2
             if(e.attr1>32) e.attr1 = 32; // 12_03 and below
         }
         transformoldentitytypes(hdr.version, e.type);
-        if(oldentityformat)
+        if(oldentityformat && e.type < MAXENTTYPES)
         {
-            switch(e.type)
-            {
-                case CTF_FLAG:
-                case MAPMODEL:
-                    e.attr1 = e.attr1 + 7 - (e.attr1 + 7) % 15;  // round the angle to the nearest 15-degree-step
-                    e.attr1 = (e.attr1 % 360) * 4;    // cut down to less that one rotation and set resolution to 0.25 degree
-                    break;
-            }
+            if(e.type == CTF_FLAG || e.type == MAPMODEL) e.attr1 = e.attr1 + 7 - (e.attr1 + 7) % 15;  // round the angle to the nearest 15-degree-step, like old versions did during rendering
+            if(e.type == LIGHT && e.attr1 < 0) e.attr1 = 0; // negative lights had no meaning before version 10
+            int ov, ss;
+            #define SCALEATTR(x) \
+            if((ss = entwraparound[e.type][x - 1] / entscale[e.type][x - 1])) e.attr##x = (int(e.attr##x) % ss + ss) % ss; \
+            e.attr##x = ov = e.attr##x * entscale[e.type][x - 1]; \
+            if(ov != e.attr##x) conoutf("overflow during conversion of attr%d of entity #%d (%s) - pls check before saving the map", x, i, entnames[e.type]);
+            SCALEATTR(1);
+            SCALEATTR(2);
+            SCALEATTR(3);
+            SCALEATTR(4);
+            SCALEATTR(5);
+            SCALEATTR(6);
+            SCALEATTR(7);
+            #undef SCALEATTR
         }
         if(e.type == PLAYERSTART && (e.attr2 == 0 || e.attr2 == 1 || e.attr2 == 100))
         {

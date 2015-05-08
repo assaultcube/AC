@@ -660,7 +660,7 @@ void gotoplayerstart(playerent *d, entity *e)
     d->o.x = e->x;
     d->o.y = e->y;
     d->o.z = e->z;
-    d->yaw = e->attr1;
+    d->yaw = float(e->attr1) / ENTSCALE10;
     d->pitch = 0;
     d->roll = 0;
 }

@@ -276,8 +276,9 @@ bool good_map() // call this function only at startmap
         {
             entity &e2 = ents[j];
             if (e2.type < I_CLIPS || e2.type > I_AKIMBO || i == j) continue;
+            // only I_CLIPS, I_AMMO, I_GRENADE, I_HEALTH, I_HELMET, I_ARMOUR, I_AKIMBO
 #define DIST(x) (e1.x - e2.x)
-#define DIST_ATT ((e1.z + e1.attr1) - (e2.z + e2.attr1))
+#define DIST_ATT ((e1.z + float(e1.attr1) / entscale[e1.type][0]) - (e2.z + float(e2.attr1) / entscale[e2.type][0]))
             float r2 = DIST(x)*DIST(x) + DIST(y)*DIST(y) + DIST_ATT*DIST_ATT;
 #undef DIST_ATT
 #undef DIST

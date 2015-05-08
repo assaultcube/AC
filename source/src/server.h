@@ -451,6 +451,49 @@ const char *entnames[] =
     "mapmodel", "trigger", "ladder", "ctf-flag", "sound", "clip", "plclip", ""
 };
 
+// entity attribute scaling and wraparound definitions for mapformat 10
+short entwraparound[MAXENTTYPES][7] =
+{ // limit angles to 0..359 degree and mapsound slot numbers to 0..255
+    {    0,    0,    0,    0,    0,    0,    0 },  // deleted
+    {    0,    0,    0,    0,    0,    0,    0 },  // light
+    { 3600,    0,    0,    0,    0,    0,    0 },  // playerstart
+    {    0,    0,    0,    0,    0,    0,    0 },  // pistol
+    {    0,    0,    0,    0,    0,    0,    0 },  // ammobox
+    {    0,    0,    0,    0,    0,    0,    0 },  // grenades
+    {    0,    0,    0,    0,    0,    0,    0 },  // health
+    {    0,    0,    0,    0,    0,    0,    0 },  // helmet
+    {    0,    0,    0,    0,    0,    0,    0 },  // armour
+    {    0,    0,    0,    0,    0,    0,    0 },  // akimbo
+    { 3600,    0,    0,    0, 3600,    0,    0 },  // mapmodel
+    {    0,    0,    0,    0,    0,    0,    0 },  // trigger
+    {    0,    0,    0,    0,    0,    0,    0 },  // ladder
+    { 3600,    0,    0,    0,    0,    0,    0 },  // ctf-flag
+    {  256,    0,    0,    0,    0,    0,    0 },  // sound
+    {    0,    0,    0,    0,    0,    0,    0 },  // clip
+    {    0,    0,    0,    0,    0,    0,    0 }   // plclip
+};
+
+uchar entscale[MAXENTTYPES][7] =
+{ // (no zeros allowed here!)
+    {  1,  1,  1,  1,  1,  1,  1 },  // deleted
+    {  1,  1,  1,  1,  1,  1,  1 },  // light
+    { 10,  1,  1,  1,  1,  1,  1 },  // playerstart
+    { 10,  1,  1,  1,  1,  1,  1 },  // pistol
+    { 10,  1,  1,  1,  1,  1,  1 },  // ammobox
+    { 10,  1,  1,  1,  1,  1,  1 },  // grenades
+    { 10,  1,  1,  1,  1,  1,  1 },  // health
+    { 10,  1,  1,  1,  1,  1,  1 },  // helmet
+    { 10,  1,  1,  1,  1,  1,  1 },  // armour
+    { 10,  1,  1,  1,  1,  1,  1 },  // akimbo
+    { 10,  1,  5,  1, 10,  1,  1 },  // mapmodel
+    {  1,  1,  1,  1,  1,  1,  1 },  // trigger
+    {  1,  1,  1,  1,  1,  1,  1 },  // ladder
+    { 10,  1,  1,  1,  1,  1,  1 },  // ctf-flag
+    {  1,  1,  1,  1,  1,  1,  1 },  // sound
+    { 10,  5,  5,  5,  1,  1,  1 },  // clip
+    { 10,  5,  5,  5,  1,  1,  1 }   // plclip
+};
+
 // see entity.h:61: struct itemstat { int add, start, max, sound; };
 // Please update ./ac_website/htdocs/docs/introduction.html if these figures change.
 itemstat ammostats[NUMGUNS] =

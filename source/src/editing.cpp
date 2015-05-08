@@ -105,7 +105,10 @@ char *editinfo()
     if(e >= 0)
     {
         entity &c = ents[e];
-        formatstring(info)("closest entity = %s (%d, %d, %d, %d, %d, %d, %d), ", entnames[c.type], c.attr1, c.attr2, c.attr3, c.attr4, c.attr5, c.attr6, c.attr7);
+        int t = c.type < MAXENTTYPES ? c.type : 0;
+        #define AA(x) floatstr(float(c.attr##x) / entscale[t][x - 1], true)
+        formatstring(info)("closest entity = %s (%s, %s, %s, %s, %s, %s, %s), ", entnames[t], AA(1), AA(2), AA(3), AA(4), AA(5), AA(6), AA(7));
+        #undef AA
     }
     if(selset()) concatformatstring(info, "selection = (%d, %d)", (sels.last()).xs, (sels.last()).ys);
     else concatformatstring(info, "no selection");
@@ -378,7 +381,7 @@ void gotoentity(int *n)
         player1->o.x = ents[*n].x;
         player1->o.y = ents[*n].y;
         player1->o.z = ents[*n].z;
-        player1->yaw = (ents[*n].attr1 % 360 + 360) % 360; // works for most ;)
+        player1->yaw = ((ents[*n].attr1 / ENTSCALE10) % 360 + 360) % 360; // works for most ;)
         player1->pitch = 0;
         player1->resetinterp();
     }
@@ -984,7 +987,7 @@ COMMANDF(selectionrotate, "i", (int *d) { selectionrotate(*d); });
 COMMAND(selectionflip, "s");
 COMMAND(countwalls, "i");
 COMMANDF(settex, "ii", (int *texture, int *type) { settex(*texture, *type); });
-
+#if 0 // fix clip scaling
 void transformclipentities()  // transforms all clip entities to tag clips, if they are big enough (so, that no player could be above or below them)
 {
     EDITMP;
@@ -1032,3 +1035,4 @@ void transformclipentities()  // transforms all clip entities to tag clips, if t
 }
 
 COMMAND(transformclipentities, "");
+#endif

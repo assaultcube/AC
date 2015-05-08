@@ -8,28 +8,28 @@ VAR(showmodelclipping, 0, 0, 1);
 vector<entity> ents;
 vector<int> eh_ents; // edithide entities
 const char *entmdlnames[] =
- {
-     "pistolclips", "ammobox", "nade", "health", "helmet", "kevlar", "akimbo", "nades", //FIXME
- };
+{
+    "pistolclips", "ammobox", "nade", "health", "helmet", "kevlar", "akimbo", "nades" //FIXME
+};
 
- void renderent(entity &e)
- {
-     /* FIXME: if the item list change, this hack will be messed */
+void renderent(entity &e)
+{
+    /* FIXME: if the item list change, this hack will be messed */
 
-     defformatstring(widn)("modmdlpickup%d", e.type-3);
-     defformatstring(mdlname)("pickups/%s", identexists(widn)?getalias(widn):
+    defformatstring(widn)("modmdlpickup%d", e.type-3);
+    defformatstring(mdlname)("pickups/%s", identexists(widn)?getalias(widn):
 
-     entmdlnames[e.type-I_CLIPS+(m_lss && e.type==I_GRENADE ? 5:0)]);
+    entmdlnames[e.type-I_CLIPS+(m_lss && e.type==I_GRENADE ? 5:0)]);
 
-     float z = (float)(1+sinf(lastmillis/100.0f+e.x+e.y)/20), yaw = lastmillis/10.0f;
-     rendermodel(mdlname, ANIM_MAPMODEL|ANIM_LOOP|ANIM_DYNALLOC, 0, 0, vec(e.x, e.y, z+S(e.x, e.y)->floor+e.attr1), 0, yaw, 0);
- }
+    float z = (float)(1+sinf(lastmillis/100.0f+e.x+e.y)/20), yaw = lastmillis/10.0f;
+    rendermodel(mdlname, ANIM_MAPMODEL|ANIM_LOOP|ANIM_DYNALLOC, 0, 0, vec(e.x, e.y, z+S(e.x, e.y)->floor + float(e.attr1) / ENTSCALE10), 0, yaw, 0);
+}
 
 void renderclip(entity &e)
 {
-    float xradius = max(float(e.attr2), 0.1f), yradius = max(float(e.attr3), 0.1f);
-    vec bbmin(e.x - xradius, e.y - yradius, float(S(e.x, e.y)->floor+e.attr1)),
-        bbmax(e.x + xradius, e.y + yradius, bbmin.z + max(float(e.attr4), 0.1f));
+    float xradius = max(float(e.attr2) / ENTSCALE5, 0.1f), yradius = max(float(e.attr3) / ENTSCALE5, 0.1f);
+    vec bbmin(e.x - xradius, e.y - yradius, float(S(e.x, e.y)->floor + float(e.attr1) / ENTSCALE10)),
+        bbmax(e.x + xradius, e.y + yradius, bbmin.z + max(float(e.attr4) / ENTSCALE5, 0.1f));
 
     glDisable(GL_TEXTURE_2D);
     switch(e.type)
@@ -67,7 +67,7 @@ void rendermapmodels()
         {
             mapmodelinfo &mmi = getmminfo(e.attr2);
             if(!&mmi) continue;
-            rendermodel(mmi.name, ANIM_MAPMODEL|ANIM_LOOP, e.attr4, 0, vec(e.x, e.y, (float)S(e.x, e.y)->floor+mmi.zoff+e.attr3), e.attr6, e.attr1 / 4.0f, e.attr5 / 4.0f, 10.0f);
+            rendermodel(mmi.name, ANIM_MAPMODEL|ANIM_LOOP, e.attr4, 0, vec(e.x, e.y, S(e.x, e.y)->floor + mmi.zoff + float(e.attr3) / ENTSCALE5), e.attr6, float(e.attr1) / ENTSCALE10, float(e.attr5) / ENTSCALE10, 10.0f);
         }
     }
 }
@@ -218,7 +218,7 @@ void renderentities()
             if(e.type==CTF_FLAG)
             {
                 defformatstring(path)("pickups/flags/%s", team_basestring(e.attr2));
-                rendermodel(path, ANIM_FLAG|ANIM_LOOP, 0, 0, vec(e.x, e.y, (float)S(e.x, e.y)->floor), 0, e.attr1 / 4.0f, 0, 120.0f);
+                rendermodel(path, ANIM_FLAG|ANIM_LOOP, 0, 0, vec(e.x, e.y, (float)S(e.x, e.y)->floor), 0, float(e.attr1) / ENTSCALE10, 0, 120.0f);
             }
             else if((e.type == CLIP || e.type == PLCLIP) && showclips && !stenciling) renderclip(e);
             else if(e.type == MAPMODEL && showclips && showmodelclipping && !stenciling)
@@ -228,9 +228,9 @@ void renderentities()
                 {
                     entity ce = e;
                     ce.type = MAPMODEL;
-                    ce.attr1 = mmi.zoff+e.attr3;
-                    ce.attr2 = ce.attr3 = mmi.rad;
-                    ce.attr4 = mmi.h;
+                    ce.attr1 = (mmi.zoff + float(e.attr3) / ENTSCALE5) * ENTSCALE10;
+                    ce.attr2 = ce.attr3 = mmi.rad * ENTSCALE5;
+                    ce.attr4 = mmi.h * ENTSCALE5;
                     renderclip(ce);
                 }
             }
@@ -243,7 +243,7 @@ void renderentities()
                 {
                     glColor3f(0, 1, 1);
                     vec dir;
-                    vecfromyawpitch(e.attr1, 0, -1, 0, dir);
+                    vecfromyawpitch(float(e.attr1) / ENTSCALE10, 0, -1, 0, dir);
                     renderentarrow(e, dir, 4);
                     glColor3f(1, 1, 1);
                 }
@@ -271,7 +271,7 @@ void renderentities()
                 if(OUTBORD(f.pos.x, f.pos.y)) break;
                 entity &e = *f.flagent;
                 defformatstring(path)("pickups/flags/%s%s", m_ktf ? "" : team_basestring(i),  m_htf ? "_htf" : m_ktf ? "ktf" : "");
-                if(f.flagent->spawned) rendermodel(path, ANIM_FLAG|ANIM_LOOP, 0, 0, vec(f.pos.x, f.pos.y, f.state==CTFF_INBASE ? (float)S(int(f.pos.x), int(f.pos.y))->floor : f.pos.z), 0, e.attr1 / 4.0f, 0, 120.0f);
+                if(f.flagent->spawned) rendermodel(path, ANIM_FLAG|ANIM_LOOP, 0, 0, vec(f.pos.x, f.pos.y, f.state==CTFF_INBASE ? (float)S(int(f.pos.x), int(f.pos.y))->floor : f.pos.z), 0, float(e.attr1) / ENTSCALE10, 0, 120.0f);
                 break;
             }
             case CTFF_IDLE:
@@ -426,7 +426,7 @@ void checkitems(playerent *d)
         if(e.type==CTF_FLAG) continue;
         // simple 2d collision
         vec v(e.x, e.y, S(e.x, e.y)->floor+eyeheight);
-        if(isitem(e.type)) v.z += e.attr1;
+        if(isitem(e.type)) v.z += float(e.attr1) / ENTSCALE10;
         if(d->o.dist(v)<2.5f) trypickup(i, d);
     }
     if(m_flags) loopi(2)

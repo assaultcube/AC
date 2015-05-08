@@ -139,9 +139,9 @@ bool mmcollide(physent *d, float &hi, float &lo)           // collide with a map
         // if(e.type==CLIP || (e.type == PLCLIP && d->type == ENT_PLAYER))
         if (e.type==CLIP || (e.type == PLCLIP && (d->type == ENT_BOT || d->type == ENT_PLAYER || (d->type == ENT_BOUNCE && ((bounceent *)d)->plclipped)))) // don't allow bots to hack themselves into plclips - Bukz 2011/04/14
         {
-            if(fabs(e.x-d->o.x) < e.attr2 + d->radius && fabs(e.y-d->o.y) < e.attr3 + d->radius)
+            if(fabs(e.x-d->o.x) < float(e.attr2) / ENTSCALE5 + d->radius && fabs(e.y-d->o.y) < float(e.attr3) / ENTSCALE5 + d->radius)
             {
-                const float cz = float(S(e.x, e.y)->floor+e.attr1), ch = float(e.attr4);
+                const float cz = float(S(e.x, e.y)->floor + float(e.attr1) / ENTSCALE10), ch = float(e.attr4) / ENTSCALE5;
                 const float dz = d->o.z-d->eyeheight;
                 if(dz < cz - 0.42) { if(cz<hi) hi = cz; }
                 else if(cz+ch>lo) lo = cz+ch;
@@ -155,7 +155,7 @@ bool mmcollide(physent *d, float &hi, float &lo)           // collide with a map
             const float r = mmi.rad+d->radius;
             if(fabs(e.x-d->o.x)<r && fabs(e.y-d->o.y)<r)
             {
-                const float mmz = float(S(e.x, e.y)->floor+mmi.zoff+e.attr3);
+                const float mmz = float(S(e.x, e.y)->floor + mmi.zoff + float(e.attr3) / ENTSCALE5);
                 const float dz = d->o.z-eyeheight;
                 if(dz < mmz - 0.42) { if(mmz < hi) hi = mmz; }
                 else if(mmz+mmi.h>lo) lo = mmz+mmi.h;

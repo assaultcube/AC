@@ -297,8 +297,8 @@ entity *newentity(int index, int x, int y, int z, char *what, int v1, int v2, in
         case PLAYERSTART:
         case CTF_FLAG:
             e.attr2 = v1;
-            e.attr1 = (int)camera1->yaw;
-            if(type != PLAYERSTART) e.attr1 = (e.attr1 + 7 - (e.attr1 + 7) % 15) * 4;
+            e.attr1 = int(camera1->yaw * ENTSCALE10);
+            if(type != PLAYERSTART) e.attr1 = e.attr1 + 70 - (e.attr1 + 70) % 150;
             break;
     }
     syncentchanges(true);
