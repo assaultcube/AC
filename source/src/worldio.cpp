@@ -709,7 +709,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
             if(!e.attr2) e.attr2 = 255; // needed for MAPVERSION<=2
             if(e.attr1>32) e.attr1 = 32; // 12_03 and below
         }
-        transformoldentities(hdr.version, e.type);
+        transformoldentitytypes(hdr.version, e.type);
         if(oldentityformat)
         {
             switch(e.type)

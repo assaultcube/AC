@@ -45,7 +45,7 @@ static const uchar transformenttab[] = {
             /* 16 */   /* CARROT         */ NOTUSED,                        16,
             /* 17 */   /* JUMPPAD        */ NOTUSED,                        17      };
 
-void transformoldentities(int mapversion, uchar &enttype)
+void transformoldentitytypes(int mapversion, uchar &enttype)
 {
     const uchar *usetab = transformenttab + (mapversion > 5 ? 1 : 0);
     if(mapversion < 8 && enttype < 18) enttype = usetab[enttype * 2];
@@ -101,7 +101,7 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
     {
         f->read(&e, s.hdr.version < 10 ? 12 : sizeof(persistent_entity));
         lilswap((short *)&e, 4);
-        transformoldentities(s.hdr.version, e.type);
+        transformoldentitytypes(s.hdr.version, e.type);
         if(e.type == PLAYERSTART && (e.attr2 == 0 || e.attr2 == 1 || e.attr2 == 100)) s.spawns[e.attr2 == 100 ? 2 : e.attr2]++;
         if(e.type == CTF_FLAG && (e.attr2 == 0 || e.attr2 == 1)) { s.flags[e.attr2]++; s.flagents[e.attr2] = i; }
         s.entcnt[e.type]++;
