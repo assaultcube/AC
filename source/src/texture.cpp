@@ -542,8 +542,7 @@ const char *gettextureslot(int i)
     if(slots.inrange(i))
     {
         Slot &s = slots[i];
-        defformatstring(d)("%d", int(s.orgscale));
-        formatstring(res)("texture %s \"%s\"", s.orgscale == int(s.orgscale) ? d : floatstr(s.orgscale), s.name);
+        formatstring(res)("texture %s \"%s\"", floatstr(s.orgscale, true), s.name);
         return res;
     }
     else return NULL;
@@ -1071,8 +1070,7 @@ void edittextureslot(int *n, char *scale, char *name) // edit slot parameters !=
             unsavededits++;
             hdr.flags |= MHF_AUTOMAPCONFIG; // requires automapcfg
         }
-        defformatstring(d)("%d", int(s.orgscale));
-        formatstring(res)("%s \"%s\"", s.orgscale == int(s.orgscale) ? d : floatstr(s.orgscale), s.name);
+        formatstring(res)("%s \"%s\"", floatstr(s.orgscale, true), s.name);
     }
     result(res);
 }

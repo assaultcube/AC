@@ -491,19 +491,20 @@ void intret(int v)
     commandret = newstring(t);
 }
 
-const char *floatstr(float v)
+const char *floatstr(float v, bool neat)
 {
-    static int n = 0;
-    static string t[3];
-    n = (n + 1)%3;
-    ftoa(t[n], v);
-    return t[n];
+    static string s;
+    static int i = 0;
+    if(i > MAXSTRLEN - 100) i = 0;
+    char *t = s + i;
+    snprintf(t, 90, !neat && (v) == int(v) ? "%.1f" : "%.7g", v);  // was ftoa()
+    i += strlen(t) + 1;
+    return t;
 }
 
-
-void floatret(float v)
+void floatret(float v, bool neat)
 {
-    commandret = newstring(floatstr(v));
+    commandret = newstring(floatstr(v, neat));
 }
 
 void result(const char *s) { commandret = newstring(s); }
