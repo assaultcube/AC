@@ -107,11 +107,27 @@ char *editinfo()
         entity &c = ents[e];
         int t = c.type < MAXENTTYPES ? c.type : 0;
         #define AA(x) floatstr(float(c.attr##x) / entscale[t][x - 1], true)
-        formatstring(info)("closest entity = %s (%s, %s, %s, %s, %s, %s, %s), ", entnames[t], AA(1), AA(2), AA(3), AA(4), AA(5), AA(6), AA(7));
+        formatstring(info)("closest entity = %s (%s, %s, %s, %s, %s, %s, %s)", entnames[t], AA(1), AA(2), AA(3), AA(4), AA(5), AA(6), AA(7));
         #undef AA
+        const char *slotinfo = "unassigned slot";
+        if(t == MAPMODEL)
+        {
+            mapmodelinfo &mmi = getmminfo(c.attr2);
+            if(&mmi) slotinfo = mmshortname(mmi.name);
+        }
+        else if(t == SOUND)
+        {
+            if(mapconfigdata.mapsoundlines.inrange(c.attr1))  slotinfo = mapconfigdata.mapsoundlines[c.attr1].name;
+        }
+        else slotinfo = "";
+        if(*slotinfo) concatformatstring(info, " %s", slotinfo);
     }
-    if(selset()) concatformatstring(info, "selection = (%d, %d)", (sels.last()).xs, (sels.last()).ys);
-    else concatformatstring(info, "no selection");
+    if(selset())
+    {
+        concatformatstring(info, "\n\tselection = (%d, %d)", (sels.last()).xs, (sels.last()).ys);
+        if(sels.length() > 1) concatformatstring(info, " and %d more", sels.length() - 1);
+    }
+    else concatformatstring(info, "\n\tno selection");
     sqr *s;
     if(!OUTBORD(cx, cy) && (s = S(cx,cy)) && !editfocusdetails(s) && !SOLID(s) && s->tag) concatformatstring(info, ", tag 0x%02X", s->tag);
     return info;
