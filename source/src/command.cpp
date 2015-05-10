@@ -497,7 +497,7 @@ const char *floatstr(float v, bool neat)
     static int i = 0;
     if(i > MAXSTRLEN - 100) i = 0;
     char *t = s + i;
-    snprintf(t, 90, !neat && (v) == int(v) ? "%.1f" : "%.7g", v);  // was ftoa()
+    sprintf(t, !neat && (v) == int(v) ? "%.1f" : "%.7g", v);  // was ftoa()
     i += strlen(t) + 1;
     return t;
 }
