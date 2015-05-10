@@ -181,9 +181,17 @@ void audiomanager::setmusicvol(int musicvol)
     if(gamemusic) gamemusic->setvolume(musicvol > 0 ? musicvol/255.0f : 0);
 }
 
+void reloadmapsoundconfig();
+
 void audiomanager::setlistenervol(int vol)
 {
-    if(!nosound) alListenerf(AL_GAIN, vol/255.0f);
+    static int oldvol = 0;
+    if(!nosound)
+    {
+        alListenerf(AL_GAIN, vol/255.0f);
+        if(vol && !oldvol && !mapsounds.length()) reloadmapsoundconfig();
+    }
+    oldvol = vol;
 }
 
 void audiomanager::registermusic(char *name)

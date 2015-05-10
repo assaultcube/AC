@@ -14,7 +14,7 @@ location::location(int sound, const worldobjreference &r, int priority) : cfg(NU
         if (lastmillis - warn_about_unregistered_sound > 30 * 1000) // delay message to every 30 secs so console is not spammed.
         {
             // occurs when a map contains an ambient sound entity, but sound entity is not found in map cfg file.
-            conoutf("\f3ERROR: this map contains at least one unregistered ambient sound (sound entity# %d)", sound);
+            conoutf("\f3ERROR: this map contains at least one unregistered ambient sound (sound slot# %d)", sound);
             warn_about_unregistered_sound = lastmillis;
         }
         stale = true;
