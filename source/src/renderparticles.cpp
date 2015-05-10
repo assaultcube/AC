@@ -566,6 +566,7 @@ void particle_flash(int type, float scale, float angle, const vec &p)
 void particle_splash(int type, int num, int fade, const vec &p)
 {
     if(parttypes[type].type==PT_BLOOD && !blood) return;
+    if(fade == 0) fade = 1;
     loopi(num)
     {
         const int radius = 150;
