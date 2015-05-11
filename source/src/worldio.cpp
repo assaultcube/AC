@@ -320,7 +320,7 @@ void parseheaderextra(bool clearnonpersist = true, int ignoretypes = 0)  // pars
 
             case HX_CONFIG:
                 setcontext("map", "embedded");
-                execute((const char *)q.buf);
+                execute((const char *)q.buf); // needs to have '\0' at the end
                 resetcontext();
                 break;
 
@@ -386,7 +386,7 @@ void extractconfigfile()
         stream *f = openfile(mcfname, "w");
         if(f)
         {
-            f->write(headerextras[n]->data, headerextras[n]->len);
+            f->write(headerextras[n]->data, headerextras[n]->len > 0 ? headerextras[n]->len - 1 : 0);
             delete f;
             conoutf("extracted embedded map config to file %s", mcfname);
             deleteheaderextra(n);
@@ -443,6 +443,7 @@ void getcurrentmapconfig(vector<char> &f, bool onlysounds)
         cvecprintf(f, "mapsound \"%s\" %d\n", s.name, s.maxuses);
     }
     cvecprintf(f, "\n");
+    f.add('\0');
 }
 
 #ifdef _DEBUG
@@ -451,7 +452,7 @@ COMMANDF(dumpmapconfig, "", ()
     vector<char> buf;
     getcurrentmapconfig(buf, false);
     stream *f = openfile("dumpmapconfig.txt", "w");
-    if(f) f->write(buf.getbuf(), buf.length());
+    if(f) f->write(buf.getbuf(), buf.length() - 1);
     DELETEP(f);
     hdr.flags |= MHF_AUTOMAPCONFIG;
 });
@@ -928,11 +929,7 @@ struct xmap
         memcpy(world, ::world, cubicsize * sizeof(sqr));
         loopv(::ents) if(::ents[i].type != NOTUSED) ents.add() = ::ents[i];
         copystring(mcfname, lastloadedconfigfile);   // may have been "official" or not
-        if(hdr.flags & MHF_AUTOMAPCONFIG)
-        {
-            getcurrentmapconfig(mapconfig, false);
-            mapconfig.add('\0');
-        }
+        if(hdr.flags & MHF_AUTOMAPCONFIG) getcurrentmapconfig(mapconfig, false);
         storeposition(position);
         vector<uchar> tmp;  // add undo/redo data in compressed form as temporary headerextra
         numundo = backupeditundo(tmp, MAXHEADEREXTRA, MAXHEADEREXTRA);
@@ -1015,13 +1012,12 @@ struct xmap
         if(mapconfig.length())
         {
             char *t = newstring(mapconfig.getbuf()), *p, *l = t;
-            do
+            while((p = strchr(l, '\n')))
             {
-                if((p = strchr(l, '\n'))) *p = '\0';
+                *p = '\0';
                 f->printf("restorexmap config %s\n", escapestring(l));
                 l = p + 1;
             }
-            while(p);
             delstring(t);
         }
         f->printf("restorexmap position %d %d %d %d %d  // EOF, don't touch this\n\n", int(position[0]), int(position[1]), int(position[2]), int(position[3]), int(position[4]));

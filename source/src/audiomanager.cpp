@@ -850,7 +850,6 @@ void reloadmapsoundconfig()
 {
     vector<char> sc;
     getcurrentmapconfig(sc, true); // only soundconfig
-    sc.add('\0');
     execute(sc.getbuf()); // cheap and easy way ;)
 }
 
