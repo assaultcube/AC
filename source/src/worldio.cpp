@@ -552,8 +552,6 @@ void save_world(char *mname, bool skipoptimise, bool addcomfort)
     ucharbuf hx = packheaderextras(addcomfort ? 0 : (1 << HX_EDITUNDO));   // if addcomfort -> add undos/redos
     int writeextra = 0;
     if(hx.maxlen) tmp.headersize += writeextra = clamp(hx.maxlen, 0, MAXHEADEREXTRA);
-    if(writeextra || skipoptimise || true) tmp.version = 10;   // use format 10, if required
-    bool oldentityformat = tmp.version < 10;
     tmp.maprevision += advancemaprevision;
     DEBUG("version " << tmp.version << " headersize " << tmp.headersize << " entities " << tmp.numents << " factor " << tmp.sfactor << " revision " << tmp.maprevision);
     lilswap(&tmp.version, 4); // version, headersize, sfactor, numents
@@ -569,19 +567,9 @@ void save_world(char *mname, bool skipoptimise, bool addcomfort)
         {
             if(!ne--) break;
             persistent_entity tmp = ents[i];
-            if(oldentityformat && tmp.type < MAXENTTYPES)
-            {
-                tmp.attr1 = tmp.attr1 / entscale[tmp.type][0];
-                tmp.attr2 = tmp.attr2 / entscale[tmp.type][1];
-                tmp.attr3 = tmp.attr3 / entscale[tmp.type][2];
-                tmp.attr4 = tmp.attr4 / entscale[tmp.type][3];
-                tmp.attr5 = tmp.attr5 / entscale[tmp.type][4];
-                tmp.attr6 = tmp.attr6 / entscale[tmp.type][5];
-                tmp.attr7 = tmp.attr7 / entscale[tmp.type][6];
-            }
             lilswap((short *)&tmp, 4);
             lilswap(&tmp.attr5, 1);
-            f->write(&tmp, oldentityformat ? 12 : sizeof(persistent_entity));
+            f->write(&tmp, sizeof(persistent_entity));
         }
     }
 
@@ -663,7 +651,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
     if(f->read(&tmp, sizeof_baseheader) != sizeof_baseheader ||
        (strncmp(tmp.head, "CUBE", 4)!=0 && strncmp(tmp.head, "ACMP",4)!=0)) { conoutf("\f3while reading map: header malformatted (1)"); delete f; return false; }
     lilswap(&tmp.version, 4); // version, headersize, sfactor, numents
-    if(tmp.version > MAXMAPVERSION) { conoutf("\f3this map requires a newer version of AssaultCube"); delete f; return false; }
+    if(tmp.version > MAPVERSION) { conoutf("\f3this map requires a newer version of AssaultCube"); delete f; return false; }
     if(tmp.sfactor<SMALLEST_FACTOR || tmp.sfactor>LARGEST_FACTOR || tmp.numents > MAXENTITIES) { conoutf("\f3illegal map size"); delete f; return false; }
     tmp.headersize = fixmapheadersize(tmp.version, tmp.headersize);
     int restofhead = min(tmp.headersize, sizeof_header) - sizeof_baseheader;

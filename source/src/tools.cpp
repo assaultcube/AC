@@ -85,7 +85,7 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
     lilswap(&s.hdr.version, 4);
     s.hdr.headersize = fixmapheadersize(s.hdr.version, s.hdr.headersize);
     int restofhead = min(s.hdr.headersize, sizeof_header) - sizeof_baseheader;
-    if(s.hdr.version > MAXMAPVERSION || s.hdr.numents > MAXENTITIES ||
+    if(s.hdr.version > MAPVERSION || s.hdr.numents > MAXENTITIES ||
        f->read(&s.hdr.waterlevel, restofhead) != restofhead ||
        !f->seek(clamp(s.hdr.headersize - sizeof_header, 0, MAXHEADEREXTRA), SEEK_CUR)) { delete f; return NULL; }
     if(s.hdr.version>=4)

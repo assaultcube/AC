@@ -42,8 +42,7 @@ enum                            // stuff encoded in sqr.tag
 
 enum { MHF_AUTOMAPCONFIG = 1<<0 };
 
-#define MAXMAPVERSION 10        // defines the highest readable format
-#define MAPVERSION 9            // default map format version to be written (bump if map format changes, see worldio.cpp)
+#define MAPVERSION 10           // default map format version to be written (bump if map format changes, see worldio.cpp)
 
 struct header                   // map file format header
 {
