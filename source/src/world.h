@@ -58,7 +58,8 @@ struct header                   // map file format header
     int maprevision;
     int ambient;
     int flags;                  // MHF_*
-    int reserved[11];
+    int timestamp;              // UTC unixtime of time of save (yes, this will break in 2038)
+    int reserved[10];
     //char mediareq[128];         // version 7 and 8 only.
 };
 

@@ -541,6 +541,7 @@ void save_world(char *mname, bool skipoptimise, bool addcomfort)
     strncpy(hdr.head, "ACMP", 4); // ensure map now declares itself as an AssaultCube map, even if imported as CUBE
     hdr.version = MAPVERSION;
     hdr.headersize = sizeof(header);
+    hdr.timestamp = (int) time(NULL);
     hdr.numents = 0;
     loopv(ents) if(ents[i].type!=NOTUSED) hdr.numents++;
     if(hdr.numents > MAXENTITIES)
@@ -556,7 +557,7 @@ void save_world(char *mname, bool skipoptimise, bool addcomfort)
     DEBUG("version " << tmp.version << " headersize " << tmp.headersize << " entities " << tmp.numents << " factor " << tmp.sfactor << " revision " << tmp.maprevision);
     lilswap(&tmp.version, 4); // version, headersize, sfactor, numents
     lilswap(&tmp.waterlevel, 1);
-    lilswap(&tmp.maprevision, 3); // maprevision, ambient, flags
+    lilswap(&tmp.maprevision, 4); // maprevision, ambient, flags, timestamp
     f->write(&tmp, sizeof(header));
     if(writeextra) f->write(hx.buf, writeextra);
     delete[] hx.buf;
@@ -681,7 +682,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
     {
         lilswap(&hdr.waterlevel, 1);
         if(!hdr.watercolor[3]) setwatercolor();
-        lilswap(&hdr.maprevision, 3); // maprevision, ambient, flags
+        lilswap(&hdr.maprevision, 4); // maprevision, ambient, flags, timestamp
         curmaprevision = hdr.maprevision;
     }
     else
