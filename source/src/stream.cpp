@@ -33,43 +33,45 @@ char *makerelpath(const char *dir, const char *file, const char *prefix, const c
     return tmp;
 }
 
-
 char *path(char *s)
 {
-    for(char *curpart = s;;)
+    char *c = s;
+    // skip "<decal>"
+    if(c[0] == '<')
     {
-        char *endpart = strchr(curpart, '&');
-        if(endpart) *endpart = '\0';
-        if(curpart[0]=='<')
-        {
-            char *file = strrchr(curpart, '>');
-            if(!file) return s;
-            curpart = file+1;
+        char *enddecal = strrchr(c, '>');
+        if(!enddecal) return s;
+        c = enddecal + 1;
+    }
+    // substitute with single, proper path delimiters
+    for(char *t = c; (t = strpbrk(t, "/\\")); )
+    {
+        *t++ = PATHDIV;
+        size_t d = strspn(t, "/\\");
+        if(d) memmove(t, t + d, strlen(t + d) + 1); // remove multiple path delimiters
+    }
+    // collapse ".."-parts
+    for(char *prevdir = NULL, *curdir = s;;)
+    {
+        prevdir = curdir[0] == PATHDIV ? curdir + 1 : curdir;
+        curdir = strchr(prevdir, PATHDIV);
+        if(!curdir) break;
+        if(prevdir + 1 == curdir && prevdir[0]=='.')
+        { // simply remove "./"
+            memmove(prevdir, curdir + 1, strlen(curdir));
+            curdir = prevdir;
         }
-        for(char *t = curpart; (t = strpbrk(t, "/\\")); *t++ = PATHDIV);
-        for(char *prevdir = NULL, *curdir = s;;)
-        {
-            prevdir = curdir[0]==PATHDIV ? curdir+1 : curdir;
-            curdir = strchr(prevdir, PATHDIV);
-            if(!curdir) break;
-            if(prevdir+1==curdir && prevdir[0]=='.')
+        else if(curdir[1] == '.' && curdir[2] == '.' && curdir[3] == PATHDIV)
+        { // collapse "/foo/../" to "/"
+            if(prevdir + 2 == curdir && prevdir[0] == '.' && prevdir[1] == '.') continue; // foo is also ".." -> skip
+            memmove(prevdir, curdir + 4, strlen(curdir + 3));
+            if(prevdir >= c + 2 && prevdir[-1] == PATHDIV)
             {
-                memmove(prevdir, curdir+1, strlen(curdir+1)+1);
-                curdir = prevdir;
+                prevdir -= 2;
+                while(prevdir > c && prevdir[-1] != PATHDIV) --prevdir;
             }
-            else if(curdir[1]=='.' && curdir[2]=='.' && curdir[3]==PATHDIV)
-            {
-                if(prevdir+2==curdir && prevdir[0]=='.' && prevdir[1]=='.') continue;
-                memmove(prevdir, curdir+4, strlen(curdir+4)+1);
-                curdir = prevdir;
-            }
+            curdir = prevdir;
         }
-        if(endpart)
-        {
-            *endpart = '&';
-            curpart = endpart+1;
-        }
-        else break;
     }
     return s;
 }
@@ -217,6 +219,8 @@ void addpackagedir(const char *dir)
 
 const char *findfile(const char *filename, const char *mode)
 {
+    while(filename[0] == PATHDIV) filename++; // skip leading pathdiv
+    while(!strncmp(".." PATHDIVS, filename, 3)) filename += 3; // skip leading "../" (don't allow access to files below "AC root dir")
     static string s;
     formatstring(s)("%s%s", homedir, filename);         // homedir may be ""
     if(homedir[0] && fileexists(s, mode)) return s;
