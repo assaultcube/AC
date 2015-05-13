@@ -521,6 +521,9 @@ void tryflagdrop(bool manual)
         {
             f.flagent->spawned = false;
             f.state = CTFF_DROPPED;
+            f.pos.x = round(player1->o.x);
+            f.pos.y = round(player1->o.y);
+            f.pos.z = round(player1->o.z);
             f.ack = false;
             flagdropmillis = lastmillis+3000;
             addmsg(SV_FLAGACTION, "rii", manual ? FA_DROP : FA_LOST, f.team);
