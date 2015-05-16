@@ -27,8 +27,8 @@ struct vertmodel : model
         void setframes(const animstate &as)
         {
             int time = lastmillis-as.basetime;
-            fr1 = (int)(time/as.speed); // round to full frames
-            t = (time-fr1*as.speed)/as.speed; // progress of the frame, value from 0.0f to 1.0f
+            fr1 = (int)(double(time)/as.speed); // round to full frames
+            t = (time-double(fr1)*as.speed)/as.speed; // progress of the frame, value from 0.0f to 1.0f
             ASSERT(t >= 0.0f);
             if(as.anim&ANIM_LOOP)
             {
