@@ -568,6 +568,7 @@ void save_world(char *mname, bool skipoptimise, bool addcomfort)
         {
             if(!ne--) break;
             persistent_entity tmp = ents[i];
+            clampentityattributes(tmp);
             lilswap((short *)&tmp, 4);
             lilswap(&tmp.attr5, 1);
             f->write(&tmp, sizeof(persistent_entity));
@@ -716,7 +717,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
             if(e.type == LIGHT && e.attr1 < 0) e.attr1 = 0; // negative lights had no meaning before version 10
             int ov, ss;
             #define SCALEATTR(x) \
-            if((ss = entwraparound[e.type][x - 1] / entscale[e.type][x - 1])) e.attr##x = (int(e.attr##x) % ss + ss) % ss; \
+            if((ss = abs(entwraparound[e.type][x - 1] / entscale[e.type][x - 1]))) e.attr##x = (int(e.attr##x) % ss + ss) % ss; \
             e.attr##x = ov = e.attr##x * entscale[e.type][x - 1]; \
             if(ov != e.attr##x) conoutf("overflow during conversion of attr%d of entity #%d (%s) - pls check before saving the map", x, i, entnames[e.type]);
             SCALEATTR(1);

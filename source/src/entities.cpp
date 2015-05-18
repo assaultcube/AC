@@ -662,3 +662,22 @@ void syncentchanges(bool force)
     changedents.setsize(0);
     lastentsync = lastmillis;
 }
+
+void clampentityattributes(persistent_entity &e)
+{
+    if(e.type < MAXENTTYPES)
+    {
+        int c;
+        #define CLAMPATTR(x) \
+            c = entwraparound[e.type][x - 1]; \
+            if(c > 0) e.attr##x = (e.attr##x % c + c) % c;  /* fold value into range 0..c */ \
+            else if(c < 0) e.attr##x = e.attr##x % (-c)     /* fold value into range -c..c */
+        CLAMPATTR(1);
+        CLAMPATTR(2);
+        CLAMPATTR(3);
+        CLAMPATTR(4);
+        CLAMPATTR(5);
+        CLAMPATTR(6);
+        CLAMPATTR(7);
+    }
+}

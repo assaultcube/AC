@@ -185,6 +185,7 @@ void entproperty(int prop, int amount)
         case 12: e.y += amount; break;
         case 13: e.z += amount; break;
     }
+    clampentityattributes(e);
     switch(e.type)
     {
         case LIGHT: calclight(); break;
@@ -301,6 +302,7 @@ entity *newentity(int index, int x, int y, int z, char *what, int v1, int v2, in
             if(type != PLAYERSTART) e.attr1 = e.attr1 + 70 - (e.attr1 + 70) % 150;
             break;
     }
+    clampentityattributes(e);
     syncentchanges(true);
     addmsg(SV_EDITENT, "ri9i3", index<0 ? ents.length() : index, type, e.x, e.y, e.z, e.attr1, e.attr2, e.attr3, e.attr4, e.attr5, e.attr6, e.attr7);
     e.spawned = true;
@@ -404,6 +406,7 @@ void editentity(char **args, int numargs) // index x y z a1 a2 a3 a4 ...
                     case 7: e.attr4 = v; break;
                 }
             }
+            clampentityattributes(e);
             switch(e.type)
             {
                 case LIGHT: calclight(); break;

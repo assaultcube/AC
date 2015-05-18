@@ -788,6 +788,7 @@ extern void setspawn(int i, bool on);
 extern void checkitems(playerent *d);
 extern vector<int> changedents;
 extern void syncentchanges(bool force = false);
+extern void clampentityattributes(persistent_entity &e);
 
 // rndmap
 extern void perlinarea(block &b, int scale, int seed, int psize);
