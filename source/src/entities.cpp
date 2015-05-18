@@ -4,6 +4,7 @@
 
 VAR(showclips, 0, 1, 1);
 VAR(showmodelclipping, 0, 0, 1);
+VAR(showplayerstarts, 0, 0, 1);
 
 vector<entity> ents;
 vector<int> eh_ents; // edithide entities
@@ -233,6 +234,19 @@ void renderentities()
                     ce.attr4 = mmi.h * ENTSCALE5;
                     renderclip(ce);
                 }
+            }
+            else if(e.type == PLAYERSTART && showplayerstarts)
+            {
+                vec o(e.x, e.y, 0);
+                if(!OUTBORD(e.x, e.y)) o.z += S(e.x, e.y)->floor;
+                const char *skin;
+                switch(e.attr2)
+                {
+                    case 0: skin = "packages/models/playermodels/CLA/red.jpg"; break;
+                    case 1: skin = "packages/models/playermodels/RVSF/blue.jpg"; break;
+                    default: skin = "packages/models/playermodels/ffaspawn.jpg"; break;
+                }
+                rendermodel("playermodels", ANIM_IDLE, -(int)textureload(skin)->id, 1.5f, o, 0, e.attr1 / ENTSCALE10 + 90, 0);
             }
         }
         if(editmode && i==closest && !stenciling)//closest see above
