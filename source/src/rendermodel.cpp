@@ -289,6 +289,7 @@ model *loadmodel(const char *name, int i, bool trydl)     // load model by name 
         {
             mdllookup.access(m->name(), m);
             setmodelattributes(m->name(), loadingattributes);
+            if(m->shadowdist && !m->cullface) conoutf("\f3mapmodel config error: disabling face culling in combination with shadows will cause visual errors (%s)", m->name());
         }
         loadingmodel = NULL;
     }
