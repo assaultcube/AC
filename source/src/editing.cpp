@@ -107,7 +107,7 @@ char *editinfo()
         entity &c = ents[e];
         int t = c.type < MAXENTTYPES ? c.type : 0;
         #define AA(x) floatstr(float(c.attr##x) / entscale[t][x - 1], true)
-        formatstring(info)("closest entity = %s (%s, %s, %s, %s, %s, %s, %s)", entnames[t], AA(1), AA(2), AA(3), AA(4), AA(5), AA(6), AA(7));
+        formatstring(info)("closest entity: %s (%s, %s, %s, %s, %s, %s, %s)", entnames[t], AA(1), AA(2), AA(3), AA(4), AA(5), AA(6), AA(7));
         #undef AA
         const char *slotinfo = "unassigned slot";
         if(t == MAPMODEL)
@@ -153,6 +153,10 @@ void resetselections()
 {
     sels.shrink(0);
 }
+
+COMMANDF(select, "iiii", (int *x, int *y, int *xs, int *ys) { resetselections(); addselection(*x, *y, *xs, *ys, 0); });
+COMMANDF(addselection, "iiii", (int *x, int *y, int *xs, int *ys) { addselection(*x, *y, *xs, *ys, 0); });
+COMMAND(resetselections, "");
 
 // reset all invalid selections
 void checkselections()
@@ -429,6 +433,7 @@ void editundo()
     freeblock(p);
     unsavededits++;
 }
+COMMANDN(undo, editundo, "");
 
 void editredo()
 {
@@ -441,6 +446,7 @@ void editredo()
     freeblock(p);
     unsavededits++;
 }
+COMMANDN(redo, editredo, "");
 
 extern int worldiodebug;
 
@@ -545,6 +551,7 @@ void copy()
     }
 
 }
+COMMAND(copy, "");
 
 void paste()
 {
@@ -572,6 +579,7 @@ void paste()
         }
     }
 }
+COMMAND(paste, "");
 
 // Count the walls of type "type" contained in the current selection
 void countwalls(int *type)
@@ -586,6 +594,7 @@ void countwalls(int *type)
     loopselsxy(if(s->type==*type) counter++)
     intret(counter);
 }
+COMMAND(countwalls, "i");
 
 void tofronttex()                                       // maintain most recently used of the texture lists when applying texture
 {
@@ -671,47 +680,49 @@ void edittexxy(int type, int t, block &sel)
     });
 }
 
-void edittex(int type, int dir)
+void edittex(int *type, int *dir)
 {
     EDITSEL;
-    if(type<0 || type>3) return;
-    if(type!=lasttype) { tofronttex(); lasttype = type; }
-    int atype = type==3 ? 1 : type;
+    if(*type < 0 || *type > 3) return;
+    if(*type != lasttype) { tofronttex(); lasttype = *type; }
+    int atype = *type == 3 ? 1 : *type;
     int i = curedittex[atype];
-    i = i<0 ? 0 : i+dir;
+    i = i < 0 ? 0 : i + *dir;
     curedittex[atype] = i = min(max(i, 0), 255);
     int t = lasttex = hdr.texlists[atype][i];
     loopv(sels)
     {
-        edittexxy(type, t, sels[i]);
-        addmsg(SV_EDITT, "ri6", sels[i].x, sels[i].y, sels[i].xs, sels[i].ys, type, t);
+        edittexxy(*type, t, sels[i]);
+        addmsg(SV_EDITT, "ri6", sels[i].x, sels[i].y, sels[i].xs, sels[i].ys, *type, t);
     }
     unsavededits++;
 }
+COMMAND(edittex, "ii");
 
-void settex(int texture, int type)
+void settex(int *texture, int *type)
 {
     EDITSEL;
-    if(type<0 || type>3) return;
-    int atype = type==3 ? 1 : type;
+    if(*type < 0 || *type > 3) return;
+    int atype = *type == 3 ? 1 : *type;
     int t = -1;
-    loopi(256) if(texture == (int)hdr.texlists[atype][i])
+    loopi(256) if(*texture == (int)hdr.texlists[atype][i])
     {
         t = (int)hdr.texlists[atype][i];
         break;
     }
-    if(t<0)
+    if(t < 0)
     {
         conoutf("invalid/unavaible texture");
         return;
     }
     loopv(sels)
     {
-        edittexxy(type, t, sels[i]);
-        addmsg(SV_EDITT, "ri6", sels[i].x, sels[i].y, sels[i].xs, sels[i].ys, type, t);
+        edittexxy(*type, t, sels[i]);
+        addmsg(SV_EDITT, "ri6", sels[i].x, sels[i].y, sels[i].xs, sels[i].ys, *type, t);
     }
     unsavededits++;
 }
+COMMAND(settex, "ii");
 
 void replace()
 {
@@ -731,6 +742,7 @@ void replace()
     remip(b);
     unsavededits++;
 }
+COMMAND(replace, "");
 
 void edittypexy(int type, block &sel)
 {
@@ -787,7 +799,6 @@ void equalize(int *flr)
         addmsg(SV_EDITE, "ri5", sel.x, sel.y, sel.xs, sel.ys, isfloor);
     }
 }
-
 COMMAND(equalize, "i");
 
 void setvdeltaxy(int delta, block &sel)
@@ -796,15 +807,16 @@ void setvdeltaxy(int delta, block &sel)
     remipmore(sel);
 }
 
-void setvdelta(int delta)
+void setvdelta(int *delta)
 {
     EDITSEL;
     loopv(sels)
     {
-        setvdeltaxy(delta, sels[i]);
-        addmsg(SV_EDITD, "ri5", sels[i].x, sels[i].y, sels[i].xs, sels[i].ys, delta);
+        setvdeltaxy(*delta, sels[i]);
+        addmsg(SV_EDITD, "ri5", sels[i].x, sels[i].y, sels[i].xs, sels[i].ys, *delta);
     }
 }
+COMMANDN(vdelta, setvdelta, "i");
 
 const int MAXARCHVERT = 50;
 int archverts[MAXARCHVERT][MAXARCHVERT];
@@ -820,6 +832,7 @@ void archvertex(int *span, int *vert, int *delta)
     if(*span>=MAXARCHVERT || *vert>=MAXARCHVERT || *span<0 || *vert<0) return;
     archverts[*span][*vert] = *delta;
 }
+COMMAND(archvertex, "iii");
 
 void arch(int *sidedelta)
 {
@@ -838,24 +851,26 @@ void arch(int *sidedelta)
         remipmore(sel);
     }
 }
+COMMAND(arch, "i");
 
-void slope(int xd, int yd)
+void slope(int *xd, int *yd)
 {
     EDITSELMP;
     loopv(sels)
     {
         block &sel = sels[i];
         int off = 0;
-        if(xd<0) off -= xd*sel.xs;
-        if(yd<0) off -= yd*sel.ys;
+        if(*xd < 0) off -= *xd * sel.xs;
+        if(*yd < 0) off -= *yd * sel.ys;
         sel.xs++;
         sel.ys++;
-        loopselxy(sel, s->vdelta = xd*x+yd*y+off);
+        loopselxy(sel, s->vdelta = *xd * x + *yd * y + off);
         remipmore(sel);
     }
 }
+COMMAND(slope, "ii");
 
-void perlin(int scale, int seed, int psize)
+void perlin(int *scale, int *seed, int *psize)
 {
     EDITSELMP;
     loopv(sels)
@@ -866,12 +881,13 @@ void perlin(int scale, int seed, int psize)
         makeundo(sel);
         sel.xs--;
         sel.ys--;
-        perlinarea(sel, scale, seed, psize);
+        perlinarea(sel, *scale, *seed, *psize);
         sel.xs++;
         sel.ys++;
         remipmore(sel);
     }
 }
+COMMAND(perlin, "iii");
 
 VARF(fullbright, 0, 0, 1,
     if(fullbright)
@@ -887,16 +903,19 @@ void edittag(int *tag)
     EDITSELMP;
     loopselsxy(s->tag = *tag);
 }
+COMMAND(edittag, "i");
 
-void newent(char *what, int *a1, int *a2, int *a3, int *a4)
+void newent(char *what, float *a1, float *a2, float *a3, float *a4)
 {
     EDITSEL;
     loopv(sels) newentity(-1, sels[i].x, sels[i].y, (int)camera1->o.z, what, *a1, *a2, *a3, *a4);
 }
+COMMAND(newent, "sffff");
 
-void movemap(int xo, int yo, int zo) // move whole map
+void movemap(int *xop, int *yop, int *zop) // move whole map
 {
     EDITMP;
+    int xo = *xop, yo = *yop, zo = *zop;
     if(!worldbordercheck(MINBORD + max(-xo, 0), MINBORD + max(xo, 0), MINBORD + max(-yo, 0), MINBORD + max(yo, 0), max(zo, 0), max(-zo, 0)))
     {
         conoutf("not enough space to move the map");
@@ -933,6 +952,7 @@ void movemap(int xo, int yo, int zo) // move whole map
     resetmap(false);
     unsavededits++;
 }
+COMMAND(movemap, "iii");
 
 void selfliprotate(block &sel, int dir)
 {
@@ -962,17 +982,18 @@ void selfliprotate(block &sel, int dir)
     freeblock(org);
 }
 
-void selectionrotate(int dir)
+void selectionrotate(int *dir)
 {
     EDITSELMP;
-    dir &= 3;
-    if(!dir) return;
+    *dir &= 3;
+    if(!*dir) return;
     loopv(sels)
     {
         block &sel = sels[i];
-        if(sel.xs == sel.ys || dir ==  2) selfliprotate(sel, dir);
+        if(sel.xs == sel.ys || *dir == 2) selfliprotate(sel, *dir);
     }
 }
+COMMAND(selectionrotate, "i");
 
 void selectionflip(char *axis)
 {
@@ -981,74 +1002,61 @@ void selectionflip(char *axis)
     if(c != 'X' && c != 'Y') return;
     loopv(sels) selfliprotate(sels[i], c == 'X' ? 11 : 12);
 }
-
-COMMANDF(select, "iiii", (int *x, int *y, int *xs, int *ys) { resetselections(); addselection(*x, *y, *xs, *ys, 0); });
-COMMANDF(addselection, "iiii", (int *x, int *y, int *xs, int *ys) { addselection(*x, *y, *xs, *ys, 0); });
-COMMAND(resetselections, "");
-COMMAND(edittag, "i");
-COMMAND(replace, "");
-COMMAND(archvertex, "iii");
-COMMAND(arch, "i");
-COMMANDF(slope, "ii", (int *xd, int *yd) { slope(*xd, *yd); });
-COMMANDF(vdelta, "i", (int *d) { setvdelta(*d); });
-COMMANDN(undo, editundo, "");
-COMMANDN(redo, editredo, "");
-COMMAND(copy, "");
-COMMAND(paste, "");
-COMMANDF(edittex, "ii", (int *type, int *dir) { edittex(*type, *dir); });
-COMMAND(newent, "siiii");
-COMMANDF(perlin, "iii", (int *sc, int *se, int *ps) { perlin(*sc, *se, *ps); });
-COMMANDF(movemap, "iii", (int *x, int *y, int *z) { movemap(*x, *y, *z); });
-COMMANDF(selectionrotate, "i", (int *d) { selectionrotate(*d); });
 COMMAND(selectionflip, "s");
-COMMAND(countwalls, "i");
-COMMANDF(settex, "ii", (int *texture, int *type) { settex(*texture, *type); });
-#if 0 // fix clip scaling
+
 void transformclipentities()  // transforms all clip entities to tag clips, if they are big enough (so, that no player could be above or below them)
-{
+{ // (hardcoded factor ENTSCALE10 for attr1 and ENTSCALE5 for attr2-4)
     EDITMP;
-    int total = 0, thisrun;
+    int total = 0, thisrun, bonus = 5;
     do
     {
         thisrun = 0;
         loopv(ents)
         {
             entity &e = ents[i];
-            if((e.type == CLIP || e.type == PLCLIP) && e.attr2 && e.attr3 && e.attr4)
+            if((e.type == CLIP || e.type == PLCLIP) && e.attr2 / ENTSCALE5 && e.attr3 / ENTSCALE5 && e.attr4 / ENTSCALE5)
             {
                 int allowedspace = e.type == CLIP ? 1 : 4;
                 int clipmask = e.type == CLIP ? TAGCLIP : TAGPLCLIP;
-                int x1 = e.x - e.attr2, x2 = e.x + e.attr2 - 1, y1 = e.y - e.attr3, y2 = e.y + e.attr3 - 1;
-                int z1 = S(e.x, e.y)->floor + e.attr1, z2 = z1 + e.attr4;
-                bool bigenough = true;
-                for(int xx = x1; xx <= x2; xx++) for(int yy = y1; yy <= y2; yy++)
+                int i2 = e.attr2 / ENTSCALE5, i3 = e.attr3 / ENTSCALE5; // floor values
+                int r2 = (e.attr2 % ENTSCALE5) > 0, r3 = (e.attr3 % ENTSCALE5) > 0; // fractions
+                int x1i = e.x - i2, x2i = e.x + i2 - 1, y1i = e.y - i3, y2i = e.y + i3 - 1; // inner rectangle (fully covered cubes)
+                int x1o = x1i - r2, x2o = x2i + r2, y1o = y1i - r3, y2o = y2i + r3; // outer rectangle (partially covered cubes)
+                float z1 = S(e.x, e.y)->floor + float(e.attr1) / ENTSCALE10, z2 = z1 + float(e.attr4) / ENTSCALE5;
+                bool bigenough = true, nodelete = false;
+                for(int xx = x1o; xx <= x2o; xx++) for(int yy = y1o; yy <= y2o; yy++) // loop over outer rectangle to check, if a clip has the required height
                 {
                     if(OUTBORD(xx,yy) || SOLID(S(xx,yy))) continue;
+                    bool inner = xx >= x1i && xx <= x2i && yy >= y1i && yy <= y2i; // flag: xx|yy is inner rectangle
                     sqr *s[4] = { S(xx, yy), S(xx + 1, yy), S(xx, yy + 1), S(xx + 1, yy + 1) };
                     int vdeltamax = 0;
                     loopj(4) if(s[j]->vdelta > vdeltamax) vdeltamax = s[j]->vdelta;
                     int floor = s[0]->floor - (s[0]->type == FHF ? (vdeltamax + 3) / 4 : 0),
                         ceil = s[0]->ceil - (s[0]->type == CHF ? (vdeltamax + 3) / 4 : 0);
-                    if((z1 - floor > allowedspace || ceil - z2 > allowedspace) && !(s[0]->tag & (TAGCLIP | clipmask))) bigenough = false;
+                    bool alreadytagged = (s[0]->tag & (TAGCLIP | clipmask)) != 0;
+                    if((z1 - floor > allowedspace || ceil - z2 > allowedspace) && !alreadytagged) bigenough = false;
+                    if(!inner && !alreadytagged) nodelete = true; // fractional part of the clip would not be covered: entity can not be deleted
                 }
                 if(bigenough)
                 {
-                    for(int xx = x1; xx <= x2; xx++) for(int yy = y1; yy <= y2; yy++)
+                    for(int xx = x1i; xx <= x2i; xx++) for(int yy = y1i; yy <= y2i; yy++) // only convert inner rectangle to tag clips
                     {
                         if(!OUTBORD(xx,yy) && !SOLID(S(xx,yy))) S(xx, yy)->tag |= clipmask;
                     }
-                    e.type = NOTUSED;
-                    thisrun++;
+                    if(!nodelete)
+                    {
+                        e.type = NOTUSED; // only delete entity, if it is now fully covered in tag clips
+                        thisrun++;
+                    }
                 }
             }
         }
         total += thisrun;
     }
-    while(thisrun);
+    while(thisrun || bonus-- > 0);
     loopi(ssize) loopj(ssize) { sqr *s = S(i,j); if(s->tag & TAGCLIP) s->tag &= ~TAGPLCLIP; }
     conoutf("changed %d clip entities to tagged clip areas", total);
     if(total) unsavededits++;
 }
 
 COMMAND(transformclipentities, "");
-#endif

@@ -708,7 +708,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
         if(e.type == LIGHT && e.attr1 >= 0)
         {
             if(!e.attr2) e.attr2 = 255; // needed for MAPVERSION<=2
-            if(e.attr1>32) e.attr1 = 32; // 12_03 and below
+            if(e.attr1 > 32) e.attr1 = 32; // 12_03 and below (but applied to _all_ files!)
         }
         transformoldentitytypes(hdr.version, e.type);
         if(oldentityformat && e.type < MAXENTTYPES)

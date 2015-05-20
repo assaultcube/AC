@@ -166,13 +166,16 @@ int closestent()        // used for delent and edit mode ent display
     return best;
 }
 
-void entproperty(int prop, int amount)
+void entproperty(int *prop, float *famount, int *unscaled)
 {
     int n = closestent();
-    if(n<0) return;
+    if(n < 0) return;
     entity &e = ents[n];
     int old_a1 = e.attr1;
-    switch(prop)
+    int t = e.type < MAXENTTYPES ? e.type : 0;
+    int amount = int(*famount * (*prop >= 0 && *prop < 7 && !*unscaled ? entscale[t][*prop] : 1));
+
+    switch(*prop)
     {
         case 0: e.attr1 += amount; break;
         case 1: e.attr2 += amount; break;
@@ -199,6 +202,7 @@ void entproperty(int prop, int amount)
     if(changedents.find(n) == -1) changedents.add(n);   // apply ent changes later (reduces network traffic)
     unsavededits++;
 }
+COMMAND(entproperty, "ifi");
 
 hashtable<char *, enet_uint32> mapinfo, &resdata = mapinfo;
 
@@ -210,22 +214,33 @@ void getenttype()
     if(type < 0 || type >= MAXENTTYPES) return;
     result(entnames[type]);
 }
-
-void getentattr(int *attr)
-{
-    int e = closestent();
-    if(e>=0) switch(*attr)
-    {
-        case 0: intret(ents[e].attr1); return;
-        case 1: intret(ents[e].attr2); return;
-        case 2: intret(ents[e].attr3); return;
-        case 3: intret(ents[e].attr4); return;
-    }
-    intret(0);
-}
-
 COMMAND(getenttype, "");
-COMMAND(getentattr, "i");
+
+void getentattr(int *attr, int *unscaled)
+{
+    int n = closestent();
+    const char *res = "0";
+    if(n >= 0)
+    {
+        entity &e = ents[n];
+        int t = e.type < MAXENTTYPES ? e.type : 0;
+        int scale = *attr >= 0 && *attr < 7 && !*unscaled ? entscale[t][*attr] : 1;
+        switch(*attr)
+        {
+            #define CHKATTR(x) case x - 1: res = floatstr(float(e.attr##x) / scale, true); break
+            CHKATTR(1);
+            CHKATTR(2);
+            CHKATTR(3);
+            CHKATTR(4);
+            CHKATTR(5);
+            CHKATTR(6);
+            CHKATTR(7);
+            #undef CHKATTR
+        }
+    }
+    result(res);
+}
+COMMAND(getentattr, "ii");
 
 void deletesoundentity(entity &e)
 {
@@ -266,40 +281,34 @@ int findtype(char *what)
     return t;
 }
 
-entity *newentity(int index, int x, int y, int z, char *what, int v1, int v2, int v3, int v4)
+void newentity(int index, int x, int y, int z, char *what, float v1f, float v2f, float v3f, float v4f) // add an entity or overwrite an existing one
 {
     int type = findtype(what);
-    if(type==NOTUSED) return NULL;
-
-    if (type == SOUND && index >= 0)
-    {
-        entity &o = ents[index];
-
-        entityreference entref(&o);
-        location *loc = audiomgr.locations.find(o.attr1, &entref, mapsounds);
-
-        if(loc)
-            loc->drop();
+    if(type == NOTUSED) return;
+    if (index >= 0 && ents[index].type == SOUND) deletesoundentity(ents[index]); // overwriting sound entity
+    switch(type)
+    { // MAPMODEL, PLAYERSTART and CTF-FLAG use the current camera direction as value for attr1, so attr234 need to be moved
+        case MAPMODEL:
+            v4f = v3f;
+            v3f = v2f;
+        case PLAYERSTART:
+        case CTF_FLAG:
+            v2f = v1f;
+            int y = camera1->yaw;
+            if(type != PLAYERSTART) y = y + 7 - (y + 7) % 15;
+            v1f = y;
+            break;
     }
 
+    int v1 = v1f * entscale[type][0], v2 = v2f * entscale[type][1], v3 = v3f * entscale[type][2], v4 = v4f * entscale[type][3];
     entity e(x, y, z, type, v1, v2, v3, v4);
 
     switch(type)
     {
         case LIGHT:
-            if(v1>64) e.attr1 = 64;
+            if(v1 > 64) e.attr1 = 64;
             if(!v1) e.attr1 = 16;
             if(!v2 && !v3 && !v4) e.attr2 = 255;
-            break;
-
-        case MAPMODEL:
-            e.attr4 = e.attr3;
-            e.attr3 = e.attr2;
-        case PLAYERSTART:
-        case CTF_FLAG:
-            e.attr2 = v1;
-            e.attr1 = int(camera1->yaw * ENTSCALE10);
-            if(type != PLAYERSTART) e.attr1 = e.attr1 + 70 - (e.attr1 + 70) % 150;
             break;
     }
     clampentityattributes(e);
@@ -323,10 +332,9 @@ entity *newentity(int index, int x, int y, int z, char *what, int v1, int v2, in
         case SOUND: audiomgr.preloadmapsound(e); break;
     }
     unsavededits++;
-    return index<0 ? &ents.last() : &ents[index];
 }
 
-void entset(char *what, int *a1, int *a2, int *a3, int *a4)
+void entset(char *what, float *a1, float *a2, float *a3, float *a4)
 {
     int n = closestent();
     if(n>=0)
@@ -336,7 +344,7 @@ void entset(char *what, int *a1, int *a2, int *a3, int *a4)
     }
 }
 
-COMMAND(entset, "siiii");
+COMMAND(entset, "sffff");
 
 void clearents(char *name)
 {
@@ -384,6 +392,7 @@ void editentity(char **args, int numargs) // index x y z a1 a2 a3 a4 ...
         entity &e = ents[n];
         bool edit = false;
         for(int i = 1; i < numargs; i++) if(*args[i]) edit = true; // only arguments other than empty strings can edit anything - otherwise we're just browsing
+        int t = e.type < MAXENTTYPES ? e.type : NOTUSED;
         if(edit)
         {
             if(e.type == SOUND)
@@ -394,7 +403,7 @@ void editentity(char **args, int numargs) // index x y z a1 a2 a3 a4 ...
             }
             for(int i = 1; i < numargs; i++) if(*args[i])
             {
-                int v = ATOI(args[i]);
+                int v = atof(args[i]) * (i < 4 || i > 10 ? 1 : entscale[t][i - 4]);
                 switch(i)
                 {
                     case 1: e.x = v; break;
@@ -404,6 +413,9 @@ void editentity(char **args, int numargs) // index x y z a1 a2 a3 a4 ...
                     case 5: e.attr2 = v; break;
                     case 6: e.attr3 = v; break;
                     case 7: e.attr4 = v; break;
+                    case 8: e.attr5 = v; break;
+                    case 9: e.attr6 = v; break;
+                    case 10: e.attr7 = v; break;
                 }
             }
             clampentityattributes(e);
@@ -415,7 +427,9 @@ void editentity(char **args, int numargs) // index x y z a1 a2 a3 a4 ...
             unsavededits++;
         }
         // give back unchanged or new entity properties
-        formatstring(res)("%s %d %d %d  %d %d %d %d", entnames[e.type], e.x, e.y, e.z, e.attr1, e.attr2, e.attr3, e.attr4);
+        #define AA(x) floatstr(float(e.attr##x) / entscale[t][x - 1], true)
+        formatstring(res)("%s %d %d %d  %s %s %s %s %s %s %s", entnames[e.type], e.x, e.y, e.z, AA(1), AA(2), AA(3), AA(4), AA(5), AA(6), AA(7));
+        #undef AA
     }
     result(res);
 }
@@ -675,7 +689,6 @@ COMMAND(mapshrink, "");
 COMMAND(newmap, "i");
 COMMANDN(recalc, calclight, "");
 COMMAND(delent, "");
-COMMANDF(entproperty, "ii", (int *p, int *a) { entproperty(*p, *a); });
 
 void countperfectmips(int mip, int xx, int yy, int bs, int *stats)
 {

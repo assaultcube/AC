@@ -489,7 +489,7 @@ extern void deletesoundentity(entity &e);
 extern int findtype(char *what);
 extern int findentity(int type, int index = 0);
 extern int findentity(int type, int index, uchar attr2);
-extern entity *newentity(int index, int x, int y, int z, char *what, int v1, int v2, int v3, int v4);
+extern void newentity(int index, int x, int y, int z, char *what, float v1, float v2, float v3, float v4);
 extern void mapmrproper(bool manual);
 
 // worldlight
