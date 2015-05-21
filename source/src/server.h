@@ -469,8 +469,8 @@ short entwraparound[MAXENTTYPES][7] =
     {    0,    0,    0,    0,    0,    0,    0 },  // ladder
     { -3600,   0,    0,    0,    0,    0,    0 },  // ctf-flag
     {  256,    0,    0,    0,    0,    0,    0 },  // sound
-    {    0,    0,    0,    0,    0,    0,    0 },  // clip
-    {    0,    0,    0,    0,    0,    0,    0 }   // plclip
+    {    0,    0,    0,    0,    0,    0,    4 },  // clip
+    {    0,    0,    0,    0,    0,    0,    4 }   // plclip
 };
 
 uchar entscale[MAXENTTYPES][7] =
@@ -490,8 +490,8 @@ uchar entscale[MAXENTTYPES][7] =
     {  1,  1,  1,  1,  1,  1,  1 },  // ladder
     { 10,  1,  1,  1,  1,  1,  1 },  // ctf-flag
     {  1,  1,  1,  1,  1,  1,  1 },  // sound
-    { 10,  5,  5,  5,  1,  1,  1 },  // clip
-    { 10,  5,  5,  5,  1,  1,  1 }   // plclip
+    { 10,  5,  5,  5,  1, 10,  1 },  // clip
+    { 10,  5,  5,  5,  1, 10,  1 }   // plclip
 };
 
 // see entity.h:61: struct itemstat { int add, start, max, sound; };

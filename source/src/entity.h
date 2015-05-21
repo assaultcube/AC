@@ -10,8 +10,8 @@ enum                            // static entity types
     LADDER,                     // attr1 = height
     CTF_FLAG,                   // attr1 = angle, attr2 = red/blue
     SOUND,                      // attr1 = idx, attr2 = radius, attr3 = size, attr4 = volume
-    CLIP,                       // attr1 = elevation, attr2 = xradius, attr3 = yradius, attr4 = height
-    PLCLIP,                     // attr1 = elevation, attr2 = xradius, attr3 = yradius, attr4 = height
+    CLIP,                       // attr1 = elevation, attr2 = xradius, attr3 = yradius, attr4 = height, attr6 = slope, attr7 = shape
+    PLCLIP,                     // attr1 = elevation, attr2 = xradius, attr3 = yradius, attr4 = height, attr6 = slope, attr7 = shape
     MAXENTTYPES
 };
 

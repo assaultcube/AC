@@ -139,10 +139,28 @@ bool mmcollide(physent *d, float &hi, float &lo)           // collide with a map
         // if(e.type==CLIP || (e.type == PLCLIP && d->type == ENT_PLAYER))
         if (e.type==CLIP || (e.type == PLCLIP && (d->type == ENT_BOT || d->type == ENT_PLAYER || (d->type == ENT_BOUNCE && ((bounceent *)d)->plclipped)))) // don't allow bots to hack themselves into plclips - Bukz 2011/04/14
         {
-            if(fabs(e.x-d->o.x) < float(e.attr2) / ENTSCALE5 + d->radius && fabs(e.y-d->o.y) < float(e.attr3) / ENTSCALE5 + d->radius)
+            bool hitarea = false;
+            switch(e.attr7 & 3)
             {
-                const float cz = float(S(e.x, e.y)->floor + float(e.attr1) / ENTSCALE10), ch = float(e.attr4) / ENTSCALE5;
-                const float dz = d->o.z-d->eyeheight;
+                default: // classic unrotated clip, possibly tilted
+                    hitarea = fabs(e.x - d->o.x) < float(e.attr2) / ENTSCALE5 + d->radius && fabs(e.y - d->o.y) < float(e.attr3) / ENTSCALE5 + d->radius;
+                    break;
+                case 3: // clip rotated 45°
+                {
+                    float rx = (e.x - d->o.x) * 0.707106781f, ry = (e.y - d->o.y) * 0.707106781f, rr = d->radius * 1.414213562f; // rotate player instead of clip (adjust player radius to compensate)
+                    hitarea = fabs(rx - ry) < float(e.attr3) / ENTSCALE5 + rr && fabs(rx + ry) < float(e.attr2) / ENTSCALE5 + rr;
+                    break;
+                }
+            }
+            if(hitarea)
+            {
+                float cz = float(S(e.x, e.y)->floor + float(e.attr1) / ENTSCALE10), ch = float(e.attr4) / ENTSCALE5;
+                if(e.attr6) switch(e.attr7 & 3)
+                { // incredibly ugly solution - but it only applies on the one tilted clip we stand on
+                    case 1: cz += (floor(0.5f + clamp(d->o.x - e.x + d->radius * (e.attr6 > 0 ? 1 : -1), -float(e.attr2) / ENTSCALE5, float(e.attr2) / ENTSCALE5))) * float(e.attr6) / (4 * ENTSCALE10); break; // tilt x
+                    case 2: cz += (floor(0.5f + clamp(d->o.y - e.y + d->radius * (e.attr6 > 0 ? 1 : -1), -float(e.attr3) / ENTSCALE5, float(e.attr3) / ENTSCALE5))) * float(e.attr6) / (4 * ENTSCALE10); break; // tilt y
+                }
+                const float dz = d->o.z - d->eyeheight;
                 if(dz < cz - 0.42) { if(cz<hi) hi = cz; }
                 else if(cz+ch>lo) lo = cz+ch;
                 if(hi-lo < playerheight) return true;

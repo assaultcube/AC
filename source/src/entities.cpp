@@ -28,9 +28,28 @@ void renderent(entity &e)
 
 void renderclip(entity &e)
 {
-    float xradius = max(float(e.attr2) / ENTSCALE5, 0.1f), yradius = max(float(e.attr3) / ENTSCALE5, 0.1f);
+    float xradius = max(float(e.attr2) / ENTSCALE5, 0.05f), yradius = max(float(e.attr3) / ENTSCALE5, 0.05f), h = max(float(e.attr4) / ENTSCALE5, 0.1f);
     vec bbmin(e.x - xradius, e.y - yradius, float(S(e.x, e.y)->floor + float(e.attr1) / ENTSCALE10)),
-        bbmax(e.x + xradius, e.y + yradius, bbmin.z + max(float(e.attr4) / ENTSCALE5, 0.1f));
+        bbmax(e.x + xradius, e.y + yradius, bbmin.z + h);
+    vec bb[4];
+    loopi(4) bb[i] = bbmin;
+    bb[2].x = bb[1].x = bbmax.x;
+    bb[2].y = bb[3].y = bbmax.y;
+    vec o(e.x, e.y, bbmin.z);
+
+    float tx = 0, ty = 0, angle = 0;
+    switch(e.attr7 & 3)
+    {
+        case 1: tx = float(e.attr6) / (4 * ENTSCALE10); break; // tilt x
+        case 2: ty = float(e.attr6) / (4 * ENTSCALE10); break; // tilt y
+        case 3: angle = PI/4; break; // rotate 45°
+    }
+    loopi(4)
+    {
+        bb[i].sub(o).rotate_around_z(angle); // rotate
+        bb[i].z += bb[i].x * tx + bb[i].y * ty; // tilt
+        bb[i].add(o);
+    }
 
     glDisable(GL_TEXTURE_2D);
     switch(e.type)
@@ -40,21 +59,12 @@ void renderclip(entity &e)
         case PLCLIP:   linestyle(1, 0xFF, 0, 0xFF); break;  // magenta
     }
     glBegin(GL_LINES);
-
-    glVertex3f(bbmin.x, bbmin.y, bbmin.z);
-    loopi(2) glVertex3f(bbmax.x, bbmin.y, bbmin.z);
-    loopi(2) glVertex3f(bbmax.x, bbmax.y, bbmin.z);
-    loopi(2) glVertex3f(bbmin.x, bbmax.y, bbmin.z);
-    glVertex3f(bbmin.x, bbmin.y, bbmin.z);
-
-    glVertex3f(bbmin.x, bbmin.y, bbmax.z);
-    loopi(2) glVertex3f(bbmax.x, bbmin.y, bbmax.z);
-    loopi(2) glVertex3f(bbmax.x, bbmax.y, bbmax.z);
-    loopi(2) glVertex3f(bbmin.x, bbmax.y, bbmax.z);
-    glVertex3f(bbmin.x, bbmin.y, bbmax.z);
-
-    loopi(8) glVertex3f(i&2 ? bbmax.x : bbmin.x, i&4 ? bbmax.y : bbmin.y, i&1 ? bbmax.z : bbmin.z);
-
+    loopi(16)
+    {
+        int j = ((i + 1) % 8) / 2;
+        glVertex3f(bb[j].x, bb[j].y, bb[j].z + (i > 7 ? h : 0));
+    }
+    loopi(8) glVertex3f(bb[i / 2].x, bb[i / 2].y, bb[i / 2].z + (i & 1 ? h : 0));
     glEnd();
     glEnable(GL_TEXTURE_2D);
 }
