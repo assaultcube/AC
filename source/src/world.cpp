@@ -249,21 +249,19 @@ void deletesoundentity(entity &e)
     if(loc) loc->drop();
 }
 
+vector<persistent_entity> deleted_ents;
+
 void delent()
 {
     int n = closestent();
     if(n<0) { conoutf("no more entities"); return; }
     syncentchanges(true);
     int t = ents[n].type;
-    conoutf("%s entity deleted", entnames[t]);
+    conoutf("%s entity deleted", entnames[t % MAXENTTYPES]);
 
     entity &e = ents[n];
-
-    if (t == SOUND) //stop playing sound
-    {
-        deletesoundentity(e);
-    }
-
+    if(t == SOUND) deletesoundentity(e); //stop playing sound
+    deleted_ents.add(e);
     ents[n].type = NOTUSED;
     addmsg(SV_EDITENT, "ri9i3", n, NOTUSED, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
@@ -273,15 +271,66 @@ void delent()
     }
     unsavededits++;
 }
+COMMAND(delent, "");
 
-int findtype(char *what)
+void undelent(char *index)
+{
+    if(noteditmode("undelent")) return;
+    if(!deleted_ents.length()) { conoutf("no more entities to undelete"); return; }
+    int n = isdigit(*index) ? strtol(index, NULL, 0) : deleted_ents.length() - 1;
+    if(deleted_ents.inrange(n))
+    {
+        persistent_entity e = deleted_ents.remove(n);
+        int t = e.type < MAXENTTYPES ? e.type : NOTUSED;
+        if(OUTBORD(e.x, e.y)) conoutf("failed to undelete %s entity (coordinates outside map borders)", entnames[t]);
+        else
+        {
+            newentity(-1, e.x, e.y, e.z, entnames[t], float(e.attr1) / entscale[t][0], float(e.attr2) / entscale[t][1], float(e.attr3) / entscale[t][2], float(e.attr4) / entscale[t][3]);
+            *((persistent_entity *) &ents.last()) = e;
+            conoutf("%s entity undeleted", entnames[t]);
+        }
+    }
+}
+COMMAND(undelent, "s");
+
+void getdeletedentities()
+{
+    vector<char> res;
+    loopv(deleted_ents)
+    {
+        persistent_entity &e = deleted_ents[i];
+        int t = e.type < MAXENTTYPES ? e.type : NOTUSED;
+        #define AA(x) floatstr(float(e.attr##x) / entscale[t][x - 1], true)
+        cvecprintf(res,"%s %d %d %d  %s %s %s %s %s %s %s\n", entnames[e.type], e.x, e.y, e.z, AA(1), AA(2), AA(3), AA(4), AA(5), AA(6), AA(7));
+        #undef AA
+    }
+    if(res.length()) res.last() = '\0';
+    else res.add('\0');
+    result(res.getbuf());
+}
+COMMAND(getdeletedentities, "");
+
+void unlistdeletedentity(char *which)
+{
+    if(!strcasecmp(which, "all")) deleted_ents.setsize(0);
+    else if(!strcasecmp(which, "last")) deleted_ents.pop();
+    else if(isdigit(*which))
+    {
+        int n = strtol(which, NULL, 0);
+        if(deleted_ents.inrange(n)) deleted_ents.remove(n);
+    }
+    intret(deleted_ents.length());
+}
+COMMAND(unlistdeletedentity, "s");
+
+int findtype(const char *what)
 {
     int t = getlistindex(what, entnames, true, NOTUSED);
     if(t == NOTUSED) conoutf("unknown entity type \"%s\"", what);
     return t;
 }
 
-void newentity(int index, int x, int y, int z, char *what, float v1f, float v2f, float v3f, float v4f) // add an entity or overwrite an existing one
+void newentity(int index, int x, int y, int z, const char *what, float v1f, float v2f, float v3f, float v4f) // add an entity or overwrite an existing one
 {
     int type = findtype(what);
     if(type == NOTUSED) return;
@@ -354,7 +403,13 @@ void clearents(char *name)
     loopv(ents)
     {
         entity &e = ents[i];
-        if(e.type==type) { e.type = NOTUSED; found = true; }
+        if(e.type == type)
+        {
+            if(type == SOUND) deletesoundentity(e);
+            deleted_ents.add(e);
+            e.type = NOTUSED;
+            found = true;
+        }
     }
     switch(type)
     {
@@ -375,6 +430,7 @@ void deleteentity(char *ns)
     int t = e.type;
     if(t == SOUND) deletesoundentity(e);
     conoutf("deleted entity #%d (%s)", n, entnames[e.type]);
+    deleted_ents.add(e);
     memset(&e, 0, sizeof(persistent_entity));
     e.type = NOTUSED;
     if(t == LIGHT) calclight();
@@ -688,7 +744,6 @@ COMMAND(mapenlarge, "");
 COMMAND(mapshrink, "");
 COMMAND(newmap, "i");
 COMMANDN(recalc, calclight, "");
-COMMAND(delent, "");
 
 void countperfectmips(int mip, int xx, int yy, int bs, int *stats)
 {

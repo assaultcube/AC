@@ -1084,6 +1084,7 @@ void resetmap(bool mrproper)
     cleardynlights();
     pruneundos();
     changedents.setsize(0);
+    deleted_ents.setsize(0);
     particlereset();
     if(mrproper)
     {

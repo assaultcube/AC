@@ -1045,6 +1045,7 @@ void transformclipentities()  // transforms all clip entities to tag clips, if t
                     }
                     if(!nodelete)
                     {
+                        deleted_ents.add(e);
                         e.type = NOTUSED; // only delete entity, if it is now fully covered in tag clips
                         thisrun++;
                     }

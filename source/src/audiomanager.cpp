@@ -866,6 +866,7 @@ void deletemapsoundslot(int *n, char *opt) // delete mapsound slot - only if unu
         entity &e = ents[i];
         if(e.attr1 == *n)
         { // delete entity
+            deleted_ents.add(e);
             deletesoundentity(e);
             memset(&e, 0, sizeof(persistent_entity));
             e.type = NOTUSED;
