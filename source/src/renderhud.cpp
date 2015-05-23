@@ -906,7 +906,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     formatstring(enginestateinfo)("%d %d %d %d %d", curfps, lod_factor(), nquads, curvert, xtraverts);
     if(showstats)
     {
-        if(showstats==2)
+        if(showstats==2 && !dbgpos)
         {
             const int left = (VIRTW-225-10)*2, top = (VIRTH*7/8)*2;
             const int ttll = VIRTW*2 - 3*FONTH/2;
