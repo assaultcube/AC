@@ -899,7 +899,7 @@ struct xmap
     string nick;      // unique handle
     string name;
     vector<headerextra *> headerextras;
-    vector<persistent_entity> ents;
+    vector<persistent_entity> ents, delents;
     vector<char> mapconfig;
     sqr *world;
     header hdr;
@@ -918,6 +918,7 @@ struct xmap
         world = new sqr[cubicsize];
         memcpy(world, ::world, cubicsize * sizeof(sqr));
         loopv(::ents) if(::ents[i].type != NOTUSED) ents.add() = ::ents[i];
+        loopv(deleted_ents) delents.add() = deleted_ents[i];
         copystring(mcfname, lastloadedconfigfile);   // may have been "official" or not
         if(hdr.flags & MHF_AUTOMAPCONFIG) getcurrentmapconfig(mapconfig, false);
         storeposition(position);
@@ -931,6 +932,7 @@ struct xmap
         headerextras.deletecontents();
         delete world;
         ents.setsize(0);
+        delents.setsize(0);
         mapconfig.setsize(0);
     }
 
@@ -952,6 +954,8 @@ struct xmap
         setfvar("waterlevel", float(hdr.waterlevel) / WATERLEVELSCALING);
         ::ents.shrink(0);
         loopv(ents) restoreent(i);
+        deleted_ents.setsize(0);
+        loopv(delents) deleted_ents.add(delents[i]);
         delete[] ::world;
         setupworld(hdr.sfactor);
         memcpy(::world, world, cubicsize * sizeof(sqr));
@@ -994,10 +998,11 @@ struct xmap
             hexbinwrite(f, headerextras[i]->data, headerextras[i]->len);
             f->printf("restorexmap headerextra %d  // %s\n", headerextras[i]->flags, hx_name(headerextras[i]->flags));
         }
-        loopv(ents) // entities are stored as plain text - you may edit them
+        int el = ents.length(), all = el + delents.length();
+        loopi(all) // entities are stored as plain text - you may edit them
         {
-            persistent_entity &e = ents[i];
-            f->printf("restorexmap ent %d  %d %d %d  %d %d %d %d %d %d %d // %s\n", e.type, e.x, e.y, e.z, e.attr1, e.attr2, e.attr3, e.attr4, e.attr5, e.attr6, e.attr7, e.type >= 0 && e.type < MAXENTTYPES ? entnames[e.type] : "unknown");
+            persistent_entity &e = i >= el ? delents[i - el] : ents[i];
+            f->printf("restorexmap %sent %d  %d %d %d  %d %d %d %d %d %d %d // %s\n", i >= el ? "del": "", e.type, e.x, e.y, e.z, e.attr1, e.attr2, e.attr3, e.attr4, e.attr5, e.attr6, e.attr7, e.type >= 0 && e.type < MAXENTTYPES ? entnames[e.type] : "unknown");
         }
         if(mapconfig.length())
         {
@@ -1136,8 +1141,8 @@ COMMANDF(xmap_restore, "s", (const char *nick)     // use xmap as current map
 
 void restorexmap(char **args, int numargs)   // read an xmap from a cubescript file
 {
-    const char *cmdnames[] = { "version", "names", "sizes", "header", "world", "headerextra", "ent", "config", "position", "" };
-    const char cmdnumarg[] = {         3,       2,       3,        0,       0,             1,    11,        1,          5     };
+    const char *cmdnames[] = { "version", "names", "sizes", "header", "world", "headerextra", "ent", "delent", "config", "position", "" };
+    const char cmdnumarg[] = {         3,       2,       3,        0,       0,             1,    11,       11,        1,          5     };
 
     if(!xmjigsaw || numargs < 1) return; // { conoutf("restorexmap out of context"); return; }
     bool abort = false;
@@ -1177,17 +1182,18 @@ void restorexmap(char **args, int numargs)   // read an xmap from a cubescript f
             xmjigsaw->headerextras.add(new headerextra(hexbin.length(), ATOI(args[1]), hexbin.getbuf()));
             break;
         case 6:     // ent
+        case 7:     // delent
         {
-            persistent_entity &e = xmjigsaw->ents.add();
+            persistent_entity &e = cmd == 6 ? xmjigsaw->ents.add() : xmjigsaw->delents.add();
             int a[11];
             loopi(11) a[i] = ATOI(args[i + 1]);
             e.type = a[0]; e.x = a[1]; e.y = a[2]; e.z = a[3]; e.attr1 = a[4]; e.attr2 = a[5]; e.attr3 = a[6]; e.attr4 = a[7]; e.attr5 = a[8]; e.attr6 = a[9]; e.attr7 = a[10];
             break;
         }
-        case 7:     // config
+        case 8:     // config
             cvecprintf(xmjigsaw->mapconfig, "%s\n", args[1]);
             break;
-        case 8:     // position - this is also the last command and will finish the xmap
+        case 9:     // position - this is also the last command and will finish the xmap
         {
             loopi(5) xmjigsaw->position[i] = ATOI(args[i + 1]);
             int i;
