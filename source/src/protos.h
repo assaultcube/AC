@@ -790,6 +790,7 @@ extern void checkitems(playerent *d);
 extern vector<int> changedents;
 extern void syncentchanges(bool force = false);
 extern void clampentityattributes(persistent_entity &e);
+extern const char *formatentityattributes(const persistent_entity &e, bool withcomma = false);
 
 // rndmap
 extern void perlinarea(block &b, int scale, int seed, int psize);

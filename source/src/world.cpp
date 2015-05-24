@@ -300,9 +300,7 @@ void getdeletedentities()
     {
         persistent_entity &e = deleted_ents[i];
         int t = e.type < MAXENTTYPES ? e.type : NOTUSED;
-        #define AA(x) floatstr(float(e.attr##x) / entscale[t][x - 1], true)
-        cvecprintf(res,"%s %d %d %d  %s %s %s %s %s %s %s\n", entnames[e.type], e.x, e.y, e.z, AA(1), AA(2), AA(3), AA(4), AA(5), AA(6), AA(7));
-        #undef AA
+        cvecprintf(res,"%s %d %d %d  %s\n", entnames[t], e.x, e.y, e.z, formatentityattributes(e));
     }
     if(res.length()) res.last() = '\0';
     else res.add('\0');
@@ -483,9 +481,7 @@ void editentity(char **args, int numargs) // index x y z a1 a2 a3 a4 ...
             unsavededits++;
         }
         // give back unchanged or new entity properties
-        #define AA(x) floatstr(float(e.attr##x) / entscale[t][x - 1], true)
-        formatstring(res)("%s %d %d %d  %s %s %s %s %s %s %s", entnames[e.type], e.x, e.y, e.z, AA(1), AA(2), AA(3), AA(4), AA(5), AA(6), AA(7));
-        #undef AA
+        formatstring(res)("%s %d %d %d  %s", entnames[t], e.x, e.y, e.z, formatentityattributes(e));
     }
     result(res);
 }

@@ -705,3 +705,14 @@ void clampentityattributes(persistent_entity &e)
         CLAMPATTR(7);
     }
 }
+
+const char *formatentityattributes(const persistent_entity &e, bool withcomma)
+{
+    static string res;
+    int t = e.type < MAXENTTYPES ? e.type : 0;
+    const char *c = withcomma ? "," : "";
+    #define AA(x) floatstr(float(e.attr##x) / entscale[t][x - 1], true)
+    formatstring(res)("%s%s %s%s %s%s %s%s %s%s %s%s %s", AA(1), c, AA(2), c, AA(3), c, AA(4), c, AA(5), c, AA(6), c, AA(7));
+    #undef AA
+    return res;
+}
