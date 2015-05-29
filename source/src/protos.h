@@ -305,7 +305,10 @@ extern const char *gettextureslot(int i);
 extern bool reloadtexture(Texture &t);
 extern void reloadtextures();
 extern void blitsurface(SDL_Surface *dst, SDL_Surface *src, int x, int y);
-void loadskymap(bool reload);
+extern void loadskymap(bool reload);
+extern void *texconfig_copy();
+extern void texconfig_delete(void *s);
+extern uchar *texconfig_paste(void *_s, uchar *usedslots);
 
 static inline Texture *lookupworldtexture(int tex, bool trydl = true)
 { return lookuptexture(tex, noworldtexture, trydl); }
@@ -502,7 +505,8 @@ extern void undodynlights();
 extern void cleardynlights();
 extern void removedynlights(physent *owner);
 extern block *blockcopy(const block &b);
-extern void blockpaste(const block &b, int bx, int by, bool light);
+extern void blocktexusage(const block &b, uchar *used);
+extern void blockpaste(const block &b, int bx, int by, bool light, uchar *texmap);
 extern void blockpaste(const block &b);
 extern void freeblockp(block *b);
 extern void freeblock(block *&b);
@@ -688,6 +692,7 @@ extern uchar *readmcfggz(char *name, int *size, int *sizegz);
 extern void rlencodecubes(vector<uchar> &f, sqr *s, int len, bool preservesolids);
 extern void rldecodecubes(ucharbuf &f, sqr *s, int len, int version, bool silent);
 extern void clearheaderextras();
+extern void automapconfig();
 extern void flagmapconfigchange();
 extern void getcurrentmapconfig(vector<char> &f, bool onlysounds);
 extern void xmapbackup(const char *nickprefix, const char *nick);

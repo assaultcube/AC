@@ -531,17 +531,25 @@ int backupeditundo(vector<uchar> &buf, int undolimit, int redolimit)
 }
 
 vector<block *> copybuffers;
+void *copytexconfig = NULL;
 
 void resetcopybuffers()
 {
     loopv(copybuffers) freeblock(copybuffers[i]);
     copybuffers.shrink(0);
+    if(copytexconfig)
+    {
+        texconfig_delete(copytexconfig);
+        copytexconfig = NULL;
+    }
 }
 
 void copy()
 {
     EDITSELMP;
     resetcopybuffers();
+    copytexconfig = texconfig_copy();
+
     loopv(sels)
     {
         block *b = blockcopy(sels[i]);
@@ -555,6 +563,10 @@ void paste()
 {
     EDITSELMP;
     if(!copybuffers.length()) { conoutf("nothing to paste"); return; }
+
+    uchar usedslots[256] = { 0 }, *texmap = NULL;
+    loopv(copybuffers) blocktexusage(*copybuffers[i], usedslots);
+    if(sels.length() && copytexconfig) texmap = texconfig_paste(copytexconfig, usedslots);
 
     loopv(sels)
     {
@@ -573,7 +585,7 @@ void paste()
             sel.y = sely + dy;
             if(!correctsel(sel) || sel.xs!=copyblock->xs || sel.ys!=copyblock->ys) { conoutf("incorrect selection"); return; }
             makeundo(sel);
-            blockpaste(*copyblock, sel.x, sel.y, true);
+            blockpaste(*copyblock, sel.x, sel.y, true, texmap);
         }
     }
 }

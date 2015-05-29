@@ -1036,3 +1036,51 @@ void edittextureslot(int *n, char *scale, char *name) // edit slot parameters !=
 }
 COMMAND(edittextureslot, "iss");
 
+// helper functions to allow copy&paste between different maps while keeping the proper textures assigned
+// (pasting will add any missing texture slots)
+
+void *texconfig_copy()
+{
+    vector<Slot> *s = new vector<Slot>;
+    loopv(slots) s->add(slots[i]);
+    return (void *)s;
+}
+
+void texconfig_delete(void *s)
+{
+    delete (vector<Slot> *)s;
+}
+
+uchar *texconfig_paste(void *_s, uchar *usedslots) // create mapping table to translate pasted geometry to this maps texture list - add any missing textures
+{
+    vector<Slot> *s = (vector<Slot> *)_s;
+    static uchar res[256];
+    loopi(256) res[i] = i;
+    loopi(256) if(usedslots[i] && s->inrange(i))
+    {
+        Slot &os = (*s)[i];
+        bool found = false;
+        loopvj(slots)
+        {
+            if(slots[j].scale == os.scale && !strcmp(slots[j].name, os.name))
+            {
+                res[i] = j;
+                found = true;
+                break;
+            }
+        }
+        if(!found)
+        {
+            if(slots.length() < 255)
+            {
+                res[i] = slots.length();
+                _texture(slots.add(), &os.scale, os.name);
+                conoutf("added texture \"%s\" (scale %.7g) in slot #%d", os.name, os.scale, res[i]);
+                if(!(hdr.flags & MHF_AUTOMAPCONFIG)) automapconfig(); // make sure, the new texture slots will be saved with the map
+            }
+            else conoutf("\f3failed to add texture \"%s\" (scale %.7g): no texture slot available", os.name, os.scale);
+        }
+    }
+    return res;
+}
+

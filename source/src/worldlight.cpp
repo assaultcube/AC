@@ -360,7 +360,23 @@ block *blockcopy(const block &s)
     return b;
 }
 
-void blockpaste(const block &b, int bx, int by, bool light)  // slow version, editmode only
+void blocktexusage(const block &b, uchar *used)
+{
+    const sqr *q = (const sqr *)((&b)+1);
+    loopirev(b.xs * b.ys)
+    { // collect used texture slots in block
+        used[q->wtex] = 1;
+        if(q->type != SOLID)
+        {
+            used[q->ctex] = 1;
+            used[q->ftex] = 1;
+            used[q->utex] = 1;
+        }
+        q++;
+    }
+}
+
+void blockpaste(const block &b, int bx, int by, bool light, uchar *texmap)  // slow version, editmode only
 {
     const sqr *q = (const sqr *)((&b)+1);
     sqr *dest = 0;
@@ -376,7 +392,15 @@ void blockpaste(const block &b, int bx, int by, bool light)  // slow version, ed
         tg = dest->g;
         tb = dest->b;
 
-        *dest = *q++;
+        *dest = *q;
+
+        if(texmap)
+        { // translate texture slot numbers
+            dest->wtex = texmap[q->wtex];
+            dest->ctex = texmap[q->ctex];
+            dest->ftex = texmap[q->ftex];
+            dest->utex = texmap[q->utex];
+        }
 
         if (light) //edit mode paste
         {
@@ -384,6 +408,7 @@ void blockpaste(const block &b, int bx, int by, bool light)  // slow version, ed
             dest->g = tg;
             dest->b = tb;
         }
+        q++;
     }
     block bb = { bx, by, b.xs, b.ys };
     remipmore(bb);
