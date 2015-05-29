@@ -303,9 +303,7 @@ extern Texture *textureload(const char *name, int clamp = 0, bool mipmap = true,
 extern Texture *lookuptexture(int tex, Texture *failtex = notexture, bool trydl = false);
 extern const char *gettextureslot(int i);
 extern bool reloadtexture(Texture &t);
-extern bool reloadtexture(const char *name);
 extern void reloadtextures();
-Texture *createtexturefromsurface(const char *name, SDL_Surface *s);
 extern void blitsurface(SDL_Surface *dst, SDL_Surface *src, int x, int y);
 void loadskymap(bool reload);
 

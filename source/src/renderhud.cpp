@@ -1138,10 +1138,12 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     glMatrixMode(GL_MODELVIEW);
 }
 
+
+Texture *startscreen = NULL;
+
 void loadingscreen(const char *fmt, ...)
 {
-    static Texture *logo = NULL;
-    if(!logo) logo = textureload("packages/misc/startscreen.png", 3);
+    if(!startscreen) startscreen = textureload("packages/misc/startscreen.png", 3);
 
     glEnable(GL_TEXTURE_2D);
     glDisable(GL_DEPTH_TEST);
@@ -1159,7 +1161,7 @@ void loadingscreen(const char *fmt, ...)
     loopi(fmt ? 1 : 2)
     {
         glClear(GL_COLOR_BUFFER_BIT);
-        quad(logo->id, (VIRTW-VIRTH)/2, 0, VIRTH, 0, 0, 1);
+        quad(startscreen->id, (VIRTW-VIRTH)/2, 0, VIRTH, 0, 0, 1);
         if(fmt)
         {
             glEnable(GL_BLEND);

@@ -62,6 +62,7 @@ void scaletexture(uchar *src, uint sw, uint sh, uint bpp, uchar *dst, uint dw, u
 
 Texture *notexture = NULL, *noworldtexture = NULL;
 
+#define TEXSCALEPREFIXSIZE 8
 hashtable<char *, Texture> textures;
 
 VAR(hwtexsize, 1, 0, 0);
@@ -428,17 +429,17 @@ GLuint loadsurface(const char *texname, int &xs, int &ys, int &bpp, int clamp = 
 
 Texture *textureload(const char *name, int clamp, bool mipmap, bool canreduce, float scale, bool trydl)
 {
-    string pname;
-    copystring(pname, name);
-    path(pname);
+    defformatstring(pname)("%.7g        ", scale);
+    copystring(pname + TEXSCALEPREFIXSIZE, name, MAXSTRLEN - TEXSCALEPREFIXSIZE);
+    path(pname + TEXSCALEPREFIXSIZE);
     Texture *t = textures.access(pname);
     if(t) return t;
     int xs, ys, bpp;
-    GLuint id = loadsurface(pname, xs, ys, bpp, clamp, mipmap, canreduce, scale, trydl);
+    GLuint id = loadsurface(pname + TEXSCALEPREFIXSIZE, xs, ys, bpp, clamp, mipmap, canreduce, scale, trydl);
     if(!id) return notexture;
     char *key = newstring(pname);
     t = &textures[key];
-    t->name = key;
+    t->name = key + TEXSCALEPREFIXSIZE;
     t->xs = xs;
     t->ys = ys;
     t->bpp = bpp;
@@ -447,34 +448,6 @@ Texture *textureload(const char *name, int clamp, bool mipmap, bool canreduce, f
     t->canreduce = canreduce;
     t->id = id;
     t->scale = scale;
-    return t;
-}
-
-Texture *createtexturefromsurface(const char *name, SDL_Surface *s)
-{
-    string pname;
-    copystring(pname, name);
-    path(pname);
-    Texture *t = textures.access(pname);
-    if(!t)
-    {
-        char *key = newstring(pname);
-        t = &textures[key];
-        t->name = key;
-    }
-
-    GLuint tnum;
-    glGenTextures(1, &tnum);
-    GLenum format = texformat(s->format->BitsPerPixel);
-    createtexture(tnum, s->w, s->h, s->pixels, 0, true, false, format);
-
-    t->xs = s->w;
-    t->ys = s->h;
-    t->bpp = s->format->BitsPerPixel;
-    t->clamp = 0;
-    t->mipmap = true;
-    t->canreduce = false;
-    t->id = tnum;
     return t;
 }
 
@@ -525,6 +498,7 @@ COMMANDF(texture, "fs", (float *scale, char *name)
     intret(slots.length());
     Slot &s = slots.add();
     _texture(s, scale, name);
+    if(*scale < 0.0f || *scale > 2.0f) conoutf("\f3texture slot #%d \"%s\" error: scale factor %.7g out of range 0..2", slots.length() - 1, name, *scale);
     flagmapconfigchange();
 });
 
@@ -578,13 +552,6 @@ bool reloadtexture(Texture &t)
     t.ys = ys;
     t.bpp = bpp;
     return t.id!=0;
-}
-
-bool reloadtexture(const char *name)
-{
-    Texture *t = textures.access(path(name, true));
-    if(t) return reloadtexture(*t);
-    return false;
 }
 
 void reloadtextures()

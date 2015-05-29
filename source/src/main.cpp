@@ -658,9 +658,10 @@ void resetgl()
 
     extern void reloadfonts();
     extern void reloadtextures();
+    extern Texture *startscreen;
     c2skeepalive();
     if(!reloadtexture(*notexture) ||
-       !reloadtexture("packages/misc/startscreen.png"))
+       !reloadtexture(*startscreen))
         fatal("failed to reload core texture");
     loadingscreen();
     c2skeepalive();
