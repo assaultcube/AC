@@ -151,7 +151,7 @@ COMMANDF(magreserve, "s", (char *ws)
 
 void tryreload(playerent *p)
 {
-    if(!p || p->state!=CS_ALIVE || p->weaponsel->reloading || p->weaponchanging) return;
+    if(!p || p->state!=CS_ALIVE || ispaused || p->weaponsel->reloading || p->weaponchanging) return;
     p->weaponsel->reload(false);
 }
 
@@ -481,6 +481,7 @@ void removebounceents(playerent *owner)
 
 void movebounceents()
 {
+    if (ispaused) return;
     loopv(bounceents) if(bounceents[i])
     {
         bounceent *p = bounceents[i];
@@ -901,7 +902,7 @@ void weapon::renderhudmodel(int lastaction, int index)
     unitv.div(dist);
 
     weaponmove wm;
-    if(!intermission) wm.calcmove(unitv, lastaction, p);
+    if(!intermission || !ispaused) wm.calcmove(unitv, lastaction, p);
 //    if(!intermission) wm.calcmove(unitv, p->lastaction, p);
     defformatstring(widn)("modmdlweap%d", type);
     defformatstring(path)("weapons/%s", identexists(widn)?getalias(widn):info.modelname);
@@ -1498,7 +1499,7 @@ void cpistol::setburst(bool enable)
 void setburst(bool enable)
 {
     if(player1->weaponsel->type != GUN_CPISTOL) return;
-    if(intermission) return;
+    if(intermission || ispaused) return;
     cpistol *cp = (cpistol *)player1->weaponsel;
     cp->setburst(enable);
     if (!burst)

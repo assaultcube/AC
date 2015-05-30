@@ -979,7 +979,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             if(unsavededits) draw_text("U", VIRTW*2 - text_width("U") - FONTH, VIRTH*2 - 5*FONTH/2);
         }
     }
-    if(!intermission && lastgametimeupdate!=0)
+    if((!intermission && lastgametimeupdate!=0) || !ispaused)
     {
         int cssec = (gametimecurrent+(lastmillis-lastgametimeupdate))/1000;
         int gtsec = cssec%60;
@@ -1246,4 +1246,3 @@ void show_out_of_renderloop_progress(float bar1, const char *text1, float bar2, 
     glEnable(GL_DEPTH_TEST);
     SDL_GL_SwapBuffers();
 }
-

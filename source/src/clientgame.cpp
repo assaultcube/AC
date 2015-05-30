@@ -31,6 +31,8 @@ int curtime = 0;
 string clientmap = "";
 int spawnpermission = SP_WRONGMAP;
 
+int ispaused = 0;
+
 char *getclientmap() { return clientmap; }
 
 int getclientmode() { return gamemode; }
@@ -458,6 +460,7 @@ void zapplayer(playerent *&d)
 
 void movelocalplayer()
 {
+    if (ispaused && player1->state==CS_ALIVE) return;
     if(player1->state==CS_DEAD && !player1->allowmove())
     {
         if(lastmillis-player1->lastpain<2000)
@@ -506,7 +509,7 @@ void moveotherplayers()
     {
         playerent *d = players[i];
         const int lagtime = totalmillis-d->lastupdate;
-        if(!lagtime || intermission) continue;
+        if(!lagtime || intermission || ispaused) continue;
         else if(lagtime>1000 && d->state==CS_ALIVE)
         {
             d->state = CS_LAGGED;
@@ -554,7 +557,7 @@ int lastspawnattempt = 0;
 
 void showrespawntimer()
 {
-    if(intermission || spawnpermission > SP_OK_NUM) return;
+    if(intermission || ispaused || spawnpermission > SP_OK_NUM) return;
     if(m_arena)
     {
         if(!arenaintermission) return;
@@ -851,7 +854,7 @@ COMMANDF(burstshots, "si", (char *gun, int *shots)
 
 void dodamage(int damage, playerent *pl, playerent *actor, int gun, bool gib, bool local)
 {
-    if(pl->state != CS_ALIVE || intermission) return;
+    if(pl->state != CS_ALIVE || intermission || ispaused) return;
     pl->respawnoffset = pl->lastpain = lastmillis;
     // could the author of the FIXME below please elaborate what's to fix?! (ft:2011mar28)
     // I suppose someone wanted to play the hitsound for player1 or spectated player (lucas:2011may22)
@@ -1154,6 +1157,7 @@ void startmap(const char *name, bool reset, bool norespawn)   // called just aft
     minutesremaining = -1;
     lastgametimeupdate = 0;
     arenaintermission = 0;
+    ispaused = 0;
     bool noflags = (m_ctf || m_ktf) && (!numflagspawn[0] || !numflagspawn[1]);
     if(*clientmap) conoutf(_("game mode is \"%s\"%s"), modestr(gamemode, modeacronyms > 0), noflags ? " - \f2but there are no flag bases on this map" : "");
 
@@ -1292,7 +1296,7 @@ COMMAND(dropflag, "");
 
 char *votestring(int type, const char *arg1, const char *arg2, const char *arg3)
 {
-    const char *msgs[] = { "kick player %s, reason: %s", "ban player %s, reason: %s", "remove all bans", "set mastermode to %s", "%s autoteam", "force player %s to team %s", "give admin to player %s", "load map %s in mode %s%s%s", "%s demo recording for the next match", "stop demo recording", "clear all demos", "set server description to '%s'", "shuffle teams"};
+    const char *msgs[] = { "kick player %s, reason: %s", "ban player %s, reason: %s", "remove all bans", "set mastermode to %s", "%s autoteam", "force player %s to team %s", "give admin to player %s", "load map %s in mode %s%s%s", "%s demo recording for the next match", "stop demo recording", "clear all demos", "set server description to '%s'", "shuffle teams", "%s the game"};
     const char *msg = msgs[type];
     char *out = newstring(MAXSTRLEN);
     out[MAXSTRLEN] = '\0';
@@ -1351,6 +1355,9 @@ char *votestring(int type, const char *arg1, const char *arg2, const char *arg3)
         case SA_SERVERDESC:
             formatstring(out)(msg, arg1);
             break;
+        case SA_PAUSE:
+            formatstring(out)(msg, atoi(arg1) == 1 ? "pause" : "resume");
+            break;
         default:
             formatstring(out)(msg, arg1, arg2);
             break;
@@ -1408,11 +1415,10 @@ void callvote(int type, const char *arg1, const char *arg2, const char *arg3)
                 putint(p, atoi(arg1));
                 putint(p, atoi(arg2));
                 break;
+            case SA_PAUSE:
+                putint(p, atoi(arg1));
+                break;
             default:
-
-
-
-
 				putint(p, atoi(arg1));
                 break;
         }
@@ -1437,6 +1443,17 @@ void scallvote(int *type, const char *arg1, const char *arg2)
                 callvote(t, arg1, m, arg2);
                 break;
             }
+            case SA_PAUSE:
+            {
+                if (!arg1 || !isdigit(arg1[0]) || !multiplayer(false))
+                {
+                    if (!multiplayer(false))
+                        conoutf(_("%c3pause is not available in singleplayer."), CC);
+                    else if (arg1 && !isdigit(arg1[0])) conoutf(_("%c3invalid vote"), CC);
+                    break;
+                }
+                callvote(t, arg1, arg2);
+            }
             case SA_KICK:
             case SA_BAN:
             {
@@ -1448,12 +1465,13 @@ void scallvote(int *type, const char *arg1, const char *arg2)
                     else conoutf(_("%c3invalid reason"), CC);
                     break;
                 }
+                callvote(t, arg1, arg2);
             }
             case SA_FORCETEAM:
             {
                 int team = atoi(arg2);
                 if(team < 0) arg2 = (team == 0) ? "RVSF" : "CLA";
-                // fall through
+                callvote(t, arg1, arg2);
             }
             default:
                 callvote(t, arg1, arg2);
@@ -1571,6 +1589,18 @@ COMMAND(gonext, "i");
 
 COMMANDN(callvote, scallvote, "iss"); //fixme,ah
 COMMANDF(vote, "i", (int *v) { vote(*v); });
+
+void cmd_pause(int *arg1)
+{
+    if (servstate.mastermode != MM_MATCH)
+    {
+        conoutf("You may only pause the game in mastermode match.");
+        return;
+    }
+    defformatstring(m)("%d", *arg1);
+    callvote(SA_PAUSE, m, "-1", "0");
+}
+COMMANDN(pause, cmd_pause, "i");
 
 void cleanplayervotes(playerent *p)
 {

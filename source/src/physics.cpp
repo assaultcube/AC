@@ -735,7 +735,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
     if(pl->type==ENT_PLAYER || pl->type==ENT_BOT)
     {
 //         if(pl==player1 && !(intermission || player1->onladder || (pl->trycrouch && !player1->onfloor && player1->timeinair > 50))) updatecrouch(player1, player1->trycrouch);
-        if(!intermission && (pl == player1 || pl->type == ENT_BOT)) updatecrouch((playerent *)pl, pl->trycrouch);
+        if(!intermission && !ispaused && (pl == player1 || pl->type == ENT_BOT)) updatecrouch((playerent *)pl, pl->trycrouch);
         const float croucheyeheight = pl->maxeyeheight*3.0f/4.0f;
         resizephysent(pl, moveres, curtime, croucheyeheight, pl->maxeyeheight);
     }
@@ -814,7 +814,7 @@ dir(right,    strafe, -1, k_right, k_left)
 
 void attack(bool on)
 {
-    if(intermission) return;
+    if(intermission || (ispaused && player1->state==CS_ALIVE)) return;
     if(editmode) editdrag(on);
     else if(player1->state==CS_DEAD || player1->state==CS_SPECTATE)
     {
@@ -825,7 +825,7 @@ void attack(bool on)
 
 void jumpn(bool on)
 {
-    if(intermission) return;
+    if(intermission || ispaused) return;
     if(player1->isspectating())
     {
         if(lastmillis - player1->respawnoffset > 1000 && on) togglespect();
@@ -1001,7 +1001,7 @@ inline bool zooming(playerent *plx) { return (plx->weaponsel->type == GUN_SNIPER
 void mousemove(int odx, int ody)
 {
     static float fdx = 0, fdy = 0;
-    if(intermission || (player1->isspectating() && player1->spectatemode==SM_FOLLOW1ST)) return;
+    if(intermission || (ispaused && player1->state==CS_ALIVE) || (player1->isspectating() && player1->spectatemode==SM_FOLLOW1ST)) return;
     float dx = odx, dy = ody;
     if(mfilter > 0.0f)
     {

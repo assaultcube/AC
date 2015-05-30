@@ -347,6 +347,7 @@ static const int msgsizes[] =               // size inclusive message token, 0 f
     SV_CLIENT, 0,
     SV_EXTENSION, 0,
     SV_MAPIDENT, 3, SV_HUDEXTRAS, 2, SV_POINTS, 0,
+    SV_PAUSEMODE, 1,
     -1
 };
 
@@ -360,4 +361,3 @@ int msgsizelookup(int msg)
     }
     return msg >= 0 && msg < SV_NUM ? sizetable[msg] : -1;
 }
-

@@ -243,6 +243,7 @@ struct client                   // server side version of "dynent" type
     bool haswelcome;
     bool isonrightmap, loggedwrongmap, freshgame;
     bool timesync;
+    bool ispaused;
     int overflow;
     int gameoffset, lastevent, lastvotecall;
     int lastprofileupdate, fastprofileupdates;
@@ -320,6 +321,7 @@ struct client                   // server side version of "dynent" type
         tcn = -1;
         pr = 0.0f;
         yls = pls = tls = 0;
+        ispaused = 0;
     }
 
     void reset()
@@ -346,6 +348,7 @@ struct client                   // server side version of "dynent" type
         input = inputmillis = 0;
         wn = -1;
         bs = bt = blg = bp = 0;
+        ispaused = 0;
     }
 
     void zap()
@@ -440,7 +443,8 @@ const char *messagenames[SV_NUM] =
     "SV_SWITCHNAME", "SV_SWITCHSKIN", "SV_SWITCHTEAM",
     "SV_CLIENT",
     "SV_EXTENSION",
-    "SV_MAPIDENT", "SV_HUDEXTRAS", "SV_POINTS"
+    "SV_MAPIDENT", "SV_HUDEXTRAS", "SV_POINTS",
+    "SV_PAUSEMODE"
 };
 
 const char *entnames[] =
