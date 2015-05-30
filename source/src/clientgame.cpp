@@ -225,6 +225,7 @@ COMMAND(benchme, "");
 COMMANDF(isclient, "i", (int *cn) { intret(getclient(*cn) != NULL ? 1 : 0); } );
 COMMANDF(curmastermode, "", (void) { intret(servstate.mastermode); });
 COMMANDF(curautoteam, "", (void) { intret(servstate.autoteam); });
+COMMANDF(curpausemode, "", (void) {intret(ispaused);});
 COMMAND(curmodeattr, "s");
 COMMANDF(curmap, "i", (int *cleaned) { result(*cleaned ? behindpath(getclientmap()) : getclientmap()); });
 COMMANDF(curplayers, "", (void) { intret(players.length() + 1); });
@@ -1592,6 +1593,7 @@ COMMANDF(vote, "i", (int *v) { vote(*v); });
 
 void cmd_pause(int *arg1)
 {
+    if (*arg1!=0 || *arg1!=1) return;
     if (servstate.mastermode != MM_MATCH)
     {
         conoutf("You may only pause the game in mastermode match.");
