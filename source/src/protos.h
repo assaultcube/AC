@@ -163,9 +163,10 @@ struct gmenu
     const char *mdl;
     int anim, rotspeed, scale;
     int footlen;
+    int xoffs, yoffs;
     mdirlist *dirlist;
 
-    gmenu() : name(0), title(0), header(0), footer(0), initaction(0), usefont(0), allowblink(0), mdl(0), footlen(0), dirlist(0) {}
+    gmenu() : name(0), title(0), header(0), footer(0), initaction(0), usefont(0), allowblink(0), mdl(0), footlen(0), xoffs(0), yoffs(0), dirlist(0) {}
     virtual ~gmenu()
     {
         DELETEA(name);

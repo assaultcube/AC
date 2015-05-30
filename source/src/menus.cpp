@@ -919,6 +919,14 @@ void menuinitselection(int *line)
 }
 COMMAND(menuinitselection, "i");
 
+void menurenderoffset(int *xoff, int *yoff)
+{
+    if(!lastmenu) return;
+    lastmenu->xoffs = *xoff;
+    lastmenu->yoffs = *yoff;
+}
+COMMAND(menurenderoffset, "ii");
+
 void menuselection(char *menu, int *line)
 {
     if(!menu || !menus.access(menu)) return;
@@ -1348,6 +1356,8 @@ void gmenu::render()
     int h = (mdisp+hitems+2)*step;
     int y = (2*VIRTH-h)/2;
     int x = hotkeys ? (2*VIRTW-w)/6 : (2*VIRTW-w)/2;
+    x = clamp(x + (VIRTW * xoffs) / 100, 3 * FONTH, 2 * VIRTW - w - 3 * FONTH);
+    y = clamp(y + (VIRTH * yoffs) / 100, 3 * FONTH, 2 * VIRTH - h - 3 * FONTH);
     if(!hotkeys) renderbg(x-FONTH*3/2, y-FONTH, x+w+FONTH*3/2, y+h+FONTH, true);
     if(offset>0)                        drawarrow(1, x+w+FONTH*3/2-FONTH*5/6, y-FONTH*5/6, FONTH*2/3);
     if(offset+pagesize<items.length()) drawarrow(0, x+w+FONTH*3/2-FONTH*5/6, y+h+FONTH/6, FONTH*2/3);
