@@ -125,11 +125,13 @@ void closemenu(const char *name)
         }
     }
 }
+COMMAND(closemenu, "s");
 
 void showmenu_(const char *name)
 {
     showmenu(name, true);
 }
+COMMANDN(showmenu, showmenu_, "s");
 
 void menuselect(void *menu, int sel)
 {
@@ -826,6 +828,7 @@ void newmenu(char *name, int *hotkeys, int *forwardkeys)
 {
     addmenu(name, NULL, true, NULL, NULL, *hotkeys > 0, *forwardkeys > 0);
 }
+COMMAND(newmenu, "sii");
 
 void menureset(void *menu)
 {
@@ -840,7 +843,6 @@ void delmenu(const char *name)
     if (!m) return;
     else menureset(m);
 }
-
 COMMAND(delmenu, "s");
 
 void menumanual(void *menu, char *text, char *action, color *bgcolor, const char *desc)
@@ -867,6 +869,7 @@ void menuheader(void *menu, char *header, char *footer)
     m.header = header && header[0] ? header : NULL;
     m.footer = footer && footer[0] ? footer : NULL;
 }
+
 void lastmenu_header(char *header, char *footer)
 {
     if(lastmenu)
@@ -892,6 +895,7 @@ void setmenufont(char *usefont)
     if(!lastmenu) return;
     menufont(lastmenu, usefont);
 }
+COMMANDN(menufont, setmenufont, "s");
 
 void setmenublink(int *truth)
 {
@@ -899,18 +903,21 @@ void setmenublink(int *truth)
     gmenu &m = *(gmenu *)lastmenu;
     m.allowblink = *truth != 0;
 }
+COMMANDN(menucanblink, setmenublink, "i");
 
 void menuinit(char *initaction)
 {
     if(!lastmenu) return;
     lastmenu->initaction = newstring(initaction);
 }
+COMMAND(menuinit, "s");
 
 void menuinitselection(int *line)
 {
     if(!lastmenu) return;
     if(lastmenu->items.inrange(*line)) lastmenu->menusel = *line;
 }
+COMMAND(menuinitselection, "i");
 
 void menuselection(char *menu, int *line)
 {
@@ -918,6 +925,7 @@ void menuselection(char *menu, int *line)
     gmenu &m = menus[menu];
     menuselect(&m, *line);
 }
+COMMAND(menuselection, "si");
 
 void menuitem(char *text, char *action, char *hoveraction, char *desc)
 {
@@ -925,6 +933,7 @@ void menuitem(char *text, char *action, char *hoveraction, char *desc)
     char *t = newstring(text);
     lastmenu->items.add(new mitemtext(lastmenu, t, newstring(action[0] ? action : text), hoveraction[0] ? newstring(hoveraction) : NULL, NULL, *desc ? newstring(desc) : NULL));
 }
+COMMAND(menuitem, "ssss");
 
 void menuitemvar(char *eval, char *action, char *hoveraction)
 {
@@ -932,6 +941,7 @@ void menuitemvar(char *eval, char *action, char *hoveraction)
     char *t = newstring(eval);
     lastmenu->items.add(new mitemtextvar(lastmenu, t, action[0] ? newstring(action) : NULL, hoveraction[0] ? newstring(hoveraction) : NULL));
 }
+COMMAND(menuitemvar, "sss");
 
 void menuitemimage(char *name, char *text, char *action, char *hoveraction)
 {
@@ -941,6 +951,7 @@ void menuitemimage(char *name, char *text, char *action, char *hoveraction)
     else
         lastmenu->items.add(new mitemtext(lastmenu, newstring(text), newstring(action[0] ? action : text), hoveraction[0] ? newstring(hoveraction) : NULL, NULL));
 }
+COMMAND(menuitemimage, "ssss");
 
 void menuitemmapload(char *name, char *text)
 {
@@ -950,30 +961,35 @@ void menuitemmapload(char *name, char *text)
     else formatstring(caction)("%s", text);
     lastmenu->items.add(new mitemmapload(lastmenu, newstring(name), newstring(name), newstring(caction), NULL, NULL, NULL));
 }
+COMMAND(menuitemmapload, "ss");
 
 void menuitemtextinput(char *text, char *value, char *action, char *hoveraction, int *maxchars, int *maskinput)
 {
     if(!lastmenu || !text || !value) return;
     lastmenu->items.add(new mitemtextinput(lastmenu, newstring(text), newstring(value), action[0] ? newstring(action) : NULL, hoveraction[0] ? newstring(hoveraction) : NULL, NULL, *maxchars, *maskinput));
 }
+COMMAND(menuitemtextinput, "ssssii");
 
 void menuitemslider(char *text, int *min_, int *max_, char *value, int *step, char *display, char *action)
 {
     if(!lastmenu) return;
     lastmenu->items.add(new mitemslider(lastmenu, newstring(text), *min_, *max_, *step, newstring(value), display[0] ? newstring(display) : NULL, action[0] ? newstring(action) : NULL, NULL));
 }
+COMMAND(menuitemslider, "siisiss");
 
 void menuitemkeyinput(char *text, char *bindcmd)
 {
     if(!lastmenu) return;
     lastmenu->items.add(new mitemkeyinput(lastmenu, newstring(text), newstring(bindcmd), NULL));
 }
+COMMAND(menuitemkeyinput, "ss");
 
 void menuitemcheckbox(char *text, char *value, char *action)
 {
     if(!lastmenu) return;
     lastmenu->items.add(new mitemcheckbox(lastmenu, newstring(text), newstring(value), action[0] ? newstring(action) : NULL, NULL));
 }
+COMMAND(menuitemcheckbox, "sss");
 
 void menumdl(char *mdl, char *anim, int *rotspeed, int *scale)
 {
@@ -984,6 +1000,7 @@ void menumdl(char *mdl, char *anim, int *rotspeed, int *scale)
     menu.rotspeed = clamp(*rotspeed, 0, 100);
     menu.scale = clamp(*scale, 0, 100);
 }
+COMMAND(menumdl, "ssii");
 
 void menudirlist(char *dir, char *ext, char *action, int *image)
 {
@@ -997,6 +1014,7 @@ void menudirlist(char *dir, char *ext, char *action, int *image)
     d->action = action[0] ? newstring(action) : NULL;
     d->image = *image!=0;
 }
+COMMAND(menudirlist, "sssi");
 
 void chmenumdl(char *menu, char *mdl, char *anim, int *rotspeed, int *scale)
 {
@@ -1009,6 +1027,7 @@ void chmenumdl(char *menu, char *mdl, char *anim, int *rotspeed, int *scale)
     m.rotspeed = clamp(*rotspeed, 0, 100);
     m.scale = clamp(*scale, 0, 100);
 }
+COMMAND(chmenumdl, "sssii");
 
 bool parsecolor(color *col, const char *r, const char *g, const char *b, const char *a)
 {
@@ -1028,26 +1047,6 @@ void menuselectionbgcolor(char *r, char *g, char *b, char *a)
     if(!r[0]) { DELETEP(menuselbgcolor); return; }
     parsecolor(menuselbgcolor, r, g, b, a);
 }
-
-COMMAND(newmenu, "sii");
-COMMAND(menumdl, "ssii");
-COMMAND(menudirlist, "sssi");
-COMMAND(chmenumdl, "sssii");
-COMMANDN(showmenu, showmenu_, "s");
-COMMAND(closemenu, "s");
-COMMANDN(menufont, setmenufont, "s");
-COMMANDN(menucanblink, setmenublink, "i");
-COMMAND(menuinit, "s");
-COMMAND(menuinitselection, "i");
-COMMAND(menuselection, "si");
-COMMAND(menuitem, "ssss");
-COMMAND(menuitemvar, "sss");
-COMMAND(menuitemimage, "ssss");
-COMMAND(menuitemmapload, "ss");
-COMMAND(menuitemtextinput, "ssssii");
-COMMAND(menuitemslider, "siisiss");
-COMMAND(menuitemkeyinput, "ss");
-COMMAND(menuitemcheckbox, "sss");
 COMMAND(menuselectionbgcolor, "ssss");
 
 static bool iskeypressed(int key)
