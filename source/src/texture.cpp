@@ -489,7 +489,7 @@ void _texture(Slot &s, float *scale, char *name)
     if(scale)
     {
         s.orgscale = *scale;
-        s.scale = (*scale > 0 && *scale <= 2.0f) ? *scale : 1.0f;
+        s.scale = (*scale > 0 && *scale <= 4.0f) ? *scale : 1.0f;
     }
 }
 
@@ -498,7 +498,7 @@ COMMANDF(texture, "fs", (float *scale, char *name)
     intret(slots.length());
     Slot &s = slots.add();
     _texture(s, scale, name);
-    if(*scale < 0.0f || *scale > 2.0f) conoutf("\f3texture slot #%d \"%s\" error: scale factor %.7g out of range 0..2", slots.length() - 1, name, *scale);
+    if(*scale < 0.0f || *scale > 4.0f) conoutf("\f3texture slot #%d \"%s\" error: scale factor %.7g out of range 0..4", slots.length() - 1, name, *scale);
     flagmapconfigchange();
 });
 
