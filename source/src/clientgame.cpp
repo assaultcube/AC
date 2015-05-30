@@ -1593,7 +1593,7 @@ COMMANDF(vote, "i", (int *v) { vote(*v); });
 
 void cmd_pause(int *arg1)
 {
-    if (*arg1!=0 || *arg1!=1) return;
+    if (*arg1!=0 && *arg1!=1) return;
     if (servstate.mastermode != MM_MATCH)
     {
         conoutf("You may only pause the game in mastermode match.");
