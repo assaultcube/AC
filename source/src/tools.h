@@ -953,6 +953,8 @@ extern bool createdir(const char *path);
 extern size_t fixpackagedir(char *dir);
 extern void sethomedir(const char *dir);
 extern void addpackagedir(const char *dir);
+extern int findfilelocation;
+enum { FFL_WORKDIR = -1, FFL_HOME = 0 };
 extern const char *findfile(const char *filename, const char *mode);
 extern int getfilesize(const char *filename);
 extern stream *openrawfile(const char *filename, const char *mode);

@@ -217,12 +217,15 @@ void addpackagedir(const char *dir)
     }
 }
 
+int findfilelocation;
+
 const char *findfile(const char *filename, const char *mode)
 {
     while(filename[0] == PATHDIV) filename++; // skip leading pathdiv
     while(!strncmp(".." PATHDIVS, filename, 3)) filename += 3; // skip leading "../" (don't allow access to files below "AC root dir")
     static string s;
     formatstring(s)("%s%s", homedir, filename);         // homedir may be ""
+    findfilelocation = FFL_HOME;
     if(homedir[0] && fileexists(s, mode)) return s;
     if(mode[0]=='w' || mode[0]=='a')
     { // create missing directories, if necessary
@@ -240,9 +243,11 @@ const char *findfile(const char *filename, const char *mode)
     }
     loopv(packagedirs)
     {
+        findfilelocation++;
         formatstring(s)("%s%s", packagedirs[i], filename);
         if(fileexists(s, mode)) return s;
     }
+    findfilelocation = FFL_WORKDIR;
     return filename;
 }
 
