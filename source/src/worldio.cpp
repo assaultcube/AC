@@ -404,6 +404,8 @@ void automapconfig()
 }
 COMMAND(automapconfig, "");
 
+COMMANDF(getautomapconfig, "", () { intret((hdr.flags & MHF_AUTOMAPCONFIG) != 0); });
+
 void flagmapconfigchange()
 { // if changes are tracked, because automapcfg is enabled and the change is not read from a config file -> set unsaved edits flag
     if(execcontext != IEXC_MAPCFG && hdr.flags & MHF_AUTOMAPCONFIG) unsavededits++;

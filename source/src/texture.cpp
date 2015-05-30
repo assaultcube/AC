@@ -949,6 +949,36 @@ void gettexturelist(char *_filter, char *_exclude, char *_exts) // create a list
 }
 COMMAND(gettexturelist, "sss");
 
+void textureslotusagelist(char *what)
+{
+    int used[256] =  { 0 };
+    if(strcmp(what, "onlygeometry"))
+    { // if not only geometry, cound map model usage
+        loopv(ents) if(ents[i].type == MAPMODEL) used[ents[i].attr4]++;
+        used[0] = 0;
+    }
+    if(strcmp(what, "onlymodels"))
+    { // if not only models, count map geometry
+        sqr *s = world;
+        loopirev(cubicsize)
+        {
+            used[s->wtex]++;
+            if(s->type != SOLID)
+            {
+                used[s->ctex]++;
+                used[s->ftex]++;
+                used[s->utex]++;
+            }
+            s++;
+        }
+    }
+    vector<char> res;
+    loopi(256) cvecprintf(res, "%d ", used[i]);
+    res.last() = '\0';
+    result(res.getbuf());
+}
+COMMAND(textureslotusagelist, "s");
+
 bool testworldtexusage(int n)
 {
     sqr *s = world;
@@ -1035,6 +1065,30 @@ void edittextureslot(int *n, char *scale, char *name) // edit slot parameters !=
     result(res);
 }
 COMMAND(edittextureslot, "iss");
+
+void gettextureorigin(char *fname)
+{
+    defformatstring(s)("packages/textures/%s", fname);
+    findfile(path(s), "r");
+    const char *res = s;
+    switch(findfilelocation)
+    {
+        case FFL_WORKDIR: res = fileexists(s, "r") ? "official" : "<file not found>"; break;
+        case FFL_HOME:    res = "custom";                                             break;
+        default:          formatstring(s)("package dir #%d", findfilelocation);       break;
+    }
+    result(res);
+}
+COMMAND(gettextureorigin, "s");
+
+void textureslotbyname(char *name) // returns the slot(s) that a certain texture file is configured in
+{
+    string res = "";
+    loopv(slots) if(!strcmp(name, slots[i].name)) concatformatstring(res, "%s%d", *res ? " " : "", i);
+    result(res);
+}
+COMMAND(textureslotbyname, "s");
+
 
 // helper functions to allow copy&paste between different maps while keeping the proper textures assigned
 // (pasting will add any missing texture slots)

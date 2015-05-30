@@ -622,6 +622,20 @@ void tofronttex()                                       // maintain most recentl
     }
 }
 
+const char *texturestacktypes[] = { "floor", "wall", "ceiling", "" };
+
+void edittexturestack(char *what, int *slot) // manually manipulate the "last-used" texture lists to put certain textures up front
+{
+    tofronttex(); // keep laste edited texture
+    int n = getlistindex(what, texturestacktypes, true, -1);
+    if(n >= 0)
+    {
+        loopi(256) if(hdr.texlists[n][i] == *slot) curedittex[n] = i; // find stack index of wanted texture slot
+    }
+    tofronttex();
+}
+COMMAND(edittexturestack, "si");
+
 void editdrag(bool isdown)
 {
     if((dragging = isdown))

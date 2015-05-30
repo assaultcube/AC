@@ -905,3 +905,53 @@ void editmapsoundslot(int *n, char *name, char *maxuses) // edit slot parameters
 }
 COMMAND(editmapsoundslot, "isssss");
 
+void getmapsoundorigin(char *fname)
+{
+    defformatstring(s)("packages/audio/ambience/%s", fname);
+    findfile(path(s), "r");
+    const char *res = s;
+    switch(findfilelocation)
+    {
+        case FFL_WORKDIR: res = fileexists(s, "r") ? "official" : "<file not found>"; break;
+        case FFL_HOME:    res = "custom";                                             break;
+        default:          formatstring(s)("package dir #%d", findfilelocation);       break;
+    }
+    result(res);
+}
+COMMAND(getmapsoundorigin, "s");
+
+void mapsoundslotbyname(char *name) // returns the slot(s) that a certain mapsound file is used in
+{
+    string res = "";
+    loopv(mapconfigdata.mapsoundlines) if(!strcmp(name, mapconfigdata.mapsoundlines[i].name)) concatformatstring(res, "%s%d", *res ? " " : "", i);
+    result(res);
+}
+COMMAND(mapsoundslotbyname, "s");
+
+void getmapsoundlist() // create a list of mapsound filenames
+{
+    vector<char *> files;
+    listfilesrecursive("packages/audio/ambience", files);
+    files.sort(stringsort);
+    loopvrev(files) if(files.inrange(i + 1) && !strcmp(files[i], files[i + 1])) delstring(files.remove(i + 1)); // remove doubles
+    int pn = strlen("packages/audio/ambience/");
+    vector<char> res;
+    loopv(files)
+    {
+        if(!strncmp(files[i], "packages/audio/ambience/", pn))
+        {
+            const char *s = files[i] + pn;
+            int sn = strlen(s);
+            if(sn > 4)
+            {
+                const char *e = s + sn - 4;
+                if(!strcmp(e, ".ogg") || !strcmp(e, ".wav")) cvecprintf(res, "\"%s\"\n", s);
+            }
+        }
+    }
+    if(res.length()) res.last() = '\0';
+    else res.add('\0');
+    files.deletearrays();
+    result(res.getbuf());
+}
+COMMAND(getmapsoundlist, "");
