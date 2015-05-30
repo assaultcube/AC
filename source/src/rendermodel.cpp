@@ -303,7 +303,7 @@ void cleanupmodels()
     enumerate(mdllookup, model *, m, m->cleanup());
 }
 
-void mapmodelattributes_(char *name, char *attr)    // mostly for debugging purposes...
+void getmapmodelattributes(char *name, char *attr)
 {
     const char *res = NULL;
     mapmodelattributes **ap = mdlregistry.access(name), *a = ap ? *ap : NULL;
@@ -320,7 +320,7 @@ void mapmodelattributes_(char *name, char *attr)    // mostly for debugging purp
     }
     result(res ? res : "");
 }
-COMMANDN(mapmodelattributes, mapmodelattributes_, "is");
+COMMAND(getmapmodelattributes, "ss");
 
 static int mmasortorder = 0;
 int mmasort(mapmodelattributes **a, mapmodelattributes **b) { return strcmp((*a)->name, (*b)->name); }
@@ -347,7 +347,7 @@ void writemapmodelattributes()
     delete f;
 }
 
-void getmapmodelattributes(char **args, int numargs) // create a list of mapmodel paths and selected attributes
+void listallmapmodelattributes(char **args, int numargs) // create a list of mapmodel paths and selected attributes
 {
     // parse argument list
     vector<const char *> opts;
@@ -396,7 +396,7 @@ void getmapmodelattributes(char **args, int numargs) // create a list of mapmode
     loopv(emmas) { delstring(emmas[i]->n[MMA_KEYWORDS]); delete emmas[i]; } // only delete what was exploded
     result(res.getbuf());
 }
-COMMAND(getmapmodelattributes, "v");
+COMMAND(listallmapmodelattributes, "v");
 
 VARP(dynshadow, 0, 40, 100);
 VARP(dynshadowdecay, 0, 1000, 3000);
