@@ -960,6 +960,7 @@ void silenttimeupdate(int milliscur, int millismax)
 
 void timeupdate(int milliscur, int millismax)
 {
+    if (ispaused) return;
     static int lastgametimedisplay = 0;
 
     silenttimeupdate(milliscur, millismax);
