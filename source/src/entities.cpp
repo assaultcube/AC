@@ -242,6 +242,7 @@ void renderentities()
                     ce.attr1 = (mmi.zoff + float(e.attr3) / ENTSCALE5) * ENTSCALE10;
                     ce.attr2 = ce.attr3 = mmi.rad * ENTSCALE5;
                     ce.attr4 = mmi.h * ENTSCALE5;
+                    ce.attr5 = ce.attr6 = ce.attr7 = 0;
                     renderclip(ce);
                 }
             }
