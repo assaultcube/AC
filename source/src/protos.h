@@ -485,6 +485,7 @@ extern void calcmapdims();
 extern bool empty_world(int factor, bool force);
 extern void remip(const block &b, int level = 0);
 extern void remipmore(const block &b, int level = 0);
+extern bool pinnedclosestent;
 extern int closestent();
 extern void deletesoundentity(entity &e);
 extern int findtype(const char *what);

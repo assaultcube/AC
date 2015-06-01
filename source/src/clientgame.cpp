@@ -1085,6 +1085,7 @@ void resetmap(bool mrproper)
     pruneundos();
     changedents.setsize(0);
     deleted_ents.setsize(0);
+    pinnedclosestent = false;
     particlereset();
     if(mrproper)
     {

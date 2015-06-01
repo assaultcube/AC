@@ -128,9 +128,18 @@ void closestenttype(char *what)
 COMMAND(nextclosestent, "");
 COMMAND(closestenttype, "s");
 
+bool pinnedclosestent = false;
+static int pinnedent = -1;
+COMMANDF(toggleclosestentpin, "", () { pinnedclosestent = ents.inrange((pinnedent = pinnedclosestent ? -1 : closestent())); });
+
 int closestent()        // used for delent and edit mode ent display
 {
     if(noteditmode("closestent")) return -1;
+    if(pinnedclosestent)
+    {
+        if(ents.inrange(pinnedent) && ents[pinnedent].type != NOTUSED) return pinnedent;
+        pinnedclosestent = false; // release lock when ent is deleted
+    }
     int best = -1, bcnt = 0;
     float bdist = 99999;
     loopj(3)

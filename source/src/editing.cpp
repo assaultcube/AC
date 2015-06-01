@@ -106,7 +106,7 @@ char *editinfo()
     {
         entity &c = ents[e];
         int t = c.type < MAXENTTYPES ? c.type : 0;
-        formatstring(info)("closest entity: %s (%s)", entnames[t], formatentityattributes(c, true));
+        formatstring(info)("%s entity: %s (%s)", pinnedclosestent ? "\fs\f3pinned\fr" : "closest", entnames[t], formatentityattributes(c, true));
         const char *slotinfo = "unassigned slot";
         if(t == MAPMODEL)
         {
