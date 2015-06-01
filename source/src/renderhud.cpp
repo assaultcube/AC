@@ -17,7 +17,7 @@ inline void turn_on_transparency(int alpha = 255)
 void drawequipicon(float x, float y, int col, int row)
 {
     static Texture *tex = NULL;
-    if(!tex) tex = textureload("packages/misc/items.png", 4);
+    if(!tex) tex = textureload("packages/misc/items.png", 3);
     if(tex)
     {
         turn_on_transparency();
