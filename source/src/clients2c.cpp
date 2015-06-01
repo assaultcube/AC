@@ -848,7 +848,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 {
                     int cn = getint(p);
                     if(p.overread() || cn<0) break;
-                    int state = getint(p), lifesequence = getint(p), primary = getint(p), gunselect = getint(p), flagscore = getint(p), frags = getint(p), deaths = getint(p), health = getint(p), armour = getint(p), points = getint(p);
+                    int state = getint(p), lifesequence = getint(p), primary = getint(p), gunselect = getint(p), flagscore = getint(p), frags = getint(p), rounds = getint(p), deaths = getint(p), health = getint(p), armour = getint(p), points = getint(p);
                     int teamkills = 0;
                     if(!demo || !watchingdemo || demoprotocol > 1132) teamkills = getint(p);
                     int ammo[NUMGUNS], mag[NUMGUNS];
@@ -860,6 +860,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     d->lifesequence = lifesequence;
                     d->flagscore = flagscore;
                     d->frags = frags;
+                    d->rounds = rounds;
                     d->deaths = deaths;
                     d->points = points;
                     d->tks = teamkills;
@@ -889,6 +890,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     filtertext(ds.name, text, FTXT__PLAYERNAME, MAXNAMELEN);
                     ds.flags = getint(p);
                     ds.frags = getint(p);
+                    ds.rounds = getint(p);
                     ds.deaths = getint(p);
                     ds.points = getint(p);
                 }
@@ -1064,6 +1066,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
             {
                 int acn = getint(p);
                 playerent *alive = getclient(acn);
+                if (alive) alive->rounds++;
                 conoutf(_("the round is over! next round in 5 seconds..."));
                 if(m_botmode && acn==-2) hudoutf(_("the bots have won the round!"));
                 else if(acn==-1) hudoutf(_("everyone died!"));

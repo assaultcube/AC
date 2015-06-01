@@ -116,7 +116,7 @@ struct clientstate : playerstate
     projectilestate<8> grenades;
     int akimbomillis;
     bool scoped;
-    int flagscore, frags, teamkills, deaths, shotdamage, damage, points, events, lastdisc, reconnections;
+    int flagscore, rounds, frags, teamkills, deaths, shotdamage, damage, points, events, lastdisc, reconnections;
 
     clientstate() : state(CS_DEAD) {}
 
@@ -139,7 +139,7 @@ struct clientstate : playerstate
         grenades.reset();
         akimbomillis = 0;
         scoped = forced = false;
-        flagscore = frags = teamkills = deaths = shotdamage = damage = points = events = lastdisc = reconnections = 0;
+        flagscore = frags = rounds = teamkills = deaths = shotdamage = damage = points = events = lastdisc = reconnections = 0;
         respawn();
     }
 
@@ -160,17 +160,18 @@ struct savedscore
 {
     string name;
     uint ip;
-    int frags, flagscore, deaths, teamkills, shotdamage, damage, team, points, events, lastdisc, reconnections;
+    int rounds, frags, flagscore, deaths, teamkills, shotdamage, damage, team, points, events, lastdisc, reconnections;
     bool valid, forced;
 
     void reset()
     {
         // to avoid 2 connections with the same score... this can disrupt some laggers that eventually produces 2 connections (but it is rare)
-        frags = flagscore = deaths = teamkills = shotdamage = damage = points = events = lastdisc = reconnections = 0;
+        rounds = frags = flagscore = deaths = teamkills = shotdamage = damage = points = events = lastdisc = reconnections = 0;
     }
 
     void save(clientstate &cs, int t)
     {
+        rounds = cs.rounds;
         frags = cs.frags;
         flagscore = cs.flagscore;
         deaths = cs.deaths;
@@ -188,6 +189,7 @@ struct savedscore
 
     void restore(clientstate &cs)
     {
+        cs.rounds = rounds;
         cs.frags = frags;
         cs.flagscore = flagscore;
         cs.deaths = deaths;

@@ -1280,6 +1280,7 @@ void arenacheck()
     }
     if(!dead || gamemillis < lastdeath + 500) return;
     items_blocked = true;
+    if (alive) alive->state.rounds++;
     sendf(-1, 1, "ri2", SV_ARENAWIN, alive ? alive->clientnum : -1);
     arenaround = gamemillis+5000;
     if(autoteam && m_teammode) refillteams(true);
@@ -2358,6 +2359,7 @@ void senddisconnectedscores(int cn)
                 sendstring(sc.name, p);
                 putint(p, sc.flagscore);
                 putint(p, sc.frags);
+                putint(p, sc.rounds);
                 putint(p, sc.deaths);
                 putint(p, sc.points);
             }
@@ -2483,7 +2485,7 @@ void sendiplist(int receiver, int cn)
 
 void sendresume(client &c, bool broadcast)
 {
-    sendf(broadcast ? -1 : c.clientnum, 1, "ri3i9ivvi", SV_RESUME,
+    sendf(broadcast ? -1 : c.clientnum, 1, "ri3i9iivvi", SV_RESUME,
             c.clientnum,
             c.state.state,
             c.state.lifesequence,
@@ -2491,6 +2493,7 @@ void sendresume(client &c, bool broadcast)
             c.state.gunselect,
             c.state.flagscore,
             c.state.frags,
+            c.state.rounds,
             c.state.deaths,
             c.state.health,
             c.state.armour,
@@ -2603,6 +2606,7 @@ void welcomepacket(packetbuf &p, int n)
             putint(p, c.state.gunselect);
             putint(p, c.state.flagscore);
             putint(p, c.state.frags);
+            putint(p, c.state.rounds);
             putint(p, c.state.deaths);
             putint(p, c.state.health);
             putint(p, c.state.armour);
@@ -4327,4 +4331,3 @@ int main(int argc, char **argv)
     #endif
 }
 #endif
-

@@ -15,6 +15,7 @@ void showscores(bool on)
 COMMANDF(showscores, "i", (int *on) { showscores(*on != 0); });
 
 VARFP(sc_flags,      0,  0, 100, needscoresreorder = true);
+VARFP(sc_rounds,      0,  0, 100, needscoresreorder = true);
 VARFP(sc_frags,      0,  1, 100, needscoresreorder = true);
 VARFP(sc_deaths,    -1,  2, 100, needscoresreorder = true);
 VARFP(sc_ratio,     -1, -1, 100, needscoresreorder = true);
@@ -86,15 +87,16 @@ vector<discscore> discscores;
 
 struct teamscore
 {
-    int team, frags, deaths, flagscore, points;
+    int team, rounds, frags, deaths, flagscore, points;
     vector<playerent *> teammembers;
-    teamscore(int t) : team(t), frags(0), deaths(0), flagscore(0), points(0) {}
+    teamscore(int t) : team(t), rounds(0), frags(0), deaths(0), flagscore(0), points(0) {}
 
     void addplayer(playerent *d)
     {
         if(!d) return;
         teammembers.add(d);
         frags += d->frags;
+        rounds += d->rounds;
         deaths += d->deaths;
         points += d->points;
         if(m_flags) flagscore += d->flagscore;
@@ -103,6 +105,7 @@ struct teamscore
     void addscore(discscore &d)
     {
         frags += d.frags;
+        rounds += d.rounds;
         deaths += d.deaths;
         points += d.points;
         if(m_flags) flagscore += d.flags;
@@ -189,6 +192,7 @@ void renderdiscscores(int team)
         const char *clag = team_isspect(d.team) ? "SPECT" : "";
 
         if(m_flags) line.addcol(sc_flags, "%d", d.flags);
+        if(m_lms) line.addcol(sc_rounds, "%d", d.rounds);
         line.addcol(sc_frags, "%d", d.frags);
         line.addcol(sc_deaths, "%d", d.deaths);
         line.addcol(sc_ratio, "%.2f", SCORERATIO(d.frags, d.deaths));
@@ -221,6 +225,7 @@ void renderscore(playerent *d)
     line.bgcolor = d==player1 ? &localplayerc : NULL;
 
     if(m_flags) line.addcol(sc_flags, "%d", d->flagscore);
+    if(m_lms) line.addcol(sc_rounds, "%d", d->rounds);
     line.addcol(sc_frags, "%d", d->frags);
     line.addcol(sc_deaths, "%d", d->deaths);
     line.addcol(sc_ratio, "%.2f", SCORERATIO(d->frags, d->deaths));
@@ -247,6 +252,7 @@ int renderteamscore(teamscore *t)
     defformatstring(plrs)("(%d %s)", n, n == 1 ? "player" : "players");
 
     if(m_flags) line.addcol(sc_flags, "%d", t->flagscore);
+    if(m_lms) line.addcol(sc_rounds, "%d", t->rounds);
     line.addcol(sc_frags, "%d", t->frags);
     line.addcol(sc_deaths, "%d", t->deaths);
     line.addcol(sc_ratio, "%.2f", SCORERATIO(t->frags, t->deaths));
@@ -274,6 +280,7 @@ void reorderscorecolumns()
     sline sscore;
 
     if(m_flags) sscore.addcol(sc_flags, "flags");
+    if(m_lms) sscore.addcol(sc_rounds, "rounds");
     sscore.addcol(sc_frags, "frags");
     sscore.addcol(sc_deaths, "deaths");
     sscore.addcol(sc_ratio, "ratio");
