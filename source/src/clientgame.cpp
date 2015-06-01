@@ -1142,8 +1142,8 @@ void startmap(const char *name, bool reset, bool norespawn)   // called just aft
 
     if(!reset) return;
 
-    player1->frags = player1->flagscore = player1->deaths = player1->lifesequence = player1->points = player1->tks = 0;
-    loopv(players) if(players[i]) players[i]->frags = players[i]->flagscore = players[i]->deaths = players[i]->lifesequence = players[i]->points = players[i]->tks = 0;
+    player1->frags = player1->rounds = player1->flagscore = player1->deaths = player1->lifesequence = player1->points = player1->tks = 0;
+    loopv(players) if(players[i]) players[i]->frags = players[i]->rounds = players[i]->flagscore = players[i]->deaths = players[i]->lifesequence = players[i]->points = players[i]->tks = 0;
     if(editmode) toggleedit(true);
     intermission = false;
     showscores(false);

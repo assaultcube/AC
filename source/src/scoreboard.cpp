@@ -132,6 +132,8 @@ static int teamscorecmp(const teamscore *x, const teamscore *y)
 {
     if(x->flagscore > y->flagscore) return -1;
     if(x->flagscore < y->flagscore) return 1;
+    if(m_lms && x->rounds > y->rounds) return -1;
+    if(m_lms && x->rounds < x->rounds) return 1;
     if(x->frags > y->frags) return -1;
     if(x->frags < y->frags) return 1;
     if(x->points > y->points) return -1;
@@ -144,6 +146,8 @@ static int scorecmp(playerent **x, playerent **y)
 {
     if((*x)->flagscore > (*y)->flagscore) return -1;
     if((*x)->flagscore < (*y)->flagscore) return 1;
+    if(m_lms && (*x)->rounds > (*y)->rounds) return -1;
+    if(m_lms && (*x)->rounds < (*y)->rounds) return 1;
     if((*x)->frags > (*y)->frags) return -1;
     if((*x)->frags < (*y)->frags) return 1;
     if((*x)->points > (*y)->points) return -1;
@@ -161,6 +165,8 @@ static int discscorecmp(const discscore *x, const discscore *y)
     if(x->team > y->team) return 1;
     if(m_flags && x->flags > y->flags) return -1;
     if(m_flags && x->flags < y->flags) return 1;
+    if(m_lms && x->rounds > y->rounds) return -1;
+    if(m_lms && x->rounds < y->rounds) return 1;
     if(x->frags > y->frags) return -1;
     if(x->frags < y->frags) return 1;
     if(x->deaths > y->deaths) return 1;
@@ -329,10 +335,9 @@ void renderscores(void *menu, bool init)
             renderteamscore(&teamscores[sort ^ i]);
             renderdiscscores(sort ^ i);
         }
-        winner = m_flags ?
-            (teamscores[sort].flagscore > teamscores[team_opposite(sort)].flagscore ? sort : -1) :
-            (teamscores[sort].frags > teamscores[team_opposite(sort)].frags ? sort : -1);
-
+        if (m_flags) winner = teamscores[sort].flagscore > teamscores[team_opposite(sort)].flagscore ? sort : -1;
+        else if (m_lms) winner = teamscores[sort].rounds > teamscores[team_opposite(sort)].rounds ? sort : -1;
+        else winner = teamscores[sort].frags > teamscores[team_opposite(sort)].frags ? sort : -1;
     }
     else
     { // ffa mode
@@ -343,6 +348,7 @@ void renderscores(void *menu, bool init)
             winner = scores[0]->clientnum;
             if(scores.length() > 1
                 && ((m_flags && scores[0]->flagscore == scores[1]->flagscore)
+                     || (m_lms && scores[0]->rounds == scores[1]->rounds)
                      || (!m_flags && scores[0]->frags == scores[1]->frags)))
                 winner = -1;
         }
