@@ -1037,6 +1037,16 @@ void chmenumdl(char *menu, char *mdl, char *anim, int *rotspeed, int *scale)
 }
 COMMAND(chmenumdl, "sssii");
 
+void chmenutexture(char *menu, char *texname)
+{
+    if(!*menu || !menus.access(menu)) return;
+    gmenu &m = menus[menu];
+    char *newtex = *texname ? newstring(texname) : NULL;
+    DELETEA(m.previewtexture);
+    m.previewtexture = newtex;
+}
+COMMAND(chmenutexture, "ss");
+
 bool parsecolor(color *col, const char *r, const char *g, const char *b, const char *a)
 {
     if(!r[0] || !col) return false;    // four possible parameter schemes:
@@ -1310,6 +1320,40 @@ void gmenu::init()
     loopv(items) items[i]->init();
 }
 
+FVAR(menutexturesize, 0.1f, 1.0f, 5.0f);
+
+void rendermenutexturepreview(char *previewtexture, int w)
+{
+    static Texture *pt = NULL;
+    static char *last_pt = NULL;
+    if(previewtexture != last_pt)
+    {
+        defformatstring(texpath)("packages/textures/%s", previewtexture);
+        pt = textureload(texpath);
+        last_pt = previewtexture;
+    }
+    if(pt && pt != notexture && pt->xs && pt->ys)
+    {
+        int xs = (VIRTW * menutexturesize) / 4, ys = (xs * pt->ys) / pt->xs, ysmax = (3 * VIRTH) / 2;
+        if(ys > ysmax) ys = ysmax, xs = (ys * pt->xs) / pt->ys;
+        int x = (6 * VIRTW + w - 2 * xs) / 4, y = VIRTH - ys / 2 - 2 * FONTH;
+        blendbox(x - FONTH/2, y - FONTH/2, x + xs + FONTH/2, y + ys + FONTH/2, false);
+        glBindTexture(GL_TEXTURE_2D, pt->id);
+        glDisable(GL_BLEND);
+        glColor3f(1, 1, 1);
+        glBegin(GL_TRIANGLE_STRIP);
+        glTexCoord2f(0, 0); glVertex2f(x,    y);
+        glTexCoord2f(1, 0); glVertex2f(x+xs, y);
+        glTexCoord2f(0, 1); glVertex2f(x,    y+ys);
+        glTexCoord2f(1, 1); glVertex2f(x+xs, y+ys);
+        glEnd();
+        xtraverts += 4;
+        glEnable(GL_BLEND);
+        defformatstring(res)("%dx%d", pt->xs, pt->ys);
+        draw_text(res, x, y + ys + 2 * FONTH);
+    }
+}
+
 void gmenu::render()
 {
     extern bool ignoreblinkingbit;
@@ -1417,6 +1461,7 @@ void gmenu::render()
             draw_text(items[menusel]->getdesc(), x, y);
 
     }
+    if(previewtexture && *previewtexture) rendermenutexturepreview(previewtexture, w);
     if(usefont) popfont(); // setfont("default");
     ignoreblinkingbit = false;
 }
