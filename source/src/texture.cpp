@@ -928,7 +928,7 @@ void gettexturelist(char *_filter, char *_exclude, char *_exts) // create a list
     bool cutext = exts.length() == 1 && exts[0][0] != '.';
     loopv(files)
     {
-        char *f = files[i] += pn;
+        char *f = files[i] + pn;
         const char *p = parentdir(f), *b = behindpath(f);
         cvecprintf(res, "\"%s\" \"%s\"", p, b);  // always add columns for path (without "packages/textures/") and filename
         if(cutprefix) cvecprintf(res, " \"%s\"", int(strlen(p)) > filter_n[0] ? p + filter_n[0] : "");  // if there's exactly one filter string, add column with that string omitted
@@ -945,6 +945,7 @@ void gettexturelist(char *_filter, char *_exclude, char *_exts) // create a list
     filter.deletearrays();
     exclude.deletearrays();
     exts.deletearrays();
+    files.deletearrays();
     result(res.getbuf());
 }
 COMMAND(gettexturelist, "sss");
