@@ -442,7 +442,7 @@ void getcurrentmapconfig(vector<char> &f, bool onlysounds)
     loopv(mapconfigdata.mapsoundlines)
     {
         mapsoundline &s = mapconfigdata.mapsoundlines[i];
-        cvecprintf(f, "mapsound \"%s\" %d\n", s.name, s.maxuses);
+        cvecprintf(f, "mapsound \"ambience/%s\" %d\n", s.name, s.maxuses);
     }
     cvecprintf(f, "\n");
     f.add('\0');

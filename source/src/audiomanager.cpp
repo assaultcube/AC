@@ -812,15 +812,26 @@ COMMANDF(registersound, "siii", (char *name, int *vol, int *loop, int *audiblera
     intret(audiomgr.addsound(name, *vol, -1, *loop != 0, gamesounds, true, *audibleradius));
 });
 
+const char *mapsoundbasepath = "packages/audio/", *mapsoundfinalpath = "ambience/";
+const int mapsoundbasepath_n = strlen(mapsoundbasepath), mapsoundfinalpath_n = strlen(mapsoundfinalpath);
+
 COMMANDF(mapsound, "si", (char *name, int *maxuses)
 {
     filtertext(name, name, FTXT__MEDIAFILEPATH);
-    audiomgr.addsound(name, 255, *maxuses, true, mapsounds, false, 0);
-    intret(mapconfigdata.mapsoundlines.length());
-    copystring(mapconfigdata.mapsoundlines.add().name, name);
-    mapconfigdata.mapsoundlines.last().maxuses = *maxuses;
-    mapsoundchanged = 1;
-    flagmapconfigchange();
+    defformatstring(stripped)("%s%s", mapsoundbasepath, name);
+    unixpath(path(stripped));
+    if(!strncmp(stripped, mapsoundbasepath, mapsoundbasepath_n))
+    {
+        name = stripped + mapsoundbasepath_n;
+        audiomgr.addsound(name, 255, *maxuses, true, mapsounds, false, 0);
+        intret(mapconfigdata.mapsoundlines.length());
+        if(!strncmp(name, mapsoundfinalpath, mapsoundfinalpath_n)) name += mapsoundfinalpath_n; // base path for mapsoundlines is "packages/audio/ambience"
+        copystring(mapconfigdata.mapsoundlines.add().name, name);
+        mapconfigdata.mapsoundlines.last().maxuses = *maxuses;
+        mapsoundchanged = 1;
+        flagmapconfigchange();
+    }
+    else conoutf("\f3error: mapsound \"%s\" outside packages/audio/", stripped);
 });
 
 COMMANDF(registermusic, "s", (char *name)
@@ -893,7 +904,7 @@ void editmapsoundslot(int *n, char *name, char *maxuses) // edit slot parameters
         if(*name || *maxuses)
         { // change attributes
             if(*maxuses) msl.maxuses = strtol(maxuses, NULL, 0);
-            if(*name) copystring(msl.name, name);
+            if(*name) copystring(msl.name, strncmp(name, mapsoundfinalpath, mapsoundfinalpath_n) ? name : name + mapsoundfinalpath_n);
             reloadmapsoundconfig();
             mapsoundchanged = 1;
             unsavededits++;
