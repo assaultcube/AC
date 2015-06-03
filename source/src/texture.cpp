@@ -1005,7 +1005,7 @@ void textureslotusage(int *n) // returns all mapmodel entity indices that use a 
 }
 COMMAND(textureslotusage, "i");
 
-void deletetextureslot(int *n, char *opt) // delete texture slot - only if unused or "purge" is specified
+void deletetextureslot(int *n, char *opt, char *_replace) // delete texture slot - only if unused or "purge" is specified
 {
     if(noteditmode("deletetextureslot") || multiplayer(true) || !slots.inrange(*n)) return;
     bool purgeall = !strcmp(opt, "purge");
@@ -1013,17 +1013,19 @@ void deletetextureslot(int *n, char *opt) // delete texture slot - only if unuse
     loopv(ents) if(ents[i].type == MAPMODEL && ents[i].attr4 == *n) mmused = true;
     if(!purgeall && *n <= DEFAULT_CEIL) { conoutf("texture slots below #%d should usually not be deleted", DEFAULT_CEIL + 1); return; }
     if(!purgeall && (mmused || testworldtexusage(*n))) { conoutf("texture slot #%d is in use: can't delete", *n); return; }
-    int deld = 0;
+    int deld = 0, replace = 256;
+    if(purgeall && isdigit(*_replace)) replace = strtol(_replace, NULL, 0) & 255;
+    if(replace > *n) replace--;
     sqr *s = world;
     loopirev(cubicsize)
     { // check, if cubes use the texture
-        if(s->wtex == *n) { s->wtex = 255; deld++; }
+        if(s->wtex == *n) { s->wtex = replace; deld++; }
         else if(s->wtex > *n) s->wtex--;
-        if(s->ctex == *n) { s->ctex = 255; deld++; }
+        if(s->ctex == *n) { s->ctex = replace; deld++; }
         else if(s->ctex > *n) s->ctex--;
-        if(s->ftex == *n) { s->ftex = 255; deld++; }
+        if(s->ftex == *n) { s->ftex = replace; deld++; }
         else if(s->ftex > *n) s->ftex--;
-        if(s->utex == *n) { s->utex = 255; deld++; }
+        if(s->utex == *n) { s->utex = replace; deld++; }
         else if(s->utex > *n) s->utex--;
         s++;
     }
@@ -1042,11 +1044,12 @@ void deletetextureslot(int *n, char *opt) // delete texture slot - only if unuse
     // FIXME: texlists...
     slots.remove(*n);
     defformatstring(m)(" (%d uses removed)", deld);
+    if(replace != 255) formatstring(m)(" (%d uses changed to use slot #%d)", deld, replace);
     conoutf("texture slot #%d deleted%s", *n, deld ? m : "");
     unsavededits++;
     hdr.flags |= MHF_AUTOMAPCONFIG; // requires automapcfg
 }
-COMMAND(deletetextureslot, "is");
+COMMAND(deletetextureslot, "iss");
 
 void edittextureslot(int *n, char *scale, char *name) // edit slot parameters != ""
 {
