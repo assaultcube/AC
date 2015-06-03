@@ -109,16 +109,19 @@ vector<mapmodelinfo> mapmodels;
 const char *mmpath = "mapmodels/";
 const char *mmshortname(const char *name) { return !strncmp(name, mmpath, strlen(mmpath)) ? name + strlen(mmpath) : name; }
 
-void mapmodel(int *rad, int *h, int *zoff, char *snap, char *name)
+void mapmodel(int *rad, int *h, int *zoff, char *scale, char *name)
 {
-    if(*snap && *name) // ignore "mapmodel" commands with insufficient parameters
+    if(*scale && *name) // ignore "mapmodel" commands with insufficient parameters
     {
         intret(mapmodels.length());
         mapmodelinfo &mmi = mapmodels.add();
         mmi.rad = *rad;
         mmi.h = *h;
         mmi.zoff = *zoff;
+        mmi.scale = atof(scale);
+        if(mmi.scale < 0.25f || mmi.scale > 4.0f) mmi.scale = 1.0f;
         mmi.m = NULL;
+
         filtertext(name, name, FTXT__MEDIAFILEPATH);
         formatstring(mmi.name)("%s%s", mmpath, name);
         mapmodelchanged = 1;
@@ -182,24 +185,27 @@ void deletemapmodelslot(int *n, char *opt) // delete mapmodel slot - only if unu
 }
 COMMAND(deletemapmodelslot, "is");
 
-void editmapmodelslot(int *n, char *rad, char *h, char *zoff, char *snap, char *name) // edit slot parameters != ""
+void editmapmodelslot(int *n, char *rad, char *h, char *zoff, char *scale, char *name) // edit slot parameters != ""
 {
     string res = "";
     if(!noteditmode("editmapmodelslot") && !multiplayer(true) && mapmodels.inrange(*n))
     {
         mapmodelinfo &mmi = mapmodels[*n];
-        if(*rad || *h || *zoff || *snap || *name)
+        if(*rad || *h || *zoff || *scale || *name)
         { // change attributes
             if(*rad) mmi.rad = strtol(rad, NULL, 0);
             if(*h) mmi.h = strtol(h, NULL, 0);
             if(*zoff) mmi.zoff = strtol(zoff, NULL, 0);
+            float s = atof(scale);
+            if(s < 0.25f || s > 4.0f) s = 1.0f;
+            if(*scale) mmi.scale = s;
             mmi.m = NULL;
             if(*name) formatstring(mmi.name)("%s%s", mmpath, name);
             unsavededits++;
             mapmodelchanged = 1;
             hdr.flags |= MHF_AUTOMAPCONFIG; // requires automapcfg
         }
-        formatstring(res)("%d %d %d 0 \"%s\"", mmi.rad, mmi.h, mmi.zoff, mmshortname(mmi.name)); // give back all current attributes
+        formatstring(res)("%d %d %d %s \"%s\"", mmi.rad, mmi.h, mmi.zoff, floatstr(mmi.scale, true), mmshortname(mmi.name)); // give back all current attributes
     }
     result(res);
 }
@@ -606,7 +612,7 @@ void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, fl
 
     if(rad >= 0)
     {
-        if(!rad) rad = m->radius;
+        if(!rad) rad = m->radius * scale;
         if(isoccluded(camera1->o.x, camera1->o.y, o.x-rad, o.y-rad, rad*2)) return;
     }
 

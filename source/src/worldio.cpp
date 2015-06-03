@@ -427,7 +427,7 @@ void getcurrentmapconfig(vector<char> &f, bool onlysounds)
         {
             mapmodelinfo &mmi = getmminfo(i);
             if(!&mmi) break;
-            cvecprintf(f, "mapmodel %d %d %d 0 \"%s\"\n", mmi.rad, mmi.h, mmi.zoff, mmshortname(mmi.name));
+            cvecprintf(f, "mapmodel %d %d %d %s \"%s\"\n", mmi.rad, mmi.h, mmi.zoff, mmi.scale == 1.0f ? "0" : floatstr(mmi.scale, true), mmshortname(mmi.name));
         }
         cvecprintf(f, "\ntexturereset\n");
         loopi(256)
