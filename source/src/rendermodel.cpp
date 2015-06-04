@@ -612,7 +612,12 @@ void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, fl
 
     if(rad >= 0)
     {
-        if(!rad) rad = m->radius * scale;
+        if(!rad)
+        {
+            rad = m->radius;
+            if(roll != 0 || pitch != 0) rad = max(m->radius, m->zradius);  // FIXME: this assumes worst-case even for small angles and should be eased up (especially for lamp posts)
+            rad *= scale;
+        }
         if(isoccluded(camera1->o.x, camera1->o.y, o.x-rad, o.y-rad, rad*2)) return;
     }
 

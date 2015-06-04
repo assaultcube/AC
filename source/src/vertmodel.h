@@ -566,10 +566,11 @@ __attribute__((optimize(2)))
             return vert;
         }
 
-        float calcradius()
+        float calcradius(float &zradius)
         {
-            float rad = 0;
-            loopi(numverts) rad = max(rad, verts[i].magnitudexy());
+            float rad = 0, zrad = 0;
+            loopi(numverts) rad = max(rad, verts[i].magnitudexy()), zrad = max(zrad, fabsf(verts[i].z));
+            zradius = zrad;
             return rad;
         }
 
@@ -1195,10 +1196,10 @@ __attribute__((optimize(2)))
             return s;
         }
 
-        float calcradius()
+        float calcradius(float &zradius)
         {
-            float rad = 0;
-            loopv(meshes) rad = max(rad, meshes[i]->calcradius());
+            float rad = 0, zrad = 0;
+            loopv(meshes) rad = max(rad, meshes[i]->calcradius(zrad)), zradius = max(zradius, zrad);
             return rad;
         }
 
@@ -1260,9 +1261,10 @@ __attribute__((optimize(2)))
         return parts.length()==1 && parts[0]->shadows;
     }
 
-    float calcradius()
+    float calcradius(float &zradius)
     {
-        return parts.empty() ? 0.0f : parts[0]->calcradius();
+        zradius = 0;
+        return parts.empty() ? 0.0f : parts[0]->calcradius(zradius);
     }
 
     void calcneighbors()

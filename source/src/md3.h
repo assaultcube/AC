@@ -248,7 +248,7 @@ struct md3 : vertmodel
             if(skin==notexture) conoutf("could not load model skin for %s", name1);
         }
         loopv(parts) parts[i]->scaleverts(scale/16.0f, vec(translate.x, -translate.y, translate.z));
-        radius = calcradius();
+        radius = calcradius(zradius);
         if(shadowdist) calcneighbors();
         calcbbs();
         return loaded = true;
