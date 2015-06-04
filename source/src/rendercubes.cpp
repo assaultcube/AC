@@ -148,7 +148,7 @@ bool editfocusdetails(sqr *s)
     if(showef)
     {
         const char *g = SOLID(s) ? "\f4" : "";
-        hudeditf(HUDMSG_EDITFOCUS, "%s: \fs%s%d..%d\fr W:%d \fs%sU:%d F:%d C:%d v:%d t:0x%X\fr", cubetypename(s->type), g, s->floor, s->ceil, s->wtex, g, s->utex, s->ftex, s->ctex, s->vdelta, s->tag);
+        hudeditf(HUDMSG_EDITFOCUS, "%s: \fs%s%d..%d\fr W:%d \fs%sU:%d F:%d C:%d v:%d t:0x%X (%02X%02X%02X)\fr", cubetypename(s->type), g, s->floor, s->ceil, s->wtex, g, s->utex, s->ftex, s->ctex, s->vdelta, s->tag, s->r, s->g, s->b);
         return true;
     }
     return false;
