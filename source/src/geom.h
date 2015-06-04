@@ -219,6 +219,58 @@ struct bvec
     vec tovec() const { return vec(x*(2.0f/255.0f)-1.0f, y*(2.0f/255.0f)-1.0f, z*(2.0f/255.0f)-1.0f); }
 };
 
+struct quat
+{
+    float x, y, z, w;
+
+    quat(float x, float y, float z, float w) : x(x), y(y), z(z), w(w) {}
+
+    quat(const vec &axis, float angle)
+    {
+        w = cosf(angle/2);
+        float s = sinf(angle/2);
+        x = s*axis.x;
+        y = s*axis.y;
+        z = s*axis.z;
+    }
+
+    quat(float yaw, float pitch) // quat(vec(0, 1, 0), pitch).mul(quat((vec(0, 0, 1), yaw))
+    {
+        yaw *= RAD / 2;
+        pitch *= RAD / 2;
+        float yw = cosf(yaw), ys = sinf(yaw);
+        float pw = cosf(pitch), ps = sinf(pitch);
+        x = ps * ys;
+        y = ps * yw;
+        z = pw * ys;
+        w = pw * yw;
+    }
+
+    quat &roll(float roll)  // quat(sinf(roll), 0, 0, cosf(roll)).mul(*this));
+    {
+        roll *= RAD / 2;
+        float px = sinf(roll), pw = cosf(roll);
+        quat o(*this);
+        x = pw * o.x + px * o.w;
+        y = pw * o.y - px * o.z;
+        z = pw * o.z + px * o.y;
+        w = pw * o.w - px * o.x;
+        return *this;
+    }
+/*
+    quat &mul(const quat &p, const quat &o)
+    {
+        x = p.w*o.x + p.x*o.w + p.y*o.z - p.z*o.y;
+        y = p.w*o.y - p.x*o.z + p.y*o.w + p.z*o.x;
+        z = p.w*o.z + p.x*o.y - p.y*o.x + p.z*o.w;
+        w = p.w*o.w - p.x*o.x - p.y*o.y - p.z*o.z;
+        return *this;
+    }
+
+    quat &mul(const quat &o) { return mul(quat(*this), o); }
+*/
+};
+
 struct glmatrixf
 {
     float v[16];
@@ -369,5 +421,29 @@ struct glmatrixf
     float determinant() const;
     void adjoint(const glmatrixf &m);
     bool invert(const glmatrixf &m, float mindet = 1.0e-10f);
+
+    void fromquat(quat &q)
+    {
+        float xx = q.x * q.x, xy = q.x * q.y, xz = q.x * q.z, xw = q.x * q.w,
+              yy = q.y * q.y, yz = q.y * q.z, yw = q.y * q.w,
+              zz = q.z * q.z, zw = q.z * q.w;
+        v[0]  = 1 - 2 * ( yy + zz );
+        v[1]  =     2 * ( xy - zw );
+        v[2]  =     2 * ( xz + yw );
+
+        v[4]  =     2 * ( xy + zw );
+        v[5]  = 1 - 2 * ( xx + zz );
+        v[6]  =     2 * ( yz - xw );
+
+        v[8]  =     2 * ( xz - yw );
+        v[9]  =     2 * ( yz + xw );
+        v[10] = 1 - 2 * ( xx + yy );
+
+        v[3]  = v[7] = v[11] = v[12] = v[13] = v[14] = 0;
+        v[15] = 1;
+    }
 };
+
+
+
 
