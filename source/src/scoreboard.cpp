@@ -130,8 +130,8 @@ void teamflagscores(int &team1, int &team2)
 
 static int teamscorecmp(const teamscore *x, const teamscore *y)
 {
-    if(x->flagscore > y->flagscore) return -1;
-    if(x->flagscore < y->flagscore) return 1;
+    if(m_flags && x->flagscore > y->flagscore) return -1;
+    if(m_flags && x->flagscore < y->flagscore) return 1;
     if(m_lms && x->rounds > y->rounds) return -1;
     if(m_lms && x->rounds < x->rounds) return 1;
     if(x->frags > y->frags) return -1;
@@ -144,8 +144,8 @@ static int teamscorecmp(const teamscore *x, const teamscore *y)
 
 static int scorecmp(playerent **x, playerent **y)
 {
-    if((*x)->flagscore > (*y)->flagscore) return -1;
-    if((*x)->flagscore < (*y)->flagscore) return 1;
+    if(m_flags && (*x)->flagscore > (*y)->flagscore) return -1;
+    if(m_flags && (*x)->flagscore < (*y)->flagscore) return 1;
     if(m_lms && (*x)->rounds > (*y)->rounds) return -1;
     if(m_lms && (*x)->rounds < (*y)->rounds) return 1;
     if((*x)->frags > (*y)->frags) return -1;
