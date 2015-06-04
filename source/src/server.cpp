@@ -1674,7 +1674,7 @@ int calcscores() // skill eval
     loopv(clients) if(clients[i]->type!=ST_EMPTY)
     {
         clientstate &cs = clients[i]->state;
-        sum += clients[i]->at3_score = cs.points > 0 ? ufSqrt((float)cs.points) : -ufSqrt((float)-cs.points);
+        sum += clients[i]->at3_score = cs.points > 0 ? sqrtf((float)cs.points) : -sqrtf((float)-cs.points);
     }
     return sum;
 }

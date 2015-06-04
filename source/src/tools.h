@@ -55,6 +55,8 @@ static inline T min(T a, T b)
     return a < b ? a : b;
 }
 
+template <typename T> inline T pow2(T x) { return x*x; }
+
 static inline float round(float x) { return floor(x + 0.5f); }
 
 #define clamp(x,minval,maxval) (max(minval, min(x, maxval)))
