@@ -726,9 +726,9 @@ bool load_world(char *mname)        // still supports all map formats that have 
             SCALEATTR(2);
             SCALEATTR(3);
             SCALEATTR(4);
-            SCALEATTR(5);
-            SCALEATTR(6);
-            SCALEATTR(7);
+            //SCALEATTR(5);  // no need to scale zeros
+            //SCALEATTR(6);
+            //SCALEATTR(7);
             #undef SCALEATTR
         }
         if(e.type == PLAYERSTART && (e.attr2 == 0 || e.attr2 == 1 || e.attr2 == 100))
