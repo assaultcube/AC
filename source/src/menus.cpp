@@ -313,17 +313,8 @@ struct mitemimagemanual : mitemmanual
             int xs = 0;
             if(image)
             {
-                glBindTexture(GL_TEXTURE_2D, image->id);
-                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-                glColor3f(1, 1, 1);
                 xs = (FONTH*image->xs)/image->ys;
-                glBegin(GL_TRIANGLE_STRIP);
-                glTexCoord2f(0, 0); glVertex2f(x,    y);
-                glTexCoord2f(1, 0); glVertex2f(x+xs, y);
-                glTexCoord2f(0, 1); glVertex2f(x,    y+FONTH);
-                glTexCoord2f(1, 1); glVertex2f(x+xs, y+FONTH);
-                glEnd();
-                xtraverts += 4;
+                framedquadtexture(image->id, x, y, xs, FONTH, 0, 255, true);
             }
             draw_text(text, !image || *text == '\t' ? x : x+xs + FONTH/2, y);
             if(altfont && strchr(text, '\a'))
@@ -345,17 +336,7 @@ struct mitemimagemanual : mitemmanual
                 w += FONTH;
                 int xs = (2 * VIRTW - w) / 5, ys = (xs * image->ys) / image->xs;
                 x = (6 * VIRTW + w - 2 * xs) / 4; y = VIRTH - ys / 2;
-                blendbox(x - FONTH, y - FONTH, x + xs + FONTH, y + ys + FONTH, false);
-                glBindTexture(GL_TEXTURE_2D, image->id);
-                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-                glColor3f(1, 1, 1);
-                glBegin(GL_TRIANGLE_STRIP);
-                glTexCoord2f(0, 0); glVertex2f(x,    y);
-                glTexCoord2f(1, 0); glVertex2f(x+xs, y);
-                glTexCoord2f(0, 1); glVertex2f(x,    y+ys);
-                glTexCoord2f(1, 1); glVertex2f(x+xs, y+ys);
-                glEnd();
-                xtraverts += 4;
+                framedquadtexture(image->id, x, y, xs, ys, FONTH);
             }
         }
         else mitemmanual::render(x, y, w);
@@ -438,19 +419,7 @@ struct mitemmaploadmanual : mitemmanual
                 w += FONTH;
                 int xs = (2 * VIRTW - w) / 5, ys = (xs * image->ys) / image->xs;
                 x = (6 * VIRTW + w - 2 * xs) / 4; y = VIRTH - ys / 2;
-
-                blendbox(x - FONTH, y - FONTH, x + xs + FONTH, y + ys + FONTH, false);
-                glBindTexture(GL_TEXTURE_2D, image->id);               // I just copy&pasted this...
-                glDisable(GL_BLEND);
-                glColor3f(1, 1, 1);
-                glBegin(GL_TRIANGLE_STRIP);
-                glTexCoord2f(0, 0); glVertex2f(x,    y);
-                glTexCoord2f(1, 0); glVertex2f(x+xs, y);
-                glTexCoord2f(0, 1); glVertex2f(x,    y+ys);
-                glTexCoord2f(1, 1); glVertex2f(x+xs, y+ys);
-                glEnd();
-                xtraverts += 4;
-                glEnable(GL_BLEND);
+                framedquadtexture(image->id, x, y, xs, ys, FONTH);
                 if(maptitle[0])
                 {
                     filtertext(maptitle, maptitle, FTXT__MAPMSG);
@@ -1342,18 +1311,8 @@ void rendermenutexturepreview(char *previewtexture, int w)
         int xs = (VIRTW * menutexturesize) / 4, ys = (xs * pt->ys) / pt->xs, ysmax = (3 * VIRTH) / 2;
         if(ys > ysmax) ys = ysmax, xs = (ys * pt->xs) / pt->ys;
         int x = (6 * VIRTW + w - 2 * xs) / 4, y = VIRTH - ys / 2 - 2 * FONTH;
-        blendbox(x - FONTH/2, y - FONTH/2, x + xs + FONTH/2, y + ys + FONTH/2, false);
-        glBindTexture(GL_TEXTURE_2D, pt->id);
-        glDisable(GL_BLEND);
-        glColor3f(1, 1, 1);
-        glBegin(GL_TRIANGLE_STRIP);
-        glTexCoord2f(0, 0); glVertex2f(x,    y);
-        glTexCoord2f(1, 0); glVertex2f(x+xs, y);
-        glTexCoord2f(0, 1); glVertex2f(x,    y+ys);
-        glTexCoord2f(1, 1); glVertex2f(x+xs, y+ys);
-        glEnd();
-        xtraverts += 4;
-        glEnable(GL_BLEND);
+        extern int fullbrightlevel;
+        framedquadtexture(pt->id, x, y, xs, ys, FONTH / 2, fullbrightlevel);
         defformatstring(res)("%dx%d", pt->xs, pt->ys);
         draw_text(res, x, y + ys + 2 * FONTH);
     }
