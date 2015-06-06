@@ -1054,6 +1054,9 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         if(!m_botmode) draw_textf("SCROLL to change player", left - (text_width("SCROLL to change player") + FONTH/2), top+80);
     }
 
+    void renderhudtexturepreviews();
+    if(editmode) renderhudtexturepreviews();
+
     /* * /
     glLoadIdentity();
     glOrtho(0, VIRTW*3/2, VIRTH*3/2, 0, -1, 1);

@@ -693,6 +693,49 @@ COMMAND(editheight, "ii");
 
 // texture type : 0 floor, 1 wall, 2 ceil, 3 upper wall
 
+void renderhudtexturepreview(int slot, int pos, bool highlight)
+{
+    Texture *pt = slot != DEFAULT_SKY ? lookupworldtexture(slot, false) : NULL;
+    int hs = (highlight ? 0 : (FONTH / 3) * 2), bs = VIRTW / 8 - hs, border = FONTH / (highlight ? 2 : 4), x = 2 * VIRTW - VIRTW / 8 - FONTH + hs / 2, y = VIRTH * (6 - pos) / 4, xs, ys;
+    blendbox(x - border, y - border, x + bs + border, y + bs + border, false);
+    if(pt)
+    {
+        if(pt->xs > pt->ys) xs = bs, ys = (xs * pt->ys) / pt->xs;  // keep aspect ratio of texture
+        else ys = bs, xs = (ys * pt->xs) / pt->ys;
+        int xt = x + (bs - xs) / 2, yt = y + (bs - ys) / 2;
+        extern int fullbrightlevel;
+        framedquadtexture(pt->id, xt, yt, xs, ys, 1, fullbrightlevel);
+    }
+    else
+    { // sky slot: just show blue instead of the texture
+        color c(0, 0, 0.6f, 1);
+        blendbox(x, y, x + bs, y + bs, false, -1, &c);
+    }
+    if(highlight)
+    {
+        glDisable(GL_BLEND);
+        glDisable(GL_TEXTURE_2D);
+        border /= 2;
+        box2d(x - border, y - border, x + bs + border, y + bs + border, 200);
+        glEnable(GL_BLEND);
+    }
+}
+
+static int lastedittex = 0;
+VARP(hudtexttl, 0, 2500, 10000);
+
+void renderhudtexturepreviews()
+{
+    if(lastedittex && hudtexttl && (lastmillis - lastedittex) < hudtexttl)
+    {
+        int atype = lasttype == 3 ? 1 : lasttype;
+        int idx = curedittex[atype];
+        if(idx < 0) idx = 0;
+        int startidx = clamp(idx - 2, 0, 251);
+        loopi(5) renderhudtexturepreview(hdr.texlists[atype][startidx + i], i, startidx + i == idx);
+    }
+}
+
 void edittexxy(int type, int t, block &sel)
 {
     loopselxy(sel, switch(type)
@@ -720,6 +763,7 @@ void edittex(int *type, int *dir)
         addmsg(SV_EDITT, "ri6", sels[i].x, sels[i].y, sels[i].xs, sels[i].ys, *type, t);
     }
     unsavededits++;
+    lastedittex = lastmillis;
 }
 COMMAND(edittex, "ii");
 
