@@ -247,6 +247,7 @@ void filterrichtext(char *dst, const char *src, int len)
                 case '\0': --src; continue;
                 case 'f': c = '\f'; break;
                 case 'a': c = '\a'; break;
+                case 't': c = '\t'; break;
                 case 'n': c = '\n'; break;
                 case 'x':
                     b = 16;
