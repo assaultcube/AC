@@ -1263,7 +1263,6 @@ int main(int argc, char **argv)
     downloaddemomenu = addmenu("Download demo", NULL, true);
 
     exec("config/scontext.cfg");
-    exec("config/locale.cfg");
     exec("config/keymap.cfg");
     execfile("config/mapmodelattributes.cfg");
     exec("config/menus.cfg");
