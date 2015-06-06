@@ -85,8 +85,7 @@ const char *highlight(const char *text)
     static char result[MAXTRANS + 10];
     const char *marker = getalias("HIGHLIGHT"), *sep = " ,;:!\"'";
     if(!marker || !strstr(text, player1->name)) return text;
-    filterrichtext(result, marker);
-    defformatstring(subst)("\fs%s%s\fr", result, player1->name);
+    defformatstring(subst)("\fs%s%s\fr", marker, player1->name);
     char *temp = newstring(text);
     char *s = strtok(temp, sep), *l = temp, *c, *r = result;
     result[0] = '\0';
