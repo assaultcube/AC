@@ -194,12 +194,6 @@
 		<Unit filename="../src/hudgun.h">
 			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
-		<Unit filename="../src/i18n.cpp">
-			<Option target="&lt;{~None~}&gt;" />
-		</Unit>
-		<Unit filename="../src/i18n.h">
-			<Option target="&lt;{~None~}&gt;" />
-		</Unit>
 		<Unit filename="../src/jpegenc.h">
 			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
@@ -306,9 +300,6 @@
 			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
 		<Unit filename="../src/shadow.cpp">
-			<Option target="&lt;{~None~}&gt;" />
-		</Unit>
-		<Unit filename="../src/sound.cpp">
 			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
 		<Unit filename="../src/sound.h">

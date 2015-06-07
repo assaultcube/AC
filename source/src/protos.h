@@ -528,6 +528,7 @@ extern void computeraytable(float vx, float vy, float fov);
 extern int isoccluded(float vx, float vy, float cx, float cy, float csize);
 
 // main
+extern char *lang;
 extern SDL_Surface *screen;
 extern int colorbits, depthbits, stencilbits;
 

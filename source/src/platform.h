@@ -58,12 +58,10 @@
     #include "GL/glext.h"
 
     #ifdef __APPLE__
-        #include "INTL/libintl.h"
         #include "OpenAL/al.h"
         #include "OpenAL/alc.h"
         #include "Vorbis/vorbisfile.h"
     #else
-        #include <libintl.h>
         #include "AL/al.h"
         #include "AL/alc.h"
         #include "vorbis/vorbisfile.h"

@@ -846,18 +846,6 @@ inline char *newstringbuf(const char *s)        { return newstring(s, MAXSTRLEN-
 inline void delstring(const char *s)            { delete[] (char *)s; }
 #define DELSTRING(s) if(s) { delstring(s); s = NULL; }
 
-#ifndef STANDALONE
-inline const char *_gettext(const char *msgid)
-{
-    if(msgid && msgid[0] != '\0')
-        return gettext(msgid);
-    else
-        return "";
-}
-#endif
-
-#define _(s) _gettext(s)
-
 const int islittleendian = 1;
 #ifdef SDL_BYTEORDER
 #define endianswap16 SDL_Swap16

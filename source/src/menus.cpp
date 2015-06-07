@@ -1470,7 +1470,7 @@ void addchange(const char *desc, int type)
     if(!applydialog) return;
     if(type!=CHANGE_GFX)
     {
-        conoutf(_("..restart AssaultCube for this setting to take effect"));
+        conoutf("..restart AssaultCube for this setting to take effect");
         return;
     }
     bool changed = false;

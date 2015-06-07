@@ -1,9 +1,6 @@
 #ifndef __CUBE_H__
 #define __CUBE_H__
 
-// to "trick" i18n/gettext
-#define CC '\f'
-
 #include "platform.h"
 #include "tools.h"
 #include "geom.h"
@@ -13,7 +10,6 @@
 #include "weapon.h"
 #include "entity.h"
 #include "world.h"
-#include "i18n.h"
 #include "command.h"
 
 #ifndef STANDALONE

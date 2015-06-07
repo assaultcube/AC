@@ -778,7 +778,7 @@ void accuracyreset()
     {
         accuracym[i].hits=accuracym[i].shots=0;
     }
-    conoutf(_("Your accuracy has been reset."));
+    conoutf("Your accuracy has been reset.");
 }
 COMMAND(accuracyreset, "");
 // weapon

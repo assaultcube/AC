@@ -1175,11 +1175,11 @@ bool serverskey(void *menu, int code, bool isdown, int unicode)
             if(!desc) desc = "";
             if(*ak)
             { // server was automatically added to this favourite group, don't remove
-                conoutf(_("server \"%cs%s%cr\" is in category '%cs%s%cr' because of key '%s', please remove manually"), CC, servers[j]->sdesc, CC, CC, desc, CC, ak);
+                conoutf("server \"\fs%s\fr\" is in category '\fs%s\fr' because of key '%s', please remove manually", servers[j]->sdesc, desc, ak);
             }
             else if(rest)
             { // remove from favourite group
-                conoutf(_("removing server \"%cs%s%cr\" from favourites category '%cs%s%cr' (rest '%s')"), CC, servers[j]->sdesc, CC, CC, desc, CC, rest);
+                conoutf("removing server \"\fs%s\fr\" from favourites category '\fs%s\fr' (rest '%s')", servers[j]->sdesc, desc, rest);
                 alias(keyalias, rest);
             }
             else
@@ -1194,7 +1194,7 @@ bool serverskey(void *menu, int code, bool isdown, int unicode)
                     delete[] newkey;
                 }
                 else alias(keyalias, text);
-                conoutf(_("adding server \"%cs%s%cr\" to favourites category '%cs%s%cr' (new '%s')"), CC, servers[j]->sdesc, CC, CC, desc, CC, getalias(keyalias));
+                conoutf("adding server \"\fs%s\fr\" to favourites category '\fs%s\fr' (new '%s')", servers[j]->sdesc, desc, getalias(keyalias));
             }
             return true;
         }
