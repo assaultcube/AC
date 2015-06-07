@@ -514,6 +514,9 @@ void drawradar_showmap(playerent *p, int w, int h)
     float iconsize = radarentsize/0.2f;
     glColor3f(1.0f, 1.0f, 1.0f);
     glPushMatrix();
+    bool spect3rd = p->spectatemode > SM_FOLLOW1ST && p->spectatemode <= SM_FOLLOW3RD_TRANSPARENT;
+    playerent *d = spect3rd ? players[p->followplayercn] : p;
+    int p_baseteam = p->team == TEAM_SPECT && spect3rd ? team_base(players[p->followplayercn]->team) : team_base(p->team);
     extern GLuint minimaptex;
     vec centerpos(VIRTW/2 , VIRTH/2, 0.0f);
     if(showmapbackdrop)
@@ -549,16 +552,18 @@ void drawradar_showmap(playerent *p, int w, int h)
     float offy = gdim == mapdims.xspan ? offd : 0;
 
     vec mdd = vec(mapdims.x1 - offx, mapdims.y1 - offy, 0);
-    vec cod(offx, offy, 0);
     vec ppv = vec(p->o).sub(mdd).mul(coordtrans);
 
-    if(team_isactive(p->team)) drawradarent(ppv.x, ppv.y, p->yaw, p->state==CS_ALIVE ? (isattacking(p) ? 2 : 0) : 1, 2, iconsize, isattacking(p), "%s", colorname(p)); // local player
+    if(!(p->isspectating() && spect3rd)) drawradarent(ppv.x, ppv.y, p->yaw, p->state==CS_ALIVE ? (isattacking(p) ? 2 : 0) : 1, 2, iconsize, isattacking(p), "%s", colorname(p)); // local player
     loopv(players) // other players
     {
         playerent *pl = players[i];
-        if(!pl || pl==p || !isteam(p->team, pl->team) || !team_isactive(pl->team)) continue;
+        if(!pl || pl == p || !team_isactive(pl->team)) continue;
+        int pl_baseteam = team_base(pl->team);
+        if(p->team < TEAM_SPECT && ((m_teammode && !isteam(p_baseteam, pl_baseteam)) || (!m_teammode && !(spect3rd && d == pl)))) continue;
+        if(p->team == TEAM_SPECT && !(spect3rd && (isteam(p_baseteam, pl_baseteam) || d == pl))) continue;
         vec rtmp = vec(pl->o).sub(mdd).mul(coordtrans);
-        drawradarent(rtmp.x, rtmp.y, pl->yaw, pl->state==CS_ALIVE ? (isattacking(pl) ? 2 : 0) : 1, team_base(pl->team), iconsize, isattacking(pl), "%s", colorname(pl));
+        drawradarent(rtmp.x, rtmp.y, pl->yaw, pl->state==CS_ALIVE ? (isattacking(pl) ? 2 : 0) : 1, spect3rd && d == pl ? 2 : pl_baseteam, iconsize, isattacking(pl), "%s", colorname(pl));
     }
     if(m_flags)
     {
@@ -582,12 +587,13 @@ void drawradar_showmap(playerent *p, int w, int h)
             if(m_ktf && f.state == CTFF_IDLE) continue;
             if(f.state==CTFF_STOLEN)
             {
+                if(m_teammode && player1->team == TEAM_SPECT && p->spectatemode > SM_FOLLOW3RD_TRANSPARENT) continue;
                 float d2c = 1.6f * radarentsize/16.0f;
                 vec apos(d2c, -d2c, 0);
                 if(f.actor)
                 {
                     apos.add(f.actor->o);
-                    bool tm = i != team_base(p->team);
+                    bool tm = i != p_baseteam;
                     if(m_htf) tm = !tm;
                     else if(m_ktf) tm = true;
                     if(tm)
@@ -605,6 +611,9 @@ void drawradar_showmap(playerent *p, int w, int h)
 
 void drawradar_vicinity(playerent *p, int w, int h)
 {
+    bool spect3rd = p->spectatemode > SM_FOLLOW1ST && p->spectatemode <= SM_FOLLOW3RD_TRANSPARENT;
+    playerent *d = spect3rd ? players[p->followplayercn] : p;
+    int p_baseteam = p->team == TEAM_SPECT && spect3rd ? team_base(players[p->followplayercn]->team) : team_base(p->team);
     extern GLuint minimaptex;
     int gdim = max(mapdims.xspan, mapdims.yspan);
     float radarviewsize = min(VIRTW,VIRTH)/5;
@@ -625,32 +634,36 @@ void drawradar_vicinity(playerent *p, int w, int h)
     glTranslatef(centerpos.x, centerpos.y, 0);
     glRotatef(-camera1->yaw, 0, 0, 1);
     glTranslatef(-halfviewsize, -halfviewsize, 0);
-    vec d4rc = vec(p->o).sub(rsd).normalize().mul(0);
-    vec usecenter = vec(p->o).sub(rtr).sub(d4rc);
+    vec d4rc = vec(d->o).sub(rsd).normalize().mul(0);
+    vec usecenter = vec(d->o).sub(rtr).sub(d4rc);
     if(showradarvalues)
     {
         conoutf("vicinity @ gdim = %d | scaleh = %.2f", gdim, scaleh);
         conoutf("offd: %.2f [%.2f:%.2f]", offd, offx, offy);
         conoutf("RTR: %.2f %.2f", rtr.x, rtr.y);
         conoutf("RSD: %.2f %.2f", rsd.x, rsd.y);
-        conoutf("P.O: %.2f %.2f", p->o.x, p->o.y);
+        conoutf("P.O: %.2f %.2f", d->o.x, d->o.y);
         conoutf("U4C: %.2f %.2f | %.2f %.2f", usecenter.x, usecenter.y, usecenter.x/gdim, usecenter.y/gdim);
         //showradarvalues = 0;
     }
     glDisable(GL_BLEND);
     circle(minimaptex, halfviewsize, halfviewsize, halfviewsize, usecenter.x/(float)gdim, usecenter.y/(float)gdim, scaleh, 31); //Draw mimimaptext as radar background
     glTranslatef(halfviewsize, halfviewsize, 0);
-    if(team_isactive(p->team)) drawradarent(0, 0, p->yaw, p->state==CS_ALIVE ? (isattacking(p) ? 2 : 0) : 1, 2, iconsize, isattacking(p), "%s", colorname(p)); // local player
+
+    if(!(p->isspectating() && spect3rd)) drawradarent(0, 0, p->yaw, p->state==CS_ALIVE ? (isattacking(p) ? 2 : 0) : 1, 2, iconsize, isattacking(p), "%s", colorname(p)); // local player
     loopv(players) // other players
     {
         playerent *pl = players[i];
-        if(!pl || pl==p || !isteam(p->team, pl->team) || !team_isactive(pl->team)) continue;
-        vec rtmp = vec(pl->o).sub(p->o);
+        if(!pl || pl == p || !team_isactive(pl->team)) continue;
+        int pl_baseteam = team_base(pl->team);
+        if(p->team < TEAM_SPECT && ((m_teammode && !isteam(p_baseteam, pl_baseteam)) || (!m_teammode && !(spect3rd && d == pl)))) continue;
+        if(p->team == TEAM_SPECT && !(spect3rd && (isteam(p_baseteam, pl_baseteam) || d == pl))) continue;
+        vec rtmp = vec(pl->o).sub(d->o);
         bool isok = rtmp.magnitude() < d2s;
         if(isok)
         {
             rtmp.mul(scaled);
-            drawradarent(rtmp.x, rtmp.y, pl->yaw, pl->state==CS_ALIVE ? (isattacking(pl) ? 2 : 0) : 1, team_base(pl->team), iconsize, isattacking(pl), "%s", colorname(pl));
+            drawradarent(rtmp.x, rtmp.y, pl->yaw, pl->state==CS_ALIVE ? (isattacking(pl) ? 2 : 0) : 1, spect3rd && d == pl ? 2 : pl_baseteam, iconsize, isattacking(pl), "%s", colorname(pl));
         }
     }
     if(m_flags)
@@ -664,8 +677,8 @@ void drawradar_vicinity(playerent *p, int w, int h)
             entity *e = f.flagent;
             if(!e) continue;
             if(e->x == -1 && e-> y == -1) continue; // flagdummies
-            vec pos = vec(e->x, e->y, 0).sub(p->o);
-            vec cpos = vec(f.pos.x, f.pos.y, f.pos.z).sub(p->o);
+            vec pos = vec(e->x, e->y, 0).sub(d->o);
+            vec cpos = vec(f.pos.x, f.pos.y, f.pos.z).sub(d->o);
             //if(showradarvalues) { conoutf("dist2F[%d]: %.2f|%.2f || %.2f|%.2f", i, pos.x, pos.y, cpos.x, cpos.y); }
             if(pos.magnitude() < d2s)
             {
@@ -687,16 +700,17 @@ void drawradar_vicinity(playerent *p, int w, int h)
             if(m_ktf && f.state == CTFF_IDLE) continue;
             if(f.state==CTFF_STOLEN)
             {
+                if(m_teammode && player1->team == TEAM_SPECT && p->spectatemode > SM_FOLLOW3RD_TRANSPARENT) continue;
                 vec apos(d2c, -d2c, 0);
                 if(f.actor)
                 {
                     apos.add(f.actor->o);
-                    bool tm = i != team_base(p->team);
+                    bool tm = i != p_baseteam;
                     if(m_htf) tm = !tm;
                     else if(m_ktf) tm = true;
                     if(tm)
                     {
-                        apos.sub(p->o);
+                        apos.sub(d->o);
                         if(apos.magnitude() < d2s)
                         {
                             apos.mul(scaled);
@@ -726,7 +740,6 @@ void drawradar_vicinity(playerent *p, int w, int h)
         quad(compasstex->id, -halfviewsize-8, -halfviewsize-8, radarviewsize+16, 0, 0, 1, 1);
         glPopMatrix();
     }
-
 }
 
 void drawradar(playerent *p, int w, int h)
