@@ -133,6 +133,13 @@ void showmenu_(const char *name)
 }
 COMMANDN(showmenu, showmenu_, "s");
 
+const char *persistentmenuselectionalias(const char *name)
+{
+    static defformatstring(al)("__lastmenusel_%s", name);
+    filtertext(al, al, FTXT__ALIAS);
+    return al;
+}
+
 void menuselect(void *menu, int sel)
 {
     gmenu &m = *(gmenu *)menu;
@@ -151,6 +158,11 @@ void menuselect(void *menu, int sel)
                 if(m.items.inrange(oldsel)) m.items[oldsel]->focus(false);
                 m.items[sel]->focus(true);
                 audiomgr.playsound(S_MENUSELECT, SP_HIGHEST);
+                if(m.persistentselection)
+                {
+                    defformatstring(val)("%d", sel);
+                    alias(persistentmenuselectionalias(m.name), val);
+                }
             }
         }
     }
@@ -885,6 +897,15 @@ void menuinitselection(int *line)
     if(lastmenu->items.inrange(*line)) lastmenu->menusel = *line;
 }
 COMMAND(menuinitselection, "i");
+
+void menuselectionpersistent()
+{
+    if(!curmenu) return;
+    curmenu->persistentselection = true;
+    const char *val = getalias(persistentmenuselectionalias(curmenu->name));
+    if(val) menuselect(curmenu, ATOI(val));
+}
+COMMAND(menuselectionpersistent, "");
 
 void menurenderoffset(int *xoff, int *yoff)
 {
