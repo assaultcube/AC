@@ -1409,7 +1409,7 @@ void callvote(int type, const char *arg1, const char *arg2, const char *arg3)
 
 
 
-				putint(p, atoi(arg1));
+                putint(p, atoi(arg1));
                 break;
         }
         sendpackettoserv(1, p.finalize());
@@ -1537,14 +1537,14 @@ void setnext(char *mode, char *map)
             case GMODE_BOTDEATHMATCH:
             case GMODE_BOTONESHOTONEKILL:
             case GMODE_BOTLSS:
-			case GMODE_BOTPISTOLFRENZY:
-			case GMODE_BOTTEAMONESHOTONKILL:
+            case GMODE_BOTPISTOLFRENZY:
+            case GMODE_BOTTEAMONESHOTONKILL:
                 continue;
         }
         if(!strcmp(mode, modestrings[i]))
         {
             nextmode=i+GMODE_NUM;
-	        string nm = ""; itoa(nm, nextmode);
+            string nm = ""; itoa(nm, nextmode);
             callvote(SA_MAP, map, nm, "0");
             break;
         }

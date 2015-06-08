@@ -3114,7 +3114,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     ls!=cl->state.lifesequence || cl->state.lastspawn<0 || gunselect<0 || gunselect>=NUMGUNS || gunselect == GUN_CPISTOL) break;
                 cl->state.lastspawn = -1;
                 cl->state.spawn = gamemillis;
-				cl->autospawn = false;
+                cl->autospawn = false;
                 cl->upspawnp = false;
                 cl->state.state = CS_ALIVE;
                 cl->state.gunselect = gunselect;
