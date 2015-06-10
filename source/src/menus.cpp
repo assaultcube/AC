@@ -291,11 +291,10 @@ VARP(hidebigmenuimages, 0, 0, 1);
 
 struct mitemimagemanual : mitemmanual
 {
-    const char *filename;
     Texture *image;
     font *altfont;
 
-    mitemimagemanual(gmenu *parent, const char *filename, const char *altfontname, char *text, char *action, char *hoveraction, color *bgcolor, const char *desc = NULL) : mitemmanual(parent, text, action, hoveraction, bgcolor, desc), filename(filename)
+    mitemimagemanual(gmenu *parent, const char *filename, const char *altfontname, char *text, char *action, char *hoveraction, color *bgcolor, const char *desc = NULL) : mitemmanual(parent, text, action, hoveraction, bgcolor, desc)
     {
         image = filename ? textureload(filename, 3) : NULL;
         altfont = altfontname ? getfont(altfontname) : NULL;
@@ -365,10 +364,9 @@ struct mitemimagemanual : mitemmanual
 
 struct mitemimage : mitemimagemanual
 {
-    mitemimage(gmenu *parent, const char *filename, char *text, char *action, char *hoveraction, color *bgcolor, const char *desc = NULL) : mitemimagemanual(parent, filename, NULL, text, action, hoveraction, bgcolor, desc) {}
+    mitemimage(gmenu *parent, const char *filename, char *text, char *action, char *hoveraction, color *bgcolor, const char *desc = NULL, const char *altfont = NULL) : mitemimagemanual(parent, filename, altfont, text, action, hoveraction, bgcolor, desc) {}
     virtual ~mitemimage()
     {
-        DELETEA(filename);
         DELETEA(text);
         DELETEA(action);
         DELETEA(hoveraction);
@@ -955,11 +953,18 @@ void menuitemimage(char *name, char *text, char *action, char *hoveraction)
 {
     if(!lastmenu) return;
     if(fileexists(name, "r") || findfile(name, "r") != name)
-        lastmenu->items.add(new mitemimage(lastmenu, newstring(name), newstring(text), action[0] ? newstring(action) : NULL, hoveraction[0] ? newstring(hoveraction) : NULL, NULL));
+        lastmenu->items.add(new mitemimage(lastmenu, name, newstring(text), action[0] ? newstring(action) : NULL, hoveraction[0] ? newstring(hoveraction) : NULL, NULL));
     else
         lastmenu->items.add(new mitemtext(lastmenu, newstring(text), newstring(action[0] ? action : text), hoveraction[0] ? newstring(hoveraction) : NULL, NULL));
 }
 COMMAND(menuitemimage, "ssss");
+
+void menuitemaltfont(char *altfont, char *text, char *action, char *hoveraction, char *desc)
+{
+    if(!lastmenu) return;
+    lastmenu->items.add(new mitemimage(lastmenu, NULL, newstring(text), action[0] ? newstring(action) : NULL, hoveraction[0] ? newstring(hoveraction) : NULL, NULL, desc[0] ? newstring(desc) : NULL, altfont));
+}
+COMMAND(menuitemaltfont, "sssss");
 
 void menuitemmapload(char *name, char *text)
 {

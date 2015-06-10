@@ -1464,6 +1464,7 @@ const char *escapestring(const char *s, bool force, bool noquotes)
         case '\n': buf.put("\\n", 2); break;
         case '\r': buf.put("\\n", 2); break;
         case '\t': buf.put("\\t", 2); break;
+        case '\a': buf.put("\\a", 2); break;
         case '\f': buf.put("\\f", 2); break;
         case '"': buf.put("\\\"", 2); break;
         case '\\': buf.put("\\\\", 2); break;
