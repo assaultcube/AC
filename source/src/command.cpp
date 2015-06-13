@@ -364,6 +364,30 @@ void _getalias(char *name)
 }
 COMMANDN(getalias, _getalias, "s");
 
+void getvarrange(char *_what, char *name)
+{
+    ident *id = idents->access(name);
+    const char *attrs[] = { "min", "max", "default", "" };
+    int what = getlistindex(_what, attrs, false, -1);
+    if(id)
+    {
+        int *i = NULL;
+        switch(what)
+        {
+            case 0: i = &(id->minval); break;
+            case 1: i = &(id->maxval); break;
+            case 2: i = &(id->defaultval); break;
+        }
+        if(i) switch(id->type)
+        {
+            case ID_VAR: intret(*i); return;
+            case ID_FVAR: floatret(*((float *) i), true); return;
+        }
+    }
+    result("");
+}
+COMMAND(getvarrange, "ss");
+
 COMMANDF(isIdent, "s", (char *name) { intret(identexists(name) ? 1 : 0); });
 
 bool addcommand(const char *name, void (*fun)(), const char *sig)
