@@ -106,6 +106,26 @@ struct mapdim_s
     float xm, ym;                                // middle of the map
 };
 
+#define MAS_VDELTA_QUANT 8
+#define MAS_VDELTA_TABSIZE 5            // (hardcoded maximum of 15!)
+#define MAS_VDELTA_THRES 3
+#define MAS_GRID 8
+#define MAS_GRID2 (MAS_GRID * MAS_GRID)
+#define MAS_RESOLUTION 32               // rays (32 * 8)
+struct mapareastats_s
+{
+    int vdd[MAS_VDELTA_TABSIZE];        // vdelta-deltas (detect ugly steep heightfields)
+    int vdds;                           // vdd table reduced to an easy to check bitmask
+    int ppa[MAS_GRID2];                 // area visible per probe point
+    int ppv[MAS_GRID2];                 // volume visible per probe point
+    int total;                          // number of non-solid cubes on the map
+    int rest;                           // area not visible from any probe point
+    #ifndef STANDALONE
+    int steepest;                       // location of steepest vdelta
+    int ppp[MAS_GRID2];                 // probe point position (client-only)
+    #endif
+};
+
 #define SWS(w,x,y,s) (&(w)[((y)<<(s))+(x)])
 #define SW(w,x,y) SWS(w,x,y,sfactor)
 #define S(x,y) SW(world,x,y)            // convenient lookup of a lowest mip cube

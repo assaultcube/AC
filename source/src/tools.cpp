@@ -131,6 +131,120 @@ int calcmapdims(mapdim_s &md, const servsqr *s, int _ssize)
     return res;
 }
 
+int calcmapareastats(mapareastats_s &ms, servsqr *_servworld, int _ssize, const mapdim_s &md)
+{
+    memset(&ms, 0, sizeof(ms));
+
+    // count steep FHF and CHF
+    int linegap = _ssize - md.xspan;
+    #ifndef STANDALONE
+    int totalmax = 0;
+    #endif
+    servsqr *bb = _servworld + _ssize * md.y1 + md.x1, *ss = bb;
+    for(int j = md.yspan; j > 0; j--, ss += linegap) loopirev(md.xspan)
+    {
+        int type = ss->type & TAGTRIGGERMASK;
+        if(type == FHF || type == CHF) // only CHF and FHF use vdelta
+        {
+            servsqr *r[3] = { ss + 1, ss + _ssize, ss + _ssize + 1 };
+            int min = ss->vdelta, max = min;
+            loopi(3)
+            {
+                if(r[i]->vdelta < min) min = r[i]->vdelta;
+                else if(r[i]->vdelta > max) max = r[i]->vdelta;
+            }
+            max -= min;
+            #ifndef STANDALONE
+            if(max > totalmax)
+            {
+                ms.steepest = int(ss - _servworld);
+                totalmax = max;
+            }
+            #endif
+            int d = max / MAS_VDELTA_QUANT;
+            ASSERT(d >= 0);
+            if(d >= MAS_VDELTA_TABSIZE) d = MAS_VDELTA_TABSIZE - 1;
+            ms.vdd[d]++;
+        }
+        ss++;
+    }
+    loopirev(MAS_VDELTA_TABSIZE) ms.vdds = (ms.vdds << 2) | ((ms.vdd[i] > MAS_VDELTA_THRES) << 1) | (ms.vdd[i] > 0);
+
+    // check occlusion by SOLIDs (destroys vdelta values)
+    ss = bb;
+    for(int j = md.yspan; j > 0; j--, ss += linegap) loopirev(md.xspan) (ss++)->vdelta = 0; // reset all vdelta values
+    int xc = (md.xspan + MAS_GRID / 2) / (MAS_GRID + 1), yc = (md.yspan + MAS_GRID / 2) / (MAS_GRID + 1);
+    if(md.x1 + MAS_GRID * xc >= _ssize || md.y1 + MAS_GRID * yc >= _ssize) return -1; // malformed map
+    int xb = min(md.x1 + xc, _ssize - MAS_GRID * xc - md.x1 - 1) / 2, yb = min(md.y1 + yc, _ssize - MAS_GRID * yc - md.y1 - 1) / 2; // make sure, all tp points are inside the map area
+    int tgx = min(xb, max(3, xc / 3)), tgy = min(yb, max(3, yc / 3)) * _ssize, tp[8] = { tgx, -tgx, tgy, -tgy, 2 * tgx + 2 * tgy, -2 * tgx - 2 * tgy, -2 * tgx + 2 * tgy, 2 * tgx - 2 * tgy }; // 8 positions to try, if the stariing point is solid
+    uchar epoch = 1;
+    servsqr *s = bb + xc + yc * _ssize; ss = s;
+    vector<threeint> tab;
+    threeint pp;
+    for(int y = 0; y < MAS_GRID; y++, ss = s += _ssize * yc) for(int x = 0; x < MAS_GRID; x++, ss += xc) // measure visible area in MAS_GRID x MAS_GRID probe points
+    { // calculate MAS_GRID^2 probe points (with a low-res version of computeraytable()
+        servsqr *r = ss, *rr;
+        if(SOLID(r)) loopi(8)
+        { // if initial position is SOLID, we try 8 points around that spot
+            if(!SOLID(r + tp[i]))
+            {
+                r += tp[i];
+                break;
+            }
+        }
+        pp.val2 = int(r - _servworld);
+        int area = 0, volume = 0, frac;
+        loopk(MAS_RESOLUTION)
+        {
+            #define RAYS(da, db) \
+                rr = r; frac = 0; \
+                for(;;) \
+                { \
+                    if((frac += k) >= MAS_RESOLUTION) rr += da, frac -= MAS_RESOLUTION; \
+                    rr += db; \
+                    if(SOLID(rr)) break; \
+                    if(rr->vdelta != epoch) { area += 1; volume += rr->ceil - rr->floor; } \
+                    rr->vdelta = epoch; \
+                }
+            RAYS(_ssize, 1);
+            RAYS(_ssize, -1);
+            RAYS(-_ssize, 1);
+            RAYS(-_ssize, -1);
+            RAYS(1, _ssize);
+            RAYS(1, -_ssize);
+            RAYS(-1, _ssize);
+            RAYS(-1, -_ssize);
+            #undef RAYS
+        }
+        pp.val1 = volume;
+        pp.key = area;
+        tab.add(pp);
+        if(area) epoch++;
+        if(!epoch) epoch++;
+    }
+    ss = bb;
+    for(int j = md.yspan; j > 0; j--, ss += linegap) loopirev(md.xspan)
+    {
+        if(!SOLID(ss))
+        {
+            ms.total++;
+            if(!ss->vdelta) ms.rest++; // count all cubes not in view of one of the probe points
+        }
+        ss++;
+    }
+    ASSERT(tab.length() == MAS_GRID2);
+    tab.sort(cmpintdesc);
+    loopv(tab)
+    { // sort probe poiints in descending order of area
+        ms.ppv[i] = tab[i].val1;
+        ms.ppa[i] = tab[i].key;
+        #ifndef STANDALONE
+        ms.ppp[i] = tab[i].val2;
+        #endif
+    }
+    return 0;
+}
+
 void calcentitystats(entitystats_s &es, const persistent_entity *pents, int pentsize)
 {
     memset(&es, 0, sizeof(es));

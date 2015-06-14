@@ -988,7 +988,9 @@ extern int wizardmain(int argc, char **argv);
 // some tools
 extern servsqr *createservworld(const sqr *s, int _cubicsize);
 extern int calcmapdims(mapdim_s &md, const servsqr *s, int _ssize);
+extern int calcmapareastats(mapareastats_s &ms, servsqr *s, int _ssize, const mapdim_s &md);
 extern void calcentitystats(entitystats_s &es, const persistent_entity *pents, int pentsize);
+
 // demo
 #define DHDR_DESCCHARS 80
 #define DHDR_PLISTCHARS 322
