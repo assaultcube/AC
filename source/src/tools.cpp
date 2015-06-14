@@ -79,7 +79,108 @@ int fixmapheadersize(int version, int headersize)   // we can't trust hdr.header
     return headersize;
 }
 
-mapdim mapdims;     // min/max X/Y and delta X/Y and min/max Z
+// map geometry statistics
+
+servsqr *createservworld(const sqr *s, int _cubicsize) // create a server-style floorplan on the client, to use same statistics functions on client and server
+{
+    servsqr *res = new servsqr[_cubicsize], *d = res;
+    loopirev(_cubicsize)
+    {
+        d->type = s->type == SOLID ? SOLID : ((s->type & TAGTRIGGERMASK) | (s->tag & ~TAGTRIGGERMASK)); // guaranteed to not have tagclips on SOLID cubes - so we can check for SOLID without masks
+        d->ceil = s->ceil;
+        d->floor = s->floor;
+        d->vdelta = s->vdelta;
+        d++;
+        s++;
+    }
+    return res;
+}
+
+int calcmapdims(mapdim_s &md, const servsqr *s, int _ssize)
+{
+    int res = 0;
+    md.x1 = md.y1 = _ssize;
+    md.x2 = md.y2 = 0;
+    md.minfloor = 127; md.maxceil = -128;
+    for(int y = 0; y < _ssize; y++) for(int x = 0; x < _ssize; x++)
+    {
+        if((s->type & TAGTRIGGERMASK) != SOLID)
+        {
+            if(x < md.x1) md.x1 = x;
+            if(x > md.x2) md.x2 = x;
+            if(y < md.y1) md.y1 = y;
+            md.y2 = y;
+            if(s->floor < md.minfloor) md.minfloor = s->floor;
+            if(s->ceil > md.maxceil) md.maxceil = s->ceil;
+        }
+        s++;
+    }
+    if(md.x2 < md.x1 || md.y2 < md.y1)
+    { // map is completely solid -> default to empty map values
+        md.x1 = md.y1 = 2;
+        md.x2 = md.y2 = _ssize - 3;
+        md.minfloor = 0;
+        md.maxceil = 16;
+        res = -1; // reject map on servers
+    }
+    if(md.x1 < MINBORD || md.y1 < MINBORD || md.x2 >= _ssize - MINBORD || md.y2 >= _ssize - MINBORD) res = -2; // reject map because of world border violation
+    md.xspan = md.x2 - md.x1 + 1;
+    md.yspan = md.y2 - md.y1 + 1;
+    md.xm = md.x1 + md.xspan / 2.0f;
+    md.ym = md.y1 + md.yspan / 2.0f;
+    return res;
+}
+
+void calcentitystats(entitystats_s &es, const persistent_entity *pents, int pentsize)
+{
+    memset(&es, 0, sizeof(es));
+    vector<int> picks;
+    loopi(pentsize)
+    {
+        const persistent_entity &e = pents[i];
+        if(e.type < MAXENTTYPES)
+        {
+            es.entcnt[e.type]++;
+            if(e.type == PLAYERSTART) switch(e.attr2)
+            {
+                case 0:   es.spawns[0]++; break;
+                case 1:   es.spawns[1]++; break;
+                case 100: es.spawns[2]++; break;
+                default: es.unknownspawns++; break;
+            }
+            if(e.type == CTF_FLAG) switch(e.attr2)
+            {
+                case 0:
+                case 1:
+                    es.flags[e.attr2]++;
+                    es.flagents[e.attr2] = i;
+                    break;
+                default:
+                    es.unknownflags++;
+                    break;
+            }
+            if(isitem(e.type)) picks.add(i);
+        }
+    }
+    es.hasffaspawns = es.spawns[2] >= MINSPAWNS;
+    es.hasteamspawns = es.spawns[0] >= MINSPAWNS && es.spawns[1] >= MINSPAWNS;
+    if(es.flags[0] == 1 && es.flags[1] == 1)
+    {
+        vec fd(pents[es.flagents[0]].x - pents[es.flagents[1]].x, pents[es.flagents[0]].y - pents[es.flagents[1]].y, 0);
+        es.flagentdistance = fd.magnitude();
+        es.hasflags = es.flagentdistance >= MINFLAGDISTANCE;
+    }
+    int r = 0;
+    loopvjrev(picks) loopirev(j)
+    { // calculate the distances between all pickups (takes n^2/2 calculations - which should be fine for any sane map)
+        double d = pow2(pents[picks[i]].x - pents[picks[j]].x) + pow2(pents[picks[i]].y - pents[picks[j]].y); // deltaX^2 + deltaY^2
+        frexp(d, &r);
+        r /= 2; // sqrt ;)
+        if(r > LARGEST_FACTOR) r = LARGEST_FACTOR;
+        es.pickupdistance[r]++;
+    }
+    es.pickups = picks.length();
+}
 
 int cmpintasc(const int *a, const int *b) { return *a - *b; } // leads to ascending sort order
 int cmpintdesc(const int *a, const int *b) { return *b - *a; } // leads to descending sort order
@@ -212,7 +313,7 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
             maplayout = new char[layoutsize + 256];
             memcpy(maplayout, testlayout, layoutsize * sizeof(char));
 
-            memset(&mapdims, 0, sizeof(struct mapdim));
+/*            memset(&mapdims, 0, sizeof(struct mapdim_s));
             mapdims.x1 = mapdims.y1 = maplayoutssize;
             loopk(layoutsize) if (testlayout[k] != 127)
             {
@@ -227,7 +328,7 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
             mapdims.yspan = mapdims.y2 - mapdims.y1;
             mapdims.minfloor = minfloor;
             mapdims.maxceil = maxceil;
-        }
+*/        }
     }
     delete f;
     s.hasffaspawns = s.spawns[2] > 0;
@@ -238,6 +339,7 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
     s.cgzsize = getfilesize(filename);
     return &s;
 }
+
 
 ///////////////////////// debugging ///////////////////////
 

@@ -9,6 +9,8 @@ VAR(nextGameMode, 1, 0, 0);
 VARP(modeacronyms, 0, 1, 1);
 
 flaginfo flaginfos[2];
+entitystats_s clentstats;
+mapdim_s clmapdims;     // min/max X/Y and delta X/Y and min/max Z
 
 void mode(int *n)
 {
@@ -687,8 +689,7 @@ void findplayerstart(playerent *d, bool mapcenter, int arenaspawn)
 
             loopi(r)
             {
-                // 2013jun28:lucas: SKB suggested to use FFA spawns only in FFA modes, which seems reasonable.
-                spawncycle = /*m_ktf && */numspawn[2] > 4 ? findentity(PLAYERSTART, spawncycle+1, 100) : findentity(PLAYERSTART, spawncycle+1);
+                spawncycle = clentstats.hasffaspawns ? findentity(PLAYERSTART, spawncycle+1, 100) : findentity(PLAYERSTART, spawncycle+1); // if not enough ffa-spawns are available, use all
                 if(spawncycle < 0) continue;
                 float dist = nearestenemy(vec(ents[spawncycle].x, ents[spawncycle].y, ents[spawncycle].z), d->team);
                 if(!e || dist < 0 || (bestdist >= 0 && dist > bestdist)) { e = &ents[spawncycle]; bestdist = dist; }
@@ -1153,7 +1154,7 @@ void startmap(const char *name, bool reset, bool norespawn)   // called just aft
     minutesremaining = -1;
     lastgametimeupdate = 0;
     arenaintermission = 0;
-    bool noflags = (m_ctf || m_ktf) && (!numflagspawn[0] || !numflagspawn[1]);
+    bool noflags = (m_ctf || m_ktf) && !clentstats.hasflags;
     if(*clientmap) conoutf("game mode is \"%s\"%s", modestr(gamemode, modeacronyms > 0), noflags ? " - \f2but there are no flag bases on this map" : "");
 
     if(showmodedescriptions && (multiplayer(false) || m_botmode))

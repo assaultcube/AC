@@ -482,14 +482,14 @@ void drawradar_showmap(playerent *p, int w, int h)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glDisable(GL_BLEND);
 
-    float gdim = max(mapdims.xspan, mapdims.yspan); //no border
-    float offd = fabs((mapdims.yspan - mapdims.xspan) / 2.0f);
+    float gdim = max(clmapdims.xspan, clmapdims.yspan); //no border
+    float offd = fabs((clmapdims.yspan - clmapdims.xspan) / 2.0f);
     if(!gdim) { gdim = ssize/2.0f; offd = 0; }
     float coordtrans = minimapviewsize / gdim;
-    float offx = gdim == mapdims.yspan ? offd : 0;
-    float offy = gdim == mapdims.xspan ? offd : 0;
+    float offx = gdim == clmapdims.yspan ? offd : 0;
+    float offy = gdim == clmapdims.xspan ? offd : 0;
 
-    vec mdd = vec(mapdims.x1 - offx, mapdims.y1 - offy, 0);
+    vec mdd = vec(clmapdims.x1 - offx, clmapdims.y1 - offy, 0);
     vec ppv = vec(p->o).sub(mdd).mul(coordtrans);
 
     if(!(p->isspectating() && spect3rd)) drawradarent(ppv.x, ppv.y, p->yaw, (p->state==CS_ALIVE || p->state==CS_EDITING) ? (isattacking(p) ? 2 : 0) : 1, 2, iconsize, isattacking(p), "%s", colorname(p)); // local player
@@ -555,18 +555,18 @@ void drawradar_vicinity(playerent *p, int w, int h)
     playerent *d = spect3rd ? players[p->followplayercn] : p;
     int p_baseteam = p->team == TEAM_SPECT && spect3rd ? team_base(players[p->followplayercn]->team) : team_base(p->team);
     extern GLuint minimaptex;
-    int gdim = max(mapdims.xspan, mapdims.yspan);
+    int gdim = max(clmapdims.xspan, clmapdims.yspan);
     float radarviewsize = min(VIRTW,VIRTH)/5;
     float halfviewsize = radarviewsize/2.0f;
     float iconsize = radarentsize/0.4f;
     float scaleh = radarheight/(2.0f*gdim);
     float scaled = radarviewsize/float(radarheight);
-    float offd = fabs((mapdims.yspan - mapdims.xspan) / 2.0f);
+    float offd = fabs((clmapdims.yspan - clmapdims.xspan) / 2.0f);
     if(gdim < 1) { gdim = ssize/2; offd = 0; }
-    float offx = gdim == mapdims.yspan ? offd : 0;
-    float offy = gdim==mapdims.xspan ? offd : 0;
-    vec rtr = vec(mapdims.x1 - offx, mapdims.y1 - offy, 0);
-    vec rsd = vec(mapdims.xm, mapdims.ym, 0);
+    float offx = gdim == clmapdims.yspan ? offd : 0;
+    float offy = gdim == clmapdims.xspan ? offd : 0;
+    vec rtr = vec(clmapdims.x1 - offx, clmapdims.y1 - offy, 0);
+    vec rsd = vec(clmapdims.xm, clmapdims.ym, 0);
     float d2s = radarheight/2.0f;
     glColor3f(1.0f, 1.0f, 1.0f);
     glPushMatrix();

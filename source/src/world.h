@@ -23,6 +23,13 @@ struct sqr
     uchar reserved[2];
 };
 
+struct servsqr                  // server variant of sqr
+{
+    uchar type;                 // SOLID, etc.  (also contains the two tagclip bits ORed in)
+    char floor, ceil;           // height, in cubes
+    uchar vdelta;               // vertex delta, used for heightfield cubes
+};
+
 enum                            // hardcoded texture numbers
 {
     DEFAULT_SKY = 0,
@@ -91,7 +98,7 @@ struct mapstats
     bool hasflags;
 };
 
-struct mapdim
+struct mapdim_s
 {   //   0   2   1   3     6         7
     int x1, x2, y1, y2, minfloor, maxceil;       // outer borders (points to last used cube)
     //    4      5
@@ -111,10 +118,6 @@ struct mapdim
 #define MINBORD 2                       // 2 cubes from the edge of the world are always solid
 #define OUTBORD(x,y) ((x)<MINBORD || (y)<MINBORD || (x)>=ssize-MINBORD || (y)>=ssize-MINBORD)
 #define OUTBORDRAD(x,y,rad) (int(x-rad)<MINBORD || int(y-rad)<MINBORD || int(x+rad)>=ssize-MINBORD || (y+rad)>=ssize-MINBORD)
-#define MAXMHEIGHT 30
-#define MAXMAREA 10000
-#define MAXHHITS 50000                  // was 6000, which denied my fav. maps - jamz, 2012-06-12; 15000 denies sane map too - lucas
-#define MINFF 2500
 #define WATERLEVELSCALING 10
 
 struct block { int x, y, xs, ys, h; short p[5]; };
@@ -123,3 +126,31 @@ struct block { int x, y, xs, ys, h; short p[5]; };
 
 struct vertex { float u, v, x, y, z; uchar r, g, b, a; };
 
+// map statistics
+
+#define MINSPAWNS 5 // minimum number of spawns per team
+#define MINFLAGDISTANCE 42 // minimum flag entity distance (2D)
+
+struct entitystats_s
+{
+    int entcnt[MAXENTTYPES];                // simple count for every basic ent type
+    int spawns[3];                          // number of spawns with valid attr2
+    int flags[2];                           // number of flags with valid attr2
+    int flagents[2];                        // entity indices of the flag ents
+    int pickups;                            // total number of pickup entities
+    int pickupdistance[LARGEST_FACTOR + 1]; // entity distance values grouped logarithmically
+    int flagentdistance;                    // distance of the two flag entities, if existing
+    int modes_possible;                     // bitmask of possible gamemodes, depending on flag and spawn entities
+    bool hasffaspawns;                      // has enough ffa spawns
+    bool hasteamspawns;                     // has enough team spawns
+    bool hasflags;                          // has exactly 2 valid flags
+    int unknownspawns, unknownflags;        // attr2 is not valid
+};
+
+
+// legacy
+
+#define MAXMHEIGHT 30
+#define MAXMAREA 10000
+#define MAXHHITS 50000                  // was 6000, which denied my fav. maps - jamz, 2012-06-12; 15000 denies sane map too - lucas
+#define MINFF 2500

@@ -301,7 +301,7 @@ void renderentities()
                 }
                 break;
             case CTFF_INBASE:
-                if(!numflagspawn[i]) break;
+                if(!clentstats.flags[i]) break;
             case CTFF_DROPPED:
             {
                 if(OUTBORD(f.pos.x, f.pos.y)) break;
@@ -469,7 +469,7 @@ void checkitems(playerent *d)
     {
         flaginfo &f = flaginfos[i];
         entity &e = *f.flagent;
-        if(!e.spawned || !f.ack || (f.state == CTFF_INBASE && !numflagspawn[i])) continue;
+        if(!e.spawned || !f.ack || (f.state == CTFF_INBASE && !clentstats.flags[i])) continue;
         if(OUTBORD(f.pos.x, f.pos.y)) continue;
         if(f.state==CTFF_DROPPED) // 3d collision for dropped ctf flags
         {
@@ -655,7 +655,7 @@ void flagidle(int flag)
     flaginfos[flag].flagent->spawned = false;
 }
 
-void entstats(void)
+void entstats_(void)
 {
     int entcnt[MAXENTTYPES] = {0}, clipents = 0, spawncnt[5] = {0};
     loopv(ents)
@@ -693,7 +693,7 @@ void entstats(void)
     conoutf("total entities: %d", ents.length());
 }
 
-COMMAND(entstats, "");
+COMMANDN(entstats, entstats_, "");
 
 vector<int> changedents;
 int lastentsync = 0;

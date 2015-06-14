@@ -696,14 +696,14 @@ COMMANDN(savemap9, save_world9, "s");
 
 void showmapdims()
 {
-    conoutf("  min X|Y|Z: %3d : %3d : %3d", mapdims.x1, mapdims.y1, mapdims.minfloor);
-    conoutf("  max X|Y|Z: %3d : %3d : %3d", mapdims.x2, mapdims.y2, mapdims.maxceil);
-    conoutf("delta X|Y|Z: %3d : %3d : %3d", mapdims.xspan, mapdims.yspan, mapdims.maxceil - mapdims.minfloor);
+    conoutf("  min X|Y|Z: %3d : %3d : %3d", clmapdims.x1, clmapdims.y1, clmapdims.minfloor);
+    conoutf("  max X|Y|Z: %3d : %3d : %3d", clmapdims.x2, clmapdims.y2, clmapdims.maxceil);
+    conoutf("delta X|Y|Z: %3d : %3d : %3d", clmapdims.xspan, clmapdims.yspan, clmapdims.maxceil - clmapdims.minfloor);
 }
 COMMAND(showmapdims, "");
 
 extern void preparectf(bool cleanonly = false);
-int numspawn[3], maploaded = 0, numflagspawn[2];
+int maploaded = 0;
 VAR(curmaprevision, 1, 0, 0);
 
 extern char *mlayout;
@@ -782,18 +782,17 @@ bool load_world(char *mname)        // still supports all map formats that have 
     }
     if(hdr.version < 10) hdr.waterlevel *= WATERLEVELSCALING;
     setfvar("waterlevel", float(hdr.waterlevel) / WATERLEVELSCALING);
-    ents.shrink(0);
-    loopi(3) numspawn[i] = 0;
-    loopi(2) numflagspawn[i] = 0;
+
+    // read and convert all entities
+    persistent_entity *tempents = new persistent_entity[hdr.numents];
     bool oldentityformat = hdr.version < 10; // version < 10 have only 4 attributes and no scaling
     loopi(hdr.numents)
     {
-        entity &e = ents.add();
+        persistent_entity &e = tempents[i];
         f->read(&e, oldentityformat ? 12 : sizeof(persistent_entity));
         lilswap((short *)&e, 4);
         if(oldentityformat) e.attr5 = e.attr6 = e.attr7 = 0;
         else lilswap(&e.attr5, 1);
-        e.spawned = false;
         if(e.type == LIGHT && e.attr1 >= 0)
         {
             if(!e.attr2) e.attr2 = 255; // needed for MAPVERSION<=2
@@ -818,15 +817,19 @@ bool load_world(char *mname)        // still supports all map formats that have 
             //SCALEATTR(7);
             #undef SCALEATTR
         }
-        if(e.type == PLAYERSTART && (e.attr2 == 0 || e.attr2 == 1 || e.attr2 == 100))
-        {
-            if(e.attr2 == 100)
-                numspawn[2]++;
-            else
-                numspawn[e.attr2]++;
-        }
-        if(e.type == CTF_FLAG && (e.attr2 == 0 || e.attr2 == 1)) numflagspawn[e.attr2]++;
     }
+    // create entities (and update some statistics)
+    calcentitystats(clentstats, tempents, hdr.numents);
+    ents.shrink(0);
+    loopi(hdr.numents)
+    {
+        entity &e = ents.add();
+        memcpy(&e, &tempents[i], sizeof(persistent_entity));
+        e.spawned = false;
+    }
+    delete[] tempents;
+
+    // read world geometry
     delete[] world;
     setupworld(hdr.sfactor);
     if(!mapinfo.numelems || (mapinfo.access(mname) && !cmpf(cgzname, mapinfo[mname]))) world = (sqr *)ents.getbuf();
@@ -845,6 +848,11 @@ bool load_world(char *mname)        // still supports all map formats that have 
     c2skeepalive();
 
     // calculate map statistics
+    servsqr *smallworld = createservworld(world, cubicsize);
+    int we = calcmapdims(clmapdims, smallworld, ssize);
+    if(we) conoutf("world error %d", we);
+    delete[] smallworld;
+
     DELETEA(mlayout);
     mlayout = new char[cubicsize + 256];
     memset(mlayout, 0, cubicsize * sizeof(char));
@@ -872,7 +880,6 @@ bool load_world(char *mname)        // still supports all map formats that have 
     Mh = Ma ? (float)Mv/Ma : 0;
 
     c2skeepalive();
-    calcmapdims();
     calclight();
     conoutf("read map %s rev %d (%d milliseconds)", cgzname, hdr.maprevision, watch.elapsed());
     conoutf("%s", hdr.maptitle);

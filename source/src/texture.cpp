@@ -1045,7 +1045,7 @@ void deletetextureslot(int *n, char *opt, char *_replace) // delete texture slot
         else if(s->utex > *n) s->utex--;
         s++;
     }
-    block bb = { mapdims.x1 - 1, mapdims.y1 - 1, mapdims.xspan + 2, mapdims.yspan + 2 };
+    block bb = { clmapdims.x1 - 1, clmapdims.y1 - 1, clmapdims.xspan + 2, clmapdims.yspan + 2 };
     remip(bb);
     loopv(ents) if(ents[i].type == MAPMODEL)
     { // check, if mapmodels use the texture
@@ -1260,7 +1260,7 @@ void sorttextureslots(char **args, int numargs)
         s->utex = newslot[s->utex];
         s++;
     }
-    block bb = { mapdims.x1 - 1, mapdims.y1 - 1, mapdims.xspan + 2, mapdims.yspan + 2 };
+    block bb = { clmapdims.x1 - 1, clmapdims.y1 - 1, clmapdims.xspan + 2, clmapdims.yspan + 2 };
     remip(bb);
     loopv(ents) if(ents[i].type == MAPMODEL)
     {

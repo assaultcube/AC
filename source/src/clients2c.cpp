@@ -254,15 +254,16 @@ int map_quality = MAP_IS_EDITABLE;
 /// TODO: many functions and variables are redundant between client and server... someone should redo the entire server code and unify client and server.
 bool good_map() // call this function only at startmap
 {
+    return true;
     if (mlayout) MA = checkarea(sfactor, mlayout);
 
     F2F = 1000 * MINFF;
     if(m_flags)
     {
-        flaginfo &f0 = flaginfos[0];
-        flaginfo &f1 = flaginfos[1];
+//        flaginfo &f0 = flaginfos[0];
+  //      flaginfo &f1 = flaginfos[1];
 #define DIST(x) (f0.pos.x - f1.pos.x)
-        F2F = (!numflagspawn[0] || !numflagspawn[1]) ? 1000 * MINFF : DIST(x)*DIST(x)+DIST(y)*DIST(y);
+        F2F = 1000;//(!numflagspawn[0] || !numflagspawn[1]) ? 1000 * MINFF : DIST(x)*DIST(x)+DIST(y)*DIST(y);
 #undef DIST
     }
 

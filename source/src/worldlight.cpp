@@ -178,7 +178,12 @@ VARF(ambient, 0, 0, 0xFFFFFF, if(!noteditmode("ambient")) { hdr.ambient = ambien
 
 void calclight()
 {
-    if(editmode) calcmapdims();
+    if(editmode)
+    {
+        servsqr *servworld = createservworld(world, cubicsize);
+        calcmapdims(clmapdims, servworld, ssize);
+        delete[] servworld;
+    }
     uchar r = (hdr.ambient>>16) & 0xFF, g = (hdr.ambient>>8) & 0xFF, b = hdr.ambient & 0xFF;
     if(!r && !g)
     {
@@ -205,7 +210,7 @@ void calclight()
 
     popMT();   // undo the static seedMT() from above
 
-    block bb = { mapdims.x1 - 1, mapdims.y1 - 1, mapdims.xspan + 2, mapdims.yspan + 2 };
+    block bb = { clmapdims.x1 - 1, clmapdims.y1 - 1, clmapdims.xspan + 2, clmapdims.yspan + 2 };
     postlightarea(bb);
     setvar("fullbright", 0);
     lastcalclight = totalmillis;
