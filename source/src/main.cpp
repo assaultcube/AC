@@ -1068,6 +1068,8 @@ VARP(compatibilitymode, 0, 1, 1); // FIXME : find a better place to put this ?
 
 int main(int argc, char **argv)
 {
+    ASSERT((GMMASK__BOT ^ GMMASK__MP ^ GMMASK__TEAM ^ GMMASK__FFA ^ GMMASK__TEAMSPAWN ^ GMMASK__FFASPAWN) == GMMASK__ALL);
+
     extern struct servercommandline scl;
     #ifdef WIN32
     //atexit((void (__cdecl *)(void))_CrtDumpMemoryLeaks);
