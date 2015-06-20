@@ -13,9 +13,6 @@
 #include "cube.h"
 #include "bot.h"
 
-bool dedserv = false;
-#define CS_DEDHOST 0xFF
-
 extern void respawnself();
 
 CBotManager BotManager;
@@ -73,13 +70,6 @@ void CBotManager::Think()
           delete pStoredBot;
        }
        m_fReAddBotDelay = -1.0f;
-    }
-    // If this is a ded server check if there are any players, if not bots should be idle
-    if (dedserv)
-    {
-       bool botsbeidle = true;
-       loopv(players) { if (players[i] && (players[i]->state != CS_DEDHOST)) { botsbeidle = false; break; } }
-       if (botsbeidle) return;
     }
     // Let all bots 'think'
     loopv(bots)
@@ -168,20 +158,13 @@ const char *CBotManager::GetBotName()
     {
         ChoiceVal = 50;
 
-        loopv(players)
-        {
-            if (players[i] && (players[i]->state != CS_DEDHOST) &&
-                !strcasecmp(players[i]->name, m_szBotNames[j]))
-                ChoiceVal -= 10;
-        }
-
         loopv(bots)
         {
             if (bots[i] && (!strcasecmp(bots[i]->name, m_szBotNames[j])))
                 ChoiceVal -= 10;
         }
 
-        if ((player1->state != CS_DEDHOST) && !strcasecmp(player1->name, m_szBotNames[j]))
+        if (!strcasecmp(player1->name, m_szBotNames[j]))
             ChoiceVal -= 10;
 
         if (ChoiceVal <= 0)
@@ -258,9 +241,9 @@ const char *CBotManager::GetBotTeam()
     {
         teamsize[player1->team]++;
     }
-    loopv(players) if(players[i] && team_isactive(players[i]->team))
+    loopv(bots) if(bots[i] && team_isactive(bots[i]->team))
     {
-        teamsize[players[i]->team]++;
+        teamsize[bots[i]->team]++;
     }
     biggestTeam = teamsize[1] > teamsize[0];
     return teamnames[biggestTeam ^ 1];
@@ -275,12 +258,6 @@ const char *CBotManager::GetBotTeam()
     {
         ChoiceVal = 50;
         /* UNDONE?
-        loopv(players)
-        {
-            if (players[i] && (!strcasecmp(players[i]->name, m_szBotNames[j])))
-                ChoiceVal -= 10;
-        }
-
         loopv(bots)
         {
             if (bots[i] && (!strcasecmp(bots[i]->name, m_szBotNames[j])))

@@ -208,11 +208,11 @@ void TraceLine(vec from, vec to, dynent *pTracer, bool CheckPlayers, traceresult
 
      if (CheckPlayers)
      {
-          // Check if the 'line' collides with players
-          loopv(players)
+          // Check if the 'line' collides with bots
+          loopv(bots)
           {
-               playerent *d = players[i];
-               if(!d || (d==pTracer) || (d->state != CS_ALIVE)) continue; // Only check valid players
+               playerent *d = bots[i];
+               if(!d || (d==pTracer) || (d->state != CS_ALIVE)) continue; // Only check valid bots
 
                flDist = GetDistance(from, d->o);
 
@@ -476,15 +476,6 @@ bool IsInGame(dynent *d)
      {
           if (d == player1)
                return true;
-          else
-          {
-               loopv(players)
-               {
-                    if (!players[i]) continue;
-                    if (players[i] == d)
-                         return true;
-               }
-          }
      }
      return false;
 }

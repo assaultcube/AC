@@ -129,10 +129,10 @@ bool CBot::FindEnemy(void)
     float flDist, flNearestDist = 99999.9f;
     short EnemyVal, BestEnemyVal = -100;
 
-        // First loop through all players
-        loopv(players)
+        // First loop through all bots
+        loopv(bots)
         {
-            d = players[i]; // Handy shortcut
+            d = bots[i]; // Handy shortcut
 
             if (d == m_pMyEnt || !d || isteam(d->team, m_pMyEnt->team) || (d->state != CS_ALIVE))
                 continue;
@@ -239,10 +239,10 @@ bool CBot::CheckHunt(void)
     short EnemyVal, BestEnemyVal = -100;
     vec BestOldPos;
 
-        // First loop through all players
-        loopv(players)
+        // First loop through all bots
+        loopv(bots)
         {
-            d = players[i]; // Handy shortcut
+            d = bots[i]; // Handy shortcut
 
             if (d == m_pMyEnt || !d || isteam(d->team, m_pMyEnt->team) || (d->state != CS_ALIVE))
                 continue;
@@ -1953,10 +1953,10 @@ void CBot::HearSound(int n, vec *o)
     float flDist, flNearestDist = 3.0f; // Range of 3 units
     playerent *pNearest = NULL;
 
-        // Check all players first
-        loopv(players)
+        // Check all bots first
+        loopv(bots)
         {
-            playerent *d = players[i];
+            playerent *d = bots[i];
 
             if (d == m_pMyEnt || !d || (d->state != CS_ALIVE) ||
                 isteam(m_pMyEnt->team, d->team))
