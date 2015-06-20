@@ -161,16 +161,16 @@ const char *CBotManager::GetBotName()
         loopv(bots)
         {
             if (bots[i] && (!strcasecmp(bots[i]->name, m_szBotNames[j])))
-                ChoiceVal -= 10;
+            {
+                ChoiceVal = 0;
+                break;
+            }
         }
 
         if (!strcasecmp(player1->name, m_szBotNames[j]))
-            ChoiceVal -= 10;
+            ChoiceVal = 0;
 
-        if (ChoiceVal <= 0)
-            ChoiceVal = 1;
-
-        BotNameChoices.Insert(m_szBotNames[j], ChoiceVal);
+        if(ChoiceVal) BotNameChoices.Insert(m_szBotNames[j], ChoiceVal);
     }
 
     // Couldn't find a selection?
