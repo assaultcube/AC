@@ -29,8 +29,6 @@ void CBotManager::Init()
 {
     m_pBotToView = NULL;
 
-    m_bBotsShoot = true;
-    m_bIdleBots = false;
     m_iFrameTime = 0;
     m_iPrevTime = lastmillis;
     m_sBotSkill = 1; // Default all bots have the skill 'Good'

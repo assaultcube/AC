@@ -353,7 +353,7 @@ public:
      botent *m_pBotToView;
 
      // Construction
-     CBotManager(void) { m_bInit = true; m_fReAddBotDelay = -1.0f; };
+     CBotManager(void) { m_bInit = true; m_bBotsShoot = true; m_bIdleBots = false; m_fReAddBotDelay = -1.0f; };
 
      // Destruction
      ~CBotManager(void);
