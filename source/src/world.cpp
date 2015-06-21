@@ -731,6 +731,13 @@ bool empty_world(int factor, bool force)    // main empty world creation routine
     return true;
 }
 
+void mapsize(void)
+{
+    intret(sfactor);
+}
+
+COMMAND(mapsize, "");
+
 void mapenlarge()  { if(empty_world(-1, false)) addmsg(SV_NEWMAP, "ri", -1); }
 void mapshrink()   { if(empty_world(-2, false)) addmsg(SV_NEWMAP, "ri", -2); }
 void newmap(int *i)

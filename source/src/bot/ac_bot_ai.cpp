@@ -11,8 +11,6 @@
 #include "cube.h"
 #include "bot.h"
 
-#ifdef AC_CUBE
-
 weaponinfo_s WeaponInfoTable[MAX_WEAPONS] =
 {
     // DD: desired distance
@@ -124,11 +122,6 @@ bool CACBot::ChoosePreferredWeapon()
         }
     }
 
-    if (WeaponInfoTable[m_pMyEnt->gunselect].eWeaponType == TYPE_ROCKET)
-    {
-        m_bShootAtFeet = true;
-
-    }
     if(lastmillis > m_iChangeWeaponDelay)
     {
         SelectGun(bestWeapon);
@@ -361,5 +354,3 @@ bool CACBot::DoSPStuff()
 }
 
 // Code of CACBot - End
-
-#endif

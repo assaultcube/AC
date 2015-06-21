@@ -21,43 +21,11 @@ vec CBot::GetEnemyPos(playerent *d)
     vec o = m_pMyEnt->weaponsel->type == GUN_SNIPER && d->head.x >= 0 ? d->head : d->o, offset;
     float flDist = GetDistance(o), flScale;
 
-    if (WeaponInfoTable[m_pMyEnt->gunselect].eWeaponType == TYPE_ROCKET)
+    if (m_pBotSkill->bCanPredict)
     {
-        // Bot is using a rocket launcher, aim at enemy feet?
-        if (m_bShootAtFeet && !OUTBORD(d->o.x, d->o.y))
-        {
-            // Only do this when enemy is fairly close to the ground
-            vec end = o;
-            end.z -= 900.0f;
-            traceresult_s tr;
-            TraceLine(o, end, NULL, false, &tr);
-            if ((o.z - tr.end.z) < 8.0f)
-            {
-                end = o;
-                end.z = tr.end.z;
-                if (IsVisible(end))
-                {
-                    // Target at ground
-                    o.z = tr.end.z;
-                }
-            }
-        }
-
-        if (m_pBotSkill->bCanPredict)
-        {
-            // How higher the skill, how further the bot predicts
-            float flPredictTime = RandomFloat(1.25f, 1.7f) / (m_sSkillNr+1);
-            o = PredictPos(o, d->vel, flPredictTime);
-        }
-    }
-    else
-    {
-        if (m_pBotSkill->bCanPredict)
-        {
-            // How higher the skill, how 'more' the bot predicts
-            float flPredictTime = RandomFloat(0.8f, 1.2f) / (m_sSkillNr+1);
-            o = PredictPos(o, d->vel, flPredictTime);
-        }
+        // How higher the skill, how 'more' the bot predicts
+        float flPredictTime = RandomFloat(0.8f, 1.2f) / (m_sSkillNr+1);
+        o = PredictPos(o, d->vel, flPredictTime);
     }
 
     if (flDist > 60.0f)
@@ -648,7 +616,6 @@ void CBot::CheckWeaponSwitch()
     {
        m_pMyEnt->prevweaponsel = m_pMyEnt->weaponsel;
        m_pMyEnt->weaponsel = m_pMyEnt->nextweaponsel;
-       if(m_pMyEnt->weaponsel!=NULL) addmsg(SV_WEAPCHANGE, "ri", m_pMyEnt->weaponsel->type); // 2011jan17:ft: message possibly not needed in a local game!?!
        m_pMyEnt->weaponchanging = 0;
        m_iChangeWeaponDelay = 0;
        if(!m_pMyEnt->weaponsel->mag)

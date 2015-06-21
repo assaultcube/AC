@@ -480,11 +480,7 @@ bool IsInGame(dynent *d)
           {
                loopv(players)
                {
-#ifdef VANILLA_CUBE
-                    if (!players[i] || (players[i]->state == CS_DEDHOST)) continue;
-#elif defined(AC_CUBE)
                     if (!players[i]) continue;
-#endif
                     if (players[i] == d)
                          return true;
                }

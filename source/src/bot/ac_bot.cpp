@@ -13,8 +13,6 @@
 #include "cube.h"
 #include "bot.h"
 
-#ifdef AC_CUBE
-
 extern int triggertime;
 extern itemstat itemstats[];
 extern void spawnstate(playerent *d);
@@ -46,7 +44,6 @@ void CACBot::Spawn()
      m_iEnemySearchDelay = 0;
      m_bCombatJump = false;
      m_iCombatJumpDelay = 0;
-     m_bShootAtFeet = (RandomLong(1, 100) <= m_pBotSkill->sShootAtFeetWithRLPercent);
      m_iHuntDelay = 0;
      m_vHuntLocation = m_vPrevHuntLocation = g_vecZero;
      m_pHuntTarget = NULL;
@@ -74,5 +71,3 @@ void CACBot::CheckItemPickup()
 }
 
 // AC Bot class end
-
-#endif

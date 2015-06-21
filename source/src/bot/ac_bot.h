@@ -13,8 +13,6 @@
 #ifndef AC_BOT_H
 #define AC_BOT_H
 
-#ifdef AC_CUBE
-
 //#define BOTDEBUG
 #define MAX_WEAPONS      10
 
@@ -47,10 +45,5 @@ inline void AddDebugText(const char *t, ...)
     va_end(v);
 #endif
 }
-
-
-
-
-#endif
 
 #endif

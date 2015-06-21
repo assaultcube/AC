@@ -176,16 +176,4 @@ public:
 #endif
 };
 
-class CCubeWaypointClass: public CWaypointClass
-{
-public:
-     void CreateWPsAtTeleporters(void);
-     void CreateWPsAtTriggers(void);
-
-#ifdef WP_FLOOD
-     // Flood functions
-     virtual void StartFlood(void);
-#endif
-};
-
 #endif // BOT_WAYPOINT_H
