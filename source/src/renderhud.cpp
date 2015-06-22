@@ -1087,7 +1087,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         draw_text(specttext, VIRTW/40, VIRTH/10*7);
         if(is_spect)
         {
-            defformatstring(name)("Player %s", players[player1->followplayercn]->name);
+            defformatstring(name)("Player %s", colorname(players[player1->followplayercn]));
             draw_text(name, VIRTW/40, VIRTH/10*8);
         }
     }
