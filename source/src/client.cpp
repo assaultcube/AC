@@ -1016,7 +1016,7 @@ VAR(rereadsoundlists, 0, 1, 1); // same for map sounds
 int processdownload(package *pck)
 {
     string tmpname = "";
-    copystring(tmpname, findfile(path("tmp", true), "rb"));
+    copystring(tmpname, findfile("tmp", "rb"));
     if(!pck->pending)
     {
         switch(pck->type)
@@ -1033,7 +1033,7 @@ int processdownload(package *pck)
 
             case PCK_MAP: case PCK_MAPMODEL:
             {
-                addzip(tmpname, pck->name, NULL, true, pck->type);
+                addzip("tmp", pck->name, NULL, true, pck->type);
                 break;
             }
 
@@ -1041,7 +1041,7 @@ int processdownload(package *pck)
             {
                 char *fname = newstring(pck->name), *ls = strrchr(fname, '/');
                 if(ls) *ls = '\0';
-                addzip(tmpname, fname, NULL, true, pck->type);
+                addzip("tmp", fname, NULL, true, pck->type);
                 rereadtexturelists = 1;
                 break;
             }
@@ -1059,7 +1059,7 @@ int processdownload(package *pck)
 double dlpackage(package *pck)
 {
     if(!pck || !pck->source) return false;
-    const char *tmpname = findfile(path("tmp", true), "wb");
+    const char *tmpname = findfile("tmp", "wb");
     FILE *outfile = fopen(tmpname, "wb");
     string req, pckname = "";
     sprintf(req, "%s/%s%s", pck->source->addr, strreplace(pckname, pck->name, " ", "%20"), (pck->type==PCK_MAP || pck->type==PCK_MAPMODEL || pck->type==PCK_SKYBOX) ? ".zip" : "");
