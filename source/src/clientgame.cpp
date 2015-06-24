@@ -1641,28 +1641,24 @@ VARP(spectatepersistent,0,1,1);
 // rotate through all spec-able players
 playerent *updatefollowplayer(int shiftdirection)
 {
-    playerent *f = players.inrange(player1->followplayercn) ? players[player1->followplayercn] : NULL;
-    if(!shiftdirection)
-    {
-        if(f && (watchingdemo || !f->isspectating() || spectatepersistent || (!spectatepersistent && !m_arena) )) return f;
-    }
+    playerent *f = players.inrange(player1->followplayercn) ? players[player1->followplayercn] : NULL; // last spectated player
 
     // collect spec-able players
+    int omit_team = m_teammode && !watchingdemo && player1->team != TEAM_SPECT ? team_opposite(team_base(player1->team)) : TEAM_NUM; // don't spect enemy team in team mode
+    bool stayondeadplayers = spectatepersistent || !m_arena;
     vector<playerent *> available;
     loopv(players) if(players[i])
     {
-        if(player1->team != TEAM_SPECT && !watchingdemo && m_teammode && team_base(players[i]->team) != team_base(player1->team)) continue;
-        if(players[i]->state==CS_DEAD || players[i]->isspectating()) continue;
+        if(team_group(players[i]->team) == omit_team) continue; // if not team SPECT and not watchingdemo and teammode: don't spectate enemy team
+        if((players[i]->state == CS_DEAD || players[i]->isspectating()) && (!stayondeadplayers || players[i] != f)) continue; // don't spect dead players, but in some cases stay on them
         available.add(players[i]);
     }
-    if(!available.length()) return f;
+    if(available.length() < 1) return NULL;
 
     // rotate
-    int oldidx = -1;
-    if(players.inrange(player1->followplayercn)) oldidx = available.find(players[player1->followplayercn]);
-    if(oldidx<0) oldidx = 0;
-    int idx = (oldidx+shiftdirection) % available.length();
-    if(idx<0) idx += available.length();
+    int oldidx = f ? available.find(f) : 0;
+    if(oldidx < 0) oldidx = 0;
+    int idx = ((oldidx + shiftdirection) % available.length() + available.length()) % available.length();
 
     player1->followplayercn = available[idx]->clientnum;
     return players[player1->followplayercn];
