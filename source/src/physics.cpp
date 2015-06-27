@@ -826,12 +826,11 @@ void attack(bool on)
 
 void jumpn(bool on)
 {
-    if(intermission) return;
     if(player1->isspectating())
     {
         if(lastmillis - player1->respawnoffset > 1000 && on) togglespect();
     }
-    else if(player1->crouching) return;
+    else if(player1->crouching || intermission) return;
     else player1->jumpnext = on;
 }
 
