@@ -649,6 +649,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 loopi(NUMGUNS) s->ammo[i] = getint(p);
                 loopi(NUMGUNS) s->mag[i] = getint(p);
                 s->state = CS_SPAWNING;
+                arenaintermission = 0;
                 if(s->lifesequence==0) s->resetstats(); //NEW
                 break;
             }
