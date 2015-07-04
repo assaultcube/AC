@@ -230,7 +230,15 @@ void renderscore(playerent *d)
         line.addcol(sc_lag, lagping);
     }
     line.addcol(sc_clientnum, "\fs\f%d%d\fr", cncolumncolor, d->clientnum);
-    line.addcol(sc_name, "\fs%s%s\fr%s", status, colorname(d), ign);
+    char flagicon = '\0';
+    if(m_flags) //show flag icon at flag carrier with use radaricons font
+    {
+        loopi(2)
+        {
+            if(flaginfos[i].state == CTFF_STOLEN && flaginfos[i].actor == d) flagicon = m_ktf ? 'L' : "DH"[i];
+        }
+    }
+    line.addcol(sc_name, "\fs%s%s\fr%s%s%c ", status, colorname(d), ign, flagicon ? " \a" : "", flagicon);
 }
 
 int totalplayers = 0;
@@ -412,7 +420,7 @@ void renderscores(void *menu, bool init)
     }
 
     menureset(menu);
-    loopv(scorelines) menumanual(menu, scorelines[i].getcols(), NULL, scorelines[i].bgcolor);
+    loopv(scorelines) menuimagemanual(menu, NULL, "radaricons", scorelines[i].getcols(), NULL, scorelines[i].bgcolor);
     menuheader(menu, modeline, serverline);
 
     // update server stats
