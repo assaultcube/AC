@@ -145,7 +145,7 @@ int rendercommand(int x, int y, int w)
 
 vector<keym> keyms;
 
-const char *keycmds[keym::NUMACTIONS] = { "bind", "specbind", "editbind" };
+const char *keycmds[keym::NUMACTIONS] = { "bind", "editbind", "specbind" };
 inline const char *keycmd(int type) { return type >= 0 && type < keym::NUMACTIONS ? keycmds[type] : ""; }
 
 void keymap(int *code, char *key)

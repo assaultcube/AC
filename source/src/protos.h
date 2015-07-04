@@ -73,8 +73,8 @@ struct keym
     enum
     {
         ACTION_DEFAULT = 0,
-        ACTION_SPECTATOR,
         ACTION_EDITING,
+        ACTION_SPECTATOR,
         NUMACTIONS
     };
 

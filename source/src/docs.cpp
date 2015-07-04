@@ -532,7 +532,7 @@ void renderdoc(int x, int y, int doch)
                     {
                         docargument *a = &ident->arguments[j];
                         if(!a) continue;
-                        formatstring(doclines.add(newstringbuf()))("~\f%d%-8s%s %s%s%s", j == arg ? 4 : 5, a->token, a->desc,
+                        formatstring(doclines.add(newstringbuf()))("\f%d%-8s%s %s%s%s", j == arg ? 4 : 5, a->token, a->desc,
                             a->values ? "(" : "", a->values ? a->values : "", a->values ? ")" : "");
                     }
 

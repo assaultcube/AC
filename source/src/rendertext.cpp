@@ -374,7 +374,7 @@ void draw_text(const char *str, int left, int top, int r, int g, int b, int a, i
     glBegin(GL_QUADS);
     glColor4ub(color.x, color.y, color.z, a);
     TEXTSKELETON
-            glEnd();
+    glEnd();
     if(cursor >= 0)
     {
         if(cx == INT_MIN) { cx = x; cy = y; }
