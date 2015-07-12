@@ -682,7 +682,7 @@ extern void particle_trail(int type, int fade, const vec &from, const vec &to);
 extern void particle_emit(int type, int *args, int basetime, int seed, const vec &p);
 extern void particle_fireball(int type, const vec &o);
 extern void addshotline(dynent *d, const vec &from, const vec &to);
-extern bool addbullethole(dynent *d, const vec &from, const vec &to, float radius = 1, bool noisy = true, int type = 0); // shotty
+extern bool addbullethole(dynent *d, const vec &from, const vec &to, float radius = 1, bool noisy = true);
 extern bool addscorchmark(vec &o, float radius = 7);
 
 extern void render_particles(int time, int typemask = ~0);
@@ -764,7 +764,7 @@ extern const char *mmshortname(const char *name);
 
 // weapon
 extern void shoot(playerent *d, vec &to);
-extern void createrays(vec &from, vec &to);
+extern void createrays(const vec &from, const vec &to);
 extern void removebounceents(playerent *owner);
 extern void movebounceents();
 extern void clearbounceents();
@@ -1127,8 +1127,3 @@ struct servercommandline
     }
 };
 
-// shotty: shotgun rays def
-struct sgray {
-    int ds; // damage flag: outer, medium, center: SGSEGDMG_*
-    vec rv; // ray vector
-};

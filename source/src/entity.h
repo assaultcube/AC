@@ -75,11 +75,6 @@ enum { GUN_KNIFE = 0, GUN_PISTOL, GUN_CARBINE, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIP
 
 #define SGMAXDMGABS 105
 #define SGMAXDMGLOC 84
-#define SGBONUSDIST 80
-#define SGSEGDMG_O 3
-#define SGSEGDMG_M 6
-#define SGSEGDMG_C 4
-#define SGSPREAD 2.25
 #define EXPDAMRAD 10
 
 struct itemstat { int add, start, max, sound; };

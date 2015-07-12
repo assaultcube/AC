@@ -184,7 +184,7 @@ void cleanupexplosion()
     }
 }
 
-#define MAXPARTYPES 22
+#define MAXPARTYPES 20
 
 struct particle { vec o, d; int fade, type; int millis; particle *next; };
 particle *parlist[MAXPARTYPES], *parempty = NULL;
@@ -271,9 +271,6 @@ static struct parttype { int type; float r, g, b; int gr, tex; float sz; } partt
     { PT_PART,       1.0f, 0.5f, 0.2f, 20, 0, 0.08f }, // orange: edit mode ent type : "carrot"
     { PT_PART,       0.5f, 0.5f, 0.5f, 20, 0, 0.08f }, // grey: edit mode ent type : ladder, (pl)clip
     { PT_PART,       0.0f, 1.0f, 1.0f, 20, 0, 0.08f }, // turquoise: edit mode ent type : CTF-flag
-    // 2011jun18 : shotty decals
-    { PT_BULLETHOLE, 0.2f, 0.2f, 1.0f, 0,  3, 0.1f  }, // hole decal M
-    { PT_BULLETHOLE, 0.2f, 1.0f, 0.2f, 0,  3, 0.1f  }, // hole decal C
 };
 
 VAR(particlesize, 20, 100, 500);
@@ -623,9 +620,7 @@ VARP(bullethole, 0, 1, 1);
 VARP(bulletholettl, 0, 10000, 30000);
 VARP(bulletbouncesoundrad, 0, 15, 1000);
 
-// 2011jun18: shotty decals
-//bool addbullethole(dynent *d, const vec &from, const vec &to, float radius, bool noisy)
-bool addbullethole(dynent *d, const vec &from, const vec &to, float radius, bool noisy, int type)
+bool addbullethole(dynent *d, const vec &from, const vec &to, float radius, bool noisy)
 {
     if(!bulletholettl || !bullethole) return false;
     vec surface, ray(to);
@@ -636,10 +631,7 @@ bool addbullethole(dynent *d, const vec &from, const vec &to, float radius, bool
     vec o(from);
     o.add(ray.mul(dist));
     o.add(vec(surface).normalize().mul(0.01f));
-    // 2011jun18: shotty decals
-    int tf = type > 0 ? ( type > 1 ? 21 : 20 ) : 7;
-    newparticle(o, surface, bulletholettl, tf);
-    //newparticle(o, surface, bulletholettl, 7);
+    newparticle(o, surface, bulletholettl, 7);
     if(noisy && bulletbouncesound && bulletbouncesoundrad && d!=player1 && o.dist(camera1->o) <= bulletbouncesoundrad)
     {
         audiomgr.playsound(o.z < waterlevel ? S_BULLETWATERHIT : S_BULLETHIT, &o, SP_LOW);
