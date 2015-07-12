@@ -343,7 +343,7 @@ bool intersect(entity *e, const vec &from, const vec &to, vec *end)
     return intersectbox(vec(e->x, e->y, lo+mmi.h/2.0f), vec(mmi.rad, mmi.rad, mmi.h/2.0f), from, to, end);
 }
 
-playerent *intersectclosest(const vec &from, const vec &to, playerent *at, float &bestdist, int &hitzone, bool aiming = true)
+playerent *intersectclosest(const vec &from, const vec &to, const playerent *at, float &bestdist, int &hitzone, bool aiming = true)
 {
     playerent *best = NULL;
     bestdist = 1e16f;
@@ -351,14 +351,14 @@ playerent *intersectclosest(const vec &from, const vec &to, playerent *at, float
     if(at!=player1 && player1->state==CS_ALIVE && (zone = intersect(player1, from, to)))
     {
         best = player1;
-        bestdist = at->o.dist(player1->o);
+        bestdist = at->o.squareddist(player1->o);
         hitzone = zone;
     }
     loopv(players)
     {
         playerent *o = players[i];
         if(!o || o==at || (o->state!=CS_ALIVE && (aiming || (o->state!=CS_EDITING && o->state!=CS_LAGGED)))) continue;
-        float dist = at->o.dist(o->o);
+        float dist = at->o.squareddist(o->o);
         if(dist < bestdist && (zone = intersect(o, from, to)))
         {
             best = o;
@@ -587,9 +587,13 @@ void addgib(playerent *d)
     }
 }
 
-void shorten(vec &from, vec &target, float dist)
+void shorten(const vec &from, vec &target, float dist)
 {
-    target.sub(from).mul(min(1.0f, dist)).add(from);
+    target.sub(from);
+    float m = target.squaredlen();
+    if(m < 0.07f) target.add(vec(0.1f, 0.1f, 0.1f));   // if "from == target" just fake a target to avoid zero-length fx vectors
+    else target.mul(max(0.07f, sqrtf(dist / m)));
+    target.add(from);
 }
 
 void raydamage(vec &from, vec &to, playerent *d)
@@ -597,7 +601,7 @@ void raydamage(vec &from, vec &to, playerent *d)
     int dam = d->weaponsel->info.damage;
     int hitzone = -1;
     playerent *o = NULL;
-    float dist;
+    float dist, hitdist;
     bool hitted=false;
     int rayscount = 0, hitscount = 0;
     if(d->weaponsel->type==GUN_SHOTGUN)
@@ -609,7 +613,7 @@ void raydamage(vec &from, vec &to, playerent *d)
             rayscount++;
             int h = k*SGRAYS + i;
             if((hits[h] = intersectclosest(from, sgr[h].rv, d, dist, hitzone)))
-                shorten(from, sgr[h].rv, dist);
+                shorten(from, sgr[h].rv, (hitdist = dist));
         }
         loopk(3)
         loopi(SGRAYS)
@@ -684,6 +688,7 @@ void raydamage(vec &from, vec &to, playerent *d)
                 hitscount+=numhits;
             }
         }
+        if(hitscount) shorten(from, to, hitdist);
     }
     else if((o = intersectclosest(from, to, d, dist, hitzone)))
     {

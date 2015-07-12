@@ -40,6 +40,7 @@ struct vec
 
     float dist(const vec &e) const { vec t; return dist(e, t); }
     float dist(const vec &e, vec &t) const { t = *this; t.sub(e); return t.magnitude(); }
+    float squareddist(const vec &e) const { vec t = *this; t.sub(e); return t.squaredlen(); }
 
     float distxy(const vec &e) const { float dx = e.x - x, dy = e.y - y; return sqrtf(dx*dx + dy*dy); }
     float magnitudexy() const { return sqrtf(x*x + y*y); }
