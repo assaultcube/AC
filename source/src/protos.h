@@ -776,13 +776,6 @@ extern void setscope(bool activate);
 extern void setburst(bool activate);
 extern int intersect(playerent *d, const vec &from, const vec &to, vec *end = NULL);
 extern bool intersect(entity *e, const vec &from, const vec &to, vec *end = NULL);
-// Structure for storing traceresults
-struct traceresult_s
-{
-     vec end;
-     bool collided;
-};
-void TraceLine(vec from, vec to, dynent *pTracer, bool CheckPlayers, traceresult_s *tr, bool SkipTags=false);
 extern void damageeffect(int damage, playerent *d);
 extern void tryreload(playerent *p);
 extern void checkweaponstate();

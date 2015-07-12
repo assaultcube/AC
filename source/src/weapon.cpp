@@ -1280,14 +1280,12 @@ bool gun::attack(vec &targ)
 
 void gun::attackfx(const vec &from, const vec &to, int millis)
 {
-    traceresult_s tr;
-    TraceLine(from, to, owner, true, &tr);
-    if(from != tr.end)
+    if(from.squareddist(to) > 0.07f)
     {
-        addbullethole(owner, from, tr.end);
-        addshotline(owner, from, tr.end);
+        addbullethole(owner, from, to);
+        addshotline(owner, from, to);
     }
-    particle_splash(PART_SPARK, 5, 250, tr.end);
+    particle_splash(PART_SPARK, 5, 250, to);
     adddynlight(owner, from, 4, 100, 50, 96, 80, 64);
     attacksound();
 }
@@ -1338,15 +1336,13 @@ sniperrifle::sniperrifle(playerent *owner) : gun(owner, GUN_SNIPER), scoped(fals
 
 void sniperrifle::attackfx(const vec &from, const vec &to, int millis)
 {
-    traceresult_s tr;
-    TraceLine(from, to, owner, true, &tr);
-    if(from != tr.end)
+    if(from.squareddist(to) > 0.07f)
     {
-        addbullethole(owner, from, tr.end);
-        addshotline(owner, from, tr.end);
-        particle_trail(PART_SMOKE, 500, from, tr.end);
+        addbullethole(owner, from, to);
+        addshotline(owner, from, to);
+        particle_trail(PART_SMOKE, 500, from, to);
     }
-    particle_splash(PART_SPARK, 50, 200, tr.end);
+    particle_splash(PART_SPARK, 50, 200, to);
     adddynlight(owner, from, 4, 100, 50, 96, 80, 64);
     attacksound();
 }
