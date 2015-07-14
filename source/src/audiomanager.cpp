@@ -622,7 +622,7 @@ void audiomanager::updateaudio()
 
             if(hearable && !loc) // play
             {
-                _playsound(sound, entref, SP_HIGH, 0.0f, true);
+                _playsound(sound, entref, SP_LOW, 0.0f, true);
             }
             else if(!hearable && loc) // stop
             {
@@ -803,9 +803,9 @@ COMMANDF(mapsoundreset, "", ()
     flagmapconfigchange();
 });
 
-VARF(soundchannels, 4, 32, 1024, audiomgr.setchannels(soundchannels); );
+VARF(soundchannels, 4, 128, 1024, audiomgr.setchannels(soundchannels));
 
-VARFP(soundvol, 0, 128, 255, audiomgr.setlistenervol(soundvol); );
+VARFP(soundvol, 0, 128, 255, audiomgr.setlistenervol(soundvol));
 
 COMMANDF(registersound, "siii", (char *name, int *vol, int *loop, int *audibleradius)
 {
