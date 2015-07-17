@@ -110,8 +110,8 @@ char *editinfo()
         const char *slotinfo = "unassigned slot";
         if(t == MAPMODEL)
         {
-            mapmodelinfo &mmi = getmminfo(c.attr2);
-            if(&mmi) slotinfo = mmshortname(mmi.name);
+            mapmodelinfo *mmi = getmminfo(c.attr2);
+            if(mmi) slotinfo = mmshortname(mmi->name);
         }
         else if(t == SOUND)
         {

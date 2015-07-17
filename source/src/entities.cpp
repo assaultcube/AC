@@ -76,9 +76,9 @@ void rendermapmodels()
         entity &e = ents[i];
         if(e.type==MAPMODEL)
         {
-            mapmodelinfo &mmi = getmminfo(e.attr2);
-            if(!&mmi) continue;
-            rendermodel(mmi.name, ANIM_MAPMODEL|ANIM_LOOP, e.attr4, 0, vec(e.x, e.y, S(e.x, e.y)->floor + mmi.zoff + float(e.attr3) / ENTSCALE5), e.attr6, float(e.attr1) / ENTSCALE10, float(e.attr5) / ENTSCALE10, 10.0f, 0, NULL, NULL, mmi.scale);
+            mapmodelinfo *mmi = getmminfo(e.attr2);
+            if(!mmi) continue;
+            rendermodel(mmi->name, ANIM_MAPMODEL|ANIM_LOOP, e.attr4, 0, vec(e.x, e.y, S(e.x, e.y)->floor + mmi->zoff + float(e.attr3) / ENTSCALE5), e.attr6, float(e.attr1) / ENTSCALE10, float(e.attr5) / ENTSCALE10, 10.0f, 0, NULL, NULL, mmi->scale);
         }
     }
 }
@@ -234,14 +234,14 @@ void renderentities()
             else if((e.type == CLIP || e.type == PLCLIP) && showclips && !stenciling) renderclip(e);
             else if(e.type == MAPMODEL && showclips && showmodelclipping && !stenciling)
             {
-                mapmodelinfo &mmi = getmminfo(e.attr2);
-                if(&mmi && mmi.h)
+                mapmodelinfo *mmi = getmminfo(e.attr2);
+                if(mmi && mmi->h)
                 {
                     entity ce = e;
                     ce.type = MAPMODEL;
-                    ce.attr1 = (mmi.zoff + float(e.attr3) / ENTSCALE5) * ENTSCALE10;
-                    ce.attr2 = ce.attr3 = mmi.rad * ENTSCALE5;
-                    ce.attr4 = mmi.h * ENTSCALE5;
+                    ce.attr1 = (mmi->zoff + float(e.attr3) / ENTSCALE5) * ENTSCALE10;
+                    ce.attr2 = ce.attr3 = mmi->rad * ENTSCALE5;
+                    ce.attr4 = mmi->h * ENTSCALE5;
                     ce.attr5 = ce.attr6 = ce.attr7 = 0;
                     renderclip(ce);
                 }
@@ -316,13 +316,13 @@ void pickupeffects(int n, playerent *d)
     if(!d) return;
     d->pickup(e.type);
     if (m_lss && e.type == I_GRENADE) d->pickup(e.type); // get 2
-    itemstat &is = d->itemstats(e.type);
+    itemstat *is = d->itemstats(e.type);
     if(d!=player1 && d->type!=ENT_BOT) return;
-    if(&is)
+    if(is)
     {
         if(d==player1)
         {
-            audiomgr.playsoundc(is.sound);
+            audiomgr.playsoundc(is->sound);
 
             /*
                 onPickup arg1 legend:
@@ -351,7 +351,7 @@ void pickupeffects(int n, playerent *d)
                 if(tmp) exechook(HOOK_SP, "onPickup", "%d %d", e.type - 3, m_lss && e.type == I_GRENADE ? 2 : tmp->add);
             }
         }
-        else audiomgr.playsound(is.sound, d);
+        else audiomgr.playsound(is->sound, d);
     }
 
     weapon *w = NULL;
@@ -645,8 +645,8 @@ void entstats(void)
         {
             case MAPMODEL:
             {
-                mapmodelinfo &mmi = getmminfo(e.attr2);
-                if(&mmi && mmi.h) clipents++;
+                mapmodelinfo *mmi = getmminfo(e.attr2);
+                if(mmi && mmi->h) clipents++;
                 break;
             }
             case PLAYERSTART:

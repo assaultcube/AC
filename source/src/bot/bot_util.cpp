@@ -190,11 +190,11 @@ void TraceLine(vec from, vec to, dynent *pTracer, bool CheckPlayers, traceresult
           entity &e = ents[i];
           if(e.type!=MAPMODEL) continue; // Only check map models for now
 
-          mapmodelinfo &mmi = getmminfo(e.attr2);
-          if(!&mmi || !mmi.h) continue;
+          mapmodelinfo *mmi = getmminfo(e.attr2);
+          if(!mmi || !mmi->h) continue;
 
-          float lo = (float)(S(e.x, e.y)->floor+mmi.zoff+e.attr3);
-          float hi = lo+mmi.h;
+          float lo = (float)(S(e.x, e.y)->floor + mmi->zoff + e.attr3);
+          float hi = lo + mmi->h;
           float z = (fabs(from.z-lo) < fabs(from.z-hi)) ? lo : hi;
           makevec(&v, e.x, e.y, z);
           flDist = GetDistance(from, v);

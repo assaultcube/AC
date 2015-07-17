@@ -263,20 +263,20 @@ public:
 
     void resetstats() { loopi(NUMGUNS) pstatshots[i] = pstatdamage[i] = 0; }
 
-    itemstat &itemstats(int type)
+    itemstat *itemstats(int type)
     {
         switch(type)
         {
-            case I_CLIPS: return ammostats[GUN_PISTOL];
-            case I_AMMO: return ammostats[primary];
-            case I_GRENADE: return ammostats[GUN_GRENADE];
-            case I_AKIMBO: return ammostats[GUN_AKIMBO];
+            case I_CLIPS:   return &ammostats[GUN_PISTOL];
+            case I_AMMO:    return &ammostats[primary];
+            case I_GRENADE: return &ammostats[GUN_GRENADE];
+            case I_AKIMBO:  return &ammostats[GUN_AKIMBO];
             case I_HEALTH:
             case I_HELMET:
             case I_ARMOUR:
-                return powerupstats[type-I_HEALTH];
+                return &powerupstats[type - I_HEALTH];
             default:
-                return *(itemstat *)0;
+                return NULL;
         }
     }
 

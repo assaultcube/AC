@@ -168,15 +168,15 @@ bool mmcollide(physent *d, float &hi, float &lo)           // collide with a map
         }
         else if(e.type==MAPMODEL)
         {
-            mapmodelinfo &mmi = getmminfo(e.attr2);
-            if(!&mmi || !mmi.h) continue;
-            const float r = mmi.rad+d->radius;
+            mapmodelinfo *mmi = getmminfo(e.attr2);
+            if(!mmi || !mmi->h) continue;
+            const float r = mmi->rad + d->radius;
             if(fabs(e.x-d->o.x)<r && fabs(e.y-d->o.y)<r)
             {
-                const float mmz = float(S(e.x, e.y)->floor + mmi.zoff + float(e.attr3) / ENTSCALE5);
+                const float mmz = float(S(e.x, e.y)->floor + mmi->zoff + float(e.attr3) / ENTSCALE5);
                 const float dz = d->o.z-eyeheight;
                 if(dz < mmz - 0.42) { if(mmz < hi) hi = mmz; }
-                else if(mmz+mmi.h>lo) lo = mmz+mmi.h;
+                else if(mmz + mmi->h > lo) lo = mmz + mmi->h;
                 if(hi-lo < playerheight) return true;
             }
         }

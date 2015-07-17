@@ -140,7 +140,7 @@ void mapmodelreset()
 }
 COMMAND(mapmodelreset, "");
 
-mapmodelinfo &getmminfo(int i) { return mapmodels.inrange(i) ? mapmodels[i] : *(mapmodelinfo *)0; }
+mapmodelinfo *getmminfo(int i) { return mapmodels.inrange(i) ? &mapmodels[i] : NULL; }
 
 COMMANDF(mapmodelslotname, "i", (int *idx) { result(mapmodels.inrange(*idx) ? mmshortname(mapmodels[*idx].name) : ""); }); // returns the model name that is configured in a certain slot
 COMMANDF(mapmodelslotbyname, "s", (char *name) // returns the slot(s) that a certain mapmodel is configured in

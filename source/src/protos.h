@@ -747,7 +747,7 @@ extern void rendermodel(const char *mdl, int anim, int tex, float rad, const vec
 extern void startmodelbatches();
 extern void endmodelbatches(bool flush = true);
 extern void clearmodelbatches();
-extern mapmodelinfo &getmminfo(int i);
+extern mapmodelinfo *getmminfo(int i);
 extern int findanim(const char *name);
 extern void loadskin(const char *dir, const char *altdir, Texture *&skin);
 extern model *loadmodel(const char *name, int i = -1, bool trydl = false);
