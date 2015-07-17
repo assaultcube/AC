@@ -2214,14 +2214,14 @@ void scallvotesuc(voteinfo *v)
     clients[v->owner]->lastvotecall = servmillis;
     clients[v->owner]->nvotes--; // successful votes do not count as abuse
     sendf(v->owner, 1, "ri", SV_CALLVOTESUC);
-    logline(ACLOG_INFO, "[%s] client %s called a vote: %s", clients[v->owner]->hostname, clients[v->owner]->name, v->action && v->action->desc ? v->action->desc : "[unknown]");
+    logline(ACLOG_INFO, "[%s] client %s called a vote: %s", clients[v->owner]->hostname, clients[v->owner]->name, v->action && *v->action->desc ? v->action->desc : "[unknown]");
 }
 
 void scallvoteerr(voteinfo *v, int error)
 {
     if(!valid_client(v->owner)) return;
     sendf(v->owner, 1, "ri2", SV_CALLVOTEERR, error);
-    logline(ACLOG_INFO, "[%s] client %s failed to call a vote: %s (%s)", clients[v->owner]->hostname, clients[v->owner]->name, v->action && v->action->desc ? v->action->desc : "[unknown]", voteerrorstr(error));
+    logline(ACLOG_INFO, "[%s] client %s failed to call a vote: %s (%s)", clients[v->owner]->hostname, clients[v->owner]->name, v->action && *v->action->desc ? v->action->desc : "[unknown]", voteerrorstr(error));
 }
 
 bool map_queued = false;
@@ -2696,8 +2696,8 @@ void process(ENetPacket *packet, int sender, int chan)
             copystring(cl->pwd, text);
             getstring(text, p);
             filterlang(cl->lang, text);
-            int wantrole = getint(p);
-            cl->state.nextprimary = getint(p);
+            int wantrole = getint(p), np = getint(p);
+            cl->state.nextprimary = np > 0 && np < NUMGUNS ? np : GUN_ASSAULT;
             loopi(2) cl->skin[i] = getint(p);
             int bantype = getbantype(sender);
             bool banned = bantype > BAN_NONE;
@@ -3494,7 +3494,7 @@ void process(ENetPacket *packet, int sender, int chan)
                         if(mode==GMODE_DEMO) vi->action = new demoplayaction(newstring(text));
                         else
                         {
-                            char *vmap = newstring(vi->text ? behindpath(vi->text) : "");
+                            char *vmap = newstring(*vi->text ? behindpath(vi->text) : "");
                             vi->action = new mapaction(vmap, qmode, time, sender, qmode!=mode);
                         }
                         break;
