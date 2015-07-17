@@ -403,6 +403,7 @@ void renderdoc(int x, int y, int doch)
     if(!docvisible) return;
 
     char *exp = getcurcommand();
+    if(!exp || !*exp) return;
 
     int o = 0; //offset
     int f = 0; //last found
