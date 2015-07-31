@@ -813,7 +813,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 if(!target || !actor) break;
                 target->armour = armour;
                 target->health = health;
-                dodamage(damage, target, actor, -1, type==SV_GIBDAMAGE, false);
+                dodamage(damage, target, actor, gun, type==SV_GIBDAMAGE, false);
                 actor->pstatdamage[gun]+=damage; //NEW
                 break;
             }
