@@ -12,11 +12,7 @@
 
 vec v_debuggoal = g_vecZero;
 
-#if defined AC_CUBE
 CACWaypointClass WaypointClass;
-#elif defined VANILLA_CUBE
-CCubeWaypointClass WaypointClass;
-#endif
 
 VAR(xhairwpsel, 0, 1, 1);
 // FIXME: multiple selections support ?
@@ -548,8 +544,6 @@ void CWaypointClass::SaveWPExpFile()
 
 void CWaypointClass::Think()
 {
-     if (dedserv) return;
-
 #ifdef WP_FLOOD
      FloodThink();
 #endif
@@ -775,19 +769,6 @@ void CWaypointClass::DrawNearWaypoints()
 
     glEnable(GL_CULL_FACE);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-     if (intermission) return;
-
-     /*for(int i=0;i<MAX_STORED_LOCATIONS;i++)
-     {
-          if (player1->PrevLocations.prevloc[i]==g_vecZero) continue;
-          vec v1 = player1->PrevLocations.prevloc[i];
-          v1.z -= 1.0f;
-          vec v2 = v1;
-          v2.z += 2.0f;
-          linestyle(2.5f, 0xFF, 0x40, 0x40);
-          line(int(v1.x), int(v1.y), int(v1.z), int(v2.x), int(v2.y), int(v2.z));
-     }*/
 }
 
 // Add waypoint at location o, returns pointer of created wp
@@ -1687,214 +1668,13 @@ void CWaypointClass::GetNodeIndexes(const vec &v_origin, short *i, short *j)
 #endif // WP_FLOOD
 // Waypoint class end
 
-#if defined AC_CUBE
-
 // AC waypoint class begin
 void CACWaypointClass::StartFlood()
 {
      // UNDONE?
      CWaypointClass::StartFlood();
 }
-
 // AC waypoint class end
-
-#elif defined VANILLA_CUBE
-
-// Cube waypoint class begin
-
-void CCubeWaypointClass::StartFlood()
-{
-     CWaypointClass::StartFlood();
-
-     // Add wps at triggers and teleporters and their destination
-     loopv(ents)
-     {
-          entity &e = ents[i];
-
-          if (OUTBORD(e.x, e.y)) continue;
-
-          if (e.type == TELEPORT)
-          {
-               vec telepos = { e.x, e.y, S(e.x, e.y)->floor+player1->eyeheight }, teledestpos = g_vecZero;
-
-               // Find the teleport destination
-               int n = -1, tag = e.attr1, beenhere = -1;
-               for(;;)
-               {
-                    n = findentity(TELEDEST, n+1);
-                    if(n==beenhere || n<0) { conoutf("no teleport destination for tag %d", tag); break; };
-                    if(beenhere<0) beenhere = n;
-                    if(ents[n].attr2==tag)
-                    {
-                         teledestpos.x = ents[n].x;
-                         teledestpos.y = ents[n].y;
-                         teledestpos.z = S(ents[n].x, ents[n].y)->floor+player1->eyeheight;
-                         break;
-                    }
-               }
-
-               if (vis(teledestpos, g_vecZero)) continue;
-
-               int flags = (W_FL_FLOOD | W_FL_TELEPORT);
-               if (S((int)telepos.x, (int)telepos.y)->tag) flags |= W_FL_INTAG;
-
-               // Add waypoint at teleporter and teleport destination
-               node_s *pWP = new node_s(telepos, flags, 0);
-
-               short i, j;
-               GetNodeIndexes(telepos, &i, &j);
-               m_Waypoints[i][j].PushNode(pWP);
-               BotManager.AddWaypoint(pWP);
-               m_iFloodSize += sizeof(node_s);
-               m_iWaypointCount++;
-
-               flags = (W_FL_FLOOD | W_FL_TELEPORTDEST);
-               if (S((int)teledestpos.x, (int)teledestpos.y)->tag) flags |= W_FL_INTAG;
-
-               node_s *pWP2 = new node_s(teledestpos, flags, 0);
-
-               GetNodeIndexes(teledestpos, &i, &j);
-               m_Waypoints[i][j].PushNode(pWP2);
-               BotManager.AddWaypoint(pWP2);
-               m_iFloodSize += sizeof(node_s);
-               m_iWaypointCount++;
-
-               // Connect the teleporter waypoint with the teleport-destination waypoint(1 way)
-               AddPath(pWP, pWP2);
-
-               // Connect with other nearby nodes
-               ConnectFloodWP(pWP);
-          }
-          else if (e.type == CARROT)
-          {
-               vec pos = { e.x, e.y, S(e.x, e.y)->floor+player1->eyeheight };
-
-               int flags = (W_FL_FLOOD | W_FL_TRIGGER);
-               if (S(e.x, e.y)->tag) flags |= W_FL_INTAG;
-
-               node_s *pWP = new node_s(pos, flags, 0);
-
-               short i, j;
-               GetNodeIndexes(pos, &i, &j);
-               m_Waypoints[i][j].PushNode(pWP);
-               BotManager.AddWaypoint(pWP);
-               m_iFloodSize += sizeof(node_s);
-               m_iWaypointCount++;
-
-               // Connect with other nearby nodes
-               ConnectFloodWP(pWP);
-          }
-          else if (e.type == MAPMODEL)
-          {
-               mapmodelinfo &mmi = getmminfo(e.attr2);
-               if(!&mmi || !mmi.h || !mmi.rad) continue;
-
-               float floor = (float)(S(e.x, e.y)->floor+mmi.zoff+e.attr3)+mmi.h;
-
-               float x1 = e.x - mmi.rad;
-               float x2 = e.x + mmi.rad;
-               float y1 = e.y - mmi.rad;
-               float y2 = e.y + mmi.rad;
-
-               // UNDONE?
-               for (float x=(x1+1.0f);x<=(x2-1.0f);x++)
-               {
-                    for (float y=(y1+1.0f);y<=(y2-1.0f);y++)
-                    {
-                         vec from = { x, y, floor+2.0f };
-                         if (GetNearestFloodWP(from, 2.0f, NULL)) continue;
-
-                         // Add WP
-                         int flags = W_FL_FLOOD;
-                         if (S((int)x, (int)y)->tag) flags |= W_FL_INTAG;
-
-                         node_s *pWP = new node_s(from, flags, 0);
-
-                         short i, j;
-                         GetNodeIndexes(from, &i, &j);
-                         m_Waypoints[i][j].PushNode(pWP);
-                         BotManager.AddWaypoint(pWP);
-                         m_iFloodSize += sizeof(node_s);
-                         m_iWaypointCount++;
-
-                         // Connect with other nearby nodes
-                         ConnectFloodWP(pWP);
-                    }
-               }
-          }
-     }
-     CWaypointClass::StartFlood();
-}
-
-void CCubeWaypointClass::CreateWPsAtTeleporters()
-{
-     loopv(ents)
-     {
-          entity &e = ents[i];
-
-          if (e.type != TELEPORT) continue;
-          if (OUTBORD(e.x, e.y)) continue;
-
-          vec telepos = { e.x, e.y, S(e.x, e.y)->floor+player1->eyeheight }, teledestpos = g_vecZero;
-
-          // Find the teleport destination
-          int n = -1, tag = e.attr1, beenhere = -1;
-          for(;;)
-          {
-               n = findentity(TELEDEST, n+1);
-               if(n==beenhere || n<0) { conoutf("no teleport destination for tag %d", tag); continue; };
-               if(beenhere<0) beenhere = n;
-               if(ents[n].attr2==tag)
-               {
-                    teledestpos.x = ents[n].x;
-                    teledestpos.y = ents[n].y;
-                    teledestpos.z = S(ents[n].x, ents[n].y)->floor+player1->eyeheight;
-                    break;
-               }
-          }
-
-          if (vis(teledestpos, g_vecZero)) continue;
-
-          // Add waypoint at teleporter and teleport destination
-          node_s *telewp = AddWaypoint(telepos, false);
-          node_s *teledestwp = AddWaypoint(teledestpos, false);
-
-          if (telewp && teledestwp)
-          {
-               // Connect the teleporter waypoint with the teleport-destination waypoint(1 way)
-               AddPath(telewp, teledestwp);
-
-               // Flag waypoints
-               telewp->iFlags = W_FL_TELEPORT;
-               teledestwp->iFlags = W_FL_TELEPORTDEST;
-          }
-     }
-}
-
-void CCubeWaypointClass::CreateWPsAtTriggers()
-{
-     loopv(ents)
-     {
-          entity &e = ents[i];
-
-          if (e.type != CARROT) continue;
-          if (OUTBORD(e.x, e.y)) continue;
-
-          vec pos = { e.x, e.y, S(e.x, e.y)->floor+player1->eyeheight };
-
-          node_s *wp = AddWaypoint(pos, false);
-
-          if (wp)
-          {
-               // Flag waypoints
-               wp->iFlags = W_FL_TRIGGER;
-          }
-     }
-}
-
-#endif
-
-// Cube waypoint class end
 
 // Waypoint commands begin
 
@@ -2073,25 +1853,6 @@ void wpflood(void)
 }
 
 COMMAND(wpflood, "");
-#endif
-
-#ifdef VANILLA_CUBE
-// Commands specific for cube
-void addtelewps(void)
-{
-     WaypointClass.SetWaypointsVisible(true);
-     WaypointClass.CreateWPsAtTeleporters();
-}
-
-COMMAND(addtelewps, "");
-
-void addtriggerwps(void)
-{
-     WaypointClass.SetWaypointsVisible(true);
-     WaypointClass.CreateWPsAtTriggers();
-}
-
-COMMAND(addtriggerwps, "");
 #endif
 
 // Debug functions

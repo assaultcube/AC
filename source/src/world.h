@@ -40,8 +40,9 @@ enum                            // stuff encoded in sqr.tag
 };
 #define TAGANYCLIP (TAGCLIP|TAGPLCLIP)
 
-#define MAXMAPVERSION 10        // defines the highest readable format
-#define MAPVERSION 9            // default map format version to be written (bump if map format changes, see worldio.cpp)
+enum { MHF_AUTOMAPCONFIG = 1<<0 };
+
+#define MAPVERSION 10           // default map format version to be written (bump if map format changes, see worldio.cpp)
 
 struct header                   // map file format header
 {
@@ -56,8 +57,23 @@ struct header                   // map file format header
     uchar watercolor[4];
     int maprevision;
     int ambient;
-    int reserved[12];
+    int flags;                  // MHF_*
+    int timestamp;              // UTC unixtime of time of save (yes, this will break in 2038)
+    int reserved[10];
     //char mediareq[128];         // version 7 and 8 only.
+};
+
+struct mapsoundline { string name; int maxuses; };
+
+struct _mapconfigdata
+{
+    string notexturename;
+    vector<mapsoundline> mapsoundlines;
+    void clear()
+    {
+        *notexturename = '\0';
+        mapsoundlines.shrink(0);
+    }
 };
 
 struct mapstats
@@ -99,6 +115,7 @@ struct mapdim
 #define MAXMAREA 10000
 #define MAXHHITS 50000                  // was 6000, which denied my fav. maps - jamz, 2012-06-12; 15000 denies sane map too - lucas
 #define MINFF 2500
+#define WATERLEVELSCALING 10
 
 struct block { int x, y, xs, ys, h; short p[5]; };
 

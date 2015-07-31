@@ -1,6 +1,13 @@
 #ifndef BOT_UTIL_H
 #define BOT_UTIL_H
 
+// Structure for storing traceresults
+struct traceresult_s
+{
+     vec end;
+     bool collided;
+};
+
 long RandomLong(long from, long to);
 float RandomFloat(float from, float to);
 void lsrand(unsigned long initial_seed);
@@ -8,7 +15,8 @@ void lsrand(unsigned long initial_seed);
 void AnglesToVectors(vec angles, vec &forward, vec &right, vec &up);
 float WrapXAngle(float angle);
 float WrapYZAngle(float angle);
-
+void TraceLine(vec from, vec to, dynent *pTracer, bool CheckPlayers, traceresult_s *tr,
+               bool SkipTags=false);
 float GetDistance(vec v1, vec v2);
 float Get2DDistance(vec v1, vec v2);
 bool IsVisible(vec v1, vec v2, dynent *tracer = NULL, bool SkipTags=false);
@@ -17,8 +25,8 @@ bool FileIsOlder(const char *szFileName1, const char *szFileName2);
 vec PredictPos(vec pos, vec vel, float Time);
 vec Normalize(vec v);
 inline void makevec(vec *v, float x, float y, float z) { v->x=x; v->y=y; v->z=z; }
-inline bool UnderWater(const vec &o) { return hdr.waterlevel>o.z-0.5f; }
-inline bool InWater(const vec &o) { return hdr.waterlevel>=o.z; }
+inline bool UnderWater(const vec &o) { return waterlevel > o.z - 0.5f; }
+inline bool InWater(const vec &o) { return waterlevel >= o.z; }
 float GetYawDiff(float curyaw, vec v1, vec v2);
 vec CrossProduct(const vec &a, const vec &b);
 int GetDirection(const vec &angles, const vec &v1, const vec &v2);

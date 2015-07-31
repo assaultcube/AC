@@ -165,6 +165,12 @@ COMMANDN(docref, adddocref, "ssss");
 COMMANDN(docexample, adddocexample, "ss");
 COMMANDN(dockey, adddockey, "sss");
 
+const char *docgetdesc(const char *name)
+{
+    docident *id = docidents.access(name);
+    return id ? id->desc : NULL;
+}
+
 char *cvecstr(vector<char *> &cvec, const char *substr, int *rline = NULL)
 {
     char *r = NULL;
@@ -403,6 +409,7 @@ void renderdoc(int x, int y, int doch)
     if(!docvisible) return;
 
     char *exp = getcurcommand();
+    if(!exp || !*exp) return;
 
     int o = 0; //offset
     int f = 0; //last found
@@ -526,7 +533,7 @@ void renderdoc(int x, int y, int doch)
                     {
                         docargument *a = &ident->arguments[j];
                         if(!a) continue;
-                        formatstring(doclines.add(newstringbuf()))("~\f%d%-8s%s %s%s%s", j == arg ? 4 : 5, a->token, a->desc,
+                        formatstring(doclines.add(newstringbuf()))("\f%d%-8s%s %s%s%s", j == arg ? 4 : 5, a->token, a->desc,
                             a->values ? "(" : "", a->values ? a->values : "", a->values ? ")" : "");
                     }
 

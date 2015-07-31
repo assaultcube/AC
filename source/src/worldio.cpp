@@ -5,14 +5,6 @@
 #define DEBUGCOND (worldiodebug==1)
 VARP(worldiodebug, 0, 0, 1);
 
-void backup(char *name, char *backupname)
-{
-    string backupfile;
-    copystring(backupfile, findfile(backupname, "wb"));
-    remove(backupfile);
-    rename(findfile(name, "wb"), backupfile);
-}
-
 static string cgzname, ocgzname, bakname, cbakname, pcfname, mcfname, omcfname, mapname;
 
 const char *setnames(const char *name)
@@ -328,7 +320,7 @@ void parseheaderextra(bool clearnonpersist = true, int ignoretypes = 0)  // pars
 
             case HX_CONFIG:
                 setcontext("map", "embedded");
-                execute((const char *)q.buf);
+                execute((const char *)q.buf); // needs to have '\0' at the end
                 resetcontext();
                 break;
 
@@ -365,6 +357,7 @@ ucharbuf packheaderextras(int ignoretypes = 0)  // serialise all extra data pack
 bool embedconfigfile()
 {
     if(securemapcheck(getclientmap())) return false;
+    if(unsavededits) { conoutf("There are unsaved edits: they need to be saved or discarded before a config file can be embedded."); return false; }
     setnames(getclientmap());
     int len;
     uchar *buf = (uchar *)loadfile(path(mcfname), &len);
@@ -383,6 +376,7 @@ COMMANDF(embedconfigfile, "", () { if(embedconfigfile()) save_world(getclientmap
 void extractconfigfile()
 {
     if(securemapcheck(getclientmap())) return;
+    if(unsavededits) { conoutf("There are unsaved edits: they need to be saved or discarded before the config file can be extracted."); return; }
     setnames(getclientmap());
     int n = findheaderextra(HX_CONFIG);
     if(n < 0) conoutf("no embedded config found");
@@ -392,15 +386,79 @@ void extractconfigfile()
         stream *f = openfile(mcfname, "w");
         if(f)
         {
-            f->write(headerextras[n]->data, headerextras[n]->len);
+            f->write(headerextras[n]->data, headerextras[n]->len > 0 ? headerextras[n]->len - 1 : 0);
             delete f;
             conoutf("extracted embedded map config to file %s", mcfname);
             deleteheaderextra(n);
+            hdr.flags &= ~MHF_AUTOMAPCONFIG; // external config file, manually edited
         }
         else conoutf("\f3failed to write config to %s", mcfname);
     }
 }
 COMMAND(extractconfigfile, "");
+
+void automapconfig()
+{
+    conoutf("\"automatic embedded map config data\" %senabled", hdr.flags & MHF_AUTOMAPCONFIG ? "was already " : "");
+    hdr.flags |= MHF_AUTOMAPCONFIG;
+}
+COMMAND(automapconfig, "");
+
+COMMANDF(getautomapconfig, "", () { intret((hdr.flags & MHF_AUTOMAPCONFIG) != 0); });
+
+void flagmapconfigchange()
+{ // if changes are tracked, because automapcfg is enabled and the change is not read from a config file -> set unsaved edits flag
+    if(execcontext != IEXC_MAPCFG && hdr.flags & MHF_AUTOMAPCONFIG) unsavededits++;
+}
+
+void getcurrentmapconfig(vector<char> &f, bool onlysounds)
+{
+    if(!onlysounds)
+    {
+        extern int fog, fogcolour, shadowyaw;
+        extern char *loadsky;
+        if(fog != DEFAULT_FOG)             cvecprintf(f, "fog %d\n", fog);
+        if(fogcolour != DEFAULT_FOGCOLOUR) cvecprintf(f, "fogcolour 0x%06x\n", fogcolour);
+        if(shadowyaw != DEFAULT_SHADOWYAW) cvecprintf(f, "shadowyaw %d\n", shadowyaw);
+        if(*mapconfigdata.notexturename)   cvecprintf(f, "loadnotexture \"%s\"\n", mapconfigdata.notexturename);
+        if(*loadsky)                       cvecprintf(f, "loadsky \"%s\"\n", loadsky);
+        cvecprintf(f, "%smapmodelreset\n", f.length() ? "\n" : "");
+        loopi(256)
+        {
+            mapmodelinfo *mmi = getmminfo(i);
+            if(!mmi) break;
+            cvecprintf(f, "mapmodel %d %d %d %s \"%s\"\n", mmi->rad, mmi->h, mmi->zoff, mmi->scale == 1.0f ? "0" : floatstr(mmi->scale, true), mmshortname(mmi->name));
+        }
+        cvecprintf(f, "\ntexturereset\n");
+        loopi(256)
+        {
+            const char *t = gettextureslot(i);
+            if(!t) break;
+            cvecprintf(f, "%s\n", t);
+        }
+        cvecprintf(f, "\n");
+    }
+    cvecprintf(f, "mapsoundreset\n");
+    loopv(mapconfigdata.mapsoundlines)
+    {
+        mapsoundline &s = mapconfigdata.mapsoundlines[i];
+        cvecprintf(f, "mapsound \"ambience/%s\" %d\n", s.name, s.maxuses);
+    }
+    cvecprintf(f, "\n");
+    f.add('\0');
+}
+
+#ifdef _DEBUG
+COMMANDF(dumpmapconfig, "", ()
+{
+    vector<char> buf;
+    getcurrentmapconfig(buf, false);
+    stream *f = openfile("dumpmapconfig.txt", "w");
+    if(f) f->write(buf.getbuf(), buf.length() - 1);
+    DELETEP(f);
+    hdr.flags |= MHF_AUTOMAPCONFIG;
+});
+#endif
 
 bool clearvantagepoint()
 {
@@ -471,9 +529,21 @@ void save_world(char *mname, bool skipoptimise, bool addcomfort)
     if(mapbackupsonsave) backup(cgzname, bakname);
     stream *f = opengzfile(cgzname, "wb");
     if(!f) { conoutf("could not write map to %s", cgzname); return; }
+    bool autoembedconfig = (hdr.flags & MHF_AUTOMAPCONFIG) != 0;
+    if(autoembedconfig)
+    { // write embedded map config
+        backup(mcfname, cbakname); // rename possibly existing external map config file
+        for(int n; (n = findheaderextra(HX_CONFIG)) >= 0; ) deleteheaderextra(n);  // delete existing embedded config
+        vector<char> ec;
+        getcurrentmapconfig(ec, false);
+        uchar *ecu = new uchar[ec.length()];
+        memcpy(ecu, ec.getbuf(), ec.length());
+        headerextras.add(new headerextra(ec.length(), HX_CONFIG|HX_FLAG_PERSIST, NULL))->data = ecu;
+    }
     strncpy(hdr.head, "ACMP", 4); // ensure map now declares itself as an AssaultCube map, even if imported as CUBE
     hdr.version = MAPVERSION;
     hdr.headersize = sizeof(header);
+    hdr.timestamp = (int) time(NULL);
     hdr.numents = 0;
     loopv(ents) if(ents[i].type!=NOTUSED) hdr.numents++;
     if(hdr.numents > MAXENTITIES)
@@ -485,13 +555,11 @@ void save_world(char *mname, bool skipoptimise, bool addcomfort)
     ucharbuf hx = packheaderextras(addcomfort ? 0 : (1 << HX_EDITUNDO));   // if addcomfort -> add undos/redos
     int writeextra = 0;
     if(hx.maxlen) tmp.headersize += writeextra = clamp(hx.maxlen, 0, MAXHEADEREXTRA);
-    if(writeextra || skipoptimise) tmp.version = 10;   // 9 and 10 are the same, but in 10 the headersize is reliable - if we don't need it, stick to 9
-    bool oldmapmodelscaling = tmp.version < 10;
     tmp.maprevision += advancemaprevision;
     DEBUG("version " << tmp.version << " headersize " << tmp.headersize << " entities " << tmp.numents << " factor " << tmp.sfactor << " revision " << tmp.maprevision);
-    lilswap(&tmp.version, 4);
+    lilswap(&tmp.version, 4); // version, headersize, sfactor, numents
     lilswap(&tmp.waterlevel, 1);
-    lilswap(&tmp.maprevision, 2);
+    lilswap(&tmp.maprevision, 4); // maprevision, ambient, flags, timestamp
     f->write(&tmp, sizeof(header));
     if(writeextra) f->write(hx.buf, writeextra);
     delete[] hx.buf;
@@ -502,8 +570,9 @@ void save_world(char *mname, bool skipoptimise, bool addcomfort)
         {
             if(!ne--) break;
             persistent_entity tmp = ents[i];
-            if(oldmapmodelscaling && tmp.type == MAPMODEL) tmp.attr1 = tmp.attr1 / 4;
+            clampentityattributes(tmp);
             lilswap((short *)&tmp, 4);
+            lilswap(&tmp.attr5, 1);
             f->write(&tmp, sizeof(persistent_entity));
         }
     }
@@ -513,7 +582,7 @@ void save_world(char *mname, bool skipoptimise, bool addcomfort)
     f->write(rawcubes.getbuf(), rawcubes.length());
     delete f;
     unsavededits = 0;
-    conoutf("wrote map file %s %s%s", cgzname, skipoptimise ? "without optimisation" : "(optimised)", addcomfort ? " (including editing history)" : "");
+    conoutf("wrote map file %s %s%s%s", cgzname, skipoptimise ? "without optimisation" : "(optimised)", addcomfort ? " (including editing history)" : "", autoembedconfig ? " (including map config)" : "");
 }
 VARP(preserveundosonsave, 0, 0, 1);
 COMMANDF(savemap, "s", (char *name) { save_world(name, preserveundosonsave && editmode, preserveundosonsave && editmode); } );
@@ -586,7 +655,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
     if(f->read(&tmp, sizeof_baseheader) != sizeof_baseheader ||
        (strncmp(tmp.head, "CUBE", 4)!=0 && strncmp(tmp.head, "ACMP",4)!=0)) { conoutf("\f3while reading map: header malformatted (1)"); delete f; return false; }
     lilswap(&tmp.version, 4); // version, headersize, sfactor, numents
-    if(tmp.version > MAXMAPVERSION) { conoutf("\f3this map requires a newer version of AssaultCube"); delete f; return false; }
+    if(tmp.version > MAPVERSION) { conoutf("\f3this map requires a newer version of AssaultCube"); delete f; return false; }
     if(tmp.sfactor<SMALLEST_FACTOR || tmp.sfactor>LARGEST_FACTOR || tmp.numents > MAXENTITIES) { conoutf("\f3illegal map size"); delete f; return false; }
     tmp.headersize = fixmapheadersize(tmp.version, tmp.headersize);
     int restofhead = min(tmp.headersize, sizeof_header) - sizeof_baseheader;
@@ -608,6 +677,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
         f->seek(tmp.headersize, SEEK_SET);
     }
     hdr = tmp;
+    mapconfigdata.clear();
     rebuildtexlists();
     loadingscreen("%s", hdr.maptitle);
     resetmap();
@@ -615,7 +685,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
     {
         lilswap(&hdr.waterlevel, 1);
         if(!hdr.watercolor[3]) setwatercolor();
-        lilswap(&hdr.maprevision, 2);
+        lilswap(&hdr.maprevision, 4); // maprevision, ambient, flags, timestamp
         curmaprevision = hdr.maprevision;
     }
     else
@@ -623,32 +693,43 @@ bool load_world(char *mname)        // still supports all map formats that have 
         hdr.waterlevel = -100000;
         hdr.ambient = 0;
     }
-    setvar("waterlevel", hdr.waterlevel);
+    if(hdr.version < 10) hdr.waterlevel *= WATERLEVELSCALING;
+    setfvar("waterlevel", float(hdr.waterlevel) / WATERLEVELSCALING);
     ents.shrink(0);
     loopi(3) numspawn[i] = 0;
     loopi(2) numflagspawn[i] = 0;
+    bool oldentityformat = hdr.version < 10; // version < 10 have only 4 attributes and no scaling
     loopi(hdr.numents)
     {
         entity &e = ents.add();
-        f->read(&e, sizeof(persistent_entity));
+        f->read(&e, oldentityformat ? 12 : sizeof(persistent_entity));
         lilswap((short *)&e, 4);
+        if(oldentityformat) e.attr5 = e.attr6 = e.attr7 = 0;
+        else lilswap(&e.attr5, 1);
         e.spawned = false;
-        if(e.type == LIGHT)
+        if(e.type == LIGHT && e.attr1 >= 0)
         {
             if(!e.attr2) e.attr2 = 255; // needed for MAPVERSION<=2
-            if(e.attr1>32) e.attr1 = 32; // 12_03 and below
+            if(e.attr1 > 32) e.attr1 = 32; // 12_03 and below (but applied to _all_ files!)
         }
-        transformoldentities(hdr.version, e.type);
-        if(hdr.version < 10)
+        transformoldentitytypes(hdr.version, e.type);
+        if(oldentityformat && e.type < MAXENTTYPES)
         {
-            switch(e.type)
-            {
-                case CTF_FLAG:
-                case MAPMODEL:
-                    e.attr1 = e.attr1 + 7 - (e.attr1 + 7) % 15;  // round the angle to the nearest 15-degree-step
-                    e.attr1 = (e.attr1 % 360) * 4;    // cut down to less that one rotation and set resolution to 0.25 degree
-                    break;
-            }
+            if(e.type == CTF_FLAG || e.type == MAPMODEL) e.attr1 = e.attr1 + 7 - (e.attr1 + 7) % 15;  // round the angle to the nearest 15-degree-step, like old versions did during rendering
+            if(e.type == LIGHT && e.attr1 < 0) e.attr1 = 0; // negative lights had no meaning before version 10
+            int ov, ss;
+            #define SCALEATTR(x) \
+            if((ss = abs(entwraparound[e.type][x - 1] / entscale[e.type][x - 1]))) e.attr##x = (int(e.attr##x) % ss + ss) % ss; \
+            e.attr##x = ov = e.attr##x * entscale[e.type][x - 1]; \
+            if(ov != e.attr##x) conoutf("overflow during conversion of attr%d of entity #%d (%s) - pls check before saving the map", x, i, entnames[e.type]);
+            SCALEATTR(1);
+            SCALEATTR(2);
+            SCALEATTR(3);
+            SCALEATTR(4);
+            //SCALEATTR(5);  // no need to scale zeros
+            //SCALEATTR(6);
+            //SCALEATTR(7);
+            #undef SCALEATTR
         }
         if(e.type == PLAYERSTART && (e.attr2 == 0 || e.attr2 == 1 || e.attr2 == 100))
         {
@@ -706,15 +787,22 @@ bool load_world(char *mname)        // still supports all map formats that have 
     c2skeepalive();
     calcmapdims();
     calclight();
-    conoutf("read map %s rev %d (%d milliseconds)", cgzname, hdr.maprevision, watch.stop());
+    conoutf("read map %s rev %d (%d milliseconds)", cgzname, hdr.maprevision, watch.elapsed());
     conoutf("%s", hdr.maptitle);
     pushscontext(IEXC_MAPCFG); // untrusted altogether
     per_idents = false;
     neverpersist = true;
-    execfile("config/default_map_settings.cfg");
-    execfile(pcfname);
-    execfile(mcfname);
-    copystring(lastloadedconfigfile, mcfname);
+    if(hdr.flags & MHF_AUTOMAPCONFIG)
+    { // full featured embedded config: no need to read any other map config files
+        copystring(lastloadedconfigfile, "");
+    }
+    else
+    { // map config from files
+        execfile("config/default_map_settings.cfg");
+        execfile(pcfname);
+        execfile(mcfname);
+        copystring(lastloadedconfigfile, mcfname);
+    }
     parseheaderextra();
     neverpersist = false;
     per_idents = true;
@@ -724,45 +812,45 @@ bool load_world(char *mname)        // still supports all map formats that have 
 
     watch.start();
     loopi(256) if(texuse[i]) lookupworldtexture(i, autodownload ? true : false);
-    int texloadtime = watch.stop();
+    int texloadtime = watch.elapsed();
 
     c2skeepalive();
 
     watch.start();
     preload_mapmodels(autodownload ? true : false);
-    int mdlloadtime = watch.stop();
+    int mdlloadtime = watch.elapsed();
 
     c2skeepalive();
 
     watch.start();
     audiomgr.preloadmapsounds(autodownload ? true : false);
-    int audioloadtime = watch.stop();
+    int audioloadtime = watch.elapsed();
 
     c2skeepalive();
 
     watch.start();
     int downloaded = downloadpackages();
-    if(downloaded > 0) clientlogf("downloaded content (%d KB in %d seconds)", downloaded/1024, watch.stop()/1000);
+    if(downloaded > 0) clientlogf("downloaded content (%d KB in %d seconds)", downloaded/1024, watch.elapsed()/1000);
 
     c2skeepalive();
 
-    loadsky(NULL, true);
+    loadskymap(true);
 
     watch.start();
     loopi(256) if(texuse[i]) lookupworldtexture(i, false);
-    clientlogf("loaded textures (%d milliseconds)", texloadtime+watch.stop());
+    clientlogf("loaded textures (%d milliseconds)", texloadtime+watch.elapsed());
     c2skeepalive();
     watch.start();
     preload_mapmodels(false);
-    clientlogf("loaded mapmodels (%d milliseconds)", mdlloadtime+watch.stop());
+    clientlogf("loaded mapmodels (%d milliseconds)", mdlloadtime+watch.elapsed());
     c2skeepalive();
     watch.start();
     audiomgr.preloadmapsounds(false);
-    clientlogf("loaded mapsounds (%d milliseconds)", audioloadtime+watch.stop());
+    clientlogf("loaded mapsounds (%d milliseconds)", audioloadtime+watch.elapsed());
     c2skeepalive();
 
     defformatstring(startmillis)("%d", millis_());
-    alias("gametimestart", startmillis);
+    alias("gametimestart", startmillis, true);
     startmap(mname);
     return true;
 }
@@ -813,7 +901,8 @@ struct xmap
     string nick;      // unique handle
     string name;
     vector<headerextra *> headerextras;
-    vector<persistent_entity> ents;
+    vector<persistent_entity> ents, delents;
+    vector<char> mapconfig;
     sqr *world;
     header hdr;
     int ssize, cubicsize, numundo;
@@ -831,7 +920,9 @@ struct xmap
         world = new sqr[cubicsize];
         memcpy(world, ::world, cubicsize * sizeof(sqr));
         loopv(::ents) if(::ents[i].type != NOTUSED) ents.add() = ::ents[i];
+        loopv(deleted_ents) delents.add() = deleted_ents[i];
         copystring(mcfname, lastloadedconfigfile);   // may have been "official" or not
+        if(hdr.flags & MHF_AUTOMAPCONFIG) getcurrentmapconfig(mapconfig, false);
         storeposition(position);
         vector<uchar> tmp;  // add undo/redo data in compressed form as temporary headerextra
         numundo = backupeditundo(tmp, MAXHEADEREXTRA, MAXHEADEREXTRA);
@@ -843,6 +934,8 @@ struct xmap
         headerextras.deletecontents();
         delete world;
         ents.setsize(0);
+        delents.setsize(0);
+        mapconfig.setsize(0);
     }
 
     void restoreent(int i)
@@ -860,9 +953,11 @@ struct xmap
         clearheaderextras();
         resetmap(true);
         curmaprevision = hdr.maprevision;
-        setvar("waterlevel", hdr.waterlevel);
+        setfvar("waterlevel", float(hdr.waterlevel) / WATERLEVELSCALING);
         ::ents.shrink(0);
         loopv(ents) restoreent(i);
+        deleted_ents.setsize(0);
+        loopv(delents) deleted_ents.add(delents[i]);
         delete[] ::world;
         setupworld(hdr.sfactor);
         memcpy(::world, world, cubicsize * sizeof(sqr));
@@ -871,14 +966,18 @@ struct xmap
         pushscontext(IEXC_MAPCFG); // untrusted altogether
         per_idents = false;
         neverpersist = true;
-        execfile("config/default_map_settings.cfg");
-        execfile(pcfname);
-        execfile(lastloadedconfigfile);
+        if(mapconfig.length()) execute(mapconfig.getbuf());
+        else
+        {
+            execfile("config/default_map_settings.cfg");
+            execfile(pcfname);
+            execfile(lastloadedconfigfile);
+        }
         parseheaderextra();
         neverpersist = false;
         per_idents = true;
         popscontext();
-        loadsky(NULL, true);
+        loadskymap(true);
         startmap(name, false, true);      // "start" but don't respawn: basically just set clientmap
         restoreposition(position);
     }
@@ -901,10 +1000,22 @@ struct xmap
             hexbinwrite(f, headerextras[i]->data, headerextras[i]->len);
             f->printf("restorexmap headerextra %d  // %s\n", headerextras[i]->flags, hx_name(headerextras[i]->flags));
         }
-        loopv(ents) // entities are stored as plain text - you may edit them
+        int el = ents.length(), all = el + delents.length();
+        loopi(all) // entities are stored as plain text - you may edit them
         {
-            persistent_entity &e = ents[i];
-            f->printf("restorexmap ent %d  %d %d %d  %d %d %d %d // %s\n", e.type, e.x, e.y, e.z, e.attr1, e.attr2, e.attr3, e.attr4, e.type >= 0 && e.type < MAXENTTYPES ? entnames[e.type] : "unknown");
+            persistent_entity &e = i >= el ? delents[i - el] : ents[i];
+            f->printf("restorexmap %sent %d  %d %d %d  %d %d %d %d %d %d %d // %s\n", i >= el ? "del": "", e.type, e.x, e.y, e.z, e.attr1, e.attr2, e.attr3, e.attr4, e.attr5, e.attr6, e.attr7, e.type >= 0 && e.type < MAXENTTYPES ? entnames[e.type] : "unknown");
+        }
+        if(mapconfig.length())
+        {
+            char *t = newstring(mapconfig.getbuf()), *p, *l = t;
+            while((p = strchr(l, '\n')))
+            {
+                *p = '\0';
+                f->printf("restorexmap config %s\n", escapestring(l));
+                l = p + 1;
+            }
+            delstring(t);
         }
         f->printf("restorexmap position %d %d %d %d %d  // EOF, don't touch this\n\n", int(position[0]), int(position[1]), int(position[2]), int(position[3]), int(position[4]));
     }
@@ -1032,13 +1143,12 @@ COMMANDF(xmap_restore, "s", (const char *nick)     // use xmap as current map
 
 void restorexmap(char **args, int numargs)   // read an xmap from a cubescript file
 {
-    const char *cmdnames[] = { "version", "names", "sizes", "header", "world", "headerextra", "ent", "position" };
-    const char cmdnumarg[] = {         3,       2,       3,        0,       0,             1,     8,          5 };
+    const char *cmdnames[] = { "version", "names", "sizes", "header", "world", "headerextra", "ent", "delent", "config", "position", "" };
+    const char cmdnumarg[] = {         3,       2,       3,        0,       0,             1,    11,       11,        1,          5     };
 
     if(!xmjigsaw || numargs < 1) return; // { conoutf("restorexmap out of context"); return; }
     bool abort = false;
-    int cmd = -1;
-    loopi(sizeof(cmdnames)/sizeof(cmdnames[0])) if(!strcmp(cmdnames[i], args[0])) { cmd = i; break; }
+    int cmd = getlistindex(args[0], cmdnames, false, -1);
     if(cmd < 0 || numargs != cmdnumarg[cmd] + 1) { conoutf("restorexmap error"); return; }
     switch(cmd)
     {
@@ -1074,14 +1184,18 @@ void restorexmap(char **args, int numargs)   // read an xmap from a cubescript f
             xmjigsaw->headerextras.add(new headerextra(hexbin.length(), ATOI(args[1]), hexbin.getbuf()));
             break;
         case 6:     // ent
+        case 7:     // delent
         {
-            persistent_entity &e = xmjigsaw->ents.add();
-            int a[8];
-            loopi(8) a[i] = ATOI(args[i + 1]);
-            e.type = a[0]; e.x = a[1]; e.y = a[2]; e.z = a[3]; e.attr1 = a[4]; e.attr2 = a[5]; e.attr3 = a[6]; e.attr4 = a[7];
+            persistent_entity &e = cmd == 6 ? xmjigsaw->ents.add() : xmjigsaw->delents.add();
+            int a[11];
+            loopi(11) a[i] = ATOI(args[i + 1]);
+            e.type = a[0]; e.x = a[1]; e.y = a[2]; e.z = a[3]; e.attr1 = a[4]; e.attr2 = a[5]; e.attr3 = a[6]; e.attr4 = a[7]; e.attr5 = a[8]; e.attr6 = a[9]; e.attr7 = a[10];
             break;
         }
-        case 7:     // position - this is also the last command and will finish the xmap
+        case 8:     // config
+            cvecprintf(xmjigsaw->mapconfig, "%s\n", args[1]);
+            break;
+        case 9:     // position - this is also the last command and will finish the xmap
         {
             loopi(5) xmjigsaw->position[i] = ATOI(args[i + 1]);
             int i;
@@ -1089,6 +1203,7 @@ void restorexmap(char **args, int numargs)   // read an xmap from a cubescript f
             if(!xmjigsaw->world) abort = true;
             else
             {
+                if(xmjigsaw->mapconfig.length()) xmjigsaw->mapconfig.add('\0');
                 xmaps.add(xmjigsaw);
                 xmjigsaw = NULL;  // no abort!
             }

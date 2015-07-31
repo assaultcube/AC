@@ -70,7 +70,6 @@ void processevent(client *c, shotevent &e)
                 bool gib = false;
                 if(e.gun == GUN_SHOTGUN)
                 {
-                    h.info = isbigendian() ? endianswap(h.info) : h.info;
                     int bonusdist = h.info&0xFF;
                     int numhits_c = (h.info & 0x0000FF00) >> 8, numhits_m = (h.info & 0x00FF0000) >> 16, numhits_o = (h.info & 0xFF000000) >> 24;
                     tothits_c += numhits_c; tothits_m += numhits_m; tothits_o += numhits_o;

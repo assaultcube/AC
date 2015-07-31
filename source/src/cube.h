@@ -1,9 +1,6 @@
 #ifndef __CUBE_H__
 #define __CUBE_H__
 
-// to "trick" i18n/gettext
-#define CC '\f'
-
 #include "platform.h"
 #include "tools.h"
 #include "geom.h"
@@ -13,7 +10,6 @@
 #include "weapon.h"
 #include "entity.h"
 #include "world.h"
-#include "i18n.h"
 #include "command.h"
 
 #ifndef STANDALONE
@@ -32,6 +28,7 @@
 
 extern sqr *world, *wmip[];             // map data, the mips are sequential 2D arrays in memory
 extern header hdr;                      // current map header
+extern _mapconfigdata mapconfigdata;    // current mapconfig
 extern int sfactor, ssize;              // ssize = 2^sfactor
 extern int cubicsize, mipsize;          // cubicsize = ssize^2
 extern physent *camera1;                // camera representing perspective of player, usually player1
@@ -59,6 +56,7 @@ extern hashtable<char *, enet_uint32> mapinfo;
 extern int hwtexsize, hwmaxaniso;
 extern int numspawn[3], maploaded, numflagspawn[2];
 extern int verbose;
+extern float waterlevel;
 
 #define AC_VERSION 1202
 #define AC_MASTER_URI "ms.cubers.net"
@@ -67,6 +65,10 @@ extern int verbose;
 #define AC_MASTER_RAW 0
 #define MAXCL 16
 #define CONFIGROTATEMAX 5               // keep 5 old versions of saved.cfg and init.cfg around
+
+#define DEFAULT_FOG 180
+#define DEFAULT_FOGCOLOUR 0x8099B3
+#define DEFAULT_SHADOWYAW 45
 
 #include "protos.h"                     // external function decls
 

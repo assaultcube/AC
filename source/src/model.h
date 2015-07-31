@@ -42,12 +42,12 @@ class dynent;
 struct model
 {
     bool cullface, vertexlight, alphablend;  //ALX Alpha channel models
-    float alphatest, translucency, scale, radius, shadowdist;
+    float alphatest, translucency, scale, radius, zradius, shadowdist;
     vec translate;
     int cachelimit, batch;
 
     //model() : cullface(true), vertexlight(false), alphatest(0.9f), translucency(0.25f), scale(1), radius(0), shadowdist(0), translate(0, 0, 0), cachelimit(8), batch(-1) {}
-    model() : cullface(true), vertexlight(false),  alphablend(false), alphatest(0.9f), translucency(0.25f), scale(1), radius(0), shadowdist(0), translate(0, 0, 0), cachelimit(8), batch(-1) {}
+    model() : cullface(true), vertexlight(false),  alphablend(false), alphatest(0.9f), translucency(0.25f), scale(1), radius(0), zradius(0), shadowdist(0), translate(0, 0, 0), cachelimit(8), batch(-1) {}
     virtual ~model() {}
 
     virtual bool load() = 0;
@@ -56,7 +56,7 @@ struct model
 
     virtual void cleanup() = 0;
 
-    virtual void render(int anim, int varseed, float speed, int basetime, const vec &o, float yaw, float pitch, dynent *d, modelattach *a = NULL, float scale = 1.0f) = 0;
+    virtual void render(int anim, int varseed, float speed, int basetime, const vec &o, float roll, float yaw, float pitch, dynent *d, modelattach *a = NULL, float scale = 1.0f) = 0;
     virtual void setskin(int tex = 0) = 0;
 
     virtual void genshadows(float height, float rad) {}
@@ -67,4 +67,14 @@ struct model
     virtual void endrender() {}
 };
 
-struct mapmodelinfo { int rad, h, zoff; string name; model *m; };
+struct mapmodelinfo { int rad, h, zoff; float scale; string name; model *m; };
+
+enum { MMA_KEYWORDS = 0, MMA_DESC, MMA_DEFAULTPARAMS, MMA_USAGE, MMA_AUTHOR, MMA_LICENSE, MMA_DISTRIBUTION, MMA_VERSION, MMA_NUM };
+
+struct mapmodelattributes
+{
+    string name;
+    const char *n[MMA_NUM];
+    int tmp;
+    mapmodelattributes() { memset(this, 0, sizeof(*this)); }
+};

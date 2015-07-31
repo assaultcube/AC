@@ -48,7 +48,7 @@ extern char *global_name;
 bool duplicatename(playerent *d, char *name = NULL)
 {
     if(!name) name = d->name;
-    if(d!=player1 && !strcmp(name, player1->name)) return true;
+    if(d!=player1 && !strcmp(name, player1->name) && !watchingdemo) return true;
     if(!strcmp(name, "you")) return true;
     loopv(players) if(players[i] && d!=players[i] && !strcmp(name, players[i]->name)) return true;
     global_name = player1->name; // this certainly is not the best place to put this
@@ -85,8 +85,7 @@ const char *highlight(const char *text)
     static char result[MAXTRANS + 10];
     const char *marker = getalias("HIGHLIGHT"), *sep = " ,;:!\"'";
     if(!marker || !strstr(text, player1->name)) return text;
-    filterrichtext(result, marker);
-    defformatstring(subst)("\fs%s%s\fr", result, player1->name);
+    defformatstring(subst)("\fs%s%s\fr", marker, player1->name);
     char *temp = newstring(text);
     char *s = strtok(temp, sep), *l = temp, *c, *r = result;
     result[0] = '\0';
@@ -120,8 +119,8 @@ void listignored()
     string pl;
     pl[0] = '\0';
     loopv(players) if(players[i] && players[i]->ignored) concatformatstring(pl, ", %s", colorname(players[i]));
-    if(*pl) conoutf(_("ignored players: %s"), pl + 2);
-    else conoutf(_("no players were ignored."));
+    if(*pl) conoutf("ignored players: %s", pl + 2);
+    else conoutf("no players were ignored.");
 }
 
 void clearignored(int *cn)
@@ -140,8 +139,8 @@ void listmuted()
     string pl;
     pl[0] = '\0';
     loopv(players) if(players[i] && players[i]->muted) concatformatstring(pl, ", %s", colorname(players[i]));
-    if(*pl) conoutf(_("muted players: %s"), pl + 2);
-    else conoutf(_("no players were muted."));
+    if(*pl) conoutf("muted players: %s", pl + 2);
+    else conoutf("no players were muted.");
 }
 
 void clearmuted(char *cn)
@@ -162,26 +161,20 @@ void newname(const char *name)
     {
         string tmpname;
         filtertext(tmpname, name, FTXT__PLAYERNAME, MAXNAMELEN);
-        if(identexists("onNameChange"))
-        {
-            defformatstring(onnamechange)("onNameChange %d \"%s\"", player1->clientnum, tmpname);
-            execute(onnamechange);
-        }
+        exechook(HOOK_SP, "onNameChange", "%d \"%s\"", player1->clientnum, tmpname);
         copystring(player1->name, tmpname);//12345678901234//
         if(!player1->name[0]) copystring(player1->name, "unarmed");
         updateclientname(player1);
         addmsg(SV_SWITCHNAME, "rs", player1->name);
     }
-    else conoutf(_("your name is: %s"), player1->name);
-    alias("curname", player1->name);
+    else conoutf("your name is: %s", player1->name);
 }
+
+SVARFF(curname, { curname = exchangestr(curname, player1->name); }, {} );
 
 int teamatoi(const char *name)
 {
-    string uc;
-    strtoupper(uc, name);
-    loopi(TEAM_NUM) if(!strcmp(teamnames[i], uc)) return i;
-    return -1;
+    return getlistindex(name, teamnames, true, -1);
 }
 
 void newteam(char *name)
@@ -190,11 +183,11 @@ void newteam(char *name)
     {
         int nt = teamatoi(name);
         if(nt == player1->team) return; // same team
-        if(!team_isvalid(nt)) { conoutf(_("%c3\"%s\" is not a valid team name (try CLA, RVSF or SPECTATOR)"), CC, name); return; }
-        if(player1->state == CS_EDITING) conoutf(_("you can't change team while editing"));
+        if(!team_isvalid(nt)) { conoutf("\f3\"%s\" is not a valid team name (try CLA, RVSF or SPECTATOR)", name); return; }
+        if(player1->state == CS_EDITING) conoutf("you can't change team while editing");
         else addmsg(SV_SWITCHTEAM, "ri", nt);
     }
-    else conoutf(_("your team is: %s"), team_string(player1->team));
+    else conoutf("your team is: %s", team_string(player1->team));
 }
 
 void benchme()
@@ -238,7 +231,7 @@ VARP(autoscreenshot, 0, 0, 1);
 void stopdemo()
 {
     if(watchingdemo) enddemoplayback();
-    else conoutf(_("not playing a demo"));
+    else conoutf("not playing a demo");
 }
 COMMAND(stopdemo, "");
 
@@ -575,14 +568,17 @@ void showrespawntimer()
 
 struct scriptsleep { int wait, millis; char *cmd; bool persist; };
 vector<scriptsleep> sleeps;
+sl_semaphore *sleepssemaphore = new sl_semaphore(1, NULL);    // guard the sleeps-vector with a semaphore, so we can add sleeps from other threads
 
 void addsleep(int msec, const char *cmd, bool persist)
 {
+    sleepssemaphore->wait();
     scriptsleep &s = sleeps.add();
     s.wait = max(msec, 1);
     s.millis = lastmillis;
     s.cmd = newstring(cmd);
     s.persist = persist;
+    sleepssemaphore->post();
 }
 
 void addsleep_(int *msec, char *cmd, int *persist)
@@ -592,11 +588,13 @@ void addsleep_(int *msec, char *cmd, int *persist)
 
 void resetsleep(bool force)
 {
+    sleepssemaphore->wait();
     loopvrev(sleeps) if(!sleeps[i].persist || force)
     {
-        DELETEA(sleeps[i].cmd);
+        DELSTRING(sleeps[i].cmd);
         sleeps.remove(i);
     }
+    sleepssemaphore->post();
 }
 
 COMMANDN(sleep, addsleep_, "isi");
@@ -605,18 +603,21 @@ COMMANDF(resetsleeps, "", (void) { resetsleep(true); });
 void updateworld(int curtime, int lastmillis)        // main game update loop
 {
     // process command sleeps
+    sleepssemaphore->wait();
     loopv(sleeps)
     {
         if(lastmillis - sleeps[i].millis >= sleeps[i].wait)
         {
             char *cmd = sleeps[i].cmd;
             sleeps[i].cmd = NULL;
+            sleeps.remove(i--);
+            sleepssemaphore->post();
             execute(cmd);
             delete[] cmd;
-            if(sleeps[i].cmd || !sleeps.inrange(i)) break;
-            sleeps.remove(i--);
+            sleepssemaphore->wait();
         }
     }
+    sleepssemaphore->post();
 
     syncentchanges();
     physicsframe();
@@ -658,7 +659,7 @@ void gotoplayerstart(playerent *d, entity *e)
     d->o.x = e->x;
     d->o.y = e->y;
     d->o.z = e->z;
-    d->yaw = e->attr1;
+    d->yaw = float(e->attr1) / ENTSCALE10;
     d->pitch = 0;
     d->roll = 0;
 }
@@ -706,11 +707,7 @@ void findplayerstart(playerent *d, bool mapcenter, int arenaspawn)
         d->o.z = 4;
     }
     entinmap(d);
-    if(identexists("onSpawn")/* && (m_teammode && d->team == player1->team)*/)
-    {
-        defformatstring(onspawn)("onSpawn %d", d->clientnum);
-        execute(onspawn);
-    }
+    exechook(HOOK_SP, "onSpawn", "%d", d->clientnum);
 }
 
 void spawnplayer(playerent *d)
@@ -815,36 +812,39 @@ bool tryrespawn()
 VARP(hitsound, 0, 0, 2);
 
 // client kill messages
-void setkillmessage(int gun, bool gib, const char *message)
+void setkillmessage(const char *gun, bool gib, const char *message)
 {
-    if(!message || !*message)
-    {
-        result(killmessage(gun, gib));
-        return;
-    }
-    if(gun < 0 || gun >= NUMGUNS)
+    int guni = getlistindex(gun, gunnames, true, -1);
+    if(guni < 0)
     {
         conoutf("invalid gun specified");
-        return;
     }
-    copystring(killmessages[gib?1:0][gun], message, sizeof(killmessages[gib?1:0][gun]));
-}
-
-COMMANDF(fragmessage, "is", (int *gun, const char *message) { setkillmessage(*gun, false, message); });
-COMMANDF(gibmessage, "is", (int *gun, const char *message) { setkillmessage(*gun, true, message); });
-
-void burstshots(int gun, int shots)
-{
-    // args are passed as strings to differentiate 2 cases : shots_str == "0" or shots_str is empty (not specified from cubescript).
-    if(gun >= 0 && gun < NUMGUNS && guns[gun].isauto)
+    else
     {
-        if(shots >= 0) burstshotssettings[gun] = min(shots, (guns[gun].magsize-1));
-        else intret(burstshotssettings[gun]);
+        if(!message || !*message)
+        {
+            result(killmessage(guni, gib));
+        }
+        else
+        {
+            copystring(killmessages[gib ? 1 : 0][guni], message, sizeof(killmessages[gib ? 1 : 0][guni]));
+        }
     }
-    else conoutf(_("invalid gun specified"));
 }
 
-COMMANDF(burstshots, "ii", (int *g, int *s) { burstshots(*g, *s); });
+COMMANDF(fragmessage, "ss", (const char *gun, const char *message) { setkillmessage(gun, false, message); });
+COMMANDF(gibmessage, "ss", (const char *gun, const char *message) { setkillmessage(gun, true, message); });
+
+COMMANDF(burstshots, "si", (char *gun, int *shots)
+{
+    int guni = getlistindex(gun, gunnames, true, -1);
+    if(guni >= 0 && guns[guni].isauto)
+    {
+        if(*shots >= 0) burstshotssettings[guni] = min(*shots, (guns[guni].magsize-1));
+        else intret(burstshotssettings[guni]);
+    }
+    else conoutf("invalid gun specified");
+});
 
 // damage arriving from the network, monsters, yourself, all ends up here.
 
@@ -856,11 +856,8 @@ void dodamage(int damage, playerent *pl, playerent *actor, int gun, bool gib, bo
     // I suppose someone wanted to play the hitsound for player1 or spectated player (lucas:2011may22)
     playerent *h = player1->isspectating() && player1->followplayercn >= 0 && (player1->spectatemode == SM_FOLLOW1ST || player1->spectatemode == SM_FOLLOW3RD || player1->spectatemode == SM_FOLLOW3RD_TRANSPARENT) ? getclient(player1->followplayercn) : NULL;
     if(!h) h = player1;
-    if(identexists("onHit"))
-    {
-        defformatstring(o)("onHit %d %d %d %d %d", actor->clientnum, pl->clientnum, damage, gun, gib ? 1 : 0);
-        execute(o);
-    }
+    exechook(HOOK_SP, "onHit", "%d %d %d %d %d", actor->clientnum, pl->clientnum, damage, gun, gib ? 1 : 0);
+
     if(actor==h && pl!=actor)
     {
         if( (hitsound == 1 || (hitsound && h != player1) ) && lasthit != lastmillis) audiomgr.playsound(S_HITSOUND, SP_HIGH);
@@ -892,11 +889,7 @@ void dokill(playerent *pl, playerent *act, bool gib, int gun)
 {
     if(pl->state!=CS_ALIVE || intermission) return;
 
-    if(identexists("onKill"))
-    {
-        defformatstring(killevent)("onKill %d %d %d %d", act->clientnum, pl->clientnum, gun, gib ? 1 : 0);
-        execute(killevent);
-    }
+    exechook(HOOK_SP, "onKill", "%d %d %d %d", act->clientnum, pl->clientnum, gun, gib ? 1 : 0);
 
     string pname, aname, death;
     copystring(pname, pl==player1 ? "you" : colorname(pl));
@@ -975,11 +968,11 @@ void timeupdate(int milliscur, int millismax)
         extern bool needsautoscreenshot;
         if(autoscreenshot) needsautoscreenshot = true;
         player1->attacking = false;
-        conoutf(_("intermission:"));
-        conoutf(_("game has ended!"));
+        conoutf("intermission:");
+        conoutf("game has ended!");
         consolescores();
         showscores(true);
-        if(identexists("start_intermission")) execute("start_intermission");
+        exechook(HOOK_SP_MP, "start_intermission", "");
     }
     else
     {
@@ -989,10 +982,10 @@ void timeupdate(int milliscur, int millismax)
         {
             audiomgr.musicsuggest(M_LASTMINUTE1 + rnd(2), 70*1000, true);
             hudoutf("%s1 minute left!", sec==60 ? "" : "less than ");
-            if(identexists("onLastMin")) execute("onLastMin");
+            exechook(HOOK_SP_MP, "onLastMin", "");
         }
-        else if(!clockdisplay) conoutf(_("time remaining: %d minutes"), minutesremaining);
-        else clientlogf(_("time remaining: %d minutes"), minutesremaining);
+        else if(!clockdisplay) conoutf("time remaining: %d minutes", minutesremaining);
+        else clientlogf("time remaining: %d minutes", minutesremaining);
     }
 }
 
@@ -1058,7 +1051,7 @@ void preparectf(bool cleanonly=false)
             if(e.type==CTF_FLAG)
             {
                 e.spawned = true;
-                if(e.attr2>=2) { conoutf(_("%c3invalid ctf-flag entity (%i)"), CC, i); e.attr2 = 0; }
+                if(e.attr2>=2) { conoutf("\f3invalid ctf-flag entity (%i)", i); e.attr2 = 0; }
                 flaginfo &f = flaginfos[e.attr2];
                 f.flagent = &e;
                 f.pos.x = (float) e.x;
@@ -1090,6 +1083,8 @@ void resetmap(bool mrproper)
     cleardynlights();
     pruneundos();
     changedents.setsize(0);
+    deleted_ents.setsize(0);
+    pinnedclosestent = false;
     particlereset();
     if(mrproper)
     {
@@ -1116,7 +1111,7 @@ void showmapstats()
     conoutf("  The mean height is: %.2f", Mh);
     if (Hhits) conoutf("  Height check is: %d", Hhits);
     if (MA) conoutf("  The max area is: %d (of %d)", MA, Ma);
-    if (m_flags && F2F < 1000) conoutf("  Flag-to-flag distance is: %d", (int)fSqrt(F2F));
+    if (m_flags && F2F < 1000) conoutf("  Flag-to-flag distance is: %d", (int)sqrtf(F2F));
     if (item_fail) conoutf("  There are one or more items too close to each other in this map");
 }
 COMMAND(showmapstats, "");
@@ -1142,7 +1137,7 @@ void startmap(const char *name, bool reset, bool norespawn)   // called just aft
     player1->followplayercn = -1;
     if(m_valid(gamemode) && !m_mp(gamemode)) respawnself();
     else findplayerstart(player1);
-    if(good_map()==MAP_IS_BAD) conoutf(_("You cannot play in this map due to quality requisites. Please, report this incident."));
+    if(good_map()==MAP_IS_BAD) conoutf("You cannot play in this map due to quality requisites. Please, report this incident.");
     if (mapstats_hud) showmapstats();
 
     if(!reset) return;
@@ -1160,15 +1155,11 @@ void startmap(const char *name, bool reset, bool norespawn)   // called just aft
     lastgametimeupdate = 0;
     arenaintermission = 0;
     bool noflags = (m_ctf || m_ktf) && (!numflagspawn[0] || !numflagspawn[1]);
-    if(*clientmap) conoutf(_("game mode is \"%s\"%s"), modestr(gamemode, modeacronyms > 0), noflags ? " - \f2but there are no flag bases on this map" : "");
+    if(*clientmap) conoutf("game mode is \"%s\"%s", modestr(gamemode, modeacronyms > 0), noflags ? " - \f2but there are no flag bases on this map" : "");
 
     if(showmodedescriptions && (multiplayer(false) || m_botmode))
     {
-        loopv(gmdescs) if(gmdescs[i].mode == gamemode)
-        {
-            //conoutf(_("%c1%s"), CC, gmdescs[i].desc); // 3rd useless call to translation - these should be translated inside the cube-script-definition
-            conoutf("\f1%s", gmdescs[i].desc);
-        }
+        loopv(gmdescs) if(gmdescs[i].mode == gamemode) conoutf("\f1%s", gmdescs[i].desc);
     }
 
     // run once
@@ -1222,11 +1213,7 @@ void flagmsg(int flag, int message, int actor, int flagtime)
     const char *teamstr = m_ktf ? "the" : neutral ? ownerstr : own ? "your" : "the enemy";
     const char *flagteam = (m_ktf && !neutral) ? (teammate ? "your teammate " : "your enemy ") : "";
 
-    if(identexists("onFlag"))
-    {
-        defformatstring(onflagevent)("onFlag %d %d %d", message, actor, flag);
-        execute(onflagevent);
-    }
+    exechook(HOOK_SP, "onFlag", "%d %d %d", message, actor, flag);
 
     switch(message)
     {
@@ -1422,17 +1409,13 @@ void callvote(int type, const char *arg1, const char *arg2, const char *arg3)
 
 
 
-				putint(p, atoi(arg1));
+                putint(p, atoi(arg1));
                 break;
         }
         sendpackettoserv(1, p.finalize());
-        if(identexists("onCallVote"))
-        {
-            defformatstring(runas)("%s %d %d [%s] [%s]", "onCallVote", type, player1->clientnum, arg1, arg2);
-            execute(runas);
-        }
+        exechook(HOOK_SP_MP, "onCallVote", "%d %d [%s] [%s]", type, player1->clientnum, arg1, arg2);
     }
-    else conoutf(_("%c3invalid vote"), CC);
+    else conoutf("\f3invalid vote");
 }
 
 void scallvote(int *type, const char *arg1, const char *arg2)
@@ -1456,9 +1439,9 @@ void scallvote(int *type, const char *arg1, const char *arg2)
                 if (!arg1 || !isdigit(arg1[0]) || !arg2 || strlen(arg2) <= 3 || !multiplayer(false))
                 {
                     if(!multiplayer(false))
-                        conoutf(_("%c3%s is not available in singleplayer."), CC, t == SA_BAN ? "Ban" : "Kick");
-                    else if(arg1 && !isdigit(arg1[0])) conoutf(_("%c3invalid vote"), CC);
-                    else conoutf(_("%c3invalid reason"), CC);
+                        conoutf("\f3%s is not available in singleplayer.", t == SA_BAN ? "Ban" : "Kick");
+                    else if(arg1 && !isdigit(arg1[0])) conoutf("\f3invalid vote");
+                    else conoutf("\f3invalid reason");
                     break;
                 }
             }
@@ -1477,7 +1460,7 @@ void scallvote(int *type, const char *arg1, const char *arg2)
 int vote(int v)
 {
     if(!curvote || v < 0 || v >= VOTE_NUM) return 0;
-    if(curvote->localplayervoted) { conoutf(_("%c3you voted already"), CC); return 0; }
+    if(curvote->localplayervoted) { conoutf("\f3you voted already"); return 0; }
     packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
     putint(p, SV_VOTE);
     putint(p, v);
@@ -1495,7 +1478,7 @@ void displayvote(votedisplayinfo *v)
     if(!v) return;
     DELETEP(curvote);
     curvote = v;
-    conoutf(_("%s called a vote: %s"), v->owner ? colorname(v->owner) : "", curvote->desc);
+    conoutf("%s called a vote: %s", v->owner ? colorname(v->owner) : "", curvote->desc);
     audiomgr.playsound(S_CALLVOTE, SP_HIGHEST);
     curvote->localplayervoted = false;
     votepending = 1;
@@ -1512,7 +1495,7 @@ void callvotesuc()
 void callvoteerr(int e)
 {
     if(e < 0 || e >= VOTEE_NUM) return;
-    conoutf(_("%c3could not vote: %s"), CC, voteerrorstr(e));
+    conoutf("\f3could not vote: %s", voteerrorstr(e));
     DELETEP(calledvote);
 }
 
@@ -1523,9 +1506,9 @@ void voteresult(int v)
     {
         curvote->result = v;
         curvote->millis = totalmillis + 5000;
-        conoutf(_("vote %s"), v == VOTE_YES ? _("passed") : _("failed"));
+        conoutf("vote %s", v == VOTE_YES ? "passed" : "failed");
         if(multiplayer(false)) audiomgr.playsound(v == VOTE_YES ? S_VOTEPASS : S_VOTEFAIL, SP_HIGH);
-        if(identexists("onVoteEnd")) execute("onVoteEnd");
+        exechook(HOOK_SP_MP, "onVoteEnd", "");
         votepending = 0;
     }
 }
@@ -1554,14 +1537,14 @@ void setnext(char *mode, char *map)
             case GMODE_BOTDEATHMATCH:
             case GMODE_BOTONESHOTONEKILL:
             case GMODE_BOTLSS:
-			case GMODE_BOTPISTOLFRENZY:
-			case GMODE_BOTTEAMONESHOTONKILL:
+            case GMODE_BOTPISTOLFRENZY:
+            case GMODE_BOTTEAMONESHOTONKILL:
                 continue;
         }
         if(!strcmp(mode, modestrings[i]))
         {
             nextmode=i+GMODE_NUM;
-	        string nm = ""; itoa(nm, nextmode);
+            string nm = ""; itoa(nm, nextmode);
             callvote(SA_MAP, map, nm, "0");
             break;
         }
@@ -1597,7 +1580,7 @@ void whois(int *cn)
     {
         playerent *p = players[i];
         uint2ip(p->address, ip);
-        if(m_teammode) conoutf(_("%c0INFO: %c5%s has %d teamkills."), CC, CC, p->name, p->tks);
+        if(m_teammode) conoutf("\f0INFO: \f5%s has %d teamkills.", p->name, p->tks);
         if(ip[3] != 0 || player1->clientrole==CR_ADMIN)
             conoutf("WHOIS client %d:\n\f5name\t%s\n\f5IP\t%d.%d.%d.%d", p->clientnum, colorname(p), ip[0], ip[1], ip[2], ip[3]); // full IP
         else conoutf("WHOIS client %d:\n\f5name\t%s\n\f5IP\t%d.%d.%d.x", p->clientnum, colorname(p), ip[0], ip[1], ip[2]); // censored IP
@@ -1623,7 +1606,7 @@ void setadmin(int *claim, char *password)
 {
     if(!*claim && (player1->clientrole))
     {
-        conoutf(_("you released admin status"));
+        conoutf("you released admin status");
         addmsg(SV_SETADMIN, "ri", 0);
     }
     else if(*claim != 0 && password)
@@ -1658,28 +1641,24 @@ VARP(spectatepersistent,0,1,1);
 // rotate through all spec-able players
 playerent *updatefollowplayer(int shiftdirection)
 {
-    playerent *f = players.inrange(player1->followplayercn) ? players[player1->followplayercn] : NULL;
-    if(!shiftdirection)
-    {
-        if(f && (watchingdemo || !f->isspectating() || spectatepersistent || (!spectatepersistent && !m_arena) )) return f;
-    }
+    playerent *f = players.inrange(player1->followplayercn) ? players[player1->followplayercn] : NULL; // last spectated player
 
     // collect spec-able players
+    int omit_team = m_teammode && !watchingdemo && player1->team != TEAM_SPECT ? team_opposite(team_base(player1->team)) : TEAM_NUM; // don't spect enemy team in team mode
+    bool stayondeadplayers = spectatepersistent || !m_arena;
     vector<playerent *> available;
     loopv(players) if(players[i])
     {
-        if(player1->team != TEAM_SPECT && !watchingdemo && m_teammode && team_base(players[i]->team) != team_base(player1->team)) continue;
-        if(players[i]->state==CS_DEAD || players[i]->isspectating()) continue;
+        if(team_group(players[i]->team) == omit_team) continue; // if not team SPECT and not watchingdemo and teammode: don't spectate enemy team
+        if((players[i]->state == CS_DEAD || players[i]->isspectating()) && (!stayondeadplayers || players[i] != f)) continue; // don't spect dead players, but in some cases stay on them
         available.add(players[i]);
     }
-    if(!available.length()) return f;
+    if(available.length() < 1) return NULL;
 
     // rotate
-    int oldidx = -1;
-    if(players.inrange(player1->followplayercn)) oldidx = available.find(players[player1->followplayercn]);
-    if(oldidx<0) oldidx = 0;
-    int idx = (oldidx+shiftdirection) % available.length();
-    if(idx<0) idx += available.length();
+    int oldidx = f ? available.find(f) : 0;
+    if(oldidx < 0) oldidx = 0;
+    int idx = ((oldidx + shiftdirection) % available.length() + available.length()) % available.length();
 
     player1->followplayercn = available[idx]->clientnum;
     return players[player1->followplayercn];
@@ -1687,7 +1666,7 @@ playerent *updatefollowplayer(int shiftdirection)
 
 void spectate()
 {
-    if(m_demo) return;
+    if(m_demo || editmode) return;
     if(!team_isspect(player1->team)) addmsg(SV_SWITCHTEAM, "ri", TEAM_SPECT);
     else tryrespawn();
 }

@@ -21,8 +21,6 @@
      -bots should ignore players that are too far away ?
      -bots should dodge/jump when shot at
      -If the bot's only weapon is the fist it should make looking for ammo its priority - Done ?
-     -bots should rocket jump to get quads and the 150 armor if normal jumping doesn't
-      work (only if health is x so they don't suicide).
      -Make all the "UNDONE's" done :)
      -Finish waypoint navigation
      -Make bot personalities
@@ -33,7 +31,6 @@
      -Waypoint experience file
      -Bots should avoid team mates
      -Handle failed goals better(ie remember them)
-     -Test multiplayer
      -Fix bots getting stuck in each other
      -Optimize hunting code
      -Check/Fix msg code
@@ -42,19 +39,11 @@
 #ifndef BOT_H
 #define BOT_H
 
-//#define RELEASE_BUILD // Set when you want to make a release build
-
-
-// Set for which mod the code is
-
-//#define VANILLA_CUBE
-#define AC_CUBE
-//#define CUBE_X
+#define RELEASE_BUILD // Set when you want to make a release build
 
 #include "bot_util.h"
 #include "bot_waypoint.h"
 
-extern bool dedserv;
 extern itemstat itemstats[];
 
 #ifdef RELEASE_BUILD
@@ -64,7 +53,7 @@ inline void debugbeam(vec &s, vec &e) { }
 #else
 inline void condebug(const char *s, int a = 0, int b = 0, int c = 0) { /*conoutf(s, a, b, c);*/ }
 inline void debugnav(const char *s, int a = 0, int b = 0, int c = 0) { /*conoutf(s, a, b, c);*/ }
-inline void debugbeam(vec &s, vec &e) { /*if (!dedserv) particle_trail(1, 500, s, e);*/ }
+inline void debugbeam(vec &s, vec &e) { /*particle_trail(1, 500, s, e);*/ }
 #endif
 
 #define JUMP_HEIGHT      4.0f // NOT accurate
@@ -107,8 +96,6 @@ struct bot_skill_s
      float flMaxEnemySearchDelay; // Maximal delay for when a bot can search for an
                                   // enemy again
      float flAlwaysDetectDistance;
-     short sShootAtFeetWithRLPercent; // Percent that a bot shoot with a rocket
-                                      // launcher at the enemy feet.
      int iMaxHearVolume; // Max volume that bot can hear
      int iFov; // bots field of view
      bool bCanPredict; // Can this bot predict his enemy position?
@@ -121,7 +108,6 @@ enum EBotWeaponTypes
      TYPE_MELEE, // Fist, knife etc
      TYPE_NORMAL, // Normal weapon, distance doesn't really matter(ie pistol)
      TYPE_SHOTGUN,
-     TYPE_ROCKET,
      TYPE_SNIPER, // Rifle, sniper etc
      TYPE_GRENADE,
      TYPE_AUTO // Chain gun, machine gun etc
@@ -360,7 +346,6 @@ class CBotManager
      void InitBotItems(void);
 
      friend class CBot;
-     friend class CCubeBot;
      friend class CACBot;
      friend class CWaypointClass;
 
@@ -368,7 +353,7 @@ public:
      botent *m_pBotToView;
 
      // Construction
-     CBotManager(void) { m_bInit = true; m_fReAddBotDelay = -1.0f; };
+     CBotManager(void) { m_bInit = true; m_bBotsShoot = true; m_bIdleBots = false; m_fReAddBotDelay = -1.0f; };
 
      // Destruction
      ~CBotManager(void);
@@ -403,21 +388,11 @@ public:
                           char *szOutput);
 };
 
-#if defined VANILLA_CUBE
-#include "cube_bot.h"
-#elif defined AC_CUBE
 #include "ac_bot.h"
-#endif
 
 extern CBotManager BotManager;
 extern const vec g_vecZero;
-
-#if defined AC_CUBE
 extern CACWaypointClass WaypointClass;
-#elif defined VANILLA_CUBE
-extern CCubeWaypointClass WaypointClass;
-#endif
-
 extern void kickallbots();
 
 #endif

@@ -11,6 +11,7 @@ vector<int> contextstack;
 bool contextsealed = false;
 bool contextisolated[IEXC_NUM] = { false };
 int execcontext;
+char *commandret = NULL;
 
 bool loop_break = false, loop_skip = false;             // break or continue (skip) current loop
 int loop_level = 0;                                      // avoid bad calls of break & continue
@@ -39,7 +40,7 @@ void clearstack(ident &id)
 
 void pushident(ident &id, char *val, int context = execcontext)
 {
-    if(id.type != ID_ALIAS) return;
+    if(id.type != ID_ALIAS) { delete[] val; return; }
     identstack *stack = new identstack;
     stack->action = id.executing==id.action ? newstring(id.action) : id.action;
     stack->context = id.context;
@@ -102,7 +103,16 @@ void pop(const char *name)
 }
 
 COMMAND(push, "ss");
-COMMAND(pop, "s");
+COMMANDF(pop, "v", (char **args, int numargs)
+{
+    if(numargs > 0)
+    {
+        const char *beforepopval = getalias(args[0]);
+        if(beforepopval) commandret = newstring(beforepopval);
+    }
+    loopi(numargs) pop(args[i]);
+});
+
 void delalias(const char *name)
 {
     ident *id = idents->access(name);
@@ -117,13 +127,14 @@ void delalias(const char *name)
 }
 COMMAND(delalias, "s");
 
-void alias(const char *name, const char *action, bool constant)
+void alias(const char *name, const char *action, bool temp, bool constant)
 {
     ident *b = idents->access(name);
     if(!b)
     {
-        ident b(ID_ALIAS, newstring(name), newstring(action), persistidents && !constant, execcontext);
+        ident b(ID_ALIAS, newstring(name), newstring(action), persistidents && !constant && !temp, execcontext);
         b.isconst = constant;
+        b.istemp = temp;
         idents->access(b.name, b);
         return;
     }
@@ -144,12 +155,14 @@ void alias(const char *name, const char *action, bool constant)
         }
 
         b->isconst = constant;
+        if(temp) b->istemp = true;
         if(!constant || (action && action[0]))
         {
             if(b->action!=b->executing) delete[] b->action;
             b->action = newstring(action);
             b->persist = persistidents != 0;
         }
+        if(b->istemp) b->persist = false;
     }
     else
     {
@@ -158,8 +171,9 @@ void alias(const char *name, const char *action, bool constant)
     }
 }
 
-COMMANDF(alias, "ss", (const char *name, const char *action) { alias(name, action, false); });
-COMMANDF(const, "ss", (const char *name, const char *action) { alias(name, action, true); });
+COMMANDF(alias, "ss", (const char *name, const char *action) { alias(name, action, false, false); });
+COMMANDF(tempalias, "ss", (const char *name, const char *action) { alias(name, action, true, false); });
+COMMANDF(const, "ss", (const char *name, const char *action) { alias(name, action, false, true); });
 
 COMMANDF(checkalias, "s", (const char *name) { intret(getalias(name) ? 1 : 0); });
 COMMANDF(isconst, "s", (const char *name) { ident *id = idents->access(name); intret(id && id->isconst ? 1 : 0); });
@@ -169,7 +183,7 @@ COMMANDF(isconst, "s", (const char *name) { ident *id = idents->access(name); in
 int variable(const char *name, int minval, int cur, int maxval, int *storage, void (*fun)(), bool persist)
 {
     if(!idents) idents = new hashtable<const char *, ident>;
-    ident v(ID_VAR, name, minval, maxval, storage, fun, persist, IEXC_CORE);
+    ident v(ID_VAR, name, minval, maxval, storage, cur, fun, persist, IEXC_CORE);
     idents->access(name, v);
     return cur;
 }
@@ -177,21 +191,22 @@ int variable(const char *name, int minval, int cur, int maxval, int *storage, vo
 float fvariable(const char *name, float minval, float cur, float maxval, float *storage, void (*fun)(), bool persist)
 {
     if(!idents) idents = new hashtable<const char *, ident>;
-    ident v(ID_FVAR, name, minval, maxval, storage, fun, persist, IEXC_CORE);
+    ident v(ID_FVAR, name, minval, maxval, storage, cur, fun, persist, IEXC_CORE);
     idents->access(name, v);
     return cur;
 }
 
-char *svariable(const char *name, const char *cur, char **storage, void (*fun)(), bool persist)
+char *svariable(const char *name, const char *cur, char **storage, void (*fun)(), void (*getfun)(), bool persist)
 {
     if(!idents) idents = new hashtable<const char *, ident>;
-    ident v(ID_SVAR, name, storage, fun, persist, IEXC_CORE);
+    ident v(ID_SVAR, name, storage, fun, getfun, persist, IEXC_CORE);
     idents->access(name, v);
     return newstring(cur);
 }
 
 #define _GETVAR(id, vartype, name, retval) \
     ident *id = idents->access(name); \
+    ASSERT(id && id->type == vartype); \
     if(!id || id->type!=vartype) return retval;
 #define GETVAR(id, name, retval) _GETVAR(id, ID_VAR, name, retval)
 void setvar(const char *name, int i, bool dofunc)
@@ -229,7 +244,7 @@ void modifyvar(const char *name, int arg, char op)
     {
         case ID_VAR: val = *id->storage.i; break;
         case ID_FVAR: val = int(*id->storage.f); break;
-        case ID_SVAR: val = ATOI(*id->storage.s); break;
+        case ID_SVAR: { { if(id->getfun) ((void (__cdecl *)())id->getfun)(); } val = ATOI(*id->storage.s); break; }
         case ID_ALIAS: val = ATOI(id->action); break;
     }
     switch(op)
@@ -266,7 +281,7 @@ void modifyfvar(const char *name, float arg, char op)
     {
         case ID_VAR: val = *id->storage.i; break;
         case ID_FVAR: val = *id->storage.f; break;
-        case ID_SVAR: val = atof(*id->storage.s); break;
+        case ID_SVAR: { { if(id->getfun) ((void (__cdecl *)())id->getfun)(); } val = atof(*id->storage.s); break; }
         case ID_ALIAS: val = atof(id->action); break;
     }
     switch(op)
@@ -336,6 +351,7 @@ void _getalias(char *name)
                 result(o);
                 break;
             case ID_SVAR:
+                if(id->getfun) ((void (__cdecl *)())id->getfun)();
                 formatstring(o)("%s", *id->storage.s);
                 result(o);
                 break;
@@ -347,6 +363,30 @@ void _getalias(char *name)
     }
 }
 COMMANDN(getalias, _getalias, "s");
+
+void getvarrange(char *_what, char *name)
+{
+    ident *id = idents->access(name);
+    const char *attrs[] = { "min", "max", "default", "" };
+    int what = getlistindex(_what, attrs, false, -1);
+    if(id)
+    {
+        int *i = NULL;
+        switch(what)
+        {
+            case 0: i = &(id->minval); break;
+            case 1: i = &(id->maxval); break;
+            case 2: i = &(id->defaultval); break;
+        }
+        if(i) switch(id->type)
+        {
+            case ID_VAR: intret(*i); return;
+            case ID_FVAR: floatret(*((float *) i), true); return;
+        }
+    }
+    result("");
+}
+COMMAND(getvarrange, "ss");
 
 COMMANDF(isIdent, "s", (char *name) { intret(identexists(name) ? 1 : 0); });
 
@@ -389,12 +429,22 @@ char *parseexp(const char *&p, int right)             // parse any nested set of
 
 char *lookup(char *n)                           // find value of ident referenced with $ in exp
 {
+    if(n[1] == '$') // nested ("$$var")
+    {
+        char *nn = lookup(newstring(n + 1));
+        delete[] n;
+        int nnl = strlen(nn);
+        n = newstring(nnl + 1);
+        n[0] = '$';
+        copystring(n + 1, nn, nnl + 1);
+        delete[] nn;
+    }
     ident *id = idents->access(n+1);
     if(id) switch(id->type)
     {
         case ID_VAR: { string t; itoa(t, *id->storage.i); return exchangestr(n, t); }
         case ID_FVAR: return exchangestr(n, floatstr(*id->storage.f));
-        case ID_SVAR: return exchangestr(n, *id->storage.s);
+        case ID_SVAR: { { if(id->getfun) ((void (__cdecl *)())id->getfun)(); } return exchangestr(n, *id->storage.s); }
         case ID_ALIAS: return exchangestr(n, id->action);
     }
     conoutf("unknown alias lookup: %s", n+1);
@@ -408,11 +458,18 @@ char *parseword(const char *&p, int arg, int &infix)                       // pa
     if(p[0]=='/' && p[1]=='/') p += strcspn(p, "\n\0");
     if(*p=='\"')
     {
-        p++;
-        const char *word = p;
-        p += strcspn(p, "\"\r\n\0");
-        char *s = newstring(word, p-word);
+        const char *word = p + 1;
+        do
+        {
+            p++;
+            p += strcspn(p, "\"\n\r");
+        }
+        while(*p == '\"' && p[-1] == '\\');                                 // skip escaped quotes
+        char *s = newstring(word, p - word);
         if(*p=='\"') p++;
+#ifndef STANDALONE
+        filterrichtext(s, s, strlen(s));
+#endif
         return s;
     }
     if(*p=='(') return parseexp(p, ')');
@@ -429,8 +486,13 @@ char *parseword(const char *&p, int arg, int &infix)                       // pa
     return s;
 }
 
-char *conc(char **w, int n, bool space)
+char *conc(const char **w, int n, bool space)
 {
+    if(n < 0)
+    {  // auto-determine number of strings
+        n = 0;
+        while(w[n] && w[n][0]) n++;
+    }
     int len = space ? max(n-1, 0) : 0;
     loopj(n) len += (int)strlen(w[j]);
     char *r = newstring("", len);
@@ -446,8 +508,6 @@ char *conc(char **w, int n, bool space)
 
 VARN(numargs, _numargs, 25, 0, 0);
 
-char *commandret = NULL;
-
 void intret(int v)
 {
     string t;
@@ -455,21 +515,20 @@ void intret(int v)
     commandret = newstring(t);
 }
 
-const char *floatstr(float v)
+const char *floatstr(float v, bool neat)
 {
-    static string l;
-    ftoa(l, 0.5);
-    static int n = 0;
-    static string t[3];
-    n = (n + 1)%3;
-    ftoa(t[n], v);
-    return t[n];
+    static string s;
+    static int i = 0;
+    if(i > MAXSTRLEN - 100) i = 0;
+    char *t = s + i;
+    sprintf(t, !neat && (v) == int(v) ? "%.1f" : "%.7g", v);  // was ftoa()
+    i += strlen(t) + 1;
+    return t;
 }
 
-
-void floatret(float v)
+void floatret(float v, bool neat)
 {
-    commandret = newstring(floatstr(v));
+    commandret = newstring(floatstr(v, neat));
 }
 
 void result(const char *s) { commandret = newstring(s); }
@@ -521,7 +580,7 @@ char *executeret(const char *p)                            // all evaluation hap
     }
 #endif
     const int MAXWORDS = 25;                    // limit, remove
-    char *w[MAXWORDS];
+    char *w[MAXWORDS], emptychar = '\0';
     char *retval = NULL;
     #define setretval(v) { char *rv = v; if(rv) retval = rv; }
     if(noproblem) // if the "seer"-algorithm doesn't object
@@ -532,7 +591,7 @@ char *executeret(const char *p)                            // all evaluation hap
             int numargs = MAXWORDS, infix = 0;
             loopi(MAXWORDS)                         // collect all argument values
             {
-                w[i] = (char *)"";
+                w[i] = &emptychar;
                 if(i>numargs) continue;
                 char *s = parseword(p, i, infix);   // parse and evaluate exps
                 if(s) w[i] = s;
@@ -585,7 +644,7 @@ char *executeret(const char *p)                            // all evaluation hap
                         if(strstr(id->sig, "v")) ((void (__cdecl *)(char **, int))id->fun)(&w[1], numargs-1);
                         else if(strstr(id->sig, "c") || strstr(id->sig, "w"))
                         {
-                            char *r = conc(w+1, numargs-1, strstr(id->sig, "c") != NULL);
+                            char *r = conc((const char **)w+1, numargs-1, strstr(id->sig, "c") != NULL);
                             ((void (__cdecl *)(char *))id->fun)(r);
                             delete[] r;
                         }
@@ -656,7 +715,11 @@ char *executeret(const char *p)                            // all evaluation hap
                         break;
 
                     case ID_SVAR:                        // game defined variables
-                        if(!w[1][0]) conoutf(strchr(*id->storage.s, '"') ? "%s = [%s]" : "%s = \"%s\"", c, *id->storage.s); // var with no value just prints its current value
+                        if(!w[1][0])
+                        {
+                            if(id->getfun) ((void (__cdecl *)())id->getfun)();
+                            conoutf(strchr(*id->storage.s, '"') ? "%s = [%s]" : "%s = \"%s\"", c, *id->storage.s); // var with no value just prints its current value
+                        }
                         else
                         {
                             *id->storage.s = exchangestr(*id->storage.s, newstring(w[1]));
@@ -676,12 +739,14 @@ char *executeret(const char *p)                            // all evaluation hap
                             }
                             pushident(*argids[i-1], w[i]); // set any arguments as (global) arg values so functions can access them
                         }
+                        int old_numargs = _numargs;
                         _numargs = numargs-1;
                         char *wasexecuting = id->executing;
                         id->executing = id->action;
                         setretval(executeret(id->action));
                         if(id->executing!=id->action && id->executing!=wasexecuting) delete[] id->executing;
                         id->executing = wasexecuting;
+                        _numargs = old_numargs;
                         for(int i = 1; i<numargs; i++) popident(*argids[i-1]);
                         continue;
                 }
@@ -701,43 +766,57 @@ int execute(const char *p)
 }
 
 #ifndef STANDALONE
-// tab-completion of all idents
+bool exechook(int context, const char *ident, const char *body,...)  // execute cubescript hook if available and allowed in current context/gamemode
+{ // always use one of HOOK_SP_MP, HOOK_SP or HOOK_MP and then OR them (as needed) with HOOK_TEAM, HOOK_NOTEAM, HOOK_BOTMODE, HOOK_FLAGMODE, HOOK_ARENA
+    if(multiplayer(NULL) && (context & HOOK_FLAGMASK) != HOOK_MP && (context & HOOK_FLAGMASK) != HOOK_SP_MP) return false; // hook is singleplayer-only
+    if(((context & HOOK_TEAM) && !m_teammode) ||
+       ((context & HOOK_NOTEAM) && m_teammode) ||
+       ((context & HOOK_BOTMODE) && !m_botmode) ||
+       ((context & HOOK_FLAGMODE) && m_flags) ||
+       ((context & HOOK_ARENA) && m_arena)) return false; // wrong gamemode
+    if(identexists(ident))
+    {
+        defvformatstring(arglist, body, body);
+        defformatstring(execbody)("%s%c%s", ident, *arglist ? ' ' : '\0', arglist);
+        execute(execbody);
+        return true;
+    }
+    return false;
+}
 
-static int completesize = -1, completeidx = 0;
-static playerent *completeplayer = NULL;
+// tab-completion of all idents
+// always works at the end of the command line - the cursor position does not matter
+
+static int completesize = -1, nickcompletesize = -1;
 
 void resetcomplete()
 {
-    completesize = -1;
-    completeplayer = NULL;
+    nickcompletesize = completesize = -1;
 }
 
-bool nickcomplete(char *s)
+bool nickcomplete(char *s, bool reversedirection)
 {
+    static int nickcompleteidx;
     if(!players.length()) return false;
 
-    char *cp = s;
-    for(int i = (int)strlen(s) - 1; i > 0; i--)
-        if(s[i] == ' ') { cp = s + i + 1; break; }
-    if(completesize < 0) { completesize = (int)strlen(cp); completeidx = 0; }
+    char *cp = strrchr(s, ' '); // find last space
+    cp = cp ? cp + 1 : s;
 
-    int idx = 0;
-    if(completeplayer!=NULL)
+    if(nickcompletesize < 0)
     {
-        idx = players.find(completeplayer)+1;
-        if(!players.inrange(idx)) idx = 0;
+        nickcompletesize = (int)strlen(cp);
+        nickcompleteidx = reversedirection ? 0 : -1;
     }
 
-    for(int i=idx; i<idx+players.length(); i++)
+    vector<int> matchingnames;
+    loopv(players) if(players[i] && !strncasecmp(players[i]->name, cp, nickcompletesize)) matchingnames.add(i);   // find all matching player names first
+    if(matchingnames.length())
     {
-        playerent *p = players[i % players.length()];
-        if(p && !strncasecmp(p->name, cp, completesize))
-        {
-            *cp = '\0';
-            concatstring(s, p->name);
-            completeplayer = p;
-            return true;
-        }
+        nickcompleteidx += reversedirection ? matchingnames.length() - 1 : 1;
+        nickcompleteidx %= matchingnames.length();
+        *cp = '\0';
+        concatstring(s, players[matchingnames[nickcompleteidx]]->name);
+        return true;
     }
     return false;
 }
@@ -834,9 +913,10 @@ COMMANDN(complete, addfilecomplete, "sss");
 COMMANDN(listcomplete, addlistcomplete, "ss");
 COMMANDN(nickcomplete, addnickcomplete, "s");
 
-void commandcomplete(char *s)
-{
-    if(*s!='/')
+void commandcomplete(char *s, bool reversedirection)
+{ // s is required to be of size "string"!
+    static int completeidx;
+    if(*s != '/')
     {
         string t;
         copystring(t, s);
@@ -845,101 +925,85 @@ void commandcomplete(char *s)
     }
     if(!s[1]) return;
 
-    int o = 0; //offset
+    // find start position of last command
+    char *cmd = strrchr(s, ';'); // find last ';' (this will not always work properly, because it doesn't take quoted texts into account)
+    if(!cmd) cmd = s;  // no ';' found: command starts after '/'
 
-    while(*s) {s++; o++;} //seek to end
-    s--; //last character
+    char *openblock = strrchr(cmd + 1, '('), *closeblock = strrchr(cmd + 1, ')'); // find last open and closed parenthesis
+    if(openblock && (!closeblock || closeblock < openblock)) cmd = openblock; // found opening parenthesis inside the command: assume, a new command starts here
 
-    for (int i = o; i > 1; i--) //seek backwards
-    {
-        s--;
-        o--;
-        if (*s == ';') //until ';' is found
-        {
-            s++; break; //string after ';'
-        }
-    }
+    cmd += strspn(cmd + 1, " ") + 1;  // skip blanks and one of "/;( ", cmd now points to the first char of the command
 
-    char *openblock = strrchr(s+1, '('); //find last open parenthesis
-    char *closeblock = strrchr(s+1, ')'); //find last closed parenthesis
-
-    if (openblock)
-    {
-        if (!closeblock || closeblock < openblock) //open block
-        s = openblock;
-    }
-
-    char *cp = s; //part to complete
-
-    for(int i = (int)strlen(s) - 1; i > 0; i--)
-        if(s[i] == ' ') { cp = s + i; break; } //testing for command/argument needs completion
-
-    bool init = false;
-    if(completesize < 0)
-    {
-        completesize = (int)strlen(cp)-1;
-        completeidx = 0;
-        if(*cp == ' ') init = true;
-    }
+    // check, if the command is complete, and we want argument completion instead
+    char *arg = strrchr(cmd, ' ');  // find last space in command -> if there is one, we use argument completion
 
     completeval *cdata = NULL;
-
-    char *end = strchr(s+1, ' '); //find end of command name
-
-    if(end && end <= cp) //full command is present
-    {
+    if(arg)  // full command is present
+    { // extract command name to find argument list
         string command;
-        copystring(command, s+1, min(size_t(end-s), sizeof(command)));
+        copystring(command, cmd);
+        command[strcspn(cmd, " ")] = '\0';
         completeval **hascomplete = completions.access(command);
-         if(hascomplete) cdata = *hascomplete;
-    }
-    if(init && cdata && cdata->type==COMPLETE_FILE)
-    {
-       cdata->list.deletearrays();
-       loopv(cdata->dirlist) listfiles(cdata->dirlist[i], cdata->ext, cdata->list);
+        if(hascomplete) cdata = *hascomplete;
+
+        if(completesize < 0 && cdata && cdata->type == COMPLETE_FILE)
+        { // get directory contents on first run
+           cdata->list.deletearrays();
+           vector<char *> files;
+           loopv(cdata->dirlist)
+           {
+               listfiles(cdata->dirlist[i], cdata->ext, files);
+               files.sort(stringsort);
+               loopv(files) cdata->list.add(files[i]);
+               files.setsize(0);
+           }
+        }
     }
 
-    if(*cp == '/' || *cp == ';'
-    || (cp == s && (*cp == ' ' || *cp == '(')))
+    char *cp = arg ? arg + 1 : cmd; // part of string to complete
+    if(completesize < 0)
+    { // first run since resetcomplete()
+        completesize = (int)strlen(cp);
+        completeidx = reversedirection ? 0 : -1;
+    }
+
+    if(!arg)
     { // commandname completion
-        int idx = 0;
+        vector<const char *> matchingidents;
         enumerate(*idents, ident, id,
-            if(!strncasecmp(id.name, cp+1, completesize) && idx++==completeidx)
-            {
-                cp[1] = '\0';
-                strcpy(s+1, id.name); //concatstring/copystring will crash because of overflow
-            }
+            if(!strncasecmp(id.name, cp, completesize) && (id.type != ID_ALIAS || *id.action)) matchingidents.add(id.name);     // find all matching possibilities to get the list length (and give an opportunity to sort the list first)
         );
-        completeidx++;
-        if(completeidx>=idx) completeidx = 0;
+        if(matchingidents.length())
+        {
+            completeidx += reversedirection ? matchingidents.length() - 1 : 1;
+            completeidx %= matchingidents.length();
+            *cp = '\0';
+            matchingidents.sort(stringsortignorecase);
+            concatstring(s, matchingidents[completeidx]);
+        }
     }
     else if(!cdata) return;
-    else if(cdata->type==COMPLETE_NICK) nickcomplete(s);
+    else if(cdata->type == COMPLETE_NICK) nickcomplete(s, reversedirection);
     else
     { // argument completion
-        loopv(cdata->list)
+        vector<int> matchingargs;
+        loopv(cdata->list) if(!strncasecmp(cdata->list[i], cp, completesize)) matchingargs.add(i);   // find all matching args first
+        if(matchingargs.length())
         {
-            int j = (i + completeidx) % cdata->list.length();
-            if(!strncasecmp(cdata->list[j], cp + 1, completesize))
-            {
-                cp[1] = '\0';
-                strcpy(cp+1, cdata->list[j]); //concatstring/copystring will crash because of overflow
-                completeidx = j;
-                break;
-            }
+            completeidx += reversedirection ? matchingargs.length() - 1 : 1;
+            completeidx %= matchingargs.length();
+            *cp = '\0';
+            concatstring(s, cdata->list[matchingargs[completeidx]]);
         }
-        completeidx++;
-        if(completeidx >= cdata->list.length()) completeidx = 1;
     }
 }
 
-void complete(char *s)
+void complete(char *s, bool reversedirection)
 {
-    if(*s!='/')
+    if(*s == '/' || !nickcomplete(s, reversedirection))
     {
-        if(nickcomplete(s)) return;
+        commandcomplete(s, reversedirection);
     }
-    commandcomplete(s);
 }
 #endif
 
@@ -986,16 +1050,17 @@ void exec(const char *cfgfile)
 
 void execdir(const char *dir)
 {
-        if(dir[0])
+    if(dir[0])
+    {
+        vector<char *> files;
+        listfiles(dir, "cfg", files);
+        loopv(files)
         {
-            vector<char *> files;
-            listfiles(dir, "cfg", files);
-            loopv(files)
-            {
-                defformatstring(d)("%s/%s.cfg",dir,files[i]);
-                exec(d);
-            }
+            defformatstring(d)("%s/%s.cfg",dir,files[i]);
+            exec(d);
+            delstring(files[i]);
         }
+    }
 }
 COMMAND(execdir, "s");
 
@@ -1037,6 +1102,7 @@ void loopa(char *var, int *times, char *body)
     popident(*id);
     loop_level--;
 }
+
 void whilea(char *cond, char *body)
 {
     loop_level++;
@@ -1089,8 +1155,8 @@ void format(char **args, int numargs)
     result(s.getbuf());
 }
 
-#define whitespaceskip s += strspn(s, "\n\t \r")
-#define elementskip *s=='"' ? (++s, s += strcspn(s, "\"\n\0"), s += *s=='"') : s += strcspn(s, "\n\t \0")
+#define whitespaceskip do { s += strspn(s, "\n\t \r"); } while(s[0] == '/' && s[1] == '/' && (s += strcspn(s, "\n\0")))
+#define elementskip { if(*s=='"') { do { ++s; s += strcspn(s, "\"\n"); } while(*s == '\"' && s[-1] == '\\'); s += *s=='"'; } else s += strcspn(s, "\r\n\t "); }
 
 void explodelist(const char *s, vector<char *> &elems)
 {
@@ -1099,41 +1165,49 @@ void explodelist(const char *s, vector<char *> &elems)
     {
         const char *elem = s;
         elementskip;
-        elems.add(*elem=='"' ? newstring(elem+1, s-elem-(s[-1]=='"' ? 2 : 1)) : newstring(elem, s-elem));
+        char *newelem = *elem == '"' ? newstring(elem + 1, s - elem - (s[-1]=='"' ? 2 : 1)) : newstring(elem, s-elem);
+#ifndef STANDALONE
+        if(*elem == '\"') filterrichtext(newelem, newelem, strlen(newelem));
+#endif
+        elems.add(newelem);
         whitespaceskip;
     }
 }
 
-void looplist(char *list, char *var, char *body)
+void looplist(char *list, char *varlist, char *body)
 {
-    ident *id = newident(var, execcontext);
-    if(id->type!=ID_ALIAS) return;
-    char *buf = newstring(MAXSTRLEN);
-
-    vector<char *> elems;
-    explodelist(list, elems);
-
-    loop_level++;
-    loopv(elems)
+    vector<char *> vars;
+    explodelist(varlist, vars);
+    if(vars.length() < 1) return;
+    vector<ident *> ids;
+    bool ok = true;
+    loopv(vars) if(ids.add(newident(vars[i]))->type != ID_ALIAS) { conoutf("looplist error: \"%s\" is readonly", vars[i]); ok = false; }
+    if(ok)
     {
-        const char *elem = elems[i];
-        if(buf != id->action)
+        vector<char *> elems;
+        explodelist(list, elems);
+        loopv(ids) pushident(*ids[i], newstring(""));
+        loop_level++;
+        for(int i = 0; i <= elems.length() - vars.length(); i += vars.length())
         {
-            if(id->action != id->executing) delete[] id->action;
-            id->action = buf = newstring(MAXSTRLEN);
+            loopvj(vars)
+            {
+                if(ids[j]->action != ids[j]->executing) delete[] ids[j]->action;
+                ids[j]->action = elems[i + j];
+                elems[i + j] = NULL;
+            }
+            execute(body);
+            loop_skip = false;
+            if(loop_break) break;
         }
-        copystring(id->action, elem);
-        execute(body);
-        if(loop_skip) loop_skip = false;
-        if(loop_break)
-        {
-            loop_break = false;
-            break;   // FIXME (leaking memory)
-        }
+        loopv(ids) popident(*ids[i]);
+        loopv(elems) if(elems[i]) delete[] elems[i];
+        loop_break = false;
+        loop_level--;
     }
-    popident(*id);
-    loop_level--;
+    loopv(vars) delete[] vars[i];
 }
+COMMAND(looplist, "sss");
 
 char *indexlist(const char *s, int pos)
 {
@@ -1145,52 +1219,61 @@ char *indexlist(const char *s, int pos)
         if(!*s) break;
     }
     const char *e = s;
+    char *res;
     elementskip;
     if(*e=='"')
     {
         e++;
         if(s[-1]=='"') --s;
+        res = newstring(e, s - e);
+#ifndef STANDALONE
+        filterrichtext(res, res, s - e);
+#endif
     }
-    return newstring(e, s-e);
+    else res = newstring(e, s-e);
+    return res;
 }
+COMMANDF(at, "si", (char *s, int *pos) { commandret = indexlist(s, *pos); });
 
-int listlen(char *s)
+int listlen(const char *s)
 {
     int n = 0;
     whitespaceskip;
-    for(; *s; n++) elementskip, whitespaceskip;
+    for(; *s; n++) { elementskip; whitespaceskip; }
     return n;
 }
 
-void at(char *s, int *pos)
-{
-    commandret = indexlist(s, *pos);
-}
-
-int find(const char *s, const char *key)
+int find(char *s, const char *key)
 {
     whitespaceskip;
     int len = strlen(key);
     for(int i = 0; *s; i++)
     {
-        const char *a = s, *e = s;
+        char *e = s;
         elementskip;
-        if(*e=='"')
+        char *a = s;
+        if(*e == '"')
         {
             e++;
-            if(s[-1]=='"') --s;
+            if(s[-1] == '"') --s;
+            if(s - e >= len)
+            {
+                *s = '\0';
+#ifndef STANDALONE
+                filterrichtext(e, e, s - e);
+#endif
+                if(int(strlen(e)) == len && !strncmp(e, key, len)) return i;
+                *s = ' ';
+            }
         }
-        if(s-e==len && !strncmp(e, key, s-e)) return i;
-        else s = a;
-        elementskip, whitespaceskip;
+        else if(s - e == len && !strncmp(e, key, s - e)) return i;
+        s = a;
+        whitespaceskip;
     }
     return -1;
 }
+COMMANDF(findlist, "ss", (char *s, char *key) { intret(find(s, key)); });
 
-void findlist(char *s, char *key)
-{
-    intret(find(s, key));
-}
 void colora(char *s)
 {
     if(s[0] && s[1]=='\0')
@@ -1200,19 +1283,23 @@ void colora(char *s)
     }
 }
 
+#ifndef STANDALONE
 // Easily inject a string into various CubeScript punctuations
-void addpunct(char *s, int *type)
+const char *punctnames[] = { "QUOTES", "BRACKETS", "PARENTHESIS", "_$_", "QUOTE", "PERCENT", "" };
+
+void addpunct(char *s, char *type)
 {
-    switch(*type)
+    int t = getlistindex(type, punctnames, true, 0);
+    const char *puncts[] = { "\"%s\"", "[%s]", "(%s)", "$%s", "\"", "%" }, *punct = puncts[t];
+    if(strchr(punct, 's'))
     {
-        case 1:  defformatstring(o1)("[%s]", s);   result(o1); break;
-        case 2:  defformatstring(o2)("(%s)", s);   result(o2); break;
-        case 3:  defformatstring(o3)("$%s", s);    result(o3); break;
-        case 4:  result("\""); break;
-        case 5:  result("%");  break;
-        default: defformatstring(o4)("\"%s\"", s); result(o4); break;
+        defformatstring(res)(punct, s);
+        result(res);
     }
+    else result(punct);
 }
+COMMAND(addpunct, "ss");
+#endif
 
 void toLower(char *s) { result(strcaps(s, false)); }
 void toUpper(char *s) { result(strcaps(s, true)); }
@@ -1280,89 +1367,50 @@ char *strreplace(char *dest, const char *source, const char *search, const char 
 }
 
 int stringsort(const char **a, const char **b) { return strcmp(*a, *b); }
+int stringsortrev(const char **a, const char **b) { return strcmp(*b, *a); }
+int stringsortignorecase(const char **a, const char **b) { return strcasecmp(*a, *b); }
+int stringsortignorecaserev(const char **a, const char **b) { return strcasecmp(*b, *a); }
 
 void sortlist(char *list)
 {
-    char* buf;
-    buf = new char [strlen(list)]; strcpy(buf, ""); //output
-
-    if(*list == '\0')
-    {
-        //no input
-        result(buf);
-        delete [] buf;
-        return;
-    }
-
     vector<char *> elems;
-    explodelist(list, elems);    // FIXME (leaking memory)
+    explodelist(list, elems);
     elems.sort(stringsort);
+    commandret = conc((const char **)elems.getbuf(), elems.length(), true);
+    elems.deletearrays();
+}
+COMMAND(sortlist, "c");
 
-    strcpy(buf, elems[0]);
-    for(int i = 1; i < elems.length(); i++)
-    {
-        strcat(buf, " ");
-        strcat(buf, elems[i]);
-    }
-
-    result(buf); //result
-    delete [] buf;
- }
-
- void swapelements(char *list, char *v)
- {
-    char* buf;
-    buf = new char [strlen(list)]; strcpy(buf, ""); //output
-
-    if(*list == '\0')
-    {
-        // no input
-         result(buf);
-         delete [] buf;
-         return;
-    }
-
+void swapelements(char *list, char *v)
+{
     vector<char *> elems;
     explodelist(list, elems);
 
     vector<char *> swap;
     explodelist(v, swap);
+    vector<int> swapi;
+    loopv(swap) swapi.add(atoi(swap[i]));
 
-    if(*v == '\0' || //no input
-       swap.length()%2 != 0) //incorrect input
+    if(swapi.length() && !(swapi.length() & 1)) // swap needs to have an even number of elements
     {
-        result(buf);
-        delete [] buf;
-        return;  // FIXME (leaking memory)
-    }
-
-    char tmp[255]; strcpy (tmp, "");
-
-    for(int i = 0; i < swap.length(); i+=2)
-    {
-        if (elems.inrange(atoi(swap[i])) && elems.inrange(atoi(swap[i + 1])))
+        for(int i = 0; i < swapi.length(); i += 2)
         {
-            strcpy(tmp, elems[atoi(swap[i])]);
-            strcpy(elems[atoi(swap[i])], elems[atoi(swap[i+1])]);
-            strcpy(elems[atoi(swap[i+1])], tmp);
+            if (elems.inrange(swapi[i]) && elems.inrange(swapi[i + 1]))
+            {
+                char *tmp = elems[swapi[i]];
+                elems[swapi[i]] = elems[swapi[i + 1]];
+                elems[swapi[i + 1]] = tmp;
+            }
         }
     }
-
-    strcpy(buf, elems[0]);
-    for(int i = 1; i < elems.length(); i++)
-    {
-        strcat(buf, " ");
-        strcat(buf, elems[i]);
-    }
-
-    result(buf); //result
-    delete [] buf;
-    // FIXME (leaking memory)
- }
+    commandret = conc((const char **)elems.getbuf(), elems.length(), true);
+    elems.deletearrays();
+    swap.deletearrays();
+}
+COMMAND(swapelements, "ss");
 
 COMMANDN(c, colora, "s");
 COMMANDN(loop, loopa, "sis");
-COMMAND(looplist, "sss");
 COMMANDN(while, whilea, "ss");
 COMMANDN(break, breaka, "");
 COMMANDN(continue, continuea, "");
@@ -1372,17 +1420,12 @@ COMMAND(concat, "c");
 COMMAND(concatword, "w");
 COMMAND(format, "v");
 COMMAND(result, "s");
-COMMAND(execute, "s");
-COMMAND(at, "si");
+COMMANDF(execute, "s", (char *s) { intret(execute(s)); });
 COMMANDF(listlen, "s", (char *l) { intret(listlen(l)); });
-COMMAND(findlist, "ss");
-COMMAND(addpunct, "si");
 COMMANDN(tolower, toLower, "s");
 COMMANDN(toupper, toUpper, "s");
 COMMAND(testchar, "si");
-COMMAND(sortlist, "c");
 COMMANDF(strreplace, "sss", (const char *source, const char *search, const char *replace) { string d; result(strreplace(d, source, search, replace)); });
-COMMAND(swapelements, "ss");
 
 void add(int *a, int *b)   { intret(*a + *b); }            COMMANDN(+, add, "ii");
 void mul(int *a, int *b)   { intret(*a * *b); }            COMMANDN(*, mul, "ii");
@@ -1428,6 +1471,40 @@ COMMANDF(strcmp, "ss", (char *a, char *b) { intret((strcmp(a, b) == 0) ? 1 : 0);
 COMMANDF(rnd, "i", (int *a) { intret(*a>0 ? rnd(*a) : 0); });
 
 #ifndef STANDALONE
+
+const char *escapestring(const char *s, bool force, bool noquotes)
+{
+    static vector<char> strbuf[3];
+    static int stridx = 0;
+    if(noquotes) force = false;
+    if(!s) return force ? "\"\"" : "";
+    if(!force && !*(s + strcspn(s, "\"/\\;()[] \f\t\r\n"))) return s;
+    stridx = (stridx + 1) % 3;
+    vector<char> &buf = strbuf[stridx];
+    buf.setsize(0);
+    if(!noquotes) buf.add('"');
+    for(; *s; s++) switch(*s)
+    {
+        case '\n': buf.put("\\n", 2); break;
+        case '\r': buf.put("\\n", 2); break;
+        case '\t': buf.put("\\t", 2); break;
+        case '\a': buf.put("\\a", 2); break;
+        case '\f': buf.put("\\f", 2); break;
+        case '"': buf.put("\\\"", 2); break;
+        case '\\': buf.put("\\\\", 2); break;
+        default: buf.add(*s); break;
+    }
+    if(!noquotes) buf.add('"');
+    buf.add(0);
+    return buf.getbuf();
+}
+COMMANDF(escape, "s", (const char *s) { result(escapestring(s));});
+
+int sortident(ident **a, ident **b) { return strcasecmp((*a)->name, (*b)->name); }
+
+VARP(omitunchangeddefaults, 0, 0, 1);
+VAR(groupvariables, 0, 4, 10);
+
 void writecfg()
 {
     filerotate("config/saved", "cfg", CONFIGROTATEMAX); // keep five old config sets
@@ -1435,14 +1512,11 @@ void writecfg()
     if(!f) return;
     f->printf("// automatically written on exit, DO NOT MODIFY\n// delete this file to have defaults.cfg overwrite these settings\n// modify settings in game, or put settings in autoexec.cfg to override anything\n\n");
     f->printf("// basic settings\n\n");
-    f->printf("name \"%s\"\n", player1->name);
-    extern const char *crosshairnames[CROSSHAIR_NUM];
-    extern Texture *crosshairs[CROSSHAIR_NUM];
-    loopi(CROSSHAIR_NUM) if(crosshairs[i] && crosshairs[i]!=notexture)
+    f->printf("name %s\n", escapestring(player1->name, false));
+    f->printf("skin_cla %d\nskin_rvsf %d\n", player1->skin(TEAM_CLA), player1->skin(TEAM_RVSF));
+    for(int i = CROSSHAIR_DEFAULT; i < CROSSHAIR_NUM; i++) if(crosshairs[i] && crosshairs[i] != notexture)
     {
-        const char *fname = crosshairs[i]->name+strlen("packages/crosshairs/");
-        if(i==CROSSHAIR_DEFAULT) f->printf("loadcrosshair %s\n", fname);
-        else f->printf("loadcrosshair %s %s\n", fname, crosshairnames[i]);
+        f->printf("loadcrosshair %s %s\n", crosshairnames[i], behindpath(crosshairs[i]->name));
     }
     extern int lowfps, highfps;
     f->printf("fpsrange %d %d\n", lowfps, highfps);
@@ -1451,45 +1525,81 @@ void writecfg()
     f->printf("\n");
     audiomgr.writesoundconfig(f);
     f->printf("\n");
-    f->printf("// kill messages for each weapon\n");
-    loopi(NUMGUNS)
-    {
-        const char *fragmsg = killmessage(i, false);
-        const char *gibmsg = killmessage(i, true);
-        f->printf("\nfragmessage %d [%s]", i, fragmsg);
-        f->printf("\ngibmessage %d [%s]", i, gibmsg);
-    }
-    f->printf("\n\n// client variables\n\n");
+    f->printf("// crosshairs and kill messages for each weapon\n\nlooplist [\n");
+    loopi(NUMGUNS) f->printf("  %-7s %-11s %-12s %s\n", gunnames[i], crosshairs[i] && crosshairs[i] != notexture ? behindpath(crosshairs[i]->name) : "\"\"", escapestring(killmessage(i, false)), escapestring(killmessage(i, true)));
+    f->printf("] [ w cc f g ] [ loadcrosshair $w $cc ; fragmessage $w $f ; gibmessage $w $g ]\n");
+    f->printf("\n\n// client variables (unchanged default values %s)\n", omitunchangeddefaults ? "omitted" : "commented out");
+    vector<ident *> sids;
     enumerate(*idents, ident, id,
-        if(!id.persist) continue;
-        switch(id.type)
+        if(id.persist) switch(id.type)
         {
-            case ID_VAR: f->printf("%s %d\n", id.name, *id.storage.i); break;
-            case ID_FVAR: f->printf("%s %s\n", id.name, floatstr(*id.storage.f)); break;
-            case ID_SVAR: f->printf("%s [%s]\n", id.name, *id.storage.s); break;
+            case ID_VAR:
+            case ID_FVAR:
+            case ID_SVAR:
+                sids.add(&id);
+                break;
         }
     );
-    f->printf("\n// weapon settings\n\n");
+    sids.sort(sortident);
+    const char *rep = "";
+    int repn = 0;
+    bool lastdef = false, curdef;
+    loopv(sids)
+    {
+        ident &id = *sids[i];
+        curdef = (id.type == ID_VAR && *id.storage.i == id.defaultval) || (id.type == ID_FVAR && *id.storage.f == id.defaultvalf);
+        if(curdef && omitunchangeddefaults) continue;
+        f->printf("%s", !strncmp(rep, id.name, curdef ? 1 : 3) && ++repn < groupvariables && lastdef == curdef ? " ; " : (repn = 0, "\n"));
+        rep = id.name;
+        lastdef = curdef;
+        if(curdef && repn == 0) f->printf("// ");
+        switch(id.type)
+        {
+            case ID_VAR:  f->printf("%s %d", id.name, *id.storage.i); break;
+            case ID_FVAR: f->printf("%s %s", id.name, floatstr(*id.storage.f)); break;
+            case ID_SVAR: f->printf("%s %s", id.name, escapestring(*id.storage.s, false)); break;
+        }
+        if(!groupvariables)
+        {
+            if(id.type == ID_VAR) f->printf("  // min: %d, max: %d, def: %d", id.minval, id.maxval, id.defaultval);
+            if(id.type == ID_FVAR) f->printf("  // min: %s, max: %s, def: %s", floatstr(id.minvalf), floatstr(id.maxvalf), floatstr(id.defaultvalf));
+            const char *doc = docgetdesc(id.name);
+            if(doc) f->printf(id.type == ID_SVAR ? "  // %s" : ",  %s", doc);
+        }
+    }
+    f->printf("\n\n// weapon settings\n\n");
     loopi(NUMGUNS) if(guns[i].isauto)
     {
-        f->printf("burstshots %d %d\n", i, burstshotssettings[i]);
+        f->printf("burstshots %s %d\n", gunnames[i], burstshotssettings[i]);
     }
     f->printf("\n// key binds\n\n");
     writebinds(f);
     f->printf("\n// aliases\n\n");
-    enumerate(*idents, ident, id,
-        if(id.type==ID_ALIAS && id.persist && id.action[0] && strncmp(id.name, "demodesc_", 9))
+    sids.setsize(0);
+    enumerate(*idents, ident, id, if(id.type == ID_ALIAS && id.persist) sids.add(&id); );
+    sids.sort(sortident);
+    loopv(sids)
+    {
+        ident &id = *sids[i];
+        if(strncmp(id.name, "demodesc_", 9))
         {
-            f->printf("%s = [%s]\n", id.name, id.action);
+            const char *action = id.action;
+            for(identstack *s = id.stack; s; s = s->next) action = s->action;
+            if(action[0]) f->printf("alias %s %s\n", escapestring(id.name, false), escapestring(action, false));
+            sids.remove(i--);
         }
-    );
-    f->printf("\n// demo descriptions\n\n");
-    enumerate(*idents, ident, id,
-        if(id.type==ID_ALIAS && id.persist && id.action[0] && !strncmp(id.name, "demodesc_", 9) && id.action)
+    }
+    if(sids.length())
+    {
+        f->printf("\n// demo descriptions\n\n");
+        loopv(sids)
         {
-            f->printf("%s = [%s]\n", id.name, id.action);
+            ident &id = *sids[i];
+            const char *action = id.action;
+            for(identstack *s = id.stack; s; s = s->next) action = s->action;
+            if(action[0]) f->printf("alias %s %s\n", escapestring(id.name, false), escapestring(action, false));
         }
-    );
+    }
     f->printf("\n");
     delete f;
 }
@@ -1666,6 +1776,16 @@ COMMAND(datestring, "");
 COMMANDN(timestring, timestring_, "");
 COMMANDF(getmode, "i", (int *acr) { result(modestr(gamemode, *acr != 0)); });
 COMMAND(getscrext, "");
+
+void listoptions(char *s)
+{
+    extern const char *menufilesortorders[], *texturestacktypes[];
+    const char *optionnames[] = { "entities", "ents", "weapons", "teamnames", "teamnames-abbrv", "punctuations", "crosshairnames", "menufilesortorders", "texturestacktypes", "" };
+    const char **optionlists[] = { optionnames, entnames + 1, entnames + 1, gunnames, teamnames, teamnames_s, punctnames, crosshairnames, menufilesortorders, texturestacktypes };
+    const char **listp = optionlists[getlistindex(s, optionnames, true, -1) + 1];
+    commandret = conc(listp, -1, true);
+}
+COMMAND(listoptions, "s");
 
 const char *currentserver(int i) // [client version]
 {

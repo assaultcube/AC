@@ -181,9 +181,17 @@ void audiomanager::setmusicvol(int musicvol)
     if(gamemusic) gamemusic->setvolume(musicvol > 0 ? musicvol/255.0f : 0);
 }
 
+void reloadmapsoundconfig();
+
 void audiomanager::setlistenervol(int vol)
 {
-    if(!nosound) alListenerf(AL_GAIN, vol/255.0f);
+    static int oldvol = 0;
+    if(!nosound)
+    {
+        alListenerf(AL_GAIN, vol/255.0f);
+        if(vol && !oldvol && !mapsounds.length()) reloadmapsoundconfig();
+    }
+    oldvol = vol;
 }
 
 void audiomanager::registermusic(char *name)
@@ -331,15 +339,10 @@ void audiomanager::updateplayerfootsteps(playerent *p)
     {
         // play footsteps
 
-        int grounddist;
-        if( ((int)p->o.x) >= 0 && ((int)p->o.y) >= 0 && ((int)p->o.x) < ssize && ((int)p->o.y) < ssize) { // sam's fix to the sound crash
-            grounddist = hdr.waterlevel-S((int)p->o.x, (int)p->o.y)->floor;
-        }else{
-            grounddist = 0;
-        }
-//        int grounddist = hdr.waterlevel-S((int)p->o.x, (int)p->o.y)->floor;
-        bool water = p->o.z-p->eyeheight+0.25f<hdr.waterlevel;
-        if(water && grounddist>p->eyeheight) return; // don't play step sound when jumping into water
+        float grounddist = 0;
+        if(!((int(p->o.x) | int(p->o.y)) & ~(ssize - 1))) grounddist = waterlevel - S((int)p->o.x, (int)p->o.y)->floor;
+        bool water = p->o.z - p->eyeheight+0.25f < waterlevel;
+        if(water && grounddist > p->eyeheight) return; // don't play step sound when jumping into water
 
         int stepsound;
         if(p->crouching) stepsound = water ? S_WATERFOOTSTEPSCROUCH : S_FOOTSTEPSCROUCH; // crouch
@@ -573,7 +576,7 @@ void audiomanager::updateaudio()
     }
 
     // water
-    bool underwater = /*alive &&*/ firstperson && hdr.waterlevel>player1->o.z+player1->aboveeye;
+    bool underwater = /*alive &&*/ firstperson && waterlevel > player1->o.z + player1->aboveeye;
     updateloopsound(S_UNDERWATER, underwater);
 
     // tinnitus
@@ -619,7 +622,7 @@ void audiomanager::updateaudio()
 
             if(hearable && !loc) // play
             {
-                _playsound(sound, entref, SP_HIGH, 0.0f, true);
+                _playsound(sound, entref, SP_LOW, 0.0f, true);
             }
             else if(!hearable && loc) // stop
             {
@@ -790,23 +793,45 @@ COMMANDF(soundmuted, "i", (int *n)
     intret(audiomgr.soundmuted(*n));
 });
 
+VAR(mapsoundchanged, 0, 0, 1);
+
 COMMANDF(mapsoundreset, "", ()
 {
     audiomgr.mapsoundreset();
+    mapconfigdata.mapsoundlines.shrink(0);
+    mapsoundchanged = 1;
+    flagmapconfigchange();
 });
 
-VARF(soundchannels, 4, 32, 1024, audiomgr.setchannels(soundchannels); );
+VARF(soundchannels, 4, 128, 1024, audiomgr.setchannels(soundchannels));
 
-VARFP(soundvol, 0, 128, 255, audiomgr.setlistenervol(soundvol); );
+VARFP(soundvol, 0, 128, 255, audiomgr.setlistenervol(soundvol));
 
 COMMANDF(registersound, "siii", (char *name, int *vol, int *loop, int *audibleradius)
 {
     intret(audiomgr.addsound(name, *vol, -1, *loop != 0, gamesounds, true, *audibleradius));
 });
 
+const char *mapsoundbasepath = "packages/audio/", *mapsoundfinalpath = "ambience/";
+const int mapsoundbasepath_n = strlen(mapsoundbasepath), mapsoundfinalpath_n = strlen(mapsoundfinalpath);
+
 COMMANDF(mapsound, "si", (char *name, int *maxuses)
 {
-    audiomgr.addsound(name, 255, *maxuses, true, mapsounds, false, 0);
+    filtertext(name, name, FTXT__MEDIAFILEPATH);
+    defformatstring(stripped)("%s%s", mapsoundbasepath, name);
+    unixpath(path(stripped));
+    if(!strncmp(stripped, mapsoundbasepath, mapsoundbasepath_n))
+    {
+        name = stripped + mapsoundbasepath_n;
+        audiomgr.addsound(name, 255, *maxuses, true, mapsounds, false, 0);
+        intret(mapconfigdata.mapsoundlines.length());
+        if(!strncmp(name, mapsoundfinalpath, mapsoundfinalpath_n)) name += mapsoundfinalpath_n; // base path for mapsoundlines is "packages/audio/ambience"
+        copystring(mapconfigdata.mapsoundlines.add().name, name);
+        mapconfigdata.mapsoundlines.last().maxuses = *maxuses;
+        mapsoundchanged = 1;
+        flagmapconfigchange();
+    }
+    else conoutf("\f3error: mapsound \"%s\" outside packages/audio/", stripped);
 });
 
 COMMANDF(registermusic, "s", (char *name)
@@ -824,3 +849,120 @@ COMMANDF(music, "sis", (char *name, int *millis, char *cmd)
     audiomgr.music(name, *millis, cmd);
 });
 
+void mapsoundslotusage(int *n) // returns all entity indices that use a mapsound of slot n
+{
+    string res = "";
+    loopv(ents) if(ents[i].type == SOUND && ents[i].attr1 == *n) concatformatstring(res, "%s%d", i ? " " : "", i);
+    result(res);
+}
+COMMAND(mapsoundslotusage, "i");
+
+void reloadmapsoundconfig()
+{
+    vector<char> sc;
+    getcurrentmapconfig(sc, true); // only soundconfig
+    execute(sc.getbuf()); // cheap and easy way ;)
+}
+
+void deletemapsoundslot(int *n, char *opt) // delete mapsound slot - only if unused or "purge" is specified
+{
+    if(noteditmode("deletemapsoundslot") || multiplayer(true) || !mapconfigdata.mapsoundlines.inrange(*n)) return;
+    bool purgeall = !strcmp(opt, "purge"), slotused = false;
+    loopv(ents) if(ents[i].type == SOUND && ents[i].attr1 == *n) slotused = true;
+    if(!purgeall && slotused) { conoutf("mapsound slot #%d is in use: can't delete", *n); return; }
+    audiomgr.mapsoundreset();
+    int deld = 0;
+    loopv(ents) if(ents[i].type == SOUND)
+    {
+        entity &e = ents[i];
+        if(e.attr1 == *n)
+        { // delete entity
+            deleted_ents.add(e);
+            deletesoundentity(e);
+            memset(&e, 0, sizeof(persistent_entity));
+            e.type = NOTUSED;
+            deld++;
+        }
+        else if(e.attr1 > *n) e.attr1--; // adjust models in higher slots
+    }
+    mapconfigdata.mapsoundlines.remove(*n);
+    reloadmapsoundconfig();
+    defformatstring(s)(" (%d mapsounds purged)", deld);
+    conoutf("mapsound slot #%d deleted%s", *n, deld ? s : "");
+    mapsoundchanged = 1;
+    unsavededits++;
+    hdr.flags |= MHF_AUTOMAPCONFIG; // requires automapcfg
+}
+COMMAND(deletemapsoundslot, "is");
+
+void editmapsoundslot(int *n, char *name, char *maxuses) // edit slot parameters != ""
+{
+    string res = "";
+    if(!noteditmode("editmapsoundslot") && !multiplayer(true) && mapconfigdata.mapsoundlines.inrange(*n))
+    {
+        mapsoundline &msl = mapconfigdata.mapsoundlines[*n];
+        if(*name || *maxuses)
+        { // change attributes
+            if(*maxuses) msl.maxuses = strtol(maxuses, NULL, 0);
+            if(*name) copystring(msl.name, strncmp(name, mapsoundfinalpath, mapsoundfinalpath_n) ? name : name + mapsoundfinalpath_n);
+            reloadmapsoundconfig();
+            mapsoundchanged = 1;
+            unsavededits++;
+            hdr.flags |= MHF_AUTOMAPCONFIG; // requires automapcfg
+        }
+        formatstring(res)("\"%s\" %d", msl.name, msl.maxuses); // give back all current attributes
+    }
+    result(res);
+}
+COMMAND(editmapsoundslot, "isssss");
+
+void getmapsoundorigin(char *fname)
+{
+    defformatstring(s)("packages/audio/ambience/%s", fname);
+    findfile(path(s), "r");
+    const char *res = s;
+    switch(findfilelocation)
+    {
+        case FFL_WORKDIR: res = fileexists(s, "r") ? "official" : "<file not found>"; break;
+        case FFL_HOME:    res = "custom";                                             break;
+        default:          formatstring(s)("package dir #%d", findfilelocation);       break;
+    }
+    result(res);
+}
+COMMAND(getmapsoundorigin, "s");
+
+void mapsoundslotbyname(char *name) // returns the slot(s) that a certain mapsound file is used in
+{
+    string res = "";
+    loopv(mapconfigdata.mapsoundlines) if(!strcmp(name, mapconfigdata.mapsoundlines[i].name)) concatformatstring(res, "%s%d", *res ? " " : "", i);
+    result(res);
+}
+COMMAND(mapsoundslotbyname, "s");
+
+void getmapsoundlist() // create a list of mapsound filenames
+{
+    vector<char *> files;
+    listfilesrecursive("packages/audio/ambience", files);
+    files.sort(stringsort);
+    loopvrev(files) if(files.inrange(i + 1) && !strcmp(files[i], files[i + 1])) delstring(files.remove(i + 1)); // remove doubles
+    int pn = strlen("packages/audio/ambience/");
+    vector<char> res;
+    loopv(files)
+    {
+        if(!strncmp(files[i], "packages/audio/ambience/", pn))
+        {
+            const char *s = files[i] + pn;
+            int sn = strlen(s);
+            if(sn > 4)
+            {
+                const char *e = s + sn - 4;
+                if(!strcmp(e, ".ogg") || !strcmp(e, ".wav")) cvecprintf(res, "\"%s\"\n", s);
+            }
+        }
+    }
+    if(res.length()) res.last() = '\0';
+    else res.add('\0');
+    files.deletearrays();
+    result(res.getbuf());
+}
+COMMAND(getmapsoundlist, "");

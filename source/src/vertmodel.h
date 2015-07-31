@@ -4,7 +4,7 @@ VARP(saveshadows, 0, 1, 1);
 
 VARP(dynshadowquad, 0, 0, 1);
 
-VAR(shadowyaw, 0, 45, 360);
+VARF(shadowyaw, 0, DEFAULT_SHADOWYAW, 360, flagmapconfigchange());
 vec shadowdir(0, 0, -1), shadowpos(0, 0, 0);
 
 const int dbgstenc = 0;
@@ -15,7 +15,7 @@ const int dbgvlight = 0;
 VARP(mdldlist, 0, 1, 1);
 
 vec modelpos;
-float modelyaw, modelpitch;
+float modelroll, modelyaw, modelpitch;
 
 struct vertmodel : model
 {
@@ -27,8 +27,8 @@ struct vertmodel : model
         void setframes(const animstate &as)
         {
             int time = lastmillis-as.basetime;
-            fr1 = (int)(time/as.speed); // round to full frames
-            t = (time-fr1*as.speed)/as.speed; // progress of the frame, value from 0.0f to 1.0f
+            fr1 = (int)(double(time)/as.speed); // round to full frames
+            t = (time-double(fr1)*as.speed)/as.speed; // progress of the frame, value from 0.0f to 1.0f
             ASSERT(t >= 0.0f);
             if(as.anim&ANIM_LOOP)
             {
@@ -116,7 +116,7 @@ struct vertmodel : model
         float t;
         int lastcalclight;
         vec pos;
-        float yaw, pitch;
+        float roll, yaw, pitch;
 
         lightvert *verts() { return (lightvert *)getdata(); }
         int numverts() { return int((size - sizeof(lightcacheentry)) / sizeof(lightvert)); }
@@ -367,7 +367,7 @@ __attribute__((optimize(2)))
             int cachelen = 0;
             for(; d != lightcache.end(); d = d->next, cachelen++)
             {
-                if(d->lastcalclight != lastcalclight || d->pos != modelpos || d->yaw != modelyaw || d->pitch != modelpitch || d->cur != cur) continue;
+                if(d->lastcalclight != lastcalclight || d->pos != modelpos || d->roll != modelroll || d->yaw != modelyaw || d->pitch != modelpitch || d->cur != cur) continue;
                 if(prev)
                 {
                     if(d->prev == *prev && d->t == ai_t) return d;
@@ -387,6 +387,7 @@ __attribute__((optimize(2)))
             lightcache.addfirst(d);
             d->lastcalclight = lastcalclight;
             d->pos = modelpos;
+            d->roll = modelroll;
             d->yaw = modelyaw;
             d->pitch = modelpitch;
             d->cur = cur;
@@ -565,10 +566,11 @@ __attribute__((optimize(2)))
             return vert;
         }
 
-        float calcradius()
+        float calcradius(float &zradius)
         {
-            float rad = 0;
-            loopi(numverts) rad = max(rad, verts[i].magnitudexy());
+            float rad = 0, zrad = 0;
+            loopi(numverts) rad = max(rad, verts[i].magnitudexy()), zrad = max(zrad, fabsf(verts[i].z));
+            zradius = zrad;
             return rad;
         }
 
@@ -1194,10 +1196,10 @@ __attribute__((optimize(2)))
             return s;
         }
 
-        float calcradius()
+        float calcradius(float &zradius)
         {
-            float rad = 0;
-            loopv(meshes) rad = max(rad, meshes[i]->calcradius());
+            float rad = 0, zrad = 0;
+            loopv(meshes) rad = max(rad, meshes[i]->calcradius(zrad)), zradius = max(zradius, zrad);
             return rad;
         }
 
@@ -1259,9 +1261,10 @@ __attribute__((optimize(2)))
         return parts.length()==1 && parts[0]->shadows;
     }
 
-    float calcradius()
+    float calcradius(float &zradius)
     {
-        return parts.empty() ? 0.0f : parts[0]->calcradius();
+        zradius = 0;
+        return parts.empty() ? 0.0f : parts[0]->calcradius(zradius);
     }
 
     void calcneighbors()

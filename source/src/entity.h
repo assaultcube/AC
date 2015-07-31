@@ -1,24 +1,28 @@
 enum                            // static entity types
 {
-    NOTUSED = 0,                // entity slot not in use in map
-    LIGHT,                      // lightsource, attr1 = radius, attr2 = intensity
+    NOTUSED = 0,                // entity slot not in use in map (usually seen at deleted entities)
+    LIGHT,                      // lightsource, attr1 = radius, attr2 = intensity (or attr2..4 = r-g-b)
     PLAYERSTART,                // attr1 = angle, attr2 = team
-    I_CLIPS, I_AMMO, I_GRENADE,
+    I_CLIPS, I_AMMO, I_GRENADE, // attr1 = elevation
     I_HEALTH, I_HELMET, I_ARMOUR, I_AKIMBO,
-                                // helmet : 2010may16 -> mapversion:8
-    MAPMODEL,                   // attr1 = angle, attr2 = idx, attr3 = elevation, attr4 = texture
+    MAPMODEL,                   // attr1 = angle, attr2 = idx, attr3 = elevation, attr4 = texture, attr5 = pitch, attr6 = roll
     CARROT,                     // attr1 = tag, attr2 = type
-    LADDER,
+    LADDER,                     // attr1 = height
     CTF_FLAG,                   // attr1 = angle, attr2 = red/blue
-    SOUND,
-    CLIP,                       // attr1 = elevation, attr2 = xradius, attr3 = yradius, attr4 = height
-    PLCLIP,                     // attr1 = elevation, attr2 = xradius, attr3 = yradius, attr4 = height
+    SOUND,                      // attr1 = idx, attr2 = radius, attr3 = size, attr4 = volume
+    CLIP,                       // attr1 = elevation, attr2 = xradius, attr3 = yradius, attr4 = height, attr6 = slope, attr7 = shape
+    PLCLIP,                     // attr1 = elevation, attr2 = xradius, attr3 = yradius, attr4 = height, attr6 = slope, attr7 = shape
     MAXENTTYPES
 };
 
+extern short entwraparound[MAXENTTYPES][7];
+extern uchar entscale[MAXENTTYPES][7];
+#define ENTSCALE10 10
+#define ENTSCALE5 5
+
 enum {MAP_IS_BAD, MAP_IS_EDITABLE, MAP_IS_GOOD};
 
-extern const char *entnames[MAXENTTYPES];
+extern const char *entnames[];
 #define isitem(i) ((i) >= I_CLIPS && (i) <= I_AKIMBO)
 
 struct persistent_entity        // map entity
@@ -27,7 +31,10 @@ struct persistent_entity        // map entity
     short attr1;
     uchar type;                 // type is one of the above
     uchar attr2, attr3, attr4;
-    persistent_entity(short x, short y, short z, uchar type, short attr1, uchar attr2, uchar attr3, uchar attr4) : x(x), y(y), z(z), attr1(attr1), type(type), attr2(attr2), attr3(attr3), attr4(attr4) {}
+    short attr5;
+    char attr6;
+    unsigned char attr7;
+    persistent_entity(short x, short y, short z, uchar type, short attr1, uchar attr2, uchar attr3, uchar attr4) : x(x), y(y), z(z), attr1(attr1), type(type), attr2(attr2), attr3(attr3), attr4(attr4), attr5(0), attr6(0), attr7(0) {}
     persistent_entity() {}
 };
 
@@ -68,11 +75,6 @@ enum { GUN_KNIFE = 0, GUN_PISTOL, GUN_CARBINE, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIP
 
 #define SGMAXDMGABS 105
 #define SGMAXDMGLOC 84
-#define SGBONUSDIST 80
-#define SGSEGDMG_O 3
-#define SGSEGDMG_M 6
-#define SGSEGDMG_C 4
-#define SGSPREAD 2.25
 #define EXPDAMRAD 10
 
 struct itemstat { int add, start, max, sound; };
@@ -81,6 +83,7 @@ extern itemstat powerupstats[I_ARMOUR-I_HEALTH+1];
 
 struct guninfo { string modelname; short sound, reload, reloadtime, attackdelay, damage, piercing, projspeed, part, spread, recoil, magsize, mdl_kick_rot, mdl_kick_back, recoilincrease, recoilbase, maxrecoil, recoilbackfade, pushfactor; bool isauto; };
 extern guninfo guns[NUMGUNS];
+extern const char *gunnames[];
 
 static inline int reloadtime(int gun) { return guns[gun].reloadtime; }
 static inline int attackdelay(int gun) { return guns[gun].attackdelay; }
@@ -89,8 +92,8 @@ static inline int magsize(int gun) { return guns[gun].magsize; }
 /** roseta stone:
        0000,         0001,      0010,           0011,            0100,       0101,     0110 */
 enum { TEAM_CLA = 0, TEAM_RVSF, TEAM_CLA_SPECT, TEAM_RVSF_SPECT, TEAM_SPECT, TEAM_NUM, TEAM_ANYACTIVE };
-extern const char *teamnames[TEAM_NUM+1];
-extern const char *teamnames_s[TEAM_NUM+1];
+extern const char *teamnames[];
+extern const char *teamnames_s[];
 
 #define TEAM_VOID TEAM_NUM
 #define isteam(a,b)   (m_teammode && (a) == (b))
@@ -103,7 +106,7 @@ extern const char *teamnames_s[TEAM_NUM+1];
 #define team_group(t) ((t) == TEAM_SPECT ? TEAM_SPECT : team_base(t))
 #define team_tospec(t) ((t) == TEAM_SPECT ? TEAM_SPECT : team_base(t) + TEAM_CLA_SPECT - TEAM_CLA)
 // note: team_isactive and team_base can/should be used to check the limits for arrays of size '2'
-static inline const char *team_string(int t, bool abbr = false) { const char **n = abbr ? teamnames_s : teamnames; return team_isvalid(t) ? n[t] : n[TEAM_NUM]; }
+static inline const char *team_string(int t, bool abbr = false) { const char **n = abbr ? teamnames_s : teamnames; return team_isvalid(t) ? n[t] : n[TEAM_NUM + 1]; }
 
 enum { ENT_PLAYER = 0, ENT_BOT, ENT_CAMERA, ENT_BOUNCE };
 enum { CS_ALIVE = 0, CS_DEAD, CS_SPAWNING, CS_LAGGED, CS_EDITING, CS_SPECTATE };
@@ -260,20 +263,20 @@ public:
 
     void resetstats() { loopi(NUMGUNS) pstatshots[i] = pstatdamage[i] = 0; }
 
-    itemstat &itemstats(int type)
+    itemstat *itemstats(int type)
     {
         switch(type)
         {
-            case I_CLIPS: return ammostats[GUN_PISTOL];
-            case I_AMMO: return ammostats[primary];
-            case I_GRENADE: return ammostats[GUN_GRENADE];
-            case I_AKIMBO: return ammostats[GUN_AKIMBO];
+            case I_CLIPS:   return &ammostats[GUN_PISTOL];
+            case I_AMMO:    return &ammostats[primary];
+            case I_GRENADE: return &ammostats[GUN_GRENADE];
+            case I_AKIMBO:  return &ammostats[GUN_AKIMBO];
             case I_HEALTH:
             case I_HELMET:
             case I_ARMOUR:
-                return powerupstats[type-I_HEALTH];
+                return &powerupstats[type - I_HEALTH];
             default:
-                return *(itemstat *)0;
+                return NULL;
         }
     }
 

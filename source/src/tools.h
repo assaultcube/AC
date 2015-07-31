@@ -14,9 +14,9 @@ typedef unsigned int uint;
 
 #ifdef _DEBUG
 #ifdef __GNUC__
-#define ASSERT(c) if(!(c)) { asm("int $3"); }
+#define ASSERT(c) if(!(c)) { fflush(NULL); asm("int $3"); }
 #else
-#define ASSERT(c) if(!(c)) { __asm int 3 }
+#define ASSERT(c) if(!(c)) { fflush(NULL); { __asm int 3 } }
 #endif
 
 #include <iostream>
@@ -55,9 +55,11 @@ static inline T min(T a, T b)
     return a < b ? a : b;
 }
 
+template <typename T> inline T pow2(T x) { return x*x; }
+
 static inline float round(float x) { return floor(x + 0.5f); }
 
-#define clamp(a,b,c) (max(b, min(a, c)))
+#define clamp(x,minval,maxval) (max(minval, min(x, maxval)))
 #define rnd(x) ((int)(randomMT()&0xFFFFFF)%(x))
 #define rndscale(x) (float((randomMT()&0xFFFFFF)*double(x)/double(0xFFFFFF)))
 #define detrnd(s, x) ((int)(((((uint)(s))*1103515245+12345)>>16)%(x)))
@@ -95,10 +97,12 @@ static inline float round(float x) { return floor(x + 0.5f); }
 #define strcasecmp(a,b) _stricmp(a,b)
 #define strncasecmp(a,b,n) _strnicmp(a,b,n)
 #define PATHDIV '\\'
+#define PATHDIVS "\\"
 #else
 #define __cdecl
 #define _vsnprintf vsnprintf
 #define PATHDIV '/'
+#define PATHDIVS "/"
 #endif
 
 // easy safe strings
@@ -219,7 +223,7 @@ inline bool findpattern (char *s, char *d) // returns true if there is more than
 #define loopvj(v)   for(int j = 0; j<(v).length(); j++)
 #define loopvk(v)   for(int k = 0; k<(v).length(); k++)
 #define loopvrev(v) for(int i = (v).length()-1; i>=0; i--)
-#define loopvjrev(v) for(int j = (v).length()-1; i>=0; i--)
+#define loopvjrev(v) for(int j = (v).length()-1; j>=0; j--)
 
 template <class T>
 struct databuf
@@ -584,6 +588,16 @@ static inline bool htcmp(const char *x, const char *y)
     return !strcmp(x, y);
 }
 
+static inline uint hthash(const uchar *key)
+{
+    return *((uint *)key);
+}
+
+static inline bool htcmp(const uchar *x, const uchar *y)  // assume "uchar *" points to 32byte public keys
+{
+    return !memcmp(x, y, 32);
+}
+
 static inline uint hthash(int key)
 {
     return key;
@@ -806,9 +820,9 @@ template <class T, int SIZE> struct ringbuf
 // ease time measurement
 struct stopwatch
 {
-    int millis;
+    uint millis;                                // SDL_GetTicks() returns an uint value
 
-    stopwatch() : millis(-1) {}
+    stopwatch() : millis(0) {}
 
     void start()
     {
@@ -816,11 +830,9 @@ struct stopwatch
     }
 
     // returns elapsed time
-    int stop()
+    int elapsed()
     {
-        ASSERT(millis >= 0);
-        int time = SDL_GetTicks() - millis;
-        millis = -1;
+        uint time = SDL_GetTicks() - millis;    // subtraction also works in case of timer wraparounds
         return time;
     }
 };
@@ -831,32 +843,25 @@ inline char *newstring(const char *s, size_t l) { return copystring(newstring(l)
 inline char *newstring(const char *s)           { return newstring(s, strlen(s)); }
 inline char *newstringbuf()                     { return newstring(MAXSTRLEN-1); }
 inline char *newstringbuf(const char *s)        { return newstring(s, MAXSTRLEN-1); }
-
-#ifndef STANDALONE
-inline const char *_gettext(const char *msgid)
-{
-    if(msgid && msgid[0] != '\0')
-        return gettext(msgid);
-    else
-        return "";
-}
-#endif
-
-#define _(s) _gettext(s)
+inline void delstring(const char *s)            { delete[] (char *)s; }
+#define DELSTRING(s) if(s) { delstring(s); s = NULL; }
 
 const int islittleendian = 1;
 #ifdef SDL_BYTEORDER
 #define endianswap16 SDL_Swap16
 #define endianswap32 SDL_Swap32
+#define endianswap64 SDL_Swap64
 #else
 inline ushort endianswap16(ushort n) { return (n<<8) | (n>>8); }
 inline uint endianswap32(uint n) { return (n<<24) | (n>>24) | ((n>>8)&0xFF00) | ((n<<8)&0xFF0000); }
+inline uint64_t endianswap64(uint64_t n) { return ((uint64_t)endianswap32((uint)n) << 32) | ((uint64_t)endianswap32((uint)(n >> 32))); }
 #endif
 template<class T> inline T endianswap(T n) { union { T t; uint i; } conv; conv.t = n; conv.i = endianswap32(conv.i); return conv.t; }
 template<> inline ushort endianswap<ushort>(ushort n) { return endianswap16(n); }
 template<> inline short endianswap<short>(short n) { return endianswap16(n); }
 template<> inline uint endianswap<uint>(uint n) { return endianswap32(n); }
 template<> inline int endianswap<int>(int n) { return endianswap32(n); }
+template<> inline uint64_t endianswap<uint64_t>(uint64_t n) { return endianswap64(n); }
 template<class T> inline void endianswap(T *buf, int len) { for(T *end = &buf[len]; buf < end; buf++) *buf = endianswap(*buf); }
 template<class T> inline T endiansame(T n) { return n; }
 template<class T> inline void endiansame(T *buf, int len) {}
@@ -899,6 +904,7 @@ struct stream
     virtual long tell() { return -1; }
     virtual bool seek(long offset, int whence = SEEK_SET) { return false; }
     virtual long size();
+    virtual void fflush() {}
     virtual int read(void *buf, int len) { return 0; }
     virtual int write(const void *buf, int len) { return 0; }
     virtual int getchar() { uchar c; return read(&c, 1) == 1 ? c : -1; }
@@ -925,7 +931,7 @@ struct stream
 extern const char *timestring(bool local = false, const char *fmt = NULL);
 extern const char *asctime();
 extern const char *numtime();
-extern void transformoldentities(int mapversion, uchar &enttype);
+extern void transformoldentitytypes(int mapversion, uchar &enttype);
 extern int fixmapheadersize(int version, int headersize);
 extern char *path(char *s);
 extern char *path(const char *s, bool copy);
@@ -937,6 +943,8 @@ extern bool createdir(const char *path);
 extern size_t fixpackagedir(char *dir);
 extern void sethomedir(const char *dir);
 extern void addpackagedir(const char *dir);
+extern int findfilelocation;
+enum { FFL_WORKDIR = -1, FFL_HOME = 0 };
 extern const char *findfile(const char *filename, const char *mode);
 extern int getfilesize(const char *filename);
 extern stream *openrawfile(const char *filename, const char *mode);
@@ -948,8 +956,10 @@ extern char *loadfile(const char *fn, int *size, const char *mode = NULL);
 extern void filerotate(const char *basename, const char *ext, int keepold, const char *oldformat = NULL);
 extern bool listdir(const char *dir, const char *ext, vector<char *> &files);
 extern int listfiles(const char *dir, const char *ext, vector<char *> &files);
+extern void listfilesrecursive(const char *dir, vector<char *> &files, int level = 0);
 extern int listzipfiles(const char *dir, const char *ext, vector<char *> &files);
 extern bool delfile(const char *path);
+extern void backup(char *name, char *backupname);
 extern bool addzip(const char *name, const char *mount = NULL, const char *strip = NULL, bool extract = false, int type = -1);
 extern bool removezip(const char *name);
 extern struct mapstats *loadmapstats(const char *filename, bool getlayout);
@@ -961,6 +971,7 @@ extern bool isbigendian();
 extern void strtoupper(char *t, const char *s = NULL);
 extern void seedMT(uint seed);
 extern uint randomMT(void);
+extern void popMT(void);
 
 struct iprange { enet_uint32 lr, ur; };
 extern const char *atoip(const char *s, enet_uint32 *ip);
@@ -971,10 +982,27 @@ extern int cmpiprange(const struct iprange *a, const struct iprange *b);
 extern int cmpipmatch(const struct iprange *a, const struct iprange *b);
 extern int cvecprintf(vector<char> &v, const char *s, ...);
 extern const char *hiddenpwd(const char *pwd, int showchars = 0);
+extern int getlistindex(const char *key, const char *list[], bool acceptnumeric = true, int deflt = -1);
 
 #if defined(WIN32) && !defined(_DEBUG) && !defined(__GNUC__)
 extern void stackdumper(unsigned int type, EXCEPTION_POINTERS *ep);
 #endif
+
+struct sl_semaphore
+{
+    void *data;
+    int *errorcount;
+
+    sl_semaphore(int init, int *errorcount);  // init: initial semaphore value; errorcount: pointer to error counter for semaphore-related errors or NULL
+    ~sl_semaphore();
+    void wait();     // blocks, until semaphore gets available
+    int trywait();   // returns 0, if semaphore was locked (like wait(), but returns !=0 instead of blocking)
+    int getvalue();  // returns current semaphore value
+    void post();     // increments (unlocks) semaphore
+};
+
+extern void *sl_createthread(int (*fn)(void *), void *data);
+extern int sl_waitthread(void *ti);
 
 #endif
 

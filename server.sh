@@ -3,7 +3,7 @@
 # CUBE_DIR should refer to the directory in which AssaultCube is placed.
 #CUBE_DIR=~/assaultcube
 #CUBE_DIR=/usr/local/assaultcube
-CUBE_DIR=./
+CUBE_DIR=.
 
 # CUBE_OPTIONS starts AssaultCube with any command line options you choose.
 CUBE_OPTIONS=""
@@ -51,32 +51,19 @@ then
   MACHINE_NAME=
 fi
 
-if [ -x "/sbin/ldconfig" ]; then
-  if [ -z "$(/sbin/ldconfig -p | grep "libSDL-1.2")" ]; then
-    echo "To run AssaultCube, please ensure SDL v1.2 libraries are installed."
-    exit 1
-  fi
-  if [ -z "$(/sbin/ldconfig -p | grep "libz")" ]; then
-    echo "To run AssaultCube, please ensure z libraries are installed."
-    exit 1
-  fi
-  if [ -z "$(/sbin/ldconfig -p | grep "libcurl")" ]; then
-    echo "To run AssaultCube, please ensure Curl libraries are installed."
-    exit 1
-  fi
-fi
+BINARYPATH="${CUBE_DIR}/bin_unix/${SYSTEM_NAME}${MACHINE_NAME}server"
 
-if [ -x "${CUBE_DIR}/bin_unix/${SYSTEM_NAME}${MACHINE_NAME}server" ]; then
+if [ "$1" = "--outputbinarypath" ]; then
+  echo "${BINARYPATH}"
+  exit 0
+elif [ -x "${BINARYPATH}" ]; then
   cd "${CUBE_DIR}"
-  exec "${CUBE_DIR}/bin_unix/${SYSTEM_NAME}${MACHINE_NAME}server" ${CUBE_OPTIONS} ${CUBE_OPTIONFILE} "$@"
-elif [ -e "${CUBE_DIR}/bin_unix/${SYSTEM_NAME}${MACHINE_NAME}server" ]; then
-  echo "Insufficient permissons to run AssaultCube."
-  echo "Please change (chmod) the AssaultCube server in the bin_unix folder to be readable/executable."
+  exec "${BINARYPATH}" ${CUBE_OPTIONS} ${CUBE_OPTIONFILE} "$@"
 else
   echo "Your platform does not have a pre-compiled AssaultCube server."
   echo "Please follow the following steps to build a native client:"
   echo "1) Ensure you have the following DEVELOPMENT libraries installed:"
-  echo "   SDL, zlib, libcurl"
+  echo "   zlib"
   echo "2) Ensure clang++ and any other required build tools are installed."
   echo "3) Change directory to ./source/src/ and type \"make server_install\"."
   echo "4) If the compile succeeds, return to this directory and re-run this script."

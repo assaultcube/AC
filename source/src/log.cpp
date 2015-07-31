@@ -82,14 +82,15 @@ bool logline(int level, const char *msg, ...)
     if(level < 0 || level >= ACLOG_NUM) return false;
     defvformatstring(sf, msg, msg);
     filtertext(sf, sf, FTXT__LOG);
+    bool logtocon = consolethreshold <= level, logtofile = fp && filethreshold <= level, logtosyslog = syslogthreshold <= level;
     const char *ts = timestamp ? timestring(true, "%b %d %H:%M:%S ") : "", *ld = levelprefix[level];
     char *p, *l = sf;
     do
     { // break into single lines first
         if((p = strchr(l, '\n'))) *p = '\0';
-        if(consolethreshold <= level) printf("%s%s%s\n", ts, ld, l);
-        if(fp && filethreshold <= level) fprintf(fp, "%s%s%s\n", ts, ld, l);
-        if(syslogthreshold <= level)
+        if(logtocon) printf("%s%s%s\n", ts, ld, l);
+        if(logtofile) fprintf(fp, "%s%s%s\n", ts, ld, l);
+        if(logtosyslog)
 #ifdef AC_USE_SYSLOG
             syslog(levels[level], "%s", l);
 #else
@@ -104,7 +105,9 @@ bool logline(int level, const char *msg, ...)
         l = p + 1;
     }
     while(p);
-    if(consolethreshold <= level) fflush(stdout);
-    if(fp && filethreshold <= level) fflush(fp);
-    return consolethreshold <= level;
+#ifdef _DEBUG
+    if(logtocon) fflush(stdout);
+    if(logtofile) fflush(fp);
+#endif
+    return logtocon;
 }

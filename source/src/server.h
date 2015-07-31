@@ -256,7 +256,7 @@ struct client                   // server side version of "dynent" type
     bool at3_dontmove;
     int spawnindex;
     int spawnperm, spawnpermsent;
-	bool autospawn;
+    bool autospawn;
     int salt;
     string pwd;
     uint authreq; // for AUTH
@@ -295,7 +295,7 @@ struct client                   // server side version of "dynent" type
         isonrightmap = m_coop;
         spawnperm = SP_WRONGMAP;
         spawnpermsent = servmillis;
-		autospawn = false;
+        autospawn = false;
         if(!getmap)
         {
             loggedwrongmap = false;
@@ -443,12 +443,55 @@ const char *messagenames[SV_NUM] =
     "SV_MAPIDENT", "SV_HUDEXTRAS", "SV_POINTS"
 };
 
-const char *entnames[MAXENTTYPES] =
+const char *entnames[] =
 {
     "none?",
     "light", "playerstart", "pistol", "ammobox","grenades",
     "health", "helmet", "armour", "akimbo",
-    "mapmodel", "trigger", "ladder", "ctf-flag", "sound", "clip", "plclip"
+    "mapmodel", "trigger", "ladder", "ctf-flag", "sound", "clip", "plclip", ""
+};
+
+// entity attribute scaling and wraparound definitions for mapformat 10
+short entwraparound[MAXENTTYPES][7] =
+{ // limit angles to 0..359 degree and mapsound slot numbers to 0..255
+    {    0,    0,    0,    0,    0,    0,    0 },  // deleted
+    {    0,    0,    0,    0,    0,    0,    0 },  // light
+    { 3600,    0,    0,    0,    0,    0,    0 },  // playerstart
+    {    0,    0,    0,    0,    0,    0,    0 },  // pistol
+    {    0,    0,    0,    0,    0,    0,    0 },  // ammobox
+    {    0,    0,    0,    0,    0,    0,    0 },  // grenades
+    {    0,    0,    0,    0,    0,    0,    0 },  // health
+    {    0,    0,    0,    0,    0,    0,    0 },  // helmet
+    {    0,    0,    0,    0,    0,    0,    0 },  // armour
+    {    0,    0,    0,    0,    0,    0,    0 },  // akimbo
+    { -3600,   0,    0,    0, -3600,   0,    0 },  // mapmodel
+    {    0,    0,    0,    0,    0,    0,    0 },  // trigger
+    {    0,    0,    0,    0,    0,    0,    0 },  // ladder
+    { -3600,   0,    0,    0,    0,    0,    0 },  // ctf-flag
+    {  256,    0,    0,    0,    0,    0,    0 },  // sound
+    {    0,    0,    0,    0,    0,    0,    4 },  // clip
+    {    0,    0,    0,    0,    0,    0,    4 }   // plclip
+};
+
+uchar entscale[MAXENTTYPES][7] =
+{ // (no zeros allowed here!)
+    {  1,  1,  1,  1,  1,  1,  1 },  // deleted
+    {  1,  1,  1,  1,  1,  1,  1 },  // light
+    { 10,  1,  1,  1,  1,  1,  1 },  // playerstart
+    { 10,  1,  1,  1,  1,  1,  1 },  // pistol
+    { 10,  1,  1,  1,  1,  1,  1 },  // ammobox
+    { 10,  1,  1,  1,  1,  1,  1 },  // grenades
+    { 10,  1,  1,  1,  1,  1,  1 },  // health
+    { 10,  1,  1,  1,  1,  1,  1 },  // helmet
+    { 10,  1,  1,  1,  1,  1,  1 },  // armour
+    { 10,  1,  1,  1,  1,  1,  1 },  // akimbo
+    { 10,  1,  5,  1, 10,  1,  1 },  // mapmodel
+    {  1,  1,  1,  1,  1,  1,  1 },  // trigger
+    {  1,  1,  1,  1,  1,  1,  1 },  // ladder
+    { 10,  1,  1,  1,  1,  1,  1 },  // ctf-flag
+    {  1,  1,  1,  1,  1,  1,  1 },  // sound
+    { 10,  5,  5,  5,  1, 10,  1 },  // clip
+    { 10,  5,  5,  5,  1, 10,  1 }   // plclip
 };
 
 // see entity.h:61: struct itemstat { int add, start, max, sound; };
@@ -494,8 +537,10 @@ guninfo guns[NUMGUNS] =
     { "pistol",     S_PISTOL,     S_RAKIMBO,  1400,   80,     19,   0,     0,   0, 50,   10,   20,   6,  5,   4,  15,     25,     115,  1,      true  },
 };
 
-const char *teamnames[TEAM_NUM+1] = {"CLA", "RVSF", "CLA-SPECT", "RVSF-SPECT", "SPECTATOR", "void"};
-const char *teamnames_s[TEAM_NUM+1] = {"CLA", "RVSF", "CSPC", "RSPC", "SPEC", "void"};
+const char *gunnames[NUMGUNS + 1];
+
+const char *teamnames[] = {"CLA", "RVSF", "CLA-SPECT", "RVSF-SPECT", "SPECTATOR", "", "void"};
+const char *teamnames_s[] = {"CLA", "RVSF", "CSPC", "RSPC", "SPEC", "", "void"};
 
 // for both client and server
 // default messages are hardcoded !

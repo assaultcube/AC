@@ -804,7 +804,7 @@ void addfavcategory(const char *refdes)
 
 void listfavcats()
 {
-    const char *str = conc(&favcats[0], favcats.length(), true);
+    const char *str = conc((const char **)&favcats[0], favcats.length(), true);
     result(str);
     delete [] str;
 }
@@ -1074,7 +1074,7 @@ void refreshservers(void *menu, bool init)
                 else
                 {
                     if(!hidefavicons && !showweights && showfavtag && si.favcat > -1) favimage = getalias(favcatargname(favcats[si.favcat], FC_IMAGE));
-                    filterrichtext(text, si.favcat > -1 && !favimage ? favcattags[si.favcat] : "");
+                    copystring(text, si.favcat > -1 && !favimage ? favcattags[si.favcat] : "");
                     if(showweights) concatformatstring(text, "(%d)", si.weight);
                     formatstring(si.full)(showfavtag ? (favimage ? "\t" : "\fs%s\fr\t") : "", text);
                     concatformatstring(si.full, "\fs\f%c%s\t\fs\f%c%d/%d\fr\t\a%c  ", basecolor, colorping(si.ping), plnumcolor, si.numplayers, si.maxclients, '0' + si.uplinkqual);
@@ -1175,11 +1175,11 @@ bool serverskey(void *menu, int code, bool isdown, int unicode)
             if(!desc) desc = "";
             if(*ak)
             { // server was automatically added to this favourite group, don't remove
-                conoutf(_("server \"%cs%s%cr\" is in category '%cs%s%cr' because of key '%s', please remove manually"), CC, servers[j]->sdesc, CC, CC, desc, CC, ak);
+                conoutf("server \"\fs%s\fr\" is in category '\fs%s\fr' because of key '%s', please remove manually", servers[j]->sdesc, desc, ak);
             }
             else if(rest)
             { // remove from favourite group
-                conoutf(_("removing server \"%cs%s%cr\" from favourites category '%cs%s%cr' (rest '%s')"), CC, servers[j]->sdesc, CC, CC, desc, CC, rest);
+                conoutf("removing server \"\fs%s\fr\" from favourites category '\fs%s\fr' (rest '%s')", servers[j]->sdesc, desc, rest);
                 alias(keyalias, rest);
             }
             else
@@ -1194,7 +1194,7 @@ bool serverskey(void *menu, int code, bool isdown, int unicode)
                     delete[] newkey;
                 }
                 else alias(keyalias, text);
-                conoutf(_("adding server \"%cs%s%cr\" to favourites category '%cs%s%cr' (new '%s')"), CC, servers[j]->sdesc, CC, CC, desc, CC, getalias(keyalias));
+                conoutf("adding server \"\fs%s\fr\" to favourites category '\fs%s\fr' (new '%s')", servers[j]->sdesc, desc, getalias(keyalias));
             }
             return true;
         }
@@ -1353,7 +1353,7 @@ void retrieveservers(vector<char> &data)
         int result = 0, httpresult = 0;
 
         curl_easy_setopt(curl, CURLOPT_URL, request);
-        curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);	// Fixes crashbug for some buggy libcurl versions (Linux)
+        curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);  // Fixes crashbug for some buggy libcurl versions (Linux)
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, outfile);
         curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0);

@@ -177,7 +177,7 @@ struct md2 : vertmodel
         }
     };
 
-    void render(int anim, int varseed, float speed, int basetime, const vec &o, float yaw, float pitch, dynent *d, modelattach *a, float scale)
+    void render(int anim, int varseed, float speed, int basetime, const vec &o, float roll, float yaw, float pitch, dynent *d, modelattach *a, float scale)
     {
         if(!loaded) return;
 
@@ -194,18 +194,20 @@ struct md2 : vertmodel
             shadowdir = vec(0, 1/SQRT2, -1/SQRT2);
             shadowdir.rotate_around_z((-shadowyaw-yaw-180.0f)*RAD);
             shadowdir.rotate_around_y(-pitch*RAD);
+            shadowdir.rotate_around_x(roll*RAD);
             (shadowpos = shadowdir).mul(shadowdist);
         }
 
         modelpos = o;
+        modelroll = roll;
         modelyaw = yaw;
         modelpitch = pitch;
 
         matrixpos = 0;
-        matrixstack[0].identity();
+        quat q(- yaw - 180, pitch);
+        matrixstack[0].fromquat(roll == 0.0f ? q : q.roll(roll));
         matrixstack[0].translate(o);
-        matrixstack[0].rotate_around_z((yaw+180)*RAD);
-        matrixstack[0].rotate_around_y(-pitch*RAD);
+
         if(anim&ANIM_MIRROR || scale!=1) matrixstack[0].scale(scale, anim&ANIM_MIRROR ? -scale : scale, scale);
         parts[0]->render(anim, varseed, speed, basetime, d);
 
@@ -220,7 +222,7 @@ struct md2 : vertmodel
             if(!m) continue;
             m->parts[0]->index = parts.length()+i;
             m->setskin();
-            m->render(anim, varseed, speed, basetime, o, yaw, pitch, d, NULL, scale);
+            m->render(anim, varseed, speed, basetime, o, roll, yaw, pitch, d, NULL, scale);
         }
 
         if(d) d->lastrendered = lastmillis;
@@ -255,7 +257,7 @@ struct md2 : vertmodel
         Texture *skin;
         loadskin(loadname, pname, skin);
         loopv(mdl.meshes) mdl.meshes[i]->skin  = skin;
-        if(skin==notexture) conoutf(_("could not load model skin for %s"), name1);
+        if(skin==notexture) conoutf("could not load model skin for %s", name1);
         loadingmd2 = this;
         defformatstring(name2)("packages/models/%s/md2.cfg", loadname);
         per_idents = false;
@@ -269,7 +271,7 @@ struct md2 : vertmodel
         per_idents = true;
         loadingmd2 = 0;
         loopv(parts) parts[i]->scaleverts(scale/16.0f, vec(translate.x, -translate.y, translate.z));
-        radius = calcradius();
+        radius = calcradius(zradius);
         if(shadowdist) calcneighbors();
         calcbbs();
         return loaded = true;

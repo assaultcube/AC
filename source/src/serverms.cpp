@@ -149,7 +149,7 @@ void flushmasterinput()
         masterin.reserve(4096);
 
     ENetBuffer buf;
-    buf.data = &masterin[masterin.length()];
+    buf.data = masterin.getbuf() + masterin.length();
     buf.dataLength = masterin.capacity() - masterin.length();
     int recv = enet_socket_receive(mastersock, NULL, &buf, 1);
     if(recv > 0)

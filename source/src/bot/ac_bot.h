@@ -13,8 +13,7 @@
 #ifndef AC_BOT_H
 #define AC_BOT_H
 
-#ifdef AC_CUBE
-
+//#define BOTDEBUG
 #define MAX_WEAPONS      10
 
 class CACBot: public CBot
@@ -39,17 +38,12 @@ public:
 inline void AddScreenText(const char *t, ...) {} // UNDONE
 inline void AddDebugText(const char *t, ...)
 {
-#ifdef _DEBUG
+#if defined(_DEBUG) && defined(BOTDEBUG)
     va_list v;
     va_start(v, t);
     conoutf(t,v);
     va_end(v);
 #endif
 }
-
-
-
-
-#endif
 
 #endif

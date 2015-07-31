@@ -9,7 +9,7 @@ VARP(fullconsize, 0, 40, 100);
 VARP(consize, 0, 6, 100);
 VARP(confade, 0, 20, 60);
 VARP(conalpha, 0, 255, 255);
-VAR(conopen, 0, 0, 1);
+VAR(conopen, 1, 0, 0);
 VAR(numconlines, 0, 0, 1);
 
 struct console : consolebuffer<cline>
@@ -141,49 +141,11 @@ int rendercommand(int x, int y, int w)
     return height;
 }
 
-const char *getCONprefix(int n)
-{
-    const char* CONpreSTR[] = {
-        ">", // ">>>", // "TALK" // "T" // ">"
-        "/", // "CFG", // "EXEC" // "!" // "!"
-        "%", // "TEAM" // ">" // "T"
-    };
-    return (n>=0 && size_t(n) < sizeof(CONpreSTR)/sizeof(CONpreSTR[0])) ? CONpreSTR[n] : "#";
-}
-
-int getCONlength(int n)
-{
-    const char* CURpreSTR = getCONprefix(n);
-    return strlen(CURpreSTR);
-}
-
-/** WIP ALERT */
-int rendercommand_wip(int x, int y, int w)
-{
-    int width, height = 0;
-    if( strlen(cmdline.buf) > 0 )
-    {
-        int ctx = -1;
-        switch( cmdline.buf[0] )
-        {
-            case '>': ctx = 0; break;
-            case '/': ctx = 1; break;
-            case '%': ctx = 2; break;
-            default: break;
-        }
-        defformatstring(s)("%s %s", getCONprefix(ctx), cmdline.buf+1);
-        text_bounds(s, width, height, w);
-        y -= height - FONTH;
-        draw_text(s, x, y, 0xFF, 0xFF, 0xFF, 0xFF, cmdline.pos>=0 ? cmdline.pos/*+1*/+getCONlength(ctx) : (int)strlen(s), w);
-    }
-    return height;
-}
-
 // keymap is defined externally in keymap.cfg
 
 vector<keym> keyms;
 
-const char *keycmds[keym::NUMACTIONS] = { "bind", "specbind", "editbind" };
+const char *keycmds[keym::NUMACTIONS] = { "bind", "editbind", "specbind" };
 inline const char *keycmd(int type) { return type >= 0 && type < keym::NUMACTIONS ? keycmds[type] : ""; }
 
 void keymap(int *code, char *key)
@@ -338,11 +300,12 @@ void saycommand(char *init)                         // turns input to the comman
     setscope(false);
     setburst(false);
     if(!editmode) keyrepeat(saycommandon);
-    copystring(cmdline.buf, init ? init : ">"); // ALL cmdline.buf[0] ARE flag-chars ! ">" is for talk - the previous "no flag-char" item
+    copystring(cmdline.buf, init ? escapestring(init, false, true) : "");
     DELETEA(cmdaction);
     DELETEA(cmdprompt);
     cmdline.pos = -1;
 }
+COMMAND(saycommand, "c");
 
 void inputcommand(char *init, char *action, char *prompt)
 {
@@ -350,27 +313,19 @@ void inputcommand(char *init, char *action, char *prompt)
     if(action[0]) cmdaction = newstring(action);
     if(prompt[0]) cmdprompt = newstring(prompt);
 }
+COMMAND(inputcommand, "sss");
 
-void mapmsg(char *s)
-{
+SVARFF(mapmsg,
+{ // read mapmsg
+    hdr.maptitle[127] = '\0';
+    mapmsg = exchangestr(mapmsg, hdr.maptitle);
+},
+{ // set new mapmsg
     string text;
-    filterrichtext(text, s);
-    filtertext(text, text, FTXT__MAPMSG);
+    filtertext(text, mapmsg, FTXT__MAPMSG);
     copystring(hdr.maptitle, text, 128);
     if(editmode) unsavededits++;
-}
-
-void getmapmsg(void)
-{
-    string text;
-    copystring(text, hdr.maptitle, 128);
-    result(text);
-}
-
-COMMAND(saycommand, "c");
-COMMAND(inputcommand, "sss");
-COMMAND(mapmsg, "s");
-COMMAND(getmapmsg, "");
+});
 
 #if !defined(WIN32) && !defined(__APPLE__)
 #include <X11/Xlib.h>
@@ -455,13 +410,12 @@ struct hline
         pushscontext(IEXC_PROMPT);
         if(action)
         {
-            alias("cmdbuf", buf);
+            push("cmdbuf", buf);
             execute(action);
+            pop("cmdbuf");
         }
         else if(buf[0]=='/') execute(buf+1);
-        else if(buf[0]=='>') toserver(buf+1);
-        else if(buf[0]=='%') toserver(buf);
-        else toserver(buf); // execute(buf); // still default to simple "say".
+        else toserver(buf);
         popscontext();
     }
 };
@@ -489,7 +443,9 @@ void savehistory()
     if(!f) return;
     loopv(history)
     {
-        f->printf("%s\n",history[i]->buf);
+        hline *h = history[i];
+        if(!h->action && !h->prompt && strncmp(h->buf, "/ ", 2))
+            f->printf("%s\n",h->buf);
     }
     delete f;
 }
@@ -536,8 +492,10 @@ void execbind(keym &k, bool isdown)
     k.pressed = isdown;
 }
 
-void consolekey(int code, bool isdown, int cooked)
+void consolekey(int code, bool isdown, int cooked, SDLMod mod)
 {
+    static char *beforecomplete = NULL;
+    static bool ignoreescup = false;
     if(isdown)
     {
         switch(code)
@@ -568,13 +526,25 @@ void consolekey(int code, bool isdown, int cooked)
             case SDLK_TAB:
                 if(!cmdaction)
                 {
-                    complete(cmdline.buf);
-                    if(cmdline.pos>=0 && cmdline.pos>=(int)strlen(cmdline.buf)) cmdline.pos = -1;
+                    if(!beforecomplete) beforecomplete = newstring(cmdline.buf);
+                    complete(cmdline.buf, (mod & KMOD_LSHIFT) ? true : false);
+                    if(cmdline.pos >= 0 && cmdline.pos >= (int)strlen(cmdline.buf)) cmdline.pos = -1;
                 }
+                break;
+
+            case SDLK_ESCAPE:
+                if(mod & KMOD_LSHIFT)    // LSHIFT+ESC restores buffer from before complete()
+                {
+                    if(beforecomplete) copystring(cmdline.buf, beforecomplete);
+                    ignoreescup = true;
+                }
+                else ignoreescup = false;
                 break;
 
             default:
                 resetcomplete();
+                DELETEA(beforecomplete);
+            case SDLK_LSHIFT:
                 cmdline.key(code, isdown, cooked);
                 break;
         }
@@ -604,7 +574,7 @@ void consolekey(int code, bool isdown, int cooked)
             saycommand(NULL);
             if(h) h->run();
         }
-        else if(code==SDLK_ESCAPE || code== SDL_AC_BUTTON_RIGHT)
+        else if((code==SDLK_ESCAPE && !ignoreescup) || code== SDL_AC_BUTTON_RIGHT)
         {
             histpos = history.length();
             saycommand(NULL);
@@ -617,21 +587,13 @@ void keypress(int code, bool isdown, int cooked, SDLMod mod)
     keym *haskey = NULL;
     loopv(keyms) if(keyms[i].code==code) { haskey = &keyms[i]; break; }
     if(haskey && haskey->pressed) execbind(*haskey, isdown); // allow pressed keys to release
-    else if(saycommandon) consolekey(code, isdown, cooked);  // keystrokes go to commandline
+    else if(saycommandon) consolekey(code, isdown, cooked, mod);  // keystrokes go to commandline
     else if(!menukey(code, isdown, cooked, mod))                  // keystrokes go to menu
     {
         if(haskey) execbind(*haskey, isdown);
     }
-    if(isdown && identexists("KEYPRESS")) // TODO: Remove this if its misued. e.x: /KEYPRESS = [ echo You pressed key code: $arg1 ] // Output: You pressed key code: 32 (if you press the spacebar)
-    {
-        defformatstring(kpi)("KEYPRESS %d", code);
-        execute(kpi);
-    }
-    if (!isdown && identexists("KEYRELEASE"))
-    {
-        defformatstring(kpo)("KEYRELEASE %d", code);
-        execute(kpo);
-    }
+    if(isdown) exechook(HOOK_SP, "KEYPRESS", "KEYPRESS %d", code);
+    else exechook(HOOK_SP, "KEYRELEASE", "%d", code);
 }
 
 char *getcurcommand()
@@ -644,7 +606,7 @@ void writebinds(stream *f)
     loopv(keyms)
     {
         keym *km = &keyms[i];
-        loopj(3) if(*km->actions[j]) f->printf("%s \"%s\" [%s]\n", keycmd(j), km->name, km->actions[j]);
+        loopj(3) if(*km->actions[j]) f->printf("%s \"%s\" %s\n", keycmd(j), km->name, escapestring(km->actions[j]));
     }
 }
 

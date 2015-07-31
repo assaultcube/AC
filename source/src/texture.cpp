@@ -62,6 +62,7 @@ void scaletexture(uchar *src, uint sw, uint sh, uint bpp, uchar *dst, uint dw, u
 
 Texture *notexture = NULL, *noworldtexture = NULL;
 
+#define TEXSCALEPREFIXSIZE 8
 hashtable<char *, Texture> textures;
 
 VAR(hwtexsize, 1, 0, 0);
@@ -428,17 +429,17 @@ GLuint loadsurface(const char *texname, int &xs, int &ys, int &bpp, int clamp = 
 
 Texture *textureload(const char *name, int clamp, bool mipmap, bool canreduce, float scale, bool trydl)
 {
-    string pname;
-    copystring(pname, name);
-    path(pname);
+    defformatstring(pname)("%.7g        ", scale);
+    copystring(pname + TEXSCALEPREFIXSIZE, name, MAXSTRLEN - TEXSCALEPREFIXSIZE);
+    path(pname + TEXSCALEPREFIXSIZE);
     Texture *t = textures.access(pname);
     if(t) return t;
     int xs, ys, bpp;
-    GLuint id = loadsurface(pname, xs, ys, bpp, clamp, mipmap, canreduce, scale, trydl);
+    GLuint id = loadsurface(pname + TEXSCALEPREFIXSIZE, xs, ys, bpp, clamp, mipmap, canreduce, scale, trydl);
     if(!id) return notexture;
     char *key = newstring(pname);
     t = &textures[key];
-    t->name = key;
+    t->name = key + TEXSCALEPREFIXSIZE;
     t->xs = xs;
     t->ys = ys;
     t->bpp = bpp;
@@ -450,58 +451,69 @@ Texture *textureload(const char *name, int clamp, bool mipmap, bool canreduce, f
     return t;
 }
 
-Texture *createtexturefromsurface(const char *name, SDL_Surface *s)
-{
-    string pname;
-    copystring(pname, name);
-    path(pname);
-    Texture *t = textures.access(pname);
-    if(!t)
-    {
-        char *key = newstring(pname);
-        t = &textures[key];
-        t->name = key;
-    }
-
-    GLuint tnum;
-    glGenTextures(1, &tnum);
-    GLenum format = texformat(s->format->BitsPerPixel);
-    createtexture(tnum, s->w, s->h, s->pixels, 0, true, false, format);
-
-    t->xs = s->w;
-    t->ys = s->h;
-    t->bpp = s->format->BitsPerPixel;
-    t->clamp = 0;
-    t->mipmap = true;
-    t->canreduce = false;
-    t->id = tnum;
-    return t;
-}
-
 struct Slot
 {
     string name;
-    float scale;
+    float scale, orgscale;
     Texture *tex;
     bool loaded;
 };
 
 vector<Slot> slots;
 
-void texturereset() { if(execcontext==IEXC_MAPCFG) slots.setsize(0); }
+COMMANDF(texturereset, "", () { if(execcontext==IEXC_MAPCFG) slots.setsize(0); });
 
-void texture(float *scale, char *name)
+void _texture(Slot &s, float *scale, char *name)
 {
-    Slot &s = slots.add();
-    copystring(s.name, name);
-    path(s.name);
+    if(name)
+    {
+        filtertext(s.name, parentdir(name), FTXT__MEDIAFILEPATH); // filter parts separately, because filename may (legally) contain "<decal>"
+        if(*s.name) concatstring(s.name, "/");
+        name = (char *)behindpath(name);
+        if(*name == '<')
+        {
+            char *endcmd = strchr(name, '>');
+            if(endcmd)
+            {
+                *endcmd = '\0';
+                concatstring(s.name, name);
+                concatstring(s.name, ">");
+                name = endcmd + 1;
+            }
+        }
+        filtertext(name, name, FTXT__MEDIAFILENAME);
+        concatstring(s.name, name);
+    }
     s.tex = NULL;
     s.loaded = false;
-    s.scale = (*scale > 0 && *scale <= 2.0f) ? *scale : 1.0f;
+    if(scale)
+    {
+        s.orgscale = *scale;
+        s.scale = (*scale > 0 && *scale <= 4.0f) ? *scale : 1.0f;
+    }
 }
 
-COMMAND(texturereset, "");
-COMMAND(texture, "fs");
+COMMANDF(texture, "fs", (float *scale, char *name)
+{
+    intret(slots.length());
+    Slot &s = slots.add();
+    _texture(s, scale, name);
+    if(*scale < 0.0f || *scale > 4.0f) conoutf("\f3texture slot #%d \"%s\" error: scale factor %.7g out of range 0..4", slots.length() - 1, name, *scale);
+    flagmapconfigchange();
+});
+
+
+const char *gettextureslot(int i)
+{
+    static string res;
+    if(slots.inrange(i))
+    {
+        Slot &s = slots[i];
+        formatstring(res)("texture %s \"%s\"", floatstr(s.orgscale, true), s.name);
+        return res;
+    }
+    else return NULL;
+}
 
 Texture *lookuptexture(int tex, Texture *failtex, bool trydl)
 {
@@ -511,13 +523,13 @@ Texture *lookuptexture(int tex, Texture *failtex, bool trydl)
         Slot &s = slots[tex];
         if(!s.loaded)
         {
-            defformatstring(pname)("packages/textures/%s", s.name);
+            defformatstring(pname)("packages/textures/%s", path(s.name, true));
             s.tex = textureload(pname, 0, true, true, s.scale, trydl);
             if(!trydl)
             {
-            if(s.tex==notexture) s.tex = failtex;
-            s.loaded = true;
-        }
+                if(s.tex==notexture) s.tex = failtex;
+                s.loaded = true;
+            }
         }
         if(s.tex) t = s.tex;
     }
@@ -542,51 +554,60 @@ bool reloadtexture(Texture &t)
     return t.id!=0;
 }
 
-bool reloadtexture(const char *name)
-{
-    Texture *t = textures.access(path(name, true));
-    if(t) return reloadtexture(*t);
-    return false;
-}
-
 void reloadtextures()
 {
     enumerate(textures, Texture, t, reloadtexture(t));
 }
 
 Texture *sky[6] = {NULL, NULL, NULL, NULL, NULL, NULL};
-static string skybox;
 
-void loadsky(char *basename, bool reload)
+SVARF(loadsky, "", { loadskymap(false); });
+
+void loadskymap(bool reload)
 {
     const char *side[] = { "lf", "rt", "ft", "bk", "dn", "up" };
-    if(reload) basename = skybox;
-    else copystring(skybox, basename);
+    const char *legacyprefix = "textures/skymaps/";
+    if(!reload)
+    {
+        int n = strlen(legacyprefix);
+        filtertext(loadsky, loadsky, FTXT__MEDIAFILEPATH);
+        if(!strncmp(loadsky, legacyprefix, n))
+        { // remove the prefix
+            char *t = loadsky;
+            loadsky = newstring(loadsky + n);
+            delstring(t);
+        }
+        flagmapconfigchange();
+    }
     loopi(6)
     {
-        defformatstring(name)("packages/%s_%s.jpg", basename, side[i]);
+        defformatstring(name)("packages/%s%s_%s.jpg", legacyprefix, loadsky, side[i]);
         sky[i] = textureload(name, 3);
         if(sky[i] == notexture && !reload && autodownload)
         {
-            defformatstring(dl)("packages/%s", basename);
+            defformatstring(dl)("packages/%s%s", legacyprefix, loadsky);
             requirepackage(PCK_SKYBOX, dl);
             break;
         }
     }
 }
 
-COMMANDF(loadsky, "s", (char *name) { loadsky(name, false); intret(0); });
 void loadnotexture(char *c)
 {
     noworldtexture = notexture; // reset to default
+    *mapconfigdata.notexturename = '\0';
     if(c[0])
     {
-        defformatstring(p)("packages/textures/%s", c);
+        filtertext(mapconfigdata.notexturename, c, FTXT__MEDIAFILEPATH);
+        defformatstring(p)("packages/textures/%s", mapconfigdata.notexturename);
         noworldtexture = textureload(p);
         if(noworldtexture==notexture) conoutf("could not load alternative texture '%s'.", p);
     }
+    flagmapconfigchange();
 }
+
 COMMAND(loadnotexture, "s");
+COMMANDF(getnotexture, "", () { result(mapconfigdata.notexturename); });
 
 void draw_envbox_face(float s0, float t0, float x0, float y0, float z0,
                       float s1, float t1, float x1, float y1, float z1,
@@ -873,3 +894,251 @@ void guidetoggle()
 }
 
 COMMAND(guidetoggle, "");
+
+void gettexturelist(char *_filter, char *_exclude, char *_exts) // create a list of texture paths and filenames
+{
+    vector<char *> filter, exclude, exts, files;
+    vector<int> filter_n, exclude_n, exts_n;
+    explodelist(_filter, filter);       // path has to start with one of these
+    explodelist(_exclude, exclude);     // path may not start with one of these
+    explodelist(_exts, exts);           // file needs to have one of those extensions (or ".jpg" by default)
+    if(!exts.length()) exts.add(newstring(".jpg"));
+    loopv(filter) filter_n.add((int) strlen(filter[i]));
+    loopv(exclude) exclude_n.add((int) strlen(exclude[i]));
+    loopv(exts) exts_n.add((int) strlen(exts[i]));
+    listfilesrecursive("packages/textures", files);
+    files.sort(stringsort);
+    loopvrev(files) if(files.inrange(i + 1) && !strcmp(files[i], files[i + 1])) delstring(files.remove(i + 1)); // remove doubles
+    int pn = strlen("packages/textures/");
+    loopvrev(files)
+    {
+        bool filtered = filter.length() == 0, excluded = false, extmatch = false;
+        if(!strncmp(files[i], "packages/textures/", pn))
+        {
+            const char *s = files[i] + pn;
+            loopvj(filter) if(!strncmp(s, filter[j], filter_n[j])) filtered = true;
+            loopvj(exclude) if(!strncmp(s, exclude[j], exclude_n[j])) excluded = true;
+            int n = strlen(s);
+            loopvj(exts) if(n > exts_n[j] && !strcmp(s + n - exts_n[j], exts[j])) extmatch = true;
+        }
+        if(!extmatch || !filtered || excluded) delstring(files.remove(i));
+    }
+    vector<char> res;
+    bool cutprefix = filter.length() == 1;
+    bool cutext = exts.length() == 1 && exts[0][0] != '.';
+    loopv(files)
+    {
+        char *f = files[i] + pn;
+        const char *p = parentdir(f), *b = behindpath(f);
+        cvecprintf(res, "\"%s\" \"%s\"", p, b);  // always add columns for path (without "packages/textures/") and filename
+        if(cutprefix) cvecprintf(res, " \"%s\"", int(strlen(p)) > filter_n[0] ? p + filter_n[0] : "");  // if there's exactly one filter string, add column with that string omitted
+        if(cutext)
+        {
+            int n = strlen(b);
+            if(n > exts_n[0]) ((char *)b)[n - exts_n[0]] = '\0';
+            cvecprintf(res, " \"%s\"", b);  // if there's only one allowed extension and it does not start with '.', add column of filenames without extension
+        }
+        res.add('\n');
+    }
+    if(res.length()) res.last() = '\0';
+    else res.add('\0');
+    filter.deletearrays();
+    exclude.deletearrays();
+    exts.deletearrays();
+    files.deletearrays();
+    result(res.getbuf());
+}
+COMMAND(gettexturelist, "sss");
+
+void textureslotusagelist(char *what)
+{
+    int used[256] =  { 0 };
+    if(strcmp(what, "onlygeometry"))
+    { // if not only geometry, cound map model usage
+        loopv(ents) if(ents[i].type == MAPMODEL) used[ents[i].attr4]++;
+        used[0] = 0;
+    }
+    if(strcmp(what, "onlymodels"))
+    { // if not only models, count map geometry
+        sqr *s = world;
+        loopirev(cubicsize)
+        {
+            used[s->wtex]++;
+            if(s->type != SOLID)
+            {
+                used[s->ctex]++;
+                used[s->ftex]++;
+                used[s->utex]++;
+            }
+            s++;
+        }
+    }
+    vector<char> res;
+    loopi(256) cvecprintf(res, "%d ", used[i]);
+    res.last() = '\0';
+    result(res.getbuf());
+}
+COMMAND(textureslotusagelist, "s");
+
+bool testworldtexusage(int n)
+{
+    sqr *s = world;
+    loopirev(cubicsize)
+    {
+        if(s->wtex == n || s->ctex == n || s->ftex == n || s->utex == n) return true;
+        s++;
+    }
+    return false;
+}
+
+void textureslotusage(int *n) // returns all mapmodel entity indices that use a certain texture to skin the model
+                              // if the texture is used in map geometry, at least a space is returned
+                              // if the texture is unused, an empty string is returned
+{
+    string res = "";
+    loopv(ents) if(ents[i].type == MAPMODEL && ents[i].attr4 == *n) concatformatstring(res, "%s%d", i ? " " : "", i);
+    if(!*res)
+    { // not used to skin a mapmodel: check world usage...
+        if(testworldtexusage(*n)) copystring(res, " ");
+    }
+    result(res);
+}
+COMMAND(textureslotusage, "i");
+
+void deletetextureslot(int *n, char *opt, char *_replace) // delete texture slot - only if unused or "purge" is specified
+{
+    if(noteditmode("deletetextureslot") || multiplayer(true) || !slots.inrange(*n)) return;
+    bool purgeall = !strcmp(opt, "purge");
+    bool mmused = false;
+    loopv(ents) if(ents[i].type == MAPMODEL && ents[i].attr4 == *n) mmused = true;
+    if(!purgeall && *n <= DEFAULT_CEIL) { conoutf("texture slots below #%d should usually not be deleted", DEFAULT_CEIL + 1); return; }
+    if(!purgeall && (mmused || testworldtexusage(*n))) { conoutf("texture slot #%d is in use: can't delete", *n); return; }
+    int deld = 0, replace = 256;
+    if(purgeall && isdigit(*_replace)) replace = strtol(_replace, NULL, 0) & 255;
+    if(replace > *n) replace--;
+    sqr *s = world;
+    loopirev(cubicsize)
+    { // check, if cubes use the texture
+        if(s->wtex == *n) { s->wtex = replace; deld++; }
+        else if(s->wtex > *n) s->wtex--;
+        if(s->ctex == *n) { s->ctex = replace; deld++; }
+        else if(s->ctex > *n) s->ctex--;
+        if(s->ftex == *n) { s->ftex = replace; deld++; }
+        else if(s->ftex > *n) s->ftex--;
+        if(s->utex == *n) { s->utex = replace; deld++; }
+        else if(s->utex > *n) s->utex--;
+        s++;
+    }
+    block bb = { mapdims.x1 - 1, mapdims.y1 - 1, mapdims.xspan + 2, mapdims.yspan + 2 };
+    remip(bb);
+    loopv(ents) if(ents[i].type == MAPMODEL)
+    { // check, if mapmodels use the texture
+        entity &e = ents[i];
+        if(e.attr4 == *n)
+        { // use default model texture instead
+            e.attr4 = 0;
+            deld++;
+        }
+        else if(e.attr4 > *n) e.attr4--; // adjust models in higher slots
+    }
+    // FIXME: texlists...
+    slots.remove(*n);
+    defformatstring(m)(" (%d uses removed)", deld);
+    if(replace != 255) formatstring(m)(" (%d uses changed to use slot #%d)", deld, replace);
+    conoutf("texture slot #%d deleted%s", *n, deld ? m : "");
+    unsavededits++;
+    hdr.flags |= MHF_AUTOMAPCONFIG; // requires automapcfg
+}
+COMMAND(deletetextureslot, "iss");
+
+void edittextureslot(int *n, char *scale, char *name) // edit slot parameters != ""
+{
+    string res = "";
+    if(!noteditmode("edittextureslot") && !multiplayer(true) && slots.inrange(*n))
+    {
+        Slot &s = slots[*n];
+        if(*scale || *name)
+        { // change attributes
+            float newscale = atof(scale);
+            _texture(s, *scale ? &newscale : NULL, *name ? name : NULL);
+            unsavededits++;
+            hdr.flags |= MHF_AUTOMAPCONFIG; // requires automapcfg
+        }
+        formatstring(res)("%s \"%s\"", floatstr(s.orgscale, true), s.name);
+    }
+    result(res);
+}
+COMMAND(edittextureslot, "iss");
+
+void gettextureorigin(char *fname)
+{
+    defformatstring(s)("packages/textures/%s", fname);
+    findfile(path(s), "r");
+    const char *res = s;
+    switch(findfilelocation)
+    {
+        case FFL_WORKDIR: res = fileexists(s, "r") ? "official" : "<file not found>"; break;
+        case FFL_HOME:    res = "custom";                                             break;
+        default:          formatstring(s)("package dir #%d", findfilelocation);       break;
+    }
+    result(res);
+}
+COMMAND(gettextureorigin, "s");
+
+void textureslotbyname(char *name) // returns the slot(s) that a certain texture file is configured in
+{
+    string res = "";
+    loopv(slots) if(!strcmp(name, slots[i].name)) concatformatstring(res, "%s%d", *res ? " " : "", i);
+    result(res);
+}
+COMMAND(textureslotbyname, "s");
+
+
+// helper functions to allow copy&paste between different maps while keeping the proper textures assigned
+// (pasting will add any missing texture slots)
+
+void *texconfig_copy()
+{
+    vector<Slot> *s = new vector<Slot>;
+    loopv(slots) s->add(slots[i]);
+    return (void *)s;
+}
+
+void texconfig_delete(void *s)
+{
+    delete (vector<Slot> *)s;
+}
+
+uchar *texconfig_paste(void *_s, uchar *usedslots) // create mapping table to translate pasted geometry to this maps texture list - add any missing textures
+{
+    vector<Slot> *s = (vector<Slot> *)_s;
+    static uchar res[256];
+    loopi(256) res[i] = i;
+    loopi(256) if(usedslots[i] && s->inrange(i))
+    {
+        Slot &os = (*s)[i];
+        bool found = false;
+        loopvj(slots)
+        {
+            if(slots[j].scale == os.scale && !strcmp(slots[j].name, os.name))
+            {
+                res[i] = j;
+                found = true;
+                break;
+            }
+        }
+        if(!found)
+        {
+            if(slots.length() < 255)
+            {
+                res[i] = slots.length();
+                _texture(slots.add(), &os.scale, os.name);
+                conoutf("added texture \"%s\" (scale %.7g) in slot #%d", os.name, os.scale, res[i]);
+                if(!(hdr.flags & MHF_AUTOMAPCONFIG)) automapconfig(); // make sure, the new texture slots will be saved with the map
+            }
+            else conoutf("\f3failed to add texture \"%s\" (scale %.7g): no texture slot available", os.name, os.scale);
+        }
+    }
+    return res;
+}
+

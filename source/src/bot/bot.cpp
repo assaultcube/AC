@@ -63,7 +63,6 @@ void CBot::Spawn()
      m_iSawEnemyTime = 0;
      m_bCombatJump = false;
      m_iCombatJumpDelay = 0;
-     m_bShootAtFeet = (RandomLong(1, 100) <= m_pBotSkill->sShootAtFeetWithRLPercent);
      m_iHuntDelay = 0;
      m_vHuntLocation = m_vPrevHuntLocation = g_vecZero;
      m_pHuntTarget = NULL;
@@ -289,7 +288,6 @@ bool CBot::SelectGun(int Gun)
     m_pMyEnt->gunselect = Gun;
     if(m_pMyEnt->weaponsel->type != Gun)
     {
-        audiomgr.playsound(S_GUNCHANGE, m_pMyEnt);
         m_pMyEnt->weaponswitch(m_pMyEnt->weapons[Gun]);
         m_iChangeWeaponDelay = lastmillis + 1000;
     }

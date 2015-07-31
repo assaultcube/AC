@@ -47,7 +47,7 @@ bool changemapserv(char *name, int mode, int download, int revision)        // f
         bool revmatch = hdr.maprevision == revision || revision == 0;
         if(watchingdemo)
         {
-            if(loaded && !revmatch) conoutf(_("%c3demo was recorded on map revision %d, you have map revision %d"), CC, revision, hdr.maprevision);
+            if(loaded && !revmatch) conoutf("\f3demo was recorded on map revision %d, you have map revision %d", revision, hdr.maprevision);
         }
         else
         {
@@ -61,15 +61,15 @@ bool changemapserv(char *name, int mode, int download, int revision)        // f
                 else
                 {
                     defformatstring(msg)("map '%s' revision: local %d, provided by server %d", name, hdr.maprevision, revision);
-                    alias("__getmaprevisions", msg);
+                    alias("__getmaprevisions", msg, true);
                     showmenu("getmap");
                 }
             }
             else
             {
-                if(!loaded || download < 10) conoutf(_("\"getmap\" to download the current map from the server"));
-                else conoutf(_("\"getmap\" to download a %s version of the current map from the server"),
-                         revision == 0 ? _("different") : (revision > hdr.maprevision ? _("newer") : _("older")));
+                if(!loaded || download < 10) conoutf("\"getmap\" to download the current map from the server");
+                else conoutf("\"getmap\" to download a %s version of the current map from the server",
+                         revision == 0 ? "different" : (revision > hdr.maprevision ? "newer" : "older"));
             }
         }
     }
@@ -276,8 +276,9 @@ bool good_map() // call this function only at startmap
         {
             entity &e2 = ents[j];
             if (e2.type < I_CLIPS || e2.type > I_AKIMBO || i == j) continue;
+            // only I_CLIPS, I_AMMO, I_GRENADE, I_HEALTH, I_HELMET, I_ARMOUR, I_AKIMBO
 #define DIST(x) (e1.x - e2.x)
-#define DIST_ATT ((e1.z + e1.attr1) - (e2.z + e2.attr1))
+#define DIST_ATT ((e1.z + float(e1.attr1) / entscale[e1.type][0]) - (e2.z + float(e2.attr1) / entscale[e2.type][0]))
             float r2 = DIST(x)*DIST(x) + DIST(y)*DIST(y) + DIST_ATT*DIST_ATT;
 #undef DIST_ATT
 #undef DIST
@@ -366,20 +367,12 @@ int lastspawn = 0;
 
 void onCallVote(int type, int vcn, char *text, char *a)
 {
-    if(identexists("onCallVote"))
-    {
-        defformatstring(runas)("%s %d %d [%s] [%s]", "onCallVote", type, vcn, text, a);
-        execute(runas);
-    }
+    exechook(HOOK_SP_MP, "onCallVote", "%d %d [%s] [%s]", type, vcn, text, a);
 }
 
 void onChangeVote(int mod, int id)
 {
-    if(identexists("onChangeVote"))
-    {
-        defformatstring(runas)("%s %d %d", "onChangeVote", mod, id);
-        execute(runas);
-    }
+    exechook(HOOK_SP_MP, "onChangeVote", "%d %d", mod, id);
 }
 
 VARP(voicecomsounds, 0, 1, 2);
@@ -425,7 +418,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 int mycn = getint(p), prot = getint(p);
                 if(prot!=CUR_PROTOCOL_VERSION && !(watchingdemo && prot == -PROTOCOL_VERSION))
                 {
-                    conoutf(_("%c3incompatible game protocol (local protocol: %d :: server protocol: %d)"), CC, CUR_PROTOCOL_VERSION, prot);
+                    conoutf("\f3incompatible game protocol (local protocol: %d :: server protocol: %d)", CUR_PROTOCOL_VERSION, prot);
                     conoutf("\f3if this occurs a lot, obtain an upgrade from \f1http://assault.cubers.net");
                     if(watchingdemo) conoutf("breaking loop : \f3this demo is using a different protocol\f5 : end it now!"); // SVN-WiP-bug: causes endless retry loop else!
                     else disconnect();
@@ -433,7 +426,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 }
                 sessionid = getint(p);
                 player1->clientnum = mycn;
-                if(getint(p) > 0) conoutf(_("INFO: this server is password protected"));
+                if(getint(p) > 0) conoutf("INFO: this server is password protected");
                 sendintro();
                 break;
             }
@@ -525,11 +518,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 {
                     conoutf("%s (PM):\f9 %s", colorname(d), highlight(text));
                     lastpm = d->clientnum;
-                    if(identexists("onPM"))
-                    {
-                        defformatstring(onpm)("onPM %d [%s]", d->clientnum, text);
-                        execute(onpm);
-                    }
+                    exechook(HOOK_SP_MP, "onPM", "%d [%s]", d->clientnum, text);
                 }
                 break;
             }
@@ -567,13 +556,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 if(!text[0]) copystring(text, "unarmed");
                 if(d)
                 {
-                    if(strcmp(d->name, text))
-                        conoutf(_("%s is now known as %s"), colorname(d), colorname(d, text));
-                    if(identexists("onNameChange"))
-                    {
-                        defformatstring(onnamechange)("onNameChange %d \"%s\"", d->clientnum, text);
-                        execute(onnamechange);
-                    }
+                    if(strcmp(d->name, text)) conoutf("%s is now known as %s", colorname(d), colorname(d, text));
+                    exechook(HOOK_SP, "onNameChange", "%d \"%s\"", d->clientnum, text);
                     copystring(d->name, text, MAXNAMELEN+1);
                     updateclientname(d);
                 }
@@ -609,18 +593,14 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 if(d->name[0])          // already connected
                 {
                     if(strcmp(d->name, text))
-                        conoutf(_("%s is now known as %s"), colorname(d), colorname(d, text));
+                        conoutf("%s is now known as %s", colorname(d), colorname(d, text));
                 }
                 else                    // new client
                 {
-                    conoutf(_("connected: %s"), colorname(d, text));
+                    conoutf("connected: %s", colorname(d, text));
                 }
                 copystring(d->name, text, MAXNAMELEN+1);
-                if(identexists("onConnect"))
-                {
-                    defformatstring(onconnect)("onConnect %d", d->clientnum);
-                    execute(onconnect);
-                }
+                exechook(HOOK_SP_MP, "onConnect", "%d", d->clientnum);
                 loopi(2) d->setskin(i, getint(p));
                 d->team = getint(p);
 
@@ -640,13 +620,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 int cn = getint(p);
                 playerent *d = getclient(cn);
                 if(!d) break;
-                if(d->name[0]) conoutf(_("player %s disconnected"), colorname(d));
+                if(d->name[0]) conoutf("player %s disconnected", colorname(d));
                 zapplayer(players[cn]);
-                if(identexists("onDisconnect"))
-                {
-                    defformatstring(ondisconnect)("onDisconnect %d", d->clientnum);
-                    execute(ondisconnect);
-                }
+                exechook(HOOK_SP_MP, "onDisconnect", "%d", d->clientnum);
                 break;
             }
 
@@ -655,12 +631,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 int val = getint(p);
                 if(!d) break;
                 if(val) d->state = CS_EDITING;
-                else
-                {
-                    //2011oct16:flowtron:keep spectator state
-                    //specators shouldn't be allowed to toggle editmode for themselves. they're ghosts!
-                    d->state = d->state==CS_SPECTATE?CS_SPECTATE:CS_ALIVE;
-                }
+                else d->state = CS_ALIVE;
                 break;
             }
 
@@ -678,6 +649,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 loopi(NUMGUNS) s->ammo[i] = getint(p);
                 loopi(NUMGUNS) s->mag[i] = getint(p);
                 s->state = CS_SPAWNING;
+                arenaintermission = 0;
                 if(s->lifesequence==0) s->resetstats(); //NEW
                 break;
             }
@@ -687,7 +659,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 if ( map_quality == MAP_IS_BAD )
                 {
                     loopi(6+2*NUMGUNS) getint(p);
-                    conoutf(_("map deemed unplayable - fix it before you can spawn"));
+                    conoutf("map deemed unplayable - fix it before you can spawn");
                     break;
                 }
 
@@ -711,7 +683,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 if(m_arena && !localwrongmap)
                 {
                     if(connected) closemenu(NULL);
-                    conoutf(_("new round starting... fight!"));
+                    conoutf("new round starting... fight!");
                     hudeditf(HUDMSG_TIMER, "FIGHT!");
                     if(m_botmode) BotManager.RespawnBots();
                 }
@@ -967,7 +939,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 if(size>=0) empty_world(size, true);
                 else empty_world(-1, true);
                 if(d && d!=player1)
-                    conoutf(size>=0 ? _("%s started a new map of size %d") : _("%s enlarged the map to size %d"), colorname(d), sfactor);
+                    conoutf(size>=0 ? "%s started a new map of size %d" : "%s enlarged the map to size %d", colorname(d), sfactor);
                 break;
             }
 
@@ -995,6 +967,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 ents[i].attr2 = getint(p);
                 ents[i].attr3 = getint(p);
                 ents[i].attr4 = getint(p);
+                ents[i].attr5 = getint(p);
+                ents[i].attr6 = getint(p);
+                ents[i].attr7 = getint(p);
                 ents[i].spawned = false;
                 if(ents[i].type==LIGHT || to==LIGHT) calclight();
                 if(ents[i].type==SOUND) audiomgr.preloadmapsound(ents[i]);
@@ -1090,12 +1065,12 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
             {
                 int acn = getint(p);
                 playerent *alive = getclient(acn);
-                conoutf(_("the round is over! next round in 5 seconds..."));
-                if(m_botmode && acn==-2) hudoutf(_("the bots have won the round!"));
-                else if(acn==-1) hudoutf(_("everyone died!"));
-                else if(m_teammode) hudoutf(_("team %s has won the round!"), team_string(alive->team));
-                else if(alive==player1) hudoutf(_("you are the survivor!"));
-                else hudoutf(_("%s is the survivor!"), colorname(alive));
+                conoutf("the round is over! next round in 5 seconds...");
+                if(m_botmode && acn==-2) hudoutf("the bots have won the round!");
+                else if(acn==-1) hudoutf("everyone died!");
+                else if(m_teammode) hudoutf("team %s has won the round!", team_string(alive->team));
+                else if(alive==player1) hudoutf("you are the survivor!");
+                else hudoutf("%s is the survivor!", colorname(alive));
                 arenaintermission = lastmillis;
                 break;
             }
@@ -1131,8 +1106,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                         if(pl->name[0])
                         {
                             // two messages required to allow for proper german translation - is there a better way to do it?
-                            if(pl==player1) conoutf(_("you claimed %s status"), r == CR_ADMIN ? "admin" : "master");
-                            else conoutf(_("%s claimed %s status"), colorname(pl), r == CR_ADMIN ? "admin" : "master");
+                            if(pl==player1) conoutf("you claimed %s status", r == CR_ADMIN ? "admin" : "master");
+                            else conoutf("%s claimed %s status", colorname(pl), r == CR_ADMIN ? "admin" : "master");
                         }
                     }
                 }
@@ -1144,13 +1119,13 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 int t = getint(p);
                 if(m_teammode)
                 {
-                    if(team_isvalid(t)) conoutf(_("you can't change to team %s"), team_string(t));
+                    if(team_isvalid(t)) conoutf("you can't change to team %s", team_string(t));
                 }
                 else
                 {
-                    if(team_isspect(t)) conoutf(_("you can't change to spectate mode"));
-                    else if (player1->state!=CS_ALIVE) conoutf(_("you can't change to active mode"));
-                    else conoutf(_("you can't switch teams while being alive"));
+                    if(team_isspect(t)) conoutf("you can't change to spectate mode");
+                    else if (player1->state!=CS_ALIVE) conoutf("you can't change to active mode");
+                    else conoutf("you can't switch teams while being alive");
                 }
                 break;
             }
@@ -1177,10 +1152,10 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                                 switch(ftr)
                                 {
                                     case FTR_PLAYERWISH:
-                                        conoutf(_("you're now in team %s"), nts);
+                                        conoutf("you're now in team %s", nts);
                                         break;
                                     case FTR_AUTOTEAM:
-                                        hudoutf(_("the server forced you to team %s"), nts);
+                                        hudoutf("the server forced you to team %s", nts);
                                         break;
                                 }
                             }
@@ -1191,18 +1166,18 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                                 switch(ftr)
                                 {
                                     case FTR_PLAYERWISH:
-                                        conoutf(_("player %s switched to team %s"), pls, nts); // new message
+                                        conoutf("player %s switched to team %s", pls, nts); // new message
                                         break;
                                     case FTR_AUTOTEAM:
-                                        if(watchingdemo || team_isspect(player1->team)) conoutf(_("the server forced %s to team %s"), colorname(d), nts);
-                                        else hudoutf(_("the server forced %s to %s team"), colorname(d), et ? _("the enemy") : _("your"));
+                                        if(watchingdemo || team_isspect(player1->team)) conoutf("the server forced %s to team %s", colorname(d), nts);
+                                        else hudoutf("the server forced %s to %s team", colorname(d), et ? "the enemy" : "your");
                                         break;
                                 }
                             }
                             if(you && !team_isspect(d->team) && team_isspect(fnt) && d->state == CS_DEAD) spectatemode(SM_FLY);
                         }
                     }
-                    else if(d->team != fnt && ftr == FTR_PLAYERWISH && !team_isactive(d->team)) conoutf(_("%s changed to active play"), you ? _("you") : colorname(d));
+                    else if(d->team != fnt && ftr == FTR_PLAYERWISH && !team_isactive(d->team)) conoutf("%s changed to active play", you ? "you" : colorname(d));
                     d->team = fnt;
                     if(team_isspect(d->team)) d->state = CS_SPECTATE;
                 }
@@ -1341,7 +1316,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 demo_mlines.shrink(0);
                 if(!demos)
                 {
-                    conoutf(_("no demos available"));
+                    conoutf("no demos available");
                     mline &m = demo_mlines.add();
                     copystring(m.name, "no demos available");
                     menumanual(downloaddemomenu,m.name);
@@ -1496,10 +1471,10 @@ void receivefile(uchar *data, int len)
             stream *demo = openrawfile(fname, "wb");
             if(!demo)
             {
-                conoutf(_("failed writing to \"%s\""), fname);
+                conoutf("failed writing to \"%s\"", fname);
                 return;
             }
-            conoutf(_("received demo \"%s\""), fname);
+            conoutf("received demo \"%s\"", fname);
             demo->write(&p.buf[p.len], demosize);
             delete demo;
             break;
@@ -1508,14 +1483,14 @@ void receivefile(uchar *data, int len)
         case SV_RECVMAP:
         {
             getstring(text, p);
-            conoutf(_("received map \"%s\" from server, reloading.."), text);
+            conoutf("received map \"%s\" from server, reloading..", text);
             int mapsize = getint(p);
             int cfgsize = getint(p);
             int cfgsizegz = getint(p);
             /* int revision = */ getint(p);
             int size = mapsize + cfgsizegz;
             if(MAXMAPSENDSIZE < mapsize + cfgsizegz || cfgsize > MAXCFGFILESIZE) { // sam's suggestion
-                conoutf(_("map %s is too large to receive"), text);
+                conoutf("map %s is too large to receive", text);
             } else {
                 if(p.remaining() < size)
                 {

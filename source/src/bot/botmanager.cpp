@@ -13,12 +13,6 @@
 #include "cube.h"
 #include "bot.h"
 
-
-#ifndef VANILLA_CUBE // UNDONE
-bool dedserv = false;
-#define CS_DEDHOST 0xFF
-#endif
-
 extern void respawnself();
 
 CBotManager BotManager;
@@ -35,8 +29,6 @@ void CBotManager::Init()
 {
     m_pBotToView = NULL;
 
-    m_bBotsShoot = true;
-    m_bIdleBots = false;
     m_iFrameTime = 0;
     m_iPrevTime = lastmillis;
     m_sBotSkill = 1; // Default all bots have the skill 'Good'
@@ -76,13 +68,6 @@ void CBotManager::Think()
           delete pStoredBot;
        }
        m_fReAddBotDelay = -1.0f;
-    }
-    // If this is a ded server check if there are any players, if not bots should be idle
-    if (dedserv)
-    {
-       bool botsbeidle = true;
-       loopv(players) { if (players[i] && (players[i]->state != CS_DEDHOST)) { botsbeidle = false; break; } }
-       if (botsbeidle) return;
     }
     // Let all bots 'think'
     loopv(bots)
@@ -171,26 +156,19 @@ const char *CBotManager::GetBotName()
     {
         ChoiceVal = 50;
 
-        loopv(players)
-        {
-            if (players[i] && (players[i]->state != CS_DEDHOST) &&
-                !strcasecmp(players[i]->name, m_szBotNames[j]))
-                ChoiceVal -= 10;
-        }
-
         loopv(bots)
         {
             if (bots[i] && (!strcasecmp(bots[i]->name, m_szBotNames[j])))
-                ChoiceVal -= 10;
+            {
+                ChoiceVal = 0;
+                break;
+            }
         }
 
-        if ((player1->state != CS_DEDHOST) && !strcasecmp(player1->name, m_szBotNames[j]))
-            ChoiceVal -= 10;
+        if (!strcasecmp(player1->name, m_szBotNames[j]))
+            ChoiceVal = 0;
 
-        if (ChoiceVal <= 0)
-            ChoiceVal = 1;
-
-        BotNameChoices.Insert(m_szBotNames[j], ChoiceVal);
+        if(ChoiceVal) BotNameChoices.Insert(m_szBotNames[j], ChoiceVal);
     }
 
     // Couldn't find a selection?
@@ -261,9 +239,9 @@ const char *CBotManager::GetBotTeam()
     {
         teamsize[player1->team]++;
     }
-    loopv(players) if(players[i] && team_isactive(players[i]->team))
+    loopv(bots) if(bots[i] && team_isactive(bots[i]->team))
     {
-        teamsize[players[i]->team]++;
+        teamsize[bots[i]->team]++;
     }
     biggestTeam = teamsize[1] > teamsize[0];
     return teamnames[biggestTeam ^ 1];
@@ -278,12 +256,6 @@ const char *CBotManager::GetBotTeam()
     {
         ChoiceVal = 50;
         /* UNDONE?
-        loopv(players)
-        {
-            if (players[i] && (!strcasecmp(players[i]->name, m_szBotNames[j])))
-                ChoiceVal -= 10;
-        }
-
         loopv(bots)
         {
             if (bots[i] && (!strcasecmp(bots[i]->name, m_szBotNames[j])))
@@ -314,8 +286,6 @@ void CBotManager::RenderBots()
     {
         if (bots[i] && (bots[i] != m_pBotToView))
         {
-            /*drawblue = (m_sp || isteam(player1->team, bots[i]->team));
-            renderclient(bots[i], drawblue, "playermodels/counterterrorist", 1.6f);*/
             renderclient(bots[i]);
         }
     }
@@ -634,12 +604,6 @@ void CBotManager::CreateSkillData()
         {
             m_BotSkills[SkillNr].flAlwaysDetectDistance = value;
         }
-        else if (strcasecmp(cmd, "shoot_at_feet_percent") == 0)
-        {
-            if (value < 0) value = 0;
-            else if (value > 100) value = 100;
-            m_BotSkills[SkillNr].sShootAtFeetWithRLPercent = (short)value;
-        }
         else if (strcasecmp(cmd, "can_predict_position") == 0)
         {
             m_BotSkills[SkillNr].bCanPredict = value!=0;
@@ -687,7 +651,6 @@ void CBotManager::InitSkillData()
     m_BotSkills[0].flMinEnemySearchDelay = 0.09f;
     m_BotSkills[0].flMaxEnemySearchDelay = 0.12f;
     m_BotSkills[0].flAlwaysDetectDistance = 12.0f;
-    m_BotSkills[0].sShootAtFeetWithRLPercent = 85;
     m_BotSkills[0].bCanPredict = true;
     m_BotSkills[0].iMaxHearVolume = 75;
     m_BotSkills[0].iFov = 200;
@@ -710,7 +673,6 @@ void CBotManager::InitSkillData()
     m_BotSkills[1].flMinEnemySearchDelay = 0.12f;
     m_BotSkills[1].flMaxEnemySearchDelay = 0.17f;
     m_BotSkills[1].flAlwaysDetectDistance = 10.0f;
-    m_BotSkills[1].sShootAtFeetWithRLPercent = 60;
     m_BotSkills[1].bCanPredict = true;
     m_BotSkills[1].iMaxHearVolume = 60;
     m_BotSkills[1].iFov = 160;
@@ -733,7 +695,6 @@ void CBotManager::InitSkillData()
     m_BotSkills[2].flMinEnemySearchDelay = 0.18f;
     m_BotSkills[2].flMaxEnemySearchDelay = 0.22f;
     m_BotSkills[2].flAlwaysDetectDistance = 8.0f;
-    m_BotSkills[2].sShootAtFeetWithRLPercent = 25;
     m_BotSkills[2].bCanPredict = false;
     m_BotSkills[2].iMaxHearVolume = 45;
     m_BotSkills[2].iFov = 130;
@@ -756,7 +717,6 @@ void CBotManager::InitSkillData()
     m_BotSkills[3].flMinEnemySearchDelay = 0.25f;
     m_BotSkills[3].flMaxEnemySearchDelay = 0.30f;
     m_BotSkills[3].flAlwaysDetectDistance = 6.0f;
-    m_BotSkills[3].sShootAtFeetWithRLPercent = 10;
     m_BotSkills[3].bCanPredict = false;
     m_BotSkills[3].iMaxHearVolume = 30;
     m_BotSkills[3].iFov = 120;
@@ -779,7 +739,6 @@ void CBotManager::InitSkillData()
     m_BotSkills[4].flMinEnemySearchDelay = 0.30f;
     m_BotSkills[4].flMaxEnemySearchDelay = 0.36f;
     m_BotSkills[4].flAlwaysDetectDistance = 4.0f;
-    m_BotSkills[4].sShootAtFeetWithRLPercent = 0;
     m_BotSkills[4].bCanPredict = false;
     m_BotSkills[4].iMaxHearVolume = 15;
     m_BotSkills[4].iFov = 110;
@@ -874,13 +833,6 @@ void CBotManager::PickNextTrigger()
     {
         entity &e = ents[i];
 
-#if defined AC_CUBE
-/*        if ((e.type != TRIGGER) || !e.spawned)
-            continue;*/
-#elif defined VANILLA_CUBE
-        if ((e.type != CARROT) || !e.spawned)
-            continue;
-#endif
         if (OUTBORD(e.x, e.y)) continue;
 
         vec o(e.x, e.y, S(e.x, e.y)->floor+player1->eyeheight);
@@ -930,14 +882,7 @@ botent *CBotManager::CreateBot(const char *team, const char *skill, const char *
     loopi(NUMGUNS) m->ammo[i] = m->mag[i] = 0;
     m->lifesequence = 0;
     setskin(m, rnd(6));
-    // Create new bot class, dependand on the current mod
-#if defined VANILLA_CUBE
-    m->pBot = new CCubeBot;
-#elif defined AC_CUBE
     m->pBot = new CACBot;
-#else
-    #error "Unsupported mod!"
-#endif
     m->type = ENT_BOT;
     m->pBot->m_pMyEnt = m;
     m->pBot->m_iLastBotUpdate = 0;
@@ -1046,18 +991,6 @@ void idlebots(int *Idle)
 }
 
 COMMAND(idlebots, "i");
-
-void drawbeamtobots()
-{
-    if(!botmode()) return;
-    loopv(bots)
-    {
-        if (bots[i])
-            particle_trail(PART_SMOKE, 500, player1->o, bots[i]->o);
-    }
-}
-
-COMMAND(drawbeamtobots, "");
 
 void kickbot(const char *szName)
 {
@@ -1184,34 +1117,6 @@ COMMAND(botskillall, "s");
 
 #ifndef RELEASE_BUILD
 
-#ifdef VANILLA_CUBE
-void drawbeamtocarrots()
-{
-    loopv(ents)
-    {
-        entity &e = ents[i];
-        vec o = { e.x, e.y, S(e.x, e.y)->floor+player1->eyeheight };
-        if ((e.type != CARROT) || !e.spawned) continue;
-        particle_trail(PART_SMOKE, 500, player1->o, o);
-    }
-}
-
-COMMAND(drawbeamtocarrots, "");
-
-void drawbeamtoteleporters()
-{
-    loopv(ents)
-    {
-        entity &e = ents[i];
-        vec o = { e.x, e.y, S(e.x, e.y)->floor+player1->eyeheight };
-        if (e.type != TELEPORT) continue;
-        particle_trail(PART_SMOKE, 500, player1->o, o);
-    }
-}
-
-COMMAND(drawbeamtoteleporters, "");
-#endif
-
 void telebot(void)
 {
     vec dest = player1->o, forward, right, up;
@@ -1310,12 +1215,5 @@ void testvisible(int iDir)
 }
 
 COMMANDF(testvisible, "i", (int *dir) { testvisible(*dir); });
-
-void mapsize(void)
-{
-    intret(sfactor);
-}
-
-COMMAND(mapsize, "");
 
 #endif

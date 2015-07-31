@@ -14,7 +14,7 @@ location::location(int sound, const worldobjreference &r, int priority) : cfg(NU
         if (lastmillis - warn_about_unregistered_sound > 30 * 1000) // delay message to every 30 secs so console is not spammed.
         {
             // occurs when a map contains an ambient sound entity, but sound entity is not found in map cfg file.
-            conoutf("\f3ERROR: this map contains at least one unregistered ambient sound (sound entity# %d)", sound);
+            conoutf("\f3ERROR: this map contains at least one unregistered ambient sound (sound slot# %d)", sound);
             warn_about_unregistered_sound = lastmillis;
         }
         stale = true;
@@ -68,7 +68,7 @@ location::~location()
 
 void location::attachworldobjreference(const worldobjreference &r)
 {
-    ASSERT(!stale && src && src->valid);
+    ASSERT(src && src->valid); // was: ASSERT(!stale && src && src->valid);
     if(stale) return;
     if(ref)
     {
@@ -98,7 +98,7 @@ void location::onsourcereassign(source *s)
 
 void location::updatepos()
 {
-    ASSERT(!stale && ref);
+    ASSERT(ref); // was: ASSERT(!stale && ref);
     if(stale) return;
 
     const vec &pos = ref->currentposition();
@@ -204,14 +204,14 @@ bool location::setvolume(float v)
 
 void location::offset(float secs)
 {
-    ASSERT(!stale);
+    // ASSERT(!stale);
     if(stale) return;
     src->secoffset(secs);
 }
 
 float location::offset()
 {
-    ASSERT(!stale);
+    // ASSERT(!stale);
     if(stale) return 0.0f;
     return src->secoffset();
 }
@@ -247,7 +247,7 @@ void locvector::replaceworldobjreference(const worldobjreference &oldr, const wo
     loopv(*this)
     {
         location *l = buf[i];
-        if(!l || !l->ref) continue;
+        if(!l || !l->ref || l->stale) continue;
         if(*l->ref==oldr) l->attachworldobjreference(newr);
     }
 }

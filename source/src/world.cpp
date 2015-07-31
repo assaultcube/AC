@@ -8,6 +8,7 @@ sqr *world = NULL;
 int sfactor, ssize, cubicsize, mipsize;
 
 header hdr;
+_mapconfigdata mapconfigdata;
 
 // main geometric mipmapping routine, recursively rebuild mipmaps within block b.
 // tries to produce cube out of 4 lower level mips as well as possible,
@@ -127,9 +128,18 @@ void closestenttype(char *what)
 COMMAND(nextclosestent, "");
 COMMAND(closestenttype, "s");
 
+bool pinnedclosestent = false;
+static int pinnedent = -1;
+COMMANDF(toggleclosestentpin, "", () { pinnedclosestent = ents.inrange((pinnedent = pinnedclosestent ? -1 : closestent())); });
+
 int closestent()        // used for delent and edit mode ent display
 {
     if(noteditmode("closestent")) return -1;
+    if(pinnedclosestent)
+    {
+        if(ents.inrange(pinnedent) && ents[pinnedent].type != NOTUSED) return pinnedent;
+        pinnedclosestent = false; // release lock when ent is deleted
+    }
     int best = -1, bcnt = 0;
     float bdist = 99999;
     loopj(3)
@@ -165,34 +175,43 @@ int closestent()        // used for delent and edit mode ent display
     return best;
 }
 
-void entproperty(int prop, int amount)
+void entproperty(int *prop, float *famount, int *unscaled)
 {
     int n = closestent();
-    if(n<0) return;
+    if(n < 0) return;
     entity &e = ents[n];
-    switch(prop)
+    int old_a1 = e.attr1;
+    int t = e.type < MAXENTTYPES ? e.type : 0;
+    int amount = int(*famount * (*prop >= 0 && *prop < 7 && !*unscaled ? entscale[t][*prop] : 1));
+
+    switch(*prop)
     {
         case 0: e.attr1 += amount; break;
         case 1: e.attr2 += amount; break;
         case 2: e.attr3 += amount; break;
         case 3: e.attr4 += amount; break;
+        case 4: e.attr5 += amount; break;
+        case 5: e.attr6 += amount; break;
+        case 6: e.attr7 += amount; break;
         case 11: e.x += amount; break;
         case 12: e.y += amount; break;
         case 13: e.z += amount; break;
     }
+    clampentityattributes(e);
     switch(e.type)
     {
         case LIGHT: calclight(); break;
         case SOUND:
             audiomgr.preloadmapsound(e);
             entityreference entref(&e);
-            location *loc = audiomgr.locations.find(e.attr1-amount, &entref, mapsounds);
+            location *loc = audiomgr.locations.find(old_a1, &entref, mapsounds);
             if(loc)
                 loc->drop();
     }
     if(changedents.find(n) == -1) changedents.add(n);   // apply ent changes later (reduces network traffic)
     unsavededits++;
 }
+COMMAND(entproperty, "ifi");
 
 hashtable<char *, enet_uint32> mapinfo, &resdata = mapinfo;
 
@@ -204,22 +223,42 @@ void getenttype()
     if(type < 0 || type >= MAXENTTYPES) return;
     result(entnames[type]);
 }
+COMMAND(getenttype, "");
 
-void getentattr(int *attr)
+void getentattr(int *attr, int *unscaled)
 {
-    int e = closestent();
-    if(e>=0) switch(*attr)
+    int n = closestent();
+    const char *res = "0";
+    if(n >= 0)
     {
-        case 0: intret(ents[e].attr1); return;
-        case 1: intret(ents[e].attr2); return;
-        case 2: intret(ents[e].attr3); return;
-        case 3: intret(ents[e].attr4); return;
+        entity &e = ents[n];
+        int t = e.type < MAXENTTYPES ? e.type : 0;
+        int scale = *attr >= 0 && *attr < 7 && !*unscaled ? entscale[t][*attr] : 1;
+        switch(*attr)
+        {
+            #define CHKATTR(x) case x - 1: res = floatstr(float(e.attr##x) / scale, true); break
+            CHKATTR(1);
+            CHKATTR(2);
+            CHKATTR(3);
+            CHKATTR(4);
+            CHKATTR(5);
+            CHKATTR(6);
+            CHKATTR(7);
+            #undef CHKATTR
+        }
     }
-    intret(0);
+    result(res);
+}
+COMMAND(getentattr, "ii");
+
+void deletesoundentity(entity &e)
+{
+    entityreference entref(&e);
+    location *loc = audiomgr.locations.find(e.attr1, &entref, mapsounds);
+    if(loc) loc->drop();
 }
 
-COMMAND(getenttype, "");
-COMMAND(getentattr, "i");
+vector<persistent_entity> deleted_ents;
 
 void delent()
 {
@@ -227,21 +266,13 @@ void delent()
     if(n<0) { conoutf("no more entities"); return; }
     syncentchanges(true);
     int t = ents[n].type;
-    conoutf("%s entity deleted", entnames[t]);
+    conoutf("%s entity deleted", entnames[t % MAXENTTYPES]);
 
     entity &e = ents[n];
-
-    if (t == SOUND) //stop playing sound
-    {
-        entityreference entref(&e);
-        location *loc = audiomgr.locations.find(e.attr1, &entref, mapsounds);
-
-        if(loc)
-            loc->drop();
-    }
-
+    if(t == SOUND) deletesoundentity(e); //stop playing sound
+    deleted_ents.add(e);
     ents[n].type = NOTUSED;
-    addmsg(SV_EDITENT, "ri9", n, NOTUSED, 0, 0, 0, 0, 0, 0, 0);
+    addmsg(SV_EDITENT, "ri9i3", n, NOTUSED, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
     switch(t)
     {
@@ -249,52 +280,96 @@ void delent()
     }
     unsavededits++;
 }
+COMMAND(delent, "");
 
-int findtype(char *what)
+void undelent(char *index)
 {
-    loopi(MAXENTTYPES) if(strcmp(what, entnames[i])==0) return i;
-    conoutf("unknown entity type \"%s\"", what);
-    return NOTUSED;
+    if(noteditmode("undelent")) return;
+    if(!deleted_ents.length()) { conoutf("no more entities to undelete"); return; }
+    int n = isdigit(*index) ? strtol(index, NULL, 0) : deleted_ents.length() - 1;
+    if(deleted_ents.inrange(n))
+    {
+        persistent_entity e = deleted_ents.remove(n);
+        int t = e.type < MAXENTTYPES ? e.type : NOTUSED;
+        if(OUTBORD(e.x, e.y)) conoutf("failed to undelete %s entity (coordinates outside map borders)", entnames[t]);
+        else
+        {
+            newentity(-1, e.x, e.y, e.z, entnames[t], float(e.attr1) / entscale[t][0], float(e.attr2) / entscale[t][1], float(e.attr3) / entscale[t][2], float(e.attr4) / entscale[t][3]);
+            *((persistent_entity *) &ents.last()) = e;
+            conoutf("%s entity undeleted", entnames[t]);
+        }
+    }
+}
+COMMAND(undelent, "s");
+
+void getdeletedentities()
+{
+    vector<char> res;
+    loopv(deleted_ents)
+    {
+        persistent_entity &e = deleted_ents[i];
+        int t = e.type < MAXENTTYPES ? e.type : NOTUSED;
+        cvecprintf(res,"%s %d %d %d  %s\n", entnames[t], e.x, e.y, e.z, formatentityattributes(e));
+    }
+    if(res.length()) res.last() = '\0';
+    else res.add('\0');
+    result(res.getbuf());
+}
+COMMAND(getdeletedentities, "");
+
+void unlistdeletedentity(char *which)
+{
+    if(!strcasecmp(which, "all")) deleted_ents.setsize(0);
+    else if(!strcasecmp(which, "last")) deleted_ents.pop();
+    else if(isdigit(*which))
+    {
+        int n = strtol(which, NULL, 0);
+        if(deleted_ents.inrange(n)) deleted_ents.remove(n);
+    }
+    intret(deleted_ents.length());
+}
+COMMAND(unlistdeletedentity, "s");
+
+int findtype(const char *what)
+{
+    int t = getlistindex(what, entnames, true, NOTUSED);
+    if(t == NOTUSED) conoutf("unknown entity type \"%s\"", what);
+    return t;
 }
 
-entity *newentity(int index, int x, int y, int z, char *what, int v1, int v2, int v3, int v4)
+void newentity(int index, int x, int y, int z, const char *what, float v1f, float v2f, float v3f, float v4f) // add an entity or overwrite an existing one
 {
     int type = findtype(what);
-    if(type==NOTUSED) return NULL;
-
-    if (type == SOUND && index >= 0)
-    {
-        entity &o = ents[index];
-
-        entityreference entref(&o);
-        location *loc = audiomgr.locations.find(o.attr1, &entref, mapsounds);
-
-        if(loc)
-            loc->drop();
+    if(type == NOTUSED) return;
+    if (index >= 0 && ents[index].type == SOUND) deletesoundentity(ents[index]); // overwriting sound entity
+    switch(type)
+    { // MAPMODEL, PLAYERSTART and CTF-FLAG use the current camera direction as value for attr1, so attr234 need to be moved
+        case MAPMODEL:
+            v4f = v3f;
+            v3f = v2f;
+        case PLAYERSTART:
+        case CTF_FLAG:
+            v2f = v1f;
+            int y = camera1->yaw;
+            if(type != PLAYERSTART) y = y + 7 - (y + 7) % 15;
+            v1f = y;
+            break;
     }
 
+    int v1 = v1f * entscale[type][0], v2 = v2f * entscale[type][1], v3 = v3f * entscale[type][2], v4 = v4f * entscale[type][3];
     entity e(x, y, z, type, v1, v2, v3, v4);
 
     switch(type)
     {
         case LIGHT:
-            if(v1>64) e.attr1 = 64;
+            if(v1 > 64) e.attr1 = 64;
             if(!v1) e.attr1 = 16;
             if(!v2 && !v3 && !v4) e.attr2 = 255;
             break;
-
-        case MAPMODEL:
-            e.attr4 = e.attr3;
-            e.attr3 = e.attr2;
-        case PLAYERSTART:
-        case CTF_FLAG:
-            e.attr2 = v1;
-            e.attr1 = (int)camera1->yaw;
-            if(type != PLAYERSTART) e.attr1 = (e.attr1 + 7 - (e.attr1 + 7) % 15) * 4;
-            break;
     }
+    clampentityattributes(e);
     syncentchanges(true);
-    addmsg(SV_EDITENT, "ri9", index<0 ? ents.length() : index, type, e.x, e.y, e.z, e.attr1, e.attr2, e.attr3, e.attr4);
+    addmsg(SV_EDITENT, "ri9i3", index<0 ? ents.length() : index, type, e.x, e.y, e.z, e.attr1, e.attr2, e.attr3, e.attr4, e.attr5, e.attr6, e.attr7);
     e.spawned = true;
     int oldtype = type;
     if(index<0) ents.add(e);
@@ -313,10 +388,9 @@ entity *newentity(int index, int x, int y, int z, char *what, int v1, int v2, in
         case SOUND: audiomgr.preloadmapsound(e); break;
     }
     unsavededits++;
-    return index<0 ? &ents.last() : &ents[index];
 }
 
-void entset(char *what, int *a1, int *a2, int *a3, int *a4)
+void entset(char *what, float *a1, float *a2, float *a3, float *a4)
 {
     int n = closestent();
     if(n>=0)
@@ -326,7 +400,7 @@ void entset(char *what, int *a1, int *a2, int *a3, int *a4)
     }
 }
 
-COMMAND(entset, "siiii");
+COMMAND(entset, "sffff");
 
 void clearents(char *name)
 {
@@ -336,7 +410,13 @@ void clearents(char *name)
     loopv(ents)
     {
         entity &e = ents[i];
-        if(e.type==type) { e.type = NOTUSED; found = true; }
+        if(e.type == type)
+        {
+            if(type == SOUND) deletesoundentity(e);
+            deleted_ents.add(e);
+            e.type = NOTUSED;
+            found = true;
+        }
     }
     switch(type)
     {
@@ -346,6 +426,86 @@ void clearents(char *name)
 }
 
 COMMAND(clearents, "s");
+
+// entity commands based on entity number (for scripts, singleplayer only)
+
+void deleteentity(char *ns)
+{
+    int n = ATOI(ns);
+    if(noteditmode("deleteentity") || multiplayer(true) || !*ns || !ents.inrange(n)) return;
+    entity &e = ents[n];
+    int t = e.type;
+    if(t == SOUND) deletesoundentity(e);
+    conoutf("deleted entity #%d (%s)", n, entnames[e.type]);
+    deleted_ents.add(e);
+    memset(&e, 0, sizeof(persistent_entity));
+    e.type = NOTUSED;
+    if(t == LIGHT) calclight();
+    unsavededits++;
+}
+COMMAND(deleteentity, "s");
+
+void editentity(char **args, int numargs) // index x y z a1 a2 a3 a4 ...
+{
+    string res = "";
+    if(numargs > 0)
+    {
+        int n = ATOI(args[0]);
+        if(noteditmode("editentity") || multiplayer(true) || !*args[0] || !ents.inrange(n)) return;
+        entity &e = ents[n];
+        bool edit = false;
+        for(int i = 1; i < numargs; i++) if(*args[i]) edit = true; // only arguments other than empty strings can edit anything - otherwise we're just browsing
+        int t = e.type < MAXENTTYPES ? e.type : NOTUSED;
+        if(edit)
+        {
+            if(e.type == SOUND)
+            { // disable sound /before/ changing it
+                entityreference entref(&e);
+                location *loc = audiomgr.locations.find(e.attr1, &entref, mapsounds);
+                if(loc) loc->drop();
+            }
+            for(int i = 1; i < numargs; i++) if(*args[i])
+            {
+                int v = atof(args[i]) * (i < 4 || i > 10 ? 1 : entscale[t][i - 4]);
+                switch(i)
+                {
+                    case 1: e.x = v; break;
+                    case 2: e.y = v; break;
+                    case 3: e.z = v; break;
+                    case 4: e.attr1 = v; break;
+                    case 5: e.attr2 = v; break;
+                    case 6: e.attr3 = v; break;
+                    case 7: e.attr4 = v; break;
+                    case 8: e.attr5 = v; break;
+                    case 9: e.attr6 = v; break;
+                    case 10: e.attr7 = v; break;
+                }
+            }
+            clampentityattributes(e);
+            switch(e.type)
+            {
+                case LIGHT: calclight(); break;
+                case SOUND: audiomgr.preloadmapsound(e); break;
+            }
+            unsavededits++;
+        }
+        // give back unchanged or new entity properties
+        formatstring(res)("%s %d %d %d  %s", entnames[t], e.x, e.y, e.z, formatentityattributes(e));
+    }
+    result(res);
+}
+COMMAND(editentity, "v");
+
+void enumentities(char *type)
+{
+    vector<char> res;
+    int t = getlistindex(type, entnames, false, -1);
+    loopv(ents) if(ents[i].type == t) cvecprintf(res, "%d ", i);
+    if(!res.length()) res.add('\0');
+    else res.last() = '\0';
+    result(res.getbuf());
+}
+COMMAND(enumentities, "s");
 
 void scalecomp(uchar &c, int intens)
 {
@@ -529,8 +689,10 @@ bool empty_world(int factor, bool force)    // main empty world creation routine
     {   // all-new map
         int oldunsavededits = unsavededits;
         memset(&hdr, 0, sizeof(header));
+        mapconfigdata.clear();
         formatstring(hdr.maptitle)("Untitled Map by %s", player1->name);
-        setvar("waterlevel", (hdr.waterlevel = -100000));
+        setfvar("waterlevel", -10000);
+        hdr.waterlevel = waterlevel * WATERLEVELSCALING;
         setwatercolor();
         loopk(3) loopi(256) hdr.texlists[k][i] = i;
         ents.shrink(0);
@@ -569,6 +731,13 @@ bool empty_world(int factor, bool force)    // main empty world creation routine
     return true;
 }
 
+void mapsize(void)
+{
+    intret(sfactor);
+}
+
+COMMAND(mapsize, "");
+
 void mapenlarge()  { if(empty_world(-1, false)) addmsg(SV_NEWMAP, "ri", -1); }
 void mapshrink()   { if(empty_world(-2, false)) addmsg(SV_NEWMAP, "ri", -2); }
 void newmap(int *i)
@@ -577,18 +746,16 @@ void newmap(int *i)
     if(empty_world(*i, false))
     {
         addmsg(SV_NEWMAP, "ri", max(*i, 0));
-        if(identexists("onNewMap")) execute("onNewMap");
+        exechook(HOOK_SP_MP, "onNewMap", "");
     }
     defformatstring(startmillis)("%d", millis_());
-    alias("gametimestart", startmillis);
+    alias("gametimestart", startmillis, true);
 }
 
 COMMAND(mapenlarge, "");
 COMMAND(mapshrink, "");
 COMMAND(newmap, "i");
 COMMANDN(recalc, calclight, "");
-COMMAND(delent, "");
-COMMANDF(entproperty, "ii", (int *p, int *a) { entproperty(*p, *a); });
 
 void countperfectmips(int mip, int xx, int yy, int bs, int *stats)
 {

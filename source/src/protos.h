@@ -60,6 +60,8 @@ extern int rendercommand(int x, int y, int w);
 extern void renderconsole();
 extern char *getcurcommand();
 extern char *addreleaseaction(const char *s);
+extern void savehistory();
+extern void loadhistory();
 extern void writebinds(stream *f);
 extern void pasteconsole(char *dst);
 extern void clientlogf(const char *s, ...);
@@ -71,8 +73,8 @@ struct keym
     enum
     {
         ACTION_DEFAULT = 0,
-        ACTION_SPECTATOR,
         ACTION_EDITING,
+        ACTION_SPECTATOR,
         NUMACTIONS
     };
 
@@ -114,7 +116,7 @@ struct mitem
     struct gmenu *parent;
     color *bgcolor;
 
-    mitem(gmenu *parent, color *bgcolor, int type) : parent(parent), bgcolor(bgcolor), type(type) {}
+    mitem(gmenu *parent, color *bgcolor, int type) : parent(parent), bgcolor(bgcolor), mitemtype(type) {}
     virtual ~mitem() {}
 
     virtual void render(int x, int y, int w);
@@ -129,7 +131,7 @@ struct mitem
     bool isselection();
     void renderbg(int x, int y, int w, color *c);
     static color gray, white, whitepulse;
-    int type;
+    int mitemtype;
 
     enum { TYPE_TEXTINPUT, TYPE_KEYINPUT, TYPE_CHECKBOX, TYPE_MANUAL, TYPE_SLIDER };
 };
@@ -158,12 +160,15 @@ struct gmenu
     char *initaction;
     char *usefont;
     bool allowblink;
+    bool persistentselection;
     const char *mdl;
     int anim, rotspeed, scale;
     int footlen;
+    int xoffs, yoffs;
+    char *previewtexture;
     mdirlist *dirlist;
 
-    gmenu() : name(0), title(0), header(0), footer(0), initaction(0), usefont(0), allowblink(0), mdl(0), footlen(0), dirlist(0) {}
+    gmenu() : name(0), title(0), header(0), footer(0), initaction(0), usefont(0), allowblink(false), persistentselection(false), mdl(0), footlen(0), xoffs(0), yoffs(0), previewtexture(NULL), dirlist(0) {}
     virtual ~gmenu()
     {
         DELETEA(name);
@@ -256,12 +261,14 @@ extern void disablepolygonoffset(GLenum type, bool restore = true);
 extern void line(int x1, int y1, float z1, int x2, int y2, float z2);
 extern void line(int x1, int y1, int x2, int y2, color *c = NULL);
 extern void box(block &b, float z1, float z2, float z3, float z4);
+extern void box2d(int x1, int y1, int x2, int y2, int gray);
 extern void dot(int x, int y, float z);
 extern void linestyle(float width, int r, int g, int b);
 extern void blendbox(int x1, int y1, int x2, int y2, bool border, int tex = -1, color *c = NULL);
 extern void quad(GLuint tex, float x, float y, float s, float tx, float ty, float tsx, float tsy = 0);
 extern void quad(GLuint tex, vec &c1, vec &c2, float tx, float ty, float tsx, float tsy);
 extern void circle(GLuint tex, float x, float y, float r, float tx, float ty, float tr, int subdiv = 32);
+extern void framedquadtexture(GLuint tex, int x, int y, int xs, int ys, int border = 0, int backlight = 255, bool blend = false);
 extern void setperspective(float fovy, float aspect, float nearplane, float farplane);
 extern void sethudgunperspective(bool on);
 extern void gl_drawframe(int w, int h, float changelod, float curfps);
@@ -272,26 +279,6 @@ extern void renderaboveheadicon(playerent *p);
 extern void drawscope(bool preload = false);
 extern float dynfov();
 extern void damageblend(int n);
-
-enum
-{
-    CROSSHAIR_DEFAULT = 0,
-    CROSSHAIR_TEAMMATE,
-    CROSSHAIR_SCOPE,
-    CROSSHAIR_KNIFE,
-    CROSSHAIR_PISTOL,
-    CROSSHAIR_CARBINE,
-    CROSSHAIR_SHOTGUN,
-    CROSSHAIR_SMG,
-    CROSSHAIR_SNIPER,
-    CROSSHAIR_AR,
-    CROSSHAIR_CPISTOL,
-    CROSSHAIR_GRENADES,
-    CROSSHAIR_AKIMBO,
-    CROSSHAIR_NUM,
-};
-
-extern void drawcrosshair(playerent *p, int n, struct color *c = NULL, float size = -1.0f);
 
 // shadow
 extern bool addshadowbox(const vec &bbmin, const vec &bbmax, const vec &extrude, const glmatrixf &mat);
@@ -319,12 +306,14 @@ extern SDL_Surface *forcergbsurface(SDL_Surface *os);
 extern SDL_Surface *forcergbasurface(SDL_Surface *os);
 extern Texture *textureload(const char *name, int clamp = 0, bool mipmap = true, bool canreduce = false, float scale = 1.0f, bool trydl = false);
 extern Texture *lookuptexture(int tex, Texture *failtex = notexture, bool trydl = false);
+extern const char *gettextureslot(int i);
 extern bool reloadtexture(Texture &t);
-extern bool reloadtexture(const char *name);
 extern void reloadtextures();
-Texture *createtexturefromsurface(const char *name, SDL_Surface *s);
 extern void blitsurface(SDL_Surface *dst, SDL_Surface *src, int x, int y);
-void loadsky(char *basename, bool reload);
+extern void loadskymap(bool reload);
+extern void *texconfig_copy();
+extern void texconfig_delete(void *s);
+extern uchar *texconfig_paste(void *_s, uchar *usedslots);
 
 static inline Texture *lookupworldtexture(int tex, bool trydl = true)
 { return lookuptexture(tex, noworldtexture, trydl); }
@@ -332,6 +321,21 @@ static inline Texture *lookupworldtexture(int tex, bool trydl = true)
 extern float skyfloor;
 extern void draw_envbox(int fogdist);
 
+// renderhud
+enum
+{
+    CROSSHAIR_DEFAULT = NUMGUNS,
+    CROSSHAIR_TEAMMATE,
+    CROSSHAIR_SCOPE,
+    CROSSHAIR_EDIT,
+    CROSSHAIR_NUM
+};
+
+extern const char *crosshairnames[];
+extern Texture *crosshairs[];
+extern void drawcrosshair(playerent *p, int n, struct color *c = NULL, float size = -1.0f);
+
+// client
 extern int autodownload;
 extern void setupcurl();
 extern bool requirepackage(int type, const char *path);
@@ -382,7 +386,6 @@ extern void c2sinfo(playerent *d);
 extern void c2skeepalive();
 extern void neterr(const char *s);
 extern int getclientnum();
-extern void changeteam(int team, bool respawn = true); // deprecated?
 extern void getmap(char *name = NULL, char *callback = NULL);
 extern void newteam(char *name);
 extern bool securemapcheck(const char *map, bool msg = true);
@@ -487,12 +490,15 @@ extern void calcmapdims();
 extern bool empty_world(int factor, bool force);
 extern void remip(const block &b, int level = 0);
 extern void remipmore(const block &b, int level = 0);
+extern bool pinnedclosestent;
 extern int closestent();
-extern int findtype(char *what);
+extern void deletesoundentity(entity &e);
+extern int findtype(const char *what);
 extern int findentity(int type, int index = 0);
 extern int findentity(int type, int index, uchar attr2);
-extern entity *newentity(int index, int x, int y, int z, char *what, int v1, int v2, int v3, int v4);
+extern void newentity(int index, int x, int y, int z, const char *what, float v1, float v2, float v3, float v4);
 extern void mapmrproper(bool manual);
+extern vector<persistent_entity> deleted_ents;
 
 // worldlight
 extern int lastcalclight;
@@ -505,7 +511,8 @@ extern void undodynlights();
 extern void cleardynlights();
 extern void removedynlights(physent *owner);
 extern block *blockcopy(const block &b);
-extern void blockpaste(const block &b, int bx, int by, bool light);
+extern void blocktexusage(const block &b, uchar *used);
+extern void blockpaste(const block &b, int bx, int by, bool light, uchar *texmap);
 extern void blockpaste(const block &b);
 extern void freeblockp(block *b);
 extern void freeblock(block *&b);
@@ -521,6 +528,7 @@ extern void computeraytable(float vx, float vy, float fov);
 extern int isoccluded(float vx, float vy, float cx, float cy, float csize);
 
 // main
+extern char *lang;
 extern SDL_Surface *screen;
 extern int colorbits, depthbits, stencilbits;
 
@@ -549,11 +557,6 @@ struct font
         short x, y, w, h;
     };
 
-    struct utf8charinfo : charinfo
-    {
-        int code;
-    };
-
     char *name;
     Texture *tex;
     vector<charinfo> chars;
@@ -569,8 +572,6 @@ struct font
 extern int VIRTW; // virtual screen size for text & HUD
 extern bool ignoreblinkingbit;
 extern font *curfont;
-
-extern void initfont();
 extern bool setfont(const char *name);
 extern font *getfont(const char *name);
 extern void pushfont(const char *name);
@@ -606,6 +607,13 @@ extern void restoreeditundo(ucharbuf &q);
 extern int backupeditundo(vector<uchar> &buf, int undolimit, int redolimit);
 
 // renderhud
+#define HUDPOS_ICONSPACING 235
+#define HUDPOS_HEALTH 10
+#define HUDPOS_ARMOUR (HUDPOS_HEALTH + HUDPOS_ICONSPACING)
+#define HUDPOS_WEAPON (HUDPOS_ARMOUR + HUDPOS_ICONSPACING)
+#define HUDPOS_GRENADE (HUDPOS_WEAPON + HUDPOS_ICONSPACING)
+#define HUDPOS_NUMBERSPACING 70
+
 enum
 {
     HUDMSG_INFO = 0,
@@ -674,7 +682,7 @@ extern void particle_trail(int type, int fade, const vec &from, const vec &to);
 extern void particle_emit(int type, int *args, int basetime, int seed, const vec &p);
 extern void particle_fireball(int type, const vec &o);
 extern void addshotline(dynent *d, const vec &from, const vec &to);
-extern bool addbullethole(dynent *d, const vec &from, const vec &to, float radius = 1, bool noisy = true, int type = 0); // shotty
+extern bool addbullethole(dynent *d, const vec &from, const vec &to, float radius = 1, bool noisy = true);
 extern bool addscorchmark(vec &o, float radius = 7);
 
 extern void render_particles(int time, int typemask = ~0);
@@ -691,6 +699,9 @@ extern uchar *readmcfggz(char *name, int *size, int *sizegz);
 extern void rlencodecubes(vector<uchar> &f, sqr *s, int len, bool preservesolids);
 extern void rldecodecubes(ucharbuf &f, sqr *s, int len, int version, bool silent);
 extern void clearheaderextras();
+extern void automapconfig();
+extern void flagmapconfigchange();
+extern void getcurrentmapconfig(vector<char> &f, bool onlysounds);
 extern void xmapbackup(const char *nickprefix, const char *nick);
 extern void writeallxmaps();
 extern int loadallxmaps();
@@ -707,7 +718,7 @@ extern void mousemove(int dx, int dy);
 extern void fixcamerarange(physent *cam = camera1);
 extern void updatecrouch(playerent *p, bool on);
 extern bool objcollide(physent *d, const vec &objpos, float objrad, float objheight);
-extern bool collide(physent *d, bool spawn = false, float drop = 0, float rise = 0, int level = 7);
+extern bool collide(physent *d, bool spawn = false, float drop = 0, float rise = 0);
 extern void attack(bool on);
 extern void vecfromyawpitch(float yaw, float pitch, int move, int strafe, vec &m);
 extern void vectoyawpitch(const vec &v, float &yaw, float &pitch);
@@ -732,11 +743,11 @@ extern void writesoundconfig(stream *f);
 */
 
 // rendermodel
-extern void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, float yaw, float pitch, float speed = 0, int basetime = 0, playerent *d = NULL, modelattach *a = NULL, float scale = 1.0f);
+extern void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, float roll, float yaw, float pitch, float speed = 0, int basetime = 0, playerent *d = NULL, modelattach *a = NULL, float scale = 1.0f);
 extern void startmodelbatches();
 extern void endmodelbatches(bool flush = true);
 extern void clearmodelbatches();
-extern mapmodelinfo &getmminfo(int i);
+extern mapmodelinfo *getmminfo(int i);
 extern int findanim(const char *name);
 extern void loadskin(const char *dir, const char *altdir, Texture *&skin);
 extern model *loadmodel(const char *name, int i = -1, bool trydl = false);
@@ -748,10 +759,12 @@ extern void renderclients();
 extern void renderclient(playerent *d);
 extern void renderclient(playerent *d, const char *mdlname, const char *vwepname, int tex = 0);
 extern void updateclientname(playerent *d);
+extern void writemapmodelattributes();
+extern const char *mmshortname(const char *name);
 
 // weapon
 extern void shoot(playerent *d, vec &to);
-extern void createrays(vec &from, vec &to);
+extern void createrays(const vec &from, const vec &to);
 extern void removebounceents(playerent *owner);
 extern void movebounceents();
 extern void clearbounceents();
@@ -763,13 +776,6 @@ extern void setscope(bool activate);
 extern void setburst(bool activate);
 extern int intersect(playerent *d, const vec &from, const vec &to, vec *end = NULL);
 extern bool intersect(entity *e, const vec &from, const vec &to, vec *end = NULL);
-// Structure for storing traceresults
-struct traceresult_s
-{
-     vec end;
-     bool collided;
-};
-void TraceLine(vec from, vec to, dynent *pTracer, bool CheckPlayers, traceresult_s *tr, bool SkipTags=false);
 extern void damageeffect(int damage, playerent *d);
 extern void tryreload(playerent *p);
 extern void checkweaponstate();
@@ -786,6 +792,8 @@ extern void setspawn(int i, bool on);
 extern void checkitems(playerent *d);
 extern vector<int> changedents;
 extern void syncentchanges(bool force = false);
+extern void clampentityattributes(persistent_entity &e);
+extern const char *formatentityattributes(const persistent_entity &e, bool withcomma = false);
 
 // rndmap
 extern void perlinarea(block &b, int scale, int seed, int psize);
@@ -796,6 +804,10 @@ extern void renderdocmenu(void *menu, bool init);
 extern void toggledoc();
 extern void scrolldoc(int i);
 extern int stringsort(const char **a, const char **b);
+extern int stringsortrev(const char **a, const char **b);
+extern int stringsortignorecase(const char **a, const char **b);
+extern int stringsortignorecaserev(const char **a, const char **b);
+extern const char *docgetdesc(const char *name);
 #endif
 
 // protocol [client and server]
@@ -819,9 +831,10 @@ extern void conoutf(const char *s, ...);
 
 // command
 extern bool per_idents, neverpersist;
+extern char *exchangestr(char *o, const char *n);
 extern int variable(const char *name, int min, int cur, int max, int *storage, void (*fun)(), bool persist);
 extern float fvariable(const char *name, float min, float cur, float max, float *storage, void (*fun)(), bool persist);
-extern char *svariable(const char *name, const char *cur, char **storage, void (*fun)(), bool persist);
+extern char *svariable(const char *name, const char *cur, char **storage, void (*fun)(), void (*getfun)(), bool persist);
 extern void setvar(const char *name, int i, bool dofunc = false);
 extern void setfvar(const char *name, float f, bool dofunc = false);
 extern void setsvar(const char *name, const char *str, bool dofunc = false);
@@ -829,19 +842,22 @@ extern int getvar(const char *name);
 extern bool identexists(const char *name);
 extern bool addcommand(const char *name, void (*fun)(), const char *sig);
 extern int execute(const char *p);
+enum { HOOK_SP_MP = 1, HOOK_SP, HOOK_MP, HOOK_FLAGMASK = 0xff, HOOK_TEAM = 0x100, HOOK_NOTEAM = 0x200, HOOK_BOTMODE = 0x400, HOOK_FLAGMODE = 0x800, HOOK_ARENA = 0x1000 };
+extern bool exechook(int context, const char *ident, const char *body,...);  // execute cubescript hook if available and allowed in current context/gamemode
 extern char *executeret(const char *p);
-extern char *conc(char **w, int n, bool space);
+extern char *conc(const char **w, int n, bool space);
 extern void intret(int v);
-extern const char *floatstr(float v);
-extern void floatret(float v);
+extern const char *floatstr(float v, bool neat = false);
+extern void floatret(float v, bool neat = false);
 extern void result(const char *s);
 extern void exec(const char *cfgfile);
 extern bool execfile(const char *cfgfile);
+extern int listlen(const char *s);
 extern void resetcomplete();
-extern void complete(char *s);
+extern void complete(char *s, bool reversedirection);
 extern void push(const char *name, const char *action);
 extern void pop(const char *name);
-extern void alias(const char *name, const char *action, bool constant = false);
+extern void alias(const char *name, const char *action, bool temp = false, bool constant = false);
 extern const char *getalias(const char *name);
 extern void writecfg();
 extern void deletecfg();
@@ -854,6 +870,7 @@ extern char *strreplace(char *dest, const char *source, const char *search, cons
 extern void pushscontext(int newcontext);
 extern int popscontext();
 extern int curscontext();
+extern const char *escapestring(const char *s, bool force = true, bool noquotes = false);
 extern int execcontext;
 extern const char *currentserver(int i);
 extern void setcontext(const char *context, const char *info);
@@ -1110,8 +1127,3 @@ struct servercommandline
     }
 };
 
-// shotty: shotgun rays def
-struct sgray {
-    int ds; // damage flag: outer, medium, center: SGSEGDMG_*
-    vec rv; // ray vector
-};

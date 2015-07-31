@@ -165,14 +165,14 @@ void render_seg_new(float vx, float vy, float vh, int mip, int x, int y, int xs,
                 {
                     sqr *v = SWS(s,0,1,mfactor);
                     render_flat(s->ftex, xx<<mip, yy<<mip, 1<<mip, s->floor, s, s + 1, v + 1, v, false);
-                    if(s->floor<hdr.waterlevel && !reflecting) addwaterquad(xx<<mip, yy<<mip, 1<<mip);
+                    if(s->floor < waterlevel && !reflecting) addwaterquad(xx<<mip, yy<<mip, 1<<mip);
                 }
                 break;
             case FHF:
             {
                 LOOPD
                 render_flatdelta(s->ftex, xx<<mip, yy<<mip, 1<<mip, df(s), df(t), df(u), df(v), s, t, u, v, false);
-                if(s->floor-s->vdelta/4.0f<hdr.waterlevel && !reflecting) addwaterquad(xx<<mip, yy<<mip, 1<<mip);
+                if(s->floor - s->vdelta/4.0f < waterlevel && !reflecting) addwaterquad(xx<<mip, yy<<mip, 1<<mip);
                 break;
             }
         }

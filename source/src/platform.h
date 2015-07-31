@@ -19,6 +19,9 @@
 #include <ctype.h>
 #include <time.h>
 #include <limits.h>
+#ifdef __MINGW32__
+    #include <stdint.h>
+#endif
 #ifdef __GNUC__
     #include <new>
     #include <signal.h>
@@ -45,9 +48,6 @@
 #ifndef STANDALONE
     #include <SDL.h>
     #include <SDL_image.h>
-    //#include <SDL_ttf.h>
-
-    #include <utf8.h>
 
     #define GL_GLEXT_LEGACY
     #define __glext_h__
@@ -58,18 +58,20 @@
     #include "GL/glext.h"
 
     #ifdef __APPLE__
-        #include "INTL/libintl.h"
         #include "OpenAL/al.h"
         #include "OpenAL/alc.h"
         #include "Vorbis/vorbisfile.h"
     #else
-        #include <libintl.h>
         #include "AL/al.h"
         #include "AL/alc.h"
         #include "vorbis/vorbisfile.h"
     #endif
 
     #include <setjmp.h>
+#endif
+
+#if defined(WIN32) || defined(__APPLE__) || !defined(STANDALONE) || defined(AC_FORCE_SDL_THREADS)
+    #define AC_USE_SDL_THREADS
 #endif
 
 #ifndef CURL_STATICLIB

@@ -1,51 +1,3 @@
-// Fast Inverse Sqrt
-// http://www.gamedev.net/community/forums/topic.asp?topic_id=139956
-// http://www.lomont.org/Math/Papers/2003/InvSqrt.pdf
-// http://www.mceniry.net/papers/Fast%20Inverse%20Square%20Root.pdf
-// http://en.wikipedia.org/wiki/Fast_inverse_square_root
-#define UFINVSQRT(x)  union { int d; float f; } u; u.f = x; u.d = 0x5f3759df - (u.d >> 1)
-inline float ufInvSqrt (float x) { UFINVSQRT(x); return u.f; } // about 3.5% of error
-inline float fInvSqrt (float x) { UFINVSQRT(x); return 0.5f * u.f * ( 3.00175f - x * u.f * u.f ); } // about 0.1% of error
-inline float fSqrt (float x) { return x * fInvSqrt(x); }
-inline float ufSqrt (float x) { return x * ufInvSqrt(x); }
-inline float fACos( float x )
-{
-    int s = 1;
-    float y, r = 0;
-    if ( x < 0 )
-    {
-        s = -1;
-        r = 2.0f;
-        y = 1.0f + x;
-    }
-    else y = 1.0f - x;
-    UFINVSQRT(y);
-    u.f = 0.5f * u.f * ( 3.0f - y * u.f * u.f );
-    u.f = y * 0.5f * u.f * ( 3.0f - y * u.f * u.f );
-    return 1.57079632f * ( r + s * u.f * ( 0.9003163f + y * ( 0.07782684f + y * ( 0.006777598f + y * 0.015079262f ) ) ) );
-}
-#undef UFINVSQRT
-
-template <typename T> inline T pow2(T x) { return x*x; }
-
-// Fast Cosine
-// inspired after http://www.devmaster.net/forums/showthread.php?t=5784
-#define FCOS \
-    x = fabs(x); \
-    int s = 1; \
-    if ( x > 1.0f ) \
-    { \
-        int n = 0.5f * ( x + 1.0f ); \
-        x -= 2 * n; \
-        s = 1 - 2 * (n%2); \
-    } \
-    float y = ( 1.0f - x*x ); \
-    return s * y * ( 0.7853982f + y * 0.2146018f )
-inline float fCos(float x) { x *= 0.636619772f; FCOS; }
-inline float fSin(float x) { x *= 0.636619772f; x -= 1.0f; FCOS; }
-#undef FCOS
-
-inline float ufS2C(float x) { x *= x; return x < 1.0f ? ufSqrt(1.0f - x) : 0.0f; }
 
 struct vec
 {
@@ -86,14 +38,9 @@ struct vec
     float magnitude() const { return sqrtf(squaredlen()); }
     vec &normalize() { div(magnitude()); return *this; }
 
-    // should NOT be used
-    float fmag() const { return fSqrt(squaredlen()); }
-    float ufmag() const { return ufSqrt(squaredlen()); }
-    float fmagxy() const { return fSqrt(x*x + y*y); }
-    float ufmagxy() const { return ufSqrt(x*x + y*y); }
-
     float dist(const vec &e) const { vec t; return dist(e, t); }
     float dist(const vec &e, vec &t) const { t = *this; t.sub(e); return t.magnitude(); }
+    float squareddist(const vec &e) const { vec t = *this; t.sub(e); return t.squaredlen(); }
 
     float distxy(const vec &e) const { float dx = e.x - x, dy = e.y - y; return sqrtf(dx*dx + dy*dy); }
     float magnitudexy() const { return sqrtf(x*x + y*y); }
@@ -217,6 +164,58 @@ struct bvec
     bool iszero() const { return x==0 && y==0 && z==0; }
 
     vec tovec() const { return vec(x*(2.0f/255.0f)-1.0f, y*(2.0f/255.0f)-1.0f, z*(2.0f/255.0f)-1.0f); }
+};
+
+struct quat
+{
+    float x, y, z, w;
+
+    quat(float x, float y, float z, float w) : x(x), y(y), z(z), w(w) {}
+
+    quat(const vec &axis, float angle)
+    {
+        w = cosf(angle/2);
+        float s = sinf(angle/2);
+        x = s*axis.x;
+        y = s*axis.y;
+        z = s*axis.z;
+    }
+
+    quat(float yaw, float pitch) // quat(vec(0, 1, 0), pitch).mul(quat((vec(0, 0, 1), yaw))
+    {
+        yaw *= RAD / 2;
+        pitch *= RAD / 2;
+        float yw = cosf(yaw), ys = sinf(yaw);
+        float pw = cosf(pitch), ps = sinf(pitch);
+        x = ps * ys;
+        y = ps * yw;
+        z = pw * ys;
+        w = pw * yw;
+    }
+
+    quat &roll(float roll)  // quat(sinf(roll), 0, 0, cosf(roll)).mul(*this));
+    {
+        roll *= RAD / 2;
+        float px = sinf(roll), pw = cosf(roll);
+        quat o(*this);
+        x = pw * o.x + px * o.w;
+        y = pw * o.y - px * o.z;
+        z = pw * o.z + px * o.y;
+        w = pw * o.w - px * o.x;
+        return *this;
+    }
+/*
+    quat &mul(const quat &p, const quat &o)
+    {
+        x = p.w*o.x + p.x*o.w + p.y*o.z - p.z*o.y;
+        y = p.w*o.y - p.x*o.z + p.y*o.w + p.z*o.x;
+        z = p.w*o.z + p.x*o.y - p.y*o.x + p.z*o.w;
+        w = p.w*o.w - p.x*o.x - p.y*o.y - p.z*o.z;
+        return *this;
+    }
+
+    quat &mul(const quat &o) { return mul(quat(*this), o); }
+*/
 };
 
 struct glmatrixf
@@ -369,5 +368,29 @@ struct glmatrixf
     float determinant() const;
     void adjoint(const glmatrixf &m);
     bool invert(const glmatrixf &m, float mindet = 1.0e-10f);
+
+    void fromquat(quat &q)
+    {
+        float xx = q.x * q.x, xy = q.x * q.y, xz = q.x * q.z, xw = q.x * q.w,
+              yy = q.y * q.y, yz = q.y * q.z, yw = q.y * q.w,
+              zz = q.z * q.z, zw = q.z * q.w;
+        v[0]  = 1 - 2 * ( yy + zz );
+        v[1]  =     2 * ( xy - zw );
+        v[2]  =     2 * ( xz + yw );
+
+        v[4]  =     2 * ( xy + zw );
+        v[5]  = 1 - 2 * ( xx + zz );
+        v[6]  =     2 * ( yz - xw );
+
+        v[8]  =     2 * ( xz - yw );
+        v[9]  =     2 * ( yz + xw );
+        v[10] = 1 - 2 * ( xx + yy );
+
+        v[3]  = v[7] = v[11] = v[12] = v[13] = v[14] = 0;
+        v[15] = 1;
+    }
 };
+
+
+
 

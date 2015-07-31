@@ -1,4 +1,4 @@
-/** 
+/**
  @file  utility.h
  @brief ENet utility header
 */

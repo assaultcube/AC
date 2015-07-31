@@ -153,7 +153,7 @@ struct md3 : vertmodel
         }
     };
 
-    void render(int anim, int varseed, float speed, int basetime, const vec &o, float yaw, float pitch, dynent *d, modelattach *a, float scale)
+    void render(int anim, int varseed, float speed, int basetime, const vec &o, float roll, float yaw, float pitch, dynent *d, modelattach *a, float scale)
     {
         if(!loaded) return;
 
@@ -177,18 +177,20 @@ struct md3 : vertmodel
             shadowdir = vec(0, 1/SQRT2, -1/SQRT2);
             shadowdir.rotate_around_z((-shadowyaw-yaw-180.0f)*RAD);
             shadowdir.rotate_around_y(-pitch*RAD);
+            shadowdir.rotate_around_x(roll*RAD);
             (shadowpos = shadowdir).mul(shadowdist);
         }
 
         modelpos = o;
+        modelroll = roll;
         modelyaw = yaw;
         modelpitch = pitch;
 
         matrixpos = 0;
-        matrixstack[0].identity();
+        quat q(- yaw - 180, pitch);
+        matrixstack[0].fromquat(roll == 0.0f ? q : q.roll(roll));
         matrixstack[0].translate(o);
-        matrixstack[0].rotate_around_z((yaw+180)*RAD);
-        matrixstack[0].rotate_around_y(-pitch*RAD);
+
         if(anim&ANIM_MIRROR || scale!=1) matrixstack[0].scale(scale, anim&ANIM_MIRROR ? -scale : scale, scale);
         parts[0]->render(anim, varseed, speed, basetime, d);
 
@@ -245,7 +247,7 @@ struct md3 : vertmodel
             if(skin==notexture) conoutf("could not load model skin for %s", name1);
         }
         loopv(parts) parts[i]->scaleverts(scale/16.0f, vec(translate.x, -translate.y, translate.z));
-        radius = calcradius();
+        radius = calcradius(zradius);
         if(shadowdist) calcneighbors();
         calcbbs();
         return loaded = true;
@@ -255,6 +257,7 @@ struct md3 : vertmodel
 void md3load(char *model)
 {
     if(!loadingmd3) { conoutf("not loading an md3"); return; };
+    filtertext(model, model, FTXT__MEDIAFILEPATH);
     defformatstring(filename)("%s/%s", md3dir, model);
     md3::md3part &mdl = *new md3::md3part;
     loadingmd3->parts.add(&mdl);
@@ -265,9 +268,10 @@ void md3load(char *model)
 
 void md3skin(char *objname, char *skin)
 {
-    if(!objname || !skin) return;
+    filtertext(skin, skin, FTXT__MEDIAFILEPATH);
     if(!loadingmd3 || loadingmd3->parts.empty()) { conoutf("not loading an md3"); return; };
     md3::part &mdl = *loadingmd3->parts.last();
+    bool used = false;
     loopv(mdl.meshes)
     {
         md3::mesh &m = *mdl.meshes[i];
@@ -275,7 +279,14 @@ void md3skin(char *objname, char *skin)
         {
             defformatstring(spath)("%s/%s", md3dir, skin);
             m.skin = textureload(spath);
+            used = true;
         }
+    }
+    if(!used)
+    {
+        defformatstring(s)(", possibilities are: *");
+        loopv(mdl.meshes) concatformatstring(s, "|%s", mdl.meshes[i]->name);
+        conoutf("mesh \"%s\" not found in model %s, skin %s not loaded%s", objname, loadingmd3->loadname, skin, mdl.meshes.length() ? s : "");
     }
 }
 

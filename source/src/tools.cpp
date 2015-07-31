@@ -45,7 +45,7 @@ static const uchar transformenttab[] = {
             /* 16 */   /* CARROT         */ NOTUSED,                        16,
             /* 17 */   /* JUMPPAD        */ NOTUSED,                        17      };
 
-void transformoldentities(int mapversion, uchar &enttype)
+void transformoldentitytypes(int mapversion, uchar &enttype)
 {
     const uchar *usetab = transformenttab + (mapversion > 5 ? 1 : 0);
     if(mapversion < 8 && enttype < 18) enttype = usetab[enttype * 2];
@@ -85,7 +85,7 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
     lilswap(&s.hdr.version, 4);
     s.hdr.headersize = fixmapheadersize(s.hdr.version, s.hdr.headersize);
     int restofhead = min(s.hdr.headersize, sizeof_header) - sizeof_baseheader;
-    if(s.hdr.version > MAXMAPVERSION || s.hdr.numents > MAXENTITIES ||
+    if(s.hdr.version > MAPVERSION || s.hdr.numents > MAXENTITIES ||
        f->read(&s.hdr.waterlevel, restofhead) != restofhead ||
        !f->seek(clamp(s.hdr.headersize - sizeof_header, 0, MAXHEADEREXTRA), SEEK_CUR)) { delete f; return NULL; }
     if(s.hdr.version>=4)
@@ -99,9 +99,9 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
     entposs = new short[s.hdr.numents * 3];
     loopi(s.hdr.numents)
     {
-        f->read(&e, sizeof(persistent_entity));
+        f->read(&e, s.hdr.version < 10 ? 12 : sizeof(persistent_entity));
         lilswap((short *)&e, 4);
-        transformoldentities(s.hdr.version, e.type);
+        transformoldentitytypes(s.hdr.version, e.type);
         if(e.type == PLAYERSTART && (e.attr2 == 0 || e.attr2 == 1 || e.attr2 == 100)) s.spawns[e.attr2 == 100 ? 2 : e.attr2]++;
         if(e.type == CTF_FLAG && (e.attr2 == 0 || e.attr2 == 1)) { s.flags[e.attr2]++; s.flagents[e.attr2] = i; }
         s.entcnt[e.type]++;
@@ -422,6 +422,24 @@ const char *hiddenpwd(const char *pwd, int showchars)
     for(int i = (int)strlen(text) - 1; i >= sc; i--) text[i] = '*';
     return text;
 }
+
+int getlistindex(const char *key, const char *list[], bool acceptnumeric, int deflt)
+{
+    int max = 0;
+    while(list[max][0]) if(!strcasecmp(key, list[max])) return max; else max++;
+    if(acceptnumeric && isdigit(key[0]))
+    {
+        int i = (int)strtol(key, NULL, 0);
+        if(i >= 0 && i < max) return i;
+    }
+#if !defined(STANDALONE) && defined(_DEBUG)
+    char *opts = conc(list, -1, true);
+    if(*key) clientlogf("warning: unknown token \"%s\" (not in list [%s])", key, opts);
+    delstring(opts);
+#endif
+    return deflt;
+}
+
 //////////////// geometry utils ////////////////
 
 static inline float det2x2(float a, float b, float c, float d) { return a*d - b*c; }
@@ -485,4 +503,145 @@ bool glmatrixf::invert(const glmatrixf &m, float mindet)
     loopi(16) v[i] *= invdet;
     return true;
 }
+
+// multithreading and ipc tools wrapper for the server
+// all embedded servers and all standalone servers except on linux use SDL
+// the standalone linux version uses native linux libraries - and also makes use of shared memory
+
+#ifdef AC_USE_SDL_THREADS
+    #include "SDL_thread.h"      // also fetches SDL_mutex.h
+#else
+    #include <pthread.h>
+    #include <semaphore.h>
+    #include <sys/shm.h>
+#endif
+
+static int sl_sem_errorcountdummy = 0;
+
+#ifdef AC_USE_SDL_THREADS
+sl_semaphore::sl_semaphore(int init, int *ecnt)
+{
+    data = (void *)SDL_CreateSemaphore(init);
+    errorcount = ecnt ? ecnt : &sl_sem_errorcountdummy;
+    if(data == NULL) (*errorcount)++;
+}
+
+sl_semaphore::~sl_semaphore()
+{
+    if(data) SDL_DestroySemaphore((SDL_sem *) data);
+}
+
+void sl_semaphore::wait()
+{
+    if(SDL_SemWait((SDL_sem *) data) != 0) (*errorcount)++;
+}
+
+int sl_semaphore::trywait()
+{
+    return SDL_SemTryWait((SDL_sem *) data);
+}
+
+int sl_semaphore::getvalue()
+{
+    return SDL_SemValue((SDL_sem *) data);
+}
+
+void sl_semaphore::post()
+{
+    if(SDL_SemPost((SDL_sem *) data) != 0) (*errorcount)++;
+}
+#else
+sl_semaphore::sl_semaphore(int init, int *ecnt)
+{
+    errorcount = ecnt ? ecnt : &sl_sem_errorcountdummy;
+    data = (void *) new sem_t;
+    if(data == NULL || sem_init((sem_t *) data, 0, init) != 0) (*errorcount)++;
+}
+
+sl_semaphore::~sl_semaphore()
+{
+    if(data)
+    {
+        if(sem_destroy((sem_t *) data) != 0) (*errorcount)++;
+        delete (sem_t *)data;
+    }
+}
+
+void sl_semaphore::wait()
+{
+    if(sem_wait((sem_t *) data) != 0) (*errorcount)++;
+}
+
+int sl_semaphore::trywait()
+{
+    return sem_trywait((sem_t *) data);
+}
+
+int sl_semaphore::getvalue()
+{
+    int ret;
+    if(sem_getvalue((sem_t *) data, &ret) != 0) (*errorcount)++;
+    return ret;
+}
+
+void sl_semaphore::post()
+{
+    if(sem_post((sem_t *) data) != 0) (*errorcount)++;
+}
+#endif
+
+// (wrapping threads is slightly ugly, since SDL threads use a different return value (int) than pthreads (void *) - and that can't be solved with a typecast)
+#ifdef AC_USE_SDL_THREADS
+struct sl_threadinfo { int (*fn)(void *); void *data; SDL_Thread *handle; };
+
+static int sl_thread_indir(void *info) { return (*((sl_threadinfo*)info)->fn)(((sl_threadinfo*)info)->data); }
+
+void *sl_createthread(int (*fn)(void *), void *data)
+{
+    sl_threadinfo *ti = new sl_threadinfo;
+    ti->data = data;
+    ti->fn = fn;
+    ti->handle = SDL_CreateThread(sl_thread_indir, ti);
+    return (void *) ti;
+}
+
+int sl_waitthread(void *ti)
+{
+    int res;
+    SDL_WaitThread(((sl_threadinfo *)ti)->handle, &res);
+    delete (sl_threadinfo *) ti;
+    return res;
+}
+#else
+struct sl_threadinfo { int (*fn)(void *); void *data; pthread_t handle; int res; };
+
+static void *sl_thread_indir(void *info)
+{
+    sl_threadinfo *ti = (sl_threadinfo*) info;
+    ti->res = (ti->fn)(ti->data);
+    return &ti->res;
+}
+
+void *sl_createthread(int (*fn)(void *), void *data)
+{
+    sl_threadinfo *ti = new sl_threadinfo;
+    ti->data = data;
+    ti->fn = fn;
+    pthread_create(&(ti->handle), NULL, sl_thread_indir, ti);
+    return (void *) ti;
+}
+
+int sl_waitthread(void *ti)
+{
+    void *res;
+    pthread_join(((sl_threadinfo *)ti)->handle, &res);
+    int ires = *((int *)res);
+    delete (sl_threadinfo *) ti;
+    return ires;
+}
+#endif
+
+
+
+
 

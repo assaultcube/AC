@@ -3,6 +3,7 @@
 VARP(animationinterpolationtime, 0, 150, 1000);
 
 model *loadingmodel = NULL;
+mapmodelattributes loadingattributes;
 
 #include "tristrip.h"
 #include "modelcache.h"
@@ -86,27 +87,166 @@ void mdlcachelimit(int *limit)
 
 COMMAND(mdlcachelimit, "i");
 
-vector<mapmodelinfo> mapmodels;
+const char *mdlattrnames[] = { "keywords", "desc", "defaults", "usage", "author", "license", "distribution", "version", "" };
 
-void mapmodel(int *rad, int *h, int *zoff, char *snap, char *name)
+void mdlattribute(char *attrname, char *val)
 {
-    mapmodelinfo &mmi = mapmodels.add();
-    mmi.rad = *rad;
-    mmi.h = *h;
-    mmi.zoff = *zoff;
-    mmi.m = NULL;
-    formatstring(mmi.name)("mapmodels/%s", name);
+    checkmdl;
+    int i = getlistindex(attrname, mdlattrnames, true, MMA_NUM);
+    if(i < MMA_NUM)
+    {
+        DELSTRING(loadingattributes.n[i]);
+        filtertext(val, val, FTXT__MDLATTR);
+        if(*val) loadingattributes.n[i] = newstring(val);
+    }
 }
+
+COMMAND(mdlattribute, "ss");
+
+VAR(mapmodelchanged, 0, 0, 1);
+
+vector<mapmodelinfo> mapmodels;
+const char *mmpath = "mapmodels/";
+const char *mmshortname(const char *name) { return !strncmp(name, mmpath, strlen(mmpath)) ? name + strlen(mmpath) : name; }
+
+void mapmodel(int *rad, int *h, int *zoff, char *scale, char *name)
+{
+    if(*scale && *name) // ignore "mapmodel" commands with insufficient parameters
+    {
+        intret(mapmodels.length());
+        mapmodelinfo &mmi = mapmodels.add();
+        mmi.rad = *rad;
+        mmi.h = *h;
+        mmi.zoff = *zoff;
+        mmi.scale = atof(scale);
+        if(mmi.scale < 0.25f || mmi.scale > 4.0f) mmi.scale = 1.0f;
+        mmi.m = NULL;
+
+        filtertext(name, name, FTXT__MEDIAFILEPATH);
+        formatstring(mmi.name)("%s%s", mmpath, name);
+        mapmodelchanged = 1;
+        flagmapconfigchange();
+    }
+}
+COMMAND(mapmodel, "iiiss");
 
 void mapmodelreset()
 {
-    if(execcontext==IEXC_MAPCFG) mapmodels.shrink(0);
+    if(execcontext==IEXC_MAPCFG)
+    {
+        mapmodels.shrink(0);
+        mapmodelchanged = 1;
+    }
+}
+COMMAND(mapmodelreset, "");
+
+mapmodelinfo *getmminfo(int i) { return mapmodels.inrange(i) ? &mapmodels[i] : NULL; }
+
+COMMANDF(mapmodelslotname, "i", (int *idx) { result(mapmodels.inrange(*idx) ? mmshortname(mapmodels[*idx].name) : ""); }); // returns the model name that is configured in a certain slot
+COMMANDF(mapmodelslotbyname, "s", (char *name) // returns the slot(s) that a certain mapmodel is configured in
+{
+    string res = "";
+    loopv(mapmodels) if(!strcmp(name, mapmodels[i].name)) concatformatstring(res, "%s%d", *res ? " " : "", i);
+    result(res);
+});
+
+void mapmodelslotusage(int *n) // returns all entity indices that contain a mapmodel of slot n
+{
+    string res = "";
+    loopv(ents) if(ents[i].type == MAPMODEL && ents[i].attr2 == *n) concatformatstring(res, "%s%d", i ? " " : "", i);
+    result(res);
+}
+COMMAND(mapmodelslotusage, "i");
+
+void deletemapmodelslot(int *n, char *opt) // delete mapmodel slot - only if unused or "purge" is specified
+{
+    if(noteditmode("deletemapmodelslot") || multiplayer(true) || !mapmodels.inrange(*n)) return;
+    bool purgeall = !strcmp(opt, "purge");
+    if(!purgeall) loopv(ents) if(ents[i].type == MAPMODEL && ents[i].attr2 == *n) { conoutf("mapmodel slot #%d is in use: can't delete", *n); return; }
+    int deld = 0;
+    loopv(ents) if(ents[i].type == MAPMODEL)
+    {
+        entity &e = ents[i];
+        if(e.attr2 == *n)
+        { // delete entity
+            deleted_ents.add(e);
+            memset(&e, 0, sizeof(persistent_entity));
+            e.type = NOTUSED;
+            deld++;
+        }
+        else if(e.attr2 > *n) e.attr2--; // adjust models in higher slots
+    }
+    mapmodels.remove(*n);
+    defformatstring(s)(" (%d mapmodels purged)", deld);
+    conoutf("mapmodel slot #%d deleted%s", *n, deld ? s : "");
+    unsavededits++;
+    mapmodelchanged = 1;
+    hdr.flags |= MHF_AUTOMAPCONFIG; // requires automapcfg
+}
+COMMAND(deletemapmodelslot, "is");
+
+void editmapmodelslot(int *n, char *rad, char *h, char *zoff, char *scale, char *name) // edit slot parameters != ""
+{
+    string res = "";
+    if(!noteditmode("editmapmodelslot") && !multiplayer(true) && mapmodels.inrange(*n))
+    {
+        mapmodelinfo &mmi = mapmodels[*n];
+        if(*rad || *h || *zoff || *scale || *name)
+        { // change attributes
+            if(*rad) mmi.rad = strtol(rad, NULL, 0);
+            if(*h) mmi.h = strtol(h, NULL, 0);
+            if(*zoff) mmi.zoff = strtol(zoff, NULL, 0);
+            float s = atof(scale);
+            if(s < 0.25f || s > 4.0f) s = 1.0f;
+            if(*scale) mmi.scale = s;
+            mmi.m = NULL;
+            if(*name) formatstring(mmi.name)("%s%s", mmpath, name);
+            unsavededits++;
+            mapmodelchanged = 1;
+            hdr.flags |= MHF_AUTOMAPCONFIG; // requires automapcfg
+        }
+        formatstring(res)("%d %d %d %s \"%s\"", mmi.rad, mmi.h, mmi.zoff, floatstr(mmi.scale, true), mmshortname(mmi.name)); // give back all current attributes
+    }
+    result(res);
+}
+COMMAND(editmapmodelslot, "isssss");
+
+hashtable<const char *, mapmodelattributes *> mdlregistry;
+
+void setmodelattributes(const char *name, mapmodelattributes &ma)
+{
+    if(!strchr(name, ' ') && !strncmp(name, mmpath, strlen(mmpath))) name += strlen(mmpath); // for now: ignore mapmodels with spaces in the path (next release: ban them)
+    else return; // we only want mapmodels
+    mapmodelattributes **mrp = mdlregistry.access(name), *mr = mrp ? *mrp : NULL, *r = mr;
+    if(!r)
+    {
+        r = new mapmodelattributes;
+        copystring(r->name, name);
+    }
+    loopi(MMA_NUM)
+    {
+        if(ma.n[i])
+        {
+            if(!r->n[i]) mapmodelchanged = 1;
+            DELSTRING(r->n[i]);  // overwrite existing attributes
+            r->n[i] = ma.n[i];
+            ma.n[i] = NULL;
+        }
+    }
+    if(!mr) mdlregistry.access(r->name, r);
 }
 
-mapmodelinfo &getmminfo(int i) { return mapmodels.inrange(i) ? mapmodels[i] : *(mapmodelinfo *)0; }
-
-COMMAND(mapmodel, "iiiss");
-COMMAND(mapmodelreset, "");
+void mapmodelregister_(char **args, int numargs)  // read model attributes without loading the model
+{
+    mapmodelattributes ma;
+    if(numargs > 0)  // need a name at least
+    {
+        defformatstring(p)("%s%s", mmpath, args[0]);
+        loopirev(--numargs < MMA_NUM ? numargs : MMA_NUM) ma.n[i] = *args[i + 1] ? newstring(args[i + 1]) : NULL;
+        setmodelattributes(p, ma);
+    }
+}
+COMMANDN(mapmodelregister, mapmodelregister_, "v");
 
 hashtable<const char *, model *> mdllookup;
 hashtable<const char *, char> mdlnotfound;
@@ -129,6 +269,7 @@ model *loadmodel(const char *name, int i, bool trydl)     // load model by name 
         pushscontext(IEXC_MDLCFG);
         m = new md2(name);                      // try md2
         loadingmodel = m;
+        loopi(MMA_NUM) DELSTRING(loadingattributes.n[i]);
         if(!m->load())                          // md2 didn't load
         {
             delete m;
@@ -151,7 +292,12 @@ model *loadmodel(const char *name, int i, bool trydl)     // load model by name 
             }
         }
         popscontext();
-        if(loadingmodel && m) mdllookup.access(m->name(), m);
+        if(loadingmodel && m)
+        {
+            mdllookup.access(m->name(), m);
+            setmodelattributes(m->name(), loadingattributes);
+            if(m->shadowdist && !m->cullface) conoutf("\f3mapmodel config error: disabling face culling in combination with shadows will cause visual errors (%s)", m->name());
+        }
         loadingmodel = NULL;
     }
     if(mapmodels.inrange(i) && !mapmodels[i].m) mapmodels[i].m = m;
@@ -163,6 +309,101 @@ void cleanupmodels()
     enumerate(mdllookup, model *, m, m->cleanup());
 }
 
+void getmapmodelattributes(char *name, char *attr)
+{
+    const char *res = NULL;
+    mapmodelattributes **ap = mdlregistry.access(name), *a = ap ? *ap : NULL;
+    if(a)
+    {
+        int i = getlistindex(attr, mdlattrnames, true, MMA_NUM);
+        if(i < MMA_NUM) res = a->n[i];
+        else
+        {
+            string s = "";
+            loopi(MMA_NUM) if(a->n[i]) concatformatstring(s, " %s:\"%s\"", mdlattrnames[i], a->n[i]);
+            conoutf("%s:%s", a->name, *s ? s : " <no attributes set>");
+        }
+    }
+    result(res ? res : "");
+}
+COMMAND(getmapmodelattributes, "ss");
+
+static int mmasortorder = 0;
+int mmasort(mapmodelattributes **a, mapmodelattributes **b) { return strcmp((*a)->name, (*b)->name); }
+int mmasort2(mapmodelattributes **a, mapmodelattributes **b)
+{
+    const char *aa = (*a)->n[mmasortorder], *bb = (*b)->n[mmasortorder], nn[2] = { 127, 0 };
+    int i = strcmp(aa ? aa : nn, bb ? bb : nn);
+    return i ? i : (*a)->tmp - (*b)->tmp;
+}
+
+void writemapmodelattributes()
+{
+    stream *f = openfile("config" PATHDIVS "mapmodelattributes.cfg", "w");
+    vector<mapmodelattributes *> mmas;
+    enumerate(mdlregistry, mapmodelattributes *, m, mmas.add(m));
+    mmas.sort(mmasort);
+    f->printf("// automatically written on exit. this is cached information extracted from model configs. no point in editing it.\n// [path %s]\n", conc(mdlattrnames, MMA_NUM, true)); // memory leak, but w/e
+    loopv(mmas)
+    {
+        f->printf("\nmapmodelregister %s", mmas[i]->name);
+        loopj(MMA_NUM) f->printf(" %s", escapestring(mmas[i]->n[j]));  // escapestring can handle NULL
+    }
+    f->printf("\n\n");
+    delete f;
+}
+
+void listallmapmodelattributes(char **args, int numargs) // create a list of mapmodel paths and selected attributes
+{
+    // parse argument list
+    vector<const char *> opts;
+    loopi(MMA_NUM) opts.add(mdlattrnames[i]);
+    opts.add("sortby:"); opts.add("explodekeywords"); opts.add("");
+    vector<int> a;
+    loopi(numargs) a.add(getlistindex(args[i], (const char **)opts.getbuf(), false, opts.length()));
+    bool explodekeywords = false;
+    loopi(numargs) if(a[i] == MMA_NUM + 1) explodekeywords = true;
+
+    // build list of mapmodels (explode if necessary)
+    vector<mapmodelattributes *> mmas, emmas;
+    enumerate(mdlregistry, mapmodelattributes *, m,
+    {
+        if(explodekeywords && m->n[MMA_KEYWORDS] && listlen(m->n[MMA_KEYWORDS]) > 1)
+        {
+            vector<char *> keys;
+            explodelist(m->n[MMA_KEYWORDS], keys);
+            loopv(keys)
+            {
+                mmas.add(new mapmodelattributes(*m));
+                emmas.add(mmas.last())->n[MMA_KEYWORDS] = keys[i];
+            }
+        }
+        else mmas.add(m);
+    });
+
+    // sort the list
+    mmas.sort(mmasort);
+    loopirev(numargs - 1) if(a[i] == MMA_NUM) // sortby:
+    {
+        loopvj(mmas) mmas[j]->tmp = j; // store last sort order, because quicksort is not stable
+        if((mmasortorder = a[i + 1]) < MMA_NUM) mmas.sort(mmasort2);
+    }
+
+    // assemble output
+    vector<char> res;
+    loopv(mmas)
+    {
+        cvecprintf(res, "%s", mmas[i]->name);
+        loopvj(a) if(a[j] < MMA_NUM) cvecprintf(res, " %s", escapestring(mmas[i]->n[a[j]]));
+        res.add('\n');
+    }
+    if(res.length()) res.last() = '\0';
+    else res.add('\0');
+    loopv(emmas) { delstring(emmas[i]->n[MMA_KEYWORDS]); delete emmas[i]; } // only delete what was exploded
+    result(res.getbuf());
+}
+COMMAND(listallmapmodelattributes, "v");
+
 VARP(dynshadow, 0, 40, 100);
 VARP(dynshadowdecay, 0, 1000, 3000);
 
@@ -170,7 +411,7 @@ struct batchedmodel
 {
     vec o;
     int anim, varseed, tex;
-    float yaw, pitch, speed;
+    float roll, yaw, pitch, speed;
     int basetime;
     playerent *d;
     int attached;
@@ -216,7 +457,7 @@ void renderbatchedmodel(model *m, batchedmodel &b)
 
     if(stenciling)
     {
-        m->render(b.anim|ANIM_NOSKIN, b.varseed, b.speed, b.basetime, b.o, b.yaw, b.pitch, b.d, a, b.scale);
+        m->render(b.anim|ANIM_NOSKIN, b.varseed, b.speed, b.basetime, b.o, b.roll, b.yaw, b.pitch, b.d, a, b.scale);
         return;
     }
 
@@ -233,7 +474,7 @@ void renderbatchedmodel(model *m, batchedmodel &b)
     if(b.anim&ANIM_TRANSLUCENT)
     {
         glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-        m->render(b.anim|ANIM_NOSKIN, b.varseed, b.speed, b.basetime, b.o, b.yaw, b.pitch, b.d, a, b.scale);
+        m->render(b.anim|ANIM_NOSKIN, b.varseed, b.speed, b.basetime, b.o, b.roll, b.yaw, b.pitch, b.d, a, b.scale);
         glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 
         glDepthFunc(GL_LEQUAL);
@@ -245,7 +486,7 @@ void renderbatchedmodel(model *m, batchedmodel &b)
         glColor4f(color[0], color[1], color[2], m->translucency);
     }
 
-    m->render(b.anim, b.varseed, b.speed, b.basetime, b.o, b.yaw, b.pitch, b.d, a, b.scale);
+    m->render(b.anim, b.varseed, b.speed, b.basetime, b.o, b.roll, b.yaw, b.pitch, b.d, a, b.scale);
 
     if(b.anim&ANIM_TRANSLUCENT)
     {
@@ -359,7 +600,7 @@ const int dbgmbatch = 0;
 //VAR(dbgmbatch, 0, 0, 1);
 
 VARP(popdeadplayers, 0, 0, 1);
-void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, float yaw, float pitch, float speed, int basetime, playerent *d, modelattach *a, float scale)
+void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, float roll, float yaw, float pitch, float speed, int basetime, playerent *d, modelattach *a, float scale)
 {
     if(popdeadplayers && d && a)
     {
@@ -371,7 +612,12 @@ void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, fl
 
     if(rad >= 0)
     {
-        if(!rad) rad = m->radius;
+        if(!rad)
+        {
+            rad = m->radius;
+            if(roll != 0 || pitch != 0) rad = max(m->radius, m->zradius);  // FIXME: this assumes worst-case even for small angles and should be eased up (especially for lamp posts)
+            rad *= scale;
+        }
         if(isoccluded(camera1->o.x, camera1->o.y, o.x-rad, o.y-rad, rad*2)) return;
     }
 
@@ -403,6 +649,7 @@ void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, fl
         b.anim = anim;
         b.varseed = varseed;
         b.tex = tex;
+        b.roll = roll;
         b.yaw = yaw;
         b.pitch = pitch;
         b.speed = speed;
@@ -417,7 +664,7 @@ void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, fl
     if(stenciling)
     {
         m->startrender();
-        m->render(anim|ANIM_NOSKIN, varseed, speed, basetime, o, yaw, pitch, d, a, scale);
+        m->render(anim|ANIM_NOSKIN, varseed, speed, basetime, o, 0, yaw, pitch, d, a, scale);
         m->endrender();
         return;
     }
@@ -456,7 +703,7 @@ void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, fl
     if(anim&ANIM_TRANSLUCENT)
     {
         glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-        m->render(anim|ANIM_NOSKIN, varseed, speed, basetime, o, yaw, pitch, d, a, scale);
+        m->render(anim|ANIM_NOSKIN, varseed, speed, basetime, o, 0, yaw, pitch, d, a, scale);
         glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 
         glDepthFunc(GL_LEQUAL);
@@ -468,7 +715,7 @@ void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, fl
         glColor4f(color[0], color[1], color[2], m->translucency);
     }
 
-    m->render(anim, varseed, speed, basetime, o, yaw, pitch, d, a, scale);
+    m->render(anim, varseed, speed, basetime, o, 0, yaw, pitch, d, a, scale);
 
     if(anim&ANIM_TRANSLUCENT)
     {
@@ -677,7 +924,7 @@ void renderclient(playerent *d, const char *mdlname, const char *vwepname, int t
         anim |= ANIM_TRANSLUCENT; // see through followed player
         if(stenciling) return;
     }
-    rendermodel(mdlname, anim|ANIM_DYNALLOC, tex, 1.5f, o, d->yaw+90, d->pitch/4, speed, basetime, d, a);
+    rendermodel(mdlname, anim|ANIM_DYNALLOC, tex, 1.5f, o, 0, d->yaw+90, d->pitch/4, speed, basetime, d, a);
     if(!stenciling && !reflecting && !refracting)
     {
         if(isteam(player1->team, d->team)) renderaboveheadicon(d);
@@ -760,3 +1007,19 @@ void renderclients()
     loopv(players) if((d = players[i]) && d->state!=CS_SPAWNING && d->state!=CS_SPECTATE && (!player1->isspectating() || player1->spectatemode != SM_FOLLOW1ST || player1->followplayercn != i)) renderclient(d);
     if(player1->state==CS_DEAD || (reflecting && !refracting)) renderclient(player1);
 }
+
+void loadallmapmodels()  // try to find all mapmodels in packages/models/mapmodels
+{
+    vector<char *> files;
+    listfilesrecursive("packages/models/mapmodels", files);
+    loopvrev(files) if(strchr(files[i], '.')) delstring(files.remove(i)); // poor man's solution to remove ordinary files from the list: remove everything containing '.'
+    files.sort(stringsort);
+    loopvrev(files) if(files.inrange(i + 1) && !strcmp(files[i], files[i + 1])) delstring(files.remove(i + 1)); // remove doubles
+    loopv(files)
+    {
+        const char *mn = files[i] + strlen("packages/models/");
+        clientlogf("loadallmaps: %s %s", mn, loadmodel(mn) ? "loaded" : "failed to load");
+        delstring(files[i]);
+    }
+}
+COMMAND(loadallmapmodels, "");

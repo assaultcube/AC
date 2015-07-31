@@ -91,22 +91,42 @@ bool plcollide(physent *d, physent *o, float &headspace, float &hi, float &lo)  
     return false;
 }
 
-bool cornertest(int mip, int x, int y, int dx, int dy, int &bx, int &by, int &bs)    // recursively collide with a mipmapped corner cube
+int cornertest(int x, int y, int &bx, int &by, int &bs, sqr *&s, sqr *&h)    // iteratively collide with a mipmapped corner cube
 {
-    sqr *w = wmip[mip];
+    int mip = 1, res = -1;
+    while(SWS(wmip[mip], x>>mip, y>>mip, sfactor-mip)->type==CORNER) mip++;
+    mip--;
+    x >>= mip;
+    y >>= mip;
     int mfactor = sfactor - mip;
-    bool stest = SOLID(SWS(w, x+dx, y, mfactor)) && SOLID(SWS(w, x, y+dy, mfactor));
-    mip++;
-    x /= 2;
-    y /= 2;
-    if(SWS(wmip[mip], x, y, mfactor-1)->type==CORNER)
+    bx = x<<mip;
+    by = y<<mip;
+    bs = 1<<mip;
+    sqr *z = SWS(wmip[mip],x - 1, y,mfactor);
+    sqr *t = SWS(z,2,0,mfactor);     //   w
+    sqr *w = SWS(z,1,-1,mfactor);    //  zst
+    sqr *v = SWS(z,1,1,mfactor);     //   v
+    s = SWS(z,1,0,mfactor);
+
+    // now, this is _exactly_ how the renderer interprets map geometry...
+    if(SOLID(z))
     {
-        bx = x<<mip;
-        by = y<<mip;
-        bs = 1<<mip;
-        return cornertest(mip, x, y, dx, dy, bx, by, bs);
+        if(SOLID(w)) res = 2; // corners between solids are solid behind the wall or SPACE in front of it
+        else if(SOLID(v)) res = 3;
     }
-    return stest;
+    else if(SOLID(t))
+    {
+        if(SOLID(w)) res = 1;
+        else if(SOLID(v)) res = 0;
+    }
+    else
+    { // not a corner between solids
+        bool wv = w->ceil-w->floor < v->ceil-v->floor;
+        h = wv ? v : w;  // in front of the corner, use floor and ceil from h
+        if(z->ceil-z->floor < t->ceil-t->floor) res = wv ? 2 : 3;
+        else res = wv ? 1 : 0;
+    }            //  03
+    return res;  //  12
 }
 
 bool mmcollide(physent *d, float &hi, float &lo)           // collide with a mapmodel
@@ -119,26 +139,44 @@ bool mmcollide(physent *d, float &hi, float &lo)           // collide with a map
         // if(e.type==CLIP || (e.type == PLCLIP && d->type == ENT_PLAYER))
         if (e.type==CLIP || (e.type == PLCLIP && (d->type == ENT_BOT || d->type == ENT_PLAYER || (d->type == ENT_BOUNCE && ((bounceent *)d)->plclipped)))) // don't allow bots to hack themselves into plclips - Bukz 2011/04/14
         {
-            if(fabs(e.x-d->o.x) < e.attr2 + d->radius && fabs(e.y-d->o.y) < e.attr3 + d->radius)
+            bool hitarea = false;
+            switch(e.attr7 & 3)
             {
-                const float cz = float(S(e.x, e.y)->floor+e.attr1), ch = float(e.attr4);
-                const float dz = d->o.z-d->eyeheight;
-                if(dz < cz - 0.001) { if(cz<hi) hi = cz; }
+                default: // classic unrotated clip, possibly tilted
+                    hitarea = fabs(e.x - d->o.x) < float(e.attr2) / ENTSCALE5 + d->radius && fabs(e.y - d->o.y) < float(e.attr3) / ENTSCALE5 + d->radius;
+                    break;
+                case 3: // clip rotated 45°
+                {
+                    float rx = (e.x - d->o.x) * 0.707106781f, ry = (e.y - d->o.y) * 0.707106781f, rr = d->radius * 1.414213562f; // rotate player instead of clip (adjust player radius to compensate)
+                    hitarea = fabs(rx - ry) < float(e.attr3) / ENTSCALE5 + rr && fabs(rx + ry) < float(e.attr2) / ENTSCALE5 + rr;
+                    break;
+                }
+            }
+            if(hitarea)
+            {
+                float cz = float(S(e.x, e.y)->floor + float(e.attr1) / ENTSCALE10), ch = float(e.attr4) / ENTSCALE5;
+                if(e.attr6) switch(e.attr7 & 3)
+                { // incredibly ugly solution - but it only applies on the one tilted clip we stand on
+                    case 1: cz += (floor(0.5f + clamp(d->o.x - e.x + d->radius * (e.attr6 > 0 ? 1 : -1), -float(e.attr2) / ENTSCALE5, float(e.attr2) / ENTSCALE5))) * float(e.attr6) / (4 * ENTSCALE10); break; // tilt x
+                    case 2: cz += (floor(0.5f + clamp(d->o.y - e.y + d->radius * (e.attr6 > 0 ? 1 : -1), -float(e.attr3) / ENTSCALE5, float(e.attr3) / ENTSCALE5))) * float(e.attr6) / (4 * ENTSCALE10); break; // tilt y
+                }
+                const float dz = d->o.z - d->eyeheight;
+                if(dz < cz - 0.42) { if(cz<hi) hi = cz; }
                 else if(cz+ch>lo) lo = cz+ch;
                 if(hi-lo < playerheight) return true;
             }
         }
         else if(e.type==MAPMODEL)
         {
-            mapmodelinfo &mmi = getmminfo(e.attr2);
-            if(!&mmi || !mmi.h) continue;
-            const float r = mmi.rad+d->radius;
+            mapmodelinfo *mmi = getmminfo(e.attr2);
+            if(!mmi || !mmi->h) continue;
+            const float r = mmi->rad + d->radius;
             if(fabs(e.x-d->o.x)<r && fabs(e.y-d->o.y)<r)
             {
-                const float mmz = float(S(e.x, e.y)->floor+mmi.zoff+e.attr3);
+                const float mmz = float(S(e.x, e.y)->floor + mmi->zoff + float(e.attr3) / ENTSCALE5);
                 const float dz = d->o.z-eyeheight;
-                if(dz<mmz) { if(mmz<hi) hi = mmz; }
-                else if(mmz+mmi.h>lo) lo = mmz+mmi.h;
+                if(dz < mmz - 0.42) { if(mmz < hi) hi = mmz; }
+                else if(mmz + mmi->h > lo) lo = mmz + mmi->h;
                 if(hi-lo < playerheight) return true;
             }
         }
@@ -164,7 +202,7 @@ bool objcollide(physent *d, const vec &objpos, float objrad, float objheight) //
 // drop & rise are supplied by the physics below to indicate gravity/push for current mini-timestep
 static int cornersurface = 0;
 
-bool collide(physent *d, bool spawn, float drop, float rise, int level) // levels 1 = map, 2 = players, 4 = models, default: 1+2+4
+bool collide(physent *d, bool spawn, float drop, float rise)
 {
     cornersurface = 0;
     const float fx1 = d->o.x-d->radius;     // figure out integer cube rectangle this entity covers in map
@@ -178,9 +216,11 @@ bool collide(physent *d, bool spawn, float drop, float rise, int level) // level
     float hi = 127, lo = -128;
     const float eyeheight = d->eyeheight;
     const float playerheight = eyeheight + d->aboveeye;
+    float z1 = d->o.z-eyeheight, z2 = z1 + playerheight;
+    if(d->type != ENT_BOUNCE) z1 += 1.26;
     const int applyclip = d->type == ENT_BOT || d->type == ENT_PLAYER || (d->type == ENT_BOUNCE && ((bounceent *)d)->plclipped) ? TAGANYCLIP : TAGCLIP;
 
-    if(level&1) for(int y = y1; y<=y2; y++) for(int x = x1; x<=x2; x++)     // collide with map
+    for(int y = y1; y<=y2; y++) for(int x = x1; x<=x2; x++)     // collide with map
     {
         if(OUTBORD(x,y)) return true;
         sqr *s = S(x,y);
@@ -194,13 +234,41 @@ bool collide(physent *d, bool spawn, float drop, float rise, int level) // level
 
             case CORNER:
             {
+                sqr *ns = NULL, *h = NULL;
                 int bx = x, by = y, bs = 1;
-                cornersurface = 1;
-                if((x==x1 && y==y2 && cornertest(0, x, y, -1,  1, bx, by, bs) && fx1-bx<=fy2-by)
-                || (x==x2 && y==y1 && cornertest(0, x, y,  1, -1, bx, by, bs) && fx2-bx>=fy1-by) || !(++cornersurface)
-                || (x==x1 && y==y1 && cornertest(0, x, y, -1, -1, bx, by, bs) && fx1-bx+fy1-by<=bs)
-                || (x==x2 && y==y2 && cornertest(0, x, y,  1,  1, bx, by, bs) && fx2-bx+fy2-by>=bs))
-                    return true;
+                int q = cornertest(x, y, bx, by, bs, ns, h);
+                bool matter = false, match = false;
+                switch(q)                          //  0XX3
+                {                                  //  XXXX
+                    case 0:                        //  1XX2
+                        match = x==x2 && y==y2;
+                        matter = fx2-bx+fy2-by>=bs;
+                        break;
+                    case 1:
+                        match = x==x2 && y==y1;
+                        matter = fx2-bx>=fy1-by;
+                        break;
+                    case 2:
+                        match = x==x1 && y==y1;
+                        matter = fx1-bx+fy1-by<=bs;
+                        break;
+                    case 3:
+                        match = x==x1 && y==y2;
+                        matter = fx1-bx<=fy2-by;
+                        break;
+                    default:
+                        return true; // mapper's fault: corner with unsufficient solids: renderer can't handle those anyway: treat as solid
+                }
+                cornersurface = (q & 1) ? 1 : 2;
+                sqr *n = h && !matter ? h : ns;
+                ceil = n->ceil;  // use floor & ceil from higher mips (like the renderer)
+                floor = n->floor;
+                if(!match && d->type == ENT_BOUNCE) match = q == (d->vel.x < 0) * 2 + (d->vel.y * d->vel.x < 0); // when coming towards corner surface: prefer corner bounce
+                if(match && matter)
+                {
+                    if(!h) return true; // we hit a corner between solids...
+                    else if(z1 < ns->floor || z2 > ns->ceil) return true; // corner is not between solids, but we hit it...
+                }
                 cornersurface = 0;
                 break;
             }
@@ -217,11 +285,11 @@ bool collide(physent *d, bool spawn, float drop, float rise, int level) // level
         if(floor>lo) lo = floor;
     }
 
-    if(level&1 && hi-lo < playerheight) return true;
+    if(hi - lo < playerheight) return true;
 
     float headspace = 10.0f;
 
-    if( level&2 && d->type!=ENT_CAMERA)
+    if(d->type!=ENT_CAMERA)
     {
         loopv(players)       // collide with other players
         {
@@ -233,7 +301,7 @@ bool collide(physent *d, bool spawn, float drop, float rise, int level) // level
     }
 
     headspace -= 0.01f;
-    if( level&4 && mmcollide(d, hi, lo)) return true;    // collide with map models
+    if(mmcollide(d, hi, lo)) return true;    // collide with map models
 
     if(spawn)
     {
@@ -278,7 +346,7 @@ void resizephysent(physent *pl, int moveres, int curtime, float min, float max)
 {
     if(pl->eyeheightvel==0.0f) return;
 
-    const bool water = hdr.waterlevel>pl->o.z;
+    const bool water = waterlevel > pl->o.z;
     const float speed = curtime*pl->maxspeed/(water ? 2000.0f : 1000.0f);
     float h = pl->eyeheightvel * speed / moveres;
 
@@ -341,7 +409,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
     if(pl->type==ENT_BOUNCE)
     {
         bounceent* bounce = (bounceent *) pl;
-        water = hdr.waterlevel>pl->o.z;
+        water = waterlevel > pl->o.z;
 
         const float speed = curtime*pl->maxspeed/(water ? 2000.0f : 1000.0f);
         const float friction = water ? 20.0f : (pl->onfloor || isfly ? 6.0f : 30.0f);
@@ -350,7 +418,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         if(pl->onfloor) // apply friction
         {
             pl->vel.mul(fpsfric-1);
-        pl->vel.div(fpsfric);
+            pl->vel.div(fpsfric);
         }
         else // apply gravity
         {
@@ -373,7 +441,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
     {
         const int timeinair = pl->timeinair;
         int move = pl->onladder && !pl->onfloor && pl->move == -1 ? 0 : pl->move; // movement on ladder
-        if(!editfly) water = hdr.waterlevel>pl->o.z-0.5f;
+        if(!editfly) water = waterlevel > pl->o.z - 0.5f;
 
         float chspeed = 0.4f;
         if(!(pl->onfloor || pl->onladder)) chspeed = 1.0f;
@@ -510,11 +578,13 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         pl->o.z += f*d.z;
         hitplayer = NULL;
         if(!collide(pl, false, drop, rise)) continue;
-        else collided = true;
-        if(pl->type==ENT_BOUNCE && cornersurface)
+        int cornersurface1 = cornersurface;
+        collided = true;
+        vec oo = pl->o;
+        if(pl->type==ENT_BOUNCE && cornersurface1)
         { // try corner bounce
-            float ct2f = cornersurface == 2 ? -1.0 : 1.0;
-            vec oo = pl->o, xd = d;
+            float ct2f = cornersurface1 == 2 ? -1.0 : 1.0;
+            vec xd = d;
             xd.x = d.y * ct2f;
             xd.y = d.x * ct2f;
             pl->o.x += f * (-d.x + xd.x);
@@ -540,7 +610,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         if(pl->type!=ENT_BOUNCE && hitplayer)
         {
             vec dr(hitplayer->o.x-pl->o.x,hitplayer->o.y-pl->o.y,0);
-            float invdist = ufInvSqrt(dr.sqrxy()),
+            float invdist = 1.0f / dr.magnitudexy(),
                   push = (invdist < 10.0f ? dr.dotxy(d)*1.1f*invdist : dr.dotxy(d) * 11.0f);
 
             pl->o.x -= f*d.x*push;
@@ -550,14 +620,17 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
             pl->o.x += f*d.x*push;
             pl->o.y += f*d.y*push;
         }
-        if (cornersurface)
+        // the desired direction didn't work
+        pl->o.x -= f*d.x;
+        pl->o.y -= f*d.y;
+        oo = pl->o;
+        // try sliding
+        if(cornersurface1)
         {
-            float ct2f = (cornersurface == 2 ? -1.0 : 1.0);
+            // along a corner wall
+            float ct2f = cornersurface1 == 2 ? -1.0 : 1.0;
             float diag = f*d.magnitudexy()*2;
             vec vd = vec((d.y*ct2f+d.x >= 0.0f ? diag : -diag), (d.x*ct2f+d.y >= 0.0f ? diag : -diag), 0);
-            pl->o.x -= f*d.x;
-            pl->o.y -= f*d.y;
-
             pl->o.x += vd.x;
             pl->o.y += vd.y;
             if(!collide(pl, false, drop, rise))
@@ -565,28 +638,30 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
                 d.x = vd.x; d.y = vd.y;
                 continue;
             }
-            pl->o.x -= vd.x;
-            pl->o.y -= vd.y;
+            pl->o = oo;
         }
         else
         {
-#define WALKALONGAXIS(x,y) \
-            pl->o.x -= f*d.x; \
-            if(!collide(pl, false, drop, rise)) \
-            { \
-                d.x = 0; \
-                if(pl->type==ENT_BOUNCE) { pl->vel.x = -pl->vel.x; pl->vel.mul(0.7f); } \
-                continue; \
-            } \
+            // try slide along y axis
+            pl->o.y += f*d.y;
+            if(!collide(pl, false, drop, rise))
+            {
+                d.x = 0;
+                if(pl->type==ENT_BOUNCE) { pl->vel.x = -pl->vel.x; pl->vel.mul(0.7f); }
+                continue;
+            }
+            pl->o.y = oo.y;
+            // try x axis
             pl->o.x += f*d.x;
-            // player stuck, try slide along y axis
-            WALKALONGAXIS(x,y);
-            // still stuck, try x axis
-            WALKALONGAXIS(y,x);
+            if(!collide(pl, false, drop, rise))
+            {
+                d.y = 0;
+                if(pl->type==ENT_BOUNCE) { pl->vel.y = -pl->vel.y; pl->vel.mul(0.7f); }
+                continue;
+            }
+            pl->o.x = oo.x;
         }
-//         try just dropping down
-        pl->o.x -= f*d.x;
-        pl->o.y -= f*d.y;
+        // try just dropping down
         if(!collide(pl, false, drop, rise))
         {
             d.y = d.x = 0;
@@ -642,7 +717,11 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
             }
             if(pl==player1) pl->vel.z = 0;
         }
-        else if(pl->inwater && !water) audiomgr.playsound(S_SPLASH1, &pl->o);
+        else if(pl->inwater && !water)
+        {
+            audiomgr.playsound(S_SPLASH1, &pl->o);
+            if(pl->type == ENT_BOUNCE) pl->maxspeed /= 8; // prevent nades from jumping out of water
+        }
         pl->inwater = water;
     }
 
@@ -676,6 +755,7 @@ void physicsframe()          // optimally schedule physics frames inside the gra
         physframetime = clamp((PHYSFRAMETIME*gamespeed)/100, 1, PHYSFRAMETIME);
         physsteps = (diff + physframetime - 1)/physframetime;
         lastphysframe += physsteps * physframetime;
+        if(!multiplayer(false) && physsteps > 1000) physsteps = 1000;
     }
 }
 
@@ -746,12 +826,11 @@ void attack(bool on)
 
 void jumpn(bool on)
 {
-    if(intermission) return;
     if(player1->isspectating())
     {
         if(lastmillis - player1->respawnoffset > 1000 && on) togglespect();
     }
-    else if(player1->crouching) return;
+    else if(player1->crouching || intermission) return;
     else player1->jumpnext = on;
 }
 
@@ -987,7 +1066,7 @@ void entinmap(physent *d)    // brute force but effective way to find a free spa
     }
     // leave ent at original pos, possibly stuck
     d->resetinterp();
-    conoutf(_("can't find entity spawn spot! (%d, %d)"), d->o.x, d->o.y);
+    conoutf("can't find entity spawn spot! (%d, %d)", d->o.x, d->o.y);
 }
 
 void vecfromyawpitch(float yaw, float pitch, int move, int strafe, vec &m)

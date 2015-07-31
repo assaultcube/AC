@@ -190,11 +190,11 @@ void TraceLine(vec from, vec to, dynent *pTracer, bool CheckPlayers, traceresult
           entity &e = ents[i];
           if(e.type!=MAPMODEL) continue; // Only check map models for now
 
-          mapmodelinfo &mmi = getmminfo(e.attr2);
-          if(!&mmi || !mmi.h) continue;
+          mapmodelinfo *mmi = getmminfo(e.attr2);
+          if(!mmi || !mmi->h) continue;
 
-          float lo = (float)(S(e.x, e.y)->floor+mmi.zoff+e.attr3);
-          float hi = lo+mmi.h;
+          float lo = (float)(S(e.x, e.y)->floor + mmi->zoff + e.attr3);
+          float hi = lo + mmi->h;
           float z = (fabs(from.z-lo) < fabs(from.z-hi)) ? lo : hi;
           makevec(&v, e.x, e.y, z);
           flDist = GetDistance(from, v);
@@ -208,11 +208,11 @@ void TraceLine(vec from, vec to, dynent *pTracer, bool CheckPlayers, traceresult
 
      if (CheckPlayers)
      {
-          // Check if the 'line' collides with players
-          loopv(players)
+          // Check if the 'line' collides with bots
+          loopv(bots)
           {
-               playerent *d = players[i];
-               if(!d || (d==pTracer) || (d->state != CS_ALIVE)) continue; // Only check valid players
+               playerent *d = bots[i];
+               if(!d || (d==pTracer) || (d->state != CS_ALIVE)) continue; // Only check valid bots
 
                flDist = GetDistance(from, d->o);
 
@@ -476,19 +476,6 @@ bool IsInGame(dynent *d)
      {
           if (d == player1)
                return true;
-          else
-          {
-               loopv(players)
-               {
-#ifdef VANILLA_CUBE
-                    if (!players[i] || (players[i]->state == CS_DEDHOST)) continue;
-#elif defined(AC_CUBE)
-                    if (!players[i]) continue;
-#endif
-                    if (players[i] == d)
-                         return true;
-               }
-          }
      }
      return false;
 }

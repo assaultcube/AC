@@ -123,22 +123,26 @@ void getstring(char *text, ucharbuf &p, int len)
 // dst can be identical to src; dst needs to be of size "min(len, strlen(s)) + 1"
 // returns dst
 
+//#define FILENAMESALLLOWERCASE
+
 char *filtertext(char *dst, const char *src, int flags, int len)
 {
     char *res = dst;
-    bool nowhite = flags & FTXT_NOWHITE,             // removes all whitespace; adding ALLOWBLANKS, ALLOWNL or ALLOWTAB enables exceptions
-         allowblanks = flags & FTXT_ALLOWBLANKS,     // only in combination with FTXT_NOWHITE
-         allownl = flags & FTXT_ALLOWNL,             // only in combination with FTXT_NOWHITE
-         allowtab = flags & FTXT_ALLOWTAB,           // only in combination with FTXT_NOWHITE
-         nocolor = flags & FTXT_NOCOLOR,             // removes all '\f' + following char
-         tabtoblank = flags & FTXT_TABTOBLANK,       // replaces \t with single blanks
-         fillblanks = flags & FTXT_FILLBLANKS,       // convert ' ' to '_'
-         safecs = flags & FTXT_SAFECS,               // removes all special chars that may execute commands when evaluate arguments; the argument still requires encapsulation by ""
-         leet = flags & FTXT_LEET,                   // translates leetspeak
-         toupp = flags & FTXT_TOUPPER,               // translates to all-uppercase
-         tolow = flags & FTXT_TOLOWER,               // translates to all-lowercase
-         filename = flags & FTXT_FILENAME,           // removes characters, that are not allowed in filenames on all supported systems - does not filter COM, PRN, etc.
-         mapname = flags & FTXT_MAPNAME,             // only allows lowercase chars, digits, '_', '-' and '.'; probably should be used in combination with TOLOWER
+    bool nowhite = (flags & FTXT_NOWHITE) != 0,             // removes all whitespace; adding ALLOWBLANKS, ALLOWNL or ALLOWTAB enables exceptions
+         allowblanks = (flags & FTXT_ALLOWBLANKS) != 0,     // only in combination with FTXT_NOWHITE
+         allownl = (flags & FTXT_ALLOWNL) != 0,             // only in combination with FTXT_NOWHITE
+         allowtab = (flags & FTXT_ALLOWTAB) != 0,           // only in combination with FTXT_NOWHITE
+         nocolor = (flags & FTXT_NOCOLOR) != 0,             // removes all '\f' + following char
+         tabtoblank = (flags & FTXT_TABTOBLANK) != 0,       // replaces \t with single blanks
+         fillblanks = (flags & FTXT_FILLBLANKS) != 0,       // convert ' ' to '_'
+         safecs = (flags & FTXT_SAFECS) != 0,               // removes all special chars that may execute commands when evaluate arguments; the argument still requires encapsulation by ""
+         leet = (flags & FTXT_LEET) != 0,                   // translates leetspeak
+         toupp = (flags & FTXT_TOUPPER) != 0,               // translates to all-uppercase
+         tolow = (flags & FTXT_TOLOWER) != 0,               // translates to all-lowercase
+         filename = (flags & FTXT_FILENAME) != 0,           // strict a-z, 0-9 and "-_.()" (also translates "[]" and "{}" to "()"), removes everything between '<' and '>'
+         allowslash = (flags & FTXT_ALLOWSLASH) != 0,       // only in combination with FTXT_FILENAME
+         mapname = (flags & FTXT_MAPNAME) != 0,             // only allows lowercase chars, digits, '_', '-' and '.'; probably should be used in combination with TOLOWER
+         cropwhite = (flags & FTXT_CROPWHITE) != 0,         // removes leading and trailing whitespace
          pass = false;
 #if 1 // classic mode (will be removed, as soon as all sources are clear of it)
     switch(flags)
@@ -152,7 +156,13 @@ char *filtertext(char *dst, const char *src, int flags, int len)
     }
 #endif
     if(leet || mapname) nocolor = true;
+#ifdef FILENAMESALLLOWERCASE
+    if(filename) tolow = true;
+#endif
     bool trans = toupp || tolow || leet || filename || fillblanks;
+    bool leadingwhite = cropwhite;
+    char *lastwhite = NULL;
+    bool insidepointybrackets = false;
     for(int c = *src; c; c = *++src)
     {
         c &= 0x7F; // 7-bit ascii. not negotiable.
@@ -168,19 +178,23 @@ char *filtertext(char *dst, const char *src, int flags, int len)
             }
             if(filename)
             {
-                const char *org = "*?![]{};:/\\",
-                           *asc = "__o()()__oo",   // 'o' -> ignore
+                if(c == '>') insidepointybrackets = false;
+                else if(c == '<') insidepointybrackets = true;
+                if(insidepointybrackets || c == '>') continue; // filter anything between '<' and '>' as this may contain commands for texture loading
+                const char *org = "[]{}\\",
+                           *asc = "()()/",
                            *a = strchr(org, c);
-                if(a)
-                {
-                    c = asc[a - org];
-                    if(c == 'o') continue;
-                }
+                if(a) c = asc[a - org];
             }
             if(tolow) c = tolower(c);
             else if(toupp) c = toupper(c);
             if(fillblanks && c == ' ') c = '_';
         }
+        if(filename && !(islower(c)
+#ifndef FILENAMESALLLOWERCASE
+                    || isupper(c)
+#endif
+                    || isdigit(c) || strchr("._-()", c) || (allowslash && c == '/'))) continue;
         if(safecs && strchr("($)\"", c)) continue;
         if(c == '\t')
         {
@@ -199,12 +213,17 @@ char *filtertext(char *dst, const char *src, int flags, int len)
         if(mapname && !isalnum(c) && !strchr("_-./\\", c)) continue;
         if(isspace(c))
         {
+            if(leadingwhite) continue;
+            if(!lastwhite) lastwhite = dst;
             if(nowhite && !((c == ' ' && allowblanks) || (c == '\n' && allownl)) && !pass) continue;
         }
         else if(!pass && !isprint(c)) continue;
+        leadingwhite = false;
+        lastwhite = NULL;
         *dst++ = c;
         if(!--len || !*src) break;
     }
+    if(cropwhite && lastwhite) *lastwhite = '\0';
     *dst = '\0';
     return res;
 }
@@ -227,6 +246,8 @@ void filterrichtext(char *dst, const char *src, int len)
             {
                 case '\0': --src; continue;
                 case 'f': c = '\f'; break;
+                case 'a': c = '\a'; break;
+                case 't': c = '\t'; break;
                 case 'n': c = '\n'; break;
                 case 'x':
                     b = 16;
@@ -310,7 +331,7 @@ static const int msgsizes[] =               // size inclusive message token, 0 f
     SV_SHOOT, 0, SV_EXPLODE, 0, SV_SUICIDE, 1, SV_AKIMBO, 2, SV_RELOAD, 3, SV_AUTHT, 0, SV_AUTHREQ, 0, SV_AUTHTRY, 0, SV_AUTHANS, 0, SV_AUTHCHAL, 0,
     SV_GIBDIED, 5, SV_DIED, 5, SV_GIBDAMAGE, 7, SV_DAMAGE, 7, SV_HITPUSH, 6, SV_SHOTFX, 6, SV_THROWNADE, 8,
     SV_TRYSPAWN, 1, SV_SPAWNSTATE, 23, SV_SPAWN, 3, SV_SPAWNDENY, 2, SV_FORCEDEATH, 2, SV_RESUME, 0,
-    SV_DISCSCORES, 0, SV_TIMEUP, 3, SV_EDITENT, 10, SV_ITEMACC, 2,
+    SV_DISCSCORES, 0, SV_TIMEUP, 3, SV_EDITENT, 13, SV_ITEMACC, 2,
     SV_MAPCHANGE, 0, SV_ITEMSPAWN, 2, SV_ITEMPICKUP, 2,
     SV_PING, 2, SV_PONG, 2, SV_CLIENTPING, 2, SV_GAMEMODE, 2,
     SV_EDITMODE, 2, SV_EDITH, 7, SV_EDITT, 7, SV_EDITS, 6, SV_EDITD, 6, SV_EDITE, 6, SV_NEWMAP, 2,

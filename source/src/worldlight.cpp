@@ -2,7 +2,7 @@
 
 #include "cube.h"
 
-VAR(lightscale,1,4,100);
+#define LIGHTSCALE 4
 
 void lightray(float bx, float by, const persistent_entity &light, float fade = 1, bool flicker = false)     // done in realtime, needs to be fast
 {
@@ -13,7 +13,7 @@ void lightray(float bx, float by, const persistent_entity &light, float fade = 1
     float dist = (float)sqrt(dx*dx+dy*dy);
     if(dist<1.0f) return;
     int reach = light.attr1;
-    int steps = (int)(reach*reach*1.6f/dist); // can change this for speedup/quality?
+    int steps = (int)(reach*reach*1.6f/dist);
     const int PRECBITS = 12;
     const float PRECF = 4096.0f;
     int x = (int)(lx*PRECF);
@@ -22,12 +22,12 @@ void lightray(float bx, float by, const persistent_entity &light, float fade = 1
     int l = light.attr2*fadescale;
     int stepx = (int)(dx/(float)steps*PRECF);
     int stepy = (int)(dy/(float)steps*PRECF);
-    int stepl = (int)(l/(float)steps); // incorrect: light will fade quicker if near edge of the world
+    int stepl = (int)(l/(float)steps);
 
     if(maxtmus)
     {
-        l /= lightscale;
-        stepl /= lightscale;
+        l /= LIGHTSCALE;
+        stepl /= LIGHTSCALE;
 
         if(light.attr3 || light.attr4)      // coloured light version, special case because most lights are white
         {
@@ -44,10 +44,10 @@ void lightray(float bx, float by, const persistent_entity &light, float fade = 1
             int stepg = (int)(g/(float)steps);
             int b = light.attr4*fadescale;
             int stepb = (int)(b/(float)steps);
-            g /= lightscale;
-            stepg /= lightscale;
-            b /= lightscale;
-            stepb /= lightscale;
+            g /= LIGHTSCALE;
+            stepg /= LIGHTSCALE;
+            b /= LIGHTSCALE;
+            stepb /= LIGHTSCALE;
             loopi(steps)
             {
                 sqr *s = S(x>>PRECBITS, y>>PRECBITS);
@@ -195,8 +195,7 @@ void calclight()
         s++;
     }
 
-    uint keep = randomMT();
-    seedMT(ents.length() + hdr.maprevision);
+    seedMT(ents.length() + hdr.maprevision);   // static seed -> nothing random here
 
     loopv(ents)
     {
@@ -204,7 +203,7 @@ void calclight()
         if(e.type==LIGHT) calclightsource(e);
     }
 
-    seedMT(keep);
+    popMT();   // undo the static seedMT() from above
 
     block bb = { mapdims.x1 - 1, mapdims.y1 - 1, mapdims.xspan + 2, mapdims.yspan + 2 };
     postlightarea(bb);
@@ -361,7 +360,23 @@ block *blockcopy(const block &s)
     return b;
 }
 
-void blockpaste(const block &b, int bx, int by, bool light)  // slow version, editmode only
+void blocktexusage(const block &b, uchar *used)
+{
+    const sqr *q = (const sqr *)((&b)+1);
+    loopirev(b.xs * b.ys)
+    { // collect used texture slots in block
+        used[q->wtex] = 1;
+        if(q->type != SOLID)
+        {
+            used[q->ctex] = 1;
+            used[q->ftex] = 1;
+            used[q->utex] = 1;
+        }
+        q++;
+    }
+}
+
+void blockpaste(const block &b, int bx, int by, bool light, uchar *texmap)  // slow version, editmode only
 {
     const sqr *q = (const sqr *)((&b)+1);
     sqr *dest = 0;
@@ -377,7 +392,15 @@ void blockpaste(const block &b, int bx, int by, bool light)  // slow version, ed
         tg = dest->g;
         tb = dest->b;
 
-        *dest = *q++;
+        *dest = *q;
+
+        if(texmap)
+        { // translate texture slot numbers
+            dest->wtex = texmap[q->wtex];
+            dest->ctex = texmap[q->ctex];
+            dest->ftex = texmap[q->ftex];
+            dest->utex = texmap[q->utex];
+        }
 
         if (light) //edit mode paste
         {
@@ -385,6 +408,7 @@ void blockpaste(const block &b, int bx, int by, bool light)  // slow version, ed
             dest->g = tg;
             dest->b = tb;
         }
+        q++;
     }
     block bb = { bx, by, b.xs, b.ys };
     remipmore(bb);

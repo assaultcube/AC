@@ -35,7 +35,6 @@
 					<Add library="..\lib\curl_mingw\libcurl.a" />
 					<Add library="SDL" />
 					<Add library="SDL_image" />
-					<Add library="SDL_ttf" />
 					<Add library="zdll" />
 					<Add library="opengl32" />
 					<Add library="enet" />
@@ -75,7 +74,6 @@
 					<Add library="..\lib\curl_mingw\libcurl.a" />
 					<Add library="SDL" />
 					<Add library="SDL_image" />
-					<Add library="SDL_ttf" />
 					<Add library="zdll" />
 					<Add library="opengl32" />
 					<Add library="enet" />
@@ -290,14 +288,6 @@
 			<Option target="default" />
 			<Option target="debug" />
 		</Unit>
-		<Unit filename="../src/i18n.cpp">
-			<Option target="default" />
-			<Option target="debug" />
-		</Unit>
-		<Unit filename="../src/i18n.h">
-			<Option target="default" />
-			<Option target="debug" />
-		</Unit>
 		<Unit filename="../src/jpegenc.h">
 			<Option target="default" />
 			<Option target="debug" />
@@ -462,10 +452,6 @@
 			<Option target="server-debug" />
 		</Unit>
 		<Unit filename="../src/shadow.cpp">
-			<Option target="default" />
-			<Option target="debug" />
-		</Unit>
-		<Unit filename="../src/sound.cpp">
 			<Option target="default" />
 			<Option target="debug" />
 		</Unit>

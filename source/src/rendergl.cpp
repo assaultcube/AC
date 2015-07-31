@@ -235,6 +235,17 @@ void box(block &b, float z1, float z2, float z3, float z4)
     xtraverts += 4;
 }
 
+void box2d(int x1, int y1, int x2, int y2, int gray)
+{
+    glColor3ub(gray, gray, gray);
+    glBegin(GL_LINE_LOOP);
+    glVertex2f(x1, y1);
+    glVertex2f(x2, y1);
+    glVertex2f(x2, y2);
+    glVertex2f(x1, y2);
+    glEnd();
+}
+
 void quad(GLuint tex, float x, float y, float s, float tx, float ty, float tsx, float tsy)
 {
     if(!tsy) tsy = tsx;
@@ -371,18 +382,29 @@ void blendbox(int x1, int y1, int x2, int y2, bool border, int tex, color *c)
     {
         glDisable(GL_BLEND);
         if(tex>=0) glDisable(GL_TEXTURE_2D);
-        glColor3f(0.6f, 0.6f, 0.6f);
-        glBegin(GL_LINE_LOOP);
-        glVertex2f(x1, y1);
-        glVertex2f(x2, y1);
-        glVertex2f(x2, y2);
-        glVertex2f(x1, y2);
-        glEnd();
+        box2d(x1, y1, x2, y2, 155);
         glEnable(GL_BLEND);
     }
 
     if(tex<0 || border) glEnable(GL_TEXTURE_2D);
     glDepthMask(GL_TRUE);
+}
+
+void framedquadtexture(GLuint tex, int x, int y, int xs, int ys, int border, int backlight, bool blend)
+{
+    if(border) blendbox(x - border, y - border, x + xs + border, y + ys + border, false);
+    glBindTexture(GL_TEXTURE_2D, tex);
+    if(blend) glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    else glDisable(GL_BLEND);
+    glColor3ub(backlight, backlight, backlight);
+    glBegin(GL_TRIANGLE_STRIP);
+    glTexCoord2f(0, 0); glVertex2f(x,      y);
+    glTexCoord2f(1, 0); glVertex2f(x + xs, y);
+    glTexCoord2f(0, 1); glVertex2f(x,      y + ys);
+    glTexCoord2f(1, 1); glVertex2f(x + xs, y + ys);
+    glEnd();
+    xtraverts += 4;
+    if(!blend) glEnable(GL_BLEND);
 }
 
 VARP(aboveheadiconsize, 0, 50, 1000);
@@ -468,8 +490,9 @@ float dynfov()
     else return (float)fov;
 }
 
-VAR(fog, 64, 180, 1024);
-VAR(fogcolour, 0, 0x8099B3, 0xFFFFFF);
+VARF(fog, 64, DEFAULT_FOG, 1024, flagmapconfigchange());
+VARF(fogcolour, 0, DEFAULT_FOGCOLOUR, 0xFFFFFF, flagmapconfigchange());
+
 float fovy, aspect;
 int farplane;
 
@@ -839,7 +862,7 @@ void drawminimap(int w, int h)
     renderzones(mapdims.maxceil);
     //renderentities();// IMHO better done by radar itself, if at all
     resettmu(0);
-    float hf = hdr.waterlevel-0.3f;
+    float hf = waterlevel - 0.3f;
     renderwater(hf, 0, 0);
 
     //draw a black border to prevent the minimap texture edges from bleeding in radarview
@@ -1000,7 +1023,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
     aspect = float(w)/h;
     fovy = 2*atan2(tan(float(dynfov())/2*RAD), aspect)/RAD;
 
-    float hf = hdr.waterlevel-0.3f;
+    float hf = waterlevel - 0.3f;
     bool underwater = camera1->o.z<hf;
 
     glFogi(GL_FOG_START, (fog+64)/8);
