@@ -741,10 +741,12 @@ VARP(clockcount,0,0,1);
 VARP(dbgpos,0,0,1);
 VARP(showtargetname,0,1,1);
 VARP(showspeed, 0, 0, 1);
+VAR(blankouthud, 0, 0, 10000); //for "clean" screenshot
 string gtime;
 
 void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwater)
 {
+    if(blankouthud > 0) { blankouthud--; return; }
     playerent *p = camera1->type<ENT_CAMERA ? (playerent *)camera1 : player1;
     bool spectating = player1->isspectating();
 
