@@ -4,7 +4,7 @@
 
 hashtable<const char *, gmenu> menus;
 gmenu *curmenu = NULL, *lastmenu = NULL;
-color *menuselbgcolor = NULL;
+color *menuselbgcolor, *menuseldescbgcolor = NULL;
 
 vector<gmenu *> menustack;
 
@@ -207,6 +207,11 @@ void mitem::render(int x, int y, int w)
 {
     if(isselection()) renderbg(x, y, w, menuselbgcolor);
     else if(bgcolor) renderbg(x, y, w, bgcolor);
+    if(!menuseldescbgcolor)
+    {
+        static color seldbcolor(0.2f, 0.2f, 0.2f, 0.2f);
+        menuseldescbgcolor = &seldbcolor;
+    }
 }
 
 void mitem::renderbg(int x, int y, int w, color *c)
@@ -486,9 +491,13 @@ struct mitemtextinput : mitemtext
 
     virtual void render(int x, int y, int w)
     {
-        bool selection = isselection();
+        bool sel = isselection();
         int tw = max(VIRTW/4, 15*text_width("w"));
-        if(selection) renderbg(x+w-tw, y-FONTH/6, tw, NULL);
+        if(sel)
+        {
+            renderbg(x+w-tw, y-FONTH/6, tw, NULL);
+            renderbg(x, y-FONTH/6, w-tw-FONTH/2, menuseldescbgcolor);
+        }
         draw_text(text, x, y);
         int cibl = (int)strlen(input.buf); // current input-buffer length
         int iboff = input.pos > 14 ? (input.pos < cibl ? input.pos - 14 : cibl - 14) : input.pos==-1 ? (cibl > 14 ? cibl - 14 : 0) : 0; // input-buffer offset
@@ -513,7 +522,7 @@ struct mitemtextinput : mitemtext
                 *c = '*';
         }
 
-        draw_text(showinput, x+w-tw, y, 255, 255, 255, 255, selection ? (input.pos>=0 ? (input.pos > sc ? sc : input.pos) : cibl) : -1);
+        draw_text(showinput, x+w-tw, y, 255, 255, 255, 255, sel ? (input.pos>=0 ? (input.pos > sc ? sc : input.pos) : cibl) : -1);
     }
 
     virtual void focus(bool on)
@@ -585,7 +594,11 @@ struct mitemslider : mitem
         int cval = value-min_;
 
         int tw = text_width(text);
-        if(sel) renderbg(x+w-sliderwidth, y, sliderwidth, NULL);
+        if(sel)
+        {
+            renderbg(x+w-sliderwidth, y, sliderwidth, NULL);
+            renderbg(x, y, w-sliderwidth-FONTH/2, menuseldescbgcolor);
+        }
         draw_text(text, x, y);
         draw_text(curval, x+tw, y);
 
@@ -762,7 +775,11 @@ struct mitemcheckbox : mitem
         bool sel = isselection();
         const static int boxsize = FONTH;
         draw_text(text, x, y);
-        if(isselection()) renderbg(x+w-boxsize, y, boxsize, NULL);
+        if(sel)
+        {
+            renderbg(x+w-boxsize, y, boxsize, NULL);
+            renderbg(x, y, w-boxsize-FONTH/2, menuseldescbgcolor);
+        }
         blendbox(x+w-boxsize, y, x+w, y+boxsize, false, -1, &gray);
         if(checked)
         {
@@ -1064,6 +1081,14 @@ void menuselectionbgcolor(char *r, char *g, char *b, char *a)
     parsecolor(menuselbgcolor, r, g, b, a);
 }
 COMMAND(menuselectionbgcolor, "ssss");
+
+void menuselectiondescbgcolor(char *r, char *g, char *b, char *a)
+{
+    if(!menuseldescbgcolor) menuseldescbgcolor = new color;
+    if(!r[0]) { DELETEP(menuseldescbgcolor); return; }
+    parsecolor(menuseldescbgcolor, r, g, b, a);
+}
+COMMAND(menuselectiondescbgcolor, "ssss");
 
 static bool iskeypressed(int key)
 {
