@@ -1,6 +1,6 @@
 # Ideally, you can override these parameters directly via the commandline, or by
 # creating a seperate 'Makefile_local' file (this way, your changes aren't
-# accidentaly commited to the AssaultCube repository).
+# accidentally commited to the AssaultCube repository).
 
 # AssaultCube now uses clang++ as a compiler, as there have been random crashes
 # found to have been caused by the g++ compiler in the past. This seems to have
@@ -30,7 +30,7 @@ ifneq (,$(findstring clang,$(CXX)))
 	override CXXFLAGS+= -Wall -fsigned-char
 else
 	CXXFLAGS= -O3 -fomit-frame-pointer
-	override CXXFLAGS+= -Wall -fsigned-char -ffast-math -rdynamic
+	override CXXFLAGS+= -Wall -fsigned-char -ffast-math -rdynamic -Wno-format-zero-length
 endif
 
 INCLUDES= -I. -Ibot -I../enet/include

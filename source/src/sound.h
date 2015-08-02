@@ -438,7 +438,7 @@ public:
 };
 
 void alclearerr();
-bool alerr(bool msg = true, int line = 0, const char *s = NULL, ...);
+bool alerr(bool msg = true, int line = 0, const char *s = NULL, ...) PRINTFARGS(3, 4);
 #define ALERR alerr(true, __LINE__)
 #define ALERRF(fmt, ...) alerr(true, __LINE__, fmt, __VA_ARGS__)
 

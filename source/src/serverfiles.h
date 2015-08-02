@@ -238,7 +238,7 @@ float Mheight = 0;
 bool mapisok(mapstats *ms)
 {
     if ( Mheight > MAXMHEIGHT ) { logline(ACLOG_INFO, "MAP CHECK FAIL: The overall ceil height is too high (%.1f cubes)", Mheight); return false; }
-    if ( Mopen > MAXMAREA ) { logline(ACLOG_INFO, "MAP CHECK FAIL: There is a big open area in this (hint: use more solid walls)", Mheight); return false; }
+    if ( Mopen > MAXMAREA ) { logline(ACLOG_INFO, "MAP CHECK FAIL: There is a big open area in this (hint: use more solid walls)"); return false; }
     if ( SHhits > MAXHHITS ) { logline(ACLOG_INFO, "MAP CHECK FAIL: Too high height in some parts of the map (%d hits)", SHhits); return false; }
 
     if ( ms->hasflags ) // Check if flags are ok
@@ -927,7 +927,7 @@ struct killmessagesfile : serverconfigfile
                     }
                     if(strlen(message)>MAXKILLMSGLEN)
                     {
-                        logline(ACLOG_INFO, " error in line %i, too long message : string length is %i, max. allowed is %i", line, strlen(message), MAXKILLMSGLEN);
+                        logline(ACLOG_INFO, " error in line %i, too long message : string length is %i, max. allowed is %i", line, int(strlen(message)), MAXKILLMSGLEN);
                         errors++;
                     }
                     if(!errors)

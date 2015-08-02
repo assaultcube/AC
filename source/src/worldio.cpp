@@ -21,10 +21,11 @@ const char *setnames(const char *name)
         copystring(pakname, "maps");
         copystring(mapname, name);
     }
+    const char *nt = numtime();
     formatstring(cgzname)("packages/%s/%s.cgz",      pakname, mapname);
     formatstring(ocgzname)("packages/maps/official/%s.cgz",   mapname);
-    formatstring(bakname)("packages/%s/%s_%s.BAK",   pakname, mapname, numtime());
-    formatstring(cbakname)("packages/%s/%s.cfg_%s.BAK",   pakname, mapname, numtime());
+    formatstring(bakname)("packages/%s/%s_%s.BAK",   pakname, mapname, nt);
+    formatstring(cbakname)("packages/%s/%s.cfg_%s.BAK",   pakname, mapname, nt);
     formatstring(pcfname)("packages/%s/package.cfg", pakname);
     formatstring(mcfname)("packages/%s/%s.cfg",      pakname, mapname);
     formatstring(omcfname)("packages/maps/official/%s.cfg",   mapname);
@@ -194,7 +195,7 @@ void rldecodecubes(ucharbuf &f, sqr *s, int len, int version, bool silent) // ru
         {
             case -1:
             {
-                if(!silent) conoutf("while reading map at %d: unexpected end of file", cubicsize - (e - s));
+                if(!silent) conoutf("while reading map at %ld: unexpected end of file", cubicsize - (e - s));
                 f.forceoverread();
                 silent = true;
                 sqrdefault(s);
@@ -230,7 +231,7 @@ void rldecodecubes(ucharbuf &f, sqr *s, int len, int version, bool silent) // ru
             {
                 if(type<0 || type>=MAXTYPE)
                 {
-                    if(!silent) conoutf("while reading map at %d: type %d out of range", cubicsize - (e - s), type);
+                    if(!silent) conoutf("while reading map at %ld: type %d out of range", cubicsize - (e - s), type);
                     f.overread();
                     continue;
                 }
@@ -873,7 +874,8 @@ void hexbinwrite(stream *f, void *data, int len, bool ascii = true)   // write b
             asc[i] = isalnum(*s) ? *s : '.'; asc[i + 1] = '\0';
             f->printf(" %02x", int(*s++));
         }
-        f->printf(ascii ? "   // %s\n" : "\n", asc);
+        if(ascii) f->printf("   // %s\n", asc);
+        else f->printf("\n");
         len -= chunk;
     }
 }
@@ -984,7 +986,7 @@ struct xmap
 
     void write(stream *f)   // write xmap as cubescript to a file
     {
-        f->printf("restorexmap version %d %d %d\n", XMAPVERSION, isbigendian() ? 1 : 0, sizeof(world));  // it is a non-portable binary file format, so we have to check...
+        f->printf("restorexmap version %d %d %d\n", XMAPVERSION, isbigendian() ? 1 : 0, int(sizeof(world)));  // it is a non-portable binary file format, so we have to check...
         f->printf("restorexmap names \"%s\" \"%s\"\n", name, mcfname);
         f->printf("restorexmap sizes %d %d %d\n", ssize, cubicsize, numundo);
         hexbinwrite(f, &hdr, sizeof(header));
@@ -1153,7 +1155,7 @@ void restorexmap(char **args, int numargs)   // read an xmap from a cubescript f
     switch(cmd)
     {
         case 0:     // version
-            if(ATOI(args[1]) != XMAPVERSION || ATOI(args[2]) != (isbigendian() ? 1 : 0) || ATOI(args[3]) != sizeof(world))
+            if(ATOI(args[1]) != XMAPVERSION || ATOI(args[2]) != (isbigendian() ? 1 : 0) || ATOI(args[3]) != int(sizeof(world)))
             {
                 conoutf("restorexmap: file is from different game version");
                 abort = true;

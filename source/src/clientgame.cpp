@@ -249,7 +249,7 @@ void playerinfo(int *cn, const char *attr)
     if(!p)
     {
         if(!m_botmode && multiplayer(false)) // bot clientnums are still glitchy, causing this message to sometimes appear in offline/singleplayer when it shouldn't??? -Bukz 2012may
-            conoutf("invalid clientnum cn: %s attr: %s", cn, attr);
+            conoutf("invalid clientnum cn: %d attr: %s", clientnum, attr);
         return;
     }
 
@@ -544,8 +544,8 @@ bool showhudtimer(int maxsecs, int startmillis, const char *msg, bool flash)
             concatstring(str, sec);
         }
     }
-    if(nextticks < maxticks) hudeditf(HUDMSG_TIMER|HUDMSG_OVERWRITE, flash ? str : str+2);
-    else hudeditf(HUDMSG_TIMER, msg);
+    if(nextticks < maxticks) hudeditf(HUDMSG_TIMER|HUDMSG_OVERWRITE, "%s", flash ? str : str+2);
+    else hudeditf(HUDMSG_TIMER, "%s", msg);
     return true;
 }
 

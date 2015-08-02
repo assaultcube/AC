@@ -1066,7 +1066,7 @@ void entinmap(physent *d)    // brute force but effective way to find a free spa
     }
     // leave ent at original pos, possibly stuck
     d->resetinterp();
-    conoutf("can't find entity spawn spot! (%d, %d)", d->o.x, d->o.y);
+    conoutf("can't find entity spawn spot! (%d, %d)", int(d->o.x), int(d->o.y));
 }
 
 void vecfromyawpitch(float yaw, float pitch, int move, int strafe, vec &m)

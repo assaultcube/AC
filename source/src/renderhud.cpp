@@ -311,7 +311,9 @@ void drawequipicons(playerent *p)
     glEnable(GL_BLEND);
 }
 
-void drawradarent(float x, float y, float yaw, int col, int row, float iconsize, bool pulse, const char *label = NULL, ...)
+void drawradarent(float x, float y, float yaw, int col, int row, float iconsize, bool pulse, const char *label = NULL, ...) PRINTFARGS(8, 9);
+
+void drawradarent(float x, float y, float yaw, int col, int row, float iconsize, bool pulse, const char *label, ...)
 {
     glPushMatrix();
     if(pulse) glColor4f(1.0f, 1.0f, 1.0f, 0.2f+(sinf(lastmillis/30.0f)+1.0f)/2.0f);
@@ -1051,7 +1053,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
                     defformatstring(count)("%d", flagscores[i]);
                     int cw, ch;
                     text_bounds(count, cw, ch);
-                    draw_textf(count, i*120+VIRTW/4.0f*3.0f+60-cw/2, 1590);
+                    draw_textf("%s", i * 120 + VIRTW / 4.0f * 3.0f + 60 - cw / 2, 1590, count);
                 }
             }
 

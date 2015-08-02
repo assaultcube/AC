@@ -1403,9 +1403,7 @@ void CWaypointClass::FloodThink()
 
      BotManager.CalculateMaxAStarCount();
 
-     char szSize[64];
-     sprintf(szSize, "Total size: %.2f Kb", float(m_iFloodSize)/1024.0f);
-     conoutf(szSize);
+     conoutf("Total size: %.2f Kb", float(m_iFloodSize)/1024.0f);
 }
 
 bool CWaypointClass::CanPlaceNodeHere(const vec &from)

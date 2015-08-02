@@ -984,7 +984,7 @@ void connectprotocol(char *protocolstring, string &servername, int &serverport, 
     servername[0] = password[0] = '\0';
     serverport = 0;
     while(*c && *c!='/' && *c!='?' && *c!=':') { len++; c++; }
-    if(!len) { conoutf("\f3bad commandline syntax", protocolstring); return; }
+    if(!len) { conoutf("\f3bad commandline syntax (\"%s\")", protocolstring); return; }
     copystring(servername, p, min(len+1, MAXSTRLEN));
     direct_connect = true;
     if(*c && *c==':')
