@@ -195,7 +195,7 @@ void rldecodecubes(ucharbuf &f, sqr *s, int len, int version, bool silent) // ru
         {
             case -1:
             {
-                if(!silent) conoutf("while reading map at %ld: unexpected end of file", cubicsize - (e - s));
+                if(!silent) conoutf("while reading map at %d: unexpected end of file", int(cubicsize - (e - s)));
                 f.forceoverread();
                 silent = true;
                 sqrdefault(s);
@@ -231,7 +231,7 @@ void rldecodecubes(ucharbuf &f, sqr *s, int len, int version, bool silent) // ru
             {
                 if(type<0 || type>=MAXTYPE)
                 {
-                    if(!silent) conoutf("while reading map at %ld: type %d out of range", cubicsize - (e - s), type);
+                    if(!silent) conoutf("while reading map at %d: type %d out of range", int(cubicsize - (e - s)), type);
                     f.overread();
                     continue;
                 }

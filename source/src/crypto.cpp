@@ -870,7 +870,7 @@ uint randomMT()
         else next = 0;
     }
     uint y = (state[cur] & 0x80000000U) | (state[next] & 0x7FFFFFFFU);
-    state[cur] = y = state[cur < N-M ? cur + M : cur + M-N] ^ (y >> 1) ^ (-(y & 1U) & K);
+    state[cur] = y = state[cur < N-M ? cur + M : cur + M-N] ^ (y >> 1) ^ (-int(y & 1U) & K);
     y ^= (y >> 11);
     y ^= (y <<  7) & 0x9D2C5680U;
     y ^= (y << 15) & 0xEFC60000U;

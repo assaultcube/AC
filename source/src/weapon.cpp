@@ -595,7 +595,7 @@ void raydamage(vec &from, vec &to, playerent *d)
     int dam = d->weaponsel->info.damage;
     int hitzone = -1;
     playerent *o = NULL;
-    float dist, hitdist;
+    float dist, hitdist = 0.0f;
     bool hitted=false;
     int rayscount = 0, hitscount = 0;
     if(d->weaponsel->type==GUN_SHOTGUN)

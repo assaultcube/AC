@@ -57,8 +57,6 @@ static inline T min(T a, T b)
 
 template <typename T> inline T pow2(T x) { return x*x; }
 
-static inline float round(float x) { return floor(x + 0.5f); }
-
 #define clamp(x,minval,maxval) (max(minval, min(x, maxval)))
 #define rnd(x) ((int)(randomMT()&0xFFFFFF)%(x))
 #define rndscale(x) (float((randomMT()&0xFFFFFF)*double(x)/double(0xFFFFFF)))
