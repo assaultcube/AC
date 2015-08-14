@@ -1610,7 +1610,7 @@ void setadmin(int *claim, char *password)
         conoutf("you released admin status");
         addmsg(SV_SETADMIN, "ri", 0);
     }
-    else if(*claim != 0 && password)
+    else if(*claim != 0 && *password)
         addmsg(SV_SETADMIN, "ris", *claim, genpwdhash(player1->name, password, sessionid));
 }
 
