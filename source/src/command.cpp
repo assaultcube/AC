@@ -364,6 +364,7 @@ void _getalias(char *name)
 }
 COMMANDN(getalias, _getalias, "s");
 
+#ifndef STANDALONE
 void getvarrange(char *_what, char *name)
 {
     ident *id = idents->access(name);
@@ -387,6 +388,7 @@ void getvarrange(char *_what, char *name)
     result("");
 }
 COMMAND(getvarrange, "ss");
+#endif
 
 COMMANDF(isIdent, "s", (char *name) { intret(identexists(name) ? 1 : 0); });
 
