@@ -452,6 +452,7 @@ VAR(lastpm, 1, -1, 0);
 void zapplayer(playerent *&d)
 {
     if(d && d->clientnum == lastpm) lastpm = -1;
+    if(d == (playerent *)camera1) resetcamera();
     DELETEP(d);
 }
 
