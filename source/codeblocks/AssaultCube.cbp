@@ -26,6 +26,7 @@
 					<Add option="-O3" />
 					<Add option="-Wall" />
 					<Add option="-fsigned-char" />
+					<Add option="-Wno-format-zero-length" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="../vcpp" />
@@ -63,7 +64,9 @@
 				<Compiler>
 					<Add option="-Wall" />
 					<Add option="-g" />
+					<Add option="-O0" />
 					<Add option="-fsigned-char" />
+					<Add option="-Wno-format-zero-length" />
 					<Add option="-D_DEBUG" />
 				</Compiler>
 				<ResourceCompiler>
@@ -103,12 +106,14 @@
 					<Add option="-O3" />
 					<Add option="-Wall" />
 					<Add option="-fsigned-char" />
+					<Add option="-Wno-format-zero-length" />
 					<Add option="-DSTANDALONE" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="../vcpp" />
 				</ResourceCompiler>
 				<Linker>
+					<Add library="SDL" />
 					<Add library="zdll" />
 					<Add library="enet" />
 					<Add library="ws2_32" />
@@ -129,6 +134,7 @@
 					<Add option="-g" />
 					<Add option="-O0" />
 					<Add option="-fsigned-char" />
+					<Add option="-Wno-format-zero-length" />
 					<Add option="-D_DEBUG" />
 					<Add option="-DSTANDALONE" />
 				</Compiler>
@@ -136,6 +142,7 @@
 					<Add directory="../vcpp" />
 				</ResourceCompiler>
 				<Linker>
+					<Add library="SDL" />
 					<Add library="zdll" />
 					<Add library="enet" />
 					<Add library="ws2_32" />
@@ -155,6 +162,7 @@
 					<Add option="-O3" />
 					<Add option="-Wall" />
 					<Add option="-fsigned-char" />
+					<Add option="-Wno-format-zero-length" />
 					<Add option="-DSTANDALONE" />
 				</Compiler>
 				<ResourceCompiler>
