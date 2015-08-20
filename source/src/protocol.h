@@ -109,16 +109,17 @@ enum
     GMODE_BOTLSS,
     GMODE_BOTTEAMSURVIVOR,              // 20
     GMODE_BOTTEAMONESHOTONKILL,
+    GMODE_INSTA_CTF,
     GMODE_NUM
 };
 
-#define m_lms         (gamemode==3 || gamemode==4 || gamemode==20)
-#define m_ctf         (gamemode==5)
-#define m_pistol      (gamemode==6 || gamemode==16 || gamemode==18)
-#define m_lss         (gamemode==9 || gamemode==17 || gamemode==19)
-#define m_osok        ((gamemode>=10 && gamemode<=12) || gamemode==21)
-#define m_htf         (gamemode==13)
-#define m_ktf         (gamemode==14 || gamemode==15)
+#define m_lms         (gamemode == GMODE_SURVIVOR || gamemode == GMODE_TEAMSURVIVOR || gamemode == GMODE_BOTTEAMSURVIVOR)
+#define m_ctf         (gamemode == GMODE_CTF || gamemode == GMODE_INSTA_CTF)
+#define m_pistol      (gamemode == GMODE_PISTOLFRENZY || gamemode == GMODE_TEAMPF || gamemode == GMODE_BOTPISTOLFRENZY)
+#define m_lss         (gamemode == GMODE_LASTSWISSSTANDING || gamemode == GMODE_TEAMLSS || gamemode == GMODE_BOTLSS)
+#define m_osok        ((gamemode >= GMODE_ONESHOTONEKILL && gamemode <= GMODE_BOTONESHOTONEKILL) || gamemode == GMODE_BOTTEAMONESHOTONKILL)
+#define m_htf         (gamemode == GMODE_HUNTTHEFLAG)
+#define m_ktf         (gamemode == GMODE_TEAMKEEPTHEFLAG || gamemode == GMODE_KEEPTHEFLAG)
 
 #define m_noitems     (m_lms || m_osok)
 #define m_noitemsnade (m_lss)
@@ -126,16 +127,17 @@ enum
 #define m_noprimary   (m_pistol || m_lss)
 #define m_noguns      (m_nopistol && m_noprimary)
 #define m_arena       (m_lms || m_lss || m_osok)
-#define m_autospawn   (gamemode == 0 || gamemode == 2 || gamemode == 6 || gamemode == 13 || gamemode == 16)
-#define m_teammode    (gamemode==0 || gamemode==4 || gamemode==5 || gamemode==7 || gamemode==11 || gamemode==13 || gamemode==14 || gamemode==16 || gamemode==17 || gamemode==20 || gamemode==21)
+#define m_insta       (gamemode == GMODE_INSTA_CTF)
+#define m_autospawn   (gamemode == GMODE_TEAMDEATHMATCH || gamemode == GMODE_DEATHMATCH || gamemode == GMODE_PISTOLFRENZY || gamemode == GMODE_HUNTTHEFLAG || gamemode == GMODE_TEAMPF || m_insta)
+#define m_teammode    (gamemode == GMODE_TEAMDEATHMATCH || gamemode == GMODE_TEAMSURVIVOR || gamemode == GMODE_CTF || gamemode == GMODE_BOTTEAMDEATHMATCH || gamemode == GMODE_TEAMONESHOTONEKILL || gamemode == GMODE_HUNTTHEFLAG || gamemode == GMODE_TEAMKEEPTHEFLAG || gamemode == GMODE_TEAMPF || gamemode == GMODE_TEAMLSS || gamemode == GMODE_BOTTEAMSURVIVOR || gamemode == GMODE_BOTTEAMONESHOTONKILL || gamemode == GMODE_INSTA_CTF)
 #define m_tarena      (m_arena && m_teammode)
-#define m_botmode     (gamemode==7 || gamemode == 8 || gamemode==12 || (gamemode>=18 && gamemode<=21))
-#define m_valid(mode) (((mode)>=0 && (mode)<GMODE_NUM) || (mode) == -1)
-#define m_mp(mode)    (m_valid(mode) && (mode)>=0 && (mode)!=7 && (mode)!=8 && (mode)!=12 && ((mode)<18 || (mode)>21))
-#define m_demo        (gamemode==-1)
-#define m_coop        (gamemode==1)
+#define m_botmode     (gamemode == GMODE_BOTTEAMDEATHMATCH || gamemode == GMODE_BOTDEATHMATCH || gamemode == GMODE_BOTONESHOTONEKILL || (gamemode >= GMODE_BOTPISTOLFRENZY && gamemode <= GMODE_BOTTEAMONESHOTONKILL))
+#define m_valid(mode) (((mode) >= GMODE_TEAMDEATHMATCH && (mode) < GMODE_NUM) || (mode) == GMODE_DEMO)
+#define m_mp(mode)    (m_valid(mode) && (mode) >= GMODE_TEAMDEATHMATCH && (mode) != GMODE_BOTTEAMDEATHMATCH && (mode) != GMODE_BOTDEATHMATCH && (mode) != GMODE_BOTONESHOTONEKILL && ((mode) < GMODE_BOTPISTOLFRENZY || (mode) > GMODE_BOTTEAMONESHOTONKILL))
+#define m_demo        (gamemode == GMODE_DEMO)
+#define m_coop        (gamemode == GMODE_COOPEDIT)
 #define m_flags       (m_ctf || m_htf || m_ktf)
-#define m_isdemo(x)   ((x) == -1)
+#define m_isdemo(x)   ((x) == GMODE_DEMO)
 
 // single filter modes
 #define FTXT_NOWHITE     (1<<8)
