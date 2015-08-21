@@ -879,6 +879,7 @@ const char *favcatcheck(serverinfo &si, const char *ckeys, char *autokeys = NULL
 
 void serverbrowseralternativeviews(int shiftdirection)
 {
+    if(searchlan == 2) return;
     const char *ckeys = getalias("serverbrowseraltviews");
     if(!ckeys) return;
     const char *sep = " \t\n\r";
