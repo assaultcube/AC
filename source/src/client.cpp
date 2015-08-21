@@ -1062,7 +1062,7 @@ double dlpackage(package *pck)
     const char *tmpname = findfile("tmp", "wb");
     FILE *outfile = fopen(tmpname, "wb");
     string req, pckname = "";
-    sprintf(req, "%s/%s%s", pck->source->addr, strreplace(pckname, pck->name, " ", "%20"), (pck->type==PCK_MAP || pck->type==PCK_MAPMODEL || pck->type==PCK_SKYBOX) ? ".zip" : "");
+    formatstring(req)("%s/%s%s", pck->source->addr, strreplace(pckname, pck->name, " ", "%20"), (pck->type==PCK_MAP || pck->type==PCK_MAPMODEL || pck->type==PCK_SKYBOX) ? ".zip" : "");
     conoutf("downloading %s from %s ...", pck->name, pck->source->addr);
     if(!outfile)
     {

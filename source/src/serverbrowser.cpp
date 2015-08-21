@@ -1333,8 +1333,7 @@ void retrieveservers(vector<char> &data)
         CURL *curl = curl_easy_init();
 
         char *pname = curl_easy_escape(curl, global_name, 0);
-        string request;
-        sprintf(request, "http://%s/retrieve.do?action=list&name=%s&version=%d&build=%d", mastername, pname, AC_VERSION, getbuildtype()|(1<<16));
+        defformatstring(request)("http://%s/retrieve.do?action=list&name=%s&version=%d&build=%d", mastername, pname, AC_VERSION, getbuildtype()|(1<<16));
         curl_free(pname);
 
         const char *tmpname = findfile(path("config/servers.cfg", true), "wb");
@@ -1397,8 +1396,7 @@ void retrieveservers(vector<char> &data)
         defformatstring(text)("retrieving servers from %s:%d... (esc to abort)", mastername, masterport);
         show_out_of_renderloop_progress(0, text);
         int starttime = SDL_GetTicks(), timeout = 0;
-        string request;
-        sprintf(request, "list %s %d %d\n",global_name,AC_VERSION,getbuildtype());
+        defformatstring(request)("list %s %d %d\n", global_name, AC_VERSION, getbuildtype());
         const char *req = request;
         int reqlen = strlen(req);
         ENetBuffer buf;
