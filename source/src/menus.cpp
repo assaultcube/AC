@@ -1411,34 +1411,8 @@ void gmenu::render()
             footlen = 0;
             if(text_width(footer)>w)
             {
-                int tflo = 0;
-                int cflw = 0;
-                unsigned int cflc = 0;
-                string pofl;
-                string bufl;
-                bool keepon = true;
-                while(keepon)
-                {
-                    while(cflw<w && cflc<strlen(footer))
-                    {
-                        cflc++;
-                        formatstring(bufl)("%s", footer+tflo);
-                        copystring(pofl, bufl, cflc-tflo);
-                        cflw = text_width(pofl);
-                    }
-                    if(cflc<=strlen(footer))
-                    {
-                        if(cflc==strlen(footer) || cflc>=MAXSTRLEN) keepon = false;
-                        cflc--;
-                        cflw = 0;
-                        formatstring(bufl)("%s", footer+tflo);
-                        copystring(pofl, bufl, cflc-tflo);
-                        draw_text(pofl, x, y);
-                        y+=step;
-                        tflo = cflc-1;
-                        footlen++;
-                    }
-                }
+                if(w) footlen = (int)ceil((double)text_width(footer) / w);
+                draw_text(footer, x, y, 0xFF, 0xFF, 0xFF, 0xFF, -1, w);
             }
             else draw_text(footer, x, y);
         }
