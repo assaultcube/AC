@@ -506,7 +506,7 @@ void jpegenc::write_comment(BYTE *comment)
 {
     WORD i, length;
     writeword(0xFFFE);
-    length = strlen((const char *)comment);
+    length = (WORD) strlen((const char *)comment);
     writeword(length + 2);
     for (i=0; i<length; i++) 
         writebyte(comment[i]);

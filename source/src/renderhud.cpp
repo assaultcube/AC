@@ -311,7 +311,9 @@ void drawequipicons(playerent *p)
     glEnable(GL_BLEND);
 }
 
-void drawradarent(float x, float y, float yaw, int col, int row, float iconsize, bool pulse, const char *label = NULL, ...)
+void drawradarent(float x, float y, float yaw, int col, int row, float iconsize, bool pulse, const char *label = NULL, ...) PRINTFARGS(8, 9);
+
+void drawradarent(float x, float y, float yaw, int col, int row, float iconsize, bool pulse, const char *label, ...)
 {
     glPushMatrix();
     if(pulse) glColor4f(1.0f, 1.0f, 1.0f, 0.2f+(sinf(lastmillis/30.0f)+1.0f)/2.0f);
@@ -741,10 +743,12 @@ VARP(clockcount,0,0,1);
 VARP(dbgpos,0,0,1);
 VARP(showtargetname,0,1,1);
 VARP(showspeed, 0, 0, 1);
+VAR(blankouthud, 0, 0, 10000); //for "clean" screenshot
 string gtime;
 
 void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwater)
 {
+    if(blankouthud > 0) { blankouthud--; return; }
     playerent *p = camera1->type<ENT_CAMERA ? (playerent *)camera1 : player1;
     bool spectating = player1->isspectating();
 
@@ -833,6 +837,12 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     if (!is_spect) r_accuracy(commandh);
     if(!hideconsole) renderconsole();
     formatstring(enginestateinfo)("%d %d %d %d %d", curfps, lod_factor(), nquads, curvert, xtraverts);
+
+    string ltime;
+    const char *ltimeformat = getalias("wallclockformat");
+    bool wallclock = ltimeformat && *ltimeformat;
+    if(wallclock) formatstring(ltime)("%s", timestring(true, ltimeformat));
+
     if(showstats)
     {
         if(showstats==2 && !dbgpos)
@@ -884,7 +894,8 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             c_num = xtraverts>3999?(xtraverts>5999?(xtraverts>7999?3:2):1):0; TXTCOLRGB
             draw_text(c_val, ttll - text_width(c_val), top+320, c_r, c_g, c_b);
 
-            if(unsavededits) draw_text("U", ttll - text_width("U"), top - 90);
+            if(wallclock) draw_text(ltime, ttll - text_width(ltime), top - 90);
+            if(unsavededits) draw_text("U", ttll - text_width("U"), top - 90 - (wallclock ? 2*FONTH/2 : 0));
         }
         else
         {
@@ -892,22 +903,26 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             {
                 pushfont("mono");
                 defformatstring(o_yw)("%05.2f YAW", player1->yaw);
-                draw_text(o_yw, VIRTW*2 - ( text_width(o_yw) + FONTH ), VIRTH*2 - 15*FONTH/2);
+                draw_text(o_yw, VIRTW*2 - ( text_width(o_yw) + FONTH ), VIRTH*2 - 17*FONTH/2);
                 defformatstring(o_p)("%05.2f PIT", player1->pitch);
-                draw_text(o_p, VIRTW*2 - ( text_width(o_p) + FONTH ), VIRTH*2 - 13*FONTH/2);
+                draw_text(o_p, VIRTW*2 - ( text_width(o_p) + FONTH ), VIRTH*2 - 15*FONTH/2);
                 defformatstring(o_x)("%05.2f X  ", player1->o.x);
-                draw_text(o_x, VIRTW*2 - ( text_width(o_x) + FONTH ), VIRTH*2 - 11*FONTH/2);
+                draw_text(o_x, VIRTW*2 - ( text_width(o_x) + FONTH ), VIRTH*2 - 13*FONTH/2);
                 defformatstring(o_y)("%05.2f Y  ", player1->o.y);
-                draw_text(o_y, VIRTW*2 - ( text_width(o_y) + FONTH ), VIRTH*2 - 9*FONTH/2);
+                draw_text(o_y, VIRTW*2 - ( text_width(o_y) + FONTH ), VIRTH*2 - 11*FONTH/2);
                 defformatstring(o_z)("%05.2f Z  ", player1->o.z);
-                draw_text(o_z, VIRTW*2 - ( text_width(o_z) + FONTH ), VIRTH*2 - 7*FONTH/2);
+                draw_text(o_z, VIRTW*2 - ( text_width(o_z) + FONTH ), VIRTH*2 - 9*FONTH/2);
                 popfont();
             }
             defformatstring(c_val)("fps %d", curfps);
             draw_text(c_val, VIRTW*2 - ( text_width(c_val) + FONTH ), VIRTH*2 - 3*FONTH/2);
-            if(unsavededits) draw_text("U", VIRTW*2 - text_width("U") - FONTH, VIRTH*2 - 5*FONTH/2);
+
+            if(wallclock) draw_text(ltime, VIRTW*2 - text_width(ltime) - FONTH, VIRTH*2 - 5*FONTH/2);
+            if(unsavededits) draw_text("U", VIRTW*2 - text_width("U") - FONTH, VIRTH*2 - (wallclock ? 7 : 5)*FONTH/2);
         }
     }
+    else if(wallclock) draw_text(ltime, VIRTW*2 - text_width(ltime) - FONTH, VIRTH*2 - 3*FONTH/2);
+
     if(!intermission && lastgametimeupdate!=0)
     {
         int cssec = (gametimecurrent+(lastmillis-lastgametimeupdate))/1000;
@@ -1049,7 +1064,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
                     defformatstring(count)("%d", flagscores[i]);
                     int cw, ch;
                     text_bounds(count, cw, ch);
-                    draw_textf(count, i*120+VIRTW/4.0f*3.0f+60-cw/2, 1590);
+                    draw_textf("%s", i * 120 + VIRTW / 4.0f * 3.0f + 60 - cw / 2, 1590, count);
                 }
             }
 

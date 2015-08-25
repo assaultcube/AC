@@ -3771,7 +3771,8 @@ void loggamestatus(const char *reason)
             savedscore &sc = savedscores[i];
             if(sc.valid)
             {
-                formatstring(text)(m_teammode ? "%-4s " : "", team_string(sc.team, true));
+                if(m_teammode) formatstring(text)("%-4s ", team_string(sc.team, true));
+                else text[0] = '\0';
                 if(m_flags) concatformatstring(text, "%4d ", sc.flagscore);
                 logline(ACLOG_INFO, "   %-16s %s%4d %5d%s    - disconnected", sc.name, text, sc.frags, sc.deaths, m_teammode ? "  -" : "");
                 if(sc.team != TEAM_SPECT)

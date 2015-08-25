@@ -26,6 +26,7 @@
 					<Add option="-O3" />
 					<Add option="-Wall" />
 					<Add option="-fsigned-char" />
+					<Add option="-Wno-format-zero-length" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="../vcpp" />
@@ -41,7 +42,6 @@
 					<Add library="OpenAL32" />
 					<Add library="..\lib\libvorbisfile.lib" />
 					<Add library="jpeg" />
-					<Add library="..\lib\libintl.lib" />
 					<Add library="wldap32" />
 					<Add library="ws2_32" />
 					<Add library="winmm" />
@@ -64,7 +64,9 @@
 				<Compiler>
 					<Add option="-Wall" />
 					<Add option="-g" />
+					<Add option="-O0" />
 					<Add option="-fsigned-char" />
+					<Add option="-Wno-format-zero-length" />
 					<Add option="-D_DEBUG" />
 				</Compiler>
 				<ResourceCompiler>
@@ -80,7 +82,6 @@
 					<Add library="OpenAL32" />
 					<Add library="..\lib\libvorbisfile.lib" />
 					<Add library="jpeg" />
-					<Add library="..\lib\libintl.lib" />
 					<Add library="wldap32" />
 					<Add library="ws2_32" />
 					<Add library="winmm" />
@@ -105,12 +106,14 @@
 					<Add option="-O3" />
 					<Add option="-Wall" />
 					<Add option="-fsigned-char" />
+					<Add option="-Wno-format-zero-length" />
 					<Add option="-DSTANDALONE" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="../vcpp" />
 				</ResourceCompiler>
 				<Linker>
+					<Add library="SDL" />
 					<Add library="zdll" />
 					<Add library="enet" />
 					<Add library="ws2_32" />
@@ -131,6 +134,7 @@
 					<Add option="-g" />
 					<Add option="-O0" />
 					<Add option="-fsigned-char" />
+					<Add option="-Wno-format-zero-length" />
 					<Add option="-D_DEBUG" />
 					<Add option="-DSTANDALONE" />
 				</Compiler>
@@ -138,6 +142,7 @@
 					<Add directory="../vcpp" />
 				</ResourceCompiler>
 				<Linker>
+					<Add library="SDL" />
 					<Add library="zdll" />
 					<Add library="enet" />
 					<Add library="ws2_32" />
@@ -157,6 +162,7 @@
 					<Add option="-O3" />
 					<Add option="-Wall" />
 					<Add option="-fsigned-char" />
+					<Add option="-Wno-format-zero-length" />
 					<Add option="-DSTANDALONE" />
 				</Compiler>
 				<ResourceCompiler>

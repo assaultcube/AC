@@ -20,8 +20,10 @@ const char *asctime()
 const char *numtime()
 {
     static string numt;
-    formatstring(numt)("%ld", (long long) time(NULL));
-    return numt;
+    time_t t = time(NULL);
+    int t1 = t / 1000000, t2 = t % 1000000;
+    formatstring(numt)("%d%06d", t1, t2);
+    return numt + strspn(numt, "0");
 }
 
 static const uchar transformenttab[] = {

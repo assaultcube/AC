@@ -1,6 +1,6 @@
 # Ideally, you can override these parameters directly via the commandline, or by
 # creating a seperate 'Makefile_local' file (this way, your changes aren't
-# accidentaly commited to the AssaultCube repository).
+# accidentally commited to the AssaultCube repository).
 
 # AssaultCube now uses clang++ as a compiler, as there have been random crashes
 # found to have been caused by the g++ compiler in the past. This seems to have
@@ -30,7 +30,7 @@ ifneq (,$(findstring clang,$(CXX)))
 	override CXXFLAGS+= -Wall -fsigned-char
 else
 	CXXFLAGS= -O3 -fomit-frame-pointer
-	override CXXFLAGS+= -Wall -fsigned-char -ffast-math -rdynamic
+	override CXXFLAGS+= -Wall -fsigned-char -ffast-math -rdynamic -Wno-format-zero-length
 endif
 
 INCLUDES= -I. -Ibot -I../enet/include
@@ -46,7 +46,7 @@ MV=mv
 ifneq (,$(findstring MINGW,$(PLATFORM)))
 WINDRES= windres
 CLIENT_INCLUDES= $(INCLUDES) -I../include
-CLIENT_LIBS= -mwindows -L../lib -lSDL -lSDL_image -lzdll -lopengl32 -lenet -lOpenAL32 -llibvorbisfile -llibintl -lws2_32 -lwinmm -lcurl
+CLIENT_LIBS= -mwindows -L../lib -lSDL -lSDL_image -lzdll -lopengl32 -lenet -lOpenAL32 -llibvorbisfile -lws2_32 -lwinmm -lcurl
 else
 USRLIB=$(shell if [ -e /usr/lib64 ]; then echo "/usr/lib64"; else echo "/usr/lib"; fi)
 CLIENT_INCLUDES= $(INCLUDES) -I/usr/include `sdl-config --cflags` -idirafter ../include
@@ -110,7 +110,7 @@ CLIENT_PCH= cube.h.gch
 
 ifneq (,$(findstring MINGW,$(PLATFORM)))
 SERVER_INCLUDES= -DSTANDALONE $(INCLUDES) -I../include
-SERVER_LIBS= -L../lib -lzdll -lenet -llibintl -lws2_32 -lwinmm
+SERVER_LIBS= -L../lib -lzdll -lenet -lws2_32 -lwinmm
 else
 SERVER_INCLUDES= -DSTANDALONE $(INCLUDES)
 SERVER_LIBS= -L../enet/.libs -lenet -lz -lpthread

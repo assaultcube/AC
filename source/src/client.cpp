@@ -1025,7 +1025,7 @@ int processdownload(package *pck)
             {
                 const char *pckname = findfile(path(pck->name, true), "w+");
                 // with textures/sounds, the image/audio file itself is sent. Just need to copy it from the temporary file
-                if(rename(tmpname, pckname)) conoutf("\f3failed to install", pckname);
+                if(rename(tmpname, pckname)) conoutf("\f3failed to install %s", pckname);
                 if(pck->type == PCK_TEXTURE) rereadtexturelists = 1;
                 else rereadsoundlists = 1;
                 break;
@@ -1062,7 +1062,7 @@ double dlpackage(package *pck)
     const char *tmpname = findfile("tmp", "wb");
     FILE *outfile = fopen(tmpname, "wb");
     string req, pckname = "";
-    sprintf(req, "%s/%s%s", pck->source->addr, strreplace(pckname, pck->name, " ", "%20"), (pck->type==PCK_MAP || pck->type==PCK_MAPMODEL || pck->type==PCK_SKYBOX) ? ".zip" : "");
+    formatstring(req)("%s/%s%s", pck->source->addr, strreplace(pckname, pck->name, " ", "%20"), (pck->type==PCK_MAP || pck->type==PCK_MAPMODEL || pck->type==PCK_SKYBOX) ? ".zip" : "");
     conoutf("downloading %s from %s ...", pck->name, pck->source->addr);
     if(!outfile)
     {
@@ -1156,9 +1156,9 @@ bool requirepackage(int type, const char *path)
     loopv(pckservers) if(pckservers[i]->responsive) { source = pckservers[i]; break; }
     if(!source) { conoutf("\f3no responsive source server found, can't download"); return false; }
 
-    char *cleanpath = unixpath(newstring(path));
+    char *upath = unixpath(newstring(path)), *cleanpath = newstring(path);
     filtertext(cleanpath, cleanpath, FTXT__MEDIAFILEPATH);
-    if(strcmp(path, cleanpath)) { conoutf("refuse to download \"%s\": illegal characters", path); delstring(cleanpath); return false; }
+    if(strcmp(upath, cleanpath)) { conoutf("refuse to download \"%s\": illegal characters", path); delstring(upath); delstring(cleanpath); return false; }
     if(!havecurl || canceldownloads || type < 0 || type >= PCK_NUM || pendingpackages.access(cleanpath)) { delstring(cleanpath); return false; }
 
     package *pck = new package;
@@ -1167,6 +1167,7 @@ bool requirepackage(int type, const char *path)
     pck->source = source;
     pck->pending = true;
     pendingpackages.access(pck->name, pck);
+    delstring(upath);
     return true;
 }
 

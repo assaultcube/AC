@@ -595,7 +595,7 @@ void raydamage(vec &from, vec &to, playerent *d)
     int dam = d->weaponsel->info.damage;
     int hitzone = -1;
     playerent *o = NULL;
-    float dist, hitdist;
+    float dist, hitdist = 0.0f;
     bool hitted=false;
     int rayscount = 0, hitscount = 0;
     if(d->weaponsel->type==GUN_SHOTGUN)
@@ -742,13 +742,8 @@ void r_accuracy(int h)
     if(rows<1) return;
     cols++;
     blendbox(x_offset, spacing+y_offset, spacing+x_offset+curfont->defaultw*cols, y_offset-curfont->defaulth*rows, true, -1);
-    int x=0;
-    loopv(lines)
-    {
-        char *line = lines[i];
-        draw_textf(line,spacing*0.5+x_offset,y_offset-x*curfont->defaulth-0.5*spacing);
-        x++;
-    }
+    int x = spacing * 0.5 + x_offset, y = y_offset - 0.5 * spacing;
+    loopv(lines) draw_textf("%s", x, y - i * curfont->defaulth, lines[i]);
 }
 
 void accuracyreset()

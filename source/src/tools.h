@@ -57,8 +57,6 @@ static inline T min(T a, T b)
 
 template <typename T> inline T pow2(T x) { return x*x; }
 
-static inline float round(float x) { return floor(x + 0.5f); }
-
 #define clamp(x,minval,maxval) (max(minval, min(x, maxval)))
 #define rnd(x) ((int)(randomMT()&0xFFFFFF)%(x))
 #define rndscale(x) (float((randomMT()&0xFFFFFF)*double(x)/double(0xFFFFFF)))
@@ -105,6 +103,13 @@ static inline float round(float x) { return floor(x + 0.5f); }
 #define PATHDIVS "/"
 #endif
 
+#ifdef __GNUC__
+#define PRINTFARGS(fmt, args) __attribute__((format(printf, fmt, args)))
+//#pragma GCC diagnostic ignored "-Wformat-zero-length" // apparently doesn't work from precompiled header -> moved to makefile
+#else
+#define PRINTFARGS(fmt, args)
+#endif
+
 // easy safe strings
 
 #define MAXSTRLEN 260
@@ -113,13 +118,13 @@ typedef char string[MAXSTRLEN];
 inline void vformatstring(char *d, const char *fmt, va_list v, int len = MAXSTRLEN) { _vsnprintf(d, len, fmt, v); d[len-1] = 0; }
 inline char *copystring(char *d, const char *s, size_t len = MAXSTRLEN) { strncpy(d, s, len); d[len-1] = 0; return d; }
 inline char *concatstring(char *d, const char *s, size_t len = MAXSTRLEN) { size_t used = strlen(d); return used < len ? copystring(d+used, s, len-used) : d; }
-extern char *concatformatstring(char *d, const char *s, ...);
+extern char *concatformatstring(char *d, const char *s, ...) PRINTFARGS(2, 3);
 
 struct stringformatter
 {
     char *buf;
     stringformatter(char *buf): buf((char *)buf) {}
-    void operator()(const char *fmt, ...)
+    void operator()(const char *fmt, ...) PRINTFARGS(2, 3)
     {
         va_list v;
         va_start(v, fmt);
@@ -131,11 +136,6 @@ struct stringformatter
 #define formatstring(d) stringformatter((char *)d)
 #define defformatstring(d) string d; formatstring(d)
 #define defvformatstring(d,last,fmt) string d; { va_list ap; va_start(ap, last); vformatstring(d, fmt, ap); va_end(ap); }
-
-//#define s_sprintf(d) s_sprintf_f((char *)d)
-//#define s_sprintfd(d) string d; s_sprintf(d)
-//#define s_sprintfdlv(d,last,fmt) string d; { va_list ap; va_start(ap, last); formatstring(d, fmt, ap); va_end(ap); }
-//#define s_sprintfdv(d,fmt) s_sprintfdlv(d,fmt,fmt)
 
 inline char *strcaps(const char *s, bool on)
 {
@@ -912,7 +912,7 @@ struct stream
     virtual bool getline(char *str, int len);
     virtual bool putstring(const char *str) { int len = (int)strlen(str); return write(str, len) == len; }
     virtual bool putline(const char *str) { return putstring(str) && putchar('\n'); }
-    virtual int printf(const char *fmt, ...) { return -1; }
+    virtual int printf(const char *fmt, ...) PRINTFARGS(2, 3) { return -1; }
     virtual uint getcrc() { return 0; }
 
     template<class T> bool put(T n) { return write(&n, sizeof(n)) == sizeof(n); }
@@ -980,7 +980,7 @@ extern const char *iptoa(const enet_uint32 ip);
 extern const char *iprtoa(const struct iprange &ipr);
 extern int cmpiprange(const struct iprange *a, const struct iprange *b);
 extern int cmpipmatch(const struct iprange *a, const struct iprange *b);
-extern int cvecprintf(vector<char> &v, const char *s, ...);
+extern int cvecprintf(vector<char> &v, const char *s, ...) PRINTFARGS(2, 3);
 extern const char *hiddenpwd(const char *pwd, int showchars = 0);
 extern int getlistindex(const char *key, const char *list[], bool acceptnumeric = true, int deflt = -1);
 

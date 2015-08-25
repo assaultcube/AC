@@ -778,9 +778,9 @@ void preload_entmodels()
          defformatstring(widn)("modmdlpickup%d", i-3);
 
          if (identexists(widn))
-         strcat(buf, getalias(widn));
+            concatstring(buf, getalias(widn));
          else
-         strcat(buf, entmdlnames[i]);
+            concatstring(buf, entmdlnames[i]);
 
          model *mdl = loadmodel(buf);
 

@@ -879,6 +879,7 @@ const char *favcatcheck(serverinfo &si, const char *ckeys, char *autokeys = NULL
 
 void serverbrowseralternativeviews(int shiftdirection)
 {
+    if(searchlan == 2) return;
     const char *ckeys = getalias("serverbrowseraltviews");
     if(!ckeys) return;
     const char *sep = " \t\n\r";
@@ -1076,7 +1077,8 @@ void refreshservers(void *menu, bool init)
                     if(!hidefavicons && !showweights && showfavtag && si.favcat > -1) favimage = getalias(favcatargname(favcats[si.favcat], FC_IMAGE));
                     copystring(text, si.favcat > -1 && !favimage ? favcattags[si.favcat] : "");
                     if(showweights) concatformatstring(text, "(%d)", si.weight);
-                    formatstring(si.full)(showfavtag ? (favimage ? "\t" : "\fs%s\fr\t") : "", text);
+                    if(showfavtag && !favimage) formatstring(si.full)("\fs%s\fr\t", text);
+                    else copystring(si.full, showfavtag ? "\t" : "");
                     concatformatstring(si.full, "\fs\f%c%s\t\fs\f%c%d/%d\fr\t\a%c  ", basecolor, colorping(si.ping), plnumcolor, si.numplayers, si.maxclients, '0' + si.uplinkqual);
                     if(si.map[0])
                     {
@@ -1084,7 +1086,8 @@ void refreshservers(void *menu, bool init)
                         if(showmr) concatformatstring(si.full, ", (%d)", si.minremain);
                     }
                     else concatformatstring(si.full, "empty");
-                    concatformatstring(si.full, serverbrowserhideip < 2 ? ": \fs%s%s:%d\fr" : ": ", serverbrowserhideip == 1 ? "\f4" : "", si.name, si.port);
+                    concatstring(si.full, ": ");
+                    if(serverbrowserhideip < 2) concatformatstring(si.full, "\fs%s%s:%d\fr", serverbrowserhideip == 1 ? "\f4" : "", si.name, si.port);
                     concatformatstring(si.full, "\fr %s", si.sdesc);
                 }
             }
@@ -1331,8 +1334,7 @@ void retrieveservers(vector<char> &data)
         CURL *curl = curl_easy_init();
 
         char *pname = curl_easy_escape(curl, global_name, 0);
-        string request;
-        sprintf(request, "http://%s/retrieve.do?action=list&name=%s&version=%d&build=%d", mastername, pname, AC_VERSION, getbuildtype()|(1<<16));
+        defformatstring(request)("http://%s/retrieve.do?action=list&name=%s&version=%d&build=%d", mastername, pname, AC_VERSION, getbuildtype()|(1<<16));
         curl_free(pname);
 
         const char *tmpname = findfile(path("config/servers.cfg", true), "wb");
@@ -1395,8 +1397,7 @@ void retrieveservers(vector<char> &data)
         defformatstring(text)("retrieving servers from %s:%d... (esc to abort)", mastername, masterport);
         show_out_of_renderloop_progress(0, text);
         int starttime = SDL_GetTicks(), timeout = 0;
-        string request;
-        sprintf(request, "list %s %d %d\n",global_name,AC_VERSION,getbuildtype());
+        defformatstring(request)("list %s %d %d\n", global_name, AC_VERSION, getbuildtype());
         const char *req = request;
         int reqlen = strlen(req);
         ENetBuffer buf;

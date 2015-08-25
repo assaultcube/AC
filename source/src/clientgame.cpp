@@ -249,7 +249,7 @@ void playerinfo(int *cn, const char *attr)
     if(!p)
     {
         if(!m_botmode && multiplayer(false)) // bot clientnums are still glitchy, causing this message to sometimes appear in offline/singleplayer when it shouldn't??? -Bukz 2012may
-            conoutf("invalid clientnum cn: %s attr: %s", cn, attr);
+            conoutf("invalid clientnum cn: %d attr: %s", clientnum, attr);
         return;
     }
 
@@ -326,7 +326,7 @@ void teaminfo(const char *team, const char *attr)
     int t_deaths = 0;
     int t_points = 0;
 
-    string teammembers = "", tmp;
+    string teammembers = "";
 
     loopv(players) if(players[i] && players[i]->team == t)
     {
@@ -334,8 +334,7 @@ void teaminfo(const char *team, const char *attr)
         t_deaths += players[i]->deaths;
         t_points += players[i]->points;
         t_flags += players[i]->flagscore;
-        sprintf(tmp, "%s%d ", teammembers, players[i]->clientnum);
-        concatstring(teammembers, tmp);
+        concatformatstring(teammembers, "%d ", players[i]->clientnum);
     }
 
     loopv(discscores) if(discscores[i].team == t)
@@ -352,8 +351,7 @@ void teaminfo(const char *team, const char *attr)
         t_deaths += player1->deaths;
         t_points += player1->points;
         t_flags += player1->flagscore;
-        sprintf(tmp, "%s%d ", teammembers, player1->clientnum);
-        concatstring(teammembers, tmp);
+        concatformatstring(teammembers, "%d ", player1->clientnum);
     }
 
     ATTR_INT(flags, t_flags);
@@ -452,6 +450,7 @@ VAR(lastpm, 1, -1, 0);
 void zapplayer(playerent *&d)
 {
     if(d && d->clientnum == lastpm) lastpm = -1;
+    if(d == (playerent *)camera1) resetcamera();
     DELETEP(d);
 }
 
@@ -544,8 +543,8 @@ bool showhudtimer(int maxsecs, int startmillis, const char *msg, bool flash)
             concatstring(str, sec);
         }
     }
-    if(nextticks < maxticks) hudeditf(HUDMSG_TIMER|HUDMSG_OVERWRITE, flash ? str : str+2);
-    else hudeditf(HUDMSG_TIMER, msg);
+    if(nextticks < maxticks) hudeditf(HUDMSG_TIMER|HUDMSG_OVERWRITE, "%s", flash ? str : str+2);
+    else hudeditf(HUDMSG_TIMER, "%s", msg);
     return true;
 }
 
@@ -1609,7 +1608,7 @@ void setadmin(int *claim, char *password)
         conoutf("you released admin status");
         addmsg(SV_SETADMIN, "ri", 0);
     }
-    else if(*claim != 0 && password)
+    else if(*claim != 0 && *password)
         addmsg(SV_SETADMIN, "ris", *claim, genpwdhash(player1->name, password, sessionid));
 }
 

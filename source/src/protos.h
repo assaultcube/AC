@@ -64,7 +64,7 @@ extern void savehistory();
 extern void loadhistory();
 extern void writebinds(stream *f);
 extern void pasteconsole(char *dst);
-extern void clientlogf(const char *s, ...);
+extern void clientlogf(const char *s, ...) PRINTFARGS(1, 2);
 
 struct keym
 {
@@ -577,7 +577,7 @@ extern font *getfont(const char *name);
 extern void pushfont(const char *name);
 extern void popfont();
 extern void draw_text(const char *str, int left, int top, int r = 255, int g = 255, int b = 255, int a = 255, int cursor = -1, int maxwidth = -1);
-extern void draw_textf(const char *fstr, int left, int top, ...);
+extern void draw_textf(const char *fstr, int left, int top, ...) PRINTFARGS(1, 4);
 extern int text_width(const char *str);
 extern int text_visible(const char *str, int max);
 extern void text_bounds(const char *str, int &width, int &height, int maxwidth = -1);
@@ -625,10 +625,10 @@ enum
     HUDMSG_OVERWRITE = 1<<8
 };
 extern void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwater);
-extern void loadingscreen(const char *fmt = NULL, ...);
-extern void hudoutf(const char *s, ...);
-extern void hudonlyf(const char *s, ...);
-extern void hudeditf(int type, const char *s, ...);
+extern void loadingscreen(const char *fmt = NULL, ...) PRINTFARGS(1, 2);
+extern void hudoutf(const char *s, ...) PRINTFARGS(1, 2);
+extern void hudonlyf(const char *s, ...) PRINTFARGS(1, 2);
+extern void hudeditf(int type, const char *s, ...) PRINTFARGS(2, 3);
 extern void show_out_of_renderloop_progress(float bar1, const char *text1, float bar2 = 0, const char *text2 = NULL);
 extern void updatedmgindicator(vec &attack);
 extern vec getradarpos();
@@ -827,7 +827,7 @@ extern void freechallenge(void *answer);
 extern bool checkchallenge(const char *answerstr, void *correct);
 
 // console
-extern void conoutf(const char *s, ...);
+extern void conoutf(const char *s, ...) PRINTFARGS(1, 2);
 
 // command
 extern bool per_idents, neverpersist;
@@ -843,7 +843,7 @@ extern bool identexists(const char *name);
 extern bool addcommand(const char *name, void (*fun)(), const char *sig);
 extern int execute(const char *p);
 enum { HOOK_SP_MP = 1, HOOK_SP, HOOK_MP, HOOK_FLAGMASK = 0xff, HOOK_TEAM = 0x100, HOOK_NOTEAM = 0x200, HOOK_BOTMODE = 0x400, HOOK_FLAGMODE = 0x800, HOOK_ARENA = 0x1000 };
-extern bool exechook(int context, const char *ident, const char *body,...);  // execute cubescript hook if available and allowed in current context/gamemode
+extern bool exechook(int context, const char *ident, const char *body,...) PRINTFARGS(3, 4);  // execute cubescript hook if available and allowed in current context/gamemode
 extern char *executeret(const char *p);
 extern char *conc(const char **w, int n, bool space);
 extern void intret(int v);
@@ -885,7 +885,7 @@ extern void localservertoclient(int chan, uchar *buf, int len, bool demo = false
 extern const char *modestr(int n, bool acronyms = false);
 extern const char *voteerrorstr(int n);
 extern const char *mmfullname(int n);
-extern void fatal(const char *s, ...);
+extern void fatal(const char *s, ...) PRINTFARGS(1, 2);
 extern void initserver(bool dedicated, int argc = 0, char **argv = NULL);
 extern void cleanupserver();
 extern void localconnect();
@@ -954,7 +954,7 @@ enum { ACLOG_DEBUG = 0, ACLOG_VERBOSE, ACLOG_INFO, ACLOG_WARNING, ACLOG_ERROR, A
 
 extern bool initlogging(const char *identity, int facility_, int consolethres, int filethres, int syslogthres, bool logtimestamp);
 extern void exitlogging();
-extern bool logline(int level, const char *msg, ...);
+extern bool logline(int level, const char *msg, ...) PRINTFARGS(2, 3);
 
 // server config
 
