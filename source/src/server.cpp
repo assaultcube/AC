@@ -3003,9 +3003,9 @@ void process(ENetPacket *packet, int sender, int chan)
 
                 // Limit how often items can be picked up
                 int const MIN_PICKUP_INTERVAL = 400; // in milliseconds
-                int const MAX_PICKUPS_PER_MINUTE = 12; // on average
+                int const MAX_PICKUPS_PER_MINUTE = 20; // on average
                 if((gamemillis - cl->lastpickupmillis < MIN_PICKUP_INTERVAL)
-                        || ((cl->totalpickups - 10) * 60000 / MAX_PICKUPS_PER_MINUTE > gamemillis)) break;
+                        || ((cl->totalpickups - 5) * 60000 / MAX_PICKUPS_PER_MINUTE > gamemillis)) break;
 
                 if(!arenaround || arenaround - gamemillis > 2000)
                 {
