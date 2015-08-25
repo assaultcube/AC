@@ -3000,8 +3000,17 @@ void process(ENetPacket *packet, int sender, int chan)
             case SV_ITEMPICKUP:
             {
                 int n = getint(p);
+
+                // Limit how often items can be picked up; at most
+                // - one each half a second, and
+                // - ten per minute on average
+                if((gamemillis - cl->lastpickupmillis < 500)
+                        || (cl->totalpickups * 6000 > gamemillis + 30000)) break;
+
                 if(!arenaround || arenaround - gamemillis > 2000)
                 {
+                    ++cl->totalpickups;
+                    cl->lastpickupmillis = gamemillis;
                     gameevent &pickup = cl->addevent();
                     pickup.type = GE_PICKUP;
                     pickup.pickup.ent = n;

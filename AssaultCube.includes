@@ -1,0 +1,16 @@
+source/enet/include/enet
+source/include
+source/include/AL
+source/include/curl
+source/include/GL
+source/include/ogg
+source/include/vorbis
+source/src
+source/src/bot
+source/xcode
+source/xcode/Frameworks/libcurl.framework/Versions/Release-7.30.0/Headers/curl
+source/xcode/Frameworks/Ogg.framework/Versions/A/Headers
+source/xcode/Frameworks/SDL.framework/Versions/A/Headers
+source/xcode/Frameworks/SDL_image.framework/Versions/A/Frameworks/webp.framework/Versions/A/Headers/webp
+source/xcode/Frameworks/SDL_image.framework/Versions/A/Headers
+source/xcode/Frameworks/Vorbis.framework/Versions/A/Headers
