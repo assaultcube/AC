@@ -579,17 +579,20 @@ void loadskymap(bool reload)
         }
         flagmapconfigchange();
     }
+    bool old_silent_texture_load = silent_texture_load;
+    if(autodownload && execcontext == IEXC_MAPCFG) silent_texture_load = true;
     loopi(6)
     {
         defformatstring(name)("packages/%s%s_%s.jpg", legacyprefix, loadsky, side[i]);
         sky[i] = textureload(name, 3);
-        if(sky[i] == notexture && !reload && autodownload)
+        if(sky[i] == notexture && !reload && autodownload && execcontext == IEXC_MAPCFG)
         {
             defformatstring(dl)("packages/%s%s", legacyprefix, loadsky);
             requirepackage(PCK_SKYBOX, dl);
             break;
         }
     }
+    silent_texture_load = old_silent_texture_load;
 }
 
 void loadnotexture(char *c)
