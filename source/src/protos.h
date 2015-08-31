@@ -238,6 +238,41 @@ extern serverinfo *getconnectedserverinfo();
 extern void pingservers();
 extern void updatefrommaster(int force);
 
+// http
+struct httpget
+{
+    // parameters
+    const char *hostname, *url;                        // set by set_host() and get()
+    const char *useragent, *referrer;                  // can be set manually with "newstrings", deleted automatically
+    const char *err;                                   // read-only
+    ENetAddress ip;                                    // set by set_host(), port may be changed manually
+    int maxredirects, maxtransfer, maxsize;            // set manually
+    int (__cdecl *callbackfunc)(void *data, float progress);
+    void *callbackdata;
+
+    // internal
+    ENetSocket tcp;
+    stopwatch tcp_age;
+    vector<char> rawsnd, rawrec, datarec;
+
+    // result
+    char *header;
+    int response, chunked, gzipped, contentlength, offset, elapsedtime, traffic;
+    vector<uchar> *outvec;                             // receives data, if not NULL (must be set up manually)
+    stream *outstream;                                 // receives data, if not NULL (must be set up manually)
+
+    httpget() { memset(&hostname, 0, sizeof(struct httpget)); tcp = ENET_SOCKET_NULL; reset(); }
+    ~httpget() { reset(); DELSTRING(useragent); DELSTRING(referrer); DELETEP(outvec); DELETEP(outstream); }
+    void reset(int keep = 0);                          // cleanup
+    bool set_host(const char *newhostname);            // set and resolve host
+    bool execcallback(float progress);
+    void disconnect();
+    bool connect(bool force = false);
+    int get(const char *url1, uint timeout, int range = 0, bool head = false); // get web ressource
+};
+
+extern char *urlencode(const char *s, bool strict = false);
+
 struct packetqueue
 {
     ringbuf<ENetPacket *, 8> packets;

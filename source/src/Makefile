@@ -64,6 +64,7 @@ CLIENT_OBJS= \
 	docs.o \
 	editing.o \
 	entities.o \
+	http.o \
 	log.o \
 	main.o \
 	menus.o \
@@ -249,6 +250,8 @@ editing.o: console.h protos.h
 entities.o: cube.h platform.h tools.h geom.h model.h protocol.h sound.h
 entities.o: weapon.h entity.h world.h command.h varray.h vote.h
 entities.o: console.h protos.h
+http.o: cube.h platform.h tools.h geom.h model.h protocol.h sound.h weapon.h
+http.o: entity.h world.h command.h varray.h vote.h console.h protos.h
 log.o: cube.h platform.h tools.h geom.h model.h protocol.h sound.h weapon.h
 log.o: entity.h world.h command.h varray.h vote.h console.h protos.h
 main.o: cube.h platform.h tools.h geom.h model.h protocol.h sound.h weapon.h
