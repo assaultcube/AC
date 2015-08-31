@@ -477,8 +477,6 @@ void listmemfiles()
 COMMAND(listmemfiles, "");
 #endif
 
-#endif
-
 // manage zipped mod packages in subdirectory "mods/" including description and preview images
 // zip packages are restricted to contain files below "packages/" only - unless the zip filename starts with "###", which additionally allows files below "config/"
 
@@ -487,8 +485,6 @@ ziparchive *findzip(const char *name)
     loopv(archives) if(!strcmp(name, archives[i]->name)) return archives[i];
     return NULL;
 }
-
-#ifndef STANDALONE
 
 const char *fixzipname(char *name) // check, if valid path + filename, based on mods/, return NULL if invalid
 {
@@ -555,6 +551,155 @@ void addzipmod(char *name)
     clientlogf("added zipmod %s, %d bytes, %d files", pname, zipsize, arch->files.length());
 }
 COMMAND(addzipmod, "s");
+
+void zipmodremove(char *name)
+{
+    const char *pname = fixzipname(name);
+    ziparchive *exists = pname ? findzip(name) : NULL;
+    if(!exists)
+    {
+        conoutf("zip %s is not loaded", name);
+        return;
+    }
+    if(exists->openfiles)
+    {
+        conoutf("zip %s has %d open files", name, exists->openfiles);
+        return;
+    }
+    conoutf("removed zip %s", exists->name);
+    archives.removeobj(exists);
+    rebuildzipfilehashtable();
+    delete exists;
+}
+COMMAND(zipmodremove, "s");
+
+void zipmodclear()
+{
+    loopvrev(archives)
+    {
+        ziparchive *a = archives[i];
+        if(a->openfiles)
+        {
+            conoutf("zip %s has %d open files", a->name, a->openfiles);
+            continue;
+        }
+        delete archives.remove(i);
+    }
+    rebuildzipfilehashtable();
+}
+COMMAND(zipmodclear, "");
+
+void zipmodlist(char *which) // "active", "inactive", "all"(default)
+{
+    vector<char> res;
+    if(!strcasecmp(which, "active"))
+    {
+        loopv(archives) cvecprintf(res, "%s ", archives[i]->name);
+    }
+    else
+    {
+        bool inactive = !strcasecmp(which, "inactive");
+        vector<char *> files;
+        listfilesrecursive("mods", files);
+        files.sort(stringsort);
+        loopvrev(files) if(files.inrange(i + 1) && !strcmp(files[i], files[i + 1])) delstring(files.remove(i + 1)); // remove doubles
+        loopv(files)
+        {
+            char *f = files[i];
+            if(!strncmp(f, "mods/", 5) && !strncmp(f + strlen(f) - 4, ".zip", 4))
+            {
+                f += 5;
+                f[strlen(f) - 4] = '\0';
+                if(fixzipname(f) && (!inactive || !findzip(f))) cvecprintf(res, "%s ", f);
+            }
+        }
+        files.deletearrays();
+    }
+    if(res.length()) res.last() = '\0';
+    else res.add('\0');
+    result(res.getbuf());
+}
+COMMAND(zipmodlist, "s");
+
+const char *desctxt = "desc.txt", *previewjpg = "preview.jpg", *modrev = "revision_";  // special files in zip containing description or preview
+
+void zipmodgetdesc(char *name) // open zip, read desc.txt and mount preview picture
+{
+    const char *pname = fixzipname(name);
+    stream *f = pname ? openfile(pname, "rb") : NULL, *zf = NULL;
+    vector<const char *> files;
+    vector<char> res;
+    void *mz = zipmanualopen(f, files);
+    string tmp;
+    if(!f || !mz) conoutf("failed to read/open zip file %s", pname);
+    else
+    {
+        loopv(files)
+        {
+            if(!strcmp(files[i], desctxt))
+            {
+                if((zf = zipmanualstream(mz, i))) loopk(11)
+                {
+                    zf->getline(tmp, MAXSTRLEN / 2);
+                    filtertext(tmp, tmp, FTXT__ZIPDESC);
+                    if(*tmp) cvecprintf(res, "%s\n", escapestring(tmp));
+                    else break;
+                }
+            }
+            else if(!strcmp(files[i], previewjpg))
+            {
+                vector<uchar> *v = new vector<uchar>;
+                zf = openvecfile(v);
+                int got = zipmanualread(mz, i, zf, 128 * 1024); // max. file size for preview.jpg is 128k
+                formatstring(tmp)("packages/modpreviews/%s.jpg", name);
+                addmemfile(tmp, v->getbuf(), got);
+                if(got == 128 * 1024) conoutf("\f3preview.jpg in zip file %s exceeds maximum file size: file truncated", pname);
+            }
+            DELETEP(zf);
+        }
+        zipmanualclose(mz);
+    }
+    if(res.length()) res.last() = '\0';
+    else res.add('\0');
+    result(res.getbuf());
+}
+COMMAND(zipmodgetdesc, "s");
+
+void zipmodgetfiles(char *name) // open zip, read list of files
+{
+    const char *pname = fixzipname(name);
+    stream *f = pname ? openfile(pname, "rb") : NULL;
+    vector<const char *> files;
+    vector<char> res;
+    void *mz = zipmanualopen(f, files);
+    if(!f || !mz) conoutf("failed to read/open zip file %s", pname);
+    else
+    {
+        loopv(files) cvecprintf(res, "%s\n", escapestring(files[i]));
+        zipmanualclose(mz);
+    }
+    if(res.length()) res.last() = '\0';
+    else res.add('\0');
+    result(res.getbuf());
+}
+COMMAND(zipmodgetfiles, "s");
+
+void zipmodgetrevision(char *name) // open zip, read list of files
+{
+    const char *pname = fixzipname(name);
+    stream *f = pname ? openfile(pname, "rb") : NULL;
+    vector<const char *> files;
+    int res = 0, modrevlen = (int)strlen(modrev);
+    void *mz = zipmanualopen(f, files);
+    if(!f || !mz) conoutf("failed to read/open zip file %s", pname);
+    else
+    {
+        loopv(files) if(!strncasecmp(files[i], modrev, modrevlen)) res = atoi(files[i] + modrevlen);
+        zipmanualclose(mz);
+    }
+    intret(res);
+}
+COMMAND(zipmodgetrevision, "s");
 
 void writezipmodconfig(stream *f)
 {
