@@ -165,10 +165,10 @@ struct gmenu
     int anim, rotspeed, scale;
     int footlen;
     int xoffs, yoffs;
-    char *previewtexture;
+    char *previewtexture, *previewtexturetitle;
     mdirlist *dirlist;
 
-    gmenu() : name(0), title(0), header(0), footer(0), initaction(0), usefont(0), allowblink(false), persistentselection(false), mdl(0), footlen(0), xoffs(0), yoffs(0), previewtexture(NULL), dirlist(0) {}
+    gmenu() : name(0), title(0), header(0), footer(0), initaction(0), usefont(0), allowblink(false), persistentselection(false), mdl(0), footlen(0), xoffs(0), yoffs(0), previewtexture(NULL), previewtexturetitle(NULL), dirlist(0) {}
     virtual ~gmenu()
     {
         DELETEA(name);
