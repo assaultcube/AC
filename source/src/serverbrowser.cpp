@@ -1304,89 +1304,42 @@ void clearservers()
 }
 
 #define RETRIEVELIMIT 5000
-size_t write_callback(void *ptr, size_t size, size_t nmemb, FILE *stream)
-{
-    return fwrite(ptr, size, nmemb, stream);
-}
 
 extern char *global_name;
 bool cllock = false, clfail = false;
 
-struct resolver_data
+int progress_callback_retrieveservers(void *data, float progress)
 {
-    int timeout, starttime;
-    string text;
-};
-
-int progress_callback_retrieveservers(void *clientp, double dltotal, double dlnow, double ultotal, double ulnow)
-{
-    resolver_data *rd = (resolver_data *)clientp;
-    rd->timeout = SDL_GetTicks() - rd->starttime;
-    show_out_of_renderloop_progress(min(float(rd->timeout)/RETRIEVELIMIT, 1.0f), rd->text);
-    if(interceptkey(SDLK_ESCAPE))
-    {
-        loadingscreen();
-        return 1;
-    }
-    return 0;
+    show_out_of_renderloop_progress(min(progress, 1.0f), (const char *)data);
+    return interceptkey(SDLK_ESCAPE) ? 1 : 0;
 }
 
 void retrieveservers(vector<char> &data)
 {
     if(mastertype == AC_MASTER_HTTP)
     {
-        CURL *curl = curl_easy_init();
-
-        char *pname = curl_easy_escape(curl, global_name, 0);
-        defformatstring(request)("http://%s/retrieve.do?action=list&name=%s&version=%d&build=%d", mastername, pname, AC_VERSION, getbuildtype()|(1<<16));
-        curl_free(pname);
-
-        const char *tmpname = findfile(path("config/servers.cfg", true), "wb");
-        FILE *outfile = fopen(tmpname, "w+");
-        if(!outfile)
+        httpget h;
+        defformatstring(progresstext)("resolving %s", mastername);
+        h.callbackfunc = progress_callback_retrieveservers;
+        h.callbackdata = progresstext;
+        show_out_of_renderloop_progress(0.01f, progresstext);
+        if(h.set_host(mastername))
         {
-            conoutf("\f3cannot write server list");
-            curl_easy_cleanup(curl);
-            return;
+            formatstring(progresstext)("retrieving servers from %s:%d... (esc to abort)", mastername, masterport);
+            defformatstring(url)("/retrieve.do?action=list&name=%s&version=%d&build=%d", urlencode(global_name, true), AC_VERSION, getbuildtype()|(1<<16));
+            h.outvec = (vector<uchar> *) &data; // ouch...
+            show_out_of_renderloop_progress(0, progresstext);
+            h.get(url, RETRIEVELIMIT);
+            if(h.response != 200) data.setsize(0);
+            h.outvec = NULL; // must not be cleaned up by httpget
+            if(data.length()) data.add('\0');
+            clfail = false;
         }
-
-        resolver_data *rd = new resolver_data();
-        formatstring(rd->text)("retrieving servers from %s:%d... (esc to abort)", mastername, masterport);
-        show_out_of_renderloop_progress(0, rd->text);
-
-        rd->starttime = SDL_GetTicks();
-        rd->timeout = 0;
-        int result = 0, httpresult = 0;
-
-        curl_easy_setopt(curl, CURLOPT_URL, request);
-        curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);  // Fixes crashbug for some buggy libcurl versions (Linux)
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, outfile);
-        curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0);
-        curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progress_callback_retrieveservers);
-        curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, rd);
-        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, RETRIEVELIMIT/1000);
-        result = curl_easy_perform(curl);
-        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &httpresult);
-        curl_easy_cleanup(curl);
-        curl = NULL;
-        if(outfile) fclose(outfile);
-
-        if(result == CURLE_OPERATION_TIMEDOUT || result == CURLE_COULDNT_RESOLVE_HOST)
+        else
         {
+            conoutf("failed to resolve host %s", mastername);
             clfail = true;
         }
-        else clfail = false;
-
-        if(!result && httpresult == 200)
-        {
-            int size = 0;
-            char *content = loadfile(path("config/servers.cfg", true), &size);
-            data.shrink(0);
-            data.insert(0, content, size);
-            if(data.length()) data.add('\0');
-        }
-        DELETEP(rd);
     }
     else
     {
