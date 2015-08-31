@@ -750,6 +750,79 @@ struct gzstream : stream
     }
 };
 
+struct vecstream : stream
+{
+    vector<uchar> *data;
+    int pointer;
+
+    vecstream(vector<uchar> *s) : data(s), pointer(0) {}
+    ~vecstream() { DELETEP(data); }
+
+    void close() { DELETEP(data); }
+    bool end() { return data ? pointer >= data->length() : true; }
+    long tell() { return data ? pointer : -1; }
+    long size() { return data ? data->length() : -1; }
+
+    bool seek(long offset, int whence)
+    {
+        int newpointer = -1;
+        if(data) switch(whence)
+        {
+            case SEEK_SET: newpointer = 0; break;
+            case SEEK_CUR: newpointer = pointer; break;
+            case SEEK_END: newpointer = data->length(); break;
+        }
+        if(newpointer >= 0) newpointer += offset;
+        if(newpointer >= 0 && data && newpointer <= data->length())
+        {
+            pointer = newpointer;
+            return true;
+        }
+        return false;
+    }
+
+    int read(void *buf, int len)
+    {
+        int got = 0;
+        if(data && data->inrange(pointer))
+        {
+            got = min(len, data->length() - pointer);
+            memcpy(buf, data->getbuf() + pointer, got);
+            pointer += got;
+        }
+        return got;
+    }
+
+    int write(const void *buf, int len)
+    {
+        if(data)
+        {
+            while(data->length() < pointer + len) data->add(0);
+            memcpy(data->getbuf() + pointer, buf, len);
+            pointer += len;
+        }
+        else len = 0;
+        return len;
+    }
+
+    int printf(const char *fmt, ...) // limited to MAXSTRLEN
+    {
+        int len = 0;
+        if(data)
+        {
+            defvformatstring(temp, fmt, fmt);
+            len = strlen(temp);
+            if(len) data->put((uchar *)temp, len);
+        }
+        return len;
+    }
+};
+
+stream *openvecfile(vector<uchar> *s)
+{
+    return new vecstream(s ? s : new vector<uchar>);
+}
+
 
 stream *openrawfile(const char *filename, const char *mode)
 {
