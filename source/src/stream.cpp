@@ -958,6 +958,14 @@ char *loadfile(const char *fn, int *size, const char *mode)
     return buf;
 }
 
+int streamcopy(stream *dest, stream *source, int maxlen)
+{
+    int got = 0, len;
+    uchar copybuf[1024];
+    while(got < maxlen && (len = source->read(copybuf, 1024))) got += dest->write(copybuf, len);
+    return got;
+}
+
 #ifndef STANDALONE
 void filerotate(const char *basename, const char *ext, int keepold, const char *oldformat)  // rotate old logfiles
 {

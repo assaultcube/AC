@@ -679,6 +679,54 @@ void writezipmodconfig(stream *f)
 
 #endif
 
+// simple interface to read zip contents without mounting them first
+
+void *zipmanualopen(stream *f, vector<const char *> &files)
+{
+    if(!f) return NULL;
+    zipdirectoryheader h;
+    ziparchive *arch = new ziparchive;
+    if(!findzipdirectory(f, h) || !readzipdirectory(f, h.entries, h.offset, h.size, arch->files))
+    {
+        delete arch;
+        delete f;
+        return NULL;
+    }
+    arch->data = f;
+    loopv(arch->files) files.add(arch->files[i].name);
+    return (void *)arch;
+}
+
+stream *zipmanualstream(void *a, int n)
+{
+    ziparchive *arch = (ziparchive *)a;
+    if(arch->files.inrange(n))
+    {
+        zipstream *s = new zipstream;
+        if(s->open(arch, &arch->files[n])) return s;
+        delete s;
+    }
+    return NULL;
+}
+
+int zipmanualread(void *a, int n, stream *f, int maxlen)
+{
+    int got = -1;
+    stream *s = zipmanualstream(a, n);
+    if(s)
+    {
+        got = streamcopy(f, s, maxlen);
+        delete s;
+    }
+    return got;
+}
+
+void zipmanualclose(void *a)
+{
+    ziparchive *arch = (ziparchive *)a;
+    delete arch; // also closes arch->data, the associated file stream!
+}
+
 // AC virtual filesystem
 
 bool findzipfile(const char *name)

@@ -943,38 +943,31 @@ void autostartscripts(const char *prefix)
 
 void createconfigtemplates(const char *templatezip)  // create customisable config files in homedir - only if missing
 {
-#if 0
-    if(addzip(templatezip))
+    vector<const char *> files;
+    void *mz = zipmanualopen(openfile(templatezip, "rb"), files);
+    if(mz)
     {
-        vector<char *> files;
-        listzipfiles("", "cfg", files);  // only look for config files in the root dir of the zip file
         loopv(files)
         {
-            defformatstring(fname)("config%c%s.cfg", PATHDIV, behindpath(files[i]));  // (the "behindpath()" should not be necessary, but we want to be careful: the zip may be weird)
-            stream *f = openrawfile(fname, "rb");
-            if(f) delete f; // config already exists
-            else
+            const char *filename = behindpath(files[i]); // only look for config files in the zip file, ignore all paths in the zip
+            if(strlen(filename) > 4 && !strcmp(filename + strlen(filename) - 4, ".cfg"))
             {
-                int flen;
-                char *buf = loadfile(behindpath(fname), &flen);  // fetch file content from zip
-                if(buf)
+                defformatstring(fname)("config%c%s.cfg", PATHDIV, files[i]);
+                if(getfilesize(fname) <= 0) // config does not exist or is empty
                 {
-                    f = openfile(fname, "wb");
-                    if(f)
+                    stream *zf = openfile(fname, "wb");
+                    if(zf)
                     {
-                        f->write(buf, flen);
-                        delete f;
+                        zipmanualread(mz, i, zf, MAXCFGFILESIZE); // fetch file content from zip, write to new config file
+                        delete zf;
                         conoutf("created %s from template %s", fname, templatezip);
                     }
-                    delete[] buf;
                 }
             }
-            delete[] files[i];
         }
-        removezip(templatezip);
+        zipmanualclose(mz);
     }
     findfile(AUTOSTARTPATH "dummy", "w"); // create empty autostart directory, if it doesn't exist yet
-#endif
 }
 
 extern void connectserv(char *, int *, char *);
@@ -1180,7 +1173,7 @@ int main(int argc, char **argv)
     initclientlog();
     if(quitdirectly) return EXIT_SUCCESS;
 
-    createconfigtemplates("config/configtemplates.zip");
+    createconfigtemplates("config" PATHDIVS "configtemplates.zip");
 
     initing = NOT_INITING;
 

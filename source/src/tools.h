@@ -955,6 +955,7 @@ extern stream *openfile(const char *filename, const char *mode);
 extern stream *opentempfile(const char *filename, const char *mode);
 extern stream *opengzfile(const char *filename, const char *mode, stream *file = NULL, int level = Z_BEST_COMPRESSION);
 extern char *loadfile(const char *fn, int *size, const char *mode = NULL);
+extern int streamcopy(stream *dest, stream *source, int maxlen = INT_MAX);
 extern void filerotate(const char *basename, const char *ext, int keepold, const char *oldformat = NULL);
 extern bool listdir(const char *dir, const char *ext, vector<char *> &files);
 extern void listfiles(const char *dir, const char *ext, vector<char *> &files);
@@ -962,6 +963,10 @@ extern void listfilesrecursive(const char *dir, vector<char *> &files, int level
 extern void listzipfiles(const char *dir, const char *ext, vector<char *> &files);
 extern bool delfile(const char *path);
 extern void backup(char *name, char *backupname);
+extern void *zipmanualopen(stream *f, vector<const char *> &files);
+extern stream *zipmanualstream(void *a, int n);
+extern int zipmanualread(void *a, int n, stream *f, int maxlen = INT_MAX);
+extern void zipmanualclose(void *a);
 extern struct mapstats *loadmapstats(const char *filename, bool getlayout);
 extern bool cmpb(void *b, int n, enet_uint32 c);
 extern bool cmpf(char *fn, enet_uint32 c);
