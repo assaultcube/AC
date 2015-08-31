@@ -64,6 +64,13 @@ struct ziparchive // zip archive file
     ~ziparchive() { DELSTRING(name); DELETEP(data); }
 };
 
+struct memfile
+{
+    char *name;         // file name
+    uchar *buf;         // file content
+    int len, refcnt;    // file length, current uses
+};
+
 static bool findzipdirectory(stream *f, zipdirectoryheader &hdr)
 {
     if(!f->seek(0, SEEK_END)) return false;
@@ -345,6 +352,8 @@ bool removezip(const char *name)
 }
 #endif
 
+
+
 // stream interface
 
 struct zipstream : stream
@@ -549,6 +558,7 @@ struct zipstream : stream
 
 static vector<ziparchive *> archives; // list of mounted zip files, highest priority first
 static hashtable<const char *, zipfile *> zipfiles; // table of all files in all mounted zips
+static hashtable<const char *, memfile> memfiles; // table of all memfiles
 
 static void mountzip(ziparchive &arch, const char *mountdir, const char *stripdir, bool allowconfig)
 {
@@ -593,6 +603,44 @@ static void rebuildzipfilehashtable()
         }
     }
 }
+
+void clearmemfiles() // clear list of memfiles and free all associated buffers (unless there are files still open)
+{
+    bool inuse = false;
+    enumerate(memfiles, memfile, mf, { if(mf.refcnt != 1) inuse = true; });
+    if(!inuse)
+    {
+        enumerate(memfiles, memfile, mf, { delstring(mf.name); DELETEP(mf.buf); });
+        memfiles.clear(false);
+    }
+}
+
+bool addmemfile(char *name, uchar *data, int len)
+{
+    path(name);
+    memfile *mf = memfiles.access(name);
+    if(mf) return false; // not added (already existed)
+    char *nname = newstring(name);
+    mf = &memfiles[nname];
+    mf->name = nname;
+    mf->buf = new uchar[len];
+    memcpy(mf->buf, data, len);
+    mf->len = len;
+    mf->refcnt = 1;
+    return true;
+}
+
+#ifndef STANDALONE
+
+#ifdef _DEBUG
+void listmemfiles()
+{
+    enumerate(memfiles, memfile, mf, { conoutf("\"%s\", %x, len %d, refcnt %d", mf.name, int(int(size_t(mf.buf)) & 0xfffffff), mf.len, mf.refcnt); });
+}
+COMMAND(listmemfiles, "");
+#endif
+
+#endif
 
 // manage zipped mod packages in subdirectory "mods/" including description and preview images
 // zip packages are restricted to contain files below "packages/" only - unless the zip filename starts with "###", which additionally allows files below "config/"
@@ -731,13 +779,15 @@ void zipmanualclose(void *a)
 
 bool findzipfile(const char *name)
 {
-    return zipfiles.access(name) != NULL;
+    return zipfiles.access(name) != NULL || memfiles.access(name) != NULL;
 }
 
 stream *openzipfile(const char *name, const char *mode)
 {
     for(; *mode; mode++) if(*mode=='w' || *mode=='a') return NULL;
 //    if(!strncmp(name, "zip://", 6)) name += 6;
+    memfile *mf = memfiles.access(name);
+    if(mf) return openmemfile(mf->buf, mf->len, &mf->refcnt);
     zipfile **zf = zipfiles.access(name);
     if(zf && *zf)
     {
