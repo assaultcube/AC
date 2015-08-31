@@ -221,6 +221,11 @@ bool requirepackage(int type, const char *name, const char *host)
             pck->exts = mapexts;
             break;
 
+        case PCK_MOD:
+            prefix = "mods/";
+            forceext = ".zip";
+            break;
+
         default:
             conoutf("\f3requirepackage: illegal package type %d (\"%s\")", type, name); // should probably be fatal()
             delete pck;
@@ -230,7 +235,7 @@ bool requirepackage(int type, const char *name, const char *host)
     copystring(upath, name);
     unixpath(upath);
     filtertext(pck->name, name, FTXT__MEDIAFILEPATH); // also changes backslashes to slashes
-    if(strlen(upath) > 100 || strcmp(upath, pck->name) || (checkprefix && strncmp(pck->name, checkprefix, strlen(checkprefix))))
+    if(strlen(upath) > 100 || strcmp(upath, pck->name) || (checkprefix && strncmp(pck->name, checkprefix, strlen(checkprefix))) || (type == PCK_MOD && !validzipmodname(upath)))
     {
         conoutf("\f3requirepackage: illegal media path \"%s\" (type: %d)", name, type);
         delete pck;
@@ -305,7 +310,7 @@ void processdownload(package *pck, stream *f) // write downloaded data to file(s
         stream *d = openfile(path(pck->fullpath, true), "wb");
         if(d)
         {
-            streamcopy(d, f, MAXMEDIADOWNLOADFILESIZE);
+            streamcopy(d, f, pck->type == PCK_MOD ? MAXMODDOWNLOADSIZE : MAXMEDIADOWNLOADFILESIZE);
             delete d;
         }
         delete f;
@@ -493,3 +498,10 @@ void writepcksourcecfg()
         delete f;
     }
 }
+
+void getmod(char *name)
+{
+    if(requirepackage(PCK_MOD, name) && downloadpackages()) conoutf("mod package %s successfully downloaded", name);
+    else conoutf("failed to download mod package %s", name);
+}
+COMMAND(getmod, "s");

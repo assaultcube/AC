@@ -12,6 +12,7 @@
 #define MAXMAPSENDSIZE 65536
 #define MAXCFGFILESIZE 65536
 #define MAXMEDIADOWNLOADFILESIZE 1024000 // hard cap on filesizes (raw and unzipped) - to limit the effect of zip bombs - no nice error messages: just cap
+#define MAXMODDOWNLOADSIZE 1024000      // hard cap on the filesize of downloaded mod packages - to keep stuff reasonable
 #define MAXFILESINADZIP 21              // max number of files extracted from a zip by autodownload
 
 extern bool modprotocol;

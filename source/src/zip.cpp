@@ -498,6 +498,11 @@ const char *fixzipname(char *name) // check, if valid path + filename, based on 
     return path(pname);
 }
 
+bool validzipmodname(char *name) // check for valid _downloadable_ zip mod name (no '#' allowed), also changes backslashes to slashes
+{
+    return fixzipname(name) && !strchr(name, '#');
+}
+
 VAR(zipcachemaxsize, 0, 512, 1024); // load zip files smaller than 512K straight into RAM
 
 void addzipmod(char *name)

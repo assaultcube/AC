@@ -963,6 +963,7 @@ extern void listfilesrecursive(const char *dir, vector<char *> &files, int level
 extern void listzipfiles(const char *dir, const char *ext, vector<char *> &files);
 extern bool delfile(const char *path);
 extern void backup(char *name, char *backupname);
+extern bool validzipmodname(char *name);
 extern void *zipmanualopen(stream *f, vector<const char *> &files);
 extern stream *zipmanualstream(void *a, int n);
 extern int zipmanualread(void *a, int n, stream *f, int maxlen = INT_MAX);
