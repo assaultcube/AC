@@ -948,6 +948,7 @@ enum { FFL_WORKDIR = -1, FFL_HOME = 0 };
 extern const char *findfile(const char *filename, const char *mode);
 extern int getfilesize(const char *filename);
 extern stream *openvecfile(vector<uchar> *s = NULL);
+extern stream *openmemfile(const uchar *buf, int size, int *refcnt);
 extern stream *openrawfile(const char *filename, const char *mode);
 extern stream *openzipfile(const char *filename, const char *mode);
 extern stream *openfile(const char *filename, const char *mode);

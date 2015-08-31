@@ -818,11 +818,70 @@ struct vecstream : stream
     }
 };
 
+struct memstream : stream
+{
+    const uchar *data;
+    int memsize;
+    int pointer;
+    int *refcount;
+
+    memstream(const uchar *s, int size, int *refcnt) : data(s), memsize(size), pointer(0), refcount(refcnt) { if(refcnt) (*refcnt)++; }
+    ~memstream() { close(); }
+
+    void close()
+    {
+        if(data && refcount)
+        {
+            (*refcount)--;
+            data = NULL;
+        }
+        else DELETEA(data);
+        memsize = -1;
+    }
+    bool end() { return data ? pointer >= memsize : true; }
+    long tell() { return data ? pointer : -1; }
+    long size() { return data ? memsize : -1; }
+
+    bool seek(long offset, int whence)
+    {
+        int newpointer = -1;
+        if(data) switch(whence)
+        {
+            case SEEK_SET: newpointer = 0; break;
+            case SEEK_CUR: newpointer = pointer; break;
+            case SEEK_END: newpointer = memsize; break;
+        }
+        if(newpointer >= 0) newpointer += offset;
+        if(newpointer >= 0 && newpointer <= memsize)
+        {
+            pointer = newpointer;
+            return true;
+        }
+        return false;
+    }
+
+    int read(void *buf, int len)
+    {
+        int got = 0;
+        if(data && pointer >= 0 && pointer < memsize)
+        {
+            got = min(len, memsize - pointer);
+            memcpy(buf, data + pointer, got);
+            pointer += got;
+        }
+        return got;
+    }
+};
+
 stream *openvecfile(vector<uchar> *s)
 {
     return new vecstream(s ? s : new vector<uchar>);
 }
 
+stream *openmemfile(const uchar *buf, int size, int *refcnt)
+{
+    return new memstream(buf, size, refcnt);
+}
 
 stream *openrawfile(const char *filename, const char *mode)
 {
