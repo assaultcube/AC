@@ -44,35 +44,24 @@ struct ziparchive;
 
 struct zipfile // file in a zip archive
 {
-    char *name;
+    char *name, *fullname; // name from zip, full path name
     uint header, offset, size, compressedsize;
+    ziparchive *location;
 
-    zipfile() : name(NULL), header(0), offset(~0U), size(0), compressedsize(0)
-    {
-    }
-    ~zipfile()
-    {
-        DELETEA(name);
-    }
+    zipfile() : name(NULL), fullname(NULL), header(0), offset(~0U), size(0), compressedsize(0), location(NULL) { }
+    ~zipfile() { DELSTRING(name); DELSTRING(fullname); }
 };
 
 struct ziparchive // zip archive file
 {
     char *name;
-    hashtable<const char *, zipfile> files;
     stream *data;
+    vector<zipfile> files;
     int openfiles;
-    int type;
     zipstream *owner;
 
-    ziparchive() : name(NULL), files(512), data(NULL), openfiles(0), type(-1), owner(NULL)
-    {
-    }
-    ~ziparchive()
-    {
-        DELETEA(name);
-        DELETEP(data);
-    }
+    ziparchive() : name(NULL), data(NULL), openfiles(0), owner(NULL) { }
+    ~ziparchive() { DELSTRING(name); DELETEP(data); }
 };
 
 static bool findzipdirectory(stream *f, zipdirectoryheader &hdr)
@@ -195,8 +184,7 @@ static bool readlocalfileheader(stream *f, ziplocalfileheader &h, uint offset)
     return true;
 }
 
-static vector<ziparchive *> archives;
-
+#if 0
 ziparchive *findzip(const char *name)
 {
     loopv(archives) if(!strcmp(name, archives[i]->name)) return archives[i];
@@ -355,6 +343,9 @@ bool removezip(const char *name)
     delete exists;
     return true;
 }
+#endif
+
+// stream interface
 
 struct zipstream : stream
 {
@@ -554,68 +545,178 @@ struct zipstream : stream
     }
 };
 
-bool extractzipfile(ziparchive *a, zipfile *f, const char *name)
+// manage zips as part of the AC virtual filesystem
+
+static vector<ziparchive *> archives; // list of mounted zip files, highest priority first
+static hashtable<const char *, zipfile *> zipfiles; // table of all files in all mounted zips
+
+static void mountzip(ziparchive &arch, const char *mountdir, const char *stripdir, bool allowconfig)
 {
-    zipstream *s = new zipstream;
-    FILE *target = NULL;
-    defformatstring(fname)("%s", findfile(name, "wb"));
-    bool error = false;
-    if(s->open(a, f) && (target = fopen(fname, "wb")))
+    string mdir = "", fname;
+    if(mountdir)
     {
-        size_t len;
-        uchar copybuf[1024];
-        while((len = s->read(copybuf, 1024))) fwrite(copybuf, 1, len, target);
+        copystring(mdir, mountdir);
+        if(fixpackagedir(mdir) <= 1) mdir[0] = '\0';
     }
-    else error = true;
-    if(error) conoutf("failed to extract zip file %s from archive %s", fname, a->name);
-    if(target) fclose(target);
-    delete s;
-    return !error;
+    int striplen = stripdir ? (int)strlen(stripdir) : 0;
+
+    loopv(arch.files)
+    { // build full path names - and check them
+        zipfile *zf = &arch.files[i];
+        formatstring(fname)("%s%s", mdir, striplen && !strncmp(zf->name, stripdir, striplen) ? zf->name + striplen : zf->name);
+        path(fname);
+        unixpath(fname);
+        zf->fullname = newstring(fname);
+        zf->location = &arch;
+        filtertext(fname, fname, FTXT__MEDIAFILEPATH);
+        if(strcmp(fname, zf->fullname) || (strncmp("packages/", fname, 9) && (!allowconfig || strncmp("config/", fname, 7))))
+        { // path is not allowed (illegal characters or illegal path)
+#if defined(_DEBUG) && !defined(STANDALONE)
+            clientlogf("mountzip: ignored file %s from zip %s", fname, arch.name);
+#endif
+            arch.files.remove(i--).~zipfile();
+        }
+        else path(zf->fullname);
+    }
+}
+
+static void rebuildzipfilehashtable()
+{
+    zipfiles.clear(false);
+    loopv(archives)
+    {
+        ziparchive *arch = archives[i];
+        loopvj(arch->files)
+        {
+            zipfile *zf = &arch->files[j];
+            zipfiles.access(zf->fullname, zf);
+        }
+    }
+}
+
+// manage zipped mod packages in subdirectory "mods/" including description and preview images
+// zip packages are restricted to contain files below "packages/" only - unless the zip filename starts with "###", which additionally allows files below "config/"
+
+ziparchive *findzip(const char *name)
+{
+    loopv(archives) if(!strcmp(name, archives[i]->name)) return archives[i];
+    return NULL;
+}
+
+#ifndef STANDALONE
+
+const char *fixzipname(char *name) // check, if valid path + filename, based on mods/, return NULL if invalid
+{
+    string tmp;
+    unixpath(name); // changes "name"!
+    filtertext(tmp, name, FTXT__MEDIAFILEPATH);
+    const char *bp = behindpath(tmp), *pd = parentdir(tmp);
+    static defformatstring(pname)("%s%s%s%s", pd, bp != tmp ? "/" : "", !strncmp("###", behindpath(name), 3) ? "###" : "", bp);
+    if(strlen(name) > 40 || strchr(name, '.') || strcmp(pname, name) || *name == '/') return NULL; // illegal filename
+    formatstring(pname)("mods/%s.zip", name);
+    return path(pname);
+}
+
+VAR(zipcachemaxsize, 0, 512, 1024); // load zip files smaller than 512K straight into RAM
+
+void addzipmod(char *name)
+{
+    const char *pname = fixzipname(name);
+    if(!pname)
+    {
+        conoutf("addzipmod: illegal filename %s", name);
+        return;
+    }
+    ziparchive *exists = findzip(name);
+    if(exists)
+    { // already added zip
+        archives.removeobj(exists);
+        archives.add(exists); // sort to the end of the list
+        rebuildzipfilehashtable();
+        return;
+    }
+    ziparchive *arch = new ziparchive;
+    arch->name = newstring(name);
+    if(!(arch->data = openfile(pname, "rb")))
+    {
+        conoutf("could not open file %s", pname);
+        delete arch;
+        return;
+    }
+    int zipsize = arch->data->size();
+    if(zipsize > 0 && zipsize < zipcachemaxsize * 1024)
+    {
+        uchar *buf = new uchar[zipsize];
+        if(arch->data->read(buf, zipsize) != zipsize)
+        {
+            conoutf("could not cache file %s", pname);
+            delete[] buf;
+            delete arch;
+            return;
+        }
+        delete arch->data;
+        arch->data = openmemfile(buf, zipsize, NULL);
+    }
+    zipdirectoryheader h;
+    if(!findzipdirectory(arch->data, h) || !readzipdirectory(arch->data, h.entries, h.offset, h.size, arch->files))
+    {
+        conoutf("could not read directory in zip %s", pname);
+        delete arch;
+        return;
+    }
+    mountzip(*arch, NULL, NULL, !strncmp(behindpath(name), "###", 3));
+    archives.add(arch);
+    rebuildzipfilehashtable();
+    clientlogf("added zipmod %s, %d bytes, %d files", pname, zipsize, arch->files.length());
+}
+COMMAND(addzipmod, "s");
+
+void writezipmodconfig(stream *f)
+{
+    f->printf("zipcachemaxsize %d\n", zipcachemaxsize);
+    loopv(archives) f->printf("addzipmod %s\n", archives[i]->name);
+}
+
+#endif
+
+// AC virtual filesystem
+
+bool findzipfile(const char *name)
+{
+    return zipfiles.access(name) != NULL;
 }
 
 stream *openzipfile(const char *name, const char *mode)
 {
     for(; *mode; mode++) if(*mode=='w' || *mode=='a') return NULL;
-    loopvrev(archives)
+//    if(!strncmp(name, "zip://", 6)) name += 6;
+    zipfile **zf = zipfiles.access(name);
+    if(zf && *zf)
     {
-        ziparchive *arch = archives[i];
-        zipfile *f = arch->files.access(name);
-        if(!f) continue;
         zipstream *s = new zipstream;
-        if(s->open(arch, f)) return s;
+        if(s->open((*zf)->location, *zf)) return s;
         delete s;
     }
     return NULL;
 }
 
-int listzipfiles(const char *dir, const char *ext, vector<char *> &files)
+void listzipfiles(const char *dir, const char *ext, vector<char *> &files) // (does not list memfiles)
 {
-    int extsize = ext ? (int)strlen(ext)+1 : 0, dirsize = (int)strlen(dir), dirs = 0;
-    loopvrev(archives)
+    int extsize = ext ? (int)strlen(ext)+1 : 0, dirsize = (int)strlen(dir);
+    enumerate(zipfiles, zipfile *, zf,
     {
-        ziparchive *arch = archives[i];
-        int oldsize = files.length();
-        enumerate(arch->files, zipfile, f,
+        if(strncmp(zf->fullname, dir, dirsize)) continue;
+        const char *name = zf->fullname + dirsize;
+        if(name[0] == PATHDIV) name++;
+        if(strchr(name, PATHDIV)) continue;
+        if(!ext) files.add(newstring(name));
+        else
         {
-            if(strncmp(f.name, dir, dirsize)) continue;
-            const char *name = f.name + dirsize;
-            if(name[0] == PATHDIV) name++;
-            if(strchr(name, PATHDIV)) continue;
-            if(!ext) files.add(newstring(name));
-            else
-            {
-                int namelength = (int)strlen(name) - extsize;
-                if(namelength > 0 && name[namelength] == '.' && strncmp(name+namelength+1, ext, extsize-1)==0)
-                    files.add(newstring(name, namelength));
-            }
-        });
-        if(files.length() > oldsize) dirs++;
-    }
-    return dirs;
+            int namelength = (int)strlen(name) - extsize;
+            if(namelength > 0 && name[namelength] == '.' && strncmp(name+namelength+1, ext, extsize-1)==0)
+                files.add(newstring(name, namelength));
+        }
+    });
 }
 
-#ifndef STANDALONE
-COMMANDF(addzip, "sss", (const char *name, const char *mount, const char *strip) { addzip(name, mount[0] ? mount : NULL, strip[0] ? strip : NULL); });
-COMMANDF(removezip, "s", (const char *name) { removezip(name); });
-#endif
 

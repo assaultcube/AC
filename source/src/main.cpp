@@ -146,6 +146,8 @@ void writeinitcfg()
     f->printf("audio %d\n", audio > 0 ? 1 : 0);
     f->printf("soundchannels %d\n", soundchannels);
     if(lang && *lang) f->printf("lang %s\n", lang);
+    extern void writezipmodconfig(stream *f);
+    writezipmodconfig(f);
     delete f;
 }
 
@@ -941,6 +943,7 @@ void autostartscripts(const char *prefix)
 
 void createconfigtemplates(const char *templatezip)  // create customisable config files in homedir - only if missing
 {
+#if 0
     if(addzip(templatezip))
     {
         vector<char *> files;
@@ -971,6 +974,7 @@ void createconfigtemplates(const char *templatezip)  // create customisable conf
         removezip(templatezip);
     }
     findfile(AUTOSTARTPATH "dummy", "w"); // create empty autostart directory, if it doesn't exist yet
+#endif
 }
 
 extern void connectserv(char *, int *, char *);

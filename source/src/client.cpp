@@ -1033,7 +1033,7 @@ int processdownload(package *pck)
 
             case PCK_MAP: case PCK_MAPMODEL:
             {
-                addzip("tmp", pck->name, NULL, true, pck->type);
+//                addzip("tmp", pck->name, NULL, true, pck->type);
                 break;
             }
 
@@ -1041,7 +1041,7 @@ int processdownload(package *pck)
             {
                 char *fname = newstring(pck->name), *ls = strrchr(fname, '/');
                 if(ls) *ls = '\0';
-                addzip("tmp", fname, NULL, true, pck->type);
+//                addzip("tmp", fname, NULL, true, pck->type);
                 rereadtexturelists = 1;
                 break;
             }

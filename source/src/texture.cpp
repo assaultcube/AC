@@ -366,18 +366,22 @@ GLuint loadsurface(const char *texname, int &xs, int &ys, int &bpp, int clamp = 
     }
 
     SDL_Surface *s = NULL;
-    stream *z = openzipfile(file, "rb");
-    if(z)
+    const char *ffile = findfile(file, "rb");
+    if(findfilelocation == FFL_ZIP)
     {
-        SDL_RWops *rw = z->rwops();
-        if(rw)
+        stream *z = openzipfile(file, "rb");
+        if(z)
         {
-            s = IMG_Load_RW(rw, 0);
-            SDL_FreeRW(rw);
+            SDL_RWops *rw = z->rwops();
+            if(rw)
+            {
+                s = IMG_Load_RW(rw, 0);
+                SDL_FreeRW(rw);
+            }
+            delete z;
         }
-        delete z;
     }
-    if(!s) s = IMG_Load(findfile(file, "rb"));
+    else if(!s) s = IMG_Load(ffile);
     if(!s)
     {
         if(trydl)
@@ -1080,6 +1084,7 @@ void gettextureorigin(char *fname)
     const char *res = s;
     switch(findfilelocation)
     {
+        case FFL_ZIP:     res = "zip";                                                break;
         case FFL_WORKDIR: res = fileexists(s, "r") ? "official" : "<file not found>"; break;
         case FFL_HOME:    res = "custom";                                             break;
         default:          formatstring(s)("package dir #%d", findfilelocation);       break;

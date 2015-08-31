@@ -241,6 +241,11 @@ const char *findfile(const char *filename, const char *mode)
         }
         return s;
     }
+    findfilelocation = FFL_ZIP;
+#ifndef STANDALONE
+    formatstring(s)("zip://%s", filename);
+    if(findzipfile(filename)) return s;
+#endif
     loopv(packagedirs)
     {
         findfilelocation++;
@@ -290,25 +295,23 @@ bool listdir(const char *dir, const char *ext, vector<char *> &files)
     else return false;
 }
 
-int listfiles(const char *dir, const char *ext, vector<char *> &files)
+void listfiles(const char *dir, const char *ext, vector<char *> &files)
 {
-    int dirs = 0;
-    if(listdir(dir, ext, files)) dirs++;
+    listdir(dir, ext, files);
     string s;
     if(homedir[0])
     {
         formatstring(s)("%s%s", homedir, dir);
-        if(listdir(s, ext, files)) dirs++;
+        listdir(s, ext, files);
     }
     loopv(packagedirs)
     {
         formatstring(s)("%s%s", packagedirs[i], dir);
-        if(listdir(s, ext, files)) dirs++;
+        listdir(s, ext, files);
     }
 #ifndef STANDALONE
-    dirs += listzipfiles(dir, ext, files);
+    listzipfiles(dir, ext, files);
 #endif
-    return dirs;
 }
 
 #ifndef STANDALONE
@@ -332,7 +335,7 @@ void listfilesrecursive(const char *dir, vector<char *> &files, int level)
 
 bool delfile(const char *path)
 {
-    return !remove(path);
+    return strncmp(path, "zip://", 6) ? !remove(path) : false;
 }
 
 void backup(char *name, char *backupname)
@@ -885,13 +888,12 @@ stream *openmemfile(const uchar *buf, int size, int *refcnt)
 
 stream *openrawfile(const char *filename, const char *mode)
 {
-    const char *found = findfile(filename, mode);
 #ifndef STANDALONE
-    if(mode && (mode[0]=='w' || mode[0]=='a')) conoutf("writing to file: %s", found);
+    if(mode && (mode[0]=='w' || mode[0]=='a')) conoutf("writing to file: %s", filename);
 #endif
-    if(!found) return NULL;
+    if(!strncmp(filename, "zip://", 6)) return NULL;
     filestream *file = new filestream;
-    if(!file->open(found, mode))
+    if(!file->open(filename, mode))
     {
 #ifndef STANDALONE
 //         conoutf("file failure! %s",filename);
@@ -903,11 +905,11 @@ stream *openrawfile(const char *filename, const char *mode)
 
 stream *openfile(const char *filename, const char *mode)
 {
+    const char *found = findfile(filename, mode);
 #ifndef STANDALONE
-    stream *s = openzipfile(filename, mode);
-    if(s) return s;
+    if(!strncmp(found, "zip://", 6)) return openzipfile(found + 6, mode);
 #endif
-    return openrawfile(filename, mode);
+    return openrawfile(found, mode);
 }
 
 int getfilesize(const char *filename)

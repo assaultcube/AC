@@ -1616,7 +1616,7 @@ void deletecfg()
         loopi(sizeof(configs)/sizeof(configs[0]))
         {
             const char *file = findfile(path(configs[i], true), "r");
-            if(!file) continue;
+            if(!file || findfilelocation == FFL_ZIP) continue;
             delfile(file);
         }
     }
