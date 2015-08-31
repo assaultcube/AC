@@ -370,10 +370,12 @@ extern const char *crosshairnames[];
 extern Texture *crosshairs[];
 extern void drawcrosshair(playerent *p, int n, struct color *c = NULL, float size = -1.0f);
 
-// client
+// autodownload
+enum { PCK_TEXTURE = 0, PCK_SKYBOX, PCK_MAPMODEL, PCK_AUDIO, PCK_MAP, PCK_NUM };
 extern int autodownload;
-extern void setupcurl();
-extern bool requirepackage(int type, const char *path);
+extern void setupautodownload();
+extern void pollautodownloadresponse();
+extern bool requirepackage(int type, const char *name, const char *host = NULL);
 extern int downloadpackages();
 extern void sortpckservers();
 extern void writepcksourcecfg();

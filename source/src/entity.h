@@ -651,26 +651,3 @@ inline const char *killmessage(int gun, bool gib = false)
     return killmessages[gib?1:0][gun];
 }
 
-#ifndef STANDALONE
-struct pckserver
-{
-    char *addr;
-    bool pending, responsive;
-    int ping;
-
-    pckserver() : addr(NULL), pending(false), responsive(true), ping(-1) {}
-};
-
-enum { PCK_TEXTURE, PCK_SKYBOX, PCK_MAPMODEL, PCK_AUDIO, PCK_MAP, PCK_NUM };
-
-struct package
-{
-    char *name;
-    int type, number;
-    bool pending;
-    pckserver *source;
-    CURL *curl;
-
-    package() : name(NULL), type(-1), number(0), pending(false), source(NULL), curl(NULL) {}
-};
-#endif

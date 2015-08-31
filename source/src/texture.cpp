@@ -384,8 +384,7 @@ GLuint loadsurface(const char *texname, int &xs, int &ys, int &bpp, int clamp = 
     else if(!s) s = IMG_Load(ffile);
     if(!s)
     {
-        if(trydl)
-            requirepackage(PCK_TEXTURE, file);
+        if(trydl) requirepackage(PCK_TEXTURE, file);
         else if(!silent_texture_load) conoutf("couldn't load texture %s", texname);
         return 0;
     }
@@ -591,8 +590,7 @@ void loadskymap(bool reload)
         sky[i] = textureload(name, 3);
         if(sky[i] == notexture && !reload && autodownload && execcontext == IEXC_MAPCFG)
         {
-            defformatstring(dl)("packages/%s%s", legacyprefix, loadsky);
-            requirepackage(PCK_SKYBOX, dl);
+            requirepackage(PCK_SKYBOX, loadsky);
             break;
         }
     }

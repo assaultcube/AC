@@ -988,6 +988,7 @@ extern int cmpipmatch(const struct iprange *a, const struct iprange *b);
 extern int cvecprintf(vector<char> &v, const char *s, ...) PRINTFARGS(2, 3);
 extern const char *hiddenpwd(const char *pwd, int showchars = 0);
 extern int getlistindex(const char *key, const char *list[], bool acceptnumeric = true, int deflt = -1);
+extern void parseupdatelist(hashtable<const char *, int> &ht, char *buf, const char *prefix = NULL, const char *suffix = NULL);
 
 #if defined(WIN32) && !defined(_DEBUG) && !defined(__GNUC__)
 extern void stackdumper(unsigned int type, EXCEPTION_POINTERS *ep);

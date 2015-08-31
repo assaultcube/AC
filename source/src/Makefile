@@ -56,6 +56,7 @@ endif
 CLIENT_OBJS= \
 	crypto.o \
 	audiomanager.o \
+	autodownload.o \
 	client.o \
 	clientgame.o \
 	clients2c.o \
@@ -224,6 +225,9 @@ crypto.o: console.h protos.h
 audiomanager.o: cube.h platform.h tools.h geom.h model.h protocol.h sound.h
 audiomanager.o: weapon.h entity.h world.h command.h varray.h vote.h
 audiomanager.o: console.h protos.h
+autodownload.o: cube.h platform.h tools.h geom.h model.h protocol.h sound.h
+autodownload.o: weapon.h entity.h world.h command.h varray.h vote.h console.h
+autodownload.o: protos.h
 client.o: cube.h platform.h tools.h geom.h model.h protocol.h sound.h
 client.o: weapon.h entity.h world.h command.h varray.h vote.h
 client.o: console.h protos.h bot/bot.h bot/bot_util.h bot/bot_waypoint.h

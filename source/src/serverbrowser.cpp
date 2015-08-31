@@ -1304,7 +1304,11 @@ void clearservers()
 }
 
 #define RETRIEVELIMIT 5000
-extern size_t write_callback(void *ptr, size_t size, size_t nmemb, FILE *stream);
+size_t write_callback(void *ptr, size_t size, size_t nmemb, FILE *stream)
+{
+    return fwrite(ptr, size, nmemb, stream);
+}
+
 extern char *global_name;
 bool cllock = false, clfail = false;
 
