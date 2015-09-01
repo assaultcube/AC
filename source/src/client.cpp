@@ -797,7 +797,7 @@ void getmap(char *name, char *callback)
     else
     {
         requirepackage(PCK_MAP, name);
-        if(downloadpackages())
+        if(downloadpackages(false))
         {
             if(callback && *callback) execute(callback);
             conoutf("map %s installed successfully", name);

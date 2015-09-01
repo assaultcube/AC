@@ -376,7 +376,7 @@ extern int autodownload;
 extern void setupautodownload();
 extern void pollautodownloadresponse();
 extern bool requirepackage(int type, const char *name, const char *host = NULL);
-extern int downloadpackages();
+extern int downloadpackages(bool loadscr = true);
 extern void sortpckservers();
 extern void writepcksourcecfg();
 

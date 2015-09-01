@@ -338,11 +338,15 @@ int progress_n, progress_of;
 
 int progress_callback_dlpackage(void *data, float progress)
 {
-    loadingscreen("downloading package %d of %d...\n%s  %d%%\n(ESC to cancel)", progress_n, progress_of, (const char *)data, int(100.0 * progress));
+    if(progress_of < 0)
+    {
+        defformatstring(txt)("downloading %s... (esc to abort)", (const char *)data);
+        show_out_of_renderloop_progress(min(progress, 1.0f), txt);
+    }
+    else loadingscreen("downloading package %d of %d...\n%s  %d%%\n(ESC to cancel)", progress_n, progress_of, (const char *)data, int(100.0 * progress));
     if(interceptkey(SDLK_ESCAPE))
     {
         canceldownloads = true;
-        loadingscreen();
         return 1;
     }
     return 0;
@@ -398,12 +402,12 @@ int pckserversort(pckserver **a, pckserver **b)
     return (*b)->ping - (*a)->ping; // or whichever ping is not zero
 }
 
-int downloadpackages() // get all pending packages
+int downloadpackages(bool loadscr) // get all pending packages
 {
     bool failed = false;
     httpget h;
     canceldownloads = false;
-    progress_of = pendingpackages.length();
+    progress_of = loadscr ? pendingpackages.length() : -1;
     sem_pckservers.wait();
     pckservers.sort(pckserversort);
     loopv(pendingpackages)
@@ -501,7 +505,7 @@ void writepcksourcecfg()
 
 void getmod(char *name)
 {
-    if(requirepackage(PCK_MOD, name) && downloadpackages()) conoutf("mod package %s successfully downloaded", name);
+    if(requirepackage(PCK_MOD, name) && downloadpackages(false)) conoutf("mod package %s successfully downloaded", name);
     else conoutf("failed to download mod package %s", name);
 }
 COMMAND(getmod, "s");
