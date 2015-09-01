@@ -9,8 +9,8 @@ cd "$CUBE_DIR"
 
 # check libs
 
-SERVERLIBS="libz libcurl"
-CLIENTLIBS="libSDL-1.2 libz libcurl libX11 libSDL_image libogg libvorbis libopenal"
+SERVERLIBS="libz"
+CLIENTLIBS="libSDL-1.2 libz libX11 libSDL_image libogg libvorbis libopenal"
 
 if [ -x "/sbin/ldconfig" ]; then
   echo "checking libraries:"
