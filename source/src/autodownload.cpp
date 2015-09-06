@@ -2,6 +2,7 @@
 // fetching missing media files from http servers (~ akimbo)
 
 #include "cube.h"
+#define DEBUGCOND (autodownloaddebug == 1)
 
 struct pckserver
 {
@@ -23,6 +24,7 @@ vector<pckserver *> pckservers;
 vector<package *> pendingpackages;
 
 VARP(autodownload, 0, 1, 1);
+VAR(autodownloaddebug, 0, 0, 1);
 
 sl_semaphore sem_pckservers(1, NULL); // control access to the pckservers vector
 
@@ -40,6 +42,7 @@ void addpckserver(char *host, char *priority) // add/adjust a package server
     {
         pckserver *s = NULL;
         loopv(pckservers) if(!strcmp(host, pckservers[i]->host)) s = pckservers[i];
+        DEBUG((s ? "updated" : "new") << " host " << host << ", priority " << priority);
         if(!s) s = pckservers.add(new pckserver);
         copystring(s->host, host);
         if(*priority) s->priority = atoi(priority);
@@ -84,6 +87,9 @@ int pingpckserver(void *data) // fetch updates.txt from a media server, measure 
             s->ping = h.elapsedtime;
             SDL_mutexP(pckpinglog_lock);
             cvecprintf(pckping_log, "lhttp head %s:%d%s response time: %d, status: %d, contentlength: %d\n", u.domain, h.ip.port, url, s->ping, h.response, h.contentlength);
+#ifdef _DEBUG
+            if(DEBUGCOND) { cvecprintf(pckping_log, "l%s", escapestring(h.header, true, true)); pckping_log.add('\n'); }
+#endif
             SDL_mutexV(pckpinglog_lock);
             if(h.response == 200)
             {
@@ -102,6 +108,13 @@ int pingpckserver(void *data) // fetch updates.txt from a media server, measure 
                 {
                     SDL_mutexP(pckpinglog_lock);
                     cvecprintf(pckping_log, "lretrieving %s:%d%s failed: response %d%s%s\n", u.domain, h.ip.port, url, h.response, h.err ? ", err: " : "", h.err ? h.err : "");
+#ifdef _DEBUG
+                    if(DEBUGCOND)
+                    {
+                        if(!h.header) { h.rawrec.setsize(min(h.rawrec.length(), MAXSTRLEN)); h.rawrec.add('\0'); }
+                        cvecprintf(pckping_log, "lheader: %s", escapestring(h.header ? h.header : h.rawrec.getbuf(), true, true)); pckping_log.add('\n');
+                    }
+#endif
                     SDL_mutexV(pckpinglog_lock);
                 }
                 DELETEP(h.outvec);
@@ -255,6 +268,8 @@ bool requirepackage(int type, const char *name, const char *host)
     }
     pck->type = type;
     if(host) copystring(pck->host, host); // assign fixed server
+    DEBUG("name: " << pck->name << ", fullpath: " << pck->fullpath << ", requestname: " << pck->requestname << ", host: " << pck->host << ", type: " << pck->type << ", iszip: " << pck->iszip
+          << ", strictnames: " << pck->strictnames << ", server: " << pck->server << ", exts: " << (pck->exts ? *pck->exts : ""));
     pendingpackages.add(pck);
     return true;
 }
@@ -501,6 +516,7 @@ void writepcksourcecfg()
         stream *f = openfile("config" PATHDIVS "pcksources.cfg", "w");
         if(!f) return;
         f->printf("// list of package source servers (only add servers you trust!)\n\n");
+        f->printf("autodownloaddebug %d\n", autodownloaddebug); // saved.cfg is loaded too late for this to be in it and be efficient...
         loopv(pckservers)
         {
             pckserver *s = pckservers[i];
