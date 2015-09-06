@@ -363,7 +363,7 @@ void renderscores(void *menu, bool init)
         formatstring(modeline)("\"%s\" on map %s", modestr(gamemode, modeacronyms > 0), fldrprefix ? getclientmap()+strlen("maps/") : getclientmap());
     }
 
-    extern int minutesremaining, clockcount;
+    extern int minutesremaining, gametimedisplay;
     extern string gtime;
 
     if((gamemode>1 || (gamemode==0 && (multiplayer(false) || watchingdemo))) && minutesremaining >= 0)
@@ -393,8 +393,8 @@ void renderscores(void *menu, bool init)
         else
         {
             concatformatstring(modeline, ", %s", gtime);
-            if(!clockcount) concatformatstring(modeline, " remaining");
-            else concatformatstring(modeline, " / %d:00", gametimemaximum/60000);
+            if(gametimedisplay == 2) concatformatstring(modeline, " / %d:00", gametimemaximum/60000);
+            else concatformatstring(modeline, " remaining");
         }
     }
 

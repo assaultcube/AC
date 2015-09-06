@@ -738,8 +738,7 @@ string enginestateinfo = "";
 void CSgetEngineState() { result(enginestateinfo); }
 COMMANDN(getEngineState, CSgetEngineState, "");
 
-VARP(clockdisplay,0,1,1);
-VARP(clockcount,0,0,1);
+VARP(gametimedisplay,0,1,2);
 VARP(dbgpos,0,0,1);
 VARP(showtargetname,0,1,1);
 VARP(showspeed, 0, 0, 1);
@@ -841,7 +840,8 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     string ltime;
     const char *ltimeformat = getalias("wallclockformat");
     bool wallclock = ltimeformat && *ltimeformat;
-    if(wallclock) formatstring(ltime)("%s", timestring(true, ltimeformat));
+    //wallclockformat beginning with "U" shows UTC/GMT time
+    if(wallclock) formatstring(ltime)("%s", timestring(*ltimeformat != 'U', ltimeformat + int(*ltimeformat == 'U')));
 
     if(showstats)
     {
@@ -928,7 +928,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         int cssec = (gametimecurrent+(lastmillis-lastgametimeupdate))/1000;
         int gtsec = cssec%60;
         int gtmin = cssec/60;
-        if(!clockcount)
+        if(gametimedisplay == 1)
         {
             int gtmax = gametimemaximum/60000;
             gtmin = gtmax - gtmin;
@@ -939,7 +939,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             }
         }
         formatstring(gtime)("%02d:%02d", gtmin, gtsec);
-        if(clockdisplay) draw_text(gtime, (VIRTW-225-10)*2 - (text_width(gtime)/2 + FONTH/2), 20);
+        if(gametimedisplay) draw_text(gtime, (VIRTW-225-10)*2 - (text_width(gtime)/2 + FONTH/2), 20);
     }
 
     if(hidevote < 2 && multiplayer(false))
