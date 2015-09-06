@@ -86,13 +86,14 @@ bool httpget::connect(bool force)
     return true;
 }
 
-int httpget::get(const char *url1, uint timeout, int range, bool head)
+int httpget::get(const char *url1, uint timeout, uint totaltimeout, int range, bool head)
 {
     int redirects = 0, res = 0, transferred = 0;
     vector<char> *content = NULL;
-    ASSERT(timeout); // zero is not allowed
+    ASSERT(timeout && totaltimeout); // zero is not allowed
     stopwatch to;
     to.start();
+    uint lastresponse = 0;
     reset(1); // clear old response values and url
     url = newstring(url1);
 
@@ -135,18 +136,20 @@ int httpget::get(const char *url1, uint timeout, int range, bool head)
                 buf.dataLength -= sent;
                 tcp_age.start();
                 traffic += sent;
+                lastresponse = to.elapsed();
             }
-            float progress = ((float) to.elapsed()) / timeout;
-            if(progress > 1.0f) ERROR("timeout");
-            if(execcallback(progress)) return -1; // show progress bar, check for user interrupt
+            elapsedtime = to.elapsed();
+            if(elapsedtime > totaltimeout || elapsedtime > lastresponse + timeout) ERROR("timeout 1");
+            if(execcallback(-float(elapsedtime - lastresponse) / timeout)) return -1; // show progress bar, check for user interrupt
         }
 
         // get response
         bool again = false, haveheader = false;
         if(!retry) for(;;)
         {
-            float progress = ((float) (elapsedtime = to.elapsed())) / timeout;
-            if(progress > 1.0f) ERROR("timeout");
+            elapsedtime = to.elapsed();
+            if(elapsedtime > totaltimeout || elapsedtime > lastresponse + timeout) ERROR(elapsedtime > totaltimeout ? "timeout 2" : "timeout 3");
+            float progress = -float(elapsedtime - lastresponse) / timeout;
             enet_uint32 events = ENET_SOCKET_WAIT_RECEIVE;
             if(rawrec.length() > maxsize || datarec.length() > maxsize) break;
             if(enet_socket_wait(tcp, &events, 250) >= 0 && events)
@@ -164,6 +167,7 @@ int httpget::get(const char *url1, uint timeout, int range, bool head)
                 tcp_age.start();
                 traffic += recv;
                 if((transferred += recv) > maxtransfer) ERROR("transfer size exceeds limit");
+                lastresponse = to.elapsed();
 
                 // parsing received data
                 rawrec.add('\0'); // append '\0' to use string functions safely - will be removed again
@@ -248,6 +252,7 @@ int httpget::get(const char *url1, uint timeout, int range, bool head)
                             }
                             else break;
                         }
+                        progress = float(datarec.length()) / (maxtransfer | 1); // not accurate, but moving
                     }
                     else
                     {
@@ -256,6 +261,7 @@ int httpget::get(const char *url1, uint timeout, int range, bool head)
                             progress = float(rawrec.length() - 1) / contentlength; // get a real progress bar
                             if(rawrec.length() - 1 >= contentlength) content = &rawrec;
                         }
+                        else progress = float(rawrec.length() - 1) / (maxtransfer | 1); // not accurate, but moving
                     }
                 }
                 rawrec.drop();

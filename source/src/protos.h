@@ -257,7 +257,8 @@ struct httpget
 
     // result
     char *header;
-    int response, chunked, gzipped, contentlength, offset, elapsedtime, traffic;
+    int response, chunked, gzipped, contentlength, offset, traffic;
+    uint elapsedtime;
     vector<uchar> *outvec;                             // receives data, if not NULL (must be set up manually)
     stream *outstream;                                 // receives data, if not NULL (must be set up manually)
 
@@ -268,7 +269,7 @@ struct httpget
     bool execcallback(float progress);
     void disconnect();
     bool connect(bool force = false);
-    int get(const char *url1, uint timeout, int range = 0, bool head = false); // get web ressource
+    int get(const char *url1, uint timeout, uint totaltimeout, int range = 0, bool head = false); // get web ressource
 };
 
 extern char *urlencode(const char *s, bool strict = false);

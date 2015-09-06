@@ -75,7 +75,7 @@ int pingpckserver(void *data) // fetch updates.txt from a media server, measure 
     SDL_mutexV(pckpinglog_lock);
     if(s->resolved)
     {
-        int res = h.get(updatestxt, 5000, 0, true); // http HEAD request only - to get a nice ping value
+        int res = h.get(updatestxt, 5000, 10000, 0, true); // http HEAD request only - to get a nice ping value
         if(h.response > 0)
         {
             s->ping = h.elapsedtime;
@@ -85,7 +85,7 @@ int pingpckserver(void *data) // fetch updates.txt from a media server, measure 
             if(h.response == 200)
             {
                 h.outvec = new vector<uchar>;
-                res = h.get(updatestxt, 5000);     // http GET
+                res = h.get(updatestxt, 5000, 20000);     // http GET
                 if(res >= 0 && h.response == 200)
                 { // parse updates.txt
                     h.outvec->add('\0');
@@ -341,9 +341,10 @@ int progress_callback_dlpackage(void *data, float progress)
     if(progress_of < 0)
     {
         defformatstring(txt)("downloading %s... (esc to abort)", (const char *)data);
-        show_out_of_renderloop_progress(min(progress, 1.0f), txt);
+        if(progress < 0) show_out_of_renderloop_progress(progress + 1.0f, "waiting for response (esc to abort)");
+        else show_out_of_renderloop_progress(min(progress, 1.0f), txt);
     }
-    else loadingscreen("downloading package %d of %d...\n%s  %d%%\n(ESC to cancel)", progress_n, progress_of, (const char *)data, int(100.0 * progress));
+    else loadingscreen("downloading package %d of %d...\n%s  \fs%s%d%%\fr\n(ESC to cancel)", progress_n, progress_of, (const char *)data, progress < 0 ? "\f3waiting " : "", int(100.0 * fabs(progress)));
     if(interceptkey(SDLK_ESCAPE))
     {
         canceldownloads = true;
@@ -361,7 +362,7 @@ bool dlpackage(httpget &h, package *pck, pckserver *s) // download one package f
     if(*host && h.set_host(host))
     {
         h.outstream = openvecfile(NULL);
-        int got = h.get(pck->requestname, 60000);
+        int got = h.get(pck->requestname, 6000, 90000);
         if(!h.response)
         {
             if(!canceldownloads && s) s->ping = 0; // received a hard error from the server connection, better not try this one again

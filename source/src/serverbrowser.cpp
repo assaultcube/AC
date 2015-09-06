@@ -1310,7 +1310,8 @@ bool cllock = false, clfail = false;
 
 int progress_callback_retrieveservers(void *data, float progress)
 {
-    show_out_of_renderloop_progress(min(progress, 1.0f), (const char *)data);
+    if(progress < 0) show_out_of_renderloop_progress(progress + 1.0f, "waiting for response (esc to abort)");
+    else show_out_of_renderloop_progress(min(progress, 1.0f), (const char *)data);
     return interceptkey(SDLK_ESCAPE) ? 1 : 0;
 }
 
@@ -1329,7 +1330,7 @@ void retrieveservers(vector<char> &data)
             defformatstring(url)("/retrieve.do?action=list&name=%s&version=%d&build=%d", urlencode(global_name, true), AC_VERSION, getbuildtype()|(1<<16));
             h.outvec = (vector<uchar> *) &data; // ouch...
             show_out_of_renderloop_progress(0, progresstext);
-            h.get(url, RETRIEVELIMIT);
+            h.get(url, RETRIEVELIMIT, RETRIEVELIMIT);
             if(h.response != 200) data.setsize(0);
             h.outvec = NULL; // must not be cleaned up by httpget
             if(data.length()) data.add('\0');
