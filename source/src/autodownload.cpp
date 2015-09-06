@@ -67,38 +67,41 @@ const char *updatestxt = "/updates.txt";
 int pingpckserver(void *data) // fetch updates.txt from a media server, measure required time
 {
     httpget h;
+    urlparse u;
     pckserver *s = (pckserver *)data;
-
-    s->resolved = h.set_host(s->host) ? 1 : 0;
+    u.set(s->host);
+    s->resolved = h.set_host(u.domain) ? 1 : 0;
     SDL_mutexP(pckpinglog_lock);
-    cvecprintf(pckping_log, "lresolving hostname %s %s\n", s->host, s->resolved ? "succeeded" : "failed");
+    cvecprintf(pckping_log, "lresolving hostname %s %s (%s)\n", u.domain, s->resolved ? "succeeded" : "failed", iptoa(ntohl(h.ip.host)));
     SDL_mutexV(pckpinglog_lock);
     if(s->resolved)
     {
-        int res = h.get(updatestxt, 5000, 10000, 0, true); // http HEAD request only - to get a nice ping value
+        if(*u.port) h.set_port(atoi(u.port));
+        defformatstring(url)("%s%s", u.path, updatestxt);
+        int res = h.get(url, 5000, 10000, 0, true); // http HEAD request only - to get a nice ping value
         if(h.response > 0)
         {
             s->ping = h.elapsedtime;
             SDL_mutexP(pckpinglog_lock);
-            cvecprintf(pckping_log, "lhttp head %s%s response time: %d, status: %d, contentlength: %d\n", s->host, updatestxt, s->ping, h.response, h.contentlength);
+            cvecprintf(pckping_log, "lhttp head %s:%d%s response time: %d, status: %d, contentlength: %d\n", u.domain, h.ip.port, url, s->ping, h.response, h.contentlength);
             SDL_mutexV(pckpinglog_lock);
             if(h.response == 200)
             {
                 h.outvec = new vector<uchar>;
-                res = h.get(updatestxt, 5000, 20000);     // http GET
+                res = h.get(url, 5000, 20000);     // http GET
                 if(res >= 0 && h.response == 200)
                 { // parse updates.txt
                     h.outvec->add('\0');
                     s->updates.clear();
                     parseupdatelist(s->updates, (char *)h.outvec->getbuf()); // don't filter entries
                     SDL_mutexP(pckpinglog_lock);
-                    cvecprintf(pckping_log, "lgot %s%s: %d bytes, %d valid update lines\n", s->host, updatestxt, res, s->updates.numelems);
+                    cvecprintf(pckping_log, "lgot %s:%d%s: %d bytes, %d valid update lines\n", u.domain, h.ip.port, url, res, s->updates.numelems);
                     SDL_mutexV(pckpinglog_lock);
                 }
                 else
                 {
                     SDL_mutexP(pckpinglog_lock);
-                    cvecprintf(pckping_log, "lretrieving %s%s failed: response %d%s%s\n", s->host, updatestxt, h.response, h.err ? ", err: " : "", h.err ? h.err : "");
+                    cvecprintf(pckping_log, "lretrieving %s:%d%s failed: response %d%s%s\n", u.domain, h.ip.port, url, h.response, h.err ? ", err: " : "", h.err ? h.err : "");
                     SDL_mutexV(pckpinglog_lock);
                 }
                 DELETEP(h.outvec);
@@ -355,37 +358,40 @@ int progress_callback_dlpackage(void *data, float progress)
 
 bool dlpackage(httpget &h, package *pck, pckserver *s) // download one package from one server
 {
-    const char *host = s ? s->host : pck->host;
+    urlparse u;
+    u.set(s ? s->host : pck->host);
     h.callbackfunc = progress_callback_dlpackage;
     h.callbackdata = pck->name;
     progress_n = progress_of - pendingpackages.length();
-    if(*host && h.set_host(host))
+    if(*u.domain && h.set_host(u.domain))
     {
+        if(*u.port) h.set_port(atoi(u.port));
         h.outstream = openvecfile(NULL);
-        int got = h.get(pck->requestname, 6000, 90000);
+        defformatstring(url)("%s%s", u.path, pck->requestname);
+        int got = h.get(url, 6000, 90000);
         if(!h.response)
         {
             if(!canceldownloads && s) s->ping = 0; // received a hard error from the server connection, better not try this one again
-            clientlogf("download %s%s failed%s%s", host, pck->requestname, h.err ? ", err: " : "", h.err ? h.err : "");
+            clientlogf("download %s:%d%s failed%s%s", u.domain, h.ip.port, url, h.err ? ", err: " : "", h.err ? h.err : "");
             h.disconnect();
         }
         else
         {
             if(h.response == 200)
             {
-                clientlogf("downloaded %s%s, %d bytes (%d raw), %d msec", host, pck->requestname, got, h.contentlength, h.elapsedtime);
+                clientlogf("downloaded %s:%d%s, %d bytes (%d raw), %d msec", u.domain, h.ip.port, url, got, h.contentlength, h.elapsedtime);
                 processdownload(pck, h.outstream);
                 h.outstream = NULL; // deleted by processdownload()
                 return true;
             }
-            else clientlogf("download %s%s failed, server response %d%s%s", host, pck->requestname, h.response, h.err ? ", err: " : "", h.err ? h.err : "");
+            else clientlogf("download %s:%d%s failed, server response %d%s%s", u.domain, h.ip.port, url, h.response, h.err ? ", err: " : "", h.err ? h.err : "");
         }
         DELETEP(h.outstream);
     }
     else
     {
         if(s) s->resolved = 0;
-        clientlogf("resolving host \"%s\" failed", host);
+        clientlogf("resolving host \"%s\" failed", u.domain);
         h.disconnect();
     }
     return false;

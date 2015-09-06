@@ -49,6 +49,14 @@ bool httpget::set_host(const char *newhostname) // set and resolve host
     return ip.host != ENET_HOST_ANY;
 }
 
+void httpget::set_port(int port) // set port (disconnect, if different to previous)
+{
+    port &= 65535;
+    if(port < 80) port = 80;
+    if(port != ip.port) disconnect();
+    ip.port = port;
+}
+
 bool httpget::execcallback(float progress)
 {
     if(callbackfunc && (*callbackfunc)(callbackdata, progress))
@@ -334,3 +342,62 @@ char *urlencode(const char *s, bool strict)
     return newstring(d.getbuf());
 }
 
+// parse URLs: scheme:[//[user:password@]domain[:port]][/]path[?query][#fragment]
+
+void urlparse::set(const char *newurl)
+{
+    DELSTRING(buf);
+    char *p, *s = buf = newstring(newurl, strlen(newurl) + 3);
+    scheme = userpassword = port = path = query = fragment = "";
+
+    filtertext(s, s, FTXT_NOWHITE);
+    if((p = strstr(s, "://"))) // domain part is mandatory, which makes the double slash a given - if a scheme is specified
+    { // scheme found
+        scheme = s;
+        *p = '\0';
+        s = p + 3;
+    }
+    if((p = strchr(s, '@')))
+    { // user:password found
+        userpassword = s;
+        *p = '\0';
+        s = p + 1;
+    }
+    domain = s;
+    if(*s == '[' && (p = strchr(s, ']'))) s = p + 1; // [....]
+    else while(isalnum(*s) || *s == '.' || *s == '-') s++; // skip domain
+    if(*s == ':')
+    { // port found
+        *s = '\0';
+        port = ++s;
+        while(isdigit(*s)) s++;
+    }
+    if(*s)
+    {
+        memmove(s + 2, s, strlen(s) + 1);
+        *s++ = '\0'; // end domain or port string
+        *s++ = '/'; // add mandatory slash for path
+        if(*s != '/') s--;
+        path = s;
+        if((p = strchr(s, '?')))
+        { // query found
+            *p++ = '\0';
+            query = s = p;
+        }
+        if((p = strchr(s, '#')))
+        { // fragment found
+            *p++ = '\0';
+            fragment = s = p;
+        }
+        // fix path, if necessary
+        size_t pl = strlen(path);
+        if(pl < 2) path = ""; // ignore single slash
+        else
+        {
+            p = (char *)path;
+            unixpath(p);
+            p += pl - 1;
+            if(*p == '/') *p = '\0'; // remove trailing slash
+        }
+    }
+}

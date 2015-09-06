@@ -245,7 +245,7 @@ struct httpget
     const char *hostname, *url;                        // set by set_host() and get()
     const char *useragent, *referrer;                  // can be set manually with "newstrings", deleted automatically
     const char *err;                                   // read-only
-    ENetAddress ip;                                    // set by set_host(), port may be changed manually
+    ENetAddress ip;                                    // set by set_host()
     int maxredirects, maxtransfer, maxsize;            // set manually
     int (__cdecl *callbackfunc)(void *data, float progress);
     void *callbackdata;
@@ -266,10 +266,22 @@ struct httpget
     ~httpget() { reset(); DELSTRING(useragent); DELSTRING(referrer); DELETEP(outvec); DELETEP(outstream); }
     void reset(int keep = 0);                          // cleanup
     bool set_host(const char *newhostname);            // set and resolve host
+    void set_port(int port);                           // set port (disconnect, if different to previous)
     bool execcallback(float progress);
     void disconnect();
     bool connect(bool force = false);
     int get(const char *url1, uint timeout, uint totaltimeout, int range = 0, bool head = false); // get web ressource
+};
+
+struct urlparse
+{
+    char *buf;
+    // result (scheme:[//[user:password@]domain[:port]][/]path[?query][#fragment])
+    const char *scheme, *userpassword, *domain, *port, *path, *query, *fragment;
+
+    urlparse() { memset(&buf, 0, sizeof(struct urlparse)); }
+    ~urlparse() { DELSTRING(buf); }
+    void set(const char *newurl);      // set and parse url
 };
 
 extern char *urlencode(const char *s, bool strict = false);
