@@ -41,7 +41,6 @@
 					<Add library="OpenAL32" />
 					<Add library="..\lib\libvorbisfile.lib" />
 					<Add library="jpeg" />
-					<Add library="wldap32" />
 					<Add library="ws2_32" />
 					<Add library="winmm" />
 					<Add directory="../lib" />
@@ -75,7 +74,6 @@
 					<Add library="OpenAL32" />
 					<Add library="..\lib\libvorbisfile.lib" />
 					<Add library="jpeg" />
-					<Add library="wldap32" />
 					<Add library="ws2_32" />
 					<Add library="winmm" />
 					<Add library="gdi32" />
