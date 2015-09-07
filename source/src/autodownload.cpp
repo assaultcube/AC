@@ -82,7 +82,7 @@ int pingpckserver(void *data) // fetch updates.txt from a media server, measure 
         if(*u.port) h.set_port(atoi(u.port));
         defformatstring(url)("%s%s", u.path, updatestxt);
         int res = h.get(url, 5000, 10000, 0, true); // http HEAD request only - to get a nice ping value
-        if(h.response > 0)
+        if(res >= 0 && h.response > 0)
         {
             s->ping = h.elapsedtime;
             SDL_mutexP(pckpinglog_lock);
@@ -107,7 +107,7 @@ int pingpckserver(void *data) // fetch updates.txt from a media server, measure 
                 else
                 {
                     SDL_mutexP(pckpinglog_lock);
-                    cvecprintf(pckping_log, "lretrieving %s:%d%s failed: response %d%s%s\n", u.domain, h.ip.port, url, h.response, h.err ? ", err: " : "", h.err ? h.err : "");
+                    cvecprintf(pckping_log, "lretrieving %s:%d%s failed: response %d, err: %s\n", u.domain, h.ip.port, url, h.response, h.err ? h.err : "(null)");
 #ifdef _DEBUG
                     if(DEBUGCOND)
                     {
@@ -123,7 +123,7 @@ int pingpckserver(void *data) // fetch updates.txt from a media server, measure 
         else
         { // connection to server failed
             SDL_mutexP(pckpinglog_lock);
-            cvecprintf(pckping_log, "lpinging %s failed%s%s\n", s->host, h.err ? ", err: " : "", h.err ? h.err : "");
+            cvecprintf(pckping_log, "lpinging %s failed, err: %s\n", s->host, h.err ? h.err : "(null)");
             SDL_mutexV(pckpinglog_lock);
         }
     }
@@ -384,10 +384,10 @@ bool dlpackage(httpget &h, package *pck, pckserver *s) // download one package f
         h.outstream = openvecfile(NULL);
         defformatstring(url)("%s%s", u.path, pck->requestname);
         int got = h.get(url, 6000, 90000);
-        if(!h.response)
+        if(got < 0 || !h.response)
         {
             if(!canceldownloads && s) s->ping = 0; // received a hard error from the server connection, better not try this one again
-            clientlogf("download %s:%d%s failed%s%s", u.domain, h.ip.port, url, h.err ? ", err: " : "", h.err ? h.err : "");
+            clientlogf("download %s:%d%s failed, err: %s", u.domain, h.ip.port, url, h.err ? h.err : "(null)");
             h.disconnect();
         }
         else

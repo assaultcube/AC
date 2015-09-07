@@ -6,7 +6,7 @@
 #define CR 13
 #define LF 10
 #define TCP_TIMEOUT 5678      // only re-use quite fresh connections
-#define ERROR(msg) { err = msg; return -1; }
+#define ERROR(msg) { err = msg; goto geterror; }
 
 const char lfcrlf[] = { LF, CR, LF, 0x00 }, *crlf = lfcrlf + 1;
 
@@ -108,7 +108,7 @@ int httpget::get(const char *url1, uint timeout, uint totaltimeout, int range, b
     bool reconnected = false, retry = false;
     for(;;)
     { // (in a loop because of possible redirects)
-        if(!connect()) return -1;
+        if(!connect()) goto geterror;
 
         // assemble GET request
         cvecprintf(rawsnd, "%s %s HTTP/1.1%s", head ? "HEAD" : "GET", url, crlf);
@@ -148,7 +148,7 @@ int httpget::get(const char *url1, uint timeout, uint totaltimeout, int range, b
             }
             elapsedtime = to.elapsed();
             if(elapsedtime > totaltimeout || elapsedtime > lastresponse + timeout) ERROR("timeout 1");
-            if(execcallback(-float(elapsedtime - lastresponse) / timeout)) return -1; // show progress bar, check for user interrupt
+            if(execcallback(-float(elapsedtime - lastresponse) / timeout)) goto geterror; // show progress bar, check for user interrupt
         }
 
         // get response
@@ -197,8 +197,8 @@ int httpget::get(const char *url1, uint timeout, uint totaltimeout, int range, b
                         if(p) p = strchr(p, ' ');
                         response = p ? atoi(p + 1) : -1;
                         if(p) p = strchr(p, '\n');
-                        if(!p || response < 200 || response > 307) ERROR("server error");
-                        if(response >= 300) // handle redirects
+                        if(!p) ERROR("server error"); // header frame error
+                        if(response >= 300 && response < 308) // handle redirects
                         {
                             p = strstr(header_uc + (p - header), "LOCATION: ");
                             if(p) p = header + (p - header_uc);
@@ -274,7 +274,7 @@ int httpget::get(const char *url1, uint timeout, uint totaltimeout, int range, b
                 }
                 rawrec.drop();
             }
-            if(execcallback(progress)) return -1; // show progress bar, check for user interrupt
+            if(execcallback(progress)) goto geterror; // show progress bar, check for user interrupt
             if(content || (haveheader && head)) break;
         }
         if(retry && !reconnected)
@@ -325,9 +325,12 @@ int httpget::get(const char *url1, uint timeout, uint totaltimeout, int range, b
         if(outvec) outvec->insert(outvec->length(), (const uchar *)content->getbuf(), res);
         if(outstream) outstream->write(content->getbuf(), res);
     }
+
+geterror:
     if(res > maxsize) err = "output truncated";
     elapsedtime = to.elapsed();
-    return res;
+    if(err) disconnect();
+    return err ? -1 : res;
 }
 
 char *urlencode(const char *s, bool strict)

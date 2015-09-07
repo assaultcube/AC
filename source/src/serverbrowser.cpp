@@ -1330,8 +1330,8 @@ void retrieveservers(vector<char> &data)
             defformatstring(url)("/retrieve.do?action=list&name=%s&version=%d&build=%d", urlencode(global_name, true), AC_VERSION, getbuildtype()|(1<<16));
             h.outvec = (vector<uchar> *) &data; // ouch...
             show_out_of_renderloop_progress(0, progresstext);
-            h.get(url, RETRIEVELIMIT, RETRIEVELIMIT);
-            if(h.response != 200) data.setsize(0);
+            int got = h.get(url, RETRIEVELIMIT, RETRIEVELIMIT);
+            if(got < 0 || h.response != 200) data.setsize(0);
             h.outvec = NULL; // must not be cleaned up by httpget
             if(data.length()) data.add('\0');
             clfail = false;
