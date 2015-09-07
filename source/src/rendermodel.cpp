@@ -305,6 +305,12 @@ void cleanupmodels()
     enumerate(mdllookup, model *, m, m->cleanup());
 }
 
+void resetmdlnotfound()
+{
+    enumeratek(mdlnotfound, const char *, m, delstring(m));
+    mdlnotfound.clear();
+}
+
 void getmapmodelattributes(char *name, char *attr)
 {
     const char *res = NULL;

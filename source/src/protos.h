@@ -801,6 +801,7 @@ extern mapmodelinfo *getmminfo(int i);
 extern int findanim(const char *name);
 extern void loadskin(const char *dir, const char *altdir, Texture *&skin);
 extern model *loadmodel(const char *name, int i = -1, bool trydl = false);
+extern void resetmdlnotfound();
 extern void preload_playermodels();
 extern void preload_entmodels();
 extern void preload_hudguns();
