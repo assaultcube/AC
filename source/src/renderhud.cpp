@@ -841,7 +841,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     const char *ltimeformat = getalias("wallclockformat");
     bool wallclock = ltimeformat && *ltimeformat;
     //wallclockformat beginning with "U" shows UTC/GMT time
-    if(wallclock) formatstring(ltime)("%s", timestring(*ltimeformat != 'U', ltimeformat + int(*ltimeformat == 'U')));
+    if(wallclock) filtertext(ltime, timestring(*ltimeformat != 'U', ltimeformat + int(*ltimeformat == 'U')), FTXT_TOLOWER);
 
     if(showstats)
     {
