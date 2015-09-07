@@ -6,7 +6,7 @@
 #define CR 13
 #define LF 10
 #define TCP_TIMEOUT 5678      // only re-use quite fresh connections
-#define ERROR(msg) { err = msg; goto geterror; }
+#define GETERROR(msg) { err = msg; goto geterror; }
 
 const char lfcrlf[] = { LF, CR, LF, 0x00 }, *crlf = lfcrlf + 1;
 
@@ -138,7 +138,7 @@ int httpget::get(const char *url1, uint timeout, uint totaltimeout, int range, b
                         retry = true;
                         break;
                     }
-                    else ERROR("connection failed");
+                    else GETERROR("connection failed");
                 }
                 buf.data = (char *)buf.data + sent;
                 buf.dataLength -= sent;
@@ -147,7 +147,7 @@ int httpget::get(const char *url1, uint timeout, uint totaltimeout, int range, b
                 lastresponse = to.elapsed();
             }
             elapsedtime = to.elapsed();
-            if(elapsedtime > totaltimeout || elapsedtime > lastresponse + timeout) ERROR("timeout 1");
+            if(elapsedtime > totaltimeout || elapsedtime > lastresponse + timeout) GETERROR("timeout 1");
             if(execcallback(-float(elapsedtime - lastresponse) / timeout)) goto geterror; // show progress bar, check for user interrupt
         }
 
@@ -156,7 +156,7 @@ int httpget::get(const char *url1, uint timeout, uint totaltimeout, int range, b
         if(!retry) for(;;)
         {
             elapsedtime = to.elapsed();
-            if(elapsedtime > totaltimeout || elapsedtime > lastresponse + timeout) ERROR(elapsedtime > totaltimeout ? "timeout 2" : "timeout 3");
+            if(elapsedtime > totaltimeout || elapsedtime > lastresponse + timeout) GETERROR(elapsedtime > totaltimeout ? "timeout 2" : "timeout 3");
             float progress = -float(elapsedtime - lastresponse) / timeout;
             enet_uint32 events = ENET_SOCKET_WAIT_RECEIVE;
             if(rawrec.length() > maxsize || datarec.length() > maxsize) break;
@@ -174,7 +174,7 @@ int httpget::get(const char *url1, uint timeout, uint totaltimeout, int range, b
                 rawrec.advance(recv);
                 tcp_age.start();
                 traffic += recv;
-                if((transferred += recv) > maxtransfer) ERROR("transfer size exceeds limit");
+                if((transferred += recv) > maxtransfer) GETERROR("transfer size exceeds limit");
                 lastresponse = to.elapsed();
 
                 // parsing received data
@@ -197,13 +197,13 @@ int httpget::get(const char *url1, uint timeout, uint totaltimeout, int range, b
                         if(p) p = strchr(p, ' ');
                         response = p ? atoi(p + 1) : -1;
                         if(p) p = strchr(p, '\n');
-                        if(!p) ERROR("server error"); // header frame error
+                        if(!p) GETERROR("server error"); // header frame error
                         if(response >= 300 && response < 308) // handle redirects
                         {
                             p = strstr(header_uc + (p - header), "LOCATION: ");
                             if(p) p = header + (p - header_uc);
                             DELSTRING(header_uc);
-                            if(++redirects > maxredirects || !p) ERROR(p ? "too many redirects" : "redirect error");
+                            if(++redirects > maxredirects || !p) GETERROR(p ? "too many redirects" : "redirect error");
                             // read redirect url
                             disconnect();
                             p = strchr(p, ' ') + 1;
@@ -220,7 +220,7 @@ int httpget::get(const char *url1, uint timeout, uint totaltimeout, int range, b
                                 reset(1);
                                 url = nurl;
                             }
-                            if(!again) ERROR("bad redirect url");
+                            if(!again) GETERROR("bad redirect url");
                             break; // done receiving
                         }
                         // response was 2xx, check for some extras
@@ -250,7 +250,7 @@ int httpget::get(const char *url1, uint timeout, uint totaltimeout, int range, b
                                 e++;
                                 loopi(chunklen) datarec.add(*e++);
                                 if(*e == CR) e++;
-                                if(*e++ != LF) ERROR("chunk frame error");
+                                if(*e++ != LF) GETERROR("chunk frame error");
                                 rawrec.remove(0, int(e - d));
                                 if(chunklen == 0)
                                 {
@@ -312,7 +312,7 @@ int httpget::get(const char *url1, uint timeout, uint totaltimeout, int range, b
                         if(outstream) outstream->write(outbuf, got);
                     }
                 }
-                else ERROR("gunzip error");
+                else GETERROR("gunzip error");
                 if(res > maxsize) break;
             }
             while(zstat == Z_OK);
