@@ -816,8 +816,10 @@ bool nickcomplete(char *s, bool reversedirection)
     {
         nickcompleteidx += reversedirection ? matchingnames.length() - 1 : 1;
         nickcompleteidx %= matchingnames.length();
+        const char *fillin = players[matchingnames[nickcompleteidx]]->name;
+        if(*fillin == '/' && cp == s) *cp++ = ' ';
         *cp = '\0';
-        concatstring(s, players[matchingnames[nickcompleteidx]]->name);
+        concatstring(s, fillin);
         return true;
     }
     return false;
