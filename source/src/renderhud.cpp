@@ -477,6 +477,7 @@ void drawradar_showmap(playerent *p, int w, int h)
     {
         playerent *pl = players[i];
         if(!pl || pl == p || !team_isactive(pl->team)) continue;
+        if(OUTBORD(pl->o.x, pl->o.y)) continue;
         int pl_baseteam = team_base(pl->team);
         if(p->team < TEAM_SPECT && ((m_teammode && !isteam(p_baseteam, pl_baseteam)) || (!m_teammode && !(spect3rd && d == pl)))) continue;
         if(p->team == TEAM_SPECT && !(spect3rd && (isteam(p_baseteam, pl_baseteam) || d == pl))) continue;
@@ -573,6 +574,7 @@ void drawradar_vicinity(playerent *p, int w, int h)
     {
         playerent *pl = players[i];
         if(!pl || pl == p || !team_isactive(pl->team)) continue;
+        if(OUTBORD(pl->o.x, pl->o.y)) continue;
         int pl_baseteam = team_base(pl->team);
         if(p->team < TEAM_SPECT && ((m_teammode && !isteam(p_baseteam, pl_baseteam)) || (!m_teammode && !(spect3rd && d == pl)))) continue;
         if(p->team == TEAM_SPECT && !(spect3rd && (isteam(p_baseteam, pl_baseteam) || d == pl))) continue;
