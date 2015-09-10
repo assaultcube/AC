@@ -1049,6 +1049,7 @@ void refreshservers(void *menu, bool init)
         formatstring(title)(titles[serversort], showfavtag ? "fav\t" : "", issearch ? "      search results for \f3" : "     (F1: Help/Settings)", issearch ? cursearch : "");
         menutitle(menu, title);
         menureset(menu);
+        menuheader(menu, NULL, NULL);
         string text;
         int curnl = 0;
         bool sbconnectexists = identexists("sbconnect");
@@ -1146,21 +1147,20 @@ void refreshservers(void *menu, bool init)
             }
             si.menuline_to = ((gmenu *)menu)->items.length();
         }
-        static string notfoundmsg;
+        static string notfoundmsg, headermsg;
+        notfoundmsg[0] = '\0';
         if(issearch)
         {
-            if(curnl == 0)
-            {
-                formatstring(notfoundmsg)("\t\tpattern \fs\f3%s\fr not found.", cursearch);
-                menumanual(menu, notfoundmsg, NULL, NULL, NULL);
-            }
+            if(curnl == 0) formatstring(notfoundmsg)("\t\tpattern \fs\f3%s\fr not found.", cursearch);
         }
-        else if(!((gmenu *)menu)->items.length() && showonlyfavourites && favcats.inrange(showonlyfavourites - 1))
+        if(showonlyfavourites && favcats.inrange(showonlyfavourites - 1))
         {
             const char *desc = getalias(favcatargname(favcats[showonlyfavourites - 1], FC_DESC));
-            formatstring(notfoundmsg)("no servers in category \f2%s", desc ? desc : favcattags[showonlyfavourites - 1]);
-            menumanual(menu, notfoundmsg, NULL, NULL, NULL);
+            formatstring(headermsg)("Servers in category \f2%s", desc ? desc : favcattags[showonlyfavourites - 1]);
+            menuheader(menu, headermsg, NULL);
+            if(!((gmenu *)menu)->items.length() && !issearch) formatstring(notfoundmsg)("\t(no servers in this category)");
         }
+        if(*notfoundmsg) menumanual(menu, notfoundmsg, NULL, NULL, NULL);
     }
 }
 
