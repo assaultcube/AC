@@ -975,7 +975,7 @@ void timeupdate(int milliscur, int millismax)
     }
     else
     {
-        extern int clockdisplay; // only output to console if no hud-clock is being shown
+        extern int gametimedisplay; // only output to console if no hud-clock with game time is being shown
         int sec = 60 - ( (gametimecurrent + ( lastmillis - lastgametimeupdate ) ) / 1000) % 60;
         if(minutesremaining==1)
         {
@@ -983,7 +983,7 @@ void timeupdate(int milliscur, int millismax)
             hudoutf("%s1 minute left!", sec==60 ? "" : "less than ");
             exechook(HOOK_SP_MP, "onLastMin", "");
         }
-        else if(!clockdisplay) conoutf("time remaining: %d minutes", minutesremaining);
+        else if(!gametimedisplay) conoutf("time remaining: %d minutes", minutesremaining);
         else clientlogf("time remaining: %d minutes", minutesremaining);
     }
 }

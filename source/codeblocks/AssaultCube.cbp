@@ -33,7 +33,6 @@
 				</ResourceCompiler>
 				<Linker>
 					<Add option="-mwindows" />
-					<Add library="..\lib\curl_mingw\libcurl.a" />
 					<Add library="SDL" />
 					<Add library="SDL_image" />
 					<Add library="zdll" />
@@ -42,14 +41,8 @@
 					<Add library="OpenAL32" />
 					<Add library="..\lib\libvorbisfile.lib" />
 					<Add library="jpeg" />
-					<Add library="wldap32" />
 					<Add library="ws2_32" />
 					<Add library="winmm" />
-					<Add library="..\lib\curl_mingw\libidn.a" />
-					<Add library="..\lib\curl_mingw\librtmp.a" />
-					<Add library="..\lib\curl_mingw\libssl.a" />
-					<Add library="..\lib\curl_mingw\libssh2.a" />
-					<Add library="..\lib\curl_mingw\libcrypto.a" />
 					<Add directory="../lib" />
 				</Linker>
 			</Target>
@@ -73,7 +66,6 @@
 					<Add directory="../vcpp" />
 				</ResourceCompiler>
 				<Linker>
-					<Add library="..\lib\curl_mingw\libcurl.a" />
 					<Add library="SDL" />
 					<Add library="SDL_image" />
 					<Add library="zdll" />
@@ -82,14 +74,8 @@
 					<Add library="OpenAL32" />
 					<Add library="..\lib\libvorbisfile.lib" />
 					<Add library="jpeg" />
-					<Add library="wldap32" />
 					<Add library="ws2_32" />
 					<Add library="winmm" />
-					<Add library="..\lib\curl_mingw\libidn.a" />
-					<Add library="..\lib\curl_mingw\librtmp.a" />
-					<Add library="..\lib\curl_mingw\libssl.a" />
-					<Add library="..\lib\curl_mingw\libssh2.a" />
-					<Add library="..\lib\curl_mingw\libcrypto.a" />
 					<Add library="gdi32" />
 					<Add directory="../lib" />
 				</Linker>
@@ -424,6 +410,14 @@
 			<Option target="server-debug" />
 		</Unit>
 		<Unit filename="../src/serverbrowser.cpp">
+			<Option target="default" />
+			<Option target="debug" />
+		</Unit>
+		<Unit filename="../src/http.cpp">
+			<Option target="default" />
+			<Option target="debug" />
+		</Unit>
+		<Unit filename="../src/autodownload.cpp">
 			<Option target="default" />
 			<Option target="debug" />
 		</Unit>

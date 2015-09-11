@@ -366,22 +366,25 @@ GLuint loadsurface(const char *texname, int &xs, int &ys, int &bpp, int clamp = 
     }
 
     SDL_Surface *s = NULL;
-    stream *z = openzipfile(file, "rb");
-    if(z)
+    const char *ffile = findfile(file, "rb");
+    if(findfilelocation == FFL_ZIP)
     {
-        SDL_RWops *rw = z->rwops();
-        if(rw)
+        stream *z = openzipfile(file, "rb");
+        if(z)
         {
-            s = IMG_Load_RW(rw, 0);
-            SDL_FreeRW(rw);
+            SDL_RWops *rw = z->rwops();
+            if(rw)
+            {
+                s = IMG_Load_RW(rw, 0);
+                SDL_FreeRW(rw);
+            }
+            delete z;
         }
-        delete z;
     }
-    if(!s) s = IMG_Load(findfile(file, "rb"));
+    else if(!s) s = IMG_Load(ffile);
     if(!s)
     {
-        if(trydl)
-            requirepackage(PCK_TEXTURE, file);
+        if(trydl) requirepackage(PCK_TEXTURE, file);
         else if(!silent_texture_load) conoutf("couldn't load texture %s", texname);
         return 0;
     }
@@ -579,17 +582,19 @@ void loadskymap(bool reload)
         }
         flagmapconfigchange();
     }
+    bool old_silent_texture_load = silent_texture_load;
+    if(autodownload && execcontext == IEXC_MAPCFG) silent_texture_load = true;
     loopi(6)
     {
         defformatstring(name)("packages/%s%s_%s.jpg", legacyprefix, loadsky, side[i]);
         sky[i] = textureload(name, 3);
-        if(sky[i] == notexture && !reload && autodownload)
+        if(sky[i] == notexture && !reload && autodownload && execcontext == IEXC_MAPCFG)
         {
-            defformatstring(dl)("packages/%s%s", legacyprefix, loadsky);
-            requirepackage(PCK_SKYBOX, dl);
+            requirepackage(PCK_SKYBOX, loadsky);
             break;
         }
     }
+    silent_texture_load = old_silent_texture_load;
 }
 
 void loadnotexture(char *c)
@@ -1077,6 +1082,7 @@ void gettextureorigin(char *fname)
     const char *res = s;
     switch(findfilelocation)
     {
+        case FFL_ZIP:     res = "zip";                                                break;
         case FFL_WORKDIR: res = fileexists(s, "r") ? "official" : "<file not found>"; break;
         case FFL_HOME:    res = "custom";                                             break;
         default:          formatstring(s)("package dir #%d", findfilelocation);       break;

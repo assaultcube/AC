@@ -241,6 +241,11 @@ const char *findfile(const char *filename, const char *mode)
         }
         return s;
     }
+    findfilelocation = FFL_ZIP;
+#ifndef STANDALONE
+    formatstring(s)("zip://%s", filename);
+    if(findzipfile(filename)) return s;
+#endif
     loopv(packagedirs)
     {
         findfilelocation++;
@@ -290,25 +295,23 @@ bool listdir(const char *dir, const char *ext, vector<char *> &files)
     else return false;
 }
 
-int listfiles(const char *dir, const char *ext, vector<char *> &files)
+void listfiles(const char *dir, const char *ext, vector<char *> &files)
 {
-    int dirs = 0;
-    if(listdir(dir, ext, files)) dirs++;
+    listdir(dir, ext, files);
     string s;
     if(homedir[0])
     {
         formatstring(s)("%s%s", homedir, dir);
-        if(listdir(s, ext, files)) dirs++;
+        listdir(s, ext, files);
     }
     loopv(packagedirs)
     {
         formatstring(s)("%s%s", packagedirs[i], dir);
-        if(listdir(s, ext, files)) dirs++;
+        listdir(s, ext, files);
     }
 #ifndef STANDALONE
-    dirs += listzipfiles(dir, ext, files);
+    listzipfiles(dir, ext, files);
 #endif
-    return dirs;
 }
 
 #ifndef STANDALONE
@@ -332,7 +335,7 @@ void listfilesrecursive(const char *dir, vector<char *> &files, int level)
 
 bool delfile(const char *path)
 {
-    return !remove(path);
+    return strncmp(path, "zip://", 6) ? !remove(path) : false;
 }
 
 void backup(char *name, char *backupname)
@@ -750,16 +753,147 @@ struct gzstream : stream
     }
 };
 
+struct vecstream : stream
+{
+    vector<uchar> *data;
+    int pointer;
+
+    vecstream(vector<uchar> *s) : data(s), pointer(0) {}
+    ~vecstream() { DELETEP(data); }
+
+    void close() { DELETEP(data); }
+    bool end() { return data ? pointer >= data->length() : true; }
+    long tell() { return data ? pointer : -1; }
+    long size() { return data ? data->length() : -1; }
+
+    bool seek(long offset, int whence)
+    {
+        int newpointer = -1;
+        if(data) switch(whence)
+        {
+            case SEEK_SET: newpointer = 0; break;
+            case SEEK_CUR: newpointer = pointer; break;
+            case SEEK_END: newpointer = data->length(); break;
+        }
+        if(newpointer >= 0) newpointer += offset;
+        if(newpointer >= 0 && data && newpointer <= data->length())
+        {
+            pointer = newpointer;
+            return true;
+        }
+        return false;
+    }
+
+    int read(void *buf, int len)
+    {
+        int got = 0;
+        if(data && data->inrange(pointer))
+        {
+            got = min(len, data->length() - pointer);
+            memcpy(buf, data->getbuf() + pointer, got);
+            pointer += got;
+        }
+        return got;
+    }
+
+    int write(const void *buf, int len)
+    {
+        if(data)
+        {
+            while(data->length() < pointer + len) data->add(0);
+            memcpy(data->getbuf() + pointer, buf, len);
+            pointer += len;
+        }
+        else len = 0;
+        return len;
+    }
+
+    int printf(const char *fmt, ...) // limited to MAXSTRLEN
+    {
+        int len = 0;
+        if(data)
+        {
+            defvformatstring(temp, fmt, fmt);
+            len = strlen(temp);
+            if(len) data->put((uchar *)temp, len);
+        }
+        return len;
+    }
+};
+
+struct memstream : stream
+{
+    const uchar *data;
+    int memsize;
+    int pointer;
+    int *refcount;
+
+    memstream(const uchar *s, int size, int *refcnt) : data(s), memsize(size), pointer(0), refcount(refcnt) { if(refcnt) (*refcnt)++; }
+    ~memstream() { close(); }
+
+    void close()
+    {
+        if(data && refcount)
+        {
+            (*refcount)--;
+            data = NULL;
+        }
+        else DELETEA(data);
+        memsize = -1;
+    }
+    bool end() { return data ? pointer >= memsize : true; }
+    long tell() { return data ? pointer : -1; }
+    long size() { return data ? memsize : -1; }
+
+    bool seek(long offset, int whence)
+    {
+        int newpointer = -1;
+        if(data) switch(whence)
+        {
+            case SEEK_SET: newpointer = 0; break;
+            case SEEK_CUR: newpointer = pointer; break;
+            case SEEK_END: newpointer = memsize; break;
+        }
+        if(newpointer >= 0) newpointer += offset;
+        if(newpointer >= 0 && newpointer <= memsize)
+        {
+            pointer = newpointer;
+            return true;
+        }
+        return false;
+    }
+
+    int read(void *buf, int len)
+    {
+        int got = 0;
+        if(data && pointer >= 0 && pointer < memsize)
+        {
+            got = min(len, memsize - pointer);
+            memcpy(buf, data + pointer, got);
+            pointer += got;
+        }
+        return got;
+    }
+};
+
+stream *openvecfile(vector<uchar> *s)
+{
+    return new vecstream(s ? s : new vector<uchar>);
+}
+
+stream *openmemfile(const uchar *buf, int size, int *refcnt)
+{
+    return new memstream(buf, size, refcnt);
+}
 
 stream *openrawfile(const char *filename, const char *mode)
 {
-    const char *found = findfile(filename, mode);
 #ifndef STANDALONE
-    if(mode && (mode[0]=='w' || mode[0]=='a')) conoutf("writing to file: %s", found);
+    if(mode && (mode[0]=='w' || mode[0]=='a')) conoutf("writing to file: %s", filename);
 #endif
-    if(!found) return NULL;
+    if(!strncmp(filename, "zip://", 6)) return NULL;
     filestream *file = new filestream;
-    if(!file->open(found, mode))
+    if(!file->open(filename, mode))
     {
 #ifndef STANDALONE
 //         conoutf("file failure! %s",filename);
@@ -771,11 +905,11 @@ stream *openrawfile(const char *filename, const char *mode)
 
 stream *openfile(const char *filename, const char *mode)
 {
+    const char *found = findfile(filename, mode);
 #ifndef STANDALONE
-    stream *s = openzipfile(filename, mode);
-    if(s) return s;
+    if(!strncmp(found, "zip://", 6)) return openzipfile(found + 6, mode);
 #endif
-    return openrawfile(filename, mode);
+    return openrawfile(found, mode);
 }
 
 int getfilesize(const char *filename)
@@ -822,6 +956,14 @@ char *loadfile(const char *fn, int *size, const char *mode)
     }
     if(size!=NULL) *size = len;
     return buf;
+}
+
+int streamcopy(stream *dest, stream *source, int maxlen)
+{
+    int got = 0, len;
+    uchar copybuf[1024];
+    while(got < maxlen && (len = source->read(copybuf, 1024))) got += dest->write(copybuf, len);
+    return got;
 }
 
 #ifndef STANDALONE

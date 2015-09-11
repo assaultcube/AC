@@ -1468,7 +1468,7 @@ void receivefile(uchar *data, int len)
                 break;
             }
             path(fname);
-            stream *demo = openrawfile(fname, "wb");
+            stream *demo = openfile(fname, "wb");
             if(!demo)
             {
                 conoutf("failed writing to \"%s\"", fname);

@@ -61,7 +61,7 @@ else
   echo "Your platform does not have a pre-compiled AssaultCube client."
   echo "Please follow the following steps to build a native client:"
   echo "1) Ensure you have the following DEVELOPMENT libraries installed:"
-  echo "   OpenGL, SDL, SDL_image, zlib, libogg, libvorbis, OpenAL Soft, libcurl"
+  echo "   OpenGL, SDL, SDL_image, zlib, libogg, libvorbis, OpenAL Soft"
   echo "2) Ensure clang++ and any other required build tools are installed."
   echo "3) Change directory to ./source/src/ and type \"make install\"."
   echo "4) If the compile succeeds, return to this directory and re-run this script."

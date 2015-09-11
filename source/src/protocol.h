@@ -11,6 +11,9 @@
 #define DEMO_MINTIME 10000              // don't keep demo recordings with less than 10 seconds
 #define MAXMAPSENDSIZE 65536
 #define MAXCFGFILESIZE 65536
+#define MAXMEDIADOWNLOADFILESIZE 1024000 // hard cap on filesizes (raw and unzipped) - to limit the effect of zip bombs - no nice error messages: just cap
+#define MAXMODDOWNLOADSIZE 1024000      // hard cap on the filesize of downloaded mod packages - to keep stuff reasonable
+#define MAXFILESINADZIP 21              // max number of files extracted from a zip by autodownload
 
 extern bool modprotocol;
 #define CUR_PROTOCOL_VERSION (modprotocol ? -PROTOCOL_VERSION : PROTOCOL_VERSION)
@@ -173,4 +176,4 @@ enum
 #define FTXT__GLOBALNAME    (FTXT_NOWHITE | FTXT_NOCOLOR | FTXT_FILLBLANKS)
 #define FTXT__MEDIAFILENAME (FTXT_FILENAME)
 #define FTXT__MEDIAFILEPATH (FTXT_FILENAME | FTXT_ALLOWSLASH)
-
+#define FTXT__ZIPDESC       (FTXT_NOWHITE | FTXT_ALLOWBLANKS | FTXT_TABTOBLANK | FTXT_NOCOLOR | FTXT_SAFECS)

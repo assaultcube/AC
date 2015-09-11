@@ -165,10 +165,10 @@ struct gmenu
     int anim, rotspeed, scale;
     int footlen;
     int xoffs, yoffs;
-    char *previewtexture;
+    char *previewtexture, *previewtexturetitle;
     mdirlist *dirlist;
 
-    gmenu() : name(0), title(0), header(0), footer(0), initaction(0), usefont(0), allowblink(false), persistentselection(false), mdl(0), footlen(0), xoffs(0), yoffs(0), previewtexture(NULL), dirlist(0) {}
+    gmenu() : name(0), title(0), header(0), footer(0), initaction(0), usefont(0), allowblink(false), persistentselection(false), mdl(0), footlen(0), xoffs(0), yoffs(0), previewtexture(NULL), previewtexturetitle(NULL), dirlist(0) {}
     virtual ~gmenu()
     {
         DELETEA(name);
@@ -237,6 +237,54 @@ struct serverinfo
 extern serverinfo *getconnectedserverinfo();
 extern void pingservers();
 extern void updatefrommaster(int force);
+
+// http
+struct httpget
+{
+    // parameters
+    const char *hostname, *url;                        // set by set_host() and get()
+    const char *useragent, *referrer;                  // can be set manually with "newstrings", deleted automatically
+    const char *err;                                   // read-only
+    ENetAddress ip;                                    // set by set_host()
+    int maxredirects, maxtransfer, maxsize;            // set manually
+    int (__cdecl *callbackfunc)(void *data, float progress);
+    void *callbackdata;
+
+    // internal
+    ENetSocket tcp;
+    stopwatch tcp_age;
+    vector<char> rawsnd, rawrec, datarec;
+
+    // result
+    char *header;
+    int response, chunked, gzipped, contentlength, offset, traffic;
+    uint elapsedtime;
+    vector<uchar> *outvec;                             // receives data, if not NULL (must be set up manually)
+    stream *outstream;                                 // receives data, if not NULL (must be set up manually)
+
+    httpget() { memset(&hostname, 0, sizeof(struct httpget)); tcp = ENET_SOCKET_NULL; reset(); }
+    ~httpget() { reset(); DELSTRING(useragent); DELSTRING(referrer); DELETEP(outvec); DELETEP(outstream); }
+    void reset(int keep = 0);                          // cleanup
+    bool set_host(const char *newhostname);            // set and resolve host
+    void set_port(int port);                           // set port (disconnect, if different to previous)
+    bool execcallback(float progress);
+    void disconnect();
+    bool connect(bool force = false);
+    int get(const char *url1, uint timeout, uint totaltimeout, int range = 0, bool head = false); // get web ressource
+};
+
+struct urlparse
+{
+    char *buf;
+    // result (scheme:[//[user:password@]domain[:port]][/]path[?query][#fragment])
+    const char *scheme, *userpassword, *domain, *port, *path, *query, *fragment;
+
+    urlparse() { memset(&buf, 0, sizeof(struct urlparse)); }
+    ~urlparse() { DELSTRING(buf); }
+    void set(const char *newurl);      // set and parse url
+};
+
+extern char *urlencode(const char *s, bool strict = false);
 
 struct packetqueue
 {
@@ -335,11 +383,13 @@ extern const char *crosshairnames[];
 extern Texture *crosshairs[];
 extern void drawcrosshair(playerent *p, int n, struct color *c = NULL, float size = -1.0f);
 
-// client
+// autodownload
+enum { PCK_TEXTURE = 0, PCK_SKYBOX, PCK_MAPMODEL, PCK_AUDIO, PCK_MAP, PCK_MOD, PCK_NUM };
 extern int autodownload;
-extern void setupcurl();
-extern bool requirepackage(int type, const char *path);
-extern int downloadpackages();
+extern void setupautodownload();
+extern void pollautodownloadresponse();
+extern bool requirepackage(int type, const char *name, const char *host = NULL);
+extern int downloadpackages(bool loadscr = true);
 extern void sortpckservers();
 extern void writepcksourcecfg();
 
@@ -751,6 +801,7 @@ extern mapmodelinfo *getmminfo(int i);
 extern int findanim(const char *name);
 extern void loadskin(const char *dir, const char *altdir, Texture *&skin);
 extern model *loadmodel(const char *name, int i = -1, bool trydl = false);
+extern void resetmdlnotfound();
 extern void preload_playermodels();
 extern void preload_entmodels();
 extern void preload_hudguns();

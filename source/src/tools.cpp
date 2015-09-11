@@ -643,7 +643,29 @@ int sl_waitthread(void *ti)
 }
 #endif
 
-
-
-
-
+void parseupdatelist(hashtable<const char *, int> &ht, char *buf, const char *prefix, const char *suffix)
+{
+    for(char *d = buf; *d; d++) if(!isalnum(*d) && !strchr("._-() /\n", *d)) *d = ' '; // allowed chars in media path strings (except ' ')
+    char *p, *l = buf, *m;
+    int rev, *revp, plen = prefix ? (int)strlen(prefix) : 0, slen = suffix ? (int)strlen(suffix) : 0;
+    do
+    {
+        if((p = strchr(l, '\n'))) *p = '\0'; // break into single lines
+        l += strspn(l, " "); // skip leading spaces
+        if((m = strchr(l, ' ')) && (rev = atoi(m + 1))) // string has a space and a number != 0 after it
+        {
+            *m = '\0';
+            if((!plen || !strncmp(l, prefix, plen)) && // prefix is either not required or present
+               (!slen || (m - l > slen && !strcmp(m - slen, suffix)))) // suffix is either not required or present
+            {
+                l += plen; // skip prefix
+                m[-slen] = '\0'; // cut suffix
+                revp = ht.access(l);
+                if(revp) *revp = rev;
+                else ht.access(newstring(l), rev);
+            }
+        }
+        l = p + 1;
+    }
+    while(p);
+}

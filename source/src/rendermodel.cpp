@@ -279,11 +279,7 @@ model *loadmodel(const char *name, int i, bool trydl)     // load model by name 
             {
                 delete m;
                 m = loadingmodel = NULL;
-                if(trydl)
-                {
-                    defformatstring(dl)("packages/models/%s", name);
-                    requirepackage(PCK_MAPMODEL, dl);
-                }
+                if(trydl && !strncmp(name, mmpath, strlen(mmpath))) requirepackage(PCK_MAPMODEL, name);
                 else
                 {
                     conoutf("\f3failed to load model %s", name);
@@ -307,6 +303,12 @@ model *loadmodel(const char *name, int i, bool trydl)     // load model by name 
 void cleanupmodels()
 {
     enumerate(mdllookup, model *, m, m->cleanup());
+}
+
+void resetmdlnotfound()
+{
+    enumeratek(mdlnotfound, const char *, m, delstring(m));
+    mdlnotfound.clear();
 }
 
 void getmapmodelattributes(char *name, char *attr)

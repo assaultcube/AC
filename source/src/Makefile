@@ -46,16 +46,17 @@ MV=mv
 ifneq (,$(findstring MINGW,$(PLATFORM)))
 WINDRES= windres
 CLIENT_INCLUDES= $(INCLUDES) -I../include
-CLIENT_LIBS= -mwindows -L../lib -lSDL -lSDL_image -lzdll -lopengl32 -lenet -lOpenAL32 -llibvorbisfile -lws2_32 -lwinmm -lcurl
+CLIENT_LIBS= -mwindows -L../lib -lSDL -lSDL_image -lzdll -lopengl32 -lenet -lOpenAL32 -llibvorbisfile -lws2_32 -lwinmm
 else
 USRLIB=$(shell if [ -e /usr/lib64 ]; then echo "/usr/lib64"; else echo "/usr/lib"; fi)
 CLIENT_INCLUDES= $(INCLUDES) -I/usr/include `sdl-config --cflags` -idirafter ../include
-CLIENT_LIBS= -L../enet/.libs -lenet -L$(USRLIB) -lX11 `sdl-config --libs` -lSDL_image -lz -lGL -lopenal -lvorbisfile -lcurl
+CLIENT_LIBS= -L../enet/.libs -lenet -L$(USRLIB) -lX11 `sdl-config --libs` -lSDL_image -lz -lGL -lopenal -lvorbisfile
 endif
 
 CLIENT_OBJS= \
 	crypto.o \
 	audiomanager.o \
+	autodownload.o \
 	client.o \
 	clientgame.o \
 	clients2c.o \
@@ -64,6 +65,7 @@ CLIENT_OBJS= \
 	docs.o \
 	editing.o \
 	entities.o \
+	http.o \
 	log.o \
 	main.o \
 	menus.o \
@@ -223,6 +225,9 @@ crypto.o: console.h protos.h
 audiomanager.o: cube.h platform.h tools.h geom.h model.h protocol.h sound.h
 audiomanager.o: weapon.h entity.h world.h command.h varray.h vote.h
 audiomanager.o: console.h protos.h
+autodownload.o: cube.h platform.h tools.h geom.h model.h protocol.h sound.h
+autodownload.o: weapon.h entity.h world.h command.h varray.h vote.h console.h
+autodownload.o: protos.h
 client.o: cube.h platform.h tools.h geom.h model.h protocol.h sound.h
 client.o: weapon.h entity.h world.h command.h varray.h vote.h
 client.o: console.h protos.h bot/bot.h bot/bot_util.h bot/bot_waypoint.h
@@ -249,6 +254,8 @@ editing.o: console.h protos.h
 entities.o: cube.h platform.h tools.h geom.h model.h protocol.h sound.h
 entities.o: weapon.h entity.h world.h command.h varray.h vote.h
 entities.o: console.h protos.h
+http.o: cube.h platform.h tools.h geom.h model.h protocol.h sound.h weapon.h
+http.o: entity.h world.h command.h varray.h vote.h console.h protos.h
 log.o: cube.h platform.h tools.h geom.h model.h protocol.h sound.h weapon.h
 log.o: entity.h world.h command.h varray.h vote.h console.h protos.h
 main.o: cube.h platform.h tools.h geom.h model.h protocol.h sound.h weapon.h

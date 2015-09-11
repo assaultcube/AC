@@ -816,8 +816,10 @@ bool nickcomplete(char *s, bool reversedirection)
     {
         nickcompleteidx += reversedirection ? matchingnames.length() - 1 : 1;
         nickcompleteidx %= matchingnames.length();
+        const char *fillin = players[matchingnames[nickcompleteidx]]->name;
+        if(*fillin == '/' && cp == s) *cp++ = ' ';
         *cp = '\0';
-        concatstring(s, players[matchingnames[nickcompleteidx]]->name);
+        concatstring(s, fillin);
         return true;
     }
     return false;
@@ -963,10 +965,12 @@ void commandcomplete(char *s, bool reversedirection)
     }
 
     char *cp = arg ? arg + 1 : cmd; // part of string to complete
+    bool firstrun = false;
     if(completesize < 0)
     { // first run since resetcomplete()
         completesize = (int)strlen(cp);
         completeidx = reversedirection ? 0 : -1;
+        firstrun = true;
     }
 
     if(!arg)
@@ -979,8 +983,9 @@ void commandcomplete(char *s, bool reversedirection)
         {
             completeidx += reversedirection ? matchingidents.length() - 1 : 1;
             completeidx %= matchingidents.length();
-            *cp = '\0';
             matchingidents.sort(stringsortignorecase);
+            if(firstrun && !reversedirection && !strcmp(matchingidents[completeidx], cp)) completeidx = min(completeidx + 1, matchingidents.length() - 1);
+            *cp = '\0';
             concatstring(s, matchingidents[completeidx]);
         }
     }
@@ -1616,7 +1621,7 @@ void deletecfg()
         loopi(sizeof(configs)/sizeof(configs[0]))
         {
             const char *file = findfile(path(configs[i], true), "r");
-            if(!file) continue;
+            if(!file || findfilelocation == FFL_ZIP) continue;
             delfile(file);
         }
     }

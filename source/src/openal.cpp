@@ -266,95 +266,85 @@ bool sbuffer::load(bool trydl)
     {
         const char *exts[] = { "", ".wav", ".ogg" };
         string filepath;
-        loopk(2)
+        loopi(sizeof(exts)/sizeof(exts[0]))
         {
-            loopi(sizeof(exts)/sizeof(exts[0]))
+            formatstring(filepath)("packages/audio/%s%s", name, exts[i]);
+            stream *f = openfile(path(filepath), "rb");
+            if(!f) continue;
+
+            size_t len = strlen(filepath);
+            if(len >= 4 && !strcasecmp(filepath + len - 4, ".ogg"))
             {
-                formatstring(filepath)("packages/audio/%s%s", name, exts[i]);
-                stream *f = openfile(path(filepath), "rb");
-                if(!f && k>0 && trydl) // only try donwloading after trying all extensions
+                OggVorbis_File oggfile;
+                if(!ov_open_callbacks(f, &oggfile, NULL, 0, oggcallbacks))
                 {
-                    requirepackage(PCK_AUDIO, filepath);
-                    bool skip = false;
-                    loopj(sizeof(exts)/sizeof(exts[0])) if(strstr(name, exts[j])) skip = true;  // don't try extensions if name already has a known extension
-                    if(skip) break;
-                    continue;
-                }
-                if(!f) continue;
+                    vorbis_info *info = ov_info(&oggfile, -1);
 
-                size_t len = strlen(filepath);
-                if(len >= 4 && !strcasecmp(filepath + len - 4, ".ogg"))
-                {
-                    OggVorbis_File oggfile;
-                    if(!ov_open_callbacks(f, &oggfile, NULL, 0, oggcallbacks))
+                    const size_t BUFSIZE = 32*1024;
+                    vector<char> buf;
+                    int bitstream;
+                    long bytes;
+
+                    do
                     {
-                        vorbis_info *info = ov_info(&oggfile, -1);
+                        char buffer[BUFSIZE];
+                        bytes = ov_read(&oggfile, buffer, BUFSIZE, isbigendian(), 2, 1, &bitstream);
+                        loopi(bytes) buf.add(buffer[i]);
+                    } while(bytes > 0);
 
-                        const size_t BUFSIZE = 32*1024;
-                        vector<char> buf;
-                        int bitstream;
-                        long bytes;
-
-                        do
-                        {
-                            char buffer[BUFSIZE];
-                            bytes = ov_read(&oggfile, buffer, BUFSIZE, isbigendian(), 2, 1, &bitstream);
-                            loopi(bytes) buf.add(buffer[i]);
-                        } while(bytes > 0);
-
-                        alBufferData(id, info->channels == 2 ? AL_FORMAT_STEREO16 : AL_FORMAT_MONO16, buf.getbuf(), buf.length(), info->rate);
-                        ov_clear(&oggfile);
-                    }
-                    else
-                    {
-                        delete f;
-                        continue;
-                    }
+                    alBufferData(id, info->channels == 2 ? AL_FORMAT_STEREO16 : AL_FORMAT_MONO16, buf.getbuf(), buf.length(), info->rate);
+                    ov_clear(&oggfile);
                 }
                 else
                 {
-                    SDL_AudioSpec wavspec;
-                    uint32_t wavlen;
-                    uint8_t *wavbuf;
-
-                    if(!SDL_LoadWAV_RW(f->rwops(), 1, &wavspec, &wavbuf, &wavlen))
-                    {
-                        SDL_ClearError();
-                        continue;
-                    }
-
-                    ALenum format;
-                    switch(wavspec.format) // map wav header to openal format
-                    {
-                        case AUDIO_U8:
-                        case AUDIO_S8:
-                            format = wavspec.channels==2 ? AL_FORMAT_STEREO8 : AL_FORMAT_MONO8;
-                            break;
-                        case AUDIO_U16:
-                        case AUDIO_S16:
-                            format = wavspec.channels==2 ? AL_FORMAT_STEREO16 : AL_FORMAT_MONO16;
-                            break;
-                        default:
-                            SDL_FreeWAV(wavbuf);
-                            delete f;
-                            unload();
-                            return false;
-                    }
-
-                    alBufferData(id, format, wavbuf, wavlen, wavspec.freq);
-                    SDL_FreeWAV(wavbuf);
                     delete f;
+                    continue;
+                }
+            }
+            else
+            {
+                SDL_AudioSpec wavspec;
+                uint32_t wavlen;
+                uint8_t *wavbuf;
 
-                    if(ALERR)
-                    {
-                        unload();
-                        return false;
-                    };
+                if(!SDL_LoadWAV_RW(f->rwops(), 1, &wavspec, &wavbuf, &wavlen))
+                {
+                    SDL_ClearError();
+                    continue;
                 }
 
-                return true;
+                ALenum format;
+                switch(wavspec.format) // map wav header to openal format
+                {
+                    case AUDIO_U8:
+                    case AUDIO_S8:
+                        format = wavspec.channels==2 ? AL_FORMAT_STEREO8 : AL_FORMAT_MONO8;
+                        break;
+                    case AUDIO_U16:
+                    case AUDIO_S16:
+                        format = wavspec.channels==2 ? AL_FORMAT_STEREO16 : AL_FORMAT_MONO16;
+                        break;
+                    default:
+                        SDL_FreeWAV(wavbuf);
+                        delete f;
+                        unload();
+                        return false;
+                }
+
+                alBufferData(id, format, wavbuf, wavlen, wavspec.freq);
+                SDL_FreeWAV(wavbuf);
+                delete f;
+
+                if(ALERR)
+                {
+                    unload();
+                    return false;
+                };
             }
+
+            return true;
         }
+        if(trydl) requirepackage(PCK_AUDIO, name); // only try donwloading after trying all extensions
     }
     unload(); // loading failed
     return false;

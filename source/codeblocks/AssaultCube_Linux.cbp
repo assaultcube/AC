@@ -284,6 +284,12 @@
 		<Unit filename="../src/serverbrowser.cpp">
 			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
+		<Unit filename="../src/http.cpp">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../src/autodownload.cpp">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
 		<Unit filename="../src/serverchecks.h">
 			<Option target="&lt;{~None~}&gt;" />
 		</Unit>

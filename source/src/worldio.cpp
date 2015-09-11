@@ -818,6 +818,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
     c2skeepalive();
 
     watch.start();
+    if(autodownload) resetmdlnotfound();
     preload_mapmodels(autodownload ? true : false);
     int mdlloadtime = watch.elapsed();
 

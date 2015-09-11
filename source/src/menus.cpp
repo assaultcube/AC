@@ -1032,15 +1032,17 @@ void chmenumdl(char *menu, char *mdl, char *anim, int *rotspeed, int *scale)
 }
 COMMAND(chmenumdl, "sssii");
 
-void chmenutexture(char *menu, char *texname)
+void chmenutexture(char *menu, char *texname, char *title)
 {
     if(!*menu || !menus.access(menu)) return;
     gmenu &m = menus[menu];
     char *newtex = *texname ? newstring(texname) : NULL;
     DELETEA(m.previewtexture);
     m.previewtexture = newtex;
+    DELETEA(m.previewtexturetitle);
+    m.previewtexturetitle = *title ? newstring(title) : NULL;
 }
-COMMAND(chmenutexture, "ss");
+COMMAND(chmenutexture, "sss");
 
 bool parsecolor(color *col, const char *r, const char *g, const char *b, const char *a)
 {
@@ -1316,26 +1318,30 @@ void gmenu::init()
 }
 
 FVAR(menutexturesize, 0.1f, 1.0f, 5.0f);
+FVAR(menupicturesize, 0.1f, 1.6f, 5.0f);
 
-void rendermenutexturepreview(char *previewtexture, int w)
+void rendermenutexturepreview(char *previewtexture, int w, const char *title)
 {
     static Texture *pt = NULL;
     static char *last_pt = NULL;
+    bool ispicture = title != NULL;
     if(previewtexture != last_pt)
     {
+        silent_texture_load = ispicture;
         defformatstring(texpath)("packages/textures/%s", previewtexture);
-        pt = textureload(texpath);
+        pt = textureload(texpath, ispicture ? 3 : 0);
         last_pt = previewtexture;
+        silent_texture_load = false;
     }
     if(pt && pt != notexture && pt->xs && pt->ys)
     {
-        int xs = (VIRTW * menutexturesize) / 4, ys = (xs * pt->ys) / pt->xs, ysmax = (3 * VIRTH) / 2;
+        int xs = (VIRTW * (ispicture ? menupicturesize : menutexturesize)) / 4, ys = (xs * pt->ys) / pt->xs, ysmax = (3 * VIRTH) / 2;
         if(ys > ysmax) ys = ysmax, xs = (ys * pt->xs) / pt->ys;
         int x = (6 * VIRTW + w - 2 * xs) / 4, y = VIRTH - ys / 2 - 2 * FONTH;
         extern int fullbrightlevel;
         framedquadtexture(pt->id, x, y, xs, ys, FONTH / 2, fullbrightlevel);
         defformatstring(res)("%dx%d", pt->xs, pt->ys);
-        draw_text(res, x, y + ys + 2 * FONTH);
+        draw_text(title ? title : res, x, y + ys + 2 * FONTH);
     }
 }
 
@@ -1420,7 +1426,7 @@ void gmenu::render()
             draw_text(items[menusel]->getdesc(), x, y);
 
     }
-    if(previewtexture && *previewtexture) rendermenutexturepreview(previewtexture, w);
+    if(previewtexture && *previewtexture) rendermenutexturepreview(previewtexture, w, previewtexturetitle);
     if(usefont) popfont(); // setfont("default");
     ignoreblinkingbit = false;
 }

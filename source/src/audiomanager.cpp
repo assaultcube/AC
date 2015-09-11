@@ -923,6 +923,7 @@ void getmapsoundorigin(char *fname)
     const char *res = s;
     switch(findfilelocation)
     {
+        case FFL_ZIP:     res = "zip";                                                break;
         case FFL_WORKDIR: res = fileexists(s, "r") ? "official" : "<file not found>"; break;
         case FFL_HOME:    res = "custom";                                             break;
         default:          formatstring(s)("package dir #%d", findfilelocation);       break;

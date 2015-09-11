@@ -214,12 +214,15 @@ char *filtertext(char *dst, const char *src, int flags, int len)
         if(isspace(c))
         {
             if(leadingwhite) continue;
-            if(!lastwhite) lastwhite = dst;
             if(nowhite && !((c == ' ' && allowblanks) || (c == '\n' && allownl)) && !pass) continue;
+            if(!lastwhite) lastwhite = dst;
         }
-        else if(!pass && !isprint(c)) continue;
+        else
+        {
+            lastwhite = NULL;
+            if(!pass && !isprint(c)) continue;
+        }
         leadingwhite = false;
-        lastwhite = NULL;
         *dst++ = c;
         if(!--len || !*src) break;
     }
