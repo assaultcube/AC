@@ -603,7 +603,7 @@ void *sl_createthread(int (*fn)(void *), void *data)
     sl_threadinfo *ti = new sl_threadinfo;
     ti->data = data;
     ti->fn = fn;
-    ti->handle = SDL_CreateThread(sl_thread_indir, ti);
+    ti->handle = SDL_CreateThread(sl_thread_indir, NULL, ti);
     return (void *) ti;
 }
 

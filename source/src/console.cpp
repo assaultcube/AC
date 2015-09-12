@@ -296,7 +296,7 @@ COMMAND(onrelease, "s");
 
 void saycommand(char *init)                         // turns input to the command line on or off
 {
-    SDL_EnableUNICODE(saycommandon = (init!=NULL));
+    //SDL_EnableUNICODE(saycommandon = (init!=NULL)); FIXME implement: grab SDL_TEXTINPUT events instead (see EnableUNICODE in migration guide)
     setscope(false);
     setburst(false);
     if(!editmode) keyrepeat(saycommandon);
@@ -349,7 +349,8 @@ void pasteconsole(char *dst)
     SDL_SysWMinfo wminfo;
     SDL_VERSION(&wminfo.version);
     wminfo.subsystem = SDL_SYSWM_X11;
-    if(!SDL_GetWMInfo(&wminfo)) return;
+    extern SDL_Window *screen;
+    if(!SDL_GetWindowWMInfo(screen, &wminfo)) return;
     int cbsize;
     char *cb = XFetchBytes(wminfo.info.x11.display, &cbsize);
     if(!cb || !cbsize) return;
@@ -492,7 +493,7 @@ void execbind(keym &k, bool isdown)
     k.pressed = isdown;
 }
 
-void consolekey(int code, bool isdown, int cooked, SDLMod mod)
+void consolekey(int code, bool isdown, int cooked, SDL_Keymod mod)
 {
     static char *beforecomplete = NULL;
     static bool ignoreescup = false;
@@ -582,7 +583,7 @@ void consolekey(int code, bool isdown, int cooked, SDLMod mod)
     }
 }
 
-void keypress(int code, bool isdown, int cooked, SDLMod mod)
+void keypress(int code, bool isdown, int cooked, SDL_Keymod mod)
 {
     keym *haskey = NULL;
     loopv(keyms) if(keyms[i].code==code) { haskey = &keyms[i]; break; }

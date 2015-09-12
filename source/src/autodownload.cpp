@@ -139,7 +139,7 @@ int pingallpckservers(void *data)
         pckpinglog_lock = SDL_CreateMutex();
         vector<SDL_Thread *> pckthreads;
         int nop, good = 0;
-        loopv(pckservers) pckthreads.add(SDL_CreateThread(pingpckserver, pckservers[i])); // start pinging all servers at once
+        loopv(pckservers) pckthreads.add(SDL_CreateThread(pingpckserver, NULL, pckservers[i])); // start pinging all servers at once
         loopv(pckthreads) if(pckthreads[i]) SDL_WaitThread(pckthreads[i], &nop); // wait for all ping threads to finish
         SDL_DestroyMutex(pckpinglog_lock);
         loopv(pckservers)
@@ -163,7 +163,7 @@ void setupautodownload()
     // fetch updates from all configured servers
     // in a background thread
     // during startup
-    pingallpckthread = SDL_CreateThread(pingallpckservers, NULL);
+    pingallpckthread = SDL_CreateThread(pingallpckservers, NULL, NULL);
 }
 
 void pollautodownloadresponse() // thread-safe feedback from the autodownload-updater thread
