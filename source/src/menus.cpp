@@ -520,7 +520,8 @@ struct mitemtextinput : mitemtext
     {
         if(on && hoveraction) execute(hoveraction);
 
-        SDL_EnableUNICODE(on);
+        // FIXME... the following
+        //SDL_EnableUNICODE(on);
         if(!strlen(input.buf)) setdefaultvalue();
         if(action && !on && modified)
         {
@@ -1067,11 +1068,11 @@ COMMAND(menuselectionbgcolor, "ssss");
 static bool iskeypressed(int key)
 {
     int numkeys = 0;
-    Uint8* state = SDL_GetKeyState(&numkeys);
+    Uint8 const* state = SDL_GetKeyboardState(&numkeys);
     return key < numkeys && state[key] != 0;
 }
 
-bool menukey(int code, bool isdown, int unicode, SDLMod mod)
+bool menukey(int code, bool isdown, int unicode, SDL_Keymod mod)
 {
     if(!curmenu) return false;
     int n = curmenu->items.length(), menusel = curmenu->menusel;
@@ -1163,7 +1164,7 @@ bool menukey(int code, bool isdown, int unicode, SDLMod mod)
     {
         switch(code)   // action on keyup to avoid repeats
         {
-            case SDLK_PRINT:
+            case SDLK_PRINTSCREEN:
                 curmenu->conprintmenu();
                 return true;
 

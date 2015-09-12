@@ -1046,9 +1046,12 @@ __attribute__((optimize(2)))
             shadows = new GLuint[numframes];
             glGenTextures(numframes, shadows);
 
-            extern SDL_Surface *screen;
+            extern SDL_Window *screen;
             int aasize = 1<<(dynshadowsize + aadynshadow);
-            while(aasize > screen->w || aasize > screen->h) aasize /= 2;
+
+            int ww, wh;
+            SDL_GetWindowSize(screen, &ww, &wh);
+            while(aasize > ww || aasize > wh) aasize /= 2;
 
             stream *f = filename ? opengzfile(filename, "wb") : NULL;
             if(f)
@@ -1083,7 +1086,7 @@ __attribute__((optimize(2)))
             endgenshadow();
 
             glEnable(GL_FOG);
-            glViewport(0, 0, screen->w, screen->h);
+            glViewport(0, 0, ww, wh);
 
             if(f) delete f;
         }
