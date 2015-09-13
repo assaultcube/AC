@@ -895,6 +895,13 @@ void checkinput()
                 }
                 break;
 
+            case SDL_TEXTINPUT:
+                if(saycommandon)
+                {
+                    consolekey(0, 0, 0, 0);
+                }
+                break;
+
             //case SDL_ACTIVEEVENT:
             case SDL_WINDOWEVENT_FOCUS_GAINED:
                 inputgrab(grabinput = 1);
