@@ -864,6 +864,7 @@ void checkinput()
     {
         if(events.length()) event = events.remove(0);
 
+        extern void textinput(const char *);
         switch(event.type)
         {
             case SDL_QUIT:
@@ -891,15 +892,12 @@ void checkinput()
                 {                    
                     //keypress(event.key.keysym.sym, event.key.state==SDL_PRESSED, event.key.keysym.unicode, event.key.keysym.mod);
                     // FIXME console input broken here
-                    keypress(event.key.keysym.sym, event.key.state==SDL_PRESSED, event.key.keysym.sym, SDL_GetModState());
+                    keypress(event.key.keysym.sym, event.key.state==SDL_PRESSED, SDL_GetModState());
                 }
                 break;
 
             case SDL_TEXTINPUT:
-                if(saycommandon)
-                {
-                    consolekey(0, 0, 0, 0);
-                }
+                textinput(event.text.text);
                 break;
 
             //case SDL_ACTIVEEVENT:
@@ -934,7 +932,7 @@ void checkinput()
             case SDL_MOUSEBUTTONDOWN:
             case SDL_MOUSEBUTTONUP:
                 if(lasttype==event.type && lastbut==event.button.button) break;
-                keypress(-event.button.button, event.button.state!=0, 0);
+                keypress(-event.button.button, event.button.state!=0);
                 lasttype = event.type;
                 lastbut = event.button.button;
                 break;
@@ -1114,6 +1112,17 @@ void initclientlog()  // rotate old logfiles and create new one
 }
 
 VARP(compatibilitymode, 0, 1, 1); // FIXME : find a better place to put this ?
+
+extern bool saycommandon;
+extern bool menutextinputon();
+
+/// SDL event filter that drops text input events unless some kind of
+/// text input is enabled (text field in menu item active, chat prompt...)
+int textinputfilter(void *userdata, SDL_Event *event)
+{
+    if(event->type != SDL_TEXTINPUT) return 1;
+    return (saycommandon || menutextinputon()) ? 1 : 0;
+}
 
 int main(int argc, char **argv)
 {
@@ -1388,6 +1397,8 @@ int main(int argc, char **argv)
     localconnect();
 
     if(initscript) execute(initscript);
+
+    SDL_SetEventFilter(textinputfilter, NULL);
 
     initlog("mainloop");
 

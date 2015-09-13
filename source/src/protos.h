@@ -55,7 +55,7 @@ struct authkey // for AUTH
 extern stream *clientlogfile;
 extern vector<char> *bootclientlog;
 
-extern void keypress(int code, bool isdown, int cooked, SDL_Keymod mod = KMOD_NONE);
+extern void keypress(int code, bool isdown, SDL_Keymod mod = KMOD_NONE);
 extern int rendercommand(int x, int y, int w);
 extern void renderconsole();
 extern char *getcurcommand();
@@ -100,7 +100,7 @@ extern void menuimagemanual(void *menu, const char *filename1, const char *filen
 extern void menutitle(void *menu, const char *title = NULL);
 extern bool needscoresreorder;
 extern void menuheader(void *menu, char *header = NULL, char *footer = NULL);
-extern bool menukey(int code, bool isdown, int unicode, SDL_Keymod mod = KMOD_NONE);
+extern bool menukey(int code, bool isdown = true, SDL_Keymod mod = KMOD_NONE);
 extern void *addmenu(const char *name, const char *title = NULL, bool allowinput = true, void (__cdecl *refreshfunc)(void *, bool) = NULL, bool (__cdecl *keyfunc)(void *, int, bool, int) = NULL, bool hotkeys = false, bool forwardkeys = false);
 extern void rendermenumdl();
 extern void menuset(void *m, bool save = true);
@@ -123,7 +123,7 @@ struct mitem
     virtual int width() = 0;
     virtual void select() {}
     virtual void focus(bool on) { }
-    virtual void key(int code, bool isdown, int unicode) { }
+    virtual void key(int code) { }
     virtual void init() {}
     virtual const char *getdesc() { return NULL; }
     virtual const char *gettext() { return NULL; }
