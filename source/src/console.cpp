@@ -297,6 +297,7 @@ COMMAND(onrelease, "s");
 void saycommand(char *init)                         // turns input to the command line on or off
 {
     //SDL_EnableUNICODE(saycommandon = (init!=NULL)); FIXME implement: grab SDL_TEXTINPUT events instead (see EnableUNICODE in migration guide)
+    saycommandon = (init!=NULL);
     setscope(false);
     setburst(false);
     if(!editmode) keyrepeat(saycommandon);
@@ -587,6 +588,18 @@ void keypress(int code, bool isdown, int cooked, SDL_Keymod mod)
 {
     keym *haskey = NULL;
     loopv(keyms) if(keyms[i].code==code) { haskey = &keyms[i]; break; }
+    if(!haskey)
+    {
+        // We can use SDL2 key names as well - check them as fallback.
+        const char *keyname = SDL_GetKeyName(code);
+        if(*keyname) {
+            keym &km = keyms.add();
+            km.code = code;
+            km.name = newstring(keyname);
+            haskey = &km;
+        }
+    }
+    if(!haskey) conoutf("Unknown key: %d.", code); //else conoutf(haskey->name); // FIXME remove
     if(haskey && haskey->pressed) execbind(*haskey, isdown); // allow pressed keys to release
     else if(saycommandon) consolekey(code, isdown, cooked, mod);  // keystrokes go to commandline
     else if(!menukey(code, isdown, cooked, mod))                  // keystrokes go to menu
