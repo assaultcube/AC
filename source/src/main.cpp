@@ -70,6 +70,7 @@ void fatal(const char *s, ...)    // failure exit
 }
 
 SDL_Window *screen = NULL;
+SDL_GLContext glcontext = 0;
 
 static int initing = NOT_INITING;
 static bool restoredinits = false;
@@ -107,7 +108,7 @@ void inputgrab(bool on)
 #endif
     //SDL_SetRelativeMouseMode(on ? SDL_TRUE : SDL_FALSE);
     SDL_SetWindowGrab(screen, on ? SDL_TRUE : SDL_FALSE);
-    SDL_ShowCursor(on ? 1 : 0);
+    SDL_ShowCursor(on ? 0 : 1);
 }
 
 void setfullscreen(bool enable)
@@ -633,7 +634,13 @@ void setupscreen(int &usedcolorbits, int &useddepthbits, int &usedfsaa)
             SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 
             scr_w, scr_h, 
             SDL_WINDOW_OPENGL | flags);
-        if(screen) break;
+        //if(screen) break;
+        if(screen)
+        {
+            glcontext = SDL_GL_CreateContext(screen);
+            if(glcontext) break;
+            SDL_DestroyWindow(screen);
+        }
     }
     if(!screen) fatal("Unable to create OpenGL screen");
     else
@@ -884,7 +891,7 @@ void checkinput()
                 {                    
                     //keypress(event.key.keysym.sym, event.key.state==SDL_PRESSED, event.key.keysym.unicode, event.key.keysym.mod);
                     // FIXME console input broken here
-                    keypress(event.key.keysym.sym, event.key.state==SDL_PRESSED, 31, SDL_GetModState());
+                    keypress(event.key.keysym.sym, event.key.state==SDL_PRESSED, event.key.keysym.sym, SDL_GetModState());
                 }
                 break;
 
@@ -904,17 +911,8 @@ void checkinput()
             case SDL_WINDOWEVENT_RESTORED:
             case SDL_WINDOWEVENT_MAXIMIZED:
                 minimized = 0;
-
-                /*
-                if(event.active.state & SDL_APPINPUTFOCUS)
-                    inputgrab(grabinput = event.active.gain!=0);
-                if(event.active.state & SDL_APPACTIVE)
-                    minimized = !event.active.gain;
-#if 0
-                if(event.active.state==SDL_APPMOUSEFOCUS) setprocesspriority(event.active.gain > 0); // switch priority on focus change
-#endif
                 break;
-                */
+
             case SDL_MOUSEMOTION:
                 if(ignoremouse) { ignoremouse--; break; }
                 if(grabinput && !skipmousemotion(event))
