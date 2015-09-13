@@ -93,8 +93,18 @@ VARF(stencilbits, 0, 0, 32, initwarning("stencil-buffer precision"));
 VARF(fsaa, -1, -1, 16, initwarning("anti-aliasing"));
 VARF(vsync, -1, -1, 1, initwarning("vertical sync"));
 
-void updatescrdims() {
-    SDL_GetWindowSize(screen, &scr_w, &scr_h);
+int windowwidth()
+{
+    int w;
+    SDL_GetWindowSize(screen, &w, NULL);
+    return w;
+}
+
+int windowheight()
+{
+    int h;
+    SDL_GetWindowSize(screen, NULL, &h);
+    return h;
 }
 
 static bool grabinput = false, minimized = false;
@@ -189,8 +199,8 @@ FVARP(screenshotscale, 0.1f, 1.0f, 1.0f);
 void bmp_screenshot(const char *imagepath, bool mapshot = false)
 {
     extern int minimaplastsize;
-    int iw = mapshot?minimaplastsize:scr_w;
-    int ih = mapshot?minimaplastsize:scr_h;
+    int iw = mapshot?minimaplastsize:windowwidth();
+    int ih = mapshot?minimaplastsize:windowheight();
     int tw = mapshot ? iw : iw*screenshotscale;
     int th = mapshot ? ih : ih*screenshotscale;
     SDL_Surface *image = creatergbsurface(tw, th);
@@ -218,7 +228,7 @@ void bmp_screenshot(const char *imagepath, bool mapshot = false)
         if(screenshotscale != 1.0f)
         {
             uchar *buf = new uchar[iw*ih*3];
-            glReadPixels(0, 0, iw, ih, GL_RGB, GL_UNSIGNED_BYTE, buf); //scr_w//scr_h
+            glReadPixels(0, 0, iw, ih, GL_RGB, GL_UNSIGNED_BYTE, buf);
             scaletexture(buf, iw, ih, 3, tmp, tw, th);
             delete[] buf;
         }
@@ -249,8 +259,8 @@ VARP(jpegquality, 10, 85, 100);
 void jpeg_screenshot(const char *imagepath, bool mapshot = false)
 {
     extern int minimaplastsize;
-    int iw = mapshot?minimaplastsize:scr_w;
-    int ih = mapshot?minimaplastsize:scr_h;
+    int iw = mapshot?minimaplastsize:windowwidth();
+    int ih = mapshot?minimaplastsize:windowheight();
     int tw = mapshot ? iw : iw*screenshotscale;
     int th = mapshot ? ih : ih*screenshotscale;
 
@@ -411,8 +421,8 @@ error:
 void png_screenshot(const char *imagepath, bool mapshot = false)
 {
     extern int minimaplastsize;
-    int iw = mapshot?minimaplastsize:scr_w;
-    int ih = mapshot?minimaplastsize:scr_h;
+    int iw = mapshot?minimaplastsize:windowwidth();
+    int ih = mapshot?minimaplastsize:windowheight();
     int tw = mapshot ? iw : iw*screenshotscale;
     int th = mapshot ? ih : ih*screenshotscale;
 
@@ -514,16 +524,21 @@ void screenres(int w, int h)
         return;
     }
     //SDL_Surface *surf = SDL_SetVideoMode(w, h, 0, SDL_OPENGL|SDL_RESIZABLE|(SDL_GetWindowFlags(screen) & SDL_WINDOW_FULLSCREEN));
-    // TODO check if this works / is right
-    SDL_DisplayMode dm;
-    memset(&dm, 0, sizeof(dm));
-    dm.format = SDL_PIXELFORMAT_UNKNOWN;
-    dm.w = w;
-    dm.h = h;
-    SDL_SetWindowDisplayMode(screen, &dm);
     //if(!surf) return;
     //screen = surf;
-    updatescrdims();
+    // TODO check if this works / is right
+    if(SDL_GetWindowFlags(screen) & SDL_WINDOW_FULLSCREEN) {
+        SDL_DisplayMode dm;
+        memset(&dm, 0, sizeof(dm));
+        dm.format = SDL_PIXELFORMAT_UNKNOWN;
+        dm.w = w;
+        dm.h = h;
+        SDL_SetWindowDisplayMode(screen, &dm);
+    } else {
+        SDL_SetWindowSize(screen, w, h);
+    }
+    scr_w = windowwidth();
+    scr_h = windowheight();
     glViewport(0, 0, scr_w, scr_h);
     VIRTW = scr_w*VIRTH/scr_h;
 #endif
@@ -630,6 +645,16 @@ void setupscreen(int &usedcolorbits, int &useddepthbits, int &usedfsaa)
             SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, config&4 ? fsaa : 0);
         }
         //screen = SDL_SetVideoMode(scr_w, scr_h, hasbpp ? colorbits : 0, SDL_OPENGL|flags);
+        /*
+        if(screen) {
+            SDL_GL_DeleteContext(glcontext);
+            SDL_DestroyWindow(screen);
+            glcontext = 0;
+            screen = NULL;
+        }
+        */
+        //assert(!screen);
+        //assert(!glcontext);
         screen = SDL_CreateWindow("AssaultCube",
             SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 
             scr_w, scr_h, 
@@ -651,7 +676,8 @@ void setupscreen(int &usedcolorbits, int &useddepthbits, int &usedfsaa)
         if(fsaa>0 && (config&4)==0) conoutf("%dx anti-aliasing not supported - disabling", fsaa);
     }
 
-    updatescrdims();
+    scr_w = windowwidth();
+    scr_h = windowheight();
     VIRTW = scr_w*VIRTH/scr_h;
 
     inputgrab(fullscreen);
@@ -684,6 +710,12 @@ void resetgl()
 
     // FIXME implement
     //SDL_SetVideoMode(0, 0, 0, 0);
+    if(screen) {
+        SDL_GL_DeleteContext(glcontext);
+        SDL_DestroyWindow(screen);
+        glcontext = 0;
+        screen = NULL;
+    }
 
     int usedcolorbits = 0, useddepthbits = 0, usedfsaa = 0;
     setupscreen(usedcolorbits, useddepthbits, usedfsaa);
@@ -806,7 +838,7 @@ static void resetmousemotion()
 #ifndef WIN32
     if(!(SDL_GetWindowFlags(screen) & SDL_WINDOW_FULLSCREEN))
     {
-        SDL_WarpMouseInWindow(screen, scr_w / 2, scr_h / 2);
+        SDL_WarpMouseInWindow(screen, windowwidth() / 2, windowheight() / 2);
     }
 #endif
 }
@@ -820,7 +852,7 @@ static inline bool skipmousemotion(SDL_Event &event)
         #ifdef __APPLE__
         if(event.motion.y == 0) return true;  // let mac users drag windows via the title bar
         #endif
-        if(event.motion.x == scr_w / 2 && event.motion.y == scr_h / 2) return true;  // ignore any motion events generated SDL_WarpMouse
+        if(event.motion.x == windowwidth() / 2 && event.motion.y == windowheight() / 2) return true;  // ignore any motion events generated SDL_WarpMouse
     }
 #endif
     return false;
@@ -1113,13 +1145,13 @@ void initclientlog()  // rotate old logfiles and create new one
 
 VARP(compatibilitymode, 0, 1, 1); // FIXME : find a better place to put this ?
 
-extern bool saycommandon;
-extern bool menutextinputon();
 
 /// SDL event filter that drops text input events unless some kind of
 /// text input is enabled (text field in menu item active, chat prompt...)
 int textinputfilter(void *userdata, SDL_Event *event)
 {
+    extern bool saycommandon;
+    extern bool menutextinputon();
     if(event->type != SDL_TEXTINPUT) return 1;
     return (saycommandon || menutextinputon()) ? 1 : 0;
 }
@@ -1456,7 +1488,7 @@ int main(int argc, char **argv)
         computeraytable(camera1->o.x, camera1->o.y, dynfov());
         if(frames>3 && !minimized)
         {
-            gl_drawframe(scr_w, scr_h, fps<lowfps ? fps/lowfps : (fps>highfps ? fps/highfps : 1.0f), fps);
+            gl_drawframe(windowwidth(), windowheight(), fps<lowfps ? fps/lowfps : (fps>highfps ? fps/highfps : 1.0f), fps);
             if(frames>4) SDL_GL_SwapWindow(screen);
         }
 
@@ -1467,7 +1499,7 @@ int main(int argc, char **argv)
             // in the screenshot regardless of which frame buffer is current
             if (!minimized)
             {
-                gl_drawframe(scr_w, scr_h, fps<lowfps ? fps/lowfps : (fps>highfps ? fps/highfps : 1.0f), fps);
+                gl_drawframe(windowwidth(), windowheight(), fps<lowfps ? fps/lowfps : (fps>highfps ? fps/highfps : 1.0f), fps);
             }
             addsleep(0, "screenshot");
             needsautoscreenshot = false;
