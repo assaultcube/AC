@@ -296,7 +296,6 @@ COMMAND(onrelease, "s");
 
 void saycommand(char *init)                         // turns input to the command line on or off
 {
-    //SDL_EnableUNICODE(saycommandon = (init!=NULL)); FIXME implement: grab SDL_TEXTINPUT events instead (see EnableUNICODE in migration guide)
     saycommandon = (init!=NULL);
     setscope(false);
     setburst(false);
@@ -608,7 +607,8 @@ void keypress(int code, bool isdown, SDL_Keymod mod)
     if(!haskey)
     {
         // We can use SDL2 key names as well - check them as fallback.
-        // FIXME: sdl names only get entered to keyms when an unknown code is encountered... this is a bad thing?
+        // FIXME SDL2: sdl names only get entered to keyms when an unknown code is pressed... is this a bad thing?
+        // What about names in configs, they're going to be slapped as unkown.
         const char *keyname = SDL_GetKeyName(code);
         if(*keyname) {
             keym &km = keyms.add();
@@ -617,7 +617,7 @@ void keypress(int code, bool isdown, SDL_Keymod mod)
             haskey = &km;
         }
     }
-    if(!haskey) conoutf("Unknown key: %d.", code); //else conoutf(haskey->name); // FIXME remove
+    //if(!haskey) conoutf("Unknown key: %d.", code); else conoutf("Key pressed: %s", haskey->name); // FIXME remove
     if(haskey && haskey->pressed) execbind(*haskey, isdown); // allow pressed keys to release
     else if(saycommandon) consolekey(code, isdown, mod); // keystrokes go to commandline
     else if(!menukey(code, isdown)) // keystrokes go to menu

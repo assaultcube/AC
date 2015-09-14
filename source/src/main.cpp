@@ -112,11 +112,11 @@ static bool grabinput = false, minimized = false;
 void inputgrab(bool on)
 {
 #ifndef WIN32
-    //if(!(SDL_GetWindowFlags(screen) & SDL_WINDOW_FULLSCREEN)) SDL_SetRelativeMouseMode(SDL_FALSE);
-    if(!(SDL_GetWindowFlags(screen) & SDL_WINDOW_FULLSCREEN)) SDL_SetWindowGrab(screen, SDL_FALSE);
+    if(!(SDL_GetWindowFlags(screen) & SDL_WINDOW_FULLSCREEN)) SDL_SetRelativeMouseMode(SDL_FALSE);
+    //if(!(SDL_GetWindowFlags(screen) & SDL_WINDOW_FULLSCREEN)) SDL_SetWindowGrab(screen, SDL_FALSE);
     else
 #endif
-    //SDL_SetRelativeMouseMode(on ? SDL_TRUE : SDL_FALSE);
+    SDL_SetRelativeMouseMode(on ? SDL_TRUE : SDL_FALSE);
     SDL_SetWindowGrab(screen, on ? SDL_TRUE : SDL_FALSE);
     SDL_ShowCursor(on ? 0 : 1);
 }
@@ -129,7 +129,7 @@ void setfullscreen(bool enable)
 #else
     if(enable == !(SDL_GetWindowFlags(screen) & SDL_WINDOW_FULLSCREEN))
     {
-        //SDL_WM_ToggleFullScreen(screen); FIXME implement this
+        //SDL_WM_ToggleFullScreen(screen); // FIXME SDL2: implement this
         inputgrab(grabinput);
     }
 #endif
@@ -555,7 +555,8 @@ COMMANDF(screenres, "ii", (int *w, int *h) { screenres(*w, *h); });
 
 int SDL_SetGamma(float r, float g, float b)
 {
-    // FIXME implement (or fix the stuff below, rather)
+    // FIXME SDL2: implement gamma and get rid of this function
+    // this is here only to keep the compiler happy.
     return -1;
 }
 
@@ -591,7 +592,8 @@ void setupscreen(int &usedcolorbits, int &useddepthbits, int &usedfsaa)
     putenv("SDL_VIDEO_CENTERED=1"); //Center window
     #endif
     if(fullscreen) flags |= SDL_WINDOW_FULLSCREEN;
-    /*
+
+    /* FIXME SDL2: do we need the following? Everything seems alright...
     SDL_Rect **modes = SDL_ListModes(NULL, SDL_OPENGL|flags);
     if(modes && modes!=(SDL_Rect **)-1)
     {
@@ -604,7 +606,7 @@ void setupscreen(int &usedcolorbits, int &useddepthbits, int &usedfsaa)
     }
     */
     bool hasbpp = true;
-    // FIXME do me right or clean up this shit
+    // FIXME SDL2: do this right or get rid of it
     //if(colorbits && modes)
     //    hasbpp = SDL_VideoModeOK(modes!=(SDL_Rect **)-1 ? modes[0]->w : scr_w, modes!=(SDL_Rect **)-1 ? modes[0]->h : scr_h, colorbits, SDL_OPENGL|flags)==colorbits;
 
@@ -644,17 +646,6 @@ void setupscreen(int &usedcolorbits, int &useddepthbits, int &usedfsaa)
             SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, config&4 ? 1 : 0);
             SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, config&4 ? fsaa : 0);
         }
-        //screen = SDL_SetVideoMode(scr_w, scr_h, hasbpp ? colorbits : 0, SDL_OPENGL|flags);
-        /*
-        if(screen) {
-            SDL_GL_DeleteContext(glcontext);
-            SDL_DestroyWindow(screen);
-            glcontext = 0;
-            screen = NULL;
-        }
-        */
-        //assert(!screen);
-        //assert(!glcontext);
         screen = SDL_CreateWindow("AssaultCube",
             SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 
             scr_w, scr_h, 
@@ -680,7 +671,7 @@ void setupscreen(int &usedcolorbits, int &useddepthbits, int &usedfsaa)
     scr_h = windowheight();
     VIRTW = scr_w*VIRTH/scr_h;
 
-    inputgrab(fullscreen);
+    inputgrab(grabinput = fullscreen);
 
     usedcolorbits = hasbpp ? colorbits : 0;
     useddepthbits = config&1 ? depthbits : 0;
@@ -708,8 +699,6 @@ void resetgl()
     uniformtexres = !hirestextures;
     c2skeepalive();
 
-    // FIXME implement
-    //SDL_SetVideoMode(0, 0, 0, 0);
     if(screen) {
         SDL_GL_DeleteContext(glcontext);
         SDL_DestroyWindow(screen);
@@ -785,7 +774,7 @@ COMMAND(fpsrange, "ii");
 
 void keyrepeat(bool on)
 {
-    // FIXME implement this
+    // FIXME SDL2: implement this
     //SDL_EnableKeyRepeat(on ? SDL_DEFAULT_REPEAT_DELAY : 0,
     //                         SDL_DEFAULT_REPEAT_INTERVAL);
 }
@@ -817,18 +806,7 @@ bool interceptkey(int sym)
 
 void togglegrab()
 {
-    /* FIXME implement this shit
-    if (SDL_WM_GrabInput(SDL_GRAB_QUERY) == SDL_GrabMode(0))
-    {
-        SDL_WM_GrabInput(SDL_GRAB_ON);
-        conoutf("mouse input locked");
-    }
-    else
-    {
-        SDL_WM_GrabInput(SDL_GrabMode(0));
-        conoutf("mouse input released");
-    }
-    */
+    inputgrab(grabinput = !grabinput);
 }
 
 COMMAND(togglegrab, "");
@@ -932,23 +910,30 @@ void checkinput()
                 textinput(event.text.text);
                 break;
 
-            //case SDL_ACTIVEEVENT:
-            case SDL_WINDOWEVENT_FOCUS_GAINED:
-                inputgrab(grabinput = 1);
-                break;
+            case SDL_WINDOWEVENT:
+            {
+                switch(event.window.event)
+                {
+                case SDL_WINDOWEVENT_FOCUS_GAINED:
+                    inputgrab(grabinput);
+                    break;
 
-            case SDL_WINDOWEVENT_FOCUS_LOST:
-                inputgrab(grabinput = 0);
-                break;
+                case SDL_WINDOWEVENT_FOCUS_LOST:
+                    inputgrab(grabinput = false);
+                    break;
 
-            case SDL_WINDOWEVENT_MINIMIZED:
-                minimized = 1;
-                break;
+                case SDL_WINDOWEVENT_MINIMIZED:
+                    inputgrab(false);
+                    minimized = 1;
+                    break;
 
-            case SDL_WINDOWEVENT_RESTORED:
-            case SDL_WINDOWEVENT_MAXIMIZED:
-                minimized = 0;
-                break;
+                case SDL_WINDOWEVENT_RESTORED:
+                case SDL_WINDOWEVENT_MAXIMIZED:
+                    minimized = 0;
+                    inputgrab(grabinput);
+                    break;
+                }
+            }
 
             case SDL_MOUSEMOTION:
                 if(ignoremouse) { ignoremouse--; break; }
@@ -962,11 +947,22 @@ void checkinput()
                 break;
 
             case SDL_MOUSEBUTTONDOWN:
+                if(!grabinput)
+                {
+                    inputgrab(grabinput = true);
+                    break;
+                }
+
             case SDL_MOUSEBUTTONUP:
                 if(lasttype==event.type && lastbut==event.button.button) break;
                 keypress(-event.button.button, event.button.state!=0);
                 lasttype = event.type;
                 lastbut = event.button.button;
+                break;
+
+            case SDL_MOUSEWHEEL:
+                if(event.wheel.y > 0) keypress(SDL_AC_BUTTON_WHEELUP, true);
+                else if(event.wheel.y < 0) keypress(SDL_AC_BUTTON_WHEELDOWN, true);
                 break;
         }
     }

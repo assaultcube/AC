@@ -519,9 +519,6 @@ struct mitemtextinput : mitemtext
     virtual void focus(bool on)
     {
         if(on && hoveraction) execute(hoveraction);
-
-        // FIXME... the following
-        //SDL_EnableUNICODE(on);
         if(!strlen(input.buf)) setdefaultvalue();
         if(action && !on && modified)
         {
