@@ -430,7 +430,11 @@ int downloadpackages(bool loadscr) // get all pending packages
     httpget h;
     canceldownloads = false;
     progress_of = loadscr ? pendingpackages.length() : -1;
-    sem_pckservers.wait();
+    if(sem_pckservers.trywait())
+    { // can't lock the server list -> this means, the server ping threads have not finished yet
+        if(pendingpackages.length()) conoutf("\f3failed to download packages: still pinging the servers...");
+        return 0;
+    }
     pckservers.sort(pckserversort);
     loopv(pendingpackages)
     {
