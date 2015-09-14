@@ -279,11 +279,12 @@ void clearheaderextras() { loopvrev(headerextras) delete headerextras.remove(i);
 
 void deleteheaderextra(int n) { if(headerextras.inrange(n)) delete headerextras.remove(n); }
 
-COMMANDF(listheaderextras, "", ()
+void listheaderextras()
 {
     loopv(headerextras) conoutf("extra header record %d: %s, %d bytes", i, hx_name(headerextras[i]->flags), headerextras[i]->len);
     if(!headerextras.length()) conoutf("no extra header records found");
-});
+}
+COMMAND(listheaderextras, "");
 
 int findheaderextra(int type)
 {
@@ -588,6 +589,73 @@ void save_world(char *mname, bool skipoptimise, bool addcomfort)
 VARP(preserveundosonsave, 0, 0, 1);
 COMMANDF(savemap, "s", (char *name) { save_world(name, preserveundosonsave && editmode, preserveundosonsave && editmode); } );
 COMMANDF(savemapoptimised, "s", (char *name) { save_world(name, false, false); } );
+
+void save_world9(char *mname)
+{
+    if(unsavededits) { conoutf("\f3There are unsaved changes to the map. Please save them to a lossless format first (\"savemap\")."); return; }
+    if(!*mname) { conoutf("\f3You need to specify a map file name."); return; }
+    if(securemapcheck(mname)) return;
+    if(!validmapname(mname)) { conoutf("\f3Invalid map name. It must only contain letters, digits, '-', '_' and be less than %d characters long", MAXMAPNAMELEN); return; }
+    if(findheaderextra(HX_CONFIG) >= 0)
+    { // extract embedded config file first
+        string clientmapbak;
+        copystring(clientmapbak, getclientmap());
+        copystring(getclientmap(), mname); // hack!
+        extractconfigfile();
+        copystring(getclientmap(), clientmapbak);
+    }
+    if(headerextras.length())
+    {
+        conoutf("\f3not writing header extra information:");
+        listheaderextras();
+    }
+    setnames(mname);
+    backup(cgzname, bakname);
+    stream *f = opengzfile(cgzname, "wb");
+    if(!f) { conoutf("could not write map to %s", cgzname); return; }
+    strncpy(hdr.head, "ACMP", 4); // ensure map now declares itself as an AssaultCube map, even if imported as CUBE
+    hdr.version = 9;
+    hdr.headersize = sizeof(header);
+    hdr.timestamp = (int) time(NULL); // non-zero timestamps in format 9 can be used to identify "exported" maps
+    hdr.numents = 0;
+    loopv(ents) if(ents[i].type!=NOTUSED) hdr.numents++;
+    if(hdr.numents > MAXENTITIES)
+    {
+        conoutf("too many map entities (%d), only %d will be written to file", hdr.numents, MAXENTITIES);
+        hdr.numents = MAXENTITIES;
+    }
+    header tmp = hdr;
+    tmp.maprevision += advancemaprevision;
+    tmp.flags = 0;
+    tmp.waterlevel /= WATERLEVELSCALING;
+    lilswap(&tmp.version, 4); // version, headersize, sfactor, numents
+    lilswap(&tmp.waterlevel, 1);
+    lilswap(&tmp.maprevision, 4); // maprevision, ambient, flags, timestamp
+    f->write(&tmp, sizeof(header));
+    int ne = hdr.numents, ec = 0;
+    loopv(ents)
+    {
+        if(ents[i].type!=NOTUSED)
+        {
+            if(!ne--) break;
+            persistent_entity tmp = ents[i];
+            clampentityattributes(tmp);
+            tmp.attr1 /= entscale[tmp.type][0];
+            tmp.attr2 /= entscale[tmp.type][1];
+            tmp.attr3 /= entscale[tmp.type][2];
+            tmp.attr4 /= entscale[tmp.type][3];
+            if(tmp.attr5 || tmp.attr6 || tmp.attr7) conoutf("\f3lost some attributes for entity #%d (%d)", i, ++ec);
+            lilswap((short *)&tmp, 4);
+            f->write(&tmp, 12);
+        }
+    }
+    vector<uchar> rawcubes;
+    rlencodecubes(rawcubes, world, cubicsize, false);
+    f->write(rawcubes.getbuf(), rawcubes.length());
+    delete f;
+    conoutf("wrote map file %s with format 9", cgzname);
+}
+COMMANDN(savemap9, save_world9, "s");
 
 void showmapdims()
 {
