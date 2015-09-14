@@ -85,8 +85,9 @@ void resolverstop(resolverthread &rt)
     if(rt.query)
     {
 #ifndef __APPLE__
-        //FIXME implement a replacement for this shit.. if necessary
-        // looks like the resolver thread should bail when a new one is created anyway
+        // FIXME SDL2: implement a replacement for this if necessary
+        // Looks like the resolver thread should bail whenever
+        // a new one is created anyway, no idea why this was ever necessary.
         //SDL_KillThread(rt.thread);
 #endif
         rt.thread = SDL_CreateThread(resolverloop, "ResolverThread", &rt);
