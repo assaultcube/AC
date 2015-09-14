@@ -129,7 +129,7 @@ void setfullscreen(bool enable)
 #else
     if(enable == !(SDL_GetWindowFlags(screen) & SDL_WINDOW_FULLSCREEN))
     {
-        //SDL_WM_ToggleFullScreen(screen); // FIXME SDL2: implement this
+        SDL_SetWindowFullscreen(screen, enable ? SDL_WINDOW_FULLSCREEN : 0);
         inputgrab(grabinput);
     }
 #endif
