@@ -1579,10 +1579,9 @@ void whois(int *cn)
     {
         playerent *p = players[i];
         uint2ip(p->address, ip);
-        if(m_teammode) conoutf("\f0INFO: \f5%s has %d teamkills.", p->name, p->tks);
         if(ip[3] != 0 || player1->clientrole==CR_ADMIN)
-            conoutf("WHOIS client %d:\n\f5name\t%s\n\f5IP\t%d.%d.%d.%d", p->clientnum, colorname(p), ip[0], ip[1], ip[2], ip[3]); // full IP
-        else conoutf("WHOIS client %d:\n\f5name\t%s\n\f5IP\t%d.%d.%d.x", p->clientnum, colorname(p), ip[0], ip[1], ip[2]); // censored IP
+            conoutf("WHOIS client %d:\tname %s , IP %d.%d.%d.%d , %d teamkill%s", p->clientnum, colorname(p), ip[0], ip[1], ip[2], ip[3], p->tks, p->tks == 1 ? "" : "s"); // full IP
+        else conoutf("WHOIS client %d:\tname %s , IP %d.%d.%d.x , %d teamkill%s", p->clientnum, colorname(p), ip[0], ip[1], ip[2], p->tks, p->tks == 1 ? "" : "s"); // censored IP
     }
 }
 COMMAND(whois, "i");
