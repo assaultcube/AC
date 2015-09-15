@@ -19,6 +19,7 @@ void httpget::reset(int keep) // keep == 0: delete all, keep == 1: keep connecti
         ip.port = 80;         // change manually, if needed
         maxredirects = 3;
         maxtransfer = maxsize = 1<<20; // 1 MB (caps transfer size and unzipped size)
+        connecttimeout = 6000;
         disconnect();
     }
     err = NULL;
@@ -76,20 +77,56 @@ void httpget::disconnect()
     }
 }
 
+struct connectinfo { ENetSocket sock; ENetAddress address; volatile char running; };
+
+int hcont(void *data)
+{
+    connectinfo ci = *((connectinfo *)data);
+    ((connectinfo *)data)->running = 1; // now the calling thread may as well vanish
+    return enet_socket_connect(ci.sock, &ci.address);
+}
+
 bool httpget::connect(bool force)
 {
     if(force || tcp_age.elapsed() > TCP_TIMEOUT) disconnect();
     if(tcp == ENET_SOCKET_NULL)
     {
-        ENetSocket sock = enet_socket_create(ENET_SOCKET_TYPE_STREAM);
-        if(sock == ENET_SOCKET_NULL || enet_socket_connect(sock, &ip) < 0)
+        connectinfo ci = { enet_socket_create(ENET_SOCKET_TYPE_STREAM), ip, 0 };
+        tcp_age.start();
+        if(ci.sock == ENET_SOCKET_NULL)
         {
-            err = sock == ENET_SOCKET_NULL ? "could not open socket" : "could not connect";
-            if(sock != ENET_SOCKET_NULL) enet_socket_destroy(sock);
+            err = "could not open socket";
             return false;
         }
-        tcp = sock;
-        tcp_age.start();
+        void *ti = sl_createthread(hcont, &ci);
+        loopk(connecttimeout / 250 + 1)
+        {
+            sl_detachthread(NULL); // cleanup call
+            sl_sleep(250);
+            if(ci.running) // wait for the connect thread to copy its data
+            {
+                if(sl_pollthread(ti))
+                {
+                    if(sl_waitthread(ti) < 0)
+                    {
+                        err = "could not connect";
+                        ti = NULL;
+                        break;
+                    }
+                    else
+                    {
+                        tcp = ci.sock;
+                        return true;
+                    }
+                }
+                if(execcallback(-float(tcp_age.elapsed()) / (connecttimeout| 1))) break; // esc pressed
+            }
+        }
+        sl_detachthread(ti);
+        if(!err) err = "could not connect in time";
+        enet_socket_destroy(ci.sock);
+        ASSERT(ci.running);
+        return false;
     }
     return true;
 }
