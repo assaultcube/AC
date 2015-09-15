@@ -1010,6 +1010,9 @@ struct sl_semaphore
 
 extern void *sl_createthread(int (*fn)(void *), void *data);
 extern int sl_waitthread(void *ti);
+extern bool sl_pollthread(void *ti);
+extern void sl_detachthread(void *ti);
+extern void sl_sleep(int duration);
 
 #endif
 
