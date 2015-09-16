@@ -526,7 +526,7 @@ void screenres(int w, int h)
     //SDL_Surface *surf = SDL_SetVideoMode(w, h, 0, SDL_OPENGL|SDL_RESIZABLE|(SDL_GetWindowFlags(screen) & SDL_WINDOW_FULLSCREEN));
     //if(!surf) return;
     //screen = surf;
-    // TODO check if this works / is right
+    // TODO SDL2: check if this works / is right
     if(SDL_GetWindowFlags(screen) & SDL_WINDOW_FULLSCREEN) {
         SDL_DisplayMode dm;
         memset(&dm, 0, sizeof(dm));
@@ -954,6 +954,7 @@ void checkinput()
                 }
 
             case SDL_MOUSEBUTTONUP:
+                std::cout << "BINGBAN" << std::endl;
                 if(lasttype==event.type && lastbut==event.button.button) break;
                 keypress(-event.button.button, event.button.state!=0);
                 lasttype = event.type;
