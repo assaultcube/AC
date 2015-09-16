@@ -4,6 +4,7 @@
 
 #define CONSPAD (FONTH/3)
 
+
 VARP(altconsize, 0, 0, 100);
 VARP(fullconsize, 0, 40, 100);
 VARP(consize, 0, 6, 100);
@@ -11,6 +12,7 @@ VARP(confade, 0, 20, 60);
 VARP(conalpha, 0, 255, 255);
 VAR(conopen, 1, 0, 0);
 VAR(numconlines, 0, 0, 1);
+
 
 struct console : consolebuffer<cline>
 {
@@ -490,7 +492,6 @@ void execbind(keym &k, bool isdown)
         keypressed = NULL;
         if(keyaction!=action) delete[] keyaction;
     }
-    k.pressed = isdown;
 }
 
 void consoletext(const char *text)
@@ -604,6 +605,7 @@ void keypress(int code, bool isdown, SDL_Keymod mod)
 {
     keym *haskey = NULL;
     loopv(keyms) if(keyms[i].code==code) { haskey = &keyms[i]; break; }
+    /*
     if(!haskey)
     {
         // We can use SDL2 key names as well - check them as fallback.
@@ -617,6 +619,7 @@ void keypress(int code, bool isdown, SDL_Keymod mod)
             haskey = &km;
         }
     }
+    */
     //if(!haskey) conoutf("Unknown key: %d.", code); else conoutf("Key pressed: %s", haskey->name); // FIXME remove
     if(haskey && haskey->pressed) execbind(*haskey, isdown); // allow pressed keys to release
     else if(saycommandon) consolekey(code, isdown, mod); // keystrokes go to commandline
@@ -626,6 +629,19 @@ void keypress(int code, bool isdown, SDL_Keymod mod)
     }
     if(isdown) exechook(HOOK_SP, "KEYPRESS", "KEYPRESS %d", code);
     else exechook(HOOK_SP, "KEYRELEASE", "%d", code);
+    if(haskey && (code == SDL_AC_BUTTON_WHEELDOWN || code == SDL_AC_BUTTON_WHEELUP))
+    {
+        // Wheel scroll can't be pressed, but since AC thinks scroll events
+        // are button presses, we'll just play nice and entertain its 
+        // delusions.
+        // TODO SDL2: this check can probably be safely removed, since
+        // nothing in the original code seems to have checks to account
+        // for it, and wheel attack is the only thing that seems
+        // currently broken.
+        execbind(*haskey, false);
+        if(keypressed == haskey) keypressed = NULL;
+        haskey->pressed = false;
+    }
 }
 
 char *getcurcommand()
