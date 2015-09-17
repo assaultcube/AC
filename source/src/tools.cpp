@@ -543,6 +543,11 @@ int sl_semaphore::trywait()
     return SDL_SemTryWait((SDL_sem *) data);
 }
 
+int sl_semaphore::timedwait(int howlongmillis)
+{
+    return SDL_SemWaitTimeout((SDL_sem *) data, howlongmillis);
+}
+
 int sl_semaphore::getvalue()
 {
     return SDL_SemValue((SDL_sem *) data);
@@ -577,6 +582,20 @@ void sl_semaphore::wait()
 int sl_semaphore::trywait()
 {
     return sem_trywait((sem_t *) data);
+}
+
+int sl_semaphore::timedwait(int howlongmillis)
+{
+    struct timespec t;
+    if(clock_gettime(CLOCK_REALTIME, &t))
+    {
+        (*errorcount)++;
+        return sem_trywait((sem_t *) data);
+    }
+    howlongmillis += t.tv_nsec / 1000000;
+    t.tv_nsec = (howlongmillis % 1000) * 1000000;
+    t.tv_sec += howlongmillis / 1000;
+    return sem_timedwait((sem_t *) data, &t);
 }
 
 int sl_semaphore::getvalue()

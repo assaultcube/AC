@@ -1004,6 +1004,7 @@ struct sl_semaphore
     ~sl_semaphore();
     void wait();     // blocks, until semaphore gets available
     int trywait();   // returns 0, if semaphore was locked (like wait(), but returns !=0 instead of blocking)
+    int timedwait(int howlongmillis); // like trywait(), but waits for a litte before returning failure
     int getvalue();  // returns current semaphore value
     void post();     // increments (unlocks) semaphore
 };

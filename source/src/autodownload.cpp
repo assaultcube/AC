@@ -53,13 +53,16 @@ COMMAND(addpckserver, "ss");
 
 void getpckserver() // return a table of all package servers with four columns
 {
-    sem_pckservers.wait();
     vector<char> res;
-    loopv(pckservers) cvecprintf(res, "\"%s\" %d %d %d\n", pckservers[i]->host, pckservers[i]->priority, pckservers[i]->ping, pckservers[i]->resolved);
+    if(sem_pckservers.timedwait(1000)) cvecprintf(res, "\"serverlist is busy, try again later\" "); // single-word return value signals an error
+    else
+    {
+        loopv(pckservers) cvecprintf(res, "\"%s\" %d %d %d\n", pckservers[i]->host, pckservers[i]->priority, pckservers[i]->ping, pckservers[i]->resolved);
+        sem_pckservers.post();
+    }
     if(res.length()) res.last() = '\0';
     else res.add('\0');
     result(res.getbuf());
-    sem_pckservers.post();
 }
 COMMAND(getpckserver, "");
 
@@ -430,7 +433,7 @@ int downloadpackages(bool loadscr) // get all pending packages
     httpget h;
     canceldownloads = false;
     progress_of = loadscr ? pendingpackages.length() : -1;
-    if(sem_pckservers.trywait())
+    if(sem_pckservers.timedwait(1000))
     { // can't lock the server list -> this means, the server ping threads have not finished yet
         if(pendingpackages.length()) conoutf("\f3failed to download packages: still pinging the servers...");
         return 0;
