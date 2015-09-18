@@ -647,8 +647,8 @@ void setupscreen(int &usedcolorbits, int &useddepthbits, int &usedfsaa)
             SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, config&4 ? fsaa : 0);
         }
         screen = SDL_CreateWindow("AssaultCube",
-            SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 
-            scr_w, scr_h, 
+            SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+            scr_w, scr_h,
             SDL_WINDOW_OPENGL | flags);
         //if(screen) break;
         if(screen)
@@ -899,7 +899,7 @@ void checkinput()
                     }
                 }
                 else
-                {                    
+                {
                     //keypress(event.key.keysym.sym, event.key.state==SDL_PRESSED, event.key.keysym.unicode, event.key.keysym.mod);
                     // FIXME console input broken here
                     keypress(event.key.keysym.sym, event.key.state==SDL_PRESSED, SDL_GetModState());
@@ -954,7 +954,6 @@ void checkinput()
                 }
 
             case SDL_MOUSEBUTTONUP:
-                std::cout << "BINGBAN" << std::endl;
                 if(lasttype==event.type && lastbut==event.button.button) break;
                 keypress(-event.button.button, event.button.state!=0);
                 lasttype = event.type;
@@ -1094,7 +1093,7 @@ void connectprotocol(char *protocolstring, string &servername, int &serverport, 
     } while(*c && *c=='&' && *c!='/');
 }
 
-#ifdef WIN32
+#ifdef THISISNOTDEFINED //WIN32
 static char *parsecommandline(const char *src, vector<char *> &args)
 {
     char *buf = new char[strlen(src) + 1], *dst = buf;
