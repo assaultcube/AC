@@ -33,13 +33,14 @@
 				</ResourceCompiler>
 				<Linker>
 					<Add option="-mwindows" />
-					<Add library="SDL" />
-					<Add library="SDL_image" />
+					<Add library="SDL2main" />
+					<Add library="SDL2" />
+					<Add library="SDL2_image" />
 					<Add library="zdll" />
 					<Add library="opengl32" />
 					<Add library="enet" />
 					<Add library="OpenAL32" />
-					<Add library="..\lib\libvorbisfile.lib" />
+					<Add library="../lib/libvorbisfile.lib" />
 					<Add library="jpeg" />
 					<Add library="ws2_32" />
 					<Add library="winmm" />
@@ -66,13 +67,14 @@
 					<Add directory="../vcpp" />
 				</ResourceCompiler>
 				<Linker>
-					<Add library="SDL" />
-					<Add library="SDL_image" />
+					<Add library="SDL2main" />
+					<Add library="SDL2" />
+					<Add library="SD2L_image" />
 					<Add library="zdll" />
 					<Add library="opengl32" />
 					<Add library="enet" />
 					<Add library="OpenAL32" />
-					<Add library="..\lib\libvorbisfile.lib" />
+					<Add library="../lib/libvorbisfile.lib" />
 					<Add library="jpeg" />
 					<Add library="ws2_32" />
 					<Add library="winmm" />
@@ -99,7 +101,7 @@
 					<Add directory="../vcpp" />
 				</ResourceCompiler>
 				<Linker>
-					<Add library="SDL" />
+					<Add library="SDL2" />
 					<Add library="zdll" />
 					<Add library="enet" />
 					<Add library="ws2_32" />
@@ -128,7 +130,7 @@
 					<Add directory="../vcpp" />
 				</ResourceCompiler>
 				<Linker>
-					<Add library="SDL" />
+					<Add library="SDL2" />
 					<Add library="zdll" />
 					<Add library="enet" />
 					<Add library="ws2_32" />
@@ -172,6 +174,10 @@
 			<Add directory="../src" />
 		</Compiler>
 		<Unit filename="../src/audiomanager.cpp">
+			<Option target="default" />
+			<Option target="debug" />
+		</Unit>
+		<Unit filename="../src/autodownload.cpp">
 			<Option target="default" />
 			<Option target="debug" />
 		</Unit>
@@ -273,6 +279,10 @@
 			<Option target="debug" />
 		</Unit>
 		<Unit filename="../src/geom.h">
+			<Option target="default" />
+			<Option target="debug" />
+		</Unit>
+		<Unit filename="../src/http.cpp">
 			<Option target="default" />
 			<Option target="debug" />
 		</Unit>
@@ -410,14 +420,6 @@
 			<Option target="server-debug" />
 		</Unit>
 		<Unit filename="../src/serverbrowser.cpp">
-			<Option target="default" />
-			<Option target="debug" />
-		</Unit>
-		<Unit filename="../src/http.cpp">
-			<Option target="default" />
-			<Option target="debug" />
-		</Unit>
-		<Unit filename="../src/autodownload.cpp">
 			<Option target="default" />
 			<Option target="debug" />
 		</Unit>
