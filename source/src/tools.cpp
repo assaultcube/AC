@@ -511,6 +511,7 @@ bool glmatrixf::invert(const glmatrixf &m, float mindet)
 // the standalone linux version uses native linux libraries - and also makes use of shared memory
 
 #ifdef AC_USE_SDL_THREADS
+    #include "SDL_timer.h"
     #include "SDL_thread.h"      // also fetches SDL_mutex.h
 #else
     #include <pthread.h>
