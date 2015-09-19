@@ -605,22 +605,6 @@ void keypress(int code, bool isdown, SDL_Keymod mod)
 {
     keym *haskey = NULL;
     loopv(keyms) if(keyms[i].code==code) { haskey = &keyms[i]; break; }
-    /*
-    if(!haskey)
-    {
-        // We can use SDL2 key names as well - check them as fallback.
-        // FIXME SDL2: sdl names only get entered to keyms when an unknown code is pressed... is this a bad thing?
-        // What about names in configs, they're going to be slapped as unkown.
-        const char *keyname = SDL_GetKeyName(code);
-        if(*keyname) {
-            keym &km = keyms.add();
-            km.code = code;
-            km.name = newstring(keyname);
-            haskey = &km;
-        }
-    }
-    */
-    //if(!haskey) conoutf("Unknown key: %d.", code); else conoutf("Key pressed: %s", haskey->name); // FIXME remove
     if(haskey && haskey->pressed) execbind(*haskey, isdown); // allow pressed keys to release
     else if(saycommandon) consolekey(code, isdown, mod); // keystrokes go to commandline
     else if(!menukey(code, isdown)) // keystrokes go to menu
@@ -629,19 +613,6 @@ void keypress(int code, bool isdown, SDL_Keymod mod)
     }
     if(isdown) exechook(HOOK_SP, "KEYPRESS", "KEYPRESS %d", code);
     else exechook(HOOK_SP, "KEYRELEASE", "%d", code);
-    if(haskey && (code == SDL_AC_BUTTON_WHEELDOWN || code == SDL_AC_BUTTON_WHEELUP))
-    {
-        // Wheel scroll can't be pressed, but since AC thinks scroll events
-        // are button presses, we'll just play nice and entertain its 
-        // delusions.
-        // TODO SDL2: this check can probably be safely removed, since
-        // nothing in the original code seems to have checks to account
-        // for it, and wheel attack is the only thing that seems
-        // currently broken.
-        execbind(*haskey, false);
-        if(keypressed == haskey) keypressed = NULL;
-        haskey->pressed = false;
-    }
 }
 
 char *getcurcommand()
