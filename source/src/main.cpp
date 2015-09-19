@@ -582,8 +582,6 @@ void restoregamma()
     SDL_SetGamma(f, f, f);
 }
 
-//#include <vector>
-
 void setupscreen(int &usedcolorbits, int &useddepthbits, int &usedfsaa)
 {
     int flags = SDL_WINDOW_RESIZABLE;
