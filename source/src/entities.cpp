@@ -594,7 +594,8 @@ void flagdropped(int flag, float x, float y, float z)
     p.o.y = y;
     p.o.z = z;
     p.vel.z = -0.8f;
-    p.aboveeye = p.eyeheight = p.maxeyeheight = 0.4f;
+    p.aboveeye = 1.0f;
+    p.eyeheight = p.maxeyeheight = 0.1f;
     p.radius = 0.1f;
 
     bool oldcancollide = false;
@@ -608,12 +609,22 @@ void flagdropped(int flag, float x, float y, float z)
         moveplayer(&p, 10, true, 50);
         if(p.stuck) break;
     }
+    if(p.o.z < waterlevel)
+    {
+        p.aboveeye = 6.7f;
+        loopirev((waterlevel - p.o.z) / 0.2f + 1)
+        {
+            p.o.z += 0.2f;
+            if(p.o.z > z) p.radius = 1.0f; // don't float through small holes in the ceiling
+            if(collide(&p)) break;
+        }
+        if(p.o.z > waterlevel) p.o.z = waterlevel;
+    }
     if(f.actor) f.actor->cancollide = oldcancollide; // restore settings
 
     f.pos.x = round(p.o.x);
     f.pos.y = round(p.o.y);
-    f.pos.z = round(p.o.z);
-    if(f.pos.z < waterlevel) f.pos.z = waterlevel;
+    f.pos.z = round(p.o.z * 5) / 5;
     f.flagent->spawned = true;
     f.ack = true;
 }
