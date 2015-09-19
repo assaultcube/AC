@@ -1,7 +1,7 @@
 language: cpp
 compiler: clang
 before_install: sudo apt-get update
-install: sudo apt-get install clang make automake libsdl1.2-dev libogg-dev libsdl-image1.2-dev libopenal-dev libvorbis-dev -y
+install: sudo apt-get install clang make automake libsdl2-dev libogg-dev libsdl-image2-dev libopenal-dev libvorbis-dev -y
 script: cd source/src && make
 notifications:
   irc:
