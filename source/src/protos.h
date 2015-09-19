@@ -246,7 +246,7 @@ struct httpget
     const char *useragent, *referrer;                  // can be set manually with "newstrings", deleted automatically
     const char *err;                                   // read-only
     ENetAddress ip;                                    // set by set_host()
-    int maxredirects, maxtransfer, maxsize;            // set manually
+    int maxredirects, maxtransfer, maxsize, connecttimeout;  // set manually
     int (__cdecl *callbackfunc)(void *data, float progress);
     void *callbackdata;
 

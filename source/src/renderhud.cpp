@@ -472,7 +472,7 @@ void drawradar_showmap(playerent *p, int w, int h)
     vec mdd = vec(mapdims.x1 - offx, mapdims.y1 - offy, 0);
     vec ppv = vec(p->o).sub(mdd).mul(coordtrans);
 
-    if(!(p->isspectating() && spect3rd)) drawradarent(ppv.x, ppv.y, p->yaw, p->state==CS_ALIVE ? (isattacking(p) ? 2 : 0) : 1, 2, iconsize, isattacking(p), "%s", colorname(p)); // local player
+    if(!(p->isspectating() && spect3rd)) drawradarent(ppv.x, ppv.y, p->yaw, (p->state==CS_ALIVE || p->state==CS_EDITING) ? (isattacking(p) ? 2 : 0) : 1, 2, iconsize, isattacking(p), "%s", colorname(p)); // local player
     loopv(players) // other players
     {
         playerent *pl = players[i];
@@ -569,7 +569,7 @@ void drawradar_vicinity(playerent *p, int w, int h)
     circle(minimaptex, halfviewsize, halfviewsize, halfviewsize, usecenter.x/(float)gdim, usecenter.y/(float)gdim, scaleh, 31); //Draw mimimaptext as radar background
     glTranslatef(halfviewsize, halfviewsize, 0);
 
-    if(!(p->isspectating() && spect3rd)) drawradarent(0, 0, p->yaw, p->state==CS_ALIVE ? (isattacking(p) ? 2 : 0) : 1, 2, iconsize, isattacking(p), "%s", colorname(p)); // local player
+    if(!(p->isspectating() && spect3rd)) drawradarent(0, 0, p->yaw, (p->state==CS_ALIVE || p->state==CS_EDITING) ? (isattacking(p) ? 2 : 0) : 1, 2, iconsize, isattacking(p), "%s", colorname(p)); // local player
     loopv(players) // other players
     {
         playerent *pl = players[i];

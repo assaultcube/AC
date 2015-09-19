@@ -115,7 +115,7 @@ SERVER_INCLUDES= -DSTANDALONE $(INCLUDES) -I../include
 SERVER_LIBS= -L../lib -lzdll -lenet -lws2_32 -lwinmm
 else
 SERVER_INCLUDES= -DSTANDALONE $(INCLUDES)
-SERVER_LIBS= -L../enet/.libs -lenet -lz -lpthread
+SERVER_LIBS= -L../enet/.libs -lenet -lz -lpthread -lrt
 endif
 
 SERVER_OBJS= \

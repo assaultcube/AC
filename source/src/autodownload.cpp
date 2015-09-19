@@ -53,13 +53,16 @@ COMMAND(addpckserver, "ss");
 
 void getpckserver() // return a table of all package servers with four columns
 {
-    sem_pckservers.wait();
     vector<char> res;
-    loopv(pckservers) cvecprintf(res, "\"%s\" %d %d %d\n", pckservers[i]->host, pckservers[i]->priority, pckservers[i]->ping, pckservers[i]->resolved);
+    if(sem_pckservers.timedwait(1000)) cvecprintf(res, "\"serverlist is busy, try again later\" "); // single-word return value signals an error
+    else
+    {
+        loopv(pckservers) cvecprintf(res, "\"%s\" %d %d %d\n", pckservers[i]->host, pckservers[i]->priority, pckservers[i]->ping, pckservers[i]->resolved);
+        sem_pckservers.post();
+    }
     if(res.length()) res.last() = '\0';
     else res.add('\0');
     result(res.getbuf());
-    sem_pckservers.post();
 }
 COMMAND(getpckserver, "");
 
@@ -138,17 +141,18 @@ int pingallpckservers(void *data)
     {
         pckpinglog_lock = SDL_CreateMutex();
         vector<SDL_Thread *> pckthreads;
-        int nop, good = 0;
-        loopv(pckservers) pckthreads.add(SDL_CreateThread(pingpckserver, NULL, pckservers[i])); // start pinging all servers at once
+        int nop, good = 0, disabled = 0;
+        loopv(pckservers) if(pckservers[i]->priority > -1000) pckthreads.add(SDL_CreateThread(pingpckserver, NULL, pckservers[i])); // start pinging all servers at once
         loopv(pckthreads) if(pckthreads[i]) SDL_WaitThread(pckthreads[i], &nop); // wait for all ping threads to finish
         SDL_DestroyMutex(pckpinglog_lock);
         loopv(pckservers)
         {
             pckserver *s = pckservers[i];
-            if(s->resolved && s->ping) good++;
+            if(s->priority <= -1000) disabled++;
+            else if(s->resolved && s->ping) good++;
         }
-        int bad = pckservers.length() - good;
-        cvecprintf(pckping_log, "csuccessfully pinged %d media server%s, %d failure%s\n", good, good == 1 ? "" : "s", bad, bad == 1 ? "" : "s");
+        int bad = pckservers.length() - good - disabled;
+        cvecprintf(pckping_log, "csuccessfully pinged %d media server%s, %d failure%s, %d disabled\n", good, good == 1 ? "" : "s", bad, bad == 1 ? "" : "s", disabled);
     }
     else cvecprintf(pckping_log, "c\f4(automatic media file download deactivated)\n");
     pckping_log.add('e'); // signal end of thread
@@ -430,7 +434,11 @@ int downloadpackages(bool loadscr) // get all pending packages
     httpget h;
     canceldownloads = false;
     progress_of = loadscr ? pendingpackages.length() : -1;
-    sem_pckservers.wait();
+    if(sem_pckservers.timedwait(1000))
+    { // can't lock the server list -> this means, the server ping threads have not finished yet
+        if(pendingpackages.length()) conoutf("\f3failed to download packages: still pinging the servers...");
+        return 0;
+    }
     pckservers.sort(pckserversort);
     loopv(pendingpackages)
     {
@@ -440,7 +448,7 @@ int downloadpackages(bool loadscr) // get all pending packages
         loopvj(pckservers)
         {
             pckserver *s = pckservers[j];
-            if(s->resolved && s->ping && (rev = s->updates.access(pck->requestname)) && *rev > maxrev)
+            if(s->priority > -1000 && s->resolved && s->ping && (rev = s->updates.access(pck->requestname)) && *rev > maxrev)
             {
                 maxrev = *rev;
                 pck->server = j;
@@ -466,7 +474,7 @@ int downloadpackages(bool loadscr) // get all pending packages
     loopvj(pckservers)
     {
         pckserver *s = pckservers[j];
-        if(!s->resolved || !s->ping) continue;
+        if(s->priority <= -1000 || !s->resolved || !s->ping) continue;
         loopv(pendingpackages)
         {
             if(canceldownloads) break;
@@ -520,7 +528,7 @@ void writepcksourcecfg()
         loopv(pckservers)
         {
             pckserver *s = pckservers[i];
-            f->printf("addpckserver %s %d // ping: %d, resolved: %d, updates: %d\n", s->host, s->priority, s->ping, s->resolved, s->updates.numelems);
+            if(s->priority > -10000) f->printf("addpckserver %s %d // ping: %d, resolved: %d, updates: %d\n", s->host, s->priority, s->ping, s->resolved, s->updates.numelems);
         }
         delete f;
     }

@@ -543,6 +543,11 @@ int sl_semaphore::trywait()
     return SDL_SemTryWait((SDL_sem *) data);
 }
 
+int sl_semaphore::timedwait(int howlongmillis)
+{
+    return SDL_SemWaitTimeout((SDL_sem *) data, howlongmillis);
+}
+
 int sl_semaphore::getvalue()
 {
     return SDL_SemValue((SDL_sem *) data);
@@ -579,6 +584,20 @@ int sl_semaphore::trywait()
     return sem_trywait((sem_t *) data);
 }
 
+int sl_semaphore::timedwait(int howlongmillis)
+{
+    struct timespec t;
+    if(clock_gettime(CLOCK_REALTIME, &t))
+    {
+        (*errorcount)++;
+        return sem_trywait((sem_t *) data);
+    }
+    howlongmillis += t.tv_nsec / 1000000;
+    t.tv_nsec = (howlongmillis % 1000) * 1000000;
+    t.tv_sec += howlongmillis / 1000;
+    return sem_timedwait((sem_t *) data, &t);
+}
+
 int sl_semaphore::getvalue()
 {
     int ret;
@@ -594,15 +613,21 @@ void sl_semaphore::post()
 
 // (wrapping threads is slightly ugly, since SDL threads use a different return value (int) than pthreads (void *) - and that can't be solved with a typecast)
 #ifdef AC_USE_SDL_THREADS
-struct sl_threadinfo { int (*fn)(void *); void *data; SDL_Thread *handle; };
+struct sl_threadinfo { int (*fn)(void *); void *data; SDL_Thread *handle; volatile char done; };
 
-static int sl_thread_indir(void *info) { return (*((sl_threadinfo*)info)->fn)(((sl_threadinfo*)info)->data); }
+static int sl_thread_indir(void *info)
+{
+    int res = (*((sl_threadinfo*)info)->fn)(((sl_threadinfo*)info)->data);
+    ((sl_threadinfo*)info)->done = 1;
+    return res;
+}
 
 void *sl_createthread(int (*fn)(void *), void *data)
 {
     sl_threadinfo *ti = new sl_threadinfo;
     ti->data = data;
     ti->fn = fn;
+    ti->done = 0;
     ti->handle = SDL_CreateThread(sl_thread_indir, NULL, ti);
     return (void *) ti;
 }
@@ -614,13 +639,41 @@ int sl_waitthread(void *ti)
     delete (sl_threadinfo *) ti;
     return res;
 }
+
+static vector<sl_threadinfo *> oldthreads;
+static sl_semaphore sem_oldthreads(1, NULL);
+
+void sl_detachthread(void *ti) // SDL can't actually detach threads, so this is manual cleanup
+{
+    if(ti && sl_pollthread(ti))
+    {
+        SDL_WaitThread(((sl_threadinfo *)ti)->handle, NULL);
+        delete (sl_threadinfo *) ti;
+        ti = NULL;
+    }
+    if(ti || sem_oldthreads.getvalue() > 0)
+    {
+        sem_oldthreads.wait();
+        if(ti) oldthreads.add((sl_threadinfo *)ti);
+        loopvrev(oldthreads)
+        {
+            if(oldthreads[i]->done)
+            {
+                SDL_WaitThread(oldthreads[i]->handle, NULL);
+                delete oldthreads.remove(i);
+            }
+        }
+        sem_oldthreads.post();
+    }
+}
 #else
-struct sl_threadinfo { int (*fn)(void *); void *data; pthread_t handle; int res; };
+struct sl_threadinfo { int (*fn)(void *); void *data; pthread_t handle; int res; volatile char done; };
 
 static void *sl_thread_indir(void *info)
 {
     sl_threadinfo *ti = (sl_threadinfo*) info;
     ti->res = (ti->fn)(ti->data);
+    ti->done = 1;
     return &ti->res;
 }
 
@@ -629,6 +682,7 @@ void *sl_createthread(int (*fn)(void *), void *data)
     sl_threadinfo *ti = new sl_threadinfo;
     ti->data = data;
     ti->fn = fn;
+    ti->done = 0;
     pthread_create(&(ti->handle), NULL, sl_thread_indir, ti);
     return (void *) ti;
 }
@@ -640,6 +694,40 @@ int sl_waitthread(void *ti)
     int ires = *((int *)res);
     delete (sl_threadinfo *) ti;
     return ires;
+}
+
+static vector<sl_threadinfo *> oldthreads;
+static sl_semaphore sem_oldthreads(1, NULL);
+
+void sl_detachthread(void *ti)
+{
+    if(ti) pthread_detach(((sl_threadinfo *)ti)->handle);
+    if(ti || sem_oldthreads.getvalue() > 0)
+    {
+        sem_oldthreads.wait();
+        if(ti) oldthreads.add((sl_threadinfo *)ti);
+        loopvrev(oldthreads) if(oldthreads[i]->done) delete oldthreads.remove(i);
+        sem_oldthreads.post();
+    }
+}
+#endif
+
+bool sl_pollthread(void *ti)
+{
+    return ((sl_threadinfo*)ti)->done != 0;
+}
+
+// platform dependent stuff not covered by enet (use POSIX or, if possible, SDL)
+#ifdef AC_USE_SDL_THREADS
+void sl_sleep(int duration)
+{
+    SDL_Delay(duration);
+}
+#else
+void sl_sleep(int duration)
+{
+    struct timespec t = { duration / 1000, (duration % 1000) * 1000000 };
+    nanosleep(&t, NULL);
 }
 #endif
 
