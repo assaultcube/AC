@@ -1,6 +1,7 @@
 language: cpp
 compiler: clang
-before_script: sudo add-apt-repository ppa:josebagar/sdl2 -y && sudo apt-get update -q
+before_script: 
+  - sudo add-apt-repository ppa:zoogie/sdl2-snapshots -y
 before_install: sudo apt-get update
 install: sudo apt-get install clang make automake libsdl2-dev libogg-dev libsdl2-image-dev libopenal-dev libvorbis-dev -y
 script: cd source/src && make
