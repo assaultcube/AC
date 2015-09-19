@@ -961,8 +961,10 @@ void checkinput()
                 break;
 
             case SDL_MOUSEWHEEL:
-                if(event.wheel.y > 0) keypress(SDL_AC_BUTTON_WHEELUP, true);
-                else if(event.wheel.y < 0) keypress(SDL_AC_BUTTON_WHEELDOWN, true);
+                int key = event.wheel.y > 0 ? SDL_AC_BUTTON_WHEELUP : SDL_AC_BUTTON_WHEELDOWN;
+                // Emulate SDL1-style mouse wheel events by immediately "releasing" the wheel "button"
+                keypress(key, true);
+                keypress(key, false);
                 break;
         }
     }
