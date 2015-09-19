@@ -954,7 +954,6 @@ void checkinput()
                 }
 
             case SDL_MOUSEBUTTONUP:
-                std::cout << "BINGBAN" << std::endl;
                 if(lasttype==event.type && lastbut==event.button.button) break;
                 keypress(-event.button.button, event.button.state!=0);
                 lasttype = event.type;
