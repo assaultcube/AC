@@ -550,10 +550,9 @@ char *executeret(const char *p)                            // all evaluation hap
 {
     if(!p || !p[0]) return NULL;
     DEBUG("executing action [depth " << execdepth++ << "]\n" << p);
-    DEBUGS(conoutf("executing action [depth %d]: <<< %s >>>", execdepth, p));
     bool noproblem = true;
 #if 0
-    
+
     if(execcontext>IEXC_CFG) // only PROMPT and MAP-CFG are checked for this, fooling with core/cfg at your own risk!
     {
         seer_count++;
