@@ -39,7 +39,7 @@
 					<Add library="opengl32" />
 					<Add library="enet" />
 					<Add library="OpenAL32" />
-					<Add library="..\lib\libvorbisfile.lib" />
+					<Add library="vorbisfile" />
 					<Add library="jpeg" />
 					<Add library="ws2_32" />
 					<Add library="winmm" />
@@ -72,7 +72,7 @@
 					<Add library="opengl32" />
 					<Add library="enet" />
 					<Add library="OpenAL32" />
-					<Add library="..\lib\libvorbisfile.lib" />
+					<Add library="vorbisfile" />
 					<Add library="jpeg" />
 					<Add library="ws2_32" />
 					<Add library="winmm" />
