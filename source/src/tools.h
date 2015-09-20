@@ -22,9 +22,11 @@ typedef unsigned int uint;
 #include <iostream>
 #define DEBUG(v) if(DEBUGCOND) { std::cout << behindpath(__FILE__) << ":" << __LINE__ << " " << __FUNCTION__ << "(..) " << v << std::endl; }
 #define DEBUGVAR(v) if(DEBUGCOND) { std::cout << behindpath(__FILE__) << ":" << __LINE__ << " " << __FUNCTION__ << "(..) " << #v << " = " << v << std::endl; }
+#define DEBUGS(v) if (DEBUGCOND) { v; }
 #else
 #define DEBUG(v) {}
 #define DEBUGVAR(v) {}
+#define DEBUGS(v) {}
 #define ASSERT(c) if(c) {}
 #endif
 

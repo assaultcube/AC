@@ -4,6 +4,7 @@
 
 #define CONSPAD (FONTH/3)
 
+
 VARP(altconsize, 0, 0, 100);
 VARP(fullconsize, 0, 40, 100);
 VARP(consize, 0, 6, 100);
@@ -11,6 +12,7 @@ VARP(confade, 0, 20, 60);
 VARP(conalpha, 0, 255, 255);
 VAR(conopen, 1, 0, 0);
 VAR(numconlines, 0, 0, 1);
+
 
 struct console : consolebuffer<cline>
 {
@@ -296,7 +298,7 @@ COMMAND(onrelease, "s");
 
 void saycommand(char *init)                         // turns input to the command line on or off
 {
-    SDL_EnableUNICODE(saycommandon = (init!=NULL));
+    saycommandon = (init!=NULL);
     setscope(false);
     setburst(false);
     if(!editmode) keyrepeat(saycommandon);
@@ -349,7 +351,8 @@ void pasteconsole(char *dst)
     SDL_SysWMinfo wminfo;
     SDL_VERSION(&wminfo.version);
     wminfo.subsystem = SDL_SYSWM_X11;
-    if(!SDL_GetWMInfo(&wminfo)) return;
+    extern SDL_Window *screen;
+    if(!SDL_GetWindowWMInfo(screen, &wminfo)) return;
     int cbsize;
     char *cb = XFetchBytes(wminfo.info.x11.display, &cbsize);
     if(!cb || !cbsize) return;
@@ -489,10 +492,14 @@ void execbind(keym &k, bool isdown)
         keypressed = NULL;
         if(keyaction!=action) delete[] keyaction;
     }
-    k.pressed = isdown;
 }
 
-void consolekey(int code, bool isdown, int cooked, SDLMod mod)
+void consoletext(const char *text)
+{
+    cmdline.text(text);
+}
+
+void consolekey(int code, bool isdown, SDL_Keymod mod)
 {
     static char *beforecomplete = NULL;
     static bool ignoreescup = false;
@@ -544,8 +551,9 @@ void consolekey(int code, bool isdown, int cooked, SDLMod mod)
             default:
                 resetcomplete();
                 DELETEA(beforecomplete);
+
             case SDLK_LSHIFT:
-                cmdline.key(code, isdown, cooked);
+                cmdline.key(code);
                 break;
         }
     }
@@ -582,13 +590,24 @@ void consolekey(int code, bool isdown, int cooked, SDLMod mod)
     }
 }
 
-void keypress(int code, bool isdown, int cooked, SDLMod mod)
+extern bool menusay(const char *);
+
+void textinput(const char *text)
+{
+    if(saycommandon) {
+        cmdline.text(text);
+    } else {
+        menusay(text);
+    }
+}
+
+void keypress(int code, bool isdown, SDL_Keymod mod)
 {
     keym *haskey = NULL;
     loopv(keyms) if(keyms[i].code==code) { haskey = &keyms[i]; break; }
     if(haskey && haskey->pressed) execbind(*haskey, isdown); // allow pressed keys to release
-    else if(saycommandon) consolekey(code, isdown, cooked, mod);  // keystrokes go to commandline
-    else if(!menukey(code, isdown, cooked, mod))                  // keystrokes go to menu
+    else if(saycommandon) consolekey(code, isdown, mod); // keystrokes go to commandline
+    else if(!menukey(code, isdown)) // keystrokes go to menu
     {
         if(haskey) execbind(*haskey, isdown);
     }
@@ -610,3 +629,22 @@ void writebinds(stream *f)
     }
 }
 
+bool textinputbuffer::text(const char *c)
+{
+    int buflen = strlen(buf);
+    if(buflen >= maxlen()) return false;
+    int clen = strlen(c);
+    if(buflen+clen < sizeof(buf))
+    {
+        if(pos < 0) strncpy(buf + buflen, c, clen);
+        else
+        {
+            memmove(&buf[pos+clen], &buf[pos], buflen - pos);
+            memcpy(&buf[pos], c, clen);
+            pos += clen;
+        }
+        buf[buflen+clen] = '\0';
+        return true;
+    }
+    return false;
+}
