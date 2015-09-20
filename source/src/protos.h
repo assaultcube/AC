@@ -138,13 +138,14 @@ struct mitem
 
 struct mdirlist
 {
-    char *dir, *ext, *action;
+    char *dir, *ext, *action, *searchfile;
     bool image;
     ~mdirlist()
     {
         DELETEA(dir);
         DELETEA(ext);
         DELETEA(action);
+        DELETEA(searchfile);
     }
 };
 

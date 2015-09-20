@@ -1005,7 +1005,7 @@ void menumdl(char *mdl, char *anim, int *rotspeed, int *scale)
 }
 COMMAND(menumdl, "ssii");
 
-void menudirlist(char *dir, char *ext, char *action, int *image)
+void menudirlist(char *dir, char *ext, char *action, int *image, char *searchfile)
 {
     if(!lastmenu) return;
     if(!action || !action[0]) return;
@@ -1016,8 +1016,9 @@ void menudirlist(char *dir, char *ext, char *action, int *image)
     d->ext = ext[0] ? newstring(ext): NULL;
     d->action = action[0] ? newstring(action) : NULL;
     d->image = *image!=0;
+    d->searchfile = searchfile[0] ? newstring(searchfile) : NULL;
 }
-COMMAND(menudirlist, "sssi");
+COMMAND(menudirlist, "sssis");
 
 void chmenumdl(char *menu, char *mdl, char *anim, int *rotspeed, int *scale)
 {
@@ -1275,12 +1276,32 @@ void gmenu::init()
         const char *customsortorder = getalias(sortorderalias);
         if(customsortorder) sortorderindex = getlistindex(customsortorder, menufilesortorders, true, 0);
         files.sort(menufilesortcmp[sortorderindex]);
+
+        string searchfileuc;
+        if(dirlist->searchfile)
+        {
+            const char *searchfilealias = getalias(dirlist->searchfile);
+            copystring(searchfileuc, searchfilealias ? searchfilealias : dirlist->searchfile);
+            strtoupper(searchfileuc);
+        }
+
         loopv(files)
         {
             char *f = files[i];
             if(!f || !f[0]) continue;
             char *d = getfiledesc(dirlist->dir, f, dirlist->ext);
             defformatstring(jpgname)("%s/preview/%s.jpg", dirlist->dir, f);
+            bool filefound = false;
+            if(dirlist->searchfile)
+            {
+                string fuc, duc;
+                copystring(fuc, f);
+                strtoupper(fuc);
+                copystring(duc, d);
+                strtoupper(duc);
+                if(strstr(fuc, searchfileuc) || strstr(duc, searchfileuc)) filefound = true;
+            }
+
             if(dirlist->image)
             {
                 string fullname = "";
@@ -1293,23 +1314,29 @@ void gmenu::init()
                 }
                 items.add(new mitemimage  (this, newstring(fullname), f, newstring(dirlist->action), NULL, NULL, d));
             }
-            else if(!strcmp(dirlist->ext, "cgz") /*&& (fileexists(jpgname, "r") || findfile(jpgname, "r") != jpgname)*/)
+            else if(!strcmp(dirlist->ext, "cgz"))
             {
-                //items.add(new mitemimage(this, newstring(jpgname), f, newstring(dirlist->action), NULL, NULL, d));
-                int diroffset = 0;
-                if(dirlist->dir[0])
+                if(!dirlist->searchfile || filefound)
                 {
-                    unsigned int ddsl = strlen("packages/");
-                    if(strlen(dirlist->dir)>ddsl)
+                    int diroffset = 0;
+                    if(dirlist->dir[0])
                     {
-                        string prefix;
-                        copystring(prefix, dirlist->dir, ddsl+1);
-                        if(!strcmp(prefix,"packages/")) diroffset = ddsl;
+                        unsigned int ddsl = strlen("packages/");
+                        if(strlen(dirlist->dir)>ddsl)
+                        {
+                            string prefix;
+                            copystring(prefix, dirlist->dir, ddsl+1);
+                            if(!strcmp(prefix,"packages/")) diroffset = ddsl;
+                        }
                     }
+                    defformatstring(fullname)("%s%s%s", dirlist->dir[0]?dirlist->dir+diroffset:"", dirlist->dir[0]?"/":"", f);
+                    defformatstring(title)("%s", f);
+                    items.add(new mitemmapload(this, newstring(fullname), newstring(title), newstring(dirlist->action), NULL, NULL, NULL));
                 }
-                defformatstring(fullname)("%s%s%s", dirlist->dir[0]?dirlist->dir+diroffset:"", dirlist->dir[0]?"/":"", f);
-                defformatstring(title)("%s", f);
-                items.add(new mitemmapload(this, newstring(fullname), newstring(title), newstring(dirlist->action), NULL, NULL, NULL));
+            }
+            else if(!strcmp(dirlist->ext, "dmo"))
+            {
+                if(!dirlist->searchfile || filefound) items.add(new mitemtext(this, f, newstring(dirlist->action), NULL, NULL, d));
             }
             else items.add(new mitemtext(this, f, newstring(dirlist->action), NULL, NULL, d));
         }
