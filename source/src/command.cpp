@@ -3,6 +3,8 @@
 
 #include "cube.h"
 
+#define DEBUGCOND (scriptdebug==1)
+
 bool allowidentaccess(ident *id);
 char *exchangestr(char *o, const char *n) { delete[] o; return newstring(n); }
 void scripterr();
@@ -18,6 +20,7 @@ int loop_level = 0;                                      // avoid bad calls of b
 
 hashtable<const char *, ident> *idents = NULL;          // contains ALL vars/commands/aliases
 
+VARP(scriptdebug, 0, 0, 1);
 VAR(persistidents, 0, 1, 1);
 
 bool per_idents = true, neverpersist = false;
@@ -535,6 +538,7 @@ void floatret(float v, bool neat)
 
 void result(const char *s) { commandret = newstring(s); }
 
+int execdepth = 0;
 #if 0
 // seer : script evaluation excessive recursion
 static int seer_count = 0; // count calls to executeret, check time every n1 (100) calls
@@ -545,8 +549,10 @@ vector<long long> seer_t2; // timestamp of last n3 (10) level-2 calls
 char *executeret(const char *p)                            // all evaluation happens here, recursively
 {
     if(!p || !p[0]) return NULL;
+    DEBUG("executing action [depth " << execdepth++ << "]\n" << p);
     bool noproblem = true;
 #if 0
+
     if(execcontext>IEXC_CFG) // only PROMPT and MAP-CFG are checked for this, fooling with core/cfg at your own risk!
     {
         seer_count++;
@@ -754,6 +760,8 @@ char *executeret(const char *p)                            // all evaluation hap
             loopj(numargs) if(w[j]) delete[] w[j];
         }
     }
+    --execdepth;
+    DEBUG("execution complete, return value: '" << retval << "'");
     return retval;
 }
 
