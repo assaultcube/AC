@@ -1155,7 +1155,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
     tagclipcubes.setsize(0);
 
     extern vector<vertex> verts;
-    gl_drawhud(w, h, (int)round(curfps), nquads, verts.length(), underwater);
+    gl_drawhud(w, h, int(curfps + 0.5f), nquads, verts.length(), underwater);
 
     glEnable(GL_CULL_FACE);
     glEnable(GL_FOG);

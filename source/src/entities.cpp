@@ -546,9 +546,9 @@ void tryflagdrop(bool manual)
         {
             f.flagent->spawned = false;
             f.state = CTFF_DROPPED;
-            f.pos.x = round(player1->o.x);
-            f.pos.y = round(player1->o.y);
-            f.pos.z = round(player1->o.z);
+            f.pos.x = floor(player1->o.x + 0.5f);
+            f.pos.y = floor(player1->o.y + 0.5f);
+            f.pos.z = floor(player1->o.z + 0.5f);
             f.ack = false;
             flagdropmillis = lastmillis+3000;
             addmsg(SV_FLAGACTION, "rii", manual ? FA_DROP : FA_LOST, f.team);
@@ -622,9 +622,9 @@ void flagdropped(int flag, float x, float y, float z)
     }
     if(f.actor) f.actor->cancollide = oldcancollide; // restore settings
 
-    f.pos.x = round(p.o.x);
-    f.pos.y = round(p.o.y);
-    f.pos.z = round(p.o.z * 5) / 5;
+    f.pos.x = floor(p.o.x + 0.5f);
+    f.pos.y = floor(p.o.y + 0.5f);
+    f.pos.z = floor(p.o.z * 5 + 0.5f) / 5;
     f.flagent->spawned = true;
     f.ack = true;
 }
