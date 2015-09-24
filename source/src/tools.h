@@ -846,6 +846,9 @@ inline char *newstringbuf(const char *s)        { return newstring(s, MAXSTRLEN-
 inline void delstring(const char *s)            { delete[] (char *)s; }
 #define DELSTRING(s) if(s) { delstring(s); s = NULL; }
 
+#ifndef INT_LEAST64_MIN
+typedef unsigned long long int uint64_t;
+#endif
 const int islittleendian = 1;
 #ifdef SDL_BYTEORDER
 #define endianswap16 SDL_Swap16

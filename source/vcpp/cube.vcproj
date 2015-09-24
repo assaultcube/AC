@@ -1353,6 +1353,26 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\src\autodownload.cpp"
+				>
+				<FileConfiguration
+					Name="Standalone|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Standalone Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath="..\src\console.cpp"
 				>
 				<FileConfiguration
@@ -1383,6 +1403,26 @@
 			</File>
 			<File
 				RelativePath="..\src\docs.cpp"
+				>
+				<FileConfiguration
+					Name="Standalone|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Standalone Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+			</File>
+ 			<File
+				RelativePath="..\src\http.cpp"
 				>
 				<FileConfiguration
 					Name="Standalone|Win32"
