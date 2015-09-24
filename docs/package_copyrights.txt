@@ -1,10 +1,10 @@
 
 ------------SOUNDS--------------------
-Recorded by makkE and/or partially reprocessed from various royalty free or free to modify samples (thanks to 
-MitaMAN for gathering resources). 
+Recorded by makkE and/or partially reprocessed from various royalty free or free to modify samples (thanks to
+MitaMAN for gathering resources).
 
-Note: Shame on me I didn't keep track of my exact sources here. If you recognize any sound or components of a 
-sound that has copyright issues, please contact me so I can solve it. Thanks, makkE. 
+Note: Shame on me I didn't keep track of my exact sources here. If you recognize any sound or components of a
+sound that has copyright issues, please contact me so I can solve it. Thanks, makkE.
 
 ____________________________________________________________________________________________________________
 
@@ -15,11 +15,13 @@ http://www.gnu.org/licenses/gpl-2.0.txt
 
 
 ------------OTHER LICENSES------------
-AC readme: 					source/README.txt
-CUBE readme:					source/README_CUBEENGINE.txt 
-E-net license:					source/enet/license
-Cube MasterServer license:			source/CubeMS/README.txt
-Redistrbutable Windows SDL libraries readme:	bin_win32/readme_SDL.txt
-Cube Bots readme:				docs/cube_bot-readme.txt
-JPEG license:                                   source/include/README_jpeg.txt
+AC readme:                                source/README.txt
+CUBE readme:                              source/README_CUBEENGINE.txt
+Cube Bots readme:                         docs/cube_bot-readme.txt
+ENet license:                             source/enet/LICENSE
+SDL readme:                               bin_win32/readme_SDL.txt
+Libraries used with SDL_image license:    bin_win32/LICENSE.jpeg.txt , bin_win32/LICENSE.png.txt , bin_win32/LICENSE.zlib.txt
+JPEG license:                             source/include/README_jpeg.txt
+Vorbis/Ogg license:                       bin_win32/LICENSE.vorbis_ogg.txt
+OpenAL readme:                            bin_win32/readme_OpenAL.txt
 
