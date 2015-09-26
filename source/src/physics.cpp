@@ -465,6 +465,8 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         d.x += (float)(pl->strafe*cosf(RAD*(pl->yaw-180)));
         d.y += (float)(pl->strafe*sinf(RAD*(pl->yaw-180)));
 
+        float curfullspeed = d.magnitudexy();
+
         pl->vel.mul(fpsfric-1.0f);   // slowly apply friction and direction to velocity, gives a smooth movement
         pl->vel.add(d);
         pl->vel.div(fpsfric);
@@ -519,9 +521,9 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
                             bool doublejump = pl->lastjump && lastmillis-pl->lastjump < 250 && pl->strafe != 0 && pl->lastjumpheight != 0 && pl->lastjumpheight != pl->o.z;
                             pl->lastjumpheight = pl->o.z;
                             pl->vel.z = 2.0f; // physics impulse upwards
-                            if(doublejump) // more velocity on double jump
+                            if(doublejump && curfullspeed > 0.1f) // more velocity on double jump
                             {
-                                pl->vel.mul(1.25f);
+                                pl->vel.mul(1.25f / max(pl->vel.magnitudexy() / curfullspeed, 1.0f));
                             }
                             if(water) // dampen velocity change even harder, gives correct water feel
                             {
