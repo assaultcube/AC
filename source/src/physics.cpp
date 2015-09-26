@@ -333,7 +333,7 @@ bool collide(physent *d, bool spawn, float drop, float rise)
             d->vel.z = 0;                     // cancel out jumping velocity
         }
 
-        const float floorclamp = d->crouching ? 0.1f : 0.01f;
+        const float floorclamp = d->crouching && (!d->lastjump || lastmillis - d->lastjump > 250) ? 0.1f : 0.01f;
         d->onfloor = d->o.z-eyeheight-lo < floorclamp;
     }
     return false;
@@ -478,8 +478,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
             pl->o.add(d);
             if(pl->jumpnext && !pl->trycrouch)
             {
-                pl->jumpnext = true; // fly directly upwards while holding jump keybinds
-                pl->vel.z = 0.5f;
+                pl->vel.z = 0.5f; // fly directly upwards while holding jump keybinds
             }
             else if (pl->trycrouch && !pl->jumpnext)
             {
@@ -518,7 +517,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
                         if(pl->jumpnext)
                         {
                             pl->jumpnext = false;
-                            bool doublejump = pl->lastjump && lastmillis-pl->lastjump < 250 && pl->strafe != 0 && pl->lastjumpheight != 0 && pl->lastjumpheight != pl->o.z;
+                            bool doublejump = pl->lastjump && lastmillis - pl->lastjump < 250 && pl->strafe != 0 && pl->o.z - pl->lastjumpheight > 0.2f;
                             pl->lastjumpheight = pl->o.z;
                             pl->vel.z = 2.0f; // physics impulse upwards
                             if(doublejump && curfullspeed > 0.1f) // more velocity on double jump
@@ -828,12 +827,13 @@ void attack(bool on)
 
 void jumpn(bool on)
 {
+    static bool wason = false;
+    player1->jumpnext = on && !wason && !player1->crouching && !intermission && !player1->isspectating();
+    wason = on;
     if(player1->isspectating())
     {
         if(lastmillis - player1->respawnoffset > 1000 && on) togglespect();
     }
-    else if(player1->crouching || intermission) return;
-    else player1->jumpnext = on;
 }
 
 void updatecrouch(playerent *p, bool on)
