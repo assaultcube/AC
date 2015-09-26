@@ -504,8 +504,8 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
                     if(pl->type==ENT_BOT && pl->state == CS_ALIVE) pl->vel.z = climbspeed; // bots climb upwards only
                     else if(pl->type==ENT_PLAYER && pl->state == CS_ALIVE)
                     {
-                        if(((playerent *)pl)->k_up) pl->vel.z = climbspeed;
-                        else if(((playerent *)pl)->k_down) pl->vel.z = -climbspeed;
+                        if(((playerent *)pl)->k_up && pl->move > 0) pl->vel.z = climbspeed;
+                        else if(((playerent *)pl)->k_down && pl->move < 0) pl->vel.z = -climbspeed;
                     }
                     pl->timeinair = 0;
                 }
