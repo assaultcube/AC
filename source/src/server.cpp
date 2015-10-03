@@ -1148,9 +1148,7 @@ void htf_forceflag(int flag)
 
 int arenaround = 0, arenaroundstartmillis = 0;
 
-struct twoint { int index, value; };
 int cmpscore(const int *a, const int *b) { return clients[*a]->at3_score - clients[*b]->at3_score; }
-int cmptwoint(const struct twoint *a, const struct twoint *b) { return a->value - b->value; }
 vector<int> tdistrib;
 vector<twoint> sdistrib;
 
@@ -1172,15 +1170,15 @@ void distributeteam(int team)
     sdistrib.shrink(0);
     loopi(numsp)
     {
-        ti.index = i;
-        ti.value = rnd(0x1000000);
+        ti.val = i;
+        ti.key = rnd(0x1000000);
         sdistrib.add(ti);
     }
-    sdistrib.sort(cmptwoint); // random spawn order
+    sdistrib.sort(cmpintasc); // random spawn order
     int x = 0;
     loopv(tdistrib)
     {
-        clients[tdistrib[i]]->spawnindex = sdistrib[x++].index;
+        clients[tdistrib[i]]->spawnindex = sdistrib[x++].val;
         x %= sdistrib.length();
     }
 }

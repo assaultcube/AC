@@ -63,6 +63,9 @@ int fixmapheadersize(int version, int headersize)   // we can't trust hdr.header
 
 mapdim mapdims;     // min/max X/Y and delta X/Y and min/max Z
 
+int cmpintasc(const int *a, const int *b) { return *a - *b; } // leads to ascending sort order
+int cmpintdesc(const int *a, const int *b) { return *b - *a; } // leads to descending sort order
+
 extern char *maplayout, *testlayout;
 extern int maplayout_factor, testlayout_factor, Mvolume, Marea, Mopen, SHhits;
 extern float Mheight;

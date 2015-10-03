@@ -994,6 +994,11 @@ extern const char *hiddenpwd(const char *pwd, int showchars = 0);
 extern int getlistindex(const char *key, const char *list[], bool acceptnumeric = true, int deflt = -1);
 extern void parseupdatelist(hashtable<const char *, int> &ht, char *buf, const char *prefix = NULL, const char *suffix = NULL);
 
+struct twoint { int key, val; };
+struct threeint { int key, val1, val2; };
+int cmpintasc(const int *a, const int *b);  // leads to ascending sort order
+int cmpintdesc(const int *a, const int *b); // leads to descending sort order
+
 #if defined(WIN32) && !defined(_DEBUG) && !defined(__GNUC__)
 extern void stackdumper(unsigned int type, EXCEPTION_POINTERS *ep);
 #endif
