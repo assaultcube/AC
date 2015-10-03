@@ -445,6 +445,18 @@ void deleteentity(char *ns)
 }
 COMMAND(deleteentity, "s");
 
+void addentity(char *what) // type
+{
+    int type = findtype(what);
+    if(noteditmode("addentity") || multiplayer(true) || type == NOTUSED) return;
+    entity e((int)camera1->o.x, (int)camera1->o.y, (int)camera1->o.z, type, 0, 0, 0, 0);
+    e.spawned = true;
+    intret(ents.length());
+    ents.add(e);
+    unsavededits++;
+}
+COMMAND(addentity, "s");
+
 void editentity(char **args, int numargs) // index x y z a1 a2 a3 a4 ...
 {
     string res = "";
