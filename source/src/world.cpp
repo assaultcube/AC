@@ -174,6 +174,7 @@ int closestent()        // used for delent and edit mode ent display
     }
     return best;
 }
+COMMANDF(getclosestent, "", () { intret(closestent()); });
 
 void entproperty(int *prop, float *famount, int *unscaled)
 {
