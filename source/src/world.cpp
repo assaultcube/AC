@@ -928,3 +928,36 @@ void mapmrproper(bool manual)
     }
 }
 COMMANDF(mapmrproper, "", () { mapmrproper(true); });
+
+void mapareacheck(char *what) // "vdelta" | "steepest" | "total" | "pprest" | "pp"(default)
+{
+    mapareastats_s ms;
+    mapdim_s md;
+    stopwatch ti;
+    ti.start();
+    servsqr *sw = createservworld(world, cubicsize);
+    calcmapdims(md, sw, ssize);
+    calcmapareastats(ms, sw, ssize, md);
+    delete[] sw;
+    vector<char> res;
+    if(!strcasecmp(what, "vdelta"))
+    {
+        loopi(MAS_VDELTA_TABSIZE) cvecprintf(res, "%d ", ms.vdd[i]);
+    }
+    else if(!strcasecmp(what, "steepest")) cvecprintf(res, "%d.5 %d.5 %d ", ms.steepest % ssize, ms.steepest / ssize, world[ms.steepest % cubicsize].floor);
+    else if(!strcasecmp(what, "total")) cvecprintf(res, "%d ", ms.total);
+    else if(!strcasecmp(what, "pprest")) cvecprintf(res, "%d ", ms.rest);
+    else // default
+    {
+        loopi(MAS_GRID2)
+        {
+            int x = ms.ppp[i] % ssize, y = ms.ppp[i] / ssize, z = OUTBORD(x, y) ? 0 : S(x, y)->floor;
+            cvecprintf(res, "%d %d %d  %d %d %.5g\n", x, y, z, ms.ppa[i], ms.ppv[i], ms.ppa[i] ? float(ms.ppv[i]) / ms.ppa[i] : 0.0f);
+        }
+    }
+    res.last() = '\0';
+    result(res.getbuf());
+}
+
+COMMAND(mapareacheck, "s");
+
