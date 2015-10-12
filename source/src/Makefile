@@ -22,7 +22,7 @@ PLATFORM_PREFIX=native
 
 ifeq ($(ACDEBUG),yes)
 	CXXFLAGS= -O0
-	override CXXFLAGS+= -g -D_DEBUG
+	override CXXFLAGS+= -g3 -D_DEBUG
 endif
 
 ifneq (,$(findstring clang,$(CXX)))
@@ -69,6 +69,7 @@ CLIENT_OBJS= \
 	log.o \
 	main.o \
 	menus.o \
+	newworldrender.o \
 	oggstream.o \
 	openal.o \
 	packetqueue.o \
@@ -267,6 +268,7 @@ main.o: entity.h world.h command.h varray.h vote.h console.h protos.h
 main.o: jpegenc.h
 menus.o: cube.h platform.h tools.h geom.h model.h protocol.h sound.h weapon.h
 menus.o: entity.h world.h command.h varray.h vote.h console.h protos.h
+newworldrender.o: cube.h protos.h
 oggstream.o: cube.h platform.h tools.h geom.h model.h protocol.h sound.h
 oggstream.o: weapon.h entity.h world.h command.h varray.h vote.h console.h
 oggstream.o: protos.h

@@ -2,7 +2,6 @@
 // be rendered and how (depending on neighbouring cubes), then calls functions in rendercubes.cpp
 
 #include "cube.h"
-
 void render_wall(sqr *o, sqr *s, int x1, int y1, int x2, int y2, int mip, sqr *d1, sqr *d2, bool topleft, int dir)
 {
     if(minimap) return;

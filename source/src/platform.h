@@ -44,7 +44,7 @@
 
     #define GL_GLEXT_LEGACY
     #define __glext_h__
-    #define NO_SDL_GLEXT
+    //#define NO_SDL_GLEXT
     #include <SDL_opengl.h>
     #undef __glext_h__
 

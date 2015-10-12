@@ -1024,7 +1024,20 @@ void gl_drawframe(int w, int h, float changelod, float curfps, int elapsed)
     effective_stencilshadow = mapoverride_nostencilshadows && !ignoreoverride_nostencilshadows ? 0 : stencilshadow;
     bool effective_waterreflect = waterreflect && !editmode && (!mapoverride_nowaterreflect || ignoreoverride_nowaterreflect);
 
-    dodynlights();
+    extern int usenewworldrenderer;
+
+    if(usenewworldrenderer)
+    {
+        extern void prepgpudata();
+        prepgpudata();
+        extern vector<vertex> verts;
+        verts.setsize(0);
+    }
+    else
+    {
+        dodynlights();
+    }
+
     drawminimap(w, h);
 
     recomputecamera();
@@ -1079,12 +1092,28 @@ void gl_drawframe(int w, int h, float changelod, float curfps, int elapsed)
 
     resetcubes();
 
-    render_world(camera1->o.x, camera1->o.y, camera1->o.z, changelod,
-            (int)camera1->yaw, (int)camera1->pitch, dynfov(), fovy, w, h);
+    if(usenewworldrenderer)
+    {
 
-    setupstrips();
+        extern void findvisibleblocks();
+        extern void findwaterquads();
+        extern void rendertrissky();
 
-    renderstripssky();
+        findvisibleblocks();
+        findwaterquads(); // comment this out for some fully sick fps gainz even when there's no water visible - needs to be fixed
+        rendertrissky();
+
+    }
+    else
+    {
+
+        render_world(camera1->o.x, camera1->o.y, camera1->o.z, changelod,
+                (int)camera1->yaw, (int)camera1->pitch, dynfov(), fovy, w, h);
+
+        setupstrips();
+
+        renderstripssky();
+    }
 
     glLoadIdentity();
     glRotatef(camera1->pitch, -1, 0, 0);
@@ -1102,7 +1131,17 @@ void gl_drawframe(int w, int h, float changelod, float curfps, int elapsed)
 
     setuptmu(0, "T * P x 2");
 
-    renderstrips();
+    if(usenewworldrenderer)
+    {
+        extern void render_world_new(float vx, float vy, float vh, float changelod, int yaw, int pitch, float fov, float fovy, int w, int h);
+        render_world_new(camera1->o.x, camera1->o.y, camera1->o.z, changelod,
+                (int)camera1->yaw, (int)camera1->pitch, dynfov(), fovy, w, h);
+
+    }
+    else
+    {
+        renderstrips();
+    }
 
 
     xtraverts = 0;

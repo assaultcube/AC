@@ -366,6 +366,10 @@
 			<Option target="default" />
 			<Option target="debug" />
 		</Unit>
+		<Unit filename="../src/newworldrender.cpp">
+			<Option target="default" />
+			<Option target="debug" />
+		</Unit>
 		<Unit filename="../src/oggstream.cpp">
 			<Option target="default" />
 			<Option target="debug" />

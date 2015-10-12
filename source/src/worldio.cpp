@@ -1161,6 +1161,7 @@ int load_world(char *mname)        // still supports all map formats that have e
     startmap(mname);
     res |= mapconfigerror;
     if(res) conoutf("\f3unresolved problems occurred during load_world(), warning: 0x%x", res);
+    postregenworldvbos();
     return res; // negative: error (no map loaded), zero: no problem, positive: some problems (bitmask value)
 }
 

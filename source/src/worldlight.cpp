@@ -214,6 +214,8 @@ void calclight()
     postlightarea(bb);
     setvar("fullbright", 0);
     lastcalclight = totalmillis;
+
+    postregenworldvbos();
 }
 
 struct dlight
