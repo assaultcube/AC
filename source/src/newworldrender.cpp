@@ -85,8 +85,12 @@ int intcmpfr(int *i1, int *i2)
     return 0;
 }
 
+double blockdist(int);
+
 struct visibleblockspan
 {
+    
+    visibleblockspan(int start=-1);    
 
     /// First block of this span
     int start;
@@ -99,21 +103,75 @@ struct visibleblockspan
 
     /// Distance to the nearest block
     float nearestdist;
+    
+    /**
+     * @brief Update nearest render block and distance if necessary
+     */
+    void updatenearest(int block)
+    {
+        float dist = blockdist(block);
+        if(dist < nearestdist)
+        {
+            nearestblock = block;
+            nearestdist = dist;
+        }
+    }
+    
+    /**
+     * @brief Find the render block in this span closest to the camera
+     */
+    void findnearest()
+    {
+        for(int i = start, end = start+count; i < end; ++i)
+        {
+            updatenearest(i);
+        }
+    }
+    
 };
+
+
+visibleblockspan::visibleblockspan(int start) : 
+    start(start), count(1), nearestblock(-1), nearestdist(1e16)
+{ 
+    if(start >= 0)
+    {
+        updatenearest(start);
+    }
+}
+
+/**
+ * @brief Compare visible blocks, sorting nearest first.
+ */
+int nearestvisibleblockspancmp(visibleblockspan *s1, visibleblockspan *s2)
+{
+    if(s1->nearestdist > s2->nearestdist) return 1;
+    if(s1->nearestdist < s2->nearestdist) return -1;
+    return 0;
+}
 
 vector<int> visibleblocks;
 vector<visibleblockspan> visibleblockspans;
 
 int wdrawcalls = 0;
 
-struct texbatch
+DEBUGCODE(VAR(cyclevbs, 0, 0, 1));
+
+class texbatch
 {
+    
+    // Private list of visible block spans
+    vector<visibleblockspan> spans;
+    
+public:
+    
     GLuint vertexbo;
     GLuint elembo;
     int elemtype;
     int tex;
     int elemcount;
     vector<int> blockstarts;
+    
 
     texbatch() : vertexbo(0), elembo(0), tex(0), elemcount(0), elemtype(0) {}
 
@@ -177,98 +235,49 @@ struct texbatch
         return (elemtype == GL_UNSIGNED_INT) ? 4 : 2;
     }
 
-    void batchdrawold()
-    {
-        int elemsize = (elemtype == GL_UNSIGNED_INT) ? 4 : 2;
-        loopv(visibleblocks)
-        {
-            int block = visibleblocks[i];
-            glDrawElements(GL_TRIANGLES, blocklen(block), elemtype, GLBUFOFF(blockstarts[block]*elemsize));
-            ++wdrawcalls;
-        }
-    }
-
-    void draw() const
+    void drawall() const
     {
         glDrawElements(GL_TRIANGLES, elemcount, elemtype, 0);
+        wdrawcalls += 1;
     }
-
-// TODO clean up this debug mess
-#ifdef BDDEBUG
-#define BDDEBUGS(v) { v; }
-#else
-#define BDDEBUGS(v) {}
-#endif
-
+    
     /**
-     * Draw all blocks marked as visible.
+     * @brief Render all geometry in visible blocks.
      */
     void batchdraw()
     {
+        int spancount = visibleblockspans.length();
         bool ready = false;
-#ifdef BDDEBUG
-        printf("batchdraw tex:%d ", tex);
-        printf("vblks:%d [", visibleblocks.length());
-        loopv(visibleblocks) printf(" %d", visibleblocks[i]);
-        printf(" ]\n");
-#endif
-        for(int i = 0, vbcount = visibleblocks.length(); i < vbcount; ++i)
+        
+        spans = visibleblockspans;
+        spans.sort<visibleblockspan>(nearestvisibleblockspancmp);
+        
+        DEBUGCODE(int curspan = (totalmillis / 1000) % spancount);
+        
+        loopi(spancount)
         {
-            int len = 0;
-            int k = i;
-            BDDEBUGS(printf("span start: %d <", k));
-            span:
-            BDDEBUGS(printf(" %d", visibleblocks[k]));
-            len += visibleblocklen(k);
-            while(++k < vbcount && visibleblocks[k-1]+1 == visibleblocks[k])
+            DEBUGCODE(if(cyclevbs && (i != curspan)) continue);
+            visibleblockspan *span = &spans[i];
+            int len = rangelen(span->start, span->start+span->count);
+            if(!len) continue;
+            if(!ready)
             {
-                // Span consecutive visible blocks
-                len += visibleblocklen(k);
-            }
-            BDDEBUGS(printf("..%d", visibleblocks[k-1]));
-            if(k < vbcount)
-            {
-                // If spans of visible blocks are connected by
-                // spans of empty blocks, we can join them together
-                // with no extra cost and save some draw calls.
-                bool joinspans = true;
-                for(int j = visibleblocks[k-1]; j < visibleblocks[k]; ++j)
+                // Only bind buffers if there's something to render
+                pre();
+                if(elemcount < 200)
                 {
-                    if(blocklen(j))
-                    {
-                        joinspans = false;
-                        break;
-                    }
-                }
-                if(joinspans)
-                {
-                    goto span;
-                }
-            }
-            BDDEBUGS(printf(" > span end: %d\n", k-1));
-            if(len)
-            {
-                if(!ready)
-                {
-                    // Only perform state changes for this texture when
-                    // something visible actually needs to be rendered.
-                    pre();
-                    ready = true;
-                }
-                if(elemcount < 500)
-                {
-                    // Don't bother with occlusion if this batch only has
-                    // a few verts. Render them all in one go.
-                    draw();
+                    // For small numbers of verts, just render everything
+                    // in one go and be done with it. Saves a few drawcalls.
+                    drawall();
                     return;
                 }
-                glDrawElements(GL_TRIANGLES, len, elemtype, GLBUFOFF(blockstarts[visibleblocks[i]]*indexsize()));
-                ++wdrawcalls;
+                ready = true;
             }
-            i = k-1;
+            glDrawElements(GL_TRIANGLES, len, elemtype, GLBUFOFF(blockstarts[span->start]*indexsize()));
+            wdrawcalls += 1;
         }
     }
-
+    
 };
 
 struct coord2d
@@ -901,6 +910,77 @@ void flatmeshqt(worldmesh *wm, int x1, int y1, int bsize, bool ceil)
     if(!SOLID(prev) && waterlevel > prev->floor) addwaterquad(x1, y1, bssize);
 }
 
+#define BI(x,y) (y*(ssize/bssize)+x)
+#define BX(i) (i/bssize)
+#define BY(i) (i%bssize)
+
+
+int getbscount()
+{
+    return ssize / bssize;
+}
+
+/**
+ * @brief Get the (x,y) coordinates of the given block
+ */
+coord2d blockpos(int b, bool center=false)
+{
+    int bscount = getbscount();
+    coord2d bpos;
+    bpos.x = (b % bscount)*bssize;
+    bpos.y = (b / bscount)*bssize;
+    if(center)
+    {
+        int hbssize = bssize / 2;
+        bpos.x += hbssize;
+        bpos.y += hbssize;
+    }
+    return bpos;
+}
+
+/**
+ * @brief Calculate distance from camera to the render block
+ */
+double blockdist(int b)
+{
+    coord2d bp = blockpos(b, true);
+    return sqrt(pow(bp.x-camera1->o.x, 2) + pow(bp.y-camera1->o.y, 2));
+}
+
+void findvisibleblocks()
+{
+    visibleblocks.setsize(0);
+    int bscount = ssize / bssize;
+
+    loopj(bscount) loopk(bscount)
+    {
+        if(!isoccluded(camera1->o.x, camera1->o.y, k*bssize, j*bssize, bssize))
+        {
+            visibleblocks.add(BI(k, j));
+        }
+    }
+
+    visibleblocks.sort<int>(intcmpf);
+
+    visibleblockspans.setsize(0);
+    if(visibleblocks.length() == 0) return;
+
+    visibleblockspan *span = &(visibleblockspans.add(visibleblockspan(visibleblocks[0])));
+    for(int i = 1; i < visibleblocks.length(); ++i)
+    {
+        int vb = visibleblocks[i];
+        if((visibleblocks[i-1]+1 == vb))
+        {
+            ++span->count;
+            span->updatenearest(vb);
+        }
+        else
+        {
+            span = &(visibleblockspans.add(visibleblockspan(vb)));
+        }
+    }
+}
+
 bool iswatercube(sqr const *s)
 {
     return !SOLID(s) && (waterlevel >= s->floor);
@@ -944,88 +1024,15 @@ void findwaterquads()
 {
 	// FIXME this function is an unacceptable fps drainer, optimise or
 	// come up with a better way of dealing with water quads.
-    findwaterquadsqt(0, 0, ssize, 4);
-}
+    //findwaterquadsqt(0, 0, ssize, 4);
 
-#define BI(x,y) (y*(ssize/bssize)+x)
-#define BX(i) (i/bssize)
-#define BY(i) (i%bssize)
-
-
-int getbscount()
-{
-    return ssize / bssize;
-}
-
-/**
- * @brief Get the (x,y) coordinates of the centre of the given block
- */
-coord2d blockpos(int b)
-{
-    int bscount = getbscount();
-    coord2d bpos;
-    int hbssize = bssize / 2;
-    bpos.x = (b % bscount) + hbssize;
-    bpos.y = (b / bscount) + hbssize;
-    return bpos;
-}
-
-void findvisibleblocks()
-{
-    visibleblocks.setsize(0);
-    int bscount = ssize / bssize;
-
-    loopj(bscount) loopk(bscount)
+    // I optimised it! Only look for water quads in visible render blocks.
+    loopv(visibleblocks)
     {
-        //if(!isoccluded(camera1->o.x, camera1->o.y, j*bssize+bssize/2, k*bssize+bssize/2, bssize/2))
-        if(!isoccluded(camera1->o.x, camera1->o.y, k*bssize, j*bssize, bssize))
-        {
-            visibleblocks.add(BI(k, j));
-        }
-    }
-
-
-
-    /*
-    findvisiblecubes();
-    loopi(ssize) loopk(ssize)
-    {
-        if(!S(k, i)->occluded)
-        {
-            int b = BI(k/bssize, i/bssize);
-            bool in = false;
-            loopv(visibleblocks) if(b == visibleblocks[i]) { in = true; break; }
-            if(!in)
-            {
-                //printf("added %d\n", b);
-                visibleblocks.add(b);
-            }
-        }
-    }
-    */
-
-    visibleblocks.sort<int>(intcmpf);
-
-    visibleblockspans.setsize(0);
-    if(visibleblocks.length() == 0) return;
-
-    visibleblockspan *span = &(visibleblockspans.add());
-    span->start = visibleblocks[0];
-    span->count = 1;
-    for(int i = 1; i < visibleblocks.length(); ++i)
-    {
-        if((visibleblocks[i-1]+1 == visibleblocks[i]))
-        {
-            ++span->count;
-        }
-        else
-        {
-            span = &(visibleblockspans.add());
-            span->count = 1;
-        }
+        coord2d bp = blockpos(visibleblocks[i]);
+        findwaterquadsqt(bp.x, bp.y, bssize, 2);
     }
 }
-
 
 void prepgpudata()
 {
@@ -1080,6 +1087,7 @@ void rendertrissky()
 void render_world_new(float vx, float vy, float vh, float changelod, int yaw, int pitch, float fov, float fovy, int w, int h)
 {
     wdrawcalls = 0;
+    resetcubes();
 
     if(!visibleblocks.length()) goto done;
 

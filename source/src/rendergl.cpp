@@ -1100,7 +1100,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps, int elapsed)
         extern void rendertrissky();
 
         findvisibleblocks();
-        findwaterquads(); // comment this out for some fully sick fps gainz even when there's no water visible - needs to be fixed
+        findwaterquads();
         rendertrissky();
 
     }
