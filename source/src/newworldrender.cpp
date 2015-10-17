@@ -85,14 +85,18 @@ int intcmpfr(int *i1, int *i2)
     return 0;
 }
 
+struct texbatch;
 double blockdist(int);
 
+/**
+ * @brief A sequence of adjacent render blocks that can be rendered in one go.
+ */
 struct visibleblockspan
 {
     
     visibleblockspan(int start=-1);    
 
-    /// First block of this span
+    /// First render block of this span
     int start;
 
     /// Number of blocks spanned
@@ -128,6 +132,11 @@ struct visibleblockspan
         }
     }
     
+    /**
+     * @brief Get the number of vertices in the given batch in this span.
+     */
+    int vertcount(texbatch const* t);
+    
 };
 
 
@@ -153,7 +162,7 @@ int nearestvisibleblockspancmp(visibleblockspan *s1, visibleblockspan *s2)
 vector<int> visibleblocks;
 vector<visibleblockspan> visibleblockspans;
 
-int wdrawcalls = 0;
+int wdrawcalls = 0; /// Number of draw calls made to render world geometry
 
 DEBUGCODE(VAR(cyclevbs, 0, 0, 1));
 
@@ -225,7 +234,7 @@ public:
         return blocklen(visibleblocks[i]);
     }
 
-    int rangelen(int first, int last)
+    int rangelen(int first, int last) const
     {
         return blockstarts[last] - blockstarts[first];
     }
@@ -258,12 +267,11 @@ public:
         {
             DEBUGCODE(if(cyclevbs && (i != curspan)) continue);
             visibleblockspan *span = &spans[i];
-            int len = rangelen(span->start, span->start+span->count);
+            int len = span->vertcount(this);
             if(!len) continue;
             if(!ready)
             {
-                // Only bind buffers if there's something to render
-                pre();
+                pre(); // Only bind buffers if there's something to render
                 if(elemcount < 200)
                 {
                     // For small numbers of verts, just render everything
@@ -279,6 +287,12 @@ public:
     }
     
 };
+
+int visibleblockspan::vertcount(const texbatch* t)
+{
+    return t->rangelen(start, start+count);
+}
+
 
 struct coord2d
 {
@@ -856,10 +870,46 @@ void cornerwalls(worldmesh *wm, int x1, int y1, int bsize)
     sqr const *s = S(x1, y1);
     loopi(NUM_SIDES)
     {
-        if(adjcube(x1, y1, i, bsize)->type == SOLID
-            && adjcube(x1, y1, nextside(i), bsize)->type == SOLID)
+        sqr const *adj1 = adjcube(x1, y1, i, bsize);
+        sqr const *adj2 = adjcube(x1, y1, nextside(i), bsize);
+        if(adj1->type == SOLID && adj2->type == SOLID)
         {
-
+            // Make a corner with two solids
+            int floor = 4 * s->floor;
+            int ceil = 4 * s->ceil;
+            int wtex = adj1->wtex;
+            switch(i)
+            {
+                case LEFT:
+                    loopi(bsize)
+                    {
+                        wm->wallquad(x1+i, y1+bsize-i-1, floor, floor, ceil, ceil,
+                                     BOTTOM_LEFT, TOP_RIGHT, wtex);
+                    }
+                    break;
+                case TOP:
+                    loopi(bsize)
+                    {
+                        wm->wallquad(x1+i, y1+i, floor, floor, ceil, ceil,
+                                     TOP_LEFT, BOTTOM_RIGHT, wtex);
+                    }
+                    break;
+                case RIGHT:
+                    loopi(bsize)
+                    {
+                        wm->wallquad(x1+bsize-i-1, y1+i, floor, floor, ceil, ceil,
+                                     TOP_RIGHT, BOTTOM_LEFT, wtex);
+                    }
+                    break;
+                case BOTTOM:
+                    loopi(bsize)
+                    {
+                        wm->wallquad(x1+bsize-i-1, y1+bsize-i-1, floor, floor, ceil, ceil,
+                                     BOTTOM_RIGHT, TOP_LEFT, wtex);
+                    }
+                    break;
+            }
+            return;
         }
     }
 
@@ -1055,6 +1105,7 @@ void prepgpudata()
         flatmeshqt(&wm, k*bssize, i*bssize, bssize, true);
         loop(y, bssize) loop(x, bssize) wm.cubewalls(k*bssize+x, i*bssize+y, false);
         loop(y, bssize) loop(x, bssize) wm.cubewalls(k*bssize+x, i*bssize+y, true);
+        cornerwalls(&wm, k*bssize, i*bssize, bssize);
         wm.mark();
     }
     wm.loadtogpu(texbatches, 256);
