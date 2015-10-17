@@ -336,10 +336,39 @@ int nextside(int side, bool ccw=false)
 enum { TOP_LEFT = 0, TOP_RIGHT, BOTTOM_LEFT, BOTTOM_RIGHT, NUM_CORNERS };
 const coord2d CORNER_OFFSETS[] = { {0, 0}, {1, 0}, {0, 1}, {1, 1} };
 
+
+// Set x and y to the corner offsets from the topleft corner of the cube
+#define COFFSET(c, x, y) { x = (c)&1; y = ((c)&2) >> 1; }
+
+// Check if corner is along the Left, Right, Top, Bottom edges.
+#define CL(c) (((c)&1) == 0)
+#define CR(c) (((c)&1) == 1)
+#define CT(c) (((c)&2) == 0)
+#define CB(c) (((c)&2) == 2)
+
+/// Check if the two corners form a diagonal
+#define CDIAG(c1, c2) ((CL(c1) != CL(c2)) && (CT(c1) != CT(c2)))
+
 void corner_offsets(int c, int &x, int &y)
 {
     x = c&1;
     y = (c&2) >> 1;
+}
+
+int nextcorner(int c, bool ccw=false)
+{
+    static int order[4] = { TOP_LEFT, TOP_RIGHT, BOTTOM_RIGHT, BOTTOM_LEFT };
+    c %= NUM_CORNERS;
+    int idx = -1;
+    loopi(NUM_CORNERS) if(order[i] == c) { idx = i; break; }
+    ASSERT(idx != -1);
+    return order[modulo(idx + (ccw ? -1 : 1), NUM_CORNERS)];
+}
+
+int opposingcorner(int c)
+{
+    //DEBUG(c << ':' << (CT(c)?2:0) | (CL(c)?1:0));
+    return (CT(c)?2:0) | (CL(c)?1:0);
 }
 
 /**
@@ -370,18 +399,6 @@ void sidecorners(int side, int *corners, bool flip=false)
         swap(corners[0], corners[1]);
     }
 }
-
-// Set x and y to the corner offsets from the topleft corner of the cube
-#define COFFSET(c, x, y) { x = (c)&1; y = ((c)&2) >> 1; }
-
-// Check if corner is along the Left, Right, Top, Bottom edges.
-#define CL(c) ((c)&1 == 0)
-#define CR(c) ((c)&1 == 1)
-#define CT(c) ((c)&2 == 0)
-#define CB(c) ((c)&2 == 2)
-
-/// Check if the two corners form a diagonal
-#define CDIAG(c1, c2) ((CL(c1) != CL(c2)) && (CT(c1) != CT(c2)))
 
 /**
  * @brief Get the cube adjacent to the cube at (x,y) along the given side.
@@ -515,9 +532,58 @@ struct worldmesh
         return false;
     }
 
-    void addvert(int x, int y, int h, int tex, int xo, int yo, int wall=FLAT)
+    void addvert(int x, int y, int h, int tex, int xo=0, int yo=0, int wall=FLAT)
     {
         vertindices[tex].add(vertex_index(x, y, h, tex, xo, yo, wall));
+    }
+    
+    void flattri(int x, int y, int h, int tex, int corner, bool ceil, int size=1)
+    {
+        int corners[3];
+        corners[0] = nextcorner(corner, !ceil);
+        loopi(2) corners[i+1] = nextcorner(corners[i], ceil);
+        
+        loopi(3)
+        {
+            int xo, yo;
+            corner_offsets(corners[i], xo, yo);
+            addvert(x+xo*size, y+yo*size, h, tex);
+        }
+        //int xo, yo;
+        //corner_offsets(corner, xo, yo);
+        
+        
+        
+        /*
+        switch(corner)
+        {
+            case TOP_LEFT:
+                addvert(x,      y,      h, tex);
+                addvert(x+size, y,      h, tex);
+                addvert(x,      y+size, h, tex);
+                break;
+            case TOP_RIGHT:
+                addvert(x+size, y,      h, tex);
+                addvert(x+size, y+size, h, tex);
+                addvert(x,      y+size, h, tex);
+                break;
+            case BOTTOM_LEFT:
+                addvert(x,      y+size, h, tex);
+                addvert(x+size, y,      h, tex);
+                addvert(x+size, y+size, h, tex);
+                break;
+            case BOTTOM_RIGHT:
+                addvert(x+size, y+size, h, tex);
+                addvert(x,      y+size, h, tex);
+                addvert(x+size, y,      h, tex);
+                break;
+        }
+        if(ceil) 
+        {
+            int i = vertindices[tex].length() - 1;
+            swap(vertindices[tex][i], vertindices[tex][i-1]);
+        }
+        */
     }
 
     /**
@@ -548,10 +614,10 @@ struct worldmesh
 
     }
 
-    void cubewalls(int x, int y, bool ceil)
+    void cubewalls(int x, int y, bool ceil, bool skipcorners=true)
     {
         sqr const *s = S(x, y), *o;
-        //if(s->type == CORNER) return;
+        if(skipcorners && s->type == CORNER) return;
         if(ceil && SOLID(s)) return;
 
         int ch1, ch2; // Heights of first and second corners
@@ -751,11 +817,10 @@ void postregenworldvbos()
 {
     if(!usenewworldrenderer)
     {
-        // This doesn't belong here either.
+        // Should this go somewhere else?
         loopi(256) texbatches[i].deinit();
     }
     visibleblocks.setsize(0);
-    resetwater(); // RESETWATER DOESN'T EVEN GO HERE. I think this is now done... somewhere else. prepgpudata?
     regenworldbuffers = true;
 }
 
@@ -836,19 +901,34 @@ bool unifiable(sqr const *s1, sqr const *s2, bool ceil)
 }
 
 /**
- * @brief What is this?
+ * @brief Get the corner corresponding to the given side
+ * 
+ * Gets the corner opposing the corner which joins the given side
+ * and the side next to it in counterclockwise direction.
+ * 
+ * Helper function for cornertris.
  */
-void meshqt(worldmesh *wm, int x1, int y1, int bsize)
+int cornerfromside(int s)
 {
-
+    switch(s)
+    {
+        case LEFT:   return BOTTOM_RIGHT;
+        case TOP:    return BOTTOM_LEFT;
+        case RIGHT:  return TOP_LEFT;
+        case BOTTOM: return TOP_RIGHT;
+    }  
 }
 
 /**
- * @brief Generate walls for corner cubes.
+ * @brief Generate triangles for corners.
  */
-void cornerwalls(worldmesh *wm, int x1, int y1, int bsize)
+void cornertris(worldmesh *wm, int x1, int y1, int bsize)
 {
-    // TODO finish me.
+    // TODO this is a lot of code for a simple thing, the old renderer
+    // seemed to get away with a lot less... do something about it?
+    
+    // Check if the bsize*bsize block at x1,y1 (topleft corner)
+    // is a complete corner
     if(bsize == 0) return;
     for(int y = y1, yend = y1+bsize; y < yend; ++y)
     {
@@ -856,62 +936,184 @@ void cornerwalls(worldmesh *wm, int x1, int y1, int bsize)
         {
             if(S(x, y)->type != CORNER)
             {
+                // Non-corner cube found - split the block into four
+                // and continue search recursively.
                 int hbsize = bsize / 2;
-                cornerwalls(wm, x1,        y1,        hbsize);
-                cornerwalls(wm, x1+hbsize, y1,        hbsize);
-                cornerwalls(wm, x1,        y1+hbsize, hbsize);
-                cornerwalls(wm, x1+hbsize, y1+hbsize, hbsize);
+                cornertris(wm, x1,        y1,        hbsize);
+                cornertris(wm, x1+hbsize, y1,        hbsize);
+                cornertris(wm, x1,        y1+hbsize, hbsize);
+                cornertris(wm, x1+hbsize, y1+hbsize, hbsize);
                 return;
             }
         }
     }
-    // No corners that hug the very edges of the map. Sorry.
+    // No corners that hug the very edges of the map. Thanks MINBORD!
     if(x1 == 0 || y1 == 0 || x1+bsize >= ssize || y1+bsize == ssize) return;
+    int corner; // The corner of the block which contains the "solid" part
     sqr const *s = S(x1, y1);
+    
+    
+    // Try making corners with solids
     loopi(NUM_SIDES)
     {
+        // For each side, check if it and the next side (in clockwise
+        // direction) are solids; if so, use them to form the corner.
         sqr const *adj1 = adjcube(x1, y1, i, bsize);
         sqr const *adj2 = adjcube(x1, y1, nextside(i), bsize);
         if(adj1->type == SOLID && adj2->type == SOLID)
         {
-            // Make a corner with two solids
             int floor = 4 * s->floor;
             int ceil = 4 * s->ceil;
             int wtex = adj1->wtex;
+            int ftex = s->ftex;
+            int ctex = s->ctex;
             switch(i)
             {
                 case LEFT:
                     loopi(bsize)
                     {
-                        wm->wallquad(x1+i, y1+bsize-i-1, floor, floor, ceil, ceil,
+                        wm->wallquad(x1+i, y1+bsize-i-1, floor, floor, 
+                                     ceil, ceil,
                                      BOTTOM_LEFT, TOP_RIGHT, wtex);
                     }
+                    corner = BOTTOM_RIGHT;
                     break;
                 case TOP:
                     loopi(bsize)
                     {
-                        wm->wallquad(x1+i, y1+i, floor, floor, ceil, ceil,
+                        wm->wallquad(x1+i, y1+i, floor, floor, 
+                                     ceil, ceil,
                                      TOP_LEFT, BOTTOM_RIGHT, wtex);
                     }
+                    corner = BOTTOM_LEFT;
                     break;
                 case RIGHT:
                     loopi(bsize)
                     {
-                        wm->wallquad(x1+bsize-i-1, y1+i, floor, floor, ceil, ceil,
+                        wm->wallquad(x1+bsize-i-1, y1+i, floor, floor, 
+                                     ceil, ceil,
                                      TOP_RIGHT, BOTTOM_LEFT, wtex);
                     }
+                    corner = TOP_LEFT;
                     break;
                 case BOTTOM:
                     loopi(bsize)
                     {
-                        wm->wallquad(x1+bsize-i-1, y1+bsize-i-1, floor, floor, ceil, ceil,
+                        wm->wallquad(x1+bsize-i-1, y1+bsize-i-1, floor, floor, 
+                                     ceil, ceil,
                                      BOTTOM_RIGHT, TOP_LEFT, wtex);
                     }
+                    corner = TOP_RIGHT;
                     break;
             }
+            wm->flattri(x1, y1, ceil, ctex, corner, true, bsize);
+            wm->flattri(x1, y1, floor, ftex, corner, false, bsize);
+            loopi(2) loopk(bsize) loopj(bsize) wm->cubewalls(x1+j, y1+k, i, false);
             return;
         }
     }
+    
+    // No appropriately placed solids around - form a "non-solid" corner.
+    
+    // Find the best side to form the corner to both the floor
+    // and the ceiling. Best side is the side for which the corner
+    // joining in and the next side (in clockwise direction) protrudes
+    // furthest from the appropriate surface.
+    int floorside = 0, ceilside = 0;
+    
+    // Heights of the two cubes which will be used to form the corner.
+    // Used for selecting the best side.
+    int floorheights[2], ceilheights[2];
+    loopi(2) 
+    {
+        floorheights[i] = -200;
+        ceilheights[i] = 200;
+    }
+    loopi(NUM_SIDES)
+    {
+        sqr const *adj[2];
+        adj[0] = adjcube(x1, y1, i, bsize);
+        adj[1] = adjcube(x1, y1, nextside(i), bsize);
+        int curfloortotal = 0;
+        int newfloortotal = 0;
+        int curceiltotal = 0;
+        int newceiltotal = 0;
+        loopj(2)
+        {
+            curfloortotal += floorheights[j];
+            newfloortotal += adj[j]->floor;
+            curceiltotal += ceilheights[j];
+            newceiltotal += adj[j]->ceil;
+        }
+        loopj(2) 
+        {
+            sqr const *a = adj[j];
+            if(!SOLID(a) && newfloortotal > curfloortotal)
+            {
+                loopk(2) floorheights[k] = adj[k]->floor;
+                floorside = i;
+                break;
+            }
+        }
+        loopj(2) 
+        {
+            sqr const *a = adj[j];
+            if(!SOLID(a) && newceiltotal < curceiltotal)
+            {
+                loopk(2) ceilheights[k] = adj[k]->ceil;
+                ceilside = i;
+                break;
+            }
+        }
+    }
+    
+    int fcorner = cornerfromside(floorside);
+    int ccorner = cornerfromside(ceilside);
+    sqr const *fadj = S(x1, y1+(CT(fcorner)?-1:1)*bsize);
+    sqr const *cadj = S(x1, y1+(CT(ccorner)?-1:1)*bsize);
+
+    
+    sqr const *adj = NULL;
+    
+    // Use floor cubes to form the corner
+    bool floorcorner = int(s->floor)-int(fadj->floor) > int(cadj->ceil)-int(s->ceil);
+    
+    if(floorcorner)
+    {
+        corner = fcorner;
+        adj = fadj;
+    }
+    else
+    {
+        corner = ccorner;
+        adj = cadj;
+    }
+    
+    // Generate flats matching the surrounding floor & ceil
+    wm->flattri(x1, y1, 4*adj->floor, adj->ftex, corner, false, bsize);
+    wm->flattri(x1, y1, 4*adj->ceil, adj->ctex, corner, true, bsize);
+    
+    // Generate flats for the corner itself
+    wm->flattri(x1, y1, 4*s->floor, s->ftex, opposingcorner(corner), false, bsize);
+    wm->flattri(x1, y1, 4*s->ceil, s->ctex, opposingcorner(corner), true, bsize);
+    
+    int wcorner1 = nextcorner(corner);
+    int wcorner2 = nextcorner(opposingcorner(corner));
+    
+    bool flip = wcorner1 == TOP_LEFT || wcorner1 == BOTTOM_RIGHT;    
+    
+    int c = bsize - 1;
+    // Lower walls
+    int flheight = 4 * adj->floor, fuheight = 4 * s->floor;
+    loopi(bsize)
+        wm->wallquad((flip ? x1+i : x1+c-i), y1+i, flheight, flheight, fuheight, fuheight, 
+                     wcorner1, wcorner2, s->wtex);
+    
+    // Upper walls
+    int clheight = 4 * s->ceil, cuheight = 4 * adj->ceil;
+    loopi(bsize)
+        wm->wallquad((flip ? x1+i : x1+c-i), y1+i, clheight, clheight, cuheight, cuheight, 
+                     wcorner1, wcorner2, s->utex);
 
 }
 
@@ -944,7 +1146,10 @@ void flatmeshqt(worldmesh *wm, int x1, int y1, int bsize, bool ceil)
         {
             sqr const *s = S(x, y);
             lighterr += abs(s->r - prev->r) + abs(s->g - prev->g) + abs(s->b - prev->b);
-            if(!unifiable(prev, s, ceil) || (lighterr > maxlighterr))
+            // Check if lighterror is exceeded - never for skymap
+            bool lightfail = (ceil ? prev->ctex : prev->ftex) != 0 && lighterr > maxlighterr;
+            
+            if(lightfail || !unifiable(prev, s, ceil))
             {
                 int hbsize = bsize / 2;
                 flatmeshqt(wm, x1,        y1,        hbsize, ceil);
@@ -956,8 +1161,8 @@ void flatmeshqt(worldmesh *wm, int x1, int y1, int bsize, bool ceil)
         }
     }
     end:
-    /*if(prev->type != CORNER)*/ wm->flat(x1, y1, ceil, bsize);
-    if(!SOLID(prev) && waterlevel > prev->floor) addwaterquad(x1, y1, bssize);
+    if(prev->type != CORNER) wm->flat(x1, y1, ceil, bsize);
+    //if(!SOLID(prev) && waterlevel > prev->floor) addwaterquad(x1, y1, bssize);
 }
 
 #define BI(x,y) (y*(ssize/bssize)+x)
@@ -1072,8 +1277,8 @@ void findwaterquadsqt(int x, int y, int size, int minsize)
  */
 void findwaterquads()
 {
-	// FIXME this function is an unacceptable fps drainer, optimise or
-	// come up with a better way of dealing with water quads.
+    // FIXME this function is an unacceptable fps drainer, optimise or
+    // come up with a better way of dealing with water quads.
     //findwaterquadsqt(0, 0, ssize, 4);
 
     // I optimised it! Only look for water quads in visible render blocks.
@@ -1105,7 +1310,7 @@ void prepgpudata()
         flatmeshqt(&wm, k*bssize, i*bssize, bssize, true);
         loop(y, bssize) loop(x, bssize) wm.cubewalls(k*bssize+x, i*bssize+y, false);
         loop(y, bssize) loop(x, bssize) wm.cubewalls(k*bssize+x, i*bssize+y, true);
-        cornerwalls(&wm, k*bssize, i*bssize, bssize);
+        cornertris(&wm, k*bssize, i*bssize, bssize);
         wm.mark();
     }
     wm.loadtogpu(texbatches, 256);
@@ -1138,7 +1343,6 @@ void rendertrissky()
 void render_world_new(float vx, float vy, float vh, float changelod, int yaw, int pitch, float fov, float fovy, int w, int h)
 {
     wdrawcalls = 0;
-    resetcubes();
 
     if(!visibleblocks.length()) goto done;
 
