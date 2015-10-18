@@ -93,8 +93,8 @@ double blockdist(int);
  */
 struct visibleblockspan
 {
-    
-    visibleblockspan(int start=-1);    
+
+    visibleblockspan(int start=-1);
 
     /// First render block of this span
     int start;
@@ -107,7 +107,7 @@ struct visibleblockspan
 
     /// Distance to the nearest block
     float nearestdist;
-    
+
     /**
      * @brief Update nearest render block and distance if necessary
      */
@@ -120,7 +120,7 @@ struct visibleblockspan
             nearestdist = dist;
         }
     }
-    
+
     /**
      * @brief Find the render block in this span closest to the camera
      */
@@ -131,18 +131,18 @@ struct visibleblockspan
             updatenearest(i);
         }
     }
-    
+
     /**
      * @brief Get the number of vertices in the given batch in this span.
      */
     int vertcount(texbatch const* t);
-    
+
 };
 
 
-visibleblockspan::visibleblockspan(int start) : 
+visibleblockspan::visibleblockspan(int start) :
     start(start), count(1), nearestblock(-1), nearestdist(1e16)
-{ 
+{
     if(start >= 0)
     {
         updatenearest(start);
@@ -168,19 +168,19 @@ DEBUGCODE(VAR(cyclevbs, 0, 0, 1));
 
 class texbatch
 {
-    
+
     // Private list of visible block spans
     vector<visibleblockspan> spans;
-    
+
 public:
-    
+
     GLuint vertexbo;
     GLuint elembo;
     int elemtype;
     int tex;
     int elemcount;
     vector<int> blockstarts;
-    
+
 
     texbatch() : vertexbo(0), elembo(0), tex(0), elemcount(0), elemtype(0) {}
 
@@ -249,7 +249,7 @@ public:
         glDrawElements(GL_TRIANGLES, elemcount, elemtype, 0);
         wdrawcalls += 1;
     }
-    
+
     /**
      * @brief Render all geometry in visible blocks.
      */
@@ -257,7 +257,7 @@ public:
     {
         int spancount = visibleblockspans.length();
         bool ready = false;
-        
+
         spans = visibleblockspans;
         spans.sort<visibleblockspan>(nearestvisibleblockspancmp);
         
@@ -285,7 +285,7 @@ public:
             wdrawcalls += 1;
         }
     }
-    
+
 };
 
 int visibleblockspan::vertcount(const texbatch* t)
@@ -536,13 +536,13 @@ struct worldmesh
     {
         vertindices[tex].add(vertex_index(x, y, h, tex, xo, yo, wall));
     }
-    
+
     void flattri(int x, int y, int h, int tex, int corner, bool ceil, int size=1)
     {
         int corners[3];
         corners[0] = nextcorner(corner, !ceil);
         loopi(2) corners[i+1] = nextcorner(corners[i], ceil);
-        
+
         loopi(3)
         {
             int xo, yo;
@@ -551,9 +551,9 @@ struct worldmesh
         }
         //int xo, yo;
         //corner_offsets(corner, xo, yo);
-        
-        
-        
+
+
+
         /*
         switch(corner)
         {
@@ -578,7 +578,7 @@ struct worldmesh
                 addvert(x+size, y,      h, tex);
                 break;
         }
-        if(ceil) 
+        if(ceil)
         {
             int i = vertindices[tex].length() - 1;
             swap(vertindices[tex][i], vertindices[tex][i-1]);
@@ -902,10 +902,10 @@ bool unifiable(sqr const *s1, sqr const *s2, bool ceil)
 
 /**
  * @brief Get the corner corresponding to the given side
- * 
+ *
  * Gets the corner opposing the corner which joins the given side
  * and the side next to it in counterclockwise direction.
- * 
+ *
  * Helper function for cornertris.
  */
 int cornerfromside(int s)
@@ -916,7 +916,7 @@ int cornerfromside(int s)
         case TOP:    return BOTTOM_LEFT;
         case RIGHT:  return TOP_LEFT;
         case BOTTOM: return TOP_RIGHT;
-    }  
+    }
 }
 
 /**
@@ -926,7 +926,7 @@ void cornertris(worldmesh *wm, int x1, int y1, int bsize)
 {
     // TODO this is a lot of code for a simple thing, the old renderer
     // seemed to get away with a lot less... do something about it?
-    
+
     // Check if the bsize*bsize block at x1,y1 (topleft corner)
     // is a complete corner
     if(bsize == 0) return;
@@ -951,8 +951,8 @@ void cornertris(worldmesh *wm, int x1, int y1, int bsize)
     if(x1 == 0 || y1 == 0 || x1+bsize >= ssize || y1+bsize == ssize) return;
     int corner; // The corner of the block which contains the "solid" part
     sqr const *s = S(x1, y1);
-    
-    
+
+
     // Try making corners with solids
     loopi(NUM_SIDES)
     {
@@ -964,7 +964,6 @@ void cornertris(worldmesh *wm, int x1, int y1, int bsize)
         {
             int floor = 4 * s->floor;
             int ceil = 4 * s->ceil;
-            int wtex = adj1->wtex;
             int ftex = s->ftex;
             int ctex = s->ctex;
             switch(i)
@@ -972,36 +971,36 @@ void cornertris(worldmesh *wm, int x1, int y1, int bsize)
                 case LEFT:
                     loopi(bsize)
                     {
-                        wm->wallquad(x1+i, y1+bsize-i-1, floor, floor, 
+                        wm->wallquad(x1+i, y1+bsize-i-1, floor, floor,
                                      ceil, ceil,
-                                     BOTTOM_LEFT, TOP_RIGHT, wtex);
+                                     BOTTOM_LEFT, TOP_RIGHT, S(x1,y1-bsize)->wtex);
                     }
                     corner = BOTTOM_RIGHT;
                     break;
                 case TOP:
                     loopi(bsize)
                     {
-                        wm->wallquad(x1+i, y1+i, floor, floor, 
+                        wm->wallquad(x1+i, y1+i, floor, floor,
                                      ceil, ceil,
-                                     TOP_LEFT, BOTTOM_RIGHT, wtex);
+                                     TOP_LEFT, BOTTOM_RIGHT, S(x1,y1-bsize)->wtex);
                     }
                     corner = BOTTOM_LEFT;
                     break;
                 case RIGHT:
                     loopi(bsize)
                     {
-                        wm->wallquad(x1+bsize-i-1, y1+i, floor, floor, 
+                        wm->wallquad(x1+bsize-i-1, y1+i, floor, floor,
                                      ceil, ceil,
-                                     TOP_RIGHT, BOTTOM_LEFT, wtex);
+                                     TOP_RIGHT, BOTTOM_LEFT, S(x1,y1+bsize)->wtex);
                     }
                     corner = TOP_LEFT;
                     break;
                 case BOTTOM:
                     loopi(bsize)
                     {
-                        wm->wallquad(x1+bsize-i-1, y1+bsize-i-1, floor, floor, 
+                        wm->wallquad(x1+bsize-i-1, y1+bsize-i-1, floor, floor,
                                      ceil, ceil,
-                                     BOTTOM_RIGHT, TOP_LEFT, wtex);
+                                     BOTTOM_RIGHT, TOP_LEFT, S(x1,y1+bsize)->wtex);
                     }
                     corner = TOP_RIGHT;
                     break;
@@ -1012,19 +1011,19 @@ void cornertris(worldmesh *wm, int x1, int y1, int bsize)
             return;
         }
     }
-    
+
     // No appropriately placed solids around - form a "non-solid" corner.
-    
+
     // Find the best side to form the corner to both the floor
     // and the ceiling. Best side is the side for which the corner
     // joining in and the next side (in clockwise direction) protrudes
     // furthest from the appropriate surface.
     int floorside = 0, ceilside = 0;
-    
+
     // Heights of the two cubes which will be used to form the corner.
     // Used for selecting the best side.
     int floorheights[2], ceilheights[2];
-    loopi(2) 
+    loopi(2)
     {
         floorheights[i] = -200;
         ceilheights[i] = 200;
@@ -1045,7 +1044,7 @@ void cornertris(worldmesh *wm, int x1, int y1, int bsize)
             curceiltotal += ceilheights[j];
             newceiltotal += adj[j]->ceil;
         }
-        loopj(2) 
+        loopj(2)
         {
             sqr const *a = adj[j];
             if(!SOLID(a) && newfloortotal > curfloortotal)
@@ -1055,7 +1054,7 @@ void cornertris(worldmesh *wm, int x1, int y1, int bsize)
                 break;
             }
         }
-        loopj(2) 
+        loopj(2)
         {
             sqr const *a = adj[j];
             if(!SOLID(a) && newceiltotal < curceiltotal)
@@ -1066,18 +1065,18 @@ void cornertris(worldmesh *wm, int x1, int y1, int bsize)
             }
         }
     }
-    
+
     int fcorner = cornerfromside(floorside);
     int ccorner = cornerfromside(ceilside);
     sqr const *fadj = S(x1, y1+(CT(fcorner)?-1:1)*bsize);
     sqr const *cadj = S(x1, y1+(CT(ccorner)?-1:1)*bsize);
 
-    
+
     sqr const *adj = NULL;
-    
+
     // Use floor cubes to form the corner
     bool floorcorner = int(s->floor)-int(fadj->floor) > int(cadj->ceil)-int(s->ceil);
-    
+
     if(floorcorner)
     {
         corner = fcorner;
@@ -1088,31 +1087,31 @@ void cornertris(worldmesh *wm, int x1, int y1, int bsize)
         corner = ccorner;
         adj = cadj;
     }
-    
+
     // Generate flats matching the surrounding floor & ceil
     wm->flattri(x1, y1, 4*adj->floor, adj->ftex, corner, false, bsize);
     wm->flattri(x1, y1, 4*adj->ceil, adj->ctex, corner, true, bsize);
-    
+
     // Generate flats for the corner itself
     wm->flattri(x1, y1, 4*s->floor, s->ftex, opposingcorner(corner), false, bsize);
     wm->flattri(x1, y1, 4*s->ceil, s->ctex, opposingcorner(corner), true, bsize);
-    
+
     int wcorner1 = nextcorner(corner);
     int wcorner2 = nextcorner(opposingcorner(corner));
-    
-    bool flip = wcorner1 == TOP_LEFT || wcorner1 == BOTTOM_RIGHT;    
-    
+
+    bool flip = wcorner1 == TOP_LEFT || wcorner1 == BOTTOM_RIGHT;
+
     int c = bsize - 1;
     // Lower walls
     int flheight = 4 * adj->floor, fuheight = 4 * s->floor;
     loopi(bsize)
-        wm->wallquad((flip ? x1+i : x1+c-i), y1+i, flheight, flheight, fuheight, fuheight, 
+        wm->wallquad((flip ? x1+i : x1+c-i), y1+i, flheight, flheight, fuheight, fuheight,
                      wcorner1, wcorner2, s->wtex);
-    
+
     // Upper walls
     int clheight = 4 * s->ceil, cuheight = 4 * adj->ceil;
     loopi(bsize)
-        wm->wallquad((flip ? x1+i : x1+c-i), y1+i, clheight, clheight, cuheight, cuheight, 
+        wm->wallquad((flip ? x1+i : x1+c-i), y1+i, clheight, clheight, cuheight, cuheight,
                      wcorner1, wcorner2, s->utex);
 
 }
@@ -1148,7 +1147,7 @@ void flatmeshqt(worldmesh *wm, int x1, int y1, int bsize, bool ceil)
             lighterr += abs(s->r - prev->r) + abs(s->g - prev->g) + abs(s->b - prev->b);
             // Check if lighterror is exceeded - never for skymap
             bool lightfail = (ceil ? prev->ctex : prev->ftex) != 0 && lighterr > maxlighterr;
-            
+
             if(lightfail || !unifiable(prev, s, ceil))
             {
                 int hbsize = bsize / 2;
