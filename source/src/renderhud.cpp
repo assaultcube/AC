@@ -1026,13 +1026,12 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     }
 
     if(!hidehudmsgs) hudmsgs.render();
-
-    if(p->state==CS_ALIVE)
+    if(p->state == CS_ALIVE || (p->state == CS_DEAD && p->spectatemode == SM_DEATHCAM))
     {
         glLoadIdentity();
         glOrtho(0, VIRTW/2, VIRTH/2, 0, -1, 1);
 
-        if(!hidehudequipment)
+        if(p->state == CS_ALIVE && !hidehudequipment)
         {
             pushfont("huddigits");
             draw_textf("%d", HUDPOS_HEALTH + HUDPOS_NUMBERSPACING, 823, p->health);
