@@ -182,7 +182,7 @@ public:
     vector<int> blockstarts;
 
 
-    texbatch() : vertexbo(0), elembo(0), tex(0), elemcount(0), elemtype(0) {}
+    texbatch() : vertexbo(0), elembo(0), elemtype(0), tex(0), elemcount(0) {}
 
     void deinit()
     {
@@ -461,17 +461,6 @@ int cornerheight(int x, int y, int corner, bool ceil)
     return cornerheight(x, y, o.x, o.y, ceil);
 }
 
-/**
- * @brief Check if cubes at (x1,y1) and (x2, y2) share an edge.
- */
-bool sideisshared(int x1, int y1, int x2, int y2)
-{
-    int xd = x1-x2;
-    int yd = y1-y2;
-    // TODO This looks like a place where something needs to be done.
-    return true;
-}
-
 // The order in which floor/corner vertices are to be drawn for a triangle pair
 const int FCORNERX[] = { 0, 1, 0, 1, 1, 0 };
 const int FCORNERY[] = { 0, 0, 1, 0, 1, 1 };
@@ -595,7 +584,7 @@ struct worldmesh
      * corner1, corner2 corners this wall spans
      * tex texture id
      */
-    void wallquad(int x, int y, int bh1, int bh2, int uh1, int uh2, int corner1, int corner2, int tex)
+    void wallquad(int x, int y, int bh1, int bh2, int uh1, int uh2, int corner1, int corner2, int tex, int size=1)
     {
 
         int xo1, yo1, xo2, yo2;
@@ -604,6 +593,8 @@ struct worldmesh
 
         int wall = WALL_LEFTTORIGHT;
         if(xo1 != xo2) wall = WALL_TOPTOBOTTOM;
+
+        xo1 *= size; yo1 *= size; xo2 *= size; yo2 *= size;
 
         addvert(x+xo1, y+yo1, uh1, tex, 0, 0, wall);
         addvert(x+xo2, y+yo2, uh2, tex, 0, 0, wall);
@@ -614,13 +605,15 @@ struct worldmesh
 
     }
 
-    void cubewalls(int x, int y, bool ceil, bool skipcorners=true)
+    void cubewalls(int x, int y, bool ceil, bool skipcorners=true, int size=1)
     {
         sqr const *s = S(x, y), *o;
         if(skipcorners && s->type == CORNER) return;
         if(ceil && SOLID(s)) return;
 
-        int ch1, ch2; // Heights of first and second corners
+        // corner heights - elevation (of the bottom) at the starting and
+        // finishing corner
+        int ch1, ch2;
 
         int corners[2];
         // TODO try to get rid of duplicated code in wall/floor sections
@@ -630,29 +623,30 @@ struct worldmesh
             {
                 sidecorners(i, corners);
                 coord2d no = NEIGHBOUR_OFFSETS[i];
-                int xo = x + no.x;
-                int yo = y + no.y;
+                int xo = x + no.x*size;
+                int yo = y + no.y*size;
                 if(OUTBORD(xo, yo)) continue;
                 o = S(xo, yo);
                 if(SOLID(o)) continue;
                 int ch1, ch2;
                 ch1 = ch2 = 4*s->floor;
-                if(!SOLID(s)) {
+                if(!SOLID(s))
+                {
                     ch1 = cornerheight(x, y, corners[0], ceil);
                     ch2 = cornerheight(x, y, corners[1], ceil);
                 }
                 else
                 {
-                    for(int yo = -1; yo <= 1; ++yo) for(int xo = -1; xo <= 1; ++xo)
+                    for(int yo = -1; yo <= size+1; ++yo) for(int xo = -1; xo <= size+1; ++xo)
                     {
                         if(SOLID(S(x+xo, y+yo))) continue;
                         loopk(NUM_CORNERS) ch1 = ch2 = max(ch1, cornerheight(x+xo, y+yo, k, true));
                     }
                 }
-                int lowheight = 4*min<int>(s->floor, o->floor);
+                int lowheight = 4*min(s->floor, o->floor);
                 if(s->type == FHF || o->type == FHF)
                 {
-                    for(int yo = -1; yo <= 1; ++yo) for(int xo = -1; xo <= 1; ++xo)
+                    for(int yo = -1; yo <= size+1; ++yo) for(int xo = -1; xo <= size+1; ++xo)
                     {
                         loopk(NUM_CORNERS) lowheight = min(lowheight, cornerheight(x+xo, y+yo, k, ceil));
                     }
@@ -671,7 +665,7 @@ struct worldmesh
                     }
                 }
                 if((ch1 > lowheight || ch2 > lowheight))
-                    wallquad(x, y, lowheight, lowheight, ch1, ch2, corners[0], corners[1], s->wtex);
+                    wallquad(x, y, lowheight, lowheight, ch1, ch2, corners[0], corners[1], s->wtex, size);
             }
         }
         else
@@ -680,8 +674,8 @@ struct worldmesh
             {
                 sidecorners(i, corners);
                 coord2d no = NEIGHBOUR_OFFSETS[i];
-                int xo = x + no.x;
-                int yo = y + no.y;
+                int xo = x + no.x*size;
+                int yo = y + no.y*size;
                 o = S(xo, yo);
                 if(SOLID(o)) continue;
                 ch1 = cornerheight(x, y, corners[0], ceil);
@@ -689,7 +683,7 @@ struct worldmesh
                 int highheight = 4*max(s->ceil, o->ceil);
                 if(s->type == CHF || o->type == CHF)
                 {
-                    for(int yo = -1; yo <= 1; ++yo) for(int xo = -1; xo <= 1; ++xo)
+                    for(int yo = -1; yo <= size+1; ++yo) for(int xo = -1; xo <= size+1; ++xo)
                     {
                         if(SOLID(S(x+xo, y+yo))) continue;
                         loopk(NUM_CORNERS)
@@ -711,7 +705,7 @@ struct worldmesh
                     }
                 }
                 if((ch1 < highheight || ch2 < highheight))
-                    wallquad(x, y, ch1, ch2, highheight, highheight, corners[0], corners[1], s->utex);
+                    wallquad(x, y, ch1, ch2, highheight, highheight, corners[0], corners[1], s->utex, size);
             }
 
         }
@@ -792,9 +786,9 @@ struct worldmesh
 
     void loadtogpu(texbatch *b, int n=1)
     {
-        int startmillis = SDL_GetTicks();
+        DEBUGS(int startmillis = SDL_GetTicks());
         loopi(n) loadtogpu(b[i]);
-        int endmillis = SDL_GetTicks();
+        DEBUGS(int endmillis = SDL_GetTicks());
         DEBUG("Updated all world geometry buffer objects, time taken: "
             << endmillis - startmillis
             << "ms\n");
@@ -924,9 +918,6 @@ int cornerfromside(int s)
  */
 void cornertris(worldmesh *wm, int x1, int y1, int bsize)
 {
-    // TODO this is a lot of code for a simple thing, the old renderer
-    // seemed to get away with a lot less... do something about it?
-
     // Check if the bsize*bsize block at x1,y1 (topleft corner)
     // is a complete corner
     if(bsize == 0) return;
@@ -949,171 +940,88 @@ void cornertris(worldmesh *wm, int x1, int y1, int bsize)
     }
     // No corners that hug the very edges of the map. Thanks MINBORD!
     if(x1 == 0 || y1 == 0 || x1+bsize >= ssize || y1+bsize == ssize) return;
-    int corner; // The corner of the block which contains the "solid" part
-    sqr const *s = S(x1, y1);
 
+    // Do it like the original
+    //  w
+    // zSt
+    //  vu
 
-    // Try making corners with solids
-    loopi(NUM_SIDES)
+    sqr const *s = S(x1,       y1      );
+    sqr const *w = S(x1,       y1-bsize);
+    sqr const *t = S(x1+bsize, y1      );
+    sqr const *u = S(x1+bsize, y1+bsize);
+    sqr const *v = S(x1,       y1+bsize);
+    sqr const *z = S(x1-bsize, y1      );
+
+    int floor = 4 * s->floor;
+    int ceil = 4 * s->ceil;
+
+    bool normalwall = true;
+
+    if(SOLID(z))
     {
-        // For each side, check if it and the next side (in clockwise
-        // direction) are solids; if so, use them to form the corner.
-        sqr const *adj1 = adjcube(x1, y1, i, bsize);
-        sqr const *adj2 = adjcube(x1, y1, nextside(i), bsize);
-        if(adj1->type == SOLID && adj2->type == SOLID)
+        if(SOLID(w))
         {
-            int floor = 4 * s->floor;
-            int ceil = 4 * s->ceil;
-            int ftex = s->ftex;
-            int ctex = s->ctex;
-            switch(i)
-            {
-                case LEFT:
-                    loopi(bsize)
-                    {
-                        wm->wallquad(x1+i, y1+bsize-i-1, floor, floor,
-                                     ceil, ceil,
-                                     BOTTOM_LEFT, TOP_RIGHT, S(x1,y1-bsize)->wtex);
-                    }
-                    corner = BOTTOM_RIGHT;
-                    break;
-                case TOP:
-                    loopi(bsize)
-                    {
-                        wm->wallquad(x1+i, y1+i, floor, floor,
-                                     ceil, ceil,
-                                     TOP_LEFT, BOTTOM_RIGHT, S(x1,y1-bsize)->wtex);
-                    }
-                    corner = BOTTOM_LEFT;
-                    break;
-                case RIGHT:
-                    loopi(bsize)
-                    {
-                        wm->wallquad(x1+bsize-i-1, y1+i, floor, floor,
-                                     ceil, ceil,
-                                     TOP_RIGHT, BOTTOM_LEFT, S(x1,y1+bsize)->wtex);
-                    }
-                    corner = TOP_LEFT;
-                    break;
-                case BOTTOM:
-                    loopi(bsize)
-                    {
-                        wm->wallquad(x1+bsize-i-1, y1+bsize-i-1, floor, floor,
-                                     ceil, ceil,
-                                     BOTTOM_RIGHT, TOP_LEFT, S(x1,y1+bsize)->wtex);
-                    }
-                    corner = TOP_RIGHT;
-                    break;
-            }
-            wm->flattri(x1, y1, ceil, ctex, corner, true, bsize);
-            wm->flattri(x1, y1, floor, ftex, corner, false, bsize);
-            loopi(2) loopk(bsize) loopj(bsize) wm->cubewalls(x1+j, y1+k, i, false);
-            return;
+            wm->wallquad(x1, y1, floor, floor, ceil, ceil, BOTTOM_LEFT, TOP_RIGHT, w->wtex, bsize);
+            wm->flattri(x1, y1, floor, s->ftex, BOTTOM_RIGHT, false, bsize);
+            wm->flattri(x1, y1, ceil, s->ctex, BOTTOM_RIGHT, true, bsize);
+        }
+        else if(SOLID(v))
+        {
+            wm->wallquad(x1, y1, floor, floor, ceil, ceil, BOTTOM_RIGHT, TOP_LEFT, v->wtex, bsize);
+            wm->flattri(x1, y1, floor, s->ftex, TOP_RIGHT, false, bsize);
+            wm->flattri(x1, y1, ceil, s->ctex, TOP_RIGHT, true, bsize);
         }
     }
-
-    // No appropriately placed solids around - form a "non-solid" corner.
-
-    // Find the best side to form the corner to both the floor
-    // and the ceiling. Best side is the side for which the corner
-    // joining in and the next side (in clockwise direction) protrudes
-    // furthest from the appropriate surface.
-    int floorside = 0, ceilside = 0;
-
-    // Heights of the two cubes which will be used to form the corner.
-    // Used for selecting the best side.
-    int floorheights[2], ceilheights[2];
-    loopi(2)
+    else if(SOLID(t))
     {
-        floorheights[i] = -200;
-        ceilheights[i] = 200;
-    }
-    loopi(NUM_SIDES)
-    {
-        sqr const *adj[2];
-        adj[0] = adjcube(x1, y1, i, bsize);
-        adj[1] = adjcube(x1, y1, nextside(i), bsize);
-        int curfloortotal = 0;
-        int newfloortotal = 0;
-        int curceiltotal = 0;
-        int newceiltotal = 0;
-        loopj(2)
+        if(SOLID(w))
         {
-            curfloortotal += floorheights[j];
-            newfloortotal += adj[j]->floor;
-            curceiltotal += ceilheights[j];
-            newceiltotal += adj[j]->ceil;
+            wm->wallquad(x1, y1, floor, floor, ceil, ceil, TOP_LEFT, BOTTOM_RIGHT, w->wtex, bsize);
+            wm->flattri(x1, y1, floor, s->ftex, BOTTOM_LEFT, false, bsize);
+            wm->flattri(x1, y1, ceil, s->ctex, BOTTOM_LEFT, true, bsize);
         }
-        loopj(2)
+        else if(SOLID(v))
         {
-            sqr const *a = adj[j];
-            if(!SOLID(a) && newfloortotal > curfloortotal)
-            {
-                loopk(2) floorheights[k] = adj[k]->floor;
-                floorside = i;
-                break;
-            }
+            wm->wallquad(x1, y1, floor, floor, ceil, ceil, TOP_RIGHT, BOTTOM_LEFT, v->wtex, bsize);
+            wm->flattri(x1, y1, floor, s->ftex, TOP_LEFT, false, bsize);
+            wm->flattri(x1, y1, ceil, s->ctex, TOP_LEFT, true, bsize);
         }
-        loopj(2)
-        {
-            sqr const *a = adj[j];
-            if(!SOLID(a) && newceiltotal < curceiltotal)
-            {
-                loopk(2) ceilheights[k] = adj[k]->ceil;
-                ceilside = i;
-                break;
-            }
-        }
-    }
-
-    int fcorner = cornerfromside(floorside);
-    int ccorner = cornerfromside(ceilside);
-    sqr const *fadj = S(x1, y1+(CT(fcorner)?-1:1)*bsize);
-    sqr const *cadj = S(x1, y1+(CT(ccorner)?-1:1)*bsize);
-
-
-    sqr const *adj = NULL;
-
-    // Use floor cubes to form the corner
-    bool floorcorner = int(s->floor)-int(fadj->floor) > int(cadj->ceil)-int(s->ceil);
-
-    if(floorcorner)
-    {
-        corner = fcorner;
-        adj = fadj;
     }
     else
     {
-        corner = ccorner;
-        adj = cadj;
+        //normalwall = false;
+        normalwall = false;
+        bool wv = w->ceil-w->floor < v->ceil-v->floor;
+
+        int floor2, ceil2, ftex2, ctex2, wcorner1, wcorner2, fcorner1, fcorner2;
+        sqr const *s2 = NULL;
+
+        if(z->ceil-z->floor < t->ceil-t->floor)
+        {
+            if(wv) { s2 = v; wcorner1 = BOTTOM_LEFT; fcorner1 = TOP_LEFT; }
+            else { s2 = w; wcorner1 = BOTTOM_RIGHT; fcorner1 = BOTTOM_LEFT; }
+        }
+        else
+        {
+            if(wv) { s2 = v; wcorner1 = TOP_LEFT; fcorner1 = TOP_RIGHT; }
+            else { s2 = w; wcorner1 = TOP_RIGHT; fcorner1 = BOTTOM_RIGHT; }
+        }
+        ctex2 = s2->ctex;
+        ftex2 = s2->ftex;
+        floor2 = 4 * s2->floor;
+        ceil2 = 4 * s2->ceil;
+        fcorner2 = opposingcorner(fcorner1);
+        wcorner2 = opposingcorner(wcorner1);
+
+        wm->wallquad(x1, y1, floor, floor, floor2, floor2, wcorner2, wcorner1, s->wtex, bsize); // Lower wall
+        wm->wallquad(x1, y1, ceil2, ceil2, ceil, ceil, wcorner2, wcorner1, s->utex, bsize); // Upper wall
+        wm->flattri(x1, y1, floor, s->ftex, fcorner1, false, bsize); // Floor tri 1
+        wm->flattri(x1, y1, floor2, ftex2, fcorner2, false, bsize); // Floor tri 2
+        wm->flattri(x1, y1, ceil, s->ctex, fcorner1, true, bsize); // Ceil tri 1
+        wm->flattri(x1, y1, ceil2, ctex2, fcorner2, true, bsize); // Ceil tri 2
     }
-
-    // Generate flats matching the surrounding floor & ceil
-    wm->flattri(x1, y1, 4*adj->floor, adj->ftex, corner, false, bsize);
-    wm->flattri(x1, y1, 4*adj->ceil, adj->ctex, corner, true, bsize);
-
-    // Generate flats for the corner itself
-    wm->flattri(x1, y1, 4*s->floor, s->ftex, opposingcorner(corner), false, bsize);
-    wm->flattri(x1, y1, 4*s->ceil, s->ctex, opposingcorner(corner), true, bsize);
-
-    int wcorner1 = nextcorner(corner);
-    int wcorner2 = nextcorner(opposingcorner(corner));
-
-    bool flip = wcorner1 == TOP_LEFT || wcorner1 == BOTTOM_RIGHT;
-
-    int c = bsize - 1;
-    // Lower walls
-    int flheight = 4 * adj->floor, fuheight = 4 * s->floor;
-    loopi(bsize)
-        wm->wallquad((flip ? x1+i : x1+c-i), y1+i, flheight, flheight, fuheight, fuheight,
-                     wcorner1, wcorner2, s->wtex);
-
-    // Upper walls
-    int clheight = 4 * s->ceil, cuheight = 4 * adj->ceil;
-    loopi(bsize)
-        wm->wallquad((flip ? x1+i : x1+c-i), y1+i, clheight, clheight, cuheight, cuheight,
-                     wcorner1, wcorner2, s->utex);
-
+    if(normalwall) loopi(2) wm->cubewalls(x1, y1, i, false, bsize);
 }
 
 /**
@@ -1162,6 +1070,78 @@ void flatmeshqt(worldmesh *wm, int x1, int y1, int bsize, bool ceil)
     end:
     if(prev->type != CORNER) wm->flat(x1, y1, ceil, bsize);
     //if(!SOLID(prev) && waterlevel > prev->floor) addwaterquad(x1, y1, bssize);
+}
+
+/**
+ * @brief Generate wall mesh
+ */
+void wallmesh(worldmesh *wm, int x1, int y1, int bsize, bool ceil)
+{
+    int xbeg = max(1, x1);
+    int ybeg = max(1, y1);
+    int xend = min(ssize-1, x1+bsize);
+    int yend = min(ssize-1, y1+bsize);
+
+    //wmaux(wm, x1, y1, bsize, ceil, false, false);
+
+    // Generate left-to-right walls
+    for(int i = 0; i < 2; ++i)
+    {
+        bool south = !i;
+        int off = i ? 1 : -1;
+        for(int y = ybeg; y < yend; ++y)
+        {
+            sqr const *prev = S(1, y+off);
+            int prevx = 1;
+            for(int x = xbeg; x < xend; ++x)
+            {
+                sqr const *s = S(x,y);
+                sqr const *u = S(x, y+off);
+                if(SOLID(u))
+                {
+                    if(SOLID(s)) continue;
+                    int nx = x;
+                    int lelevation = 4 * s->floor;
+                    int uelevation = 4 * s->ceil;
+                    for(; nx < xend; ++nx)
+                    {
+                        lelevation = min(lelevation, cornerheight(x+1, y, TOP_LEFT, false));
+                        uelevation = max(uelevation, cornerheight(x+1, y, TOP_LEFT, true));
+                        if(!SOLID(S(nx, y+off))) break;
+                        if(S(nx, y+off)->wtex != S(nx-1, y+off)->wtex) break;
+                        if(S(nx, y)->type != SPACE) break;
+                    }
+                    int corner1 = TOP_LEFT, corner2 = TOP_RIGHT;
+                    if(i == 1)
+                    {
+                        corner1 = BOTTOM_RIGHT;
+                        corner2 = BOTTOM_LEFT;
+                    }
+                    if(s->type == FHF || s->type == CHF)
+                    {
+                        // Small optimisation for heightfields
+                        // Wall tris along walls next to heightfields
+                        // have their upper and lower verts connect
+                        wm->wallquad(x, y,
+                                     cornerheight(x, y, corner1, false),
+                                     cornerheight(x, y, corner2, false),
+                                     cornerheight(x, y, corner1, true),
+                                     cornerheight(x, y, corner2, true),
+                                     corner1, corner2, u->wtex, nx - x);
+                    }
+                    else
+                    {
+                        wm->wallquad(x, y,
+                                     lelevation, lelevation,
+                                     uelevation, uelevation,
+                                     corner1, corner2, u->wtex, nx - x);
+                    }
+                    x = nx;
+                }
+            }
+        }
+
+    }
 }
 
 #define BI(x,y) (y*(ssize/bssize)+x)
@@ -1307,6 +1287,8 @@ void prepgpudata()
     {
         flatmeshqt(&wm, k*bssize, i*bssize, bssize, false);
         flatmeshqt(&wm, k*bssize, i*bssize, bssize, true);
+        //wallmesh(&wm, k*bssize, i*bssize, bssize, false);
+        //wallmesh(&wm, k*bssize, i*bssize, bssize, true);
         loop(y, bssize) loop(x, bssize) wm.cubewalls(k*bssize+x, i*bssize+y, false);
         loop(y, bssize) loop(x, bssize) wm.cubewalls(k*bssize+x, i*bssize+y, true);
         cornertris(&wm, k*bssize, i*bssize, bssize);
