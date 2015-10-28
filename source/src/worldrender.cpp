@@ -2,6 +2,11 @@
 // be rendered and how (depending on neighbouring cubes), then calls functions in rendercubes.cpp
 
 #include "cube.h"
+
+#define DEBUGCOND (worldrenderdebug == 1)
+
+VARP(worldrenderdebug, 0, 0, 1);
+
 void render_wall(sqr *o, sqr *s, int x1, int y1, int x2, int y2, int mip, sqr *d1, sqr *d2, bool topleft, int dir)
 {
     if(minimap) return;
@@ -332,7 +337,16 @@ void render_world(float vx, float vy, float vh, float changelod, int yaw, int pi
     render_floor = pitch<0.5f*fovy;
     render_ceil  = -pitch<0.5f*fovy;
 
+    DEBUGS(uint segstartmillis = SDL_GetTicks());
     render_seg_new(vx, vy, vh, MAX_MIP, 0, 0, ssize>>MAX_MIP, ssize>>MAX_MIP);
+    DEBUGS(uint segmillis = SDL_GetTicks() - segstartmillis);
+    DEBUGS(
+           static uint lastdmillis = 0;
+           if(segstartmillis - lastdmillis > 1000)
+           {
+               DEBUG("generated world geometry in " << segmillis << "ms");
+               lastdmillis = segstartmillis;
+           });
     mipstats(stats);
 }
 
