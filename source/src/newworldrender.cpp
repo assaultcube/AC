@@ -625,9 +625,19 @@ struct worldmesh
                 coord2d no = NEIGHBOUR_OFFSETS[i];
                 int xo = x + no.x*size;
                 int yo = y + no.y*size;
-                if(OUTBORD(xo, yo)) continue;
+                if(OUTBORD(xo, yo) || OUTBORD(x, y)) continue;
                 o = S(xo, yo);
-                if(SOLID(o)) continue;
+                {
+                    // Check if all the 1 x 1 cubes along the side of
+                    // this size x size cube are solid.
+                    // If so, no need to draw the wall on this side.
+                    bool solidneighbour = true;
+                    int xbeg = x-1, ybeg = y-1, xinc = 0, yinc = 0;
+                    if(no.x) { ybeg = y; yinc = 1; if(no.x == 1) xbeg = xo; }
+                    if(no.y) { xbeg = x; xinc = 1; if(no.y == 1) ybeg = yo; }
+                    loopj(size) if(!SOLID(S(xbeg+j*xinc, ybeg+j*yinc))) { solidneighbour = false; break; }
+                    if(solidneighbour) continue;
+                }
                 int ch1, ch2;
                 ch1 = ch2 = 4*s->floor;
                 if(!SOLID(s))
@@ -677,6 +687,17 @@ struct worldmesh
                 int xo = x + no.x*size;
                 int yo = y + no.y*size;
                 o = S(xo, yo);
+                {
+                    // Check if all the 1 x 1 cubes along the side of
+                    // this size x size cube are solid.
+                    // If so, no need to draw the wall on this side.
+                    bool solidneighbour = true;
+                    int xbeg = x-1, ybeg = y-1, xinc = 0, yinc = 0;
+                    if(no.x) { ybeg = y; yinc = 1; if(no.x == 1) xbeg = xo; }
+                    if(no.y) { xbeg = x; xinc = 1; if(no.y == 1) ybeg = yo; }
+                    loopj(size) if(!SOLID(S(xbeg+j*xinc, ybeg+j*yinc))) { solidneighbour = false; break; }
+                    if(solidneighbour) continue;
+                }
                 if(SOLID(o)) continue;
                 ch1 = cornerheight(x, y, corners[0], ceil);
                 ch2 = cornerheight(x, y, corners[1], ceil);
@@ -843,7 +864,7 @@ int checkglerrors()
 
 extern void recalc();
 void checkbssize();
-VARFP(bssize, 2, 32, 128, checkbssize(); postregenworldvbos());
+VARFP(bssize, 8, 32, 128, checkbssize(); postregenworldvbos());
 
 /**
  * @brief Make sure bssize is a power of two.
@@ -914,7 +935,7 @@ int cornerfromside(int s)
 }
 
 /**
- * @brief Generate triangles for corners.
+ * @brief Generate both walls and flats for corners.
  */
 void cornertris(worldmesh *wm, int x1, int y1, int bsize)
 {
@@ -960,6 +981,7 @@ void cornertris(worldmesh *wm, int x1, int y1, int bsize)
 
     if(SOLID(z))
     {
+        // Form corner with solids and w/v
         if(SOLID(w))
         {
             wm->wallquad(x1, y1, floor, floor, ceil, ceil, BOTTOM_LEFT, TOP_RIGHT, w->wtex, bsize);
@@ -975,6 +997,7 @@ void cornertris(worldmesh *wm, int x1, int y1, int bsize)
     }
     else if(SOLID(t))
     {
+        // Form corner between solids t and w/v
         if(SOLID(w))
         {
             wm->wallquad(x1, y1, floor, floor, ceil, ceil, TOP_LEFT, BOTTOM_RIGHT, w->wtex, bsize);
@@ -990,7 +1013,7 @@ void cornertris(worldmesh *wm, int x1, int y1, int bsize)
     }
     else
     {
-        //normalwall = false;
+        // No properly placed solids around - form a non-solid corner
         normalwall = false;
         bool wv = w->ceil-w->floor < v->ceil-v->floor;
 
@@ -1021,7 +1044,10 @@ void cornertris(worldmesh *wm, int x1, int y1, int bsize)
         wm->flattri(x1, y1, ceil, s->ctex, fcorner1, true, bsize); // Ceil tri 1
         wm->flattri(x1, y1, ceil2, ctex2, fcorner2, true, bsize); // Ceil tri 2
     }
-    if(normalwall) loopi(2) wm->cubewalls(x1, y1, i, false, bsize);
+    if(normalwall)
+    {
+        loopi(2) wm->cubewalls(x1, y1, i, false, bsize);
+    }
 }
 
 /**
@@ -1070,6 +1096,59 @@ void flatmeshqt(worldmesh *wm, int x1, int y1, int bsize, bool ceil)
     end:
     if(prev->type != CORNER) wm->flat(x1, y1, ceil, bsize);
     //if(!SOLID(prev) && waterlevel > prev->floor) addwaterquad(x1, y1, bssize);
+}
+
+void wallmeshqt(worldmesh *wm, int x1, int y1, int bsize, bool ceil)
+{
+
+    int xbeg = max(1, x1);
+    int ybeg = max(1, y1);
+    int xend = min(ssize-1, x1+bsize);
+    int yend = min(ssize-1, y1+bsize);
+
+    sqr const *prev = S(xbeg, ybeg);
+    //bool hf = (ceil && prev->type == CHF) || (!ceil && prev->type == FHF);
+
+    //int lighterr = 0;
+    //extern int lighterror;
+    //int maxlighterr = lighterror * lighterror;
+    if(bsize == 1) goto end;
+    for(int y = ybeg; y < yend; ++y)
+    {
+        for(int x = xbeg; x < xend; ++x)
+        {
+            bool edge = x == xbeg || x == xend-1 || y == ybeg || y == yend-1;
+            sqr const *s = S(x, y);
+            //lighterr += abs(s->r - prev->r) + abs(s->g - prev->g) + abs(s->b - prev->b);
+            // Check if lighterror is exceeded - never for skymap
+            //bool lightfail = (ceil ? prev->ctex : prev->ftex) != 0 && lighterr > maxlighterr;
+            //bool wtexfail = edge && !ceil && (s->wtex != prev->wtex);
+            //bool utexfail = edge && ceil && (s->utex != prev->utex);
+
+            bool texfail = false;
+            bool typefail = false;
+            bool heightfail = false;
+
+            if(edge)
+            {
+                texfail = ceil ? (s->utex != prev->utex) : (s->wtex != prev->wtex);
+                typefail = s->type != prev->type || (s->type != SPACE || s->type != SOLID);
+                if(!SOLID(s)) heightfail = ceil ? (s->ceil != prev->ceil) : (s->floor != prev->floor);
+            }
+
+            if(typefail || texfail || heightfail)
+            {
+                int hbsize = bsize / 2;
+                wallmeshqt(wm, x1,        y1,        hbsize, ceil);
+                wallmeshqt(wm, x1+hbsize, y1,        hbsize, ceil);
+                wallmeshqt(wm, x1+hbsize, y1+hbsize, hbsize, ceil);
+                wallmeshqt(wm, x1,        y1+hbsize, hbsize, ceil);
+                return;
+            }
+        }
+    }
+    end:
+    if(prev->type != CORNER) loopi(2) wm->cubewalls(x1, y1, i, true, bsize);
 }
 
 /**
@@ -1289,8 +1368,10 @@ void prepgpudata()
         flatmeshqt(&wm, k*bssize, i*bssize, bssize, true);
         //wallmesh(&wm, k*bssize, i*bssize, bssize, false);
         //wallmesh(&wm, k*bssize, i*bssize, bssize, true);
-        loop(y, bssize) loop(x, bssize) wm.cubewalls(k*bssize+x, i*bssize+y, false);
-        loop(y, bssize) loop(x, bssize) wm.cubewalls(k*bssize+x, i*bssize+y, true);
+        //loop(y, bssize) loop(x, bssize) wm.cubewalls(k*bssize+x, i*bssize+y, false);
+        //loop(y, bssize) loop(x, bssize) wm.cubewalls(k*bssize+x, i*bssize+y, true);
+        wallmeshqt(&wm, k*bssize, i*bssize, bssize, false);
+        wallmeshqt(&wm, k*bssize, i*bssize, bssize, true);
         cornertris(&wm, k*bssize, i*bssize, bssize);
         wm.mark();
     }
