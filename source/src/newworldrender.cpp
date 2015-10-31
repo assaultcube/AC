@@ -1143,7 +1143,7 @@ void findvisibleblocks()
 
 bool iswatercube(sqr const *s)
 {
-    return !SOLID(s) && (waterlevel >= s->floor);
+    return !SOLID(s) && (waterlevel >= s->floor - (s->type == FHF ? 0.25f * s->vdelta : 0));
 }
 
 /**
