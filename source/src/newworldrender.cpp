@@ -928,11 +928,12 @@ void cornertris(worldmesh *wm, int x1, int y1, int bsize)
     else
     {
         // No properly placed solids around - form a non-solid corner
+
         normalwall = false;
         bool wv = w->ceil-w->floor < v->ceil-v->floor;
 
+        sqr const *s2 = NULL; // Cube adjacent to the corner, used for lower wall tex
         int floor2, ceil2, ftex2, ctex2, wcorner1, wcorner2, fcorner1, fcorner2;
-        sqr const *s2 = NULL;
 
         if(z->ceil-z->floor < t->ceil-t->floor)
         {
@@ -950,6 +951,13 @@ void cornertris(worldmesh *wm, int x1, int y1, int bsize)
         ceil2 = 4 * s2->ceil;
         fcorner2 = opposingcorner(fcorner1);
         wcorner2 = opposingcorner(wcorner1);
+
+        // Cap the floor/ceil values such that the corner walls don't
+        // have a negative height; ceilings with negative heights are
+        // essentially inverted (they face the wrong way) and cause
+        // artifacting on some bugged maps.
+        floor2 = min(floor, floor2);
+        ceil2 = max(ceil, ceil2);
 
         wm->wallquad(x1, y1, floor, floor, floor2, floor2, wcorner2, wcorner1, s->wtex, bsize); // Lower wall
         wm->wallquad(x1, y1, ceil2, ceil2, ceil, ceil, wcorner2, wcorner1, s->utex, bsize); // Upper wall
