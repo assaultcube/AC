@@ -822,6 +822,37 @@ bool isevenflat(sqr const *s, bool ceil)
     return (s->type == SPACE) || (s->type == (ceil ? FHF : CHF));
 }
 
+double lighterrorscore(int x1, int y1, int x2, int y2, bool edge=false)
+{
+    extern int lighterror;
+    if(lighterror == 100) return 0.0;
+    int w = x2-x1, h = y2-y1;
+    color cornercolors[NUM_CORNERS];
+    loopi(NUM_CORNERS)
+    {
+        int x = x1 + (w+1)*(CR(i) ? 1 : 0);
+        int y = y1 + (h+1)*(CB(i) ? 1 : 0);
+        sqr const *s = S(x, y);
+        cornercolors[i] = color(s->r, s->g, s->b);
+    }
+    double wf = 1.0 / w, hf = 1.0 / h;
+    double score = 1.0;
+
+    double const SCORE_FACTOR = 0.125;
+    loopk(h) loopj(w)
+    {
+        if(edge && k > 0 && k < h && j > 0 && j < w) continue;
+        sqr const *s = S(x1+j, y1+k);
+        double xf = wf * j, yf = hf * k, xs = 1.0 - xf, ys = 1.0 - yf;
+        double r, g, b;
+        #define INTERPOLATE(c) c = xs*ys*cornercolors[TOP_LEFT].c + xf*ys*cornercolors[TOP_RIGHT].c + xs*yf*cornercolors[BOTTOM_LEFT].c + xf*yf*cornercolors[BOTTOM_RIGHT].c;
+        #define ERROR(c) score += SCORE_FACTOR*fabs(s->c - c);
+        INTERPOLATE(r); INTERPOLATE(g); INTERPOLATE(b);
+        ERROR(r); ERROR(g); ERROR(b);
+    }
+    return sqrt(score);
+}
+
 /**
  * @brief Check if two cubes are identical enough to be merged into a mip.
  *
@@ -986,18 +1017,19 @@ void flatmeshqt(worldmesh *wm, int x1, int y1, int bsize, bool ceil)
     sqr const *prev = S(xbeg, ybeg);
     bool hf = (ceil && prev->type == CHF) || (!ceil && prev->type == FHF);
 
-    int lighterr = 0;
     extern int lighterror;
-    int maxlighterr = lighterror * lighterror;
+    bool lightfail = (lighterrorscore(xbeg, ybeg, xend, yend) > lighterror) && (ceil ? prev->ctex : prev->ftex);
+
     if(bsize == 1) goto end;
+
     for(int y = ybeg; y < yend; ++y)
     {
         for(int x = xbeg; x < xend; ++x)
         {
             sqr const *s = S(x, y);
-            lighterr += abs(s->r - prev->r) + abs(s->g - prev->g) + abs(s->b - prev->b);
+            //lighterr += abs(s->r - prev->r) + abs(s->g - prev->g) + abs(s->b - prev->b);
             // Check if lighterror is exceeded - never for skymap
-            bool lightfail = (ceil ? prev->ctex : prev->ftex) != 0 && lighterr > maxlighterr;
+            //bool lightfail = (ceil ? prev->ctex : prev->ftex) != 0 && lighterr > maxlighterr;
 
             if(lightfail || !unifiable(prev, s, ceil))
             {
@@ -1024,9 +1056,8 @@ void wallmeshqt(worldmesh *wm, int x1, int y1, int bsize, bool ceil)
 
     sqr const *prev = S(xbeg, ybeg);
 
-    int lighterr = 0;
     extern int lighterror;
-    int maxlighterr = lighterror * lighterror;
+    bool lightfail = lighterrorscore(xbeg, ybeg, xend, yend, true) > lighterror && (ceil ? prev->utex : prev->wtex);
     if(bsize == 1) goto end;
     for(int y = ybeg; y < yend; ++y)
     {
@@ -1034,9 +1065,8 @@ void wallmeshqt(worldmesh *wm, int x1, int y1, int bsize, bool ceil)
         {
             bool edge = (x == xbeg) || (x == xend-1) || (y == ybeg) || (y == yend-1);
             sqr const *s = S(x, y);
-            lighterr += abs(s->r - prev->r) + abs(s->g - prev->g) + abs(s->b - prev->b);
             // Check if lighterror is exceeded - never for skymap
-            bool lightfail = (ceil ? prev->utex : prev->wtex) != 0 && lighterr > maxlighterr;
+            //bool lightfail = (ceil ? prev->utex : prev->wtex) != 0 && lighterr > maxlighterr;
 
             bool texfail = false;
             bool typefail = s->type != prev->type || (s->type != SPACE && s->type != SOLID);
