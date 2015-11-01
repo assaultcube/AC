@@ -1059,10 +1059,9 @@ void gl_drawframe(int w, int h, float changelod, float curfps, int elapsed)
         extern vector<vertex> verts;
         verts.setsize(0);
     }
-    else
-    {
-        dodynlights();
-    }
+
+    dodynlights();
+
 
     drawminimap(w, h);
 
