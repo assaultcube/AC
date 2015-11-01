@@ -25,6 +25,12 @@ PFNGLACTIVESTENCILFACEEXTPROC glActiveStencilFace_ = NULL;
 PFNGLSTENCILOPSEPARATEATIPROC   glStencilOpSeparate_ = NULL;
 PFNGLSTENCILFUNCSEPARATEATIPROC glStencilFuncSeparate_ = NULL;
 
+extern int usenewworldrenderer;
+extern void findvisibleblocks();
+extern void findwaterquads();
+extern void rendertrissky();
+extern void render_world_new(float vx, float vy, float vh, float changelod, int yaw, int pitch, float fov, float fovy, int w, int h);
+
 void *getprocaddress(const char *name)
 {
     return SDL_GL_GetProcAddress(name);
@@ -675,12 +681,15 @@ void drawreflection(float hf, int w, int h, float changelod, bool refract)
         glEnable(GL_SCISSOR_TEST);
     }
 
-    resetcubes();
+    if(!usenewworldrenderer)
+    {
+        resetcubes();
 
-    render_world(camera1->o.x, camera1->o.y, refract ? camera1->o.z : hf, changelod,
-            (int)camera1->yaw, (refract ? 1 : -1)*(int)camera1->pitch, dynfov(), fovy, size, size);
+        render_world(camera1->o.x, camera1->o.y, refract ? camera1->o.z : hf, changelod,
+                (int)camera1->yaw, (refract ? 1 : -1)*(int)camera1->pitch, dynfov(), fovy, size, size);
 
-    setupstrips();
+        setupstrips();
+    }
 
     if(!refract) glCullFace(GL_BACK);
     glViewport(0, 0, size, size);
@@ -701,7 +710,14 @@ void drawreflection(float hf, int w, int h, float changelod, bool refract)
     glLoadMatrixf(clipmatrix.v);
     glMatrixMode(GL_MODELVIEW);
 
-    renderstripssky();
+    if(usenewworldrenderer)
+    {
+        rendertrissky();
+    }
+    else
+    {
+        renderstripssky();
+    }
 
     glPushMatrix();
     glLoadIdentity();
@@ -720,7 +736,15 @@ void drawreflection(float hf, int w, int h, float changelod, bool refract)
 
     setuptmu(0, "T * P x 2");
 
-    renderstrips();
+    if(usenewworldrenderer)
+    {
+        render_world_new(camera1->o.x, camera1->o.y, camera1->o.z, changelod,
+                (int)camera1->yaw, (int)camera1->pitch, dynfov(), fovy, w, h);
+    }
+    else
+    {
+        renderstrips();
+    }
     rendermapmodels();
     renderentities();
     renderclients();
@@ -1094,15 +1118,9 @@ void gl_drawframe(int w, int h, float changelod, float curfps, int elapsed)
 
     if(usenewworldrenderer)
     {
-
-        extern void findvisibleblocks();
-        extern void findwaterquads();
-        extern void rendertrissky();
-
         findvisibleblocks();
         findwaterquads();
         rendertrissky();
-
     }
     else
     {
@@ -1133,7 +1151,6 @@ void gl_drawframe(int w, int h, float changelod, float curfps, int elapsed)
 
     if(usenewworldrenderer)
     {
-        extern void render_world_new(float vx, float vy, float vh, float changelod, int yaw, int pitch, float fov, float fovy, int w, int h);
         render_world_new(camera1->o.x, camera1->o.y, camera1->o.z, changelod,
                 (int)camera1->yaw, (int)camera1->pitch, dynfov(), fovy, w, h);
 
