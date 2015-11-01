@@ -337,10 +337,10 @@ void render_world(float vx, float vy, float vh, float changelod, int yaw, int pi
     render_floor = pitch<0.5f*fovy;
     render_ceil  = -pitch<0.5f*fovy;
 
-    DEBUGS(uint segstartmillis = SDL_GetTicks());
+    DEBUGCODE(uint segstartmillis = SDL_GetTicks());
     render_seg_new(vx, vy, vh, MAX_MIP, 0, 0, ssize>>MAX_MIP, ssize>>MAX_MIP);
-    DEBUGS(uint segmillis = SDL_GetTicks() - segstartmillis);
-    DEBUGS(
+    DEBUGCODE(uint segmillis = SDL_GetTicks() - segstartmillis);
+    DEBUGCODE(
            static uint lastdmillis = 0;
            if(segstartmillis - lastdmillis > 1000)
            {

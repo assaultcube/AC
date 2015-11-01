@@ -738,9 +738,9 @@ struct worldmesh
 
     void loadtogpu(texbatch *b, int n=1)
     {
-        DEBUGS(int startmillis = SDL_GetTicks());
+        DEBUGCODE(int startmillis = SDL_GetTicks());
         loopi(n) loadtogpu(b[i]);
-        DEBUGS(int endmillis = SDL_GetTicks());
+        DEBUGCODE(int endmillis = SDL_GetTicks());
         DEBUG("Updated all world geometry buffer objects, time taken: "
             << endmillis - startmillis
             << "ms\n");
@@ -1201,7 +1201,7 @@ void prepgpudata()
         return;
     }
     loopi(256) texbatches[i].init(i);
-    DEBUGS(Uint32 startmillis = SDL_GetTicks());
+    DEBUGCODE(Uint32 startmillis = SDL_GetTicks());
     worldmesh wm;
     wm.mark();
     int bscount = ssize / bssize;
@@ -1216,7 +1216,7 @@ void prepgpudata()
         cornertris(&wm, k*bssize, i*bssize, bssize);
         wm.mark();
     }
-    DEBUGS(Uint32 millis = SDL_GetTicks() - startmillis);
+    DEBUGCODE(Uint32 millis = SDL_GetTicks() - startmillis);
     DEBUG("generated world geometry in " << millis << "ms");
     wm.loadtogpu(texbatches, 256);
     glBindBuffer(GL_ARRAY_BUFFER, 0);

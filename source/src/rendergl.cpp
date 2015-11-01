@@ -681,9 +681,10 @@ void drawreflection(float hf, int w, int h, float changelod, bool refract)
         glEnable(GL_SCISSOR_TEST);
     }
 
+    resetcubes();
+
     if(!usenewworldrenderer)
     {
-        resetcubes();
 
         render_world(camera1->o.x, camera1->o.y, refract ? camera1->o.z : hf, changelod,
                 (int)camera1->yaw, (refract ? 1 : -1)*(int)camera1->pitch, dynfov(), fovy, size, size);
@@ -712,6 +713,7 @@ void drawreflection(float hf, int w, int h, float changelod, bool refract)
 
     if(usenewworldrenderer)
     {
+        findvisibleblocks();
         rendertrissky();
     }
     else
