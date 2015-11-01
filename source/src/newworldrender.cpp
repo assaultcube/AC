@@ -592,7 +592,8 @@ struct worldmesh
             coord2d no = NEIGHBOUR_OFFSETS[i];
             int xo = x + no.x*size;
             int yo = y + no.y*size;
-            if(OUTBORD(xo, yo) || OUTBORD(x, y)) continue;
+            //if(OUTBORD(xo, yo) || OUTBORD(x, y)) continue;
+            if(x == 0 || y == 0 || x == ssize-1 || y == ssize-1) continue;
 
             // corner heights - elevation at the starting and finishing corner
             // upper edge for lower and solid walls, lower edge for upper walls
@@ -846,9 +847,9 @@ double lighterrorscore(int x1, int y1, int x2, int y2, bool edge=false)
         double xf = wf * j, yf = hf * k, xs = 1.0 - xf, ys = 1.0 - yf;
         double r, g, b;
         #define INTERPOLATE(c) c = xs*ys*cornercolors[TOP_LEFT].c + xf*ys*cornercolors[TOP_RIGHT].c + xs*yf*cornercolors[BOTTOM_LEFT].c + xf*yf*cornercolors[BOTTOM_RIGHT].c;
-        #define ERROR(c) score += SCORE_FACTOR*fabs(s->c - c);
+        #define LCERROR(c) score += SCORE_FACTOR*fabs(s->c - c);
         INTERPOLATE(r); INTERPOLATE(g); INTERPOLATE(b);
-        ERROR(r); ERROR(g); ERROR(b);
+        LCERROR(r); LCERROR(g); LCERROR(b);
     }
     return sqrt(score);
 }
@@ -905,7 +906,7 @@ void cornertris(worldmesh *wm, int x1, int y1, int bsize)
         }
     }
     // No corners that hug the very edges of the map. Thanks MINBORD!
-    if(OUTBORDRAD(x1, y1, bsize)) return;
+    if(OUTBORD(x1, y1) || OUTBORD(x1+bsize, y1+bsize)) return;
 
     // Do it like the original
     //  w
@@ -1065,8 +1066,6 @@ void wallmeshqt(worldmesh *wm, int x1, int y1, int bsize, bool ceil)
         {
             bool edge = (x == xbeg) || (x == xend-1) || (y == ybeg) || (y == yend-1);
             sqr const *s = S(x, y);
-            // Check if lighterror is exceeded - never for skymap
-            //bool lightfail = (ceil ? prev->utex : prev->wtex) != 0 && lighterr > maxlighterr;
 
             bool texfail = false;
             bool typefail = s->type != prev->type || (s->type != SPACE && s->type != SOLID);
