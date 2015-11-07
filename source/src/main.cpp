@@ -626,7 +626,7 @@ void resetgl()
     c2skeepalive();
     preload_mapmodels();
     c2skeepalive();
-    postregenworldvbos();
+    postregenworldvbos(true);
 }
 
 COMMAND(resetgl, "");

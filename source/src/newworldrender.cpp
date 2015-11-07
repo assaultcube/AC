@@ -9,6 +9,7 @@ PFNGLBINDBUFFERPROC glBindBuffer = NULL;
 PFNGLBUFFERDATAPROC glBufferData = NULL;
 PFNGLGENBUFFERSPROC glGenBuffers = NULL;
 PFNGLDELETEBUFFERSPROC glDeleteBuffers = NULL;
+PFNGLISBUFFERPROC glIsBuffer = NULL;
 
 #define GETPROCADDR(type, name) reinterpret_cast<type>(SDL_GL_GetProcAddress(name))
 
@@ -24,6 +25,7 @@ bool loadglprocs()
     glBufferData = GETPROCADDR(PFNGLBUFFERDATAPROC, "glBufferData");
     glGenBuffers = GETPROCADDR(PFNGLGENBUFFERSPROC, "glGenBuffers");
     glDeleteBuffers = GETPROCADDR(PFNGLDELETEBUFFERSPROC, "glDeleteBuffers");
+    glIsBuffer = GETPROCADDR(PFNGLISBUFFERPROC, "glIsBuffer");
     return glprocsloaded = glBindBuffer && glBufferData && glGenBuffers && glDeleteBuffers;
 }
 
@@ -184,24 +186,18 @@ public:
 
     void deinit()
     {
-        if(vertexbo) glDeleteBuffers(1, &vertexbo);
-        if(elembo) glDeleteBuffers(1, &elembo);
+        if(vertexbo && glIsBuffer(vertexbo)) glDeleteBuffers(1, &vertexbo);
+        if(elembo && glIsBuffer(elembo)) glDeleteBuffers(1, &elembo);
         vertexbo = 0;
         elembo = 0;
         blockstarts.setsize(0);
     }
 
-    ~texbatch()
-    {
-        if(vertexbo) glDeleteBuffers(1, &vertexbo);
-        if(elembo) glDeleteBuffers(1, &elembo);
-    }
-
     void init(int tex)
     {
         this->tex = tex;
-        if(!vertexbo) glGenBuffers(1, &vertexbo);
-        if(!elembo) glGenBuffers(1, &elembo);
+        if(!vertexbo || !glIsBuffer(vertexbo)) glGenBuffers(1, &vertexbo);
+        if(!elembo || !glIsBuffer(vertexbo)) glGenBuffers(1, &elembo);
     }
 
     void bind_buffers() const
@@ -270,13 +266,6 @@ public:
             if(!ready)
             {
                 pre(); // Only bind buffers if there's something to render
-                if(elemcount < 200)
-                {
-                    // For small numbers of verts, just render everything
-                    // in one go and be done with it. Saves a few drawcalls.
-                    drawall();
-                    return;
-                }
                 ready = true;
             }
             glDrawElements(GL_TRIANGLES, len, elemtype, GLBUFOFF(blockstarts[span->start]*indexsize()));
@@ -717,6 +706,7 @@ struct worldmesh
         b.elemcount = evec->length();
         startindices[b.tex].add(b.elemcount);
         b.blockstarts = startindices[b.tex];
+        GLenum usage = editmode ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW;
         if(vs->length() <= 65535)
         {
             // If we have less than 64k verts,
@@ -724,13 +714,13 @@ struct worldmesh
             b.elemtype = GL_UNSIGNED_SHORT;
             ushort *shorts = new ushort[b.elemcount];
             loopi(b.elemcount) shorts[i] = (*evec)[i];
-            glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(ushort) * b.elemcount, shorts, GL_STATIC_DRAW);
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(ushort) * b.elemcount, shorts, usage);
             delete[] shorts;
         }
         else
         {
             b.elemtype = GL_UNSIGNED_INT;
-            glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint) * b.elemcount, evec->getbuf(), GL_STATIC_DRAW);
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint) * b.elemcount, evec->getbuf(), usage);
         }
         DEBUG("updated buffer data for texture " << b.tex << ": "
             << vs->length() << " verts, "
@@ -754,13 +744,24 @@ texbatch texbatches[256];
 #define wloop(i) for(int i = 1, end = ssize - 1; i < end; ++i)
 #define wbloop(start, end, var) for(int var = max(1, static_cast<int>(start)), __end = max(ssize-1, static_cast<int>(end)); var < __end; ++var)
 
+enum 
+{ 
+    RWB_NONE = 0, // no need to regen world buffers 
+    RWB_SOFT, // only update data in world buffers
+    RWB_HARD // recreate buffer objects
+};
+
 // Map geometry has been updated and static geometry on the GPU needs updating.
-bool regenworldbuffers = true;
+int regenworldbuffers = RWB_HARD;
 
 /**
  * @brief Update GPU-side world geometry before next frame is rendered.
+ * 
+ * If hard is false (default), only the data in the buffers is updated.
+ * Otherwise, the VBOs are generated if necessary, but this is slower
+ * and only required at initialisation or after OpenGL state changes.
  */
-void postregenworldvbos()
+void postregenworldvbos(bool hard)
 {
     if(!usenewworldrenderer)
     {
@@ -768,7 +769,7 @@ void postregenworldvbos()
         loopi(256) texbatches[i].deinit();
     }
     visibleblocks.setsize(0);
-    regenworldbuffers = true;
+    regenworldbuffers = max<int>(regenworldbuffers, hard ? RWB_HARD : RWB_SOFT);
 }
 
 
@@ -1220,7 +1221,8 @@ void findwaterquads()
 
 void prepgpudata()
 {
-    if(!regenworldbuffers) return;
+    
+    if(regenworldbuffers == RWB_NONE) return;
 
     // TODO separate world buffer generation and renderer initialisation
     if(!loadglprocs())
@@ -1229,7 +1231,7 @@ void prepgpudata()
         usenewworldrenderer = 0;
         return;
     }
-    loopi(256) texbatches[i].init(i);
+    if(regenworldbuffers == RWB_HARD) loopi(256) texbatches[i].init(i);
     DEBUGCODE(Uint32 startmillis = SDL_GetTicks());
     worldmesh wm;
     wm.mark();
@@ -1250,7 +1252,7 @@ void prepgpudata()
     wm.loadtogpu(texbatches, 256);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    regenworldbuffers = false;
+    regenworldbuffers = RWB_NONE;
 }
 
 /**

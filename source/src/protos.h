@@ -667,7 +667,7 @@ extern void computeraytable(float vx, float vy, float fov);
 extern int isoccluded(float vx, float vy, float cx, float cy, float csize);
 
 // new worldrenderer
-extern void postregenworldvbos();
+extern void postregenworldvbos(bool hard=false);
 
 // main
 extern char *lang;
@@ -730,11 +730,14 @@ extern void text_endcolumns();
 extern void cutcolorstring(char *text, int len);
 extern bool filterunrenderables(char *s);
 
+extern int usenewworldrenderer;
+extern void postregenworldvbos(bool);
+
 // editing
-#define EDITSEL(x)   if(noteditmode(x) || noselection()) return
-#define EDITSELMP(x) if(noteditmode(x) || noselection() || multiplayer(x)) return
-#define EDITMP(x)    if(noteditmode(x) || multiplayer(x)) return
-#define EDIT(x)      if(noteditmode(x)) return
+#define EDITSEL(x)   if(noteditmode(x) || noselection()) return; if(usenewworldrenderer) postregenworldvbos()
+#define EDITSELMP(x) if(noteditmode(x) || noselection() || multiplayer(x)) return; if(usenewworldrenderer) postregenworldvbos()
+#define EDITMP(x)    if(noteditmode(x) || multiplayer(x)) return; if(usenewworldrenderer) postregenworldvbos()
+#define EDIT(x)      if(noteditmode(x)) return; if(usenewworldrenderer && strcmp(x, "editentity")) postregenworldvbos()
 extern void cursorupdate();
 extern void toggleedit(bool force = false);
 extern void reseteditor();

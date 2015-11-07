@@ -135,7 +135,6 @@ char *editinfo()
     return info;
 }
 
-
 // multiple sels
 
 // add a selection to the list
