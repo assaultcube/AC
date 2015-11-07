@@ -454,8 +454,9 @@ char *lookup(char *n)                           // find value of ident reference
     return n;
 }
 
-char *parseword(const char *&p, int arg, int &infix)                       // parse single argument, including expressions
+char *parseword(const char *&p, bool &plain)                       // parse single argument, including expressions
 {
+    plain = false;
     p += strspn(p, " \t\r");
     if(p[0]=='/' && p[1]=='/') p += strcspn(p, "\n\0");
     if(*p=='\"')
@@ -479,10 +480,7 @@ char *parseword(const char *&p, int arg, int &infix)                       // pa
     const char *word = p;
     p += strcspn(p, "; \t\r\n\0");
     if(p-word==0) return NULL;
-    if(arg==1 && p-word==1) switch(*word)
-    {
-        case '=': infix = *word; break;
-    }
+    plain = true;
     char *s = newstring(word, p-word);
     if(*s=='$') return lookup(s);
     return s;
@@ -534,6 +532,33 @@ void floatret(float v, bool neat)
 }
 
 void result(const char *s) { commandret = newstring(s); }
+
+#define MAXINFIXMODOPS 8
+const char *infixmodops[MAXINFIXMODOPS] = {"+=", "-=", "*=", "div=", "+=f", "-=f", "*=f", "div=f"};
+
+void expandinfixop(char **args)
+{
+    char *cmd = NULL;
+
+    if(!strcmp(args[1], "=")) cmd = newstring("alias");
+    else {
+        loopi(MAXINFIXMODOPS)
+        {
+            if(!strcmp(args[1], infixmodops[i]))
+            {
+                cmd = newstring(infixmodops[i]);
+                break;
+            }
+        }
+    }
+
+    if(cmd)
+    {
+        DELETEA(args[1]);
+        args[1] = args[0];
+        args[0] = cmd;
+    }
+}
 
 #if 0
 // seer : script evaluation excessive recursion
@@ -587,16 +612,22 @@ char *executeret(const char *p)                            // all evaluation hap
     #define setretval(v) { char *rv = v; if(rv) retval = rv; }
     if(noproblem) // if the "seer"-algorithm doesn't object
     {
-        for(bool cont = true; cont;)                // for each ; seperated statement
+        for(bool cont = true; cont;)                // for each ; separated statement
         {
             if(loop_level && loop_skip) break;
-            int numargs = MAXWORDS, infix = 0;
+            int numargs = MAXWORDS;
+            bool plain = false;
             loopi(MAXWORDS)                         // collect all argument values
             {
                 w[i] = &emptychar;
                 if(i>numargs) continue;
-                char *s = parseword(p, i, infix);   // parse and evaluate exps
-                if(s) w[i] = s;
+                char *s = parseword(p, plain);   // parse and evaluate argument
+                if(s)
+                {
+                    w[i] = s;
+                    // check if it's an infix operator
+                    if(plain && i == 1) expandinfixop(w);
+                }
                 else numargs = i;
             }
 
@@ -606,18 +637,6 @@ char *executeret(const char *p)                            // all evaluation hap
             if(!*c) continue;                       // empty statement
 
             DELETEA(retval);
-
-            if(infix)
-            {
-                switch(infix)
-                {
-                    case '=':
-                        DELETEA(w[1]);
-                        swap(w[0], w[1]);
-                        c = "alias";
-                        break;
-                }
-            }
 
             ident *id = idents->access(c);
             if(!id)
