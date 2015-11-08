@@ -29,7 +29,7 @@ extern int usenewworldrenderer;
 extern void findvisibleblocks();
 extern void findwaterquads();
 extern void rendertrissky();
-extern void render_world_new(float vx, float vy, float vh, float changelod, int yaw, int pitch, float fov, float fovy, int w, int h);
+extern void render_world_new();
 
 void *getprocaddress(const char *name)
 {
@@ -740,8 +740,7 @@ void drawreflection(float hf, int w, int h, float changelod, bool refract)
 
     if(usenewworldrenderer)
     {
-        render_world_new(camera1->o.x, camera1->o.y, camera1->o.z, changelod,
-                (int)camera1->yaw, (int)camera1->pitch, dynfov(), fovy, w, h);
+        render_world_new();
     }
     else
     {
@@ -1155,8 +1154,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps, int elapsed)
 
     if(usenewworldrenderer)
     {
-        render_world_new(camera1->o.x, camera1->o.y, camera1->o.z, changelod,
-                (int)camera1->yaw, (int)camera1->pitch, dynfov(), fovy, w, h);
+        render_world_new();
 
     }
     else

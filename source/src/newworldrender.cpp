@@ -2,6 +2,11 @@
 #include "cube.h"
 #include "tools.h"
 
+// Forward declarations
+class texbatch;
+double blockdist(int);
+int checkglerrors();
+
 VARP(usenewworldrenderer, 0, 0, 1);
 
 //TODO ogl functions need to go to a better place.
@@ -28,7 +33,8 @@ bool loadglprocs()
     glDeleteBuffers = GETPROCADDR(PFNGLDELETEBUFFERSPROC, "glDeleteBuffers");
     glIsBuffer = GETPROCADDR(PFNGLISBUFFERPROC, "glIsBuffer");
     glMultiDrawElements = GETPROCADDR(PFNGLMULTIDRAWELEMENTSPROC, "glMultiDrawElements");
-    return glprocsloaded = glBindBuffer && glBufferData && glGenBuffers && glDeleteBuffers;
+    return glprocsloaded = glBindBuffer && glBufferData && glGenBuffers && glDeleteBuffers
+        && glIsBuffer && glMultiDrawElements;
 }
 
 #define DEBUGCOND (newworldrenderdebug == 1)
@@ -66,11 +72,8 @@ bool htcmp(const vertexpoint &vp1, const vertexpoint &vp2)
 }
 
 #define VERTCOLOURS(v, s) { (v).r = (s).r; (v).g = (s).g; (v).b = (s).b; (v).a = 255; }
-
-
 #define GLBUFOFF(n) static_cast<GLvoid *>(static_cast<char *>(0) + (n))
 
-int checkglerrors();
 
 int intcmpf(int *i1, int *i2)
 {
@@ -87,8 +90,6 @@ int intcmpfr(int *i1, int *i2)
     return 0;
 }
 
-struct texbatch;
-double blockdist(int);
 
 /**
  * @brief A sequence of adjacent render blocks that can be rendered in one go.
@@ -261,7 +262,7 @@ public:
         DEBUGCODE(int curspan = spancount ? (cyclevbs * totalmillis / 1000) % spancount : 0);
 
         vector<GLsizei> counts;
-        vector<GLvoid*> indices;
+        vector<GLvoid const *> indices;
         loopi(spancount)
         {
             DEBUGCODE(if(cyclevbs && (i != curspan)) continue);
@@ -409,20 +410,6 @@ sqr *adjcube(int x, int y, int side, int stride=1)
 }
 
 /**
- * @brief Get the corner that joints the two sides.
- *
- * @returns the corner common to the given sides, or -1 if non-neighbouring
- */
-int commoncorner(int side1, int side2)
-{
-    int side1corners[2], side2corners[2];
-    sidecorners(side1, side1corners);
-    sidecorners(side2, side2corners);
-    loopi(2) loopk(2) if(side1corners[i] == side2corners[k]) return side1corners[i];
-    return -1;
-}
-
-/**
  * @brief Find the vdeltas for the cube at (x, y).
  *
  * Returns 0 if the given surface (floor/ceil) is not a heightfield.
@@ -512,12 +499,6 @@ struct worldmesh
         return elemindexmap[tex].access(vp, newidx);
     }
 
-    bool hasdata() const
-    {
-        loopi(256) if(verts[i].length()) return true;
-        return false;
-    }
-
     void addvert(int x, int y, int h, int tex, int xo=0, int yo=0, int wall=FLAT)
     {
         vertindices[tex].add(vertex_index(x, y, h, tex, xo, yo, wall));
@@ -585,7 +566,6 @@ struct worldmesh
             coord2d no = NEIGHBOUR_OFFSETS[i];
             int xo = x + no.x*size;
             int yo = y + no.y*size;
-            //if(OUTBORD(xo, yo) || OUTBORD(x, y)) continue;
             if(x == 0 || y == 0 || x == ssize-1 || y == ssize-1) continue;
 
             // corner heights - elevation at the starting and finishing corner
@@ -713,8 +693,7 @@ struct worldmesh
         GLenum usage = editmode ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW;
         if(vs->length() <= 65535)
         {
-            // If we have less than 64k verts,
-            // we can use short indices.
+            // Use short indices if less than 64k verts
             b.elemtype = GL_UNSIGNED_SHORT;
             ushort *shorts = new ushort[b.elemcount];
             loopi(b.elemcount) shorts[i] = (*evec)[i];
@@ -821,7 +800,9 @@ void checkbssize()
 #define bloopxy(xb, yb) wbloop(yb*bssize, (yb+1)*bssize, y) wbloop(xb*bssize, (xb+1)*bssize, x)
 
 /**
- * @brief Do you even flat bro?
+ * @brief Check if the given floor/ceiling flat is level
+ * 
+ * i.e. not a heightfield
  */
 bool isevenflat(sqr const *s, bool ceil)
 {
@@ -869,8 +850,7 @@ double lighterrorscore(int x1, int y1, int x2, int y2, bool edge=false)
  */
 bool unifiable(sqr const *s1, sqr const *s2, bool ceil)
 {
-    //if((s1->type == CORNER) != (s2->type == CORNER)) return false;
-    if(s1->type == CORNER && s2->type == CORNER) return true;
+    if(s1->type == CORNER && s2->type == CORNER) return false;
     if(!isevenflat(s1, ceil) || !isevenflat(s2, ceil)) return false;
     if(ceil)
     {
@@ -921,7 +901,6 @@ void cornertris(worldmesh *wm, int x1, int y1, int bsize)
     sqr const *s = S(x1,       y1      );
     sqr const *w = S(x1,       y1-bsize);
     sqr const *t = S(x1+bsize, y1      );
-    sqr const *u = S(x1+bsize, y1+bsize);
     sqr const *v = S(x1,       y1+bsize);
     sqr const *z = S(x1-bsize, y1      );
 
@@ -932,7 +911,7 @@ void cornertris(worldmesh *wm, int x1, int y1, int bsize)
 
     if(SOLID(z))
     {
-        // Form corner with solids and w/v
+        // Form corner with solids z and w or v
         if(SOLID(w))
         {
             wm->wallquad(x1, y1, floor, floor, ceil, ceil, BOTTOM_LEFT, TOP_RIGHT, w->wtex, bsize);
@@ -948,7 +927,7 @@ void cornertris(worldmesh *wm, int x1, int y1, int bsize)
     }
     else if(SOLID(t))
     {
-        // Form corner between solids t and w/v
+        // Form corner between solids t and w or v
         if(SOLID(w))
         {
             wm->wallquad(x1, y1, floor, floor, ceil, ceil, TOP_LEFT, BOTTOM_RIGHT, w->wtex, bsize);
@@ -1021,7 +1000,6 @@ void flatmeshqt(worldmesh *wm, int x1, int y1, int bsize, bool ceil)
     int yend = min(ssize-1, y1+bsize);
 
     sqr const *prev = S(xbeg, ybeg);
-    bool hf = (ceil && prev->type == CHF) || (!ceil && prev->type == FHF);
 
     extern int lighterror;
     bool lightfail = (lighterrorscore(xbeg, ybeg, xend, yend) > lighterror) && (ceil ? prev->ctex : prev->ftex);
@@ -1033,10 +1011,6 @@ void flatmeshqt(worldmesh *wm, int x1, int y1, int bsize, bool ceil)
         for(int x = xbeg; x < xend; ++x)
         {
             sqr const *s = S(x, y);
-            //lighterr += abs(s->r - prev->r) + abs(s->g - prev->g) + abs(s->b - prev->b);
-            // Check if lighterror is exceeded - never for skymap
-            //bool lightfail = (ceil ? prev->ctex : prev->ftex) != 0 && lighterr > maxlighterr;
-
             if(lightfail || !unifiable(prev, s, ceil))
             {
                 int hbsize = bsize / 2;
@@ -1114,7 +1088,7 @@ int getbcount()
 /**
  * @brief Get the (x,y) coordinates of the given block
  *
- * @param center distance from the center rather than top-left corner
+ * @param center position of the center rather than top-left corner
  */
 coord2d blockpos(int b, bool center=false)
 {
@@ -1376,14 +1350,12 @@ void prepgpudata()
 
 /**
  * @brief Render skymap tris
- *
- *
  */
 void rendertrissky()
 {
     if(texbatches[0].elemcount)
     {
-        skyfloor = -128.0f; // No idea what this does
+        skyfloor = -128.0f;
         glDisable(GL_TEXTURE_2D);
         glDisableClientState(GL_TEXTURE_COORD_ARRAY);
         glEnableClientState(GL_VERTEX_ARRAY);
@@ -1400,7 +1372,7 @@ void rendertrissky()
 }
 
 // TODO git rid of unused arguments
-void render_world_new(float vx, float vy, float vh, float changelod, int yaw, int pitch, float fov, float fovy, int w, int h)
+void render_world_new()
 {
 
     if(!visibleblocks.length()) goto done;
