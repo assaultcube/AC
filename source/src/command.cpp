@@ -629,15 +629,13 @@ char *executeret(const char *p)                            // all evaluation hap
                 }
                 setretval(newstring(c));
             }
+            else if(!allowidentaccess(id))
+            {
+                conoutf("not allowed in this execution context: %s", id->name);
+                scripterr();
+            }
             else
             {
-                if(!allowidentaccess(id))
-                {
-                    conoutf("not allowed in this execution context: %s", id->name);
-                    scripterr();
-                    continue;
-                }
-
                 switch(id->type)
                 {
                     case ID_COMMAND:                    // game defined commands
