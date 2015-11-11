@@ -1176,6 +1176,47 @@ bool iswatercube(sqr const *s)
     return !SOLID(s) && (waterlevel >= s->floor - (s->type == FHF ? 0.25f * s->vdelta : 0));
 }
 
+#define loopxy(xmax, ymax) loop(y, ymax) loop(x, xmax)
+
+bool *waterblocks = NULL;
+int lastwbcount = 0;
+float lastwaterlevel = 0.0;
+
+/**
+ * @brief Find all render blocks that have water in them.
+ */
+void findwaterblocks(bool force=false)
+{
+    int bscount = getbscount();
+    int wbcount = bscount * bscount;
+    if(lastwbcount != wbcount)
+    {
+        delete[] waterblocks;
+        waterblocks = new bool[bscount * bscount];
+        lastwbcount = wbcount;
+    }
+    else if(!force && fabs(waterlevel - lastwaterlevel) < 1e-3)
+    {
+        // If water level hasn't changed, no need to do the search.
+        return;
+    }
+    lastwaterlevel = waterlevel;
+    loopi(bscount) loopk(bscount)
+    {
+        bool iswaterblock = false;
+        loopxy(bssize, bssize)
+        {
+            if(iswatercube(S(bssize*k+x, bssize*i+y)))
+            {
+                iswaterblock = true;
+                goto done;
+            }
+        }
+        done:
+        waterblocks[i*bscount+k] = iswaterblock;
+    }
+}
+
 /**
  * @brief Find visible water quads in the given area.
  */
@@ -1212,10 +1253,13 @@ void findwaterquadsqt(int x, int y, int size, int minsize)
  */
 void findwaterquads()
 {
+    findwaterblocks();
     loopv(visibleblocks)
     {
-        coord2d bp = blockpos(visibleblocks[i]);
-        findwaterquadsqt(bp.x, bp.y, bssize, 2);
+        int block = visibleblocks[i];
+        if(!waterblocks[block]) continue;
+        coord2d bp = blockpos(block);
+        findwaterquadsqt(bp.x, bp.y, bssize, 4);
     }
 }
 
@@ -1223,6 +1267,8 @@ void prepgpudata()
 {
     
     if(regenworldbuffers == RWB_NONE) return;
+
+    findwaterblocks(true);
 
     // TODO separate world buffer generation and renderer initialisation
     if(!loadglprocs())
