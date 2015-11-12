@@ -1135,6 +1135,8 @@ double blockdist(int b)
     return sqrt(pow(bp.x-camera1->o.x, 2) + pow(bp.y-camera1->o.y, 2));
 }
 
+VARP(maxrenderblockspanlength, 1, 1000, 100000);
+
 /**
  * @brief Find all visible (non-occluded) render blocks.
  *
@@ -1163,7 +1165,7 @@ void findvisibleblocks()
     for(int i = 1; i < visibleblocks.length(); ++i)
     {
         int vb = visibleblocks[i];
-        if((visibleblocks[i-1]+1 == vb))
+        if(visibleblocks[i-1]+1 == vb && span->count < maxrenderblockspanlength)
         {
             ++span->count;
             span->updatenearest(vb);
