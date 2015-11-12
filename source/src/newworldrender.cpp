@@ -1106,6 +1106,11 @@ int getbscount()
     return ssize / bssize;
 }
 
+int getbcount()
+{
+    return getbscount() * getbscount();
+}
+
 /**
  * @brief Get the (x,y) coordinates of the given block
  *
@@ -1135,6 +1140,47 @@ double blockdist(int b)
     return sqrt(pow(bp.x-camera1->o.x, 2) + pow(bp.y-camera1->o.y, 2));
 }
 
+#define loopxy(xmax, ymax) loop(y, ymax) loop(x, xmax)
+
+bool isalwaysoccludedblock(int x1, int y1, int size)
+{
+    loopxy(size, size)
+    {
+        // First check if the block is entirely solid itself
+        if(!SOLID(S(x1+x, y1+y))) return false;
+    }
+
+    loopi(size)
+    {
+        // Then check each of the four sides
+        if(x1 > 0 && !SOLID(S(x1-1, y1+i))) return false; // left
+        if(y1 > 0 && !SOLID(S(x1+i, y1-1))) return false; // top
+        if(x1+size+1 < ssize && !SOLID(S(x1+size+1, y1+i))) return false; // right
+        if(y1+size+1 < ssize && !SOLID(S(x1+i, y1+size+1))) return false; // bottom
+    }
+
+    return true;
+}
+
+bool *alwaysoccludedblocks = NULL;
+
+/**
+ * @brief Find render blocks that are always occluded
+ *
+ * That is, surrounded entirely by solids so they are not
+ * visible from anywhere.
+ */
+void findalwaysoccludedblocks()
+{
+    int bscount = getbscount();
+    delete[] alwaysoccludedblocks;
+    alwaysoccludedblocks = new bool[bscount * bscount];
+    loopxy(bscount, bscount)
+    {
+        alwaysoccludedblocks[y*bscount+x] = isalwaysoccludedblock(x * bssize, y * bssize, bssize);
+    }
+}
+
 VARP(maxrenderblockspanlength, 1, 1000, 100000);
 
 /**
@@ -1150,7 +1196,7 @@ void findvisibleblocks()
 
     loopj(bscount) loopk(bscount)
     {
-        if(!isoccluded(camera1->o.x, camera1->o.y, k*bssize, j*bssize, bssize))
+        if(!alwaysoccludedblocks[BI(k, j)] && !isoccluded(camera1->o.x, camera1->o.y, k*bssize, j*bssize, bssize))
         {
             visibleblocks.add(BI(k, j));
         }
@@ -1168,12 +1214,15 @@ void findvisibleblocks()
         if(visibleblocks[i-1]+1 == vb && span->count < maxrenderblockspanlength)
         {
             ++span->count;
-            span->updatenearest(vb);
         }
         else
         {
             span = &(visibleblockspans.add(visibleblockspan(vb)));
         }
+    }
+    loopv(visibleblockspans)
+    {
+        visibleblockspans[i].findnearest();
     }
 }
 
@@ -1182,7 +1231,6 @@ bool iswatercube(sqr const *s)
     return !SOLID(s) && (waterlevel >= s->floor - (s->type == FHF ? 0.25f * s->vdelta : 0));
 }
 
-#define loopxy(xmax, ymax) loop(y, ymax) loop(x, xmax)
 
 bool *waterblocks = NULL;
 int lastwbcount = 0;
@@ -1269,12 +1317,31 @@ void findwaterquads()
     }
 }
 
+void printblockstats()
+{
+    int alwaysoccluded = 0;
+    int water = 0;
+    loopi(getbcount())
+    {
+        if(alwaysoccludedblocks[i]) ++alwaysoccluded;
+        if(waterblocks[i]) ++water;
+    }
+    conoutf("blocksize: %dx%d blockcount: %d always occluded: %d (%d%%) water: %d",
+        bssize, bssize, getbcount(),
+        alwaysoccluded, int(100.0*alwaysoccluded/getbcount()),
+        water
+    );
+}
+
+COMMAND(printblockstats, "");
+
 void prepgpudata()
 {
     
     if(regenworldbuffers == RWB_NONE) return;
 
     findwaterblocks(true);
+    findalwaysoccludedblocks();
 
     // TODO separate world buffer generation and renderer initialisation
     if(!loadglprocs())
@@ -1335,7 +1402,6 @@ void rendertrissky()
 // TODO git rid of unused arguments
 void render_world_new(float vx, float vy, float vh, float changelod, int yaw, int pitch, float fov, float fovy, int w, int h)
 {
-    wdrawcalls = 0;
 
     if(!visibleblocks.length()) goto done;
 

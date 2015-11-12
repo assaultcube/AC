@@ -1051,6 +1051,9 @@ void gl_drawframe(int w, int h, float changelod, float curfps, int elapsed)
     bool effective_waterreflect = waterreflect && !editmode && (!mapoverride_nowaterreflect || ignoreoverride_nowaterreflect);
 
     extern int usenewworldrenderer;
+    
+    extern int wdrawcalls;
+    wdrawcalls = 0;
 
     if(usenewworldrenderer)
     {
@@ -1225,5 +1228,6 @@ void gl_drawframe(int w, int h, float changelod, float curfps, int elapsed)
     glEnable(GL_FOG);
 
     undodynlights();
+
 }
 
