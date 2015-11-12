@@ -10,6 +10,7 @@ PFNGLBUFFERDATAPROC glBufferData = NULL;
 PFNGLGENBUFFERSPROC glGenBuffers = NULL;
 PFNGLDELETEBUFFERSPROC glDeleteBuffers = NULL;
 PFNGLISBUFFERPROC glIsBuffer = NULL;
+PFNGLMULTIDRAWELEMENTSPROC glMultiDrawElements = NULL;
 
 #define GETPROCADDR(type, name) reinterpret_cast<type>(SDL_GL_GetProcAddress(name))
 
@@ -26,6 +27,7 @@ bool loadglprocs()
     glGenBuffers = GETPROCADDR(PFNGLGENBUFFERSPROC, "glGenBuffers");
     glDeleteBuffers = GETPROCADDR(PFNGLDELETEBUFFERSPROC, "glDeleteBuffers");
     glIsBuffer = GETPROCADDR(PFNGLISBUFFERPROC, "glIsBuffer");
+    glMultiDrawElements = GETPROCADDR(PFNGLMULTIDRAWELEMENTSPROC, "glMultiDrawElements");
     return glprocsloaded = glBindBuffer && glBufferData && glGenBuffers && glDeleteBuffers;
 }
 
@@ -250,27 +252,29 @@ public:
     void batchdraw()
     {
         int spancount = visibleblockspans.length();
-        bool ready = false;
+
+        if(!spancount) return;
 
         spans = visibleblockspans;
         spans.sort<visibleblockspan>(nearestvisibleblockspancmp);
-        
-        DEBUGCODE(int curspan = (totalmillis / 1000) % spancount);
-        
+
+        DEBUGCODE(int curspan = spancount ? (cyclevbs * totalmillis / 1000) % spancount : 0);
+
+        vector<GLsizei> counts;
+        vector<GLvoid*> indices;
         loopi(spancount)
         {
             DEBUGCODE(if(cyclevbs && (i != curspan)) continue);
             visibleblockspan *span = &spans[i];
             int len = span->vertcount(this);
             if(!len) continue;
-            if(!ready)
-            {
-                pre(); // Only bind buffers if there's something to render
-                ready = true;
-            }
-            glDrawElements(GL_TRIANGLES, len, elemtype, GLBUFOFF(blockstarts[span->start]*indexsize()));
-            wdrawcalls += 1;
+            counts.add(len);
+            indices.add(GLBUFOFF(blockstarts[span->start]*indexsize()));
         }
+        if(!counts.length()) return;
+        pre();
+        glMultiDrawElements(GL_TRIANGLES, counts.buf, elemtype, indices.buf, counts.length());
+        ++wdrawcalls;
     }
 
 };
