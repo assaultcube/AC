@@ -685,12 +685,12 @@ struct worldmesh
         checkglerrors();
         b.bind_buffers();
         vector<vertex> *vs = verts + b.tex;
-        glBufferData(GL_ARRAY_BUFFER, sizeof(vertex) * vs->length(), vs->getbuf(), GL_STATIC_DRAW);
+        GLenum usage = editmode ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW;
+        glBufferData(GL_ARRAY_BUFFER, sizeof(vertex) * vs->length(), vs->getbuf(), usage);
         vector<arrayindex> *evec = vertindices + b.tex;
         b.elemcount = evec->length();
         startindices[b.tex].add(b.elemcount);
         b.blockstarts = startindices[b.tex];
-        GLenum usage = editmode ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW;
         if(vs->length() <= 65535)
         {
             // Use short indices if less than 64k verts
@@ -766,14 +766,17 @@ int checkglerrors()
         const char *str = "unknown";
         switch(error)
         {
-        case GL_NO_ERROR: str = "No error"; break;
-        case GL_INVALID_ENUM: str = "Invalid enum"; break;
-        case GL_INVALID_VALUE: str = "Invalid value"; break;
-        case GL_INVALID_OPERATION: str = "Invalid operation"; break;
-        case GL_STACK_OVERFLOW: str = "Stack overflow"; break;
+        case GL_NO_ERROR: str = "no error"; break;
+        case GL_INVALID_ENUM: str = "invalid enum"; break;
+        case GL_INVALID_VALUE: str = "invalid value"; break;
+        case GL_INVALID_OPERATION: str = "invalid operation"; break;
+        case GL_STACK_OVERFLOW: str = "stack overflow"; break;
 
         }
-        printf("OpenGL error: %s\n", str);
+        printf("[%d] OpenGL error: %s\n", SDL_GetTicks(), str);
+        fflush(stdout);
+        fflush(stderr);
+        //abort();
     }
     return errcount;
 }
@@ -1359,7 +1362,6 @@ void rendertrissky()
         glDisable(GL_TEXTURE_2D);
         glDisableClientState(GL_TEXTURE_COORD_ARRAY);
         glEnableClientState(GL_VERTEX_ARRAY);
-        glEnableClientState(GL_ARRAY_BUFFER);
         glEnableClientState(GL_COLOR_ARRAY);
         texbatches[0].pre();
         glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
@@ -1378,7 +1380,6 @@ void render_world_new()
     if(!visibleblocks.length()) goto done;
 
     glEnable(GL_TEXTURE_2D);
-    glEnableClientState(GL_ARRAY_BUFFER);
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_COLOR_ARRAY);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -1391,12 +1392,10 @@ void render_world_new()
     }
 
     done:
-    // Is this really necessary?
-    glDisableClientState(GL_ARRAY_BUFFER);
+    glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_COLOR_ARRAY);
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 
-    // This is really necessary.
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
