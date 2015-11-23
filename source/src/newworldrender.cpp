@@ -200,7 +200,7 @@ public:
     {
         this->tex = tex;
         if(!vertexbo || !glIsBuffer(vertexbo)) glGenBuffers(1, &vertexbo);
-        if(!elembo || !glIsBuffer(vertexbo)) glGenBuffers(1, &elembo);
+        if(!elembo || !glIsBuffer(elembo)) glGenBuffers(1, &elembo);
     }
 
     void bind_buffers() const
@@ -746,15 +746,22 @@ int regenworldbuffers = RWB_HARD;
  */
 void postregenworldvbos(bool hard)
 {
-    if(!usenewworldrenderer)
-    {
-        // Should this go somewhere else?
-        loopi(256) texbatches[i].deinit();
-    }
     visibleblocks.setsize(0);
     regenworldbuffers = max<int>(regenworldbuffers, hard ? RWB_HARD : RWB_SOFT);
 }
 
+/**
+ * nwr geometry data is kept on the GPU to make toggling
+ * faster. If it's necessary to evict all of it, use this.
+ */
+void unloadnewworldrenderer()
+{
+    loopi(256) texbatches[i].deinit();
+    usenewworldrenderer = 0;
+    postregenworldvbos(true);
+}
+
+COMMAND(unloadnewworldrenderer, "");
 
 int checkglerrors()
 {
