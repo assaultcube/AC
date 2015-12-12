@@ -423,7 +423,6 @@ vec getradarpos()
 VARP(showmapbackdrop, 0, 0, 2);
 VARP(showmapbackdroptransparency, 0, 75, 100);
 VARP(radarheight, 5, 150, 500);
-VAR(showradarvalues, 0, 0, 1); // DEBUG
 
 void drawradar_showmap(playerent *p, int w, int h)
 {
@@ -492,21 +491,22 @@ void drawradar_showmap(playerent *p, int w, int h)
         {
             flaginfo &f = flaginfos[i];
             entity *e = f.flagent;
-            if(!e) continue;
-            if(e->x == -1 && e-> y == -1) continue; // flagdummies
-            vec pos = vec(e->x, e->y, 0).sub(mdd).mul(coordtrans);
-            drawradarent(pos.x, pos.y, 0, m_ktf ? 2 : f.team, 3, iconsize, false); // draw bases
-            vec fltxoff = vec(8, -8, 0);
-            vec cpos = vec(f.pos.x, f.pos.y, f.pos.z).sub(mdd).mul(coordtrans).add(fltxoff);
-            if(f.state!=CTFF_STOLEN && !(m_ktf && f.state == CTFF_IDLE))
+            bool hasflagent = e && e->x != -1 && e->y != -1; // no base for flagentitydummies (HTF on maps without bases)
+            if(hasflagent)
             {
-                float flgoff=fabs((radarentsize*2.1f)-8);
-                drawradarent(cpos.x+flgoff, cpos.y-flgoff, 0, 3, m_ktf ? 2 : f.team, iconsize, false); // draw on entity pos
+                vec pos = vec(e->x, e->y, 0).sub(mdd).mul(coordtrans);
+                drawradarent(pos.x, pos.y, 0, m_ktf ? 2 : f.team, 3, iconsize, false); // draw bases
             }
-            if(m_ktf && f.state == CTFF_IDLE) continue;
-            if(f.state==CTFF_STOLEN)
+            if((f.state == CTFF_INBASE && hasflagent) || f.state == CTFF_DROPPED)
             {
-                if(m_teammode && player1->team == TEAM_SPECT && p->spectatemode > SM_FOLLOW3RD_TRANSPARENT) continue;
+                vec fltxoff = vec(8, -8, 0);
+                vec cpos = vec(f.pos.x, f.pos.y, f.pos.z).sub(mdd).mul(coordtrans).add(fltxoff);
+                float flgoff=fabs((radarentsize*2.1f)-8);
+                drawradarent(cpos.x+flgoff, cpos.y-flgoff, 0, 3, m_ktf ? 2 : f.team, iconsize, false); // draw on entity pos or whereever dropped
+            }
+            if(f.state == CTFF_STOLEN)
+            {
+                if(m_teammode && !m_ktf && player1->team == TEAM_SPECT && p->spectatemode > SM_FOLLOW3RD_TRANSPARENT) continue;
                 float d2c = 1.6f * radarentsize/16.0f;
                 vec apos(d2c, -d2c, 0);
                 if(f.actor)
@@ -555,16 +555,6 @@ void drawradar_vicinity(playerent *p, int w, int h)
     glTranslatef(-halfviewsize, -halfviewsize, 0);
     vec d4rc = vec(d->o).sub(rsd).normalize().mul(0);
     vec usecenter = vec(d->o).sub(rtr).sub(d4rc);
-    if(showradarvalues)
-    {
-        conoutf("vicinity @ gdim = %d | scaleh = %.2f", gdim, scaleh);
-        conoutf("offd: %.2f [%.2f:%.2f]", offd, offx, offy);
-        conoutf("RTR: %.2f %.2f", rtr.x, rtr.y);
-        conoutf("RSD: %.2f %.2f", rsd.x, rsd.y);
-        conoutf("P.O: %.2f %.2f", d->o.x, d->o.y);
-        conoutf("U4C: %.2f %.2f | %.2f %.2f", usecenter.x, usecenter.y, usecenter.x/gdim, usecenter.y/gdim);
-        //showradarvalues = 0;
-    }
     glDisable(GL_BLEND);
     circle(minimaptex, halfviewsize, halfviewsize, halfviewsize, usecenter.x/(float)gdim, usecenter.y/(float)gdim, scaleh, 31); //Draw mimimaptext as radar background
     glTranslatef(halfviewsize, halfviewsize, 0);
@@ -595,18 +585,19 @@ void drawradar_vicinity(playerent *p, int w, int h)
         {
             flaginfo &f = flaginfos[i];
             entity *e = f.flagent;
-            if(!e) continue;
-            if(e->x == -1 && e-> y == -1) continue; // flagdummies
-            vec pos = vec(e->x, e->y, 0).sub(d->o);
-            vec cpos = vec(f.pos.x, f.pos.y, f.pos.z).sub(d->o);
-            //if(showradarvalues) { conoutf("dist2F[%d]: %.2f|%.2f || %.2f|%.2f", i, pos.x, pos.y, cpos.x, cpos.y); }
-            if(pos.magnitude() < d2s)
+            bool hasflagent = e && e->x != -1 && e->y != -1; // no base for flagentitydummies (HTF on maps without bases)
+            if(hasflagent)
             {
-                pos.mul(scaled);
-                drawradarent(pos.x, pos.y, 0, m_ktf ? 2 : f.team, 3, iconsize, false); // draw bases [circle doesn't need rotating]
+                vec pos = vec(e->x, e->y, 0).sub(d->o);
+                if(pos.magnitude() < d2s)
+                {
+                    pos.mul(scaled);
+                    drawradarent(pos.x, pos.y, 0, m_ktf ? 2 : f.team, 3, iconsize, false); // draw bases [circle doesn't need rotating]
+                }
             }
-            if(f.state!=CTFF_STOLEN && !(m_ktf && f.state == CTFF_IDLE))
+            if((f.state == CTFF_INBASE && hasflagent) || f.state == CTFF_DROPPED)
             {
+                vec cpos = vec(f.pos.x, f.pos.y, f.pos.z).sub(d->o);
                 if(cpos.magnitude() < d2s)
                 {
                     cpos.mul(scaled);
@@ -614,13 +605,12 @@ void drawradar_vicinity(playerent *p, int w, int h)
                     float ryaw=(camera1->yaw-45)*(2*PI/360);
                     float offx=flgoff*cosf(-ryaw);
                     float offy=flgoff*sinf(-ryaw);
-                    drawradarent(cpos.x+offx, cpos.y-offy, camera1->yaw, 3, m_ktf ? 2 : f.team, iconsize, false); // draw flag on entity pos
+                    drawradarent(cpos.x+offx, cpos.y-offy, camera1->yaw, 3, m_ktf ? 2 : f.team, iconsize, false); // draw flag on entity pos or whereever dropped
                 }
             }
-            if(m_ktf && f.state == CTFF_IDLE) continue;
-            if(f.state==CTFF_STOLEN)
+            if(f.state == CTFF_STOLEN)
             {
-                if(m_teammode && player1->team == TEAM_SPECT && p->spectatemode > SM_FOLLOW3RD_TRANSPARENT) continue;
+                if(m_teammode && !m_ktf && player1->team == TEAM_SPECT && p->spectatemode > SM_FOLLOW3RD_TRANSPARENT) continue;
                 vec apos(d2c, -d2c, 0);
                 if(f.actor)
                 {
@@ -641,7 +631,6 @@ void drawradar_vicinity(playerent *p, int w, int h)
             }
         }
     }
-    showradarvalues = 0; // DEBUG - also see two bits commented-out above
     glEnable(GL_BLEND);
     glPopMatrix();
     // eye candy:
