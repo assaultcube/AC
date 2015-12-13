@@ -816,7 +816,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
     char *infostr = editinfo();
     int commandh = 1570 + FONTH;
-    if(command) commandh -= rendercommand(20, 1570, VIRTW);
+    if(command) commandh -= rendercommand(-1, 1570, VIRTW - FONTH); // dryrun to get height
     else if(infostr) draw_text(infostr, 20, 1570);
     else if(targetplayer && showtargetname) draw_text(colorname(targetplayer), 20, 1570);
     glLoadIdentity();
@@ -1014,7 +1014,6 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         }
     }
 
-    if(!hidehudmsgs) hudmsgs.render();
     if(p->state == CS_ALIVE || (p->state == CS_DEAD && p->spectatemode == SM_DEATHCAM))
     {
         glLoadIdentity();
@@ -1067,6 +1066,12 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             }
         }
     }
+
+    if(!hidehudmsgs) hudmsgs.render();
+
+    glLoadIdentity();
+    glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
+    if(command) commandh -= rendercommand(20, 1570, VIRTW - FONTH);
 
     glDisable(GL_BLEND);
     glDisable(GL_TEXTURE_2D);

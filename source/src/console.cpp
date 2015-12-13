@@ -137,7 +137,7 @@ int rendercommand(int x, int y, int w)
     int width, height;
     text_bounds(s, width, height, w);
     y -= height - FONTH;
-    draw_text(s, x, y, 0xFF, 0xFF, 0xFF, 0xFF, cmdline.pos>=0 ? cmdline.pos + strlen(useprompt) + 1  : (int)strlen(s), w);
+    if (x >= 0) draw_text(s, x, y, 0xFF, 0xFF, 0xFF, 0xFF, cmdline.pos>=0 ? cmdline.pos + strlen(useprompt) + 1  : (int)strlen(s), w);
     return height;
 }
 
