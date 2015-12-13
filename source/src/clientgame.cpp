@@ -1261,9 +1261,9 @@ void flagmsg(int flag, int message, int actor, int flagtime)
             const char *tc = firstperson ? "" : flagteam;
             int m = flagtime / 60;
             if(m)
-                hudoutf("\f2%s%s%s kept the flag for %d minute%s %d seconds now", tc, ta, tb, m, m == 1 ? "" : "s", flagtime % 60);
+                hudoutf("\f2%s%s%s kept the flag for %d min %d s now", tc, ta, tb, m, flagtime % 60);
             else
-                hudoutf("\f2%s%s%s kept the flag for %d seconds now", tc, ta, tb, flagtime);
+                hudoutf("\f2%s%s%s kept the flag for %d s now", tc, ta, tb, flagtime);
             break;
         }
         case FM_SCOREFAIL: // sound?
@@ -1304,7 +1304,7 @@ char *votestring(int type, const char *arg1, const char *arg2, const char *arg3)
             if (type == SA_KICK || type == SA_BAN)
             {
                 string reason = "";
-                if(m_teammode) formatstring(reason)("%s (%d tks, ping %d)", arg2, p->tks, p->ping);
+                if(m_teammode) formatstring(reason)("%s (%d tk%s, ping %d)", arg2, p->tks, p->tks == 1 ? "" : "s", p->ping);
                 else formatstring(reason)("%s (ping %d)", arg2, p->ping);
                 formatstring(out)(msg, colorname(p), reason);
             }
