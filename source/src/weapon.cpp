@@ -596,7 +596,7 @@ void raydamage(vec &from, vec &to, playerent *d)
     int hitzone = -1;
     playerent *o = NULL;
     float dist, hitdist = 0.0f;
-    bool hitted=false;
+    bool hit = false;
     int rayscount = 0, hitscount = 0;
     if(d->weaponsel->type==GUN_SHOTGUN)
     {
@@ -658,7 +658,7 @@ void raydamage(vec &from, vec &to, playerent *d)
                 int info = (withBONUS ? SGDMGBONUS : 0) | (numhits_c << 8) | (numhits_m << 16) | (numhits_o << 24);
                 if(numhits) hitpush(dmgreal, o, d, from, to, d->weaponsel->type, numhits == SGRAYS * 3, info);
 
-                if(d==player1) hitted = true;
+                if(d == player1) hit = true;
                 hitscount+=numhits;
             }
         }
@@ -675,7 +675,7 @@ void raydamage(vec &from, vec &to, playerent *d)
         }
         bool info = gib;
         hitpush(dam, o, d, from, to, d->weaponsel->type, gib, info ? 1 : 0);
-        if(d==player1) hitted=true;
+        if(d == player1) hit = true;
         shorten(from, to, dist);
         hitscount++;
     }
@@ -683,7 +683,7 @@ void raydamage(vec &from, vec &to, playerent *d)
     if(d==player1)
     {
         if(!rayscount) rayscount = 1;
-        if(hitted) accuracym[d->weaponsel->type].hits+=(float)hitscount/rayscount;
+        if(hit) accuracym[d->weaponsel->type].hits += (float)hitscount / rayscount;
         accuracym[d->weaponsel->type].shots++;
     }
 }
@@ -697,13 +697,13 @@ const char *weapstr(unsigned int i)
     case GUN_PISTOL:
         return "Pistol";
     case GUN_ASSAULT:
-        return "MTP-57";
+        return "MTP-57 AR";
     case GUN_SUBGUN:
-        return "A-ARD/10";
+        return "A-ARD/10 SMG";
     case GUN_SNIPER:
         return "AD-81 SR";
     case GUN_SHOTGUN:
-        return "V-19 SG";
+        return "V-19 CS";
     case GUN_KNIFE:
         return "Knife";
     case GUN_CARBINE:
@@ -718,33 +718,47 @@ VARP(accuracy,0,0,1);
 
 void r_accuracy(int h)
 {
-    if(!accuracy) return;
-    vector <char*>lines;
-    int rows = 0, cols = 0;
-    float spacing = curfont->defaultw*2, x_offset = curfont->defaultw, y_offset = float(2*h) - 2*spacing;
-
-    loopi(NUMGUNS) if(i != GUN_CPISTOL && accuracym[i].shots)
+    int i = player1->weaponsel->type;
+    if(accuracy && i >= 0 && i < NUMGUNS && i != GUN_CPISTOL)
     {
-        float acc = 100.0f*accuracym[i].hits/(float)accuracym[i].shots;
+        int x_offset = 2 * HUDPOS_X_BOTTOMLEFT, y_offset = 2 * (h - 1.75 * FONTH);
         string line;
-        rows++;
+        float acc = accuracym[i].shots ? 100.0 * accuracym[i].hits / (float)accuracym[i].shots : 0;
         if(i == GUN_GRENADE || i == GUN_SHOTGUN)
         {
-            formatstring(line)("\f5%5.1f%s (%.1f/%d) :\f0%s", acc, "%", accuracym[i].hits, (int)accuracym[i].shots, weapstr(i));
+            formatstring(line)("\f5%5.1f%% (%.1f/%d): \f0%s", acc, accuracym[i].hits, (int)accuracym[i].shots, weapstr(i));
         }
         else
         {
-            formatstring(line)("\f5%5.1f%s (%d/%d) :\f0%s", acc, "%", (int)accuracym[i].hits, (int)accuracym[i].shots, weapstr(i));
+            formatstring(line)("\f5%5.1f%% (%d/%d): \f0%s", acc, (int)accuracym[i].hits, accuracym[i].shots, weapstr(i));
         }
-        cols=max(cols,(int)strlen(line));
+        blendbox(x_offset, y_offset + FONTH, x_offset + text_width(line) + 2 * FONTH, y_offset - FONTH, false, -1);
+        draw_textf("%s", x_offset + FONTH, y_offset - 0.5 * FONTH, line);
+    }
+}
+
+void accuracyinfo()
+{
+    vector <char*>lines;
+    loopi(NUMGUNS) if(i != GUN_CPISTOL && accuracym[i].shots)
+    {
+        float acc = 100.0 * accuracym[i].hits / (float)accuracym[i].shots;
+        string line;
+        if(i == GUN_GRENADE || i == GUN_SHOTGUN)
+        {
+            formatstring(line)("\f0%-10s\t\f5 %.1f%% (%.1f/%d)", weapstr(i), acc, accuracym[i].hits, (int)accuracym[i].shots);
+        }
+        else
+        {
+            formatstring(line)("\f0%-10s\t\f5 %.1f%% (%d/%d)", weapstr(i), acc, (int)accuracym[i].hits, accuracym[i].shots);
+        }
         lines.add(newstring(line));
     }
-    if(rows<1) return;
-    cols++;
-    blendbox(x_offset, spacing+y_offset, spacing+x_offset+curfont->defaultw*cols, y_offset-curfont->defaulth*rows, true, -1);
-    int x = spacing * 0.5 + x_offset, y = y_offset - 0.5 * spacing;
-    loopv(lines) draw_textf("%s", x, y - i * curfont->defaulth, lines[i]);
+    loopv(lines) conoutf("%s", lines[i]);
+    lines.deletearrays();
 }
+
+COMMAND(accuracyinfo, "");
 
 void accuracyreset()
 {
@@ -752,7 +766,7 @@ void accuracyreset()
     {
         accuracym[i].hits=accuracym[i].shots=0;
     }
-    conoutf("Your accuracy has been reset.");
+    conoutf("Your accuracy has been reset");
 }
 COMMAND(accuracyreset, "");
 // weapon

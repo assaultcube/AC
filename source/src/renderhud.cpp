@@ -815,16 +815,18 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     }
 
     char *infostr = editinfo();
-    int commandh = 1570 + FONTH;
-    if(command) commandh -= rendercommand(-1, 1570, VIRTW - FONTH); // dryrun to get height
-    else if(infostr) draw_text(infostr, 20, 1570);
-    else if(targetplayer && showtargetname) draw_text(colorname(targetplayer), 20, 1570);
+    int commandh = HUDPOS_Y_BOTTOMLEFT + FONTH;
+    if(command) commandh -= rendercommand(-1, HUDPOS_Y_BOTTOMLEFT, VIRTW - FONTH); // dryrun to get height
+    else if(infostr) draw_text(infostr, HUDPOS_X_BOTTOMLEFT, HUDPOS_Y_BOTTOMLEFT);
+    else if(targetplayer && showtargetname) draw_text(colorname(targetplayer), HUDPOS_X_BOTTOMLEFT, HUDPOS_Y_BOTTOMLEFT);
     glLoadIdentity();
     glOrtho(0, VIRTW*2, VIRTH*2, 0, -1, 1);
     extern int tsens(int x);
     tsens(-2000);
     extern void r_accuracy(int h);
-    if (!is_spect) r_accuracy(commandh);
+    extern void *scoremenu;
+    extern gmenu *curmenu;
+    if(!is_spect && !editmode && !watchingdemo && !command && curmenu == scoremenu) r_accuracy(commandh);
     if(!hideconsole) renderconsole();
     formatstring(enginestateinfo)("%d %d %d %d %d", curfps, lod_factor(), nquads, curvert, xtraverts);
 
@@ -939,7 +941,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
         if(curvote && curvote->millis >= totalmillis && !(hidevote == 1 && curvote->localplayervoted && curvote->result == VOTE_NEUTRAL))
         {
-            const int left = 20*2, top = VIRTH;
+            const int left = 2 * HUDPOS_X_BOTTOMLEFT, top = VIRTH;
             defformatstring(str)("%s called a vote:", curvote->owner ? colorname(curvote->owner) : "");
             draw_text(str, left, top + 240, 255, 255, 255, votealpha);
             draw_text(curvote->desc, left, top + 320, 255, 255, 255, votealpha);
@@ -1071,7 +1073,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
     glLoadIdentity();
     glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
-    if(command) commandh -= rendercommand(20, 1570, VIRTW - FONTH);
+    if(command) commandh -= rendercommand(HUDPOS_X_BOTTOMLEFT, HUDPOS_Y_BOTTOMLEFT, VIRTW - FONTH);
 
     glDisable(GL_BLEND);
     glDisable(GL_TEXTURE_2D);

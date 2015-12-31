@@ -658,8 +658,10 @@ extern void restoreeditundo(ucharbuf &q);
 extern int backupeditundo(vector<uchar> &buf, int undolimit, int redolimit);
 
 // renderhud
+#define HUDPOS_X_BOTTOMLEFT 20
+#define HUDPOS_Y_BOTTOMLEFT 1570
 #define HUDPOS_ICONSPACING 235
-#define HUDPOS_HEALTH 10
+#define HUDPOS_HEALTH (HUDPOS_X_BOTTOMLEFT / 2)
 #define HUDPOS_ARMOUR (HUDPOS_HEALTH + HUDPOS_ICONSPACING)
 #define HUDPOS_WEAPON (HUDPOS_ARMOUR + HUDPOS_ICONSPACING)
 #define HUDPOS_GRENADE (HUDPOS_WEAPON + HUDPOS_ICONSPACING)
