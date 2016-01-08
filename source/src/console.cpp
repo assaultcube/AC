@@ -592,7 +592,7 @@ void keypress(int code, bool isdown, int cooked, SDLMod mod)
     {
         if(isdown && haskey->pressed)
             return; // Filter out keypresses not separated by key releases
-        if(printkeyevents) conoutf("%s %s (%d)",
+        if(printkeyevents && isdown) conoutf("%s %s (%d)",
             isdown ? "pressed" : "released", haskey->name, haskey->code);
     }
     if(haskey && haskey->pressed) execbind(*haskey, isdown); // allow pressed keys to release
