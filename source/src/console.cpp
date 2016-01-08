@@ -582,10 +582,19 @@ void consolekey(int code, bool isdown, int cooked, SDLMod mod)
     }
 }
 
+VARP(printkeyevents, 0, 0, 1);
+
 void keypress(int code, bool isdown, int cooked, SDLMod mod)
 {
     keym *haskey = NULL;
     loopv(keyms) if(keyms[i].code==code) { haskey = &keyms[i]; break; }
+    if(haskey)
+    {
+        if(isdown && haskey->pressed)
+            return; // Filter out keypresses not separated by key releases
+        if(printkeyevents) conoutf("%s %s (%d)",
+            isdown ? "pressed" : "released", haskey->name, haskey->code);
+    }
     if(haskey && haskey->pressed) execbind(*haskey, isdown); // allow pressed keys to release
     else if(saycommandon) consolekey(code, isdown, cooked, mod);  // keystrokes go to commandline
     else if(!menukey(code, isdown, cooked, mod))                  // keystrokes go to menu

@@ -823,11 +823,62 @@ static void checkmousemotion(int &dx, int &dy)
 
 static int ignoremouse = 5;
 
+SDL_Joystick *joystick = NULL;
+VARP(joystickaxisx, 0, 0, 100);
+VARP(joystickaxisy, 0, 1, 100);
+FVARP(joysensitivity, 1e-3f, 3.0f, 1000.0f);
+VARP(joyaxisfilter, 0, 0, 30000);
+FVARP(joyresponsecurvexpt, 0.1f, 1.0f, 10.0f);
+VARP(joytriggerthreshold, 1, 16000, 30000);
+
+void joystickmoveaxis(float &v, int &t)
+{
+    float a = abs(v);
+    if(a >= 1.0f)
+    {
+        int d = (v > 0.0f ? 1 : -1) * floor(a);
+        v -= d;
+        t += d;
+    }
+}
+
+int joystickfilteraxis(int v)
+{
+    return v - (v > 0 ? 1 : -1) * min(joyaxisfilter, abs(v));
+}
+
+float joystickaccelerate(int v)
+{
+    return pow(abs(v) / (32768.0 - joyaxisfilter), joyresponsecurvexpt);
+}
+
+void joystickinput(int &tdx, int &tdy)
+{
+    if(!joystick) return;
+
+    float jfactor = curtime * 1e-4f * joysensitivity;
+    int jx = 0, jy = 0;
+    if(joystickaxisx >= 0)
+        jx = joystickfilteraxis(SDL_JoystickGetAxis(joystick, joystickaxisx));
+    if(joystickaxisy >= 0)
+        jy = joystickfilteraxis(SDL_JoystickGetAxis(joystick, joystickaxisy));
+
+    static float jdx = 0.0f, jdy = 0.0f;
+
+    jdx += jx * jfactor * joystickaccelerate(jx);
+    jdy += jy * jfactor * joystickaccelerate(jy);
+
+    joystickmoveaxis(jdx, tdx);
+    joystickmoveaxis(jdy, tdy);
+
+}
+
 void checkinput()
 {
     SDL_Event event;
     int lasttype = 0, lastbut = 0;
     int tdx=0,tdy=0;
+    extern bool saycommandon; // ignore joystick input when in command mode
     while(events.length() || SDL_PollEvent(&event))
     {
         if(events.length()) event = events.remove(0);
@@ -889,8 +940,45 @@ void checkinput()
                 lasttype = event.type;
                 lastbut = event.button.button;
                 break;
+
+            case SDL_JOYBUTTONDOWN:
+            case SDL_JOYBUTTONUP:
+                if(saycommandon) break;
+                if(lasttype==event.type && lastbut==event.jbutton.button) break;
+                keypress(-event.jbutton.button-100, event.jbutton.state!=0, 0);
+                lasttype = event.type;
+                lastbut = event.jbutton.button;
+                break;
+
+            case SDL_JOYAXISMOTION: // Treat joystick axes as buttons
+                {
+                    if(saycommandon) break;
+                    int value = event.jaxis.value;
+                    int magnitude = abs(value);
+                    bool pressed = magnitude > joytriggerthreshold;
+                    bool down = value < 0;
+                    Uint8 eventtype = pressed ? SDL_KEYDOWN : SDL_KEYUP;
+                    if(lasttype==eventtype && lastbut==event.jaxis.axis) break;
+                    if(pressed)
+                    {
+                        keypress(-event.jaxis.axis-(down ? 200 : 300), true, 0);
+                        keypress(-event.jaxis.axis-(down ? 300 : 200), false, 0);
+                    }
+                    else
+                    {
+                        keypress(-event.jaxis.axis-200, false, 0);
+                        keypress(-event.jaxis.axis-300, false, 0);
+                    }
+                    lasttype = eventtype;
+                    lastbut = event.jaxis.axis;
+                }
+                break;
+
         }
     }
+
+    joystickinput(tdx, tdy);
+
     if(tdx || tdy) mousemove(tdx, tdy);
 }
 
@@ -1204,6 +1292,25 @@ int main(int argc, char **argv)
 
     initlog("world (" STRINGIFY(AC_VERSION) ")");
     empty_world(7, true);
+
+    initlog("joystick");
+    if(SDL_InitSubSystem(SDL_INIT_JOYSTICK)<0) fatal("Unable to initialize SDL Joystick");
+    int numjoysticks = SDL_NumJoysticks();
+    if(numjoysticks)
+    {
+        clientlogf("joysticks detected (%d)", numjoysticks);
+        joystick = SDL_JoystickOpen(0);
+        if(joystick) clientlogf(
+            "opened joystick: %s, %d axes, %d balls, %d hats, %d buttons",
+            SDL_JoystickName(0), SDL_JoystickNumAxes(joystick),
+            SDL_JoystickNumBalls(joystick), SDL_JoystickNumHats(joystick),
+            SDL_JoystickNumButtons(joystick));
+        else clientlogf("failed to open joystick");
+    }
+    else
+    {
+        clientlogf("no joysticks detected");
+    }
 
     initlog("video: sdl");
     if(SDL_InitSubSystem(SDL_INIT_VIDEO)<0) fatal("Unable to initialize SDL Video");
