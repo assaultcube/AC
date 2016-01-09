@@ -204,7 +204,7 @@ SDL_Surface *forcergbasurface(SDL_Surface *os)
     SDL_Surface *ns = SDL_CreateRGBSurface(SDL_SWSURFACE, os->w, os->h, 32, RGBAMASKS);
     if(ns)
     {
-        SDL_SetSurfaceAlphaMod(os, 0);
+        SDL_SetSurfaceAlphaMod(os, SDL_ALPHA_OPAQUE);
         SDL_BlitSurface(os, NULL, ns, NULL);
     }
     SDL_FreeSurface(os);
