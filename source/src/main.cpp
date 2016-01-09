@@ -826,7 +826,8 @@ static int ignoremouse = 5;
 SDL_Joystick *joystick = NULL;
 VARP(joystickaxisx, 0, 0, 100);
 VARP(joystickaxisy, 0, 1, 100);
-FVARP(joysensitivity, 1e-3f, 3.0f, 1000.0f);
+FVARP(joysensx, 1e-3f, 1.0f, 1000.0f);
+FVARP(joysensy, 1e-3f, 0.5f, 1000.0f);
 VARP(joyaxisfilter, 0, 0, 30000);
 FVARP(joyresponsecurvexpt, 0.1f, 1.0f, 10.0f);
 VARP(joytriggerthreshold, 1, 16000, 30000);
@@ -856,7 +857,7 @@ void joystickinput(int &tdx, int &tdy)
 {
     if(!joystick) return;
 
-    float jfactor = curtime * 1e-4f * joysensitivity;
+    float jfactor = curtime * 1e-4f;
     int jx = 0, jy = 0;
     if(joystickaxisx >= 0)
         jx = joystickfilteraxis(SDL_JoystickGetAxis(joystick, joystickaxisx));
@@ -865,8 +866,8 @@ void joystickinput(int &tdx, int &tdy)
 
     static float jdx = 0.0f, jdy = 0.0f;
 
-    jdx += jx * jfactor * joystickaccelerate(jx);
-    jdy += jy * jfactor * joystickaccelerate(jy);
+    jdx += jx * jfactor * joystickaccelerate(jx) * joysensx;
+    jdy += jy * jfactor * joystickaccelerate(jy) * joysensy;
 
     joystickmoveaxis(jdx, tdx);
     joystickmoveaxis(jdy, tdy);
