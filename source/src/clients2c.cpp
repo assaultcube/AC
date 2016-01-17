@@ -532,7 +532,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 int downloadable = getint(p);
                 int revision = getint(p);
                 localwrongmap = !changemapserv(text, mode, downloadable, revision);
-                if(m_arena && joining>2) deathstate(player1);
+                if(m_arena && joining > 1 && !watchingdemo) deathstate(player1);
                 break;
             }
 
