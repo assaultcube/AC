@@ -2139,7 +2139,7 @@ struct voteinfo
     enet_uint32 host;
 
     voteinfo() : boot(0), owner(0), callmillis(0), result(VOTE_NEUTRAL), action(NULL), gonext(false), host(0) {}
-    ~voteinfo() { delete action; }
+    ~voteinfo() { DELETEP(action); }
 
     void end(int result)
     {
@@ -2819,8 +2819,7 @@ void process(ENetPacket *packet, int sender, int chan)
         if(type!=SV_POS && type!=SV_POSC && type!=SV_CLIENTPING && type!=SV_PING && type!=SV_CLIENT)
         {
             DEBUGVAR(cl->name);
-            ASSERT(type>=0 && type<SV_NUM);
-            DEBUGVAR(messagenames[type]);
+            if(type >= 0) { DEBUGVAR(messagenames[type]); }
             protocoldebug(DEBUGCOND);
         }
         else protocoldebug(false);
@@ -3504,10 +3503,11 @@ void process(ENetPacket *packet, int sender, int chan)
                     {
                         vi->num1 = cn2boot = getint(p);
                         getstring(text, p);
+                        text[61] = '\0';
                         strncpy(vi->text,text,128);
                         filtertext(text, text, FTXT__KICKBANREASON);
                         trimtrailingwhitespace(text);
-                        vi->action = new kickaction(cn2boot, newstring(text, 128));
+                        if(strlen(text) > 3 && !strstr(text, "   ")) vi->action = new kickaction(cn2boot, text);
                         vi->boot = 1;
                         break;
                     }
@@ -3515,10 +3515,11 @@ void process(ENetPacket *packet, int sender, int chan)
                     {
                         vi->num1 = cn2boot = getint(p);
                         getstring(text, p);
+                        text[61] = '\0';
                         strncpy(vi->text,text,128);
                         filtertext(text, text, FTXT__KICKBANREASON);
                         trimtrailingwhitespace(text);
-                        vi->action = new banaction(cn2boot, newstring(text, 128));
+                        if(strlen(text) > 3 && !strstr(text, "   ")) vi->action = new banaction(cn2boot, text);
                         vi->boot = 2;
                         break;
                     }
