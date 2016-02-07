@@ -319,6 +319,7 @@ int httpget::get(const char *url1, uint timeout, uint totaltimeout, int range, b
             again = reconnected = true;
             reset(2); // only clear response values, not url
             disconnect(); // but close the socket
+            retry = false;
         }
         if(again) continue; // redirect
         else break;
