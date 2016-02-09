@@ -190,7 +190,7 @@ struct mitem
 
     virtual void render(int x, int y, int w);
     virtual int width() = 0;
-    virtual void select() {}
+    virtual int select() { return 0; }
     virtual void focus(bool on) { }
     virtual void key(int code, bool isdown, int unicode) { }
     virtual void init() {}

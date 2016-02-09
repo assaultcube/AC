@@ -247,14 +247,15 @@ struct mitemmanual : mitem
         if(on && hoveraction) execute(hoveraction);
     }
 
-    virtual void select()
+    virtual int select()
     {
+        int result = 0;
         if(action && action[0])
         {
             gmenu *oldmenu = curmenu;
             push("arg1", text);
             setcontext("menu", curmenu->name);
-            int result = execute(action);
+            result = execute(action);
             resetcontext();
             pop("arg1");
             if(result >= 0 && oldmenu == curmenu)
@@ -263,6 +264,7 @@ struct mitemmanual : mitem
                 menustack.shrink(0);
             }
         }
+        return result;
     }
     virtual const char *getdesc() { return desc; }
     virtual const char *gettext() { return text; }
@@ -515,8 +517,7 @@ struct mitemtextinput : mitemtext
         if(on && hoveraction) execute(hoveraction);
 
         SDL_EnableUNICODE(on);
-        if(!strlen(input.buf)) setdefaultvalue();
-        if(action && !on && modified)
+        if(action && !on && modified && parent->items.find(this) != parent->items.length() - 1)
         {
             modified = false;
             push("arg1", input.buf);
@@ -536,7 +537,18 @@ struct mitemtextinput : mitemtext
         modified = false;
     }
 
-    virtual void select() { }
+    virtual int select()
+    {
+        int result = 0;
+        if(parent->menusel == parent->items.length() - 1)
+        {
+            const char *tmp = text;
+            text = input.buf;
+            result = mitemmanual::select();
+            text = tmp;
+        }
+        return result;
+    }
 
     void setdefaultvalue()
     {
@@ -693,10 +705,11 @@ struct mitemkeyinput : mitem
         capture = false;
     }
 
-    virtual void select()
+    virtual int select()
     {
         capture = true;
         keyname = empty;
+        return 0;
     }
 
     virtual void key(int code, bool isdown, int unicode)
@@ -736,15 +749,17 @@ struct mitemcheckbox : mitem
 
     virtual int width() { return text_width(text) + FONTH + FONTH/3; }
 
-    virtual void select()
+    virtual int select()
     {
+        int result = 0;
         checked = !checked;
         if(action && action[0])
         {
             push("arg1", checked ? "1" : "0");
-            execute(action);
+            result = execute(action);
             pop("arg1");
         }
+        return result;
     }
 
     virtual void init()
@@ -1190,9 +1205,7 @@ bool menukey(int code, bool isdown, int unicode, SDLMod mod)
         mitem &m = *curmenu->items[menusel];
         if(code==SDLK_RETURN || code==SDLK_SPACE || code==SDL_AC_BUTTON_LEFT || code==SDL_AC_BUTTON_MIDDLE)
         {
-            m.select();
-            if(m.getaction()!=NULL && !strcmp(m.getaction(), "-1")) return true; // don't playsound S_MENUENTER if menuitem action == -1 (null/blank/text only item) - Bukz 2013feb13
-            audiomgr.playsound(S_MENUENTER, SP_HIGHEST);
+            if(m.select() != -1) audiomgr.playsound(S_MENUENTER, SP_HIGHEST);
             return true;
         }
         return false;
