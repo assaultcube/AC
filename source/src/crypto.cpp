@@ -880,6 +880,15 @@ void authsetup(char **args, int numargs)  // set up private and public keys
 }
 COMMAND(authsetup, "v");
 
+void mypubkey()
+{
+    string res = "";
+    if(sk) bin2hex(res, sk + 32, 32);
+    result(res);
+}
+COMMAND(mypubkey, "");
+
+
 /////////////////////////////////////////////////  misc key management  //////////////////////////////////////////////////////
 // * used to sign certs or other stuff
 // * dev/admin/master keys
