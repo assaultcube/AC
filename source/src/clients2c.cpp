@@ -726,9 +726,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
 
             case SV_THROWNADE:
             {
-                vec from, to;
+                vec from, vel;
                 loopk(3) from[k] = getint(p)/DMF;
-                loopk(3) to[k] = getint(p)/DMF;
+                loopk(3) vel[k] = getint(p)/DNF;
                 int nademillis = getint(p);
                 if(!d) break;
                 d->lastaction = lastmillis;
@@ -736,7 +736,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 d->lastattackweapon = d->weapons[GUN_GRENADE];
                 if(d->weapons[GUN_GRENADE])
                 {
-                    d->weapons[GUN_GRENADE]->attackfx(from, to, nademillis);
+                    d->weapons[GUN_GRENADE]->attackfx(from, vel, nademillis);
                     d->weapons[GUN_GRENADE]->reloading = 0;
                 }
                 if(d!=player1) d->pstatshots[GUN_GRENADE]++; //NEW

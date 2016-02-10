@@ -15,7 +15,7 @@ char *strtok_r(char *s, const char *delim, char **b)
 }
 #endif
 
-string _timestringbuffer;
+string _timestringbuffer = "";
 
 const char *timestring(time_t t, bool local, const char *fmt, char *buf)
 {

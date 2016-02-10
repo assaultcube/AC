@@ -1175,7 +1175,7 @@ void grenadeent::_throw(const vec &from, const vec &vel)
     inwater = waterlevel > o.z;
     if(local)
     {
-        addmsg(SV_THROWNADE, "ri7", int(o.x*DMF), int(o.y*DMF), int(o.z*DMF), int(vel.x*DMF), int(vel.y*DMF), int(vel.z*DMF), lastmillis-millis);
+        addmsg(SV_THROWNADE, "ri7", int(o.x*DMF), int(o.y*DMF), int(o.z*DMF), int(vel.x*DNF), int(vel.y*DNF), int(vel.z*DNF), lastmillis-millis);
         audiomgr.playsound(S_GRENADETHROW, SP_HIGH);
     }
     else audiomgr.playsound(S_GRENADETHROW, owner);
