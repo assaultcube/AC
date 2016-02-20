@@ -232,17 +232,6 @@ char *filtertext(char *dst, const char *src, int flags, int len)
          mapname = (flags & FTXT_MAPNAME) != 0,             // only allows lowercase chars, digits, '_', '-' and '.'; probably should be used in combination with TOLOWER
          cropwhite = (flags & FTXT_CROPWHITE) != 0,         // removes leading and trailing whitespace
          pass = false;
-#if 1 // classic mode (will be removed, as soon as all sources are clear of it)
-    switch(flags)
-    { // whitespace: no whitespace at all (0), blanks only (1), blanks & newline (2)
-        case -1: nowhite = nocolor = fillblanks = true; break;
-        case 2: allownl = allowtab = true;
-        case 1: allowblanks = true;
-        case 0: nowhite = true;
-            nocolor = true;
-            break;
-    }
-#endif
     if(leet || mapname) nocolor = true;
 #ifdef FILENAMESALLLOWERCASE
     if(filename) tolow = true;
