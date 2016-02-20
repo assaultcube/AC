@@ -467,7 +467,7 @@ void check_ffire(client *target, client *actor, int damage)
         logline(ACLOG_INFO, "[%s] %s %s", actor->hostname, actor->name, "kicked for excessive friendly fire");
         defformatstring(msg)("%s %s", actor->name, "kicked for excessive friendly fire");
         sendservmsg(msg);
-        disconnect_client(actor->clientnum, DISC_FFIRE);
+        disconnect_client(actor->clientnum, DISC_FFKICK);
     }
 }
 

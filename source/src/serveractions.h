@@ -30,7 +30,7 @@ void kick_abuser(int cn, int &cmillis, int &count, int limit)
         if ( count <= 0 ) count = 1;
     }
     cmillis = servmillis;
-    if( count >= limit ) disconnect_client(cn, DISC_ABUSE);
+    if( count >= limit ) disconnect_client(cn, DISC_SPAM);
 }
 
 struct mapaction : serveraction
@@ -188,7 +188,7 @@ struct giveadminaction : playeraction
 struct kickaction : playeraction
 {
     bool wasvalid;
-    void perform()  { disconnect(DISC_MKICK); }
+    void perform()  { disconnect(DISC_VOTEKICK); }
     virtual bool isvalid() { return wasvalid || playeraction::isvalid(); }
     kickaction(int cn, char *reason) : playeraction(cn)
     {
@@ -208,7 +208,7 @@ struct banaction : playeraction
     void perform()
     {
         int i = findcnbyaddress(&address);
-        if(i >= 0) addban(clients[i], DISC_MBAN, BAN_VOTE);
+        if(i >= 0) addban(clients[i], DISC_VOTEBAN, BAN_VOTE);
     }
     virtual bool isvalid() { return wasvalid || playeraction::isvalid(); }
     banaction(int cn, char *reason) : playeraction(cn)

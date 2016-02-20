@@ -1060,11 +1060,12 @@ extern char *filtertext(char *dst, const char *src, int flags, int len = sizeof(
 extern void filterrichtext(char *dst, const char *src, int len = sizeof(string)-1);
 extern void filterlang(char *d, const char *s);
 extern void trimtrailingwhitespace(char *s);
+extern int msgsizelookup(int msg);
+extern const char *disc_reason(int reason);
 extern string mastername;
 extern int masterport;
 extern ENetSocket connectmaster();
 extern void serverms(int mode, int numplayers, int minremain, char *smapname, int millis, const ENetAddress &localaddr, int *mnum, int *msend, int *mrec, int *cnum, int *csend, int *crec, int protocol_version, const char *servdesccur, int _interm);
-extern int msgsizelookup(int msg);
 extern const char *genpwdhash(const char *name, const char *pwd, int salt);
 extern void servermsinit(const char *master, const char *ip, int serverport, bool listen);
 extern bool serverpickup(int i, int sender);

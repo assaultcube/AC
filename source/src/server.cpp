@@ -2191,7 +2191,7 @@ void addgban(const char *name)
     {
         client &c = *clients[i];
         if(c.type!=ST_TCPIP) continue;
-        if(checkgban(c.peer->address.host)) disconnect_client(c.clientnum, DISC_BANREFUSE);
+        if(checkgban(c.peer->address.host)) disconnect_client(c.clientnum, DISC_BANNED);
     }
 }
 
@@ -2470,12 +2470,6 @@ void senddisconnectedscores(int cn)
     }
     putint(p, -1);
     sendpacket(cn, 1, p.finalize());
-}
-
-const char *disc_reason(int reason)
-{
-    static const char *disc_reasons[] = { "normal", "error - end of packet", "error - client num", "vote-kicked from the server", "vote-banned from the server", "error - tag type", "connection refused - you have been banned from this server", "incorrect password", "unsuccessful administrator login", "the server is FULL - try again later", "servers mastermode is \"private\" - wait until the servers mastermode is \"open\"", "auto-kick - your score dropped below the servers threshold", "auto-ban - your score dropped below the servers threshold", "duplicate connection", "inappropriate nickname", "error - packet flood", "auto-kick - excess spam detected", "auto-kick - inactivity detected", "auto-kick - team killing detected", "auto-kick - abnormal client behavior detected" };
-    return reason >= 0 && (size_t)reason < sizeof(disc_reasons)/sizeof(disc_reasons[0]) ? disc_reasons[reason] : "unknown";
 }
 
 void disconnect_client(int n, int reason)
@@ -2854,9 +2848,9 @@ void process(ENetPacket *packet, int sender, int chan)
                 }
                 else disconnect_client(sender, DISC_WRONGPW);
             }
-            else if(srvprivate) disconnect_client(sender, DISC_MASTERMODE);
+            else if(srvprivate) disconnect_client(sender, DISC_PRIVATE);
             else if(srvfull) disconnect_client(sender, DISC_MAXCLIENTS);
-            else if(banned) disconnect_client(sender, DISC_BANREFUSE);
+            else if(banned) disconnect_client(sender, DISC_BANNED);
             else
             {
                 cl->isauthed = true;
@@ -2952,7 +2946,7 @@ void process(ENetPacket *packet, int sender, int chan)
                         if (canspeech)
                         {
                             sendservmsg("\f3Please do not spam; your message was not delivered.", sender);
-                            if ( cl->spamcount > SPAMMAXREPEAT + 2 ) disconnect_client(cl->clientnum, DISC_ABUSE);
+                            if ( cl->spamcount > SPAMMAXREPEAT + 2 ) disconnect_client(cl->clientnum, DISC_SPAM);
                         }
                         else
                         {
@@ -2994,7 +2988,7 @@ void process(ENetPacket *packet, int sender, int chan)
                         if (canspeech)
                         {
                             sendservmsg("\f3Please do not spam; your message was not delivered.", sender);
-                            if ( cl->spamcount > SPAMMAXREPEAT + 2 ) disconnect_client(cl->clientnum, DISC_ABUSE);
+                            if ( cl->spamcount > SPAMMAXREPEAT + 2 ) disconnect_client(cl->clientnum, DISC_SPAM);
                         }
                         else
                         {
@@ -3031,7 +3025,7 @@ void process(ENetPacket *packet, int sender, int chan)
                         if (canspeech)
                         {
                             sendservmsg("\f3Please do not spam; your message was not delivered.", sender);
-                            if ( cl->spamcount > SPAMMAXREPEAT + 2 ) disconnect_client(cl->clientnum, DISC_ABUSE);
+                            if ( cl->spamcount > SPAMMAXREPEAT + 2 ) disconnect_client(cl->clientnum, DISC_SPAM);
                         }
                         else
                         {
@@ -3148,7 +3142,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     {
                         ++cl->fastprofileupdates;
                         if(cl->fastprofileupdates == 3) sendservmsg("\f3Please do not spam", sender);
-                        if(cl->fastprofileupdates >= 5) { disconnect_client(sender, DISC_ABUSE); break; }
+                        if(cl->fastprofileupdates >= 5) { disconnect_client(sender, DISC_SPAM); break; }
                     }
                     else if(servmillis - cl->lastprofileupdate > 10000) cl->fastprofileupdates = 0;
                     cl->lastprofileupdate = servmillis;
@@ -3192,7 +3186,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 {
                     ++cl->fastprofileupdates;
                     if(cl->fastprofileupdates == 3) sendservmsg("\f3Please do not spam", sender);
-                    if(cl->fastprofileupdates >= 5) disconnect_client(sender, DISC_ABUSE);
+                    if(cl->fastprofileupdates >= 5) disconnect_client(sender, DISC_SPAM);
                 }
                 else if(servmillis - cl->lastprofileupdate > 10000) cl->fastprofileupdates = 0;
                 cl->lastprofileupdate = servmillis;
