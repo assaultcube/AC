@@ -119,6 +119,68 @@ void getstring(char *text, ucharbuf &p, int len)
     DEBUGVAR(text);
 }
 
+#define GZMSGBUFSIZE ((MAXGZMSGSIZE * 11) / 10)
+static uchar *gzbuf = new uchar[GZMSGBUFSIZE];          // not thread-safe, but nesting is no problem
+
+void putgzbuf(vector<uchar> &d, vector<uchar> &s) // zips a vector into a stream, stored in another vector; adds a header to simplify decompression
+{
+    int size = s.length();
+    if(size < 1 || size > MAXGZMSGSIZE) size = 0;
+    uLongf gzbufsize = GZMSGBUFSIZE;
+    if(size && compress2(gzbuf, &gzbufsize, s.getbuf(), size, 9) == Z_OK)
+    {
+        if(gzbufsize > (uint)size)
+        { // use zipped
+            putuint(d, size);
+            putuint(d, (int) gzbufsize);
+            d.put(gzbuf, (int) gzbufsize);
+            return;
+        }
+    }
+    // use raw because it's smaller or because zipping failed
+    putuint(d, size);
+    putuint(d, 0);
+    if(size) d.put(s.getbuf(), size);
+}
+
+ucharbuf *getgzbuf(ucharbuf &p) // fetch a gzipped buffer; needs to be freed properly later
+{
+    int size = getuint(p);
+    int sizegz = getuint(p);
+    if(sizegz == 0) sizegz = size; // uncompressed was smaller
+    if(sizegz > 0 && p.remaining() >= sizegz && sizegz <= MAXGZMSGSIZE && size >= 0 && size <= MAXGZMSGSIZE)
+    {
+        uchar *data = new uchar[size + 1];
+        uLongf rawsize = size;
+        if(data)
+        {
+            if(size == sizegz)
+            {
+                memcpy(data, &p.buf[p.len], size);
+            }
+            else if(uncompress(data, &rawsize, &p.buf[p.len], sizegz) != Z_OK || rawsize - size != 0)
+            {
+                p.forceoverread();
+                delete[] data;
+                return NULL;
+            }
+            p.len += sizegz;
+            return new ucharbuf(data, size);
+        }
+    }
+    p.forceoverread();
+    return NULL;
+}
+
+void freegzbuf(ucharbuf *p)  // free a ucharbuf created by getgzbuf()
+{
+    if(p)
+    {
+        delete[] p->buf;
+        delete p;
+    }
+}
+
 // filter text according to rules
 // dst can be identical to src; dst needs to be of size "min(len, strlen(s)) + 1"
 // returns dst
