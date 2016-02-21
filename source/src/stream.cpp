@@ -204,6 +204,11 @@ void sethomedir(const char *dir)
     }
 }
 
+bool havehomedir()
+{
+    return homedir[0] != '\0';
+}
+
 void addpackagedir(const char *dir)
 {
     string pdir;

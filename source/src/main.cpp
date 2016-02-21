@@ -976,6 +976,8 @@ void initclientlog()  // rotate old logfiles and create new one
     DELETEP(bootclientlog);
 }
 
+#define DEFAULTPROFILEPATH "profile"
+
 int main(int argc, char **argv)
 {
     ASSERT((GMMASK__BOT ^ GMMASK__MP ^ GMMASK__TEAM ^ GMMASK__FFA ^ GMMASK__TEAMSPAWN ^ GMMASK__FFASPAWN) == GMMASK__ALL);
@@ -1025,7 +1027,11 @@ int main(int argc, char **argv)
             if(argv[i][0]=='-') switch(argv[i][1])
             {
                 case '-':
-                    if(!strncmp(argv[i], "--home=", 7))
+                    if(!strcmp(argv[i], "--home"))
+                    {
+                        sethomedir(DEFAULTPROFILEPATH);
+                    }
+                    else if(!strncmp(argv[i], "--home=", 7))
                     {
                         sethomedir(&argv[i][7]);
                     }
@@ -1035,11 +1041,13 @@ int main(int argc, char **argv)
                     }
                     else if(!strcmp(argv[i], "--init"))
                     {
+                        if(!havehomedir()) sethomedir(DEFAULTPROFILEPATH);
                         execfile((char *)"config/init.cfg");
                         restoredinits = true;
                     }
                     else if(!strncmp(argv[i], "--init=", 7))
                     {
+                        if(!havehomedir()) sethomedir(DEFAULTPROFILEPATH);
                         execfile(&argv[i][7]);
                         restoredinits = true;
                     }
@@ -1082,6 +1090,7 @@ int main(int argc, char **argv)
             else conoutf("\f3unknown commandline argument: %c", argv[i][0]);
         }
     }
+    if(!havehomedir()) sethomedir(DEFAULTPROFILEPATH);
     entropy_init(time(NULL) + (uint)(size_t)&serverport + (uint)(size_t)entropy_init);
     initclientlog();
     if(quitdirectly) return EXIT_SUCCESS;

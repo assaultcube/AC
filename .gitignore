@@ -36,4 +36,5 @@ source/src/Makefile_local
 clientlog*.txt
 dumpmapconfig.txt
 packetlog.txt
+profile/*
 

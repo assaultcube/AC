@@ -892,6 +892,7 @@ extern bool fileexists(const char *path, const char *mode);
 extern bool createdir(const char *path);
 extern size_t fixpackagedir(char *dir);
 extern void sethomedir(const char *dir);
+extern bool havehomedir();
 extern void addpackagedir(const char *dir);
 extern int findfilelocation;
 enum { FFL_WORKDIR = -2, FFL_HOME = -1, FFL_ZIP = 0 };
