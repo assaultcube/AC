@@ -229,6 +229,8 @@ struct client                   // server side version of "dynent" type
     int clientnum;
     ENetPeer *peer;
     string hostname;
+    enet_uint32 ip;
+    char country[4];
     string name;
     int team;
     char lang[3];

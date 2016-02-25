@@ -79,6 +79,7 @@ servercontroller *svcctrl = NULL;
 servercommandline scl;
 servermaprot maprot;
 serveripblacklist ipblacklist;
+serveripcclist geoiplist;
 servernickblacklist nickblacklist;
 serverforbiddenlist forbiddenlist;
 serverpasswords passwords;
@@ -3845,6 +3846,7 @@ void rereadcfgs(void)
 {
     maprot.read();
     ipblacklist.read();
+    geoiplist.read();
     nickblacklist.read();
     forbiddenlist.read();
     passwords.read();
@@ -4100,6 +4102,10 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
                 c.salt = rnd(0x1000000)*((servmillis%1000)+1);
                 char hn[1024];
                 copystring(c.hostname, (enet_address_get_host_ip(&c.peer->address, hn, sizeof(hn))==0) ? hn : "unknown");
+                c.ip = ENET_NET_TO_HOST_32(c.peer->address.host);
+                const char *gi = geoiplist.check(c.ip);
+                copystring(c.country, gi ? gi : "--", 3);
+                entropy_add_byte(c.ip);
                 logline(ACLOG_INFO,"[%s] client connected", c.hostname);
                 sendservinfo(c);
                 totalclients++;
@@ -4335,6 +4341,7 @@ void initserver(bool dedicated)
 //        maprot.next(false, true); // ensure minimum maprot length of '1'
         passwords.init(scl.pwdfile, scl.adminpasswd);
         ipblacklist.init(scl.blfile);
+        geoiplist.init(scl.geoipfile);
         nickblacklist.init(scl.nbfile);
         forbiddenlist.init(scl.forbidden);
         infofiles.init(scl.infopath, scl.motdpath);

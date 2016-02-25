@@ -40,6 +40,7 @@
 // -r     // server maprot file, default config/maprot.cfg
 // -X     // server passwords file, default config/serverpwd.cfg
 // -B     // server IP blacklist file, default config/serverblacklist.cfg
+// -G     // server geoip file, default config/geoip.cfg
 // -K     // server nickname blacklist file, default config/nicknameblacklist.cfg
 // -g     // server forbidden words file, default config/forbidden.cfg
 // -P     // voting permission string (read docs/commandline.html)

@@ -1130,7 +1130,7 @@ struct serverconfigfile
 struct servercommandline
 {
     int uprate, serverport, syslogfacility, filethres, syslogthres, maxdemos, maxclients, kickthreshold, banthreshold, verbose, incoming_limit, afk_limit, ban_time, demotimelocal;
-    const char *ip, *master, *logident, *serverpassword, *adminpasswd, *demopath, *maprot, *pwdfile, *blfile, *nbfile, *infopath, *motdpath, *forbidden, *demofilenameformat, *demotimestampformat, *service;
+    const char *ip, *master, *logident, *serverpassword, *adminpasswd, *demopath, *maprot, *pwdfile, *blfile, *geoipfile, *nbfile, *infopath, *motdpath, *forbidden, *demofilenameformat, *demotimestampformat, *service;
     uchar *ssk;
     bool logtimestamp, demo_interm, loggamestatus;
     string motd, servdesc_full, servdesc_pre, servdesc_suf, voteperm, mapperm;
@@ -1140,7 +1140,7 @@ struct servercommandline
     servercommandline() :   uprate(0), serverport(CUBE_DEFAULT_SERVER_PORT), syslogfacility(6), filethres(-1), syslogthres(-1), maxdemos(5),
                             maxclients(DEFAULTCLIENTS), kickthreshold(-5), banthreshold(-6), verbose(0), incoming_limit(10), afk_limit(45000), ban_time(20*60*1000), demotimelocal(0),
                             ip(""), master(NULL), logident(""), serverpassword(""), adminpasswd(""), demopath(""),
-                            maprot("config/maprot.cfg"), pwdfile("config/serverpwd.cfg"), blfile("config/serverblacklist.cfg"), nbfile("config/nicknameblacklist.cfg"),
+                            maprot("config/maprot.cfg"), pwdfile("config/serverpwd.cfg"), blfile("config/serverblacklist.cfg"), geoipfile("config/geoip.cfg"), nbfile("config/nicknameblacklist.cfg"),
                             infopath("config/serverinfo"), motdpath("config/motd"), forbidden("config/forbidden.cfg"), service(NULL),
                             ssk(NULL),
                             logtimestamp(false), demo_interm(false), loggamestatus(true),
@@ -1159,7 +1159,7 @@ struct servercommandline
         int ai = atoi(a);
         // client: dtwhzbsave
         switch(arg[1])
-        { // todo: gjlqEGHJQU
+        { // todo: gjlqEHJQU
             case 'Y': // private server key
             {
                 uchar temp[64];
@@ -1240,6 +1240,7 @@ struct servercommandline
             case 'r': maprot = a; break;
             case 'X': pwdfile = a; break;
             case 'B': blfile = a; break;
+            case 'G': geoipfile = a; break;
             case 'K': nbfile = a; break;
             case 'I': infopath = a; break;
             case 'o': filterrichtext(motd, a); break;

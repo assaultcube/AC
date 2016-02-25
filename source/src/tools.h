@@ -985,6 +985,7 @@ extern void entropy_add_block(const uchar *s, int len);
 extern void entropy_get(uchar *buf, int len);
 
 struct iprange { enet_uint32 lr, ur; };
+struct iprangecc : iprange { union { int ci; char cc[4]; enet_uint32 cu; };  };
 extern const char *atoip(const char *s, enet_uint32 *ip);
 extern const char *atoipr(const char *s, iprange *ir);
 extern const char *iptoa(const enet_uint32 ip);

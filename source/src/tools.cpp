@@ -466,7 +466,12 @@ const char *atoip(const char *s, enet_uint32 *ip)
 {
     unsigned int d[4];
     int n;
-    if(!s || sscanf(s, "%u.%u.%u.%u%n", d, d + 1, d + 2, d + 3, &n) != 4) return NULL;
+    if(!s) return NULL;
+    if(sscanf(s, "%u.%u.%u.%u%n", d, d + 1, d + 2, d + 3, &n) != 4)
+    {
+        *ip = strtoul(s, (char **)&s, 0); // try single-integer IPs
+        return *ip > 0xffffff ? s : NULL; // require first octet to be non-zero to avoid misinterpreting faulty dotted IPs
+    }
     *ip = 0;
     loopi(4)
     {
