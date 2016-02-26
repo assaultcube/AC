@@ -76,13 +76,19 @@ void exitlogging()
     enabled = false;
 }
 
+bool logcheck(int level)
+{
+    return enabled && level >= 0 && level < ACLOG_NUM && (consolethreshold <= level || (fp && filethreshold <= level) || syslogthreshold <= level);
+}
+
 bool logline(int level, const char *msg, ...)
 {
     if(!enabled) return false;
     if(level < 0 || level >= ACLOG_NUM) return false;
+    bool logtocon = consolethreshold <= level, logtofile = fp && filethreshold <= level, logtosyslog = syslogthreshold <= level;
+    if(!(logtocon || logtofile || logtosyslog)) return false;
     defvformatstring(sf, msg, msg);
     filtertext(sf, sf, FTXT__LOG);
-    bool logtocon = consolethreshold <= level, logtofile = fp && filethreshold <= level, logtosyslog = syslogthreshold <= level;
     const char *ts = timestamp ? timestring(true, "%b %d %H:%M:%S ") : "", *ld = levelprefix[level];
     char *p, *l = sf;
     do

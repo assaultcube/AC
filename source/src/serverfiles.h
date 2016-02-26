@@ -807,7 +807,7 @@ struct serveripcclist : serverconfigfile
                 ipranges.remove(i--); continue;
             }
         }
-        loopv(ipranges) logline(ACLOG_VERBOSE," %s %s", iprtoa(ipranges[i]), printcomment(ipranges[i]));
+        if(logcheck(ACLOG_VERBOSE)) loopv(ipranges) logline(ACLOG_VERBOSE," %s %s", iprtoa(ipranges[i]), printcomment(ipranges[i]));
         logline(ACLOG_INFO,"read %d (%d) IP list entries from '%s', %d errors, %d concatenated", ipranges.length(), orglength, filename, errors, concatd);
     }
 
@@ -873,7 +873,7 @@ struct serveripblacklist : serverconfigfile
                 ipranges.remove(i--); continue;
             }
         }
-        loopv(ipranges) logline(ACLOG_VERBOSE," %s", iprtoa(ipranges[i]));
+        if(logcheck(ACLOG_VERBOSE)) loopv(ipranges) logline(ACLOG_VERBOSE," %s", iprtoa(ipranges[i]));
         logline(ACLOG_INFO,"read %d (%d) blacklist entries from '%s', %d errors", ipranges.length(), orglength, filename, errors);
     }
 
@@ -978,29 +978,32 @@ struct servernickblacklist : serverconfigfile
             line++;
         }
         DELETEA(buf);
-        logline(ACLOG_VERBOSE," nickname whitelist (%d entries):", whitelist.numelems);
-        string text;
-        enumeratekt(whitelist, const char *, key, int, idx,
+        if(logcheck(ACLOG_VERBOSE))
         {
-            text[0] = '\0';
-            for(int i = idx; i >= 0; i = whitelistranges[i].next)
+            logline(ACLOG_VERBOSE," nickname whitelist (%d entries):", whitelist.numelems);
+            string text;
+            enumeratekt(whitelist, const char *, key, int, idx,
             {
-                iprchain &ic = whitelistranges[i];
-                if(ic.pwd) concatformatstring(text, "  pwd:\"%s\"", hiddenpwd(ic.pwd));
-                else concatformatstring(text, "  %s", iprtoa(ic.ipr));
-            }
-            logline(ACLOG_VERBOSE, "  accept %s%s", key, text);
-        });
-        logline(ACLOG_VERBOSE," nickname blacklist (%d entries):", blacklines.length());
-        loopv(blacklines)
-        {
-            text[0] = '\0';
-            loopj(MAXNICKFRAGMENTS)
+                text[0] = '\0';
+                for(int i = idx; i >= 0; i = whitelistranges[i].next)
+                {
+                    iprchain &ic = whitelistranges[i];
+                    if(ic.pwd) concatformatstring(text, "  pwd:\"%s\"", hiddenpwd(ic.pwd));
+                    else concatformatstring(text, "  %s", iprtoa(ic.ipr));
+                }
+                logline(ACLOG_VERBOSE, "  accept %s%s", key, text);
+            });
+            logline(ACLOG_VERBOSE," nickname blacklist (%d entries):", blacklines.length());
+            loopv(blacklines)
             {
-                int k = blacklines[i].frag[j];
-                if(k >= 0) { concatstring(text, " "); concatstring(text, blfraglist[k]); }
+                text[0] = '\0';
+                loopj(MAXNICKFRAGMENTS)
+                {
+                    int k = blacklines[i].frag[j];
+                    if(k >= 0) { concatstring(text, " "); concatstring(text, blfraglist[k]); }
+                }
+                logline(ACLOG_VERBOSE, "  %2d block%s%s", blacklines[i].line, blacklines[i].ignorecase ? "i" : "", text);
             }
-            logline(ACLOG_VERBOSE, "  %2d block%s%s", blacklines[i].line, blacklines[i].ignorecase ? "i" : "", text);
         }
         logline(ACLOG_INFO,"read %d + %d entries from nickname blacklist file '%s', %d errors", whitelist.numelems, blacklines.length(), filename, errors);
     }
