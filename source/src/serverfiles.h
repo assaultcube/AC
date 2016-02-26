@@ -733,6 +733,11 @@ struct serveripcclist : serverconfigfile
         return ipr.cc[3] == '\0' ? ipr.cc : "ERR";
     }
 
+    int cmpcomment(iprangecc &ipr1, iprangecc &ipr2)
+    {
+        return ipr1.ci - ipr2.ci;
+    }
+
     void read()
     {
         if(getfilesize(filename) == filelen) return;
@@ -740,14 +745,23 @@ struct serveripcclist : serverconfigfile
         if(!load()) return;
 
         iprangecc ir;
-        int line = 0, errors = 0;
+        int line = 0, errors = 0, concatd = 0;
         char *l, *r, *p = buf;
         logline(ACLOG_VERBOSE,"reading ip list '%s'", filename);
         while(p < buf + filelen)
         {
-            l = p; p += strlen(p) + 1; line++;
-            if((r = (char *) atoipr(l, &ir)) &&  parsecomment(ir, r))
-                ipranges.add(ir);
+            l = p + strspn(p, " "); p += strlen(p) + 1; line++;
+            if(!l[0]) continue;
+            if((r = (char *) atoipr(l, &ir)) && parsecomment(ir, r))
+            {
+                if(ipranges.length() && ipranges.last().ur == ir.lr - 1 && !cmpcomment(ipranges.last(), ir))
+                {
+                    ipranges.last().ur = ir.ur; // direct concatenation (for pre-sorted lists)
+                    concatd++;
+                }
+                else
+                    ipranges.add(ir);
+            }
             else
                 logline(ACLOG_INFO," error in line %d, file %s: failed to parse '%s'", line, filename, r ? r : l), errors++;
         }
@@ -755,19 +769,24 @@ struct serveripcclist : serverconfigfile
         ipranges.sort(cmpiprange);
         int orglength = ipranges.length();
         loopv(ipranges)
-        {
+        { // make sure, ranges don't overlap - otherwise bsearch gets unpredictable
             if(!i) continue;
             if(ipranges[i].ur <= ipranges[i - 1].ur)
             {
-                if(ipranges[i].lr == ipranges[i - 1].lr && ipranges[i].ur == ipranges[i - 1].ur)
-                    logline(ACLOG_VERBOSE," IP list entry %s got dropped (double entry)", iprtoa(ipranges[i]));
+                if(cmpcomment(ipranges[i], ipranges[i - 1]))
+                    logline(ACLOG_INFO," error: IP list entry %s|%s deleted because of overlapping %s|%s", iprtoa(ipranges[i]), printcomment(ipranges[i]), iprtoa(ipranges[i - 1]), printcomment(ipranges[i - 1]));
                 else
-                    logline(ACLOG_VERBOSE," IP list entry %s got dropped (already covered by %s)", iprtoa(ipranges[i]), iprtoa(ipranges[i - 1]));
+                {
+                    if(ipranges[i].lr == ipranges[i - 1].lr && ipranges[i].ur == ipranges[i - 1].ur)
+                        logline(ACLOG_VERBOSE," IP list entry %s got dropped (double entry)", iprtoa(ipranges[i]));
+                    else
+                        logline(ACLOG_VERBOSE," IP list entry %s got dropped (already covered by %s)", iprtoa(ipranges[i]), iprtoa(ipranges[i - 1]));
+                }
                 ipranges.remove(i--); continue;
             }
             if(ipranges[i].lr <= ipranges[i - 1].ur)
             {
-                if(ipranges[i].cu == ipranges[i - 1].cu) // same comment
+                if(!cmpcomment(ipranges[i], ipranges[i - 1])) // same comment
                 {
                     logline(ACLOG_VERBOSE," IP list entries %s and %s are joined due to overlap (both %s)", iprtoa(ipranges[i - 1]), iprtoa(ipranges[i]), printcomment(ipranges[i]));
                     ipranges[i - 1].ur = ipranges[i].ur;
@@ -775,13 +794,13 @@ struct serveripcclist : serverconfigfile
                 }
                 else
                 {
-                    logline(ACLOG_VERBOSE," error: IP list entries %s|%s and %s|%s are overlapping - dropping %s|%s", iprtoa(ipranges[i - 1]), printcomment(ipranges[i - 1]),
+                    logline(ACLOG_INFO," error: IP list entries %s|%s and %s|%s are overlapping - dropping %s|%s", iprtoa(ipranges[i - 1]), printcomment(ipranges[i - 1]),
                          iprtoa(ipranges[i]), printcomment(ipranges[i]), iprtoa(ipranges[i]), printcomment(ipranges[i]));
                     errors++;
                     ipranges.remove(i--); continue;
                 }
             }
-            if(ipranges[i].lr - 1 == ipranges[i - 1].ur && ipranges[i].cu == ipranges[i - 1].cu)
+            if(ipranges[i].lr - 1 == ipranges[i - 1].ur && !cmpcomment(ipranges[i], ipranges[i - 1]))
             {
                 logline(ACLOG_VERBOSE," concatenating IP list entries %s and %s (both %s)", iprtoa(ipranges[i - 1]), iprtoa(ipranges[i]), printcomment(ipranges[i]));
                 ipranges[i - 1].ur = ipranges[i].ur;
@@ -789,7 +808,7 @@ struct serveripcclist : serverconfigfile
             }
         }
         loopv(ipranges) logline(ACLOG_VERBOSE," %s %s", iprtoa(ipranges[i]), printcomment(ipranges[i]));
-        logline(ACLOG_INFO,"read %d (%d) IP list entries from '%s', %d errors", ipranges.length(), orglength, filename, errors);
+        logline(ACLOG_INFO,"read %d (%d) IP list entries from '%s', %d errors, %d concatenated", ipranges.length(), orglength, filename, errors, concatd);
     }
 
     const char *check(enet_uint32 ip) // ip: host byte order
