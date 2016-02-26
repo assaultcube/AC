@@ -473,7 +473,7 @@ void tagmapfile(const char *fpath, const char *fname, int epoch)  // tag list en
     if(mapfileindex >= 0) mapfilenames[mapfileindex].epoch = epoch;
 }
 
-int readmapsthread(void *logfileprefix)
+int readmapsthread(void *logfilename)
 {
     static int readmaps_epoch = 0;
 
@@ -481,12 +481,7 @@ int readmapsthread(void *logfileprefix)
     {
         while(!startnewservermapsepoch) readmapsthread_sem->wait();  // wait without using the cpu
 
-        if(logfileprefix)
-        {
-            defformatstring(logfilename)("%sreadmaps_log.txt", (const char *)logfileprefix);
-            path(logfilename);
-            readmaplog = openfile(logfilename, "a");
-        }
+        if(logfilename) readmaplog = openfile((const char *)logfilename, "a");
 
         vector<char *> maps_off, maps_serv, maps_incom;
 

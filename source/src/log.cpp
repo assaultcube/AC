@@ -32,7 +32,7 @@ static int facility = -1,
     consolethreshold = ACLOG_INFO;
 static bool timestamp = false, enabled = false;
 
-bool initlogging(const char *identity, int facility_, int consolethres, int filethres, int syslogthres, bool logtimestamp)
+bool initlogging(const char *identity, int facility_, int consolethres, int filethres, int syslogthres, bool logtimestamp, const char *logfilepath)
 {
     facility = facility_;
     timestamp = logtimestamp;
@@ -49,7 +49,8 @@ bool initlogging(const char *identity, int facility_, int consolethres, int file
         if((logsock = enet_socket_create(ENET_SOCKET_TYPE_DATAGRAM)) == ENET_SOCKET_NULL || enet_address_set_host(&logdest, "localhost") < 0) syslogthreshold = ACLOG_NUM;
 #endif
     }
-    formatstring(filepath)("serverlog_%s_%s.txt", timestring(true), identity);
+    formatstring(filepath)("%sserverlog_%s_%s.txt", logfilepath, timestring(true), identity);
+    path(filepath);
     if(fp) { fclose(fp); fp = NULL; }
     if(filethreshold < ACLOG_NUM)
     {

@@ -1107,7 +1107,7 @@ extern void enddemoplayback();
 
 enum { ACLOG_DEBUG = 0, ACLOG_VERBOSE, ACLOG_INFO, ACLOG_WARNING, ACLOG_ERROR, ACLOG_NUM };
 
-extern bool initlogging(const char *identity, int facility_, int consolethres, int filethres, int syslogthres, bool logtimestamp);
+extern bool initlogging(const char *identity, int facility_, int consolethres, int filethres, int syslogthres, bool logtimestamp, const char *logfilepath);
 extern void exitlogging();
 extern bool logcheck(int level);
 extern bool logline(int level, const char *msg, ...) PRINTFARGS(2, 3);
@@ -1131,7 +1131,7 @@ struct serverconfigfile
 struct servercommandline
 {
     int uprate, serverport, syslogfacility, filethres, syslogthres, maxdemos, maxclients, kickthreshold, banthreshold, verbose, incoming_limit, afk_limit, ban_time, demotimelocal;
-    const char *ip, *master, *logident, *serverpassword, *adminpasswd, *demopath, *maprot, *pwdfile, *blfile, *geoipfile, *nbfile, *infopath, *motdpath, *forbidden, *demofilenameformat, *demotimestampformat, *service;
+    const char *ip, *master, *logident, *serverpassword, *adminpasswd, *demopath, *maprot, *pwdfile, *blfile, *geoipfile, *nbfile, *infopath, *motdpath, *forbidden, *demofilenameformat, *demotimestampformat, *service, *logfilepath;
     uchar *ssk;
     bool logtimestamp, demo_interm, loggamestatus;
     string motd, servdesc_full, servdesc_pre, servdesc_suf, voteperm, mapperm;
@@ -1142,7 +1142,7 @@ struct servercommandline
                             maxclients(DEFAULTCLIENTS), kickthreshold(-5), banthreshold(-6), verbose(0), incoming_limit(10), afk_limit(45000), ban_time(20*60*1000), demotimelocal(0),
                             ip(""), master(NULL), logident(""), serverpassword(""), adminpasswd(""), demopath(""),
                             maprot("config/maprot.cfg"), pwdfile("config/serverpwd.cfg"), blfile("config/serverblacklist.cfg"), geoipfile("config/geoip.cfg"), nbfile("config/nicknameblacklist.cfg"),
-                            infopath("config/serverinfo"), motdpath("config/motd"), forbidden("config/forbidden.cfg"), service(NULL),
+                            infopath("config/serverinfo"), motdpath("config/motd"), forbidden("config/forbidden.cfg"), service(NULL), logfilepath("logs/"),
                             ssk(NULL),
                             logtimestamp(false), demo_interm(false), loggamestatus(true),
                             clfilenesting(0)
@@ -1160,7 +1160,7 @@ struct servercommandline
         int ai = atoi(a);
         // client: dtwhzbsave
         switch(arg[1])
-        { // todo: gjlqEHJQU
+        { // todo: gjlqEJQU
             case 'Y': // private server key
             {
                 uchar temp[64];
@@ -1208,6 +1208,7 @@ struct servercommandline
                     case 'S': syslogthres = atoi(a + 1); break;
                 }
                 break;
+            case 'H': logfilepath = a; break;
             case 'A': if(*a) adminonlymaps.add(a); break;
             case 'c': if(ai > 0) maxclients = min(ai, MAXCLIENTS); break;
             case 'k':

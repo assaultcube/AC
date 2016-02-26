@@ -37,4 +37,5 @@ clientlog*.txt
 dumpmapconfig.txt
 packetlog.txt
 profile/*
+logs/*
 

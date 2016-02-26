@@ -4322,7 +4322,7 @@ void initserver(bool dedicated)
     if(scl.logident[0]) filtertext(identity, scl.logident, FTXT__LOGIDENT);
     else formatstring(identity)("%s#%d", scl.ip[0] ? scl.ip : "local", scl.serverport);
     int conthres = scl.verbose > 1 ? ACLOG_DEBUG : (scl.verbose ? ACLOG_VERBOSE : ACLOG_INFO);
-    if(dedicated && !initlogging(identity, scl.syslogfacility, conthres, scl.filethres, scl.syslogthres, scl.logtimestamp)) printf("WARNING: logging not started!\n");
+    if(dedicated && !initlogging(identity, scl.syslogfacility, conthres, scl.filethres, scl.syslogthres, scl.logtimestamp, scl.logfilepath)) printf("WARNING: logging not started!\n");
     logline(ACLOG_INFO, "logging local AssaultCube server (version %d, protocol %d/%d) now..", AC_VERSION, SERVER_PROTOCOL_VERSION, EXT_VERSION);
     copystring(sg->servdesc_current, scl.servdesc_full);
     servermsinit(dedicated);
@@ -4387,7 +4387,8 @@ void initserver(bool dedicated)
 
         // start file-IO threads
         readmapsthread_sem = new sl_semaphore(0, NULL);
-        sl_createthread(readmapsthread, (void *)"xxxx");
+        defformatstring(readmapslogfilename)("%sreadmaps_log.txt", scl.logfilepath);
+        sl_createthread(readmapsthread, (void *)path(readmapslogfilename));
 
         for(;;) serverslice(5);
     }

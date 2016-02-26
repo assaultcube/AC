@@ -37,6 +37,7 @@
 // -kA    // kickthreshold (in seconds) for being AFK, > 30, default 45
 // -kB    // time in minutes a banned player will stay banned, default 20
 // -y     // banthreshold, -1..-100, default -6
+// -H     // server logfile path, default logs/
 // -r     // server maprot file, default config/maprot.cfg
 // -X     // server passwords file, default config/serverpwd.cfg
 // -B     // server IP blacklist file, default config/serverblacklist.cfg
