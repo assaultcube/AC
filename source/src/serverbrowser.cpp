@@ -1306,7 +1306,6 @@ void clearservers()
 
 #define RETRIEVELIMIT 5000
 
-extern char *global_name;
 bool cllock = false, clfail = false;
 
 int progress_callback_retrieveservers(void *data, float progress)
@@ -1330,7 +1329,7 @@ void retrieveservers(vector<char> &data)
         if(h.set_host(mastername))
         {
             formatstring(progresstext)("retrieving servers from %s:%d... (esc to abort)", mastername, masterport);
-            defformatstring(url)("/retrieve.do?action=list&name=%s&version=%d&build=%d", urlencode(global_name, true), AC_VERSION, getbuildtype()|(1<<16));
+            defformatstring(url)("/retrieve.do?action=list&name=%s&version=%d&build=%d", urlencode(player1->name, true), AC_VERSION, getbuildtype()|(1<<16));
             h.outvec = (vector<uchar> *) &data; // ouch...
             show_out_of_renderloop_progress(0, progresstext);
             int got = h.get(url, RETRIEVELIMIT, RETRIEVELIMIT);
@@ -1358,7 +1357,7 @@ void retrieveservers(vector<char> &data)
         defformatstring(text)("retrieving servers from %s:%d... (esc to abort)", mastername, masterport);
         show_out_of_renderloop_progress(0, text);
         int starttime = SDL_GetTicks(), timeout = 0;
-        defformatstring(request)("list %s %d %d\n", global_name, AC_VERSION, getbuildtype());
+        defformatstring(request)("list %s %d %d\n", player1->name, AC_VERSION, getbuildtype());
         const char *req = request;
         int reqlen = strlen(req);
         ENetBuffer buf;

@@ -16,6 +16,8 @@ int connectwithtimeout(ENetSocket sock, const char *hostname, ENetAddress &remot
 }
 #endif
 
+extern struct servercommandline scl;
+bool usemaster = false;
 ENetSocket mastersock = ENET_SOCKET_NULL;
 ENetAddress masteraddress = { ENET_HOST_ANY, ENET_PORT_ANY }, serveraddress = { ENET_HOST_ANY, ENET_PORT_ANY };
 string mastername = AC_MASTER_URI;
@@ -43,9 +45,8 @@ void disconnectmaster()
 
 ENetSocket connectmaster()
 {
-    if(!mastername[0]) return ENET_SOCKET_NULL;
-    extern servercommandline scl;
-    if(scl.maxclients>MAXCL) { logline(ACLOG_WARNING, "maxclient exceeded: cannot register"); return ENET_SOCKET_NULL; }
+    if(!mastername[0] || !usemaster) return ENET_SOCKET_NULL;
+    if(scl.maxclients > MAXCL) { logline(ACLOG_WARNING, "maxclient exceeded: cannot register"); return ENET_SOCKET_NULL; }
 
     if(masteraddress.host == ENET_HOST_ANY)
     {
@@ -160,7 +161,6 @@ void flushmasterinput()
     else disconnectmaster();
 }
 
-extern char *global_name;
 extern int totalclients;
 
 // send alive signal to masterserver after 40 minutes of uptime and if currently in intermission (so theoretically <= 1 hour)
@@ -169,8 +169,9 @@ static inline void updatemasterserver(int millis, int port, int _interm)
 {
     if(!lastupdatemaster || ((millis-lastupdatemaster)>40*60*1000 && (_interm || !totalclients)))
     {
-        char servername[30]; memset(servername,'\0',30); filtertext(servername, global_name, FTXT__GLOBALNAME, 20);
-        if(mastername[0]) requestmasterf("regserv %d %s %d\n", port, servername[0] ? servername : "noname", AC_VERSION);
+        string servdesc, pubkey;
+        filtertext(servdesc, scl.servdesc_full[0] ? scl.servdesc_full : "noname", FTXT__GLOBALNAME, 20);
+        if(mastername[0]) requestmasterf("regserv %d %s-%s %d\n", port, servdesc, scl.ssk ? bin2hex(pubkey, scl.ssk + 32, 32) : "nokey", AC_VERSION);
         lastupdatemaster = millis + 1;
     }
 }
@@ -325,20 +326,21 @@ void serverms(int mode, int numplayers, int minremain, char *smapname, int milli
     if(mastersock != ENET_SOCKET_NULL && ENET_SOCKETSET_CHECK(sockset, mastersock)) flushmasterinput();
 }
 
-// this function should be made better, because it is used just ONCE (no need of so much parameters)
-void servermsinit(const char *master, const char *ip, int infoport, bool listen)
+void servermsinit(bool listen)
 {
-    copystring(mastername, master);
+    if(scl.master && *scl.master) copystring(mastername, scl.master);
+    usemaster = !listen || (listen && scl.master && scl.ssk);  // true: connect to master, false: LAN-only server
     disconnectmaster();
 
     if(listen)
     {
-        ENetAddress address = { ENET_HOST_ANY, (enet_uint16)infoport };
-        if(*ip)
+        ENetAddress address = { ENET_HOST_ANY, (enet_uint16) CUBE_SERVINFO_PORT(scl.serverport) };
+        if(*scl.ip)
         {
-            if(enet_address_set_host(&address, ip)<0) logline(ACLOG_WARNING, "server ip not resolved");
+            if(enet_address_set_host(&address, scl.ip) < 0) logline(ACLOG_WARNING, "server ip \"%s\" not resolved", scl.ip);
             else serveraddress.host = address.host;
         }
+
         pongsock = enet_socket_create(ENET_SOCKET_TYPE_DATAGRAM);
         if(pongsock != ENET_SOCKET_NULL && enet_socket_bind(pongsock, &address) < 0)
         {
@@ -347,6 +349,7 @@ void servermsinit(const char *master, const char *ip, int infoport, bool listen)
         }
         if(pongsock == ENET_SOCKET_NULL) fatal("could not create server info socket");
         else enet_socket_set_option(pongsock, ENET_SOCKOPT_NONBLOCK, 1);
+
         address.port = CUBE_SERVINFO_PORT_LAN;
         lansock = enet_socket_create(ENET_SOCKET_TYPE_DATAGRAM);
         if(lansock != ENET_SOCKET_NULL && (enet_socket_set_option(lansock, ENET_SOCKOPT_REUSEADDR, 1) < 0 || enet_socket_bind(lansock, &address) < 0))
@@ -357,4 +360,5 @@ void servermsinit(const char *master, const char *ip, int infoport, bool listen)
         if(lansock == ENET_SOCKET_NULL) logline(ACLOG_WARNING, "could not create LAN server info socket");
         else enet_socket_set_option(lansock, ENET_SOCKOPT_NONBLOCK, 1);
     }
+    if(!usemaster) logline(ACLOG_INFO, "server is LAN-only - without connection to masterserver");
 }

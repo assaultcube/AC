@@ -99,7 +99,6 @@ vector<demofile> demofiles;
 long int incoming_size = 0;
 
 // cmod
-char *global_name;
 int totalclients = 0;
 int cn2boot;
 int servertime = 0, serverlagged = 0;
@@ -4304,60 +4303,25 @@ void processmasterinput(const char *cmd, int cmdlen, const char *args)
     else if(sscanf(cmd, "addgban %s", val) == 1) addgban(val);
 }
 
-string server_name = "unarmed server";
-
 void quitproc(int param)
 {
     // this triggers any "atexit"-calls:
     exit(param == 2 ? EXIT_SUCCESS : EXIT_FAILURE); // 3 is the only reply on Win32 apparently, SIGINT == 2 == Ctrl-C
 }
 
-void initserver(bool dedicated, int argc, char **argv)
+void initserver(bool dedicated)
 {
-    const char *service = NULL;
-
-    for(int i = 1; i<argc; i++)
-    {
-        if(!scl.checkarg(argv[i]))
-        {
-            char *a = &argv[i][2];
-            if(!scl.checkarg(argv[i]) && argv[i][0]=='-') switch(argv[i][1])
-            {
-                case '-': break;
-                case 'S': service = a; break;
-                default: break; /*printf("WARNING: unknown commandline option\n");*/ // less warnings - 2011feb05:ft: who disabled this - I think this should be on - more warnings == more clarity
-            }
-            else if (strncmp(argv[i], "assaultcube://", 13)) printf("WARNING: unknown commandline argument\n");
-        }
-    }
-
-    if(service && !svcctrl)
-    {
-        #ifdef WIN32
-        svcctrl = new winservice(service);
-        #endif
-        if(svcctrl)
-        {
-            svcctrl->argc = argc; svcctrl->argv = argv;
-            svcctrl->start();
-        }
-    }
-
-    if ( strlen(scl.servdesc_full) ) global_name = scl.servdesc_full;
-    else global_name = server_name;
-
     sg->smapname[0] = '\0';
 
+    // start logging
     string identity;
     if(scl.logident[0]) filtertext(identity, scl.logident, FTXT__LOGIDENT);
     else formatstring(identity)("%s#%d", scl.ip[0] ? scl.ip : "local", scl.serverport);
     int conthres = scl.verbose > 1 ? ACLOG_DEBUG : (scl.verbose ? ACLOG_VERBOSE : ACLOG_INFO);
-    if(dedicated && !initlogging(identity, scl.syslogfacility, conthres, scl.filethres, scl.syslogthres, scl.logtimestamp))
-        printf("WARNING: logging not started!\n");
+    if(dedicated && !initlogging(identity, scl.syslogfacility, conthres, scl.filethres, scl.syslogthres, scl.logtimestamp)) printf("WARNING: logging not started!\n");
     logline(ACLOG_INFO, "logging local AssaultCube server (version %d, protocol %d/%d) now..", AC_VERSION, SERVER_PROTOCOL_VERSION, EXT_VERSION);
-
     copystring(sg->servdesc_current, scl.servdesc_full);
-    servermsinit(scl.master ? scl.master : AC_MASTER_URI, scl.ip, CUBE_SERVINFO_PORT(scl.serverport), dedicated);
+    servermsinit(dedicated);
 
     if((isdedicated = dedicated))
     {
@@ -4367,6 +4331,8 @@ void initserver(bool dedicated, int argc, char **argv)
         if(!serverhost) fatal("could not create server host");
         loopi(scl.maxclients) serverhost->peers[i].data = (void *)-1;
 
+        string pubkey;
+        if(scl.ssk) logline(ACLOG_VERBOSE,"server public key: %s", bin2hex(pubkey, scl.ssk + 32, 32));
         maprot.init(scl.maprot);
 //        maprot.next(false, true); // ensure minimum maprot length of '1'
         passwords.init(scl.pwdfile, scl.adminpasswd);
@@ -4446,13 +4412,27 @@ int main(int argc, char **argv)
     #endif
     #endif
 
-    for(int i = 1; i<argc; i++)
+    setlocale(LC_ALL, "POSIX");
+
+    for(int i = 1; i < argc; i++)
     {
-        if (!strncmp(argv[i],"--wizard",8)) return wizardmain(argc, argv);
+        if(!scl.checkarg(argv[i]))
+        {
+            if (!strncmp(argv[i],"--wizard",8)) return wizardmain(argc, argv);
+            else printf("WARNING: unknown commandline argument \"%s\"\n", argv[i]);
+        }
     }
 
-    if(enet_initialize()<0) fatal("Unable to initialise network module");
-    initserver(true, argc, argv);
+    if(scl.service && !svcctrl)
+    {
+        #ifdef WIN32
+        svcctrl = new winservice(scl.service, argc, argv);
+        #endif
+        if(svcctrl) svcctrl->start();
+    }
+
+    if(enet_initialize() < 0) fatal("Unable to initialise network module");
+    initserver(true);
     return EXIT_SUCCESS;
 
     #if defined(WIN32) && !defined(_DEBUG) && !defined(__GNUC__)

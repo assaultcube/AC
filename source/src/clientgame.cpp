@@ -45,15 +45,12 @@ void setskin(playerent *pl, int skin, int team)
     pl->setskin(team, skin);
 }
 
-extern char *global_name;
-
 bool duplicatename(playerent *d, char *name = NULL)
 {
     if(!name) name = d->name;
     if(d!=player1 && !strcmp(name, player1->name) && !watchingdemo) return true;
     if(!strcmp(name, "you")) return true;
     loopv(players) if(players[i] && d!=players[i] && !strcmp(name, players[i]->name)) return true;
-    global_name = player1->name; // this certainly is not the best place to put this
     return false;
 }
 

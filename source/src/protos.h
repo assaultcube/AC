@@ -958,6 +958,9 @@ extern void tigerhash(uchar *hash, const uchar *msg, int len);
 extern void *tigerhash_init(uchar *hash);
 extern void tigerhash_add(uchar *hash, const void *msg, int len, void *state);
 extern void tigerhash_finish(uchar *hash, void *state);
+extern const char *bin2hex(char *d, const uchar *s, int len);
+extern int hex2bin(uchar *d, const char *s, int maxlen);
+extern void ed25519_pubkey_from_private(uchar *pubkey, const uchar *privkey);
 extern void loadcertdir();     // load all certs in "config/certs"
 #if 0
 // crypto // for AUTH
@@ -1027,7 +1030,7 @@ extern const char *modestr(int n, bool acronyms = false);
 extern const char *voteerrorstr(int n);
 extern const char *mmfullname(int n);
 extern void fatal(const char *s, ...) PRINTFARGS(1, 2);
-extern void initserver(bool dedicated, int argc = 0, char **argv = NULL);
+extern void initserver(bool dedicated);
 extern void cleanupserver();
 extern void localconnect();
 extern void localdisconnect();
@@ -1067,7 +1070,7 @@ extern int masterport;
 extern ENetSocket connectmaster();
 extern void serverms(int mode, int numplayers, int minremain, char *smapname, int millis, const ENetAddress &localaddr, int *mnum, int *msend, int *mrec, int *cnum, int *csend, int *crec, int protocol_version, const char *servdesccur, int _interm);
 extern const char *genpwdhash(const char *name, const char *pwd, int salt);
-extern void servermsinit(const char *master, const char *ip, int serverport, bool listen);
+extern void servermsinit(bool listen);
 extern bool serverpickup(int i, int sender);
 extern bool valid_client(int cn);
 extern void extinfo_cnbuf(ucharbuf &p, int cn);
@@ -1127,7 +1130,8 @@ struct serverconfigfile
 struct servercommandline
 {
     int uprate, serverport, syslogfacility, filethres, syslogthres, maxdemos, maxclients, kickthreshold, banthreshold, verbose, incoming_limit, afk_limit, ban_time, demotimelocal;
-    const char *ip, *master, *logident, *serverpassword, *adminpasswd, *demopath, *maprot, *pwdfile, *blfile, *nbfile, *infopath, *motdpath, *forbidden, *demofilenameformat, *demotimestampformat;
+    const char *ip, *master, *logident, *serverpassword, *adminpasswd, *demopath, *maprot, *pwdfile, *blfile, *nbfile, *infopath, *motdpath, *forbidden, *demofilenameformat, *demotimestampformat, *service;
+    uchar *ssk;
     bool logtimestamp, demo_interm, loggamestatus;
     string motd, servdesc_full, servdesc_pre, servdesc_suf, voteperm, mapperm;
     int clfilenesting;
@@ -1137,7 +1141,8 @@ struct servercommandline
                             maxclients(DEFAULTCLIENTS), kickthreshold(-5), banthreshold(-6), verbose(0), incoming_limit(10), afk_limit(45000), ban_time(20*60*1000), demotimelocal(0),
                             ip(""), master(NULL), logident(""), serverpassword(""), adminpasswd(""), demopath(""),
                             maprot("config/maprot.cfg"), pwdfile("config/serverpwd.cfg"), blfile("config/serverblacklist.cfg"), nbfile("config/nicknameblacklist.cfg"),
-                            infopath("config/serverinfo"), motdpath("config/motd"), forbidden("config/forbidden.cfg"),
+                            infopath("config/serverinfo"), motdpath("config/motd"), forbidden("config/forbidden.cfg"), service(NULL),
+                            ssk(NULL),
                             logtimestamp(false), demo_interm(false), loggamestatus(true),
                             clfilenesting(0)
     {
@@ -1154,7 +1159,18 @@ struct servercommandline
         int ai = atoi(a);
         // client: dtwhzbsave
         switch(arg[1])
-        { // todo: gjlqEGHJQUYZ
+        { // todo: gjlqEGHJQU
+            case 'Y': // private server key
+            {
+                uchar temp[64];
+                if(hex2bin(temp, a, 32) == 32)
+                {
+                    if(!ssk) ssk = new uchar[64];
+                    memcpy(ssk, temp, 32);
+                    ed25519_pubkey_from_private(ssk + 32, ssk);
+                }
+                break;
+            }
             case '-':
                     if(!strncmp(arg, "--demofilenameformat=", 21))
                     {
@@ -1244,6 +1260,7 @@ struct servercommandline
             case 'P': concatstring(voteperm, a); break;
             case 'M': concatstring(mapperm, a); break;
             case 'Z': if(ai >= 0) incoming_limit = ai; break;
+            case 'S': service = a; break;
             case 'V': verbose++; break;
             case 'C': if(*a && clfilenesting < 3)
             {
