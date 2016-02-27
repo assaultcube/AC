@@ -1018,7 +1018,7 @@ struct sl_semaphore
     sl_semaphore(int init, int *errorcount);  // init: initial semaphore value; errorcount: pointer to error counter for semaphore-related errors or NULL
     ~sl_semaphore();
     void wait();     // blocks, until semaphore gets available
-    int trywait();   // returns 0, if semaphore was locked (like wait(), but returns !=0 instead of blocking)
+    int trywait();   // returns 0, if semaphore was successfully locked (like wait(), but returns !=0 instead of blocking)
     int timedwait(int howlongmillis); // like trywait(), but waits for a litte before returning failure
     int getvalue();  // returns current semaphore value
     void post();     // increments (unlocks) semaphore

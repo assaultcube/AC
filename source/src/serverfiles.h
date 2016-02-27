@@ -565,11 +565,16 @@ bool serverwritemap(const char *mapname, int mapsize, int cfgsize, int cfgsizegz
 
 // server config files
 
-void serverconfigfile::init(const char *name)
+vector<serverconfigfile *> serverconfigs;                 // list of server config files, automatically polled in the background
+volatile bool recheckallserverconfigs = false;            // signal readserverconfigsthread to poll all files
+sl_semaphore *readserverconfigsthread_sem = NULL;         // sync readmapsthread with main thread
+
+void serverconfigfile::init(const char *name, bool tracking)
 {
     copystring(filename, name);
     path(filename);
-    read();
+    clear();
+    if(tracking) serverconfigs.add(this);
 }
 
 bool serverconfigfile::load()
@@ -581,6 +586,7 @@ bool serverconfigfile::load()
         logline(ACLOG_INFO,"could not read config file '%s'", filename);
         return false;
     }
+    entropy_add_block((const uchar *)buf, filelen);
     char *p;
     if('\r' != '\n') // this is not a joke!
     {
@@ -594,6 +600,41 @@ bool serverconfigfile::load()
     for(p = buf; (p = strchr(p, '\t')); p++) *p = ' ';
     for(p = buf; (p = strchr(p, '\n')); p++) *p = '\0'; // one string per line
     return true;
+}
+
+bool serverconfigfile::isbusy()
+{
+    return busy.getvalue() < 1;
+}
+
+void serverconfigfile::trypreload() // in readserverconfigsthread: load changed files into RAM
+{
+    if(!buf && !isbusy() && getfilesize(filename) != filelen && !load()) buf = newstring("");
+}
+
+void serverconfigfile::process() // in main thread: refill data structures with preloaded file content
+{
+    if(buf && !isbusy() && !busy.trywait())
+    {
+        clear();
+        if(strlen(buf)) read();
+        DELETEA(buf);
+        busy.post();
+    }
+}
+
+int readserverconfigsthread(void *data)
+{
+    while(1)
+    {
+        while(!recheckallserverconfigs) readserverconfigsthread_sem->wait();  // wait without using the cpu
+
+        loopv(serverconfigs) serverconfigs[i]->trypreload();
+
+        entropy_save();
+        recheckallserverconfigs = false;
+    }
+    return 0;
 }
 
 // maprot.cfg
@@ -619,12 +660,13 @@ struct servermaprot : serverconfigfile
 
     servermaprot() : curcfgset(-1) {}
 
+    void clear()
+    {
+        configsets.shrink(0);
+    }
+
     void read()
     {
-        if(getfilesize(filename) == filelen) return;
-        configsets.shrink(0);
-        if(!load()) return;
-
         const char *sep = ": ";
         configset c;
         int i, line = 0;
@@ -651,9 +693,7 @@ struct servermaprot : serverconfigfile
                 else logline(ACLOG_INFO," error in line %d, file %s", line, filename);
             }
         }
-        DELETEA(buf);
         logline(ACLOG_INFO,"read %d map rotation entries from '%s'", configsets.length(), filename);
-        return;
     }
 
     int next(bool notify = true, bool nochange = false) // load next maprotation set
@@ -733,12 +773,13 @@ struct serveripcclist : serverconfigfile
         return ipr1.ci - ipr2.ci;
     }
 
+    void clear()
+    {
+        ipranges.shrink(0);
+    }
+
     void read()
     {
-        if(getfilesize(filename) == filelen) return;
-        ipranges.shrink(0);
-        if(!load()) return;
-
         iprangecc ir;
         int line = 0, errors = 0, concatd = 0;
         char *l, *r, *p = buf;
@@ -760,7 +801,6 @@ struct serveripcclist : serverconfigfile
             else
                 logline(ACLOG_INFO," error in line %d, file %s: failed to parse '%s'", line, filename, r ? r : l), errors++;
         }
-        DELETEA(buf);
         ipranges.sort(cmpiprange);
         int orglength = ipranges.length();
         loopv(ipranges)
@@ -806,13 +846,16 @@ struct serveripcclist : serverconfigfile
         logline(ACLOG_INFO,"read %d (%d) IP list entries from '%s', %d errors, %d concatenated", ipranges.length(), orglength, filename, errors, concatd);
     }
 
-    const char *check(enet_uint32 ip) // ip: host byte order
+    const char *check(enet_uint32 ip, bool lock = false) // ip: host byte order
     {
+        if(lock) busy.wait();
         iprangecc t, *res;
         t.lr = ip;
         t.ur = 0;
         res = ipranges.search(&t, cmpipmatch);
-        return res ? printcomment(*res) : NULL;
+        const char *cc = res ? printcomment(*res) : NULL;
+        if(lock) busy.post();
+        return cc;
     }
 };
 
@@ -822,12 +865,13 @@ struct serveripblacklist : serverconfigfile
 {
     vector<iprange> ipranges;
 
+    void clear()
+    {
+        ipranges.shrink(0);
+    }
+
     void read()
     {
-        if(getfilesize(filename) == filelen) return;
-        ipranges.shrink(0);
-        if(!load()) return;
-
         iprange ir;
         int line = 0, errors = 0;
         char *l, *r, *p = buf;
@@ -847,7 +891,6 @@ struct serveripblacklist : serverconfigfile
                 errors++;
             }
         }
-        DELETEA(buf);
         ipranges.sort(cmpiprange);
         int orglength = ipranges.length();
         loopv(ipranges)
@@ -895,7 +938,7 @@ struct servernickblacklist : serverconfigfile
     vector<blackline> blacklines;
     vector<const char *> blfraglist;
 
-    void destroylists()
+    void clear()
     {
         whitelistranges.setsize(0);
         enumeratek(whitelist, const char *, key, delete key);
@@ -906,10 +949,6 @@ struct servernickblacklist : serverconfigfile
 
     void read()
     {
-        if(getfilesize(filename) == filelen) return;
-        destroylists();
-        if(!load()) return;
-
         const char *sep = " ";
         int line = 1, errors = 0;
         iprchain iprc;
@@ -972,7 +1011,6 @@ struct servernickblacklist : serverconfigfile
             }
             line++;
         }
-        DELETEA(buf);
         if(logcheck(ACLOG_VERBOSE))
         {
             logline(ACLOG_VERBOSE," nickname whitelist (%d entries):", whitelist.numelems);
@@ -1105,7 +1143,7 @@ struct serverforbiddenlist : serverconfigfile
     int num;
     char entries[100][2][FORBIDDENSIZE+1]; // 100 entries and 2 words per entry is more than enough
 
-    void initlist()
+    void clear()
     {
         num = 0;
         memset(entries,'\0',2*100*(FORBIDDENSIZE+1));
@@ -1129,10 +1167,6 @@ struct serverforbiddenlist : serverconfigfile
 
     void read()
     {
-        if(getfilesize(filename) == filelen) return;
-        initlist();
-        if(!load()) return;
-
         char *l, *p = buf;
         logline(ACLOG_VERBOSE,"reading forbidden list '%s'", filename);
         while(p < buf + filelen)
@@ -1140,7 +1174,6 @@ struct serverforbiddenlist : serverconfigfile
             l = p; p += strlen(p) + 1;
             addentry(l);
         }
-        DELETEA(buf);
     }
 
     bool canspeech(char *s)
@@ -1187,12 +1220,13 @@ struct serverpasswords : serverconfigfile
         serverconfigfile::init(name);
     }
 
+    void clear()
+    {
+        adminpwds.shrink(staticpasses);
+    }
+
     void read()
     {
-        if(getfilesize(filename) == filelen) return;
-        adminpwds.shrink(staticpasses);
-        if(!load()) return;
-
         pwddetail c;
         const char *sep = " ";
         int i, line = 1, par[ADMINPWD_MAXPAR];
@@ -1221,7 +1255,6 @@ struct serverpasswords : serverconfigfile
             }
             line++;
         }
-        DELETEA(buf);
         logline(ACLOG_INFO,"read %d admin passwords from '%s'", adminpwds.length() - staticpasses, filename);
     }
 

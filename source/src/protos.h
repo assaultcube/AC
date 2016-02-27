@@ -1119,12 +1119,17 @@ struct serverconfigfile
     string filename;
     int filelen;
     char *buf;
-    serverconfigfile() : filelen(0), buf(NULL) { filename[0] = '\0'; }
+    sl_semaphore busy;
+    serverconfigfile() : filelen(0), buf(NULL), busy(1, NULL) { filename[0] = '\0'; }
     virtual ~serverconfigfile() { DELETEA(buf); }
 
+    virtual void clear() {}
     virtual void read() {}
-    void init(const char *name);
+    void init(const char *name, bool tracking = true);
     bool load();
+    bool isbusy();
+    void trypreload();
+    void process();
 };
 
 // server commandline parsing
@@ -1268,7 +1273,7 @@ struct servercommandline
             case 'C': if(*a && clfilenesting < 3)
             {
                 serverconfigfile cfg;
-                cfg.init(a);
+                cfg.init(a, false);
                 cfg.load();
                 int line = 1;
                 clfilenesting++;

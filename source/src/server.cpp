@@ -108,7 +108,7 @@ int cn2boot;
 void poll_serverthreads()       // called once per mainloop-timeslice
 {
     static vector<servermap *> servermapstodelete;
-    static int stage = 0, lastworkerthreadstart = 0;
+    static int stage = 0, lastworkerthreadstart = 0, nextserverconfig = 0;
 
     switch(stage)
     {
@@ -158,24 +158,28 @@ void poll_serverthreads()       // called once per mainloop-timeslice
             }
             break;
         }
-
-        case 2:  // wake readconfigsthread
-#if 0
+        case 2:  // wake readserverconfigsthread
         {
-            readallconfigfiles = true;
-            readconfigsthread_sem.post();
+            recheckallserverconfigs = true;
+            nextserverconfig = 0;
+            readserverconfigsthread_sem->post();
             stage++;
             break;
         }
-
-        case 3:  // readconfigsthread
+        case 3:  // readserverconfigsthread
         {
-            stage++;
+            if(!recheckallserverconfigs)
+            {
+                if(serverconfigs.inrange(nextserverconfig))
+                {
+                    serverconfigs[nextserverconfig]->process();  // processing of config files is done in mainloop, one at a time
+                    nextserverconfig++;
+                }
+                else stage++;
+            }
             break;
         }
-
         case 4:  // pause worker threads for a while (restart once a minute)
-#endif
         {
             if(servmillis - lastworkerthreadstart > 60 * 1000) stage = 0;
             else if(numclients() == 0)
@@ -3842,16 +3846,6 @@ void sendworldstate()
     if(demorecord) recordpackets = true; // enable after 'old' worldstate is sent
 }
 
-void rereadcfgs(void)
-{
-    maprot.read();
-    ipblacklist.read();
-    geoiplist.read();
-    nickblacklist.read();
-    forbiddenlist.read();
-    passwords.read();
-}
-
 void loggamestatus(const char *reason)
 {
     int fragscore[2] = {0, 0}, flagscore[2] = {0, 0}, pnum[2] = {0, 0};
@@ -4049,7 +4043,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 
     if(!isdedicated) return;     // below is network only
 
-    poll_serverthreads();
+    poll_serverthreads(); // read config and map files in the background, process the results in the main thread
 
     serverms(sg->smode, numclients(), sg->minremain, sg->smapname, servmillis, serverhost->address, &mnum, &msend, &mrec, &cnum, &csend, &crec, SERVER_PROTOCOL_VERSION, sg->servdesc_current, sg->interm);
 
@@ -4065,7 +4059,6 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
     if(servmillis - laststatus > 60 * 1000)   // display bandwidth stats, useful for server ops
     {
         laststatus = servmillis;
-        if(!nonlocalclients) rereadcfgs(); // configs are read from actual files - only attempt to do that, when the server is empty
         if(nonlocalclients || serverhost->totalSentData || serverhost->totalReceivedData)
         {
             if(nonlocalclients) loggamestatus(NULL);
@@ -4389,6 +4382,9 @@ void initserver(bool dedicated)
         readmapsthread_sem = new sl_semaphore(0, NULL);
         defformatstring(readmapslogfilename)("%sreadmaps_log.txt", scl.logfilepath);
         sl_createthread(readmapsthread, (void *)path(readmapslogfilename));
+
+        readserverconfigsthread_sem = new sl_semaphore(0, NULL);
+        sl_createthread(readserverconfigsthread, NULL);
 
         for(;;) serverslice(5);
     }
