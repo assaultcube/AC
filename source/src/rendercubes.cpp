@@ -216,9 +216,9 @@ void render_flat(int wtex, int x, int y, int size, int h, sqr *l1, sqr *l4, sqr 
     else        // continue strip
     {
         int lighterr = lighterror*2;
-        if((abs(ol1r-l3->r)<lighterr && abs(ol2r-l4->r)<lighterr        // skip vertices if light values are close enough
-        &&  abs(ol1g-l3->g)<lighterr && abs(ol2g-l4->g)<lighterr
-        &&  abs(ol1b-l3->b)<lighterr && abs(ol2b-l4->b)<lighterr) || !wtex)
+        if((iabs(ol1r-l3->r)<lighterr && iabs(ol2r-l4->r)<lighterr        // skip vertices if light values are close enough
+        &&  iabs(ol1g-l3->g)<lighterr && iabs(ol2g-l4->g)<lighterr
+        &&  iabs(ol1b-l3->b)<lighterr && iabs(ol2b-l4->b)<lighterr) || !wtex)
         {
             verts.setsize(verts.length()-2);
             nquads--;
@@ -375,7 +375,7 @@ void render_square(int wtex, float floor1, float floor2, float ceil1, float ceil
     {
         int lighterr = lighterror*2;
         if((!hf && !ohf)
-        && ((abs(ol1r-l2->r)<lighterr && abs(ol1g-l2->g)<lighterr && abs(ol1b-l2->b)<lighterr) || !wtex))       // skip vertices if light values are close enough
+        && ((iabs(ol1r-l2->r)<lighterr && iabs(ol1g-l2->g)<lighterr && iabs(ol1b-l2->b)<lighterr) || !wtex))       // skip vertices if light values are close enough
         {
             verts.setsize(verts.length()-2);
             nquads--;

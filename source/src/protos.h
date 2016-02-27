@@ -1124,7 +1124,8 @@ struct servercommandline
                 {
                     demo_interm = true;
                 }
-                else if(ai > 0) maxdemos = ai; break;
+                else if(ai > 0) maxdemos = ai;
+                break;
             }
             case 'W': demopath = a; break;
             case 'r': maprot = a; break;

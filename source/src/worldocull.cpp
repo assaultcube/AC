@@ -72,7 +72,7 @@ void computeraytable(float vx, float vy, float fov)
                 {
                     float dist = (float)(fabs(sx-vx)+fabs(sy-vy));
                     if(firstquarter || dist > rdist[k]) rdist[k] = dist;
-                    if(firstquarter) ndist[k] = max(abs(int(sx-vx)), abs(int(sy-vy)));
+                    if(firstquarter) ndist[k] = max(iabs(sx-vx), iabs(sy-vy));
                     break;
                 }
             }

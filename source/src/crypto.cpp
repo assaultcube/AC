@@ -778,7 +778,7 @@ static const char *hashchunktoa(tiger::chunk h)   // portable solution instead o
 const char *genpwdhash(const char *name, const char *pwd, int salt)
 {
     static string temp;
-    formatstring(temp)("%s %d %s %s %d", pwd, salt, name, pwd, abs(PROTOCOL_VERSION));
+    formatstring(temp)("%s %d %s %s %d", pwd, salt, name, pwd, iabs(PROTOCOL_VERSION));
     tiger::hashval hash;
     tiger::hash((uchar *)temp, (int)strlen(temp), hash);
     formatstring(temp)("%s %s %s", hashchunktoa(hash.chunks[0]), hashchunktoa(hash.chunks[1]), hashchunktoa(hash.chunks[2]));

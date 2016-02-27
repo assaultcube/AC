@@ -154,7 +154,7 @@ static void text_color(char c, char *stack, int size, int &sp, bvec color, int a
         if(c=='r') c = stack[(sp > 0) ? --sp : sp]; // restore color
         else if(c == 'b') { if(allowblinkingtext && !ignoreblinkingbit) stack[sp] *= -1; } // blinking text - only if allowed
         else stack[sp] = c;
-        switch(abs(stack[sp]))
+        switch(iabs(stack[sp]))
         {
             case '0': color = bvec( 2,  255,  128 ); break;   // green: player talk
             case '1': color = bvec( 96,  160, 255 ); break;   // blue: team chat
@@ -204,7 +204,7 @@ static void text_color(char c, char *stack, int size, int &sp, bvec color, int a
             //default: color = bvec( 255, 255, 255 ); break;
         }
         int b = (int) (sinf(lastmillis / 200.0f) * 115.0f);
-        b = stack[sp] > 0 ? 100 : min(abs(b), 100);
+        b = stack[sp] > 0 ? 100 : min(iabs(b), 100);
         glColor4ub(color.x, color.y, color.z, (a * b) / 100);
     }
 }

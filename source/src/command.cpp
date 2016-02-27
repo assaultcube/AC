@@ -560,7 +560,7 @@ char *executeret(const char *p)                            // all evaluation hap
             if(lc<=seer_t1.length())
             {
                 int dt = seer_t1[seer_index] - seer_t1[lc];
-                if(abs(dt)<2)
+                if(iabs(dt)<2)
                 {
                     conoutf("SCRIPT EXECUTION warning [%d:%s]", &p, p);
                     seer_t2.add(seer_t1[seer_index]);

@@ -1202,7 +1202,7 @@ void CWaypointClass::CalcCost(node_s *pNode)
                     flCost += (1.0f-flFraction)*0.5f;
                }
 
-               if ((abs(a) > 4) || (abs(b) > 4)) continue;
+               if ((iabs(a) > 4) || (iabs(b) > 4)) continue;
 
                vec from = to;
                to.z -= (JUMP_HEIGHT - 1.0f);
@@ -1230,7 +1230,7 @@ void CWaypointClass::CalcCost(node_s *pNode)
                     flCost += (1.0f-flFraction)*0.5f;
                }
 
-               if ((abs(a) > 4) || (abs(b) > 4)) continue;
+               if ((iabs(a) > 4) || (iabs(b) > 4)) continue;
 
                vec from = to;
                to.z -= (JUMP_HEIGHT - 1.0f);
@@ -1650,12 +1650,12 @@ node_s *CWaypointClass::GetNearestTriggerFloodWP(vec v_origin, float flRange)
 void CWaypointClass::GetNodeIndexes(const vec &v_origin, short *i, short *j)
 {
      // Function code by cheesy and PMB
-     //*i = abs((int)((int)(v_origin.x + (2*ssize)) / SECTOR_SIZE));
-     //*j = abs((int)((int)(v_origin.y + (2*ssize)) / SECTOR_SIZE));
+     //*i = iabs((int)((int)(v_origin.x + (2*ssize)) / SECTOR_SIZE));
+     //*j = iabs((int)((int)(v_origin.y + (2*ssize)) / SECTOR_SIZE));
      //*i = (int)((v_origin.x) / ssize * MAX_MAP_GRIDS);
      //*j = (int)((v_origin.y) / ssize * MAX_MAP_GRIDS);
-     *i = abs((int)((v_origin.x) / MAX_MAP_GRIDS));
-     *j = abs((int)((v_origin.y) / MAX_MAP_GRIDS));
+     *i = iabs((int)((v_origin.x) / MAX_MAP_GRIDS));
+     *j = iabs((int)((v_origin.y) / MAX_MAP_GRIDS));
 
      if (*i > MAX_MAP_GRIDS - 1)
           *i = MAX_MAP_GRIDS - 1;

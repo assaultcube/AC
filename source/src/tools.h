@@ -54,8 +54,8 @@ static inline T min(T a, T b)
 {
     return a < b ? a : b;
 }
-
 template <typename T> inline T pow2(T x) { return x*x; }
+inline int iabs(int n) { return labs(n); }
 
 #define clamp(x,minval,maxval) (max(minval, min(x, maxval)))
 #define rnd(x) ((int)(randomMT()&0xFFFFFF)%(x))

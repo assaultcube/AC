@@ -92,6 +92,7 @@ enum { IEXC_CORE = 0, IEXC_CFG, IEXC_PROMPT, IEXC_MAPCFG, IEXC_MDLCFG, IEXC_NUM 
 #define VARNP(name, global, min, cur, max) int global = variable(#name, min, cur, max, &global, NULL, true)
 #define VARF(name, min, cur, max, body)  extern int name; void var_##name() { body; } int name = variable(#name, min, cur, max, &name, var_##name, false)
 #define VARFP(name, min, cur, max, body) extern int name; void var_##name() { body; } int name = variable(#name, min, cur, max, &name, var_##name, true)
+#define VARNFP(name, global, min, cur, max, body) extern int global; void var_##name() { body; } int global = variable(#name, min, cur, max, &global, var_##name, true)
 
 #define FVARP(name, min, cur, max) float name = fvariable(#name, min, cur, max, &name, NULL, true)
 #define FVAR(name, min, cur, max)  float name = fvariable(#name, min, cur, max, &name, NULL, false)
