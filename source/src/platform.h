@@ -2,14 +2,6 @@
     #ifdef _FORTIFY_SOURCE
         #undef _FORTIFY_SOURCE
     #endif
-
-    #define gamma __gamma
-#endif
-
-#include <math.h>
-
-#ifdef __GNUC__
-    #undef gamma
 #endif
 
 #include <string.h>
@@ -19,6 +11,7 @@
 #include <ctype.h>
 #include <time.h>
 #include <limits.h>
+#include <math.h>
 #ifdef __GNUC__
     #include <new>
     #include <signal.h>

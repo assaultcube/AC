@@ -75,11 +75,11 @@ void remip(const block &b, int level)
                 {
                     sqr *q = o[i + 1];
                     if(*((uint32_t *)q) != *((uint32_t *)o[0])  // type, floor, ceil, wtex
-                    || abs(q->b - o[0]->b) > lighterr
+                    || iabs(q->b - o[0]->b) > lighterr
                     || q->ftex != o[0]->ftex
                     || q->ctex != o[0]->ctex
-                    || abs(q->r - o[0]->r) > lighterr           // perfect mip even if light is not exactly equal
-                    || abs(q->g - o[0]->g) > lighterr
+                    || iabs(q->r - o[0]->r) > lighterr           // perfect mip even if light is not exactly equal
+                    || iabs(q->g - o[0]->g) > lighterr
                     || q->utex != o[0]->utex) goto c;
                 }
                 if(r->type==CHF || r->type==FHF)                // can make a perfect mip out of a hf if slopes lie on one line
