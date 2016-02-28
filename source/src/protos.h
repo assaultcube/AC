@@ -1045,7 +1045,7 @@ extern void filterrichtext(char *dst, const char *src, int len = sizeof(string)-
 extern void filterlang(char *d, const char *s);
 extern void trimtrailingwhitespace(char *s);
 extern string mastername;
-extern int masterport, mastertype;
+extern int masterport;
 extern ENetSocket connectmaster();
 extern void serverms(int mode, int numplayers, int minremain, char *smapname, int millis, const ENetAddress &localaddr, int *mnum, int *msend, int *mrec, int *cnum, int *csend, int *crec, int protocol_version);
 extern int msgsizelookup(int msg);
@@ -1155,11 +1155,6 @@ struct servercommandline
                     {
                         int ai = atoi(arg+13);
                         masterport = ai == 0 ? AC_MASTER_PORT : ai;
-                    }
-                    else if(!strncmp(arg, "--mastertype=", 13))
-                    {
-                        int ai = atoi(arg+13);
-                        mastertype = ai > 0 ? 1 : 0;
                     }
                     else return false;
                     break;

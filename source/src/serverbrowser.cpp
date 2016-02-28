@@ -1325,9 +1325,11 @@ int progress_callback_retrieveservers(void *data, float progress)
     return interceptkey(SDLK_ESCAPE) ? 1 : 0;
 }
 
+VARP(mastertype, 0, 1, 1); // 0: TCP direct, 1: HTTP proxy
+
 void retrieveservers(vector<char> &data)
 {
-    if(mastertype == AC_MASTER_HTTP)
+    if(mastertype)
     {
         httpget h;
         defformatstring(progresstext)("resolving %s", mastername);
