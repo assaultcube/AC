@@ -36,6 +36,7 @@
         #include <Dbghelp.h>
     #endif
     #define ZLIB_DLL
+    #define NO_POSIX_R
 #endif
 
 #ifndef STANDALONE

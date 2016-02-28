@@ -28,6 +28,9 @@ typedef unsigned int uint;
 #define ASSERT(c) if(c) {}
 #endif
 
+#ifdef NO_POSIX_R
+extern char *strtok_r(char *s, const char *delim, char **b); // homebrew
+#endif
 #ifdef swap
 #undef swap
 #endif

@@ -454,12 +454,12 @@ void loadhistory()
 {
     char *histbuf = loadfile(path("config/history", true), NULL);
     if(!histbuf) return;
-    char *line = NULL;
-    line = strtok(histbuf, "\n");
+    char *line = NULL, *b;
+    line = strtok_r(histbuf, "\n", &b);
     while(line)
     {
         history.add(new hline)->buf = newstring(line);
-        line = strtok(NULL, "\n");
+        line = strtok_r(NULL, "\n", &b);
     }
     DELETEA(histbuf);
     histpos = history.length();

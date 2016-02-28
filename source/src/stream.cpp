@@ -277,8 +277,8 @@ bool listdir(const char *dir, const char *ext, vector<char *> &files)
     DIR *d = opendir(path(pathname));
     if(d)
     {
-        struct dirent *de;
-        while((de = readdir(d)) != NULL)
+        struct dirent *de, b;
+        while(!readdir_r(d, &b, &de) && de != NULL)
         {
             if(!ext) files.add(newstring(de->d_name));
             else

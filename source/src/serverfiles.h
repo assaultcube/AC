@@ -318,19 +318,19 @@ struct servermaprot : serverconfigfile
         const char *sep = ": ";
         configset c;
         int i, line = 0;
-        char *l, *p = buf;
+        char *b, *l, *p = buf;
         logline(ACLOG_VERBOSE,"reading map rotation '%s'", filename);
         while(p < buf + filelen)
         {
             l = p; p += strlen(p) + 1; line++;
-            l = strtok(l, sep);
+            l = strtok_r(l, sep, &b);
             if(l)
             {
                 copystring(c.mapname, behindpath(l));
                 for(i = 3; i < CONFIG_MAXPAR; i++) c.par[i] = 0;  // default values
                 for(i = 0; i < CONFIG_MAXPAR; i++)
                 {
-                    if((l = strtok(NULL, sep)) != NULL) c.par[i] = atoi(l);
+                    if((l = strtok_r(NULL, sep, &b)) != NULL) c.par[i] = atoi(l);
                     else break;
                 }
                 if(i > 2)
@@ -498,15 +498,15 @@ struct servernickblacklist : serverconfigfile
         int line = 1, errors = 0;
         iprchain iprc;
         blackline bl;
-        char *l, *s, *r, *p = buf;
+        char *b, *l, *s, *r, *p = buf;
         logline(ACLOG_VERBOSE,"reading nickname blacklist '%s'", filename);
         while(p < buf + filelen)
         {
             l = p; p += strlen(p) + 1;
-            l = strtok(l, sep);
+            l = strtok_r(l, sep, &b);
             if(l)
             {
-                s = strtok(NULL, sep);
+                s = strtok_r(NULL, sep, &b);
                 int ic = 0;
                 if(s && (!strcmp(l, "accept") || !strcmp(l, "a")))
                 { // accept nickname IP-range
@@ -544,7 +544,7 @@ struct servernickblacklist : serverconfigfile
                             bl.frag[i] = blfraglist.length();
                             blfraglist.add(newstring(s));
                         }
-                        s = strtok(NULL, sep);
+                        s = strtok_r(NULL, sep, &b);
                         if(!s) break;
                     }
                     bl.ignorecase = ic > 0;
@@ -733,19 +733,19 @@ struct serverpasswords : serverconfigfile
         pwddetail c;
         const char *sep = " ";
         int i, line = 1, par[ADMINPWD_MAXPAR];
-        char *l, *p = buf;
+        char *b, *l, *p = buf;
         logline(ACLOG_VERBOSE,"reading admin passwords '%s'", filename);
         while(p < buf + filelen)
         {
             l = p; p += strlen(p) + 1;
-            l = strtok(l, sep);
+            l = strtok_r(l, sep, &b);
             if(l)
             {
                 copystring(c.pwd, l);
                 par[0] = 0;  // default values
                 for(i = 0; i < ADMINPWD_MAXPAR; i++)
                 {
-                    if((l = strtok(NULL, sep)) != NULL) par[i] = atoi(l);
+                    if((l = strtok_r(NULL, sep, &b)) != NULL) par[i] = atoi(l);
                     else break;
                 }
                 //if(i > 0)
@@ -815,10 +815,10 @@ struct serverinfofile
         defformatstring(fname)("%s_%s.txt", fnbase, lang);
         path(fname);
         int len, n;
-        char *c, *s, *t, *buf = loadfile(fname, &len);
+        char *c, *b, *s, *t, *buf = loadfile(fname, &len);
         if(!buf) return NULL;
         char *nbuf = new char[len + 2];
-        for(t = nbuf, s = strtok(buf, "\n\r"); s; s = strtok(NULL, "\n\r"))
+        for(t = nbuf, s = strtok_r(buf, "\n\r", &b); s; s = strtok_r(NULL, "\n\r", &b))
         {
             c = strstr(s, "//");
             if(c) *c = '\0'; // strip comments
@@ -885,19 +885,19 @@ struct killmessagesfile : serverconfigfile
         if(getfilesize(filename) == filelen) return;
         if(!load()) return;
 
-        char *l, *s, *p = buf;
+        char *b, *l, *s, *p = buf;
         const char *sep = " \"";
         int line = 0;
         logline(ACLOG_VERBOSE,"reading kill messages file '%s'", filename);
         while(p < buf + filelen)
         {
             l = p; p += strlen(p) + 1;
-            l = strtok(l, sep);
+            l = strtok_r(l, sep, &b);
 
             char *message;
             if(l)
             {
-                s = strtok(NULL, sep);
+                s = strtok_r(NULL, sep, &b);
                 bool fragmsg = !strcmp(l, "fragmessage");
                 bool gibmsg = !strcmp(l, "gibmessage");
                 if(s && (fragmsg || gibmsg))

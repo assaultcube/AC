@@ -98,7 +98,7 @@ void setedithide(char *text) // FIXME: human indexing inside
     eh_ents.setsize(0);
     if(text && text[0] != '\0')
     {
-        const char *s = strtok(text, " ");
+        char *b, *s = strtok_r(text, " ", &b);
         do
         {
             bool k = false;
@@ -108,7 +108,7 @@ void setedithide(char *text) // FIXME: human indexing inside
             if(sn!=-1) { loopv(eh_ents) { if(eh_ents[i]==sn) { k = true; } } }
             else sn = tn;
             if(!k) { if(sn>0 && sn<MAXENTTYPES) eh_ents.add(sn); }
-            s = strtok(NULL, " ");
+            s = strtok_r(NULL, " ", &b);
         }
         while(s);
     }
@@ -120,7 +120,7 @@ void seteditshow(char *just)
     eh_ents.setsize(0);
     if(just && just[0] != '\0')
     {
-        const char *s = strtok(just, " ");
+        char *b, *s = strtok_r(just, " ", &b);
         int sn = -1;
         int tn = atoi(s);
         loopi(MAXENTTYPES) if(!strcmp(entnames[i], s)) sn = i;

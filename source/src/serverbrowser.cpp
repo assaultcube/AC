@@ -854,7 +854,7 @@ const char *favcatcheck(serverinfo &si, const char *ckeys, char *autokeys = NULL
     if(!ckeys) return NULL;
     static char *nkeys = NULL;
     const char *sep = " \t\n\r";
-    char *keys = newstring(ckeys), *k = strtok(keys, sep);
+    char *keys = newstring(ckeys), *b, *k = strtok_r(keys, sep, &b);
     bool res = false;
     DELETEA(nkeys);
     nkeys = newstring(strlen(ckeys));
@@ -871,7 +871,7 @@ const char *favcatcheck(serverinfo &si, const char *ckeys, char *autokeys = NULL
             if(*nkeys) strcat(nkeys, " ");
             strcat(nkeys, k);
         }
-        k = strtok(NULL, sep);
+        k = strtok_r(NULL, sep, &b);
     }
     delete[] keys;
     return res ? nkeys : NULL;
@@ -883,13 +883,13 @@ void serverbrowseralternativeviews(int shiftdirection)
     const char *ckeys = getalias("serverbrowseraltviews");
     if(!ckeys) return;
     const char *sep = " \t\n\r";
-    char *keys = newstring(ckeys), *k = strtok(keys, sep);
+    char *keys = newstring(ckeys), *b, *k = strtok_r(keys, sep, &b);
     vector<int> cats;
     cats.add(0);
     while(k)
     {
         loopv(favcats) if(!strcmp(favcats[i], k)) cats.add(i + 1);
-        k = strtok(NULL, sep);
+        k = strtok_r(NULL, sep, &b);
     }
     delete[] keys;
     if(cats.length())
@@ -916,7 +916,7 @@ bool assignserverfavourites()
         loopi(FC_NUM) { alx[i] = getalias(favcatargname(favcats[j], i)); alxn[i] = alx[i] ? atoi(alx[i]) : 0; }
         favcattags.add(alx[FC_TAG]);
         bool showonlythiscat = j == showonlyfavourites - 1;
-        char *keys = newstring(alx[FC_KEYS]), *k = strtok(keys, sep);
+        char *keys = newstring(alx[FC_KEYS]), *b, *k = strtok_r(keys, sep, &b);
         while(k)
         {
             loopv(servers)
@@ -939,7 +939,7 @@ bool assignserverfavourites()
                     }
                 }
             }
-            k = strtok(NULL, sep);
+            k = strtok_r(NULL, sep, &b);
         }
         delete[] keys;
     }

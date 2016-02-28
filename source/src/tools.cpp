@@ -2,12 +2,30 @@
 
 #include "cube.h"
 
+#ifdef NO_POSIX_R
+char *strtok_r(char *s, const char *delim, char **b)
+{
+    if(s) *b = s;
+    *b += strspn(*b, delim);
+    if(!**b) return NULL;
+    s = *b;
+    *b += strcspn(s, delim);
+    if(**b) *(*b)++ = '\0';
+    return s;
+}
+#endif
+
 const char *timestring(bool local, const char *fmt)
 {
     static string asciitime;
     time_t t = time(NULL);
+#ifdef NO_POSIX_R
     struct tm * timeinfo;
     timeinfo = local ? localtime(&t) : gmtime (&t);
+#else
+    struct tm *timeinfo, b;
+    timeinfo = local ? localtime_r(&t, &b) : gmtime_r(&t, &b);
+#endif
     strftime(asciitime, sizeof(string) - 1, fmt ? fmt : "%Y%m%d_%H.%M.%S", timeinfo); // sortable time for filenames
     return asciitime;
 }

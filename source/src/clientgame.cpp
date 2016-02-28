@@ -87,7 +87,7 @@ const char *highlight(const char *text)
     if(!marker || !strstr(text, player1->name)) return text;
     defformatstring(subst)("\fs%s%s\fr", marker, player1->name);
     char *temp = newstring(text);
-    char *s = strtok(temp, sep), *l = temp, *c, *r = result;
+    char *b, *s = strtok_r(temp, sep, &b), *l = temp, *c, *r = result;
     result[0] = '\0';
     while(s)
     {
@@ -101,7 +101,7 @@ const char *highlight(const char *text)
             }
             l = s + strlen(s);
         }
-        s = strtok(NULL, sep);
+        s = strtok_r(NULL, sep, &b);
     }
     if(MAXTRANS - strlen(result) > strlen(text) - (l - temp)) strcat(result, text + (l - temp));
     delete[] temp;

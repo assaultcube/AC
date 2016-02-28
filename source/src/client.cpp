@@ -256,11 +256,11 @@ void toserverme(char *text)
 
 void echo(char *text)
 {
-    const char *s = strtok(text, "\n");
+    char *b, *s = strtok_r(text, "\n", &b);
     do
     {
         conoutf("%s", s ? s : "");
-        s = strtok(NULL, "\n");
+        s = strtok_r(NULL, "\n", &b);
     }
     while(s);
 }
@@ -268,12 +268,12 @@ void echo(char *text)
 VARP(allowhudechos, 0, 1, 1);
 void hudecho(char *text)
 {
-    const char *s = strtok(text, "\n");
+    char *b, *s = strtok_r(text, "\n", &b);
     void (*outf)(const char *s, ...) = allowhudechos ? hudoutf : conoutf;
     do
     {
         outf("%s", s ? s : "");
-        s = strtok(NULL, "\n");
+        s = strtok_r(NULL, "\n", &b);
     }
     while(s);
 }

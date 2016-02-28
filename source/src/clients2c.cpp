@@ -1423,8 +1423,8 @@ const char *parseDemoFilename(char *srvfinfo)
     {
         int fip = 0;
         char sep[] = ":";
-        char *pch;
-        pch = strtok (srvfinfo,sep);
+        char *pch, *b;
+        pch = strtok_r(srvfinfo, sep, &b);
         while (pch != NULL && fip < 4)
         {
             fip++;
@@ -1436,7 +1436,7 @@ const char *parseDemoFilename(char *srvfinfo)
                 case 4: stamp = atoi(pch); break;
                 default: break;
             }
-            pch = strtok (NULL, sep);
+            pch = strtok_r(NULL, sep, &b);
         }
         copystring(srvmap, pch);
     }
