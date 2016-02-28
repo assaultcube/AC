@@ -369,13 +369,10 @@ void seedMT(uint seed)
 
 uint randomMT()
 {
-    int cur = mt_next;
-    if(++mt_next >= MT_N)
-    {
-        if(mt_next > MT_N) { seedMT(5489U + time(NULL)); cur = mt_next++; }
-        else mt_next = 0;
-    }
-    uint y = (mt_state[cur] & 0x80000000U) | (mt_state[mt_next] & 0x7FFFFFFFU);
+    int nxt = (mt_next + 1) % MT_N, cur = (nxt + MT_N -1) % MT_N;
+    if(mt_next >= MT_N) seedMT(5489U + time(NULL));
+    mt_next = nxt;
+    uint y = (mt_state[cur] & 0x80000000U) | (mt_state[nxt] & 0x7FFFFFFFU);
     mt_state[cur] = y = mt_state[cur < MT_N - MT_M ? cur + MT_M : cur + MT_M - MT_N] ^ (y >> 1) ^ (-int(y & 1U) & MT_K);
     y ^= (y >> 11);
     y ^= (y <<  7) & 0x9D2C5680U;
@@ -669,12 +666,12 @@ void ed25519test(char *vectorfilename)  // check ed25519 functions with test vec
     path(vectorfilename);
     stopwatch watch;
     int vectorfilesize = 0;
-    char *vectorfile = loadfile(vectorfilename, &vectorfilesize);
+    char *vectorfile = loadfile(vectorfilename, &vectorfilesize), *b;
     if(!vectorfile) { conoutf("could not read test vector file %s", vectorfilename); return; }
     conoutf("loaded %d bytes from %s", vectorfilesize, vectorfilename);
     watch.start();
     int lines = 0, inputerrors = 0, pubfail = 0, signfail = 0, verifyfail = 0, verifyfail2 = 0;
-    for(char *l = strtok(vectorfile, "\n"); l; l = strtok(NULL, "\n"))
+    for(char *l = strtok_r(vectorfile, "\n", &b); l; l = strtok_r(NULL, "\n", &b))
     { // a line consists of 32 bytes private key, 32 byte public key, ":", 32 byte public key (again), ":", message, ":", signed message, ":"
         char *vprivpub = l, *vpub = strchr(l, ':'), *vmsg, *vsmsg, hextemp[65];
         int linelen = strlen(l), msglen = 0;
@@ -885,14 +882,14 @@ void authsetup(char **args, int numargs)  // set up private and public keys
                     xor_block(prepriv, keyhash, preprivlen);
                 }
                 const char *fn = numargs > 2 && args[2][0] ? path(args[2]) : AUTHPREPRIVATECFGFILE;
-                char *oldfile = loadfile(fn, NULL);
+                char *oldfile = loadfile(fn, NULL), *b;
                 stream *f = openfile(fn, "wb");
                 if(f)
                 {
                     f->printf("\n"  "// remove this file from your computer immediately!\n"
                                     "// either print it out and delete it or move it to a thumbdrive.\n"
                                     "// YOU DO NOT NEED THIS FILE TO PLAY AC!\n" "\n");
-                    if(oldfile) for(char *l = strtok(oldfile, "\n\r"); l; l = strtok(NULL, "\n\r")) if(*l) f->printf("// %s\n", l);
+                    if(oldfile) for(char *l = strtok_r(oldfile, "\n\r", &b); l; l = strtok_r(NULL, "\n\r", &b)) if(*l) f->printf("// %s\n", l);
                     f->printf("authsetup pre %s", bin2hex(hextemp, prepriv, preprivlen));
                     if(preprivpwdcfg) f->printf(" %s %u", bin2hex(hextemp, psalt, 16), preprivpwdcfg & ~1);
                     f->printf("\n\n");
@@ -916,11 +913,11 @@ void authsetup(char **args, int numargs)  // set up private and public keys
                     xor_block(priv, keyhash, 32);
                 }
                 const char *fn = numargs > 2 && args[2][0] ? path(args[2]) : AUTHPRIVATECFGFILE;
-                char *oldfile = loadfile(fn, NULL);
+                char *oldfile = loadfile(fn, NULL), *b;
                 stream *f = openfile(fn, "wb");
                 if(f)
                 {
-                    if(oldfile) for(char *l = strtok(oldfile, "\n\r"); l; l = strtok(NULL, "\n\r")) if(*l) f->printf("// %s\n", l);
+                    if(oldfile) for(char *l = strtok_r(oldfile, "\n\r", &b); l; l = strtok_r(NULL, "\n\r", &b)) if(*l) f->printf("// %s\n", l);
                     f->printf("\nauthsetup priv %s", bin2hex(hextemp, priv, 32));
                     if(privpwdcfg) f->printf(" %s %u", bin2hex(hextemp, salt, 16), privpwdcfg);
                     f->printf("\nauthsetup pub %s\n\n", bin2hex(hextemp, keyhash + 32, 32));
@@ -1008,7 +1005,7 @@ void authkey_(char **args, int numargs)  // set up misc keys
                     stream *f = openfile(AUTHKEYSCFGFILE, "wb");
                     if(f)
                     { // don't really delete the old keys, just comment them out
-                        for(char *l = strtok(oldfile, "\n\r"); l; l = strtok(NULL, "\n\r")) if(*l) f->printf("// %s\n", l);
+                        for(char *b, *l = strtok_r(oldfile, "\n\r", &b); l; l = strtok_r(NULL, "\n\r", &b)) if(*l) f->printf("// %s\n", l);
                         delete f;
                     }
                     delete[] oldfile;
@@ -1130,7 +1127,7 @@ bool cert::parse()  // parse orgmsg[] and check the signature
         if(hex2bin(signature, workmsg + certheaderlen, 64) == 64)
         { // parse all lines
             certline line;
-            for(char *l = strtok(workmsg + certheaderlenfull, "\n\r"); l; l = strtok(NULL, "\n\r"))
+            for(char *b, *l = strtok_r(workmsg + certheaderlenfull, "\n\r", &b); l; l = strtok_r(NULL, "\n\r", &b))
             {
                 // get comment
                 line.comment = strstr(l, "//");
