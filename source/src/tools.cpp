@@ -320,6 +320,7 @@ void calcentitystats(entitystats_s &es, const persistent_entity *pents, int pent
         es.pickupdistance[r]++;
     }
     es.pickups = picks.length();
+    es.modes_possible = gmode_possible(es.hasffaspawns, es.hasteamspawns, es.hasflags);
 }
 #if 0
 const char *rateentitystats(entitystats_s &es)

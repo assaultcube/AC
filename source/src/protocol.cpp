@@ -399,6 +399,34 @@ const char *mmfullname(int n) { return (n>=0 && n < MM_NUM) ? mmfullnames[n] : "
 
 int defaultgamelimit(int gamemode) { return m_teammode ? 15 : 10; }
 
+int gmode_possible(bool hasffaspawns, bool hasteamspawns, bool hasflags)  // return bitmask of playable modes, according to existing spawn and flag entities
+{
+    return ((hasffaspawns ? GMMASK__FFASPAWN : 0) | (hasteamspawns ? GMMASK__TEAMSPAWN : 0)) & ~(hasflags ? 0 : GMMASK__FLAGENTS);
+}
+
+int gmode_parse(const char *list) // convert a list of mode acronyms to a bitmask
+{
+    char *buf = newstring(list), *b;
+    int res = 0;
+    for(char *p = strtok_r(buf, "|", &b); p; p = strtok_r(NULL, "|", &b))
+    {
+        loopi(GMODE_NUM) if(!strcasecmp(p, modeacronymnames[i + 1])) res |= 1 << i;
+    }
+    delete buf;
+    return res;
+}
+
+char *gmode_enum(int gm, char *buf) // convert mode bitmask to string with sorted list of mode acronyms
+{
+    vector<const char *> mas;
+    loopi(GMODE_NUM) if(gm & (1 << i)) mas.add(modeacronymnames[i + 1]);
+    mas.sort(stringsortignorecase);
+    buf[0] = '\0';
+    loopv(mas) concatformatstring(buf, "%s%s", i ? "|" : "", mas[i]);
+    filtertext(buf, buf, FTXT_TOLOWER);
+    return buf;
+}
+
 static const int msgsizes[] =               // size inclusive message token, 0 for variable or not-checked sizes
 {
     SV_SERVINFO, 5, SV_WELCOME, 2, SV_INITCLIENT, 0, SV_POS, 0, SV_POSC, 0, SV_POSN, 0, SV_TEXT, 0, SV_TEAMTEXT, 0, SV_TEXTME, 0, SV_TEAMTEXTME, 0, SV_TEXTPRIVATE, 0,

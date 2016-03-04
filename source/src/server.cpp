@@ -2084,7 +2084,11 @@ void startgame(const char *newname, int newmode, int newtime, bool notify)
             if(localmap)
             {
                 localmap->load();
-                if(localmap->isok) sm = localmap;
+                if(localmap->isok)
+                {
+                    sm = localmap;
+                    if(!(sm->entstats.modes_possible & 1 << sg->smode)) conoutf("\f3map %s does not support game mode %s", sm->fname, fullmodestr(sg->smode));
+                }
                 else conoutf("\f3local server failed to load map \"%s%s\", error: %s", lpath, sg->smapname, localmap->err);
             }
         }

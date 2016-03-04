@@ -951,6 +951,9 @@ extern const char *docgetdesc(const char *name);
 extern const char *acronymmodestr(int n);
 extern const char *fullmodestr(int n);
 extern int defaultgamelimit(int gamemode);
+extern int gmode_possible(bool hasffaspawns, bool hasteamspawns, bool hasflags);
+extern int gmode_parse(const char *list);
+extern char *gmode_enum(int gm, char *buf);
 
 // crypto
 #define TIGERHASHSIZE 24
