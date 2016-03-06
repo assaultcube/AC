@@ -83,37 +83,43 @@ struct servermap  // in-memory version of a map file on a server
 
         stream *f = NULL;
         int restofhead;
+        string filename;
+
+        if(!validmapname(fname)) err = "illegal filename";
+        if(err) goto loadfailed;
 
         // load map files, prepare sendmap buffer
-        defformatstring(filename)("%s%s.cfg", fpath, fname);
-        path(filename);
-        uchar *cfgraw = (uchar *)loadfile(filename, &cfglen);
-        if(cfgraw)
         {
-            tigerhash(cfghash, cfgraw, cfglen);
-            loopk(cfglen) if(cfgraw[k] > 0x7f || (cfgraw[k] < 0x20 && !isspace(cfgraw[k]))) err = "illegal chars in cfg file";
-        }
-        formatstring(filename)("%s%s.cgz", fpath, fname);
-        path(filename);
-        cgzraw = (uchar *)loadfile(filename, &cgzlen);
-        if(cgzraw) tigerhash(cgzhash, cgzraw, cgzlen);
-        if(!cgzraw) err = "loading cgz failed";
-        else if(cfglen > MAXCFGFILESIZE) err = "cfg file too big";
-        else if(cgzlen >= MAXMAPSENDSIZE) err = "cgz file too big";
-        else if(cfgraw)
-        {
-            uLongf gzbufsize = GZBUFSIZE;
-            ASSERT(GZBUFSIZE < FLOORPLANBUFSIZE);
-            if(compress2(staticbuffer, &gzbufsize, cfgraw, cfglen, 9) != Z_OK) gzbufsize = 0;
-            cfggzlen = (int) gzbufsize;
-            if(cgzlen + cfggzlen < MAXMAPSENDSIZE)
-            { // map is small enough to be sent
-                cfgrawgz = new uchar[cfggzlen];
-                memcpy(cfgrawgz, staticbuffer, cfggzlen);
+            formatstring(filename)("%s%s.cfg", fpath, fname);
+            path(filename);
+            uchar *cfgraw = (uchar *)loadfile(filename, &cfglen);
+            if(cfgraw)
+            {
+                tigerhash(cfghash, cfgraw, cfglen);
+                loopk(cfglen) if(cfgraw[k] > 0x7f || (cfgraw[k] < 0x20 && !isspace(cfgraw[k]))) err = "illegal chars in cfg file";
             }
-            else err = "cgz + cfg.gz too big to send";
+            formatstring(filename)("%s%s.cgz", fpath, fname);
+            path(filename);
+            cgzraw = (uchar *)loadfile(filename, &cgzlen);
+            if(cgzraw) tigerhash(cgzhash, cgzraw, cgzlen);
+            if(!cgzraw) err = "loading cgz failed";
+            else if(cfglen > MAXCFGFILESIZE) err = "cfg file too big";
+            else if(cgzlen >= MAXMAPSENDSIZE) err = "cgz file too big";
+            else if(cfgraw)
+            {
+                uLongf gzbufsize = GZBUFSIZE;
+                ASSERT(GZBUFSIZE < FLOORPLANBUFSIZE);
+                if(compress2(staticbuffer, &gzbufsize, cfgraw, cfglen, 9) != Z_OK) gzbufsize = 0;
+                cfggzlen = (int) gzbufsize;
+                if(cgzlen + cfggzlen < MAXMAPSENDSIZE)
+                { // map is small enough to be sent
+                    cfgrawgz = new uchar[cfggzlen];
+                    memcpy(cfgrawgz, staticbuffer, cfggzlen);
+                }
+                else err = "cgz + cfg.gz too big to send";
+            }
+            DELETEA(cfgraw);
         }
-        DELETEA(cfgraw);
         if(err) goto loadfailed;
 
         // extract entity data and header info; compile map statistics; create floorplan

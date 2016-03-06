@@ -207,11 +207,44 @@ void freegzbuf(ucharbuf *p)  // free a ucharbuf created by getgzbuf()
     }
 }
 
+//#define FILENAMESALLLOWERCASE
+
+bool validmapname(const char *s) // checks for length, allowed chars and special DOS filenames
+{
+    int len = strlen(s);
+    if(len > MAXMAPNAMELEN) return false;
+    if(len == 3 || len == 4)
+    {
+        char uc[4];
+        loopi(3) uc[i] = toupper(s[i]);
+        uc[3] = '\0';
+        const char *resd = "COMLPTCONPRNAUXNUL", *fnd = strstr(resd, uc);
+        if(fnd)
+        {
+            int pos = (int) (fnd - resd);
+            if(pos == 0 || pos == 3)
+            {
+                if(isdigit(s[3])) return false; // COMx, LPTx
+            }
+            else if(pos % 3 == 0) return false; // CON, PRN, AUX, NUL
+        }
+    }
+    while(*s != '\0')
+    {
+#ifdef FILENAMESALLLOWERCASE
+        if(!islower(*s) && !isdigit(*s) && *s != '_' && *s != '-' && *s != '.') return false;
+#else
+        if(!isalnum(*s) && *s != '_' && *s != '-' && *s != '.') return false;
+#endif
+        ++s;
+    }
+    return true;
+}
+
+
 // filter text according to rules
 // dst can be identical to src; dst needs to be of size "min(len, strlen(s)) + 1"
 // returns dst
-
-//#define FILENAMESALLLOWERCASE
 
 char *filtertext(char *dst, const char *src, int flags, int len)
 {

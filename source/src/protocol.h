@@ -9,6 +9,7 @@
 #define DEMO_VERSION 2                  // bump when demo format changes
 #define DEMO_MAGIC "ASSAULTCUBE_DEMO"
 #define DEMO_MINTIME 10000              // don't keep demo recordings with less than 10 seconds
+#define MAXMAPNAMELEN 31
 #define MAXMAPSENDSIZE 65536
 #define MAXCFGFILESIZE 65536
 #define MAXGZMSGSIZE 65536

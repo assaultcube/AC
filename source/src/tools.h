@@ -139,35 +139,6 @@ struct stringformatter
 #define defformatstring(d) string d; formatstring(d)
 #define defvformatstring(d,last,fmt) string d; { va_list ap; va_start(ap, last); vformatstring(d, fmt, ap); va_end(ap); }
 
-#define MAXMAPNAMELEN 64
-inline bool validmapname(const char *s)
-{
-    int len = strlen(s);
-    if(len > MAXMAPNAMELEN) return false;
-    if(len == 3 || len == 4)
-    {
-        char uc[4];
-        loopi(3) uc[i] = toupper(s[i]);
-        uc[3] = '\0';
-        const char *resd = "COMLPTCONPRNAUXNUL", *fnd = strstr(resd, uc);
-        if(fnd)
-        {
-            int pos = (int) (fnd - resd);
-            if(pos == 0 || pos == 3)
-            {
-                if(isdigit(s[3])) return false; // COMx, LPTx
-            }
-            else if(pos % 3 == 0) return false; // CON, PRN, AUX, NUL
-        }
-    }
-    while(*s != '\0')
-    {
-        if(!isalnum(*s) && *s != '_' && *s != '-' && *s != '.') return false;
-        ++s;
-    }
-    return true;
-}
-
 #define loopv(v)    for(int i = 0; i<(v).length(); i++)
 #define loopvj(v)   for(int j = 0; j<(v).length(); j++)
 #define loopvk(v)   for(int k = 0; k<(v).length(); k++)

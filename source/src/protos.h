@@ -1062,6 +1062,7 @@ extern void getstring(char *t, ucharbuf &p, int len = MAXTRANS);
 extern void putgzbuf(vector<uchar> &d, vector<uchar> &s); // zips a vector into a stream, stored in another vector
 extern ucharbuf *getgzbuf(ucharbuf &p); // fetch a gzipped buffer; needs to be freed properly later
 extern void freegzbuf(ucharbuf *p);  // free a ucharbuf created by getgzbuf()
+extern bool validmapname(const char *s); // checks for length, allowed chars and special DOS filenames
 extern char *filtertext(char *dst, const char *src, int flags, int len = sizeof(string)-1);
 extern void filterrichtext(char *dst, const char *src, int len = sizeof(string)-1);
 extern void filterlang(char *d, const char *s);
