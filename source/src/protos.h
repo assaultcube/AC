@@ -1123,8 +1123,10 @@ struct serverconfigfile
     string filename;
     int filelen;
     char *buf;
+    uint32_t filehash;
     sl_semaphore busy;
-    serverconfigfile() : filelen(0), buf(NULL), busy(1, NULL) { filename[0] = '\0'; }
+    bool readfailed, updated;
+    serverconfigfile() : filelen(0), buf(NULL), busy(1, NULL) { filename[0] = '\0'; fnv1a_init(filehash); }
     virtual ~serverconfigfile() { DELETEA(buf); }
 
     virtual void clear() {}

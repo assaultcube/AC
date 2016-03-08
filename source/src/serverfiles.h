@@ -587,7 +587,7 @@ bool serverconfigfile::load()
 {
     DELETEA(buf);
     buf = loadfile(filename, &filelen);
-    if(!buf)
+    if((readfailed = !buf))
     {
         logline(ACLOG_INFO,"could not read config file '%s'", filename);
         return false;
@@ -615,17 +615,39 @@ bool serverconfigfile::isbusy()
 
 void serverconfigfile::trypreload() // in readserverconfigsthread: load changed files into RAM
 {
-    if(!buf && !isbusy() && getfilesize(filename) != filelen && !load()) buf = newstring("");
+    if(!buf && !isbusy())
+    {
+        int newfilelen;
+        bool contentchanged = false;
+        char *newbuf = loadfile(filename, &newfilelen);
+        readfailed = !newbuf;
+        if(newbuf)
+        {
+            uint32_t newhash;
+            uchar *p = (uchar*)newbuf;
+            fnv1a_init(newhash);
+            loopirev(newfilelen) fnv1a_add(newhash, *p++);
+            if(newhash != filehash)
+            {
+                contentchanged = true;
+                filehash = newhash;
+            }
+            delete newbuf;
+        }
+        if(contentchanged) load();
+    }
 }
 
 void serverconfigfile::process() // in main thread: refill data structures with preloaded file content
 {
-    if(buf && !isbusy() && !busy.trywait())
+    updated = false;
+    if((readfailed || buf) && !isbusy() && !busy.trywait())
     {
         clear();
-        if(strlen(buf)) read();
+        if(buf && strlen(buf)) read();
         DELETEA(buf);
         busy.post();
+        updated = true;
     }
 }
 

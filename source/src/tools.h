@@ -1002,5 +1002,19 @@ extern void sl_detachthread(void *ti);
 extern void sl_sleep(int duration);
 extern bool ismainthread();
 
-#endif
+/////////////////////////////////////////////////////////  FNV-1a  ///////////////////////////////////////////////////////////////////
+// Fowler–Noll–Vo is a non-cryptographic hash function created by Glenn Fowler, Landon Curt Noll, and Phong Vo. It is public domain.
+// We use the 32-bit-version here.
 
+inline void fnv1a_init(uint32_t &hash)
+{
+    hash = 2166136261UL;
+}
+
+inline void fnv1a_add(uint32_t &hash, uchar byte)
+{
+    hash ^= byte;
+    hash *= 16777619;
+}
+
+#endif

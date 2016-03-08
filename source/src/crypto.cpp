@@ -327,22 +327,6 @@ int __hashtest() // crash, if hash functions don't work properly - no one ever t
 static int __ht = __hashtest();
 #endif
 
-/////////////////////////////////////////////////////////  FNV-1a  ///////////////////////////////////////////////////////////////////
-// Fowler–Noll–Vo is a non-cryptographic hash function created by Glenn Fowler, Landon Curt Noll, and Phong Vo. It is public domain.
-// We use the 32-bit-version here.
-
-inline void fnv1a_init(uint32_t &hash)
-{
-    hash = 2166136261UL;
-}
-
-inline void fnv1a_add(uint32_t &hash, uchar byte)
-{
-    hash ^= byte;
-    hash *= 16777619;
-}
-
-
 ////////////////////////// crypto rand (Mersenne twister) ////////////////////////////////////////
 
 #define MT_N (624)
