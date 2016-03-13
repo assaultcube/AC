@@ -13,6 +13,26 @@
 #define SERVSTR(name, cur, min, max, filt, desc) char last_##name[max+1], name[max+1]; bool __sdummy_##name = addservparstr(#name, min, max, filt, cur, name, last_##name, NULL, false, true, NULL)
 #endif
 
+#define CONFIG_MAXPAR 11
+const char *maprotkeywords[CONFIG_MAXPAR] = { "weight", "repeat", "time", "mintime", "maxtime", "minplayers", "maxplayers", "maxteamsize", "teamthreshold", "manual", "restrict" };
+
+struct configsetvalues
+{
+    union
+    {
+        struct { char weight, repeat, time, mintime, maxtime, minplayers, maxplayers, maxteamsize, teamthreshold, manual, restrict; };
+        char par[CONFIG_MAXPAR];
+    };
+
+    void empty() { weight = repeat = 0; time = mintime = maxtime = minplayers = maxplayers = maxteamsize = teamthreshold = manual = restrict = -1; }
+    void add(configsetvalues u)
+    {
+        weight = clamp(weight + u.weight, -100, 100);
+        repeat = clamp(repeat + u.repeat, -100, 100);
+        for(int i = 2; i < CONFIG_MAXPAR; i++) if(u.par[i] >= 0) par[i] = u.par[i];
+    }
+};
+
 // map management
 
 #define SERVERMAXMAPFACTOR 10       // 10 is huge... if you're running low on RAM, consider 9 as maximum (don't go higher than 10, or players will name their ugly dog after you)
@@ -29,6 +49,9 @@ const char *servermappath_incom = SERVERMAP_PATH_INCOMING;
 
 #define GZBUFSIZE ((MAXCFGFILESIZE * 11) / 10)
 #define FLOORPLANBUFSIZE  (sizeof(struct servsqr) << ((SERVERMAXMAPFACTOR) * 2))              // that's 4MB for size 10 maps (or 1 MB for size 9 maps)
+
+#define GAMEHISTLEN 32 // account the last half hour that the map was played
+#define PENALTYUNIT 100
 
 stream *readmaplog = NULL;   // the readmaps thread always logs directly to file
 
@@ -52,6 +75,17 @@ struct servermap  // in-memory version of a map file on a server
 
     uchar *enttypes;                //             table of entity types
     short *entpos_x, *entpos_y;
+
+    int modes_allowed;              // modes_possible reduced to MP modes (if dedicated server)
+    configsetvalues modes[GMODE_NUM];  // maprot parameters for this map
+    int modes_auto;                 // modes to be suggested automatically
+    int modes_cr[CR_NUM];           // modes available for manual voting, depending on client role
+    int modes_pn[MAXPLAYERS];       // modes suited for a certain number of players
+    char lastmodes[GAMEHISTLEN];    // last played game modes on this map (one entry per minute)
+    int lastplayed[GAMEHISTLEN];    // time the map was played last (one entry per minute)
+    int penalty[GMODE_NUM];         // prevent overplaying a mode on this map
+    int mappenalty;                 // prevent overplaying of map
+    int bestmode, weight;           // mode with least penalty, weight of that mode on this map
 
     const char *err;
     bool isok;                      // definitive flag!
@@ -414,7 +448,18 @@ struct servermap  // in-memory version of a map file on a server
             isok = true;
         }
     }
+
+    void oneminuteplayed(int tm, char mode)
+    {
+        memmove(lastmodes + 1, lastmodes, GAMEHISTLEN - 1);
+        memmove(lastplayed + 1, lastplayed, GAMEHISTLEN - 1);
+        lastmodes[0] = mode;
+        lastplayed[0] = tm;
+    }
 };
+
+int servermapsortname(servermap **a, servermap **b) { return strcmp((*a)->fname, (*b)->fname); } // sort by name (ascending)
+int servermapsortweight(servermap **a, servermap **b) { return (*b)->weight - (*a)->weight; } // sort by weight (descending)
 
 // data structures to sync data flow between main thread and readmapsthread
 volatile servermap *servermapdropbox = NULL;     // changed servermap entry back to the main thread
@@ -680,64 +725,182 @@ int readserverconfigsthread(void *data)
 
 // maprot.cfg
 
-#define CONFIG_MAXPAR 6
+#define MODEHISTLEN 64  // remember the game modes of the last hour (roughly)
 
-struct configset
+struct configset : configsetvalues
 {
-    string mapname;
-    union
-    {
-        struct { int mode, time, vote, minplayer, maxplayer, skiplines; };
-        int par[CONFIG_MAXPAR];
-    };
+    char mapname[MAXMAPNAMELEN + 1];
+    int mmask;
+    char asterisk;
 };
-
-servermap *getservermap(const char *mapname);
 
 struct servermaprot : serverconfigfile
 {
-    vector<configset> configsets;
-    int curcfgset;
+    vector<configset> configsets, preloaded;
+    configsetvalues base[GMODE_NUM], prebase[GMODE_NUM];
 
-    servermaprot() : curcfgset(-1) {}
+    int lastplayedmodepointer;
+    char lastplayedmodes[MODEHISTLEN];
+    int modepenalty[GMODE_NUM];
+    servermap *current;
+
+    servermaprot()
+    {
+        lastplayedmodepointer = 0;
+        loopi(MODEHISTLEN) lastplayedmodes[i] = -1;
+        current = NULL;
+    }
 
     void clear()
     {
         configsets.shrink(0);
+        loopi(GMODE_NUM) base[i].empty();
+    }
+
+    bool load()
+    {
+        preloaded.shrink(0);
+        loopi(GMODE_NUM) prebase[i].empty();
+        if(serverconfigfile::load())
+        {
+            configset c, cempty;
+            memset(&cempty, 0, sizeof(cempty));
+            cempty.empty();
+            int line = 0;
+            char *b, *l, *p = buf;
+            while(p < buf + filelen)
+            {
+                l = p; p += strlen(p) + 1; line++;
+                l = strtok_r(l, " ", &b);
+                if(l)
+                {
+                    c = cempty;
+                    char *e = strchr(l, '*');
+                    c.asterisk = e ? clamp(int(e - l), 0, MAXMAPNAMELEN) : -1;
+                    filtertext(c.mapname, behindpath(l), FTXT__MAPNAME, MAXMAPNAMELEN);
+                    bool haskeywords = false;
+                    l = strtok_r(NULL, " ", &b);
+                    if(l) c.mmask = gmode_parse(l);
+                    while((l = strtok_r(NULL, " ", &b)))
+                    {
+                        char *kb, *k = strtok_r(l, ":", &kb);
+                        if(k)
+                        {
+                            loopi(CONFIG_MAXPAR) if(!strcmp(k, maprotkeywords[i]))
+                            {
+                                if((k = strtok_r(NULL, ":", &kb)))
+                                {
+                                    c.par[i] = clamp(atoi(k), -100, 100);
+                                    haskeywords = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    if(haskeywords)
+                    {
+                        if(c.asterisk == 0)
+                        {
+                            loopj(GMODE_NUM) if((1 << j) & c.mmask) prebase[j].add(c);
+                        }
+                        else preloaded.add(c);
+                    }
+                }
+            }
+            // prepare compiled maprot message for clients
+            return true;
+        }
+        return false;
     }
 
     void read()
     {
-        const char *sep = ": ";
-        configset c;
-        int i, line = 0;
-        char *b, *l, *p = buf;
-        logline(ACLOG_VERBOSE,"reading map rotation '%s'", filename);
-        while(p < buf + filelen)
-        {
-            l = p; p += strlen(p) + 1; line++;
-            l = strtok_r(l, sep, &b);
-            if(l)
-            {
-                copystring(c.mapname, behindpath(l));
-                for(i = 3; i < CONFIG_MAXPAR; i++) c.par[i] = 0;  // default values
-                for(i = 0; i < CONFIG_MAXPAR; i++)
-                {
-                    if((l = strtok_r(NULL, sep, &b)) != NULL) c.par[i] = atoi(l);
-                    else break;
-                }
-                if(i > 2)
-                {
-                    configsets.add(c);
-                    logline(ACLOG_VERBOSE," %s, %s, %d minutes, vote:%d, minplayer:%d, maxplayer:%d, skiplines:%d", c.mapname, modestr(c.mode, false), c.time, c.vote, c.minplayer, c.maxplayer, c.skiplines);
-                }
-                else logline(ACLOG_INFO," error in line %d, file %s", line, filename);
-            }
-        }
+        loopi(GMODE_NUM) base[i] = prebase[i];
+        loopv(preloaded) configsets.add(preloaded[i]);
         logline(ACLOG_INFO,"read %d map rotation entries from '%s'", configsets.length(), filename);
     }
 
-    int next(bool notify = true, bool nochange = false) // load next maprotation set
+    void initmap(servermap *m, stream *f)  // set maprot parameters of a servermap
+    {
+        memcpy(m->modes, base, sizeof(m->modes));
+        loopv(configsets)
+        {
+            configset &c = configsets[i];
+            if(c.asterisk < 0 ? !strcmp(c.mapname, m->fname) : !strncmp(c.mapname, m->fname, c.asterisk))
+            {
+                loopj(GMODE_NUM) if((1 << j) & c.mmask) m->modes[j].add(c);
+            }
+        }
+        m->modes_allowed = m->entstats.modes_possible & (isdedicated ? GMMASK__MPNOCOOP : GMMASK__ALL);
+        int rm[CR_NUM] = { 0 }, man = 0;
+        loopj(GMODE_NUM)
+        {
+            if(m->modes[j].manual > 0) man |= 1 << j;
+            for(int i = max(0, (int)m->modes[j].restrict); i < CR_NUM; i++) rm[i] |= 1 << j;
+        }
+        m->modes_auto = m->modes_allowed & ~man;
+        loopi(CR_NUM) m->modes_cr[i] = m->modes_allowed & rm[i];
+        loopi(MAXPLAYERS) m->modes_pn[i] = 0;
+        loopj(GMODE_NUM)
+        {
+            if((1 << j) & m->modes_allowed)
+            {
+                int lb = m->modes[j].minplayers < 1 ? 0 : m->modes[j].minplayers - 1, ub = m->modes[j].maxplayers < 1 || m->modes[j].maxplayers > MAXPLAYERS ? MAXPLAYERS : m->modes[j].maxplayers;
+                while(lb < ub) m->modes_pn[lb++] |= 1 << j;
+            }
+        }
+        if(f)
+        {
+            string s;
+            f->printf("maprot parameters for: %s%s\n", m->fpath, m->fname);
+            configsetvalues e;
+            e.empty();
+            loopj(GMODE_NUM) if((1 << j) & GMMASK__MPNOCOOP)
+            {
+                f->printf("  mode %s:", gmode_enum(1 << j, s));
+                loopk(CONFIG_MAXPAR) if(e.par[k] != m->modes[j].par[k]) f->printf(" %s:%d", maprotkeywords[k], m->modes[j].par[k]);
+                f->printf("\n");
+            }
+            f->printf("  modes_allowed %s\n", gmode_enum(m->modes_allowed, s));
+            f->printf("  modes_auto %s\n", gmode_enum(m->modes_auto, s));
+            f->printf("  modes man %s\n", gmode_enum(man, s));
+            loopi(CR_NUM) f->printf("  modes_cr[%d] %s\n", i, gmode_enum(m->modes_cr[i], s));
+            loopi(MAXPLAYERS) f->printf("  modes_pn[%02d] %s\n", i + 1, gmode_enum(m->modes_pn[i], s));
+            f->printf("\n");
+        }
+    }
+
+    void oneminutepassed(int mode)
+    {
+        lastplayedmodes[lastplayedmodepointer++] = mode;
+        lastplayedmodepointer %= MODEHISTLEN;
+    }
+
+    void calcmodepenalties() // sum up, how many minutes each game mode was played during the last hour (including server-empty times)
+    {
+        loopi(GMODE_NUM) modepenalty[i] = 0;
+        loopi(MODEHISTLEN)
+        {
+            int n = lastplayedmodes[i];
+            if(n >= 0 && (GMMASK__MPNOCOOP & (1 << n))) modepenalty[n] += PENALTYUNIT;
+        }
+    }
+
+    void calcmappenalties(); // sum up, how long ago each map+mode was played
+    servermap *recalcgamesuggestions(int numpl); // regenerate list of playable games (map+mode)
+
+    servermap *imfeelinglucky(int numpl = -1)
+    {
+        return recalcgamesuggestions(numpl);
+    }
+
+    servermap *getcurrent()
+    {
+        if(!current) current = imfeelinglucky();
+        return current;
+    }
+
+    servermap *next(bool notify = true, bool nochange = false) // load next maprotation set
     {
 #ifndef STANDALONE
         if(!isdedicated)
@@ -745,33 +908,16 @@ struct servermaprot : serverconfigfile
             defformatstring(nextmapalias)("nextmap_%s", getclientmap());
             const char *map = getalias(nextmapalias);     // look up map in the cycle
             startgame(map && notify ? map : getclientmap(), getclientmode(), -1, notify);
-            return -1;
+            return NULL;
         }
 #endif
-        if(configsets.empty()) fatal("maprot unavailable");
-        int n = numclients();
-        int csl = configsets.length();
-        int ccs = curcfgset;
-        if(ccs >= 0 && ccs < csl) ccs += configsets[ccs].skiplines;
-        configset *c = NULL;
-        loopi(3 * csl + 1)
-        {
-            ccs++;
-            if(ccs >= csl || ccs < 0) ccs = 0;
-            c = &configsets[ccs];
-            if((n >= c->minplayer || i >= csl) && (!c->maxplayer || n <= c->maxplayer || i >= 2 * csl))
-            {
-                if(getservermap(c->mapname)) break;
-                else logline(ACLOG_INFO, "maprot error: map '%s' not found", c->mapname);
-            }
-            if(i >= 3 * csl) fatal("maprot unusable"); // not a single map in rotation can be found...
-        }
+        servermap *s = imfeelinglucky(numclients());
         if(!nochange)
         {
-            curcfgset = ccs;
-            startgame(c->mapname, c->mode, c->time, notify);
+            current = s;
+            startgame(s->fname, s->bestmode, s->modes[s->bestmode].time, notify);
         }
-        return ccs;
+        return s;
     }
 
     void restart(bool notify = true) // restart current map
@@ -783,11 +929,9 @@ struct servermaprot : serverconfigfile
             return;
         }
 #endif
-    startgame("ac_desert", 0, -1, notify);
+        servermap *s = getcurrent();
+        startgame(s->fname, s->bestmode, s->modes[s->bestmode].time, notify);
     }
-
-    configset *current() { return configsets.inrange(curcfgset) ? &configsets[curcfgset] : NULL; }
-    configset *get(int ccs) { return configsets.inrange(ccs) ? &configsets[ccs] : NULL; }
 };
 
 // generic commented IP list
@@ -1558,8 +1702,8 @@ struct serverparameter : serverconfigfile
 #ifdef _DEBUG
 int siddocsort(servpar **a, servpar **b) { return (*a)->chapter == (*b)->chapter ? strcmp((*a)->name, (*b)->name) : (*a)->chapter - (*b)->chapter; }
 
-const char *siddocchapters[] = { "dDebug switches", "mMisc settings", "vVote settings", "" };
-const char *siddocchaptersorting = "vmd";
+const char *siddocchapters[] = { "dDebug switches", "mMisc settings", "vVote settings", "gMaprot settings", "" };
+const char *siddocchaptersorting = "gvmd";
 
 void serverparameters_dumpdocu(char *fname)
 {

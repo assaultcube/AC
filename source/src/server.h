@@ -552,6 +552,8 @@ const char *gunnames[NUMGUNS + 1];
 const char *teamnames[] = {"CLA", "RVSF", "CLA-SPECT", "RVSF-SPECT", "SPECTATOR", "", "void"};
 const char *teamnames_s[] = {"CLA", "RVSF", "CSPC", "RSPC", "SPEC", "", "void"};
 
+const char *rolenames[CR_NUM + 1] = { "unarmed", "master", "admin", "owner", "" };
+
 const char *killmessages[2][NUMGUNS] =
 {
     { "",        "busted", "picked off", "peppered",   "sprayed", "punctured", "shredded", "busted", "",       "busted" },

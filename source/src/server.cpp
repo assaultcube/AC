@@ -73,7 +73,7 @@ struct servergame
 } cursgame, *sg = &cursgame;
 
 // config
-vector<servermap *> servermaps;             // all available maps kept in memory
+vector<servermap *> servermaps, gamesuggestions;             // all available maps kept in memory
 
 servercontroller *svcctrl = NULL;
 serverparameter serverparameters;
@@ -107,12 +107,14 @@ int cn2boot;
 
 // synchronising the worker threads...
 const char *endis[] = { "disabled", "enabled", "" };
+SERVPARLIST(dumpmaprot, 0, 1, 0, endis, "ddump maprot parameters for all maps (once, to logs/debug/maprot_debug_verbose.txt)");
 SERVPARLIST(dumpparameters, 0, 0, 0, endis, "ddump server parameters when updated");
 
 void poll_serverthreads()       // called once per mainloop-timeslice
 {
     static vector<servermap *> servermapstodelete;
     static int stage = 0, lastworkerthreadstart = 0, nextserverconfig = 0;
+    static bool debugmaprot = true;
 
     switch(stage)
     {
@@ -148,7 +150,10 @@ void poll_serverthreads()       // called once per mainloop-timeslice
                     {
                         servermaps.add(fresh);
                         logline(ACLOG_INFO,"added servermap %s%s", fresh->fpath, fresh->fname);
+                        maprot.initmap(fresh, NULL);
+                        servermaps.sort(servermapsortname); // keep list sorted at all times
                     }
+                    else delete fresh;
                     servermapdropbox = NULL;
                 }
                 readmapsthread_sem->post();
@@ -185,7 +190,16 @@ void poll_serverthreads()       // called once per mainloop-timeslice
         }
         case 4:  // check for fresh config files
         {
-            if(serverparameters.updated)
+            if(maprot.updated)
+            {
+                maprot.updated = false;
+                defformatstring(fname)("%sdebug/maprot_debug_verbose.txt", scl.logfilepath);
+                stream *f = debugmaprot && dumpmaprot ? openfile(path(fname), "w") : NULL;
+                loopv(servermaps) maprot.initmap(servermaps[i], f); // may stall a few msec if there are very many maps
+                DELETEP(f);
+                debugmaprot = false; // only once during server start
+            }
+            else if(serverparameters.updated)
             {
                 serverparameters.updated = false;
                 if(dumpparameters)
@@ -204,19 +218,95 @@ void poll_serverthreads()       // called once per mainloop-timeslice
             if(servmillis - lastworkerthreadstart > 60 * 1000) stage = 0;
             else if(numclients() == 0)
             {   // empty server and nothing to do:
-                loopvrev(servermapstodelete) delete servermapstodelete.remove(i);    // delete outdated servermaps
+                loopvrev(servermapstodelete)
+                {
+                    gamesuggestions.removeobj(servermapstodelete[i]);
+                    delete servermapstodelete.remove(i);    // delete outdated servermaps
+                }
             }
             break;
         }
     }
 }
 
-servermap *getservermap(const char *mapname) // check, if the server knows a map (by filename)
+SERVPAR(gamepenalty_cutoff, 30, 60, 120, "gNumber of minutes to remember that a map+mode combination has been played");
+SERVPAR(gamepenalty_random, 1, 1, 60, "gAmount of random weight to add to each map+mode combination");
+SERVPAR(mappenalty_cutoff, 45, 60, 240, "gNumber of minutes to remember that a map has been played");
+SERVPAR(mappenalty_weight, -100, 0, 100, "gInfluence of play history of a map (-100: no influence, 0: normal, 100: high influence)");
+
+void servermaprot::calcmappenalties() // sum up, how long ago each map+mode was played -> get individual penalties for every map+mode combination
 {
-    loopv(servermaps) if(!strcmp(servermaps[i]->fname, mapname)) return servermaps[i];
-    return NULL;
+    int modecutoff = gamepenalty_cutoff * 60, mapcutoff = mappenalty_cutoff * 60;
+    loopv(servermaps)
+    {
+        servermap &s = *servermaps[i];
+        s.mappenalty = 0;
+        loopi(GMODE_NUM) s.penalty[i] = 0;
+        loopi(GAMEHISTLEN) if(s.lastplayed[i] && ((1 << s.lastmodes[i]) & s.modes_allowed))
+        {
+            int d = (servmillis - s.lastplayed[i]) / 1000, m = s.lastmodes[i];
+            if(d < modecutoff)
+            {
+                s.penalty[m] += ((modecutoff - d + 119) * PENALTYUNIT) / modecutoff; // last minute -> 1 PENALTYUNIT, "cutoff" minutes ago -> 0 PENALTYUNIT, linear inbetween
+            }
+            if(d < mapcutoff)
+            {
+                s.mappenalty += ((mapcutoff - d + 59) * PENALTYUNIT) / mapcutoff; // last minute -> 1 PENALTYUNIT, "cutoff" minutes ago -> 0 PENALTYUNIT, linear inbetween
+            }
+        }
+        loopi(GMODE_NUM) if((1 << i) & s.modes_allowed)
+        {
+            s.penalty[i] = (s.penalty[i] * (100 - s.modes[i].repeat)) / 100;
+            s.penalty[i] -= s.modes[i].weight * PENALTYUNIT;
+            s.penalty[i] += rnd(gamepenalty_random * PENALTYUNIT);
+        }
+    }
 }
 
+servermap *randommap()
+{
+    if(servermaps.length() < 1) fatal("no maps available");
+    servermap *s = servermaps[rnd(servermaps.length())];
+    s->bestmode = 0; // tdm
+    return s;
+}
+
+servermap *servermaprot::recalcgamesuggestions(int numpl) // regenerate list of playable games (map+mode)
+{
+    calcmodepenalties();
+    calcmappenalties();
+    gamesuggestions.setsize(0);
+    if(numpl >= MAXPLAYERS) numpl = MAXPLAYERS - 1;
+    loopv(servermaps)
+    {
+        servermap &s = *servermaps[i];
+        s.bestmode = -1;
+        s.weight = INT_MIN;
+        int bestpen = INT_MAX;
+        int modemask = (numpl < 0 ? s.modes_allowed : s.modes_pn[numpl]) & s.modes_auto;
+        loopi(GMODE_NUM) if(modemask & (1 << i))
+        {
+            if((s.penalty[i] + modepenalty[i]) < bestpen)
+            {
+                bestpen = s.penalty[i] + modepenalty[i];
+                s.bestmode = i;
+            }
+        }
+        if(s.bestmode >= 0)
+        {
+            s.weight = -bestpen - ((mappenalty_weight + 101) * s.mappenalty) / 100;
+            gamesuggestions.add(&s);
+        }
+    }
+    gamesuggestions.sort(servermapsortweight);
+    return gamesuggestions.length() ? gamesuggestions[0] : randommap();
+}
+
+servermap *getservermap(const char *mapname) // check, if the server knows a map (by filename)
+{
+    servermap *k = (servermap *)&mapname, **res =  servermaps.search(&k, servermapsortname);
+    return res ? *res : NULL;
+}
 
 bool valid_client(int cn)
 {
@@ -3618,15 +3708,14 @@ void process(ENetPacket *packet, int sender, int chan)
                         else filtertext(text, behindpath(text), FTXT__MAPNAME);
                         if(time <= 0) time = -1;
                         time = min(time, 60);
-                        if (vi->gonext)
+                        if(vi->gonext)
                         {
-                            int ccs = rnd(maprot.configsets.length());
-                            configset *c = maprot.get(ccs);
+                            servermap *c = maprot.next(false, true);
                             if(c)
                             {
-                                strcpy(vi->text,c->mapname);
-                                mode = vi->num1 = c->mode;
-                                time = vi->num2 = c->time;
+                                strcpy(vi->text,c->fname);
+                                vi->num1 = c->bestmode;
+                                vi->num2 = c->modes[c->bestmode].time;
                             }
                             else fatal("unable to get next map in maprot");
                         }
@@ -4083,6 +4172,8 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
     if(servmillis - laststatus > 60 * 1000)   // display bandwidth stats, useful for server ops
     {
         laststatus = servmillis;
+        maprot.oneminutepassed(nonlocalclients ? sg->smode : -1);
+        if(sg->curmap && nonlocalclients) sg->curmap->oneminuteplayed(servmillis, sg->smode);
         if(nonlocalclients || serverhost->totalSentData || serverhost->totalReceivedData)
         {
             if(nonlocalclients) loggamestatus(NULL);
@@ -4201,7 +4292,7 @@ void extping_serverinfo(ucharbuf &pi, ucharbuf &po)
 void extping_maprot(ucharbuf &po)
 {
     putint(po, CONFIG_MAXPAR);
-    string text;
+/*    string text;
     bool abort = false;
     loopv(maprot.configsets)
     {
@@ -4212,7 +4303,7 @@ void extping_maprot(ucharbuf &po)
         sendstring(abort ? "-- list truncated --" : text, po);
         loopi(CONFIG_MAXPAR) putint(po, c.par[i]);
         if(abort) break;
-    }
+    }*/
     sendstring("", po);
 }
 
@@ -4359,8 +4450,7 @@ void initserver(bool dedicated)
 
         string pubkey;
         if(scl.ssk) logline(ACLOG_VERBOSE,"server public key: %s", bin2hex(pubkey, scl.ssk + 32, 32));
-        maprot.init(scl.maprot);
-//        maprot.next(false, true); // ensure minimum maprot length of '1'
+        maprot.init(scl.maprotfile);
         passwords.init(scl.pwdfile, scl.adminpasswd);
         ipblacklist.init(scl.blfile);
         geoiplist.init(scl.geoipfile);
