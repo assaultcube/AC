@@ -271,6 +271,8 @@ servermap *randommap()
     return s;
 }
 
+SERVPARLIST(dumpsuggestions, 0, 1, 0, endis, "ddump maprot suggestions whenever recalculated");
+
 servermap *servermaprot::recalcgamesuggestions(int numpl) // regenerate list of playable games (map+mode)
 {
     calcmodepenalties();
@@ -299,6 +301,23 @@ servermap *servermaprot::recalcgamesuggestions(int numpl) // regenerate list of 
         }
     }
     gamesuggestions.sort(servermapsortweight);
+    if(dumpsuggestions)
+    {
+        defformatstring(fname)("%sdebug/maprotsuggestions_dump_%s.txt", scl.logfilepath, numtime());
+        stream *f = openfile(path(fname), "w");
+        f->printf("// maprot suggestions dump, %s\n\nmode penalties:", asctimestr());
+        string b;
+        loopj(GMODE_NUM) if((1 << j) & GMMASK__MPNOCOOP) f->printf(" %s:%d", gmode_enum(1 << j, b), modepenalty[j]);
+        f->printf("\n\n");
+        loopv(gamesuggestions)
+        {
+            servermap &s = *gamesuggestions[i];
+            f->printf("map: \"%s%s\", weight: %d, bestmode: %d (%s), mappenalty: %d\n  mode penalties:", s.fpath, s.fname, s.weight, s.bestmode, gmode_enum(1 << s.bestmode, b), s.mappenalty);
+            loopj(GMODE_NUM) if(s.penalty[j]) f->printf(" %s:%d", gmode_enum(1 << j, b), s.penalty[j]);
+            f->printf("\n\n");
+        }
+        delete f;
+    }
     return gamesuggestions.length() ? gamesuggestions[0] : randommap();
 }
 
