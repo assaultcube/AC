@@ -988,19 +988,20 @@ struct serveripcclist : serverconfigfile
         }
         ipranges.sort(cmpiprange);
         int orglength = ipranges.length();
+        string b1, b2;
         loopv(ipranges)
         { // make sure, ranges don't overlap - otherwise bsearch gets unpredictable
             if(!i) continue;
             if(ipranges[i].ur <= ipranges[i - 1].ur)
             {
                 if(cmpcomment(ipranges[i], ipranges[i - 1]))
-                    logline(ACLOG_INFO," error: IP list entry %s|%s deleted because of overlapping %s|%s", iprtoa(ipranges[i]), printcomment(ipranges[i]), iprtoa(ipranges[i - 1]), printcomment(ipranges[i - 1]));
+                    logline(ACLOG_INFO," error: IP list entry %s|%s deleted because of overlapping %s|%s", iprtoa(ipranges[i], b1), printcomment(ipranges[i]), iprtoa(ipranges[i - 1], b2), printcomment(ipranges[i - 1]));
                 else
                 {
                     if(ipranges[i].lr == ipranges[i - 1].lr && ipranges[i].ur == ipranges[i - 1].ur)
-                        logline(ACLOG_VERBOSE," IP list entry %s got dropped (double entry)", iprtoa(ipranges[i]));
+                        logline(ACLOG_VERBOSE," IP list entry %s got dropped (double entry)", iprtoa(ipranges[i], b1));
                     else
-                        logline(ACLOG_VERBOSE," IP list entry %s got dropped (already covered by %s)", iprtoa(ipranges[i]), iprtoa(ipranges[i - 1]));
+                        logline(ACLOG_VERBOSE," IP list entry %s got dropped (already covered by %s)", iprtoa(ipranges[i], b1), iprtoa(ipranges[i - 1], b2));
                 }
                 ipranges.remove(i--); continue;
             }
@@ -1008,26 +1009,26 @@ struct serveripcclist : serverconfigfile
             {
                 if(!cmpcomment(ipranges[i], ipranges[i - 1])) // same comment
                 {
-                    logline(ACLOG_VERBOSE," IP list entries %s and %s are joined due to overlap (both %s)", iprtoa(ipranges[i - 1]), iprtoa(ipranges[i]), printcomment(ipranges[i]));
+                    logline(ACLOG_VERBOSE," IP list entries %s and %s are joined due to overlap (both %s)", iprtoa(ipranges[i - 1], b1), iprtoa(ipranges[i], b2), printcomment(ipranges[i]));
                     ipranges[i - 1].ur = ipranges[i].ur;
                     ipranges.remove(i--); continue;
                 }
                 else
                 {
-                    logline(ACLOG_INFO," error: IP list entries %s|%s and %s|%s are overlapping - dropping %s|%s", iprtoa(ipranges[i - 1]), printcomment(ipranges[i - 1]),
-                         iprtoa(ipranges[i]), printcomment(ipranges[i]), iprtoa(ipranges[i]), printcomment(ipranges[i]));
+                    logline(ACLOG_INFO," error: IP list entries %s|%s and %s|%s are overlapping - dropping %s|%s", iprtoa(ipranges[i - 1], b1), printcomment(ipranges[i - 1]),
+                         iprtoa(ipranges[i], b2), printcomment(ipranges[i]), b2, printcomment(ipranges[i]));
                     errors++;
                     ipranges.remove(i--); continue;
                 }
             }
             if(ipranges[i].lr - 1 == ipranges[i - 1].ur && !cmpcomment(ipranges[i], ipranges[i - 1]))
             {
-                logline(ACLOG_VERBOSE," concatenating IP list entries %s and %s (both %s)", iprtoa(ipranges[i - 1]), iprtoa(ipranges[i]), printcomment(ipranges[i]));
+                logline(ACLOG_VERBOSE," concatenating IP list entries %s and %s (both %s)", iprtoa(ipranges[i - 1], b1), iprtoa(ipranges[i], b2), printcomment(ipranges[i]));
                 ipranges[i - 1].ur = ipranges[i].ur;
                 ipranges.remove(i--); continue;
             }
         }
-        if(logcheck(ACLOG_VERBOSE)) loopv(ipranges) logline(ACLOG_VERBOSE," %s %s", iprtoa(ipranges[i]), printcomment(ipranges[i]));
+        if(logcheck(ACLOG_VERBOSE)) loopv(ipranges) logline(ACLOG_VERBOSE," %s %s", iprtoa(ipranges[i], b1), printcomment(ipranges[i]));
         logline(ACLOG_INFO,"read %d (%d) IP list entries from '%s', %d errors, %d concatenated", ipranges.length(), orglength, filename, errors, concatd);
     }
 
@@ -1078,25 +1079,26 @@ struct serveripblacklist : serverconfigfile
         }
         ipranges.sort(cmpiprange);
         int orglength = ipranges.length();
+        string b1, b2;
         loopv(ipranges)
         {
             if(!i) continue;
             if(ipranges[i].ur <= ipranges[i - 1].ur)
             {
                 if(ipranges[i].lr == ipranges[i - 1].lr && ipranges[i].ur == ipranges[i - 1].ur)
-                    logline(ACLOG_VERBOSE," blacklist entry %s got dropped (double entry)", iprtoa(ipranges[i]));
+                    logline(ACLOG_VERBOSE," blacklist entry %s got dropped (double entry)", iprtoa(ipranges[i], b1));
                 else
-                    logline(ACLOG_VERBOSE," blacklist entry %s got dropped (already covered by %s)", iprtoa(ipranges[i]), iprtoa(ipranges[i - 1]));
+                    logline(ACLOG_VERBOSE," blacklist entry %s got dropped (already covered by %s)", iprtoa(ipranges[i], b1), iprtoa(ipranges[i - 1], b2));
                 ipranges.remove(i--); continue;
             }
             if(ipranges[i].lr <= ipranges[i - 1].ur)
             {
-                logline(ACLOG_VERBOSE," blacklist entries %s and %s are joined due to overlap", iprtoa(ipranges[i - 1]), iprtoa(ipranges[i]));
+                logline(ACLOG_VERBOSE," blacklist entries %s and %s are joined due to overlap", iprtoa(ipranges[i - 1], b1), iprtoa(ipranges[i], b2));
                 ipranges[i - 1].ur = ipranges[i].ur;
                 ipranges.remove(i--); continue;
             }
         }
-        if(logcheck(ACLOG_VERBOSE)) loopv(ipranges) logline(ACLOG_VERBOSE," %s", iprtoa(ipranges[i]));
+        if(logcheck(ACLOG_VERBOSE)) loopv(ipranges) logline(ACLOG_VERBOSE," %s", iprtoa(ipranges[i], b1));
         logline(ACLOG_INFO,"read %d (%d) blacklist entries from '%s', %d errors", ipranges.length(), orglength, filename, errors);
     }
 
@@ -1199,7 +1201,7 @@ struct servernickblacklist : serverconfigfile
         if(logcheck(ACLOG_VERBOSE))
         {
             logline(ACLOG_VERBOSE," nickname whitelist (%d entries):", whitelist.numelems);
-            string text;
+            string text, b;
             enumeratekt(whitelist, const char *, key, int, idx,
             {
                 text[0] = '\0';
@@ -1207,7 +1209,7 @@ struct servernickblacklist : serverconfigfile
                 {
                     iprchain &ic = whitelistranges[i];
                     if(ic.pwd) concatformatstring(text, "  pwd:\"%s\"", hiddenpwd(ic.pwd));
-                    else concatformatstring(text, "  %s", iprtoa(ic.ipr));
+                    else concatformatstring(text, "  %s", iprtoa(ic.ipr, b));
                 }
                 logline(ACLOG_VERBOSE, "  accept %s%s", key, text);
             });

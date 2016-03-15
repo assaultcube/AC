@@ -503,23 +503,17 @@ const char *atoipr(const char *s, iprange *ir)
     return s;
 }
 
-const char *iptoa(const enet_uint32 ip)
+const char *iptoa(const enet_uint32 ip, char *b)
 {
-    static string s[2];
-    static int buf = 0;
-    buf = (buf + 1) % 2;
-    formatstring(s[buf])("%d.%d.%d.%d", (ip >> 24) & 255, (ip >> 16) & 255, (ip >> 8) & 255, ip & 255);
-    return s[buf];
+    formatstring(b)("%d.%d.%d.%d", (ip >> 24) & 255, (ip >> 16) & 255, (ip >> 8) & 255, ip & 255);
+    return b;
 }
 
-const char *iprtoa(const struct iprange &ipr)
+const char *iprtoa(const struct iprange &ipr, char *b)
 {
-    static string s[2];
-    static int buf = 0;
-    buf = (buf + 1) % 2;
-    if(ipr.lr == ipr.ur) copystring(s[buf], iptoa(ipr.lr));
-    else formatstring(s[buf])("%s-%s", iptoa(ipr.lr), iptoa(ipr.ur));
-    return s[buf];
+    if(ipr.lr == ipr.ur) return iptoa(ipr.lr, b);
+    else formatstring(b)("%d.%d.%d.%d-%d.%d.%d.%d", (ipr.lr >> 24) & 255, (ipr.lr >> 16) & 255, (ipr.lr >> 8) & 255, ipr.lr & 255, (ipr.ur >> 24) & 255, (ipr.ur >> 16) & 255, (ipr.ur >> 8) & 255, ipr.ur & 255);
+    return b;
 }
 
 int cmpiprange(const struct iprange *a, const struct iprange *b)

@@ -76,7 +76,8 @@ int pingpckserver(void *data) // fetch updates.txt from a media server, measure 
     u.set(s->host);
     s->resolved = h.set_host(u.domain) ? 1 : 0;
     SDL_mutexP(pckpinglog_lock);
-    cvecprintf(pckping_log, "lresolving hostname %s %s (%s)\n", u.domain, s->resolved ? "succeeded" : "failed", iptoa(ENET_NET_TO_HOST_32(h.ip.host)));
+    string b;
+    cvecprintf(pckping_log, "lresolving hostname %s %s (%s)\n", u.domain, s->resolved ? "succeeded" : "failed", iptoa(ENET_NET_TO_HOST_32(h.ip.host), b));
     SDL_mutexV(pckpinglog_lock);
     if(s->resolved)
     {
