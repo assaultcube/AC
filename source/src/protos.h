@@ -1059,6 +1059,10 @@ extern void sendstring(const char *t, ucharbuf &p);
 extern void sendstring(const char *t, packetbuf &p);
 extern void sendstring(const char *t, vector<uchar> &p);
 extern void getstring(char *t, ucharbuf &p, int len = MAXTRANS);
+extern void putip4(ucharbuf &p, enet_uint32 ip);
+extern void putip4(packetbuf &p, enet_uint32 ip);
+extern void putip4(vector<uchar> &p, enet_uint32 ip);
+extern enet_uint32 getip4(ucharbuf &p);
 extern void putgzbuf(vector<uchar> &d, vector<uchar> &s); // zips a vector into a stream, stored in another vector
 extern ucharbuf *getgzbuf(ucharbuf &p); // fetch a gzipped buffer; needs to be freed properly later
 extern void freegzbuf(ucharbuf *p);  // free a ucharbuf created by getgzbuf()

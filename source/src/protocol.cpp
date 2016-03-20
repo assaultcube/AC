@@ -3,9 +3,9 @@
 #include "cube.h"
 
 #ifdef _DEBUG
-bool protocoldbg = false;
+bool protocoldbg = false, debugmute = false;
 void protocoldebug(bool enable) { protocoldbg = enable; }
-#define DEBUGCOND (protocoldbg)
+#define DEBUGCOND (protocoldbg && !debugmute)
 #endif
 
 // all network traffic is in 32bit ints, which are then compressed using the following simple scheme (assumes that most values are small).
@@ -123,9 +123,11 @@ float getfloat(ucharbuf &p)
 template<class T>
 static inline void sendstring_(const char *text, T &p)
 {
+    DEBUGCODE(debugmute = true);
     const char *t = text;
     if(t) { while(*t) putint(p, *t++); }
     putint(p, 0);
+    DEBUGCODE(debugmute = false);
     DEBUGVAR(text);
 }
 void sendstring(const char *t, ucharbuf &p) { sendstring_(t, p); }
@@ -134,6 +136,7 @@ void sendstring(const char *t, vector<uchar> &p) { sendstring_(t, p); }
 
 void getstring(char *text, ucharbuf &p, int len)
 {
+    DEBUGCODE(debugmute = true);
     char *t = text;
     do
     {
@@ -142,7 +145,27 @@ void getstring(char *text, ucharbuf &p, int len)
         *t = getint(p);
     }
     while(*t++);
+    DEBUGCODE(debugmute = false);
     DEBUGVAR(text);
+}
+
+template<class T>
+static inline void putip4_(T &p, enet_uint32 ip)
+{
+    DEBUGCODE(string IP; iptoa(ip, IP));
+    DEBUGVAR(IP);
+    p.put(ip); p.put(ip>>8); p.put(ip>>16); p.put(ip>>24);
+}
+void putip4(ucharbuf &p, enet_uint32 ip) { putip4_(p, ip); }
+void putip4(packetbuf &p, enet_uint32 ip) { putip4_(p, ip); }
+void putip4(vector<uchar> &p, enet_uint32 ip) { putip4_(p, ip); }
+
+enet_uint32 getip4(ucharbuf &p)
+{
+    enet_uint32 ip = p.get() | (p.get()<<8) | (p.get()<<16) | (p.get()<<24);
+    DEBUGCODE(string IP; iptoa(ip, IP));
+    DEBUGVAR(IP);
+    return ip;
 }
 
 #define GZMSGBUFSIZE ((MAXGZMSGSIZE * 11) / 10)

@@ -584,11 +584,11 @@ void sendf(int cn, int chan, const char *format, ...)
     va_start(args, format);
     while(*format) switch(*format++)
     {
-        case 'x':
+        case 'x': // exclude client from getting this message
             exclude = va_arg(args, int);
             break;
 
-        case 'v':
+        case 'v': // integer array of variable length
         {
             int n = va_arg(args, int);
             int *v = va_arg(args, int *);
@@ -596,20 +596,37 @@ void sendf(int cn, int chan, const char *format, ...)
             break;
         }
 
-        case 'i':
+        case 'k': // 32 bytes (uchar)
+            p.put(va_arg(args, uchar *), 32);
+            break;
+
+        case 'i': // one to nine integer arguments
         {
             int n = isdigit(*format) ? *format++-'0' : 1;
             loopi(n) putint(p, va_arg(args, int));
             break;
         }
-        case 'a':
+
+        case 'a': // one to nine mostly positive integer arguments
         {
             int n = isdigit(*format) ? *format++-'0' : 1;
             loopi(n) putaint(p, va_arg(args, int));
             break;
         }
-        case 's': sendstring(va_arg(args, const char *), p); break;
-        case 'm':
+
+        case 'u': // unsigned integer argument
+            putuint(p, va_arg(args, int));
+            break;
+
+        case 'I': // IPv4 address argument
+            putip4(p, va_arg(args, enet_uint32));
+            break;
+
+        case 's': // string
+            sendstring(va_arg(args, const char *), p);
+            break;
+
+        case 'm': // raw message block (unused)
         {
             int n = va_arg(args, int);
             p.put(va_arg(args, uchar *), n);
