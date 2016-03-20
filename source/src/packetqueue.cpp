@@ -28,13 +28,13 @@ bool packetqueue::flushtolog(const char *logfile)
     if(!f) return false;
 
     // header
-    f->printf("AC v%d PACKET LOG : proto %d : @ %11s\n\n", AC_VERSION, PROTOCOL_VERSION, numtime());
+    f->printf("AC v%d PACKET LOG : proto %d : @ %11s\n", AC_VERSION, PROTOCOL_VERSION, numtime());
     // serialize each packet
     loopv(packets)
     {
         ENetPacket *p = packets[i];
 
-        f->printf("ENET PACKET\n");
+        f->printf("\nENET PACKET\n");
         f->printf("flags == %d\n", p->flags);
         f->printf("referenceCount == %d\n", (int)p->referenceCount);
         f->printf("dataLength == %d\n", (int)p->dataLength);
@@ -42,7 +42,7 @@ bool packetqueue::flushtolog(const char *logfile)
         // print whole buffer char-wise
         loopj(p->dataLength)
         {
-            f->printf("%16d\n", p->data[j]);
+            f->printf("%6d  0x%02x  '%c'\n", p->data[j], p->data[j], isprint(p->data[j]) ? p->data[j] : '-');
         }
     }
 
@@ -54,7 +54,6 @@ bool packetqueue::flushtolog(const char *logfile)
 // clear queue
 void packetqueue::clear()
 {
-    loopv(packets) enet_packet_destroy(packets[i]);
-    packets.clear();
+    while(!packets.empty()) enet_packet_destroy(packets.remove());
 }
 

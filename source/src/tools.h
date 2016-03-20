@@ -696,63 +696,99 @@ template <class K, class T> struct hashtable
 
 template <class T, int SIZE> struct ringbuf
 {
-    int index, len;
+    volatile int in, out;
     T data[SIZE];
 
     ringbuf() { clear(); }
 
     void clear()
     {
-        index = len = 0;
+        in = out = 0;
     }
 
-    bool empty() const { return !len; }
+    bool empty() const { return in == out; }
+    bool full() const { return length() >= SIZE - 1; }
 
-    int maxsize() const { return SIZE; }
-    int length() const { return len; }
+    int maxsize() const { return SIZE - 1; } // yes, only SIZE-1, sry
+    int length() const { return (SIZE + in - out) % SIZE; }
 
-    T &remove()
+    T &remove() // get one (crashes, if empty)
     {
-        int start = index - len;
-        if(start < 0) start += SIZE;
-        len--;
-        return data[start];
+        ASSERT(!empty());
+        T &res = data[out];
+        out = (out + 1) % SIZE;
+        return res;
     }
 
-    T &add(const T &e)
+    T *remove(int *n) // get n (reduces n, if the data wraps around or isn't available)
     {
-        T &t = data[index];
-        t = e;
-        index++;
-        if(index>=SIZE) index = 0;
-        if(len<SIZE) len++;
-        return t;
+        if(*n > length()) *n = length();
+        T *res = data + out;
+        if(out + *n >= SIZE) *n = SIZE - out;
+        out = (out + *n) % SIZE;
+        return res;
     }
 
-    T &add() { return add(T()); }
-
-    T &operator[](int i)
+    T *peek(int *n) // look at n without removing (reduces n, if the data wraps around or isn't available)
     {
-        int start = index - len;
-        if(start < 0) start += SIZE;
-        i += start;
-        if(i >= SIZE) i -= SIZE;
-        return data[i];
+        if(*n > length()) *n = length();
+        if(out + *n >= SIZE) *n = SIZE - out;
+        return data + out;
+    }
+
+    void add(const T &e) // add one (crashes, if full) -- between threads, better use stage & commit
+    {
+        ASSERT(!full());
+        volatile int i;
+        data[(i = in)] = e;
+        in = (i + 1) % SIZE;
+    }
+
+    T &stage(const T &e) // add one without acknowledging it
+    {
+        return (data[in] = e);
+    }
+
+    T *stage() // add one without acknowledging it
+    {
+        return data + in;
+    }
+
+    void stage(const T *e, int n) // add n without acknowledging it
+    {
+        int n1 = in + n >= SIZE ? SIZE - in : n, n2 = n - n1;
+        memcpy(data + in, e, n1 * sizeof(T));
+        if(n2) memcpy(data, e + n1, n2 * sizeof(T));
+    }
+
+    void commit() // add staged one (crashes, if full)
+    {
+        ASSERT(!full());
+        in = (in + 1) % SIZE;
+    }
+
+    void commit(int n) // add staged n (crashes, if full)
+    {
+        ASSERT(length() + n < SIZE);
+        in = (in + n) % SIZE;
+    }
+
+    void add(const T *e, int n) // add n
+    {
+        stage(e, n);
+        commit(n);
+    }
+
+    T &operator[](int i) // [0] is the one, that remove() will get next (in other words, [0] is the oldest entry, [length()-1] was the last added one, loopv goes from old to new)
+    {
+        ASSERT(i >= 0 && i < length());
+        return data[(out + i) % SIZE];
     }
 
     const T &operator[](int i) const
     {
-        int start = index - len;
-        if(start < 0) start += SIZE;
-        i += start;
-        if(i >= SIZE) i -= SIZE;
-        return data[i];
-    }
-
-    int find(const T &o)
-    {
-        loopi(len) if(data[i]==o) return i;
-        return -1;
+        ASSERT(i >= 0 && i < length());
+        return data[(out + i) % SIZE];
     }
 };
 
