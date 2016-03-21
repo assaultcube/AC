@@ -71,7 +71,7 @@ void exitlogging()
 {
     if(fp) { fclose(fp); fp = NULL; }
 #ifdef AC_USE_SYSLOG
-    if(syslogthreshold < ACLOG_NUM) closelog();
+    if(enabled && syslogthreshold < ACLOG_NUM) closelog();
 #endif
     syslogthreshold = ACLOG_NUM;
     enabled = false;

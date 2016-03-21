@@ -4593,6 +4593,24 @@ void quitproc(int param)
     exit(param == 2 ? EXIT_SUCCESS : EXIT_FAILURE); // 3 is the only reply on Win32 apparently, SIGINT == 2 == Ctrl-C
 }
 
+const char *loglevelnames[] = { "debug", "verbose", "info", "warning", "error", "disabled", "" };
+
+SERVPARLISTF(logthreshold_console, 0, ACLOG_INFO, 0, loglevelnames, restartlogging, "CConsole log level");
+SERVPARLISTF(logthreshold_syslog, 0, ACLOG_NUM, 0, loglevelnames, restartlogging, "CSyslog log level");
+SERVPARLISTF(logthreshold_file, 0, ACLOG_INFO, 0, loglevelnames, restartlogging, "CLogfile log level");
+
+void restartlogging()
+{
+    if(isdedicated)
+    {
+        exitlogging();
+        string identity;
+        if(scl.logident[0]) filtertext(identity, scl.logident, FTXT__LOGIDENT);
+        else formatstring(identity)("%s#%d", scl.ip[0] ? scl.ip : "local", scl.serverport);
+        initlogging(identity, scl.syslogfacility, logthreshold_console, logthreshold_file, logthreshold_syslog, scl.logtimestamp, scl.logfilepath);
+    }
+}
+
 void initserver(bool dedicated)
 {
     copystring(servpubkey, "");
@@ -4602,16 +4620,20 @@ void initserver(bool dedicated)
     sg->smapname[0] = '\0';
 
     // start logging
-    string identity;
-    if(scl.logident[0]) filtertext(identity, scl.logident, FTXT__LOGIDENT);
-    else formatstring(identity)("%s#%d", scl.ip[0] ? scl.ip : "local", scl.serverport);
-    int conthres = scl.verbose > 1 ? ACLOG_DEBUG : (scl.verbose ? ACLOG_VERBOSE : ACLOG_INFO);
-    if(dedicated && !initlogging(identity, scl.syslogfacility, conthres, scl.filethres, scl.syslogthres, scl.logtimestamp, scl.logfilepath)) printf("WARNING: logging not started!\n");
+    initserverparameter("logthreshold_console", scl.verbose > 1 ? ACLOG_DEBUG : (scl.verbose ? ACLOG_VERBOSE : ACLOG_INFO));
+    initserverparameter("logthreshold_syslog", scl.syslogthres);
+    initserverparameter("logthreshold_file", scl.filethres);
+    if((isdedicated = dedicated))
+    {
+        restartlogging();
+        if(!logcheck(ACLOG_ERROR)) printf("WARNING: logging not started!\n");
+    }
     logline(ACLOG_INFO, "logging local AssaultCube server (version %d, protocol %d/%d) now..", AC_VERSION, SERVER_PROTOCOL_VERSION, EXT_VERSION);
+
     copystring(sg->servdesc_current, scl.servdesc_full);
     servermsinit(dedicated);
 
-    if((isdedicated = dedicated))
+    if(isdedicated)
     {
         serverparameters.init(scl.parfilepath);
         if(serverparameters.load()) serverparameters.read(); // do this early, so the parameters are properly set during initialisation
