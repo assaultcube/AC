@@ -653,7 +653,7 @@ bool serverconfigfile::load()
     buf = loadfile(filename, &filelen);
     if((readfailed = !buf))
     {
-        logline(ACLOG_INFO,"could not read config file '%s'", filename);
+        xlog(ACLOG_INFO,"could not read config file '%s'", filename);
         return false;
     }
     entropy_add_block((const uchar *)buf, filelen);
@@ -823,7 +823,7 @@ struct servermaprot : serverconfigfile
     {
         loopi(GMODE_NUM) base[i] = prebase[i];
         loopv(preloaded) configsets.add(preloaded[i]);
-        logline(ACLOG_INFO,"read %d map rotation entries from '%s'", configsets.length(), filename);
+        mlog(ACLOG_INFO,"read %d map rotation entries from '%s'", configsets.length(), filename);
     }
 
     void initmap(servermap *m, stream *f)  // set maprot parameters of a servermap
@@ -974,7 +974,7 @@ struct serveripcclist : serverconfigfile
         iprangecc ir;
         int line = 0, errors = 0, concatd = 0;
         char *l, *r, *p = buf;
-        logline(ACLOG_VERBOSE,"reading ip list '%s'", filename);
+        mlog(ACLOG_VERBOSE,"reading ip list '%s'", filename);
         while(p < buf + filelen)
         {
             l = p + strspn(p, " "); p += strlen(p) + 1; line++;
@@ -989,8 +989,7 @@ struct serveripcclist : serverconfigfile
                 else
                     ipranges.add(ir);
             }
-            else
-                logline(ACLOG_INFO," error in line %d, file %s: failed to parse '%s'", line, filename, r ? r : l), errors++;
+            else mlog(ACLOG_INFO," error in line %d, file %s: failed to parse '%s'", line, filename, r ? r : l), errors++;
         }
         ipranges.sort(cmpiprange);
         int orglength = ipranges.length();
@@ -1001,13 +1000,13 @@ struct serveripcclist : serverconfigfile
             if(ipranges[i].ur <= ipranges[i - 1].ur)
             {
                 if(cmpcomment(ipranges[i], ipranges[i - 1]))
-                    logline(ACLOG_INFO," error: IP list entry %s|%s deleted because of overlapping %s|%s", iprtoa(ipranges[i], b1), printcomment(ipranges[i]), iprtoa(ipranges[i - 1], b2), printcomment(ipranges[i - 1]));
+                    mlog(ACLOG_INFO," error: IP list entry %s|%s deleted because of overlapping %s|%s", iprtoa(ipranges[i], b1), printcomment(ipranges[i]), iprtoa(ipranges[i - 1], b2), printcomment(ipranges[i - 1]));
                 else
                 {
                     if(ipranges[i].lr == ipranges[i - 1].lr && ipranges[i].ur == ipranges[i - 1].ur)
-                        logline(ACLOG_VERBOSE," IP list entry %s got dropped (double entry)", iprtoa(ipranges[i], b1));
+                        mlog(ACLOG_VERBOSE," IP list entry %s got dropped (double entry)", iprtoa(ipranges[i], b1));
                     else
-                        logline(ACLOG_VERBOSE," IP list entry %s got dropped (already covered by %s)", iprtoa(ipranges[i], b1), iprtoa(ipranges[i - 1], b2));
+                        mlog(ACLOG_VERBOSE," IP list entry %s got dropped (already covered by %s)", iprtoa(ipranges[i], b1), iprtoa(ipranges[i - 1], b2));
                 }
                 ipranges.remove(i--); continue;
             }
@@ -1015,13 +1014,13 @@ struct serveripcclist : serverconfigfile
             {
                 if(!cmpcomment(ipranges[i], ipranges[i - 1])) // same comment
                 {
-                    logline(ACLOG_VERBOSE," IP list entries %s and %s are joined due to overlap (both %s)", iprtoa(ipranges[i - 1], b1), iprtoa(ipranges[i], b2), printcomment(ipranges[i]));
+                    mlog(ACLOG_VERBOSE," IP list entries %s and %s are joined due to overlap (both %s)", iprtoa(ipranges[i - 1], b1), iprtoa(ipranges[i], b2), printcomment(ipranges[i]));
                     ipranges[i - 1].ur = ipranges[i].ur;
                     ipranges.remove(i--); continue;
                 }
                 else
                 {
-                    logline(ACLOG_INFO," error: IP list entries %s|%s and %s|%s are overlapping - dropping %s|%s", iprtoa(ipranges[i - 1], b1), printcomment(ipranges[i - 1]),
+                    mlog(ACLOG_INFO," error: IP list entries %s|%s and %s|%s are overlapping - dropping %s|%s", iprtoa(ipranges[i - 1], b1), printcomment(ipranges[i - 1]),
                          iprtoa(ipranges[i], b2), printcomment(ipranges[i]), b2, printcomment(ipranges[i]));
                     errors++;
                     ipranges.remove(i--); continue;
@@ -1029,13 +1028,13 @@ struct serveripcclist : serverconfigfile
             }
             if(ipranges[i].lr - 1 == ipranges[i - 1].ur && !cmpcomment(ipranges[i], ipranges[i - 1]))
             {
-                logline(ACLOG_VERBOSE," concatenating IP list entries %s and %s (both %s)", iprtoa(ipranges[i - 1], b1), iprtoa(ipranges[i], b2), printcomment(ipranges[i]));
+                mlog(ACLOG_VERBOSE," concatenating IP list entries %s and %s (both %s)", iprtoa(ipranges[i - 1], b1), iprtoa(ipranges[i], b2), printcomment(ipranges[i]));
                 ipranges[i - 1].ur = ipranges[i].ur;
                 ipranges.remove(i--); continue;
             }
         }
-        if(logcheck(ACLOG_VERBOSE)) loopv(ipranges) logline(ACLOG_VERBOSE," %s %s", iprtoa(ipranges[i], b1), printcomment(ipranges[i]));
-        logline(ACLOG_INFO,"read %d (%d) IP list entries from '%s', %d errors, %d concatenated", ipranges.length(), orglength, filename, errors, concatd);
+        if(logcheck(ACLOG_VERBOSE)) loopv(ipranges) mlog(ACLOG_VERBOSE," %s %s", iprtoa(ipranges[i], b1), printcomment(ipranges[i]));
+        mlog(ACLOG_INFO,"read %d (%d) IP list entries from '%s', %d errors, %d concatenated", ipranges.length(), orglength, filename, errors, concatd);
     }
 
     const char *check(enet_uint32 ip, bool lock = false) // ip: host byte order
@@ -1067,7 +1066,7 @@ struct serveripblacklist : serverconfigfile
         iprange ir;
         int line = 0, errors = 0;
         char *l, *r, *p = buf;
-        logline(ACLOG_VERBOSE,"reading ip blacklist '%s'", filename);
+        mlog(ACLOG_VERBOSE,"reading ip blacklist '%s'", filename);
         while(p < buf + filelen)
         {
             l = p; p += strlen(p) + 1; line++;
@@ -1079,7 +1078,7 @@ struct serveripblacklist : serverconfigfile
             if(l[strspn(l, " ")])
             {
                 for(int i = (int)strlen(l) - 1; i > 0 && l[i] == ' '; i--) l[i] = '\0';
-                logline(ACLOG_INFO," error in line %d, file %s: ignored '%s'", line, filename, l);
+                mlog(ACLOG_INFO," error in line %d, file %s: ignored '%s'", line, filename, l);
                 errors++;
             }
         }
@@ -1092,20 +1091,20 @@ struct serveripblacklist : serverconfigfile
             if(ipranges[i].ur <= ipranges[i - 1].ur)
             {
                 if(ipranges[i].lr == ipranges[i - 1].lr && ipranges[i].ur == ipranges[i - 1].ur)
-                    logline(ACLOG_VERBOSE," blacklist entry %s got dropped (double entry)", iprtoa(ipranges[i], b1));
+                    mlog(ACLOG_VERBOSE," blacklist entry %s got dropped (double entry)", iprtoa(ipranges[i], b1));
                 else
-                    logline(ACLOG_VERBOSE," blacklist entry %s got dropped (already covered by %s)", iprtoa(ipranges[i], b1), iprtoa(ipranges[i - 1], b2));
+                    mlog(ACLOG_VERBOSE," blacklist entry %s got dropped (already covered by %s)", iprtoa(ipranges[i], b1), iprtoa(ipranges[i - 1], b2));
                 ipranges.remove(i--); continue;
             }
             if(ipranges[i].lr <= ipranges[i - 1].ur)
             {
-                logline(ACLOG_VERBOSE," blacklist entries %s and %s are joined due to overlap", iprtoa(ipranges[i - 1], b1), iprtoa(ipranges[i], b2));
+                mlog(ACLOG_VERBOSE," blacklist entries %s and %s are joined due to overlap", iprtoa(ipranges[i - 1], b1), iprtoa(ipranges[i], b2));
                 ipranges[i - 1].ur = ipranges[i].ur;
                 ipranges.remove(i--); continue;
             }
         }
-        if(logcheck(ACLOG_VERBOSE)) loopv(ipranges) logline(ACLOG_VERBOSE," %s", iprtoa(ipranges[i], b1));
-        logline(ACLOG_INFO,"read %d (%d) blacklist entries from '%s', %d errors", ipranges.length(), orglength, filename, errors);
+        if(logcheck(ACLOG_VERBOSE)) loopv(ipranges) mlog(ACLOG_VERBOSE," %s", iprtoa(ipranges[i], b1));
+        mlog(ACLOG_INFO,"read %d (%d) blacklist entries from '%s', %d errors", ipranges.length(), orglength, filename, errors);
     }
 
     bool check(enet_uint32 ip) // ip: network byte order
@@ -1147,7 +1146,7 @@ struct servernickblacklist : serverconfigfile
         iprchain iprc;
         blackline bl;
         char *b, *l, *s, *r, *p = buf;
-        logline(ACLOG_VERBOSE,"reading nickname blacklist '%s'", filename);
+        mlog(ACLOG_VERBOSE,"reading nickname blacklist '%s'", filename);
         while(p < buf + filelen)
         {
             l = p; p += strlen(p) + 1;
@@ -1199,14 +1198,14 @@ struct servernickblacklist : serverconfigfile
                     bl.line = line;
                     blacklines.add(bl);
                 }
-                else { logline(ACLOG_INFO," error in line %d, file %s: unknown keyword '%s'", line, filename, l); errors++; }
-                if(s && s[strspn(s, " ")]) { logline(ACLOG_INFO," error in line %d, file %s: ignored '%s'", line, filename, s); errors++; }
+                else { mlog(ACLOG_INFO," error in line %d, file %s: unknown keyword '%s'", line, filename, l); errors++; }
+                if(s && s[strspn(s, " ")]) { mlog(ACLOG_INFO," error in line %d, file %s: ignored '%s'", line, filename, s); errors++; }
             }
             line++;
         }
         if(logcheck(ACLOG_VERBOSE))
         {
-            logline(ACLOG_VERBOSE," nickname whitelist (%d entries):", whitelist.numelems);
+            mlog(ACLOG_VERBOSE," nickname whitelist (%d entries):", whitelist.numelems);
             string text, b;
             enumeratekt(whitelist, const char *, key, int, idx,
             {
@@ -1217,9 +1216,9 @@ struct servernickblacklist : serverconfigfile
                     if(ic.pwd) concatformatstring(text, "  pwd:\"%s\"", hiddenpwd(ic.pwd));
                     else concatformatstring(text, "  %s", iprtoa(ic.ipr, b));
                 }
-                logline(ACLOG_VERBOSE, "  accept %s%s", key, text);
+                mlog(ACLOG_VERBOSE, "  accept %s%s", key, text);
             });
-            logline(ACLOG_VERBOSE," nickname blacklist (%d entries):", blacklines.length());
+            mlog(ACLOG_VERBOSE," nickname blacklist (%d entries):", blacklines.length());
             loopv(blacklines)
             {
                 text[0] = '\0';
@@ -1228,10 +1227,10 @@ struct servernickblacklist : serverconfigfile
                     int k = blacklines[i].frag[j];
                     if(k >= 0) { concatstring(text, " "); concatstring(text, blfraglist[k]); }
                 }
-                logline(ACLOG_VERBOSE, "  %2d block%s%s", blacklines[i].line, blacklines[i].ignorecase ? "i" : "", text);
+                mlog(ACLOG_VERBOSE, "  %2d block%s%s", blacklines[i].line, blacklines[i].ignorecase ? "i" : "", text);
             }
         }
-        logline(ACLOG_INFO,"read %d + %d entries from nickname blacklist file '%s', %d errors", whitelist.numelems, blacklines.length(), filename, errors);
+        mlog(ACLOG_INFO,"read %d + %d entries from nickname blacklist file '%s', %d errors", whitelist.numelems, blacklines.length(), filename, errors);
     }
 
     int checkwhitelist(const client &c)
@@ -1361,7 +1360,7 @@ struct serverforbiddenlist : serverconfigfile
     void read()
     {
         char *l, *p = buf;
-        logline(ACLOG_VERBOSE,"reading forbidden list '%s'", filename);
+        mlog(ACLOG_VERBOSE,"reading forbidden list '%s'", filename);
         while(p < buf + filelen)
         {
             l = p; p += strlen(p) + 1;
@@ -1424,7 +1423,7 @@ struct serverpasswords : serverconfigfile
         const char *sep = " ";
         int i, line = 1, par[ADMINPWD_MAXPAR];
         char *b, *l, *p = buf;
-        logline(ACLOG_VERBOSE,"reading admin passwords '%s'", filename);
+        mlog(ACLOG_VERBOSE,"reading admin passwords '%s'", filename);
         while(p < buf + filelen)
         {
             l = p; p += strlen(p) + 1;
@@ -1443,12 +1442,12 @@ struct serverpasswords : serverconfigfile
                     c.line = line;
                     c.denyadmin = par[0] > 0;
                     adminpwds.add(c);
-                    logline(ACLOG_VERBOSE,"line%4d: %s %d", c.line, hiddenpwd(c.pwd), c.denyadmin ? 1 : 0);
+                    mlog(ACLOG_VERBOSE,"line%4d: %s %d", c.line, hiddenpwd(c.pwd), c.denyadmin ? 1 : 0);
                 }
             }
             line++;
         }
-        logline(ACLOG_INFO,"read %d admin passwords from '%s'", adminpwds.length() - staticpasses, filename);
+        mlog(ACLOG_INFO,"read %d admin passwords from '%s'", adminpwds.length() - staticpasses, filename);
     }
 
     bool check(const char *name, const char *pwd, int salt, pwddetail *detail = NULL, enet_uint32 address = 0)
@@ -1512,7 +1511,7 @@ struct serverinfofile : serverconfigfile  // plaintext info file, used for serve
     {
         string s;
         char *l, *p = buf;
-        logline(ACLOG_VERBOSE,"reading info text file '%s'", filename);
+        mlog(ACLOG_VERBOSE,"reading info text file '%s'", filename);
         while(p < buf + filelen)
         {
             l = p; p += strlen(p) + 1;
@@ -1522,7 +1521,7 @@ struct serverinfofile : serverconfigfile  // plaintext info file, used for serve
         }
         if(msg.length() > maxlen)
         {
-            logline(ACLOG_VERBOSE,"info text file '%s' truncated: %d -> %d", filename, msg.length(), maxlen);
+            mlog(ACLOG_VERBOSE,"info text file '%s' truncated: %d -> %d", filename, msg.length(), maxlen);
             msg.shrink(maxlen);
         }
     }

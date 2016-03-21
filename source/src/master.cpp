@@ -214,12 +214,7 @@ void output(client &c, const char *msg, int len = 0)
 
 void outputf(client &c, const char *fmt, ...)
 {
-    string msg;
-    va_list args;
-    va_start(args, fmt);
-    vformatstring(msg, fmt, args);
-    va_end(args);
-
+    defvformatstring(msg, fmt, fmt);
     output(c, msg);
 }
 

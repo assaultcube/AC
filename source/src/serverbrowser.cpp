@@ -1042,7 +1042,7 @@ void refreshservers(void *menu, bool init)
         {
             serverinfo &si = *servers[i];
             si.menuline_to = si.menuline_from = ((gmenu *)menu)->items.length();
-            if( (!showallservers && si.lastpingmillis <= servermenumillis) || (si.maxclients>MAXCL && searchlan<2) ) continue; // no pong yet or forbidden
+            if((!showallservers && si.lastpingmillis <= servermenumillis) || (si.maxclients > MAXCLIENTSONMASTER && searchlan<2) ) continue; // no pong yet or forbidden
             int banned = ((si.pongflags >> PONGFLAG_BANNED) & 1) | ((si.pongflags >> (PONGFLAG_BLACKLIST - 1)) & 2);
             bool showthisone = !(banned && showonlygoodservers) && !(showonlyfavourites > 0 && si.favcat != showonlyfavourites - 1);
             bool serverfull = si.numplayers >= si.maxclients;

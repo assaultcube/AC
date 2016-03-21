@@ -1124,7 +1124,10 @@ enum { ACLOG_DEBUG = 0, ACLOG_VERBOSE, ACLOG_INFO, ACLOG_WARNING, ACLOG_ERROR, A
 extern bool initlogging(const char *identity, int facility_, int consolethres, int filethres, int syslogthres, bool logtimestamp, const char *logfilepath);
 extern void exitlogging();
 extern bool logcheck(int level);
-extern bool logline(int level, const char *msg, ...) PRINTFARGS(2, 3);
+extern void mlog(int level, const char *msg, ...) PRINTFARGS(2, 3); // log line from main thread (never blocks)
+extern void tlog(int level, const char *msg, ...) PRINTFARGS(2, 3); // log line from other-than-main thread (may block)
+extern void xlog(int level, const char *msg, ...) PRINTFARGS(2, 3); // log line from any thread (more expensive: only use for functions, that are called from main and other threads)
+extern void poll_logbuffers();
 
 // server config
 

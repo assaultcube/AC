@@ -16,7 +16,7 @@ inline void checkclientpos(client *cl)
         if(sg->gamemillis > 10000 && (servmillis - cl->connectmillis) > 10000) cl->mapcollisions++;
         if(cl->mapcollisions && !(cl->mapcollisions % 25))
         {
-            logline(ACLOG_INFO, "[%s] %s is colliding with the map", cl->hostname, cl->name);
+            xlog(ACLOG_INFO, "[%s] %s is colliding with the map", cl->hostname, cl->name);
         }
     }
 }
@@ -40,7 +40,7 @@ enum { CTFLDEF, CTFLCOV, HTFLDEF, HTFLCOV, COVER, MEDALMESSAGENUM };
 inline void print_medal_messages(client *c, int n)
 {
     if (n<0 || n>=MEDALMESSAGENUM) return;
-    logline(ACLOG_VERBOSE, "[%s] %s %s", c->hostname, c->name, medal_messages[n]);
+    xlog(ACLOG_VERBOSE, "[%s] %s %s", c->hostname, c->name, medal_messages[n]);
 }
 
 inline void addpt(client *c, int points, int n = -1) {
@@ -448,7 +448,7 @@ void check_afk()
              */
             )
         {
-            logline(ACLOG_INFO, "[%s] %s %s", c.hostname, c.name, "is afk");
+            xlog(ACLOG_INFO, "[%s] %s %s", c.hostname, c.name, "is afk");
             defformatstring(msg)("%s is afk", c.name);
             sendservmsg(msg);
             disconnect_client(c.clientnum, DISC_AFK);
@@ -464,7 +464,7 @@ void check_ffire(client *target, client *actor, int damage)
     if ( sg->mastermode != MM_OPEN ) return;
     actor->ffire += damage;
     if ( actor->ffire > 300 && actor->ffire * 600 > sg->gamemillis) {
-        logline(ACLOG_INFO, "[%s] %s %s", actor->hostname, actor->name, "kicked for excessive friendly fire");
+        xlog(ACLOG_INFO, "[%s] %s %s", actor->hostname, actor->name, "kicked for excessive friendly fire");
         defformatstring(msg)("%s %s", actor->name, "kicked for excessive friendly fire");
         sendservmsg(msg);
         disconnect_client(actor->clientnum, DISC_FFKICK);

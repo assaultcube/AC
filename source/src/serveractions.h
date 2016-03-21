@@ -95,7 +95,7 @@ struct mapaction : serveraction
                         concatstring(msg, " missing");
                     }
                     if(notify) sendservmsg(msg, caller);
-                    logline(ACLOG_INFO, "%s", msg);
+                    xlog(ACLOG_INFO, "%s", msg);
                 }
             }
             loopv(scl.adminonlymaps)

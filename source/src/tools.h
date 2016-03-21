@@ -117,7 +117,8 @@ inline int iabs(int n) { return labs(n); }
 #define MAXSTRLEN 260
 typedef char string[MAXSTRLEN];
 
-inline void vformatstring(char *d, const char *fmt, va_list v, int len = MAXSTRLEN) { _vsnprintf(d, len, fmt, v); d[len-1] = 0; }
+#define vformatstring(d,last,fmt) { va_list ap; va_start(ap, last); vformatstring_(d, fmt, ap); va_end(ap); }
+inline void vformatstring_(char *d, const char *fmt, va_list v, int len = MAXSTRLEN) { _vsnprintf(d, len, fmt, v); d[len-1] = 0; }
 inline char *copystring(char *d, const char *s, size_t len = MAXSTRLEN) { strncpy(d, s, len); d[len-1] = 0; return d; }
 inline char *concatstring(char *d, const char *s, size_t len = MAXSTRLEN) { size_t used = strlen(d); return used < len ? copystring(d+used, s, len-used) : d; }
 extern char *concatformatstring(char *d, const char *s, ...) PRINTFARGS(2, 3);
@@ -128,16 +129,13 @@ struct stringformatter
     stringformatter(char *buf): buf((char *)buf) {}
     void operator()(const char *fmt, ...) PRINTFARGS(2, 3)
     {
-        va_list v;
-        va_start(v, fmt);
-        vformatstring(buf, fmt, v);
-        va_end(v);
+        vformatstring(buf, fmt, fmt);
     }
 };
 
 #define formatstring(d) stringformatter((char *)d)
 #define defformatstring(d) string d; formatstring(d)
-#define defvformatstring(d,last,fmt) string d; { va_list ap; va_start(ap, last); vformatstring(d, fmt, ap); va_end(ap); }
+#define defvformatstring(d,last,fmt) string d; vformatstring(d,last,fmt)
 
 #define loopv(v)    for(int i = 0; i<(v).length(); i++)
 #define loopvj(v)   for(int j = 0; j<(v).length(); j++)

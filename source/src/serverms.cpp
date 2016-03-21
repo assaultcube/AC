@@ -46,11 +46,10 @@ void disconnectmaster()
 ENetSocket connectmaster()
 {
     if(!mastername[0] || !usemaster) return ENET_SOCKET_NULL;
-    if(scl.maxclients > MAXCL) { logline(ACLOG_WARNING, "maxclient exceeded: cannot register"); return ENET_SOCKET_NULL; }
 
     if(masteraddress.host == ENET_HOST_ANY)
     {
-        logline(ACLOG_INFO, "looking up %s:%d...", mastername, masterport);
+        xlog(ACLOG_INFO, "looking up %s:%d...", mastername, masterport);
         masteraddress.port = masterport;
         if(!resolverwait(mastername, &masteraddress)) return ENET_SOCKET_NULL;
     }
@@ -62,7 +61,7 @@ ENetSocket connectmaster()
     }
     if(sock == ENET_SOCKET_NULL || connectwithtimeout(sock, mastername, masteraddress) < 0)
     {
-        logline(ACLOG_WARNING, sock==ENET_SOCKET_NULL ? "could not open socket" : "could not connect");
+        xlog(ACLOG_WARNING, sock==ENET_SOCKET_NULL ? "could not open socket" : "could not connect");
         return ENET_SOCKET_NULL;
     }
 
@@ -105,10 +104,10 @@ void processmasterinput()
         while(args < end && isspace(*args)) args++;
 
         if(!strncmp(input, "failreg", cmdlen))
-            logline(ACLOG_WARNING, "master server registration failed: %s", args);
+            xlog(ACLOG_WARNING, "master server registration failed: %s", args);
         else if(!strncmp(input, "succreg", cmdlen))
         {
-            logline(ACLOG_INFO, "master server registration succeeded");
+            xlog(ACLOG_INFO, "master server registration succeeded");
         }
         else processmasterinput(input, cmdlen, args);
 
@@ -330,7 +329,8 @@ void serverms(int mode, int numplayers, int minremain, char *smapname, int milli
 void servermsinit(bool listen)
 {
     if(scl.master && *scl.master) copystring(mastername, scl.master);
-    usemaster = !listen || (listen && scl.master && scl.ssk);  // true: connect to master, false: LAN-only server
+    usemaster = !listen || (listen && scl.master && scl.ssk && scl.maxclients <= MAXCLIENTSONMASTER);  // true: connect to master, false: LAN-only server
+    if(scl.maxclients > MAXCLIENTSONMASTER) mlog(ACLOG_WARNING, "maxclient exceeded: cannot register");
     disconnectmaster();
 
     if(listen)
@@ -338,7 +338,7 @@ void servermsinit(bool listen)
         ENetAddress address = { ENET_HOST_ANY, (enet_uint16) CUBE_SERVINFO_PORT(scl.serverport) };
         if(*scl.ip)
         {
-            if(enet_address_set_host(&address, scl.ip) < 0) logline(ACLOG_WARNING, "server ip \"%s\" not resolved", scl.ip);
+            if(enet_address_set_host(&address, scl.ip) < 0) mlog(ACLOG_WARNING, "server ip \"%s\" not resolved", scl.ip);
             else serveraddress.host = address.host;
         }
 
@@ -358,8 +358,8 @@ void servermsinit(bool listen)
             enet_socket_destroy(lansock);
             lansock = ENET_SOCKET_NULL;
         }
-        if(lansock == ENET_SOCKET_NULL) logline(ACLOG_WARNING, "could not create LAN server info socket");
+        if(lansock == ENET_SOCKET_NULL) mlog(ACLOG_WARNING, "could not create LAN server info socket");
         else enet_socket_set_option(lansock, ENET_SOCKOPT_NONBLOCK, 1);
     }
-    if(!usemaster) logline(ACLOG_INFO, "server is LAN-only - without connection to masterserver");
+    if(!usemaster) mlog(ACLOG_INFO, "server is LAN-only - without connection to masterserver");
 }
