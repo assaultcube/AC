@@ -15,19 +15,19 @@ char *strtok_r(char *s, const char *delim, char **b)
 }
 #endif
 
-const char *timestring(bool local, const char *fmt)
+string _timestringbuffer;
+
+const char *timestring(time_t t, bool local, const char *fmt, char *buf)
 {
-    static string asciitime;
-    time_t t = time(NULL);
 #ifdef NO_POSIX_R
-    struct tm * timeinfo;
+    struct tm *timeinfo;
     timeinfo = local ? localtime(&t) : gmtime (&t);
 #else
     struct tm *timeinfo, b;
     timeinfo = local ? localtime_r(&t, &b) : gmtime_r(&t, &b);
 #endif
-    strftime(asciitime, sizeof(string) - 1, fmt ? fmt : "%Y%m%d_%H.%M.%S", timeinfo); // sortable time for filenames
-    return asciitime;
+    strftime(buf, sizeof(string) - 1, fmt ? fmt : "%Y%m%d_%H.%M.%S", timeinfo); // sortable time for filenames
+    return buf;
 }
 
 const char *asctime()
