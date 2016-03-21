@@ -521,6 +521,7 @@ extern void gets2c();
 extern void c2sinfo(playerent *d);
 extern void c2skeepalive();
 extern void neterr(const char *s);
+extern ENetPeer *curpeer;
 extern int getclientnum();
 extern void getmap(char *name = NULL, char *callback = NULL);
 extern void newteam(char *name);
@@ -964,6 +965,9 @@ extern void tigerhash_finish(uchar *hash, void *state);
 extern const char *bin2hex(char *d, const uchar *s, int len);
 extern int hex2bin(uchar *d, const char *s, int maxlen);
 extern void ed25519_pubkey_from_private(uchar *pubkey, const uchar *privkey);
+extern void ed25519_sign(uchar *sm, int *smlen, const uchar *m, int mlen, const uchar *sk);
+extern uchar *ed25519_sign_check(uchar *sm, int smlen, const uchar *pk);
+extern uchar *sk; // client game key
 extern void loadcertdir();     // load all certs in "config/certs"
 #if 0
 // crypto // for AUTH
@@ -1070,11 +1074,13 @@ extern bool validmapname(const char *s); // checks for length, allowed chars and
 extern char *filtertext(char *dst, const char *src, int flags, int len = sizeof(string)-1);
 extern void filterrichtext(char *dst, const char *src, int len = sizeof(string)-1);
 extern void filterlang(char *d, const char *s);
+extern void filtercountrycode(char *d, const char *s); // returns exactly two uppercase chars or "--"
 extern void trimtrailingwhitespace(char *s);
 extern int msgsizelookup(int msg);
 extern const char *disc_reason(int reason);
 extern string mastername;
 extern int masterport;
+extern bool usemaster;
 extern ENetSocket connectmaster();
 extern void serverms(int mode, int numplayers, int minremain, char *smapname, int millis, const ENetAddress &localaddr, int *mnum, int *msend, int *mrec, int *cnum, int *csend, int *crec, int protocol_version, const char *servdesccur, int _interm);
 extern const char *genpwdhash(const char *name, const char *pwd, int salt);
@@ -1146,8 +1152,7 @@ struct serverconfigfile
 struct servercommandline
 {
     int uprate, serverport, syslogfacility, filethres, syslogthres, maxdemos, maxclients, kickthreshold, banthreshold, verbose, incoming_limit, afk_limit, ban_time, demotimelocal;
-    const char *ip, *master, *logident, *serverpassword, *adminpasswd, *demopath, *maprotfile, *pwdfile, *blfile, *geoipfile, *nbfile, *infopath, *motdpath, *forbidden, *demofilenameformat, *demotimestampformat, *service, *logfilepath, *parfilepath;
-    uchar *ssk;
+    const char *ip, *master, *logident, *serverpassword, *adminpasswd, *demopath, *maprotfile, *pwdfile, *blfile, *geoipfile, *nbfile, *infopath, *motdpath, *forbidden, *demofilenameformat, *demotimestampformat, *service, *logfilepath, *parfilepath, *ssk;
     bool logtimestamp, demo_interm, loggamestatus;
     string motd, servdesc_full, servdesc_pre, servdesc_suf, voteperm, mapperm;
     int clfilenesting;
@@ -1157,8 +1162,7 @@ struct servercommandline
                             maxclients(DEFAULTCLIENTS), kickthreshold(-5), banthreshold(-6), verbose(0), incoming_limit(10), afk_limit(45000), ban_time(20*60*1000), demotimelocal(0),
                             ip(""), master(NULL), logident(""), serverpassword(""), adminpasswd(""), demopath(""),
                             maprotfile("config/maprot.cfg"), pwdfile("config/serverpwd.cfg"), blfile("config/serverblacklist.cfg"), geoipfile("config/geoip.cfg"), nbfile("config/nicknameblacklist.cfg"),
-                            infopath("config/serverinfo"), motdpath("config/motd"), forbidden("config/forbidden.cfg"), service(NULL), logfilepath("logs/"), parfilepath("config/serverparameters.cfg"),
-                            ssk(NULL),
+                            infopath("config/serverinfo"), motdpath("config/motd"), forbidden("config/forbidden.cfg"), service(NULL), logfilepath("logs/"), parfilepath("config/serverparameters.cfg"), ssk(NULL),
                             logtimestamp(false), demo_interm(false), loggamestatus(true),
                             clfilenesting(0)
     {
@@ -1176,17 +1180,7 @@ struct servercommandline
         // client: dtwhzbsave
         switch(arg[1])
         { // todo: gjlqEJQU
-            case 'Y': // private server key
-            {
-                uchar temp[64];
-                if(hex2bin(temp, a, 32) == 32)
-                {
-                    if(!ssk) ssk = new uchar[64];
-                    memcpy(ssk, temp, 32);
-                    ed25519_pubkey_from_private(ssk + 32, ssk);
-                }
-                break;
-            }
+            case 'Y': ssk = a; break; // private server key
             case '-':
                     if(!strncmp(arg, "--demofilenameformat=", 21))
                     {

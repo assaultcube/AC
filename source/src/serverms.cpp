@@ -169,9 +169,9 @@ static inline void updatemasterserver(int millis, int port, int _interm)
 {
     if(!lastupdatemaster || ((millis-lastupdatemaster)>40*60*1000 && (_interm || !totalclients)))
     {
-        string servdesc, pubkey;
+        string servdesc; extern string servpubkey;
         filtertext(servdesc, scl.servdesc_full[0] ? scl.servdesc_full : "noname", FTXT__GLOBALNAME, 20);
-        if(mastername[0]) requestmasterf("regserv %d %s-%s %d\n", port, servdesc, scl.ssk ? bin2hex(pubkey, scl.ssk + 32, 32) : "nokey", AC_VERSION);
+        if(mastername[0]) requestmasterf("regserv %d %s-%s %d\n", port, servdesc, scl.ssk ? servpubkey : "nokey", AC_VERSION);
         lastupdatemaster = millis + 1;
     }
 }

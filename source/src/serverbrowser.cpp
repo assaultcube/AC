@@ -293,7 +293,6 @@ serverinfo *findserverinfo(ENetAddress address)
 
 serverinfo *getconnectedserverinfo()
 {
-    extern ENetPeer *curpeer;
     if(!curpeer) return NULL;
     return findserverinfo(curpeer->address);
 }

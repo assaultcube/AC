@@ -1704,8 +1704,8 @@ struct serverparameter : serverconfigfile
 #ifdef _DEBUG
 int siddocsort(servpar **a, servpar **b) { return (*a)->chapter == (*b)->chapter ? strcmp((*a)->name, (*b)->name) : (*a)->chapter - (*b)->chapter; }
 
-const char *siddocchapters[] = { "dDebug switches", "mMisc settings", "vVote settings", "gMaprot settings", "" };
-const char *siddocchaptersorting = "gvmd";
+const char *siddocchapters[] = { "dDebug switches", "mMisc settings", "vVote settings", "gMaprot settings", "sServer setup settings", "" };
+const char *siddocchaptersorting = "sgvmd";
 
 void serverparameters_dumpdocu(char *fname)
 {

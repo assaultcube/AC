@@ -370,7 +370,6 @@ const char *currentserver(int i) // [client version]
     // using the curpeer directly we can get the info of our currently connected server
     string r;
     r[0] = '\0';
-    extern ENetPeer *curpeer;
     if(curpeer)
     {
         switch(i)

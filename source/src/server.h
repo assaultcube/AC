@@ -226,11 +226,15 @@ struct medals
 struct client                   // server side version of "dynent" type
 {
     int type;
-    int clientnum;
+    int clientnum, clientsequence;
     ENetPeer *peer;
     string hostname;
-    enet_uint32 ip;
+    enet_uint32 ip, ip_censored;
+    int connectclock;
     char country[4];
+    uchar pubkey[32];
+    char pubkeyhex[68];
+    string servinforesponse;
     string name;
     int team;
     char lang[3];
@@ -242,6 +246,7 @@ struct client                   // server side version of "dynent" type
     int mute, spam, lastvc; // server side voice comm spam control
     int acversion, acbuildtype;
     bool isauthed; // for passworded servers
+    bool needsauth;
     bool haswelcome;
     bool isonrightmap, loggedwrongmap, freshgame;
     bool timesync;
@@ -327,6 +332,8 @@ struct client                   // server side version of "dynent" type
     void reset()
     {
         name[0] = pwd[0] = demoflags = 0;
+        ip = ip_censored = 0;
+        pubkeyhex[0] = '\0';
         bottomRTT = ping = 9999;
         team = TEAM_SPECT;
         state.state = CS_SPECTATE;
@@ -426,7 +433,8 @@ extern bool isdedicated;
 
 const char *messagenames[SV_NUM] =
 {
-    "SV_SERVINFO", "SV_WELCOME", "SV_INITCLIENT", "SV_POS", "SV_POSC", "SV_POSN", "SV_TEXT", "SV_TEAMTEXT", "SV_TEXTME", "SV_TEAMTEXTME", "SV_TEXTPRIVATE",
+    "SV_SERVINFO", "SV_SERVINFO_RESPONSE", "SV_SERVINFO_CONTD", "SV_WELCOME", "SV_INITCLIENT", "SV_POS", "SV_POSC", "SV_POSN",
+    "SV_TEXT", "SV_TEAMTEXT", "SV_TEXTME", "SV_TEAMTEXTME", "SV_TEXTPRIVATE",
     "SV_SOUND", "SV_VOICECOM", "SV_VOICECOMTEAM", "SV_CDIS",
     "SV_SHOOT", "SV_EXPLODE", "SV_SUICIDE", "SV_AKIMBO", "SV_RELOAD", "SV_AUTHT", "SV_AUTHREQ", "SV_AUTHTRY", "SV_AUTHANS", "SV_AUTHCHAL",
     "SV_GIBDIED", "SV_DIED", "SV_GIBDAMAGE", "SV_DAMAGE", "SV_HITPUSH", "SV_SHOTFX", "SV_THROWNADE",

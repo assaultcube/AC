@@ -74,6 +74,9 @@ struct servergame
 
 // config
 vector<servermap *> servermaps, gamesuggestions;             // all available maps kept in memory
+string servpubkey;
+uchar ssk[64] = { 0 }, *spk = ssk + 32;
+enet_uint32 servownip; // IP address of this server, as seen by the master or other clients/servers
 
 servercontroller *svcctrl = NULL;
 serverparameter serverparameters;
@@ -91,7 +94,7 @@ serverinfofile serverinfomotd;
 bool isdedicated = false;
 ENetHost *serverhost = NULL;
 
-int laststatus = 0, servmillis = 0;
+int laststatus = 0, servmillis = 0, servclock = 0;
 
 vector<client *> clients;
 vector<worldstate *> worldstates;
@@ -116,7 +119,7 @@ void poll_serverthreads()       // called once per mainloop-timeslice
     static int stage = 0, lastworkerthreadstart = 0, nextserverconfig = 0;
     static bool debugmaprot = true;
 
-    switch(stage)
+    switch(stage) // cycle through some tasks once per minute (mostly file polling)
     {
         default: // start first thread
         {
@@ -125,6 +128,7 @@ void poll_serverthreads()       // called once per mainloop-timeslice
             // wake readmapsthread
             logline(ACLOG_INFO,"waking readmapsthread");
             startnewservermapsepoch = true;
+            servclock = (int) (time(NULL) / (time_t) 60);
             readmapsthread_sem->post();
             stage = 1;
             lastworkerthreadstart = servmillis;
@@ -626,7 +630,7 @@ void sendf(int cn, int chan, const char *format, ...)
             sendstring(va_arg(args, const char *), p);
             break;
 
-        case 'm': // raw message block (unused)
+        case 'm': // raw message block
         {
             int n = va_arg(args, int);
             p.put(va_arg(args, uchar *), n);
@@ -2770,7 +2774,8 @@ bool restorescore(client &c)
 
 void sendservinfo(client &c)
 {
-    sendf(c.clientnum, 1, "ri5", SV_SERVINFO, c.clientnum, isdedicated ? SERVER_PROTOCOL_VERSION : PROTOCOL_VERSION, c.salt, scl.serverpassword[0] ? 1 : 0);
+    sendf(c.clientnum, 1, "ri6IIIi3k", SV_SERVINFO, c.clientnum, isdedicated ? SERVER_PROTOCOL_VERSION : PROTOCOL_VERSION, c.needsauth ? 1 : 0, scl.serverpassword[0] ? 1 : 0, c.salt,
+        servownip, c.ip, c.ip_censored, (c.connectclock = servclock), c.country[0], c.country[1], spk);
 }
 
 void putinitclient(client &c, packetbuf &p)
@@ -2918,8 +2923,92 @@ int checktype(int type, client *cl)
     return type;
 }
 
+
+// process auth calculations in separate thread, since it may take a while
+
+struct servinfoauth
+{
+    string clientmsg, servermsg; // client message to verify, server message to sign
+    uchar clientpubkey[32];
+    int type, wantauth, cn, clientsequence, clientmsglen, servermsglen, success;
+};
+
+ringbuf<servinfoauth *, 16> servinfoauths;
+volatile servinfoauth *servinfoauth_dropbox = NULL;
+volatile bool servinfoauth_done = false;
+sl_semaphore servinfoauth_deferred(0, NULL);
+
+int deferredprocessingthread(void *nop)
+{
+    for(;;)
+    {
+        servinfoauth_deferred.wait();
+        if(!servinfoauth_done && servinfoauths.length())
+        {
+            servinfoauth *sa = servinfoauths.remove();
+            servinfoauth_dropbox = sa;
+            sa->success = 0;
+            switch(sa->type)
+            {
+                case SV_SERVINFO_RESPONSE:
+                {
+                    if(!sa->wantauth) sa->success = 1;
+                    else if(sa->clientmsglen && ed25519_sign_check((uchar*)sa->clientmsg, sa->clientmsglen + 64, sa->clientpubkey))
+                    { // client message checks out, now sign the answer
+                        ed25519_sign((uchar*)sa->servermsg, NULL, (uchar*)sa->servermsg, sa->servermsglen, ssk);
+                        sa->success = 1;
+                    }
+                    break;
+                }
+            }
+            servinfoauth_done = true;
+        }
+    }
+    return 0;
+}
+
+void polldeferredprocessing()
+{
+    static void *deferredprocessingthread_ti = NULL;
+    if(!deferredprocessingthread_ti) deferredprocessingthread_ti = sl_createthread(deferredprocessingthread, NULL);
+
+    if(servinfoauth_done)
+    {
+        servinfoauth *sa = (servinfoauth *)servinfoauth_dropbox;
+        servinfoauth_done = false;
+        switch(sa->type)
+        {
+            case SV_SERVINFO_RESPONSE:
+            {
+                if(clients[sa->cn]->clientsequence == sa->clientsequence) // make sure, it's still the same client using that cn
+                {
+                    if(!sa->success) disconnect_client(sa->cn, DISC_AUTH);
+                    else
+                    { // continue connecting
+                        client *cl = clients[sa->cn];
+                        if(sa->wantauth)
+                        {
+                            memcpy(cl->pubkey, sa->clientpubkey, 32);
+                            memcpy(cl->servinforesponse, sa->clientmsg, sa->clientmsglen + 64);
+                            bin2hex(cl->pubkeyhex, cl->pubkey, 32);
+                            cl->needsauth = true; // may have been voluntary, but it's done
+                            sendf(sa->cn, 1, "riim", SV_SERVINFO_CONTD, 1, 64, sa->servermsg);
+                        }
+                        else sendf(sa->cn, 1, "rii", SV_SERVINFO_CONTD, 0);
+                    }
+                }
+                break;
+            }
+        }
+        delete sa;
+    }
+    if(!servinfoauths.empty() && servinfoauth_deferred.getvalue() < 1) servinfoauth_deferred.post();
+}
+
 // server side processing of updates: does very little and most state is tracked client only
 // could be extended to move more gameplay to server (at expense of lag)
+
+SERVPARLIST(auth_verify_ip, 0, 0, 0, endis, "sVerify server IP reported by the client during auth");
 
 void process(ENetPacket *packet, int sender, int chan)
 {
@@ -2934,9 +3023,44 @@ void process(ENetPacket *packet, int sender, int chan)
         int clientrole = CR_DEFAULT;
 
         if(chan==0) return;
-        else if(chan!=1 || getint(p)!=SV_CONNECT) disconnect_client(sender, DISC_TAGT);
-        else
+        else if(chan!=1 || ((type = getint(p)) != SV_SERVINFO_RESPONSE && type != SV_CONNECT)) disconnect_client(sender, DISC_TAGT);
+        else if(type == SV_SERVINFO_RESPONSE)
         {
+            if(servinfoauths.full()) disconnect_client(sender, DISC_OVERLOAD);
+            else
+            {
+                string tmp1, tmp2;
+                servinfoauth *sa = servinfoauths.stage(new servinfoauth);
+                memset(sa, 0, sizeof(servinfoauth));
+                int clientsalt = getint(p), clientclock = getint(p), curpeerport = getint(p);
+                enet_uint32 curpeerip = getip4(p);
+                if((sa->wantauth = getint(p)))
+                {
+                    p.get(sa->clientpubkey, 32);
+                    p.get((uchar*)sa->clientmsg, 64);
+                }
+                bool ipfail = servownip && servownip != curpeerip;
+                if(ipfail) logline(ACLOG_INFO, "[%s] client reported different server IP %s:%d (known own IP is %s)", cl->hostname, iptoa(curpeerip, tmp1), curpeerport, iptoa(servownip, tmp2));
+                formatstring(text)("SERVINFOCHALLENGE<(%d) cn: %d c: %s (%s) s: %s:%d", cl->salt, sender, iptoa(cl->ip_censored, tmp1), cl->country, iptoa(servownip, tmp2), curpeerport);
+                concatformatstring(text, " %s st: %d ct: %d (%d)>", bin2hex(tmp1, spk, 32), cl->connectclock, clientclock, clientsalt);
+                sa->clientmsglen = (int)strlen(text);
+                if(sa->clientmsglen < MAXSTRLEN - 65) memcpy(sa->clientmsg + 64, text, sa->clientmsglen);
+                else sa->clientmsglen = 0;
+                formatstring(sa->servermsg)("SERVINFOSIGNED<%s>", bin2hex(tmp1, (uchar*)sa->clientmsg, 64));
+                sa->servermsglen = (int)strlen(sa->servermsg);
+                if((!sa->wantauth && cl->needsauth) || (ipfail && auth_verify_ip)) { delete sa; disconnect_client(sender, DISC_AUTH); }
+                else
+                {
+                    sa->type = type;
+                    sa->cn = sender;
+                    sa->clientsequence = cl->clientsequence;
+                    servinfoauths.commit();
+                }
+            }
+            return;
+        }
+        else
+        { // SV_CONNECT
             cl->acversion = getint(p);
             cl->acbuildtype = getint(p);
             defformatstring(tags)(", AC: %d|%x", cl->acversion, cl->acbuildtype);
@@ -3950,6 +4074,7 @@ void localclienttoserver(int chan, ENetPacket *packet)
 
 client &addclient()
 {
+    static int clientsequencecounter = 0;
     client *c = NULL;
     loopv(clients) if(clients[i]->type==ST_EMPTY) { c = clients[i]; break; }
     if(!c)
@@ -3959,6 +4084,7 @@ client &addclient()
         clients.add(c);
     }
     c->reset();
+    c->clientsequence = ++clientsequencecounter;
     return *c;
 }
 
@@ -4114,6 +4240,8 @@ void linequalitystats(int elapsed)
     }
 }
 
+SERVPARLIST(mandatory_auth, 0, 1, 0, endis, "sEnforce IDs for all clients even on unlisted server/LAN game");
+
 void serverslice(uint timeout)   // main server update, called from cube main loop in sp, or dedicated server loop
 {
     static int msend = 0, mrec = 0, csend = 0, crec = 0, mnum = 0, cnum = 0;
@@ -4189,6 +4317,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
     }
 
     resetserverifempty();
+    polldeferredprocessing();
 
     if(!isdedicated) return;     // below is network only
 
@@ -4239,18 +4368,21 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
             {
                 client &c = addclient();
                 c.type = ST_TCPIP;
+                c.needsauth = usemaster || mandatory_auth;
                 c.peer = event.peer;
                 c.peer->data = (void *)(size_t)c.clientnum;
                 c.connectmillis = servmillis;
                 c.state.state = CS_SPECTATE;
-                c.salt = rnd(0x1000000)*((servmillis%1000)+1);
+                c.salt = (rnd(0x1000000)*((servmillis%1000)+1)) ^ rnd(0x1000000);
                 char hn[1024];
                 copystring(c.hostname, (enet_address_get_host_ip(&c.peer->address, hn, sizeof(hn))==0) ? hn : "unknown");
                 c.ip = ENET_NET_TO_HOST_32(c.peer->address.host);
+                c.ip_censored = c.ip & ~((1 << CLIENTIPCENSOR) - 1);
                 const char *gi = geoiplist.check(c.ip);
                 copystring(c.country, gi ? gi : "--", 3);
+                filtercountrycode(c.country, c.country);
                 entropy_add_byte(c.ip);
-                logline(ACLOG_INFO,"[%s] client connected", c.hostname);
+                logline(ACLOG_INFO,"[%s] client connected (%s)", c.hostname, c.country);
                 sendservinfo(c);
                 totalclients++;
                 break;
@@ -4437,6 +4569,7 @@ void localconnect()
     c.type = ST_LOCAL;
     c.role = CR_ADMIN;
     c.salt = 0;
+    c.needsauth = false;
     copystring(c.hostname, "local");
     sendservinfo(c);
 }
@@ -4462,6 +4595,10 @@ void quitproc(int param)
 
 void initserver(bool dedicated)
 {
+    copystring(servpubkey, "");
+    if(scl.ssk && hex2bin(ssk, scl.ssk, 32) != 32) scl.ssk = NULL;
+    ed25519_pubkey_from_private(spk, ssk);
+    bin2hex(servpubkey, spk, 32);
     sg->smapname[0] = '\0';
 
     // start logging
@@ -4484,8 +4621,7 @@ void initserver(bool dedicated)
         if(!serverhost) fatal("could not create server host");
         loopi(scl.maxclients) serverhost->peers[i].data = (void *)-1;
 
-        string pubkey;
-        if(scl.ssk) logline(ACLOG_VERBOSE,"server public key: %s", bin2hex(pubkey, scl.ssk + 32, 32));
+        if(scl.ssk) logline(ACLOG_INFO,"server public key: %s", servpubkey);
         maprot.init(scl.maprotfile);
         passwords.init(scl.pwdfile, scl.adminpasswd);
         ipblacklist.init(scl.blfile);

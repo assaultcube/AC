@@ -320,6 +320,9 @@ void onChangeVote(int mod, int id)
 VARP(voicecomsounds, 0, 1, 2);
 bool medals_arrived=0;
 medalsst a_medals[END_MDS];
+
+struct session_s { enet_uint32 serverip, clientip, clientipcensored, curpeerip; int curpeerport, serverclock, clientclock, cn, clientsalt; uchar serverpubkey[32], clientsignature[64]; } session;
+
 void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
 {
     static char text[MAXTRANS];
@@ -356,7 +359,12 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
         {
             case SV_SERVINFO:  // welcome message from the server
             {
-                int mycn = getint(p), prot = getint(p);
+                string tmp1, tmp2;
+                session_s *s = &session;
+                memset(s, 0, sizeof(session_s));
+
+                s->cn = getint(p);
+                int prot = getint(p);
                 if(prot!=CUR_PROTOCOL_VERSION && !(watchingdemo && prot == -PROTOCOL_VERSION))
                 {
                     conoutf("\f3incompatible game protocol (local protocol: %d :: server protocol: %d)", CUR_PROTOCOL_VERSION, prot);
@@ -365,9 +373,84 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     else disconnect();
                     return;
                 }
-                sessionid = getint(p);
-                player1->clientnum = mycn;
+                int req_auth = getint(p);
+                if(!sk && req_auth)
+                {
+                    conoutf("\f3server requires client ID to connect");
+                    conoutf("\f3please unlock your ID (by entering the corect password) or generate a new one");
+                    disconnect();
+                    return;
+                }
                 if(getint(p) > 0) conoutf("INFO: this server is password protected");
+                sessionid = getint(p); // salt
+                s->serverip = getip4(p);
+                s->clientip = getip4(p);
+                s->clientipcensored = getip4(p);
+                s->serverclock = getint(p);
+                char cc[3] = { (char)getint(p), (char)getint(p), 0 };
+                filtercountrycode(cc, cc);
+                p.get(s->serverpubkey, 32);
+                entropy_get((uchar *)&(s->clientsalt), sizeof(int));
+                s->clientclock = (int) (time(NULL) / (time_t) 60);
+                int clockoffset = s->serverclock - s->clientclock;
+                if(curpeer && iabs(clockoffset) > 60 * 24) conoutf("\f3warning: server and client clock are offset more than one day (%d minutes)", clockoffset);
+
+                clientlogf("own IP: %s, censored own IP: %s, %s, clock offset %d hours %d minutes", iptoa(s->clientip, tmp1), iptoa(s->clientipcensored, tmp2), cc, clockoffset / 60, clockoffset % 60);
+                if(curpeer && s->serverip)
+                {
+                    s->curpeerip = ENET_NET_TO_HOST_32(curpeer->address.host);
+                    s->curpeerport = curpeer->address.port;
+                }
+                if(s->curpeerip && s->curpeerip != s->serverip) conoutf("\f3warning: server IP mismatch (true: %s, reported: %s)", iptoa(s->curpeerip, tmp1), iptoa(s->serverip, tmp2));
+
+                defformatstring(challenge)("SERVINFOCHALLENGE<(%d) cn: %d c: %s (%s) s: %s:%d", sessionid, s->cn, iptoa(s->clientipcensored, tmp1), cc, iptoa(s->serverip, tmp2), s->curpeerport);
+                concatformatstring(challenge, " %s st: %d ct: %d (%d)>", bin2hex(tmp1, s->serverpubkey, 32), s->serverclock, s->clientclock, s->clientsalt);
+                clientlogf("auth challenge: %s", challenge);
+                int chlen = (int)strlen(challenge);
+                if(chlen >= MAXSTRLEN - 65)
+                {
+                    conoutf("\f3ERROR: oversized auth challenge (%d), can't connect", chlen);
+                    disconnect();
+                    return;
+                }
+                if(sk) ed25519_sign((uchar*)challenge, NULL, (uchar*)challenge, chlen, sk);
+
+                packetbuf pr(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
+                putint(pr, SV_SERVINFO_RESPONSE);
+                putint(pr, s->clientsalt);
+                putint(pr, s->clientclock);
+                putint(pr, s->curpeerport);
+                putip4(pr, s->curpeerip);
+                int wantauth = sk && curpeer;
+                putint(pr, wantauth);
+                if(wantauth)
+                {
+                    memcpy(s->clientsignature, challenge, 64);
+                    pr.put(sk + 32, 32);
+                    pr.put(s->clientsignature, 64);
+                }
+                sendpackettoserv(1, pr.finalize());
+                break;
+            }
+
+            case SV_SERVINFO_CONTD:  // 2nd welcome message from the server
+            {
+                session_s *s = &session;
+                string tmp, servauth;
+                int auth = getint(p);
+                if(auth)
+                {
+                    formatstring(servauth)("SERVINFOSIGNED<%s>", bin2hex(tmp, (uchar*)s->clientsignature, 64));
+                    memmove(servauth + 64, servauth, (auth = (int)strlen(servauth)) + 1);
+                    p.get((uchar*)servauth, 64);
+                }
+                if(curpeer && sk && !auth) conoutf("\f3server refuses to authenticate");
+                if(sk && auth)
+                {
+                    if(!ed25519_sign_check((uchar*)servauth, auth + 64, s->serverpubkey)) conoutf("\f3server authentication failed");
+                    else clientlogf("server authenticated as %s", bin2hex(tmp, s->serverpubkey, 32));
+                }
+                player1->clientnum = s->cn;
                 sendintro();
                 break;
             }

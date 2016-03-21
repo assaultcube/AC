@@ -726,7 +726,7 @@ VARP(authmemusage, 2, 24, (1<<10) - 1);     // megabytes of RAM to use for passw
 VARP(authrounds, 0, 0, INT_MAX - 1);        // create new password hashes with a fixed number of rounds (if authrounds > 0)
 VARP(authmaxtime, 1<<9, 1<<12, 1<<16);      // create new password hashes with a fixed amount of time (in ms)
 
-static uchar *sk = NULL;                    // game key
+uchar *sk = NULL;                     // game key
 static struct { uchar *salt, *priv; uint pwdcfg; } passdargs;
 
 static int passdeferred(void *pass)   // decrypt the private key in the background

@@ -422,6 +422,17 @@ void filterlang(char *d, const char *s)
     *d = '\0';
 }
 
+void filtercountrycode(char *d, const char *s) // returns exactly two uppercase chars or "--"
+{
+    d[0] = d[1] = '-';
+    d[2] = '\0';
+    if(isalpha(s[0]) && isalpha(s[1]) && !s[2])
+    {
+        d[0] = toupper(s[0]);
+        d[1] = toupper(s[1]);
+    }
+}
+
 void trimtrailingwhitespace(char *s)
 {
     for(int n = (int)strlen(s) - 1; n >= 0 && isspace(s[n]); n--)
@@ -485,7 +496,8 @@ char *gmode_enum(int gm, char *buf) // convert mode bitmask to string with sorte
 
 static const int msgsizes[] =               // size inclusive message token, 0 for variable or not-checked sizes
 {
-    SV_SERVINFO, 5, SV_WELCOME, 2, SV_INITCLIENT, 0, SV_POS, 0, SV_POSC, 0, SV_POSN, 0, SV_TEXT, 0, SV_TEAMTEXT, 0, SV_TEXTME, 0, SV_TEAMTEXTME, 0, SV_TEXTPRIVATE, 0,
+    SV_SERVINFO, 1, SV_SERVINFO_RESPONSE, 0, SV_SERVINFO_CONTD, 0, SV_WELCOME, 2, SV_INITCLIENT, 0, SV_POS, 0, SV_POSC, 0, SV_POSN, 0,
+    SV_TEXT, 0, SV_TEAMTEXT, 0, SV_TEXTME, 0, SV_TEAMTEXTME, 0, SV_TEXTPRIVATE, 0,
     SV_SOUND, 2, SV_VOICECOM, 2, SV_VOICECOMTEAM, 2, SV_CDIS, 2,
     SV_SHOOT, 0, SV_EXPLODE, 0, SV_SUICIDE, 1, SV_AKIMBO, 2, SV_RELOAD, 3, SV_AUTHT, 0, SV_AUTHREQ, 0, SV_AUTHTRY, 0, SV_AUTHANS, 0, SV_AUTHCHAL, 0,
     SV_GIBDIED, 5, SV_DIED, 5, SV_GIBDAMAGE, 7, SV_DAMAGE, 7, SV_HITPUSH, 6, SV_SHOTFX, 6, SV_THROWNADE, 8,
@@ -524,8 +536,8 @@ int msgsizelookup(int msg)
 
 const char *disc_reason(int reason)
 {
-    static const char *prot[] = { "terminated by enet", "end of packet", "client num", "tag type", "duplicate connection", "overflow", "random", "voodoo", "sync" },
-        *refused[] = { "connection refused", "due to ban", "due to blacklisting", "wrong password", "server FULL", "server mastermode is \"private\"" },
+    static const char *prot[] = { "terminated by enet", "end of packet", "client num", "tag type", "duplicate connection", "overflow", "random", "voodoo", "sync", "auth failed" },
+        *refused[] = { "connection refused", "due to ban", "due to blacklisting", "wrong password", "server FULL", "server mastermode is \"private\"", "server overloaded" },
         *removed[] = { "removed from server", "failed admin login", "inappropriate nickname", "annoyance limit exceeded", "SPAM", "DOS", "ludicrous speed", "fishslapped", "afk" },
         *kick[] = { "kicked", "banned", "kicked by vote", "banned by vote", "kicked by server operator", "banned by server operator",
                     "auto kicked - teamkilling", "auto banned - teamkilling", "auto kicked - friendly fire", "auto banned - friendly fire", "auto kick", "auto ban" };
