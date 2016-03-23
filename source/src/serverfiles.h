@@ -105,6 +105,7 @@ struct servermap  // in-memory version of a map file on a server
     bool isro() { return fpath == servermappath_off || fpath == servermappath_serv; }
     bool isofficial() { return fpath == servermappath_off; }
     bool isdistributable() { return fpath == servermappath_serv || fpath == servermappath_incom; }
+    bool isautoplay() { return isro(); }
 
     int getmemusage() { return sizeof(struct servermap) + cgzlen + cfggzlen + layoutgzlen + numents * (sizeof(uchar) + sizeof(short) * 3); }
 
@@ -870,7 +871,7 @@ struct servermaprot : serverconfigfile
             if(m->modes[j].manual > 0) man |= 1 << j;
             for(int i = max(0, (int)m->modes[j].restrict); i < CR_NUM; i++) rm[i] |= 1 << j;
         }
-        m->modes_auto = m->modes_allowed & ~man;
+        m->modes_auto = m->isautoplay() ? m->modes_allowed & ~man : 0;
         loopi(CR_NUM) m->modes_cr[i] = m->modes_allowed & rm[i];
         loopi(MAXPLAYERS) m->modes_pn[i] = 0;
         loopj(GMODE_NUM)
