@@ -976,6 +976,17 @@ void edittag(int *tag)
 }
 COMMAND(edittag, "i");
 
+void edittagclip(char *tag)
+{
+    int nt = ((int) strtol(tag, NULL, 0)) & TAGANYCLIP;
+    if(tolower(*tag) == 'n') nt = 0; // "none", "nil, "nop"
+    else if(!strncasecmp(tag, "pl", 2)) nt = TAGPLCLIP; // "playerclip", "plclip", "pl"
+    else if(isalpha(*tag)) nt = TAGCLIP; // "clip", "all", "full", "hippo"
+    EDITSELMP;
+    loopselsxy(s->tag = (s->tag & TAGTRIGGERMASK) | nt);
+}
+COMMAND(edittagclip, "s");
+
 void newent(char *what, float *a1, float *a2, float *a3, float *a4)
 {
     EDITSEL;
