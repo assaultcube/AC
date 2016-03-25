@@ -148,9 +148,9 @@ struct keym
     };
 
     char *name, *actions[NUMACTIONS];
-    bool pressed;
+    bool pressed, unchangeddefault[NUMACTIONS];
 
-    keym() : code(-1), name(NULL), pressed(false) { loopi(NUMACTIONS) actions[i] = newstring(""); }
+    keym() : code(-1), name(NULL), pressed(false) { loopi(NUMACTIONS) { actions[i] = newstring(""); unchangeddefault[i] = false; } }
     ~keym() { DELETEA(name); loopi(NUMACTIONS) DELETEA(actions[i]); }
 };
 

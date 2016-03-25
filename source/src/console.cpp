@@ -211,12 +211,17 @@ COMMAND(findkeycode, "s");
 keym *keypressed = NULL;
 char *keyaction = NULL;
 
+VAR(_defaultbinds, 0, 0, 1);
+
 bool bindkey(keym *km, const char *action, int type)
 {
-    if(!km) return false;
-    if(type < keym::ACTION_DEFAULT || type >= keym::NUMACTIONS) { conoutf("invalid bind type \"%i\"", type); return false; }
-    if(!keypressed || keyaction!=km->actions[type]) delete[] km->actions[type];
-    km->actions[type] = newstring(action);
+    if(!km || type < keym::ACTION_DEFAULT || type >= keym::NUMACTIONS) return false;
+    if(strcmp(action, km->actions[type]))
+    {
+        if(!keypressed || keyaction!=km->actions[type]) delete[] km->actions[type];
+        km->actions[type] = newstring(action);
+        km->unchangeddefault[type] = _defaultbinds != 0;
+    }
     return true;
 }
 
@@ -601,12 +606,15 @@ char *getcurcommand()
     return saycommandon ? cmdline.buf : NULL;
 }
 
+VARP(omitunchangeddefaultbinds, 0, 1, 2);
+
 void writebinds(stream *f)
 {
     loopv(keyms)
     {
         keym *km = &keyms[i];
-        loopj(3) if(*km->actions[j]) f->printf("%s \"%s\" %s\n", keycmd(j), km->name, escapestring(km->actions[j]));
+        loopj(3) if(*km->actions[j] && (!km->unchangeddefault[j] || omitunchangeddefaultbinds < 2))
+            f->printf("%s%s \"%s\" %s\n", km->unchangeddefault[j] && omitunchangeddefaultbinds ? "//" : "", keycmd(j), km->name, escapestring(km->actions[j]));
     }
 }
 
