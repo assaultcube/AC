@@ -677,10 +677,14 @@ struct mitemkeyinput : mitem
 {
     char *text, *bindcmd;
     const char *keyname;
+    vector<int> newkeys;
+    int isup, bindtype;
+    string keynames;
     static const char *unknown, *empty;
     bool capture;
 
-    mitemkeyinput(gmenu *parent, char *text, char *bindcmd, color *bgcolor) : mitem(parent, bgcolor, mitem::TYPE_KEYINPUT), text(text), bindcmd(bindcmd), keyname(NULL), capture(false) {};
+    mitemkeyinput(gmenu *parent, char *text, char *bindcmd, color *bgcolor) : mitem(parent, bgcolor, mitem::TYPE_KEYINPUT), text(text), bindcmd(bindcmd),
+                                                                              keyname(NULL), isup(0), bindtype(keym::ACTION_DEFAULT), capture(false) {};
 
     ~mitemkeyinput()
     {
@@ -701,31 +705,54 @@ struct mitemkeyinput : mitem
 
     virtual void init()
     {
-        displaycurrentbind();
+        keynames[0] = 0;
+        for(keym **km = findbinda(bindcmd, bindtype); *km; km++) concatformatstring(keynames, " + %s", (*km)->name);
+        keyname = *keynames ? keynames + 3 : unknown;
         capture = false;
     }
 
     virtual int select()
     {
         capture = true;
+        isup = 0;
         keyname = empty;
+        newkeys.setsize(0);
+        keynames[0] = '\0';
         return 0;
     }
 
     virtual void key(int code, bool isdown, int unicode)
     {
-        if(!capture || code < -5 || code > SDLK_MENU) return;
-        keym *km;
-        while((km = findbinda(bindcmd))) { bindkey(km, ""); } // clear existing binds to this cmd
-        if(bindc(code, bindcmd)) parent->init(); // re-init all bindings
-        else conoutf("\f3could not bind key");
+        if(!capture || code < -5 || code > SDLK_MENU || !findbindc(code)) return;
+        if(code == SDLK_ESCAPE)
+        {
+            capture = false;
+            parent->init();
+            return;
+        }
+        bool known = newkeys.find(code) >= 0;
+        if(isdown)
+        {
+            if(!known)
+            {
+                newkeys.add(code);
+                concatformatstring(keynames, "%s + ", findbindc(code)->name);
+                keyname = keynames;
+            }
+        }
+        else
+        {
+            if(known && ++isup == newkeys.length())
+            {
+                for(keym **km = findbinda(bindcmd, bindtype); *km; km++) bindkey(*km, "", bindtype);  // clear existing binds to this cmd
+                bool bindfailed = false;
+                loopv(newkeys) bindfailed = !bindc(newkeys[i], bindcmd, bindtype) || bindfailed;
+                if(bindfailed) conoutf("\f3could not bind key");
+                else parent->init(); // show new keys
+            }
+        }
     }
 
-    void displaycurrentbind()
-    {
-        keym *km = findbinda(bindcmd);
-        keyname = km ? km->name : unknown;
-    }
 };
 
 const char *mitemkeyinput::unknown = "?";
@@ -1101,22 +1128,23 @@ bool menukey(int code, bool isdown, int unicode, SDLMod mod)
 {
     if(!curmenu) return false;
     int n = curmenu->items.length(), menusel = curmenu->menusel;
+
+    if(curmenu->items.inrange(menusel))
+    {
+        mitem *m = curmenu->items[menusel];
+        if(m->mitemtype == mitem::TYPE_KEYINPUT && ((mitemkeyinput *)m)->capture)
+        {
+            m->key(code, isdown, unicode);
+            return true;
+        }
+    }
+
     if(isdown)
     {
         bool hasdesc = false;
         loopv(curmenu->items) if(curmenu->items[i]->getdesc()) { hasdesc = true; break;}
         //int pagesize = MAXMENU - (curmenu->header ? 2 : 0) - (curmenu->footer || hasdesc ? 2 : 0); // FIXME: footer-length
         int pagesize = MAXMENU - (curmenu->header ? 2 : 0) - (curmenu->footer ? (curmenu->footlen?(curmenu->footlen+1):2) : (hasdesc ? 2 : 0)); // FIXME: footer-length
-
-        if(curmenu->items.inrange(menusel))
-        {
-            mitem *m = curmenu->items[menusel];
-            if(m->mitemtype == mitem::TYPE_KEYINPUT && ((mitemkeyinput *)m)->capture && code != SDLK_ESCAPE)
-            {
-                m->key(code, isdown, unicode);
-                return true;
-            }
-        }
 
         switch(code)
         {

@@ -157,8 +157,9 @@ struct keym
 extern keym *keypressed;
 
 extern bool bindkey(keym *km, const char *action, int state = keym::ACTION_DEFAULT);
-extern keym *findbinda(const char *action, int type = keym::ACTION_DEFAULT);
+extern keym **findbinda(const char *action, int type = keym::ACTION_DEFAULT);
 extern bool bindc(int code, const char *action, int type = keym::ACTION_DEFAULT);
+extern keym *findbindc(int code);
 
 // menus
 extern void rendermenu();

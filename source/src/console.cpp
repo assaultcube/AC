@@ -163,10 +163,13 @@ keym *findbind(const char *key)
     return NULL;
 }
 
-keym *findbinda(const char *action, int type)
+keym **findbinda(const char *action, int type)
 {
-    loopv(keyms) if(!strcasecmp(keyms[i].actions[type], action)) return &keyms[i];
-    return NULL;
+    static vector<keym *> res;
+    res.setsize(0);
+    loopv(keyms) if(!strcasecmp(keyms[i].actions[type], action)) res.add(&keyms[i]);
+    res.add(NULL);
+    return res.getbuf();
 }
 
 keym *findbindc(int code)
