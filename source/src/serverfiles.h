@@ -1690,22 +1690,23 @@ struct servpar
 #endif
     bool logchanges;    // log value changes (careful!)
     bool fromfile;      // true: value can be set by config file, false: value is set by server
+    bool fromfile_org;  // "fromfile" as initially set (a backup to undo manual changes)
 
     servpar() {}
 
     // SID_INT
     servpar(int type, const char *name, int minval, int maxval, const char *list[], int *i, int *shadow_i, int defval, void (*fun)(), bool logchanges, bool fromfile, const char *_desc)
-        : type(type), name(name), minval(minval), maxval(maxval), i(i), shadow_i(shadow_i), fun(fun), list(list), defaultint(defval), logchanges(logchanges), fromfile(fromfile)
+        : type(type), name(name), minval(minval), maxval(maxval), i(i), shadow_i(shadow_i), fun(fun), list(list), defaultint(defval), logchanges(logchanges), fromfile(fromfile), fromfile_org(fromfile)
         { DEBUGCODE(desc = _desc); }
 
     // SID_STR
     servpar(int type, const char *name, int minlen, int maxlen, int filter, char *s, char *shadow_s, const char *defaultstr, void (*fun)(), bool logchanges, int fromfile, const char *_desc)
-        : type(type), name(name), minlen(minlen), maxlen(maxlen), s(s), shadow_s(shadow_s), fun(fun), defaultstr(defaultstr), filter(filter), logchanges(logchanges), fromfile(fromfile)
+        : type(type), name(name), minlen(minlen), maxlen(maxlen), s(s), shadow_s(shadow_s), fun(fun), defaultstr(defaultstr), filter(filter), logchanges(logchanges), fromfile(fromfile), fromfile_org(fromfile)
         { DEBUGCODE(desc = _desc;) }
 
     void update()
     {
-        if(fromfile) switch(type)
+        if(fromfile_org) switch(type)
         {
             case SID_INT:
             {

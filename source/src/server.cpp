@@ -4069,6 +4069,77 @@ void process(ENetPacket *packet, int sender, int chan)
                         sendservmsg("your message has been logged", sender);
                     }
                 }
+                else if(!strcmp(ext, "servpar::get"))
+                {
+                    getstring(text, p, n);
+                    if(valid_client(sender))
+                    {
+                        filtertext(text, text, FTXT__SERVPARNAME);
+                        servpar *id = servpars->access(text);
+                        string msg;
+                        if(id && id->type == SID_INT) formatstring(msg)("%s = %d", id->name, *id->i);
+                        else if(id && id->type == SID_STR) formatstring(msg)("%s = \"%s\"", id->name, id->s);
+                        else formatstring(msg)("servpar %s not found", text);
+                        sendservmsg(msg, sender);
+                    }
+
+                }
+                else if(!strcmp(ext, "servpar::set"))
+                {
+                    getstring(text, p, n);
+                    if(valid_client(sender) && cl->checkvitadate(VS_OWNER))
+                    {
+                        char *b, *k = strtok_r(text, " :", &b), *v = strtok_r(NULL, " :", &b);
+                        if(k && v)
+                        {
+                            filtertext(k, k, FTXT__SERVPARNAME);
+                            servpar *id = servpars->access(k);
+                            string msg;
+                            if(!id) formatstring(msg)("servpar %s not found", k);
+                            else if(id->nextvalue(v))
+                            {
+                                serverparameters.busy.wait(); // lock parameter access
+                                id->fromfile = false;
+                                id->update();
+                                serverparameters.busy.post();
+                                formatstring(msg)("%s set to %s", id->name, v);
+                            }
+                            else formatstring(msg)("%s cannot be set to \"%s\"", id->name, v);
+                            sendservmsg(msg, sender);
+                        }
+                    }
+                }
+                else if(!strcmp(ext, "servpar::reset"))
+                {
+                    getstring(text, p, n);
+                    if(valid_client(sender) && cl->checkvitadate(VS_OWNER))
+                    {
+                        enumerate(*servpars, servpar, id, id.fromfile = id.fromfile_org);
+                        serverparameters.filehash = 0; // make sure, the parameter file is read soon
+                        sendservmsg("reset all server parameters to be read from file", sender);
+                    }
+
+                }
+#ifdef _DEBUG
+                else if(!strcmp(ext, "servpar::dump"))
+                {
+                    getstring(text, p, n);
+                    if(valid_client(sender) && cl->checkvitadate(VS_OWNER))
+                    {
+                        string msg;
+                        enumerate(*servpars, servpar, id,
+                        {
+                            switch(id.type)
+                            {
+                                case SID_INT: formatstring(msg)("%s = %d, int %d..%d, def %d, %s", id.name, *id.i, id.minval, id.maxval, id.defaultint, id.desc && *id.desc ? id.desc + 1 : ""); break;
+                                case SID_STR: formatstring(msg)("%s = \"%s\", def %s, %s", id.name, id.s, id.defaultstr, id.desc && *id.desc ? id.desc + 1 : ""); break;
+                                default: msg[0] = '\0';
+                            }
+                            if(*msg) sendservmsg(msg, sender);
+                        });
+                    }
+                }
+#endif
                 else if(!strcmp(ext, "set::teamsize"))
                 {
                     // intermediate solution to set the teamsize (will be voteable)

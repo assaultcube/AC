@@ -386,6 +386,12 @@ struct client                   // server side version of "dynent" type
         role = CR_DEFAULT;
         isauthed = haswelcome = false;
     }
+
+    bool checkvitadate(int n)
+    {
+        extern int servclock;
+        return vita && (vita->vs[n] == 1 || (servclock - vita->vs[n]) < 0);
+    }
 };
 
 struct ban
