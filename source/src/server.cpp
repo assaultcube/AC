@@ -277,7 +277,8 @@ void poll_serverthreads()       // called once per mainloop-timeslice
 SERVPAR(gamepenalty_cutoff, 30, 60, 120, "gNumber of minutes to remember that a map+mode combination has been played");
 SERVPAR(gamepenalty_random, 1, 1, 60, "gAmount of random weight to add to each map+mode combination");
 SERVPAR(mappenalty_cutoff, 45, 60, 240, "gNumber of minutes to remember that a map has been played");
-SERVPAR(mappenalty_weight, -100, 0, 100, "gInfluence of play history of a map (-100: no influence, 0: normal, 100: high influence)");
+SERVPAR(mappenalty_weight, 0, 100, 200, "gInfluence of play history of a map (0: no influence, 100: normal, 200: high influence)");
+SERVPAR(modepenalty_weight, -100, 50, 100, "gInfluence of play history of a game mode (-100: stay with played mode, 0: ignore played mode, 100: suggest other modes)");
 
 void servermaprot::calcmappenalties() // sum up, how long ago each map+mode was played -> get individual penalties for every map+mode combination
 {
@@ -320,7 +321,7 @@ SERVPARLIST(dumpsuggestions, 0, 1, 0, endis, "ddump maprot suggestions whenever 
 
 servermap *servermaprot::recalcgamesuggestions(int numpl) // regenerate list of playable games (map+mode)
 {
-    calcmodepenalties();
+    calcmodepenalties(modepenalty_weight);
     calcmappenalties();
     gamesuggestions.setsize(0);
     if(numpl >= MAXPLAYERS) numpl = MAXPLAYERS - 1;
@@ -341,7 +342,7 @@ servermap *servermaprot::recalcgamesuggestions(int numpl) // regenerate list of 
         }
         if(s.bestmode >= 0)
         {
-            s.weight = -bestpen - ((mappenalty_weight + 101) * s.mappenalty) / 100;
+            s.weight = -bestpen - ((mappenalty_weight + 1) * s.mappenalty) / 100;
             gamesuggestions.add(&s);
         }
     }

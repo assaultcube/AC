@@ -981,13 +981,14 @@ struct servermaprot : serverconfigfile
         lastplayedmodepointer %= MODEHISTLEN;
     }
 
-    void calcmodepenalties() // sum up, how many minutes each game mode was played during the last hour (including server-empty times)
+    void calcmodepenalties(int weight) // sum up, how many minutes each game mode was played during the last hour (including server-empty times)
     {
+        weight = (weight * PENALTYUNIT) / 100;
         loopi(GMODE_NUM) modepenalty[i] = 0;
         loopi(MODEHISTLEN)
         {
             int n = lastplayedmodes[i];
-            if(n >= 0 && (GMMASK__MPNOCOOP & (1 << n))) modepenalty[n] += PENALTYUNIT;
+            if(n >= 0 && (GMMASK__MPNOCOOP & (1 << n))) modepenalty[n] += weight;
         }
     }
 
