@@ -10,6 +10,8 @@ extern bool addservparstr(const char *name, int minlen, int maxlen, int filt, co
 #define SERVPARLISTF(name, min, cur, max, list, fun, desc) extern void fun(); int last_##name, name = addservparint(#name, min, cur, max, list, &name, &last_##name, fun, false, true, desc)
 #define SERVSTR(name, cur, min, max, filt, desc) char last_##name[max+1], name[max+1]; bool __sdummy_##name = addservparstr(#name, min, max, filt, cur, name, last_##name, NULL, false, true, desc)
 #define SERVSTRF(name, cur, min, max, filt, fun, desc) char last_##name[max+1], name[max+1]; extern void fun(); bool __sdummy_##name = addservparstr(#name, min, max, filt, cur, name, last_##name, fun, false, true, desc)
+#define SERVSTAT(name, cur, desc) int last_##name, name = addservparint(#name, 0, cur, 0, NULL, &name, &last_##name, NULL, false, false, desc)
+#define SERVSTATLOG(name, cur, level, desc) int last_##name, name = addservparint(#name, level, cur, 0, NULL, &name, &last_##name, NULL, true, false, desc)
 #else
 #define SERVPAR(name, min, cur, max, desc) int last_##name, name = addservparint(#name, min, cur, max, NULL, &name, &last_##name, NULL, false, true, NULL)
 #define SERVPARLIST(name, min, cur, max, list, desc) int last_##name, name = addservparint(#name, min, cur, max, list, &name, &last_##name, NULL, false, true, NULL)
@@ -17,6 +19,8 @@ extern bool addservparstr(const char *name, int minlen, int maxlen, int filt, co
 #define SERVPARLISTF(name, min, cur, max, list, fun, desc) extern void fun(); int last_##name, name = addservparint(#name, min, cur, max, list, &name, &last_##name, fun, false, true, NULL)
 #define SERVSTR(name, cur, min, max, filt, desc) char last_##name[max+1], name[max+1]; bool __sdummy_##name = addservparstr(#name, min, max, filt, cur, name, last_##name, NULL, false, true, NULL)
 #define SERVSTRF(name, cur, min, max, filt, fun, desc) char last_##name[max+1], name[max+1]; extern void fun(); bool __sdummy_##name = addservparstr(#name, min, max, filt, cur, name, last_##name, fun, false, true, NULL)
+#define SERVSTAT(name, cur, desc) int last_##name, name = addservparint(#name, 0, cur, 0, NULL, &name, &last_##name, NULL, false, false, desc)
+#define SERVSTATLOG(name, cur, level, desc) int last_##name, name = addservparint(#name, level, cur, 0, NULL, &name, &last_##name, NULL, true, false, desc)
 #endif
 
 #define CONFIG_MAXPAR 11
@@ -1698,6 +1702,65 @@ struct servpar
     servpar(int type, const char *name, int minlen, int maxlen, int filter, char *s, char *shadow_s, const char *defaultstr, void (*fun)(), bool logchanges, int fromfile, const char *_desc)
         : type(type), name(name), minlen(minlen), maxlen(maxlen), s(s), shadow_s(shadow_s), fun(fun), defaultstr(defaultstr), filter(filter), logchanges(logchanges), fromfile(fromfile)
         { DEBUGCODE(desc = _desc;) }
+
+    void update()
+    {
+        if(fromfile) switch(type)
+        {
+            case SID_INT:
+            {
+                if(*i != *shadow_i)
+                {
+                    int tmp = *i;
+                    *i = *shadow_i;
+                    *shadow_i = tmp; // for the duration of fun(), last_parname _is_ actually the old value (at any other time, it's the next value)
+                    if(fun) ((void (__cdecl *)())fun)();
+                    *shadow_i = *i;
+                }
+                break;
+            }
+            case SID_STR:
+            {
+                if(strcmp(s, shadow_s))
+                {
+                    if(fun)
+                    {
+                        char tmp[maxlen + 1];
+                        s[maxlen] = shadow_s[maxlen] = '\0';
+                        strncpy(tmp, s, maxlen + 1);
+                        strncpy(s, shadow_s, maxlen + 1);
+                        strncpy(shadow_s, tmp, maxlen + 1);  // for the duration of fun(), last_parname _is_ actually the old value (at any other time, it's the next value)
+                        ((void (__cdecl *)())fun)();
+                        strncpy(shadow_s, s, maxlen + 1);
+                    }
+                    else strncpy(s, shadow_s, maxlen + 1);
+                }
+                break;
+            }
+        }
+    }
+
+    bool nextvalue(char *nv)
+    {
+        switch(type)
+        {
+            case SID_INT:
+            {
+                int ni = ATOI(nv), idx;
+                if(list && (idx = getlistindex(nv, list, false, -1)) >= 0) ni = idx + minval;  // multiple choice
+                if(ni >= minval && ni <= maxval) { *shadow_i = ni; return true; }
+                break;
+            }
+            case SID_STR:
+            {
+                filtertext(nv, nv, filter);
+                int ni = (int)strlen(nv);
+                if(ni >= minlen && ni <= maxlen) { strncpy(shadow_s, nv, maxlen + 1); return true; }
+                break;
+            }
+        }
+        return false;
+    }
 };
 
 hashtable<const char *, servpar> *servpars = NULL;
@@ -1706,7 +1769,7 @@ int addservparint(const char *name, int minval, int cur, int maxval, const char 
 {
     if(!servpars) servpars = new hashtable<const char *, servpar>;
     if(list && minval == maxval) while(list[maxval - minval + 1][0]) maxval++; // get list length
-    ASSERT(cur >= minval && cur <= maxval);
+    ASSERT((fromfile && cur >= minval && cur <= maxval) || (!fromfile && minval < ACLOG_NUM));
     servpar v(SID_INT, name, minval, maxval, list, storage, shadowstorage, cur, fun, logchanges, fromfile, desc);
     servpars->access(name, v);
     *shadowstorage = cur;
@@ -1716,7 +1779,7 @@ int addservparint(const char *name, int minval, int cur, int maxval, const char 
 bool addservparstr(const char *name, int minlen, int maxlen, int filt, const char *cur, char *storage, char *shadowstorage, void (*fun)(), bool logchanges, bool fromfile, const char *desc)
 {
     if(!servpars) servpars = new hashtable<const char *, servpar>;
-    ASSERT(maxlen > minlen && minlen >= 0 && int(strlen(cur)) >= minlen && int(strlen(cur)) <= maxlen);
+    ASSERT(((fromfile && maxlen > minlen && minlen >= 0 && int(strlen(cur)) >= minlen) || (!fromfile && minlen < ACLOG_NUM)) && int(strlen(cur)) <= maxlen);
     servpar v(SID_STR, name, minlen, maxlen, filt, storage, shadowstorage, cur, fun, logchanges, fromfile, desc);
     servpars->access(name, v);
     strncpy(storage, cur, maxlen + 1);
@@ -1731,30 +1794,17 @@ struct serverparameter : serverconfigfile
     {
         if(serverconfigfile::load())
         {
-            int line = 0, idx;
+            int line = 0;
             char *b, *l, *p = buf, *kb, *k, *v;
             servpar *id;
             while(p < buf + filelen)
             {
                 l = p; p += strlen(p) + 1; line++;
                 l = strtok_r(l, " ", &b);
-                if(l && (k = strtok_r(l, ":", &kb)) && (v = strtok_r(NULL, ":", &kb)) && (id = servpars->access(k)) && id->fromfile) switch(id->type)
+                if(l && (k = strtok_r(l, ":", &kb)) && (v = strtok_r(NULL, ":", &kb)) && (id = servpars->access(k)) && id->fromfile)
                 {
-                    case SID_INT:
-                    {
-                        int i = ATOI(v);
-                        if(id->list && (idx = getlistindex(v, id->list, false, -1)) >= 0) i = idx + id->minval;  // multiple choice
-                        if(i >= id->minval && i <= id->maxval) *(id->shadow_i) = i;
-                        break;
-                    }
-                    case SID_STR:
-                    {
-                        if((v - k) - strlen(k) > 1) filterrichtext(v, v);
-                        filtertext(v, v, id->filter);
-                        int i = (int)strlen(v);
-                        if(i >= id->minlen && i <= id->maxlen) strncpy(id->shadow_s, v, id->maxlen + 1);
-                        break;
-                    }
+                    if(id->type == SID_STR && (v - k) - strlen(k) > 1) filterrichtext(v, v);
+                    id->nextvalue(v);
                 }
             }
             return true;
@@ -1764,40 +1814,7 @@ struct serverparameter : serverconfigfile
 
     void read()
     { // in mainloop: update values from shadow values
-        enumerate(*servpars, servpar, id,
-            switch(id.type)
-            {
-                case SID_INT:
-                {
-                    if(*id.i != *id.shadow_i)
-                    {
-                        int tmp = *id.i;
-                        *id.i = *id.shadow_i;
-                        *id.shadow_i = tmp; // for the duration of fun(), last_parname _is_ actually the old value (at any other time, it's the next value)
-                        if(id.fun) ((void (__cdecl *)())id.fun)();
-                        *id.shadow_i = *id.i;
-                    }
-                    break;
-                }
-                case SID_STR:
-                {
-                    if(strcmp(id.s, id.shadow_s))
-                    {
-                        if(id.fun)
-                        {
-                            char tmp[id.maxlen + 1];
-                            strncpy(tmp, id.s, id.maxlen + 1);
-                            strncpy(id.s, id.shadow_s, id.maxlen + 1);
-                            strncpy(id.shadow_s, tmp, id.maxlen + 1);  // for the duration of fun(), last_parname _is_ actually the old value (at any other time, it's the next value)
-                            ((void (__cdecl *)())id.fun)();
-                            strncpy(id.shadow_s, id.s, id.maxlen + 1);
-                        }
-                        else strncpy(id.s, id.shadow_s, id.maxlen + 1);
-                    }
-                    break;
-                }
-            }
-        );
+        enumerate(*servpars, servpar, id, id.update());
     }
 
     void dump(stream *f)
@@ -1810,6 +1827,41 @@ struct serverparameter : serverconfigfile
             }
         );
     }
+
+    void log()
+    { // in mainloop: check for changed values and log if necessary
+        enumerate(*servpars, servpar, id,
+        {
+            if(id.logchanges) switch(id.type)
+            {
+                case SID_INT:
+                {
+                    if(*id.i != *id.shadow_i)
+                    {
+                        if(id.fun) ((void (__cdecl *)())id.fun)();
+                        mlog(id.minval, "server statistics parameter %s changed from %d to %d", id.name, *id.shadow_i, *id.i);
+                        *id.shadow_i = *id.i;
+                    }
+                    break;
+                }
+                case SID_STR:
+                {
+                    if(strcmp(id.s, id.shadow_s))
+                    {
+                        id.s[id.maxlen] = id.shadow_s[id.maxlen] = '\0';
+                        if(id.fun) ((void (__cdecl *)())id.fun)();
+                        string tmp1; string tmp2;
+                        filtertext(tmp1, id.shadow_s, id.filter);
+                        filtertext(tmp2, id.s, id.filter);
+                        mlog(id.minval, "server statistics parameter %s changed from \"%s\" to \"%s\"", id.name, tmp1, tmp2);
+                        strncpy(id.shadow_s, id.s, id.maxlen + 1);
+                        id.shadow_s[id.maxlen] = '\0';
+                    }
+                    break;
+                }
+            }
+        });
+    }
 };
 
 // optionally overwrite builtin default values with commandline parameters - before updating from file starts
@@ -1819,7 +1871,11 @@ void initserverparameter(const char *name, int value)
     ASSERT(servpars);
     servpar *id = servpars->access(name);
     ASSERT(id && id->type == SID_INT);
-    if(value >= id->minval && value <= id->maxval) *id->i = *id->shadow_i = value;
+    if(value >= id->minval && value <= id->maxval)
+    {
+        *id->shadow_i = value;
+        id->update();
+    }
 }
 
 void initserverparameter(const char *name, const char *value)
@@ -1832,9 +1888,17 @@ void initserverparameter(const char *name, const char *value)
     int len = (int)strlen(tmp);
     if(len >= id->minlen && len <= id->maxlen)
     {
-        strncpy(id->s, value, id->maxlen + 1);
         strncpy(id->shadow_s, value, id->maxlen + 1);
+        id->update();
     }
+}
+
+void servparallfun() // trigger all functions once, to make sure, unchanged defaults are translated into filtered values
+{
+    enumerate(*servpars, servpar, id,
+    {
+        if(id.fun) ((void (__cdecl *)())id.fun)();
+    });
 }
 
 // write a nice template for serverparameters.cfg
@@ -1842,17 +1906,20 @@ void initserverparameter(const char *name, const char *value)
 #ifdef _DEBUG
 int siddocsort(servpar **a, servpar **b) { return (*a)->chapter == (*b)->chapter ? strcmp((*a)->name, (*b)->name) : (*a)->chapter - (*b)->chapter; }
 
-const char *siddocchapters[] = { "dDebug switches", "mMisc settings", "vVote settings", "gMaprot settings", "sServer setup settings", "CCommandline switch overrides", "" };
+const char *siddocchapters[] = { "dDebug switches", "mMisc settings", "vVote settings", "gMaprot settings", "sServer setup settings", "CCommandline switch overrides", "lServer load statistics", "" };
 const char *siddocchaptersorting = "sgvmdC", *siddocchaptercommentedout = "C";
 
 void serverparameters_dumpdocu(char *fname)
 {
     vector<servpar *> sp;
-    enumerate(*servpars, servpar, id, if(id.fromfile && id.desc && id.desc[0]) sp.add(&id));
+    enumerate(*servpars, servpar, id, if(id.desc && id.desc[0]) sp.add(&id));
     loopv(sp)
     {
-        const char *e = strchr(siddocchaptersorting, sp[i]->desc[0]);
-        sp[i]->chapter = e ? (int) (e - siddocchaptersorting) : sp[i]->desc[0];
+        servpar &id = *sp[i];
+        const char *e = strchr(siddocchaptersorting, id.desc[0]);
+        id.chapter = e ? (int) (e - siddocchaptersorting) : id.desc[0];
+        if(!id.fromfile) id.chapter |= 1 << 20;
+        if(!id.logchanges) id.chapter |= 1 << 19;
     }
     sp.sort(siddocsort);
     stream *f = openfile(path(fname), "w");
@@ -1874,7 +1941,7 @@ void serverparameters_dumpdocu(char *fname)
                 else f->printf("\n// **** %s ****\n\n", siddocchapters[ch] + 1);
             }
             const char *commentout = strchr(siddocchaptercommentedout, id.desc[0]) != NULL ? "//" : "";
-            switch(id.type)
+            if(id.fromfile) switch(id.type)
             {
                 case SID_INT:
                 {
@@ -1889,6 +1956,17 @@ void serverparameters_dumpdocu(char *fname)
                 case SID_STR:
                 {
                     f->printf("// %s    %s\n//   string [%d..%d chars], default \"%s\"\n%s%s:%s\n\n", id.name, id.desc + 1, id.minlen, id.maxlen, id.defaultstr, commentout, id.name, id.defaultstr);
+                    break;
+                }
+            }
+            else switch(id.type) // stat parameter
+            {
+                case SID_INT:
+                case SID_STR:
+                {
+                    f->printf("// %s    %s", id.name, id.desc + 1);
+                    if(id.logchanges) f->printf(" (changes logged at level %d)", id.type == SID_INT ? id.minval : id.minlen);
+                    f->printf("\n\n");
                     break;
                 }
             }

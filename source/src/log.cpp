@@ -99,12 +99,16 @@ static ringbuf<logline_s *, 32> threadlog;
 static int mainlogoverflow = 0;
 static sl_semaphore threadlogsem(1, NULL), threadlogfullsem(0, NULL), mainlogsem(0, NULL);
 
+extern int stat_mainlog_peaklevel;
+
 int logworkerthread(void *nop)
 {
     string tmp;
     for(;;)
     {
         while(mainlog.empty()) mainlogsem.wait();
+        int mainloglevel = (100 * mainlog.length()) / mainlog.maxsize();
+        if(mainloglevel > stat_mainlog_peaklevel) stat_mainlog_peaklevel = mainloglevel;
         logline_s *ll = mainlog.remove();
         int targets = loglevelenabled[ll->level];
         bool logtocon = (targets & LOGTARGET_CONSOLE) != 0, logtofile = fp && (targets & LOGTARGET_FILE) != 0, logtosyslog = (targets & LOGTARGET_SYSLOG) != 0;
@@ -199,8 +203,12 @@ void xlog(int level, const char *msg, ...) // log line from any thread (more exp
     }
 }
 
+extern int stat_theadlog_peaklevel;
+
 void poll_logbuffers() // just copy threadlog to mainlog and restart blocked threads, if necessary
 {
+    int threadloglevel = (100 * threadlog.length()) / threadlog.maxsize();
+    if(threadloglevel > stat_theadlog_peaklevel) stat_theadlog_peaklevel = threadloglevel;
     while(!mainlog.full() && !threadlog.empty())
     {
         mainlog.stage(threadlog.remove());

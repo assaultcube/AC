@@ -245,8 +245,14 @@ void poll_serverthreads()       // called once per mainloop-timeslice
                 if(too_old) mlog(ACLOG_VERBOSE, "omitted %d vitas from autosave (exceeding maxage of %d months)", too_old, vitamaxage);
             }
             else stage++;
+            break;
         }
-        case 5:  // pause worker threads for a while (restart once a minute)
+        case 5:  // log changed server diagnostics parameters
+            serverparameters.log();
+            stage++;
+            break;
+
+        case 6:  // pause worker threads for a while (restart once a minute)
         {
             if(servmillis - lastworkerthreadstart > 60 * 1000) stage = 0;
             else if(numclients() == 0)
@@ -4654,6 +4660,8 @@ const char *loglevelnames[] = { "debug", "verbose", "info", "warning", "error", 
 SERVPARLISTF(logthreshold_console, 0, ACLOG_INFO, 0, loglevelnames, restartlogging, "CConsole log level");
 SERVPARLISTF(logthreshold_syslog, 0, ACLOG_NUM, 0, loglevelnames, restartlogging, "CSyslog log level");
 SERVPARLISTF(logthreshold_file, 0, ACLOG_INFO, 0, loglevelnames, restartlogging, "CLogfile log level");
+SERVSTAT(stat_mainlog_peaklevel, 0, "lMain log peak fill level (0..100%)");
+SERVSTAT(stat_theadlog_peaklevel, 0, "lThreadlog peak fill level (0..100%)");
 
 void restartlogging()
 {
@@ -4674,6 +4682,7 @@ void initserver(bool dedicated)
     ed25519_pubkey_from_private(spk, ssk);
     bin2hex(servpubkey, spk, 32);
     sg->smapname[0] = '\0';
+    servparallfun();
 
     // start logging
     initserverparameter("logthreshold_console", scl.verbose > 1 ? ACLOG_DEBUG : (scl.verbose ? ACLOG_VERBOSE : ACLOG_INFO));
