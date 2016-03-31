@@ -1701,9 +1701,9 @@ struct servpar
         { DEBUGCODE(desc = _desc); }
 
     // SID_STR
-    servpar(int type, const char *name, int minlen, int maxlen, int filter, char *s, char *shadow_s, const char *defaultstr, void (*fun)(), bool logchanges, int fromfile, const char *_desc)
+    servpar(int type, const char *name, int minlen, int maxlen, int filter, char *s, char *shadow_s, const char *defaultstr, void (*fun)(), bool logchanges, bool fromfile, const char *_desc)
         : type(type), name(name), minlen(minlen), maxlen(maxlen), s(s), shadow_s(shadow_s), fun(fun), defaultstr(defaultstr), filter(filter), logchanges(logchanges), fromfile(fromfile), fromfile_org(fromfile)
-        { DEBUGCODE(desc = _desc;) }
+        { DEBUGCODE(desc = _desc); }
 
     void update()
     {
@@ -1727,13 +1727,14 @@ struct servpar
                 {
                     if(fun)
                     {
-                        char tmp[maxlen + 1];
+                        char *tmp = new char[maxlen + 1];
                         s[maxlen] = shadow_s[maxlen] = '\0';
                         strncpy(tmp, s, maxlen + 1);
                         strncpy(s, shadow_s, maxlen + 1);
                         strncpy(shadow_s, tmp, maxlen + 1);  // for the duration of fun(), last_parname _is_ actually the old value (at any other time, it's the next value)
                         ((void (__cdecl *)())fun)();
                         strncpy(shadow_s, s, maxlen + 1);
+                        delete[] tmp;
                     }
                     else strncpy(s, shadow_s, maxlen + 1);
                 }
@@ -2082,7 +2083,7 @@ int parsevitas(char *buf, int filelen)
     return res;
 }
 
-bool readvitas(const char *fname)
+int readvitas(const char *fname)
 {
     serverconfigfile vsf;
     vsf.init(fname, false);
