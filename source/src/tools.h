@@ -845,14 +845,6 @@ template<class T> inline void endiansame(T *buf, int len) {}
     template<class T> inline void bigswap(T *buf, int len) { if(*(const uchar *)&islittleendian) endianswap(buf, len); }
 #endif
 
-#define uint2ip(address, ip) uchar ip[4]; \
-if(isbigendian())\
-{ \
-    enet_uint32 big = endianswap(address);\
-    memcpy(&ip, &big, 4);\
-}\
-else memcpy(&ip, &address, 4);\
-
 /* workaround for some C platforms that have these two functions as macros - not used anywhere */
 #ifdef getchar
 #undef getchar
@@ -943,7 +935,6 @@ extern void zipmanualclose(void *a);
 extern bool cmpb(void *b, int n, enet_uint32 c);
 extern bool cmpf(char *fn, enet_uint32 c);
 extern enet_uint32 adler(unsigned char *data, size_t len);
-extern void endianswap(void *, int, int);
 extern bool isbigendian();
 extern void strtoupper(char *t, const char *s = NULL);
 extern void seedMT(uint seed);

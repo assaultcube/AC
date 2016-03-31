@@ -292,11 +292,8 @@ void playerinfo(int *cn, const char *attr)
     ATTR_INT(skin_rvsf, p->skin(TEAM_RVSF));
     ATTR_INT(skin, p->skin(player1->team));
 
-    string addrstr = "";
-    uint2ip(p->address, addr);
-    if(addr[3] != 0 || player1->clientrole==CR_ADMIN)
-        formatstring(addrstr)("%d.%d.%d.%d", addr[0], addr[1], addr[2], addr[3]); // full IP
-    else formatstring(addrstr)("%d.%d.%d.x", addr[0], addr[1], addr[2]); // censored IP
+    string addrstr;
+    iptoa(p->address, addrstr);
     ATTR_STR(ip, addrstr);
 
     conoutf("invalid attribute: %s", attr);
@@ -1626,13 +1623,11 @@ void cleanplayervotes(playerent *p)
 
 void whois(int *cn)
 {
+    string tmp;
     loopv(players) if(players[i] && players[i]->type == ENT_PLAYER && (*cn == -1 || players[i]->clientnum == *cn))
     {
         playerent *p = players[i];
-        uint2ip(p->address, ip);
-        if(ip[3] != 0 || player1->clientrole==CR_ADMIN)
-            conoutf("WHOIS client %d:\tname %s , IP %d.%d.%d.%d , %d teamkill%s", p->clientnum, colorname(p), ip[0], ip[1], ip[2], ip[3], p->tks, p->tks == 1 ? "" : "s"); // full IP
-        else conoutf("WHOIS client %d:\tname %s , IP %d.%d.%d.x , %d teamkill%s", p->clientnum, colorname(p), ip[0], ip[1], ip[2], p->tks, p->tks == 1 ? "" : "s"); // censored IP
+        conoutf("WHOIS client %d:\tname %s , IP %s , %d teamkill%s", p->clientnum, colorname(p), iptoa(p->address, tmp), p->tks, p->tks == 1 ? "" : "s"); // full IP
     }
 }
 COMMAND(whois, "i");
