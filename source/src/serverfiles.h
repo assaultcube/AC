@@ -1909,8 +1909,9 @@ void servparallfun() // trigger all functions once, to make sure, unchanged defa
 #ifdef _DEBUG
 int siddocsort(servpar **a, servpar **b) { return (*a)->chapter == (*b)->chapter ? strcmp((*a)->name, (*b)->name) : (*a)->chapter - (*b)->chapter; }
 
-const char *siddocchapters[] = { "dDebug switches", "mMisc settings", "vVote settings", "gMaprot settings", "sServer setup settings", "CCommandline switch overrides", "lServer load statistics", "" };
-const char *siddocchaptersorting = "sgvmdC", *siddocchaptercommentedout = "C";
+const char *siddocchapters[] = { "dDebug switches", "mMisc settings", "vVote settings", "gMaprot settings", "sServer setup settings",
+                                 "CCommandline switch overrides", "DDemo recording settings", "lServer load statistics", "" };
+const char *siddocchaptersorting = "sgDvmdC", *siddocchaptercommentedout = "CD";
 
 void serverparameters_dumpdocu(char *fname)
 {

@@ -2,6 +2,8 @@
 
 #include "cube.h"
 
+extern bool isdedicated;
+
 #ifdef NO_POSIX_R
 char *strtok_r(char *s, const char *delim, char **b)
 {
@@ -516,6 +518,61 @@ const char *iprtoa(const struct iprange &ipr, char *b)
     return b;
 }
 
+char *formatdemofilename(const char *demoformat, const char *timestampformat, const char *map, int mode, int srvclock, int secondsplayed, int secondsremaining, enet_uint32 ip, char *buf)
+{
+    vector<char> d;
+    // we use the following internal mapping of formatchars:
+    // %g : gamemode (int)      %G : gamemode (chr)             %F : gamemode (full)
+    // %m : minutes remaining   %M : minutes played
+    // %s : seconds remaining   %S : seconds played
+    // %h : IP of server        %H : hostname of server (client only)
+    // %n : mapName
+    // %w : timestamp "when"
+    bool did_map = false, did_mode = false, did_ts = false;
+    for(const char *s = demoformat; *s; s++)
+    {
+        if(*s == '%')
+        {
+            switch(*++s)
+            {
+                case 'F': cvecconcat(d, fullmodestr(mode)); did_mode = true; break;
+                case 'g': cvecprintf(d, "%d", mode); did_mode = true; break;
+                case 'G': cvecconcat(d, acronymmodestr(mode)); did_mode = true; break;
+                case 'H':
+                    if(!isdedicated)
+                    {
+#ifndef STANDALONE
+                        ENetAddress a = { htonl(ip), 0 };
+                        cvecconcat(d, !enet_address_get_host(&a, buf, MAXSTRLEN) ? buf : "unknown");
+                        break;
+#endif
+                    } // fallthrough to "IP" on dedicated servers
+                case 'h': cvecconcat(d, ip ? iptoa(ip, buf) : "local"); break;
+                case 'm': cvecprintf(d, "%d", secondsremaining / 60); break;
+                case 'M': cvecprintf(d, "%d", secondsplayed / 60); break;
+                case 'n': cvecconcat(d, map); did_map = true; break;
+                case 's': cvecprintf(d, "%d", secondsremaining); break;
+                case 'S': cvecprintf(d, "%d", secondsplayed); break;
+                case 'w':
+                {
+                    time_t t = ((time_t) srvclock) * 60;
+                    bool utc = *timestampformat == 'U';
+                    cvecconcat(d, timestring(t, !utc, timestampformat + int(utc), buf));
+                    did_ts = true;
+                    break;
+                }
+                default:
+                    if(*s) d.add(*s);
+                    break;
+            }
+        }
+        else d.add(*s);
+    }
+    d.add('\0');
+    filtertext(buf, d.getbuf(), FTXT__DEMONAME);
+    return did_map && did_mode && did_ts ? buf : formatdemofilename("%w_%h_%n_%G", "%Y%m%d_%H%M", map, mode, srvclock, secondsplayed, secondsremaining, ip, buf);
+}
+
 int cmpiprange(const struct iprange *a, const struct iprange *b)
 {
     if(a->lr < b->lr) return -1;
@@ -542,6 +599,13 @@ int cvecprintf(vector<char> &v, const char *s, ...)
     return len;
 }
 
+int cvecconcat(vector<char> &v, const char *s)
+{
+    int len = strlen(s);
+    if(len) v.put(s, len);
+    return len;
+}
+
 const char *hiddenpwd(const char *pwd, int showchars)
 {
     static int sc = 3;
@@ -563,7 +627,6 @@ int getlistindex(const char *key, const char *list[], bool acceptnumeric, int de
     }
 #if !defined(STANDALONE) && defined(_DEBUG)
     char *opts = conc(list, -1, true);
-    extern bool isdedicated;
     if(!isdedicated && *key) clientlogf("warning: unknown token \"%s\" (not in list [%s])", key, opts);
     delstring(opts);
 #endif

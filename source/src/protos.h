@@ -1114,8 +1114,6 @@ struct demoheader
     char desc[DHDR_DESCCHARS];
     char plist[DHDR_PLISTCHARS];
 };
-#define DEFDEMOFILEFMT "%w_%h_%n_%Mmin_%G"
-#define DEFDEMOTIMEFMT "%Y%m%d_%H%M"
 
 extern bool watchingdemo;
 extern int demoprotocol;
@@ -1159,23 +1157,21 @@ struct serverconfigfile
 struct servercommandline
 {
     int uprate, serverport, syslogfacility, filethres, syslogthres, maxdemos, maxclients, kickthreshold, banthreshold, verbose, incoming_limit, afk_limit, ban_time, demotimelocal;
-    const char *ip, *master, *logident, *serverpassword, *adminpasswd, *demopath, *maprotfile, *pwdfile, *blfile, *geoipfile, *nbfile, *infopath, *motdpath, *forbidden, *demofilenameformat, *demotimestampformat, *service, *logfilepath, *parfilepath, *ssk, *vitabasename;
+    const char *ip, *master, *logident, *serverpassword, *adminpasswd, *demopath, *maprotfile, *pwdfile, *blfile, *geoipfile, *nbfile, *infopath, *motdpath, *forbidden, *service, *logfilepath, *parfilepath, *ssk, *vitabasename;
     bool logtimestamp, demo_interm, loggamestatus;
     string motd, servdesc_full, servdesc_pre, servdesc_suf, voteperm, mapperm;
     int clfilenesting;
     vector<const char *> adminonlymaps; // FIXME: remove this
 
-    servercommandline() :   uprate(0), serverport(CUBE_DEFAULT_SERVER_PORT), syslogfacility(6), filethres(-1), syslogthres(-1), maxdemos(5),
+    servercommandline() :   uprate(0), serverport(CUBE_DEFAULT_SERVER_PORT), syslogfacility(6), filethres(-1), syslogthres(-1), maxdemos(-1),
                             maxclients(DEFAULTCLIENTS), kickthreshold(-5), banthreshold(-6), verbose(0), incoming_limit(10), afk_limit(45000), ban_time(20*60*1000), demotimelocal(0),
-                            ip(""), master(NULL), logident(""), serverpassword(""), adminpasswd(""), demopath(""),
+                            ip(""), master(NULL), logident(""), serverpassword(""), adminpasswd(""), demopath(NULL),
                             maprotfile("config/maprot.cfg"), pwdfile("config/serverpwd.cfg"), blfile("config/serverblacklist.cfg"), geoipfile("config/geoip.cfg"), nbfile("config/nicknameblacklist.cfg"),
                             infopath("config/serverinfo"), motdpath("config/motd"), forbidden("config/forbidden.cfg"), service(NULL), logfilepath("logs/"), parfilepath("config/serverparameters.cfg"), ssk(NULL), vitabasename("config/servervita"),
                             logtimestamp(false), demo_interm(false), loggamestatus(true),
                             clfilenesting(0)
     {
         motd[0] = servdesc_full[0] = servdesc_pre[0] = servdesc_suf[0] = voteperm[0] = mapperm[0] = '\0';
-        demofilenameformat = DEFDEMOFILEFMT;
-        demotimestampformat = DEFDEMOTIMEFMT;
     }
 
     bool checkarg(const char *arg)
@@ -1189,20 +1185,7 @@ struct servercommandline
         { // todo: gjlqEJQU
             case 'Y': ssk = a; break; // private server key
             case '-':
-                    if(!strncmp(arg, "--demofilenameformat=", 21))
-                    {
-                        demofilenameformat = arg+21;
-                    }
-                    else if(!strncmp(arg, "--demotimestampformat=", 22))
-                    {
-                        demotimestampformat = arg+22;
-                    }
-                    else if(!strncmp(arg, "--demotimelocal=", 16))
-                    {
-                        int ai = atoi(arg+16);
-                        demotimelocal = ai == 0 ? 0 : 1;
-                    }
-                    else if(!strncmp(arg, "--masterport=", 13))
+                    if(!strncmp(arg, "--masterport=", 13))
                     {
                         int ai = atoi(arg+13);
                         masterport = ai == 0 ? AC_MASTER_PORT : ai;

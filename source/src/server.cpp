@@ -741,6 +741,7 @@ void sendspawn(client *c)
 // demo
 stream *demotmp = NULL, *demorecord = NULL, *demoplayback = NULL;
 bool recordpackets = false;
+#define MAXDEMOS 16
 int nextplayback = 0;
 
 void writedemo(int chan, void *data, int len)
@@ -762,118 +763,13 @@ void recordpacket(int chan, ENetPacket *packet)
     if(recordpackets) writedemo(chan, packet->data, (int)packet->dataLength);
 }
 
-#ifdef STANDALONE
-const char *currentserver(int i)
-{
-    static string curSRVinfo;
-    string r;
-    r[0] = '\0';
-    switch(i)
-    {
-        case 1: { copystring(r, scl.ip[0] ? scl.ip : "local"); break; } // IP
-        case 2: { copystring(r, scl.logident[0] ? scl.logident : "local"); break; } // HOST
-        case 3: { formatstring(r)("%d", scl.serverport); break; } // PORT
-        // the following are used by a client, a server will simply return empty strings for them
-        case 4:
-        case 5:
-        case 6:
-        case 7:
-        case 8:
-        {
-            break;
-        }
-        default:
-        {
-            formatstring(r)("%s %d", scl.ip[0] ? scl.ip : "local", scl.serverport);
-            break;
-        }
-    }
-    copystring(curSRVinfo, r);
-    return curSRVinfo;
-}
-#endif
+SERVPAR(demo_max_number, 3, 5, MAXDEMOS, "DMaximum number of demo files in RAM");
+SERVPARLIST(demo_save, 0, 1, 0, endis, "DWrite demos to file");
+SERVSTR(demo_path, "", 0, 63, FTXT__DEMONAME, "DDemo path (and filename) prefix");
+SERVSTR(demo_filenameformat, "%w_%h_%n_%Mmin_%G", 0, 63, FTXT__FORMATSTRING, "DDemo file format string");
+SERVSTR(demo_timestampformat, "%Y%m%d_%H%M", 0, 23, FTXT__FORMATSTRING, "DDemo timestamp format string");
 
-// these are actually the values used by the client, the server ones are in "scl".
-string demofilenameformat = DEFDEMOFILEFMT;
-string demotimestampformat = DEFDEMOTIMEFMT;
 int demotimelocal = 0;
-
-#ifdef STANDALONE
-#define DEMOFORMAT scl.demofilenameformat
-#define DEMOTSFORMAT scl.demotimestampformat
-#else
-#define DEMOFORMAT demofilenameformat
-#define DEMOTSFORMAT demotimestampformat
-#endif
-
-const char *getDemoFilename(int gmode, int mplay, int mdrop, int tstamp, char *srvmap)
-{
-    // we use the following internal mapping of formatchars:
-    // %g : gamemode (int)      %G : gamemode (chr)             %F : gamemode (full)
-    // %m : minutes remaining   %M : minutes played
-    // %s : seconds remaining   %S : seconds played
-    // %h : IP of server        %H : hostname of server
-    // %n : mapName
-    // %w : timestamp "when"
-    static string dmofn;
-    copystring(dmofn, "");
-
-    int cc = 0;
-    int mc = strlen(DEMOFORMAT);
-
-    while(cc<mc)
-    {
-        switch(DEMOFORMAT[cc])
-        {
-            case '%':
-            {
-                if(cc<(mc-1))
-                {
-                    string cfspp;
-                    switch(DEMOFORMAT[cc+1])
-                    {
-                        case 'F': formatstring(cfspp)("%s", fullmodestr(gmode)); break;
-                        case 'g': formatstring(cfspp)("%d", gmode); break;
-                        case 'G': formatstring(cfspp)("%s", acronymmodestr(gmode)); break;
-                        case 'h': formatstring(cfspp)("%s", currentserver(1)); break; // client/server have different implementations
-                        case 'H': formatstring(cfspp)("%s", currentserver(2)); break; // client/server have different implementations
-                        case 'm': formatstring(cfspp)("%d", mdrop/60); break;
-                        case 'M': formatstring(cfspp)("%d", mplay/60); break;
-                        case 'n': formatstring(cfspp)("%s", srvmap); break;
-                        case 's': formatstring(cfspp)("%d", mdrop); break;
-                        case 'S': formatstring(cfspp)("%d", mplay); break;
-                        case 'w':
-                        {
-                            time_t t = tstamp;
-                            struct tm * timeinfo;
-                            timeinfo = demotimelocal ? localtime(&t) : gmtime (&t);
-                            strftime(cfspp, sizeof(string) - 1, DEMOTSFORMAT, timeinfo);
-                            break;
-                        }
-                        default: mlog(ACLOG_INFO, "bad formatstring: demonameformat @ %d", cc); cc-=1; break; // don't drop the bad char
-                    }
-                    concatstring(dmofn, cfspp);
-                }
-                else
-                {
-                    mlog(ACLOG_INFO, "trailing %%-sign in demonameformat");
-                }
-                cc+=1;
-                break;
-            }
-            default:
-            {
-                defformatstring(fsbuf)("%s%c", dmofn, DEMOFORMAT[cc]);
-                copystring(dmofn, fsbuf);
-                break;
-            }
-        }
-        cc+=1;
-    }
-    return dmofn;
-}
-#undef DEMOFORMAT
-#undef DEMOTSFORMAT
 
 void enddemorecord()
 {
@@ -895,7 +791,7 @@ void enddemorecord()
 
     int len = demotmp->size();
     demotmp->seek(0, SEEK_SET);
-    if(demofiles.length() >= scl.maxdemos)
+    if(demofiles.length() >= demo_max_number)
     {
         delete[] demofiles[0].data;
         demofiles.remove(0);
@@ -914,7 +810,7 @@ void enddemorecord()
     int iTIME = time(NULL);
     const char *mTIME = numtime();
     const char *sMAPN = behindpath(sg->smapname);
-    string iMAPN;
+    string iMAPN, buf;
     copystring(iMAPN, sMAPN);
     formatstring(d.file)( "%d:%d:%d:%s:%s", gamemode, mPLAY, mDROP, mTIME, iMAPN);
 
@@ -923,9 +819,9 @@ void enddemorecord()
     demotmp->read(d.data, len);
     delete demotmp;
     demotmp = NULL;
-    if(scl.demopath[0])
+    if(demo_save)
     {
-        formatstring(msg)("%s%s.dmo", scl.demopath, getDemoFilename(gamemode, mPLAY, mDROP, iTIME, iMAPN)); //d.file);
+        formatstring(msg)("%s%s.dmo", demo_path, formatdemofilename(demo_filenameformat, demo_timestampformat, iMAPN, gamemode, iTIME / 60, mPLAY, mDROP, servownip, buf));
         path(msg);
         stream *demo = openfile(msg, "wb");
         if(demo)
@@ -4754,6 +4650,10 @@ void initserver(bool dedicated)
     sg->smapname[0] = '\0';
     servparallfun();
 
+    // init server parameters from commandline
+    if(scl.demopath) initserverparameter("demo_path", scl.demopath);
+    if(scl.maxdemos > 0) initserverparameter("demo_max_number", scl.maxdemos);
+
     // start logging
     initserverparameter("logthreshold_console", scl.verbose > 1 ? ACLOG_DEBUG : (scl.verbose ? ACLOG_VERBOSE : ACLOG_INFO));
     initserverparameter("logthreshold_syslog", scl.syslogthres);
@@ -4796,8 +4696,8 @@ void initserver(bool dedicated)
         forbiddenlist.init(scl.forbidden);
         serverinfoinfo.init(scl.infopath, MAXTRANS / 2);
         serverinfomotd.init(scl.motdpath, MAXSTRLEN - 5);
-        mlog(ACLOG_VERBOSE, "holding up to %d recorded demos in memory", scl.maxdemos);
-        if(scl.demopath[0]) mlog(ACLOG_VERBOSE,"all recorded demos will be written to: \"%s\"", scl.demopath);
+        mlog(ACLOG_VERBOSE, "holding up to %d recorded demos in memory", demo_max_number);
+        if(demo_save) mlog(ACLOG_VERBOSE,"all recorded demos will be written to: \"%s\"", demo_path);
         if(scl.voteperm[0]) mlog(ACLOG_VERBOSE,"vote permission string: \"%s\"", scl.voteperm);
         if(scl.mapperm[0]) mlog(ACLOG_VERBOSE,"map permission string: \"%s\"", scl.mapperm);
         mlog(ACLOG_VERBOSE,"server description: \"%s\"", scl.servdesc_full);

@@ -284,7 +284,7 @@ char *filtertext(char *dst, const char *src, int flags, int len)
          toupp = (flags & FTXT_TOUPPER) != 0,               // translates to all-uppercase
          tolow = (flags & FTXT_TOLOWER) != 0,               // translates to all-lowercase
          filename = (flags & FTXT_FILENAME) != 0,           // strict a-z, 0-9 and "-_.()" (also translates "[]" and "{}" to "()"), removes everything between '<' and '>'
-         allowslash = (flags & FTXT_ALLOWSLASH) != 0,       // only in combination with FTXT_FILENAME
+         allowslash = (flags & FTXT_ALLOWSLASH) != 0,       // only in combination with FTXT_FILENAME or FTXT_MAPNAME
          mapname = (flags & FTXT_MAPNAME) != 0,             // only allows lowercase chars, digits, '_', '-' and '.'; probably should be used in combination with TOLOWER
          cropwhite = (flags & FTXT_CROPWHITE) != 0,         // removes leading and trailing whitespace
          pass = false;
@@ -348,7 +348,7 @@ char *filtertext(char *dst, const char *src, int flags, int len)
             if(src[1]) ++src;
             continue;
         }
-        if(mapname && !isalnum(c) && !strchr("_-./\\", c)) continue;
+        if(mapname && !isalnum(c) && !strchr("_-.", c) && !(allowslash && strchr("/\\", c))) continue;
         if(isspace(c))
         {
             if(leadingwhite) continue;
