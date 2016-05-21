@@ -645,6 +645,7 @@ VARP(serversortdir, 0, 0, 1);
 VARP(showonlygoodservers, 0, 0, 1);
 VAR(shownamesinbrowser, 0, 0, 1);
 VARP(showminremain, 0, 0, 1);
+VARP(showallplayersnumber, 0, 1, 1);
 VARP(serversortpreferofficial, 0, 1, 1);
 
 void serversortprepare()
@@ -1034,24 +1035,12 @@ void refreshservers(void *menu, bool init)
     servers.sort(sicompare);
     if(menu)
     {
-        static const char *titles[NUMSERVSORT] =
-        {
-            "%s\fs\f0ping\fr\tplr\tserver%s%s",                               // 0: ping
-            "%sping\t\fs\f0plr\fr\tserver%s%s",                               // 1: player number
-            "%sping\tplr\tserver (\fs\f0max players\fr)%s%s",                 // 2: maxplayers
-            "%sping\tplr\fs\f0\fr\tserver (\fs\f0minutes remaining\fr)%s%s",  // 3: minutes remaining
-            "%sping\tplr\tserver (\fs\f0map\fr)%s%s",                         // 4: map
-            "%sping\tplr\tserver (\fs\f0game mode\fr)%s%s",                   // 5: mode
-            "%sping\tplr\tserver (\fs\f0IP\fr)%s%s",                          // 6: IP
-            "%sping\tplr\tserver (\fs\f0description\fr)%s%s"                  // 7: description
-        };
         bool showmr = showminremain || serversort == SBS_MINREM;
-        formatstring(title)(titles[serversort], showfavtag ? "fav\t" : "", issearch ? "      search results for \f3" : "     (F1: Help/Settings)", issearch ? cursearch : "");
-        menutitle(menu, title);
         menureset(menu);
         menuheader(menu, NULL, NULL);
         string text;
         int curnl = 0;
+        int allplayers = 0;
         bool sbconnectexists = identexists("sbconnect");
         loopv(servers)
         {
@@ -1146,7 +1135,24 @@ void refreshservers(void *menu, bool init)
                 }
             }
             si.menuline_to = ((gmenu *)menu)->items.length();
+            if(!(showonlyfavourites > 0 && (servers[i]->favcat != showonlyfavourites - 1))) allplayers += servers[i]->numplayers;
         }
+
+        static const char *titles[NUMSERVSORT] =
+        {
+            "%s\fs\f0ping\fr\t%s plr\tserver%s%s",                               // 0: ping
+            "%sping\t\fs\f0%s plr\fr\tserver%s%s",                               // 1: player number
+            "%sping\t%s plr\tserver (\fs\f0max players\fr)%s%s",                 // 2: maxplayers
+            "%sping\t%s plr\fs\f0\fr\tserver (\fs\f0minutes remaining\fr)%s%s",  // 3: minutes remaining
+            "%sping\t%s plr\tserver (\fs\f0map\fr)%s%s",                         // 4: map
+            "%sping\t%s plr\tserver (\fs\f0game mode\fr)%s%s",                   // 5: mode
+            "%sping\t%s plr\tserver (\fs\f0IP\fr)%s%s",                          // 6: IP
+            "%sping\t%s plr\tserver (\fs\f0description\fr)%s%s"                  // 7: description
+        };
+        defformatstring(allplrs)("%d", allplayers);
+        formatstring(title)(titles[serversort], showfavtag ? "fav\t" : "", !issearch && showallplayersnumber ? allplrs : "", issearch ? "      search results for \f3" : "     (F1: Help/Settings)", issearch ? cursearch : "");
+        menutitle(menu, title);
+
         static string notfoundmsg, headermsg;
         notfoundmsg[0] = '\0';
         if(issearch)
