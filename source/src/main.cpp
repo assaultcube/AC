@@ -951,7 +951,7 @@ void createconfigtemplates(const char *templatezip)  // create customisable conf
             const char *filename = behindpath(files[i]); // only look for config files in the zip file, ignore all paths in the zip
             if(strlen(filename) > 4 && !strcmp(filename + strlen(filename) - 4, ".cfg"))
             {
-                defformatstring(fname)("config%c%s.cfg", PATHDIV, files[i]);
+                defformatstring(fname)("config" PATHDIVS "%s", files[i]);
                 if(getfilesize(fname) <= 0) // config does not exist or is empty
                 {
                     stream *zf = openfile(fname, "wb");
