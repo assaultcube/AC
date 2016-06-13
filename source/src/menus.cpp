@@ -381,41 +381,26 @@ struct mitemmaploadmanual : mitemmanual
 
     mitemmaploadmanual(gmenu *parent, const char *filename, const char *altfontname, char *text, char *action, char *hoveraction, color *bgcolor, const char *desc = NULL) : mitemmanual(parent, text, action, NULL,        NULL,    NULL), filename(filename)
     {
-        image = NULL;
+        image = notexture;
         copystring(maptitle, filename ? filename : "-n/a-");
+        silent_texture_load = true;
         if(filename)
-        {
-            // see worldio.cpp:setnames()
-            string pakname, mapname, cgzpath;
-            const char *slash = strpbrk(filename, "/\\");
-            if(slash)
+        { // load map description and preview picture
+            filename = behindpath(filename);
+            const char *cgzpath = "packages" PATHDIVS "maps";
+            char *d = getfiledesc(cgzpath, filename, "cgz"); // check for regular map
+            if(!d) d = getfiledesc((cgzpath = "packages" PATHDIVS "maps" PATHDIVS "official"), filename, "cgz"); // check for official map
+            if(d)
             {
-                copystring(pakname, filename, slash-filename+1);
-                copystring(mapname, slash+1);
+                if(*d) copystring(maptitle, d);
+                delstring(d);
             }
-            else
-            {
-                copystring(pakname, "maps");
-                copystring(mapname, filename);
-            }
-            formatstring(cgzpath)("packages/%s", pakname);
-            char *d = getfiledesc(cgzpath, mapname, "cgz");
-            if( d ) { formatstring(maptitle)("%s", d[0] ? d : "-n/a-"); }
-            else
-            {
-                copystring(pakname, "maps/official");
-                formatstring(cgzpath)("packages/%s", pakname);
-                char *d = getfiledesc("packages/maps/official", mapname, "cgz");
-                if( d ) { formatstring(maptitle)("%s", d[0] ? d : "-n/a-"); }
-                else formatstring(maptitle)("-n/a-:%s", mapname);
-            }
-            defformatstring(p2p)("%s/preview/%s.jpg", cgzpath, mapname);
-            silent_texture_load = true;
+            else formatstring(maptitle)("-n/a-:%s", filename);
+            defformatstring(p2p)("%s/preview/%s.jpg", cgzpath, filename);
             image = textureload(p2p, 3);
-            if(image==notexture) image = textureload("packages/misc/nopreview.jpg", 3);
-            silent_texture_load = false;
         }
-        else { formatstring(maptitle)("-n/a-:%s", filename); image = textureload("packages/misc/nopreview.png", 3); }
+        if(image == notexture) image = textureload("packages/misc/nopreview.jpg", 3);
+        silent_texture_load = false;
         copystring(mapstats, "");
     }
     virtual ~mitemmaploadmanual() {}

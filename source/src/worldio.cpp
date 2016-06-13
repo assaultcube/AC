@@ -5,34 +5,17 @@
 #define DEBUGCOND (worldiodebug==1)
 VARP(worldiodebug, 0, 0, 1);
 
-static string cgzname, ocgzname, bakname, cbakname, pcfname, mcfname, omcfname, mapname;
+static string cgzname, ocgzname, bakname, cbakname, mcfname, omcfname;
 
 const char *setnames(const char *name)
 {
-    string pakname;
-    const char *slash = strpbrk(name, "/\\");
-    if(slash)
-    {
-        copystring(pakname, name, slash-name+1);
-        copystring(mapname, slash+1);
-    }
-    else
-    {
-        copystring(pakname, "maps");
-        copystring(mapname, name);
-    }
-    const char *nt = numtime();
-    formatstring(cgzname)("packages/%s/%s.cgz",      pakname, mapname);
-    formatstring(ocgzname)("packages/maps/official/%s.cgz",   mapname);
-    formatstring(bakname)("packages/%s/%s_%s.BAK",   pakname, mapname, nt);
-    formatstring(cbakname)("packages/%s/%s.cfg_%s.BAK",   pakname, mapname, nt);
-    formatstring(pcfname)("packages/%s/package.cfg", pakname);
-    formatstring(mcfname)("packages/%s/%s.cfg",      pakname, mapname);
-    formatstring(omcfname)("packages/maps/official/%s.cfg",   mapname);
-
-    path(cgzname);
-    path(bakname);
-    path(cbakname);
+    const char *mapname = behindpath(name), *nt = numtime();
+    formatstring(cgzname) ("packages" PATHDIVS "maps" PATHDIVS                     "%s.cgz",        mapname);
+    formatstring(mcfname) ("packages" PATHDIVS "maps" PATHDIVS                     "%s.cfg",        mapname);
+    formatstring(ocgzname)("packages" PATHDIVS "maps" PATHDIVS "official" PATHDIVS "%s.cgz",        mapname);
+    formatstring(omcfname)("packages" PATHDIVS "maps" PATHDIVS "official" PATHDIVS "%s.cfg",        mapname);
+    formatstring(bakname) ("packages" PATHDIVS "maps" PATHDIVS                     "%s_%s.BAK",     mapname, nt);
+    formatstring(cbakname)("packages" PATHDIVS "maps" PATHDIVS                     "%s.cfg_%s.BAK", mapname, nt);
     return cgzname;
 }
 
@@ -362,7 +345,7 @@ bool embedconfigfile()
     if(unsavededits) { conoutf("There are unsaved edits: they need to be saved or discarded before a config file can be embedded."); return false; }
     setnames(getclientmap());
     int len;
-    uchar *buf = (uchar *)loadfile(path(mcfname), &len);
+    uchar *buf = (uchar *)loadfile(mcfname, &len);
     if(buf)
     {
         for(int n; (n = findheaderextra(HX_CONFIG)) >= 0; ) deleteheaderextra(n);
@@ -709,7 +692,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
         copystring(mcfname, omcfname);
     }
     else maploaded = getfilesize(cgzname);
-    if(!validmapname(mapname))
+    if(!validmapname(mname))
     {
         conoutf("\f3Invalid map name. It must only contain letters, digits, '-', '_' and be less than %d characters long", MAXMAPNAMELEN);
         return false;
@@ -868,7 +851,6 @@ bool load_world(char *mname)        // still supports all map formats that have 
     else
     { // map config from files
         execfile("config/default_map_settings.cfg");
-        execfile(pcfname);
         execfile(mcfname);
         copystring(lastloadedconfigfile, mcfname);
     }
@@ -1041,7 +1023,6 @@ struct xmap
         else
         {
             execfile("config/default_map_settings.cfg");
-            execfile(pcfname);
             execfile(lastloadedconfigfile);
         }
         parseheaderextra();
