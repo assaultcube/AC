@@ -1,10 +1,22 @@
 CXX=clang++		# override from commandline or in Makefile_local
 ACDEBUG=no		# add ACDEBUG=yes to the commandline or to Makefile_local to compile debug binaries
+PKGCONFIG ?= pkg-config
+
+HAS_PKGCFG := $(shell which $(PKGCONFIG) 2>&1 >/dev/null && echo yes || echo no)
 
 PLATFORM= $(shell uname -s)
 PLATFORM_PREFIX=native
 
 -include Makefile_local   # optional file, not in repository
+
+HAS_ENET := no
+ifeq ($(HAS_PKGCFG),yes)
+HAS_ENET := $(shell $(PKGCONFIG) libenet && echo yes || echo no)
+ifeq ($(HAS_ENET),yes)
+ENET_CF := $(CXXFLAGS) $(shell $(PKGCONFIG) --cflags libenet)
+ENET_LF := $(LDFLAGS) $(shell $(PKGCONFIG) --libs libenet)
+endif
+endif
 
 ifeq ($(ACDEBUG),yes)
 	CXXFLAGS= -O0
@@ -19,7 +31,11 @@ else
 	override CXXFLAGS+= -Wall -fsigned-char -ffast-math -rdynamic
 endif
 
-INCLUDES= -I. -Ibot -I../enet/include
+ifeq ($(HAS_ENET),yes)
+	INCLUDES := -I. -Ibot $(ENET_CF)
+else
+	INCLUDES := -I. -Ibot -I../enet/include
+endif
 
 STRIP=
 ifeq (,$(findstring -g,$(CXXFLAGS)))
@@ -36,7 +52,12 @@ CLIENT_LIBS= -mwindows -L../lib -lSDL -lSDL_image -lzdll -lopengl32 -lenet -lOpe
 else
 USRLIB=$(shell if [ -e /usr/lib64 ]; then echo "/usr/lib64"; else echo "/usr/lib"; fi)
 CLIENT_INCLUDES= $(INCLUDES) -I/usr/include `sdl-config --cflags` -idirafter ../include
-CLIENT_LIBS= -L../enet/.libs -lenet -L$(USRLIB) -lX11 `sdl-config --libs` -lSDL_image -lz -lGL -lopenal -lvorbisfile -lcurl
+ifeq ($(HAS_ENET),yes)
+	CLIENT_LIBS := $(ENET_LF)
+else
+	CLIENT_LIBS := -L../enet/.libs -lenet
+endif
+CLIENT_LIBS := $(CLIENT_LIBS) -L$(USRLIB) -lX11 `sdl-config --libs` -lSDL_image -lz -lGL -lopenal -lvorbisfile -lcurl
 endif
 
 CLIENT_OBJS= \
@@ -97,11 +118,16 @@ CLIENT_OBJS= \
 CLIENT_PCH= cube.h.gch
 
 ifneq (,$(findstring MINGW,$(PLATFORM)))
-SERVER_INCLUDES= -DSTANDALONE $(INCLUDES) -I../include
-SERVER_LIBS= -L../lib -lzdll -lenet -llibintl -lws2_32 -lwinmm
+	SERVER_INCLUDES= -DSTANDALONE $(INCLUDES) -I../include
+	SERVER_LIBS= -L../lib -lzdll -lenet -llibintl -lws2_32 -lwinmm
 else
-SERVER_INCLUDES= -DSTANDALONE $(INCLUDES)
-SERVER_LIBS= -L../enet/.libs -lenet -lz
+	SERVER_INCLUDES= -DSTANDALONE $(INCLUDES)
+	ifeq ($(HAS_ENET),yes)
+		SERVER_LIBS := $(ENET_LF)
+	else
+		SERVER_LIBS := -L../enet/.libs -lenet
+	endif
+	SERVER_LIBS := $(SERVER_LIBS) -lz
 endif
 
 SERVER_OBJS= \
@@ -128,6 +154,7 @@ default: all
 
 all: client server
 
+ifneq ($(HAS_ENET),yes)
 ../enet/Makefile:
 	cd ../enet; ./configure --enable-shared=no --enable-static=yes
 
@@ -136,6 +163,7 @@ libenet: ../enet/Makefile
 
 clean-enet: ../enet/Makefile
 	$(MAKE) -C ../enet/ clean
+endif
 
 clean:
 	-$(RM) $(CLIENT_PCH) $(CLIENT_OBJS) $(SERVER_OBJS) $(MASTER_OBJS) ac_client ac_server ac_master
@@ -168,12 +196,16 @@ client_install: client
 server_install: server
 
 else
-client: libenet $(CLIENT_OBJS)
+ifneq ($(HAS_ENET),yes)
+ENET_TARGET := libenet
+endif
+
+client: $(ENET_TARGET) $(CLIENT_OBJS)
 	$(CXX) $(CXXFLAGS) -o ac_client $(CLIENT_OBJS) $(CLIENT_LIBS)
 
-server: libenet $(SERVER_OBJS)
+server: $(ENET_TARGET) $(SERVER_OBJS)
 	$(CXX) $(CXXFLAGS) -o ac_server $(SERVER_OBJS) $(SERVER_LIBS)
-master: libenet $(MASTER_OBJS)
+master: $(ENET_TARGET) $(MASTER_OBJS)
 	$(CXX) $(CXXFLAGS) -o ac_master $(MASTER_OBJS) $(SERVER_LIBS)
 
 client_install: client
