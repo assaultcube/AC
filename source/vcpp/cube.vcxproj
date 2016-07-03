@@ -85,28 +85,43 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
     <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.\Release\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.\Release\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\bin_win32\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Configuration)\</IntDir>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
     <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</GenerateManifest>
     <EmbedManifest Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</EmbedManifest>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">.\Debug\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">.\Debug\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\bin_win32\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Configuration)\</IntDir>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
     <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</GenerateManifest>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">Profile\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">Profile\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">..\..\bin_win32\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(Configuration)\</IntDir>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">false</LinkIncremental>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Standalone|Win32'">$(Configuration)\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Standalone|Win32'">..\..\bin_win32\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Standalone|Win32'">$(Configuration)\</IntDir>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Standalone|Win32'">false</LinkIncremental>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Standalone Debug|Win32'">$(Configuration)\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Standalone Debug|Win32'">..\..\bin_win32\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Standalone Debug|Win32'">$(Configuration)\</IntDir>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Standalone Debug|Win32'">true</LinkIncremental>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <TargetName>ac_client</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">
+    <TargetName>ac_client</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <TargetName>ac_client</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Standalone|Win32'">
+    <TargetName>ac_server</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Standalone Debug|Win32'">
+    <TargetName>ac_server</TargetName>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Midl>
-      <TypeLibraryName>.\Release/cube.tlb</TypeLibraryName>
+      <TypeLibraryName>$(Configuration)\cube.tlb</TypeLibraryName>
     </Midl>
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
@@ -128,10 +143,10 @@
       <ForceConformanceInForLoopScope>true</ForceConformanceInForLoopScope>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>cube.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile>.\Release/cube.pch</PrecompiledHeaderOutputFile>
-      <AssemblerListingLocation>.\Release/</AssemblerListingLocation>
-      <ObjectFileName>.\Release/</ObjectFileName>
-      <ProgramDataBaseFileName>.\Release/</ProgramDataBaseFileName>
+      <PrecompiledHeaderOutputFile>$(Configuration)\cube.pch</PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>$(Configuration)\</AssemblerListingLocation>
+      <ObjectFileName>$(Configuration)\</ObjectFileName>
+      <ProgramDataBaseFileName>$(Configuration)\</ProgramDataBaseFileName>
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <DebugInformationFormat>OldStyle</DebugInformationFormat>
@@ -143,14 +158,14 @@
     </ResourceCompile>
     <Link>
       <AdditionalDependencies>enet.lib;vorbisfile.lib;openal32.lib;zdll.lib;opengl32.lib;SDL.lib;SDL_image.lib;ws2_32.lib;winmm.lib;Dbghelp.lib;jpeg.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>../../bin_win32/ac_client.exe</OutputFile>
+      <OutputFile>$(TargetPath)</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <AdditionalLibraryDirectories>..\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <ProgramDatabaseFile>.\Release/ac_client.pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>$(Configuration)\$(TargetName).pdb</ProgramDatabaseFile>
       <GenerateMapFile>true</GenerateMapFile>
-      <MapFileName>.\Release/cube.map</MapFileName>
+      <MapFileName>$(Configuration)\cube.map</MapFileName>
       <MapExports>true</MapExports>
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
@@ -158,14 +173,12 @@
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention>
       </DataExecutionPrevention>
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
-    <PostBuildEvent>
-      <Command>copy /Y "$(ProjectDir)$(OutDir)*.pdb" "$(TargetDir).."</Command>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Midl>
-      <TypeLibraryName>.\Debug/cube.tlb</TypeLibraryName>
+      <TypeLibraryName>$(Configuration)\cube.tlb</TypeLibraryName>
     </Midl>
     <ClCompile>
       <AdditionalOptions>/GS %(AdditionalOptions)</AdditionalOptions>
@@ -177,10 +190,10 @@
       <FloatingPointModel>Fast</FloatingPointModel>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>cube.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile>.\Debug/cube.pch</PrecompiledHeaderOutputFile>
-      <AssemblerListingLocation>.\Debug/</AssemblerListingLocation>
-      <ObjectFileName>.\Debug/</ObjectFileName>
-      <ProgramDataBaseFileName>.\Debug/</ProgramDataBaseFileName>
+      <PrecompiledHeaderOutputFile>$(Configuration)\cube.pch</PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>$(Configuration)\</AssemblerListingLocation>
+      <ObjectFileName>$(Configuration)\</ObjectFileName>
+      <ProgramDataBaseFileName>$(Configuration)\</ProgramDataBaseFileName>
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
@@ -193,19 +206,20 @@
     </ResourceCompile>
     <Link>
       <AdditionalDependencies>enet.lib;vorbisfile.lib;openal32.lib;zdll.lib;opengl32.lib;SDL.lib;SDL_image.lib;ws2_32.lib;winmm.lib;Dbghelp.lib;jpeg.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>../../bin_win32/ac_client.exe</OutputFile>
+      <OutputFile>$(TargetPath)</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <AdditionalLibraryDirectories>..\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <ProgramDatabaseFile>.\Debug/ac_client.pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>$(Configuration)\$(TargetName).pdb</ProgramDatabaseFile>
       <SubSystem>Windows</SubSystem>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention>
       </DataExecutionPrevention>
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
     <Manifest>
-      <AdditionalOptions>/nologo /outputresource:"..\..\bin_win32\ac_client.exe%3b#1" %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/nologo /outputresource:"$(TargetPath)%3b#1" %(AdditionalOptions)</AdditionalOptions>
     </Manifest>
     <PostBuildEvent>
       <Command>
@@ -214,7 +228,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">
     <Midl>
-      <TypeLibraryName>.\Release/cube.tlb</TypeLibraryName>
+      <TypeLibraryName>$(Configuration)\cube.tlb</TypeLibraryName>
     </Midl>
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
@@ -235,10 +249,10 @@
       <ForceConformanceInForLoopScope>true</ForceConformanceInForLoopScope>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>cube.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile>.\Profile/cube.pch</PrecompiledHeaderOutputFile>
-      <AssemblerListingLocation>.\Release/</AssemblerListingLocation>
-      <ObjectFileName>.\Release/</ObjectFileName>
-      <ProgramDataBaseFileName>.\Release/</ProgramDataBaseFileName>
+      <PrecompiledHeaderOutputFile>$(Configuration)\cube.pch</PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>$(Configuration)\</AssemblerListingLocation>
+      <ObjectFileName>$(Configuration)\</ObjectFileName>
+      <ProgramDataBaseFileName>$(Configuration)\</ProgramDataBaseFileName>
       <BrowseInformation>true</BrowseInformation>
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -251,24 +265,25 @@
     <Link>
       <AdditionalOptions>/PROFILE %(AdditionalOptions)</AdditionalOptions>
       <AdditionalDependencies>enet.lib;vorbisfile.lib;openal32.lib;zdll.lib;opengl32.lib;SDL.lib;SDL_image.lib;ws2_32.lib;winmm.lib;Dbghelp.lib;jpeg.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>..\..\bin_win32\ac_client.exe</OutputFile>
+      <OutputFile>$(TargetPath)</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <AdditionalLibraryDirectories>..\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <ProgramDatabaseFile>.\Release/cube.pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>$(Configuration)\$(TargetName).pdb</ProgramDatabaseFile>
       <GenerateMapFile>true</GenerateMapFile>
-      <MapFileName>.\Release/cube.map</MapFileName>
+      <MapFileName>$(Configuration)\cube.map</MapFileName>
       <MapExports>true</MapExports>
       <SubSystem>Windows</SubSystem>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention>
       </DataExecutionPrevention>
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Standalone|Win32'">
     <Midl>
-      <TypeLibraryName>.\Release/cube.tlb</TypeLibraryName>
+      <TypeLibraryName>$(Configuration)\cube.tlb</TypeLibraryName>
     </Midl>
     <ClCompile>
       <Optimization>Full</Optimization>
@@ -290,7 +305,10 @@
       <PrecompiledHeader>
       </PrecompiledHeader>
       <PrecompiledHeaderFile>cube.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile>.\Standalone/cube.pch</PrecompiledHeaderOutputFile>
+      <PrecompiledHeaderOutputFile>$(Configuration)\cube.pch</PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>$(Configuration)\</AssemblerListingLocation>
+      <ObjectFileName>$(Configuration)\</ObjectFileName>
+      <ProgramDataBaseFileName>$(Configuration)\</ProgramDataBaseFileName>
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <DebugInformationFormat>OldStyle</DebugInformationFormat>
@@ -302,14 +320,14 @@
     </ResourceCompile>
     <Link>
       <AdditionalDependencies>enet.lib;zdll.lib;SDL.lib;ws2_32.lib;winmm.lib;Dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>../../bin_win32/ac_server.exe</OutputFile>
+      <OutputFile>$(TargetPath)</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <AdditionalLibraryDirectories>..\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <ProgramDatabaseFile>.\Standalone/ac_server.pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>$(Configuration)\$(TargetName).pdb</ProgramDatabaseFile>
       <GenerateMapFile>true</GenerateMapFile>
-      <MapFileName>.\Standalone/cube.map</MapFileName>
+      <MapFileName>$(Configuration)\cube.map</MapFileName>
       <MapExports>true</MapExports>
       <SubSystem>Console</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
@@ -317,14 +335,12 @@
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention>
       </DataExecutionPrevention>
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
-    <PostBuildEvent>
-      <Command>copy /Y "$(ProjectDir)$(OutDir)*.pdb" "$(TargetDir).." </Command>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Standalone Debug|Win32'">
     <Midl>
-      <TypeLibraryName>.\Debug/cube.tlb</TypeLibraryName>
+      <TypeLibraryName>$(Configuration)\cube.tlb</TypeLibraryName>
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
@@ -335,7 +351,10 @@
       <PrecompiledHeader>
       </PrecompiledHeader>
       <PrecompiledHeaderFile>cube.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile>.\Standalone-Debug/cube.pch</PrecompiledHeaderOutputFile>
+      <PrecompiledHeaderOutputFile>$(Configuration)\cube.pch</PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>$(Configuration)\</AssemblerListingLocation>
+      <ObjectFileName>$(Configuration)\</ObjectFileName>
+      <ProgramDataBaseFileName>$(Configuration)\</ProgramDataBaseFileName>
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
@@ -347,19 +366,20 @@
     </ResourceCompile>
     <Link>
       <AdditionalDependencies>enet.lib;zdll.lib;SDL.lib;ws2_32.lib;winmm.lib;Dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>../../bin_win32/ac_server.exe</OutputFile>
+      <OutputFile>$(TargetPath)</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <AdditionalLibraryDirectories>..\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <ProgramDatabaseFile>.\Standalone Debug/ac_server.pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>$(Configuration)\$(TargetName).pdb</ProgramDatabaseFile>
       <SubSystem>Console</SubSystem>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention>
       </DataExecutionPrevention>
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
     <Manifest>
-      <AdditionalOptions>/nologo /outputresource:"..\..\bin_win32\ac_server.exe%3b#1" %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/nologo /outputresource:"$(TargetPath)%3b#1" %(AdditionalOptions)</AdditionalOptions>
     </Manifest>
     <PostBuildEvent>
       <Command>
@@ -428,20 +448,33 @@
     </CustomBuildStep>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\ChangeLog.txt" />
-    <None Include="..\..\docs\package_copyrights.txt" />
-    <None Include="..\readme.txt" />
-    <None Include="..\..\docs\reference.xml" />
-    <None Include="..\..\docs\autogen\win32_cubedoc2xhtml.ps1" />
+    <None Include="..\..\config\autostart\0.cfg" />
+    <None Include="..\..\config\autostart\welcome.cfg" />
+    <None Include="..\..\config\compatibility.cfg" />
+    <None Include="..\..\config\favourites.cfg" />
+    <None Include="..\..\config\font_default.cfg" />
+    <None Include="..\..\config\font_monospace.cfg" />
+    <None Include="..\..\config\font_serif.cfg" />
+    <None Include="..\..\config\forbidden.cfg" />
+    <None Include="..\..\config\menus_voicecom.cfg" />
+    <None Include="..\..\config\nicknameblacklist.cfg" />
+    <None Include="..\..\config\opt\alternateeditbinds.cfg" />
+    <None Include="..\..\config\opt\faq.cfg" />
+    <None Include="..\..\config\opt\parsestring.cfg" />
+    <None Include="..\..\config\opt\survival.cfg" />
+    <None Include="..\..\config\pcksources.cfg" />
+    <None Include="..\..\config\resetbinds.cfg" />
+    <None Include="..\..\config\serverblacklist.cfg" />
+    <None Include="..\..\config\serverpwd.cfg" />
     <None Include="..\..\config\admin.cfg" />
     <None Include="..\..\config\autoexec.cfg" />
+    <None Include="..\..\config\autosave.cfg" />
     <None Include="..\..\config\default_map_settings.cfg" />
     <None Include="..\..\config\defaults.cfg" />
     <None Include="..\..\config\docs.cfg" />
     <None Include="..\..\config\firstrun.cfg" />
     <None Include="..\..\config\font.cfg" />
     <None Include="..\..\config\keymap.cfg" />
-    <None Include="..\..\config\locale.cfg" />
     <None Include="..\..\config\maprot.cfg" />
     <None Include="..\..\config\menus.cfg" />
     <None Include="..\..\config\menus_bot.cfg" />
@@ -452,11 +485,7 @@
     <None Include="..\..\config\scontext.cfg" />
     <None Include="..\..\config\scripts.cfg" />
     <None Include="..\..\config\securemaps.cfg" />
-    <None Include="..\..\config\servers.cfg" />
     <None Include="..\..\config\sounds.cfg" />
-    <None Include="buildEnv\ac.nsi" />
-    <None Include="buildEnv\InstallTypes.ini" />
-    <None Include="buildEnv\License.txt" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\rendercubes.cpp">

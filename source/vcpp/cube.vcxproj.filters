@@ -5,10 +5,6 @@
       <UniqueIdentifier>{2532c794-cb61-4d6c-bee5-ad73abfac21a}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl</Extensions>
     </Filter>
-    <Filter Include="docs">
-      <UniqueIdentifier>{9e66c9f5-a29e-428e-89e0-96f2ccd4ca54}</UniqueIdentifier>
-      <Extensions>ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe</Extensions>
-    </Filter>
     <Filter Include="render">
       <UniqueIdentifier>{6782b146-acb7-4f9a-a640-c38c00855494}</UniqueIdentifier>
     </Filter>
@@ -29,9 +25,6 @@
     </Filter>
     <Filter Include="bot">
       <UniqueIdentifier>{904d221d-ab3e-4126-aa78-2c0317556cb1}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="installer">
-      <UniqueIdentifier>{80790e51-c94b-421b-8a86-c2281f5e6f1b}</UniqueIdentifier>
     </Filter>
     <Filter Include="sound">
       <UniqueIdentifier>{f1b104ac-e944-435e-8b70-99868aa7c7e4}</UniqueIdentifier>
@@ -109,25 +102,13 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\ChangeLog.txt">
-      <Filter>docs</Filter>
-    </None>
-    <None Include="..\..\docs\package_copyrights.txt">
-      <Filter>docs</Filter>
-    </None>
-    <None Include="..\readme.txt">
-      <Filter>docs</Filter>
-    </None>
-    <None Include="..\..\docs\reference.xml">
-      <Filter>docs</Filter>
-    </None>
-    <None Include="..\..\docs\autogen\win32_cubedoc2xhtml.ps1">
-      <Filter>docs</Filter>
-    </None>
     <None Include="..\..\config\admin.cfg">
       <Filter>cfg</Filter>
     </None>
     <None Include="..\..\config\autoexec.cfg">
+      <Filter>cfg</Filter>
+    </None>
+    <None Include="..\..\config\autosave.cfg">
       <Filter>cfg</Filter>
     </None>
     <None Include="..\..\config\default_map_settings.cfg">
@@ -146,9 +127,6 @@
       <Filter>cfg</Filter>
     </None>
     <None Include="..\..\config\keymap.cfg">
-      <Filter>cfg</Filter>
-    </None>
-    <None Include="..\..\config\locale.cfg">
       <Filter>cfg</Filter>
     </None>
     <None Include="..\..\config\maprot.cfg">
@@ -181,20 +159,62 @@
     <None Include="..\..\config\securemaps.cfg">
       <Filter>cfg</Filter>
     </None>
-    <None Include="..\..\config\servers.cfg">
-      <Filter>cfg</Filter>
-    </None>
     <None Include="..\..\config\sounds.cfg">
       <Filter>cfg</Filter>
     </None>
-    <None Include="buildEnv\ac.nsi">
-      <Filter>installer</Filter>
+    <None Include="..\..\config\compatibility.cfg">
+      <Filter>cfg</Filter>
     </None>
-    <None Include="buildEnv\InstallTypes.ini">
-      <Filter>installer</Filter>
+    <None Include="..\..\config\favourites.cfg">
+      <Filter>cfg</Filter>
     </None>
-    <None Include="buildEnv\License.txt">
-      <Filter>installer</Filter>
+    <None Include="..\..\config\font_default.cfg">
+      <Filter>cfg</Filter>
+    </None>
+    <None Include="..\..\config\font_monospace.cfg">
+      <Filter>cfg</Filter>
+    </None>
+    <None Include="..\..\config\font_serif.cfg">
+      <Filter>cfg</Filter>
+    </None>
+    <None Include="..\..\config\forbidden.cfg">
+      <Filter>cfg</Filter>
+    </None>
+    <None Include="..\..\config\menus_voicecom.cfg">
+      <Filter>cfg</Filter>
+    </None>
+    <None Include="..\..\config\nicknameblacklist.cfg">
+      <Filter>cfg</Filter>
+    </None>
+    <None Include="..\..\config\pcksources.cfg">
+      <Filter>cfg</Filter>
+    </None>
+    <None Include="..\..\config\resetbinds.cfg">
+      <Filter>cfg</Filter>
+    </None>
+    <None Include="..\..\config\serverblacklist.cfg">
+      <Filter>cfg</Filter>
+    </None>
+    <None Include="..\..\config\serverpwd.cfg">
+      <Filter>cfg</Filter>
+    </None>
+    <None Include="..\..\config\autostart\0.cfg">
+      <Filter>cfg</Filter>
+    </None>
+    <None Include="..\..\config\autostart\welcome.cfg">
+      <Filter>cfg</Filter>
+    </None>
+    <None Include="..\..\config\opt\alternateeditbinds.cfg">
+      <Filter>cfg</Filter>
+    </None>
+    <None Include="..\..\config\opt\faq.cfg">
+      <Filter>cfg</Filter>
+    </None>
+    <None Include="..\..\config\opt\parsestring.cfg">
+      <Filter>cfg</Filter>
+    </None>
+    <None Include="..\..\config\opt\survival.cfg">
+      <Filter>cfg</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -362,11 +382,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="cube.rc">
-      <Filter>support</Filter>
-    </ResourceCompile>
-  </ItemGroup>
-  <ItemGroup>
     <CustomBuildStep Include="..\src\md2.h">
       <Filter>headers</Filter>
     </CustomBuildStep>
@@ -394,5 +409,8 @@
     <CustomBuildStep Include="..\src\bot\bot_waypoint.h">
       <Filter>bot</Filter>
     </CustomBuildStep>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="cube.rc" />
   </ItemGroup>
 </Project>
