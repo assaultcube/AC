@@ -100,8 +100,9 @@ void drawscope(bool preload)
     glColor3ub(255, 255, 255);
 
     // figure out the bounds of the scope given the desired aspect ratio
+    int scopecenterfix = 2; // center the 512x512 scope image
     float sz = min(VIRTW, VIRTH),
-          x1 = VIRTW/2 - sz/2,
+          x1 = VIRTW/2 - sz/2 + scopecenterfix,
           x2 = VIRTW/2 + sz/2,
           y1 = VIRTH/2 - sz/2,
           y2 = VIRTH/2 + sz/2,
