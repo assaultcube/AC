@@ -1,0 +1,398 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="headers">
+      <UniqueIdentifier>{2532c794-cb61-4d6c-bee5-ad73abfac21a}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl</Extensions>
+    </Filter>
+    <Filter Include="docs">
+      <UniqueIdentifier>{9e66c9f5-a29e-428e-89e0-96f2ccd4ca54}</UniqueIdentifier>
+      <Extensions>ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe</Extensions>
+    </Filter>
+    <Filter Include="render">
+      <UniqueIdentifier>{6782b146-acb7-4f9a-a640-c38c00855494}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="cs">
+      <UniqueIdentifier>{b013a50e-1c7f-4321-8312-2aa5296907a6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="world">
+      <UniqueIdentifier>{48d09c53-4172-411f-a14e-d980a051a355}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="game">
+      <UniqueIdentifier>{6c7fab1e-d591-497e-9ed8-c991b0991c7d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="support">
+      <UniqueIdentifier>{8a942609-c5a5-49c0-9ea6-45104dcdc926}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="cfg">
+      <UniqueIdentifier>{7e904a8d-5b1c-43c2-bd37-859dbdd556e0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="bot">
+      <UniqueIdentifier>{904d221d-ab3e-4126-aa78-2c0317556cb1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="installer">
+      <UniqueIdentifier>{80790e51-c94b-421b-8a86-c2281f5e6f1b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sound">
+      <UniqueIdentifier>{f1b104ac-e944-435e-8b70-99868aa7c7e4}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\src\command.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\console.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\crypto_tools.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cube.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\entity.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\geom.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hudgun.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\model.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\modelcache.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\platform.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\protocol.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\protos.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\server.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\serveractions.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\serverchecks.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\servercontroller.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\serverevents.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\serverfiles.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\sound.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\tools.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\weapon.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\winserviceinstaller.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\world.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\ChangeLog.txt">
+      <Filter>docs</Filter>
+    </None>
+    <None Include="..\..\docs\package_copyrights.txt">
+      <Filter>docs</Filter>
+    </None>
+    <None Include="..\readme.txt">
+      <Filter>docs</Filter>
+    </None>
+    <None Include="..\..\docs\reference.xml">
+      <Filter>docs</Filter>
+    </None>
+    <None Include="..\..\docs\autogen\win32_cubedoc2xhtml.ps1">
+      <Filter>docs</Filter>
+    </None>
+    <None Include="..\..\config\admin.cfg">
+      <Filter>cfg</Filter>
+    </None>
+    <None Include="..\..\config\autoexec.cfg">
+      <Filter>cfg</Filter>
+    </None>
+    <None Include="..\..\config\default_map_settings.cfg">
+      <Filter>cfg</Filter>
+    </None>
+    <None Include="..\..\config\defaults.cfg">
+      <Filter>cfg</Filter>
+    </None>
+    <None Include="..\..\config\docs.cfg">
+      <Filter>cfg</Filter>
+    </None>
+    <None Include="..\..\config\firstrun.cfg">
+      <Filter>cfg</Filter>
+    </None>
+    <None Include="..\..\config\font.cfg">
+      <Filter>cfg</Filter>
+    </None>
+    <None Include="..\..\config\keymap.cfg">
+      <Filter>cfg</Filter>
+    </None>
+    <None Include="..\..\config\locale.cfg">
+      <Filter>cfg</Filter>
+    </None>
+    <None Include="..\..\config\maprot.cfg">
+      <Filter>cfg</Filter>
+    </None>
+    <None Include="..\..\config\menus.cfg">
+      <Filter>cfg</Filter>
+    </None>
+    <None Include="..\..\config\menus_bot.cfg">
+      <Filter>cfg</Filter>
+    </None>
+    <None Include="..\..\config\menus_edit.cfg">
+      <Filter>cfg</Filter>
+    </None>
+    <None Include="..\..\config\menus_multiplayer.cfg">
+      <Filter>cfg</Filter>
+    </None>
+    <None Include="..\..\config\menus_settings.cfg">
+      <Filter>cfg</Filter>
+    </None>
+    <None Include="..\..\config\prefabs.cfg">
+      <Filter>cfg</Filter>
+    </None>
+    <None Include="..\..\config\scontext.cfg">
+      <Filter>cfg</Filter>
+    </None>
+    <None Include="..\..\config\scripts.cfg">
+      <Filter>cfg</Filter>
+    </None>
+    <None Include="..\..\config\securemaps.cfg">
+      <Filter>cfg</Filter>
+    </None>
+    <None Include="..\..\config\servers.cfg">
+      <Filter>cfg</Filter>
+    </None>
+    <None Include="..\..\config\sounds.cfg">
+      <Filter>cfg</Filter>
+    </None>
+    <None Include="buildEnv\ac.nsi">
+      <Filter>installer</Filter>
+    </None>
+    <None Include="buildEnv\InstallTypes.ini">
+      <Filter>installer</Filter>
+    </None>
+    <None Include="buildEnv\License.txt">
+      <Filter>installer</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\rendercubes.cpp">
+      <Filter>render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\rendergl.cpp">
+      <Filter>render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\renderhud.cpp">
+      <Filter>render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\rendermodel.cpp">
+      <Filter>render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\renderparticles.cpp">
+      <Filter>render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\rendertext.cpp">
+      <Filter>render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\shadow.cpp">
+      <Filter>render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\texture.cpp">
+      <Filter>render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\client.cpp">
+      <Filter>cs</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\clientgame.cpp">
+      <Filter>cs</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\clients2c.cpp">
+      <Filter>cs</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\packetqueue.cpp">
+      <Filter>cs</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\protocol.cpp">
+      <Filter>cs</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\server.cpp">
+      <Filter>cs</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\serverbrowser.cpp">
+      <Filter>cs</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\serverms.cpp">
+      <Filter>cs</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\editing.cpp">
+      <Filter>world</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\rndmap.cpp">
+      <Filter>world</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\world.cpp">
+      <Filter>world</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\worldio.cpp">
+      <Filter>world</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\worldlight.cpp">
+      <Filter>world</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\worldocull.cpp">
+      <Filter>world</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\worldrender.cpp">
+      <Filter>world</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\entities.cpp">
+      <Filter>game</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\physics.cpp">
+      <Filter>game</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\scoreboard.cpp">
+      <Filter>game</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\weapon.cpp">
+      <Filter>game</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\command.cpp">
+      <Filter>support</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\autodownload.cpp">
+      <Filter>support</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\console.cpp">
+      <Filter>support</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\crypto.cpp">
+      <Filter>support</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\docs.cpp">
+      <Filter>support</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\http.cpp">
+      <Filter>support</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\log.cpp">
+      <Filter>support</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\main.cpp">
+      <Filter>support</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\menus.cpp">
+      <Filter>support</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\pch.cpp">
+      <Filter>support</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\stream.cpp">
+      <Filter>support</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tools.cpp">
+      <Filter>support</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\water.cpp">
+      <Filter>support</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\wizard.cpp">
+      <Filter>support</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\zip.cpp">
+      <Filter>support</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\bot\ac_bot.cpp">
+      <Filter>bot</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\bot\ac_bot_ai.cpp">
+      <Filter>bot</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\bot\bot.cpp">
+      <Filter>bot</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\bot\bot_ai.cpp">
+      <Filter>bot</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\bot\bot_util.cpp">
+      <Filter>bot</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\bot\bot_waypoint.cpp">
+      <Filter>bot</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\bot\botmanager.cpp">
+      <Filter>bot</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\audiomanager.cpp">
+      <Filter>sound</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\oggstream.cpp">
+      <Filter>sound</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\openal.cpp">
+      <Filter>sound</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\soundlocation.cpp">
+      <Filter>sound</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\soundscheduler.cpp">
+      <Filter>sound</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="cube.rc">
+      <Filter>support</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuildStep Include="..\src\md2.h">
+      <Filter>headers</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\src\md3.h">
+      <Filter>headers</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\src\tristrip.h">
+      <Filter>headers</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\src\varray.h">
+      <Filter>headers</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\src\vertmodel.h">
+      <Filter>headers</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\src\bot\ac_bot.h">
+      <Filter>bot</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\src\bot\bot.h">
+      <Filter>bot</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\src\bot\bot_util.h">
+      <Filter>bot</Filter>
+    </CustomBuildStep>
+    <CustomBuildStep Include="..\src\bot\bot_waypoint.h">
+      <Filter>bot</Filter>
+    </CustomBuildStep>
+  </ItemGroup>
+</Project>
