@@ -120,7 +120,7 @@ void listignored()
     pl[0] = '\0';
     loopv(players) if(players[i] && players[i]->ignored) concatformatstring(pl, ", %s", colorname(players[i]));
     if(*pl) conoutf("ignored players: %s", pl + 2);
-    else conoutf("no players were ignored.");
+    else conoutf("no players are ignored");
 }
 
 void clearignored(int *cn)
@@ -140,7 +140,7 @@ void listmuted()
     pl[0] = '\0';
     loopv(players) if(players[i] && players[i]->muted) concatformatstring(pl, ", %s", colorname(players[i]));
     if(*pl) conoutf("muted players: %s", pl + 2);
-    else conoutf("no players were muted.");
+    else conoutf("no players are muted");
 }
 
 void clearmuted(char *cn)
@@ -183,7 +183,7 @@ void newteam(char *name)
     {
         int nt = teamatoi(name);
         if(nt == player1->team) return; // same team
-        if(!team_isvalid(nt)) { conoutf("\f3\"%s\" is not a valid team name (try CLA, RVSF or SPECTATOR)", name); return; }
+        if(!team_isvalid(nt)) { conoutf("\f3\"%s\" is not a valid team name or number", name); return; }
         if(player1->state == CS_EDITING) conoutf("you can't change team while editing");
         else addmsg(SV_SWITCHTEAM, "ri", nt);
     }

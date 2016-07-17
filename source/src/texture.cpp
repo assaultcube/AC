@@ -894,7 +894,7 @@ void guidetoggle()
     }
     else
     {
-        conoutf("\fBGuide view is only avaiable when editing.");
+        conoutf("\fBGuide view is only available when editing.");
     }
 }
 
