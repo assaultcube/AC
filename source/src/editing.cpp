@@ -718,6 +718,7 @@ void renderhudtexturepreview(int slot, int pos, bool highlight)
         border /= 2;
         box2d(x - border, y - border, x + bs + border, y + bs + border, 200);
         glEnable(GL_BLEND);
+        glEnable(GL_TEXTURE_2D);
     }
 }
 
