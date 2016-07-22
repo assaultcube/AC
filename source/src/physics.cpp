@@ -224,7 +224,7 @@ bool collide(physent *d, bool spawn, float drop, float rise)
     {
         if(OUTBORD(x,y)) return true;
         sqr *s = S(x,y);
-        if(s->tag & applyclip) return true;  // tagged clips feel like solids
+        bool tagclipped = (s->tag & applyclip) != 0;
         float ceil = s->ceil;
         float floor = s->floor;
         switch(s->type)
@@ -267,8 +267,10 @@ bool collide(physent *d, bool spawn, float drop, float rise)
                 if(match && matter)
                 {
                     if(!h) return true; // we hit a corner between solids...
-                    else if(z1 < ns->floor || z2 > ns->ceil) return true; // corner is not between solids, but we hit it...
+                    else if(z1 < ns->floor || z2 > ns->ceil || tagclipped) return true; // corner is not between solids, but we hit it...
                 }
+                if(h) tagclipped = false; // for corners between non-solids, tagclips extend the corner (visualisation does not reflect that, yet)
+                                          // tagclipped corners between solids are fully clipped
                 cornersurface = 0;
                 break;
             }
@@ -281,6 +283,7 @@ bool collide(physent *d, bool spawn, float drop, float rise)
                 ceil += (s->vdelta+S(x+1,y)->vdelta+S(x,y+1)->vdelta+S(x+1,y+1)->vdelta)/16.0f;
 
         }
+        if(tagclipped) return true; // tagged clips feel like solids
         if(ceil<hi) hi = ceil;
         if(floor>lo) lo = floor;
     }
