@@ -11,9 +11,10 @@ config/servers.cfg
 config/configtemplates.zip
 config/mapmodelattributes.cfg
 packages/maps/*.cfg
-packages/maps/!new_content.cfg
+!packages/maps/new_content.cfg
 packages/maps/*.cgz
-packages/maps/!new_content.cgz
+!packages/maps/new_content.cgz
+!packages/maps/dev_*.cgz
 packages/misc/checksums_md5.txt
 source/codeblocks/AssaultCube.layout
 source/codeblocks/AssaultCube_Linux.layout
