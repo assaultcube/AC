@@ -1085,6 +1085,7 @@ void resetmap(bool mrproper)
     deleted_ents.setsize(0);
     pinnedclosestent = false;
     particlereset();
+    setmapinfo("", "");
     if(mrproper)
     {
         audiomgr.clearworldsounds();

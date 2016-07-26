@@ -310,6 +310,13 @@ void parseheaderextra(bool clearnonpersist = true, int ignoretypes = 0)  // pars
                 break;
 
             case HX_MAPINFO:
+            {
+                string l, c;
+                getstring(l, q, MAXSTRLEN - 1);
+                getstring(c, q, MAXSTRLEN - 1);
+                setmapinfo(l, c);
+                break;
+            }
             case HX_MODEINFO:
             case HX_ARTIST:
             default:
@@ -322,6 +329,18 @@ void parseheaderextra(bool clearnonpersist = true, int ignoretypes = 0)  // pars
 ucharbuf packheaderextras(int ignoretypes = 0)  // serialise all extra data packets to save with the map header
 {
     vector<uchar> buf, tmp;
+    // rewrite some headers every time
+    if(!(ignoretypes & (1 << HX_MAPINFO)))
+    {
+        for(int n; (n = findheaderextra(HX_MAPINFO)) >= 0; ) deleteheaderextra(n);
+        if(mapinfo_license[0])
+        {
+            sendstring(mapinfo_license, tmp);
+            sendstring(mapinfo_comment, tmp);
+            headerextras.add(new headerextra(tmp.length(), HX_MAPINFO|HX_FLAG_PERSIST, tmp.getbuf()));
+            tmp.setsize(0);
+        }
+    }
     loopv(headerextras) if(!(ignoretypes & (1 << (headerextras[i]->flags & HX_TYPEMASK))))
     { // copy existing persistent hx packets
         addhxpacket(buf, headerextras[i]->len, headerextras[i]->flags, headerextras[i]->data);
@@ -489,6 +508,18 @@ bool gotovantagepoint()
     return n >= 0;
 }
 COMMANDF(gotovantagepoint, "", () { if(editmode) gotovantagepoint(); });
+
+void setmapinfo(const char *newlicense, const char *newcomment)
+{
+    string s;
+    filtertext(s, newlicense ? newlicense : mapinfo_license, FTXT__MAPINFO_LICENSE, 20);
+    mapinfo_license = exchangestr(mapinfo_license, s);
+    filtertext(s, newcomment ? newcomment : mapinfo_comment, FTXT__MAPINFO_COMMENT, 60);
+    mapinfo_comment = exchangestr(mapinfo_comment, s);
+}
+
+SVARF(mapinfo_license, "", setmapinfo(); );
+SVARF(mapinfo_comment, "", setmapinfo(); );
 
 VAR(advancemaprevision, 1, 1, 100);
 

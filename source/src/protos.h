@@ -755,6 +755,8 @@ extern void clearheaderextras();
 extern void automapconfig();
 extern void flagmapconfigchange();
 extern void getcurrentmapconfig(vector<char> &f, bool onlysounds);
+extern char *mapinfo_license, *mapinfo_comment;
+extern void setmapinfo(const char *newlicense = NULL, const char *newcomment = NULL);
 extern void xmapbackup(const char *nickprefix, const char *nick);
 extern void writeallxmaps();
 extern int loadallxmaps();
