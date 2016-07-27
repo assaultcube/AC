@@ -342,17 +342,20 @@ int mmasort2(mapmodelattributes **a, mapmodelattributes **b)
 void writemapmodelattributes()
 {
     stream *f = openfile("config" PATHDIVS "mapmodelattributes.cfg", "w");
-    vector<mapmodelattributes *> mmas;
-    enumerate(mdlregistry, mapmodelattributes *, m, mmas.add(m));
-    mmas.sort(mmasort);
-    f->printf("// automatically written on exit. this is cached information extracted from model configs. no point in editing it.\n// [path %s]\n", conc(mdlattrnames, MMA_NUM, true)); // memory leak, but w/e
-    loopv(mmas)
+    if(f)
     {
-        f->printf("\nmapmodelregister %s", mmas[i]->name);
-        loopj(MMA_NUM) f->printf(" %s", escapestring(mmas[i]->n[j]));  // escapestring can handle NULL
+        vector<mapmodelattributes *> mmas;
+        enumerate(mdlregistry, mapmodelattributes *, m, mmas.add(m));
+        mmas.sort(mmasort);
+        f->printf("// automatically written on exit. this is cached information extracted from model configs. no point in editing it.\n// [path %s]\n", conc(mdlattrnames, MMA_NUM, true)); // memory leak, but w/e
+        loopv(mmas)
+        {
+            f->printf("\nmapmodelregister %s", mmas[i]->name);
+            loopj(MMA_NUM) f->printf(" %s", escapestring(mmas[i]->n[j]));  // escapestring can handle NULL
+        }
+        f->printf("\n\n");
+        delete f;
     }
-    f->printf("\n\n");
-    delete f;
 }
 
 void listallmapmodelattributes(char **args, int numargs) // create a list of mapmodel paths and selected attributes
