@@ -938,6 +938,13 @@ bool load_world(char *mname)        // still supports all map formats that have 
     return true;
 }
 
+#ifdef _DEBUG
+COMMANDF(loadmap, "s", (char *mapname)
+{
+    if(!multiplayer()) load_world(mapname);
+});
+#endif
+
 // support reading and writing binary data in config files
 
 static bool hexbinenabled = false;

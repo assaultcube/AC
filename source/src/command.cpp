@@ -1875,3 +1875,18 @@ void debugargs(char **args, int numargs)
 }
 
 COMMAND(debugargs, "v");
+
+#ifndef STANDALONE
+#ifdef _DEBUG
+void debugline(char *fname, char *line) // print one line to a logfile
+{
+    if(!multiplayer())
+    {
+        stream *f = openfile(behindpath(fname), "a");
+        if(f) f->printf("%s\n", line);
+        if(f) delete f;
+    }
+}
+COMMAND(debugline, "ss");
+#endif
+#endif
