@@ -1,10 +1,10 @@
 Quick installation notes for the "./buildEnv" folder:
 
-	* Install a command-line SVN client, then include it in your
-	  system path variable.
-	* Edit the SVN commands and set your own username.
-	* Install NSIS.
-	* Edit ac.nsi and fix the CURPATH variable.
+	* Install GitHub Desktop/a command line Git client.
+	* Install a command-line SVN client.
+	* Install 7-Zip.
+	* Include git.exe, svn.exe, 7z.exe in your system path variable.
+	* Install NSIS, minimum version 3.0.
 
 =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 It should be noted, that the new AssaultCube logos/icon files were gifted to
@@ -55,3 +55,4 @@ With the understanding that:
             used, such as publicity or privacy rights.
     * Notice - For any reuse or distribution, you must make clear to others the license
                terms of this work. The best way to do this is with a link to this web page.
+

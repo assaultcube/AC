@@ -7,70 +7,36 @@
 
 # Uses $0
 Function openLinkNewWindow
-  Push $3 
-  Push $2
-  Push $1
-  Push $0
-  ReadRegStr $0 HKCR "http\shell\open\command" ""
-# Get browser path
+    Push $3
+    Push $2
+    Push $1
+    Push $0
+    ReadRegStr $0 HKCR "http\shell\open\command" ""
+    # Get browser path
     DetailPrint $0
-  StrCpy $2 '"'
-  StrCpy $1 $0 1
-  StrCmp $1 $2 +2 # if path is not enclosed in " look for space as final char
+    StrCpy $2 '"'
+    StrCpy $1 $0 1
+    StrCmp $1 $2 +2 # if path is not enclosed in " look for space as final char
     StrCpy $2 ' '
-  StrCpy $3 1
-  loop:
-    StrCpy $1 $0 1 $3
-    DetailPrint $1
-    StrCmp $1 $2 found
-    StrCmp $1 "" found
-    IntOp $3 $3 + 1
-    Goto loop
+    StrCpy $3 1
+    loop:
+        StrCpy $1 $0 1 $3
+        DetailPrint $1
+        StrCmp $1 $2 found
+        StrCmp $1 "" found
+        IntOp $3 $3 + 1
+        Goto loop
  
-  found:
-    StrCpy $1 $0 $3
-    StrCmp $2 " " +2
-      StrCpy $1 '$1"'
+    found:
+        StrCpy $1 $0 $3
+        StrCmp $2 " " +2
+        StrCpy $1 '$1"'
  
-  Pop $0
-  Exec '$1 $0'
-  Pop $1
-  Pop $2
-  Pop $3
-FunctionEnd
-
-# Uses $0
-Function un.openLinkNewWindow
-  Push $3 
-  Push $2
-  Push $1
-  Push $0
-  ReadRegStr $0 HKCR "http\shell\open\command" ""
-# Get browser path
-    DetailPrint $0
-  StrCpy $2 '"'
-  StrCpy $1 $0 1
-  StrCmp $1 $2 +2 # if path is not enclosed in " look for space as final char
-    StrCpy $2 ' '
-  StrCpy $3 1
-  loop:
-    StrCpy $1 $0 1 $3
-    DetailPrint $1
-    StrCmp $1 $2 found
-    StrCmp $1 "" found
-    IntOp $3 $3 + 1
-    Goto loop
- 
-  found:
-    StrCpy $1 $0 $3
-    StrCmp $2 " " +2
-      StrCpy $1 '$1"'
- 
-  Pop $0
-  Exec '$1 $0'
-  Pop $1
-  Pop $2
-  Pop $3
+    Pop $0
+    Exec '$1 $0'
+    Pop $1
+    Pop $2
+    Pop $3
 FunctionEnd
 
 
@@ -80,19 +46,20 @@ FunctionEnd
 
 SetCompressor /SOLID lzma
 
-!define CURPATH "R:\projects\actioncube\_svn\trunk\ac\source\vcpp\buildEnv" ; CHANGE ME
-!define AC_VERSION "v1.0"
-!define AC_FULLVERSION "v1.0.2"
-!define AC_FULLVERSIONINT "1.0.2"
+!define CURPATH ".\" ; CHANGE ME
+!define AC_FULLVERSION "v1.2.0.2"
+!define AC_FULLVERSIONINT "1.2.0.2"
 !define AC_SHORTNAME "AssaultCube"
-!define AC_FULLNAME "AssaultCube v1.0"
-!define AC_FULLNAMESAVE "AssaultCube_v1.0"
+!define AC_FULLNAME "AssaultCube v1.2.0.2"
+!define AC_FULLNAMESAVE "AssaultCube_v1.2.0.2"
+!define AC_MAJORVERSIONINT 1
+!define AC_MINORVERSIONINT 2
 
 Name "AssaultCube"
 OutFile "AssaultCube_${AC_FULLVERSION}-Update.exe"
-InstallDir "$PROGRAMFILES\${AC_FULLNAMESAVE}"
-InstallDirRegKey HKLM "Software\${AC_FULLNAMESAVE}" ""
-RequestExecutionLevel admin  ; require admin in vista
+InstallDir "$PROGRAMFILES\${AC_SHORTNAME}"
+InstallDirRegKey HKLM "Software\${AC_SHORTNAME}" ""
+RequestExecutionLevel admin  ; require admin in Vista/7
 
 ; Interface Configuration
 
@@ -240,22 +207,13 @@ Function .onInit
 
 	InitPluginsDir
 	File /oname=$TEMP\welcome.bmp "${CURPATH}\welcome.bmp"
-	
-	!insertmacro MUI_INSTALLOPTIONS_EXTRACT_AS "InstallTypes.ini" "InstallTypes.ini"
 
 FunctionEnd
 
 Function .onInstSuccess
 
-    StrCpy $0 "http://assault.cubers.net/releasenotes/v1.0/"
+    StrCpy $0 "http://assault.cubers.net/releasenotes/v${AC_MAJORVERSIONINT}.${AC_MINORVERSIONINT}/"
     Call openLinkNewWindow
-
-FunctionEnd
-
-Function un.onUninstSuccess
-
-    StrCpy $0 "http://assault.cubers.net/uninstallnotes/v1.0/"
-    Call un.openLinkNewWindow  
 
 FunctionEnd
 
@@ -351,7 +309,7 @@ Function WelcomePage
 
 	# validate existing installation
 	ClearErrors
-	ReadRegStr $0 HKLM "Software\${AC_FULLNAMESAVE}" ""
+	ReadRegStr $0 HKLM "Software\${AC_SHORTNAME}" ""
 	IfErrors 0 success
 	MessageBox MB_OK|MB_ICONSTOP "Could not find an existing installation of AssaultCube that could be updated with this Update package. Please get the full package at http://assault.cubers.net/download.html"
 	Quit
@@ -402,15 +360,13 @@ Section "AssaultCube ${AC_FULLVERSION} Update" PATCH
 
     SectionIn RO
     
-    WriteRegStr HKLM "Software\${AC_FULLNAMESAVE}" "version" ${AC_FULLVERSIONINT}
+    WriteRegStr HKLM "Software\${AC_SHORTNAME}" "version" ${AC_FULLVERSIONINT}
 
     SetOutPath "$INSTDIR"
 
     File /r ac_patch\*.*      
 
 SectionEnd
-
-
 
 
 ; set descriptions

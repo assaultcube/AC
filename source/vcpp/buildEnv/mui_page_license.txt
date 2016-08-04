@@ -1,4 +1,4 @@
-AssaultCube is FREEWARE. By downloading the AssaultCube package(s) you agree that you may freely use and redistribute the AssaultCube package(s) UNMODIFIED (the AssaultCube package(s) can be originally found at http://sourceforge.net/projects/actiongame/files/ or downloaded with an SVN client from https://actiongame.svn.sourceforge.net/svnroot/actiongame) on any media, subject to the following licensing conditions:
+AssaultCube is FREEWARE. By downloading the AssaultCube package(s) you agree that you may freely use and redistribute the AssaultCube package(s) UNMODIFIED (the AssaultCube package(s) can be originally found at https://github.com/assaultcube/AC) on any media, subject to the following licensing conditions:
 
     * AssaultCube is provided "as-is", without any express or implied warranty.
       In no event will the authors be held liable for any damages arising from the use of AssaultCube.
@@ -12,4 +12,3 @@ AssaultCube is FREEWARE. By downloading the AssaultCube package(s) you agree tha
 PLEASE NOTE: This license is for the entire UNMODIFIED AssaultCube package(s). You may choose to disect, and use or redistribute, etc. pieces of AssaultCube, instead of the entire package(s) if you wish. HOWEVER, you must adhere to the license specified for that particular data. If no license is specified, you MUST assume that the data is COPYRIGHT and you are NOT allowed to redistribute that data outside of an UNMODIFIED AssaultCube package(s). 
 
 For more information, please see: http://assault.cubers.net/docs/license.html
-
