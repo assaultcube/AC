@@ -1471,7 +1471,7 @@ void gmenu::render()
 void gmenu::renderbg(int x1, int y1, int x2, int y2, bool border)
 {
     static Texture *tex = NULL;
-    if(!tex) tex = textureload("packages/textures/makke/menu.jpg");
+    if(!tex) tex = textureload("packages/misc/menu.jpg");
     static color transparent(1, 1, 1, 0.75f);
     blendbox(x1, y1, x2, y2, border, tex->id, allowinput ? NULL : &transparent);
 }
