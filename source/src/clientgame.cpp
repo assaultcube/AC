@@ -874,7 +874,7 @@ void dodamage(int damage, playerent *pl, playerent *actor, int gun, bool gib, bo
 
     if(pl==player1)
     {
-        updatedmgindicator(actor->o);
+        if(pl != actor) updatedmgindicator(actor->o);
         damageblend(damage);
         pl->damageroll(damage);
     }

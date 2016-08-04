@@ -238,21 +238,21 @@ VARP(damageindicatorsize, 0, 200, 10000);
 VARP(damageindicatordist, 0, 500, 10000);
 VARP(damageindicatortime, 1, 1000, 10000);
 VARP(damageindicatoralpha, 1, 50, 100);
-int damagedirections[4] = {0};
+int damagedirections[8] = {0};
 
 void updatedmgindicator(vec &attack)
 {
     if(hidedamageindicator || !damageindicatorsize) return;
     float bestdist = 0.0f;
     int bestdir = -1;
-    loopi(4)
+    vec base_d = player1->o;
+    base_d.sub(attack);
+    loopi(8)
     {
-        vec d;
-        d.x = (float)(cosf(RAD*(player1->yaw-90+(i*90))));
-        d.y = (float)(sinf(RAD*(player1->yaw-90+(i*90))));
-        d.z = 0.0f;
-        d.add(player1->o);
-        float dist = d.dist(attack);
+        vec d = base_d;
+        d.x += (float)(cosf(RAD*(player1->yaw-90+(i*45))));
+        d.y += (float)(sinf(RAD*(player1->yaw-90+(i*45))));
+        float dist = d.squaredlen();
         if(dist < bestdist || bestdir==-1)
         {
             bestdist = dist;
@@ -268,14 +268,14 @@ void drawdmgindicator()
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glDisable(GL_TEXTURE_2D);
     float size = (float)damageindicatorsize;
-    loopi(4)
+    loopi(8)
     {
         if(!damagedirections[i] || damagedirections[i] < lastmillis) continue;
         float t = damageindicatorsize/(float)(damagedirections[i]-lastmillis);
         glPushMatrix();
         glColor4f(0.5f, 0.0f, 0.0f, damageindicatoralpha/100.0f);
         glTranslatef(VIRTW/2, VIRTH/2, 0);
-        glRotatef(i*90, 0, 0, 1);
+        glRotatef(i*45, 0, 0, 1);
         glTranslatef(0, (float)-damageindicatordist, 0);
         glScalef(max(0.0f, 1.0f-t), max(0.0f, 1.0f-t), 0);
 
