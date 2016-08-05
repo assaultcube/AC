@@ -812,10 +812,10 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     bool menu = menuvisible();
     bool command = getcurcommand() ? true : false;
     bool reloading = lastmillis < p->weaponsel->reloading + p->weaponsel->info.reloadtime;
-    if((p->state==CS_ALIVE || p->state==CS_EDITING) && !reloading)
+    if(p->state==CS_ALIVE || p->state==CS_EDITING)
     {
         bool drawteamwarning = crosshairteamsign && targetplayer && isteam(targetplayer->team, p->team) && targetplayer->state==CS_ALIVE;
-        p->weaponsel->renderaimhelp(drawteamwarning);
+        if(!reloading) p->weaponsel->renderaimhelp(drawteamwarning);
         drawktfindicator();
     }
 
