@@ -243,23 +243,9 @@ int damagedirections[8] = {0};
 void updatedmgindicator(vec &attack)
 {
     if(hidedamageindicator || !damageindicatorsize) return;
-    float bestdist = 0.0f;
-    int bestdir = -1;
     vec base_d = player1->o;
     base_d.sub(attack);
-    loopi(8)
-    {
-        vec d = base_d;
-        d.x += (float)(cosf(RAD*(player1->yaw-90+(i*45))));
-        d.y += (float)(sinf(RAD*(player1->yaw-90+(i*45))));
-        float dist = d.squaredlen();
-        if(dist < bestdist || bestdir==-1)
-        {
-            bestdist = dist;
-            bestdir = i;
-        }
-    }
-    damagedirections[bestdir] = lastmillis+damageindicatortime;
+    damagedirections[(int(742.5f - player1->yaw - base_d.anglexy()) / 45) & 0x7] = lastmillis + damageindicatortime;
 }
 
 void drawdmgindicator()
