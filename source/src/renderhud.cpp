@@ -289,6 +289,39 @@ void drawdmgindicator()
     glEnable(GL_TEXTURE_2D);
 }
 
+VARP(hidektfindicator, 0, 0, 1);
+
+void drawktfindicator()
+{
+    if(hidektfindicator || !m_ktf) return;
+    vec flagpos(-1.0f, -1.0f, 0.0f);
+    loopi(2)
+    {
+        flaginfo &f = flaginfos[i];
+        if(f.state == CTFF_INBASE) flagpos = f.pos;
+        else if(f.state == CTFF_STOLEN && f.actor && f.actor != player1) flagpos = f.actor->o;
+    }
+    if(flagpos.x > 0 && flagpos.y > 0)
+    {
+        flagpos.sub(player1->o);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glDisable(GL_TEXTURE_2D);
+        glPushMatrix();
+        glColor4f(0.7f, 0.7f, 0.0f, 0.7f);
+        glTranslatef(VIRTW/2, VIRTH/2, 0);
+        glRotatef(180.0f - player1->yaw - flagpos.anglexy(), 0, 0, 1);
+        glTranslatef(0, -200.0f, 0); // dist
+        glBegin(GL_TRIANGLE_STRIP);
+        glVertex3f(20.0f, 50.0f, 0.0f);
+        glVertex3f(0.0f, 0.0f, 0.0f);
+        glVertex3f(0.0f, 40.0f, 0.0f);
+        glVertex3f(-20.0f, 50.0f, 0.0f);
+        glEnd();
+        glPopMatrix();
+        glEnable(GL_TEXTURE_2D);
+    }
+}
+
 extern int oldfashionedgunstats;
 
 void drawequipicons(playerent *p)
@@ -797,6 +830,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     {
         bool drawteamwarning = crosshairteamsign && targetplayer && isteam(targetplayer->team, p->team) && targetplayer->state==CS_ALIVE;
         p->weaponsel->renderaimhelp(drawteamwarning);
+        drawktfindicator();
     }
 
     drawdmgindicator();
