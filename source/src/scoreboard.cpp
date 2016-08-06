@@ -120,7 +120,7 @@ void teamflagscores(int &team1, int &team2)
     {
         teamscores[team_base(discscores[i].team)].addscore(discscores[i]);
     }
-    if(!watchingdemo) teamscores[team_base(player1->team)].addplayer(player1);
+    if(!watchingdemo && player1->team != TEAM_SPECT) teamscores[team_base(player1->team)].addplayer(player1);
     team1 = teamscores[0].flagscore;
     team2 = teamscores[1].flagscore;
 }
