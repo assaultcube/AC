@@ -917,15 +917,15 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             if(dbgpos)
             {
                 pushfont("mono");
-                defformatstring(o_yw)("%05.2f YAW", player1->yaw);
+                defformatstring(o_yw)("%05.2f YAW", p->yaw);
                 draw_text(o_yw, VIRTW*2 - ( text_width(o_yw) + FONTH ), VIRTH*2 - 17*FONTH/2);
-                defformatstring(o_p)("%05.2f PIT", player1->pitch);
+                defformatstring(o_p)("%05.2f PIT", p->pitch);
                 draw_text(o_p, VIRTW*2 - ( text_width(o_p) + FONTH ), VIRTH*2 - 15*FONTH/2);
-                defformatstring(o_x)("%05.2f X  ", player1->o.x);
+                defformatstring(o_x)("%05.2f X  ", p->o.x);
                 draw_text(o_x, VIRTW*2 - ( text_width(o_x) + FONTH ), VIRTH*2 - 13*FONTH/2);
-                defformatstring(o_y)("%05.2f Y  ", player1->o.y);
+                defformatstring(o_y)("%05.2f Y  ", p->o.y);
                 draw_text(o_y, VIRTW*2 - ( text_width(o_y) + FONTH ), VIRTH*2 - 11*FONTH/2);
-                defformatstring(o_z)("%05.2f Z  ", player1->o.z);
+                defformatstring(o_z)("%05.2f Z  ", p->o.z);
                 draw_text(o_z, VIRTW*2 - ( text_width(o_z) + FONTH ), VIRTH*2 - 9*FONTH/2);
                 popfont();
             }
