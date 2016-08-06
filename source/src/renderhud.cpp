@@ -240,12 +240,12 @@ VARP(damageindicatortime, 1, 1000, 10000);
 VARP(damageindicatoralpha, 1, 50, 100);
 int damagedirections[8] = {0};
 
-void updatedmgindicator(vec &attack)
+void updatedmgindicator(playerent *p, vec &attack)
 {
     if(hidedamageindicator || !damageindicatorsize) return;
-    vec base_d = player1->o;
+    vec base_d = p->o;
     base_d.sub(attack);
-    damagedirections[(int(742.5f - player1->yaw - base_d.anglexy()) / 45) & 0x7] = lastmillis + damageindicatortime;
+    damagedirections[(int(742.5f - p->yaw - base_d.anglexy()) / 45) & 0x7] = lastmillis + damageindicatortime;
 }
 
 void drawdmgindicator()
@@ -276,8 +276,9 @@ void drawdmgindicator()
 }
 
 VARP(hidektfindicator, 0, 0, 1);
+VARP(ktfindicatoralpha, 1, 70, 100);
 
-void drawktfindicator()
+void drawktfindicator(playerent *p)
 {
     if(hidektfindicator || !m_ktf) return;
     vec flagpos(-1.0f, -1.0f, 0.0f);
@@ -285,17 +286,17 @@ void drawktfindicator()
     {
         flaginfo &f = flaginfos[i];
         if(f.state == CTFF_INBASE) flagpos = f.pos;
-        else if(f.state == CTFF_STOLEN && f.actor && f.actor != player1) flagpos = f.actor->o;
+        else if(f.state == CTFF_STOLEN && f.actor && f.actor != p) flagpos = f.actor->o;
     }
     if(flagpos.x > 0 && flagpos.y > 0)
     {
-        flagpos.sub(player1->o);
+        flagpos.sub(p->o);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glDisable(GL_TEXTURE_2D);
         glPushMatrix();
-        glColor4f(0.7f, 0.7f, 0.0f, 0.7f);
+        glColor4f(0.7f, 0.7f, 0.0f, ktfindicatoralpha / 100.0f);
         glTranslatef(VIRTW/2, VIRTH/2, 0);
-        glRotatef(180.0f - player1->yaw - flagpos.anglexy(), 0, 0, 1);
+        glRotatef(180.0f - p->yaw - flagpos.anglexy(), 0, 0, 1);
         glTranslatef(0, -200.0f, 0); // dist
         glBegin(GL_TRIANGLE_STRIP);
         glVertex3f(20.0f, 50.0f, 0.0f);
@@ -816,7 +817,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     {
         bool drawteamwarning = crosshairteamsign && targetplayer && isteam(targetplayer->team, p->team) && targetplayer->state==CS_ALIVE;
         if(!reloading) p->weaponsel->renderaimhelp(drawteamwarning);
-        drawktfindicator();
+        if(!editmode) drawktfindicator(p);
     }
 
     drawdmgindicator();

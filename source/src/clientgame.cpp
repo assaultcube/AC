@@ -872,9 +872,9 @@ void dodamage(int damage, playerent *pl, playerent *actor, int gun, bool gib, bo
     if(local) damage = pl->dodamage(damage, gun);
     else if(actor==player1) return;
 
-    if(pl==player1)
+    if(pl == h)
     {
-        if(pl != actor) updatedmgindicator(actor->o);
+        if(pl != actor) updatedmgindicator(pl, actor->o);
         damageblend(damage);
         pl->damageroll(damage);
     }
