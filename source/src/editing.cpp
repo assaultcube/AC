@@ -260,8 +260,9 @@ void cursorupdate()                                     // called every frame fr
     if(sparkletime) lastsparkle = lastmillis - (lastmillis%20);    // clip adding sparklies at 50 fps
 
     // render editing grid
+    extern int blankouthud;
 
-    if(showgrid)
+    if(showgrid && !blankouthud)
     {
         for(int ix = cx-GRIDSIZE; ix<=cx+GRIDSIZE; ix++) for(int iy = cy-GRIDSIZE; iy<=cy+GRIDSIZE; iy++)
         {
@@ -298,14 +299,15 @@ void cursorupdate()                                     // called every frame fr
             ch = (int)ih;
         }
     }
+    else ch = (int) sheight(s, s, z);
 
-    if(selset())
+    if(selset() && !blankouthud)
     {
         linestyle(GRIDS, 0xFF, 0x40, 0x40);
         loopv(sels) box(sels[i], (float)sels[i].h, (float)sels[i].h, (float)sels[i].h, (float)sels[i].h);
     }
 
-    if(!showtagclipfocus && showtagclips)
+    if(!showtagclipfocus && showtagclips && !blankouthud)
     {
         const int xo[] = { 0, 0, 1, 1, 0 }, yo[] = {0, 1, 1, 0, 0 };
         loopv(tagclipcubes) // all non-solid & have clips
