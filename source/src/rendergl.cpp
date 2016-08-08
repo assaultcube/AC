@@ -33,7 +33,7 @@ void *getprocaddress(const char *name)
 bool hasext(const char *exts, const char *ext)
 {
     int len = strlen(ext);
-    for(const char *cur = exts; (cur = strstr(cur, ext)); cur += len)
+    if(len) for(const char *cur = exts; (cur = strstr(cur, ext)); cur += len)
     {
         if((cur == exts || cur[-1] == ' ') && (cur[len] == ' ' || !cur[len])) return true;
     }
