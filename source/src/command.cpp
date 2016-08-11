@@ -526,6 +526,7 @@ char *executeret(const char *p)                            // all evaluation hap
     #define setretval(v) { char *rv = v; if(rv) retval = rv; }
     if(noproblem) // if the "seer"-algorithm doesn't object
     {
+        bool isjumpcrouch = false;
         for(bool cont = true; cont;)                // for each ; seperated statement
         {
             if(loop_level && loop_skip) break;
@@ -591,6 +592,12 @@ char *executeret(const char *p)                            // all evaluation hap
                         }
                         else if(strstr(id->sig, "d"))
                         {
+                            // disallow the binded doublejump
+                            if(strcmp(id->name, "jump") == 0 || strcmp(id->name, "crouch") == 0)
+                            {
+                                if(isjumpcrouch) break;
+                                isjumpcrouch = true;
+                            }
 #ifndef STANDALONE
                             ((void (__cdecl *)(bool))id->fun)(addreleaseaction(id->name)!=NULL);
 #endif
