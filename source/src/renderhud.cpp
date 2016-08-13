@@ -311,6 +311,11 @@ void drawktfindicator(playerent *p)
 
 extern int oldfashionedgunstats;
 
+int getprevweaponsel(playerent *p) // get previous weapon or, if we don't know it, get the primary
+{
+    return p->prevweaponsel->type == GUN_ASSAULT && p->primweap->type != GUN_ASSAULT ? p->primweap->type : p->prevweaponsel->type;
+}
+
 void drawequipicons(playerent *p)
 {
     glDisable(GL_BLEND);
@@ -323,7 +328,7 @@ void drawequipicons(playerent *p)
     if(p->mag[GUN_GRENADE]) drawequipicon(oldfashionedgunstats ? (HUDPOS_GRENADE + 25)*2 : HUDPOS_GRENADE*2, 1650, 3, 1);
 
     // weapons
-    int c = p->weaponsel->type != GUN_GRENADE ? p->weaponsel->type : p->prevweaponsel->type, r = 0;
+    int c = p->weaponsel->type != GUN_GRENADE ? p->weaponsel->type : getprevweaponsel(p), r = 0;
     if(c==GUN_AKIMBO || c==GUN_CPISTOL) c = GUN_PISTOL; // same icon for akimb & pistol
     if(c>3) { c -= 4; r = 1; }
 
@@ -1053,7 +1058,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
                 glMatrixMode(GL_MODELVIEW);
                 if (p->weaponsel->type!=GUN_GRENADE) p->weaponsel->renderstats();
                 else if (p->prevweaponsel->type==GUN_AKIMBO || p->prevweaponsel->type==GUN_PISTOL) p->weapons[p->akimbo ? GUN_AKIMBO : GUN_PISTOL]->renderstats();
-                else p->prevweaponsel->renderstats();
+                else p->weapons[getprevweaponsel(p)]->renderstats();
                 if(p->mag[GUN_GRENADE]) p->weapons[GUN_GRENADE]->renderstats();
                 glMatrixMode(GL_PROJECTION);
             }
