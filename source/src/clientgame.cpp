@@ -1162,14 +1162,6 @@ void startmap(const char *name, bool reset, bool norespawn)   // called just aft
         loopv(gmdescs) if(gmdescs[i].mode == gamemode) conoutf("\f1%s", gmdescs[i].desc);
     }
 
-    // run once
-    if(firstrun)
-    {
-        per_idents = false;
-        execfile("config/firstrun.cfg");
-        per_idents = true;
-        firstrun = false;
-    }
     // execute mapstart event once
     const char *mapstartonce = getalias("mapstartonce");
     if(mapstartonce && mapstartonce[0])

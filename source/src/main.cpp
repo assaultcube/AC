@@ -897,7 +897,7 @@ void checkinput()
 VARF(gamespeed, 10, 100, 1000, if(multiplayer()) gamespeed = 100);
 VARF(paused, 0, 0, 1, if(multiplayer()) paused = 0);
 
-bool firstrun = false, inmainloop = false;
+bool inmainloop = false;
 static int clockrealbase = 0, clockvirtbase = 0;
 static void clockreset() { clockrealbase = SDL_GetTicks(); clockvirtbase = totalmillis; }
 VARFP(clockerror, 990000, 1000000, 1010000, clockreset());
@@ -1063,8 +1063,6 @@ void initclientlog()  // rotate old logfiles and create new one
     else conoutf("could not create logfile \"%s\"", findfile("clientlog.txt", "w"));
     DELETEP(bootclientlog);
 }
-
-VARP(compatibilitymode, 0, 1, 1); // FIXME : find a better place to put this ?
 
 int main(int argc, char **argv)
 {
@@ -1297,16 +1295,9 @@ int main(int argc, char **argv)
     if(!execfile("config/saved.cfg"))
     {
         exec("config/defaults.cfg");
-        firstrun = true;
     }
     autostartscripts("_aftersaved_");
     exechook(HOOK_SP_MP, "afterinit", "");
-    if(compatibilitymode)
-    {
-        per_idents = false;
-        exec("config/compatibility.cfg"); // exec after saved.cfg to get "compatibilitymode", but before user scripts..
-        per_idents = true;
-    }
     autostartscripts("");    // all remaining scripts
     execfile("config/autoexec.cfg");
     execfile("config/auth.cfg");

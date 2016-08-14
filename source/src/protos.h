@@ -585,7 +585,7 @@ extern int colorbits, depthbits, stencilbits;
 
 extern void keyrepeat(bool on);
 extern bool interceptkey(int sym);
-extern bool firstrun, inmainloop;
+extern bool inmainloop;
 
 enum
 {
