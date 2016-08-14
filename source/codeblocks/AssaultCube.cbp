@@ -552,7 +552,7 @@
 			<Option target="default" />
 			<Option target="debug" />
 		</Unit>
-		<Unit filename="../vcpp/cube.rc">
+		<Unit filename="../vcpp/assaultcube.rc">
 			<Option compilerVar="WINDRES" />
 		</Unit>
 		<Extensions>

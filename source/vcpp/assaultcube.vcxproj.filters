@@ -411,6 +411,6 @@
     </CustomBuildStep>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="cube.rc" />
+    <ResourceCompile Include="assaultcube.rc" />
   </ItemGroup>
 </Project>

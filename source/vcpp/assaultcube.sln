@@ -1,0 +1,29 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual C++ Express 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "assaultcube", "assaultcube.vcxproj", "{1FAF5BB4-C49A-4124-9F23-188528BAE7C8}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Profile|Win32 = Profile|Win32
+		Release|Win32 = Release|Win32
+		Standalone Debug|Win32 = Standalone Debug|Win32
+		Standalone|Win32 = Standalone|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1FAF5BB4-C49A-4124-9F23-188528BAE7C8}.Debug|Win32.ActiveCfg = Debug|Win32
+		{1FAF5BB4-C49A-4124-9F23-188528BAE7C8}.Debug|Win32.Build.0 = Debug|Win32
+		{1FAF5BB4-C49A-4124-9F23-188528BAE7C8}.Profile|Win32.ActiveCfg = Profile|Win32
+		{1FAF5BB4-C49A-4124-9F23-188528BAE7C8}.Profile|Win32.Build.0 = Profile|Win32
+		{1FAF5BB4-C49A-4124-9F23-188528BAE7C8}.Release|Win32.ActiveCfg = Release|Win32
+		{1FAF5BB4-C49A-4124-9F23-188528BAE7C8}.Release|Win32.Build.0 = Release|Win32
+		{1FAF5BB4-C49A-4124-9F23-188528BAE7C8}.Standalone Debug|Win32.ActiveCfg = Standalone Debug|Win32
+		{1FAF5BB4-C49A-4124-9F23-188528BAE7C8}.Standalone Debug|Win32.Build.0 = Standalone Debug|Win32
+		{1FAF5BB4-C49A-4124-9F23-188528BAE7C8}.Standalone|Win32.ActiveCfg = Standalone|Win32
+		{1FAF5BB4-C49A-4124-9F23-188528BAE7C8}.Standalone|Win32.Build.0 = Standalone|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

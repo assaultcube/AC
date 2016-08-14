@@ -172,8 +172,8 @@ $(filter-out $(SERVER_OBJS),$(MASTER_OBJS)): CXXFLAGS += $(SERVER_INCLUDES)
 
 ifneq (,$(findstring MINGW,$(PLATFORM)))
 client: $(CLIENT_OBJS)
-	$(WINDRES) -I ../vcpp -i ../vcpp/cube.rc -J rc -o ../vcpp/cube.res -O coff
-	$(CXX) $(CXXFLAGS) -o ../../bin_win32/ac_client.exe ../vcpp/cube.res $(CLIENT_OBJS) $(CLIENT_LIBS)
+	$(WINDRES) -I ../vcpp -i ../vcpp/assaultcube.rc -J rc -o ../vcpp/assaultcube.res -O coff
+	$(CXX) $(CXXFLAGS) -o ../../bin_win32/ac_client.exe ../vcpp/assaultcube.res $(CLIENT_OBJS) $(CLIENT_LIBS)
 
 server: $(SERVER_OBJS)
 	$(CXX) $(CXXFLAGS) -o ../../bin_win32/ac_server.exe $(SERVER_OBJS) $(SERVER_LIBS)

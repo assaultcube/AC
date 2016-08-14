@@ -24,7 +24,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{1FAF5BB4-C49A-4124-9F23-188528BAE7C8}</ProjectGuid>
-    <RootNamespace>cube</RootNamespace>
+    <RootNamespace>assaultcube</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Standalone Debug|Win32'" Label="Configuration">
@@ -121,7 +121,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Midl>
-      <TypeLibraryName>$(Configuration)\cube.tlb</TypeLibraryName>
+      <TypeLibraryName>$(Configuration)\$(RootNamespace).tlb</TypeLibraryName>
     </Midl>
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
@@ -165,7 +165,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(Configuration)\$(TargetName).pdb</ProgramDatabaseFile>
       <GenerateMapFile>true</GenerateMapFile>
-      <MapFileName>$(Configuration)\cube.map</MapFileName>
+      <MapFileName>$(Configuration)\$(RootNamespace).map</MapFileName>
       <MapExports>true</MapExports>
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
@@ -178,7 +178,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Midl>
-      <TypeLibraryName>$(Configuration)\cube.tlb</TypeLibraryName>
+      <TypeLibraryName>$(Configuration)\$(RootNamespace).tlb</TypeLibraryName>
     </Midl>
     <ClCompile>
       <AdditionalOptions>/GS %(AdditionalOptions)</AdditionalOptions>
@@ -228,7 +228,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">
     <Midl>
-      <TypeLibraryName>$(Configuration)\cube.tlb</TypeLibraryName>
+      <TypeLibraryName>$(Configuration)\$(RootNamespace).tlb</TypeLibraryName>
     </Midl>
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
@@ -272,7 +272,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(Configuration)\$(TargetName).pdb</ProgramDatabaseFile>
       <GenerateMapFile>true</GenerateMapFile>
-      <MapFileName>$(Configuration)\cube.map</MapFileName>
+      <MapFileName>$(Configuration)\$(RootNamespace).map</MapFileName>
       <MapExports>true</MapExports>
       <SubSystem>Windows</SubSystem>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
@@ -283,7 +283,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Standalone|Win32'">
     <Midl>
-      <TypeLibraryName>$(Configuration)\cube.tlb</TypeLibraryName>
+      <TypeLibraryName>$(Configuration)\$(RootNamespace).tlb</TypeLibraryName>
     </Midl>
     <ClCompile>
       <Optimization>Full</Optimization>
@@ -327,7 +327,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(Configuration)\$(TargetName).pdb</ProgramDatabaseFile>
       <GenerateMapFile>true</GenerateMapFile>
-      <MapFileName>$(Configuration)\cube.map</MapFileName>
+      <MapFileName>$(Configuration)\$(RootNamespace).map</MapFileName>
       <MapExports>true</MapExports>
       <SubSystem>Console</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
@@ -340,7 +340,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Standalone Debug|Win32'">
     <Midl>
-      <TypeLibraryName>$(Configuration)\cube.tlb</TypeLibraryName>
+      <TypeLibraryName>$(Configuration)\$(RootNamespace).tlb</TypeLibraryName>
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
@@ -734,7 +734,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="cube.rc" />
+    <ResourceCompile Include="assaultcube.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
