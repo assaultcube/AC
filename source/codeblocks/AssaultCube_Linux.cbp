@@ -110,7 +110,51 @@
 		<VirtualTargets>
 			<Add alias="All" targets="default;server;" />
 		</VirtualTargets>
+		<Unit filename="../../config/admin.cfg" />
+		<Unit filename="../../config/autoexec.cfg" />
+		<Unit filename="../../config/autostart/0.cfg" />
+		<Unit filename="../../config/autostart/welcome.cfg" />
+		<Unit filename="../../config/default_map_settings.cfg" />
+		<Unit filename="../../config/defaults.cfg" />
+		<Unit filename="../../config/docs.cfg" />
+		<Unit filename="../../config/favourites.cfg" />
+		<Unit filename="../../config/font.cfg" />
+		<Unit filename="../../config/font_default.cfg" />
+		<Unit filename="../../config/font_monospace.cfg" />
+		<Unit filename="../../config/font_serif.cfg" />
+		<Unit filename="../../config/forbidden.cfg" />
+		<Unit filename="../../config/keymap.cfg" />
+		<Unit filename="../../config/maprot.cfg" />
+		<Unit filename="../../config/menus.cfg" />
+		<Unit filename="../../config/menus_bot.cfg" />
+		<Unit filename="../../config/menus_edit.cfg" />
+		<Unit filename="../../config/menus_licenses.cfg" />
+		<Unit filename="../../config/menus_multiplayer.cfg" />
+		<Unit filename="../../config/menus_settings.cfg" />
+		<Unit filename="../../config/menus_voicecom.cfg" />
+		<Unit filename="../../config/motd_en.txt" />
+		<Unit filename="../../config/nicknameblacklist.cfg" />
+		<Unit filename="../../config/opt/alternateeditbinds.cfg" />
+		<Unit filename="../../config/opt/autosave.cfg" />
+		<Unit filename="../../config/opt/compatibility.cfg" />
+		<Unit filename="../../config/opt/faq.cfg" />
+		<Unit filename="../../config/opt/parsestring.cfg" />
+		<Unit filename="../../config/opt/survival.cfg" />
+		<Unit filename="../../config/pcksources.cfg" />
+		<Unit filename="../../config/prefabs.cfg" />
+		<Unit filename="../../config/resetbinds.cfg" />
+		<Unit filename="../../config/scontext.cfg" />
+		<Unit filename="../../config/scripts.cfg" />
+		<Unit filename="../../config/securemaps.cfg" />
+		<Unit filename="../../config/serverblacklist.cfg" />
+		<Unit filename="../../config/servercmdline.txt" />
+		<Unit filename="../../config/serverinfo_en.txt" />
+		<Unit filename="../../config/serverpwd.cfg" />
+		<Unit filename="../../config/sounds.cfg" />
 		<Unit filename="../src/audiomanager.cpp">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../src/autodownload.cpp">
 			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
 		<Unit filename="../src/bot/ac_bot.cpp">
@@ -189,6 +233,9 @@
 			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
 		<Unit filename="../src/geom.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../src/http.cpp">
 			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
 		<Unit filename="../src/hudgun.h">
@@ -282,12 +329,6 @@
 			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
 		<Unit filename="../src/serverbrowser.cpp">
-			<Option target="&lt;{~None~}&gt;" />
-		</Unit>
-		<Unit filename="../src/http.cpp">
-			<Option target="&lt;{~None~}&gt;" />
-		</Unit>
-		<Unit filename="../src/autodownload.cpp">
 			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
 		<Unit filename="../src/serverchecks.h">

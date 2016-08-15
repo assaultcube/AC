@@ -108,9 +108,6 @@
     <None Include="..\..\config\autoexec.cfg">
       <Filter>cfg</Filter>
     </None>
-    <None Include="..\..\config\autosave.cfg">
-      <Filter>cfg</Filter>
-    </None>
     <None Include="..\..\config\default_map_settings.cfg">
       <Filter>cfg</Filter>
     </None>
@@ -118,9 +115,6 @@
       <Filter>cfg</Filter>
     </None>
     <None Include="..\..\config\docs.cfg">
-      <Filter>cfg</Filter>
-    </None>
-    <None Include="..\..\config\firstrun.cfg">
       <Filter>cfg</Filter>
     </None>
     <None Include="..\..\config\font.cfg">
@@ -160,9 +154,6 @@
       <Filter>cfg</Filter>
     </None>
     <None Include="..\..\config\sounds.cfg">
-      <Filter>cfg</Filter>
-    </None>
-    <None Include="..\..\config\compatibility.cfg">
       <Filter>cfg</Filter>
     </None>
     <None Include="..\..\config\favourites.cfg">
@@ -214,6 +205,24 @@
       <Filter>cfg</Filter>
     </None>
     <None Include="..\..\config\opt\survival.cfg">
+      <Filter>cfg</Filter>
+    </None>
+    <None Include="..\..\config\motd_en.txt">
+      <Filter>cfg</Filter>
+    </None>
+    <None Include="..\..\config\servercmdline.txt">
+      <Filter>cfg</Filter>
+    </None>
+    <None Include="..\..\config\serverinfo_en.txt">
+      <Filter>cfg</Filter>
+    </None>
+    <None Include="..\..\config\menus_licenses.cfg">
+      <Filter>cfg</Filter>
+    </None>
+    <None Include="..\..\config\opt\autosave.cfg">
+      <Filter>cfg</Filter>
+    </None>
+    <None Include="..\..\config\opt\compatibility.cfg">
       <Filter>cfg</Filter>
     </None>
   </ItemGroup>
