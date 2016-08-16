@@ -1299,6 +1299,11 @@ bool serverinfokey(void *menu, int code, bool isdown, int unicode)
             if(lastselectedserver) lastselectedserver->getinfo = EXTPING_MAPROT;
             pinglastselected = true;
             break;
+
+        case SDLK_c:
+            lastselectedserver = getconnectedserverinfo();
+            pinglastselected = true;
+            break;
     }
     return false;
 }
