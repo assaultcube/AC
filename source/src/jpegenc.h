@@ -779,16 +779,24 @@ void jpegenc::load_data_units_from_RGB_buffer(WORD xpos, WORD ypos)
 {
     BYTE x, y;
     BYTE pos = 0;
-    DWORD location;
+    DWORD location, maxlocation;
+    WORD width8, height8;
     BYTE R, G, B;
     location = ypos * width + xpos;
+    maxlocation = width * height;
+    width8 = width - xpos;
+    height8 = height - ypos;
     for (y=0; y<8; y++)
     {
         for (x=0; x<8; x++)
         {
-            R = RGB_buffer[location].R;
-            G = RGB_buffer[location].G;
-            B = RGB_buffer[location].B;
+            if(location < maxlocation && x < width8 && y < height8)
+            {
+                R = RGB_buffer[location].R;
+                G = RGB_buffer[location].G;
+                B = RGB_buffer[location].B;
+            }
+            else R = G = B = 0;
             YDU[pos] = Y(R,G,B);
             CbDU[pos] = Cb(R,G,B);
             CrDU[pos] = Cr(R,G,B);
