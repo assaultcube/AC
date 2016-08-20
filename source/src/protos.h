@@ -640,6 +640,7 @@ extern void text_endcolumns();
 // editing
 extern void cursorupdate();
 extern void toggleedit(bool force = false);
+extern void reseteditor();
 extern char *editinfo();
 extern void makeundo(block &sel);
 extern void editdrag(bool isdown);
@@ -651,7 +652,6 @@ extern void edittexxy(int type, int t, block &sel);
 extern void editheightxy(bool isfloor, int amount, block &sel);
 //extern bool noteditmode();
 extern bool noteditmode(const char* func = NULL);
-extern void pruneundos(int maxremain = 0);
 extern void storeposition(short p[]);
 extern void restoreposition(short p[]);
 extern void restoreeditundo(ucharbuf &q);

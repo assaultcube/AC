@@ -525,6 +525,28 @@ VAR(advancemaprevision, 1, 1, 100);
 
 VARP(mapbackupsonsave, 0, 1, 1);
 
+void rebuildtexlists()  // checks the texlists, if they still contain all possible textures
+{
+    short h[256];
+    int mk[3], mt = 0;
+    vector<uchar> missing;
+    loopk(3)
+    {
+        missing.setsize(0);
+        uchar *p = hdr.texlists[k];
+        loopi(256) h[i] = 0;
+        loopi(256) h[p[i]]++;
+        loopi(256) if(h[i] == 0) missing.add(i);
+        mt += mk[k] = missing.length();
+        loopi(256) if(h[p[i]] > 1)
+        {
+            h[p[i]]--;
+            p[i] = missing.pop();
+        }
+    }
+    if(mt) conoutf("WARNING: rebuildtexlists() fixed %d|%d|%d missing entries", mk[0], mk[1], mk[2]);
+}
+
 void save_world(char *mname, bool skipoptimise, bool addcomfort)
 {
     if(!*mname) mname = getclientmap();
@@ -560,6 +582,7 @@ void save_world(char *mname, bool skipoptimise, bool addcomfort)
     hdr.version = MAPVERSION;
     hdr.headersize = sizeof(header);
     hdr.timestamp = (int) time(NULL);
+    rebuildtexlists();
     hdr.numents = 0;
     loopv(ents) if(ents[i].type!=NOTUSED) hdr.numents++;
     if(hdr.numents > MAXENTITIES)
@@ -686,25 +709,6 @@ VAR(curmaprevision, 1, 0, 0);
 extern char *mlayout;
 extern int Mv, Ma, Hhits;
 extern float Mh;
-
-void rebuildtexlists()  // checks the texlists, if they still contain all possible textures
-{
-    short h[256];
-    vector<uchar> missing;
-    loopk(3)
-    {
-        missing.setsize(0);
-        uchar *p = hdr.texlists[k];
-        loopi(256) h[i] = 0;
-        loopi(256) h[p[i]]++;
-        loopi(256) if(h[i] == 0) missing.add(i);
-        loopi(256) if(h[p[i]] > 1)
-        {
-            h[p[i]]--;
-            p[i] = missing.pop();
-        }
-    }
-}
 
 static string lastloadedconfigfile;
 

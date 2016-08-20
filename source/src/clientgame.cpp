@@ -1080,10 +1080,9 @@ void resetmap(bool mrproper)
     resetzones();
     clearminimap();
     cleardynlights();
-    pruneundos();
+    reseteditor();
     changedents.setsize(0);
     deleted_ents.setsize(0);
-    pinnedclosestent = false;
     particlereset();
     setmapinfo("", "");
     if(mrproper)

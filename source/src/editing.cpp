@@ -1132,3 +1132,10 @@ void transformclipentities()  // transforms all clip entities to tag clips, if t
 }
 
 COMMAND(transformclipentities, "");
+
+void reseteditor() // reset only stuff that would cause trouble editing the next map (don't reset selections, for example)
+{
+    loopk(3) curedittex[k] = -1;
+    pruneundos(0);
+    pinnedclosestent = false;
+}

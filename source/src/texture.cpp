@@ -1046,7 +1046,17 @@ void deletetextureslot(int *n, char *opt, char *_replace) // delete texture slot
         }
         else if(e.attr4 > *n) e.attr4--; // adjust models in higher slots
     }
-    // FIXME: texlists...
+    loopk(3) // adjust texlists
+    {
+        int j = 255;
+        loopi(256)
+        {
+            if(hdr.texlists[k][i] == *n) j = i;
+            if(hdr.texlists[k][i] > *n) hdr.texlists[k][i]--;
+        }
+        if(j < 255) memmove(&hdr.texlists[k][j], &hdr.texlists[k][j + 1], 255 - j);
+        hdr.texlists[k][255] = 255;
+    }
     slots.remove(*n);
     defformatstring(m)(" (%d uses removed)", deld);
     if(replace != 255) formatstring(m)(" (%d uses changed to use slot #%d)", deld, replace);
@@ -1148,3 +1158,10 @@ uchar *texconfig_paste(void *_s, uchar *usedslots) // create mapping table to tr
     return res;
 }
 
+#ifdef _DEBUG
+void resettexturelists()
+{
+    loopk(3) loopi(256) hdr.texlists[k][i] = i;
+}
+COMMAND(resettexturelists, "");
+#endif
