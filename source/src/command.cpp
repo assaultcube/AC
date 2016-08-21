@@ -1483,7 +1483,7 @@ const char *escapestring(const char *s, bool force, bool noquotes)
     static int stridx = 0;
     if(noquotes) force = false;
     if(!s) return force ? "\"\"" : "";
-    if(!force && !*(s + strcspn(s, "\"/\\;()[] \f\t\r\n"))) return s;
+    if(!force && !*(s + strcspn(s, "\"/\\;()[] \f\t\r\n$"))) return s;
     stridx = (stridx + 1) % 3;
     vector<char> &buf = strbuf[stridx];
     buf.setsize(0);
