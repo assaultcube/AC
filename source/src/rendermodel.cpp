@@ -211,6 +211,77 @@ void editmapmodelslot(int *n, char *rad, char *h, char *zoff, char *scale, char 
 }
 COMMAND(editmapmodelslot, "isssss");
 
+struct tempmmslot { mapmodelinfo m; vector<int> oldslot; };
+
+int tempmmcmp(tempmmslot *a, tempmmslot *b)
+{
+    int n = strcmp(a->m.name, b->m.name);
+    if(n) return n;
+    if(a->m.rad != b->m.rad) return a->m.rad - b->m.rad;
+    if(a->m.h != b->m.h) return a->m.h - b->m.h;
+    if(a->m.zoff != b->m.zoff) return a->m.zoff - b->m.zoff;
+    if(a->m.scale != b->m.scale) return int((a->m.scale - b->m.scale) * 1e6);
+    return 0;
+}
+
+int tempmmsort(tempmmslot *a, tempmmslot *b)
+{
+    int n = tempmmcmp(a, b);
+    return n ? n : a->oldslot[0] - b->oldslot[0];
+}
+
+void sortmapmodelslots()
+{
+    if(noteditmode("sortmapmodelslots") || multiplayer(true) || mapmodels.length() < 5) return;
+    vector<tempmmslot> tempslots;
+    loopv(mapmodels)
+    {
+        tempslots.add().m = mapmodels[i];
+        tempslots.last().oldslot.add(i);
+    }
+    tempslots.sort(tempmmsort);
+
+    // remove double entries
+    loopvrev(tempslots) if(i > 0)
+    {
+        tempmmslot &s1 = tempslots[i], &s0 = tempslots[i - 1];
+        if(!tempmmcmp(&s0, &s1))
+        {
+            loopvj(s1.oldslot) s0.oldslot.add(s1.oldslot[j]);
+            tempslots.remove(i);
+        }
+    }
+
+    // create translation table
+    uchar newslot[256];
+    loopk(256) newslot[k] = k;
+    loopv(tempslots)
+    {
+        tempmmslot &t = tempslots[i];
+        loopvj(t.oldslot)
+        {
+            if(t.oldslot[j] < 256) newslot[t.oldslot[j]] = i;
+        }
+    }
+
+    // translate all mapmodel entities
+    loopv(ents) if(ents[i].type == MAPMODEL) ents[i].attr2 = newslot[ents[i].attr2];
+
+    conoutf("%d mapmodel slots sorted, %d slots merged", tempslots.length(), mapmodels.length() - tempslots.length());
+
+    // rewrite mapmodel slot list
+    mapmodels.shrink(tempslots.length());
+    loopv(tempslots)
+    {
+        mapmodels[i] = tempslots[i].m;
+        mapmodels[i].m = NULL;
+    }
+    unsavededits++;
+    mapmodelchanged = 1;
+    hdr.flags |= MHF_AUTOMAPCONFIG; // requires automapcfg
+}
+COMMAND(sortmapmodelslots, "");
+
 hashtable<const char *, mapmodelattributes *> mdlregistry;
 
 void setmodelattributes(const char *name, mapmodelattributes &ma)
