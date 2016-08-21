@@ -1158,6 +1158,115 @@ uchar *texconfig_paste(void *_s, uchar *usedslots) // create mapping table to tr
     return res;
 }
 
+struct temptexslot { Slot s; vector<int> oldslot; };
+
+int tempslotsort(temptexslot *a, temptexslot *b)
+{
+    int n = strcmp(a->s.name, b->s.name);
+    if(n) return n;
+    if(a->s.scale < b->s.scale) return -1;
+    if(a->s.scale > b->s.scale) return 1;
+    return a->oldslot[0] - b->oldslot[0];
+}
+
+void sorttextureslots()
+{
+    if(noteditmode("sorttextureslots") || multiplayer(true) || slots.length() < 5) return;
+    vector<temptexslot> tempslots;
+    loopv(slots)
+    {
+        tempslots.add().s = slots[i];
+        tempslots.last().oldslot.add(i);
+    }
+    tempslots.sort(tempslotsort);
+
+    // remove double entries
+    loopvrev(tempslots) if(i > 0)
+    {
+        temptexslot &s1 = tempslots[i], &s0 = tempslots[i - 1];
+        if(s1.oldslot[0] > 4 && !strcmp(s0.s.name, s1.s.name) && s0.s.scale == s1.s.scale)
+        {
+            loopvj(s1.oldslot) s0.oldslot.add(s1.oldslot[j]);
+            tempslots.remove(i);
+        }
+    }
+
+    // sort special textures (like skymap) back front
+    loopk(5)
+    {
+        loopv(tempslots)
+        {
+            if(tempslots[i].oldslot[0] == k && i > k)
+            {
+                temptexslot t = tempslots.remove(i);
+                tempslots.insert(k, t);
+                break;
+            }
+        }
+    }
+
+    // create translation table
+    uchar newslot[256];
+    loopk(256) newslot[k] = k;
+    loopv(tempslots)
+    {
+        temptexslot &t = tempslots[i];
+        loopvj(t.oldslot)
+        {
+            if(t.oldslot[j] < 256) newslot[t.oldslot[j]] = i;
+        }
+    }
+
+    // translate all texture entries
+    sqr *s = world;
+    loopirev(cubicsize)
+    {
+        s->wtex = newslot[s->wtex];
+        s->ctex = newslot[s->ctex];
+        s->ftex = newslot[s->ftex];
+        s->utex = newslot[s->utex];
+        s++;
+    }
+    block bb = { mapdims.x1 - 1, mapdims.y1 - 1, mapdims.xspan + 2, mapdims.yspan + 2 };
+    remip(bb);
+    loopv(ents) if(ents[i].type == MAPMODEL)
+    {
+        entity &e = ents[i];
+        if(e.attr4) e.attr4 = newslot[e.attr4];
+    }
+
+    // translate texture lists
+    loopk(3)
+    {
+        uchar *ps = hdr.texlists[k], *pd = ps, d[256], x;
+        loopi(256) d[i] = 1;
+        loopi(256)
+        {
+            x = newslot[*ps++];
+            if(d[x] && x < tempslots.length())
+            {
+                d[x] = 0;
+                *pd++ = x;
+            }
+        }
+        loopi(256) if(d[i]) *pd++ = i;
+    }
+
+    conoutf("%d texture slots sorted, %d slots merged", tempslots.length(), slots.length() - tempslots.length());
+
+    // rewrite texture slot list
+    slots.shrink(tempslots.length());
+    loopv(tempslots)
+    {
+        temptexslot &t = tempslots[i];
+        _texture(slots[i], &t.s.orgscale, t.s.name);
+    }
+    unsavededits++;
+    hdr.flags |= MHF_AUTOMAPCONFIG; // requires automapcfg
+}
+COMMAND(sorttextureslots, "");
+
+
 #ifdef _DEBUG
 void resettexturelists()
 {
