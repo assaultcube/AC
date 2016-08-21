@@ -1067,7 +1067,7 @@ struct xmap
             execfile("config/default_map_settings.cfg");
             execfile(lastloadedconfigfile);
         }
-        parseheaderextra();
+        parseheaderextra(true, mapconfig.length() ? (1<<HX_CONFIG) : 0); // don't execute headerextra config, if we already executed an autostored config
         neverpersist = false;
         per_idents = true;
         popscontext();
