@@ -99,8 +99,8 @@ int cornertest(int x, int y, int &bx, int &by, int &bs, sqr *&s, sqr *&h)    // 
     x >>= mip;
     y >>= mip;
     int mfactor = sfactor - mip;
-    bx = x<<mip;
-    by = y<<mip;
+    bx = x<<mip;                     // bx, by and bs are the real-world coordinates and size of the corner mip
+    by = y<<mip;                     // s is the corner mip and h is the companion mip of a corner between non-solids (to get floor and ceil from)
     bs = 1<<mip;
     sqr *z = SWS(wmip[mip],x - 1, y,mfactor);
     sqr *t = SWS(z,2,0,mfactor);     //   w
@@ -129,6 +129,8 @@ int cornertest(int x, int y, int &bx, int &by, int &bs, sqr *&s, sqr *&h)    // 
     return res;  //  12
 }
 
+static int cornersurface = 0;
+
 bool mmcollide(physent *d, float &hi, float &lo)           // collide with a mapmodel
 {
     const float eyeheight = d->eyeheight;
@@ -148,7 +150,13 @@ bool mmcollide(physent *d, float &hi, float &lo)           // collide with a map
                 case 3: // clip rotated 45°
                 {
                     float rx = (e.x - d->o.x) * 0.707106781f, ry = (e.y - d->o.y) * 0.707106781f, rr = d->radius * 1.414213562f; // rotate player instead of clip (adjust player radius to compensate)
-                    hitarea = fabs(rx - ry) < float(e.attr3) / ENTSCALE5 + rr && fabs(rx + ry) < float(e.attr2) / ENTSCALE5 + rr;
+                    float a1 = fabs(rx - ry) - float(e.attr3) / ENTSCALE5 - rr, a2 = fabs(rx + ry) - float(e.attr2) / ENTSCALE5 - rr;
+                    if(a1 < 0 && a2 < 0)
+                    {
+                        float a3 =  a1 + a2 + rr;
+                        if(a3 < 0) hitarea = true;
+                        if(a3 < -1e-2 && (a3 < -rr || a1 * a2 < 0.42f)) cornersurface = a1 > a2 ? 1 : 2;
+                    }
                     break;
                 }
             }
@@ -164,6 +172,7 @@ bool mmcollide(physent *d, float &hi, float &lo)           // collide with a map
                 if(dz < cz - 0.42) { if(cz<hi) hi = cz; }
                 else if(cz+ch>lo) lo = cz+ch;
                 if(hi-lo < playerheight) return true;
+                if(dz + (d->type != ENT_BOUNCE ? 1.26 : 0) > cz + ch || dz + playerheight < cz) cornersurface = 0;
             }
         }
         else if(e.type==MAPMODEL)
@@ -200,7 +209,6 @@ bool objcollide(physent *d, const vec &objpos, float objrad, float objheight) //
 // all collision happens here
 // spawn is a dirty side effect used in spawning
 // drop & rise are supplied by the physics below to indicate gravity/push for current mini-timestep
-static int cornersurface = 0;
 
 bool collide(physent *d, bool spawn, float drop, float rise)
 {
