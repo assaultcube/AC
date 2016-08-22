@@ -4,6 +4,7 @@
 
 VAR(showclips, 0, 1, 1);
 VAR(showmodelclipping, 0, 0, 1);
+VAR(showladderentities, 0, 0, 1);
 VAR(showplayerstarts, 0, 0, 1);
 
 vector<entity> ents;
@@ -57,6 +58,7 @@ void renderclip(entity &e)
         case CLIP:     linestyle(1, 0xFF, 0xFF, 0); break;  // yellow
         case MAPMODEL: linestyle(1, 0, 0xFF, 0);    break;  // green
         case PLCLIP:   linestyle(1, 0xFF, 0, 0xFF); break;  // magenta
+        case LADDER:   linestyle(1, 0, 0, 0xFF);    break;  // blue
     }
     glBegin(GL_LINES);
     loopi(16)
@@ -238,13 +240,22 @@ void renderentities()
                 if(mmi && mmi->h)
                 {
                     entity ce = e;
-                    ce.type = MAPMODEL;
                     ce.attr1 = (mmi->zoff + float(e.attr3) / ENTSCALE5) * ENTSCALE10;
                     ce.attr2 = ce.attr3 = mmi->rad * ENTSCALE5;
                     ce.attr4 = mmi->h * ENTSCALE5;
                     ce.attr5 = ce.attr6 = ce.attr7 = 0;
                     renderclip(ce);
                 }
+            }
+            else if(e.type == LADDER && showladderentities && !stenciling)
+            {
+                entity ce = e;
+                ce.attr1 = 0;
+                ce.attr2 = ce.attr3 = 0;
+                ce.attr4 = e.attr1 * ENTSCALE5;
+                ce.attr5 = ce.attr6 = 0;
+                ce.attr7 = 3;
+                renderclip(ce);
             }
             else if(e.type == PLAYERSTART && showplayerstarts)
             {
