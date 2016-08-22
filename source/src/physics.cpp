@@ -585,14 +585,26 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         const float f = 1.0f/moveres;
 
         // try move forward
+        vec o_null = pl->o;
         pl->o.x += f*d.x;
         pl->o.y += f*d.y;
         pl->o.z += f*d.z;
         hitplayer = NULL;
         if(!collide(pl, false, drop, rise)) continue;
         int cornersurface1 = cornersurface;
+        vec o_trying = pl->o;
+        if(!cornersurface1)
+        { // brute-force check, if it is a corner hit after all
+            int collx = 0, colly = 0;
+            pl->o.x = o_null.x;
+            if(collide(pl, false, drop, rise)) collx = cornersurface;
+            pl->o = o_trying;
+            pl->o.y = o_null.y;
+            if(collide(pl, false, drop, rise)) colly = cornersurface;
+            pl->o = o_trying;
+            if(!collx || !colly || collx == colly) cornersurface1 = collx | colly;
+        }
         collided = true;
-        vec oo = pl->o;
         if(pl->type==ENT_BOUNCE && cornersurface1)
         { // try corner bounce
             float ct2f = cornersurface1 == 2 ? -1.0 : 1.0;
@@ -610,7 +622,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
                 pl->vel.mul(0.7f);
                 continue;
             }
-            pl->o = oo;
+            pl->o = o_trying;
         }
         if(pl->type==ENT_CAMERA || (pl->type==ENT_PLAYER && pl->state==CS_DEAD && ((playerent *)pl)->spectatemode != SM_FLY))
         {
@@ -635,7 +647,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         // the desired direction didn't work
         pl->o.x -= f*d.x;
         pl->o.y -= f*d.y;
-        oo = pl->o;
+        o_trying = pl->o;
         // try sliding
         if(cornersurface1)
         {
@@ -650,7 +662,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
                 d.x = vd.x; d.y = vd.y;
                 continue;
             }
-            pl->o = oo;
+            pl->o = o_trying;
         }
         else
         {
@@ -662,7 +674,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
                 if(pl->type==ENT_BOUNCE) { pl->vel.x = -pl->vel.x; pl->vel.mul(0.7f); }
                 continue;
             }
-            pl->o.y = oo.y;
+            pl->o.y = o_trying.y;
             // try x axis
             pl->o.x += f*d.x;
             if(!collide(pl, false, drop, rise))
@@ -671,7 +683,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
                 if(pl->type==ENT_BOUNCE) { pl->vel.y = -pl->vel.y; pl->vel.mul(0.7f); }
                 continue;
             }
-            pl->o.x = oo.x;
+            pl->o.x = o_trying.x;
         }
         // try just dropping down
         if(!collide(pl, false, drop, rise))
