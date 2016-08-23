@@ -595,15 +595,31 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         vec o_trying = pl->o;  // o_trying = o_null + f * d  (= one microstep in desired direction)
         if(!cornersurface1)
         { // brute-force check, if it is a corner hit after all
-            int collx = 0, colly = 0;
-            pl->o.x = o_null.x;
-            if(collide(pl, false, drop, rise)) collx = cornersurface;
+            if(pl->type != ENT_BOUNCE)
+            {
+                int collx = 0, colly = 0;
+                pl->o.x = o_null.x;
+                if(collide(pl, false, drop, rise)) collx = cornersurface;
+                pl->o = o_trying;
+                pl->o.y = o_null.y;
+                if(collide(pl, false, drop, rise)) colly = cornersurface;
+                cornersurface1 = collx | colly;
+                if((cornersurface1 & 3) == 3) cornersurface1 = 0;
+            }
+            else
+            { // try really, really hard to detect corners for bounces (to compensate for the not-so-micro bounceent-microsteps)
+                vec vd(d.x, d.y, 0);
+                static const float a = 3.0f*PI2/10.0f, ca = cosf(a), sa = sinf(a); // 10 probe points, stretched over three turns
+                loopj(10)
+                {
+                    if(j) vd = vec(ca * vd.x - sa * vd.y, ca * vd.y + sa *vd.x, 0);
+                    pl->o = o_trying;
+                    pl->o.add(vd);
+                    if(collide(pl, false, drop, rise) && cornersurface) break;
+                }
+                cornersurface1 = cornersurface;
+            }
             pl->o = o_trying;
-            pl->o.y = o_null.y;
-            if(collide(pl, false, drop, rise)) colly = cornersurface;
-            pl->o = o_trying;
-            cornersurface1 = collx | colly;
-            if((cornersurface1 & 3) == 3) cornersurface1 = 0;
         }
         collided = true;
         if(pl->type==ENT_BOUNCE && cornersurface1)
