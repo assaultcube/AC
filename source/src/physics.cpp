@@ -267,7 +267,7 @@ bool collide(physent *d, bool spawn, float drop, float rise)
                     default:
                         return true; // mapper's fault: corner with unsufficient solids: renderer can't handle those anyway: treat as solid
                 }
-                cornersurface = (q & 1) ? 1 : 2;
+                cornersurface = (q & 1) ? 5 : 6;
                 sqr *n = h && !matter ? h : ns;
                 ceil = n->ceil;  // use floor & ceil from higher mips (like the renderer)
                 floor = n->floor;
@@ -602,12 +602,13 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
             pl->o.y = o_null.y;
             if(collide(pl, false, drop, rise)) colly = cornersurface;
             pl->o = o_trying;
-            if(!collx || !colly || collx == colly) cornersurface1 = collx | colly;
+            cornersurface1 = collx | colly;
+            if((cornersurface1 & 3) == 3) cornersurface1 = 0;
         }
         collided = true;
         if(pl->type==ENT_BOUNCE && cornersurface1)
         { // try corner bounce
-            float ct2f = cornersurface1 == 2 ? -1.0 : 1.0;
+            float ct2f = cornersurface1 & 2 ? -1.0 : 1.0;
             vec xd = d;
             xd.x = d.y * ct2f;
             xd.y = d.x * ct2f;
@@ -652,11 +653,12 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         if(cornersurface1)
         {
             // along a corner wall
-            float ct2f = cornersurface1 == 2 ? -1.0 : 1.0;
+            float ct2f = cornersurface1 & 2 ? -1.0 : 1.0;
             float diag = fabs(d.x + ct2f * d.y) * 0.5f;
             vec vd = vec((d.y*ct2f+d.x >= 0.0f ? diag : -diag), (d.x*ct2f+d.y >= 0.0f ? diag : -diag), 0);
-            pl->o.x += f*vd.x;
-            pl->o.y += f*vd.y;
+            float ff = f / (cornersurface1 & 4 ? 42.0f : 333.0f);
+            pl->o.x += f*vd.x - ff*d.x;
+            pl->o.y += f*vd.y - ff*d.y;
             if(!collide(pl, false, drop, rise))
             {
                 d.x = vd.x; d.y = vd.y;
