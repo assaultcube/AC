@@ -653,10 +653,10 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         {
             // along a corner wall
             float ct2f = cornersurface1 == 2 ? -1.0 : 1.0;
-            float diag = f*d.magnitudexy()*2;
+            float diag = fabs(d.x + ct2f * d.y) * 0.5f;
             vec vd = vec((d.y*ct2f+d.x >= 0.0f ? diag : -diag), (d.x*ct2f+d.y >= 0.0f ? diag : -diag), 0);
-            pl->o.x += vd.x;
-            pl->o.y += vd.y;
+            pl->o.x += f*vd.x;
+            pl->o.y += f*vd.y;
             if(!collide(pl, false, drop, rise))
             {
                 d.x = vd.x; d.y = vd.y;
