@@ -820,7 +820,8 @@ COMMANDF(mapsound, "si", (char *name, int *maxuses)
     filtertext(name, name, FTXT__MEDIAFILEPATH);
     defformatstring(stripped)("%s%s", mapsoundbasepath, name);
     unixpath(path(stripped));
-    if(!strncmp(stripped, mapsoundbasepath, mapsoundbasepath_n))
+    if(mapconfigdata.mapsoundlines.length() > 254) conoutf("\f3error: too many mapsounds");
+    else if(!strncmp(stripped, mapsoundbasepath, mapsoundbasepath_n))
     {
         name = stripped + mapsoundbasepath_n;
         audiomgr.addsound(name, 255, *maxuses, true, mapsounds, false, 0);
