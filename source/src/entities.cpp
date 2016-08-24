@@ -278,8 +278,8 @@ void renderentities()
                 case PLAYERSTART:
                 {
                     glColor3f(0, 1, 1);
-                    vec dir;
-                    vecfromyawpitch(float(e.attr1) / ENTSCALE10, 0, -1, 0, dir);
+                    vec dir(0, -1, 0);
+                    dir.rotate_around_z(float(e.attr1) / ENTSCALE10 * RAD);
                     renderentarrow(e, dir, 4);
                     glColor3f(1, 1, 1);
                 }
