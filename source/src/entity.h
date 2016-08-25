@@ -12,6 +12,7 @@ enum                            // static entity types
     SOUND,                      // attr1 = idx, attr2 = radius, attr3 = size, attr4 = volume
     CLIP,                       // attr1 = elevation, attr2 = xradius, attr3 = yradius, attr4 = height, attr6 = slope, attr7 = shape
     PLCLIP,                     // attr1 = elevation, attr2 = xradius, attr3 = yradius, attr4 = height, attr6 = slope, attr7 = shape
+    DUMMYENT,                   // temporary entity without any function - will not be saved to map files, used to mark positions and for scripting
     MAXENTTYPES
 };
 
