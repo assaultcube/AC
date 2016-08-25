@@ -135,7 +135,8 @@ bool mmcollide(physent *d, float &hi, float &lo)           // collide with a map
 {
     const float eyeheight = d->eyeheight;
     const float playerheight = eyeheight + d->aboveeye;
-    loopv(ents)
+    if(editmode) clentstats.firstclip = 0;
+    for(int i = clentstats.firstclip; i < ents.length(); i++)
     {
         entity &e = ents[i];
         // if(e.type==CLIP || (e.type == PLCLIP && d->type == ENT_PLAYER))

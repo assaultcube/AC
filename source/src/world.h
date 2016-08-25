@@ -165,6 +165,8 @@ struct entitystats_s
     bool hasteamspawns;                     // has enough team spawns
     bool hasflags;                          // has exactly 2 valid flags
     int unknownspawns, unknownflags;        // attr2 is not valid
+    int firstclip;                          // index of first clipped entity
+    short first[MAXENTTYPES], last[MAXENTTYPES]; // first and last occurence of every basic ent type
 };
 
 

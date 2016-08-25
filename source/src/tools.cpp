@@ -248,6 +248,7 @@ int calcmapareastats(mapareastats_s &ms, servsqr *_servworld, int _ssize, const 
 void calcentitystats(entitystats_s &es, const persistent_entity *pents, int pentsize)
 {
     memset(&es, 0, sizeof(es));
+    loopi(MAXENTTYPES) es.first[i] = pentsize;
     vector<int> picks;
     loopi(pentsize)
     {
@@ -255,6 +256,8 @@ void calcentitystats(entitystats_s &es, const persistent_entity *pents, int pent
         if(e.type < MAXENTTYPES)
         {
             es.entcnt[e.type]++;
+            if(es.first[e.type] == pentsize) es.first[e.type] = i;
+            es.last[e.type] = i;
             if(e.type == PLAYERSTART) switch(e.attr2)
             {
                 case 0:   es.spawns[0]++; break;

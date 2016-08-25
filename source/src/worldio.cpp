@@ -547,6 +547,24 @@ void rebuildtexlists()  // checks the texlists, if they still contain all possib
     if(mt) conoutf("WARNING: rebuildtexlists() fixed %d|%d|%d missing entries", mk[0], mk[1], mk[2]);
 }
 
+static const uchar sortenttab[] = {
+    99,         // NOTUSED                     // entity slot not in use in map (usually seen at deleted entities)
+    5,          // LIGHT                       // lightsource, attr1 = radius, attr2 = intensity (or attr2..4 = r-g-b)
+    2,          // PLAYERSTART                 // attr1 = angle, attr2 = team
+    1, 1, 1,    // I_CLIPS, I_AMMO, I_GRENADE, // attr1 = elevation
+    1, 1, 1, 1, // I_HEALTH, I_HELMET, I_ARMOUR, I_AKIMBO,
+    10,         // MAPMODEL                    // attr1 = angle, attr2 = idx, attr3 = elevation, attr4 = texture, attr5 = pitch, attr6 = roll
+    9,          // CARROT                      // attr1 = tag, attr2 = type
+    3,          // LADDER                      // attr1 = height
+    1,          // CTF_FLAG                    // attr1 = angle, attr2 = red/blue
+    8,          // SOUND                       // attr1 = idx, attr2 = radius, attr3 = size, attr4 = volume
+    12,         // CLIP                        // attr1 = elevation, attr2 = xradius, attr3 = yradius, attr4 = height, attr6 = slope, attr7 = shape
+    13};        // PLCLIP                      // attr1 = elevation, attr2 = xradius, attr3 = yradius, attr4 = height, attr6 = slope, attr7 = shape
+
+struct numbered_persistent_entity { persistent_entity e; int n; };
+
+int cmp_npe(const numbered_persistent_entity *a, const numbered_persistent_entity *b) { ASSERT(a->n != b->n); return a->n - b->n; }
+
 void save_world(char *mname, bool skipoptimise, bool addcomfort)
 {
     if(!*mname) mname = getclientmap();
@@ -558,15 +576,19 @@ void save_world(char *mname, bool skipoptimise, bool addcomfort)
         return;
     }
     if(!skipoptimise)
-    {
+    { // optimisation works on the real world geometry, not on a copy
         voptimize();
         mapmrproper(false);
         addcomfort = false; // "optimized + undos" is not useful
     }
+
+    // get target file ready
     setnames(mname);
     if(mapbackupsonsave) backup(cgzname, bakname);
     stream *f = opengzfile(cgzname, "wb");
     if(!f) { conoutf("could not write map to %s", cgzname); return; }
+
+    // update embedded config file (if used)
     bool autoembedconfig = (hdr.flags & MHF_AUTOMAPCONFIG) != 0;
     if(autoembedconfig)
     { // write embedded map config
@@ -578,18 +600,44 @@ void save_world(char *mname, bool skipoptimise, bool addcomfort)
         memcpy(ecu, ec.getbuf(), ec.length());
         headerextras.add(new headerextra(ec.length(), HX_CONFIG|HX_FLAG_PERSIST, NULL))->data = ecu;
     }
+
+    // update (and fix) map header
     strncpy(hdr.head, "ACMP", 4); // ensure map now declares itself as an AssaultCube map, even if imported as CUBE
     hdr.version = MAPVERSION;
     hdr.headersize = sizeof(header);
     hdr.timestamp = (int) time(NULL);
     rebuildtexlists();
+
+    // create sorted entity list
+    vector<numbered_persistent_entity> sortedents;
     hdr.numents = 0;
-    loopv(ents) if(ents[i].type!=NOTUSED) hdr.numents++;
+    ASSERT(MAXENTITIES < (1 << 16));
+    numbered_persistent_entity npe;
+    loopv(ents) if(ents[i].type != NOTUSED) // omit deleted entities
+    {
+        hdr.numents++;
+        npe.e = ents[i];
+        int t = npe.e.type, nt = t < MAXENTTYPES ? sortenttab[t] : 100 + t;
+        if(t == LIGHT)
+        {
+            if(npe.e.attr3 || npe.e.attr4) nt++; // sort white lights before colored ones to fix light bug
+        }
+        else if(t == MAPMODEL)
+        {
+            mapmodelinfo *mmi = getmminfo(npe.e.attr2);
+            if(mmi && mmi->h) nt++; // sort clipped mapmodels right after unclipped mapmodels
+        }
+        npe.n = i | (nt << 16); // numbers have to be unique for the sort to be stable
+        sortedents.add(npe);
+    }
+    sortedents.sort(cmp_npe);
     if(hdr.numents > MAXENTITIES)
     {
         conoutf("too many map entities (%d), only %d will be written to file", hdr.numents, MAXENTITIES);
         hdr.numents = MAXENTITIES;
     }
+
+    // write header and extras to file
     header tmp = hdr;
     ucharbuf hx = packheaderextras(addcomfort ? 0 : (1 << HX_EDITUNDO));   // if addcomfort -> add undos/redos
     int writeextra = 0;
@@ -602,20 +650,18 @@ void save_world(char *mname, bool skipoptimise, bool addcomfort)
     f->write(&tmp, sizeof(header));
     if(writeextra) f->write(hx.buf, writeextra);
     delete[] hx.buf;
-    int ne = hdr.numents;
-    loopv(ents)
+
+    // write entities
+    loopi(hdr.numents)
     {
-        if(ents[i].type!=NOTUSED)
-        {
-            if(!ne--) break;
-            persistent_entity tmp = ents[i];
-            clampentityattributes(tmp);
-            lilswap((short *)&tmp, 4);
-            lilswap(&tmp.attr5, 1);
-            f->write(&tmp, sizeof(persistent_entity));
-        }
+        persistent_entity &tmp = sortedents[i].e;
+        clampentityattributes(tmp);
+        lilswap((short *)&tmp, 4);
+        lilswap(&tmp.attr5, 1);
+        f->write(&tmp, sizeof(persistent_entity));
     }
 
+    // write map geometry
     vector<uchar> rawcubes;
     rlencodecubes(rawcubes, world, cubicsize, skipoptimise);  // if skipoptimize -> keep properties of solid cubes (forces format 10)
     f->write(rawcubes.getbuf(), rawcubes.length());
@@ -942,6 +988,19 @@ bool load_world(char *mname)        // still supports all map formats that have 
     audiomgr.preloadmapsounds(false);
     clientlogf("loaded mapsounds (%d milliseconds)", audioloadtime+watch.elapsed());
     c2skeepalive();
+
+    // determine index of first clipped entity
+    clentstats.firstclip = max(0, ents.length() - 1); // fallback for "no clipped entities at all"
+    loopv(ents)
+    {
+        entity &e = ents[i];
+        mapmodelinfo *mmi;
+        if(e.type == CLIP || e.type == PLCLIP || (e.type == MAPMODEL && (mmi = getmminfo(e.attr2)) && mmi->h))
+        {
+            clentstats.firstclip = i;
+            break;
+        }
+    }
 
     defformatstring(startmillis)("%d", millis_());
     alias("gametimestart", startmillis, true);
