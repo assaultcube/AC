@@ -968,3 +968,91 @@ void getmapsoundlist() // create a list of mapsound filenames
     result(res.getbuf());
 }
 COMMAND(getmapsoundlist, "");
+
+struct tempmsslot { mapsoundline m; vector<int> oldslot; bool used; };
+
+int tempmscmp(tempmsslot *a, tempmsslot *b)
+{
+    int n = strcmp(a->m.name, b->m.name);
+    if(n) return n;
+    return a->m.maxuses - b->m.maxuses;
+}
+
+int tempmssort(tempmsslot *a, tempmsslot *b)
+{
+    int n = tempmscmp(a, b);
+    return n ? n : a->oldslot[0] - b->oldslot[0];
+}
+
+int tempmsunsort(tempmsslot *a, tempmsslot *b)
+{
+    return a->oldslot[0] - b->oldslot[0];
+}
+
+void sortmapsoundslots(char **args, int numargs)
+{
+    bool nomerge = false, mergeused = false, nosort = false, unknownarg = false;
+    loopi(numargs) if(args[i][0])
+    {
+        if(!strcasecmp(args[i], "nomerge")) nomerge = true;
+        else if(!strcasecmp(args[i], "nosort")) nosort = true;
+        else if(!strcasecmp(args[i], "mergeused")) mergeused = true;
+        else { conoutf("sortmapsoundslots: unknown argument \"%s\"", args[i]); unknownarg = true; }
+    }
+
+    if(noteditmode("sortmapsoundslots") || multiplayer(true) || unknownarg || mapconfigdata.mapsoundlines.length() < 3) return;
+
+    vector<tempmsslot> tempslots;
+    loopv(mapconfigdata.mapsoundlines)
+    {
+        tempslots.add().m = mapconfigdata.mapsoundlines[i];
+        tempslots.last().oldslot.add(i);
+        tempslots.last().used = false;
+    }
+    loopv(ents) if(ents[i].type == SOUND) tempslots[ents[i].attr1 & 255].used = true;
+    tempslots.sort(tempmssort);
+
+    // remove double entries
+    if(!nomerge) loopvrev(tempslots) if(i > 0)
+    {
+        tempmsslot &s1 = tempslots[i], &s0 = tempslots[i - 1];
+        if(!tempmscmp(&s0, &s1) && (mergeused || !s0.used || !s1.used))
+        {
+            if(s1.used) s0.used = true;
+            loopvj(s1.oldslot) s0.oldslot.add(s1.oldslot[j]);
+            tempslots.remove(i);
+        }
+    }
+    if(nosort) tempslots.sort(tempmsunsort);
+
+    // create translation table
+    uchar newslot[256];
+    loopk(256) newslot[k] = k;
+    loopv(tempslots)
+    {
+        tempmsslot &t = tempslots[i];
+        loopvj(t.oldslot)
+        {
+            if(t.oldslot[j] < 256) newslot[t.oldslot[j]] = i;
+        }
+    }
+
+    // translate all mapsound entities
+    loopv(ents) if(ents[i].type == SOUND) ents[i].attr1 = newslot[ents[i].attr1 & 255];
+
+    conoutf("%d mapsound slots%s, %d %sslots merged", tempslots.length(), nosort ? "" : " sorted", mapconfigdata.mapsoundlines.length() - tempslots.length(), mergeused ? "" : "unused ");
+
+    // rewrite mapmodel slot list
+    mapconfigdata.mapsoundlines.shrink(tempslots.length());
+    loopv(tempslots)
+    {
+        mapconfigdata.mapsoundlines[i] = tempslots[i].m;
+    }
+    reloadmapsoundconfig();
+    unsavededits++;
+    mapsoundchanged = 1;
+    hdr.flags |= MHF_AUTOMAPCONFIG; // requires automapcfg
+}
+COMMAND(sortmapsoundslots, "v");
+
+

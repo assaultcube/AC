@@ -211,7 +211,7 @@ void editmapmodelslot(int *n, char *rad, char *h, char *zoff, char *scale, char 
 }
 COMMAND(editmapmodelslot, "isssss");
 
-struct tempmmslot { mapmodelinfo m; vector<int> oldslot; };
+struct tempmmslot { mapmodelinfo m; vector<int> oldslot; bool used; };
 
 int tempmmcmp(tempmmslot *a, tempmmslot *b)
 {
@@ -230,27 +230,46 @@ int tempmmsort(tempmmslot *a, tempmmslot *b)
     return n ? n : a->oldslot[0] - b->oldslot[0];
 }
 
-void sortmapmodelslots()
+int tempmmunsort(tempmmslot *a, tempmmslot *b)
 {
-    if(noteditmode("sortmapmodelslots") || multiplayer(true) || mapmodels.length() < 5) return;
+    return a->oldslot[0] - b->oldslot[0];
+}
+
+void sortmapmodelslots(char **args, int numargs)
+{
+    bool nomerge = false, mergeused = false, nosort = false, unknownarg = false;
+    loopi(numargs) if(args[i][0])
+    {
+        if(!strcasecmp(args[i], "nomerge")) nomerge = true;
+        else if(!strcasecmp(args[i], "nosort")) nosort = true;
+        else if(!strcasecmp(args[i], "mergeused")) mergeused = true;
+        else { conoutf("sortmapmodelslots: unknown argument \"%s\"", args[i]); unknownarg = true; }
+    }
+
+    if(noteditmode("sortmapmodelslots") || multiplayer(true) || unknownarg || mapmodels.length() < 3) return;
+
     vector<tempmmslot> tempslots;
     loopv(mapmodels)
     {
         tempslots.add().m = mapmodels[i];
         tempslots.last().oldslot.add(i);
+        tempslots.last().used = false;
     }
+    loopv(ents) if(ents[i].type == MAPMODEL) tempslots[ents[i].attr2].used = true;
     tempslots.sort(tempmmsort);
 
     // remove double entries
-    loopvrev(tempslots) if(i > 0)
+    if(!nomerge) loopvrev(tempslots) if(i > 0)
     {
         tempmmslot &s1 = tempslots[i], &s0 = tempslots[i - 1];
-        if(!tempmmcmp(&s0, &s1))
+        if(!tempmmcmp(&s0, &s1) && (mergeused || !s0.used || !s1.used))
         {
+            if(s1.used) s0.used = true;
             loopvj(s1.oldslot) s0.oldslot.add(s1.oldslot[j]);
             tempslots.remove(i);
         }
     }
+    if(nosort) tempslots.sort(tempmmunsort);
 
     // create translation table
     uchar newslot[256];
@@ -267,7 +286,7 @@ void sortmapmodelslots()
     // translate all mapmodel entities
     loopv(ents) if(ents[i].type == MAPMODEL) ents[i].attr2 = newslot[ents[i].attr2];
 
-    conoutf("%d mapmodel slots sorted, %d slots merged", tempslots.length(), mapmodels.length() - tempslots.length());
+    conoutf("%d mapmodel slots%s, %d %sslots merged", tempslots.length(), nosort ? "" : " sorted", mapmodels.length() - tempslots.length(), mergeused ? "" : "unused ");
 
     // rewrite mapmodel slot list
     mapmodels.shrink(tempslots.length());
@@ -280,7 +299,7 @@ void sortmapmodelslots()
     mapmodelchanged = 1;
     hdr.flags |= MHF_AUTOMAPCONFIG; // requires automapcfg
 }
-COMMAND(sortmapmodelslots, "");
+COMMAND(sortmapmodelslots, "v");
 
 hashtable<const char *, mapmodelattributes *> mdlregistry;
 

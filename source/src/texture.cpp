@@ -955,28 +955,39 @@ void gettexturelist(char *_filter, char *_exclude, char *_exts) // create a list
 }
 COMMAND(gettexturelist, "sss");
 
+void textureslotusagemapmodels(int *used)
+{
+    int old0 = used[0];
+    loopv(ents) if(ents[i].type == MAPMODEL) used[ents[i].attr4]++;
+    used[0] = old0;
+}
+
+void textureslotusagegeometry(int *used)
+{
+    sqr *s = world;
+    loopirev(cubicsize)
+    {
+        used[s->wtex]++;
+        if(s->type != SOLID)
+        {
+            used[s->ctex]++;
+            used[s->ftex]++;
+            used[s->utex]++;
+        }
+        s++;
+    }
+}
+
 void textureslotusagelist(char *what)
 {
     int used[256] =  { 0 };
     if(strcmp(what, "onlygeometry"))
-    { // if not only geometry, cound map model usage
-        loopv(ents) if(ents[i].type == MAPMODEL) used[ents[i].attr4]++;
-        used[0] = 0;
+    { // if not only geometry, count map model usage
+        textureslotusagemapmodels(used);
     }
     if(strcmp(what, "onlymodels"))
     { // if not only models, count map geometry
-        sqr *s = world;
-        loopirev(cubicsize)
-        {
-            used[s->wtex]++;
-            if(s->type != SOLID)
-            {
-                used[s->ctex]++;
-                used[s->ftex]++;
-                used[s->utex]++;
-            }
-            s++;
-        }
+        textureslotusagegeometry(used);
     }
     vector<char> res;
     loopi(256) cvecprintf(res, "%d ", used[i]);
@@ -1158,7 +1169,7 @@ uchar *texconfig_paste(void *_s, uchar *usedslots) // create mapping table to tr
     return res;
 }
 
-struct temptexslot { Slot s; vector<int> oldslot; };
+struct temptexslot { Slot s; vector<int> oldslot; bool used; };
 
 int tempslotsort(temptexslot *a, temptexslot *b)
 {
@@ -1169,29 +1180,51 @@ int tempslotsort(temptexslot *a, temptexslot *b)
     return a->oldslot[0] - b->oldslot[0];
 }
 
-void sorttextureslots()
+int tempslotunsort(temptexslot *a, temptexslot *b)
 {
-    if(noteditmode("sorttextureslots") || multiplayer(true) || slots.length() < 5) return;
+    return a->oldslot[0] - b->oldslot[0];
+}
+
+void sorttextureslots(char **args, int numargs)
+{
+    bool nomerge = false, mergeused = false, nosort = false, unknownarg = false;
+    loopi(numargs) if(args[i][0])
+    {
+        if(!strcasecmp(args[i], "nomerge")) nomerge = true;
+        else if(!strcasecmp(args[i], "nosort")) nosort = true;
+        else if(!strcasecmp(args[i], "mergeused")) mergeused = true;
+        else { conoutf("sorttextureslots: unknown argument \"%s\"", args[i]); unknownarg = true; }
+    }
+
+    if(noteditmode("sorttextureslots") || multiplayer(true) || unknownarg || slots.length() < 5) return;
+
+    int used[256] = { 0 };
+    textureslotusagemapmodels(used);
+    textureslotusagegeometry(used);
+
     vector<temptexslot> tempslots;
     loopv(slots)
     {
         tempslots.add().s = slots[i];
         tempslots.last().oldslot.add(i);
+        tempslots.last().used = used[i] > 0;
     }
     tempslots.sort(tempslotsort);
 
-    // remove double entries
-    loopvrev(tempslots) if(i > 0)
+    // remove double entries (if requested)
+    if(!nomerge) loopvrev(tempslots) if(i > 0)
     {
         temptexslot &s1 = tempslots[i], &s0 = tempslots[i - 1];
-        if(s1.oldslot[0] > 4 && !strcmp(s0.s.name, s1.s.name) && s0.s.scale == s1.s.scale)
+        if(s1.oldslot[0] > 4 && !strcmp(s0.s.name, s1.s.name) && s0.s.scale == s1.s.scale && (mergeused || !s0.used || !s1.used))
         {
+            if(s1.used) s0.used = true;
             loopvj(s1.oldslot) s0.oldslot.add(s1.oldslot[j]);
             tempslots.remove(i);
         }
     }
 
-    // sort special textures (like skymap) back front
+    // sort special textures (like skymap) back front - also, revert sorting, if it's unwanted
+    if(nosort) tempslots.sort(tempslotunsort);
     loopk(5)
     {
         loopv(tempslots)
@@ -1252,7 +1285,7 @@ void sorttextureslots()
         loopi(256) if(d[i]) *pd++ = i;
     }
 
-    conoutf("%d texture slots sorted, %d slots merged", tempslots.length(), slots.length() - tempslots.length());
+    conoutf("%d texture slots%s, %d %sslots merged", tempslots.length(), nosort ? "" : " sorted", slots.length() - tempslots.length(), mergeused ? "" : "unused ");
 
     // rewrite texture slot list
     slots.shrink(tempslots.length());
@@ -1264,7 +1297,7 @@ void sorttextureslots()
     unsavededits++;
     hdr.flags |= MHF_AUTOMAPCONFIG; // requires automapcfg
 }
-COMMAND(sorttextureslots, "");
+COMMAND(sorttextureslots, "v");
 
 
 #ifdef _DEBUG
