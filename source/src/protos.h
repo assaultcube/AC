@@ -843,7 +843,7 @@ extern const char *particletypenames[MAXPARTYPES + 1];
 
 // worldio
 enum { LWW_ENTATTROVERFLOW = 0x1, LWW_DECODEERR = 0x10, LWW_WORLDERROR = 0x100, LWW_MISSINGMEDIA = 0x1000, LWW_CONFIGERR = 0x10000, LWW_MODELERR = 0x100000, LWW_SCRIPTERR = 0x1000000 };
-extern const char *setnames(const char *name);
+extern const char **setnames(const char *name);
 extern void save_world(char *mname, bool skipoptimise = false, bool addcomfort = false);
 extern int _ignoreillegalpaths;
 extern int load_world(char *mname);
@@ -1063,7 +1063,7 @@ extern void trimtrailingwhitespace(char *s);
 extern string mastername;
 extern int masterport;
 extern ENetSocket connectmaster();
-extern void serverms(int mode, int numplayers, int minremain, char *smapname, int millis, const ENetAddress &localaddr, int *mnum, int *msend, int *mrec, int *cnum, int *csend, int *crec, int protocol_version);
+extern void serverms(int mode, int numplayers, int minremain, char *smapname, int millis, const ENetAddress &localaddr, int *mnum, int *msend, int *mrec, int *cnum, int *csend, int *crec, int protocol_version, const char *servdesccur, int _interm);
 extern int msgsizelookup(int msg);
 extern const char *genpwdhash(const char *name, const char *pwd, int salt);
 extern void servermsinit(const char *master, const char *ip, int serverport, bool listen);
@@ -1076,6 +1076,7 @@ extern char *votestring(int type, char *arg1, char *arg2, char *arg3);
 extern int wizardmain(int argc, char **argv);
 
 // some tools
+extern header *peekmapheader(uchar *data, int len);
 extern servsqr *createservworld(const sqr *s, int _cubicsize);
 extern int calcmapdims(mapdim_s &md, const servsqr *s, int _ssize);
 extern int calcmapareastats(mapareastats_s &ms, servsqr *s, int _ssize, const mapdim_s &md);

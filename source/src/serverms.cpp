@@ -165,9 +165,9 @@ extern int totalclients;
 
 // send alive signal to masterserver after 40 minutes of uptime and if currently in intermission (so theoretically <= 1 hour)
 // TODO?: implement a thread to drop this "only in intermission" business, we'll need it once AUTH gets active!
-static inline void updatemasterserver(int millis, int port)
+static inline void updatemasterserver(int millis, int port, int _interm)
 {
-    if(!lastupdatemaster || ((millis-lastupdatemaster)>40*60*1000 && (interm || !totalclients)))
+    if(!lastupdatemaster || ((millis-lastupdatemaster)>40*60*1000 && (_interm || !totalclients)))
     {
         char servername[30]; memset(servername,'\0',30); filtertext(servername, global_name, FTXT__GLOBALNAME, 20);
         if(mastername[0]) requestmasterf("regserv %d %s %d\n", port, servername[0] ? servername : "noname", AC_VERSION);
@@ -178,10 +178,10 @@ static inline void updatemasterserver(int millis, int port)
 ENetSocket pongsock = ENET_SOCKET_NULL, lansock = ENET_SOCKET_NULL;
 extern int getpongflags(enet_uint32 ip);
 
-void serverms(int mode, int numplayers, int minremain, char *smapname, int millis, const ENetAddress &localaddr, int *mnum, int *msend, int *mrec, int *cnum, int *csend, int *crec, int protocol_version)
+void serverms(int mode, int numplayers, int minremain, char *smapname, int millis, const ENetAddress &localaddr, int *mnum, int *msend, int *mrec, int *cnum, int *csend, int *crec, int protocol_version, const char *servdesccur, int _interm)
 {
     flushmasteroutput();
-    updatemasterserver(millis, localaddr.port);
+    updatemasterserver(millis, localaddr.port, _interm);
 
     static ENetSocketSet sockset;
     ENET_SOCKETSET_EMPTY(sockset);
@@ -221,14 +221,13 @@ void serverms(int mode, int numplayers, int minremain, char *smapname, int milli
         if(getint(pi) != 0) // std pong
         {
             extern struct servercommandline scl;
-            extern string servdesc_current;
             (*mnum)++; *mrec += len; std = true;
             putint(po, protocol_version);
             putint(po, mode);
             putint(po, numplayers);
             putint(po, minremain);
             sendstring(smapname, po);
-            sendstring(servdesc_current, po);
+            sendstring(servdesccur, po);
             putint(po, scl.maxclients);
             putint(po, getpongflags(addr.host));
             if(pi.remaining())

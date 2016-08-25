@@ -5,10 +5,12 @@
 #define SERVERMAXMAPFACTOR 10       // 10 is huge... if you're running low on RAM, consider 9 as maximum (don't go higher than 10, or players will name their ugly dog after you)
 
 #define SERVERMAP_PATH_BUILTIN  "packages" PATHDIVS "maps" PATHDIVS "official" PATHDIVS
+#define SERVERMAP_PATH_LOCAL    "packages" PATHDIVS "maps" PATHDIVS
 #define SERVERMAP_PATH          "packages" PATHDIVS "maps" PATHDIVS "servermaps" PATHDIVS
 #define SERVERMAP_PATH_INCOMING "packages" PATHDIVS "maps" PATHDIVS "servermaps" PATHDIVS "incoming" PATHDIVS
 
 const char *servermappath_off = SERVERMAP_PATH_BUILTIN;
+const char *servermappath_local = SERVERMAP_PATH_LOCAL;
 const char *servermappath_serv = SERVERMAP_PATH;
 const char *servermappath_incom = SERVERMAP_PATH_INCOMING;
 
@@ -38,6 +40,7 @@ struct servermap  // in-memory version of a map file on a server
     uchar *enttypes;                //             table of entity types
     short *entpos_x, *entpos_y;
 
+    const char *err;
     bool isok;                      // definitive flag!
     #ifdef _DEBUG
     char maptitle[129];
@@ -48,15 +51,36 @@ struct servermap  // in-memory version of a map file on a server
 
     bool isro() { return fpath == servermappath_off || fpath == servermappath_serv; }
     bool isofficial() { return fpath == servermappath_off; }
+    bool isdistributable() { return fpath == servermappath_serv || fpath == servermappath_incom; }
 
     int getmemusage() { return sizeof(struct servermap) + cgzlen + cfggzlen + layoutgzlen + numents * (sizeof(uchar) + sizeof(short) * 3); }
+
+    char *getlayout() // uncompress prefabricated floorplan
+    {
+        if(isok && layoutgz && layoutgzlen > 0 && layoutgzlen < layoutlen)
+        {
+            char *lo = new char[layoutlen];
+            uLongf rawsize = layoutlen;
+            if(lo && uncompress((Bytef*)lo, &rawsize, layoutgz, layoutgzlen) == Z_OK && rawsize - layoutlen == 0) return lo;
+            delete[] lo;
+        }
+        return NULL;
+    }
+
+    const char *getpathdesc()
+    {
+        if(fpath == servermappath_off) return "official";
+        if(fpath == servermappath_local) return "local";
+        if(fpath == servermappath_serv) return "custom";
+        if(fpath == servermappath_incom) return "temporary";
+        ASSERT(0); return "unknown";
+    }
 
     void load(void)  // load map into memory and extract everything important about it  (assumes struct to be zeroed: can only be called once)
     {
         static uchar *staticbuffer = NULL;
         if(!staticbuffer) staticbuffer = new uchar[FLOORPLANBUFSIZE];     // this buffer gets reused for every map load several times (also: because of this, load() is not thread safe)
 
-        const char *err = NULL;
         stream *f = NULL;
         int restofhead;
 
@@ -292,6 +316,7 @@ struct servermap  // in-memory version of a map file on a server
         if(err) goto loadfailed;
 
         // run mipmapper (to get corners right)
+        // TODO :)
 
 
         // calculate area statistics from type & vdelta values (destroys vdelta!)
@@ -504,188 +529,44 @@ int readmapsthread(void *logfileprefix)
     return 0;
 }
 
-
-
-
-
-
-
-
-struct servermapbuffer  // sending of maps between clients
+#ifndef STANDALONE
+const char *checklocalmap(const char *mapname) // check, if a map file exists in packages/maps/official or packages/maps - return proper servermap-path, if found
 {
-    string mapname;
-    int cgzsize, cfgsize, cfgsizegz, revision, datasize;
-    uchar *data, *gzbuf;
+    const char **fn = setnames(behindpath(mapname)), *locs[2] = { servermappath_off, servermappath_local };
+    int l = 0;
+    if(!isdedicated && (getfilesize(fn[l]) > 10 || getfilesize(fn[++l]) > 10)) return locs[l];
+    return NULL;
+}
+#endif
 
-    servermapbuffer() : data(NULL) { gzbuf = new uchar[GZBUFSIZE]; }
-    ~servermapbuffer() { delete[] gzbuf; }
-
-    void clear() { DELETEA(data); revision = 0; }
-
-    int available()
+bool serverwritemap(const char *mapname, int mapsize, int cfgsize, int cfgsizegz, uchar *data)
+{
+    FILE *fp;
+    bool written = false;
+    if(!mapname[0] || mapsize <= 0 || cfgsizegz < 0 || mapsize + cfgsizegz > MAXMAPSENDSIZE || cfgsize > MAXCFGFILESIZE) return false;  // malformed: probably modded client
+    defformatstring(name)(SERVERMAP_PATH_INCOMING "%s.cgz", mapname);
+    path(name);
+    fp = fopen(name, "wb");
+    if(fp)
     {
-        if(data && !strcmp(mapname, behindpath(smapname)) && cgzsize == smapstats.cgzsize)
-        {
-            if( !revision || (revision == smapstats.hdr.maprevision)) return cgzsize;
-        }
-        return 0;
-    }
-
-    void setrevision()
-    {
-        if(available() && !revision) revision = smapstats.hdr.maprevision;
-    }
-
-    void load(void)  // load currently played map into the buffer (if distributable), clear buffer otherwise
-    {
-        string cgzname, cfgname;
-        const char *name = behindpath(smapname);   // no paths allowed here
-
-        clear();
-        formatstring(cgzname)(SERVERMAP_PATH "%s.cgz", name);
-        path(cgzname);
-        if(fileexists(cgzname, "r"))
-        {
-            formatstring(cfgname)(SERVERMAP_PATH "%s.cfg", name);
-        }
-        else
-        {
-            formatstring(cgzname)(SERVERMAP_PATH_INCOMING "%s.cgz", name);
-            path(cgzname);
-            formatstring(cfgname)(SERVERMAP_PATH_INCOMING "%s.cfg", name);
-        }
-        path(cfgname);
-        uchar *cgzdata = (uchar *)loadfile(cgzname, &cgzsize);
-        uchar *cfgdata = (uchar *)loadfile(cfgname, &cfgsize);
-        if(cgzdata && (!cfgdata || cfgsize < MAXCFGFILESIZE))
-        {
-            uLongf gzbufsize = GZBUFSIZE;
-            if(!cfgdata || compress2(gzbuf, &gzbufsize, cfgdata, cfgsize, 9) != Z_OK)
-            {
-                cfgsize = 0;
-                gzbufsize = 0;
-            }
-            cfgsizegz = (int) gzbufsize;
-            if(cgzsize + cfgsizegz < MAXMAPSENDSIZE)
-            { // map is ok, fill buffer
-                copystring(mapname, name);
-                datasize = cgzsize + cfgsizegz;
-                data = new uchar[datasize];
-                memcpy(data, cgzdata, cgzsize);
-                memcpy(data + cgzsize, gzbuf, cfgsizegz);
-                logline(ACLOG_INFO,"loaded map %s, %d + %d(%d) bytes.", cgzname, cgzsize, cfgsize, cfgsizegz);
-            }
-        }
-        DELETEA(cgzdata);
-        DELETEA(cfgdata);
-    }
-
-    bool sendmap(const char *nmapname, int nmapsize, int ncfgsize, int ncfgsizegz, uchar *ndata)
-    {
-        FILE *fp;
-        bool written = false;
-
-        if(!nmapname[0] || nmapsize <= 0 || ncfgsizegz < 0 || nmapsize + ncfgsizegz > MAXMAPSENDSIZE || ncfgsize > MAXCFGFILESIZE) return false;  // malformed: probably modded client
-        int cfgsize = ncfgsize;
-        if(smode == GMODE_COOPEDIT && !strcmp(nmapname, behindpath(smapname)))
-        { // update mapbuffer only in coopedit mode (and on same map)
-            copystring(mapname, nmapname);
-            datasize = nmapsize + ncfgsizegz;
-            revision = 0;
-            DELETEA(data);
-            data = new uchar[datasize];
-            memcpy(data, ndata, datasize);
-        }
-
-        defformatstring(name)(SERVERMAP_PATH_INCOMING "%s.cgz", nmapname);
+        fwrite(data, 1, mapsize, fp);
+        fclose(fp);
+        formatstring(name)(SERVERMAP_PATH_INCOMING "%s.cfg", mapname);
         path(name);
         fp = fopen(name, "wb");
         if(fp)
         {
-            fwrite(ndata, 1, nmapsize, fp);
+            uLongf rawsize = cfgsize;
+            uchar *gzbuf = new uchar[cfgsize];
+            if(uncompress(gzbuf, &rawsize, data + mapsize, cfgsizegz) == Z_OK && rawsize - cfgsize == 0)
+                fwrite(gzbuf, 1, cfgsize, fp);
             fclose(fp);
-            formatstring(name)(SERVERMAP_PATH_INCOMING "%s.cfg", nmapname);
-            path(name);
-            fp = fopen(name, "wb");
-            if(fp)
-            {
-                uLongf rawsize = ncfgsize;
-                if(uncompress(gzbuf, &rawsize, ndata + nmapsize, ncfgsizegz) == Z_OK && rawsize - ncfgsize == 0)
-                    fwrite(gzbuf, 1, cfgsize, fp);
-                fclose(fp);
-                written = true;
-            }
+            delete[] gzbuf;
+            written = true;
         }
-        return written;
     }
-
-    void sendmap(client *cl, int chan)
-    {
-        if(!available()) return;
-        packetbuf p(MAXTRANS + datasize, ENET_PACKET_FLAG_RELIABLE);
-        putint(p, SV_RECVMAP);
-        sendstring(mapname, p);
-        putint(p, cgzsize);
-        putint(p, cfgsize);
-        putint(p, cfgsizegz);
-        putint(p, revision);
-        p.put(data, datasize);
-        sendpacket(cl->clientnum, chan, p.finalize());
-    }
-};
-
-
-// provide maps by the server
-
-enum { MAP_NOTFOUND = 0, MAP_TEMP, MAP_CUSTOM, MAP_LOCAL, MAP_OFFICIAL, MAP_VOID };
-static const char * const maplocstr[] = { "not found", "temporary", "custom", "local", "official", "void" };
-#define readonlymap(x) ((x) >= MAP_CUSTOM)
-#define distributablemap(x) ((x) == MAP_TEMP || (x) == MAP_CUSTOM)
-
-int findmappath(const char *mapname, char *filename)
-{
-    if(!mapname[0]) return MAP_NOTFOUND;
-    string tempname;
-    if(!filename) filename = tempname;
-    const char *name = behindpath(mapname);
-    formatstring(filename)(SERVERMAP_PATH_BUILTIN "%s.cgz", name);
-    path(filename);
-    int loc = MAP_NOTFOUND;
-    if(getfilesize(filename) > 10) loc = MAP_OFFICIAL;
-    else
-    {
-#ifndef STANDALONE
-        copystring(filename, setnames(name));
-        if(!isdedicated && getfilesize(filename) > 10) loc = MAP_LOCAL;
-        else
-        {
-#endif
-            formatstring(filename)(SERVERMAP_PATH "%s.cgz", name);
-            path(filename);
-            if(isdedicated && getfilesize(filename) > 10) loc = MAP_CUSTOM;
-            else
-            {
-                formatstring(filename)(SERVERMAP_PATH_INCOMING "%s.cgz", name);
-                path(filename);
-                if(isdedicated && getfilesize(filename) > 10) loc = MAP_TEMP;
-            }
-#ifndef STANDALONE
-        }
-#endif
-    }
-    return loc;
+    return written;
 }
-
-mapstats *getservermapstats(const char *mapname, bool getlayout, int *maploc)
-{
-    string filename;
-    int ml;
-    if(!maploc) maploc = &ml;
-    *maploc = findmappath(mapname, filename);
-    if(getlayout) DELETEA(maplayout);
-    return *maploc == MAP_NOTFOUND ? NULL : loadmapstats(filename, getlayout);
-}
-
 
 // server config files
 
@@ -734,76 +615,7 @@ struct configset
     };
 };
 
-int FlagFlag = MINFF * 1000;
-int Mvolume, Marea, SHhits, Mopen = 0;
-float Mheight = 0;
-
-bool mapisok(mapstats *ms)
-{
-    if ( Mheight > MAXMHEIGHT ) { logline(ACLOG_INFO, "MAP CHECK FAIL: The overall ceil height is too high (%.1f cubes)", Mheight); return false; }
-    if ( Mopen > MAXMAREA ) { logline(ACLOG_INFO, "MAP CHECK FAIL: There is a big open area in this (hint: use more solid walls)"); return false; }
-    if ( SHhits > MAXHHITS ) { logline(ACLOG_INFO, "MAP CHECK FAIL: Too high height in some parts of the map (%d hits)", SHhits); return false; }
-
-    if ( ms->hasflags ) // Check if flags are ok
-    {
-        struct { short x, y; } fl[2];
-        loopi(2)
-        {
-            if(ms->flags[i] == 1)
-            {
-                short *fe = ms->entposs + ms->flagents[i] * 3;
-                fl[i].x = *fe; fe++; fl[i].y = *fe;
-            }
-            else fl[i].x = fl[i].y = 0; // the map has no valid flags
-        }
-        FlagFlag = pow2(fl[0].x - fl[1].x) + pow2(fl[0].y - fl[1].y);
-    }
-    else FlagFlag = MINFF * 1000; // the map has no flags
-
-    if ( FlagFlag < MINFF ) { logline(ACLOG_INFO, "MAP CHECK FAIL: The flags are too close to each other"); return false; }
-
-    for (int i = 0; i < ms->hdr.numents; i++)
-    {
-        int v = ms->enttypes[i];
-        if (v < I_CLIPS || v > I_AKIMBO) continue;
-        short *p = &ms->entposs[i*3];
-        float density = 0, hdensity = 0;
-        for(int j = 0; j < ms->hdr.numents; j++)
-        {
-            int w = ms->enttypes[j];
-            if (w < I_CLIPS || w > I_AKIMBO || i == j) continue;
-            short *q = &ms->entposs[j*3];
-            float r2 = 0;
-            loopk(3){ r2 += (p[k]-q[k])*(p[k]-q[k]); }
-            if ( r2 == 0.0f ) { logline(ACLOG_INFO, "MAP CHECK FAIL: Items too close %s %s (%hd,%hd)", entnames[v], entnames[w],p[0],p[1]); return false; }
-            r2 = 1/r2;
-            if (r2 < 0.0025f) continue;
-            if (w != v)
-            {
-                hdensity += r2;
-                continue;
-            }
-            density += r2;
-        }
-/*        if (hdensity > 0.0f) { logline(ACLOG_INFO, "ITEM CHECK H %s %f", entnames[v], hdensity); }
-        if (density > 0.0f) { logline(ACLOG_INFO, "ITEM CHECK D %s %f", entnames[v], density); }*/
-        if ( hdensity > 0.5f ) { logline(ACLOG_INFO, "MAP CHECK FAIL: Items too close %s %.2f (%hd,%hd)", entnames[v],hdensity,p[0],p[1]); return false; }
-        switch(v)
-        {
-#define LOGTHISSWITCH(X) if( density > X ) { logline(ACLOG_INFO, "MAP CHECK FAIL: Items too close %s %.2f (%hd,%hd)", entnames[v],density,p[0],p[1]); return false; }
-            case I_CLIPS:
-            case I_HEALTH: LOGTHISSWITCH(0.24f); break;
-            case I_AMMO: LOGTHISSWITCH(0.04f); break;
-            case I_HELMET: LOGTHISSWITCH(0.02f); break;
-            case I_ARMOUR:
-            case I_GRENADE:
-            case I_AKIMBO: LOGTHISSWITCH(0.005f); break;
-            default: break;
-#undef LOGTHISSWITCH
-        }
-    }
-    return true;
-}
+servermap *getservermap(const char *mapname);
 
 struct servermaprot : serverconfigfile
 {
@@ -873,9 +685,8 @@ struct servermaprot : serverconfigfile
             c = &configsets[ccs];
             if((n >= c->minplayer || i >= csl) && (!c->maxplayer || n <= c->maxplayer || i >= 2 * csl))
             {
-                mapstats *ms = NULL;
-                if((ms = getservermapstats(c->mapname)) && mapisok(ms)) break;
-                else logline(ACLOG_INFO, "maprot error: map '%s' %s", c->mapname, (ms ? "does not satisfy some basic requirements" : "not found"));
+                if(getservermap(c->mapname)) break;
+                else logline(ACLOG_INFO, "maprot error: map '%s' not found", c->mapname);
             }
             if(i >= 3 * csl) fatal("maprot unusable"); // not a single map in rotation can be found...
         }
@@ -896,7 +707,7 @@ struct servermaprot : serverconfigfile
             return;
         }
 #endif
-    startgame(smapname, smode, -1, notify);
+    startgame("ac_desert", 0, -1, notify);
     }
 
     configset *current() { return configsets.inrange(curcfgset) ? &configsets[curcfgset] : NULL; }

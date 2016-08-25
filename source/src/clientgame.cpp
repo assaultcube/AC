@@ -809,15 +809,6 @@ void respawnself()
     }
 }
 
-extern int checkarea(int maplayout_factor, char *maplayout);
-extern int MA;
-extern float Mh;
-
-bool bad_map() // this function makes a pair with good_map from clients2c
-{
-    return (gamemode != GMODE_COOPEDIT && ( Mh >= MAXMHEIGHT || MA >= MAXMAREA ));
-}
-
 inline const char * spawn_message()
 {
     if (spawnpermission == SP_WRONGMAP)
@@ -839,11 +830,7 @@ int waiting_permission = 0;
 
 bool tryrespawn()
 {
-    if(m_mp(gamemode) && multiplayer(NULL) && bad_map())
-    {
-        hudoutf("This map is not supported in multiplayer. Read the docs about map quality/dimensions.");
-    }
-    else if(spawnpermission > SP_OK_NUM)
+    if(spawnpermission > SP_OK_NUM)
     {
         hudeditf(HUDMSG_TIMER, "\f%s", spawn_message());
     }
@@ -1176,7 +1163,7 @@ void resetmap(bool mrproper)
 }
 
 int suicided = -1;
-extern bool good_map();
+
 extern bool item_fail;
 extern int MA, F2F, Ma, Hhits;
 extern float Mh;
@@ -1215,8 +1202,6 @@ void startmap(const char *name, bool reset, bool norespawn)   // called just aft
     player1->followplayercn = -1;
     if(m_valid(gamemode) && !m_mp(gamemode)) respawnself();
     else findplayerstart(player1);
-    if(good_map()==MAP_IS_BAD) conoutf("You cannot play in this map due to quality requisites. Please, report this incident.");
-    if (mapstats_hud) showmapstats();
 
     if(!reset) return;
 

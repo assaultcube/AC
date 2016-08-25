@@ -7,8 +7,9 @@ VARP(worldiodebug, 0, 0, 1);
 
 static string cgzname, ocgzname, bakname, cbakname, mcfname, omcfname;
 
-const char *setnames(const char *name)
+const char **setnames(const char *name)
 {
+    static const char *paths[2] = { ocgzname, cgzname };
     const char *mapname = behindpath(name), *nt = numtime();
     formatstring(cgzname) ("packages" PATHDIVS "maps" PATHDIVS                     "%s.cgz",        mapname);
     formatstring(mcfname) ("packages" PATHDIVS "maps" PATHDIVS                     "%s.cfg",        mapname);
@@ -16,7 +17,7 @@ const char *setnames(const char *name)
     formatstring(omcfname)("packages" PATHDIVS "maps" PATHDIVS "official" PATHDIVS "%s.cfg",        mapname);
     formatstring(bakname) ("packages" PATHDIVS "maps" PATHDIVS                     "%s_%s.BAK",     mapname, nt);
     formatstring(cbakname)("packages" PATHDIVS "maps" PATHDIVS                     "%s.cfg_%s.BAK", mapname, nt);
-    return cgzname;
+    return paths;
 }
 
 // the optimize routines below are here to reduce the detrimental effects of messy mapping by
@@ -55,8 +56,8 @@ uchar *readmap(char *name, int *size, int *revision)
     setnames(name);
     uchar *data = (uchar *)loadfile(cgzname, size);
     if(!data) { conoutf("\f3could not read map %s", cgzname); return NULL; }
-    mapstats *ms = loadmapstats(cgzname, false);
-    if(revision) *revision = ms->hdr.maprevision;
+    header *h = peekmapheader(data, *size);
+    if(revision) *revision = h ? h->maprevision : 0;
     return data;
 }
 

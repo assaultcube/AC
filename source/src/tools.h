@@ -968,7 +968,6 @@ extern void *zipmanualopen(stream *f, vector<const char *> &files);
 extern stream *zipmanualstream(void *a, int n);
 extern int zipmanualread(void *a, int n, stream *f, int maxlen = INT_MAX);
 extern void zipmanualclose(void *a);
-extern struct mapstats *loadmapstats(const char *filename, bool getlayout);
 extern bool cmpb(void *b, int n, enet_uint32 c);
 extern bool cmpf(char *fn, enet_uint32 c);
 extern enet_uint32 adler(unsigned char *data, size_t len);

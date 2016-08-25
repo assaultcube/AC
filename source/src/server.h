@@ -1,6 +1,6 @@
 // server.h
 
-#define gamemode smode   // allows the gamemode macros to work with the server mode
+#define gamemode sg->smode   // allows the gamemode macros to work with the server mode
 
 #define SERVER_PROTOCOL_VERSION    (PROTOCOL_VERSION)    // server without any gameplay modification
 //#define SERVER_PROTOCOL_VERSION   (-PROTOCOL_VERSION)  // server with gameplay modification but compatible to vanilla client (using /modconnect)
@@ -11,7 +11,7 @@
 enum { GE_NONE = 0, GE_SHOT, GE_EXPLODE, GE_HIT, GE_AKIMBO, GE_RELOAD, GE_SUICIDE, GE_PICKUP };
 enum { ST_EMPTY, ST_LOCAL, ST_TCPIP };
 
-extern int smode, servmillis;
+extern int servmillis;
 
 struct shotevent
 {
@@ -292,7 +292,7 @@ struct client                   // server side version of "dynent" type
         events.setsize(0);
         overflow = 0;
         timesync = false;
-        isonrightmap = m_coop;
+        isonrightmap = false;
         spawnperm = SP_WRONGMAP;
         spawnpermsent = servmillis;
         autospawn = false;
@@ -376,6 +376,16 @@ struct server_entity            // server side version of "entity" type
     short x, y;
 };
 
+struct sflaginfo
+{
+    int state;
+    int actor_cn;
+    float pos[3];
+    int lastupdate;
+    int stolentime;
+    short x, y;          // flag entity location
+};
+
 struct clientidentity
 {
     uint ip;
@@ -397,7 +407,6 @@ void sendiplist(int receiver, int cn = -1);
 int clienthasflag(int cn);
 bool refillteams(bool now = false, int ftr = FTR_AUTOTEAM);
 void changeclientrole(int client, int role, char *pwd = NULL, bool force=false);
-mapstats *getservermapstats(const char *mapname, bool getlayout = false, int *maploc = NULL);
 int findmappath(const char *mapname, char *filename = NULL);
 int calcscores();
 void recordpacket(int chan, void *data, int len);
@@ -412,9 +421,6 @@ void forcedeath(client *cl);
 void sendf(int cn, int chan, const char *format, ...);
 
 extern bool isdedicated;
-extern string smapname;
-extern mapstats smapstats;
-extern char *maplayout;
 
 const char *messagenames[SV_NUM] =
 {

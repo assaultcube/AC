@@ -37,18 +37,18 @@ void processevent(client *c, shotevent &e)
 {
     clientstate &gs = c->state;
     int wait = e.millis - gs.lastshot;
-    if(!gs.isalive(gamemillis) ||
+    if(!gs.isalive(sg->gamemillis) ||
        !valid_weapon(e.gun) ||
        wait<gs.gunwait[e.gun] ||
        gs.mag[e.gun]<=0)
         return;
 
-    if(e.gun == GUN_AKIMBO && gs.akimbomillis < gamemillis) return;
+    if(e.gun == GUN_AKIMBO && gs.akimbomillis < sg->gamemillis) return;
     if(e.gun!=GUN_KNIFE) gs.mag[e.gun]--;
     loopi(NUMGUNS) if(gs.gunwait[i]) gs.gunwait[i] = max(gs.gunwait[i] - (e.millis-gs.lastshot), 0);
     gs.lastshot = e.millis;
     gs.gunwait[e.gun] = attackdelay(e.gun);
-    if(e.gun==GUN_PISTOL && gs.akimbomillis>gamemillis) gs.gunwait[e.gun] /= 2;
+    if(e.gun==GUN_PISTOL && gs.akimbomillis>sg->gamemillis) gs.gunwait[e.gun] /= 2;
     sendf(-1, 1, "ri6x", SV_SHOTFX, c->clientnum, e.gun,
 //         int(e.from[0]*DMF), int(e.from[1]*DMF), int(e.from[2]*DMF),
         int(e.to[0]*DMF), int(e.to[1]*DMF), int(e.to[2]*DMF),
@@ -115,20 +115,20 @@ void processevent(client *c, suicideevent &e)
 void processevent(client *c, pickupevent &e)
 {
     clientstate &gs = c->state;
-    if(m_mp(gamemode) && !gs.isalive(gamemillis)) return;
+    if(m_mp(gamemode) && !gs.isalive(sg->gamemillis)) return;
     serverpickup(e.ent, c->clientnum);
 }
 
 void processevent(client *c, reloadevent &e)
 {
     clientstate &gs = c->state;
-    if(!gs.isalive(gamemillis) ||
+    if(!gs.isalive(sg->gamemillis) ||
        !valid_weapon(e.gun) ||
        !reloadable_gun(e.gun) ||
        gs.ammo[e.gun]<=0)
         return;
 
-    if(e.gun == GUN_AKIMBO && gs.akimbomillis < gamemillis) return;
+    if(e.gun == GUN_AKIMBO && gs.akimbomillis < sg->gamemillis) return;
     bool akimbo = e.gun==GUN_PISTOL && gs.akimbomillis>e.millis;
     int mag = (akimbo ? 2 : 1) * magsize(e.gun), numbullets = min(gs.ammo[e.gun], mag - gs.mag[e.gun]);
     if(numbullets<=0) return;
@@ -150,7 +150,7 @@ void processevent(client *c, reloadevent &e)
 void processevent(client *c, akimboevent &e)
 {
     clientstate &gs = c->state;
-    if(!gs.isalive(gamemillis) || gs.akimbomillis) return;
+    if(!gs.isalive(sg->gamemillis) || gs.akimbomillis) return;
     gs.akimbomillis = e.millis+30000;
 }
 
@@ -167,13 +167,13 @@ void processevents()
     {
         client *c = clients[i];
         if(c->type==ST_EMPTY) continue;
-        if(c->state.akimbomillis && c->state.akimbomillis < gamemillis) { c->state.akimbomillis = 0; c->state.akimbo = false; }
+        if(c->state.akimbomillis && c->state.akimbomillis < sg->gamemillis) { c->state.akimbomillis = 0; c->state.akimbo = false; }
         while(c->events.length())
         {
             gameevent &e = c->events[0];
             if(e.type<GE_SUICIDE)
             {
-                if(e.shot.millis>gamemillis) break;
+                if(e.shot.millis>sg->gamemillis) break;
                 if(e.shot.millis<c->lastevent) { clearevent(c); continue; }
                 c->lastevent = e.shot.millis;
             }

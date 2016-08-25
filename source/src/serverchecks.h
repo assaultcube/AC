@@ -5,15 +5,15 @@ inline bool is_lagging(client *cl)
 
 inline bool outside_border(vec &po)
 {
-    return (po.x < 0 || po.y < 0 || po.x >= maplayoutssize || po.y >= maplayoutssize);
+    return sg->curmap && (po.x < sg->curmap->x1 || po.y < sg->curmap->y1 || po.x > sg->curmap->x2 || po.y > sg->curmap->y2 || po.z < sg->curmap->zmin || po.z > sg->curmap->zmax);
 }
 
 inline void checkclientpos(client *cl)
 {
     vec &po = cl->state.o;
-    if( outside_border(po) || maplayout[((int) po.x) + (((int) po.y) << maplayout_factor)] > po.z + 3)
+    if(outside_border(po) || (sg->curmap && sg->layout && sg->layout[((int) po.x) + (((int) po.y) << sg->curmap->sfactor)] > po.z + 3))
     {
-        if(gamemillis > 10000 && (servmillis - cl->connectmillis) > 10000) cl->mapcollisions++;
+        if(sg->gamemillis > 10000 && (servmillis - cl->connectmillis) > 10000) cl->mapcollisions++;
         if(cl->mapcollisions && !(cl->mapcollisions % 25))
         {
             logline(ACLOG_INFO, "[%s] %s is colliding with the map", cl->hostname, cl->name);
@@ -31,75 +31,6 @@ extern inline void addban(client *cl, int reason, int type = BAN_AUTO);
 
 #define MINELINE 50
 
-//FIXME
-/* There are smarter ways to implement this function, but most probably they will be very complex */
-int getmaxarea(int inversed_x, int inversed_y, int transposed, int ml_factor, char *ml)
-{
-    int ls = (1 << ml_factor);
-    int xi = 0, oxi = 0, xf = 0, oxf = 0, fx = 0, fy = 0;
-    int area = 0, maxarea = 0;
-    bool sav_x = false, sav_y = false;
-
-    if (transposed) fx = ml_factor;
-    else fy = ml_factor;
-
-    // walk on x for each y
-    for ( int y = (inversed_y ? ls-1 : 0); (inversed_y ? y >= 0 : y < ls); (inversed_y ? y-- : y++) ) {
-
-    /* Analyzing each cube of the line */
-        for ( int x = (inversed_x ? ls-1 : 0); (inversed_x ? x >= 0 : x < ls); (inversed_x ? x-- : x++) ) {
-            if ( ml[ ( x << fx ) + ( y << fy ) ] != 127 ) {      // if it is not solid
-                if ( sav_x ) {                                          // if the last cube was saved
-                    xf = x;                                             // new end for this line
-                }
-                else {
-                    xi = x;                                             // new begin of the line
-                    sav_x = true;                                       // accumulating cubes from now
-                }
-            } else {                                    // solid
-                if ( xf - xi > MINELINE ) break;                        // if the empty line is greater than a minimum, get out
-                sav_x = false;                                          // stop the accumulation of cubes
-            }
-        }
-
-    /* Analyzing this line with the previous one */
-        if ( xf - xi > MINELINE ) {                                     // if the line has the minimun threshold of emptiness
-            if ( sav_y ) {                                              // if the last line was saved
-                if ( 2*oxi + MINELINE < 2*xf &&
-                     2*xi + MINELINE < 2*oxf ) {                        // if the last line intersect this one
-                    area += xf - xi;
-                } else {
-                    oxi = xi;                                           // new area vertices
-                    oxf = xf;
-                }
-            }
-            else {
-                oxi = xi;
-                oxf = xf;
-                sav_y = true;                                           // accumulating lines from now
-            }
-        } else {
-            sav_y = false;                                              // stop the accumulation of lines
-            if (area > maxarea) maxarea = area;                         // new max area
-            area=0;
-        }
-
-        sav_x = false;                                                  // reset x
-        xi = xf = 0;
-    }
-    return maxarea;
-}
-
-int checkarea(int maplayout_factor, char *maplayout)
-{
-    int area = 0, maxarea = 0;
-    for (int i=0; i < 8; i++) {
-        area = getmaxarea((i & 1),(i & 2),(i & 4), maplayout_factor, maplayout);
-        if ( area > maxarea ) maxarea = area;
-    }
-    return maxarea;
-}
-
 /**
 This part is related to medals system. WIP
  */
@@ -116,7 +47,7 @@ inline void addpt(client *c, int points, int n = -1) {
     c->state.points += points;
     c->md.dpt += points;
     c->md.updated = true;
-    c->md.upmillis = gamemillis + 240; // about 2 AR shots
+    c->md.upmillis = sg->gamemillis + 240; // about 2 AR shots
     print_medal_messages(c,n);
 }
 
@@ -278,9 +209,9 @@ int checkteamrequests(int sender)
     loopv(clients) {
         client *prot = clients[i];
         if ( i!=sender && prot->type != ST_EMPTY && prot->team == ant->team &&
-             prot->state.state == CS_ALIVE && prot->md.askmillis > gamemillis && prot->md.ask >= 0 ) {
+             prot->state.state == CS_ALIVE && prot->md.askmillis > sg->gamemillis && prot->md.ask >= 0 ) {
             float dist = POW2XY(ant->state.o,prot->state.o);
-            if ( dist < REPLYDIST && (dtime=prot->md.askmillis-gamemillis) > besttime) {
+            if ( dist < REPLYDIST && (dtime=prot->md.askmillis - sg->gamemillis) > besttime) {
                 bestid = i;
                 besttime = dtime;
             }
@@ -298,14 +229,14 @@ void checkteamplay(int s, int sender)
     if ( actor->state.state != CS_ALIVE ) return;
     switch(s){
         case S_IMONDEFENSE: // informs
-            actor->md.linkmillis = gamemillis + 20000;
+            actor->md.linkmillis = sg->gamemillis + 20000;
             actor->md.linkreason = s;
             break;
         case S_COVERME: // demands
         case S_STAYTOGETHER:
         case S_STAYHERE:
             actor->md.ask = s;
-            actor->md.askmillis = gamemillis + 5000;
+            actor->md.askmillis = sg->gamemillis + 5000;
             break;
         case S_AFFIRMATIVE: // replies
         case S_ALLRIGHTSIR:
@@ -315,8 +246,8 @@ void checkteamplay(int s, int sender)
             if ( id >= 0 ) {
                 client *sgt = clients[id];
                 actor->md.linked = id;
-                if ( actor->md.linkmillis < gamemillis ) addpt(actor,REPLYPT);
-                actor->md.linkmillis = gamemillis + 30000;
+                if ( actor->md.linkmillis < sg->gamemillis ) addpt(actor,REPLYPT);
+                actor->md.linkmillis = sg->gamemillis + 30000;
                 actor->md.linkreason = sgt->md.ask;
                 sendf(actor->clientnum, 1, "ri2", SV_HUDEXTRAS, HE_NUM+id);
                 switch( actor->md.linkreason ) { // check demands
@@ -336,7 +267,7 @@ void computeteamwork(int team, int exclude) // testing
     loopv(clients)
     {
         client *actor = clients[i];
-        if ( i == exclude || actor->type == ST_EMPTY || actor->team != team || actor->state.state != CS_ALIVE || actor->md.linkmillis < gamemillis ) continue;
+        if ( i == exclude || actor->type == ST_EMPTY || actor->team != team || actor->state.state != CS_ALIVE || actor->md.linkmillis < sg->gamemillis ) continue;
         vec position;
         bool teamworkdone = false;
         switch( actor->md.linkreason )
@@ -387,7 +318,7 @@ inline bool testcover(int msg, int factor, client *actor)
 
 bool validlink(client *actor, int cn)
 {
-    return actor->md.linked >= 0 && actor->md.linked == cn && gamemillis < actor->md.linkmillis && valid_client(actor->md.linked);
+    return actor->md.linked >= 0 && actor->md.linked == cn && sg->gamemillis < actor->md.linkmillis && valid_client(actor->md.linked);
 }
 
 /** WIP */
@@ -402,8 +333,8 @@ void checkcover(client *target, client *actor)
     int cnumber = totalclients < 13 ? totalclients : 12;
 
     if ( m_flags ) {
-        sflaginfo &f = sflaginfos[team];
-        sflaginfo &of = sflaginfos[oteam];
+        sflaginfo &f = sg->sflaginfos[team];
+        sflaginfo &of = sg->sflaginfos[oteam];
 
         if ( m_ctf )
         {
@@ -511,7 +442,7 @@ void check_afk()
         client &c = *clients[i];
         if ( c.type != ST_TCPIP || c.connectmillis + 60 * 1000 > servmillis ||
              c.inputmillis + scl.afk_limit > servmillis || clienthasflag(c.clientnum) != -1 ) continue;
-        if ( ( c.state.state == CS_DEAD && !m_arena && c.state.lastdeath + 45 * 1000 < gamemillis) ||
+        if ( ( c.state.state == CS_DEAD && !m_arena && c.state.lastdeath + 45 * 1000 < sg->gamemillis) ||
              ( c.state.state == CS_ALIVE && c.upspawnp ) /*||
              ( c.state.state == CS_SPECTATE && totalclients >= scl.maxclients )  // only kick spectator if server is full - 2011oct16:flowtron: mmh, that seems reasonable enough .. still, kicking spectators for inactivity seems harsh! disabled ATM, kick them manually if you must.
              */
@@ -530,9 +461,9 @@ void check_afk()
     In normal games, the players go over 6 tks only in the worst cases */
 void check_ffire(client *target, client *actor, int damage)
 {
-    if ( mastermode != MM_OPEN ) return;
+    if ( sg->mastermode != MM_OPEN ) return;
     actor->ffire += damage;
-    if ( actor->ffire > 300 && actor->ffire * 600 > gamemillis) {
+    if ( actor->ffire > 300 && actor->ffire * 600 > sg->gamemillis) {
         logline(ACLOG_INFO, "[%s] %s %s", actor->hostname, actor->name, "kicked for excessive friendly fire");
         defformatstring(msg)("%s %s", actor->name, "kicked for excessive friendly fire");
         sendservmsg(msg);
@@ -573,8 +504,8 @@ If you know nothing about these detections, please, just ignore it.
 
 inline void checkmove(client *cl)
 {
-    cl->ldt = gamemillis - cl->lmillis;
-    cl->lmillis = gamemillis;
+    cl->ldt = sg->gamemillis - cl->lmillis;
+    cl->lmillis = sg->gamemillis;
     if ( cl->ldt < 40 ) cl->ldt = 40;
     cl->t += cl->ldt;
     cl->spj = (( 7 * cl->spj + cl->ldt ) >> 3);
@@ -585,7 +516,6 @@ inline void checkmove(client *cl)
         cl->inputmillis = servmillis;
     }
 
-    if(maplayout) checkclientpos(cl);
 
 #ifdef ACAC
     m_engine(cl);

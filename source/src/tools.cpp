@@ -79,6 +79,20 @@ int fixmapheadersize(int version, int headersize)   // we can't trust hdr.header
     return headersize;
 }
 
+header *peekmapheader(uchar *data, int len) // extract the header from an in-memory mapfile (doesn't process all values: only used to get the map revision and timestamp)
+{
+    static header h;
+    uLongf rawsize = (int)sizeof(header);
+    if(uncompress((Bytef*)&h, &rawsize, data, len) == Z_BUF_ERROR && (!strncmp(h.head, "CUBE", 4) || !strncmp(h.head, "ACMP",4)))
+    {
+        lilswap(&h.version, 4); // version, headersize, sfactor, numents
+        if(h.version < 4) memset(&h.waterlevel, 0, sizeof(int) * 16);
+        else lilswap(&h.maprevision, 4); // maprevision, ambient, flags, timestamp
+        return &h;
+    }
+    return NULL;
+}
+
 // map geometry statistics
 
 servsqr *createservworld(const sqr *s, int _cubicsize) // create a server-style floorplan on the client, to use same statistics functions on client and server
@@ -316,185 +330,12 @@ const char *rateentitystats(entitystats_s &es)
 }
 #endif
 
-
-
 int cmpintasc(const int *a, const int *b) { return *a - *b; } // leads to ascending sort order
 int cmpintdesc(const int *a, const int *b) { return *b - *a; } // leads to descending sort order
 int stringsort(const char **a, const char **b) { return strcmp(*a, *b); }
 int stringsortrev(const char **a, const char **b) { return strcmp(*b, *a); }
 int stringsortignorecase(const char **a, const char **b) { return strcasecmp(*a, *b); }
 int stringsortignorecaserev(const char **a, const char **b) { return strcasecmp(*b, *a); }
-
-extern char *maplayout, *testlayout;
-extern int maplayout_factor, testlayout_factor, Mvolume, Marea, Mopen, SHhits;
-extern float Mheight;
-extern int checkarea(int, char *);
-
-mapstats *loadmapstats(const char *filename, bool getlayout)
-{
-    const int sizeof_header = sizeof(header), sizeof_baseheader = sizeof_header - sizeof(int) * 16;
-    static mapstats s;
-    static uchar *enttypes = NULL;
-    static short *entposs = NULL;
-
-    DELETEA(enttypes);
-    loopi(MAXENTTYPES) s.entcnt[i] = 0;
-    loopi(3) s.spawns[i] = 0;
-    loopi(2) s.flags[i] = 0;
-
-    stream *f = opengzfile(filename, "rb");
-    if(!f) return NULL;
-    memset(&s.hdr, 0, sizeof_header);
-    if(f->read(&s.hdr, sizeof_baseheader) != sizeof_baseheader || (strncmp(s.hdr.head, "CUBE", 4) && strncmp(s.hdr.head, "ACMP",4))) { delete f; return NULL; }
-    lilswap(&s.hdr.version, 4);
-    s.hdr.headersize = fixmapheadersize(s.hdr.version, s.hdr.headersize);
-    int restofhead = min(s.hdr.headersize, sizeof_header) - sizeof_baseheader;
-    if(s.hdr.version > MAPVERSION || s.hdr.numents > MAXENTITIES ||
-       f->read(&s.hdr.waterlevel, restofhead) != restofhead ||
-       !f->seek(clamp(s.hdr.headersize - sizeof_header, 0, MAXHEADEREXTRA), SEEK_CUR)) { delete f; return NULL; }
-    if(s.hdr.version>=4)
-    {
-        lilswap(&s.hdr.waterlevel, 1);
-        lilswap(&s.hdr.maprevision, 2);
-    }
-    else s.hdr.waterlevel = -100000;
-    entity e;
-    enttypes = new uchar[s.hdr.numents];
-    entposs = new short[s.hdr.numents * 3];
-    loopi(s.hdr.numents)
-    {
-        f->read(&e, s.hdr.version < 10 ? 12 : sizeof(persistent_entity));
-        lilswap((short *)&e, 4);
-        transformoldentitytypes(s.hdr.version, e.type);
-        if(e.type == PLAYERSTART && (e.attr2 == 0 || e.attr2 == 1 || e.attr2 == 100)) s.spawns[e.attr2 == 100 ? 2 : e.attr2]++;
-        if(e.type == CTF_FLAG && (e.attr2 == 0 || e.attr2 == 1)) { s.flags[e.attr2]++; s.flagents[e.attr2] = i; }
-        s.entcnt[e.type]++;
-        enttypes[i] = e.type;
-        entposs[i * 3] = e.x; entposs[i * 3 + 1] = e.y; entposs[i * 3 + 2] = e.z + e.attr1;
-    }
-    DELETEA(testlayout);
-    int minfloor = 0;
-    int maxceil = 0;
-    if(s.hdr.sfactor <= LARGEST_FACTOR && s.hdr.sfactor >= SMALLEST_FACTOR)
-    {
-        testlayout_factor = s.hdr.sfactor;
-        int layoutsize = 1 << (testlayout_factor * 2);
-        bool fail = false;
-        testlayout = new char[layoutsize + 256];
-        memset(testlayout, 0, layoutsize * sizeof(char));
-        char *t = NULL;
-        char floor = 0, ceil;
-        int diff = 0;
-        Mvolume = Marea = SHhits = 0;
-        loopk(layoutsize)
-        {
-            char *c = testlayout + k;
-            int type = f->getchar();
-            int n = 1;
-            switch(type)
-            {
-                case 255:
-                {
-                    if(!t || (n = f->getchar()) < 0) { fail = true; break; }
-                    memset(c, *t, n);
-                    k += n - 1;
-                    break;
-                }
-                case 254: // only in MAPVERSION<=2
-                    if(!t) { fail = true; break; }
-                    *c = *t;
-                    f->getchar(); f->getchar();
-                    break;
-                default:
-                    if(type<0 || type>=MAXTYPE)  { fail = true; break; }
-                    floor = f->getchar();
-                    ceil = f->getchar();
-                    if(floor >= ceil && ceil > -128) floor = ceil - 1;  // for pre 12_13
-                    diff = ceil - floor;
-                    if(type == FHF) floor = -128;
-                    if(floor!=-128 && floor<minfloor) minfloor = floor;
-                    if(ceil>maxceil) maxceil = ceil;
-                    f->getchar(); f->getchar();
-                    if(s.hdr.version>=2) f->getchar();
-                    if(s.hdr.version>=5) f->getchar();
-
-                case SOLID:
-                    *c = type == SOLID ? 127 : floor;
-                    f->getchar(); f->getchar();
-                    if(s.hdr.version<=2) { f->getchar(); f->getchar(); }
-                    break;
-            }
-            if ( type != SOLID && diff > 6 )
-            {
-                // Lucas (10mar2013): Removed "pow2" because it was too strict
-                if (diff > MAXMHEIGHT) SHhits += /*pow2*/(diff-MAXMHEIGHT)*n;
-                Marea += n;
-                Mvolume += diff * n;
-            }
-            if(fail) break;
-            t = c;
-        }
-        if(fail) { DELETEA(testlayout); }
-        else
-        {
-            Mheight = Marea ? (float)Mvolume/Marea : 0;
-            Mopen = checkarea(testlayout_factor, testlayout);
-        }
-    }
-    if(getlayout)
-    {
-        DELETEA(maplayout);
-        if (testlayout)
-        {
-            maplayout_factor = testlayout_factor;
-            extern int maplayoutssize;
-            maplayoutssize = 1 << testlayout_factor;
-            int layoutsize = 1 << (testlayout_factor * 2);
-            maplayout = new char[layoutsize + 256];
-            memcpy(maplayout, testlayout, layoutsize * sizeof(char));
-
-/*            memset(&mapdims, 0, sizeof(struct mapdim_s));
-            mapdims.x1 = mapdims.y1 = maplayoutssize;
-            loopk(layoutsize) if (testlayout[k] != 127)
-            {
-                int cwx = k%maplayoutssize,
-                cwy = k/maplayoutssize;
-                if(cwx < mapdims.x1) mapdims.x1 = cwx;
-                if(cwy < mapdims.y1) mapdims.y1 = cwy;
-                if(cwx > mapdims.x2) mapdims.x2 = cwx;
-                if(cwy > mapdims.y2) mapdims.y2 = cwy;
-            }
-            mapdims.xspan = mapdims.x2 - mapdims.x1;
-            mapdims.yspan = mapdims.y2 - mapdims.y1;
-            mapdims.minfloor = minfloor;
-            mapdims.maxceil = maxceil;
-*/        }
-    }
-    delete f;
-    s.hasffaspawns = s.spawns[2] > 0;
-    s.hasteamspawns = s.spawns[0] > 0 && s.spawns[1] > 0;
-    s.hasflags = s.flags[0] > 0 && s.flags[1] > 0;
-    s.enttypes = enttypes;
-    s.entposs = entposs;
-    s.cgzsize = getfilesize(filename);
-    return &s;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 ///////////////////////// debugging ///////////////////////
 

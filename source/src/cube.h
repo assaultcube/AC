@@ -41,7 +41,6 @@ extern vector<entity> ents;             // map entities
 extern vec worldpos, camup, camright, camdir; // current target of the crosshair in the world
 extern int lastmillis, totalmillis, skipmillis; // last time
 extern int curtime;                     // current frame time
-extern int interm;
 extern int gamemode, nextmode;
 extern int gamespeed;
 extern int xtraverts;

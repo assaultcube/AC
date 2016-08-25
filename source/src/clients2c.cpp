@@ -236,7 +236,6 @@ void parsepositions(ucharbuf &p)
     }
 }
 
-extern int checkarea(int maplayout_factor, char *maplayout);
 char *mlayout = NULL;
 int Mv = 0, Ma = 0, F2F = 1000 * MINFF; // moved up:, MA = 0;
 float Mh = 0;
@@ -245,68 +244,6 @@ extern bool noflags;
 bool item_fail = false;
 int map_quality = MAP_IS_EDITABLE;
 
-/// TODO: many functions and variables are redundant between client and server... someone should redo the entire server code and unify client and server.
-bool good_map() // call this function only at startmap
-{
-    return true;
-    if (mlayout) MA = checkarea(sfactor, mlayout);
-
-    F2F = 1000 * MINFF;
-    if(m_flags)
-    {
-//        flaginfo &f0 = flaginfos[0];
-  //      flaginfo &f1 = flaginfos[1];
-#define DIST(x) (f0.pos.x - f1.pos.x)
-        F2F = 1000;//(!numflagspawn[0] || !numflagspawn[1]) ? 1000 * MINFF : DIST(x)*DIST(x)+DIST(y)*DIST(y);
-#undef DIST
-    }
-
-    item_fail = false;
-    loopv(ents)
-    {
-        entity &e1 = ents[i];
-        if (e1.type < I_CLIPS || e1.type > I_AKIMBO) continue;
-        float density = 0, hdensity = 0;
-        loopvj(ents)
-        {
-            entity &e2 = ents[j];
-            if (e2.type < I_CLIPS || e2.type > I_AKIMBO || i == j) continue;
-            // only I_CLIPS, I_AMMO, I_GRENADE, I_HEALTH, I_HELMET, I_ARMOUR, I_AKIMBO
-#define DIST(x) (e1.x - e2.x)
-#define DIST_ATT ((e1.z + float(e1.attr1) / entscale[e1.type][0]) - (e2.z + float(e2.attr1) / entscale[e2.type][0]))
-            float r2 = DIST(x)*DIST(x) + DIST(y)*DIST(y) + DIST_ATT*DIST_ATT;
-#undef DIST_ATT
-#undef DIST
-            if ( r2 == 0.0f ) { conoutf("\f3MAP CHECK FAIL: Items too close %s %s (%hd,%hd)", entnames[e1.type], entnames[e2.type],e1.x,e1.y); item_fail = true; break; }
-            r2 = 1/r2;
-            if (r2 < 0.0025f) continue;
-            if (e1.type != e2.type)
-            {
-                hdensity += r2;
-                continue;
-            }
-            density += r2;
-        }
-        if ( hdensity > 0.5f ) { conoutf("\f3MAP CHECK FAIL: Items too close %s %.2f (%hd,%hd)", entnames[e1.type],hdensity,e1.x,e1.y); item_fail = true; break; }
-        switch(e1.type)
-        {
-#define LOGTHISSWITCH(X) if( density > X ) { conoutf("\f3MAP CHECK FAIL: Items too close %s %.2f (%hd,%hd)", entnames[e1.type],density,e1.x,e1.y); item_fail = true; break; }
-            case I_CLIPS:
-            case I_HEALTH: LOGTHISSWITCH(0.24f); break;
-            case I_AMMO: LOGTHISSWITCH(0.04f); break;
-            case I_HELMET: LOGTHISSWITCH(0.02f); break;
-            case I_ARMOUR:
-            case I_GRENADE:
-            case I_AKIMBO: LOGTHISSWITCH(0.005f); break;
-            default: break;
-#undef LOGTHISSWITCH
-        }
-    }
-
-    map_quality = (!item_fail && F2F > MINFF && MA < MAXMAREA && Mh < MAXMHEIGHT && Hhits < MAXHHITS) ? MAP_IS_GOOD : MAP_IS_BAD;
-    if ( (!connected || gamemode == GMODE_COOPEDIT) && map_quality == MAP_IS_BAD ) map_quality = MAP_IS_EDITABLE;
-    return map_quality > 0;
-}
 
 VARP(hudextras, 0, 0, 3);
 
@@ -1532,7 +1469,6 @@ void receivefile(uchar *data, int len)
             int mapsize = getint(p);
             int cfgsize = getint(p);
             int cfgsizegz = getint(p);
-            /* int revision = */ getint(p);
             int size = mapsize + cfgsizegz;
             if(MAXMAPSENDSIZE < mapsize + cfgsizegz || cfgsize > MAXCFGFILESIZE) { // sam's suggestion
                 conoutf("map %s is too large to receive", text);
