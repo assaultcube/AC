@@ -247,6 +247,15 @@ int calcmapareastats(mapareastats_s &ms, servsqr *_servworld, int _ssize, const 
 
 void calcentitystats(entitystats_s &es, const persistent_entity *pents, int pentsize)
 {
+#ifndef STANDALONE
+    vector<persistent_entity> _pents;
+    if(!pents)
+    { // use regular ents list
+        loopv(ents) _pents.add() = ents[i];
+        pents = &_pents[0];
+        pentsize = _pents.length();
+    }
+#endif
     memset(&es, 0, sizeof(es));
     loopi(MAXENTTYPES) es.first[i] = pentsize;
     vector<int> picks;

@@ -657,39 +657,41 @@ void flagidle(int flag)
 
 void entstats_(void)
 {
-    int entcnt[MAXENTTYPES] = {0}, clipents = 0, spawncnt[5] = {0};
+    entitystats_s es;
+    calcentitystats(es, NULL, 0);
+    int clipents = 0;
     loopv(ents)
     {
         entity &e = ents[i];
-        if(e.type >= MAXENTTYPES) continue;
-        entcnt[e.type]++;
-        switch(e.type)
+        if(e.type == MAPMODEL)
         {
-            case MAPMODEL:
-            {
-                mapmodelinfo *mmi = getmminfo(e.attr2);
-                if(mmi && mmi->h) clipents++;
-                break;
-            }
-            case PLAYERSTART:
-                if(e.attr2 < 2) spawncnt[e.attr2]++;
-                if(e.attr2 == 100) spawncnt[2]++;
-                break;
-            case CTF_FLAG:
-                if(e.attr2 < 2) spawncnt[e.attr2 + 3]++;
-                break;
+            mapmodelinfo *mmi = getmminfo(e.attr2);
+            if(mmi && mmi->h) clipents++;
         }
     }
-    loopi(MAXENTTYPES)
+    string txt = "", clips = "";
+    loopi(MAXENTTYPES) if(es.entcnt[i]) switch(i)
     {
-        if(entcnt[i]) switch(i)
-        {
-            case MAPMODEL:      conoutf(" %d %s, %d clipped", entcnt[i], entnames[i], clipents); break;
-            case PLAYERSTART:   conoutf(" %d %s, %d CLA, %d RVSF, %d FFA", entcnt[i], entnames[i], spawncnt[0], spawncnt[1], spawncnt[2]); break;
-            case CTF_FLAG:      conoutf(" %d %s, %d CLA, %d RVSF", entcnt[i], entnames[i], spawncnt[3], spawncnt[4]); break;
-            default:            conoutf(" %d %s", entcnt[i], entnames[i]); break;
-        }
+        case MAPMODEL:      conoutf(" %d %s, %d clipped", es.entcnt[i], entnames[i], clipents); break;
+        case PLAYERSTART:   conoutf(" %d %s, %d CLA, %d RVSF, %d FFA%c \f3unknown %d", es.entcnt[i], entnames[i], es.spawns[0], es.spawns[1], es.spawns[2], es.unknownspawns ? ',' : '\0', es.unknownspawns); break;
+        case CTF_FLAG:      conoutf(" %d %s, %d CLA, %d RVSF%c \f3unknown %d", es.entcnt[i], entnames[i], es.flags[0], es.flags[1], es.unknownflags ? ',' : '\0', es.unknownflags); break;
+        case CLIP:
+        case PLCLIP:        concatformatstring(clips, ", %d %s", es.entcnt[i], entnames[i]); break;
+        case NOTUSED:       conoutf(" %d deleted", es.entcnt[i]); break;
+        default:            if(isitem(i)) concatformatstring(txt, ", %d %s", es.entcnt[i], entnames[i]);
+                            else conoutf(" %d %s", es.entcnt[i], entnames[i]);
+                            break;
     }
+    if(*clips) conoutf(" %s", clips + 2);
+    if(es.pickups)
+    {
+        conoutf(" %d pickups:%s", es.pickups, txt + 1);
+        *txt = '\0';
+        loopi(LARGEST_FACTOR + 1) concatformatstring(txt, " %d", es.pickupdistance[i]);
+        conoutf(" pickupdistance:%s", txt);
+    }
+    if(es.entcnt[CTF_FLAG]) conoutf(" flag distance: %d", es.flagentdistance);
+    conoutf(" map capabilities: has ffa spawns %d, has team spawns %d, has flags %d", es.hasffaspawns ? 1 : 0, es.hasteamspawns ? 1 : 0, es.hasflags ? 1 : 0);
     conoutf("total entities: %d", ents.length());
 }
 
