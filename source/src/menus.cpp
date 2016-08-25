@@ -683,8 +683,8 @@ struct mitemkeyinput : mitem
     static const char *unknown, *empty;
     bool capture;
 
-    mitemkeyinput(gmenu *parent, char *text, char *bindcmd, color *bgcolor) : mitem(parent, bgcolor, mitem::TYPE_KEYINPUT), text(text), bindcmd(bindcmd),
-                                                                              keyname(NULL), isup(0), bindtype(keym::ACTION_DEFAULT), capture(false) {};
+    mitemkeyinput(gmenu *parent, char *text, char *bindcmd, color *bgcolor, int bindtype) : mitem(parent, bgcolor, mitem::TYPE_KEYINPUT), text(text), bindcmd(bindcmd),
+                                                                              keyname(NULL), isup(0), bindtype(bindtype), capture(false) {};
 
     ~mitemkeyinput()
     {
@@ -1027,9 +1027,23 @@ COMMAND(menuitemslider, "siisiss");
 void menuitemkeyinput(char *text, char *bindcmd)
 {
     if(!lastmenu) return;
-    lastmenu->items.add(new mitemkeyinput(lastmenu, newstring(text), newstring(bindcmd), NULL));
+    lastmenu->items.add(new mitemkeyinput(lastmenu, newstring(text), newstring(bindcmd), NULL, keym::ACTION_DEFAULT));
 }
 COMMAND(menuitemkeyinput, "ss");
+
+void menuitemeditkeyinput(char *text, char *bindcmd)
+{
+    if(!lastmenu) return;
+    lastmenu->items.add(new mitemkeyinput(lastmenu, newstring(text), newstring(bindcmd), NULL, keym::ACTION_EDITING));
+}
+COMMAND(menuitemeditkeyinput, "ss");
+
+void menuitemspectkeyinput(char *text, char *bindcmd)
+{
+    if(!lastmenu) return;
+    lastmenu->items.add(new mitemkeyinput(lastmenu, newstring(text), newstring(bindcmd), NULL, keym::ACTION_SPECTATOR));
+}
+COMMAND(menuitemspectkeyinput, "ss");
 
 void menuitemcheckbox(char *text, char *value, char *action)
 {
