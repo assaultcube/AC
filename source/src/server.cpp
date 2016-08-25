@@ -4758,6 +4758,8 @@ void initserver(bool dedicated)
         readmapsthread_sem = new sl_semaphore(0, NULL);
         defformatstring(readmapslogfilename)("%sreadmaps_log.txt", scl.logfilepath);
         sl_createthread(readmapsthread, (void *)path(readmapslogfilename));
+        defformatstring(_modeinfologfilename)("%smisc/modeinfo.txt", scl.logfilepath);
+        modeinfologfilename = path(_modeinfologfilename);
 
         readserverconfigsthread_sem = new sl_semaphore(0, NULL);
         sl_createthread(readserverconfigsthread, NULL);

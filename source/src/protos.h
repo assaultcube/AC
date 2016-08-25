@@ -1038,6 +1038,7 @@ extern void localservertoclient(int chan, uchar *buf, int len, bool demo = false
 extern const char *modestr(int n, bool acronyms = false);
 extern const char *voteerrorstr(int n);
 extern const char *mmfullname(int n);
+extern void filterconfigset(char *list, void *cs = NULL);
 extern void fatal(const char *s, ...) PRINTFARGS(1, 2);
 extern void initserver(bool dedicated);
 extern void cleanupserver();

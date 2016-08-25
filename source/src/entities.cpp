@@ -623,6 +623,7 @@ void entstats_(void)
     }
     if(es.entcnt[CTF_FLAG]) conoutf(" flag distance: %d", es.flagentdistance);
     conoutf(" map capabilities: has ffa spawns %d, has team spawns %d, has flags %d", es.hasffaspawns ? 1 : 0, es.hasteamspawns ? 1 : 0, es.hasflags ? 1 : 0);
+    if(es.modes_possible & GMMASK__MPNOCOOP) conoutf(" possible multiplayer modes: %s", gmode_enum(es.modes_possible & GMMASK__MPNOCOOP, txt));
     conoutf("total entities: %d", ents.length());
     intret(xmodels + xsounds);
 }

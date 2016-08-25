@@ -454,6 +454,8 @@ void sendf(int cn, int chan, const char *format, ...);
 
 extern bool isdedicated;
 
+const char *modeinfologfilename = NULL;
+
 const char *messagenames[SV_NUM] =
 {
     "SV_SERVINFO", "SV_SERVINFO_RESPONSE", "SV_SERVINFO_CONTD", "SV_WELCOME", "SV_INITCLIENT", "SV_POS", "SV_POSC", "SV_POSN",

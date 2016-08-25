@@ -283,7 +283,7 @@ void unpackheaderextra(uchar *buf, int len)  // break the extra data from the ma
     while(1)
     {
         int len = getuint(p), flags = getuint(p);
-        if(p.overread() || len > p.remaining()) break;
+        if(p.overread() || len > p.remaining() || len < 0 || flags < 0) break;
         DEBUGCODE(clientlogf(" found headerextra \"%s\", %d bytes%s", hx_name(flags & HX_TYPEMASK), len, flags & HX_FLAG_PERSIST ? ", persistent" : ""));  // debug info
         headerextras.add(new headerextra(len, flags, p.subbuf(len).buf));
     }
@@ -306,7 +306,8 @@ void parseheaderextra(bool clearnonpersist = true, int ignoretypes = 0)  // pars
 
             case HX_CONFIG:
                 setcontext("map", "embedded");
-                execute((const char *)q.buf); // needs to have '\0' at the end
+                if(headerextras[i]->len > 0 && headerextras[i]->data[headerextras[i]->len - 1] == '\0') execute((const char *)q.buf); // needs to have '\0' at the end, better check...
+                else conoutf("malformed emb config");
                 resetcontext();
                 break;
 
@@ -540,6 +541,111 @@ bool gotovantagepoint()
     return false;
 }
 COMMANDF(gotovantagepoint, "", () { intret((editmode || (!multiplayer(NULL) && player1->isspectating())) && gotovantagepoint() ? 1 : 0); });
+
+void modeinfo(char *mode, char *info)
+{
+    char *modeinfolines[GMODE_NUM] = { NULL };
+    string line, tmp;
+
+    // find and unpack HX_MODEINFO
+    int he = findheaderextra(HX_MODEINFO);
+    if(he >= 0)
+    {
+        ucharbuf q(headerextras[he]->data, headerextras[he]->len);
+        for(int mode = getuint(q); !q.overread() && mode > 0; mode = getuint(q))
+        {
+            getstring(line, q, MAXSTRLEN);
+            filterconfigset(line);
+            loopi(GMODE_NUM) if((mode & (1 << i)) && !modeinfolines[i]) modeinfolines[i] = newstring(line);
+        }
+    }
+
+    // parse command arguments and apply changes or generate output
+    vector<char> res;
+    copystring(line, info);
+    filterconfigset(line);
+    int modes = gmode_parse(mode), n = 0;
+    if(!strcmp(mode, "*") || !strcmp(mode, "all")) modes = GMMASK__MPNOCOOP;
+    else if(!strcmp(mode, "list"))
+    {
+        loopi(GMODE_NUM) if(modeinfolines[i] && ++n) conoutf("%s: %s", gmode_enum(1 << i, tmp), escapestring(modeinfolines[i]));
+        if(!n) conoutf("no modeinfo lines set");
+    }
+    else if(!strcmp(mode, "get"))
+    {
+        loopi(GMODE_NUM) if(modeinfolines[i]) cvecprintf(res, "%s %s\n", gmode_enum(1 << i, tmp), escapestring(modeinfolines[i]));
+    }
+    else if(!strcmp(mode, "clear"))
+    {
+        loopi(GMODE_NUM) if(modeinfolines[i]) { n++; DELSTRING(modeinfolines[i]); }
+        conoutf("deleted %d modeinfo lines", n);
+    }
+    if(modes) loopi(GMODE_NUM)
+    {
+        if(modes & (1 << i))
+        {
+            DELSTRING(modeinfolines[i]);
+            modeinfolines[i] = newstring(line);
+        }
+    }
+    if(res.length()) res.last() = '\0';
+    else res.add('\0');
+    result(res.getbuf());
+
+    // recreate HX_MODEINFO
+    for(int n; (n = findheaderextra(HX_MODEINFO)) >= 0; ) deleteheaderextra(n);
+    vector<uchar> p;
+    entitystats_s es;
+    calcentitystats(es, NULL, 0);
+    int todo = es.modes_possible;
+    bool have_modeinfo = false;
+    loopk(GMODE_NUM) if(modeinfolines[k] && modeinfolines[k][0] && (todo & (1 << k)))
+    {
+        int modes = 0;
+        for(int i = k; i < GMODE_NUM; i++)
+        {
+            if(modeinfolines[i] && !strcmp(modeinfolines[k], modeinfolines[i]))  modes |= (1 << i);
+        }
+        putuint(p, modes);
+        sendstring(modeinfolines[k], p);
+        todo &= ~modes;
+        have_modeinfo = true;
+    }
+    putuint(p, 0);
+    if(have_modeinfo) headerextras.add(new headerextra(p.length(), HX_MODEINFO|HX_FLAG_PERSIST, p.getbuf()));
+}
+COMMAND(modeinfo, "ss");
+
+void mapartist(char *what)
+{
+    uchar32 buf;
+    bool update = false, remove = false;;
+
+    // find and unpack HX_ARTIST
+    int he = findheaderextra(HX_ARTIST);
+    if(he >= 0 && headerextras[he]->len == 32) memcpy(buf.u, headerextras[he]->data, 32);
+
+    // parse command arguments and apply changes or generate output
+    string tmp;
+    if(!strcmp(what, "print")) conoutf("map artist key: %s", bin2hex(tmp, buf.u, 32));
+    else if(!strcmp(what, "set"))
+    {
+        if(*sk)
+        {
+            memcpy(buf.u, sk + 32, 32);
+            update = true;
+        }
+        else conoutf("no player account in use");
+    }
+    else if(!strcmp(what, "clear")) remove = true;
+    bin2hex(tmp, buf.u, 32);
+    result(he >= 0 || update ? tmp : "");
+
+    // recreate HX_ARTIST
+    if(update || remove) for(int n; (n = findheaderextra(HX_ARTIST)) >= 0; ) deleteheaderextra(n);
+    if(update) headerextras.add(new headerextra(32, HX_ARTIST|HX_FLAG_PERSIST, buf.u));
+}
+COMMAND(mapartist, "s");
 
 void setmapinfo(const char *newlicense, const char *newcomment)
 {

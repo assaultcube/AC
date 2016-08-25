@@ -31,12 +31,8 @@ struct configsetvalues
     };
 
     void empty() { weight = repeat = 0; time = mintime = maxtime = minplayers = maxplayers = maxteamsize = teamthreshold = manual = restrict = -1; }
-    void add(configsetvalues u)
-    {
-        weight = clamp(weight + u.weight, -100, 100);
-        repeat = clamp(repeat + u.repeat, -100, 100);
-        for(int i = 2; i < CONFIG_MAXPAR; i++) if(u.par[i] >= 0) par[i] = u.par[i];
-    }
+    void add(configsetvalues u);
+    bool parse(char *keyval);
 };
 
 // map management
@@ -82,6 +78,9 @@ struct servermap  // in-memory version of a map file on a server
     uchar *enttypes;                //             table of entity types
     short *entpos_x, *entpos_y;
 
+    configsetvalues *hx_modeinfo;   // maprot parameters from map author
+    uchar *hx_mapartist;            // pubkey of map artist
+
     int modes_allowed;              // modes_possible reduced to MP modes (if dedicated server)
     configsetvalues modes[GMODE_NUM];  // maprot parameters for this map
     int modes_auto;                 // modes to be suggested automatically
@@ -100,7 +99,7 @@ struct servermap  // in-memory version of a map file on a server
     #endif
 
     servermap(const char *mname, const char *mpath) { memset(&fname, 0, sizeof(struct servermap)); fname = newstring(mname); fpath = mpath; }
-    ~servermap() { delstring(fname); DELETEA(cgzraw); DELETEA(cfgrawgz); DELETEA(enttypes); DELETEA(entpos_x); DELETEA(entpos_y); DELETEA(layoutgz); }
+    ~servermap() { delstring(fname); DELETEA(cgzraw); DELETEA(cfgrawgz); DELETEA(enttypes); DELETEA(entpos_x); DELETEA(entpos_y); DELETEA(layoutgz); DELETEA(hx_modeinfo); DELETEA(hx_mapartist); }
 
     bool isro() { return fpath == servermappath_off || fpath == servermappath_serv; }
     bool isofficial() { return fpath == servermappath_off; }
@@ -137,7 +136,7 @@ struct servermap  // in-memory version of a map file on a server
 
         stream *f = NULL;
         int restofhead;
-        string filename;
+        string filename, tmp;
 
         if(!validmapname(fname)) err = "illegal filename";
         if(err) goto loadfailed;
@@ -225,9 +224,27 @@ struct servermap  // in-memory version of a map file on a server
                     case HX_CONFIG:
                         break;
 
-                    case HX_MAPINFO:
-                    case HX_MODEINFO:       // for new maprot...
+                    case HX_MODEINFO:
+                    {
+                        hx_modeinfo = new configsetvalues[GMODE_NUM];
+                        char done[GMODE_NUM] = { 0 };
+                        loopi(GMODE_NUM) hx_modeinfo[i].empty();
+                        string line;
+                        for(int mode = getuint(q); !q.overread() && mode > 0; mode = getuint(q))
+                        {
+                            getstring(line, q, MAXSTRLEN);
+                            loopi(GMODE_NUM) if((mode & (1 << i)) && !done[i]++) filterconfigset(line, hx_modeinfo + i);
+                            stream *mr = modeinfologfilename ? openfile(modeinfologfilename, "a") : NULL;
+                            if(mr) { mr->printf("%s  %s  %s\n", fname, gmode_enum(mode, tmp), line); delete mr; } // dump modeinfo lines to file, may be used as maprot
+                        }
+                        break;
+                    }
                     case HX_ARTIST:
+                        if(len == 32) q.get((hx_mapartist = new uchar[32]), 32);
+                        else err = "invalid HX_ARTIST record";
+                        break;
+
+                    case HX_MAPINFO:
                     default:
                         break;
                 }
@@ -288,6 +305,8 @@ struct servermap  // in-memory version of a map file on a server
                 entpos_x[i] = e.x;
                 entpos_y[i] = e.y;
             }
+            // respect map author wishes about disallowed modes
+            if(hx_modeinfo) loopi(GMODE_NUM) if(hx_modeinfo[i].restrict == 81) entstats.modes_possible &= ~(1 << i); // disallowed by elvis^2
         }
         if(err) goto loadfailed;
 
@@ -760,6 +779,60 @@ int readserverconfigsthread(void *data)
 
 #define MODEHISTLEN 64  // remember the game modes of the last hour (roughly)
 
+void configsetvalues::add(configsetvalues u)
+{
+    weight = clamp(weight + u.weight, -100, 100);
+    repeat = clamp(repeat + u.repeat, -100, 100);
+    for(int i = 2; i < CONFIG_MAXPAR; i++) if(u.par[i] >= 0) par[i] = u.par[i];
+}
+
+bool configsetvalues::parse(char *keyval) // parse one key:value pair
+{
+    char *kb, *k = strtok_r(keyval, ":", &kb);
+    if(k)
+    {
+        loopi(CONFIG_MAXPAR) if(!strcmp(k, maprotkeywords[i]))
+        {
+            if((k = strtok_r(NULL, ":", &kb)))
+            {
+                par[i] = clamp(atoi(k), -100, 100);
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+void filterconfigset(char *list, void *cs)
+{
+    configsetvalues e, u, *c = cs ? (configsetvalues *) cs : &u;
+    e.empty(), c->empty();
+    char *b, *kv = strtok_r(list, " ", &b);
+    while(kv)
+    {
+        c->parse(kv);
+        kv = strtok_r(NULL, " ", &b);
+    }
+    list[0] = '\0';
+    loopi(CONFIG_MAXPAR) if(c->par[i] != e.par[i]) concatformatstring(list, "%s%s:%d", list[0] ? " " : "", maprotkeywords[i], c->par[i]);
+}
+
+SERVSTRF(use_hx_modeinfo, "weight|time|mintime|maxtime|minplayers|maxplayers|maxteamsize|teamthreshold", 0, 159, FTXT__MAPROT, filter_use_hx_modeinfo, "gList of maprot keywords to copy from map headers");
+
+int use_hx_modeinfo_mask = 0;
+
+void filter_use_hx_modeinfo()
+{
+    use_hx_modeinfo_mask = 0;
+    char *tmp = newstring(use_hx_modeinfo), *b, *kv = strtok_r(tmp, "|", &b);
+    while(kv)
+    {
+        loopi(CONFIG_MAXPAR) if(!strcmp(kv, maprotkeywords[i])) use_hx_modeinfo_mask |= 1 << i;
+        kv = strtok_r(NULL, "|", &b);
+    }
+    delstring(tmp);
+}
+
 struct configset : configsetvalues
 {
     char mapname[MAXMAPNAMELEN + 1];
@@ -816,19 +889,7 @@ struct servermaprot : serverconfigfile
                     if(l) c.mmask = gmode_parse(l);
                     while((l = strtok_r(NULL, " ", &b)))
                     {
-                        char *kb, *k = strtok_r(l, ":", &kb);
-                        if(k)
-                        {
-                            loopi(CONFIG_MAXPAR) if(!strcmp(k, maprotkeywords[i]))
-                            {
-                                if((k = strtok_r(NULL, ":", &kb)))
-                                {
-                                    c.par[i] = clamp(atoi(k), -100, 100);
-                                    haskeywords = true;
-                                    break;
-                                }
-                            }
-                        }
+                        if(c.parse(l)) haskeywords = true;
                     }
                     if(haskeywords)
                     {
@@ -855,7 +916,15 @@ struct servermaprot : serverconfigfile
 
     void initmap(servermap *m, stream *f)  // set maprot parameters of a servermap
     {
+        configsetvalues e;
         memcpy(m->modes, base, sizeof(m->modes));
+        if(m->hx_modeinfo && use_hx_modeinfo_mask) loopj(GMODE_NUM)
+        {
+            e.empty();
+            loopk(CONFIG_MAXPAR) if(use_hx_modeinfo_mask & (1 << k)) e.par[k] = m->hx_modeinfo[j].par[k];
+            m->modes[j].add(e);
+        }
+
         loopv(configsets)
         {
             configset &c = configsets[i];
@@ -886,7 +955,6 @@ struct servermaprot : serverconfigfile
         {
             string s;
             f->printf("maprot parameters for: %s%s\n", m->fpath, m->fname);
-            configsetvalues e;
             e.empty();
             loopj(GMODE_NUM) if((1 << j) & GMMASK__MPNOCOOP)
             {
