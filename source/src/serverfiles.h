@@ -1,5 +1,18 @@
 // serverfiles.h
 
+// abuse globals to register server parameters
+#ifdef _DEBUG
+#define SERVPAR(name, min, cur, max, desc) int last_##name, name = addservparint(#name, min, cur, max, NULL, &name, &last_##name, NULL, false, true, desc)
+#define SERVPARLIST(name, min, cur, max, list, desc) int last_##name, name = addservparint(#name, min, cur, max, list, &name, &last_##name, NULL, false, true, desc)
+#define SERVPARF(name, min, cur, max, body, desc) extern int last_##name, name; void var_##name() { body; } int last_##name, name = addservparint(#name, min, cur, max, NULL,&name, &last_##name, var_##name, false, true, desc)
+#define SERVSTR(name, cur, min, max, filt, desc) char last_##name[max+1], name[max+1]; bool __sdummy_##name = addservparstr(#name, min, max, filt, cur, name, last_##name, NULL, false, true, desc)
+#else
+#define SERVPAR(name, min, cur, max, desc) int last_##name, name = addservparint(#name, min, cur, max, NULL, &name, &last_##name, NULL, false, true, NULL)
+#define SERVPARLIST(name, min, cur, max, list, desc) int last_##name, name = addservparint(#name, min, cur, max, list, &name, &last_##name, NULL, false, true, NULL)
+#define SERVPARF(name, min, cur, max, body, desc) extern int last_##name, name; void var_##name() { body; } int last_##name, name = addservparint(#name, min, cur, max, NULL, &name, &last_##name, var_##name, false, true, NULL)
+#define SERVSTR(name, cur, min, max, filt, desc) char last_##name[max+1], name[max+1]; bool __sdummy_##name = addservparstr(#name, min, max, filt, cur, name, last_##name, NULL, false, true, NULL)
+#endif
+
 // map management
 
 #define SERVERMAXMAPFACTOR 10       // 10 is huge... if you're running low on RAM, consider 9 as maximum (don't go higher than 10, or players will name their ugly dog after you)
@@ -1381,4 +1394,224 @@ struct serverinfofile : serverconfigfile  // plaintext info file, used for serve
         return s;
     }
 };
+
+// realtime server parameters
+
+enum { SID_INT, SID_STR };
+
+struct servpar
+{
+    int type;           // one of SPAR_* above
+    const char *name;
+    union
+    {
+        int minval;    // SID_INT
+        int minlen;    // SID_STR
+    };
+    union
+    {
+        int maxval;    // SID_INT
+        int maxlen;    // SID_STR
+    };
+    union
+    {
+        int *i;        // SID_INT
+        char *s;       // SID_STR
+    };
+    union
+    {
+        int *shadow_i;  // SID_INT
+        char *shadow_s; // SID_STR
+    };
+    void (*fun)();
+    union
+    {
+        const char **list; // SID_INT
+        const char *defaultstr;  // SID_STR
+    };
+    union
+    {
+        int defaultint; // SID_INT
+        int filter;     // SID_STR
+    };
+#ifdef _DEBUG
+    const char *desc;
+    int chapter;
+#endif
+    bool log;           // log value changes (careful!)
+    bool fromfile;      // true: value can be set by config file, false: value is set by server
+
+    servpar() {}
+
+    // SID_INT
+    servpar(int type, const char *name, int minval, int maxval, const char *list[], int *i, int *shadow_i, int defval, void (*fun)(), bool log, bool fromfile, const char *_desc)
+        : type(type), name(name), minval(minval), maxval(maxval), i(i), shadow_i(shadow_i), fun(fun), list(list), defaultint(defval), log(log), fromfile(fromfile)
+        { DEBUGCODE(desc = _desc); }
+
+    // SID_STR
+    servpar(int type, const char *name, int minlen, int maxlen, int filter, char *s, char *shadow_s, const char *defaultstr, void (*fun)(), bool log, int fromfile, const char *_desc)
+        : type(type), name(name), minlen(minlen), maxlen(maxlen), s(s), shadow_s(shadow_s), fun(fun), defaultstr(defaultstr), filter(filter), log(log), fromfile(fromfile)
+        { DEBUGCODE(desc = _desc;) }
+};
+
+hashtable<const char *, servpar> *servpars = NULL;
+
+int addservparint(const char *name, int minval, int cur, int maxval, const char *list[], int *storage, int *shadowstorage, void (*fun)(), bool log, bool fromfile, const char *desc)
+{
+    if(!servpars) servpars = new hashtable<const char *, servpar>;
+    if(list && minval == maxval) while(list[maxval - minval + 1][0]) maxval++; // get list length
+    ASSERT(cur >= minval && cur <= maxval);
+    servpar v(SID_INT, name, minval, maxval, list, storage, shadowstorage, cur, fun, log, fromfile, desc);
+    servpars->access(name, v);
+    *shadowstorage = cur;
+    return cur;
+}
+
+bool addservparstr(const char *name, int minlen, int maxlen, int filt, const char *cur, char *storage, char *shadowstorage, void (*fun)(), bool log, bool fromfile, const char *desc)
+{
+    if(!servpars) servpars = new hashtable<const char *, servpar>;
+    ASSERT(maxlen > minlen && minlen >= 0 && int(strlen(cur)) >= minlen && int(strlen(cur)) <= maxlen);
+    servpar v(SID_STR, name, minlen, maxlen, filt, storage, shadowstorage, cur, fun, log, fromfile, desc);
+    servpars->access(name, v);
+    strncpy(storage, cur, maxlen + 1);
+    strncpy(shadowstorage, cur, maxlen + 1);
+    storage[maxlen] = shadowstorage[maxlen] = '\0';
+    return true;
+}
+
+struct serverparameter : serverconfigfile
+{
+    bool load()
+    {
+        if(serverconfigfile::load())
+        {
+            int line = 0, idx;
+            char *b, *l, *p = buf, *kb, *k, *v;
+            servpar *id;
+            while(p < buf + filelen)
+            {
+                l = p; p += strlen(p) + 1; line++;
+                l = strtok_r(l, " ", &b);
+                if(l && (k = strtok_r(l, ":", &kb)) && (v = strtok_r(NULL, ":", &kb)) && (id = servpars->access(k)) && id->fromfile) switch(id->type)
+                {
+                    case SID_INT:
+                    {
+                        int i = ATOI(v);
+                        if(id->list && (idx = getlistindex(v, id->list, false, -1)) >= 0) i = idx + id->minval;  // multiple choice
+                        if(i >= id->minval && i <= id->maxval) *(id->shadow_i) = i;
+                        break;
+                    }
+                    case SID_STR:
+                    {
+                        if((v - k) - strlen(k) > 1) filterrichtext(v, v);
+                        filtertext(v, v, id->filter);
+                        int i = (int)strlen(v);
+                        if(i >= id->minlen && i <= id->maxlen) strncpy(id->shadow_s, v, id->maxlen + 1);
+                        break;
+                    }
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
+    void read()
+    { // in mainloop: update values from shadow values
+        enumerate(*servpars, servpar, id,
+            switch(id.type)
+            {
+                case SID_INT:
+                {
+                    if(*id.i != *id.shadow_i)
+                    {
+                        if(id.fun) ((void (__cdecl *)())id.fun)();
+                        *id.i = *id.shadow_i;
+                    }
+                    break;
+                }
+                case SID_STR:
+                {
+                    if(strcmp(id.s, id.shadow_s))
+                    {
+                        if(id.fun) ((void (__cdecl *)())id.fun)();
+                        strncpy(id.s, id.shadow_s, id.maxlen + 1);
+                    }
+                    break;
+                }
+            }
+        );
+    }
+
+    void dump(stream *f)
+    {
+        enumerate(*servpars, servpar, id,
+            switch(id.type)
+            {
+                case SID_INT: f->printf("%s:%d // default %d\n", id.name, *id.i, id.defaultint); break;
+                case SID_STR: f->printf("%s:%s // default %s\n", id.name, id.s, id.defaultstr); break;
+            }
+        );
+    }
+};
+
+#ifdef _DEBUG
+int siddocsort(servpar **a, servpar **b) { return (*a)->chapter == (*b)->chapter ? strcmp((*a)->name, (*b)->name) : (*a)->chapter - (*b)->chapter; }
+
+const char *siddocchapters[] = { "dDebug switches", "mMisc settings", "vVote settings", "" };
+const char *siddocchaptersorting = "vmd";
+
+void serverparameters_dumpdocu(char *fname)
+{
+    vector<servpar *> sp;
+    enumerate(*servpars, servpar, id, if(id.fromfile && id.desc && id.desc[0]) sp.add(&id));
+    loopv(sp)
+    {
+        const char *e = strchr(siddocchaptersorting, sp[i]->desc[0]);
+        sp[i]->chapter = e ? (int) (e - siddocchaptersorting) : sp[i]->desc[0];
+    }
+    sp.sort(siddocsort);
+    stream *f = openfile(path(fname), "w");
+    int lastchap = 0;
+    if(f)
+    {
+        f->printf("// serverparameters.cfg\n//\n// parameters from this file are read once per minute by the server\n// and are effective immediately\n\n"
+                  "// each setting consists of a keyword and a value, written like this: keyword:value\n// there are no spaces allowed between keyword and value\n"
+                  "// using two colons (keyword::value) activates rich-text filtering for the value\n\n\n");
+        loopv(sp)
+        {
+            servpar &id = *sp[i];
+            if(lastchap != id.desc[0])
+            {
+                int ch = -1;
+                for(int k = 0; siddocchapters[k][0]; k++) if(siddocchapters[k][0] == id.desc[0]) ch = k;
+                lastchap = id.desc[0];
+                if(ch < 0) f->printf("\n// **** untitled chapter %c ****\n\n", lastchap);
+                else f->printf("\n// **** %s ****\n\n", siddocchapters[ch] + 1);
+            }
+            switch(id.type)
+            {
+                case SID_INT:
+                {
+                    f->printf("// %s    %s\n//   integer [%d..%d], default %d", id.name, id.desc + 1, id.minval, id.maxval, id.defaultint);
+                    if(id.list)
+                    {
+                        for(int k = 0; id.list[k] && id.list[k][0]; k++) f->printf(", %d:%s", id.minval + k, id.list[k]);
+                    }
+                    f->printf("\n%s:%d\n\n", id.name, id.defaultint);
+                    break;
+                }
+                case SID_STR:
+                {
+                    f->printf("// %s    %s\n//   string [%d..%d chars], default \"%s\"\n%s:%s\n\n", id.name, id.desc + 1, id.minlen, id.maxlen, id.defaultstr, id.name, id.defaultstr);
+                    break;
+                }
+            }
+        }
+        f->printf("\n\n");
+        delete f;
+    }
+}
+#endif
+
 

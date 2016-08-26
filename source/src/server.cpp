@@ -76,6 +76,7 @@ struct servergame
 vector<servermap *> servermaps;             // all available maps kept in memory
 
 servercontroller *svcctrl = NULL;
+serverparameter serverparameters;
 servercommandline scl;
 servermaprot maprot;
 serveripblacklist ipblacklist;
@@ -105,6 +106,8 @@ int totalclients = 0;
 int cn2boot;
 
 // synchronising the worker threads...
+const char *endis[] = { "disabled", "enabled", "" };
+SERVPARLIST(dumpparameters, 0, 0, 0, endis, "ddump server parameters when updated");
 
 void poll_serverthreads()       // called once per mainloop-timeslice
 {
@@ -180,7 +183,23 @@ void poll_serverthreads()       // called once per mainloop-timeslice
             }
             break;
         }
-        case 4:  // pause worker threads for a while (restart once a minute)
+        case 4:  // check for fresh config files
+        {
+            if(serverparameters.updated)
+            {
+                serverparameters.updated = false;
+                if(dumpparameters)
+                {
+                    defformatstring(fname)("%sdebug/serverparameter_dump_%s.txt", scl.logfilepath, numtime());
+                    stream *f = openfile(path(fname), "w");
+                    f->printf("// server parameter dump, %s\n\n", asctimestr());
+                    serverparameters.dump(f);
+                    delete f;
+                }
+            }
+            else stage++;
+        }
+        case 5:  // pause worker threads for a while (restart once a minute)
         {
             if(servmillis - lastworkerthreadstart > 60 * 1000) stage = 0;
             else if(numclients() == 0)
@@ -4330,6 +4349,8 @@ void initserver(bool dedicated)
 
     if((isdedicated = dedicated))
     {
+        serverparameters.init(scl.parfilepath);
+        if(serverparameters.load()) serverparameters.read(); // do this early, so the parameters are properly set during initialisation
         ENetAddress address = { ENET_HOST_ANY, (enet_uint16)scl.serverport };
         if(scl.ip[0] && enet_address_set_host(&address, scl.ip)<0) logline(ACLOG_WARNING, "server ip not resolved!");
         serverhost = enet_host_create(&address, scl.maxclients+1, 3, 0, scl.uprate);
@@ -4433,7 +4454,10 @@ int main(int argc, char **argv)
             else printf("WARNING: unknown commandline argument \"%s\"\n", argv[i]);
         }
     }
-
+#ifdef _DEBUG
+    defformatstring(spdoc)("%s/docs/serverparameters.cfg", scl.logfilepath);
+    serverparameters_dumpdocu(spdoc);
+#endif
     if(scl.service && !svcctrl)
     {
         #ifdef WIN32

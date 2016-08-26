@@ -39,6 +39,7 @@
 // -y     // banthreshold, -1..-100, default -6
 // -H     // server logfile path, default logs/
 // -r     // server maprot file, default config/maprot.cfg
+// -A     // server parameter file, default config/serverparameters.cfg
 // -X     // server passwords file, default config/serverpwd.cfg
 // -B     // server IP blacklist file, default config/serverblacklist.cfg
 // -G     // server geoip file, default config/geoip.cfg
@@ -88,7 +89,6 @@
           //    3  WARNING: log only messages of level WARNING and above
           //    4  ERROR: log only messages of level ERROR
           //    5  do not write to the log
-// -A     // Restricts voting for a map/mode to admins. This switch can be used several times.
 
 // these switches control the naming of demos (see -W)
 // --demofilenameformat="%Mmin_%G_%w_%H_%n" // default: "%w_%h_%n_%Mmin_%G"

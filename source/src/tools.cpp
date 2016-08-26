@@ -561,7 +561,7 @@ const char *hiddenpwd(const char *pwd, int showchars)
 int getlistindex(const char *key, const char *list[], bool acceptnumeric, int deflt)
 {
     int max = 0;
-    while(list[max][0]) if(!strcasecmp(key, list[max])) return max; else max++;
+    while(list[max] && list[max][0]) if(!strcasecmp(key, list[max])) return max; else max++;
     if(acceptnumeric && isdigit(key[0]))
     {
         int i = (int)strtol(key, NULL, 0);
@@ -569,7 +569,8 @@ int getlistindex(const char *key, const char *list[], bool acceptnumeric, int de
     }
 #if !defined(STANDALONE) && defined(_DEBUG)
     char *opts = conc(list, -1, true);
-    if(*key) clientlogf("warning: unknown token \"%s\" (not in list [%s])", key, opts);
+    extern bool isdedicated;
+    if(!isdedicated && *key) clientlogf("warning: unknown token \"%s\" (not in list [%s])", key, opts);
     delstring(opts);
 #endif
     return deflt;
