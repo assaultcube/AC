@@ -2,7 +2,6 @@
 // ========================
 // WARNING: You can NOT use CubeScript in here!!
 //
-// This text file is read, whenever a the MOTD is sent to a client.
 // Comments are removed, also leading and trailing blanks and empty lines.
 //
 // Don't use more than 80 characters per line. You can use colors and TABs.
@@ -14,7 +13,7 @@
 //                           Y: light gray, Z: dark gray
 //
 // Example:
-//     BobsInstagibServer \f3play nicely!\n
-//     Coloring a motd is fun: \f0Green\f5 and another \fLgreen\f5 from the set.\n
+//     BobsInstagibServer \f3play nicely!
+//     Coloring a motd is fun: \f0Green\f5 and another \fLgreen\f5 from the set.
 //     contact me at a@b.c
 

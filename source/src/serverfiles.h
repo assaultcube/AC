@@ -1298,78 +1298,59 @@ struct serverpasswords : serverconfigfile
 
 #define MAXINFOLINELEN 100  // including color codes
 
-struct serverinfofile
+struct serverinfofile : serverconfigfile  // plaintext info file, used for serverinfo and motd
 {
-    struct serverinfotext { const char *type; char lang[3]; char *info; int lastcheck; };
-    vector<serverinfotext> serverinfotexts;
-    const char *infobase, *motdbase;
+    vector<char> msg;
+    int maxlen;
 
-    void init(const char *info, const char *motd) { infobase = info; motdbase = motd; }
-
-    char *readinfofile(const char *fnbase, const char *lang)
+    void init(const char *fnbase, int ml)
     {
-        defformatstring(fname)("%s_%s.txt", fnbase, lang);
-        path(fname);
-        int len, n;
-        char *c, *b, *s, *t, *buf = loadfile(fname, &len);
-        if(!buf) return NULL;
-        char *nbuf = new char[len + 2];
-        for(t = nbuf, s = strtok_r(buf, "\n\r", &b); s; s = strtok_r(NULL, "\n\r", &b))
-        {
-            c = strstr(s, "//");
-            if(c) *c = '\0'; // strip comments
-            for(n = (int)strlen(s) - 1; n >= 0 && s[n] == ' '; n--) s[n] = '\0'; // strip trailing blanks
-            filterrichtext(t, s + strspn(s, " "), MAXINFOLINELEN); // skip leading blanks
-            n = (int)strlen(t);
-            if(n) t += n + 1;
-        }
-        *t = '\0';
-        DELETEA(buf);
-        if(!*nbuf) DELETEA(nbuf);
-        logline(ACLOG_DEBUG,"read file \"%s\"", fname);
-        return nbuf;
+        maxlen = ml;
+        defformatstring(fname)("%s_en.txt", fnbase);
+        serverconfigfile::init(fname);
     }
 
-    const char *getinfocache(const char *fnbase, const char *lang)
+    void clear()
     {
-        serverinfotext sn = { fnbase, { 0, 0, 0 }, NULL, 0} , *s = &sn;
-        filterlang(sn.lang, lang);
-        if(!sn.lang[0]) return NULL;
-        loopv(serverinfotexts)
-        {
-            serverinfotext &si = serverinfotexts[i];
-            if(si.type == s->type && !strcmp(si.lang, s->lang))
-            {
-                if(servmillis - si.lastcheck > (si.info ? 15 : 45) * 60 * 1000)
-                { // re-read existing files after 15 minutes; search missing again after 45 minutes
-                    DELETEA(si.info);
-                    s = &si;
-                }
-                else return si.info;
-            }
-        }
-        s->info = readinfofile(fnbase, lang);
-        s->lastcheck = servmillis;
-        if(s == &sn) serverinfotexts.add(*s);
-        if(fnbase == motdbase && s->info)
-        {
-            char *c = s->info;
-            while(*c) { c += strlen(c); if(c[1]) *c++ = '\n'; }
-            if(strlen(s->info) > MAXSTRLEN) s->info[MAXSTRLEN] = '\0'; // keep MOTD at sane lengths
-        }
-        return s->info;
+        msg.shrink(0);
     }
 
-    const char *getinfo(const char *lang)
+    void read()
     {
-        return getinfocache(infobase, lang);
+        string s;
+        char *l, *p = buf;
+        logline(ACLOG_VERBOSE,"reading info text file '%s'", filename);
+        while(p < buf + filelen)
+        {
+            l = p; p += strlen(p) + 1;
+            ASSERT(MAXINFOLINELEN < MAXSTRLEN);
+            filtertext(s, l, FTXT__SERVERINFOLINE, MAXINFOLINELEN);
+            if(*s) cvecprintf(msg, "%s\n", s);
+        }
+        if(msg.length() > maxlen)
+        {
+            logline(ACLOG_VERBOSE,"info text file '%s' truncated: %d -> %d", filename, msg.length(), maxlen);
+            msg.shrink(maxlen);
+        }
     }
 
-    const char *getmotd(const char *lang)
+    const char *getmsg()
     {
-        const char *motd;
-        if(*lang && (motd = getinfocache(motdbase, lang))) return motd;
-        return getinfocache(motdbase, "en");
+        if(!msg.length() || msg.last()) msg.add('\0'); // make sure, msg is terminated
+        return msg.getbuf();
+    }
+
+    char *getmsgline(string s, int *pos)
+    {
+        s[0] = '\0';
+        if(msg.inrange(*pos))
+        {
+            const char *p = getmsg() + *pos;
+            int len = strcspn(p, "\n") + 1;
+            copystring(s, p, len);
+            *pos += len;
+        }
+        return s;
     }
 };
 

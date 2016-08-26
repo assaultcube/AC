@@ -83,7 +83,8 @@ serveripcclist geoiplist;
 servernickblacklist nickblacklist;
 serverforbiddenlist forbiddenlist;
 serverpasswords passwords;
-serverinfofile infofiles;
+serverinfofile serverinfoinfo;
+serverinfofile serverinfomotd;
 
 // server state
 bool isdedicated = false;
@@ -2718,8 +2719,8 @@ void welcomepacket(packetbuf &p, int n)
     }
     putint(p, SV_SERVERMODE);
     putint(p, sendservermode(false));
-    const char *motd = scl.motd[0] ? scl.motd : infofiles.getmotd(c ? c->lang : "");
-    if(motd)
+    const char *motd = scl.motd[0] ? scl.motd : serverinfomotd.getmsg();
+    if(*motd)
     {
         putint(p, SV_TEXT);
         sendstring(motd, p);
@@ -4159,16 +4160,19 @@ void extping_namelist(ucharbuf &p)
 
 void extping_serverinfo(ucharbuf &pi, ucharbuf &po)
 {
-    char lang[3];
-    lang[0] = tolower(getint(pi)); lang[1] = tolower(getint(pi)); lang[2] = '\0';
-    const char *reslang = lang, *buf = infofiles.getinfo(lang); // try client language
-    if(!buf) buf = infofiles.getinfo(reslang = "en");     // try english
-    sendstring(buf ? reslang : "", po);
-    if(buf)
+    getint(pi); getint(pi); // dummy read language code
+    if(strlen(serverinfoinfo.getmsg()))
     {
-        for(const char *c = buf; *c && po.remaining() > MAXINFOLINELEN + 10; c += strlen(c) + 1) sendstring(c, po);
-        sendstring("", po);
+        sendstring("en", po);
+        int pos = 0;
+        string buf;
+        while(po.remaining() > MAXINFOLINELEN + 10)
+        {
+            sendstring(serverinfoinfo.getmsgline(buf, &pos), po);
+            if(!*buf) break;
+        }
     }
+    else sendstring("", po);
 }
 
 void extping_maprot(ucharbuf &po)
@@ -4337,8 +4341,8 @@ void initserver(bool dedicated)
         geoiplist.init(scl.geoipfile);
         nickblacklist.init(scl.nbfile);
         forbiddenlist.init(scl.forbidden);
-        infofiles.init(scl.infopath, scl.motdpath);
-        infofiles.getinfo("en"); // cache 'en' serverinfo
+        serverinfoinfo.init(scl.infopath, MAXTRANS / 2);
+        serverinfomotd.init(scl.motdpath, MAXSTRLEN - 5);
         logline(ACLOG_VERBOSE, "holding up to %d recorded demos in memory", scl.maxdemos);
         if(scl.demopath[0]) logline(ACLOG_VERBOSE,"all recorded demos will be written to: \"%s\"", scl.demopath);
         if(scl.voteperm[0]) logline(ACLOG_VERBOSE,"vote permission string: \"%s\"", scl.voteperm);
