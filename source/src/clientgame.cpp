@@ -953,10 +953,9 @@ void dokill(playerent *pl, playerent *act, bool gib, int gun)
 
     exechook(HOOK_SP, "onKill", "%d %d %d %d", act->clientnum, pl->clientnum, gun, gib ? 1 : 0);
 
-    string pname, aname, death;
-    copystring(pname, pl==player1 ? "you" : colorname(pl));
-    copystring(aname, act==player1 ? "you" : colorname(act));
-    copystring(death, killmessage(gun, gib));
+    const char *pname = pl == player1 ? "you" : colorname(pl);
+    const char *aname = act == player1 ? "you" : colorname(act);
+    const char *death = killmessage(gun, gib);
     void (*outf)(const char *s, ...) = (pl == player1 || act == player1) ? hudoutf : conoutf;
 
     if(pl==act)

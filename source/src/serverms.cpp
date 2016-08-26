@@ -318,6 +318,7 @@ void serverms(int mode, int numplayers, int minremain, char *smapname, int milli
         }
 
         buf.dataLength = len + po.length();
+        entropy_add_byte(addr.host ^ (addr.host >> 24));
         enet_socket_send(pongsock, &addr, &buf, 1);
         if(std) *msend += (int)buf.dataLength;
         else *csend += (int)buf.dataLength;

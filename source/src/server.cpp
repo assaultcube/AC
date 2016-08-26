@@ -101,7 +101,6 @@ long int incoming_size = 0;
 // cmod
 int totalclients = 0;
 int cn2boot;
-int servertime = 0, serverlagged = 0;
 
 // synchronising the worker threads...
 
@@ -3982,8 +3981,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
     int diff = nextmillis - servmillis;
     sg->gamemillis += diff;
     servmillis = nextmillis;
-    servertime = ((diff + 3 * servertime)>>2);
-    if (servertime > 40) serverlagged = servmillis;
+    entropy_add_byte(diff);
 
 #ifndef STANDALONE
     if(m_demo)
@@ -3994,7 +3992,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
     }
 #endif
 
-    if(sg->minremain>0)
+    if(sg->minremain > 0)
     {
         processevents();
         checkitemspawns(diff);
@@ -4016,9 +4014,8 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
         if(m_ktf && !ktfflagingame) flagaction(rnd(2), FA_RESET, -1); // ktf flag watchdog
         if(m_arena) arenacheck();
         else if(m_autospawn) autospawncheck();
-//        if(m_lms) lmscheck();
         sendextras();
-        if ( scl.afk_limit && sg->mastermode == MM_OPEN && next_afk_check < servmillis && sg->gamemillis > 20 * 1000 ) check_afk();
+        if(scl.afk_limit && sg->mastermode == MM_OPEN && next_afk_check < servmillis && sg->gamemillis > 20 * 1000) check_afk();
     }
 
     if(curvote)
@@ -4029,7 +4026,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 
     int nonlocalclients = numnonlocalclients();
 
-    if(sg->forceintermission || ((sg->smode>1 || (gamemode==0 && nonlocalclients)) && sg->gamemillis-diff>0 && sg->gamemillis/60000!=(sg->gamemillis-diff)/60000))
+    if(sg->forceintermission || ((sg->smode > 1 || (gamemode == 0 && nonlocalclients)) && sg->gamemillis-diff > 0 && sg->gamemillis / 60000 != (sg->gamemillis - diff) / 60000))
         checkintermission();
     if(m_demo && !demoplayback) maprot.restart();
     else if(sg->interm && ( (scl.demo_interm && sending_demo) ? sg->gamemillis > (sg->interm<<1) : sg->gamemillis > sg->interm ) )
@@ -4066,7 +4063,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
     if(servmillis - laststatus > 60 * 1000)   // display bandwidth stats, useful for server ops
     {
         laststatus = servmillis;
-        rereadcfgs();
+        if(!nonlocalclients) rereadcfgs(); // configs are read from actual files - only attempt to do that, when the server is empty
         if(nonlocalclients || serverhost->totalSentData || serverhost->totalReceivedData)
         {
             if(nonlocalclients) loggamestatus(NULL);
@@ -4089,6 +4086,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
             if(enet_host_service(serverhost, &event, timeout) <= 0) break;
             serviced = true;
         }
+        entropy_add_byte(event.type);
         switch(event.type)
         {
             case ENET_EVENT_TYPE_CONNECT:
@@ -4413,6 +4411,7 @@ int main(int argc, char **argv)
     #endif
 
     setlocale(LC_ALL, "POSIX");
+    entropy_init(time(NULL) + (uint)(size_t)&scl + (uint)(size_t)"" + (uint)(size_t)entropy_init + (int)enet_time_get());
 
     for(int i = 1; i < argc; i++)
     {
