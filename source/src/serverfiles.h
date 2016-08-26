@@ -715,6 +715,11 @@ void serverconfigfile::process() // in main thread: refill data structures with 
     }
 }
 
+string vitafilename, vitafilename_backup, vitafilename_update, vitafilename_update_backup_base, vitafilename_update_backup;
+char *vitaupdatebuf = NULL;
+int vitaupdatebuflen = 0;
+vector<vitakey_s> *vitastosave = NULL;
+
 int readserverconfigsthread(void *data)
 {
     while(1)
@@ -722,6 +727,27 @@ int readserverconfigsthread(void *data)
         while(!recheckallserverconfigs) readserverconfigsthread_sem->wait();  // wait without using the cpu
 
         loopv(serverconfigs) serverconfigs[i]->trypreload();
+
+        // special treatment for vita updates: read once and move out of the way
+        if(!vitaupdatebuf && getfilesize(vitafilename_update) > 0)
+        {
+            formatstring(vitafilename_update_backup)("%s%d.cfg", vitafilename_update_backup_base, (int)(time(NULL) / 60));
+            backup(vitafilename_update, vitafilename_update_backup);
+            serverconfigfile vsf;
+            vsf.init(vitafilename_update_backup, false);
+            vsf.load();
+            vitaupdatebuf = vsf.buf;
+            vitaupdatebuflen = vsf.filelen;
+            vsf.buf = NULL;
+        }
+        if(vitastosave)
+        { // mainloop prepared a selection of vitas to save
+            backup(vitafilename, vitafilename_backup);
+            stream *f = openfile(vitafilename, "w");
+            extern void writevitas(stream *f, vector<vitakey_s> &vs);
+            if(f) writevitas(f, *vitastosave);
+            DELETEP(f); DELETEP(vitastosave);
+        }
 
         entropy_save();
         recheckallserverconfigs = false;
@@ -1803,5 +1829,154 @@ void serverparameters_dumpdocu(char *fname)
     }
 }
 #endif
+
+// player ID bookkeeping
+
+const char *vskeywords[VS_NUM + 1] = { "first", "last", "mute", "novote", "ban", "admin", "owner", "mapupload", "minconn", "minact", "flags", "frags", "deaths", "tks", "damage", "ff", "" };
+const char *vsnames[VS_NUM + 1] = { "first login", "last login", "muted until", "novote until", "banned until", "admin until", "owner until", "mapupload until",
+                                    "minutes connected", "minutes active", "flags", "frags", "deaths", "teamkills", "damage dealt", "team damage dealt", "" };
+hashtable<uchar32, vita_s> vitas;
+
+void vita_s::addname(const char *name)
+{
+    int rem = 0;
+    for(; rem < VITANAMEHISTLEN - 1; rem++) if(!strcasecmp(name, namehist[rem])) break;
+    if(rem) memmove(namehist[1], namehist[0], rem * (MAXNAMELEN + 1));
+    copystring(namehist[0], name, MAXNAMELEN + 1);
+}
+
+void vita_s::addip(enet_uint32 ip)
+{
+    int rem = 0;
+    for(; rem < VITAIPHISTLEN - 1; rem++) if(iphist[rem] == ip) break;
+    if(rem) memmove(iphist + 1, iphist, rem * sizeof(ip));
+    iphist[0] = ip;
+}
+
+void vita_s::addcc(const char *cc)
+{
+    int rem = 0;
+    for(; rem < VITACCHISTLEN - 1; rem++) if(cchist[rem * 2] == cc[0] && cchist[rem * 2 + 1] == cc[1]) break;
+    if(rem) memmove(cchist + 2, iphist, rem * 2);
+    loopi(2) cchist[i] = cc[i];
+}
+
+int parsevitas(char *buf, int filelen)
+{
+    vita_s v, *vp = &v;
+    uchar32 pubkey;
+    string tmp;
+    enet_uint32 ip;
+    int res = 0;
+    char *l, *r, *p = buf, *pe = p + filelen, *b, *o;
+    while(p < pe)
+    {
+        l = p; p += strlen(p) + 1;
+        l = strtok_r(l, " \t", &b);
+        while(l && (r = strtok_r(NULL, " \t", &b)))
+        {
+            filterrichtext(r, r);
+            if(!strcmp(l, "PUBKEY"))
+            {
+                if(hex2bin(pubkey.u, r, 32) == 32)
+                {
+                    if(!(vp = vitas.access(pubkey)))
+                    {
+                        memset(&v, 0, sizeof(v));
+                        vp = &vitas.access(pubkey, v);
+                    }
+                    res++;
+                }
+                else vp = &v; // bad pubkey: point to dummy
+                break;
+            }
+            else if(!strcmp(l, "NAME"))
+            {
+                filtertext(tmp, r, FTXT__PLAYERNAME, MAXNAMELEN);
+                if(*tmp) vp->addname(tmp);
+            }
+            else if(!strcmp(l, "PUBCOM") || !strcmp(l, "PRIVCOM"))
+            {
+                filtertext(tmp, r, FTXT__VITACOMMENT, VITACOMMENTLEN);
+                copystring(l[1] == 'U' ? vp->publiccomment : vp->privatecomment, tmp, VITACOMMENTLEN + 1);
+                break;
+            }
+            else if(!strcmp(l, "IP"))
+            {
+                if(atoip(r, &ip) && ip) vp->addip(ip);
+            }
+            else if(!strcmp(l, "CC"))
+            {
+                filtercountrycode(r, r);
+                if(*r != '-') vp->addcc(r);
+            }
+            else if(!strcmp(l, "CLAN"))
+            {
+                filtertext(tmp, r, FTXT__VITACLAN, VITACLANLEN);
+                copystring(vp->clan, tmp, VITACLANLEN + 1);
+                break;
+            }
+            else if(!strcmp(l, "STAT"))
+            {
+                if((o = strchr(r, ':'))) // key:value
+                {
+                    *o++ = '\0'; // r is key, o is value
+                    loopk(VS_NUM) if(!strcmp(vskeywords[k], r))
+                    {
+                        vp->vs[k] = atoi(o);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    return res;
+}
+
+bool readvitas(const char *fname)
+{
+    serverconfigfile vsf;
+    vsf.init(fname, false);
+    vsf.load();
+    return vsf.buf ? parsevitas(vsf.buf, vsf.filelen) : -1;
+}
+
+void writevitas(stream *f, vector<vitakey_s> &vs)
+{
+    string tmp;
+    vector<char> ctmp;
+    f->printf("// AC server vita database\n// autosaved %s\n// (don't edit this file, while the server is running)\n\n", timestring(true, "%c", tmp));
+    loopvj(vs)
+    {
+        const vita_s &v = *vs[j].v;
+        f->printf("PUBKEY %s", bin2hex(tmp, vs[j].k->u, 32));
+        if(v.namehist[0][0])
+        {
+            f->printf("\n\tNAME");
+            loopirev(VITANAMEHISTLEN) if(v.namehist[i][0]) f->printf(" %s", escapestring(v.namehist[i], true, true, &ctmp));
+        }
+        if(v.iphist[0])
+        {
+            f->printf("\n\tIP");
+            loopirev(VITAIPHISTLEN) if(v.iphist[i]) f->printf(" %s", iptoa(v.iphist[i], tmp));
+        }
+        if(v.privatecomment[0]) f->printf("\n\tPRIVCOM %s", escapestring(v.privatecomment, true, true, &ctmp));
+        if(v.publiccomment[0]) f->printf("\n\tPUBCOM %s", escapestring(v.publiccomment, true, true, &ctmp));
+        if(v.clan[0]) f->printf("\n\tCLAN %s", escapestring(v.clan, true, true, &ctmp));
+        if(v.cchist[0])
+        {
+            f->printf("\n\tCC");
+            loopirev(VITACCHISTLEN) if(v.cchist[i * 2]) f->printf(" %c%c", v.cchist[i * 2], v.cchist[i * 2 + 1]);
+        }
+        f->printf("\n\tSTAT");
+        loopi(VS_NUM) if(v.vs[i]) f->printf(" %s:%d", vskeywords[i], v.vs[i]);
+        f->printf("\n\n");
+    }
+}
+
+
+
+
+
 
 

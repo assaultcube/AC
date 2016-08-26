@@ -223,6 +223,27 @@ struct medals
     }
 };
 
+#define VITANAMEHISTLEN 4
+#define VITAIPHISTLEN 4
+#define VITACCHISTLEN 4
+#define VITACOMMENTLEN 31
+#define VITACLANLEN 7
+
+struct vita_s
+{
+    char namehist[VITANAMEHISTLEN][MAXNAMELEN + 1];
+    enet_uint32 iphist[VITAIPHISTLEN];
+    char privatecomment[VITACOMMENTLEN + 1], publiccomment[VITACOMMENTLEN + 1]; // private comments can be seen by admins and owners only, public comments can be seen by everyone
+    char clan[VITACLANLEN + 1];
+    char cchist[VITACCHISTLEN * 2];
+    int vs[VS_NUM];
+    void addname(const char *name);
+    void addip(enet_uint32 ip);
+    void addcc(const char *cc);
+};
+
+struct vitakey_s { const vita_s *v; const uchar32 *k; };
+
 struct client                   // server side version of "dynent" type
 {
     int type;
@@ -232,8 +253,9 @@ struct client                   // server side version of "dynent" type
     enet_uint32 ip, ip_censored;
     int connectclock;
     char country[4];
-    uchar pubkey[32];
+    uchar32 pubkey;
     char pubkeyhex[68];
+    vita_s *vita;
     string servinforesponse;
     string name;
     int team;
@@ -334,6 +356,7 @@ struct client                   // server side version of "dynent" type
         name[0] = pwd[0] = demoflags = 0;
         ip = ip_censored = 0;
         pubkeyhex[0] = '\0';
+        vita = NULL;
         bottomRTT = ping = 9999;
         team = TEAM_SPECT;
         state.state = CS_SPECTATE;

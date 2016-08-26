@@ -321,7 +321,13 @@ VARP(voicecomsounds, 0, 1, 2);
 bool medals_arrived=0;
 medalsst a_medals[END_MDS];
 
-struct session_s { enet_uint32 serverip, clientip, clientipcensored, curpeerip; int curpeerport, serverclock, clientclock, cn, clientsalt; uchar serverpubkey[32], clientsignature[64]; } session;
+struct session_s
+{
+    enet_uint32 serverip, clientip, clientipcensored, curpeerip;
+    int curpeerport, serverclock, clientclock, cn, clientsalt, datecodes;
+    uchar serverpubkey[32], clientsignature[64];
+    string clan, publiccomment;
+} session;
 
 void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
 {
@@ -443,6 +449,18 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     formatstring(servauth)("SERVINFOSIGNED<%s>", bin2hex(tmp, (uchar*)s->clientsignature, 64));
                     memmove(servauth + 64, servauth, (auth = (int)strlen(servauth)) + 1);
                     p.get((uchar*)servauth, 64);
+                    s->datecodes = getint(p);
+                    getstring(text, p);
+                    filtertext(s->clan, text, FTXT__VITACLAN);
+                    getstring(text, p);
+                    filtertext(s->publiccomment, text, FTXT__VITACOMMENT);
+#ifdef _DEBUG
+                    formatstring(text)("server-side%s", s->datecodes ? " timed flags:" : "");
+                    loopi(VS_NUMCOUNTERS) if(s->datecodes & (1 << i)) concatformatstring(text, " %s", vskeywords[i]);
+                    if(s->clan[0]) concatformatstring(text, " clan tag: \"%s\"", s->clan);
+                    if(s->publiccomment[0]) concatformatstring(text, " comment: \"%s\"", s->publiccomment);
+                    if(strlen(text) > 12) conoutf("%s", text);
+#endif
                 }
                 if(curpeer && sk && !auth) conoutf("\f3server refuses to authenticate");
                 if(sk && auth)

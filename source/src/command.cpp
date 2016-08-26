@@ -1492,32 +1492,6 @@ COMMANDF(rnd, "i", (int *a) { intret(*a>0 ? rnd(*a) : 0); });
 
 #ifndef STANDALONE
 
-const char *escapestring(const char *s, bool force, bool noquotes)
-{
-    static vector<char> strbuf[3];
-    static int stridx = 0;
-    if(noquotes) force = false;
-    if(!s) return force ? "\"\"" : "";
-    if(!force && !*(s + strcspn(s, "\"/\\;()[] \f\t\n\r$"))) return s;
-    stridx = (stridx + 1) % 3;
-    vector<char> &buf = strbuf[stridx];
-    buf.setsize(0);
-    if(!noquotes) buf.add('"');
-    for(; *s; s++) switch(*s)
-    {
-        case '\n': buf.put("\\n", 2); break;
-        case '\r': buf.put("\\n", 2); break;
-        case '\t': buf.put("\\t", 2); break;
-        case '\a': buf.put("\\a", 2); break;
-        case '\f': buf.put("\\f", 2); break;
-        case '"': buf.put("\\\"", 2); break;
-        case '\\': buf.put("\\\\", 2); break;
-        default: buf.add(*s); break;
-    }
-    if(!noquotes) buf.add('"');
-    buf.add(0);
-    return buf.getbuf();
-}
 COMMANDF(escape, "s", (const char *s) { result(escapestring(s));});
 
 int sortident(ident **a, ident **b) { return strcasecmp((*a)->name, (*b)->name); }

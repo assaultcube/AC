@@ -112,12 +112,14 @@ int cn2boot;
 const char *endis[] = { "disabled", "enabled", "" };
 SERVPARLIST(dumpmaprot, 0, 1, 0, endis, "ddump maprot parameters for all maps (once, to logs/debug/maprot_debug_verbose.txt)");
 SERVPARLIST(dumpparameters, 0, 0, 0, endis, "ddump server parameters when updated");
+SERVPAR(vitaautosave, 0, 10, 24 * 60, "sVita file autosave interval in minutes (0: only when server is empty)");
+SERVPAR(vitamaxage, 3, 12, 120, "sOmit vitas from autosave, if the last login has been more than the specified number of months ago");
 
 void poll_serverthreads()       // called once per mainloop-timeslice
 {
     static vector<servermap *> servermapstodelete;
-    static int stage = 0, lastworkerthreadstart = 0, nextserverconfig = 0;
-    static bool debugmaprot = true;
+    static int stage = 0, lastworkerthreadstart = 0, nextserverconfig = 0, lastvitasave = 0;
+    static bool debugmaprot = true, serverwasnotempty = false;
 
     switch(stage) // cycle through some tasks once per minute (mostly file polling)
     {
@@ -188,7 +190,15 @@ void poll_serverthreads()       // called once per mainloop-timeslice
                     serverconfigs[nextserverconfig]->process();  // processing of config files is done in mainloop, one at a time
                     nextserverconfig++;
                 }
-                else stage++;
+                else
+                {
+                    if(vitaupdatebuf)
+                    {
+                        mlog(ACLOG_INFO, "read/updated %d vitas from %s", parsevitas(vitaupdatebuf, vitaupdatebuflen), vitafilename_update_backup);;
+                        DELETEA(vitaupdatebuf);
+                    }
+                    stage++;
+                }
             }
             break;
         }
@@ -215,6 +225,25 @@ void poll_serverthreads()       // called once per mainloop-timeslice
                     delete f;
                 }
             }
+            else if(!vitastosave && serverwasnotempty && (numclients() == 0 || (vitaautosave && (servmillis - lastvitasave) > 1000 * 60 * vitaautosave)))
+            {
+                serverwasnotempty = false;
+                lastvitasave = servmillis;
+                vitastosave = new vector<vitakey_s>;
+                vitakey_s vk;
+                int too_old = 0;
+                enumeratekt(vitas, uchar32, k, vita_s, v,
+                {
+                    if((servclock - v.vs[VS_LASTLOGIN]) / (60 * 24 * 31) <= vitamaxage)
+                    {
+                        vk.k = &k;
+                        vk.v = &v;
+                        vitastosave->add(vk);
+                    }
+                    else too_old++;
+                });
+                if(too_old) mlog(ACLOG_VERBOSE, "omitted %d vitas from autosave (exceeding maxage of %d months)", too_old, vitamaxage);
+            }
             else stage++;
         }
         case 5:  // pause worker threads for a while (restart once a minute)
@@ -228,6 +257,7 @@ void poll_serverthreads()       // called once per mainloop-timeslice
                     delete servermapstodelete.remove(i);    // delete outdated servermaps
                 }
             }
+            else serverwasnotempty = true;
             break;
         }
     }
@@ -2994,11 +3024,24 @@ void polldeferredprocessing()
                         client *cl = clients[sa->cn];
                         if(sa->wantauth)
                         {
-                            memcpy(cl->pubkey, sa->clientpubkey, 32);
+                            memcpy(cl->pubkey.u, sa->clientpubkey, 32);
                             memcpy(cl->servinforesponse, sa->clientmsg, sa->clientmsglen + 64);
-                            bin2hex(cl->pubkeyhex, cl->pubkey, 32);
+                            bin2hex(cl->pubkeyhex, cl->pubkey.u, 32);
+                            cl->vita = vitas.access(cl->pubkey);
+                            if(!cl->vita)
+                            {
+                                vita_s v;
+                                memset(&v, 0, sizeof(v));
+                                cl->vita = &vitas.access(cl->pubkey, v);
+                                cl->vita->vs[VS_FIRSTLOGIN] = servclock;
+                            }
+                            if(cl->country[0] != '-') cl->vita->addcc(cl->country);
+                            cl->vita->addip(cl->ip);
+                            cl->vita->vs[VS_LASTLOGIN] = servclock;
                             cl->needsauth = true; // may have been voluntary, but it's done
-                            sendf(sa->cn, 1, "riim", SV_SERVINFO_CONTD, 1, 64, sa->servermsg);
+                            int datecodes = 0, *vs = cl->vita->vs;
+                            loopi(VS_NUMCOUNTERS) datecodes |= vs[i] == 1 || (servclock - vs[i]) < 0 ? (1 << i) : 0;
+                            sendf(sa->cn, 1, "riimiss", SV_SERVINFO_CONTD, 1, 64, sa->servermsg, datecodes, cl->vita->clan, cl->vita->publiccomment);
                         }
                         else sendf(sa->cn, 1, "rii", SV_SERVINFO_CONTD, 0);
                     }
@@ -3152,6 +3195,7 @@ void process(ENetPacket *packet, int sender, int chan)
             }
         }
 
+        if(cl->vita) cl->vita->addname(cl->name);
         sendwelcome(cl);
         if(restorescore(*cl)) { sendresume(*cl, true); senddisconnectedscores(-1); }
         else if(cl->type==ST_TCPIP) senddisconnectedscores(sender);
@@ -3449,6 +3493,7 @@ void process(ENetPacket *packet, int sender, int chan)
                             break;
                         }
                     }
+                    if(cl->vita) cl->vita->addname(cl->name);
                 }
                 break;
             }
@@ -4356,6 +4401,11 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
             linequalitystats(0);
         }
         serverhost->totalSentData = serverhost->totalReceivedData = 0;
+        loopv(clients) if(clients[i]->type == ST_TCPIP && clients[i]->isauthed && clients[i]->vita)
+        {
+            clients[i]->vita->vs[VS_MINUTESCONNECTED]++;
+            if(clients[i]->isonrightmap && team_isactive(clients[i]->team)) clients[i]->vita->vs[VS_MINUTESACTIVE]++;
+        }
     }
 
     ENetEvent event;
@@ -4650,6 +4700,15 @@ void initserver(bool dedicated)
         loopi(scl.maxclients) serverhost->peers[i].data = (void *)-1;
 
         if(scl.ssk) mlog(ACLOG_INFO,"server public key: %s", servpubkey);
+        formatstring(vitafilename)("%s.cfg", scl.vitabasename);
+        formatstring(vitafilename_backup)("%s_bak.cfg", scl.vitabasename);
+        formatstring(vitafilename_update)("%s_update.cfg", scl.vitabasename);
+        formatstring(vitafilename_update_backup_base)("%s_update_", scl.vitabasename);
+        path(vitafilename); path(vitafilename_backup); path(vitafilename_update); path(vitafilename_update_backup_base);
+        char *vn;
+        int gotvitas = readvitas((vn = vitafilename));
+        if(gotvitas < 0) gotvitas = readvitas((vn = vitafilename_backup));
+        if(gotvitas >= 0) mlog(ACLOG_INFO, "read %d player vitas from %s", gotvitas, vn);
         maprot.init(scl.maprotfile);
         passwords.init(scl.pwdfile, scl.adminpasswd);
         ipblacklist.init(scl.blfile);

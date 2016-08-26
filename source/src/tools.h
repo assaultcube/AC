@@ -506,14 +506,16 @@ static inline bool htcmp(const char *x, const char *y)
     return !strcmp(x, y);
 }
 
-static inline uint hthash(const uchar *key)
+struct uchar32 { uchar u[32]; };
+
+static inline uint hthash(const uchar32 &key)
 {
-    return *((uint *)key);
+    return *((uint *)&key);
 }
 
-static inline bool htcmp(const uchar *x, const uchar *y)  // assume "uchar *" points to 32byte public keys
+static inline bool htcmp(const uchar32 &x, const uchar32 &y)
 {
-    return !memcmp(x, y, 32);
+    return !memcmp(&x, &y, 32);
 }
 
 static inline uint hthash(int key)
@@ -590,10 +592,10 @@ template <class K, class T> struct hashtable
         }
         chain *c = unused;
         unused = unused->next;
-        c->key = key;
         c->next = table[h];
-        table[h] = c;
+        c->key = key;
         numelems++;
+        table[h] = c;
         return c;
     }
 

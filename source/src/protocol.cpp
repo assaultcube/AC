@@ -391,6 +391,7 @@ void filterrichtext(char *dst, const char *src, int len)
                 case 'a': c = '\a'; break;
                 case 't': c = '\t'; break;
                 case 'n': c = '\n'; break;
+                case '_': c = ' '; break;
                 case 'x':
                     b = 16;
                     c = *++src;
@@ -408,6 +409,37 @@ void filterrichtext(char *dst, const char *src, int len)
         if(!--len || !*src) break;
     }
     *dst = '\0';
+}
+
+// counterpart of filterrichtext
+
+const char *escapestring(const char *s, bool force, bool noquotes, vector<char> *buf)
+{
+    static vector<char> strbuf[3];
+    static int stridx = 0;
+    extern bool isdedicated;
+    if(noquotes) force = false;
+    if(!s) return force ? "\"\"" : "";
+    if(!force && !*(s + strcspn(s, "\"/\\;()[] \f\t\a\n\r$"))) return s;
+    if(!buf) buf = &strbuf[stridx++];
+    stridx %= 3;
+    buf->setsize(0);
+    if(!noquotes) buf->add('"');
+    for(; *s; s++) switch(*s)
+    {
+        case '\n': buf->put("\\n", 2); break;
+        case '\r': buf->put("\\n", 2); break;
+        case '\t': buf->put("\\t", 2); break;
+        case '\a': buf->put("\\a", 2); break;
+        case '\f': buf->put("\\f", 2); break;
+        case '"': buf->put("\\\"", 2); break;
+        case '\\': buf->put("\\\\", 2); break;
+        case ' ': if(isdedicated) { buf->put("\\_", 2); break; }
+        default: buf->add(*s); break;
+    }
+    if(!noquotes) buf->add('"');
+    buf->add(0);
+    return buf->getbuf();
 }
 
 // ensures, that d is either two lowercase chars or ""

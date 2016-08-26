@@ -1019,7 +1019,6 @@ extern void writecfg();
 extern void deletecfg();
 extern void identnames(vector<const char *> &names, bool builtinonly);
 extern void explodelist(const char *s, vector<char *> &elems);
-extern const char *escapestring(const char *s, bool force = true, bool noquotes = false);
 extern int execcontext;
 extern void pushscontext(int newcontext);
 extern int popscontext();
@@ -1030,6 +1029,9 @@ extern void dumpexecutionstack(stream *f);
 extern const char *currentserver(int i);
 
 // server
+enum { /* timecodes */ VS_FIRSTLOGIN = 0, VS_LASTLOGIN, VS_MUTE, VS_NOVOTE, VS_BAN, VS_ADMIN, VS_OWNER, VS_MAPUPLOAD,
+       /* stats/counters */ VS_MINUTESCONNECTED, VS_MINUTESACTIVE, VS_FLAGS, VS_FRAGS, VS_DEATHS, VS_TKS, VS_DAMAGE, VS_FF, VS_NUM, VS_NUMCOUNTERS = VS_MINUTESCONNECTED };
+extern const char *vskeywords[VS_NUM + 1], *vsnames[VS_NUM + 1];
 extern int modeacronyms;
 extern void servertoclient(int chan, uchar *buf, int len, bool demo = false);
 extern void localservertoclient(int chan, uchar *buf, int len, bool demo = false);
@@ -1073,6 +1075,7 @@ extern void freegzbuf(ucharbuf *p);  // free a ucharbuf created by getgzbuf()
 extern bool validmapname(const char *s); // checks for length, allowed chars and special DOS filenames
 extern char *filtertext(char *dst, const char *src, int flags, int len = sizeof(string)-1);
 extern void filterrichtext(char *dst, const char *src, int len = sizeof(string)-1);
+extern const char *escapestring(const char *s, bool force = true, bool noquotes = false, vector<char> *buf = NULL);
 extern void filterlang(char *d, const char *s);
 extern void filtercountrycode(char *d, const char *s); // returns exactly two uppercase chars or "--"
 extern void trimtrailingwhitespace(char *s);
@@ -1155,7 +1158,7 @@ struct serverconfigfile
 struct servercommandline
 {
     int uprate, serverport, syslogfacility, filethres, syslogthres, maxdemos, maxclients, kickthreshold, banthreshold, verbose, incoming_limit, afk_limit, ban_time, demotimelocal;
-    const char *ip, *master, *logident, *serverpassword, *adminpasswd, *demopath, *maprotfile, *pwdfile, *blfile, *geoipfile, *nbfile, *infopath, *motdpath, *forbidden, *demofilenameformat, *demotimestampformat, *service, *logfilepath, *parfilepath, *ssk;
+    const char *ip, *master, *logident, *serverpassword, *adminpasswd, *demopath, *maprotfile, *pwdfile, *blfile, *geoipfile, *nbfile, *infopath, *motdpath, *forbidden, *demofilenameformat, *demotimestampformat, *service, *logfilepath, *parfilepath, *ssk, *vitabasename;
     bool logtimestamp, demo_interm, loggamestatus;
     string motd, servdesc_full, servdesc_pre, servdesc_suf, voteperm, mapperm;
     int clfilenesting;
@@ -1165,7 +1168,7 @@ struct servercommandline
                             maxclients(DEFAULTCLIENTS), kickthreshold(-5), banthreshold(-6), verbose(0), incoming_limit(10), afk_limit(45000), ban_time(20*60*1000), demotimelocal(0),
                             ip(""), master(NULL), logident(""), serverpassword(""), adminpasswd(""), demopath(""),
                             maprotfile("config/maprot.cfg"), pwdfile("config/serverpwd.cfg"), blfile("config/serverblacklist.cfg"), geoipfile("config/geoip.cfg"), nbfile("config/nicknameblacklist.cfg"),
-                            infopath("config/serverinfo"), motdpath("config/motd"), forbidden("config/forbidden.cfg"), service(NULL), logfilepath("logs/"), parfilepath("config/serverparameters.cfg"), ssk(NULL),
+                            infopath("config/serverinfo"), motdpath("config/motd"), forbidden("config/forbidden.cfg"), service(NULL), logfilepath("logs/"), parfilepath("config/serverparameters.cfg"), ssk(NULL), vitabasename("config/servervita"),
                             logtimestamp(false), demo_interm(false), loggamestatus(true),
                             clfilenesting(0)
     {
@@ -1222,6 +1225,7 @@ struct servercommandline
                 break;
             case 'H': logfilepath = a; break;
             case 'A': parfilepath = a; break;
+            case 'U': vitabasename = a; break;
             case 'c': if(ai > 0) maxclients = min(ai, MAXCLIENTS); break;
             case 'k':
             {

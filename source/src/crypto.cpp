@@ -1092,7 +1092,7 @@ static int certtypemaxrank[] = { 0, 1, 2, 3, 3, 3, 0 };  // max allowed rank of 
 static int certtypeexpiration[] = { 0, 0, 0, 2 * CERTTIMEMONTH, CERTTIMEMONTH, 3 * CERTTIMEMONTH, CERTTIMEMONTH }; // time after which certs are usually re-signed, after 3x the time they expire
 
 vector<cert *> certs;
-hashtable<const uchar *, char> certblacklist;
+hashtable<const uchar32, char> certblacklist;
 
 static inline int aktcerttime() { return time(NULL) / (time_t) 60; }      // use minutes instead of seconds as timebase, so int will be more than enough
 
@@ -1345,7 +1345,7 @@ void rebuildcerttree()       // determines the rank of all certs; ages them; rem
             if(c->days2renew < 0) c->needsrenewal = true;
             if(c->days2expire < 0) { c->expired = true; c->isvalid = false; }
         }
-        if(c->pubkey && certblacklist.access(c->pubkey))
+        if(c->pubkey && certblacklist.access(*((uchar32*)c->pubkey)))
         {
             c->blacklisted = true;
             c->isvalid = false;

@@ -40,6 +40,7 @@
 // -H     // server logfile path, default logs/
 // -r     // server maprot file, default config/maprot.cfg
 // -A     // server parameter file, default config/serverparameters.cfg
+// -U     // vitapath, path & filename prefix to store the server vita database at, default: config/servervita
 // -X     // server passwords file, default config/serverpwd.cfg
 // -B     // server IP blacklist file, default config/serverblacklist.cfg
 // -G     // server geoip file, default config/geoip.cfg

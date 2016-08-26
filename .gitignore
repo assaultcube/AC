@@ -13,6 +13,7 @@ config/servers.cfg
 config/configtemplates.zip
 config/mapmodelattributes.cfg
 config/entropy.dat
+config/servervita*
 packages/maps/*.cfg
 !packages/maps/new_content.cfg
 packages/maps/*.cgz
