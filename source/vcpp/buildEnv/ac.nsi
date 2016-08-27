@@ -51,7 +51,7 @@
 
 SetCompressor /SOLID lzma
 
-!define CURPATH ".\" ; must include the installer graphics and the \ac\ directory
+!define CURPATH ".\" ; must include the installer graphics and the AC_NEWVERSIONDIR directory
 !define AC_FULLVERSIONINT "1.2.0.2"
 !define AC_FULLVERSION "v${AC_FULLVERSIONINT}"
 !define AC_SHORTNAME "AssaultCube"
@@ -60,6 +60,9 @@ SetCompressor /SOLID lzma
 !define AC_URLPROTOCOL "assaultcube"
 !define AC_MAJORVERSIONINT 1
 !define AC_MINORVERSIONINT 2
+!define AC_NEWVERSIONDIR "ac" ; directory with prepared new AC version
+; path to profile folder in "MYDOCUMENTS" directory, should be the same as in assaultcube.bat
+!define AC_PROFILEPATH "My Games\AssaultCube\v${AC_MAJORVERSIONINT}.${AC_MINORVERSIONINT}"
 
 Name "AssaultCube"
 VAR StartMenuFolder
@@ -403,7 +406,7 @@ Section "AssaultCube ${AC_FULLVERSION}" AC
 
     SetOutPath "$INSTDIR"
 
-    File /r ac\*.*
+    File /r "${AC_NEWVERSIONDIR}\*.*"
 
     WriteRegStr HKLM "Software\${AC_SHORTNAME}" "" $INSTDIR
     WriteRegStr HKLM "Software\${AC_SHORTNAME}" "version" ${AC_FULLVERSIONINT}
@@ -428,12 +431,15 @@ Section "AssaultCube ${AC_FULLVERSION}" AC
     
     !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
        
+        SetShellVarContext current
+        StrCpy $0 $DOCUMENTS
         SetShellVarContext all
 
         CreateDirectory "$SMPROGRAMS\$StartMenuFolder"
         CreateShortCut "$SMPROGRAMS\$StartMenuFolder\${AC_SHORTNAME}.lnk" "$INSTDIR\assaultcube.bat" "" "$INSTDIR\docs\images\favicon.ico" 0 SW_SHOWMINIMIZED
         CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\docs\images\favicon.ico" 0
         CreateShortCut "$SMPROGRAMS\$StartMenuFolder\README.lnk" "$INSTDIR\README.html" "" "" 0
+        CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Profile folder.lnk" "$0\${AC_PROFILEPATH}"
 
     !insertmacro MUI_STARTMENU_WRITE_END
 
@@ -499,6 +505,7 @@ Section "Uninstall"
     Delete "$SMPROGRAMS\$StartMenuFolder\${AC_SHORTNAME}.lnk"
     Delete "$SMPROGRAMS\$StartMenuFolder\Uninstall.lnk"
     Delete "$SMPROGRAMS\$StartMenuFolder\README.lnk"
+    Delete "$SMPROGRAMS\$StartMenuFolder\Profile folder.lnk"
     RMDir  "$SMPROGRAMS\$StartMenuFolder"
     
     ; delete reg keys
