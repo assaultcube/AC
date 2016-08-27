@@ -475,6 +475,7 @@ struct zone { int x1, x2, y1, y2, color; }; // zones (drawn on the minimap)
 
 // rendercubes
 extern void mipstats(const int a[]);
+extern const char *cubetypenames[];
 extern bool editfocusdetails(sqr *s);
 extern void render_flat(int tex, int x, int y, int size, int h, sqr *l1, sqr *l2, sqr *l3, sqr *l4, bool isceil);
 extern void render_flatdelta(int wtex, int x, int y, int size, float h1, float h2, float h3, float h4, sqr *l1, sqr *l2, sqr *l3, sqr *l4, bool isceil);

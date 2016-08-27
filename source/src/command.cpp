@@ -1789,8 +1789,8 @@ COMMAND(getscrext, "");
 void listoptions(char *s)
 {
     extern const char *menufilesortorders[], *texturestacktypes[];
-    const char *optionnames[] = { "entities", "ents", "weapons", "teamnames", "teamnames-abbrv", "punctuations", "crosshairnames", "menufilesortorders", "texturestacktypes", "" };
-    const char **optionlists[] = { optionnames, entnames + 1, entnames + 1, gunnames, teamnames, teamnames_s, punctnames, crosshairnames, menufilesortorders, texturestacktypes };
+    const char *optionnames[] = { "entities", "ents", "weapons", "teamnames", "teamnames-abbrv", "punctuations", "crosshairnames", "menufilesortorders", "texturestacktypes", "cubetypes", "" };
+    const char **optionlists[] = { optionnames, entnames + 1, entnames + 1, gunnames, teamnames, teamnames_s, punctnames, crosshairnames, menufilesortorders, texturestacktypes, cubetypenames };
     const char **listp = optionlists[getlistindex(s, optionnames, true, -1) + 1];
     commandret = conc(listp, -1, true);
 }

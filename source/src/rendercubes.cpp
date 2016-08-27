@@ -138,8 +138,8 @@ bool showm = false, showef = false;
 COMMANDF(showmip, "",() { showm = !showm; });
 COMMANDF(showfocuscubedetails, "",() { showef = !showef; });
 
-const char *cubetypes[] = {"SOLID", "CORNER", "FHF", "CHF", "SPACE"};
-const char *cubetypename(int t) { return t >= 0 && t < SEMISOLID ? cubetypes[t] : "unknown"; }
+const char *cubetypenames[] = {"SOLID", "CORNER", "FHF", "CHF", "SPACE", ""};
+const char *cubetypename(int t) { return t >= 0 && t < SEMISOLID ? cubetypenames[t] : "unknown"; }
 
 void mipstats(const int a[]) { if(showm && !showef) hudeditf(HUDMSG_MIPSTATS, "1x1/2x2/4x4/8x8: %d / %d / %d / %d", a[0], a[1], a[2], a[3]); }
 
