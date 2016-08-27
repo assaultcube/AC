@@ -12,9 +12,7 @@
 #include <time.h>
 #include <limits.h>
 #include <math.h>
-#ifdef __MINGW32__
-    #include <stdint.h>
-#endif
+#include <stdint.h>
 #ifdef __GNUC__
     #include <new>
     #include <signal.h>

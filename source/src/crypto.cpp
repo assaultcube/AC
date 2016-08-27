@@ -608,7 +608,7 @@ void ed25519test(char *vectorfilename)  // check ed25519 functions with test vec
     { // a line consists of 32 bytes private key, 32 byte public key, ":", 32 byte public key (again), ":", message, ":", signed message, ":"
         char *vprivpub = l, *vpub = strchr(l, ':'), *vmsg, *vsmsg, hextemp[65];
         int linelen = strlen(l), msglen = 0;
-        uchar privpub[64], pub[32], msg[linelen], smsg[linelen], temp[64];
+        uchar privpub[64], pub[32], *msg = new uchar[linelen], *smsg = new uchar[linelen], temp[64];
         lines++;
         if(!vpub || !(vmsg = strchr(vpub + 1, ':')) || !(vsmsg = strchr(vmsg + 1, ':')) ||
            hex2bin(privpub, vprivpub, 64) != 64 || hex2bin(pub, ++vpub, 32) != 32 || (msglen = hex2bin(msg, ++vmsg, linelen)) < 0 || hex2bin(smsg, ++vsmsg, linelen) != (msglen + 64) ||
@@ -629,6 +629,8 @@ void ed25519test(char *vectorfilename)  // check ed25519 functions with test vec
         }
         pub[msglen % 32]++;
         if(ed25519_sign_check(smsg, msglen + 64, pub)) { verifyfail2++; continue; }     // verification of altered signed message didn't fail (...but should've)
+        delete[] smsg;
+        delete[] msg;
     }
     DELETEA(vectorfile);
     conoutf("processed %d lines in %d milliseconds", lines, watch.elapsed());
