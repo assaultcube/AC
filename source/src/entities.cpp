@@ -3,9 +3,9 @@
 #include "cube.h"
 
 VAR(showclips, 0, 1, 1);
-VAR(showmodelclipping, 0, 0, 1);
-VAR(showladderentities, 0, 0, 1);
-VAR(showplayerstarts, 0, 0, 1);
+VARP(showmodelclipping, 0, 0, 1);
+VARP(showladderentities, 0, 0, 1);
+VARP(showplayerstarts, 0, 0, 1);
 
 vector<entity> ents;
 vector<int> eh_ents; // edithide entities
