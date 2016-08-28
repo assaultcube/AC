@@ -590,6 +590,8 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         pl->o.x += f*d.x;
         pl->o.y += f*d.y;
         pl->o.z += f*d.z;
+        volatile vec gcco3(pl->o.x, pl->o.y, pl->o.z);  // force capping the o-values to float-representables (avoid player stuck conditions on 32-bit g++ builds)
+        pl->o = vec(gcco3.x, gcco3.y, gcco3.z);
         hitplayer = NULL;
         if(!collide(pl, false, drop, rise)) continue;
         int cornersurface1 = cornersurface;
