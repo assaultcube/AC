@@ -255,7 +255,7 @@ void sortmapmodelslots(char **args, int numargs)
         tempslots.last().oldslot.add(i);
         tempslots.last().used = false;
     }
-    loopv(ents) if(ents[i].type == MAPMODEL) tempslots[ents[i].attr2].used = true;
+    loopv(ents) if(ents[i].type == MAPMODEL && tempslots.inrange(ents[i].attr2)) tempslots[ents[i].attr2].used = true;
     tempslots.sort(tempmmsort);
 
     // remove double entries

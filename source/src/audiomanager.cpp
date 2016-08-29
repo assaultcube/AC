@@ -1009,7 +1009,7 @@ void sortmapsoundslots(char **args, int numargs)
         tempslots.last().oldslot.add(i);
         tempslots.last().used = false;
     }
-    loopv(ents) if(ents[i].type == SOUND) tempslots[ents[i].attr1 & 255].used = true;
+    loopv(ents) if(ents[i].type == SOUND && tempslots.inrange(ents[i].attr1)) tempslots[ents[i].attr1].used = true;
     tempslots.sort(tempmssort);
 
     // remove double entries
