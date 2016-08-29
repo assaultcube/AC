@@ -659,20 +659,26 @@ void entstats_(void)
 {
     entitystats_s es;
     calcentitystats(es, NULL, 0);
-    int clipents = 0;
+    int clipents = 0, xmodels = 0, xsounds = 0;
     loopv(ents)
     {
         entity &e = ents[i];
         if(e.type == MAPMODEL)
         {
             mapmodelinfo *mmi = getmminfo(e.attr2);
+            if(!mmi) xmodels++;
             if(mmi && mmi->h) clipents++;
+        }
+        else if(e.type == SOUND)
+        {
+            if(!mapconfigdata.mapsoundlines.inrange(e.attr1)) xsounds++;
         }
     }
     string txt = "", clips = "";
     loopi(MAXENTTYPES) if(es.entcnt[i]) switch(i)
     {
-        case MAPMODEL:      conoutf(" %d %s, %d clipped", es.entcnt[i], entnames[i], clipents); break;
+        case MAPMODEL:      conoutf(" %d %s, %d clipped, %s%d unconfigured", es.entcnt[i], entnames[i], clipents, xmodels ? "\f3" : "", xmodels); break;
+        case SOUND:         conoutf(" %d %s, %s%d unconfigured", es.entcnt[i], entnames[i], xsounds ? "\f3" : "", xsounds);
         case PLAYERSTART:   conoutf(" %d %s, %d CLA, %d RVSF, %d FFA%c \f3unknown %d", es.entcnt[i], entnames[i], es.spawns[0], es.spawns[1], es.spawns[2], es.unknownspawns ? ',' : '\0', es.unknownspawns); break;
         case CTF_FLAG:      conoutf(" %d %s, %d CLA, %d RVSF%c \f3unknown %d", es.entcnt[i], entnames[i], es.flags[0], es.flags[1], es.unknownflags ? ',' : '\0', es.unknownflags); break;
         case CLIP:
@@ -693,6 +699,7 @@ void entstats_(void)
     if(es.entcnt[CTF_FLAG]) conoutf(" flag distance: %d", es.flagentdistance);
     conoutf(" map capabilities: has ffa spawns %d, has team spawns %d, has flags %d", es.hasffaspawns ? 1 : 0, es.hasteamspawns ? 1 : 0, es.hasflags ? 1 : 0);
     conoutf("total entities: %d", ents.length());
+    intret(xmodels + xsounds);
 }
 
 COMMANDN(entstats, entstats_, "");
