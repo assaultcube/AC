@@ -496,6 +496,15 @@ void _texture(Slot &s, float *scale, char *name)
     }
 }
 
+void checktexturefilename(const char *name)
+{
+    if(execcontext == IEXC_MAPCFG && strstr(name, "map_editor"))
+    {
+        conoutf("\f3bad texture: %s", name);
+        flagmapconfigerror(LWW_CONFIGERR * 4);
+    }
+}
+
 COMMANDF(texture, "fs", (float *scale, char *name)
 {
     intret(slots.length());
@@ -506,6 +515,7 @@ COMMANDF(texture, "fs", (float *scale, char *name)
         conoutf("\f3texture slot #%d \"%s\" error: scale factor %.7g out of range 0..4", slots.length() - 1, name, *scale);
         flagmapconfigerror(LWW_CONFIGERR * 4);
     }
+    checktexturefilename(name);
     flagmapconfigchange();
 });
 
@@ -578,6 +588,7 @@ bool loadskymap(bool reload)
     {
         int n = strlen(legacyprefix);
         filtertext(loadsky, loadsky, FTXT__MEDIAFILEPATH);
+        checktexturefilename(loadsky);
         if(!strncmp(loadsky, legacyprefix, n))
         { // remove the prefix
             char *t = loadsky;
@@ -609,6 +620,7 @@ void loadnotexture(char *c)
     *mapconfigdata.notexturename = '\0';
     if(c[0])
     {
+        checktexturefilename(c);
         filtertext(mapconfigdata.notexturename, c, FTXT__MEDIAFILEPATH);
         defformatstring(p)("packages/textures/%s", mapconfigdata.notexturename);
         noworldtexture = textureload(p);

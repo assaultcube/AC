@@ -113,6 +113,7 @@ void mapmodel(int *rad, int *h, int *zoff, char *scale, char *name)
 {
     if(*scale && *name) // ignore "mapmodel" commands with insufficient parameters
     {
+        if(!strchr(name, '/') && !strchr(name, '\\')) flagmapconfigerror(LWW_CONFIGERR * 2); // throw errors for unconverted mapmodels (unspecific, because not all get detected)
         intret(mapmodels.length());
         mapmodelinfo &mmi = mapmodels.add();
         mmi.rad = *rad;
@@ -131,6 +132,7 @@ void mapmodel(int *rad, int *h, int *zoff, char *scale, char *name)
         mapmodelchanged = 1;
         flagmapconfigchange();
     }
+    else flagmapconfigerror(LWW_CONFIGERR * 2);
 }
 COMMAND(mapmodel, "iiiss");
 
