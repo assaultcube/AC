@@ -390,8 +390,8 @@ public:
 
     // init & setup
     void initsound();
-    void preloadmapsound(entity &e, bool trydl = false);
-    void preloadmapsounds(bool trydl = false);
+    bool preloadmapsound(entity &e, bool trydl = false);
+    bool preloadmapsounds(bool trydl = false);
     void applymapsoundchanges();
 
     // configuration

@@ -233,20 +233,23 @@ int audiomanager::addsound(char *name, int vol, int maxuses, bool loop, vector<s
     return sounds.length()-1;
 }
 
-void audiomanager::preloadmapsound(entity &e, bool trydl)
+bool audiomanager::preloadmapsound(entity &e, bool trydl)
 {
-    if(e.type!=SOUND || !mapsounds.inrange(e.attr1)) return;
+    if(e.type!=SOUND || !mapsounds.inrange(e.attr1)) return false;
     sbuffer *buf = mapsounds[e.attr1].buf;
-    if(!buf->load(trydl) && !trydl) conoutf("\f3failed to load sample %s", buf->name);
+    if(!buf->load(trydl) && !trydl) { conoutf("\f3failed to load sample %s", buf->name); return false; }
+    return true;
 }
 
-void audiomanager::preloadmapsounds(bool trydl)
+bool audiomanager::preloadmapsounds(bool trydl)
 {
+    int missing = 0;
     loopv(ents)
     {
         entity &e = ents[i];
-        if(e.type==SOUND) preloadmapsound(e, trydl);
+        if(e.type == SOUND && !preloadmapsound(e, trydl)) missing++;
     }
+    return !missing;
 }
 
 void audiomanager::applymapsoundchanges() // during map editing, drop all mapsounds so they can be re-added
@@ -820,7 +823,11 @@ COMMANDF(mapsound, "si", (char *name, int *maxuses)
     filtertext(name, name, FTXT__MEDIAFILEPATH);
     defformatstring(stripped)("%s%s", mapsoundbasepath, name);
     unixpath(path(stripped));
-    if(mapconfigdata.mapsoundlines.length() > 254) conoutf("\f3error: too many mapsounds");
+    if(mapconfigdata.mapsoundlines.length() > 254)
+    {
+        conoutf("\f3error: too many mapsounds");
+        flagmapconfigerror(LWW_CONFIGERR);
+    }
     else if(!strncmp(stripped, mapsoundbasepath, mapsoundbasepath_n))
     {
         name = stripped + mapsoundbasepath_n;
@@ -832,7 +839,11 @@ COMMANDF(mapsound, "si", (char *name, int *maxuses)
         mapsoundchanged = 1;
         flagmapconfigchange();
     }
-    else conoutf("\f3error: mapsound \"%s\" outside packages/audio/", stripped);
+    else
+    {
+        conoutf("\f3error: mapsound \"%s\" outside packages/audio/", stripped);
+        flagmapconfigerror(LWW_CONFIGERR);
+    }
 });
 
 COMMANDF(registermusic, "s", (char *name)

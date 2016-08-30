@@ -168,7 +168,7 @@ void rlencodecubes(vector<uchar> &f, sqr *s, int len, bool preservesolids) // ru
     spurge;
 }
 
-void rldecodecubes(ucharbuf &f, sqr *s, int len, int version, bool silent) // run-length decoding of a series of cubes (version is only relevant, if < 6)
+bool rldecodecubes(ucharbuf &f, sqr *s, int len, int version, bool silent) // run-length decoding of a series of cubes (version is only relevant, if < 6)
 {
     sqr *t = NULL, *e = s + len;
     while(s < e)
@@ -215,7 +215,7 @@ void rldecodecubes(ucharbuf &f, sqr *s, int len, int version, bool silent) // ru
                 if(type<0 || type>=MAXTYPE)
                 {
                     if(!silent) conoutf("while reading map at %d: type %d out of range", int(cubicsize - (e - s)), type);
-                    f.overread();
+                    f.forceoverread();
                     continue;
                 }
                 sqrdefault(s);
@@ -236,6 +236,7 @@ void rldecodecubes(ucharbuf &f, sqr *s, int len, int version, bool silent) // ru
         t = s;
         s++;
     }
+    return !f.overread();  // true: no problem
 }
 
 // headerextra stores additional data in a map file (support since format 10)
@@ -282,7 +283,7 @@ void unpackheaderextra(uchar *buf, int len)  // break the extra data from the ma
     {
         int len = getuint(p), flags = getuint(p), type = flags & HX_TYPEMASK;
         if(p.overread() || len > p.remaining()) break;
-        clientlogf(" found headerextra \"%s\", %d bytes%s", hx_name(type), len, flags & HX_FLAG_PERSIST ? "persistent" : "");  // debug info
+        clientlogf(" found headerextra \"%s\", %d bytes%s", hx_name(type), len, flags & HX_FLAG_PERSIST ? ", persistent" : "");  // debug info
         headerextras.add(new headerextra(len, flags, p.subbuf(len).buf));
     }
 }
@@ -412,6 +413,13 @@ COMMANDF(getautomapconfig, "", () { intret((hdr.flags & MHF_AUTOMAPCONFIG) != 0)
 void flagmapconfigchange()
 { // if changes are tracked, because automapcfg is enabled and the change is not read from a config file -> set unsaved edits flag
     if(execcontext != IEXC_MAPCFG && hdr.flags & MHF_AUTOMAPCONFIG) unsavededits++;
+}
+
+int mapconfigerror = 0;
+
+void flagmapconfigerror(int what)
+{
+    if(execcontext == IEXC_MAPCFG || execcontext == IEXC_MDLCFG) mapconfigerror |= what;
 }
 
 void getcurrentmapconfig(vector<char> &f, bool onlysounds)
@@ -757,7 +765,7 @@ extern float Mh;
 
 static string lastloadedconfigfile;
 
-bool load_world(char *mname)        // still supports all map formats that have existed since the earliest cube betas!
+int load_world(char *mname)        // still supports all map formats that have existed since the earliest cube betas!
 {
     const int sizeof_header = sizeof(header), sizeof_baseheader = sizeof_header - sizeof(int) * 16;
     stopwatch watch;
@@ -775,23 +783,23 @@ bool load_world(char *mname)        // still supports all map formats that have 
     if(!validmapname(mname))
     {
         conoutf("\f3Invalid map name. It must only contain letters, digits, '-', '_' and be less than %d characters long", MAXMAPNAMELEN);
-        return false;
+        return -1;
     }
     stream *f = opengzfile(cgzname, "rb");
-    if(!f) { conoutf("\f3could not read map %s", cgzname); return false; }
+    if(!f) { conoutf("\f3could not read map %s", cgzname); return -2; }
     if(unsavededits) xmapbackup("load_map_", mname);
     unsavededits = 0;
     DEBUG("reading map \"" << cgzname << "\"");
     header tmp;
     memset(&tmp, 0, sizeof_header);
     if(f->read(&tmp, sizeof_baseheader) != sizeof_baseheader ||
-       (strncmp(tmp.head, "CUBE", 4)!=0 && strncmp(tmp.head, "ACMP",4)!=0)) { conoutf("\f3while reading map: header malformatted (1)"); delete f; return false; }
+       (strncmp(tmp.head, "CUBE", 4)!=0 && strncmp(tmp.head, "ACMP",4)!=0)) { conoutf("\f3while reading map: header malformatted (1)"); delete f; return -3; }
     lilswap(&tmp.version, 4); // version, headersize, sfactor, numents
-    if(tmp.version > MAPVERSION) { conoutf("\f3this map requires a newer version of AssaultCube"); delete f; return false; }
-    if(tmp.sfactor<SMALLEST_FACTOR || tmp.sfactor>LARGEST_FACTOR || tmp.numents > MAXENTITIES) { conoutf("\f3illegal map size"); delete f; return false; }
+    if(tmp.version > MAPVERSION) { conoutf("\f3this map requires a newer version of AssaultCube"); delete f; return -4; }
+    if(tmp.sfactor<SMALLEST_FACTOR || tmp.sfactor>LARGEST_FACTOR || tmp.numents > MAXENTITIES) { conoutf("\f3illegal map size"); delete f; return -5; }
     tmp.headersize = fixmapheadersize(tmp.version, tmp.headersize);
     int restofhead = min(tmp.headersize, sizeof_header) - sizeof_baseheader;
-    if(f->read(&tmp.waterlevel, restofhead) != restofhead) { conoutf("\f3while reading map: header malformatted (2)"); delete f; return false; }
+    if(f->read(&tmp.waterlevel, restofhead) != restofhead) { conoutf("\f3while reading map: header malformatted (2)"); delete f; return -6; }
     DEBUG("version " << tmp.version << " headersize " << tmp.headersize << " headerextrasize " << tmp.headersize - int(sizeof(header)) << " entities " << tmp.numents << " factor " << tmp.sfactor << " revision " << tmp.maprevision);
     clearheaderextras();
     if(tmp.headersize > sizeof_header)
@@ -802,7 +810,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
         if(extrasize)
         { // map file actually has extra header data that we want too preserve
             uchar *extrabuf = new uchar[extrasize];
-            if(f->read(extrabuf, extrasize) != extrasize) { conoutf("\f3while reading map: header malformatted (3)"); delete f; return false; }
+            if(f->read(extrabuf, extrasize) != extrasize) { conoutf("\f3while reading map: header malformatted (3)"); delete f; return -7; }
             unpackheaderextra(extrabuf, extrasize);
             delete[] extrabuf;
         }
@@ -813,6 +821,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
     rebuildtexlists();
     loadingscreen("%s", hdr.maptitle);
     resetmap();
+    int res = 0;
     if(hdr.version>=4)
     {
         lilswap(&hdr.waterlevel, 1);
@@ -852,7 +861,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
             #define SCALEATTR(x) \
             if((ss = abs(entwraparound[e.type][x - 1] / entscale[e.type][x - 1]))) e.attr##x = (int(e.attr##x) % ss + ss) % ss; \
             e.attr##x = ov = e.attr##x * entscale[e.type][x - 1]; \
-            if(ov != e.attr##x) conoutf("overflow during conversion of attr%d of entity #%d (%s) - pls check before saving the map", x, i, entnames[e.type]);
+            if(ov != e.attr##x) { conoutf("overflow during conversion of attr%d of entity #%d (%s) - pls check before saving the map", x, i, entnames[e.type]); res |= LWW_ENTATTROVERFLOW; }
             SCALEATTR(1);
             SCALEATTR(2);
             SCALEATTR(3);
@@ -889,13 +898,14 @@ bool load_world(char *mname)        // still supports all map formats that have 
         if(q.len < cubicsize) break;
     }
     ucharbuf uf(rawcubes.getbuf(), rawcubes.length());
-    rldecodecubes(uf, world, cubicsize, hdr.version, false); // decode file
+    res |= rldecodecubes(uf, world, cubicsize, hdr.version, false) ? 0 : LWW_DECODEERR; // decode file
     c2skeepalive();
 
     // calculate map statistics
     servsqr *smallworld = createservworld(world, cubicsize);
     int we = calcmapdims(clmapdims, smallworld, ssize);
     if(we) conoutf("world error %d", we);
+    res |= LWW_WORLDERROR * (iabs(we) & 0xf);
     delete[] smallworld;
 
 
@@ -930,6 +940,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
     calclight();
     conoutf("read map %s rev %d (%d milliseconds)", cgzname, hdr.maprevision, watch.elapsed());
     conoutf("%s", hdr.maptitle);
+    mapconfigerror = 0;
     pushscontext(IEXC_MAPCFG); // untrusted altogether
     per_idents = false;
     neverpersist = true;
@@ -975,18 +986,18 @@ bool load_world(char *mname)        // still supports all map formats that have 
 
     c2skeepalive();
 
-    loadskymap(true);
+    res |= loadskymap(true) ? 0 : LWW_MISSINGMEDIA * 1;
 
     watch.start();
-    loopi(256) if(texuse[i]) lookupworldtexture(i, false);
+    loopi(256) if(texuse[i] && lookupworldtexture(i, false) == notexture) res |= LWW_MISSINGMEDIA * 2;
     clientlogf("loaded textures (%d milliseconds)", texloadtime+watch.elapsed());
     c2skeepalive();
     watch.start();
-    preload_mapmodels(false);
+    res |= preload_mapmodels(false) ? 0 : LWW_MISSINGMEDIA * 4;
     clientlogf("loaded mapmodels (%d milliseconds)", mdlloadtime+watch.elapsed());
     c2skeepalive();
     watch.start();
-    audiomgr.preloadmapsounds(false);
+    res |= audiomgr.preloadmapsounds(false) ? 0 : LWW_MISSINGMEDIA * 8; // also set, if soundvol == 0, because no sounds are loaded (or checked) in that case
     clientlogf("loaded mapsounds (%d milliseconds)", audioloadtime+watch.elapsed());
     c2skeepalive();
 
@@ -1006,15 +1017,15 @@ bool load_world(char *mname)        // still supports all map formats that have 
     defformatstring(startmillis)("%d", millis_());
     alias("gametimestart", startmillis, true);
     startmap(mname);
-    return true;
+    res |= mapconfigerror;
+    if(res) conoutf("\f3unresolved problems occured during load_world(), warning: 0x%x", res);
+    return res; // negative: error (no map loaded), zero: no problem, positive: some problems (bitmask value)
 }
 
-#ifdef _DEBUG
 COMMANDF(loadmap, "s", (char *mapname)
 {
-    if(!multiplayer()) load_world(mapname);
+    intret(!multiplayer() ? load_world(mapname) : -42);
 });
-#endif
 
 // support reading and writing binary data in config files
 

@@ -11,7 +11,7 @@ mapmodelattributes loadingattributes;
 #include "md2.h"
 #include "md3.h"
 
-#define checkmdl if(!loadingmodel) { conoutf("not loading a model"); return; }
+#define checkmdl if(!loadingmodel) { conoutf("not loading a model"); flagmapconfigerror(LWW_MODELERR); return; }
 
 void mdlcullface(int *cullface)
 {
@@ -119,7 +119,11 @@ void mapmodel(int *rad, int *h, int *zoff, char *scale, char *name)
         mmi.h = *h;
         mmi.zoff = *zoff;
         mmi.scale = atof(scale);
-        if(mmi.scale < 0.25f || mmi.scale > 4.0f) mmi.scale = 1.0f;
+        if(mmi.scale < 0.25f || mmi.scale > 4.0f)
+        {
+            mmi.scale = 1.0f;
+            if(strcmp(scale, "0")) flagmapconfigerror(LWW_CONFIGERR * 2);
+        }
         mmi.m = NULL;
 
         filtertext(name, name, FTXT__MEDIAFILEPATH);
@@ -382,7 +386,11 @@ model *loadmodel(const char *name, int i, bool trydl)     // load model by name 
         {
             mdllookup.access(m->name(), m);
             setmodelattributes(m->name(), loadingattributes);
-            if(m->shadowdist && !m->cullface) conoutf("\f3mapmodel config error: disabling face culling in combination with shadows will cause visual errors (%s)", m->name());
+            if(m->shadowdist && !m->cullface)
+            {
+                conoutf("\f3mapmodel config error: disabling face culling in combination with shadows will cause visual errors (%s)", m->name());
+                flagmapconfigerror(LWW_MODELERR);
+            }
         }
         loadingmodel = NULL;
     }
@@ -896,15 +904,17 @@ void preload_entmodels()
      }
 }
 
-void preload_mapmodels(bool trydl)
+bool preload_mapmodels(bool trydl)
 {
+    int missing = 0;
     loopv(ents)
     {
         entity &e = ents[i];
         if(e.type!=MAPMODEL || !mapmodels.inrange(e.attr2)) continue;
-        loadmodel(NULL, e.attr2, trydl);
-        if(e.attr4) lookuptexture(e.attr4, notexture, trydl);
+        if(!loadmodel(NULL, e.attr2, trydl)) missing++;
+        if(e.attr4 && lookuptexture(e.attr4, notexture, trydl) == notexture) missing++;
     }
+    return !missing;
 }
 
 inline void renderhboxpart(playerent *d, vec top, vec bottom, vec up)

@@ -257,7 +257,7 @@ struct md2 : vertmodel
         Texture *skin;
         loadskin(loadname, pname, skin);
         loopv(mdl.meshes) mdl.meshes[i]->skin  = skin;
-        if(skin==notexture) conoutf("could not load model skin for %s", name1);
+        if(skin==notexture) { conoutf("could not load model skin for %s", name1); flagmapconfigerror(LWW_MODELERR); }
         loadingmd2 = this;
         defformatstring(name2)("packages/models/%s/md2.cfg", loadname);
         per_idents = false;
@@ -280,15 +280,15 @@ struct md2 : vertmodel
 
 void md2anim(char *anim, int *frame, int *range, float *speed)
 {
-    if(!loadingmd2 || loadingmd2->parts.empty()) { conoutf("not loading an md2"); return; }
+    if(!loadingmd2 || loadingmd2->parts.empty()) { conoutf("not loading an md2"); flagmapconfigerror(LWW_MODELERR); return; }
     int num = findanim(anim);
-    if(num<0) { conoutf("could not find animation %s", anim); return; }
+    if(num<0) { conoutf("could not find animation %s", anim); flagmapconfigerror(LWW_MODELERR); return; }
     loadingmd2->parts.last()->setanim(num, *frame, *range, *speed);
 }
 
 void md2tag(char *name, char *vert1, char *vert2, char *vert3, char *vert4)
 {
-    if(!loadingmd2 || loadingmd2->parts.empty()) { conoutf("not loading an md2"); return; }
+    if(!loadingmd2 || loadingmd2->parts.empty()) { conoutf("not loading an md2"); flagmapconfigerror(LWW_MODELERR); return; }
     md2::part &mdl = *loadingmd2->parts.last();
     int indexes[4] = { -1, -1, -1, -1 }, numverts = 0;
     loopi(4)
@@ -319,17 +319,17 @@ void md2tag(char *name, char *vert1, char *vert2, char *vert3, char *vert4)
             }
             if(!mdl.meshes.empty()) indexes[i] = mdl.meshes[0]->findvert(axis, dir);
         }
-        if(indexes[i] < 0) { conoutf("could not find vertex %s", vert); return; }
+        if(indexes[i] < 0) { conoutf("could not find vertex %s", vert); flagmapconfigerror(LWW_MODELERR); return; }
         numverts = i + 1;
     }
-    if(!mdl.gentag(name, indexes, numverts)) { conoutf("could not generate tag %s", name); return; }
+    if(!mdl.gentag(name, indexes, numverts)) { conoutf("could not generate tag %s", name); flagmapconfigerror(LWW_MODELERR); return; }
 }
 
 void md2emit(char *tag, int *type, int *arg1, int *arg2)
 {
-    if(!loadingmd2 || loadingmd2->parts.empty()) { conoutf("not loading an md2"); return; };
+    if(!loadingmd2 || loadingmd2->parts.empty()) { conoutf("not loading an md2"); flagmapconfigerror(LWW_MODELERR); return; };
     md2::part &mdl = *loadingmd2->parts.last();
-    if(!mdl.addemitter(tag, *type, *arg1, *arg2)) { conoutf("could not find tag %s", tag); return; }
+    if(!mdl.addemitter(tag, *type, *arg1, *arg2)) { conoutf("could not find tag %s", tag); flagmapconfigerror(LWW_MODELERR); return; }
 }
 
 COMMAND(md2anim, "siif");

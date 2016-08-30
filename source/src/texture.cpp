@@ -501,7 +501,11 @@ COMMANDF(texture, "fs", (float *scale, char *name)
     intret(slots.length());
     Slot &s = slots.add();
     _texture(s, scale, name);
-    if(*scale < 0.0f || *scale > 4.0f) conoutf("\f3texture slot #%d \"%s\" error: scale factor %.7g out of range 0..4", slots.length() - 1, name, *scale);
+    if(*scale < 0.0f || *scale > 4.0f)
+    {
+        conoutf("\f3texture slot #%d \"%s\" error: scale factor %.7g out of range 0..4", slots.length() - 1, name, *scale);
+        flagmapconfigerror(LWW_CONFIGERR * 4);
+    }
     flagmapconfigchange();
 });
 
@@ -566,7 +570,7 @@ Texture *sky[6] = {NULL, NULL, NULL, NULL, NULL, NULL};
 
 SVARF(loadsky, "", { loadskymap(false); });
 
-void loadskymap(bool reload)
+bool loadskymap(bool reload)
 {
     const char *side[] = { "lf", "rt", "ft", "bk", "dn", "up" };
     const char *legacyprefix = "textures/skymaps/";
@@ -582,7 +586,7 @@ void loadskymap(bool reload)
         }
         flagmapconfigchange();
     }
-    bool old_silent_texture_load = silent_texture_load;
+    bool old_silent_texture_load = silent_texture_load, success = true;
     if(autodownload && execcontext == IEXC_MAPCFG) silent_texture_load = true;
     loopi(6)
     {
@@ -593,8 +597,10 @@ void loadskymap(bool reload)
             requirepackage(PCK_SKYBOX, loadsky);
             break;
         }
+        if(sky[i] == notexture && reload) success = false;
     }
     silent_texture_load = old_silent_texture_load;
+    return success;
 }
 
 void loadnotexture(char *c)
@@ -606,7 +612,7 @@ void loadnotexture(char *c)
         filtertext(mapconfigdata.notexturename, c, FTXT__MEDIAFILEPATH);
         defformatstring(p)("packages/textures/%s", mapconfigdata.notexturename);
         noworldtexture = textureload(p);
-        if(noworldtexture==notexture) conoutf("could not load alternative texture '%s'.", p);
+        if(noworldtexture==notexture) { conoutf("could not load alternative texture '%s'.", p); flagmapconfigerror(LWW_CONFIGERR * 8); }
     }
     flagmapconfigchange();
 }
