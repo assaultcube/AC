@@ -1060,7 +1060,28 @@ void exec(const char *cfgfile)
 {
     if(!execfile(cfgfile)) conoutf("could not read \"%s\"", cfgfile);
 }
-COMMAND(exec, "s");
+
+COMMANDF(exec, "v", (char **args, int numargs)
+{
+    defformatstring(buf)("%d", numargs - 1);
+    push("execnumargs", buf);
+    for(int i = 1; i < 24; i++) // MAXWORDS - 1
+    {
+        formatstring(buf)("execarg%d", i);
+        push(buf, i < numargs ? args[i] : "");
+    }
+    push("execresult", "");
+    exec(numargs > 0 ? args[0] : "");
+    const char *res = getalias("execresult");
+    if(res) result(res);
+    pop("execresult");
+    for(int i = 23; i > 0; i--)
+    {
+        formatstring(buf)("execarg%d", i);
+        pop(buf);
+    }
+    pop("execnumargs");
+});
 
 COMMANDF(execute, "s", (char *s) { intret(execute(s)); });
 
