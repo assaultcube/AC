@@ -668,6 +668,21 @@ void save_world(char *mname, bool skipoptimise, bool addcomfort)
         f->write(&tmp, sizeof(persistent_entity));
     }
 
+    // fix world border
+    if(editmode)
+    {
+        int nonsolid = 0;
+        loop(y, ssize) loop(x, ssize)
+        {
+            if(OUTBORD(x, y))
+            {
+                sqr *s = S(x, y);
+                if(!SOLID(s)) { sqrdefault(s); s->type = SOLID; nonsolid++; }
+            }
+            else x = ssize - MINBORD - 1;
+        }
+        if(nonsolid) conoutf("\f3fixed %d non-solid world border cubes", nonsolid);
+    }
     // write map geometry
     vector<uchar> rawcubes;
     rlencodecubes(rawcubes, world, cubicsize, skipoptimise);  // if skipoptimize -> keep properties of solid cubes (forces format 10)
