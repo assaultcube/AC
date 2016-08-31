@@ -999,7 +999,6 @@ extern void changescriptcontext(int newcontext);
 extern void explodelist(const char *s, vector<char *> &elems);
 extern char *indexlist(const char *s, int pos);
 extern char *parseword(const char *&p);
-extern char *strreplace(char *dest, const char *source, const char *search, const char *replace);
 extern void pushscontext(int newcontext);
 extern int popscontext();
 extern int curscontext();
@@ -1008,8 +1007,6 @@ extern int execcontext;
 extern const char *currentserver(int i);
 extern void setcontext(const char *context, const char *info);
 extern void resetcontext();
-extern int millis_();
-extern int screenshottype;
 
 // server
 extern int modeacronyms;

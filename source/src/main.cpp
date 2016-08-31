@@ -50,6 +50,7 @@ void quit()                     // normal exit
     DELETEP(clientlogfile);
     exit(EXIT_SUCCESS);
 }
+COMMAND(quit, "");
 
 void fatal(const char *s, ...)    // failure exit
 {
@@ -163,21 +164,6 @@ void setprocesspriority(bool high)
 }
 #endif
 
-const char *screenshotpath(const char *imagepath, const char *suffix)
-{
-    static string buf;
-    if(imagepath && imagepath[0]) copystring(buf, imagepath);
-    else
-    {
-        if(getclientmap()[0])
-            formatstring(buf)("screenshots/%s_%s_%s.%s", timestring(), behindpath(getclientmap()), modestr(gamemode, true), suffix);
-        else
-            formatstring(buf)("screenshots/%s.%s", timestring(), suffix);
-    }
-    path(buf);
-    return buf;
-}
-
 FVARP(screenshotscale, 0.1f, 1.0f, 1.0f);
 
 void bmp_screenshot(const char *imagepath, bool mapshot = false)
@@ -226,9 +212,8 @@ void bmp_screenshot(const char *imagepath, bool mapshot = false)
     }
     entropy_add_block(tmp, tmpsize);
     delete[] tmp;
-    const char *filename = screenshotpath(imagepath, "bmp");
-    stream *file = openfile(filename, "wb");
-    if(!file) conoutf("failed to create: %s", filename);
+    stream *file = openfile(imagepath, "wb");
+    if(!file) conoutf("failed to create: %s", imagepath);
     else
     {
         SDL_SaveBMP_RW(image, file->rwops(), 1);
@@ -293,7 +278,7 @@ void jpeg_screenshot(const char *imagepath, bool mapshot = false)
         free(swapline);
     }
 
-    const char *filename = findfile(screenshotpath(imagepath, "jpg"), "wb");
+    const char *filename = findfile(imagepath, "wb");
     conoutf("writing to file: %s", filename);
 
     jpegenc *jpegencoder = new jpegenc;
@@ -456,35 +441,41 @@ void png_screenshot(const char *imagepath, bool mapshot = false)
     entropy_add_block(tmp, tmpsize);
     delete[] tmp;
 
-    const char *filename = screenshotpath(imagepath, "png");
-    if(save_png(filename, image) < 0) conoutf("\f3Error saving png file");
+    if(save_png(imagepath, image) < 0) conoutf("\f3Error saving png file");
 
     SDL_FreeSurface(image);
 }
 
 VARP(screenshottype, 0, 1, 2);
-void screenshot(const char *imagepath)
+
+const char *getscrext()
 {
+    const char *screxts[] = { ".bmp", ".jpg", ".png" };
+    return screxts[screenshottype % 3];
+}
+COMMANDF(getscrext, "", () { result(getscrext()); });
+
+void screenshot(const char *filename)
+{
+    static string buf;
+    if(filename && filename[0]) formatstring(buf)("screenshots/%s%s", filename, getscrext());
+    else if(getclientmap()[0]) formatstring(buf)("screenshots/%s_%s_%s%s", timestring(), behindpath(getclientmap()), modestr(gamemode, true), getscrext());
+    else formatstring(buf)("screenshots/%s%s", timestring(), getscrext());
+    path(buf);
+
     switch(screenshottype)
     {
-        case 2:  png_screenshot(imagepath,false); break;
-        case 1: jpeg_screenshot(imagepath,false); break;
+        case 2:  png_screenshot(buf, false); break;
+        case 1: jpeg_screenshot(buf, false); break;
         case 0:
-        default: bmp_screenshot(imagepath,false); break;
+        default: bmp_screenshot(buf, false); break;
     }
 }
+COMMAND(screenshot, "s");
 
 void mapshot()
 {
-    string suffix;
-    switch(screenshottype)
-    {
-        case 2: copystring(suffix, "png"); break;
-        case 1: copystring(suffix, "jpg"); break;
-        case 0:
-        default: copystring(suffix, "bmp"); break;
-    }
-    defformatstring(buf)("screenshots/mapshot_%s_%s.%s", behindpath(getclientmap()), timestring(), suffix);
+    defformatstring(buf)("screenshots/mapshot_%s_%s%s", behindpath(getclientmap()), timestring(), getscrext());
     switch(screenshottype)
     {
         case 2: png_screenshot(buf,true); break;
@@ -493,12 +484,9 @@ void mapshot()
         default: bmp_screenshot(buf,true); break;
     }
 }
+COMMAND(mapshot, "");
 
 bool needsautoscreenshot = false;
-
-COMMAND(screenshot, "s");
-COMMAND(mapshot, "");
-COMMAND(quit, "");
 
 void screenres(int w, int h)
 {

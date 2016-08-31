@@ -1014,7 +1014,7 @@ int load_world(char *mname)        // still supports all map formats that have e
         }
     }
 
-    defformatstring(startmillis)("%d", millis_());
+    defformatstring(startmillis)("%d", totalmillis);
     alias("gametimestart", startmillis, true);
     startmap(mname);
     res |= mapconfigerror;

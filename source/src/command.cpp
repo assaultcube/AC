@@ -88,6 +88,7 @@ void push(const char *name, const char *action)
 {
     pusha(name, newstring(action));
 }
+COMMAND(push, "ss");
 
 void pop(const char *name)
 {
@@ -102,7 +103,6 @@ void pop(const char *name)
     popident(*id);
 }
 
-COMMAND(push, "ss");
 COMMANDF(pop, "v", (char **args, int numargs)
 {
     if(numargs > 0)
@@ -534,6 +534,7 @@ void floatret(float v, bool neat)
 }
 
 void result(const char *s) { commandret = newstring(s); }
+COMMAND(result, "s");
 
 #if 0
 // seer : script evaluation excessive recursion
@@ -1059,6 +1060,9 @@ void exec(const char *cfgfile)
 {
     if(!execfile(cfgfile)) conoutf("could not read \"%s\"", cfgfile);
 }
+COMMAND(exec, "s");
+
+COMMANDF(execute, "s", (char *s) { intret(execute(s)); });
 
 void execdir(const char *dir)
 {
@@ -1080,6 +1084,8 @@ COMMAND(execdir, "s");
 // () and [] expressions, any control construct can be defined trivially.
 
 void ifthen(char *cond, char *thenp, char *elsep) { commandret = executeret(cond[0]!='0' ? thenp : elsep); }
+COMMANDN(if, ifthen, "sss");
+
 void loopa(char *var, int *times, char *body)
 {
     int t = *times;
@@ -1114,6 +1120,7 @@ void loopa(char *var, int *times, char *body)
     popident(*id);
     loop_level--;
 }
+COMMANDN(loop, loopa, "sis");
 
 void whilea(char *cond, char *body)
 {
@@ -1130,12 +1137,13 @@ void whilea(char *cond, char *body)
     }
     loop_level--;
 }
+COMMANDN(while, whilea, "ss");
 
-void breaka() { if(loop_level) loop_skip = loop_break = true; }
-void continuea() { if(loop_level) loop_skip = true; }
+COMMANDF(break, "", () { if(loop_level) loop_skip = loop_break = true; });
+COMMANDF(continue, "", () { if(loop_level) loop_skip = true; });
 
-void concat(char *s) { result(s); }
-void concatword(char *s) { result(s); }
+COMMANDF(concat, "c", (const char *s) { result(s); });
+COMMANDF(concatword, "w", (const char *s) { result(s); });
 
 void format(char **args, int numargs)
 {
@@ -1166,6 +1174,7 @@ void format(char **args, int numargs)
     s.add('\0');
     result(s.getbuf());
 }
+COMMAND(format, "v");
 
 #define whitespaceskip do { s += strspn(s, "\n\t \r"); } while(s[0] == '/' && s[1] == '/' && (s += strcspn(s, "\n\0")))
 #define elementskip { if(*s=='"') { do { ++s; s += strcspn(s, "\"\n"); } while(*s == '\"' && s[-1] == '\\'); s += *s=='"'; } else s += strcspn(s, "\r\n\t "); }
@@ -1254,6 +1263,7 @@ int listlen(const char *s)
     for(; *s; n++) { elementskip; whitespaceskip; }
     return n;
 }
+COMMANDF(listlen, "s", (char *l) { intret(listlen(l)); });
 
 int find(char *s, const char *key)
 {
@@ -1294,6 +1304,7 @@ void colora(char *s)
         commandret = newstring(x);
     }
 }
+COMMANDN(c, colora, "s");
 
 #ifndef STANDALONE
 // Easily inject a string into various CubeScript punctuations
@@ -1313,8 +1324,10 @@ void addpunct(char *s, char *type)
 COMMAND(addpunct, "ss");
 #endif
 
-void toLower(char *s) { result(strcaps(s, false)); }
-void toUpper(char *s) { result(strcaps(s, true)); }
+void toany(char *s, int (*c)(int)) { while(*s) { *s = (*c)(*s); s++; } }
+
+COMMANDF(tolower, "s", (char *s) { toany(s, tolower); result(s); });
+COMMANDF(toupper, "s", (char *s) { toany(s, toupper); result(s); });
 
 void testchar(char *s, int *type)
 {
@@ -1348,11 +1361,9 @@ void testchar(char *s, int *type)
             if(isdigit(s[0]) != 0) { istrue = true; }
             break;
     }
-    if(istrue)
-        intret(1);
-    else
-        intret(0);
+    intret(istrue ? 1 : 0);
 }
+COMMAND(testchar, "si");
 
 char *strreplace(char *dest, const char *source, const char *search, const char *replace)
 {
@@ -1377,6 +1388,7 @@ char *strreplace(char *dest, const char *source, const char *search, const char 
         }
     }
 }
+COMMANDF(strreplace, "sss", (const char *source, const char *search, const char *replace) { string d; result(strreplace(d, source, search, replace)); });
 
 int stringsort(const char **a, const char **b) { return strcmp(*a, *b); }
 int stringsortrev(const char **a, const char **b) { return strcmp(*b, *a); }
@@ -1420,24 +1432,6 @@ void swapelements(char *list, char *v)
     swap.deletearrays();
 }
 COMMAND(swapelements, "ss");
-
-COMMANDN(c, colora, "s");
-COMMANDN(loop, loopa, "sis");
-COMMANDN(while, whilea, "ss");
-COMMANDN(break, breaka, "");
-COMMANDN(continue, continuea, "");
-COMMANDN(if, ifthen, "sss");
-COMMAND(exec, "s");
-COMMAND(concat, "c");
-COMMAND(concatword, "w");
-COMMAND(format, "v");
-COMMAND(result, "s");
-COMMANDF(execute, "s", (char *s) { intret(execute(s)); });
-COMMANDF(listlen, "s", (char *l) { intret(listlen(l)); });
-COMMANDN(tolower, toLower, "s");
-COMMANDN(toupper, toUpper, "s");
-COMMAND(testchar, "si");
-COMMANDF(strreplace, "sss", (const char *source, const char *search, const char *replace) { string d; result(strreplace(d, source, search, replace)); });
 
 void add(int *a, int *b)   { intret(*a + *b); }            COMMANDN(+, add, "ii");
 void mul(int *a, int *b)   { intret(*a * *b); }            COMMANDN(*, mul, "ii");
@@ -1680,13 +1674,15 @@ void scriptcontext(int *context, char *idname)
     int c = *context;
     if(c >= 0 && c < IEXC_NUM) id->context = c;
 }
+COMMAND(scriptcontext, "is");
 
 void isolatecontext(int *context)
 {
     if(*context >= 0 && *context < IEXC_NUM && !contextsealed) contextisolated[*context] = true;
 }
+COMMAND(isolatecontext, "i");
 
-void sealcontexts() { contextsealed = true; }
+COMMANDF(sealcontexts, "",() { contextsealed = true; });
 
 bool allowidentaccess(ident *id) // check if ident is allowed in current context
 {
@@ -1696,36 +1692,21 @@ bool allowidentaccess(ident *id) // check if ident is allowed in current context
     return execcontext <= id->context;
 }
 
-COMMAND(scriptcontext, "is");
-COMMAND(isolatecontext, "i");
-COMMAND(sealcontexts, "");
-
 #ifndef STANDALONE
 COMMANDF(watchingdemo, "", () { intret(watchingdemo); });
 
-void systime()
-{
-    result(numtime());
-}
+COMMANDF(systime, "", () { result(numtime()); });
+COMMANDF(timestamp, "", () { result(timestring(true, "%Y %m %d %H %M %S")); });
+COMMANDF(datestring, "", () { result(timestring(true, "%c")); });
 
-void timestamp_()
-{
-    result(timestring(true, "%Y %m %d %H %M %S"));
-}
-
-void datestring()
-{
-    result(timestring(true, "%c"));
-}
-
-void timestring_()
+COMMANDF(timestring, "", ()
 {
     const char *res = timestring(true, "%H:%M:%S");
     result(res[0] == '0' ? res + 1 : res);
-}
+});
 
-extern int millis_() { extern int totalmillis; return totalmillis; }
-void strlen_(char *s) { intret(strlen(s)); }
+COMMANDF(millis, "", () { intret(totalmillis); });
+COMMANDF(strlen, "s", (char *s) { intret(strlen(s)); });
 
 void substr_(char *fs, int *pa, int *len)
 {
@@ -1739,6 +1720,7 @@ void substr_(char *fs, int *pa, int *len)
     if(ilen >= 0 && ilen < int(strlen(fs+ia))) (fs+ia)[ilen] = '\0';
     result(fs+ia);
 }
+COMMANDN(substr, substr_, "sii");
 
 void strpos_(char *haystack, char *needle, int *occurence)
 {
@@ -1762,31 +1744,11 @@ void strpos_(char *haystack, char *needle, int *occurence)
     }
     intret(position);
 }
-
-void l0(int *p, int *v) { string f; string r; formatstring(f)("%%0%dd", *p); formatstring(r)(f, *v); result(r); }
-
-void getscrext()
-{
-    switch(screenshottype)
-    {
-        case 2: result(".png"); break;
-        case 1: result(".jpg"); break;
-        case 0:
-        default: result(".bmp"); break;
-    }
-}
-
-COMMANDF(millis, "", () { intret(millis_()); });
-COMMANDN(strlen, strlen_, "s");
-COMMANDN(substr, substr_, "sii");
 COMMANDN(strpos, strpos_, "ssi");
-COMMAND(l0, "ii");
-COMMAND(systime, "");
-COMMANDN(timestamp, timestamp_, "");
-COMMAND(datestring, "");
-COMMANDN(timestring, timestring_, "");
+
+COMMANDF(l0, "ii", (int *p, int *v) { defformatstring(f)("%%0%dd", *p); defformatstring(r)(f, *v); result(r); });
+
 COMMANDF(getmode, "i", (int *acr) { result(modestr(gamemode, *acr != 0)); });
-COMMAND(getscrext, "");
 
 void listoptions(char *s)
 {

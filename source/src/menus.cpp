@@ -1238,7 +1238,7 @@ bool menukey(int code, bool isdown, int unicode, SDLMod mod)
             case SDLK_F12:
                 if(curmenu->allowinput)
                 {
-                    extern void screenshot(const char *imagepath);
+                    extern void screenshot(const char *filename);
                     screenshot(NULL);
                 }
                 break;

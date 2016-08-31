@@ -728,7 +728,7 @@ void newmap(int *i)
         addmsg(SV_NEWMAP, "ri", max(*i, 0));
         exechook(HOOK_SP_MP, "onNewMap", "");
     }
-    defformatstring(startmillis)("%d", millis_());
+    defformatstring(startmillis)("%d", totalmillis);
     alias("gametimestart", startmillis, true);
 }
 
