@@ -1454,44 +1454,76 @@ void swapelements(char *list, char *v)
 }
 COMMAND(swapelements, "ss");
 
-void add(int *a, int *b)   { intret(*a + *b); }            COMMANDN(+, add, "ii");
-void mul(int *a, int *b)   { intret(*a * *b); }            COMMANDN(*, mul, "ii");
-void sub(int *a, int *b)   { intret(*a - *b); }            COMMANDN(-, sub, "ii");
-void div_(int *a, int *b)  { intret(*b ? (*a)/(*b) : 0); }    COMMANDN(div, div_, "ii");
-void mod_(int *a, int *b)   { intret(*b ? (*a)%(*b) : 0); }    COMMANDN(mod, mod_, "ii");
-void addf(float *a, float *b)   { floatret(*a + *b); }            COMMANDN(+f, addf, "ff");
-void mulf(float *a, float *b)   { floatret(*a * *b); }            COMMANDN(*f, mulf, "ff");
-void subf(float *a, float *b)   { floatret(*a - *b); }            COMMANDN(-f, subf, "ff");
-void divf_(float *a, float *b)  { floatret(*b ? (*a)/(*b) : 0); }    COMMANDN(divf, divf_, "ff");
-void modf_(float *a, float *b)   { floatret(*b ? fmod(*a, *b) : 0); }    COMMANDN(modf, modf_, "ff");
-void powf_(float *a, float *b)   { floatret(powf(*a, *b)); }    COMMANDN(powf, powf_, "ff");
-void not_(int *a) { intret((int)(!(*a))); }              COMMANDN(!, not_, "i");
-void equal(int *a, int *b) { intret((int)(*a == *b)); }    COMMANDN(=, equal, "ii");
-void notequal(int *a, int *b) { intret((int)(*a != *b)); } COMMANDN(!=, notequal, "ii");
-void lt(int *a, int *b)    { intret((int)(*a < *b)); }     COMMANDN(<, lt, "ii");
-void gt(int *a, int *b)    { intret((int)(*a > *b)); }     COMMANDN(>, gt, "ii");
-void lte(int *a, int *b)    { intret((int)(*a <= *b)); }   COMMANDN(<=, lte, "ii");
-void gte(int *a, int *b)    { intret((int)(*a >= *b)); }   COMMANDN(>=, gte, "ii");
+void add_(char **args, int numargs)
+{
+    int sum = 0;
+    loopi(numargs) sum += ATOI(args[i]);
+    intret(sum);
+}
+COMMANDN(+, add_, "v");
 
-COMMANDF(round, "f", (float *a) { intret(int(*a + 0.5f)); });
-COMMANDF(ceil,  "f", (float *a) { intret((int)ceil(*a)); });
-COMMANDF(floor, "f", (float *a) { intret((int)floor(*a)); });
+void mul_(char **args, int numargs)
+{
+    int prod = 1;
+    if(numargs < 2) numargs = 2;  // emulate classic (* ) = 0, (* 2) = 0, (* 2 3) = 6
+    loopi(numargs) prod *= ATOI(args[i]);
+    intret(prod);
+}
+COMMANDN(*, mul_, "v");
+
+void addf_(char **args, int numargs)
+{
+    float sum = 0;
+    loopi(numargs) sum += atof(args[i]);
+    floatret(sum);
+}
+COMMANDN(+f, addf_, "v");
+
+void mulf_(char **args, int numargs)
+{
+    float prod = 1;
+    if(numargs < 2) numargs = 2;  // emulate classic (* ) = 0, (* 2) = 0, (* 2 3) = 6
+    loopi(numargs) prod *= atof(args[i]);
+    floatret(prod);
+}
+COMMANDN(*f, mulf_, "v");
+
+void sub_(int *a, int *b)      { intret(*a - *b); }             COMMANDN(-, sub_, "ii");
+void div_(int *a, int *b)      { intret(*b ? (*a)/(*b) : 0); }  COMMANDN(div, div_, "ii");
+void mod_(int *a, int *b)      { intret(*b ? (*a)%(*b) : 0); }  COMMANDN(mod, mod_, "ii");
+void subf_(float *a, float *b) { floatret(*a - *b); }           COMMANDN(-f, subf_, "ff");
+void divf_(float *a, float *b) { floatret(*b ? (*a)/(*b) : 0); }    COMMANDN(divf, divf_, "ff");
+void modf_(float *a, float *b) { floatret(*b ? fmod(*a, *b) : 0); } COMMANDN(modf, modf_, "ff");
+void powf_(float *a, float *b) { floatret(powf(*a, *b)); }    COMMANDN(powf, powf_, "ff");
+void not_(int *a)              { intret((int)(!(*a))); }      COMMANDN(!, not_, "i");
+void equal_(int *a, int *b)    { intret((int)(*a == *b)); }   COMMANDN(=, equal_, "ii");
+void notequal_(int *a, int *b) { intret((int)(*a != *b)); }   COMMANDN(!=, notequal_, "ii");
+void lt_(int *a, int *b)       { intret((int)(*a < *b)); }    COMMANDN(<, lt_, "ii");
+void gt_(int *a, int *b)       { intret((int)(*a > *b)); }    COMMANDN(>, gt_, "ii");
+void lte_(int *a, int *b)      { intret((int)(*a <= *b)); }   COMMANDN(<=, lte_, "ii");
+void gte_(int *a, int *b)      { intret((int)(*a >= *b)); }   COMMANDN(>=, gte_, "ii");
+
+void round_(float *a) { intret(int(*a + 0.5f)); }   COMMANDN(round, round_, "f");
+void ceil_(float *a)  { intret((int)ceil(*a)); }    COMMANDN(ceil, ceil_, "f");
+void floor_(float *a) { intret((int)floor(*a)); }   COMMANDN(floor, floor_, "f");
 
 #define COMPAREF(opname, func, op) \
     void func(float *a, float *b) { intret((int)((*a) op (*b))); } \
     COMMANDN(opname, func, "ff")
-COMPAREF(=f, equalf, ==);
-COMPAREF(!=f, notequalf, !=);
-COMPAREF(<f, ltf, <);
-COMPAREF(>f, gtf, >);
-COMPAREF(<=f, ltef, <=);
-COMPAREF(>=f, gtef, >=);
+COMPAREF(=f, equalf_, ==);
+COMPAREF(!=f, notequalf_, !=);
+COMPAREF(<f, ltf_, <);
+COMPAREF(>f, gtf_, >);
+COMPAREF(<=f, ltef_, <=);
+COMPAREF(>=f, gtef_, >=);
 
-void anda (char *a, char *b) { intret(execute(a)!=0 && execute(b)!=0); }
-void ora  (char *a, char *b) { intret(execute(a)!=0 || execute(b)!=0); }
+void anda_(char *a, char *b) { intret(execute(a)!=0 && execute(b)!=0); }   COMMANDN(&&, anda_, "ss");
+void ora_(char *a, char *b)  { intret(execute(a)!=0 || execute(b)!=0); }   COMMANDN(||, ora_, "ss");
 
-COMMANDN(&&, anda, "ss");
-COMMANDN(||, ora, "ss");
+void band_(int *a, int *b) { intret((*a) & (*b)); }   COMMANDN(&b, band_, "ii");
+void bor_(int *a, int *b)  { intret((*a) | (*b)); }   COMMANDN(|b, bor_, "ii");
+void bxor_(int *a, int *b) { intret((*a) ^ (*b)); }   COMMANDN(^b, bxor_, "ii");
+void bnot_(int *a)         { intret(~(*a)); }         COMMANDN(!b, bnot_, "i");
 
 COMMANDF(strcmp, "ss", (char *a, char *b) { intret((strcmp(a, b) == 0) ? 1 : 0); });
 
@@ -1767,7 +1799,8 @@ void strpos_(char *haystack, char *needle, int *occurence)
 }
 COMMANDN(strpos, strpos_, "ssi");
 
-COMMANDF(l0, "ii", (int *p, int *v) { defformatstring(f)("%%0%dd", *p); defformatstring(r)(f, *v); result(r); });
+COMMANDF(l0, "ii", (int *p, int *v) { defformatstring(f)("%%0%dd", clamp(*p, 0, 200)); defformatstring(r)(f, *v); result(r); });
+COMMANDF(h0, "ii", (int *p, int *v) { defformatstring(f)("%%0%dx", clamp(*p, 0, 200)); defformatstring(r)(f, *v); result(r); });
 
 COMMANDF(getmode, "i", (int *acr) { result(modestr(gamemode, *acr != 0)); });
 
