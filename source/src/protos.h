@@ -621,6 +621,8 @@ extern int findentity(int type, int index = 0);
 extern int findentity(int type, int index, uchar attr2);
 extern void newentity(int index, int x, int y, int z, const char *what, float v1, float v2, float v3, float v4);
 extern void mapmrproper(bool manual);
+extern void clearworldvisibility();
+extern void calcworldvisibility();
 extern vector<persistent_entity> deleted_ents;
 
 // worldlight

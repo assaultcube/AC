@@ -20,7 +20,8 @@ struct sqr
     char occluded;              // true when occluded
     uchar utex;                 // upper wall tex id
     uchar tag;                  // used by triggers
-    uchar reserved[2];
+    uchar visible;              // temporarily used to flag the visibility of a cube (INVISWTEX, INVISUTEX, INVISIBLE)
+    uchar reserved;
 };
 
 struct servsqr                  // server variant of sqr
@@ -46,6 +47,13 @@ enum                            // stuff encoded in sqr.tag
     TAGPLCLIP = 0x80            // clips only players
 };
 #define TAGANYCLIP (TAGCLIP|TAGPLCLIP)
+
+enum
+{
+    INVISWTEX = 1<<0,
+    INVISUTEX = 1<<1,
+    INVISIBLE = 1<<2
+};
 
 enum { MHF_AUTOMAPCONFIG = 1<<0 };
 

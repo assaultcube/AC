@@ -756,14 +756,93 @@ COMMANDF(calcmipstats, "", ()
     conoutf("current mips: %d / %d / %d / %d / %d / %d / %d", st[0], st[1], st[2], st[3], st[4], st[5], st[6]);
 });
 
-#define INVISWTEX (1<<0)
-#define INVISUTEX (1<<1)
-#define INVISIBLE (1<<2)
+void clearworldvisibility()
+{
+    sqr *s = world;
+    loopirev(cubicsize) (s++)->visible = 0;
+}
+
+void calcworldvisibility()
+{
+    sqr *s, *o[4], *r;
+
+    // default to invisible, we'll mark all visible afterwards
+    r = world; loopirev(ssize * ssize) (r++)->visible = INVISUTEX|INVISWTEX;
+
+    // check visibility of wall & upper wall in mip 0
+    for(int y = 0; y < ssize; y++) for(int x = 0; x < ssize; x++)
+    {
+        s = S(x,y); uchar &rs = s->visible;
+        if(x < 1 || x > ssize - 2 || y < 1 || y > ssize - 2) continue; // we need 1 cube safety-space - all outside is invisible anyway
+        o[0] = s - ssize;
+        o[1] = s + ssize;
+        o[2] = s + 1;
+        o[3] = s - 1;
+        loopi(4) if(!SOLID(o[i]))
+        {
+            if(SOLID(s) || s->floor > o[i]->floor || (o[i]->type == FHF && (s->type != FHF || s->floor != o[i]->floor))) rs &= ~INVISWTEX; // wall texture visible
+            if(!SOLID(s) && (s->ceil < o[i]->ceil || (o[i]->type == CHF && (s->type != CHF || s->ceil != o[i]->ceil)))) rs &= ~INVISUTEX; // upper wall texture visible
+        }
+        if(SOLID(s) && SOLID(o[0]) && SOLID(o[1]) && SOLID(o[2]) && SOLID(o[3])) rs |= INVISIBLE;
+    }
+
+    // corners are rendered at the highest possible mip - make sure, the right helper cubes are marked visible (including actually hidden ones)
+    // (this is a lot of effort, but there's no easier way... savemap's toptimize() does it wrong, for example
+    for(int mip = SMALLEST_FACTOR; mip > 0; mip--)
+    {
+        int mfactor = sfactor - mip, bs = 1 << mfactor;
+        for(int y = 1; y < bs - 1; y++) for(int x = 1; x < bs - 1; x++)
+        {
+            s = SWS(wmip[mip], x, y, mfactor);
+            if(s->type == CORNER && (mip == SMALLEST_FACTOR || SWS(wmip[mip + 1], x / 2, y / 2, mfactor - 1)->type != CORNER))
+            { // highest corner mip (this one is rendered) - mark helper cubes
+                sqr *z = SWS(s,-1,0,mfactor);
+                sqr *t = SWS(s,1,0,mfactor);
+                sqr *v = SWS(s,0,1,mfactor);
+                sqr *w = SWS(s,0,-1,mfactor);
+                if(SOLID(z) || SOLID(t))
+                {
+                    if(SOLID(w))      S(x << mip, (y - 1) << mip)->visible &= ~(INVISWTEX|INVISIBLE);
+                    else if(SOLID(v)) S(x << mip, (y + 1) << mip)->visible &= ~(INVISWTEX|INVISIBLE);
+                }
+            }
+        }
+    }
+    // propagate visibility and visible textures into higher mips
+    for(int mip = 0; mip < SMALLEST_FACTOR; mip++)
+    {
+        int mfactor = sfactor - mip, bs = 1 << mfactor;
+        for(int y = 0; y < bs; y++) for(int x = 0; x < bs; x++)
+        {
+            s = SWS(wmip[mip], x, y, mfactor);
+            r = SWS(wmip[mip + 1], x / 2, y / 2, mfactor - 1);
+            uchar &rs = s->visible, &rr = r->visible;
+            if(!((x | y) & 1)) rr = rs;
+            else rr &= rs;
+            if(!(rs & INVISWTEX)) r->wtex = s->wtex;
+            if(!(rs & INVISUTEX)) r->utex = s->utex;
+        }
+    }
+
+    // corners are rendered at the highest possible mip - make sure, the right cubes of the lot is marked visible (including actually hidden ones)
+    for(int mip = SMALLEST_FACTOR; mip > 0; mip--)
+    {
+        int mfactor = sfactor - mip, bs = 1 << mfactor;
+        for(int y = 1; y < bs - 1; y++) for(int x = 1; x < bs - 1; x++)
+        {
+            s = SWS(wmip[mip], x, y, mfactor);
+            if(s->type == CORNER && (mip == SMALLEST_FACTOR || SWS(wmip[mip + 1], x / 2, y / 2, mfactor - 1)->type != CORNER))
+            { // highest mip - mark the important cube like the highest mip
+                S(x << mip, y << mip)->visible = s->visible;
+            }
+        }
+    }           // visibility flags complete ;)
+}
 
 void mapmrproper(bool manual)
 {
-    int sta[SMALLEST_FACTOR + 1], stb[SMALLEST_FACTOR + 1], stc[SMALLEST_FACTOR + 1];
-    sqr *s, *r, *o[4];
+    int sta[SMALLEST_FACTOR + 1] = { 0 }, stb[SMALLEST_FACTOR + 1] = { 0 }, stc[SMALLEST_FACTOR + 1] = { 0 };
+    sqr *s, *r;
     block b = { 0, 0, ssize, ssize };
     if(manual)
     {
@@ -799,83 +878,12 @@ void mapmrproper(bool manual)
     memcpy(world, worldbackup, ssize*ssize*sizeof(sqr));
     delete[] worldbackup;
 
-    // default to invisible, we'll mark all visible afterwards
-    r = world; loopirev(ssize * ssize) (r++)->reserved[0] = INVISUTEX|INVISWTEX;
-
-    // check visibility of wall & upper wall in mip 0
-    for(int y = 0; y < ssize; y++) for(int x = 0; x < ssize; x++)
-    {
-        s = S(x,y); uchar &rs = s->reserved[0];
-        if(x < 1 || x > ssize - 2 || y < 1 || y > ssize - 2) continue; // we need 1 cube safety-space - all outside is invisible anyway
-        o[0] = s - ssize;
-        o[1] = s + ssize;
-        o[2] = s + 1;
-        o[3] = s - 1;
-        loopi(4) if(!SOLID(o[i]))
-        {
-            if(SOLID(s) || s->floor > o[i]->floor || (o[i]->type == FHF && (s->type != FHF || s->floor != o[i]->floor))) rs &= ~INVISWTEX; // wall texture visible
-            if(!SOLID(s) && (s->ceil < o[i]->ceil || (o[i]->type == CHF && (s->type != CHF || s->ceil != o[i]->ceil)))) rs &= ~INVISUTEX; // upper wall texture visible
-        }
-        if(SOLID(s) && SOLID(o[0]) && SOLID(o[1]) && SOLID(o[2]) && SOLID(o[3])) rs |= INVISIBLE;
-    }
-
-    // corners are rendered at the highest possible mip - make sure, the right helper cubes are marked visible (including actually hidden ones)
-    // (this is a lot of effort, but there's no easier way... savemap's toptimize() does it wrong, for example
-    for(int mip = SMALLEST_FACTOR; mip > 0; mip--)
-    {
-        int mfactor = sfactor - mip, bs = 1 << mfactor;
-        for(int y = 1; y < bs - 1; y++) for(int x = 1; x < bs - 1; x++)
-        {
-            s = SWS(wmip[mip], x, y, mfactor);
-            if(s->type == CORNER && (mip == SMALLEST_FACTOR || SWS(wmip[mip + 1], x / 2, y / 2, mfactor - 1)->type != CORNER))
-            { // highest corner mip (this one is rendered) - mark helper cubes
-                sqr *z = SWS(s,-1,0,mfactor);
-                sqr *t = SWS(s,1,0,mfactor);
-                sqr *v = SWS(s,0,1,mfactor);
-                sqr *w = SWS(s,0,-1,mfactor);
-                if(SOLID(z) || SOLID(t))
-                {
-                    if(SOLID(w))      S(x << mip, (y - 1) << mip)->reserved[0] &= ~(INVISWTEX|INVISIBLE);
-                    else if(SOLID(v)) S(x << mip, (y + 1) << mip)->reserved[0] &= ~(INVISWTEX|INVISIBLE);
-                }
-            }
-        }
-    }
-
-    // propagate visibility and visible textures into higher mips
-    for(int mip = 0; mip < SMALLEST_FACTOR; mip++)
-    {
-        int mfactor = sfactor - mip, bs = 1 << mfactor;
-        for(int y = 0; y < bs; y++) for(int x = 0; x < bs; x++)
-        {
-            s = SWS(wmip[mip], x, y, mfactor);
-            r = SWS(wmip[mip + 1], x / 2, y / 2, mfactor - 1);
-            uchar &rs = s->reserved[0], &rr = r->reserved[0];
-            if(!((x | y) & 1)) rr = rs;
-            else rr &= rs;
-            if(!(rs & INVISWTEX)) r->wtex = s->wtex;
-            if(!(rs & INVISUTEX)) r->utex = s->utex;
-        }
-    }
-
-    // corners are rendered at the highest possible mip - make sure, the right cubes of the lot is marked visible (including actually hidden ones)
-    for(int mip = SMALLEST_FACTOR; mip > 0; mip--)
-    {
-        int mfactor = sfactor - mip, bs = 1 << mfactor;
-        for(int y = 1; y < bs - 1; y++) for(int x = 1; x < bs - 1; x++)
-        {
-            s = SWS(wmip[mip], x, y, mfactor);
-            if(s->type == CORNER && (mip == SMALLEST_FACTOR || SWS(wmip[mip + 1], x / 2, y / 2, mfactor - 1)->type != CORNER))
-            { // highest mip - mark the important cube like the highest mip
-                S(x << mip, y << mip)->reserved[0] = s->reserved[0];
-            }
-        }
-    }           // visibility flags complete ;)
-    //r = world; loopirev(ssize * ssize) { r->tag = (r->tag & 0xc0) + r->reserved[0]; r++; }  // easy debugging
+    // calculate cube visibility
+    calcworldvisibility();
 
     // optimize utex & wtex according to mips & visibility
-    #define domip0(b) for(int yy = y << mip; yy < (y + 1) << mip; yy++) for(int xx = x << mip; xx < (x + 1) << mip; xx++) { s = S(xx,yy); uchar &rs = s->reserved[0]; b ; }
-    for(int mip = SMALLEST_FACTOR; mip > 0; mip--)
+    #define domip0(b) for(int yy = y << mip; yy < (y + 1) << mip; yy++) for(int xx = x << mip; xx < (x + 1) << mip; xx++) { s = S(xx,yy); uchar &rs = s->visible; b ; }
+    for(int mip = 2; mip > 0; mip--)
     {
         int mfactor = sfactor - mip, bs = 1 << mfactor;
         for(int y = 0; y < bs; y++) for(int x = 0; x < bs; x++)
@@ -884,12 +892,12 @@ void mapmrproper(bool manual)
             if(mip > 1) loopi(4)
             {
                 s = SWS(wmip[mip - 1], x * 2 + (i & 1), y * 2 + i / 2, mfactor + 1);
-                uchar &rs = s->reserved[0];
+                uchar &rs = s->visible;
                 if(rs & INVISWTEX) s->wtex = r->wtex;
                 if(rs & INVISUTEX) s->utex = r->utex;
             }
             if(r->defer) continue;
-            if(r->reserved[0] & INVISIBLE)
+            if(r->visible & INVISIBLE)
             {
                 domip0(rs &= INVISIBLE;);
                 continue; // do not touch hidden solid blocks... for some reason it messes up filesize
@@ -914,7 +922,7 @@ void mapmrproper(bool manual)
         }
     }
 
-    loopirev(ssize * ssize) world[i].reserved[0] = 0;  // cleanup
+    clearworldvisibility(); // cleanup
 
     // recalc everything with the optimized data
     calclight();
