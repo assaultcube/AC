@@ -980,9 +980,12 @@ void textureslotusagemapmodels(int *used)
     used[0] = old0;
 }
 
-void textureslotusagegeometry(int *used)
+void textureslotusagegeometry(int *used, int *visible = NULL, int *mostvisible = NULL)
 {
     sqr *s = world;
+    int *mostw = mostvisible ? new int[1024] : NULL, *mostc = mostvisible ? mostw + 256 : NULL, *mostf = mostvisible ? mostw + 512 : NULL, *mostu = mostvisible ? mostw + 768 : NULL;
+    if(mostvisible) loopi(1024) mostw[i] = 0;
+    if(visible) calcworldvisibility();
     loopirev(cubicsize)
     {
         used[s->wtex]++;
@@ -992,23 +995,59 @@ void textureslotusagegeometry(int *used)
             used[s->ftex]++;
             used[s->utex]++;
         }
+        if(visible && !(s->visible & INVISIBLE))
+        { // cube not invisible
+            if(!(s->visible & INVISWTEX))
+            { // lower wall visible
+                visible[s->wtex]++;
+                if(mostw) mostw[s->wtex]++;
+            }
+            if(s->type != SOLID)
+            {
+                if(!(s->visible & INVISUTEX))
+                { // upper wall visible
+                    visible[s->utex]++;
+                    if(mostu) mostu[s->utex]++;
+                }
+                visible[s->ctex]++;
+                if(mostc) mostc[s->ctex]++;
+                visible[s->ftex]++;
+                if(mostf) mostf[s->ftex]++;
+            }
+        }
         s++;
     }
+    if(visible) clearworldvisibility();
+    if(mostvisible) loopk(4)
+    { // find most visible texures (for all four geometry uses)
+        int *mx[4] = { mostw, mostf, mostc, mostu }, *m = mx[k], maxval = 0;
+        mostvisible[k] = -1;
+        loopi(256) if(m[i] > maxval)
+        {
+            maxval = m[i];
+            mostvisible[k] = i;
+        }
+    }
+    if(mostw) delete[] mostw;
 }
 
 void textureslotusagelist(char *what)
 {
-    int used[256] =  { 0 };
+    int used[256] =  { 0 }, visible[256];
+    int mostvisible[4] = { 0 };
+    bool onlymostvisible = !strcmp(what, "onlymostvisible");
     if(strcmp(what, "onlygeometry"))
     { // if not only geometry, count map model usage
         textureslotusagemapmodels(used);
     }
+    loopi(256) visible[i] = used[i]; // all mapmodel uses count as "visible" as well
     if(strcmp(what, "onlymodels"))
     { // if not only models, count map geometry
-        textureslotusagegeometry(used);
+        textureslotusagegeometry(used, visible, onlymostvisible ? mostvisible : NULL);
     }
     vector<char> res;
-    loopi(256) cvecprintf(res, "%d ", used[i]);
+    if(onlymostvisible) cvecprintf(res, "wall %d floor %d ceiling %d \"upper wall\" %d ", mostvisible[0], mostvisible[1], mostvisible[2], mostvisible[3]);
+    else loopi(256) cvecprintf(res, "%d %d ", used[i], visible[i]);
     res.last() = '\0';
     result(res.getbuf());
 }
