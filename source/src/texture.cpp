@@ -1245,13 +1245,17 @@ int tempslotunsort(temptexslot *a, temptexslot *b)
 void sorttextureslots(char **args, int numargs)
 {
     bool nomerge = false, mergeused = false, nosort = false, unknownarg = false;
+    vector<int> presort;
+    presort.add(0); // skymap needs to stay on #0
     loopi(numargs) if(args[i][0])
     {
         if(!strcasecmp(args[i], "nomerge")) nomerge = true;
         else if(!strcasecmp(args[i], "nosort")) nosort = true;
         else if(!strcasecmp(args[i], "mergeused")) mergeused = true;
+        else if(isdigit(args[i][0])) presort.add(ATOI(args[i]));
         else { conoutf("sorttextureslots: unknown argument \"%s\"", args[i]); unknownarg = true; }
     }
+    while(presort.length() < 5) presort.add(presort.length());
 
     if(noteditmode("sorttextureslots") || multiplayer(true) || unknownarg || slots.length() < 5) return;
 
@@ -1272,7 +1276,7 @@ void sorttextureslots(char **args, int numargs)
     if(!nomerge) loopvrev(tempslots) if(i > 0)
     {
         temptexslot &s1 = tempslots[i], &s0 = tempslots[i - 1];
-        if(s1.oldslot[0] > 4 && !strcmp(s0.s.name, s1.s.name) && s0.s.scale == s1.s.scale && (mergeused || !s0.used || !s1.used))
+        if(s1.oldslot[0] > 4 && s0.oldslot[0] > 0 && !strcmp(s0.s.name, s1.s.name) && s0.s.scale == s1.s.scale && (mergeused || !s0.used || !s1.used))
         {
             if(s1.used) s0.used = true;
             loopvj(s1.oldslot) s0.oldslot.add(s1.oldslot[j]);
@@ -1282,11 +1286,14 @@ void sorttextureslots(char **args, int numargs)
 
     // sort special textures (like skymap) back front - also, revert sorting, if it's unwanted
     if(nosort) tempslots.sort(tempslotunsort);
-    loopk(5)
+    loopv(presort) for(int n = i + 1; n < presort.length(); n++) if(presort[i] == presort[n]) presort.remove(n); // first occurrence is kept
+    loopvk(presort)
     {
         loopv(tempslots)
         {
-            if(tempslots[i].oldslot[0] == k && i > k)
+            bool yep = false;
+            loopvj(tempslots[i].oldslot) if(tempslots[i].oldslot[j] == presort[k]) yep = true;
+            if(yep && i > k)
             {
                 temptexslot t = tempslots.remove(i);
                 tempslots.insert(k, t);
