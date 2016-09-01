@@ -897,11 +897,6 @@ void mapmrproper(bool manual)
                 if(rs & INVISUTEX) s->utex = r->utex;
             }
             if(r->defer) continue;
-            if(r->visible & INVISIBLE)
-            {
-                domip0(rs &= INVISIBLE;);
-                continue; // do not touch hidden solid blocks... for some reason it messes up filesize
-            }
             int utex = -1, wtex = -1, udiff = 0, wdiff = 0;
             domip0(
                 if(!(rs & INVISWTEX) && s->wtex != wtex)
@@ -915,12 +910,36 @@ void mapmrproper(bool manual)
                     udiff++;
                 }
             );
-            if(!wdiff) wtex = r->wtex;
-            if(!udiff) utex = r->utex;
-            if(wdiff < 2) domip0(if(rs & INVISWTEX) s->wtex = wtex; rs &= ~(INVISWTEX|INVISIBLE); );
-            if(udiff < 2) domip0(if(rs & INVISUTEX) s->utex = utex; rs &= ~INVISUTEX; );
+            if(wdiff == 1) domip0(if(rs & INVISWTEX) s->wtex = wtex; rs &= ~(INVISWTEX|INVISIBLE); );
+            if(udiff == 1) domip0(if(rs & INVISUTEX) s->utex = utex; rs &= ~INVISUTEX; );
         }
     }
+
+    // use the remaining invisibilities to help the run-length-encoder
+    r = NULL, s = world;
+    #define c(f) (s->f==r->f)
+    loopi(cubicsize)
+    {
+        if(SOLID(s))
+        {
+            if(r && c(type) && c(vdelta) && ((s->visible & INVISWTEX) || c(wtex)))
+            {
+                s->wtex = r->wtex;
+            }
+            else r = s;
+        }
+        else
+        {
+            if(r && c(type) && c(floor) && c(ceil) && c(ctex) && c(ftex) && c(vdelta) && c(tag) && ((s->visible & INVISWTEX) || c(wtex)) && ((s->visible & INVISUTEX) || c(utex)))
+            {
+                s->wtex = r->wtex;
+                s->utex = r->utex;
+            }
+            else r = s;
+        }
+        s++;
+    }
+    #undef c
 
     clearworldvisibility(); // cleanup
 
