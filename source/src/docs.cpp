@@ -335,7 +335,7 @@ void docwriteref(int allidents, const char *ref, const char *schemalocation, con
         switch(id->type)
         {
             case ID_VAR:
-                f->printf("\t\t\t\t\t<value %s description=\"TODO\" minValue=\"%i\" maxValue=\"%i\" defaultValue=\"%i\" %s/>\n", id->minval>id->maxval ? "" : "token=\"N\"", id->minval, id->maxval, *id->storage.i, id->minval>id->maxval ? "readOnly=\"true\"" : "");
+                f->printf("\t\t\t\t\t<value %s description=\"TODO\" minValue=\"%d\" maxValue=\"%d\" defaultValue=\"%d\" %s/>\n", id->minval>id->maxval ? "" : "token=\"N\"", id->minval, id->maxval, *id->storage.i, id->minval>id->maxval ? "readOnly=\"true\"" : "");
                 break;
             case ID_FVAR:
                 f->printf("\t\t\t\t\t<value %s description=\"TODO\" minValue=\"%s\" maxValue=\"%s\" defaultValue=\"%s\" %s/>\n", id->minvalf>id->maxvalf ? "" : "token=\"N\"",

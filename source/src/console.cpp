@@ -199,7 +199,7 @@ void findkeycode(const char* s)
      {
          if(strcmp(s, keyms[i].name) == 0)
          {
-             defformatstring(out)("%i", keyms[i].code);
+             defformatstring(out)("%d", keyms[i].code);
              result(out);
              return;
          }
@@ -239,7 +239,7 @@ void keybind(const char *key, int type)
 {
     keym *km = findbind(key);
     if(!km) { conoutf("unknown key \"%s\"", key); return; }
-    if(type < keym::ACTION_DEFAULT || type >= keym::NUMACTIONS) { conoutf("invalid bind type \"%i\"", type); return; }
+    if(type < keym::ACTION_DEFAULT || type >= keym::NUMACTIONS) { conoutf("invalid bind type \"%d\"", type); return; }
     result(km->actions[type]);
 }
 
@@ -253,7 +253,7 @@ bool bindc(int code, const char *action, int type)
 void searchbinds(const char *action, int type)
 {
     if(!action || !action[0]) return;
-    if(type < keym::ACTION_DEFAULT || type >= keym::NUMACTIONS) { conoutf("invalid bind type \"%i\"", type); return; }
+    if(type < keym::ACTION_DEFAULT || type >= keym::NUMACTIONS) { conoutf("invalid bind type \"%d\"", type); return; }
     vector<char> names;
     loopv(keyms)
     {

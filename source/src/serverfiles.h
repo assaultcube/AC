@@ -1425,12 +1425,12 @@ struct killmessagesfile : serverconfigfile
 
                     if(gun < 0 || gun >= NUMGUNS)
                     {
-                        logline(ACLOG_INFO, " error in line %i, invalid gun : %i", line, gun);
+                        logline(ACLOG_INFO, " error in line %d, invalid gun : %d", line, gun);
                         errors++;
                     }
                     if(strlen(message)>MAXKILLMSGLEN)
                     {
-                        logline(ACLOG_INFO, " error in line %i, too long message : string length is %i, max. allowed is %i", line, int(strlen(message)), MAXKILLMSGLEN);
+                        logline(ACLOG_INFO, " error in line %d, too long message : string length is %d, max. allowed is %d", line, int(strlen(message)), MAXKILLMSGLEN);
                         errors++;
                     }
                     if(!errors)
@@ -1438,12 +1438,12 @@ struct killmessagesfile : serverconfigfile
                         if(fragmsg)
                         {
                             copystring(killmessages[0][gun], message, MAXKILLMSGLEN);
-                            logline(ACLOG_VERBOSE, " added msg '%s' for frags with weapon %i ", message, gun);
+                            logline(ACLOG_VERBOSE, " added msg '%s' for frags with weapon %d ", message, gun);
                         }
                         else
                         {
                             copystring(killmessages[1][gun], message, MAXKILLMSGLEN);
-                            logline(ACLOG_VERBOSE, " added msg '%s' for gibs with weapon %i ", message, gun);
+                            logline(ACLOG_VERBOSE, " added msg '%s' for gibs with weapon %d ", message, gun);
                         }
                     }
                     s = NULL;

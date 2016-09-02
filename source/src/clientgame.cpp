@@ -1051,7 +1051,7 @@ void preparectf(bool cleanonly=false)
             if(e.type==CTF_FLAG)
             {
                 e.spawned = true;
-                if(e.attr2>=2) { conoutf("\f3invalid ctf-flag entity (%i)", i); e.attr2 = 0; }
+                if(e.attr2>=2) { conoutf("\f3invalid ctf-flag entity (%d)", i); e.attr2 = 0; }
                 flaginfo &f = flaginfos[e.attr2];
                 f.flagent = &e;
                 f.pos.x = (float) e.x;

@@ -831,13 +831,13 @@ VARP(oldfashionedgunstats, 0, 0, 1);
 void weapon::renderstats()
 {
     char gunstats[64];
-    if(oldfashionedgunstats) sprintf(gunstats, "%i/%i", mag, ammo); else sprintf(gunstats, "%i", mag);
+    if(oldfashionedgunstats) snprintf(gunstats, 64, "%d/%d", mag, ammo); else snprintf(gunstats, 64, "%d", mag);
     draw_text(gunstats, HUDPOS_WEAPON + HUDPOS_NUMBERSPACING, 823);
     if(!oldfashionedgunstats)
     {
         int offset = text_width(gunstats);
         glScalef(0.5f, 0.5f, 1.0f);
-        sprintf(gunstats, "%i", ammo);
+        snprintf(gunstats, 64, "%d", ammo);
         draw_text(gunstats, (HUDPOS_WEAPON + HUDPOS_NUMBERSPACING + offset)*2, 826*2);
         glLoadIdentity();
     }
@@ -1179,7 +1179,7 @@ void grenades::dropnade()
 void grenades::renderstats()
 {
     char gunstats[64];
-    sprintf(gunstats, "%i", mag);
+    sprintf(gunstats, "%d", mag);
     draw_text(gunstats, oldfashionedgunstats ? HUDPOS_GRENADE + HUDPOS_NUMBERSPACING + 25 : HUDPOS_GRENADE + HUDPOS_NUMBERSPACING, 823);
 }
 

@@ -523,7 +523,7 @@ const char *floatstr(float v, bool neat)
     static int i = 0;
     if(i > MAXSTRLEN - 100) i = 0;
     char *t = s + i;
-    sprintf(t, !neat && (v) == int(v) ? "%.1f" : "%.7g", v);  // was ftoa()
+    snprintf(t, 99, !neat && (v) == int(v) ? "%.1f" : "%.7g", v);  // was ftoa()
     i += strlen(t) + 1;
     return t;
 }
@@ -1216,27 +1216,38 @@ void explodelist(const char *s, vector<char *> &elems)
     }
 }
 
-void looplist(char *list, char *varlist, char *body)
+void looplist(char *list, char *varlist, char *body, bool withi)
 {
     vector<char *> vars;
     explodelist(varlist, vars);
     if(vars.length() < 1) return;
+    int varslen = vars.length();
+    if(withi) vars.add(newstring("i"));
     vector<ident *> ids;
     bool ok = true;
     loopv(vars) if(ids.add(newident(vars[i]))->type != ID_ALIAS) { conoutf("looplist error: \"%s\" is readonly", vars[i]); ok = false; }
     if(ok)
     {
+        int ii = 0;
         vector<char *> elems;
         explodelist(list, elems);
         loopv(ids) pushident(*ids[i], newstring(""));
         loop_level++;
-        for(int i = 0; i <= elems.length() - vars.length(); i += vars.length())
+        for(int i = 0; i <= elems.length() - varslen; i += varslen)
         {
-            loopvj(vars)
+            loopj(vars.length())
             {
                 if(ids[j]->action != ids[j]->executing) delete[] ids[j]->action;
-                ids[j]->action = elems[i + j];
-                elems[i + j] = NULL;
+                if(j < varslen)
+                {
+                    ids[j]->action = elems[i + j];
+                    elems[i + j] = NULL;
+                }
+                else
+                {
+                    defformatstring(sii)("%d", ii++);
+                    ids[j]->action = newstring(sii);
+                }
             }
             execute(body);
             loop_skip = false;
@@ -1249,7 +1260,8 @@ void looplist(char *list, char *varlist, char *body)
     }
     loopv(vars) delete[] vars[i];
 }
-COMMAND(looplist, "sss");
+COMMANDF(looplist, "sss", (char *list, char *varlist, char *body) { looplist(list, varlist, body, false); });
+COMMANDF(looplisti, "sss", (char *list, char *varlist, char *body) { looplist(list, varlist, body, true); });
 
 char *indexlist(const char *s, int pos)
 {

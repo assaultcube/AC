@@ -3346,7 +3346,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 {
                     disconnect_client(sender, DISC_CN);
     #ifndef STANDALONE
-                    conoutf("ERROR: invalid client (msg %i)", type);
+                    conoutf("ERROR: invalid client (msg %d)", type);
     #endif
                     return;
                 }
@@ -3374,7 +3374,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 {
                     disconnect_client(sender, DISC_CN);
     #ifndef STANDALONE
-                    conoutf("ERROR: invalid client (msg %i)", type);
+                    conoutf("ERROR: invalid client (msg %d)", type);
     #endif
                     return;
                 }
