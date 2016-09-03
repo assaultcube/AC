@@ -192,6 +192,11 @@ void bmp_screenshot(const char *imagepath, bool mapshot = false)
             conoutf("no mapshot prepared!");
             return;
         }
+        loopi(th)
+        {
+            memcpy(dst, &tmp[3*tw*i], 3*tw);
+            dst += image->pitch;
+        }
     }
     else
     {
@@ -204,11 +209,11 @@ void bmp_screenshot(const char *imagepath, bool mapshot = false)
             delete[] buf;
         }
         else glReadPixels(0, 0, tw, th, GL_RGB, GL_UNSIGNED_BYTE, tmp);
-    }
-    loopi(th)
-    {
-        memcpy(dst, &tmp[3*tw*(th-i-1)], 3*tw);
-        dst += image->pitch;
+        loopi(th)
+        {
+            memcpy(dst, &tmp[3*tw*(th-i-1)], 3*tw);
+            dst += image->pitch;
+        }
     }
     entropy_add_block(tmp, tmpsize);
     delete[] tmp;
@@ -420,6 +425,11 @@ void png_screenshot(const char *imagepath, bool mapshot = false)
             conoutf("no mapshot prepared!");
             return;
         }
+        loopi(th)
+        {
+            memcpy(dst, &tmp[3*tw*i], 3*tw);
+            dst += image->pitch;
+        }
     }
     else
     {
@@ -432,11 +442,11 @@ void png_screenshot(const char *imagepath, bool mapshot = false)
             delete[] buf;
         }
         else glReadPixels(0, 0, tw, th, GL_RGB, GL_UNSIGNED_BYTE, tmp);
-    }
-    loopi(th)
-    {
-        memcpy(dst, &tmp[3*tw*(th-i-1)], 3*tw);
-        dst += image->pitch;
+        loopi(th)
+        {
+            memcpy(dst, &tmp[3*tw*(th-i-1)], 3*tw);
+            dst += image->pitch;
+        }
     }
     entropy_add_block(tmp, tmpsize);
     delete[] tmp;
@@ -475,7 +485,7 @@ COMMAND(screenshot, "s");
 
 void mapshot()
 {
-    defformatstring(buf)("screenshots/mapshot_%s_%s%s", behindpath(getclientmap()), timestring(), getscrext());
+    defformatstring(buf)("screenshots" PATHDIVS "mapshot_%s_%s%s", behindpath(getclientmap()), timestring(), getscrext());
     switch(screenshottype)
     {
         case 2: png_screenshot(buf,true); break;

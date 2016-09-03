@@ -832,9 +832,6 @@ int jpegenc::encode(const char *filename, colorRGB *pixels, int iw, int ih, int 
     fp_jpeg_stream = fopen(filename,"wb");
     if(!fp_jpeg_stream)
     {
-        //free(RGB_buffer);        
-        free(category_alloc);
-        free(bitcode_alloc);
         return -1;
     }
 
