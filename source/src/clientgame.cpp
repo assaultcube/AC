@@ -1091,9 +1091,9 @@ void resetmap(bool mrproper)
         audiomgr.clearworldsounds();
         setvar("gamespeed", 100);
         setvar("paused", 0);
-        setvar("fog", 180);
-        setvar("fogcolour", 0x8099B3);
-        setvar("shadowyaw", 45);
+        setvar("fog", DEFAULT_FOG);
+        setvar("fogcolour", DEFAULT_FOGCOLOUR);
+        setvar("shadowyaw", DEFAULT_SHADOWYAW);
     }
 }
 
