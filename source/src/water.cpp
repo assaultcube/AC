@@ -36,6 +36,26 @@ void setwatercolor(const char *r, const char *g, const char *b, const char *a)
 COMMANDN(watercolour, setwatercolor, "ssss");
 FVAR(waveheight, 0, 0.3f, 1.0f);
 
+void getwatercolour()
+{
+    defformatstring(res)("%d %d %d %d", hdr.watercolor[0], hdr.watercolor[1], hdr.watercolor[2], hdr.watercolor[3]);
+    result(res);
+}
+COMMAND(getwatercolour, "");
+
+const char *componentnames[] = { "red", "green", "blue", "alpha", "" };
+
+void setwatercolour(char *what, int *v)
+{
+    int t = getlistindex(what, componentnames, true, -1);
+    if(t >= 0 && t < 4)
+    {
+        hdr.watercolor[t] = *v;
+        if(editmode) unsavededits++;
+    }
+}
+COMMAND(setwatercolour, "si");
+
 // renders water for bounding rect area that contains water... simple but very inefficient
 
 #define VERTW(vertw, defbody, body) \
