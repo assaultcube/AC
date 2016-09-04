@@ -1016,8 +1016,17 @@ void readdepth(int w, int h, vec &pos)
     pos = vec(world.x, world.y, world.z).div(world.w);
 }
 
+VARP(ignoreoverride_nowaterreflect, 0, 0, 1);
+VARP(ignoreoverride_nostencilshadows, 0, 0, 1);
+
+int effective_stencilshadow = 0;
+
 void gl_drawframe(int w, int h, float changelod, float curfps)
 {
+    extern int mapoverride_nostencilshadows, mapoverride_nowaterreflect;
+    effective_stencilshadow = mapoverride_nostencilshadows && !ignoreoverride_nostencilshadows ? 0 : stencilshadow;
+    bool effective_waterreflect = waterreflect && (!mapoverride_nowaterreflect || ignoreoverride_nowaterreflect);
+
     dodynlights();
     drawminimap(w, h);
 
@@ -1055,7 +1064,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
     transplayer();
     readmatrices();
 
-    if(!underwater && waterreflect)
+    if(!underwater && effective_waterreflect)
     {
         extern int wx1;
         if(wx1>=0)
@@ -1066,8 +1075,8 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
         }
     }
 
-    if(stencilshadow && hasstencil && stencilbits >= 8) glClearStencil((hasSTS || hasST2) && !hasSTW ? 128 : 0);
-    glClear((outsidemap(camera1) ? GL_COLOR_BUFFER_BIT : 0) | GL_DEPTH_BUFFER_BIT | (stencilshadow && hasstencil && stencilbits >= 8 ? GL_STENCIL_BUFFER_BIT : 0));
+    if(effective_stencilshadow && hasstencil && stencilbits >= 8) glClearStencil((hasSTS || hasST2) && !hasSTW ? 128 : 0);
+    glClear((outsidemap(camera1) ? GL_COLOR_BUFFER_BIT : 0) | GL_DEPTH_BUFFER_BIT | (effective_stencilshadow && hasstencil && stencilbits >= 8 ? GL_STENCIL_BUFFER_BIT : 0));
 
     glEnable(GL_TEXTURE_2D);
 
@@ -1105,7 +1114,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
     rendermapmodels();
     endmodelbatches();
 
-    if(stencilshadow && hasstencil && stencilbits >= 8) drawstencilshadows();
+    if(effective_stencilshadow && hasstencil && stencilbits >= 8) drawstencilshadows();
 
     startmodelbatches();
     renderentities();
@@ -1133,7 +1142,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
 
     render_particles(curtime, PT_DECAL_MASK);
 
-    int nquads = renderwater(hf, !waterreflect || underwater ? 0 : reflecttex, !waterreflect || !waterrefract || underwater ? 0 : refracttex);
+    int nquads = renderwater(hf, !effective_waterreflect || underwater ? 0 : reflecttex, !effective_waterreflect || !waterrefract || underwater ? 0 : refracttex);
 
     render_particles(curtime, ~PT_DECAL_MASK);
 

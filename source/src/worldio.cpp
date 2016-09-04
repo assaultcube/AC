@@ -775,6 +775,17 @@ int maploaded = 0;
 VAR(curmaprevision, 1, 0, 0);
 COMMANDF(getmaptimestamp, "s", (char *fmt) { result(hdr.timestamp ? timestring((time_t)hdr.timestamp, *fmt != 'U', *fmt == 'U' ? fmt + 1 : fmt) : "no timestamp stored"); });
 
+void changemapflag(int val, int mask)
+{
+    int old = hdr.flags;
+    if(val) hdr.flags |= mask;
+    else hdr.flags &= ~mask;
+    if(editmode && old != hdr.flags) unsavededits++;
+}
+VARF(mapoverride_nowaterreflect, 0, 0, 1, changemapflag(mapoverride_nowaterreflect, MHF_DISABLEWATERREFLECT));
+VARF(mapoverride_limitwaveheight, 0, 0, 1, changemapflag(mapoverride_limitwaveheight, MHF_LIMITWATERWAVEHEIGHT));
+VARF(mapoverride_nostencilshadows, 0, 0, 1, changemapflag(mapoverride_nostencilshadows, MHF_DISABLESTENCILSHADOWS));
+
 extern char *mlayout;
 extern int Mv, Ma, Hhits;
 extern float Mh;
@@ -852,6 +863,9 @@ int load_world(char *mname)        // still supports all map formats that have e
     }
     if(hdr.version < 10) hdr.waterlevel *= WATERLEVELSCALING;
     setfvar("waterlevel", float(hdr.waterlevel) / WATERLEVELSCALING);
+    mapoverride_nowaterreflect = (hdr.flags & MHF_DISABLEWATERREFLECT) ? 1 : 0;
+    mapoverride_limitwaveheight = (hdr.flags & MHF_LIMITWATERWAVEHEIGHT) ? 1 : 0;
+    mapoverride_nostencilshadows = (hdr.flags & MHF_DISABLESTENCILSHADOWS) ? 1 : 0;
 
     // read and convert all entities
     persistent_entity *tempents = new persistent_entity[hdr.numents];

@@ -55,7 +55,13 @@ enum
     INVISIBLE = 1<<2
 };
 
-enum { MHF_AUTOMAPCONFIG = 1<<0 };
+enum
+{
+    MHF_AUTOMAPCONFIG = 1<<0,             // autogenerate map-config during map save
+    MHF_DISABLEWATERREFLECT = 1 << 8,     // force waterreflect to zero
+    MHF_LIMITWATERWAVEHEIGHT = 1 << 9,    // limit waveheight to 0.1
+    MHF_DISABLESTENCILSHADOWS = 1 << 10   // force stencilshadow to 0
+};
 
 #define MAPVERSION 10           // default map format version to be written (bump if map format changes, see worldio.cpp)
 

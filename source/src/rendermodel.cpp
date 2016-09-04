@@ -671,7 +671,7 @@ void endmodelbatches(bool flush)
             }
             renderbatchedmodel(b.m, bm);
         }
-        if(dynshadow && b.m->hasshadows() && (!reflecting || refracting) && (!stencilshadow || !hasstencil || stencilbits < 8))
+        if(dynshadow && b.m->hasshadows() && (!reflecting || refracting) && (!effective_stencilshadow || !hasstencil || stencilbits < 8))
         {
             loopvj(b.batched)
             {
@@ -780,7 +780,7 @@ void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, fl
     if(!OUTBORD(x, y))
     {
         sqr *s = S(x, y);
-        if(!(anim&ANIM_TRANSLUCENT) && dynshadow && m->hasshadows() && (!reflecting || refracting) && (!stencilshadow || !hasstencil || stencilbits < 8))
+        if(!(anim&ANIM_TRANSLUCENT) && dynshadow && m->hasshadows() && (!reflecting || refracting) && (!effective_stencilshadow || !hasstencil || stencilbits < 8))
         {
             vec center(o.x, o.y, s->floor);
             if(s->type==FHF) center.z -= s->vdelta/4.0f;

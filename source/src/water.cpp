@@ -34,7 +34,10 @@ void setwatercolor(const char *r, const char *g, const char *b, const char *a)
 }
 
 COMMANDN(watercolour, setwatercolor, "ssss");
+
 FVAR(waveheight, 0, 0.3f, 1.0f);
+VARP(ignoreoverride_limitwaveheight, 0, 0, 1);
+float effective_waveheight = 0.3f;
 
 void getwatercolour()
 {
@@ -69,7 +72,7 @@ COMMAND(setwatercolour, "si");
         float angle = v1*v2*0.1f/(2*M_PI) + t; \
         float s = angle - int(angle) - 0.5f; \
         s *= 8 - fabs(s)*16; \
-        float h = waveheight*0.5f*s; \
+        float h = effective_waveheight*0.5f*s; \
         varray::attrib<float>(v1, v2, v3+h); \
         body; \
     }
@@ -81,7 +84,7 @@ COMMAND(setwatercolour, "si");
     })
 #define VERTWT(vertwt, defbody, body) \
     VERTWC(vertwt, defbody, { \
-        float duv = waveheight*0.5f*v; \
+        float duv = effective_waveheight*0.5f*v; \
         body; \
     })
 
@@ -191,6 +194,9 @@ VARP(mtwater, 0, 1, 1);
 int renderwater(float hf, GLuint reflecttex, GLuint refracttex)
 {
     if(wx1<0) return nquads;
+
+    extern int mapoverride_limitwaveheight;
+    effective_waveheight = mapoverride_limitwaveheight && !ignoreoverride_limitwaveheight ? 0.1f : waveheight;
 
     wx1 -= wx1%watersubdiv;
     wy1 -= wy1%watersubdiv;
