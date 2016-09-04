@@ -12,14 +12,13 @@ typedef unsigned short int WORD;
 typedef unsigned long int DWORD;
 typedef signed long int SDWORD;
 
-typedef struct { BYTE B,G,R; } colorRGB;
 typedef struct { BYTE length; WORD value;} bitstring;
 
 #define  Y(R,G,B) ((BYTE)( (YRtab[(R)]+YGtab[(G)]+YBtab[(B)])>>16 ) - 128);
 #define Cb(R,G,B) ((BYTE)( (CbRtab[(R)]+CbGtab[(G)]+CbBtab[(B)])>>16 ));
 #define Cr(R,G,B) ((BYTE)( (CrRtab[(R)]+CrGtab[(G)]+CrBtab[(B)])>>16 ));
 
-#define writebyte(b) fputc((b),fp_jpeg_stream);
+#define writebyte(b) fp_jpeg_stream->putchar(b);
 #define writeword(w) writebyte((w)/256);writebyte((w)%256);
 
 struct APP0infotype
@@ -252,12 +251,13 @@ class jpegenc
         SWORD DU_DCT[64];
         SWORD DU[64];
 
-        colorRGB *RGB_buffer;   //image to be encoded
+        BYTE *RGB_buffer;       //image to be encoded
         WORD width, height;     //image dimensions divisible by 8
+        int pitch;
 
-        FILE *fp_jpeg_stream;
-        
-        int encode(const char *filename, colorRGB *pixels, int iw, int ih, int jpegquality);
+        stream *fp_jpeg_stream;
+
+        int encode(const char *filename, SDL_Surface *image, int jpegquality);
 };
 
 BYTE jpegenc::zigzag[64] = {
@@ -779,31 +779,26 @@ void jpegenc::load_data_units_from_RGB_buffer(WORD xpos, WORD ypos)
 {
     BYTE x, y;
     BYTE pos = 0;
-    DWORD location, maxlocation;
-    WORD width8, height8;
-    BYTE R, G, B;
-    location = ypos * width + xpos;
-    maxlocation = width * height;
-    width8 = width - xpos;
-    height8 = height - ypos;
+    BYTE R, G, B, *location0 = RGB_buffer + (ypos * pitch + xpos * 3);
+    WORD width8 = width - xpos, height8 = height - ypos;
     for (y=0; y<8; y++)
     {
+        BYTE *location = location0;
         for (x=0; x<8; x++)
         {
-            if(location < maxlocation && x < width8 && y < height8)
+            if(x < width8 && y < height8)
             {
-                R = RGB_buffer[location].R;
-                G = RGB_buffer[location].G;
-                B = RGB_buffer[location].B;
+                R = *location++;
+                G = *location++;
+                B = *location++;
             }
             else R = G = B = 0;
             YDU[pos] = Y(R,G,B);
             CbDU[pos] = Cb(R,G,B);
             CrDU[pos] = Cr(R,G,B);
-            location++;
             pos++;
         }
-        location += width - 8;
+        location0 += pitch;
     }
 }
 
@@ -823,13 +818,14 @@ void jpegenc::main_encoder()
     }
 }
 
-int jpegenc::encode(const char *filename, colorRGB *pixels, int iw, int ih, int jpegquality)
+int jpegenc::encode(const char *filename, SDL_Surface *image, int jpegquality)
 {
-    RGB_buffer = pixels;
-    width =  iw;
-    height = ih;    
+    RGB_buffer = (BYTE *)image->pixels;
+    width =  image->w;
+    height = image->h;
+    pitch = image->pitch;
 
-    fp_jpeg_stream = fopen(filename,"wb");
+    fp_jpeg_stream = openfile(filename,"wb");
     if(!fp_jpeg_stream)
     {
         return -1;
@@ -868,10 +864,9 @@ int jpegenc::encode(const char *filename, colorRGB *pixels, int iw, int ih, int 
     }
     writeword(0xFFD9);
 
-    //free(RGB_buffer);
     free(category_alloc);
     free(bitcode_alloc);
-    fclose(fp_jpeg_stream);
+    delete fp_jpeg_stream;
     return 0;
 };
 

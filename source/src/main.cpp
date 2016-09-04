@@ -164,136 +164,6 @@ void setprocesspriority(bool high)
 }
 #endif
 
-FVARP(screenshotscale, 0.1f, 1.0f, 1.0f);
-
-void bmp_screenshot(const char *imagepath, bool mapshot = false)
-{
-    extern int minimaplastsize;
-    int iw = mapshot?minimaplastsize:screen->w;
-    int ih = mapshot?minimaplastsize:screen->h;
-    int tw = mapshot ? iw : iw*screenshotscale;
-    int th = mapshot ? ih : ih*screenshotscale;
-    SDL_Surface *image = creatergbsurface(tw, th);
-    if(!image) return;
-    int tmpsize = iw * ih * 3;
-    uchar *tmp = new uchar[tmpsize];
-    uchar *dst = (uchar *)image->pixels;
-    if(mapshot)
-    {
-        extern GLuint minimaptex;
-        if(minimaptex)
-        {
-            glPixelStorei(GL_PACK_ALIGNMENT, 1);
-            glBindTexture(GL_TEXTURE_2D, minimaptex);
-            glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, tmp);
-        }
-        else
-        {
-            conoutf("no mapshot prepared!");
-            return;
-        }
-        loopi(th)
-        {
-            memcpy(dst, &tmp[3*tw*i], 3*tw);
-            dst += image->pitch;
-        }
-    }
-    else
-    {
-        glPixelStorei(GL_PACK_ALIGNMENT, 1);
-        if(screenshotscale != 1.0f)
-        {
-            uchar *buf = new uchar[iw*ih*3];
-            glReadPixels(0, 0, iw, ih, GL_RGB, GL_UNSIGNED_BYTE, buf); //screen->w//screen->h
-            scaletexture(buf, iw, ih, 3, tmp, tw, th);
-            delete[] buf;
-        }
-        else glReadPixels(0, 0, tw, th, GL_RGB, GL_UNSIGNED_BYTE, tmp);
-        loopi(th)
-        {
-            memcpy(dst, &tmp[3*tw*(th-i-1)], 3*tw);
-            dst += image->pitch;
-        }
-    }
-    entropy_add_block(tmp, tmpsize);
-    delete[] tmp;
-    stream *file = openfile(imagepath, "wb");
-    if(!file) conoutf("failed to create: %s", imagepath);
-    else
-    {
-        SDL_SaveBMP_RW(image, file->rwops(), 1);
-        delete file;
-    }
-    SDL_FreeSurface(image);
-}
-
-// best: 100 - good: 85 [default] - bad: 70 - terrible: 50
-VARP(jpegquality, 10, 85, 100);
-
-#include "jpegenc.h"
-
-void jpeg_screenshot(const char *imagepath, bool mapshot = false)
-{
-    extern int minimaplastsize;
-    int iw = mapshot?minimaplastsize:screen->w;
-    int ih = mapshot?minimaplastsize:screen->h;
-    int tw = mapshot ? iw : iw*screenshotscale;
-    int th = mapshot ? ih : ih*screenshotscale;
-
-    int pixelssize = 3 * tw * th;
-    uchar *pixels = new uchar[pixelssize];
-
-    if(mapshot)
-    {
-        extern GLuint minimaptex;
-        if(minimaptex)
-        {
-            glPixelStorei(GL_PACK_ALIGNMENT, 1);
-            glBindTexture(GL_TEXTURE_2D, minimaptex);
-            glGetTexImage(GL_TEXTURE_2D, 0, GL_BGR, GL_UNSIGNED_BYTE, pixels);
-        }
-        else
-        {
-            conoutf("no mapshot prepared!");
-            delete[] pixels;
-            return;
-        }
-    }
-    else
-    {
-        glPixelStorei(GL_PACK_ALIGNMENT, 1);
-        if(screenshotscale != 1.0f)
-        {
-            uchar *buf = new uchar[iw*ih*3];
-            glReadPixels(0, 0, iw, ih, GL_BGR, GL_UNSIGNED_BYTE, buf);
-            scaletexture(buf, iw, ih, 3, pixels, tw, th);
-            delete[] buf;
-        }
-        else glReadPixels(0, 0, tw, th, GL_BGR, GL_UNSIGNED_BYTE, pixels);
-
-        int stride = 3*tw;
-
-        GLubyte *swapline = (GLubyte *) malloc(stride);
-        for(int row = 0; row < th/2; row++)
-        {
-            memcpy(swapline, pixels + row * stride, stride);
-            memcpy(pixels + row * stride, pixels + (th - row - 1) * stride, stride);
-            memcpy(pixels + (th - row -1) * stride, swapline, stride);
-        }
-        free(swapline);
-    }
-
-    const char *filename = findfile(imagepath, "wb");
-    conoutf("writing to file: %s", filename);
-
-    jpegenc *jpegencoder = new jpegenc;
-    jpegencoder->encode(filename, (colorRGB *)pixels, tw, th, jpegquality);
-    delete jpegencoder;
-
-    entropy_add_block(pixels, pixelssize);
-    delete[] pixels;
-}
-
 VARP(pngcompress, 0, 9, 9);
 
 void writepngchunk(stream *f, const char *type, uchar *data = NULL, uint len = 0)
@@ -396,20 +266,24 @@ error:
     return -1;
 }
 
-void png_screenshot(const char *imagepath, bool mapshot = false)
+FVARP(screenshotscale, 0.1f, 1.0f, 1.0f);
+VARP(jpegquality, 10, 85, 100);  // best: 100 - good: 85 [default] - bad: 70 - terrible: 50
+
+#include "jpegenc.h"
+
+void mapscreenshot(const char *imagepath, bool mapshot, int fileformat)
 {
     extern int minimaplastsize;
-    int iw = mapshot?minimaplastsize:screen->w;
-    int ih = mapshot?minimaplastsize:screen->h;
-    int tw = mapshot ? iw : iw*screenshotscale;
-    int th = mapshot ? ih : ih*screenshotscale;
+    int src_w = mapshot ? minimaplastsize : screen->w;
+    int src_h = mapshot ? minimaplastsize : screen->h;
+    int dst_w = mapshot ? src_w : src_w * screenshotscale;
+    int dst_h = mapshot ? src_h : src_h * screenshotscale;
 
-    SDL_Surface *image = creatergbsurface(tw, th);
+    SDL_Surface *image = creatergbsurface(dst_w, dst_h);
     if(!image) return;
 
-    int tmpsize = tw * th * 3;
-    uchar *tmp = new uchar[tmpsize];
-    uchar *dst = (uchar *)image->pixels;
+    int tmpdstsize = dst_w * dst_h * 3, dstpitch = dst_w * 3;
+    uchar *tmpdst = new uchar[tmpdstsize], *dst = (uchar *)image->pixels;
 
     if(mapshot)
     {
@@ -418,40 +292,63 @@ void png_screenshot(const char *imagepath, bool mapshot = false)
         {
             glPixelStorei(GL_PACK_ALIGNMENT, 1);
             glBindTexture(GL_TEXTURE_2D, minimaptex);
-            glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, tmp);
+            glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, tmpdst);
         }
         else
         {
             conoutf("no mapshot prepared!");
+            SDL_FreeSurface(image);
             return;
         }
-        loopi(th)
-        {
-            memcpy(dst, &tmp[3*tw*i], 3*tw);
+        loopi(dst_h)
+        { // copy image
+            memcpy(dst, &tmpdst[dstpitch * i], dstpitch);
             dst += image->pitch;
         }
     }
     else
     {
         glPixelStorei(GL_PACK_ALIGNMENT, 1);
-        if(screenshotscale != 1.0f)
-        {
-            uchar *buf = new uchar[iw*ih*3];
-            glReadPixels(0, 0, iw, ih, GL_RGB, GL_UNSIGNED_BYTE, buf);
-            scaletexture(buf, iw, ih, 3, tmp, tw, th);
-            delete[] buf;
+        if(src_w != dst_w || src_h != dst_h)
+        { // scale image
+            uchar *tmpsrc = new uchar[src_w * src_h * 3];
+            glReadPixels(0, 0, src_w, src_h, GL_RGB, GL_UNSIGNED_BYTE, tmpsrc);
+            scaletexture(tmpsrc, src_w, src_h, 3, tmpdst, dst_w, dst_h);
+            delete[] tmpsrc;
         }
-        else glReadPixels(0, 0, tw, th, GL_RGB, GL_UNSIGNED_BYTE, tmp);
-        loopi(th)
-        {
-            memcpy(dst, &tmp[3*tw*(th-i-1)], 3*tw);
+        else glReadPixels(0, 0, dst_w, dst_h, GL_RGB, GL_UNSIGNED_BYTE, tmpdst);
+        loopirev(dst_h)
+        { // flip image
+            memcpy(dst, &tmpdst[dstpitch * i], dstpitch);
             dst += image->pitch;
         }
     }
-    entropy_add_block(tmp, tmpsize);
-    delete[] tmp;
+    entropy_add_block(tmpdst, tmpdstsize);
+    delete[] tmpdst;
 
-    if(save_png(imagepath, image) < 0) conoutf("\f3Error saving png file");
+    switch(fileformat)
+    {
+        case 0: // bmp
+        {
+            stream *file = openfile(imagepath, "wb");
+            if(!file) conoutf("failed to create: %s", imagepath);
+            else
+            {
+                SDL_SaveBMP_RW(image, file->rwops(), 1);
+                delete file;
+            }
+            break;
+        }
+        case 1: // jpeg
+        {
+            jpegenc jpegencoder;
+            jpegencoder.encode(imagepath, image, jpegquality);
+            break;
+        }
+        case 2: // png
+            if(save_png(imagepath, image) < 0) conoutf("\f3Error saving png file");
+            break;
+    }
 
     SDL_FreeSurface(image);
 }
@@ -472,27 +369,14 @@ void screenshot(const char *filename)
     else if(getclientmap()[0]) formatstring(buf)("screenshots/%s_%s_%s%s", timestring(), behindpath(getclientmap()), modestr(gamemode, true), getscrext());
     else formatstring(buf)("screenshots/%s%s", timestring(), getscrext());
     path(buf);
-
-    switch(screenshottype)
-    {
-        case 2:  png_screenshot(buf, false); break;
-        case 1: jpeg_screenshot(buf, false); break;
-        case 0:
-        default: bmp_screenshot(buf, false); break;
-    }
+    mapscreenshot(buf, false, screenshottype);
 }
 COMMAND(screenshot, "s");
 
 void mapshot()
 {
     defformatstring(buf)("screenshots" PATHDIVS "mapshot_%s_%s%s", behindpath(getclientmap()), timestring(), getscrext());
-    switch(screenshottype)
-    {
-        case 2: png_screenshot(buf,true); break;
-        case 1: jpeg_screenshot(buf,true); break;
-        case 0:
-        default: bmp_screenshot(buf,true); break;
-    }
+    mapscreenshot(buf, true, screenshottype);
 }
 COMMAND(mapshot, "");
 
