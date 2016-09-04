@@ -1025,7 +1025,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
 {
     extern int mapoverride_nostencilshadows, mapoverride_nowaterreflect;
     effective_stencilshadow = mapoverride_nostencilshadows && !ignoreoverride_nostencilshadows ? 0 : stencilshadow;
-    bool effective_waterreflect = waterreflect && (!mapoverride_nowaterreflect || ignoreoverride_nowaterreflect);
+    bool effective_waterreflect = waterreflect && !editmode && (!mapoverride_nowaterreflect || ignoreoverride_nowaterreflect);
 
     dodynlights();
     drawminimap(w, h);
