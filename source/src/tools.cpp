@@ -26,7 +26,7 @@ const char *timestring(time_t t, bool local, const char *fmt, char *buf)
     struct tm *timeinfo, b;
     timeinfo = local ? localtime_r(&t, &b) : gmtime_r(&t, &b);
 #endif
-    strftime(buf, sizeof(string) - 1, fmt ? fmt : "%Y%m%d_%H.%M.%S", timeinfo); // sortable time for filenames
+    strftime(buf, sizeof(string) - 1, fmt && *fmt ? fmt : "%Y%m%d_%H.%M.%S", timeinfo); // sortable time for filenames
     return buf;
 }
 

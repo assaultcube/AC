@@ -773,6 +773,7 @@ COMMAND(showmapdims, "");
 extern void preparectf(bool cleanonly = false);
 int maploaded = 0;
 VAR(curmaprevision, 1, 0, 0);
+COMMANDF(getmaptimestamp, "s", (char *fmt) { result(hdr.timestamp ? timestring((time_t)hdr.timestamp, *fmt != 'U', *fmt == 'U' ? fmt + 1 : fmt) : "no timestamp stored"); });
 
 extern char *mlayout;
 extern int Mv, Ma, Hhits;
