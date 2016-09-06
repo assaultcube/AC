@@ -8,8 +8,6 @@ int stenciling = 0;
 
 VAR(shadowclip, 0, 1, 1);
 VAR(shadowtile, 0, 1, 1);
-const int dbgtiles = 0;
-//VAR(dbgtiles, 0, 0, 1);
 VAR(shadowcasters, 1, 0, 0);
 
 #define SHADOWROWS 64
@@ -417,25 +415,9 @@ void drawstencilshadows()
         glPushMatrix();
         glLoadIdentity();
 
-        static uint debugtiles[SHADOWROWS+1];
-        if(dbgtiles) memcpy(debugtiles, shadowtiles, sizeof(debugtiles));
-
         rendershadowtiles();
 
-        if(dbgtiles)
-        {
-            glDisable(GL_STENCIL_TEST);
-            glColor3f(0.5f, 1, 0.5f);
-            memcpy(shadowtiles, debugtiles, sizeof(debugtiles));
-            rendershadowtiles();
-            glColor3f(0, 0, 1);
-            glDisable(GL_BLEND);
-            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-            memcpy(shadowtiles, debugtiles, sizeof(debugtiles));
-            rendershadowtiles();
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        }
-        else glDisable(GL_BLEND);
+        glDisable(GL_BLEND);
 
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
