@@ -216,6 +216,8 @@ char *keyaction = NULL;
 
 VAR(_defaultbinds, 0, 0, 1);
 
+COMMANDF(_resetallbinds, "", () { if(_defaultbinds) loopv(keyms) loopj(keym::NUMACTIONS) bindkey(&keyms[i], "", j); });
+
 bool bindkey(keym *km, const char *action, int type)
 {
     if(!km || type < keym::ACTION_DEFAULT || type >= keym::NUMACTIONS) return false;
