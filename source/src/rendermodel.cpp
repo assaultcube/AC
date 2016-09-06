@@ -128,7 +128,7 @@ void mapmodel(int *rad, int *h, int *zoff, char *scale, char *name)
         mmi.m = NULL;
 
         filtertext(name, name, FTXT__MEDIAFILEPATH);
-        formatstring(mmi.name)("%s%s", mmpath, name);
+        formatstring(mmi.name)("%s%s", mmpath, name[0] == '.' && name[1] == '/' ? name + 2 : name);
         mapmodelchanged = 1;
         flagmapconfigchange();
     }

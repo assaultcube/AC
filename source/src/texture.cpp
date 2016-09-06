@@ -471,6 +471,7 @@ void _texture(Slot &s, float *scale, char *name)
     if(name)
     {
         filtertext(s.name, parentdir(name), FTXT__MEDIAFILEPATH); // filter parts separately, because filename may (legally) contain "<decal>"
+        if(s.name[0] == '.' && s.name[1] == '/') memmove(s.name, s.name + 2, sizeof(s.name) - 2);
         if(*s.name) concatstring(s.name, "/");
         name = (char *)behindpath(name);
         if(*name == '<')

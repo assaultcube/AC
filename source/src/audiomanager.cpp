@@ -821,7 +821,7 @@ const int mapsoundbasepath_n = strlen(mapsoundbasepath), mapsoundfinalpath_n = s
 COMMANDF(mapsound, "si", (char *name, int *maxuses)
 {
     filtertext(name, name, FTXT__MEDIAFILEPATH);
-    defformatstring(stripped)("%s%s", mapsoundbasepath, name);
+    defformatstring(stripped)("%s%s", mapsoundbasepath, name[0] == '.' && name[1] == '/' ? name + 2 : name);
     unixpath(path(stripped));
     if(mapconfigdata.mapsoundlines.length() > 254)
     {
