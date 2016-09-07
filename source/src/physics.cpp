@@ -455,8 +455,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         int move = pl->onladder && !pl->onfloor && pl->move == -1 ? 0 : pl->move; // movement on ladder
         if(!editfly) water = waterlevel > pl->o.z - 0.5f;
 
-        float chspeed = 0.4f;
-        if(!(pl->onfloor || pl->onladder)) chspeed = 1.0f;
+        float chspeed = (pl->onfloor || pl->onladder || !pl->crouchedinair) ? 0.4f : 1.0f;
 
         const bool crouching = pl->crouching || pl->eyeheight < pl->maxeyeheight;
         const float speed = curtime/(water ? 2000.0f : 1000.0f)*pl->maxspeed*(crouching && pl->state != CS_EDITING ? chspeed : 1.0f)*(pl==player1 && isfly ? flyspeed : 1.0f);
