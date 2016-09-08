@@ -441,7 +441,7 @@ void setupscreen(int &usedcolorbits, int &useddepthbits, int &usedfsaa)
     int flags = SDL_RESIZABLE;
     #if defined(WIN32) || defined(__APPLE__)
     flags = 0;
-    putenv("SDL_VIDEO_CENTERED=1"); //Center window
+    putenv(newstring("SDL_VIDEO_CENTERED=1")); //Center window
     #endif
     if(fullscreen) flags |= SDL_FULLSCREEN;
     SDL_Rect **modes = SDL_ListModes(NULL, SDL_OPENGL|flags);

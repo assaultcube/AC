@@ -39,7 +39,9 @@
 #ifndef BOT_H
 #define BOT_H
 
+#ifndef RELEASE_BUILD
 #define RELEASE_BUILD // Set when you want to make a release build
+#endif
 
 #include "bot_util.h"
 #include "bot_waypoint.h"
