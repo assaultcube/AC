@@ -26,7 +26,7 @@ ifeq ($(ACDEBUG),yes)
 endif
 
 ifneq (,$(findstring clang,$(CXX)))
-	CXXFLAGS= -O3 -fomit-frame-pointer
+	CXXFLAGS= -O2 -fomit-frame-pointer
 	override CXXFLAGS+= -Wall -fsigned-char
 else
 	CXXFLAGS= -O3 -fomit-frame-pointer
