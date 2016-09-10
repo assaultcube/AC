@@ -1090,6 +1090,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 break;
             }
 
+            case SV_SERVMSGVERB:  // FIXME
             case SV_SERVMSG:
                 getstring(text, p);
                 conoutf("%s", text);

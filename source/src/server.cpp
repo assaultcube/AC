@@ -724,6 +724,11 @@ void sendservmsg(const char *msg, int cn = -1)
     sendf(cn, 1, "ris", SV_SERVMSG, msg);
 }
 
+void sendservmsgverbose(const char *msg, int cn = -1) // channel server spam here...
+{
+    sendf(cn, 1, "ris", SV_SERVMSGVERB, msg);
+}
+
 void sendspawn(client *c)
 {
     if(team_isspect(c->team)) return;
@@ -2843,7 +2848,7 @@ int checktype(int type, client *cl)
                         SV_GIBDAMAGE, SV_DAMAGE, SV_HITPUSH, SV_SHOTFX, SV_AUTHREQ, SV_AUTHCHAL,
                         SV_SPAWNSTATE, SV_SPAWNDENY, SV_FORCEDEATH, SV_RESUME,
                         SV_DISCSCORES, SV_TIMEUP, SV_ITEMACC, SV_MAPCHANGE, SV_ITEMSPAWN, SV_PONG,
-                        SV_SERVMSG, SV_ITEMLIST, SV_FLAGINFO, SV_FLAGMSG, SV_FLAGCNT,
+                        SV_SERVMSG, SV_SERVMSGVERB, SV_ITEMLIST, SV_FLAGINFO, SV_FLAGMSG, SV_FLAGCNT,
                         SV_ARENAWIN, SV_SERVOPINFO,
                         SV_CALLVOTESUC, SV_CALLVOTEERR, SV_VOTERESULT,
                         SV_SETTEAM, SV_TEAMDENY, SV_SERVERMODE, SV_IPLIST,
