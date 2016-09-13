@@ -430,15 +430,6 @@ struct clientidentity
     int clientnum;
 };
 
-struct demofile
-{
-    string info;
-    string file;
-    uchar *data;
-    int len;
-    vector<clientidentity> clientssent;
-};
-
 void startgame(const char *newname, int newmode, int newtime = -1, bool notify = true);
 void disconnect_client(int n, int reason = -1);
 void sendiplist(int receiver, int cn = -1);
@@ -487,7 +478,7 @@ const char *messagenames[SV_NUM] =
     "SV_SWITCHNAME", "SV_SWITCHSKIN", "SV_SWITCHTEAM",
     "SV_CLIENT",
     "SV_EXTENSION",
-    "SV_MAPIDENT", "SV_HUDEXTRAS", "SV_POINTS"
+    "SV_MAPIDENT", "SV_HUDEXTRAS", "SV_POINTS", "SV_DEMOCHECKSUM", "SV_DEMOSIGNATURE",
 };
 
 const char *entnames[] =

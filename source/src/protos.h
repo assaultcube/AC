@@ -849,10 +849,10 @@ extern void save_world(char *mname, bool skipoptimise = false, bool addcomfort =
 extern int _ignoreillegalpaths;
 extern int load_world(char *mname);
 extern char *getfiledesc(const char *dir, const char *name, const char *ext);
-extern void writemap(char *name, int size, uchar *data);
-extern void writecfggz(char *name, int size, int sizegz, uchar *data);
-extern uchar *readmap(char *name, int *size, int *revision);
-extern uchar *readmcfggz(char *name, int *size, int *sizegz);
+extern void writemap(const char *name, int size, uchar *data);
+extern void writecfggz(const char *name, int size, int sizegz, uchar *data);
+extern uchar *readmap(const char *name, int *size, int *revision);
+extern uchar *readmcfggz(const char *name, int *size, int *sizegz);
 extern void rlencodecubes(vector<uchar> &f, sqr *s, int len, bool preservesolids);
 extern bool rldecodecubes(ucharbuf &f, sqr *s, int len, int version, bool silent);
 extern void clearheaderextras();
@@ -1156,7 +1156,7 @@ struct serverconfigfile
 // server commandline parsing
 struct servercommandline
 {
-    int uprate, serverport, syslogfacility, filethres, syslogthres, maxdemos, maxclients, kickthreshold, banthreshold, verbose, incoming_limit, afk_limit, ban_time, demotimelocal;
+    int uprate, serverport, syslogfacility, filethres, syslogthres, maxdemos, maxclients, kickthreshold, banthreshold, verbose, incoming_limit, afk_limit, ban_time;
     const char *ip, *master, *logident, *serverpassword, *adminpasswd, *demopath, *maprotfile, *pwdfile, *blfile, *geoipfile, *nbfile, *infopath, *motdpath, *forbidden, *service, *logfilepath, *parfilepath, *ssk, *vitabasename;
     bool logtimestamp, demo_interm, loggamestatus;
     string motd, servdesc_full, servdesc_pre, servdesc_suf, voteperm, mapperm;
@@ -1164,7 +1164,7 @@ struct servercommandline
     vector<const char *> adminonlymaps; // FIXME: remove this
 
     servercommandline() :   uprate(0), serverport(CUBE_DEFAULT_SERVER_PORT), syslogfacility(6), filethres(-1), syslogthres(-1), maxdemos(-1),
-                            maxclients(DEFAULTCLIENTS), kickthreshold(-5), banthreshold(-6), verbose(0), incoming_limit(10), afk_limit(45000), ban_time(20*60*1000), demotimelocal(0),
+                            maxclients(DEFAULTCLIENTS), kickthreshold(-5), banthreshold(-6), verbose(0), incoming_limit(10), afk_limit(45000), ban_time(20*60*1000),
                             ip(""), master(NULL), logident(""), serverpassword(""), adminpasswd(""), demopath(NULL),
                             maprotfile("config/maprot.cfg"), pwdfile("config/serverpwd.cfg"), blfile("config/serverblacklist.cfg"), geoipfile("config/geoip.cfg"), nbfile("config/nicknameblacklist.cfg"),
                             infopath("config/serverinfo"), motdpath("config/motd"), forbidden("config/forbidden.cfg"), service(NULL), logfilepath("logs/"), parfilepath("config/serverparameters.cfg"), ssk(NULL), vitabasename("config/servervita"),

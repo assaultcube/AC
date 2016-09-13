@@ -40,7 +40,7 @@ void voptimize()        // reset vdeltas on non-hf cubes
 
 // these two are used by getmap/sendmap.. transfers compressed maps directly
 
-void writemap(char *name, int msize, uchar *mdata)
+void writemap(const char *name, int msize, uchar *mdata)
 {
     setnames(name);
     backup(cgzname, bakname);
@@ -51,7 +51,7 @@ void writemap(char *name, int msize, uchar *mdata)
     conoutf("wrote map %s as file %s", name, cgzname);
 }
 
-uchar *readmap(char *name, int *size, int *revision)
+uchar *readmap(const char *name, int *size, int *revision)
 {
     setnames(name);
     uchar *data = (uchar *)loadfile(cgzname, size);
@@ -61,7 +61,7 @@ uchar *readmap(char *name, int *size, int *revision)
     return data;
 }
 
-void writecfggz(char *name, int size, int sizegz, uchar *data)
+void writecfggz(const char *name, int size, int sizegz, uchar *data)
 {
     if(size < 1 || !sizegz || size > MAXCFGFILESIZE) return;
     setnames(name);
@@ -87,7 +87,7 @@ void writecfggz(char *name, int size, int sizegz, uchar *data)
 
 #define GZBUFSIZE ((MAXCFGFILESIZE * 11) / 10)
 
-uchar *readmcfggz(char *name, int *size, int *sizegz)
+uchar *readmcfggz(const char *name, int *size, int *sizegz)
 {
     setnames(name);
     uchar *gzbuf = new uchar[GZBUFSIZE];

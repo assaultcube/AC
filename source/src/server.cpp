@@ -28,13 +28,16 @@ struct servergame
 
     // current game
     string smapname, nextmapname;
-    int smode, nextgamemode;
+    int smode, nextgamemode, srvgamesalt;
     int interm;
     int minremain, gamemillis, gamelimit, nextsendscore;
     int arenaround, arenaroundstartmillis;
     int lastfillup;
     vector<server_entity> sents;
     sflaginfo sflaginfos[2];
+
+    bool recordpackets;
+    int demosequence;   // # of demo to fetch with F10 (usually curent game, until one minute after it finished)
 
     servermap *curmap;
     char *layout;  // NULL: edit mode or singleplayer without properly loaded map
@@ -59,6 +62,8 @@ struct servergame
         lastfillup = 0;
         sents.setsize(0);
         loopi(2) sflaginfos[i].actor_cn = -1;
+        recordpackets = false;
+        demosequence = 0;
         curmap = NULL;
         layout = NULL;
         coop_mapdata = NULL;
@@ -100,7 +105,6 @@ vector<client *> clients;
 vector<worldstate *> worldstates;
 vector<savedscore> savedscores;
 vector<ban> bans;
-vector<demofile> demofiles;
 
 long int incoming_size = 0;
 
@@ -128,7 +132,7 @@ void poll_serverthreads()       // called once per mainloop-timeslice
             if(startnewservermapsepoch || readmapsthread_sem->getvalue()) fatal("thread management mishap");  // zero tolerance...
 
             // wake readmapsthread
-            mlog(ACLOG_INFO,"waking readmapsthread");
+            mlog(ACLOG_DEBUG,"waking readmapsthread");
             startnewservermapsepoch = true;
             servclock = (int) (time(NULL) / (time_t) 60);
             readmapsthread_sem->post();
@@ -501,6 +505,12 @@ bool buildworldstate()
     }
 }
 
+client *getclientbysequence(int seq)
+{
+    loopv(clients) if(clients[i]->type != ST_EMPTY && clients[i]->clientsequence == seq) return clients[i];
+    return NULL;
+}
+
 int countclients(int type, bool exclude = false)
 {
     int num = 0;
@@ -743,140 +753,294 @@ void sendspawn(client *c)
     gs.lastspawn = sg->gamemillis;
 }
 
-// demo
-stream *demotmp = NULL, *demorecord = NULL, *demoplayback = NULL;
-bool recordpackets = false;
+// simultaneous demo recording, fully buffered
+
+#define DEMORINGBUFSIZE (1<<18) // 256KB
 #define MAXDEMOS 16
-int nextplayback = 0;
 
-void writedemo(int chan, void *data, int len)
-{
-    if(!demorecord) return;
-    int stamp[3] = { sg->gamemillis, chan, len };
-    lilswap(stamp, 3);
-    demorecord->write(stamp, sizeof(stamp));
-    demorecord->write(data, len);
-}
-
-void recordpacket(int chan, void *data, int len)
-{
-    if(recordpackets) writedemo(chan, data, len);
-}
-
-void recordpacket(int chan, ENetPacket *packet)
-{
-    if(recordpackets) writedemo(chan, packet->data, (int)packet->dataLength);
-}
-
-SERVPAR(demo_max_number, 3, 5, MAXDEMOS, "DMaximum number of demo files in RAM");
+SERVPAR(demo_max_number, 3, 5, MAXDEMOS - 1, "DMaximum number of demo files in RAM");
 SERVPARLIST(demo_save, 0, 1, 0, endis, "DWrite demos to file");
 SERVSTR(demo_path, "", 0, 63, FTXT__DEMONAME, "DDemo path (and filename) prefix");
 SERVSTR(demo_filenameformat, "%w_%h_%n_%Mmin_%G", 0, 63, FTXT__FORMATSTRING, "DDemo file format string");
 SERVSTR(demo_timestampformat, "%Y%m%d_%H%M", 0, 23, FTXT__FORMATSTRING, "DDemo timestamp format string");
 
-int demotimelocal = 0;
+typedef ringbuf<uchar, DEMORINGBUFSIZE> demoringbuf;
+typedef vector<uchar> demobuf;
+ringbuf<demoringbuf *, MAXDEMOS> demoringbuf_store;
+ringbuf<demobuf *, MAXDEMOS> demobuf_store;
+
+struct demo_s
+{
+    volatile int sequence;
+    string info, mapname, filename;
+    vector<int> clients_waiting, clients_served;
+    demoringbuf *rb;    // uncomressed ringbuffer
+    stream *gz, *dbs;   // compression handle
+    demobuf *db;        // temp compressed file
+    uchar *data;        // finished compressed file
+    int len;            // bytes in data
+    int gmode, timeplayed, timeremain, timestamp;
+    uchar tiger[TIGERHASHSIZE]; // raw data checksum
+    void *tigerstate;
+
+                        // flags only valid for sequence > 0
+    bool finish;        // game ended, finish up buffer and copy to 'data'
+    bool error;         // buffering overflow, demo lost -> double DEMORINGBUFSIZE and recompile
+    bool remove;        // cleanup slot
+    bool done;          // demo ready to be downloaded
+    bool save;          // write demo to file
+
+    demo_s() : sequence(0), rb(NULL), gz(NULL), db(NULL), data(NULL), tigerstate(NULL) {}
+};
+
+demo_s demos[MAXDEMOS];
+
+demo_s *initdemoslot() // fetch empty demo slot, clean up surplus slots
+{
+    static int demosequencecounter = 0, lastdemoslot = 0;
+    const int demosequencewraparound = max(126, MAXDEMOS * 4);
+    ASSERT(ismainthread() && MAXDEMOS < 126);
+    for(;;)
+    {
+        int used = 0;
+        loopi(MAXDEMOS) if(demos[i].sequence) used++;
+        if(used >= demo_max_number)
+        { // drop old demos (oldest sequence counters first)
+            int oldestage = -1, oldestdemo;
+            loopi(MAXDEMOS) if(demos[i].sequence)
+            {
+                int age = (demosequencecounter - demos[i].sequence + demosequencewraparound) % demosequencewraparound;
+                if(age > oldestage)
+                {
+                    age = oldestage;
+                    oldestdemo = i;
+                }
+            }
+            if(oldestage >= 0)
+            {
+                demo_s &c = demos[oldestdemo];
+                mlog(ACLOG_VERBOSE, "dropping demo #%d \"%s\", age %d", c.sequence, c.info, oldestage);
+                if(!c.done) mlog(ACLOG_ERROR, "clearing unfinished demo slot #%d, probably leaked some memory...", c.sequence);
+                else DELETEA(c.data);
+                c.rb = NULL;
+                c.db = NULL;
+                c.data = NULL;
+                c.tigerstate = NULL;
+                c.gz = c.dbs = NULL;
+                c.sequence = 0;
+            }
+        }
+        else break;
+    }
+    demo_s *d = NULL;
+    int n;
+    loopi(MAXDEMOS) if(!demos[(n = (i + lastdemoslot) % MAXDEMOS)].sequence) { d = demos + n; lastdemoslot = n + 1; break; }
+    ASSERT(d != NULL);
+    d->clients_waiting.setsize(0);
+    d->clients_served.setsize(0);
+    d->rb = demoringbuf_store.length() ? demoringbuf_store.remove() : new demoringbuf;
+    d->db = demobuf_store.length() ? demobuf_store.remove() : new demobuf;
+    DELETEA(d->data);
+    d->rb->clear();
+    d->db->setsize(0);
+    d->len = 0;
+    d->tigerstate = tigerhash_init(d->tiger);
+    d->dbs = openvecfile(d->db, false); // no autodelete: we'll keep db allocated
+    d->gz = opengzfile(NULL, "wb", d->dbs);
+    d->remove = d->finish = d->error = d->done = false;
+    for(bool tryagain = true; tryagain; )
+    { // get unique sequence number (brute force)
+        demosequencecounter = (d->sequence = (demosequencecounter + 1)) % demosequencewraparound;
+        tryagain = false;
+        loopi(MAXDEMOS) if(demos[i].sequence == d->sequence && demos + i != d) tryagain = true;
+    }
+    return d;
+}
+
+sl_semaphore sem_demoworkerthread(1, NULL); // trigger demoworkerthread
+
+int demoworkerthread(void *logfileprefix) // demo worker thread: compress demo data and write demo files
+{
+    int len;
+    while(1)
+    {
+        loopi(MAXDEMOS) if(demos[i].sequence)
+        {
+            demo_s &s = demos[i];
+            while(s.gz && s.rb && (len = s.rb->length()))
+            { // compress until rb is empty
+                uchar *rbp = s.rb->peek(&len);
+                if(len != s.gz->write(rbp, len)) s.error = true;
+                s.rb->remove(&len);
+            }
+            if(s.finish && s.gz && s.rb && !s.rb->length())
+            { // close and copy zip file
+                tigerhash_finish(s.tiger, s.tigerstate);
+                s.tigerstate = NULL;
+                string msg;
+                bin2hex(msg, s.tiger, TIGERHASHSIZE);
+                defformatstring(text)("SERVDEMOEND<%s>", msg);
+                ed25519_sign((uchar*)msg, NULL, (uchar*)text, strlen(text), ssk);
+                int stamp[3] = { -1, -1, TIGERHASHSIZE + 64 };
+                lilswap(stamp, 3);
+                s.gz->write(stamp, sizeof(stamp));
+                s.gz->write(s.tiger, TIGERHASHSIZE);
+                s.gz->write(msg, 64);
+                DELETEP(s.gz);
+                s.len = s.dbs->size();
+                s.data = new uchar[s.len];
+                s.dbs->seek(0, SEEK_SET);
+                s.dbs->read(s.data, s.len);
+                if(s.save)
+                {
+                    stream *demo = openfile(s.filename, "wb");
+                    if(demo)
+                    {
+                        int wlen = (int) demo->write(s.data, s.len);
+                        delete demo;
+                        tlog(ACLOG_INFO, "demo #%d written to file \"%s\" (%d bytes)", s.sequence, s.filename, wlen);
+                    }
+                    else
+                    {
+                        tlog(ACLOG_INFO, "failed to write demo #%d to file \"%s\"", s.sequence, s.filename);
+                    }
+                }
+                else tlog(ACLOG_INFO, "recording demo #%d \"%s\" (%d bytes) finished, not saved to file", s.sequence, s.filename, s.len);
+                s.done = true;
+            }
+            if(s.finish || s.error || s.remove)
+            { // cleanup demo slot
+                DELETEP(s.gz);
+                DELETEP(s.dbs);
+                if(s.db)
+                { // keep the demo buffer for the next recording
+                    if(!demobuf_store.full()) demobuf_store.add(s.db);
+                    else delete s.db;
+                    s.db = NULL;
+                }
+                if(s.rb)
+                { // keep the demo ringbuffer for the next recording
+                    if(!demoringbuf_store.full()) demoringbuf_store.add(s.rb);
+                    else delete s.rb;
+                    s.rb = NULL;
+                }
+                if(!s.done) s.sequence = 0;
+            }
+        }
+        sem_demoworkerthread.timedwait(500); // wait for mainloop to add some work
+    }
+    return 0;
+}
+
+demo_s *demorecord = NULL;
+
+void writedemo(int chan, void *data, int len)
+{
+    if(demorecord && !demorecord->sequence) demorecord = NULL;
+    if(!demorecord || !demorecord->rb) return;
+    int stamp[3] = { sg->gamemillis, chan, len };
+    if(demorecord->rb->maxsize() - demorecord->rb->length() > int(sizeof(stamp)) + len)
+    {
+        lilswap(stamp, 3);
+        demorecord->rb->add((uchar *)stamp, sizeof(stamp));
+        tigerhash_add(demorecord->tiger, (uchar *)stamp, sizeof(stamp), demorecord->tigerstate);
+        demorecord->rb->add((uchar *)data, len);
+        tigerhash_add(demorecord->tiger, (uchar *)data, len, demorecord->tigerstate);
+        sem_demoworkerthread.post();
+    }
+    else
+    {
+        if(!demorecord->error) mlog(ACLOG_ERROR, "demorecord ringbuffer overflow -> discarding demo #%d", demorecord->sequence);
+        demorecord->error = true;  // ringbuffer-overflow: discard demo
+    }
+}
+
+void recordpacket(int chan, void *data, int len)
+{
+    if(sg->recordpackets) writedemo(chan, data, len);
+}
+
+void recordpacket(int chan, ENetPacket *packet)
+{
+    if(sg->recordpackets) writedemo(chan, packet->data, (int)packet->dataLength);
+}
+
+void demorecord_beginintermission()
+{ // send hash to clients to sign and restart demo hash
+    if(!demorecord) return;
+
+    uchar interm_tiger[TIGERHASHSIZE];
+    tigerhash_finish(demorecord->tiger, demorecord->tigerstate);
+    memcpy(interm_tiger, demorecord->tiger, TIGERHASHSIZE);
+    demorecord->tigerstate = tigerhash_init(demorecord->tiger); // start again to hash the rest of the demo
+
+    sendf(-1, 1, "rim", SV_DEMOCHECKSUM, TIGERHASHSIZE, interm_tiger);
+}
 
 void enddemorecord()
 {
     if(!demorecord) return;
-
-    delete demorecord;
-    recordpackets = false;
-    demorecord = NULL;
-
-    if(!demotmp) return;
+    sg->recordpackets = false;
 
     if(sg->gamemillis < DEMO_MINTIME)
     {
-        delete demotmp;
-        demotmp = NULL;
-        mlog(ACLOG_INFO, "Demo discarded.");
-        return;
+        mlog(ACLOG_INFO, "Demo #%d discarded.", demorecord->sequence);
+        demorecord->remove = true;
     }
+    else
+    { // finish recording, assemble game data,
+        int len = demorecord->dbs ? demorecord->dbs->size() : 0;  // (still a few bytes missing, sue me)
+        int mr = sg->gamemillis >= sg->gamelimit ? 0 : (sg->gamelimit - sg->gamemillis + 60000 - 1)/60000;
+        formatstring(demorecord->info)("%s: %s, %s, %.2f%s", asctimestr(), modestr(gamemode), sg->smapname, len > 1024*1024 ? len/(1024*1024.f) : len/1024.0f, len > 1024*1024 ? "MB" : "kB");
+        if(mr) concatformatstring(demorecord->info, ", %d mr", mr);
+        defformatstring(msg)("Demo #%d \"%s\" recorded\nPress F10 to download it from the server..", demorecord->sequence, demorecord->info);
+        sendservmsgverbose(msg);
+        mlog(ACLOG_INFO, "Demo \"%s\" recorded.", demorecord->info);
 
-    int len = demotmp->size();
-    demotmp->seek(0, SEEK_SET);
-    if(demofiles.length() >= demo_max_number)
-    {
-        delete[] demofiles[0].data;
-        demofiles.remove(0);
+        copystring(demorecord->mapname, behindpath(sg->smapname));
+        demorecord->gmode = gamemode;
+        demorecord->timeplayed = sg->gamemillis >= sg->gamelimit ? sg->gamelimit/1000 : sg->gamemillis/1000;
+        demorecord->timeremain = sg->gamemillis >= sg->gamelimit ? 0 : (sg->gamelimit - sg->gamemillis)/1000;
+        demorecord->timestamp = int(time(NULL) / 60);
+        demorecord->save = demo_save != 0;
+        string buf;
+        formatstring(demorecord->filename)("%s%s.dmo", demo_path, formatdemofilename(demo_filenameformat, demo_timestampformat, demorecord->mapname, gamemode, demorecord->timestamp, demorecord->timeplayed, demorecord->timeremain, servownip, buf));
+        path(demorecord->filename);
+
+        sg->demosequence = demorecord->sequence;
+        demorecord->finish = true;
     }
-    int mr = sg->gamemillis >= sg->gamelimit ? 0 : (sg->gamelimit - sg->gamemillis + 60000 - 1)/60000;
-    demofile &d = demofiles.add();
-
-    formatstring(d.info)("%s: %s, %s, %.2f%s", asctimestr(), modestr(gamemode), sg->smapname, len > 1024*1024 ? len/(1024*1024.f) : len/1024.0f, len > 1024*1024 ? "MB" : "kB");
-    if(mr) { concatformatstring(d.info, ", %d mr", mr); concatformatstring(d.file, "_%dmr", mr); }
-    defformatstring(msg)("Demo \"%s\" recorded\nPress F10 to download it from the server..", d.info);
-    sendservmsg(msg);
-    mlog(ACLOG_INFO, "Demo \"%s\" recorded.", d.info);
-
-    int mPLAY = sg->gamemillis >= sg->gamelimit ? sg->gamelimit/1000 : sg->gamemillis/1000;
-    int mDROP = sg->gamemillis >= sg->gamelimit ? 0 : (sg->gamelimit - sg->gamemillis)/1000;
-    int iTIME = time(NULL);
-    const char *mTIME = numtime();
-    const char *sMAPN = behindpath(sg->smapname);
-    string iMAPN, buf;
-    copystring(iMAPN, sMAPN);
-    formatstring(d.file)( "%d:%d:%d:%s:%s", gamemode, mPLAY, mDROP, mTIME, iMAPN);
-
-    d.data = new uchar[len];
-    d.len = len;
-    demotmp->read(d.data, len);
-    delete demotmp;
-    demotmp = NULL;
-    if(demo_save)
-    {
-        formatstring(msg)("%s%s.dmo", demo_path, formatdemofilename(demo_filenameformat, demo_timestampformat, iMAPN, gamemode, iTIME / 60, mPLAY, mDROP, servownip, buf));
-        path(msg);
-        stream *demo = openfile(msg, "wb");
-        if(demo)
-        {
-            int wlen = (int) demo->write(d.data, d.len);
-            delete demo;
-            mlog(ACLOG_INFO, "demo written to file \"%s\" (%d bytes)", msg, wlen);
-        }
-        else
-        {
-            mlog(ACLOG_INFO, "failed to write demo to file \"%s\"", msg);
-        }
-    }
+    demorecord = NULL;
+    sem_demoworkerthread.post();
 }
 
 void setupdemorecord()
 {
     if(numlocalclients() || !m_mp(gamemode) || gamemode == GMODE_COOPEDIT) return;
 
-    defformatstring(demotmppath)("demos/demorecord_%s_%d", scl.ip[0] ? scl.ip : "local", scl.serverport);
-    demotmp = opentempfile(demotmppath, "w+b");
-    if(!demotmp) return;
+    ASSERT(demorecord == NULL);
 
-    stream *f = opengzfile(NULL, "wb", demotmp);
-    if(!f)
-    {
-        delete demotmp;
-        demotmp = NULL;
-        return;
-    }
+    demorecord = initdemoslot();
+    if(!sg->demosequence) sg->demosequence = demorecord->sequence;
+    formatstring(demorecord->info)("%s %s", modestr(gamemode), sg->smapname);
 
-    sendservmsg("recording demo");         // FIXME
-    mlog(ACLOG_INFO, "Demo recording started.");
+    sendservmsgverbose("recording demo");
+    mlog(ACLOG_INFO, "Demo recording started (#%d).", demorecord->sequence);
 
-    demorecord = f;
-    recordpackets = false;
+    sg->recordpackets = false;
 
     demoheader hdr;
+    memset(&hdr, 0, sizeof(demoheader));
     memcpy(hdr.magic, DEMO_MAGIC, sizeof(hdr.magic));
     hdr.version = DEMO_VERSION;
     hdr.protocol = SERVER_PROTOCOL_VERSION;
     lilswap(&hdr.version, 1);
     lilswap(&hdr.protocol, 1);
-    memset(hdr.desc, 0, DHDR_DESCCHARS);
     defformatstring(desc)("%s, %s, %s %s", modestr(gamemode, false), behindpath(sg->smapname), asctimestr(), sg->servdesc_current);
     if(strlen(desc) > DHDR_DESCCHARS)
         formatstring(desc)("%s, %s, %s %s", modestr(gamemode, true), behindpath(sg->smapname), asctimestr(), sg->servdesc_current);
     desc[DHDR_DESCCHARS - 1] = '\0';
     strcpy(hdr.desc, desc);
-    memset(hdr.plist, 0, DHDR_PLISTCHARS);
     const char *bl = "";
     loopv(clients)
     {
@@ -885,19 +1049,35 @@ void setupdemorecord()
         if(strlen(hdr.plist) + strlen(ci->name) < DHDR_PLISTCHARS - 2) { strcat(hdr.plist, bl); strcat(hdr.plist, ci->name); }
         bl = " ";
     }
-    demorecord->write(&hdr, sizeof(demoheader));
+    tigerhash_add(demorecord->tiger, (uchar *)&hdr, sizeof(demoheader), demorecord->tigerstate);
+    demorecord->rb->add((uchar *)&hdr, sizeof(demoheader));
 
     packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
     welcomepacket(p, -1);
     writedemo(1, p.buf, p.len);
 }
 
+int donedemosort(demo_s **a, demo_s **b) { return (*a)->timestamp - (*b)->timestamp; }
+
 void listdemos(int cn)
 {
     packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
     putint(p, SV_SENDDEMOLIST);
-    putint(p, demofiles.length());
-    loopv(demofiles) sendstring(demofiles[i].info, p);
+    vector<demo_s *> donedemos;
+    loopi(MAXDEMOS) if(demos[i].sequence && demos[i].done) donedemos.add(demos + i);
+    putint(p, donedemos.length());
+    donedemos.sort(donedemosort);
+    loopv(donedemos)
+    {
+        demo_s &d = *donedemos[i];
+        putint(p, d.sequence);
+        sendstring(d.info, p);
+        sendstring(d.mapname, p);
+        putint(p, d.gmode);
+        putint(p, d.timeplayed);
+        putint(p, d.timeremain);
+        putint(p, d.timestamp);
+    }
     sendpacket(cn, 1, p.finalize());
 }
 
@@ -905,62 +1085,99 @@ static void cleardemos(int n)
 {
     if(!n)
     {
-        loopv(demofiles) delete[] demofiles[i].data;
-        demofiles.shrink(0);
+        loopi(MAXDEMOS) if(demos[i].done) demos[i].remove = true;
         sendservmsg("cleared all demos");
     }
-    else if(demofiles.inrange(n-1))
+    else loopi(MAXDEMOS) if(demos[i].sequence == n && demos[i].done)
     {
-        delete[] demofiles[n-1].data;
-        demofiles.remove(n-1);
-        defformatstring(msg)("cleared demo %d", n);
+        demos[i].remove = true;
+        defformatstring(msg)("cleared demo #%d", n);
         sendservmsg(msg);
     }
 }
 
-bool sending_demo = false;
-
 void senddemo(int cn, int num)
 {
     client *cl = cn>=0 ? clients[cn] : NULL;
-    bool is_admin = (cl && cl->role == CR_ADMIN);
-    if(scl.demo_interm && (!sg->interm || totalclients > 2) && !is_admin)
+    if(num < 1) num = sg->demosequence;
+    demo_s *d = NULL;
+    loopi(MAXDEMOS) if(demos[i].sequence == num) d = demos + i;
+    if(d)
     {
-        sendservmsg("\f3sorry, but this server only sends demos at intermission.\n wait for the end of this game, please", cn);
-        return;
-    }
-    if(!num) num = demofiles.length();
-    if(!demofiles.inrange(num-1))
-    {
-        if(demofiles.empty()) sendservmsg("no demos available", cn);
-        else
+        bool alreadywaiting = false, alreadyserved = false;
+        loopv(d->clients_waiting) if(d->clients_waiting[i] == cl->clientsequence) alreadywaiting = true;
+        loopv(d->clients_served) if(d->clients_served[i] == cl->clientsequence) alreadyserved = true;
+        if(alreadyserved)
         {
-            defformatstring(msg)("no demo %d available", num);
-            sendservmsg(msg, cn);
+            sendservmsg("\f3Sorry, you have already downloaded this demo.", cl->clientnum);
         }
-        return;
+        else if(!alreadywaiting)
+        {
+            d->clients_waiting.add(cl->clientsequence);
+            if(!d->done)
+            {
+                defformatstring(msg)("scheduled download of demo #%d \"%s\"\n...download will begin, once the demo is finished recording", num, d->info);
+                sendservmsg(msg, cn);
+            }
+        }
     }
-    demofile &d = demofiles[num-1];
-    loopv(d.clientssent) if(d.clientssent[i].ip == cl->peer->address.host && d.clientssent[i].clientnum == cl->clientnum)
+    else
     {
-        sendservmsg("\f3Sorry, you have already downloaded this demo.", cl->clientnum);
-        return;
+        defformatstring(msg)("demo #%d not available", num);
+        sendservmsg(msg, cn);
     }
-    clientidentity &ci = d.clientssent.add();
-    ci.ip = cl->peer->address.host;
-    ci.clientnum = cl->clientnum;
+}
 
-    if (sg->interm) sending_demo = true;
-    packetbuf p(MAXTRANS + d.len, ENET_PACKET_FLAG_RELIABLE);
-    putint(p, SV_SENDDEMO);
-    sendstring(d.file, p);
-    putint(p, d.len);
-    p.put(d.data, d.len);
-    sendpacket(cn, 2, p.finalize());
+void checkdemotransmissions()
+{
+    static int dpointer = 0, curcl = -1, curclseq = 0, curdemoseq = 0;//, curdemosent = 0;
+    if(curcl >= 0)
+    { // demo transmission in progress
+        client *cl = clients[curcl];
+        demo_s *d = NULL;
+        loopi(MAXDEMOS) if(demos[i].sequence == curdemoseq && demos[i].done) d = demos + i;
+        if(d && cl->clientsequence == curclseq)
+        { // demo and client still exist: continue transmission
+
+            // FIXME....
+            packetbuf p(MAXTRANS + d->len, ENET_PACKET_FLAG_RELIABLE);
+            putint(p, SV_SENDDEMO);
+            putint(p, d->sequence);
+            sendstring(d->mapname, p);
+            putint(p, d->gmode);
+            putint(p, d->timeplayed);
+            putint(p, d->timeremain);
+            putint(p, d->timestamp);
+            putint(p, d->len);
+            p.put(d->data, d->len);
+            sendpacket(cl->clientnum, 2, p.finalize());
+
+        }
+        curcl = -1; // done
+    }
+    else
+    {
+        demo_s *d = demos + dpointer;
+        if(d->sequence && d->done && d->clients_waiting.length())
+        {
+            client *cl = getclientbysequence(d->clients_waiting[0]);
+            if(cl)
+            {
+                d->clients_served.add(d->clients_waiting.remove(0));
+                curcl = cl->clientnum;
+                curclseq = cl->clientsequence;
+                curdemoseq = d->sequence;
+                //curdemosent = 0;
+            }
+        }
+        else dpointer = (dpointer + 1) % MAXDEMOS;
+    }
 }
 
 int demoprotocol;
 bool watchingdemo = false;
+stream *demoplayback = NULL;
+int nextplayback = 0;
 
 void enddemoplayback()
 {
@@ -2112,6 +2329,7 @@ void resetserver(const char *newname, int newmode, int newtime)
 
     sg->smode = newmode;
     copystring(sg->smapname, newname);
+    sg->srvgamesalt = (rnd(0x1000000)*((servmillis%4200)+1)) ^ rnd(0x1000000);
 
     sg->minremain = newtime > 0 ? newtime : defaultgamelimit(newmode);
     sg->gamemillis = 0;
@@ -2215,7 +2433,7 @@ void startgame(const char *newname, int newmode, int newtime, bool notify)
         if(notify)
         {
             // change map
-            sendf(-1, 1, "risiii", SV_MAPCHANGE, sg->smapname, sg->smode, sm && sm->isdistributable() ? sm->cgzlen : 0, sm && sm->isdistributable() ? sm->maprevision : 0);
+            sendf(-1, 1, "risiiii", SV_MAPCHANGE, sg->smapname, sg->smode, sm && sm->isdistributable() ? sm->cgzlen : 0, sm && sm->isdistributable() ? sm->maprevision : 0, sg->srvgamesalt);
             if(sg->smode > 1 || (sg->smode == 0 && numnonlocalclients() > 0)) sendf(-1, 1, "ri3", SV_TIMEUP, sg->gamemillis, sg->gamelimit);
         }
         packetbuf q(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
@@ -2766,6 +2984,7 @@ void welcomepacket(packetbuf &p, int n)
         putint(p, sg->smode);
         putint(p, sg->curmap && sg->curmap->isdistributable() ? sg->curmap->cgzlen : 0);
         putint(p, sg->curmap && sg->curmap->isdistributable() ? sg->curmap->maprevision : 0);
+        putint(p, sg->srvgamesalt);
         if(sg->smode>1 || (sg->smode==0 && numnonlocalclients()>0))
         {
             putint(p, SV_TIMEUP);
@@ -2853,7 +3072,7 @@ int checktype(int type, client *cl)
                         SV_CALLVOTESUC, SV_CALLVOTEERR, SV_VOTERESULT,
                         SV_SETTEAM, SV_TEAMDENY, SV_SERVERMODE, SV_IPLIST,
                         SV_SENDDEMOLIST, SV_SENDDEMO, SV_DEMOPLAYBACK,
-                        SV_CLIENT, SV_HUDEXTRAS, SV_POINTS };
+                        SV_CLIENT, SV_HUDEXTRAS, SV_POINTS, SV_DEMOCHECKSUM };
     // only allow edit messages in coop-edit mode
     static int edittypes[] = { SV_EDITENT, SV_EDITXY, SV_EDITARCH, SV_EDITBLOCK, SV_EDITD, SV_EDITE, SV_NEWMAP };
     if(cl)
@@ -3934,6 +4153,13 @@ void process(ENetPacket *packet, int sender, int chan)
                 senddemo(sender, getint(p));
                 break;
 
+            case SV_DEMOSIGNATURE: // client acknowledging a demo checksum
+                getint(p);
+                getip4(p);
+                p.get((uchar*)text, 64);
+                QUEUE_MSG;
+                break;
+
             case SV_EXTENSION:
             {
                 // AC server extensions
@@ -4122,8 +4348,13 @@ void checkintermission()
     {
         sg->minremain = (sg->gamemillis >= sg->gamelimit || sg->forceintermission) ? 0 : (sg->gamelimit - sg->gamemillis + 60000 - 1) / 60000;
         sendf(-1, 1, "ri3", SV_TIMEUP, (sg->gamemillis >= sg->gamelimit || sg->forceintermission) ? sg->gamelimit : sg->gamemillis, sg->gamelimit);
+        if(demorecord && sg->gamemillis > 100000) sg->demosequence = demorecord->sequence; // after 100 seconds played, switch F10-default from "last game" to "this game"
     }
-    if(!sg->interm && sg->minremain <= 0) sg->interm = sg->gamemillis + 10000;
+    if(!sg->interm && sg->minremain <= 0)
+    { // intermission starting here
+        sg->interm = sg->gamemillis + 10000;
+        demorecord_beginintermission();
+    }
     sg->forceintermission = false;
 }
 
@@ -4146,7 +4377,7 @@ void sendworldstate()
     bool flush = buildworldstate();
     lastsend += curtime - (curtime%40);
     if(flush) enet_host_flush(serverhost);
-    if(demorecord) recordpackets = true; // enable after 'old' worldstate is sent
+    if(demorecord) sg->recordpackets = true; // enable after 'old' worldstate is sent
 }
 
 void loggamestatus(const char *reason)
@@ -4330,9 +4561,8 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
     if(sg->forceintermission || ((sg->smode > 1 || (gamemode == 0 && nonlocalclients)) && sg->gamemillis-diff > 0 && sg->gamemillis / 60000 != (sg->gamemillis - diff) / 60000))
         checkintermission();
     if(m_demo && !demoplayback) maprot.restart();
-    else if(sg->interm && ( (scl.demo_interm && sending_demo) ? sg->gamemillis > (sg->interm<<1) : sg->gamemillis > sg->interm ) )
+    else if(sg->interm && ( (scl.demo_interm) ? sg->gamemillis > (sg->interm<<1) : sg->gamemillis > sg->interm ) )
     {
-        sending_demo = false;
         loggamestatus("game finished");
         if(demorecord) enddemorecord();
         sg->interm = sg->nextsendscore = 0;
@@ -4346,6 +4576,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 
     resetserverifempty();
     polldeferredprocessing();
+    checkdemotransmissions();
 
     if(!isdedicated) return;     // below is network only
 
@@ -4747,6 +4978,8 @@ void initserver(bool dedicated)
 
         readserverconfigsthread_sem = new sl_semaphore(0, NULL);
         sl_createthread(readserverconfigsthread, NULL);
+
+        sl_createthread(demoworkerthread, NULL);
 
         for(;;) serverslice(5);
     }

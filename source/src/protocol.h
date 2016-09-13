@@ -14,6 +14,7 @@
 #define MAXMAPNAMELEN 31
 #define MAXMAPSENDSIZE 65536
 #define MAXCFGFILESIZE 65536
+#define MAXDEMOSENDSIZE 10240001
 #define MAXGZMSGSIZE 65536
 #define MAXMEDIADOWNLOADFILESIZE 1024000 // hard cap on filesizes (raw and unzipped) - to limit the effect of zip bombs - no nice error messages: just cap
 #define MAXMODDOWNLOADSIZE 1024000      // hard cap on the filesize of downloaded mod packages - to keep stuff reasonable
@@ -47,7 +48,7 @@ enum
     SV_SWITCHNAME, SV_SWITCHSKIN, SV_SWITCHTEAM,
     SV_CLIENT,
     SV_EXTENSION,
-    SV_MAPIDENT, SV_HUDEXTRAS, SV_POINTS,
+    SV_MAPIDENT, SV_HUDEXTRAS, SV_POINTS, SV_DEMOCHECKSUM, SV_DEMOSIGNATURE,
     SV_NUM
 };
 

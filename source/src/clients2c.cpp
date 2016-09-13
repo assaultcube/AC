@@ -329,6 +329,8 @@ struct session_s
     string clan, publiccomment;
 } session;
 
+int srvgamesalt;
+
 void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
 {
     static char text[MAXTRANS];
@@ -573,6 +575,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 int mode = getint(p);
                 int downloadable = getint(p);
                 int revision = getint(p);
+                srvgamesalt = getint(p);
                 localwrongmap = !changemapserv(text, mode, downloadable, revision);
                 if(m_arena && joining > 1 && !watchingdemo) deathstate(player1);
                 break;
@@ -1409,12 +1412,18 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     demo_mlines.reserve(demos);
                     loopi(demos)
                     {
-                        getstring(text, p);
-                        conoutf("%d. %s", i+1, text);
+                        int seq = getint(p);
+                        getstring(text, p); // info
+                        conoutf("%d. %s", seq, text);
                         mline &m = demo_mlines.add();
-                        formatstring(m.name)("%d. %s", i+1, text);
-                        formatstring(m.cmd)("getdemo %d", i+1);
+                        formatstring(m.name)("%d. %s", seq, text);
+                        formatstring(m.cmd)("getdemo %d", seq);
                         menuitemmanual(downloaddemomenu, m.name, m.cmd);
+                        getstring(text, p); // mapname
+                        getint(p); // gmode
+                        getint(p); // timeplayed
+                        getint(p); // timeremain
+                        getint(p); // timestamp
                     }
                 }
                 break;
@@ -1456,6 +1465,33 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 break;
             }
 
+            case SV_DEMOCHECKSUM: // raw data checksum of demo file
+            {
+                uchar dtiger[TIGERHASHSIZE];
+                if(p.get(dtiger, TIGERHASHSIZE) == TIGERHASHSIZE)
+                {
+                    bin2hex(text, dtiger, TIGERHASHSIZE);
+                    defformatstring(msg)("CLIENTDEMOEND<%s %s %d>", msg, iptoa(session.curpeerip, text + 100), session.curpeerport);
+                    int msglen = (int)strlen(msg);
+                    ASSERT(msglen + 64 < MAXSTRLEN);
+                    if(sk) ed25519_sign((uchar*)msg, NULL, (uchar*)msg, msglen, sk);
+                    else memset(msg, 0, 64);
+
+                    packetbuf pr(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
+                    putint(pr, SV_DEMOSIGNATURE);
+                    putint(pr, session.curpeerport);
+                    putip4(pr, session.curpeerip);
+                    pr.put((uchar*)msg, 64);
+                    sendpackettoserv(1, pr.finalize());
+                }
+                break;
+            }
+            case SV_DEMOSIGNATURE: // client acknowledging a demo checksum
+                getint(p);
+                getip4(p);
+                p.get((uchar*)text, 64);
+                break;
+
             default:
                 neterr("type");
                 return;
@@ -1470,99 +1506,58 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
 SVARP(demonameformat, "%w_%h_%n_%Mmin_%G");
 SVARP(demotimestampformat, "%Y%m%d_%H%M");
 
-const char *parseDemoFilename(char *srvfinfo)
-{
-    int gmode = 0; //-314;
-    int mplay = 0;
-    int mdrop = 0;
-    int stamp = 0;
-    string srvmap;
-    if(srvfinfo && srvfinfo[0])
-    {
-        int fip = 0;
-        char sep[] = ":";
-        char *pch, *b;
-        pch = strtok_r(srvfinfo, sep, &b);
-        while (pch != NULL && fip < 4)
-        {
-            fip++;
-            switch(fip)
-            {
-                case 1: gmode = atoi(pch); break;
-                case 2: mplay = atoi(pch); break;
-                case 3: mdrop = atoi(pch); break;
-                case 4: stamp = atoi(pch); break;
-                default: break;
-            }
-            pch = strtok_r(NULL, sep, &b);
-        }
-        copystring(srvmap, pch);
-    }
-    static string buf;
-    enet_uint32 ip = curpeer ? ntohl(curpeer->address.host) : 0;
-    return formatdemofilename(demonameformat, demotimestampformat, srvmap, gmode, stamp / 60, mplay, mdrop, ip, buf);
-}
-
 void receivefile(uchar *data, int len)
 {
     static char text[MAXTRANS];
     ucharbuf p(data, len);
     int type = getint(p);
-    data += p.length();
-    len -= p.length();
     switch(type)
     {
         case SV_SENDDEMO:
         {
+            /* int sequence = */ getint(p);
             getstring(text, p);
-            extern string demosubpath;
-            defformatstring(demofn)("%s", parseDemoFilename(text));
-            defformatstring(fname)("demos/%s%s.dmo", demosubpath, demofn);
-            copystring(demosubpath, "");
-            data += strlen(text);
+            filtertext(text, text, FTXT__MAPNAME, MAXMAPNAMELEN);
+            int gmode =  getint(p);
+            int timeplayed =  getint(p);
+            int timeremain =  getint(p);
+            int timestamp =  getint(p);
             int demosize = getint(p);
-            if(p.remaining() < demosize)
+            if(demosize <= MAXDEMOSENDSIZE && demosize <= p.remaining())
             {
-                p.forceoverread();
-                break;
+                extern string demosubpath;
+                string buf;
+                enet_uint32 ip = curpeer ? ntohl(curpeer->address.host) : 0;
+                defformatstring(fname)("demos/%s%s.dmo", demosubpath, formatdemofilename(demonameformat, demotimestampformat, text, gmode, timestamp, timeplayed, timeremain, ip, buf));
+                copystring(demosubpath, "");
+
+                path(fname);
+                stream *demo = openfile(fname, "wb");
+                if(demo)
+                {
+                    conoutf("received demo \"%s\"", fname);
+                    demo->write(&p.buf[p.len], demosize);
+                    delete demo;
+                }
+                else conoutf("failed writing to \"%s\"", fname);
             }
-            path(fname);
-            stream *demo = openfile(fname, "wb");
-            if(!demo)
-            {
-                conoutf("failed writing to \"%s\"", fname);
-                return;
-            }
-            conoutf("received demo \"%s\"", fname);
-            demo->write(&p.buf[p.len], demosize);
-            delete demo;
             break;
         }
 
         case SV_RECVMAP:
         {
             getstring(text, p);
+            filtertext(text, text, FTXT__MAPNAME, MAXMAPNAMELEN);
             conoutf("received map \"%s\" from server, reloading..", text);
             int mapsize = getint(p);
             int cfgsize = getint(p);
             int cfgsizegz = getint(p);
             int size = mapsize + cfgsizegz;
-            if(MAXMAPSENDSIZE < mapsize + cfgsizegz || cfgsize > MAXCFGFILESIZE) { // sam's suggestion
-                conoutf("map %s is too large to receive", text);
-            } else {
-                if(p.remaining() < size)
-                {
-                    p.forceoverread();
-                    break;
-                }
-                if(securemapcheck(text))
-                {
-                    p.len += size;
-                    break;
-                }
-                writemap(path(text), mapsize, &p.buf[p.len]);
+            if(mapsize <= MAXMAPSENDSIZE && cfgsizegz <= MAXMAPSENDSIZE && size <= MAXMAPSENDSIZE && cfgsize <= MAXCFGFILESIZE && size <= p.remaining() && !securemapcheck(behindpath(text)))
+            {
+                writemap(behindpath(text), mapsize, &p.buf[p.len]);
                 p.len += mapsize;
-                writecfggz(path(text), cfgsize, cfgsizegz, &p.buf[p.len]);
+                writecfggz(behindpath(text), cfgsize, cfgsizegz, &p.buf[p.len]);
                 p.len += cfgsizegz;
             }
             break;
