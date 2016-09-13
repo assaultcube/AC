@@ -1414,12 +1414,16 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     {
                         int seq = getint(p);
                         getstring(text, p); // info
+                        filtertext(text, text, FTXT__DEMOINFO, MAXMAPNAMELEN + 64);
+                        int len = getint(p); // len
+                        concatformatstring(text, ", %.2f%s", len > 1024*1024 ? len/(1024*1024.f) : len/1024.0f, len > 1024*1024 ? "MB" : "kB");
                         conoutf("%d. %s", seq, text);
                         mline &m = demo_mlines.add();
                         formatstring(m.name)("%d. %s", seq, text);
                         formatstring(m.cmd)("getdemo %d", seq);
                         menuitemmanual(downloaddemomenu, m.name, m.cmd);
                         getstring(text, p); // mapname
+                        filtertext(text, text, FTXT__MAPNAME, MAXMAPNAMELEN);
                         getint(p); // gmode
                         getint(p); // timeplayed
                         getint(p); // timeremain

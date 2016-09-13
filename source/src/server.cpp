@@ -756,13 +756,14 @@ void sendspawn(client *c)
 // simultaneous demo recording, fully buffered
 
 #define DEMORINGBUFSIZE (1<<18) // 256KB
-#define MAXDEMOS 16
+#define MAXDEMOS 24
 
-SERVPAR(demo_max_number, 3, 5, MAXDEMOS - 1, "DMaximum number of demo files in RAM");
+SERVPAR(demo_max_number, 5, 7, MAXDEMOS - 1, "DMaximum number of demo files in RAM");
 SERVPARLIST(demo_save, 0, 1, 0, endis, "DWrite demos to file");
 SERVSTR(demo_path, "", 0, 63, FTXT__DEMONAME, "DDemo path (and filename) prefix");
 SERVSTR(demo_filenameformat, "%w_%h_%n_%Mmin_%G", 0, 63, FTXT__FORMATSTRING, "DDemo file format string");
 SERVSTR(demo_timestampformat, "%Y%m%d_%H%M", 0, 23, FTXT__FORMATSTRING, "DDemo timestamp format string");
+SERVPARLIST(demo_debug, 0, 1, 0, endis, "DExcessive logging during demo recording (FIXME)");
 
 typedef ringbuf<uchar, DEMORINGBUFSIZE> demoringbuf;
 typedef vector<uchar> demobuf;
@@ -812,7 +813,7 @@ demo_s *initdemoslot() // fetch empty demo slot, clean up surplus slots
                 int age = (demosequencecounter - demos[i].sequence + demosequencewraparound) % demosequencewraparound;
                 if(age > oldestage)
                 {
-                    age = oldestage;
+                    oldestage = age;
                     oldestdemo = i;
                 }
             }
@@ -854,6 +855,7 @@ demo_s *initdemoslot() // fetch empty demo slot, clean up surplus slots
         tryagain = false;
         loopi(MAXDEMOS) if(demos[i].sequence == d->sequence && demos + i != d) tryagain = true;
     }
+    if(demo_debug) mlog(ACLOG_INFO, "initdemoslot(): use slot %d, sequence #%d", n, d->sequence);
     return d;
 }
 
@@ -875,6 +877,7 @@ int demoworkerthread(void *logfileprefix) // demo worker thread: compress demo d
             }
             if(s.finish && s.gz && s.rb && !s.rb->length())
             { // close and copy zip file
+                if(demo_debug) tlog(ACLOG_INFO, "demoworkerthread(): close slot %d, sequence #%d", i, s.sequence);
                 tigerhash_finish(s.tiger, s.tigerstate);
                 s.tigerstate = NULL;
                 string msg;
@@ -910,6 +913,8 @@ int demoworkerthread(void *logfileprefix) // demo worker thread: compress demo d
             }
             if(s.finish || s.error || s.remove)
             { // cleanup demo slot
+                if(demo_debug) tlog(ACLOG_INFO, "demoworkerthread(): cleanup slot %d, sequence #%d", i, s.sequence);
+                if(s.error || s.remove) s.done = false;
                 DELETEP(s.gz);
                 DELETEP(s.dbs);
                 if(s.db)
@@ -924,6 +929,7 @@ int demoworkerthread(void *logfileprefix) // demo worker thread: compress demo d
                     else delete s.rb;
                     s.rb = NULL;
                 }
+                s.finish = s.error = s.remove = false;
                 if(!s.done) s.sequence = 0;
             }
         }
@@ -974,6 +980,7 @@ void demorecord_beginintermission()
     memcpy(interm_tiger, demorecord->tiger, TIGERHASHSIZE);
     demorecord->tigerstate = tigerhash_init(demorecord->tiger); // start again to hash the rest of the demo
 
+    if(demo_debug) mlog(ACLOG_INFO, "demorecord_beginintermission(): sequence #%d", demorecord->sequence);
     sendf(-1, 1, "rim", SV_DEMOCHECKSUM, TIGERHASHSIZE, interm_tiger);
 }
 
@@ -982,6 +989,7 @@ void enddemorecord()
     if(!demorecord) return;
     sg->recordpackets = false;
 
+    if(demo_debug) mlog(ACLOG_INFO, "enddemorecord(): sequence #%d", demorecord->sequence);
     if(sg->gamemillis < DEMO_MINTIME)
     {
         mlog(ACLOG_INFO, "Demo #%d discarded.", demorecord->sequence);
@@ -991,11 +999,12 @@ void enddemorecord()
     { // finish recording, assemble game data,
         int len = demorecord->dbs ? demorecord->dbs->size() : 0;  // (still a few bytes missing, sue me)
         int mr = sg->gamemillis >= sg->gamelimit ? 0 : (sg->gamelimit - sg->gamemillis + 60000 - 1)/60000;
-        formatstring(demorecord->info)("%s: %s, %s, %.2f%s", asctimestr(), modestr(gamemode), sg->smapname, len > 1024*1024 ? len/(1024*1024.f) : len/1024.0f, len > 1024*1024 ? "MB" : "kB");
+        formatstring(demorecord->info)("%s: %s, %s", asctimestr(), modestr(gamemode), sg->smapname);
         if(mr) concatformatstring(demorecord->info, ", %d mr", mr);
-        defformatstring(msg)("Demo #%d \"%s\" recorded\nPress F10 to download it from the server..", demorecord->sequence, demorecord->info);
+        defformatstring(info)("%s, %.2fMB", demorecord->info, (len + 10000) / (1024*1024.f));
+        defformatstring(msg)("Demo #%d \"%s\" recorded\nPress F10 to download it from the server..", demorecord->sequence, info);
         sendservmsgverbose(msg);
-        mlog(ACLOG_INFO, "Demo \"%s\" recorded.", demorecord->info);
+        mlog(ACLOG_INFO, "Demo \"%s\" recorded.", info);
 
         copystring(demorecord->mapname, behindpath(sg->smapname));
         demorecord->gmode = gamemode;
@@ -1055,6 +1064,7 @@ void setupdemorecord()
     packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
     welcomepacket(p, -1);
     writedemo(1, p.buf, p.len);
+    if(demo_debug) mlog(ACLOG_INFO, "setupdemorecord(): sequence #%d, %s on %s", demorecord->sequence, modestr(gamemode, false), behindpath(sg->smapname));
 }
 
 int donedemosort(demo_s **a, demo_s **b) { return (*a)->timestamp - (*b)->timestamp; }
@@ -1072,6 +1082,7 @@ void listdemos(int cn)
         demo_s &d = *donedemos[i];
         putint(p, d.sequence);
         sendstring(d.info, p);
+        putint(p, d.len);
         sendstring(d.mapname, p);
         putint(p, d.gmode);
         putint(p, d.timeplayed);
