@@ -684,27 +684,24 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
             }
             pl->o = o_nullxy;
         }
-        else
+        // try slide along y axis
+        pl->o.y = o_trying.y;
+        if(!collide(pl, false, drop, rise))
         {
-            // try slide along y axis
-            pl->o.y = o_trying.y;
-            if(!collide(pl, false, drop, rise))
-            {
-                d.x = 0;
-                if(pl->type==ENT_BOUNCE) { pl->vel.x = -pl->vel.x; pl->vel.mul(0.7f); }
-                continue;
-            }
-            pl->o = o_nullxy;
-            // try x axis
-            pl->o.x = o_trying.x;
-            if(!collide(pl, false, drop, rise))
-            {
-                d.y = 0;
-                if(pl->type==ENT_BOUNCE) { pl->vel.y = -pl->vel.y; pl->vel.mul(0.7f); }
-                continue;
-            }
-            pl->o = o_nullxy;
+            d.x = 0;
+            if(pl->type==ENT_BOUNCE) { pl->vel.x = -pl->vel.x; pl->vel.mul(0.7f); }
+            continue;
         }
+        pl->o = o_nullxy;
+        // try x axis
+        pl->o.x = o_trying.x;
+        if(!collide(pl, false, drop, rise))
+        {
+            d.y = 0;
+            if(pl->type==ENT_BOUNCE) { pl->vel.y = -pl->vel.y; pl->vel.mul(0.7f); }
+            continue;
+        }
+        pl->o = o_nullxy;
         // try just dropping down
         if(!collide(pl, false, drop, rise))
         {
