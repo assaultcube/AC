@@ -934,7 +934,6 @@ int weapon::flashtime() const { return max((int)info.attackdelay, 120)/4; }
 void weapon::sendshoot(vec &from, vec &to, int millis)
 {
     if(owner!=player1) return;
-    owner->shoot = true;
     addmsg(SV_SHOOT, "ri2i3iv", millis, owner->weaponsel->type,
            (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF),
            hits.length(), hits.length()*sizeof(hitmsg)/sizeof(int), hits.getbuf());

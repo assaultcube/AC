@@ -955,6 +955,10 @@ extern int defaultgamelimit(int gamemode);
 extern int gmode_possible(bool hasffaspawns, bool hasteamspawns, bool hasflags);
 extern int gmode_parse(const char *list);
 extern char *gmode_enum(int gm, char *buf);
+extern int encodepitch(float p);
+extern float decodepitch(int r);
+extern int encodeyaw(float y);
+extern float decodeyaw(int r);
 
 // crypto
 #define TIGERHASHSIZE 24
@@ -1070,6 +1074,10 @@ extern void putip4(ucharbuf &p, enet_uint32 ip);
 extern void putip4(packetbuf &p, enet_uint32 ip);
 extern void putip4(vector<uchar> &p, enet_uint32 ip);
 extern enet_uint32 getip4(ucharbuf &p);
+extern void putuintn(ucharbuf &p, uint64_t val, int n);
+extern void putuintn(packetbuf &p, uint64_t val, int n);
+extern void putuintn(vector<uchar> &p, uint64_t val, int n);
+extern uint64_t getuintn(ucharbuf &p, int n);
 extern void putgzbuf(vector<uchar> &d, vector<uchar> &s); // zips a vector into a stream, stored in another vector
 extern ucharbuf *getgzbuf(ucharbuf &p); // fetch a gzipped buffer; needs to be freed properly later
 extern void freegzbuf(ucharbuf *p);  // free a ucharbuf created by getgzbuf()

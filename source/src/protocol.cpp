@@ -168,6 +168,24 @@ enet_uint32 getip4(ucharbuf &p)
     return ip;
 }
 
+template<class T>
+static inline void putuintn_(T &p, uint64_t val, int n)
+{
+    DEBUGVAR(val);
+    loopi(n) p.put(val >> (8 * i));
+}
+void putuintn(ucharbuf &p, uint64_t val, int n) { putuintn_(p, val, n); }
+void putuintn(packetbuf &p, uint64_t val, int n) { putuintn_(p, val, n); }
+void putuintn(vector<uchar> &p, uint64_t val, int n) { putuintn_(p, val, n); }
+
+uint64_t getuintn(ucharbuf &p, int n)
+{
+    uint64_t val = 0;
+    loopi(n) val |= p.get() << (8 * i);
+    DEBUGVAR(val);
+    return val;
+}
+
 #define GZMSGBUFSIZE ((MAXGZMSGSIZE * 11) / 10)
 static uchar *gzbuf = new uchar[GZMSGBUFSIZE];          // not thread-safe, but nesting is no problem
 
@@ -524,6 +542,40 @@ char *gmode_enum(int gm, char *buf) // convert mode bitmask to string with sorte
     loopv(mas) concatformatstring(buf, "%s%s", i ? "|" : "", mas[i]);
     filtertext(buf, buf, FTXT_TOLOWER);
     return buf;
+}
+
+int encodepitch(float p) // pitch value quantisation: use double resolution for -30°..30° and half resolution for -90°..-30° and 30°..90°
+{
+    const int thres = (1 << 24) / 3;
+    int r = (int)(p * (1 << 24)) / MAXPITCH;
+    if(r > thres) r = r / 4 + (1 << 22);
+    else if(r < -thres) r = r / 4 - (1 << 22);
+    r += (1 << 23) + (1 << (23 - PITCHBITS));
+    if(r < 0) r = 0;
+    else if(r >= (1 << 24)) r = (1 << 24) - 1;
+    return r >> (24 - PITCHBITS);
+}
+
+float decodepitch(int r)
+{
+    const int thres = (1 << 22) + (1 << 22) / 3;
+    r = (r << (24 - PITCHBITS)) - (1 << 23);
+    if(r > thres) r = r * 4 - thres * 3;
+    else if(r < -thres) r = r * 4 + thres * 3;
+    float p = float(r) * MAXPITCH / (1 << 24);
+    return clamp(p, -MAXPITCH, MAXPITCH);
+}
+
+int encodeyaw(float y) // yaw value quantisation: simple rounded integer
+{
+    int r = (int)floorf(y * (1 << YAWBITS) / 360.0f + 0.5f);
+    return r & ((1 << YAWBITS) - 1); // modulo 360 degrees
+}
+
+float decodeyaw(int r)
+{
+    r &= (1 << YAWBITS) - 1;
+    return float(r) / (1 << YAWBITS) * 360.0f;
 }
 
 static const int msgsizes[] =               // size inclusive message token, 0 for variable or not-checked sizes

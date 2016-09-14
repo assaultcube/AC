@@ -116,10 +116,8 @@ void parsepositions(ucharbuf &p)
         case SV_POS:                        // position of another client
         case SV_POSC:
         {
-            int cn, f, g;
+            int cn, f, yaw, pitch, z;
             vec o, vel;
-            float yaw, pitch = 0;
-            bool scoping;//, shoot;
             if(type == SV_POSC)
             {
                 bitbuf<ucharbuf> q(p);
@@ -127,77 +125,68 @@ void parsepositions(ucharbuf &p)
                 int usefactor = q.getbits(2) + 7;
                 o.x = q.getbits(usefactor + 4) / DMF;
                 o.y = q.getbits(usefactor + 4) / DMF;
-                yaw = q.getbits(9) * 360.0f / 512;
-                pitch = (q.getbits(8) - 128) * 90.0f / 127;
-                if(!q.getbits(1)) q.getbits(6);
-                if(!q.getbits(1))
+                yaw = q.getbits(YAWBITS);
+                pitch = q.getbits(PITCHBITS);
+                f = q.getbits(FLAGBITS);
+                if(f & (1 << 9))
                 {
                     vel.x = (q.getbits(4) - 8) / DVELF;
                     vel.y = (q.getbits(4) - 8) / DVELF;
                     vel.z = (q.getbits(4) - 8) / DVELF;
                 }
                 else vel.x = vel.y = vel.z = 0.0f;
-                f = q.getbits(8);
-                int negz = q.getbits(1);
                 int full = q.getbits(1);
                 int s = q.rembits();
                 if(s < 3) s += 8;
                 if(full) s = 11;
-                int z = q.getbits(s);
-                if(negz) z = -z;
-                o.z = z / DMF;
-                scoping = ( q.getbits(1) ? true : false );
-                q.getbits(1);//shoot = ( q.getbits(1) ? true : false );
+                z = q.getbits(s);
             }
             else
             {
                 cn = getint(p);
-                o.x   = getuint(p)/DMF;
-                o.y   = getuint(p)/DMF;
-                o.z   = getuint(p)/DMF;
-                yaw   = (float)getuint(p);
-                pitch = (float)getint(p);
-                g = getuint(p);
-                if ((g>>3) & 1) getint(p);
-                if (g & 1) vel.x = getint(p)/DVELF; else vel.x = 0;
-                if ((g>>1) & 1) vel.y = getint(p)/DVELF; else vel.y = 0;
-                if ((g>>2) & 1) vel.z = getint(p)/DVELF; else vel.z = 0;
-                scoping = ( (g>>4) & 1 ? true : false );
-                //shoot = ( (g>>5) & 1 ? true : false ); // we are not using this yet
-                f = getuint(p);
+                o.x = getuint(p)/DMF;
+                o.y = getuint(p)/DMF;
+                z   = getuint(p);
+                uint64_t ff = getuintn(p, (YAWBITS + PITCHBITS + FLAGBITS + 7) / 8);
+                yaw = (ff >> (FLAGBITS + PITCHBITS)) & ((1 << YAWBITS) - 1);
+                pitch = (ff >> FLAGBITS) & ((1 << PITCHBITS) - 1);
+                f = ff & ((1 << FLAGBITS) - 1);
+                if(f & (1 << 9))
+                {
+                    vel.x = getint(p)/DVELF;
+                    vel.y = getint(p)/DVELF;
+                    vel.z = getint(p)/DVELF;
+                }
+                else vel.x = vel.y = vel.z = 0.0f;
             }
+            if(f & (1 << 10)) z = -z;
+            o.z = z / DMF;
             int seqcolor = (f>>6)&1;
             playerent *d = getclient(cn);
             if(!d || seqcolor!=(d->lifesequence&1)) continue;
             vec oldpos(d->o);
             float oldyaw = d->yaw, oldpitch = d->pitch;
-            loopi(3)
-            {
-                float dr = o.v[i] - d->o.v[i] + ( i == 2 ? d->eyeheight : 0);
-                if ( !dr ) d->vel.v[i] = 0.0f;
-                else if ( d->vel.v[i] ) d->vel.v[i] = dr * 0.05f + d->vel.v[i] * 0.95f;
-                d->vel.v[i] += vel.v[i];
-                if ( i==2 && d->onfloor && d->vel.v[i] < 0.0f ) d->vel.v[i] = 0.0f;
-            }
             d->o = o;
             d->o.z += d->eyeheight;
-            d->yaw = yaw;
-            d->pitch = pitch;
+            d->yaw = decodeyaw(yaw);
+            d->pitch = decodepitch(pitch);
             if(d->weaponsel->type == GUN_SNIPER)
             {
                 sniperrifle *sr = (sniperrifle *)d->weaponsel;
-                sr->scoped = d->scoping = scoping;
+                sr->scoped = d->scoping = (f & (1 << 5)) ? true : false;
             }
-            d->strafe = (f&3)==3 ? -1 : f&3;
-            f >>= 2;
-            d->move = (f&3)==3 ? -1 : f&3;
-            f >>= 2;
-            d->onfloor = f&1;
-            f >>= 1;
-            d->onladder = f&1;
-            f >>= 2;
+            d->roll = 0;
+            d->vel = vel;
+            int ft = f & 0x1f;
+            d->strafe = (ft % 3) - 1;
+            ft /= 3;
+            d->move = (ft % 3) - 1;
+            ft /= 3;
+            d->jumpd = (f & (1 << 8)) ? true : false; // FIXME
+            d->onfloor = f & (1 << 7) ? true : false;
+            d->onladder = ft == 1;
             d->last_pos = totalmillis;
-            updatecrouch(d, f&1);
+            updatecrouch(d, ft == 2);
             updateplayerpos(d);
             updatelagtime(d);
             extern int smoothmove, smoothdist;

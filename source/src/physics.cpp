@@ -517,6 +517,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
                     {
                         if(pl->jumpnext)
                         {
+                            pl->jumpd = true;
                             pl->jumpnext = false;
                             bool doublejump = pl->lastjump && lastmillis - pl->lastjump < 250 && pl->strafe != 0 && pl->o.z - pl->eyeheight - pl->lastjumpheight > 0.2f;
                             pl->lastjumpheight = pl->o.z - pl->eyeheight;
@@ -898,7 +899,6 @@ COMMAND(crouch, "d");
 
 void fixcamerarange(physent *cam)
 {
-    const float MAXPITCH = 90.0f;
     if(cam->pitch>MAXPITCH) cam->pitch = MAXPITCH;
     if(cam->pitch<-MAXPITCH) cam->pitch = -MAXPITCH;
     while(cam->yaw<0.0f) cam->yaw += 360.0f;

@@ -433,67 +433,51 @@ void c2sinfo(playerent *d)                  // send update to the server
 
     if(d->state==CS_ALIVE || d->state==CS_EDITING)
     {
+        ASSERT(!(d->crouching && d->onladder)); // onladder is never set while crouching - and we're going to rely on it ;)
+        ASSERT(!(d->move < -1 || d->move > 1 || d->strafe < -1 || d->strafe > 1));
         packetbuf q(100);
         int cn = d->clientnum,
             x = (int)(d->o.x*DMF),          // quantize coordinates to 1/16th of a cube, between 1 and 3 bytes
             y = (int)(d->o.y*DMF),
             z = (int)((d->o.z - d->eyeheight)*DMF),
-            ya = (int)((512 * d->yaw) / 360.0f),
-            pi = (int)((127 * d->pitch) / 90.0f),
-            r = (int)(31*d->roll/20),
-            dxt = (int)(d->vel.x*DVELF),
-            dyt = (int)(d->vel.y*DVELF),
-            dzt = (int)(d->vel.z*DVELF),
-            dx = dxt - d->vel_t.i[0],
-            dy = dyt - d->vel_t.i[1],
-            dz = dzt - d->vel_t.i[2],
-            // pack rest in 1 int: strafe:2, move:2, onfloor:1, onladder: 1
-            f = (d->strafe&3) | ((d->move&3)<<2) | (((int)d->onfloor)<<4) | (((int)d->onladder)<<5) | ((d->lifesequence&1)<<6) | (((int)d->crouching)<<7),
-            g = (dx?1:0) | ((dy?1:0)<<1) | ((dz?1:0)<<2) | ((r?1:0)<<3) | (((int)d->scoping)<<4) | (((int)d->shoot)<<5);
-            d->vel_t.i[0] = dxt;
-            d->vel_t.i[1] = dyt;
-            d->vel_t.i[2] = dzt;
-        int usefactor = sfactor < 7 ? 7 : sfactor, sizexy = 1 << (usefactor + 4);
+            zsign = z < 0 ? 1 : 0,
+            ya = encodeyaw(d->yaw),
+            pi = encodepitch(d->pitch),
+            dx = (int)(d->vel.x*DVELF),
+            dy = (int)(d->vel.y*DVELF),
+            dz = (int)(d->vel.z*DVELF);
+        int f = (d->strafe + 4 + d->move * 3 + (d->onladder ? 9 : 0) + (d->crouching ? 18 : 0))     // pack 6 bit into 5 with ternary logic :)
+                 | (((int)d->scoping)<<5) | ((d->lifesequence&1)<<6) | (((int)d->onfloor)<<7) | (((int)d->jumpd)<<8) | (((int)(dx||dy||dz))<<9) | (zsign << 10);  // number of used bits: FLAGBITS
+        int usefactor = sfactor < 7 ? 7 : sfactor;
+        if(zsign) z = -z;
         if(cn >= 0 && cn < 32 &&
             usefactor <= 7 + 3 &&       // map size 7..10
-            x >= 0 && x < sizexy &&
-            y >= 0 && y < sizexy &&
+            !((x | y) & ~((1 << (usefactor + 4)) - 1)) &&
             z >= -2047 && z <= 2047 &&
-            ya >= 0 && ya < 512 &&
-            pi >= -128 && pi <= 127 &&
-            r >= -32 && r <= 31 &&
-            dx >= -8 && dx <= 7 && // FIXME
+            dx >= -8 && dx <= 7 &&
             dy >= -8 && dy <= 7 &&
             dz >= -8 && dz <= 7)
         { // compact POS packet
-            bool noroll = !r, novel = !dx && !dy && !dz;
             bitbuf<packetbuf> b(q);
             putint(q, SV_POSC);
             b.putbits(5, cn);
             b.putbits(2, usefactor - 7);
             b.putbits(usefactor + 4, x);
             b.putbits(usefactor + 4, y);
-            b.putbits(9, ya);
-            b.putbits(8, pi + 128);
-            b.putbits(1, noroll ? 1 : 0);
-            if(!noroll) b.putbits(6, r + 32);
-            b.putbits(1, novel ? 1 : 0);
-            if(!novel)
+            b.putbits(YAWBITS, ya);
+            b.putbits(PITCHBITS, pi);
+            b.putbits(FLAGBITS, f);
+            if(f & (1 << 9)) // hasvel
             {
                 b.putbits(4, dx + 8);
                 b.putbits(4, dy + 8);
                 b.putbits(4, dz + 8);
             }
-            b.putbits(8, f);
-            b.putbits(1, z < 0 ? 1 : 0);
-            if(z < 0) z = -z;                 // z is encoded with 3..10 bits minimum (fitted to byte boundaries), or full 11 bits if necessary
-            int s = (b.rembits() - 1 + 8) % 8;
+            int s = (b.rembits() - 1 + 8) % 8; // z is encoded with 3..10 bits minimum (fitted to byte boundaries), or full 11 bits if necessary
             if(s < 3) s += 8;
             if(z >= (1 << s)) s = 11;
             b.putbits(1, s == 11 ? 1 : 0);
             b.putbits(s, z);
-            b.putbits(1, d->scoping ? 1 : 0);
-            b.putbits(1, d->shoot ? 1 : 0);
         }
         else
         { // classic POS packet
@@ -502,17 +486,16 @@ void c2sinfo(playerent *d)                  // send update to the server
             putuint(q, x);
             putuint(q, y);
             putuint(q, z);
-            putuint(q, (int)d->yaw);
-            putint(q, (int)d->pitch);
-            putuint(q, g);
-            if (r) putint(q, (int)(125*d->roll/20));
-            if (dx) putint(q, dx);
-            if (dy) putint(q, dy);
-            if (dz) putint(q, dz);
-            putuint(q, f);
+            putuintn(q, (ya << (uint64_t)(FLAGBITS + PITCHBITS)) | (pi << FLAGBITS) | f, (YAWBITS + PITCHBITS + FLAGBITS + 7) / 8);
+            if(f & (1<<9))
+            {
+                putint(q, dx);
+                putint(q, dy);
+                putint(q, dz);
+            }
         }
         sendpackettoserv(0, q.finalize());
-        d->shoot = false;
+        d->jumpd = false;
     }
 
     if(sendmapidenttoserver || messages.length() || totalmillis-lastping>250)

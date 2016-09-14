@@ -3825,12 +3825,17 @@ void process(ENetPacket *packet, int sender, int chan)
     #endif
                     return;
                 }
-                loopi(3) cl->state.o[i] = getuint(p)/DMF;
-                cl->y = getuint(p);
-                cl->p = getint(p);
-                cl->g = getuint(p);
-                loopi(4) if ( (cl->g >> i) & 1 ) getint(p);
-                cl->f = getuint(p);
+                cl->state.o.x = getuint(p)/DMF;
+                cl->state.o.y = getuint(p)/DMF;
+                int z = getuint(p);
+                uint64_t ff = getuintn(p, (YAWBITS + PITCHBITS + FLAGBITS + 7) / 8);
+                cl->yaw = (int)decodeyaw((ff >> (FLAGBITS + PITCHBITS)) & ((1 << YAWBITS) - 1));
+                cl->pitch = (int)decodepitch((ff >> FLAGBITS) & ((1 << PITCHBITS) - 1));
+                cl->f = ff & ((1 << FLAGBITS) - 1);
+                if(cl->f & (1 << 10)) z = -z;
+                cl->state.o.z = z/DMF;
+                if(cl->f & (1 << 9)) loopi(3) getint(p);
+
                 if(!cl->isonrightmap) break;
                 if(cl->type==ST_TCPIP && (cl->state.state==CS_ALIVE || cl->state.state==CS_EDITING))
                 {
@@ -3856,28 +3861,23 @@ void process(ENetPacket *packet, int sender, int chan)
                 int usefactor = q.getbits(2) + 7;
                 int xt = q.getbits(usefactor + 4);
                 int yt = q.getbits(usefactor + 4);
-                cl->y = (q.getbits(9)*360)/512;
-                cl->p = ((q.getbits(8)-128)*90)/127;
-                if(!q.getbits(1)) q.getbits(6);
-                if(!q.getbits(1)) q.getbits(4 + 4 + 4);
-                cl->f = q.getbits(8);
-                int negz = q.getbits(1);
+                cl->yaw = (int)decodeyaw(q.getbits(YAWBITS));
+                cl->pitch = (int)decodepitch(q.getbits(PITCHBITS));
+                cl->f = q.getbits(FLAGBITS);
+                if(cl->f & (1 << 9)) q.getbits(4 + 4 + 4);
                 int zfull = q.getbits(1);
                 int s = q.rembits();
                 if(s < 3) s += 8;
                 if(zfull) s = 11;
                 int zt = q.getbits(s);
-                if(negz) zt = -zt;
-                int g1 = q.getbits(1); // scoping
-                int g2 = q.getbits(1); // shooting
-                cl->g = (g1<<4) | (g2<<5);
+                if(cl->f & (1 << 10)) zt = -zt;
 
                 if(!sg->curmap) break; // no compact POS packets without loaded servermap
                 if(!cl->isonrightmap || p.remaining() || p.overread()) { p.flags = 0; break; }
                 if(((cl->f >> 6) & 1) != (cl->state.lifesequence & 1) || usefactor != (sg->curmap->sfactor < 7 ? 7 : sg->curmap->sfactor)) break;
-                cl->state.o[0] = xt / DMF;
-                cl->state.o[1] = yt / DMF;
-                cl->state.o[2] = zt / DMF;
+                cl->state.o.x = xt / DMF;
+                cl->state.o.y = yt / DMF;
+                cl->state.o.z = zt / DMF;
                 if(cl->type==ST_TCPIP && (cl->state.state==CS_ALIVE || cl->state.state==CS_EDITING))
                 {
                     cl->position.setsize(0);
