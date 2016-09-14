@@ -437,15 +437,15 @@ void c2sinfo(playerent *d)                  // send update to the server
         ASSERT(!(d->move < -1 || d->move > 1 || d->strafe < -1 || d->strafe > 1));
         packetbuf q(100);
         int cn = d->clientnum,
-            x = (int)(d->o.x*DMF),          // quantize coordinates to 1/16th of a cube, between 1 and 3 bytes
-            y = (int)(d->o.y*DMF),
-            z = (int)((d->o.z - d->eyeheight)*DMF),
+            x = (int)(d->o.x*DMF + 0.5f),          // quantize coordinates to 1/16th of a cube, between 1 and 3 bytes
+            y = (int)(d->o.y*DMF + 0.5f),
+            z = (int)floorf((d->o.z - d->eyeheight)*DMF + 0.5f),
             zsign = z < 0 ? 1 : 0,
             ya = encodeyaw(d->yaw),
             pi = encodepitch(d->pitch),
-            dx = (int)(d->vel.x*DVELF),
-            dy = (int)(d->vel.y*DVELF),
-            dz = (int)(d->vel.z*DVELF);
+            dx = (int)floorf(d->vel.x*DVELF + 0.5f),
+            dy = (int)floorf(d->vel.y*DVELF + 0.5f),
+            dz = (int)floorf(d->vel.z*DVELF + 0.5f);
         int f = (d->strafe + 4 + d->move * 3 + (d->onladder ? 9 : 0) + (d->crouching ? 18 : 0))     // pack 6 bit into 5 with ternary logic :)
                  | (((int)d->scoping)<<5) | ((d->lifesequence&1)<<6) | (((int)d->onfloor)<<7) | (((int)d->jumpd)<<8) | (((int)(dx||dy||dz))<<9) | (zsign << 10);  // number of used bits: FLAGBITS
         int usefactor = sfactor < 7 ? 7 : sfactor;
