@@ -115,14 +115,17 @@ void parsepositions(ucharbuf &p)
     {
         case SV_POS:                        // position of another client
         case SV_POSC:
+        case SV_POSC2:
+        case SV_POSC3:
+        case SV_POSC4:
         {
             int cn, f, yaw, pitch, z;
             vec o, vel;
-            if(type == SV_POSC)
+            if(type != SV_POS)
             {
                 bitbuf<ucharbuf> q(p);
                 cn = q.getbits(5);
-                int usefactor = q.getbits(2) + 7;
+                int usefactor = type - SV_POSC + 7;
                 o.x = q.getbits(usefactor + 4) / DMF;
                 o.y = q.getbits(usefactor + 4) / DMF;
                 yaw = q.getbits(YAWBITS);

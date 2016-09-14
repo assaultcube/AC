@@ -3377,7 +3377,7 @@ void process(ENetPacket *packet, int sender, int chan)
         type = checktype(getint(p), cl);
 
         #ifdef _DEBUG
-        if(type!=SV_POS && type!=SV_POSC && type!=SV_CLIENTPING && type!=SV_PING && type!=SV_CLIENT)
+        if(type!=SV_POS && type!=SV_POSC && type!=SV_POSC2 && type!=SV_POSC3 && type!=SV_POSC4 && type!=SV_CLIENTPING && type!=SV_PING && type!=SV_CLIENT)
         {
             DEBUGVAR(cl->name);
             if(type >= 0) { DEBUGVAR(messagenames[type]); }
@@ -3847,6 +3847,9 @@ void process(ENetPacket *packet, int sender, int chan)
             }
 
             case SV_POSC:
+            case SV_POSC2:
+            case SV_POSC3:
+            case SV_POSC4:
             {
                 bitbuf<ucharbuf> q(p);
                 int cn = q.getbits(5);
@@ -3858,7 +3861,7 @@ void process(ENetPacket *packet, int sender, int chan)
     #endif
                     return;
                 }
-                int usefactor = q.getbits(2) + 7;
+                int usefactor = type - SV_POSC + 7;
                 int xt = q.getbits(usefactor + 4);
                 int yt = q.getbits(usefactor + 4);
                 cl->yaw = (int)decodeyaw(q.getbits(YAWBITS));

@@ -459,9 +459,8 @@ void c2sinfo(playerent *d)                  // send update to the server
             dz >= -8 && dz <= 7)
         { // compact POS packet
             bitbuf<packetbuf> b(q);
-            putint(q, SV_POSC);
+            putint(q, SV_POSC + usefactor - 7);
             b.putbits(5, cn);
-            b.putbits(2, usefactor - 7);
             b.putbits(usefactor + 4, x);
             b.putbits(usefactor + 4, y);
             b.putbits(YAWBITS, ya);
