@@ -142,6 +142,7 @@ char *editinfo()
 void addselection(int x, int y, int xs, int ys, int h)
 {
     block &s = sels.add();
+    if(h == -999 && !OUTBORD(x + xs / 2, y + ys / 2)) h = S(x + xs / 2, y + ys / 2)->floor;
     s.x = x; s.y = y; s.xs = xs; s.ys = ys; s.h = h;
     if(!correctsel(s)) { sels.drop(); }
 }
@@ -152,8 +153,8 @@ void resetselections()
     sels.shrink(0);
 }
 
-COMMANDF(select, "iiii", (int *x, int *y, int *xs, int *ys) { resetselections(); addselection(*x, *y, *xs, *ys, 0); });
-COMMANDF(addselection, "iiii", (int *x, int *y, int *xs, int *ys) { addselection(*x, *y, *xs, *ys, 0); });
+COMMANDF(select, "iiii", (int *x, int *y, int *xs, int *ys) { resetselections(); addselection(*x, *y, *xs, *ys, -999); });
+COMMANDF(addselection, "iiii", (int *x, int *y, int *xs, int *ys) { addselection(*x, *y, *xs, *ys, -999); });
 COMMAND(resetselections, "");
 
 // reset all invalid selections
