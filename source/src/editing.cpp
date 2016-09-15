@@ -346,6 +346,7 @@ void cursorupdate()                                     // called every frame fr
 
 vector<block *> undos, redos;                           // unlimited undo
 VAR(undomegs, 0, 5, 50);                                // bounded by n megs
+int undolevel = 0;
 
 void pruneundos(int maxremain)                          // bound memory
 {
@@ -376,6 +377,7 @@ void makeundo(block &sel)
     undos.add(blockcopy(sel));
     pruneundos(undomegs<<20);
     unsavededits++;
+    undolevel++;
 }
 
 void restoreposition(short p[])
@@ -428,6 +430,7 @@ void editundo()
     EDITMP;
     if(undos.empty()) { conoutf("nothing more to undo"); return; }
     block *p = undos.pop();
+    undolevel--;
     redos.add(blockcopy(*p));
     if(editmetakeydown) restoreposition(*p);
     blockpaste(*p);
@@ -436,12 +439,25 @@ void editundo()
 }
 COMMANDN(undo, editundo, "");
 
+void gotoundolevel(char *lev)
+{
+    if(*lev && isdigit(*lev))
+    {
+        EDITMP;
+        int n = ATOI(lev);
+        while(undolevel > n && undos.length() > 0) editundo();
+    }
+    intret(undolevel);
+}
+COMMANDN(undolevel, gotoundolevel, "s");
+
 void editredo()
 {
     EDITMP;
     if(redos.empty()) { conoutf("nothing more to redo"); return; }
     block *p = redos.pop();
     undos.add(blockcopy(*p));
+    undolevel++;
     if(editmetakeydown) restoreposition(*p);
     blockpaste(*p);
     freeblock(p);
@@ -1180,5 +1196,6 @@ void reseteditor() // reset only stuff that would cause trouble editing the next
 {
     loopk(3) curedittex[k] = -1;
     pruneundos(0);
+    undolevel = 0;
     pinnedclosestent = false;
 }
