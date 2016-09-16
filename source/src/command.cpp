@@ -1573,6 +1573,20 @@ COMMANDF(escape, "s", (const char *s) { result(escapestring(s));});
 
 int sortident(ident **a, ident **b) { return strcasecmp((*a)->name, (*b)->name); }
 
+void enumalias(char *prefix)
+{
+    vector<char> res;
+    vector<ident *> sids;
+    size_t np = strlen(prefix);
+    enumerate(*idents, ident, id, if(id.type == ID_ALIAS && id.persist && !id.isconst && !id.istemp && !strncmp(id.name, prefix, np)) sids.add(&id); );
+    sids.sort(sortident);
+    loopv(sids) cvecprintf(res, "%s %s\n", sids[i]->name, sids[i]->name + np);
+    if(res.length()) res.last() = '\0';
+    else res.add('\0');
+    result(res.getbuf());
+}
+COMMAND(enumalias, "s");
+
 VARP(omitunchangeddefaults, 0, 0, 1);
 VAR(groupvariables, 0, 4, 10);
 

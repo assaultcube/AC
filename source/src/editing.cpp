@@ -891,7 +891,7 @@ const int MAXARCHVERT = 50;
 int archverts[MAXARCHVERT][MAXARCHVERT];
 bool archvinit = false;
 
-void archvertex(int *span, int *vert, int *delta)
+void archvertex(int *span, int *vert, char *delta)
 {
     if(!archvinit)
     {
@@ -899,9 +899,10 @@ void archvertex(int *span, int *vert, int *delta)
         loop(s,MAXARCHVERT) loop(v,MAXARCHVERT) archverts[s][v] = 0;
     }
     if(*span>=MAXARCHVERT || *vert>=MAXARCHVERT || *span<0 || *vert<0) return;
-    archverts[*span][*vert] = *delta;
+    intret(archverts[*span][*vert]);
+    if(*delta) archverts[*span][*vert] = ATOI(delta);
 }
-COMMAND(archvertex, "iii");
+COMMAND(archvertex, "iis");
 
 void archxy(int sidedelta, int *averts, block &sel)
 {
