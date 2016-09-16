@@ -44,6 +44,7 @@ void selectweapon(weapon *w)
     if(!w || !player1->weaponsel->deselectable()) return;
     if(w->selectable())
     {
+        if(player1->attacking && player1->state == CS_ALIVE && player1->weaponsel->type == GUN_GRENADE) attack(false);
         int i = w->type;
         // substitute akimbo
         weapon *akimbo = player1->weapons[GUN_AKIMBO];
