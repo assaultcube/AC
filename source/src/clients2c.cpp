@@ -932,6 +932,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                         case EDITXY_EQUALISE: editequalisexy(a1 != 0, b);   break;
                         case EDITXY_TAG:      edittagxy(a1, a2, b);         break;
                         case EDITXY_SLOPE:    slopexy(a1, a2, b);           break;
+                        case EDITXY_STAIRS:   stairsxy(a1, a2, b);          break;
                         case EDITXY_FLIPROT:  selfliprotate(b, a1);         break;
                     }
                 }

@@ -726,6 +726,7 @@ extern void edittexxy(int type, int t, block &sel);
 extern void editheightxy(bool isfloor, int amount, block &sel);
 extern void archxy(int sidedelta, int *averts, block &sel);
 extern void slopexy(int xd, int yd, block &sel);
+extern void stairsxy(int xd, int yd, block &sel);
 extern void edittagxy(int orv, int andv, block &sel);
 extern void selfliprotate(block &sel, int dir);
 extern bool noteditmode(const char* func = NULL);

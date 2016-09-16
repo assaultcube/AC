@@ -956,6 +956,25 @@ void slope(int *xd, int *yd)
 }
 COMMAND(slope, "ii");
 
+void stairsxy(int xd, int yd, block &sel)
+{
+    int off = xd || yd ? 1 : 0, xo = xd < 0 ? 1 - sel.xs : 0, yo = yd < 0 ? 1 - sel.ys : 0;
+    loopselxy(sel, s->floor += (xd ? (x + xo) / xd : 0) + (yd ? (y + yo) / yd : 0) + off);
+    remipmore(sel);
+}
+
+void stairs(int *xd, int *yd)
+{
+    EDITSEL;
+    loopv(sels)
+    {
+        block &sel = sels[i];
+        addmsg(SV_EDITXY, "ri7", EDITXY_STAIRS, sel.x, sel.y, sel.xs, sel.ys, *xd, *yd);
+        stairsxy(*xd, *yd, sel);
+    }
+}
+COMMAND(stairs, "ii");
+
 void perlin(int *scale, int *seed, int *psize)
 {
     EDITSELMP;
