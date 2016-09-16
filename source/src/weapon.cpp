@@ -491,7 +491,7 @@ void movebounceents()
 void clearbounceents()
 {
     if(gamespeed==100);
-    else if(multiplayer(false)) bounceents.add((bounceent *)player1);
+    else if(multiplayer(NULL)) bounceents.add((bounceent *)player1);
     loopv(bounceents) if(bounceents[i]) { delete bounceents[i]; bounceents.remove(i--); }
 }
 

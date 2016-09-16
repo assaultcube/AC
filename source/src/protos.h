@@ -500,7 +500,7 @@ extern void disconnect(int onlyclean = 0, int async = 0);
 extern void cleanupclient();
 extern void toserver(char *text);
 extern void addmsg(int type, const char *fmt = NULL, ...);
-extern bool multiplayer(bool msg = true);
+extern bool multiplayer(const char *op = "");
 extern bool allowedittoggle();
 extern void sendpackettoserv(int chan, ENetPacket *packet);
 extern void gets2c();
@@ -712,6 +712,9 @@ extern void text_startcolumns();
 extern void text_endcolumns();
 
 // editing
+#define EDITSEL(x)   if(noteditmode(x) || noselection()) return
+#define EDITSELMP(x) if(noteditmode(x) || noselection() || multiplayer(x)) return
+#define EDITMP(x)    if(noteditmode(x) || multiplayer(x)) return
 extern void cursorupdate();
 extern void toggleedit(bool force = false);
 extern void reseteditor();

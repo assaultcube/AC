@@ -132,10 +132,6 @@ char *editinfo()
 }
 
 
-#define EDITSEL   if(noteditmode("EDITSEL") || noselection()) return
-#define EDITSELMP if(noteditmode("EDITSELMP") || noselection() || multiplayer()) return
-#define EDITMP    if(noteditmode("EDITMP") || multiplayer()) return
-
 // multiple sels
 
 // add a selection to the list
@@ -427,7 +423,7 @@ COMMAND(gotoposition, "sssss");
 
 void editundo()
 {
-    EDITMP;
+    EDITMP("undo");
     if(undos.empty()) { conoutf("nothing more to undo"); return; }
     block *p = undos.pop();
     undolevel--;
@@ -443,7 +439,7 @@ void gotoundolevel(char *lev)
 {
     if(*lev && isdigit(*lev))
     {
-        EDITMP;
+        EDITMP("undolevel");
         int n = ATOI(lev);
         while(undolevel > n && undos.length() > 0) editundo();
     }
@@ -453,7 +449,7 @@ COMMANDN(undolevel, gotoundolevel, "s");
 
 void editredo()
 {
-    EDITMP;
+    EDITMP("redo");
     if(redos.empty()) { conoutf("nothing more to redo"); return; }
     block *p = redos.pop();
     undos.add(blockcopy(*p));
@@ -565,7 +561,7 @@ void resetcopybuffers()
 
 void copy()
 {
-    EDITSELMP;
+    EDITSELMP("copy");
     resetcopybuffers();
     copytexconfig = texconfig_copy();
 
@@ -580,7 +576,7 @@ COMMAND(copy, "");
 
 void paste()
 {
-    EDITSELMP;
+    EDITSELMP("paste");
     if(!copybuffers.length()) { conoutf("nothing to paste"); return; }
 
     uchar usedslots[256] = { 0 }, *texmap = NULL;
@@ -684,7 +680,7 @@ void editheightxy(bool isfloor, int amount, block &sel)
 
 void editheight(int *flr, int *amount)
 {
-    EDITSEL;
+    EDITSEL("editheight");
     bool isfloor = *flr==0;
     loopv(sels)
     {
@@ -754,7 +750,7 @@ void edittexxy(int type, int t, block &sel)
 
 void edittex(int *type, int *dir)
 {
-    EDITSEL;
+    EDITSEL("edittex");
     if(*type < 0 || *type > 3) return;
     if(*type != lasttype) { tofronttex(); lasttype = *type; }
     int atype = *type == 3 ? 1 : *type;
@@ -774,7 +770,7 @@ COMMAND(edittex, "ii");
 
 void settex(int *texture, int *type)
 {
-    EDITSEL;
+    EDITSEL("settex");
     if(*type < 0 || *type > 3) return;
     int atype = *type == 3 ? 1 : *type;
     int t = -1;
@@ -799,7 +795,7 @@ COMMAND(settex, "ii");
 
 void replace()
 {
-    EDITSELMP;
+    EDITSELMP("replace");
     loop(x,ssize) loop(y,ssize)
     {
         sqr *s = S(x, y);
@@ -824,7 +820,7 @@ void edittypexy(int type, block &sel)
 
 void edittype(int type)
 {
-    EDITSEL;
+    EDITSEL("solid|corner|heightfield");
     loopv(sels)
     {
         block &sel = sels[i];
@@ -864,7 +860,7 @@ void editequalisexy(bool isfloor, block &sel)
 void equalize(int *flr)
 {
     bool isfloor = *flr==0;
-    EDITSEL;
+    EDITSEL("equalize");
     loopv(sels)
     {
         block &sel = sels[i];
@@ -882,7 +878,7 @@ void setvdeltaxy(int delta, block &sel)
 
 void setvdelta(int *delta)
 {
-    EDITSEL;
+    EDITSEL("vdelta");
     loopv(sels)
     {
         setvdeltaxy(*delta, sels[i]);
@@ -918,7 +914,7 @@ void archxy(int sidedelta, int *averts, block &sel)
 
 void arch(int *sidedelta)
 {
-    EDITSEL;
+    EDITSEL("arch");
     loopv(sels)
     {
         block &sel = sels[i];
@@ -946,7 +942,7 @@ void slopexy(int xd, int yd, block &sel)
 
 void slope(int *xd, int *yd)
 {
-    EDITSEL;
+    EDITSEL("slope");
     loopv(sels)
     {
         block &sel = sels[i];
@@ -965,7 +961,7 @@ void stairsxy(int xd, int yd, block &sel)
 
 void stairs(int *xd, int *yd)
 {
-    EDITSEL;
+    EDITSEL("stairs");
     loopv(sels)
     {
         block &sel = sels[i];
@@ -977,7 +973,7 @@ COMMAND(stairs, "ii");
 
 void perlin(int *scale, int *seed, int *psize)
 {
-    EDITSELMP;
+    EDITSELMP("perlin");
     loopv(sels)
     {
         block sel = sels[i];
@@ -1010,7 +1006,7 @@ void edittagxy(int orv, int andv, block &sel)
 
 void edittag(int *tag)
 {
-    EDITSEL;
+    EDITSEL("edittag");
     loopv(sels)
     {
         edittagxy(*tag, 0, sels[i]);
@@ -1025,7 +1021,7 @@ void edittagclip(char *tag)
     if(tolower(*tag) == 'n') nt = 0; // "none", "nil, "nop"
     else if(!strncasecmp(tag, "pl", 2)) nt = TAGPLCLIP; // "playerclip", "plclip", "pl"
     else if(isalpha(*tag)) nt = TAGCLIP; // "clip", "all", "full", "hippo"
-    EDITSEL;
+    EDITSEL("edittagclip");
     loopv(sels)
     {
         edittagxy(nt, TAGTRIGGERMASK, sels[i]);
@@ -1036,14 +1032,14 @@ COMMAND(edittagclip, "s");
 
 void newent(char *what, float *a1, float *a2, float *a3, float *a4)
 {
-    EDITSEL;
+    EDITSEL("newent");
     loopv(sels) newentity(-1, sels[i].x, sels[i].y, (int)camera1->o.z, what, *a1, *a2, *a3, *a4);
 }
 COMMAND(newent, "sffff");
 
 void movemap(int *xop, int *yop, int *zop) // move whole map
 {
-    EDITMP;
+    EDITMP("movemap");
     int xo = *xop, yo = *yop, zo = *zop;
     if(!worldbordercheck(MINBORD + max(-xo, 0), MINBORD + max(xo, 0), MINBORD + max(-yo, 0), MINBORD + max(yo, 0), max(zo, 0), max(-zo, 0)))
     {
@@ -1113,7 +1109,7 @@ void selfliprotate(block &sel, int dir)
 
 void selectionrotate(int *dir)
 {
-    EDITSEL;
+    EDITSEL("selectionrotate");
     *dir &= 3;
     if(!*dir) return;
     loopv(sels)
@@ -1130,7 +1126,7 @@ COMMAND(selectionrotate, "i");
 
 void selectionflip(char *axis)
 {
-    EDITSEL;
+    EDITSEL("selectionflip");
     char c = toupper(*axis);
     if(c != 'X' && c != 'Y') return;
     int dir =  c == 'X' ? 11 : 12;
@@ -1144,7 +1140,7 @@ COMMAND(selectionflip, "s");
 
 void selectionwalk(char *action, char *beginsel, char *endsel)
 {
-    EDITSELMP;
+    EDITSELMP("selectionwalk");
     if(*action)
     {
         const char *localvars[] = { "sw_cursel", "sw_abs_x", "sw_abs_y", "sw_rel_x", "sw_rel_y", "sw_type", "sw_floor", "sw_ceil", "sw_wtex", "sw_ftex", "sw_ctex", "sw_utex", "sw_vdelta", "sw_tag", "sw_r", "sw_g", "sw_b", "" };
@@ -1190,7 +1186,7 @@ COMMAND(selectionwalk, "sss");
 
 void transformclipentities()  // transforms all clip entities to tag clips, if they are big enough (so, that no player could be above or below them)
 { // (hardcoded factor ENTSCALE10 for attr1 and ENTSCALE5 for attr2-4)
-    EDITMP;
+    EDITMP("transformclipentities");
     int total = 0, thisrun, bonus = 5;
     do
     {

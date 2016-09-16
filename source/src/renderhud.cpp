@@ -957,7 +957,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         if(gametimedisplay) draw_text(gtime, (VIRTW-225-10)*2 - (text_width(gtime)/2 + FONTH/2), 20);
     }
 
-    if(hidevote < 2 && multiplayer(false))
+    if(hidevote < 2 && multiplayer(NULL))
     {
         extern votedisplayinfo *curvote;
 
@@ -997,7 +997,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         glOrtho(0, VIRTW*3/2, VIRTH*3/2, 0, -1, 1);
         const int left = (VIRTW)*3/2, top = (VIRTH*3/2)*3/4;
         draw_textf("SPACE to change view", left - (text_width("SCROLL to change player") + FONTH/2), top);
-        if(multiplayer(false) || watchingdemo) draw_textf("SCROLL to change player", left - (text_width("SCROLL to change player") + FONTH/2), top+80);
+        if(multiplayer(NULL) || watchingdemo) draw_textf("SCROLL to change player", left - (text_width("SCROLL to change player") + FONTH/2), top+80);
     }
 
     extern void renderhudtexturepreviews();

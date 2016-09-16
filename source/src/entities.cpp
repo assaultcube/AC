@@ -486,7 +486,7 @@ void checkitems(playerent *d)
 
 void spawnallitems()            // spawns items locally
 {
-    loopv(ents) if(ents[i].fitsmode(gamemode) || (multiplayer(false) && gamespeed!=100 && (i=-1)))
+    loopv(ents) if(ents[i].fitsmode(gamemode) || (multiplayer(NULL) && gamespeed!=100 && (i=-1)))
     {
         ents[i].spawned = true;
         ents[i].lastmillis = lastmillis;

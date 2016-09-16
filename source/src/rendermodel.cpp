@@ -166,7 +166,8 @@ COMMAND(mapmodelslotusage, "i");
 
 void deletemapmodelslot(int *n, char *opt) // delete mapmodel slot - only if unused or "purge" is specified
 {
-    if(noteditmode("deletemapmodelslot") || multiplayer(true) || !mapmodels.inrange(*n)) return;
+    EDITMP("deletemapmodelslot");
+    if(!mapmodels.inrange(*n)) return;
     bool purgeall = !strcmp(opt, "purge");
     if(!purgeall) loopv(ents) if(ents[i].type == MAPMODEL && ents[i].attr2 == *n) { conoutf("mapmodel slot #%d is in use: can't delete", *n); return; }
     int deld = 0;
@@ -194,7 +195,8 @@ COMMAND(deletemapmodelslot, "is");
 void editmapmodelslot(int *n, char *rad, char *h, char *zoff, char *scale, char *name) // edit slot parameters != ""
 {
     string res = "";
-    if(!noteditmode("editmapmodelslot") && !multiplayer(true) && mapmodels.inrange(*n))
+    EDITMP("editmapmodelslot");
+    if(mapmodels.inrange(*n))
     {
         mapmodelinfo &mmi = mapmodels[*n];
         if(*rad || *h || *zoff || *scale || *name)
@@ -252,7 +254,8 @@ void sortmapmodelslots(char **args, int numargs)
         else { conoutf("sortmapmodelslots: unknown argument \"%s\"", args[i]); unknownarg = true; }
     }
 
-    if(noteditmode("sortmapmodelslots") || multiplayer(true) || unknownarg || mapmodels.length() < 3) return;
+    EDITMP("sortmapmodelslots");
+    if(unknownarg || mapmodels.length() < 3) return;
 
     vector<tempmmslot> tempslots;
     loopv(mapmodels)

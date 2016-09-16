@@ -796,7 +796,7 @@ void physicsframe()          // optimally schedule physics frames inside the gra
         physframetime = clamp((PHYSFRAMETIME*gamespeed)/100, 1, PHYSFRAMETIME);
         physsteps = (diff + physframetime - 1)/physframetime;
         lastphysframe += physsteps * physframetime;
-        if(!multiplayer(false) && physsteps > 1000) physsteps = 1000;
+        if(!multiplayer(NULL) && physsteps > 1000) physsteps = 1000;
     }
 }
 

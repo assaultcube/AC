@@ -407,7 +407,7 @@ COMMAND(entset, "sffff");
 void clearents(char *name)
 {
     int type = findtype(name);
-    if(noteditmode("clearents") || multiplayer()) return;
+    EDITMP("clearents");
     bool found = false;
     loopv(ents)
     {
@@ -434,7 +434,8 @@ COMMAND(clearents, "s");
 void deleteentity(char *ns)
 {
     int n = ATOI(ns);
-    if(noteditmode("deleteentity") || multiplayer(true) || !*ns || !ents.inrange(n)) return;
+    EDITMP("deleteentity");
+    if(!*ns || !ents.inrange(n)) return;
     entity &e = ents[n];
     int t = e.type;
     if(t == SOUND) deletesoundentity(e);
@@ -450,7 +451,8 @@ COMMAND(deleteentity, "s");
 void addentity(char *what) // type
 {
     int type = findtype(what);
-    if(noteditmode("addentity") || multiplayer(true) || type == NOTUSED) return;
+    EDITMP("addentity");
+    if(type == NOTUSED) return;
     entity e((int)camera1->o.x, (int)camera1->o.y, (int)camera1->o.z, type, 0, 0, 0, 0);
     e.spawned = true;
     intret(ents.length());
@@ -465,7 +467,8 @@ void editentity(char **args, int numargs) // index x y z a1 a2 a3 a4 ...
     if(numargs > 0)
     {
         int n = ATOI(args[0]);
-        if(noteditmode("editentity") || multiplayer(true) || !*args[0] || !ents.inrange(n)) return;
+        EDITMP("editentity");
+        if(!*args[0] || !ents.inrange(n)) return;
         entity &e = ents[n];
         bool edit = false;
         for(int i = 1; i < numargs; i++) if(*args[i]) edit = true; // only arguments other than empty strings can edit anything - otherwise we're just browsing
@@ -849,7 +852,7 @@ void mapmrproper(bool manual)
     block b = { 0, 0, ssize, ssize };
     if(manual)
     {
-        if(noteditmode("mapmrproper") || multiplayer()) return;
+        EDITMP("mapmrproper");
         makeundo(b);
     }
     remip(b);

@@ -482,7 +482,7 @@ COMMANDF(clearvantagepoint, "", () { if(!noteditmode("clearvantagepoint") && !mu
 
 void setvantagepoint()
 {
-    if(noteditmode("setvantagepoint") || multiplayer()) return;
+    EDITMP("setvantagepoint");
     clearvantagepoint();
     short p[5];
     storeposition(p);
@@ -1054,7 +1054,7 @@ int load_world(char *mname)        // still supports all map formats that have e
 
 COMMANDF(loadmap, "s", (char *mapname)
 {
-    intret(!multiplayer() ? load_world(mapname) : -42);
+    intret(!multiplayer("loadmap") ? load_world(mapname) : -42);
 });
 
 // support reading and writing binary data in config files
@@ -1226,9 +1226,6 @@ struct xmap
 static vector<xmap *> xmaps;
 static xmap *bak, *xmjigsaw;                               // only bak needs to be deleted before reuse
 
-#define SPEDIT if(noteditmode("xmap") || multiplayer()) return    // only allowed in non-coop editmode
-#define SPEDITDIFF if(noteditmode("xmap") || multiplayer() || nodiff()) return    // only allowed in non-coop editmode after xmap_diff
-
 bool validxmapname(const char *nick) { if(validmapname(nick)) return true; conoutf("sry, %s is not a valid xmap nickname", nick); return false; }
 
 void xmapdelete(xmap *&xm)  // make sure, we don't point to deleted xmaps
@@ -1325,7 +1322,7 @@ COMMANDF(xmap_rename, "ss", (const char *oldnick, const char *newnick)     // re
 
 COMMANDF(xmap_restore, "s", (const char *nick)     // use xmap as current map
 {
-    SPEDIT;
+    EDITMP("xmap_restore");
     if(*nick)
     {
         xmap *xm = getxmapbynick(nick);

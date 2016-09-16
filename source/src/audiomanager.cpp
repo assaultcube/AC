@@ -878,7 +878,8 @@ void reloadmapsoundconfig()
 
 void deletemapsoundslot(int *n, char *opt) // delete mapsound slot - only if unused or "purge" is specified
 {
-    if(noteditmode("deletemapsoundslot") || multiplayer(true) || !mapconfigdata.mapsoundlines.inrange(*n)) return;
+    EDITMP("deletemapsoundslot");
+    if(!mapconfigdata.mapsoundlines.inrange(*n)) return;
     bool purgeall = !strcmp(opt, "purge"), slotused = false;
     loopv(ents) if(ents[i].type == SOUND && ents[i].attr1 == *n) slotused = true;
     if(!purgeall && slotused) { conoutf("mapsound slot #%d is in use: can't delete", *n); return; }
@@ -909,8 +910,9 @@ COMMAND(deletemapsoundslot, "is");
 
 void editmapsoundslot(int *n, char *name, char *maxuses) // edit slot parameters != ""
 {
+    EDITMP("editmapsoundslot");
     string res = "";
-    if(!noteditmode("editmapsoundslot") && !multiplayer(true) && mapconfigdata.mapsoundlines.inrange(*n))
+    if(mapconfigdata.mapsoundlines.inrange(*n))
     {
         mapsoundline &msl = mapconfigdata.mapsoundlines[*n];
         if(*name || *maxuses)
@@ -1011,7 +1013,8 @@ void sortmapsoundslots(char **args, int numargs)
         else { conoutf("sortmapsoundslots: unknown argument \"%s\"", args[i]); unknownarg = true; }
     }
 
-    if(noteditmode("sortmapsoundslots") || multiplayer(true) || unknownarg || mapconfigdata.mapsoundlines.length() < 3) return;
+    EDITMP("sortmapsoundslots");
+    if(unknownarg || mapconfigdata.mapsoundlines.length() < 3) return;
 
     vector<tempmsslot> tempslots;
     loopv(mapconfigdata.mapsoundlines)

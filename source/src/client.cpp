@@ -14,10 +14,10 @@ extern int searchlan;
 
 int getclientnum() { return player1 ? player1->clientnum : -1; }
 
-bool multiplayer(bool msg)
+bool multiplayer(const char *op)
 {
     // check not correct on listen server?
-    if(curpeer && msg) conoutf("operation not available in multiplayer");
+    if(curpeer && op) conoutf("%s%s%s not available in multiplayer", *op ? "\"" : "", *op ? op : "operation", *op ? "\"" : "");
     return curpeer!=NULL;
 }
 
@@ -809,7 +809,7 @@ void deleteservermap(char *mapname)
 string demosubpath;
 void getdemo(int *idx, char *dsp)
 {
-    if(!multiplayer(false))
+    if(!multiplayer(NULL))
     {
         conoutf("\f3Getting demo from server is not available in singleplayer");
         return;
@@ -823,7 +823,7 @@ void getdemo(int *idx, char *dsp)
 
 void listdemos()
 {
-    if(!multiplayer(false))
+    if(!multiplayer(NULL))
     {
         conoutf("\f3Listing demos from server is not available in singleplayer");
         return;

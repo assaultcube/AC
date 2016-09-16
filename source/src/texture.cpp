@@ -1081,7 +1081,8 @@ COMMAND(textureslotusage, "i");
 
 void deletetextureslot(int *n, char *opt, char *_replace) // delete texture slot - only if unused or "purge" is specified
 {
-    if(noteditmode("deletetextureslot") || multiplayer(true) || !slots.inrange(*n)) return;
+    EDITMP("deletetextureslot");
+    if(!slots.inrange(*n)) return;
     bool purgeall = !strcmp(opt, "purge");
     bool mmused = false;
     loopv(ents) if(ents[i].type == MAPMODEL && ents[i].attr4 == *n) mmused = true;
@@ -1138,7 +1139,8 @@ COMMAND(deletetextureslot, "iss");
 void edittextureslot(int *n, char *scale, char *name) // edit slot parameters != ""
 {
     string res = "";
-    if(!noteditmode("edittextureslot") && !multiplayer(true) && slots.inrange(*n))
+    EDITMP("edittextureslot");
+    if(slots.inrange(*n))
     {
         Slot &s = slots[*n];
         if(*scale || *name)
@@ -1258,7 +1260,8 @@ void sorttextureslots(char **args, int numargs)
     }
     while(presort.length() < 5) presort.add(presort.length());
 
-    if(noteditmode("sorttextureslots") || multiplayer(true) || unknownarg || slots.length() < 5) return;
+    EDITMP("sorttextureslots");
+    if(unknownarg || slots.length() < 5) return;
 
     int used[256] = { 0 };
     textureslotusagemapmodels(used);

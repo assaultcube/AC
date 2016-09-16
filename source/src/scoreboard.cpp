@@ -192,7 +192,7 @@ void renderdiscscores(int team)
         line.addcol(sc_frags, "%d", d.frags);
         line.addcol(sc_deaths, "%d", d.deaths);
         line.addcol(sc_ratio, "%.2f", SCORERATIO(d.frags, d.deaths));
-        if(multiplayer(false) || watchingdemo) line.addcol(sc_score, "%d", max(d.points, 0));
+        if(multiplayer(NULL) || watchingdemo) line.addcol(sc_score, "%d", max(d.points, 0));
         line.addcol(sc_lag, "%s", clag);
         line.addcol(sc_clientnum, "DISC");
         line.addcol(sc_name, "%s", d.name);
@@ -212,7 +212,7 @@ void renderscore(playerent *d)
     else if (d->state==CS_LAGGED || (d->ping > 999 && d->plag > 99)) copystring(lagping, "LAG");
     else
     {
-        if(multiplayer(false)) formatstring(lagping)("%s/%s", colorpj(d->plag), colorping(d->ping));
+        if(multiplayer(NULL)) formatstring(lagping)("%s/%s", colorpj(d->plag), colorping(d->ping));
         else formatstring(lagping)("%d/%d", d->plag, d->ping);
     }
     const char *ign = d->ignored ? " (ignored)" : (d->muted ? " (muted)" : "");
@@ -224,7 +224,7 @@ void renderscore(playerent *d)
     line.addcol(sc_frags, "%d", d->frags);
     line.addcol(sc_deaths, "%d", d->deaths);
     line.addcol(sc_ratio, "%.2f", SCORERATIO(d->frags, d->deaths));
-    if(multiplayer(false) || watchingdemo)
+    if(multiplayer(NULL) || watchingdemo)
     {
         line.addcol(sc_score, "%d", max(d->points, 0));
         line.addcol(sc_lag, "%s", lagping);
@@ -256,7 +256,7 @@ void renderteamscore(teamscore *t)
     line.addcol(sc_frags, "%d", t->frags);
     line.addcol(sc_deaths, "%d", t->deaths);
     line.addcol(sc_ratio, "%.2f", SCORERATIO(t->frags, t->deaths));
-    if(multiplayer(false) || watchingdemo)
+    if(multiplayer(NULL) || watchingdemo)
     {
         line.addcol(sc_score, "%d", max(t->points, 0));
         line.addcol(sc_lag);
@@ -283,7 +283,7 @@ void reorderscorecolumns()
     sscore.addcol(sc_frags, "frags");
     sscore.addcol(sc_deaths, "deaths");
     sscore.addcol(sc_ratio, "ratio");
-    if(multiplayer(false) || watchingdemo)
+    if(multiplayer(NULL) || watchingdemo)
     {
         sscore.addcol(sc_score, "score");
         sscore.addcol(sc_lag, "pj/ping");
@@ -366,7 +366,7 @@ void renderscores(void *menu, bool init)
     extern int minutesremaining, gametimedisplay;
     extern string gtime;
 
-    if((gamemode>1 || (gamemode==0 && (multiplayer(false) || watchingdemo))) && minutesremaining >= 0)
+    if((gamemode>1 || (gamemode==0 && (multiplayer(NULL) || watchingdemo))) && minutesremaining >= 0)
     {
         if(!minutesremaining)
         {
@@ -398,7 +398,7 @@ void renderscores(void *menu, bool init)
         }
     }
 
-    if(multiplayer(false))
+    if(multiplayer(NULL))
     {
         serverinfo *s = getconnectedserverinfo();
         if(s)
@@ -463,7 +463,7 @@ const char *asciiscores(bool destjpg)
         formatstring(text)("\n\"%s\" on map %s", modestr(gamemode, 0), getclientmap());
         addstr(buf, text);
     }
-    if(multiplayer(false))
+    if(multiplayer(NULL))
     {
         serverinfo *s = getconnectedserverinfo();
         if(s)

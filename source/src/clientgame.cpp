@@ -250,7 +250,7 @@ void playerinfo(int *cn, const char *attr)
     playerent *p = clientnum < 0 ? player1 : getclient(clientnum);
     if(!p)
     {
-        if(!m_botmode && multiplayer(false)) // bot clientnums are still glitchy, causing this message to sometimes appear in offline/singleplayer when it shouldn't??? -Bukz 2012may
+        if(!m_botmode && multiplayer(NULL)) // bot clientnums are still glitchy, causing this message to sometimes appear in offline/singleplayer when it shouldn't??? -Bukz 2012may
             conoutf("invalid clientnum cn: %d attr: %s", clientnum, attr);
         return;
     }
@@ -757,7 +757,7 @@ inline const char * spawn_message()
         else return "3You must be on the correct map to spawn. Type /getmap to download it.";
     }
     else if (m_coop) return "3Type /getmap or send a map and vote for it to start co-op edit.";
-    else if (multiplayer(false)) return "4Awaiting permission to spawn. \f2DON'T PANIC!";
+    else if (multiplayer(NULL)) return "4Awaiting permission to spawn. \f2DON'T PANIC!";
     else return ""; // theres no waiting for permission in sp
     // Despite its many glaring (and occasionally fatal) inaccuracies, AssaultCube itself has outsold the
     // Encyclopedia Galactica because it is slightly cheaper, and because it has the words "Don't Panic"
@@ -768,7 +768,7 @@ int waiting_permission = 0;
 
 bool tryrespawn()
 {
-    if ( m_mp(gamemode) && multiplayer(false) && bad_map() )
+    if(m_mp(gamemode) && multiplayer(NULL) && bad_map())
     {
         hudoutf("This map is not supported in multiplayer. Read the docs about map quality/dimensions.");
     }
@@ -1157,7 +1157,7 @@ void startmap(const char *name, bool reset, bool norespawn)   // called just aft
     bool noflags = (m_ctf || m_ktf) && !clentstats.hasflags;
     if(*clientmap) conoutf("game mode is \"%s\"%s", modestr(gamemode, modeacronyms > 0), noflags ? " - \f2but there are no flag bases on this map" : "");
 
-    if(showmodedescriptions && (multiplayer(false) || m_botmode))
+    if(showmodedescriptions && (multiplayer(NULL) || m_botmode))
     {
         loopv(gmdescs) if(gmdescs[i].mode == gamemode) conoutf("\f1%s", gmdescs[i].desc);
     }
@@ -1428,9 +1428,9 @@ void scallvote(int *type, const char *arg1, const char *arg2)
             case SA_KICK:
             case SA_BAN:
             {
-                if (!arg1 || !isdigit(arg1[0]) || !arg2 || strlen(arg2) <= 3 || !multiplayer(false))
+                if (!arg1 || !isdigit(arg1[0]) || !arg2 || strlen(arg2) <= 3 || !multiplayer(NULL))
                 {
-                    if(!multiplayer(false))
+                    if(!multiplayer(NULL))
                         conoutf("\f3%s is not available in singleplayer.", t == SA_BAN ? "Ban" : "Kick");
                     else if(arg1 && !isdigit(arg1[0])) conoutf("\f3invalid vote");
                     else conoutf("\f3invalid reason");
@@ -1499,7 +1499,7 @@ void voteresult(int v)
         curvote->result = v;
         curvote->millis = totalmillis + 5000;
         conoutf("vote %s", v == VOTE_YES ? "passed" : "failed");
-        if(multiplayer(false)) audiomgr.playsound(v == VOTE_YES ? S_VOTEPASS : S_VOTEFAIL, SP_HIGH);
+        if(multiplayer(NULL)) audiomgr.playsound(v == VOTE_YES ? S_VOTEPASS : S_VOTEFAIL, SP_HIGH);
         exechook(HOOK_SP_MP, "onVoteEnd", "");
         votepending = 0;
     }
@@ -1515,7 +1515,7 @@ const char *modestrings[] =
 
 void setnext(char *mode, char *map)
 {
-    if(!multiplayer(false)) { //RR 10/12/12 - Is this the action we want?
+    if(!multiplayer(NULL)) { //RR 10/12/12 - Is this the action we want?
         conoutf("You cannot use setnext in singleplayer.");
         return;
     }
@@ -1546,7 +1546,7 @@ COMMAND(setnext, "ss");
 
 void gonext(int *arg1)
 {
-    if(calledvote || !multiplayer(false)) return;
+    if(calledvote || !multiplayer(NULL)) return;
     packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
     putint(p, SV_CALLVOTE);
     putint(p, SA_MAP);
