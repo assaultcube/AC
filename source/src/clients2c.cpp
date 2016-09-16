@@ -911,25 +911,46 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 break;
             }
 
-            case SV_EDITH:              // coop editing messages, should be extended to include all possible editing ops
-            case SV_EDITT:
-            case SV_EDITS:
-            case SV_EDITD:
-            case SV_EDITE:
+            case SV_EDITXY:              // coop editing messages, should be extended to include all possible editing ops
             {
+                int cmd = getint(p);
                 int x  = getint(p);
                 int y  = getint(p);
                 int xs = getint(p);
                 int ys = getint(p);
-                int v  = getint(p);
-                block b = { x, y, xs, ys };
-                switch(type)
+                int a1 = getint(p);
+                int a2 = getint(p);
+                if(!OUTBORD(x,y)  && xs > 0 && ys > 0 && !OUTBORD(x + xs-1, y + ys - 1))
                 {
-                    case SV_EDITH: editheightxy(v!=0, getint(p), b); break;
-                    case SV_EDITT: edittexxy(v, getint(p), b); break;
-                    case SV_EDITS: edittypexy(v, b); break;
-                    case SV_EDITD: setvdeltaxy(v, b); break;
-                    case SV_EDITE: editequalisexy(v!=0, b); break;
+                    block b = { x, y, xs, ys };
+                    switch(cmd)
+                    {
+                        case EDITXY_HEIGHT:   editheightxy(a1 != 0, a2, b); break;
+                        case EDITXY_TEX:      edittexxy(a1, a2, b);         break;
+                        case EDITXY_TYPE:     edittypexy(a1, b);            break;
+                        case EDITXY_VDELTA:   setvdeltaxy(a1, b);           break;
+                        case EDITXY_EQUALISE: editequalisexy(a1 != 0, b);   break;
+                        case EDITXY_TAG:      edittagxy(a1, a2, b);         break;
+                        case EDITXY_SLOPE:    slopexy(a1, a2, b);           break;
+                        case EDITXY_FLIPROT:  selfliprotate(b, a1);         break;
+                    }
+                }
+                break;
+            }
+
+            case SV_EDITARCH:
+            {
+                int av[50];  // MAXARCHVERT, hardcoded
+                int x  = getint(p);
+                int y  = getint(p);
+                int xs = getint(p);
+                int ys = getint(p);
+                int a1 = getint(p);
+                loopi(50) av[i] = getint(p);
+                if(!OUTBORD(x,y)  && xs > 0 && ys > 0 && !OUTBORD(x + xs-1, y + ys - 1))
+                {
+                    block b = { x, y, xs, ys };
+                    archxy(a1, av, b);
                 }
                 break;
             }
@@ -937,8 +958,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
             case SV_NEWMAP:
             {
                 int size = getint(p);
-                if(size>=0) empty_world(size, true);
-                else empty_world(-1, true);
+                if(size < 0 && sfactor > 9) break; // don't enlarge over 10 in MP
+                empty_world(size, true);
                 if(d && d!=player1)
                     conoutf(size>=0 ? "%s started a new map of size %d" : "%s enlarged the map to size %d", colorname(d), sfactor);
                 break;

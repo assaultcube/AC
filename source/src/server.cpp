@@ -2743,7 +2743,7 @@ int checktype(int type, client *cl)
                         SV_SENDDEMOLIST, SV_SENDDEMO, SV_DEMOPLAYBACK,
                         SV_CLIENT, SV_HUDEXTRAS, SV_POINTS };
     // only allow edit messages in coop-edit mode
-    static int edittypes[] = { SV_EDITENT, SV_EDITH, SV_EDITT, SV_EDITS, SV_EDITD, SV_EDITE, SV_NEWMAP };
+    static int edittypes[] = { SV_EDITENT, SV_EDITXY, SV_EDITARCH, SV_EDITS, SV_EDITD, SV_EDITE, SV_NEWMAP };
     if(cl)
     {
         loopi(sizeof(servtypes)/sizeof(int)) if(type == servtypes[i]) return -1;

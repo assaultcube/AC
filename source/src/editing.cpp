@@ -689,7 +689,7 @@ void editheight(int *flr, int *amount)
     loopv(sels)
     {
         editheightxy(isfloor, *amount, sels[i]);
-        addmsg(SV_EDITH, "ri6", sels[i].x, sels[i].y, sels[i].xs, sels[i].ys, isfloor, *amount);
+        addmsg(SV_EDITXY, "ri7", EDITXY_HEIGHT, sels[i].x, sels[i].y, sels[i].xs, sels[i].ys, isfloor, *amount);
     }
 }
 
@@ -765,7 +765,7 @@ void edittex(int *type, int *dir)
     loopv(sels)
     {
         edittexxy(*type, t, sels[i]);
-        addmsg(SV_EDITT, "ri6", sels[i].x, sels[i].y, sels[i].xs, sels[i].ys, *type, t);
+        addmsg(SV_EDITXY, "ri7", EDITXY_TEX, sels[i].x, sels[i].y, sels[i].xs, sels[i].ys, *type, t, 0);
     }
     unsavededits++;
     lastedittex = lastmillis;
@@ -791,7 +791,7 @@ void settex(int *texture, int *type)
     loopv(sels)
     {
         edittexxy(*type, t, sels[i]);
-        addmsg(SV_EDITT, "ri6", sels[i].x, sels[i].y, sels[i].xs, sels[i].ys, *type, t);
+        addmsg(SV_EDITXY, "ri7", EDITXY_TEX, sels[i].x, sels[i].y, sels[i].xs, sels[i].ys, *type, t, 0);
     }
     unsavededits++;
 }
@@ -833,7 +833,7 @@ void edittype(int type)
         else
         {
             edittypexy(type, sel);
-            addmsg(SV_EDITS, "ri5", sel.x, sel.y, sel.xs, sel.ys, type);
+            addmsg(SV_EDITXY, "ri7", EDITXY_TYPE, sel.x, sel.y, sel.xs, sel.ys, type, 0);
         }
     }
 }
@@ -869,7 +869,7 @@ void equalize(int *flr)
     {
         block &sel = sels[i];
         editequalisexy(isfloor, sel);
-        addmsg(SV_EDITE, "ri5", sel.x, sel.y, sel.xs, sel.ys, isfloor);
+        addmsg(SV_EDITXY, "ri7", EDITXY_EQUALISE, sel.x, sel.y, sel.xs, sel.ys, isfloor, 0);
     }
 }
 COMMAND(equalize, "i");
@@ -886,7 +886,7 @@ void setvdelta(int *delta)
     loopv(sels)
     {
         setvdeltaxy(*delta, sels[i]);
-        addmsg(SV_EDITD, "ri5", sels[i].x, sels[i].y, sels[i].xs, sels[i].ys, *delta);
+        addmsg(SV_EDITXY, "ri7", EDITXY_VDELTA, sels[i].x, sels[i].y, sels[i].xs, sels[i].ys, *delta, 0);
     }
 }
 COMMANDN(vdelta, setvdelta, "i");
@@ -907,9 +907,18 @@ void archvertex(int *span, int *vert, int *delta)
 }
 COMMAND(archvertex, "iii");
 
+void archxy(int sidedelta, int *averts, block &sel)
+{
+    loopselxy(sel, s->vdelta =
+        sel.xs>sel.ys
+            ? (averts[x] + (y==0 || y==sel.ys-1 ? sidedelta : 0))
+            : (averts[y] + (x==0 || x==sel.xs-1 ? sidedelta : 0)));
+    remipmore(sel);
+}
+
 void arch(int *sidedelta)
 {
-    EDITSELMP;
+    EDITSEL;
     loopv(sels)
     {
         block &sel = sels[i];
@@ -917,28 +926,32 @@ void arch(int *sidedelta)
         sel.ys++;
         if(sel.xs>MAXARCHVERT) sel.xs = MAXARCHVERT;
         if(sel.ys>MAXARCHVERT) sel.ys = MAXARCHVERT;
-        loopselxy(sel, s->vdelta =
-            sel.xs>sel.ys
-                ? (archverts[sel.xs-1][x] + (y==0 || y==sel.ys-1 ? *sidedelta : 0))
-                : (archverts[sel.ys-1][y] + (x==0 || x==sel.xs-1 ? *sidedelta : 0)));
-        remipmore(sel);
+        int *averts = sel.xs > sel.ys ? &archverts[sel.xs-1][0] : &archverts[sel.ys-1][0];
+        addmsg(SV_EDITARCH, "ri5v", sel.x, sel.y, sel.xs, sel.ys, *sidedelta, MAXARCHVERT, averts);
+        archxy(*sidedelta, averts, sel); // (changes xs and ys)
     }
 }
 COMMAND(arch, "i");
 
+void slopexy(int xd, int yd, block &sel)
+{
+    int off = 0;
+    if(xd < 0) off -= xd * sel.xs;
+    if(yd < 0) off -= yd * sel.ys;
+    sel.xs++;
+    sel.ys++;
+    loopselxy(sel, s->vdelta = xd * x + yd * y + off);
+    remipmore(sel);
+}
+
 void slope(int *xd, int *yd)
 {
-    EDITSELMP;
+    EDITSEL;
     loopv(sels)
     {
         block &sel = sels[i];
-        int off = 0;
-        if(*xd < 0) off -= *xd * sel.xs;
-        if(*yd < 0) off -= *yd * sel.ys;
-        sel.xs++;
-        sel.ys++;
-        loopselxy(sel, s->vdelta = *xd * x + *yd * y + off);
-        remipmore(sel);
+        addmsg(SV_EDITXY, "ri7", EDITXY_SLOPE, sel.x, sel.y, sel.xs, sel.ys, *xd, *yd);
+        slopexy(*xd, *yd, sel); // (changes xs and ys)
     }
 }
 COMMAND(slope, "ii");
@@ -971,10 +984,19 @@ VARF(fullbright, 0, 0, 1,
     else calclight();
 );
 
+void edittagxy(int orv, int andv, block &sel)
+{
+    loopselxy(sel, s->tag = (s->tag & andv) | orv);
+}
+
 void edittag(int *tag)
 {
-    EDITSELMP;
-    loopselsxy(s->tag = *tag);
+    EDITSEL;
+    loopv(sels)
+    {
+        edittagxy(*tag, 0, sels[i]);
+        addmsg(SV_EDITXY, "ri7", EDITXY_TAG, sels[i].x, sels[i].y, sels[i].xs, sels[i].ys, *tag, 0);
+    }
 }
 COMMAND(edittag, "i");
 
@@ -984,8 +1006,12 @@ void edittagclip(char *tag)
     if(tolower(*tag) == 'n') nt = 0; // "none", "nil, "nop"
     else if(!strncasecmp(tag, "pl", 2)) nt = TAGPLCLIP; // "playerclip", "plclip", "pl"
     else if(isalpha(*tag)) nt = TAGCLIP; // "clip", "all", "full", "hippo"
-    EDITSELMP;
-    loopselsxy(s->tag = (s->tag & TAGTRIGGERMASK) | nt);
+    EDITSEL;
+    loopv(sels)
+    {
+        edittagxy(nt, TAGTRIGGERMASK, sels[i]);
+        addmsg(SV_EDITXY, "ri7", EDITXY_TAG, sels[i].x, sels[i].y, sels[i].xs, sels[i].ys, nt, TAGTRIGGERMASK);
+    }
 }
 COMMAND(edittagclip, "s");
 
@@ -1068,23 +1094,32 @@ void selfliprotate(block &sel, int dir)
 
 void selectionrotate(int *dir)
 {
-    EDITSELMP;
+    EDITSEL;
     *dir &= 3;
     if(!*dir) return;
     loopv(sels)
     {
         block &sel = sels[i];
-        if(sel.xs == sel.ys || *dir == 2) selfliprotate(sel, *dir);
+        if(sel.xs == sel.ys || *dir == 2)
+        {
+            selfliprotate(sel, *dir);
+            addmsg(SV_EDITXY, "ri7", EDITXY_FLIPROT, sel.x, sel.y, sel.xs, sel.ys, *dir, 0);
+        }
     }
 }
 COMMAND(selectionrotate, "i");
 
 void selectionflip(char *axis)
 {
-    EDITSELMP;
+    EDITSEL;
     char c = toupper(*axis);
     if(c != 'X' && c != 'Y') return;
-    loopv(sels) selfliprotate(sels[i], c == 'X' ? 11 : 12);
+    int dir =  c == 'X' ? 11 : 12;
+    loopv(sels)
+    {
+        selfliprotate(sels[i], dir);
+        addmsg(SV_EDITXY, "ri7", EDITXY_FLIPROT, sels[i].x, sels[i].y, sels[i].xs, sels[i].ys, dir, 0);
+    }
 }
 COMMAND(selectionflip, "s");
 

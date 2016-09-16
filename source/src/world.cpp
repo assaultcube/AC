@@ -297,6 +297,7 @@ void undelent(char *index)
         {
             newentity(-1, e.x, e.y, e.z, entnames[t], float(e.attr1) / entscale[t][0], float(e.attr2) / entscale[t][1], float(e.attr3) / entscale[t][2], float(e.attr4) / entscale[t][3]);
             *((persistent_entity *) &ents.last()) = e;
+            if(changedents.find(ents.length() - 1) == -1) changedents.add(ents.length() - 1); // tag ent for sync because of attr5..7
             conoutf("%s entity undeleted", entnames[t]);
         }
     }
@@ -623,6 +624,8 @@ bool worldbordercheck(int x1, int x2, int y1, int y2, int z1, int z2)  // check 
 bool empty_world(int factor, bool force)    // main empty world creation routine, if passed factor -1 will enlarge old world by 1, factor -2 will shrink old world by 1
 {
     if(!force && noteditmode("empty world")) return false;
+    if(factor < -2) return false;
+    if(factor == -1 && multiplayer() && sfactor > 9) return false;
     if(factor == -2 && !worldbordercheck(ssize/4 + MINBORD, ssize/4 + MINBORD, ssize/4 + MINBORD, ssize/4 + MINBORD, 0, 0)) { conoutf("map does not fit into smaller world"); return false; }
     block *ow = NULL, be = { 0, 0, ssize, ssize }, bs = { ssize/4, ssize/4, ssize/2, ssize/2 };
     int oldfactor = sfactor;
