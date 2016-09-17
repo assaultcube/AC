@@ -920,7 +920,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 int ys = getint(p);
                 int a1 = getint(p);
                 int a2 = getint(p);
-                if(!OUTBORD(x,y)  && xs > 0 && ys > 0 && !OUTBORD(x + xs-1, y + ys - 1))
+                if(m_coop && !OUTBORD(x,y)  && xs > 0 && ys > 0 && !OUTBORD(x + xs-1, y + ys - 1))
                 {
                     block b = { x, y, xs, ys };
                     switch(cmd)
@@ -948,7 +948,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 int ys = getint(p);
                 int a1 = getint(p);
                 loopi(50) av[i] = getint(p);
-                if(!OUTBORD(x,y)  && xs > 0 && ys > 0 && !OUTBORD(x + xs-1, y + ys - 1))
+                if(m_coop && !OUTBORD(x,y)  && xs > 0 && ys > 0 && !OUTBORD(x + xs-1, y + ys - 1))
                 {
                     block b = { x, y, xs, ys };
                     archxy(a1, av, b);
@@ -956,9 +956,19 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 break;
             }
 
+            case SV_EDITBLOCK:
+            {
+                int bx = getuint(p), by = getuint(p), bxs = getuint(p), bys = getuint(p), light = getuint(p);
+                ucharbuf *pp = getgzbuf(p);
+                if(m_coop) netblockpastexy(pp, bx, by, bxs, bys, light);
+                freegzbuf(pp);
+                break;
+            }
+
             case SV_NEWMAP:
             {
                 int size = getint(p);
+                if(!m_coop) break;
                 if(size < 0 && sfactor > 9) break; // don't enlarge over 10 in MP
                 empty_world(size, true);
                 if(d && d!=player1)
@@ -968,6 +978,11 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
 
             case SV_EDITENT:            // coop edit of ent
             {
+                if(!m_coop)
+                {
+                    loopi(12) getint(p);
+                    break;
+                }
                 uint i = getint(p);
                 while((uint)ents.length()<=i) ents.add().type = NOTUSED;
                 int to = ents[i].type;

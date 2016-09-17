@@ -421,15 +421,52 @@ void gotoposition(char *x, char *y, char *z, char *yaw, char *pitch)
 }
 COMMAND(gotoposition, "sssss");
 
+const int MAXNETBLOCKSQR = MAXGZMSGSIZE / sizeof(sqr);
+
+void netblockpaste(const block &b, int bx, int by, bool light)  // transmit block to be pasted at bx,by
+{
+    ASSERT(b.xs * b.ys <= MAXNETBLOCKSQR);
+    vector<uchar> t, tmp;
+    putuint(t, bx);
+    putuint(t, by);
+    putuint(t, b.xs);
+    putuint(t, b.ys);
+    putuint(t, light ? 1 : 0);
+    tmp.put((uchar *)((&b)+1), b.xs * b.ys * (int)sizeof(sqr));
+    putgzbuf(t, tmp);
+    packetbuf p(t.length() + 10, ENET_PACKET_FLAG_RELIABLE);
+    putint(p, SV_EDITBLOCK);
+    p.put(t.getbuf(), t.length());
+    sendpackettoserv(1, p.finalize());
+}
+
+void netblockpastexy(ucharbuf *p, int bx, int by, int bxs, int bys, int light)
+{
+    if(bxs < 0 || bys < 0 || bxs > ssize || bys > ssize || bxs * bys > MAXNETBLOCKSQR || OUTBORD(bx, by) || OUTBORD(bx+bxs-1, by+bys-1)) return;
+    block *b = (block *)new uchar[sizeof(block) + bxs * bys * sizeof(sqr)];
+    b->x = bx; b->y = by; b->xs = bxs; b->ys = bys;
+    memcpy(b + 1, p->buf, p->maxlen);
+    makeundo(*b);
+    blockpaste(*b, bx, by, light != 0, NULL);
+    freeblockp(b);
+}
+
 void editundo()
 {
-    EDITMP("undo");
+    EDIT("undo");
+    bool mp = multiplayer(NULL);
+    if(mp && undos.length() && undos.last()->xs * undos.last()->ys > MAXNETBLOCKSQR)
+    {
+        conoutf("\f3next undo area too big for multiplayer editing");
+        return;
+    }
     if(undos.empty()) { conoutf("nothing more to undo"); return; }
     block *p = undos.pop();
     undolevel--;
     redos.add(blockcopy(*p));
     if(editmetakeydown) restoreposition(*p);
     blockpaste(*p);
+    if(mp) netblockpaste(*p, p->x, p->y, true);
     freeblock(p);
     unsavededits++;
 }
@@ -449,13 +486,20 @@ COMMANDN(undolevel, gotoundolevel, "s");
 
 void editredo()
 {
-    EDITMP("redo");
+    EDIT("redo");
+    bool mp = multiplayer(NULL);
+    if(mp && redos.length() && redos.last()->xs * redos.last()->ys > MAXNETBLOCKSQR)
+    {
+        conoutf("\f3next redo area too big for multiplayer editing");
+        return;
+    }
     if(redos.empty()) { conoutf("nothing more to redo"); return; }
     block *p = redos.pop();
     undos.add(blockcopy(*p));
     undolevel++;
     if(editmetakeydown) restoreposition(*p);
     blockpaste(*p);
+    if(mp) netblockpaste(*p, p->x, p->y, true);
     freeblock(p);
     unsavededits++;
 }
@@ -561,7 +605,7 @@ void resetcopybuffers()
 
 void copy()
 {
-    EDITSELMP("copy");
+    EDITSEL("copy");
     resetcopybuffers();
     copytexconfig = texconfig_copy();
 
@@ -576,12 +620,24 @@ COMMAND(copy, "");
 
 void paste()
 {
-    EDITSELMP("paste");
+    EDITSEL("paste");
+    bool mp = multiplayer(NULL);
+    if(mp)
+    {
+        loopv(copybuffers) if(copybuffers[i]->xs * copybuffers[i]->ys > MAXNETBLOCKSQR)
+        {
+            conoutf("\f3copied area too big for multiplayer pasting");
+            return;
+        }
+    }
     if(!copybuffers.length()) { conoutf("nothing to paste"); return; }
 
     uchar usedslots[256] = { 0 }, *texmap = NULL;
-    loopv(copybuffers) blocktexusage(*copybuffers[i], usedslots);
-    if(sels.length() && copytexconfig) texmap = texconfig_paste(copytexconfig, usedslots);
+    if(!mp)
+    {
+        loopv(copybuffers) blocktexusage(*copybuffers[i], usedslots);
+        if(sels.length() && copytexconfig) texmap = texconfig_paste(copytexconfig, usedslots);
+    }
 
     loopv(sels)
     {
@@ -601,6 +657,7 @@ void paste()
             if(!correctsel(sel) || sel.xs!=copyblock->xs || sel.ys!=copyblock->ys) { conoutf("incorrect selection"); return; }
             makeundo(sel);
             blockpaste(*copyblock, sel.x, sel.y, true, texmap);
+            if(mp) netblockpaste(*copyblock, sel.x, sel.y, true);
         }
     }
 }
@@ -1141,7 +1198,8 @@ COMMAND(selectionflip, "s");
 
 void selectionwalk(char *action, char *beginsel, char *endsel)
 {
-    EDITSELMP("selectionwalk");
+    EDITSEL("selectionwalk");
+    bool mp = multiplayer(NULL);
     if(*action)
     {
         const char *localvars[] = { "sw_cursel", "sw_abs_x", "sw_abs_y", "sw_rel_x", "sw_rel_y", "sw_type", "sw_floor", "sw_ceil", "sw_wtex", "sw_ftex", "sw_ctex", "sw_utex", "sw_vdelta", "sw_tag", "sw_r", "sw_g", "sw_b", "" };
@@ -1154,7 +1212,7 @@ void selectionwalk(char *action, char *beginsel, char *endsel)
             defformatstring(tmp)("%d %d %d %d", sel.x, sel.y, sel.xs, sel.ys);
             alias("sw_cursel", tmp);
             if(*beginsel) execute(beginsel);
-            bool haveundo = false;
+            bool haveundo = false, isro = mp && sel.xs * sel.ys > MAXNETBLOCKSQR, didwarn = false;
             loop(x, sel.xs) loop(y, sel.ys)
             {
                 sqr *s = S(sel.x + x, sel.y + y), so = *s;
@@ -1172,12 +1230,29 @@ void selectionwalk(char *action, char *beginsel, char *endsel)
                 #undef GETA
                 if(memcmp(s, &so, sizeof(sqr)))
                 {
-                    if(!haveundo) makeundo(sel);
-                    haveundo = true;
-                    *s = so;
+                    if(isro)
+                    {
+                        if(!didwarn) conoutf("\f3selectionwalk: selected area %dx%d too big for multiplayer editing, changes ignored!", sel.xs, sel.ys);
+                        didwarn = true;
+                    }
+                    else
+                    {
+                        if(!haveundo) makeundo(sel);
+                        haveundo = true;
+                        *s = so;
+                    }
                 }
             }
-            if(haveundo) remip(sel);
+            if(haveundo)
+            {
+                if(mp)
+                {
+                    block *b = blockcopy(sel);
+                    netblockpaste(*b, sel.x, sel.y, true);
+                    freeblockp(b);
+                }
+                remip(sel);
+            }
             if(*endsel) execute(endsel);
         }
         for(int i = 0; *localvars[i]; i++) pop(localvars[i]);
