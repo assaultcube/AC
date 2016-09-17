@@ -547,6 +547,7 @@ extern botent *newbotent();
 extern void freebotent(botent *d);
 extern char *getclientmap();
 extern int getclientmode();
+extern int teamatoi(const char *name);
 extern void zapplayer(playerent *&d);
 extern playerent *getclient(int cn);
 extern playerent *newclient(int cn);

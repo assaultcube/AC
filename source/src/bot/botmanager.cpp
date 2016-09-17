@@ -881,7 +881,6 @@ botent *CBotManager::CreateBot(const char *team, const char *skill, const char *
     if (!m) return NULL;
     loopi(NUMGUNS) m->ammo[i] = m->mag[i] = 0;
     m->lifesequence = 0;
-    setskin(m, rnd(6));
     m->pBot = new CACBot;
     m->type = ENT_BOT;
     m->pBot->m_pMyEnt = m;
@@ -894,7 +893,8 @@ botent *CBotManager::CreateBot(const char *team, const char *skill, const char *
     updateclientname((playerent *)m);
 
     const char *tempteam = team && *team && strcmp(team, "random") ? team : BotManager.GetBotTeam();
-    loopi(TEAM_NUM) if(!strcmp(teamnames[i], tempteam)) { m->team = i; break; }
+    m->team = team_base(teamatoi(tempteam));
+    setskin(m, m->team  == TEAM_CLA ? rnd(4) : rnd(6), m->team);
 
     if (skill && *skill && strcmp(skill, "random"))
     {
