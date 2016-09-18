@@ -944,6 +944,8 @@ void setvdelta(int *delta)
 }
 COMMANDN(vdelta, setvdelta, "i");
 
+VARP(enlargearchslopeselections, 0, 0, 1); // "1" is classic behaviour
+
 const int MAXARCHVERT = 50;
 int archverts[MAXARCHVERT][MAXARCHVERT];
 bool archvinit = false;
@@ -982,7 +984,8 @@ void arch(int *sidedelta)
         if(sel.ys>MAXARCHVERT) sel.ys = MAXARCHVERT;
         int *averts = sel.xs > sel.ys ? &archverts[sel.xs-1][0] : &archverts[sel.ys-1][0];
         addmsg(SV_EDITARCH, "ri5v", sel.x, sel.y, sel.xs, sel.ys, *sidedelta, MAXARCHVERT, averts);
-        archxy(*sidedelta, averts, sel); // (changes xs and ys)
+        archxy(*sidedelta, averts, sel);
+        if(!enlargearchslopeselections) { sel.xs--; sel.ys--; }
     }
 }
 COMMAND(arch, "i");
@@ -1006,6 +1009,7 @@ void slope(int *xd, int *yd)
         block &sel = sels[i];
         addmsg(SV_EDITXY, "ri7", EDITXY_SLOPE, sel.x, sel.y, sel.xs, sel.ys, *xd, *yd);
         slopexy(*xd, *yd, sel); // (changes xs and ys)
+        if(!enlargearchslopeselections) { sel.xs--; sel.ys--; }
     }
 }
 COMMAND(slope, "ii");
@@ -1044,6 +1048,7 @@ void perlin(int *scale, int *seed, int *psize)
         sel.xs++;
         sel.ys++;
         remipmore(sel);
+        if(!enlargearchslopeselections) { sel.xs--; sel.ys--; }
     }
 }
 COMMAND(perlin, "iii");
