@@ -27,22 +27,24 @@ void renderent(entity &e)
     rendermodel(mdlname, ANIM_MAPMODEL|ANIM_LOOP|ANIM_DYNALLOC, 0, 0, vec(e.x, e.y, z+S(e.x, e.y)->floor + float(e.attr1) / ENTSCALE10), 0, yaw, 0);
 }
 
-void renderclip(entity &e)
+void renderclip(int type, int x, int y, float xs, float ys, float h, float elev, float tilt, int shape)
 {
-    float xradius = max(float(e.attr2) / ENTSCALE5, 0.05f), yradius = max(float(e.attr3) / ENTSCALE5, 0.05f), h = max(float(e.attr4) / ENTSCALE5, 0.1f);
-    vec bbmin(e.x - xradius, e.y - yradius, float(S(e.x, e.y)->floor + float(e.attr1) / ENTSCALE10)),
-        bbmax(e.x + xradius, e.y + yradius, bbmin.z + h);
+    if(xs < 0.05f) xs = 0.05f;
+    if(ys < 0.05f) ys = 0.05f;
+    if(h < 0.1f) h = 0.1f;
+    vec bbmin(x - xs, y - ys, S(x, y)->floor + elev),
+        bbmax(x + xs, y + ys, bbmin.z + h);
     vec bb[4];
     loopi(4) bb[i] = bbmin;
     bb[2].x = bb[1].x = bbmax.x;
     bb[2].y = bb[3].y = bbmax.y;
-    vec o(e.x, e.y, bbmin.z);
+    vec o(x, y, bbmin.z);
 
     float tx = 0, ty = 0, angle = 0;
-    switch(e.attr7 & 3)
+    switch(shape & 3)
     {
-        case 1: tx = float(e.attr6) / (4 * ENTSCALE10); break; // tilt x
-        case 2: ty = float(e.attr6) / (4 * ENTSCALE10); break; // tilt y
+        case 1: tx = tilt; break; // tilt x
+        case 2: ty = tilt; break; // tilt y
         case 3: angle = PI/4; break; // rotate 45°
     }
     loopi(4)
@@ -53,7 +55,7 @@ void renderclip(entity &e)
     }
 
     glDisable(GL_TEXTURE_2D);
-    switch(e.type)
+    switch(type)
     {
         case CLIP:     linestyle(1, 0xFF, 0xFF, 0); break;  // yellow
         case MAPMODEL: linestyle(1, 0, 0xFF, 0);    break;  // green
@@ -233,29 +235,21 @@ void renderentities()
                 defformatstring(path)("pickups/flags/%s", team_basestring(e.attr2));
                 rendermodel(path, ANIM_FLAG|ANIM_LOOP, 0, 0, vec(e.x, e.y, (float)S(e.x, e.y)->floor), 0, float(e.attr1) / ENTSCALE10, 0, 120.0f);
             }
-            else if((e.type == CLIP || e.type == PLCLIP) && showclips && !stenciling) renderclip(e);
+            else if((e.type == CLIP || e.type == PLCLIP) && showclips && !stenciling)
+            {
+                renderclip(e.type, e.x, e.y, float(e.attr2) / ENTSCALE5, float(e.attr3) / ENTSCALE5, float(e.attr4) / ENTSCALE5, float(e.attr1) / ENTSCALE10, float(e.attr6) / (4 * ENTSCALE10), e.attr7);
+            }
             else if(e.type == MAPMODEL && showclips && showmodelclipping && !stenciling)
             {
                 mapmodelinfo *mmi = getmminfo(e.attr2);
                 if(mmi && mmi->h)
                 {
-                    entity ce = e;
-                    ce.attr1 = (mmi->zoff + float(e.attr3) / ENTSCALE5) * ENTSCALE10;
-                    ce.attr2 = ce.attr3 = mmi->rad * ENTSCALE5;
-                    ce.attr4 = mmi->h * ENTSCALE5;
-                    ce.attr5 = ce.attr6 = ce.attr7 = 0;
-                    renderclip(ce);
+                    renderclip(e.type, e.x, e.y, mmi->rad, mmi->rad, mmi->h, mmi->zoff + float(e.attr3) / ENTSCALE5, 0, 0);
                 }
             }
             else if(e.type == LADDER && showladderentities && !stenciling)
             {
-                entity ce = e;
-                ce.attr1 = 0;
-                ce.attr2 = ce.attr3 = 0;
-                ce.attr4 = e.attr1 * ENTSCALE5;
-                ce.attr5 = ce.attr6 = 0;
-                ce.attr7 = 3;
-                renderclip(ce);
+                renderclip(e.type, e.x, e.y, 0, 0, e.attr1, 0, 0, 3);
             }
             else if(e.type == PLAYERSTART && showplayerstarts)
             {

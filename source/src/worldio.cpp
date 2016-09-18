@@ -888,10 +888,12 @@ int load_world(char *mname)        // still supports all map formats that have e
             if(e.type == CTF_FLAG || e.type == MAPMODEL) e.attr1 = e.attr1 + 7 - (e.attr1 + 7) % 15;  // round the angle to the nearest 15-degree-step, like old versions did during rendering
             if(e.type == LIGHT && e.attr1 < 0) e.attr1 = 0; // negative lights had no meaning before version 10
             int ov, ss;
+            persistent_entity oe = e;
             #define SCALEATTR(x) \
             if((ss = abs(entwraparound[e.type][x - 1] / entscale[e.type][x - 1]))) e.attr##x = (int(e.attr##x) % ss + ss) % ss; \
             e.attr##x = ov = e.attr##x * entscale[e.type][x - 1]; \
-            if(ov != e.attr##x) { conoutf("overflow during conversion of attr%d of entity #%d (%s) - pls check before saving the map", x, i, entnames[e.type]); res |= LWW_ENTATTROVERFLOW; }
+            if(ov != e.attr##x) { conoutf("overflow during conversion of attr%d of entity #%d (%s): value %d can no longer be represented - pls fix manually before saving the map",\
+                                           x, i, entnames[e.type], oe.attr##x); e.attr##x = oe.attr##x; res |= LWW_ENTATTROVERFLOW; }
             SCALEATTR(1);
             SCALEATTR(2);
             SCALEATTR(3);
