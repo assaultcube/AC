@@ -26,11 +26,11 @@ ifeq ($(ACDEBUG),yes)
 endif
 
 ifneq (,$(findstring clang,$(CXX)))
-	CXXFLAGS= -O2 -fomit-frame-pointer
-	override CXXFLAGS+= -Wall -fsigned-char
+	CXXFLAGS= -O3 -fomit-frame-pointer
+	override CXXFLAGS+= -Wall -fsigned-char -fno-strict-aliasing
 else
 	CXXFLAGS= -O3 -fomit-frame-pointer
-	override CXXFLAGS+= -Wall -fsigned-char -ffast-math -rdynamic -Wno-format-zero-length
+	override CXXFLAGS+= -Wall -fsigned-char -ffast-math -rdynamic -Wno-format-zero-length -fno-strict-aliasing
 endif
 
 INCLUDES= -I. -Ibot -I../enet/include

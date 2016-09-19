@@ -210,8 +210,7 @@ class jpegenc
         void writebits(bitstring bs);
         void compute_Huffman_table(BYTE *nrcodes, BYTE *std_table, bitstring *HT);
         void init_Huffman_tables(void);
-        void exitmessage(const char *error_message);
-        void set_numbers_category_and_bitcode();
+        int set_numbers_category_and_bitcode();
         void precalculate_YCbCr_tables();
         void prepare_quant_tables();
         void fdct_and_quantization(SBYTE *data, float *fdtbl, SWORD *outdata);
@@ -567,22 +566,16 @@ void jpegenc::init_Huffman_tables()
     compute_Huffman_table(std_ac_chrominance_nrcodes, std_ac_chrominance_values, CbAC_HT);
 }
 
-void jpegenc::exitmessage(const char *error_message)
-{
-    printf("%s\n",error_message);
-    exit(EXIT_FAILURE);
-}
-
-void jpegenc::set_numbers_category_and_bitcode()
+int jpegenc::set_numbers_category_and_bitcode()
 {
     SDWORD nr;
     SDWORD nrlower, nrupper;
     BYTE cat;
     category_alloc = (BYTE *)malloc(65535*sizeof(BYTE));
-    if (category_alloc == NULL) exitmessage("Not enough memory.");
+    if (category_alloc == NULL) return -1;
     category = category_alloc + 32767;
     bitcode_alloc=(bitstring *)malloc(65535*sizeof(bitstring));
-    if (bitcode_alloc==NULL) exitmessage("Not enough memory.");
+    if (bitcode_alloc==NULL) { free(category_alloc); return -1; }
     bitcode = bitcode_alloc + 32767;
     nrlower = 1;
     nrupper = 2;
@@ -603,6 +596,7 @@ void jpegenc::set_numbers_category_and_bitcode()
         nrlower <<= 1;
         nrupper <<= 1;
     }
+    return 0;
 }
 
 void jpegenc::precalculate_YCbCr_tables()
@@ -836,7 +830,11 @@ int jpegenc::encode(const char *filename, SDL_Surface *image, int jpegquality)
     set_DQTinfo(jpegquality);
     set_DHTinfo();
     init_Huffman_tables();
-    set_numbers_category_and_bitcode();
+    if(set_numbers_category_and_bitcode() < 0)
+    {
+        delete fp_jpeg_stream;
+        return -2;
+    }
     precalculate_YCbCr_tables();
     prepare_quant_tables();
 
