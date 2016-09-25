@@ -33,7 +33,8 @@ void setwatercolor(const char *r, const char *g, const char *b, const char *a)
     if(editmode) unsavededits++;
 }
 
-COMMANDN(watercolour, setwatercolor, "ssss");
+//COMMANDN(watercolour, setwatercolor, "ssss");
+COMMANDF(watercolour, "ssss", (char *r, char *g, char *b, char *a) { if(editmode) setwatercolor(r, g, b, a); });
 
 FVAR(waveheight, 0, 0.3f, 1.0f);
 VARP(ignoreoverride_limitwaveheight, 0, 0, 1);

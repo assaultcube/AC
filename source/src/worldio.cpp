@@ -554,19 +554,19 @@ void rebuildtexlists()  // checks the texlists, if they still contain all possib
     if(mt) conoutf("WARNING: rebuildtexlists() fixed %d|%d|%d missing entries", mk[0], mk[1], mk[2]);
 }
 
-static const uchar sortenttab[] = {
-    99,         // NOTUSED                     // entity slot not in use in map (usually seen at deleted entities)
-    5,          // LIGHT                       // lightsource, attr1 = radius, attr2 = intensity (or attr2..4 = r-g-b)
-    2,          // PLAYERSTART                 // attr1 = angle, attr2 = team
-    1, 1, 1,    // I_CLIPS, I_AMMO, I_GRENADE, // attr1 = elevation
+static const uchar sortenttab[] = {  // 1..9: used in network protocol, 10..19: sorted lights, 20..29: misc, 30..39: clipped ents at the end of the list
+    99,         // NOTUSED                          // entity slot not in use in map (usually seen at deleted entities)
+    10,         // LIGHT (colored: 11, shadow: 12)  // lightsource, attr1 = radius, attr2 = intensity (or attr2..4 = r-g-b)
+    2,          // PLAYERSTART                      // attr1 = angle, attr2 = team
+    1, 1, 1,    // I_CLIPS, I_AMMO, I_GRENADE,      // attr1 = elevation
     1, 1, 1, 1, // I_HEALTH, I_HELMET, I_ARMOUR, I_AKIMBO,
-    10,         // MAPMODEL                    // attr1 = angle, attr2 = idx, attr3 = elevation, attr4 = texture, attr5 = pitch, attr6 = roll
-    9,          // CARROT                      // attr1 = tag, attr2 = type
-    3,          // LADDER                      // attr1 = height
-    1,          // CTF_FLAG                    // attr1 = angle, attr2 = red/blue
-    8,          // SOUND                       // attr1 = idx, attr2 = radius, attr3 = size, attr4 = volume
-    12,         // CLIP                        // attr1 = elevation, attr2 = xradius, attr3 = yradius, attr4 = height, attr6 = slope, attr7 = shape
-    13};        // PLCLIP                      // attr1 = elevation, attr2 = xradius, attr3 = yradius, attr4 = height, attr6 = slope, attr7 = shape
+    30,         // MAPMODEL (clipped: 31)           // attr1 = angle, attr2 = idx, attr3 = elevation, attr4 = texture, attr5 = pitch, attr6 = roll
+    21,         // CARROT                           // attr1 = tag, attr2 = type
+    3,          // LADDER                           // attr1 = height
+    1,          // CTF_FLAG                         // attr1 = angle, attr2 = red/blue
+    20,         // SOUND                            // attr1 = idx, attr2 = radius, attr3 = size, attr4 = volume
+    32,         // CLIP                             // attr1 = elevation, attr2 = xradius, attr3 = yradius, attr4 = height, attr6 = slope, attr7 = shape
+    33};        // PLCLIP                           // attr1 = elevation, attr2 = xradius, attr3 = yradius, attr4 = height, attr6 = slope, attr7 = shape
 
 struct numbered_persistent_entity { persistent_entity e; int n; };
 
@@ -628,11 +628,12 @@ void save_world(char *mname, bool skipoptimise, bool addcomfort)
         if(t == LIGHT)
         {
             if(npe.e.attr3 || npe.e.attr4) nt++; // sort white lights before colored ones to fix light bug
+            if(npe.e.attr1 < 0) nt += 2; // sort shadows after lights
         }
         else if(t == MAPMODEL)
         {
             mapmodelinfo *mmi = getmminfo(npe.e.attr2);
-            if(mmi && mmi->h) nt++; // sort clipped mapmodels right after unclipped mapmodels
+            if(mmi && mmi->h) nt++; // sort clipped mapmodels right after unclipped mapmodels, but before clips and plclips
         }
         npe.n = i | (nt << 16); // numbers have to be unique for the sort to be stable
         sortedents.add(npe);
