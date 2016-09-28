@@ -33,7 +33,6 @@ void setwatercolor(const char *r, const char *g, const char *b, const char *a)
     if(editmode) unsavededits++;
 }
 
-//COMMANDN(watercolour, setwatercolor, "ssss");
 COMMANDF(watercolour, "ssss", (char *r, char *g, char *b, char *a) { if(editmode) setwatercolor(r, g, b, a); });
 
 FVAR(waveheight, 0, 0.3f, 1.0f);
@@ -52,10 +51,10 @@ const char *componentnames[] = { "red", "green", "blue", "alpha", "" };
 void setwatercolour(char *what, int *v)
 {
     int t = getlistindex(what, componentnames, true, -1);
-    if(t >= 0 && t < 4)
+    if(t >= 0 && t < 4 && editmode)
     {
         hdr.watercolor[t] = *v;
-        if(editmode) unsavededits++;
+        unsavededits++;
     }
 }
 COMMAND(setwatercolour, "si");
