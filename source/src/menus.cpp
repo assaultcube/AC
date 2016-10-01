@@ -1309,7 +1309,13 @@ void gmenu::open()
     if(!allowinput) menusel = 0;
     if(!forwardkeys) player1->stopmoving();
     setcontext("menu", name);
-    if(initaction) execute(initaction);
+    if(initaction)
+    {
+        gmenu *oldlastmenu = lastmenu;
+        lastmenu = this;
+        execute(initaction);
+        lastmenu = oldlastmenu;
+    }
     if(items.inrange(menusel)) items[menusel]->focus(true);
     init();
     resetcontext();
