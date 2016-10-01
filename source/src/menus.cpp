@@ -939,6 +939,7 @@ void menuinitselection(int *line)
 {
     if(!lastmenu) return;
     if(lastmenu->items.inrange(*line)) lastmenu->menusel = *line;
+    else lastmenu->menuselinit = *line;
 }
 COMMAND(menuinitselection, "i");
 
@@ -1316,6 +1317,7 @@ void gmenu::open()
         execute(initaction);
         lastmenu = oldlastmenu;
     }
+    if(items.inrange(menuselinit)) { menusel = menuselinit; menuselinit = -1; }
     if(items.inrange(menusel)) items[menusel]->focus(true);
     init();
     resetcontext();

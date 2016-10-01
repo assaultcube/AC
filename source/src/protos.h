@@ -224,7 +224,7 @@ struct gmenu
     const char *name, *title, *header, *footer;
     vector<mitem *> items;
     int mwidth;
-    int menusel;
+    int menusel, menuselinit;
     bool allowinput, inited, hotkeys, forwardkeys;
     void (__cdecl *refreshfunc)(void *, bool);
     bool (__cdecl *keyfunc)(void *, int, bool, int);
@@ -239,7 +239,7 @@ struct gmenu
     char *previewtexture, *previewtexturetitle;
     mdirlist *dirlist;
 
-    gmenu() : name(0), title(0), header(0), footer(0), initaction(0), usefont(0), allowblink(false), persistentselection(false), mdl(0), footlen(0), xoffs(0), yoffs(0), previewtexture(NULL), previewtexturetitle(NULL), dirlist(0) {}
+    gmenu() : name(0), title(0), header(0), footer(0), menuselinit(-1), initaction(0), usefont(0), allowblink(false), persistentselection(false), mdl(0), footlen(0), xoffs(0), yoffs(0), previewtexture(NULL), previewtexturetitle(NULL), dirlist(0) {}
     virtual ~gmenu()
     {
         DELETEA(name);
