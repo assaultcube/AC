@@ -440,6 +440,12 @@ void sendf(int cn, int chan, const char *format, ...)
             loopi(n) putint(p, va_arg(args, int));
             break;
         }
+        case 'a':
+        {
+            int n = isdigit(*format) ? *format++-'0' : 1;
+            loopi(n) putaint(p, va_arg(args, int));
+            break;
+        }
         case 's': sendstring(va_arg(args, const char *), p); break;
         case 'm':
         {

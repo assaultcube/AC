@@ -34,6 +34,32 @@ int getint(ucharbuf &p)
     }
 }
 
+// special encoding for asymmetric small integers: -1..252 go into one byte, -256..65279 go into three bytes and any other int goes into five bytes
+// (the network encoding is compatible with basic getint)
+template<class T>
+static inline void putaint_(T &p, int n)
+{
+    DEBUGVAR(n);
+    if(n<253 && n>-2) p.put(n - 125);
+    else if(n<0xFF00 && n>=-256) { n += 256; p.put(0x80); p.put(n); p.put(n>>8); }
+    else { p.put(0x81); p.put(n); p.put(n>>8); p.put(n>>16); p.put(n>>24); }
+}
+void putaint(ucharbuf &p, int n) { putaint_(p, n); }
+void putaint(packetbuf &p, int n) { putaint_(p, n); }
+void putaint(vector<uchar> &p, int n) { putaint_(p, n); }
+
+int getaint(ucharbuf &p)
+{
+    int c = ((char)p.get()) + 125;
+    if(c==-128) { int n = p.get(); n |= p.get()<<8; n -= 256; DEBUGVAR(n); return n; }
+    else if(c==-127) { int n = p.get(); n |= p.get()<<8; n |= p.get()<<16; n |= (p.get()<<24); DEBUGVAR(n); return n; }
+    else
+    {
+        DEBUGVAR(c);
+        return c;
+    }
+}
+
 // much smaller encoding for unsigned integers up to 28 bits, but can handle signed
 template<class T>
 static inline void putuint_(T &p, int n)

@@ -385,6 +385,13 @@ void addmsg(int type, const char *fmt, ...)
                 numi += n;
                 break;
             }
+            case 'a':
+            {
+                int n = isdigit(*fmt) ? *fmt++-'0' : 1;
+                loopi(n) putaint(p, va_arg(args, int));
+                numi += n;
+                break;
+            }
             case 's':
             {
                 const char *t = va_arg(args, const char *);
