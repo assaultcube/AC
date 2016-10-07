@@ -366,7 +366,7 @@ void resizephysent(physent *pl, int moveres, int curtime, float min, float max)
     {
         pl->eyeheight += h;
         pl->o.z += h;
-        if(collide(pl))
+        if(collide(pl) && !(pl != player1 && player1->isspectating() && player1->spectatemode==SM_FOLLOW1ST)) // don't check collision during spectating in 1st person view
         {
             pl->eyeheight -= h; // collided, revert mini-step
             pl->o.z -= h;
