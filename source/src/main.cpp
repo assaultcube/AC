@@ -414,6 +414,20 @@ void setresdata(char *s, enet_uint32 c)
 
 COMMANDF(screenres, "ii", (int *w, int *h) { screenres(*w, *h); });
 
+int desktopw = 0, desktoph = 0;
+
+void setdesktopres()
+{
+    if(desktopw && desktoph)
+    {
+        scr_w = desktopw;
+        scr_h = desktoph;
+    }
+    else conoutf("Could not set resolution as in desktop");
+}
+
+COMMAND(setdesktopres, "");
+
 static int curgamma = 100;
 VARNFP(gamma, vgamma, 30, 100, 300,
 {
@@ -1103,6 +1117,12 @@ int main(int argc, char **argv)
     if(SDL_InitSubSystem(SDL_INIT_VIDEO)<0) fatal("Unable to initialize SDL Video");
 
     initlog("video: mode");
+    const SDL_VideoInfo *video = SDL_GetVideoInfo();
+    if(video)
+    {
+        desktopw = video->current_w;
+        desktoph = video->current_h;
+    }
     int usedcolorbits = 0, useddepthbits = 0, usedfsaa = 0;
     setupscreen(usedcolorbits, useddepthbits, usedfsaa);
 
