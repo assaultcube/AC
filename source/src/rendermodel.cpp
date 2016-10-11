@@ -843,6 +843,8 @@ int findanim(const char *name)
 
 void loadskin(const char *dir, const char *altdir, Texture *&skin) // model skin sharing
 {
+    bool old_silent_texture_load = silent_texture_load;
+    silent_texture_load = true;
     #define ifnoload if((skin = textureload(path))==notexture)
     defformatstring(path)("packages/models/%s/skin.jpg", dir);
     ifnoload
@@ -854,10 +856,11 @@ void loadskin(const char *dir, const char *altdir, Texture *&skin) // model skin
             ifnoload
             {
                 strcpy(path+strlen(path)-3, "png");
-                ifnoload return;
+                ifnoload {};
             }
         }
     }
+    silent_texture_load = old_silent_texture_load;
 }
 
 void preload_playermodels()
