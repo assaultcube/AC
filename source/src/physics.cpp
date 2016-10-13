@@ -528,8 +528,8 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
                         if(pl->jumpnext)
                         {
                             pl->jumpnext = false;
-                            bool doublejump = pl->lastjump && lastmillis - pl->lastjump < 250 && pl->strafe != 0 && pl->o.z - pl->lastjumpheight > 0.2f;
-                            pl->lastjumpheight = pl->o.z;
+                            bool doublejump = pl->lastjump && lastmillis - pl->lastjump < 250 && pl->strafe != 0 && pl->o.z - pl->eyeheight - pl->lastjumpheight > 0.2f;
+                            pl->lastjumpheight = pl->o.z - pl->eyeheight;
                             pl->vel.z = 2.0f; // physics impulse upwards
                             if(doublejump && curfullspeed > 0.1f) // more velocity on double jump
                             {
