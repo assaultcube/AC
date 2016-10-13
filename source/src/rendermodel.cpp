@@ -1125,7 +1125,9 @@ void loadallmapmodels()  // try to find all mapmodels in packages/models/mapmode
 {
     vector<char *> files;
     listfilesrecursive("packages/models/mapmodels", files);
-    loopvrev(files) if(strchr(files[i], '.')) delstring(files.remove(i)); // poor man's solution to remove ordinary files from the list: remove everything containing '.'
+    char *r = NULL;
+    loopvrev(files) if((r = strrchr(files[i], '/'))) *r = '\0'; // cut off filename and last '/'
+    loopvrev(files) if(!strchr(files[i], '/')) delstring(files.remove(i)); // require minimum path depth of two
     files.sort(stringsort);
     loopvrev(files) if(files.inrange(i + 1) && !strcmp(files[i], files[i + 1])) delstring(files.remove(i + 1)); // remove doubles
     loopv(files)
