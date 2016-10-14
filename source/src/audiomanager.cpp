@@ -928,7 +928,7 @@ void editmapsoundslot(int *n, char *name, char *maxuses) // edit slot parameters
     }
     result(res);
 }
-COMMAND(editmapsoundslot, "isssss");
+COMMAND(editmapsoundslot, "iss");
 
 void getmapsoundorigin(char *fname)
 {

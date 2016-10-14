@@ -644,7 +644,7 @@ VARP(serversort, 0, 0, NUMSERVSORT-1);
 VARP(serversortdir, 0, 0, 1);
 VARP(showonlygoodservers, 0, 0, 1);
 VAR(shownamesinbrowser, 0, 0, 1);
-VARP(showminremain, 0, 0, 1);
+VARP(showminremain, 0, 1, 1);
 VARP(showallplayersnumber, 0, 1, 1);
 VARP(serversortpreferofficial, 0, 1, 1);
 

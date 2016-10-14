@@ -130,7 +130,7 @@ void adddocremark(char *remark)
     lastident->remarks.add(newstring(remark));
 }
 
-void adddocref(char *name, char *ident, char *url, char *article) // FIXME... someone, please :P
+void adddocref(char *name, char *ident, char *url, char *article)
 {
     if(!lastident || !name) return;
     docref &r = lastident->references.add();

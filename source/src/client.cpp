@@ -802,7 +802,7 @@ void getmap(char *name, char *callback)
             if(callback && *callback) execute(callback);
             conoutf("map %s installed successfully", name);
         }
-        else conoutf("\f3map download failed.");
+        else conoutf("\f3map download failed");
     }
 }
 

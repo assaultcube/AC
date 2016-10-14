@@ -474,15 +474,6 @@ void scopefunc()
     scopesensfunc = tan(((float)scopefov)*0.5f*RAD)/tan(fov*0.5f*RAD);
 }
 
-// map old fov values to new ones
-void fovcompat(int *oldfov)
-{
-    extern float aspect;
-    setfvar("fov", atan(tan(RAD/2.0f*(*oldfov)/aspect)*aspect)*2.0f/RAD, true);
-}
-
-COMMAND(fovcompat, "i");
-
 float dynfov()
 {
     if(player1->weaponsel->type == GUN_SNIPER && ((sniperrifle *)player1->weaponsel)->scoped) return (float)scopefov;

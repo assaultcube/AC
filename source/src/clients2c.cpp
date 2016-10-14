@@ -1117,7 +1117,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
             {
                 extern int spawnpermission;
                 spawnpermission = getint(p);
-                if(spawnpermission == SP_REFILLMATCH) hudoutf("\f3You can now spawn to refill your team.");
+                if(spawnpermission == SP_REFILLMATCH) hudoutf("\f3you can spawn now to refill your team");
                 break;
             }
             case SV_FORCEDEATH:
