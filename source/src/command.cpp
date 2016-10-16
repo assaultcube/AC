@@ -519,11 +519,11 @@ void intret(int v)
 
 const char *floatstr(float v, bool neat)
 {
-    static string s;
+    static char s[2 * MAXSTRLEN];
     static int i = 0;
-    if(i > MAXSTRLEN - 100) i = 0;
+    if(i > MAXSTRLEN - 10) i = 0;
     char *t = s + i;
-    snprintf(t, 99, !neat && (v) == int(v) ? "%.1f" : "%.7g", v);  // was ftoa()
+    formatstring(t)(!neat && (v) == int(v) ? "%.1f" : "%.7g", v);  // was ftoa()
     i += strlen(t) + 1;
     return t;
 }
