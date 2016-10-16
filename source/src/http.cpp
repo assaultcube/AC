@@ -251,7 +251,7 @@ int httpget::get(const char *url1, uint timeout, uint totaltimeout, int range, b
                                 *r = '\0';
                                 again = set_host(p);
                                 *r = '/';
-                                p = r + strcspn(r, " \r\n");
+                                p = r + strcspn(r, " \n\r");
                                 *p = '\0';
                                 const char *nurl = newstring(r);
                                 reset(1);

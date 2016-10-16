@@ -456,8 +456,8 @@ char *lookup(char *n)                           // find value of ident reference
 
 char *parseword(const char *&p, int arg, int &infix)                       // parse single argument, including expressions
 {
-    p += strspn(p, " \t\r");
-    if(p[0]=='/' && p[1]=='/') p += strcspn(p, "\n\0");
+    p += strspn(p, " \t");
+    if(p[0]=='/' && p[1]=='/') p += strcspn(p, "\n\r\0");
     if(*p=='\"')
     {
         const char *word = p + 1;
@@ -477,7 +477,7 @@ char *parseword(const char *&p, int arg, int &infix)                       // pa
     if(*p=='(') return parseexp(p, ')');
     if(*p=='[') return parseexp(p, ']');
     const char *word = p;
-    p += strcspn(p, "; \t\r\n\0");
+    p += strcspn(p, "; \t\n\r\0");
     if(p-word==0) return NULL;
     if(arg==1 && p-word==1) switch(*word)
     {
@@ -601,7 +601,7 @@ char *executeret(const char *p)                            // all evaluation hap
                 else numargs = i;
             }
 
-            p += strcspn(p, ";\n\0");
+            p += strcspn(p, ";\n\r\0");
             cont = *p++!=0;                         // more statements if this isn't the end of the string
             const char *c = w[0];
             if(!*c) continue;                       // empty statement
@@ -1197,8 +1197,8 @@ void format(char **args, int numargs)
 }
 COMMAND(format, "v");
 
-#define whitespaceskip do { s += strspn(s, "\n\t \r"); } while(s[0] == '/' && s[1] == '/' && (s += strcspn(s, "\n\0")))
-#define elementskip { if(*s=='"') { do { ++s; s += strcspn(s, "\"\n"); } while(*s == '\"' && s[-1] == '\\'); s += *s=='"'; } else s += strcspn(s, "\r\n\t "); }
+#define whitespaceskip do { s += strspn(s, "\n\r\t "); } while(s[0] == '/' && s[1] == '/' && (s += strcspn(s, "\n\r\0")))
+#define elementskip { if(*s=='"') { do { ++s; s += strcspn(s, "\"\n\r"); } while(*s == '\"' && s[-1] == '\\'); s += *s=='"'; } else s += strcspn(s, "\n\r\t "); }
 
 void explodelist(const char *s, vector<char *> &elems)
 {
@@ -1549,7 +1549,7 @@ const char *escapestring(const char *s, bool force, bool noquotes)
     static int stridx = 0;
     if(noquotes) force = false;
     if(!s) return force ? "\"\"" : "";
-    if(!force && !*(s + strcspn(s, "\"/\\;()[] \f\t\r\n$"))) return s;
+    if(!force && !*(s + strcspn(s, "\"/\\;()[] \f\t\n\r$"))) return s;
     stridx = (stridx + 1) % 3;
     vector<char> &buf = strbuf[stridx];
     buf.setsize(0);
