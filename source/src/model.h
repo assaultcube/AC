@@ -67,9 +67,10 @@ struct model
     virtual void endrender() {}
 };
 
-struct mapmodelinfo { int rad, h, zoff; float scale; string name; model *m; };
+struct mapmodelinfo { int rad, h, zoff; float scale; string name; model *m; int flags; };
 
-enum { MMA_KEYWORDS = 0, MMA_DESC, MMA_DEFAULTPARAMS, MMA_USAGE, MMA_AUTHOR, MMA_LICENSE, MMA_DISTRIBUTION, MMA_VERSION, MMA_NUM };
+enum { MMA_KEYWORDS = 0, MMA_DESC, MMA_DEFAULTPARAMS, MMA_USAGE, MMA_AUTHOR, MMA_LICENSE, MMA_DISTRIBUTION, MMA_VERSION, MMA_REQUIRES, MMA_NUM };
+enum { MMF_REQUIRED = 1<<0, MMF_TEMP_USED = 1<<30, MMF_CONFIGMASK = 0xff };
 
 struct mapmodelattributes
 {

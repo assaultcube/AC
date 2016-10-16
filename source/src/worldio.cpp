@@ -438,7 +438,9 @@ void getcurrentmapconfig(vector<char> &f, bool onlysounds)
         {
             mapmodelinfo *mmi = getmminfo(i);
             if(!mmi) break;
-            cvecprintf(f, "mapmodel %d %d %d %s \"%s\"\n", mmi->rad, mmi->h, mmi->zoff, mmi->scale == 1.0f ? "0" : floatstr(mmi->scale, true), mmshortname(mmi->name));
+            cvecprintf(f, "mapmodel %d %d %d %s \"%s\"", mmi->rad, mmi->h, mmi->zoff, mmi->scale == 1.0f ? "0" : floatstr(mmi->scale, true), mmshortname(mmi->name));
+            if(mmi->flags & MMF_CONFIGMASK) cvecprintf(f, " %d", mmi->flags & MMF_CONFIGMASK);
+            f.add('\n');
         }
         cvecprintf(f, "\ntexturereset\n");
         loopi(256)
@@ -463,6 +465,7 @@ void getcurrentmapconfig(vector<char> &f, bool onlysounds)
 COMMANDF(dumpmapconfig, "", ()
 {
     vector<char> buf;
+    updatemapmodeldependencies();
     getcurrentmapconfig(buf, false);
     stream *f = openfile("dumpmapconfig.txt", "w");
     if(f) f->write(buf.getbuf(), buf.length() - 1);
@@ -596,6 +599,7 @@ void save_world(char *mname, bool skipoptimise, bool addcomfort)
     if(!f) { conoutf("could not write map to %s", cgzname); return; }
 
     // update embedded config file (if used)
+    updatemapmodeldependencies();
     bool autoembedconfig = (hdr.flags & MHF_AUTOMAPCONFIG) != 0;
     if(autoembedconfig)
     { // write embedded map config

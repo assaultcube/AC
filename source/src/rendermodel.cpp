@@ -87,7 +87,7 @@ void mdlcachelimit(int *limit)
 
 COMMAND(mdlcachelimit, "i");
 
-const char *mdlattrnames[] = { "keywords", "desc", "defaults", "usage", "author", "license", "distribution", "version", "" };
+const char *mdlattrnames[] = { "keywords", "desc", "defaults", "usage", "author", "license", "distribution", "version", "requires", "" };
 
 void mdlattribute(char *attrname, char *val)
 {
@@ -109,7 +109,7 @@ vector<mapmodelinfo> mapmodels;
 const char *mmpath = "mapmodels/";
 const char *mmshortname(const char *name) { return !strncmp(name, mmpath, strlen(mmpath)) ? name + strlen(mmpath) : name; }
 
-void mapmodel(int *rad, int *h, int *zoff, char *scale, char *name)
+void mapmodel(int *rad, int *h, int *zoff, char *scale, char *name, char *flags)
 {
     if(*scale && *name) // ignore "mapmodel" commands with insufficient parameters
     {
@@ -120,6 +120,8 @@ void mapmodel(int *rad, int *h, int *zoff, char *scale, char *name)
         mmi.h = *h;
         mmi.zoff = *zoff;
         mmi.scale = atof(scale);
+        mmi.flags = 0;
+        if(*flags) mmi.flags = ATOI(flags);
         if(mmi.scale < 0.25f || mmi.scale > 4.0f)
         {
             mmi.scale = 1.0f;
@@ -134,7 +136,7 @@ void mapmodel(int *rad, int *h, int *zoff, char *scale, char *name)
     }
     else flagmapconfigerror(LWW_CONFIGERR * 2);
 }
-COMMAND(mapmodel, "iiiss");
+COMMAND(mapmodel, "iiisss");
 
 void mapmodelreset()
 {
@@ -160,7 +162,7 @@ void mapmodelslotusage(int *n) // returns all entity indices that contain a mapm
 {
     string res = "";
     loopv(ents) if(ents[i].type == MAPMODEL && ents[i].attr2 == *n) concatformatstring(res, "%s%d", i ? " " : "", i);
-    result(res);
+    result(*res ? res : (mapmodels.inrange(*n) && (mapmodels[*n].flags & MMF_REQUIRED) ? " " : res));
 }
 COMMAND(mapmodelslotusage, "i");
 
@@ -432,6 +434,42 @@ void getmapmodelattributes(char *name, char *attr)
     result(res ? res : "");
 }
 COMMAND(getmapmodelattributes, "ss");
+
+void updatemapmodeldependencies()
+{
+    loopv(mapmodels) mapmodels[i].flags = 0;
+    loopv(ents) if(ents[i].type == MAPMODEL && mapmodels.inrange(ents[i].attr2)) mapmodels[ents[i].attr2].flags |= MMF_TEMP_USED;
+    bool foundone = true;
+    while(foundone)
+    {
+        foundone = false;
+        loopvk(mapmodels) if(mapmodels[k].flags & MMF_TEMP_USED)
+        {
+            const char *name = mmshortname(mapmodels[k].name);
+            mapmodelattributes **ap = mdlregistry.access(name), *a = ap ? *ap : NULL;
+            const char *dep = a ? a->n[MMA_REQUIRES] : NULL;
+            if(dep && *dep)
+            {
+                bool found = false;
+                loopv(mapmodels) if(!strcmp(mmshortname(mapmodels[i].name), dep))
+                {
+                    if(!(mapmodels[i].flags & MMF_TEMP_USED)) foundone = true;
+                    mapmodels[i].flags |= MMF_REQUIRED | MMF_TEMP_USED;
+                    found = true;
+                }
+                if(!found)
+                {
+                    defformatstring(cmd)("mapmodel 0 0 0 0 \"%s\" %d", dep, MMF_REQUIRED);
+                    execute(cmd);
+                    foundone = true;
+                    clientlogf(" mapmodel %s added to config, because %s requires it", dep, name);
+                }
+            }
+        }
+    }
+    loopv(mapmodels) mapmodels[i].flags &= MMF_CONFIGMASK;
+}
+COMMAND(updatemapmodeldependencies, "");
 
 static int mmasortorder = 0;
 int mmasort(mapmodelattributes **a, mapmodelattributes **b) { return strcmp((*a)->name, (*b)->name); }
@@ -915,13 +953,15 @@ void preload_entmodels()
 bool preload_mapmodels(bool trydl)
 {
     int missing = 0;
+    loopv(mapmodels) mapmodels[i].flags &= ~MMF_TEMP_USED;
     loopv(ents)
     {
         entity &e = ents[i];
         if(e.type!=MAPMODEL || !mapmodels.inrange(e.attr2)) continue;
-        if(!loadmodel(NULL, e.attr2, trydl)) missing++;
+        mapmodels[ents[i].attr2].flags |= MMF_TEMP_USED;
         if(e.attr4 && lookuptexture(e.attr4, notexture, trydl) == notexture) missing++;
     }
+    loopv(mapmodels) if((mapmodels[i].flags & (MMF_REQUIRED | MMF_TEMP_USED)) && !loadmodel(NULL, i, trydl)) missing++;
     return !missing;
 }
 

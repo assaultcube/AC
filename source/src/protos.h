@@ -898,6 +898,7 @@ extern void renderclients();
 extern void renderclient(playerent *d);
 extern void renderclient(playerent *d, const char *mdlname, const char *vwepname, int tex = 0);
 extern void updateclientname(playerent *d);
+extern void updatemapmodeldependencies();
 extern void writemapmodelattributes();
 extern const char *mmshortname(const char *name);
 
