@@ -43,16 +43,16 @@
 		9EB8188A11EDACDB00799589 /* Server.gif in Resources */ = {isa = PBXBuildFile; fileRef = 66899EAB0C14887F00927C34 /* Server.gif */; };
 		B90357B509D09B9D002C9DC7 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165CFE840E0CC02AAC07 /* InfoPlist.strings */; };
 		B914CE8E11CAC42F009BA307 /* audiomanager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B914CE3F11CAC42F009BA307 /* audiomanager.cpp */; };
-		B914CE9211CAC42F009BA307 /* autodownload.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B914CE4311CAC42F009BA307 /* autodownload.cpp */; };
 		B914CE8F11CAC42F009BA307 /* client.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B914CE4011CAC42F009BA307 /* client.cpp */; };
 		B914CE9011CAC42F009BA307 /* clientgame.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B914CE4111CAC42F009BA307 /* clientgame.cpp */; };
 		B914CE9111CAC42F009BA307 /* clients2c.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B914CE4211CAC42F009BA307 /* clients2c.cpp */; };
+		B914CE9211CAC42F009BA307 /* autodownload.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B914CE4311CAC42F009BA307 /* autodownload.cpp */; };
+		B914CE9311CAC42F009BA307 /* http.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B914CE4411CAC42F009BA307 /* http.cpp */; };
 		B914CE9411CAC42F009BA307 /* command.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B914CE4511CAC42F009BA307 /* command.cpp */; };
 		B914CE9611CAC42F009BA307 /* console.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B914CE4711CAC42F009BA307 /* console.cpp */; };
 		B914CE9911CAC42F009BA307 /* docs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B914CE4A11CAC42F009BA307 /* docs.cpp */; };
 		B914CE9A11CAC42F009BA307 /* editing.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B914CE4B11CAC42F009BA307 /* editing.cpp */; };
 		B914CE9B11CAC42F009BA307 /* entities.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B914CE4C11CAC42F009BA307 /* entities.cpp */; };
-		B914CE9311CAC42F009BA307 /* http.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B914CE4411CAC42F009BA307 /* http.cpp */; };
 		B914CEA211CAC42F009BA307 /* log.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B914CE5311CAC42F009BA307 /* log.cpp */; };
 		B914CEA311CAC42F009BA307 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B914CE5411CAC42F009BA307 /* main.cpp */; };
 		B914CEA711CAC42F009BA307 /* menus.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B914CE5811CAC42F009BA307 /* menus.cpp */; };
@@ -167,10 +167,11 @@
 		9EFB9B6E12634B1600FCE687 /* jpegenc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jpegenc.h; sourceTree = "<group>"; };
 		B2F67ED704C74A3F00A80002 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = /System/Library/Frameworks/OpenGL.framework; sourceTree = "<absolute>"; };
 		B914CE3F11CAC42F009BA307 /* audiomanager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = audiomanager.cpp; sourceTree = "<group>"; };
-		B914CE4311CAC42F009BA307 /* autodownload.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = autodownload.cpp; sourceTree = "<group>"; };
 		B914CE4011CAC42F009BA307 /* client.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = client.cpp; sourceTree = "<group>"; };
 		B914CE4111CAC42F009BA307 /* clientgame.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = clientgame.cpp; sourceTree = "<group>"; };
 		B914CE4211CAC42F009BA307 /* clients2c.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = clients2c.cpp; sourceTree = "<group>"; };
+		B914CE4311CAC42F009BA307 /* autodownload.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = autodownload.cpp; sourceTree = "<group>"; };
+		B914CE4411CAC42F009BA307 /* http.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = http.cpp; sourceTree = "<group>"; };
 		B914CE4511CAC42F009BA307 /* command.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = command.cpp; sourceTree = "<group>"; };
 		B914CE4611CAC42F009BA307 /* command.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = command.h; sourceTree = "<group>"; };
 		B914CE4711CAC42F009BA307 /* console.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = console.cpp; sourceTree = "<group>"; };
@@ -181,7 +182,6 @@
 		B914CE4C11CAC42F009BA307 /* entities.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = entities.cpp; sourceTree = "<group>"; };
 		B914CE4D11CAC42F009BA307 /* entity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = entity.h; sourceTree = "<group>"; };
 		B914CE4E11CAC42F009BA307 /* geom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = geom.h; sourceTree = "<group>"; };
-		B914CE4411CAC42F009BA307 /* http.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = http.cpp; sourceTree = "<group>"; };
 		B914CE5011CAC42F009BA307 /* hudgun.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = hudgun.h; sourceTree = "<group>"; };
 		B914CE5311CAC42F009BA307 /* log.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = log.cpp; sourceTree = "<group>"; };
 		B914CE5411CAC42F009BA307 /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
@@ -391,6 +391,7 @@
 		665CDCD90AFE7ED80030D605 /* src */ = {
 			isa = PBXGroup;
 			children = (
+				665CDCDB0AFE7ED80030D605 /* bot */,
 				B914CE3F11CAC42F009BA307 /* audiomanager.cpp */,
 				B914CE4311CAC42F009BA307 /* autodownload.cpp */,
 				B914CE4011CAC42F009BA307 /* client.cpp */,
@@ -400,8 +401,8 @@
 				B914CE4611CAC42F009BA307 /* command.h */,
 				B914CE4711CAC42F009BA307 /* console.cpp */,
 				B914CE4811CAC42F009BA307 /* console.h */,
-				9E595536121EA8E9005ED5F7 /* crypto.cpp */,
 				9E595538121EA8E9005ED5F7 /* crypto_tools.h */,
+				9E595536121EA8E9005ED5F7 /* crypto.cpp */,
 				B914CE4911CAC42F009BA307 /* cube.h */,
 				B914CE4A11CAC42F009BA307 /* docs.cpp */,
 				B914CE4B11CAC42F009BA307 /* editing.cpp */,
@@ -468,7 +469,6 @@
 				B914CE8B11CAC42F009BA307 /* worldocull.cpp */,
 				B914CE8C11CAC42F009BA307 /* worldrender.cpp */,
 				B914CE8D11CAC42F009BA307 /* zip.cpp */,
-				665CDCDB0AFE7ED80030D605 /* bot */,
 			);
 			name = src;
 			path = ../src;
@@ -600,7 +600,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 1;
 			shellPath = /bin/sh;
-			shellScript = "echo $TARGET_BUILD_DIR\ncd $TARGET_BUILD_DIR\n\n#ensure old package is gone\nrm -f assaultcube.dmg\n\n#make the directory which our disk image will be made of\n#use /tmp as a destination because copying ourself (xcode folder) whilst compling causes the dog to chase its tail\nACPKG=`mktemp -d /tmp/acpkg.XXXXXX` || exit 1\n\n#leave indicator of where temp directory is in case things break\nln -sf $ACPKG $TARGET_BUILD_DIR/acpkg\n\n#copy launcher\n/usr/bin/CpMac -r $TARGET_BUILD_DIR/launcher.app $ACPKG/AssaultCube.app\n\nHELPDIR=$ACPKG/AssaultCube.app/Contents/Resources/help/\nGAMEDIR=$ACPKG/AssaultCube.app/Contents/gamedata\nmkdir $GAMEDIR\nmkdir $HELPDIR\n\n#copy assaultcube\n/usr/bin/CpMac -r $TARGET_BUILD_DIR/assaultcube.app $GAMEDIR/\nstrip -u -r \"$GAMEDIR/assaultcube.app/Contents/MacOS/assaultcube\"\n\n#copy readme and data and remove unneccesary stuff\n/usr/bin/CpMac -r $SRCROOT/../../README.html $HELPDIR/\n/usr/bin/CpMac -r $SRCROOT/../../docs $HELPDIR/\n/usr/bin/CpMac -r $SRCROOT/../../bot $GAMEDIR/\n/usr/bin/CpMac -r $SRCROOT/../../config $GAMEDIR/\n/usr/bin/CpMac -r $SRCROOT/../../scripts $GAMEDIR/\n/usr/bin/CpMac -r $SRCROOT/../../packages $GAMEDIR/\n/usr/bin/CpMac -r $SRCROOT/../../demos $GAMEDIR/\n#/Developer/Tools/CpMac -r $SRCROOT/../../source $ACPKG/sourcecode\n\n#clean up\nfind -d $ACPKG -name \"shadows.dat\" -exec rm -rf {} \\;\nfind -d $ACPKG -name \"CVS\" -exec rm -rf {} \\;\nfind -d $ACPKG -name \".svn\" -exec rm -rf {} \\;\nfind $ACPKG -name \".DS_Store\" -exec rm -f {} \\;\nrm -rf $ACPKG/sourcecode/xcode/build\nrm -rf $ACPKG/sourcecode/xcode/DerivedData\nrm -rf $ACPKG/sourcecode/xcode/Frameworks/*\nrm -rf $ACPKG/sourcecode/vcpp\nrm -f $GAMEDIR/config/saved.cfg\nrm -f $GAMEDIR/config/init.cfg\nrm -f $GAMEDIR/config/servers.cfg\n\nrm -rf $HELPDIR/docs/autogen/\nmkdir $GAMEDIR/screenshots\nmkdir $GAMEDIR/mods\n\n#add alias to readme\n/usr/bin/osascript <<EOT\ntell application \"Finder\"\nset macSrcPath to POSIX file \"$HELPDIR/README.html\" as text\nset macDestPath to POSIX file \"$ACPKG\" as text\nmake new alias file to file macSrcPath at folder macDestPath\nend tell\nEOT\n\n#finally make a disk image out of the stuff\nhdiutil create -srcfolder $ACPKG -volname assaultcube assaultcube.dmg\nhdiutil internet-enable -yes assaultcube.dmg\n\n#cleanup\nrm -rf $ACPKG";
+			shellScript = "echo $TARGET_BUILD_DIR\ncd $TARGET_BUILD_DIR\n\n#ensure old package is gone\nrm -f assaultcube.dmg\n\n#make the directory which our disk image will be made of\n#use /tmp as a destination because copying ourself (xcode folder) whilst compiling causes the dog to chase its tail\nACPKG=`mktemp -d /tmp/acpkg.XXXXXX` || exit 1\n\n#leave indicator of where temp directory is in case things break\nln -sf $ACPKG $TARGET_BUILD_DIR/acpkg\n\n#copy launcher\n/usr/bin/CpMac -r $TARGET_BUILD_DIR/launcher.app $ACPKG/AssaultCube.app\n\nHELPDIR=$ACPKG/AssaultCube.app/Contents/Resources/help/\nGAMEDIR=$ACPKG/AssaultCube.app/Contents/gamedata\nmkdir $GAMEDIR\nmkdir $HELPDIR\n\n#copy assaultcube\n/usr/bin/CpMac -r $TARGET_BUILD_DIR/assaultcube.app $GAMEDIR/\nstrip -u -r \"$GAMEDIR/assaultcube.app/Contents/MacOS/assaultcube\"\n\n#copy readme and data and remove unneccesary stuff\n/usr/bin/CpMac -r $SRCROOT/../../README.html $HELPDIR/\n/usr/bin/CpMac -r $SRCROOT/../../changelog.txt $HELPDIR/\n/usr/bin/CpMac -r $SRCROOT/../../docs $HELPDIR/\n/usr/bin/CpMac -r $SRCROOT/../../bot $GAMEDIR/\n/usr/bin/CpMac -r $SRCROOT/../../config $GAMEDIR/\n/usr/bin/CpMac -r $SRCROOT/../../demos $GAMEDIR/\n/usr/bin/CpMac -r $SRCROOT/../../mods $GAMEDIR/\n/usr/bin/CpMac -r $SRCROOT/../../packages $GAMEDIR/\nmkdir $GAMEDIR/screenshots\n#/Developer/Tools/CpMac -r $SRCROOT/../../source $ACPKG/sourcecode\n#rm -rf $ACPKG/sourcecode/xcode/build\n#rm -rf $ACPKG/sourcecode/xcode/DerivedData\n#rm -rf $ACPKG/sourcecode/xcode/Frameworks/*\n#rm -rf $ACPKG/sourcecode/vcpp\n\n#clean up\nfind -d $ACPKG -name \"shadows.dat\" -exec rm -rf {} \\;\nrm -f `(find -d $GAMEDIR/demos -type f | grep -v \"tutorial_demo.dmo\")`\nrm -f $GAMEDIR/packages/maps/new_content.cgz\nrm -f $GAMEDIR/packages/maps/new_content.cfg\nfind $ACPKG -name \".DS_Store\" -exec rm -f {} \\;\nfind -d $ACPKG -name \".gitignore\" -exec rm -rf {} \\;\nrm -rf $GAMEDIR/.git\nrm -f $GAMEDIR/.gitattributes\nrm -f $GAMEDIR/.travis.yml\nrm -rf $HELPDIR/docs/autogen/\n\n#create config template\ncd $GAMEDIR/config\nzip configtemplates.zip autoexec.cfg favourites.cfg pcksources.cfg\nrm -f autoexec.cfg favourites.cfg pcksources.cfg init*.cfg saved*.cfg servervita*.cfg servers.cfg history\ncd $TARGET_BUILD_DIR\n\n#add alias to readme\n/usr/bin/osascript <<EOT\ntell application \"Finder\"\nset macSrcPath to POSIX file \"$HELPDIR/README.html\" as text\nset macDestPath to POSIX file \"$ACPKG\" as text\nmake new alias file to file macSrcPath at folder macDestPath\nend tell\nEOT\n\n#finally make a disk image out of the stuff\nhdiutil create -srcfolder $ACPKG -volname assaultcube assaultcube.dmg\nhdiutil internet-enable -yes assaultcube.dmg\n\n#cleanup\nrm -rf $ACPKG";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -627,16 +627,16 @@
 				665CDD180AFE7ED80030D605 /* botmanager.cpp in Sources */,
 				66899E770C14862300927C34 /* macutils.mm in Sources */,
 				B914CE8E11CAC42F009BA307 /* audiomanager.cpp in Sources */,
-				B914CE9211CAC42F009BA307 /* autodownload.cpp in Sources */,
 				B914CE8F11CAC42F009BA307 /* client.cpp in Sources */,
 				B914CE9011CAC42F009BA307 /* clientgame.cpp in Sources */,
 				B914CE9111CAC42F009BA307 /* clients2c.cpp in Sources */,
+				B914CE9211CAC42F009BA307 /* autodownload.cpp in Sources */,
+				B914CE9311CAC42F009BA307 /* http.cpp in Sources */,
 				B914CE9411CAC42F009BA307 /* command.cpp in Sources */,
 				B914CE9611CAC42F009BA307 /* console.cpp in Sources */,
 				B914CE9911CAC42F009BA307 /* docs.cpp in Sources */,
 				B914CE9A11CAC42F009BA307 /* editing.cpp in Sources */,
 				B914CE9B11CAC42F009BA307 /* entities.cpp in Sources */,
-				B914CE9311CAC42F009BA307 /* http.cpp in Sources */,
 				B914CEA211CAC42F009BA307 /* log.cpp in Sources */,
 				B914CEA311CAC42F009BA307 /* main.cpp in Sources */,
 				B914CEA711CAC42F009BA307 /* menus.cpp in Sources */,
@@ -759,7 +759,7 @@
 				MACOSX_DEPLOYMENT_TARGET_i386 = 10.5;
 				OTHER_LDFLAGS = "-lz";
 				PRODUCT_NAME = assaultcube;
-				SDKROOT = macosx10.8;
+				SDKROOT = macosx;
 				STRIP_STYLE = all;
 			};
 			name = Debug;
@@ -799,7 +799,7 @@
 				MACOSX_DEPLOYMENT_TARGET_i386 = 10.5;
 				OTHER_LDFLAGS = "-lz";
 				PRODUCT_NAME = assaultcube;
-				SDKROOT = macosx10.8;
+				SDKROOT = macosx;
 				STRIP_STYLE = all;
 			};
 			name = Release;
@@ -843,10 +843,9 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.5;
 				MACOSX_DEPLOYMENT_TARGET_i386 = 10.5;
-				ONLY_ACTIVE_ARCH = NO;
 				OTHER_LDFLAGS = "-lz";
 				PRODUCT_NAME = assaultcube;
-				SDKROOT = macosx10.8;
+				SDKROOT = macosx;
 				STRIP_STYLE = all;
 			};
 			name = "Release-Deployment";
@@ -855,15 +854,15 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
-				COPY_PHASE_STRIP = NO;
+				COPY_PHASE_STRIP = YES;
 				DEPLOYMENT_POSTPROCESSING = YES;
 				FRAMEWORK_SEARCH_PATHS = "";
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_VERSION = "";
 				MACOSX_DEPLOYMENT_TARGET_i386 = 10.4;
 				MACOSX_DEPLOYMENT_TARGET_ppc = 10.3;
-				SDKROOT = macosx10.8;
-				STRIP_INSTALLED_PRODUCT = NO;
+				SDKROOT = macosx;
+				STRIP_INSTALLED_PRODUCT = YES;
 			};
 			name = "Release-Deployment";
 		};
@@ -878,7 +877,7 @@
 				MACOSX_DEPLOYMENT_TARGET_i386 = 10.4;
 				MACOSX_DEPLOYMENT_TARGET_ppc = 10.3;
 				ONLY_ACTIVE_ARCH = YES;
-				SDKROOT = macosx10.8;
+				SDKROOT = macosx;
 				STRIP_INSTALLED_PRODUCT = NO;
 			};
 			name = Debug;
@@ -887,14 +886,15 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
-				COPY_PHASE_STRIP = NO;
+				COPY_PHASE_STRIP = YES;
+				DEPLOYMENT_POSTPROCESSING = YES;
 				FRAMEWORK_SEARCH_PATHS = "";
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_VERSION = "";
 				MACOSX_DEPLOYMENT_TARGET_i386 = 10.4;
 				MACOSX_DEPLOYMENT_TARGET_ppc = 10.3;
-				SDKROOT = macosx10.8;
-				STRIP_INSTALLED_PRODUCT = NO;
+				SDKROOT = macosx;
+				STRIP_INSTALLED_PRODUCT = YES;
 			};
 			name = Release;
 		};
@@ -921,7 +921,6 @@
 				OTHER_REZFLAGS = "";
 				PRODUCT_NAME = launcher;
 				SDKROOT = macosx;
-				SECTORDER_FLAGS = "";
 				WARNING_CFLAGS = (
 					"-Wmost",
 					"-Wno-four-char-constants",
@@ -933,12 +932,9 @@
 		B96D0D51092096F300B6C936 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = NO;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
-				GCC_MODEL_TUNING = G5;
-				GCC_OPTIMIZATION_LEVEL = 0;
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/AppKit.framework/Headers/AppKit.h";
+				COPY_PHASE_STRIP = YES;
+				DEPLOYMENT_POSTPROCESSING = YES;
+				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_VERSION = "";
 				INFOPLIST_FILE = launcher.plist;
 				INSTALL_PATH = "$(USER_APPS_DIR)";
@@ -953,7 +949,7 @@
 				OTHER_REZFLAGS = "";
 				PRODUCT_NAME = launcher;
 				SDKROOT = macosx;
-				SECTORDER_FLAGS = "";
+				STRIP_INSTALLED_PRODUCT = YES;
 				WARNING_CFLAGS = (
 					"-Wmost",
 					"-Wno-four-char-constants",
@@ -965,12 +961,9 @@
 		B96D0D52092096F300B6C936 /* Release-Deployment */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = NO;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
-				GCC_MODEL_TUNING = G5;
-				GCC_OPTIMIZATION_LEVEL = 0;
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/AppKit.framework/Headers/AppKit.h";
+				COPY_PHASE_STRIP = YES;
+				DEPLOYMENT_POSTPROCESSING = YES;
+				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_VERSION = "";
 				INFOPLIST_FILE = launcher.plist;
 				INSTALL_PATH = "$(USER_APPS_DIR)";
@@ -985,7 +978,7 @@
 				OTHER_REZFLAGS = "";
 				PRODUCT_NAME = launcher;
 				SDKROOT = macosx;
-				SECTORDER_FLAGS = "";
+				STRIP_INSTALLED_PRODUCT = YES;
 				WARNING_CFLAGS = (
 					"-Wmost",
 					"-Wno-four-char-constants",

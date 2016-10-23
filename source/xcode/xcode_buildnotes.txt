@@ -1,0 +1,6 @@
+Tips for compiling AssaultCube in Xcode:
+
+1. For “assaultcube” scheme/target:
+a) set “Release-Deployment” as configuration to build, in menu Product > Edit Scheme > Run > Build Configuration
+b) set 32-bit architecture in menu Product > Destination
+2. Build “assaultcube” scheme, in result the package assaultcube.dmg will be created in subfolder under /private/var/root/Library/Developer/Xcode/DerivedData/
