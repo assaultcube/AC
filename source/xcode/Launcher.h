@@ -2,7 +2,7 @@
 
 @class ConsoleView;
 
-@interface Launcher : NSObject {
+@interface Launcher : NSObject<NSToolbarDelegate> {
     IBOutlet NSTextField *admin_password;
 
     IBOutlet NSWindow *window;

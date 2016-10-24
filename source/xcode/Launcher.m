@@ -323,7 +323,7 @@ static int numberForKey(CFDictionaryRef desc, CFStringRef key)
         NSString *file = [Launcher userdir];
         file = [file stringByAppendingPathComponent:files[i]];
         
-        [lines addObjectsFromArray:[[NSString stringWithContentsOfFile:file] componentsSeparatedByString:@"\n"]];
+        [lines addObjectsFromArray:[[NSString stringWithContentsOfFile:file usedEncoding:NULL error:NULL] componentsSeparatedByString:@"\n"]]; // 10.4+
         
         if(i==0 && ![lines count])  // ugh - special case when first run...
         {
@@ -333,7 +333,7 @@ static int numberForKey(CFDictionaryRef desc, CFStringRef key)
             for(j = 0; j < sizeof(defaultfiles)/sizeof(NSString*); j++)
             {
                 file = [[Launcher cwd] stringByAppendingPathComponent:defaultfiles[j]];
-                [lines addObjectsFromArray:[[NSString stringWithContentsOfFile:file] componentsSeparatedByString:@"\n"]];
+                [lines addObjectsFromArray:[[NSString stringWithContentsOfFile:file usedEncoding:NULL error:NULL] componentsSeparatedByString:@"\n"]]; // 10.4+
             }
         }
 		
@@ -449,7 +449,7 @@ static int numberForKey(CFDictionaryRef desc, CFStringRef key)
             NSTask *task = [[NSTask alloc] init];
             [task setCurrentDirectoryPath:cwd];
 			[task setLaunchPath:exe];
-			[task setArguments:args]; NSLog([args description]);
+			[task setArguments:args]; NSLog(@"%@",[args description]);
             [task setEnvironment:[NSDictionary dictionaryWithObjectsAndKeys: 
                 @"1", @"SDL_SINGLEDISPLAY",
                 @"1", @"SDL_ENABLEAPPEVENTS", nil
@@ -462,7 +462,7 @@ static int numberForKey(CFDictionaryRef desc, CFStringRef key)
             NSBeginCriticalAlertSheet(
                 [NSLocalizedString(@"ClientAlertTitle", @"") expand] , nil, nil, nil,
                 window, nil, nil, nil, nil,
-                [NSLocalizedString(@"ClientAlertMesg", @"") expand]);
+                @"%@", [NSLocalizedString(@"ClientAlertMesg", @"") expand]);
             okay = NO;
         NS_ENDHANDLER
     }
@@ -489,11 +489,7 @@ static int numberForKey(CFDictionaryRef desc, CFStringRef key)
     [args addObject:[NSString stringWithFormat:@"-h%@", [res objectAtIndex:1]]];
     [args addObject:@"-z32"]; //otherwise seems to have a fondness to use -z16 which looks crap
     [args addObject:[NSString stringWithFormat:@"-a%d", [defs integerForKey:dkFSAA]]];
-
-    if([defs integerForKey:dkFULLSCREEN] == 0)
-        [args addObject:@"-t0"];
-    else
-        [args addObject:@"-t1"];
+    [args addObject:[NSString stringWithFormat:@"-t%d", [defs integerForKey:dkFULLSCREEN]]];
 
     if ([stencil state] == NSOnState)
         [args addObject:@"-s8"];
@@ -621,7 +617,7 @@ static int numberForKey(CFDictionaryRef desc, CFStringRef key)
         NSBeginCriticalAlertSheet(
             [NSLocalizedString(@"InitAlertTitle", @"") expand], nil, nil, nil,
             window, self, nil, nil, nil,
-            [NSLocalizedString(@"InitAlertMesg", @"") expand]);
+            @"%@", [NSLocalizedString(@"InitAlertMesg", @"") expand]);
 }
 
 -(BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)theApplication {
@@ -652,7 +648,7 @@ static int numberForKey(CFDictionaryRef desc, CFStringRef key)
     NSBeginCriticalAlertSheet(
         [NSLocalizedString(@"FileAlertTitle", @"") expand], NSLocalizedString(@"Ok", @""), NSLocalizedString(@"Cancel", @""), nil,
         window, self, @selector(openPackageFolder:returnCode:contextInfo:), nil, nil,
-        [NSLocalizedString(@"FileAlertMesg", @"") expand]);
+        @"%@", [NSLocalizedString(@"FileAlertMesg", @"") expand]);
     return NO;
 }
 
