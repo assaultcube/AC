@@ -252,8 +252,8 @@ void calcentitystats(entitystats_s &es, const persistent_entity *pents, int pent
     if(!pents)
     { // use regular ents list
         loopv(ents) _pents.add() = ents[i];
-        pents = &_pents[0];
         pentsize = _pents.length();
+        if(pentsize) pents = &_pents[0];
     }
 #endif
     memset(&es, 0, sizeof(es));

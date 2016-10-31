@@ -672,7 +672,7 @@ void entstats_(void)
     loopi(MAXENTTYPES) if(es.entcnt[i]) switch(i)
     {
         case MAPMODEL:      conoutf(" %d %s, %d clipped, %s%d unconfigured", es.entcnt[i], entnames[i], clipents, xmodels ? "\f3" : "", xmodels); break;
-        case SOUND:         conoutf(" %d %s, %s%d unconfigured", es.entcnt[i], entnames[i], xsounds ? "\f3" : "", xsounds);
+        case SOUND:         conoutf(" %d %s, %s%d unconfigured", es.entcnt[i], entnames[i], xsounds ? "\f3" : "", xsounds); break;
         case PLAYERSTART:   conoutf(" %d %s, %d CLA, %d RVSF, %d FFA%c \f3unknown %d", es.entcnt[i], entnames[i], es.spawns[0], es.spawns[1], es.spawns[2], es.unknownspawns ? ',' : '\0', es.unknownspawns); break;
         case CTF_FLAG:      conoutf(" %d %s, %d CLA, %d RVSF%c \f3unknown %d", es.entcnt[i], entnames[i], es.flags[0], es.flags[1], es.unknownflags ? ',' : '\0', es.unknownflags); break;
         case CLIP:
