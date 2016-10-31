@@ -790,6 +790,7 @@ void changemapflag(int val, int mask)
 VARF(mapoverride_nowaterreflect, 0, 0, 1, changemapflag(mapoverride_nowaterreflect, MHF_DISABLEWATERREFLECT));
 VARF(mapoverride_limitwaveheight, 0, 0, 1, changemapflag(mapoverride_limitwaveheight, MHF_LIMITWATERWAVEHEIGHT));
 VARF(mapoverride_nostencilshadows, 0, 0, 1, changemapflag(mapoverride_nostencilshadows, MHF_DISABLESTENCILSHADOWS));
+VAR(_ignoreillegalpaths, 0, 0, 1);
 
 extern char *mlayout;
 extern int Mv, Ma, Hhits;
@@ -934,6 +935,7 @@ int load_world(char *mname)        // still supports all map formats that have e
         rawcubes.addbuf(q);
         if(q.len < cubicsize) break;
     }
+    delete f;
     ucharbuf uf(rawcubes.getbuf(), rawcubes.length());
     res |= rldecodecubes(uf, world, cubicsize, hdr.version, false) ? 0 : LWW_DECODEERR; // decode file
     c2skeepalive();
@@ -1026,7 +1028,7 @@ int load_world(char *mname)        // still supports all map formats that have e
     res |= loadskymap(true) ? 0 : LWW_MISSINGMEDIA * 1;
 
     watch.start();
-    loopi(256) if(texuse[i] && lookupworldtexture(i, false) == notexture) res |= LWW_MISSINGMEDIA * 2;
+    loopi(256) if(texuse[i] && lookupworldtexture(i, false) == notexture && (!_ignoreillegalpaths || gettextureslot(i))) res |= LWW_MISSINGMEDIA * 2;
     clientlogf("loaded textures (%d milliseconds)", texloadtime+watch.elapsed());
     c2skeepalive();
     watch.start();

@@ -828,6 +828,7 @@ extern void render_particles(int time, int typemask = ~0);
 enum { LWW_ENTATTROVERFLOW = 0x1, LWW_DECODEERR = 0x10, LWW_WORLDERROR = 0x100, LWW_MISSINGMEDIA = 0x1000, LWW_CONFIGERR = 0x10000, LWW_MODELERR = 0x100000, LWW_SCRIPTERR = 0x1000000 };
 extern const char *setnames(const char *name);
 extern void save_world(char *mname, bool skipoptimise = false, bool addcomfort = false);
+extern int _ignoreillegalpaths;
 extern int load_world(char *mname);
 extern void writemap(char *name, int size, uchar *data);
 extern void writecfggz(char *name, int size, int sizegz, uchar *data);

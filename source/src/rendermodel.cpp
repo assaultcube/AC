@@ -113,7 +113,7 @@ void mapmodel(int *rad, int *h, int *zoff, char *scale, char *name, char *flags)
 {
     if(*scale && *name) // ignore "mapmodel" commands with insufficient parameters
     {
-        if(!strchr(name, '/') && !strchr(name, '\\')) flagmapconfigerror(LWW_CONFIGERR * 2); // throw errors for unconverted mapmodels (unspecific, because not all get detected)
+        if(!_ignoreillegalpaths && !strchr(name, '/') && !strchr(name, '\\')) flagmapconfigerror(LWW_CONFIGERR * 2); // throw errors for unconverted mapmodels (unspecific, because not all get detected)
         intret(mapmodels.length());
         mapmodelinfo &mmi = mapmodels.add();
         mmi.rad = *rad;
@@ -959,7 +959,7 @@ bool preload_mapmodels(bool trydl)
         entity &e = ents[i];
         if(e.type!=MAPMODEL || !mapmodels.inrange(e.attr2)) continue;
         mapmodels[ents[i].attr2].flags |= MMF_TEMP_USED;
-        if(e.attr4 && lookuptexture(e.attr4, notexture, trydl) == notexture) missing++;
+        if(e.attr4 && lookuptexture(e.attr4, notexture, trydl) == notexture && (!_ignoreillegalpaths || gettextureslot(e.attr4))) missing++;
     }
     loopv(mapmodels) if((mapmodels[i].flags & (MMF_REQUIRED | MMF_TEMP_USED)) && !loadmodel(NULL, i, trydl)) missing++;
     return !missing;

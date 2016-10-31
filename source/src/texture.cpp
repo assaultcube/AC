@@ -502,7 +502,7 @@ void checktexturefilename(const char *name)
     if(execcontext == IEXC_MAPCFG && strstr(name, "map_editor"))
     {
         conoutf("\f3bad texture: %s", name);
-        flagmapconfigerror(LWW_CONFIGERR * 4);
+        if(!_ignoreillegalpaths) flagmapconfigerror(LWW_CONFIGERR * 4);
     }
 }
 
