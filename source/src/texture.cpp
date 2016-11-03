@@ -223,67 +223,34 @@ bool checkgrayscale(SDL_Surface *s)
     return true;
 }
 
-int fixcl(SDL_Surface *s, bool check = true, Uint8 value = 0, Uint8 mlimit = 255)
+int fixcl(SDL_Surface *s, int threshold)
 {
-    Uint32 pixel = 0;
-    int bpp = s->format->BytesPerPixel;
-    int F = 0, N = 0, t = 0;
-    while ( value > mlimit ) {t++; value >>= 1;}
-    int tmp = s->w * bpp;
-    for (int i = 0; i < tmp; i+=bpp)
+    if(!s || !s->h || !s->w) return 0;
+    int sum = 0, w, a0 = *((uchar *) &s->format->Amask) ? 1 : 0;
+    if(s->format->palette || s->format->BytesPerPixel < 3) s = (SDL_Surface *)s->pixels;
+    for(int y = 0; y < s->h; y++)
     {
-        for (int j = 0; j < s->h; j++)
+        uchar *pix = ((uchar *)s->pixels) + y * s->pitch + a0;
+        w = 0;
+        for(int x = 0; x < s->w; x++)
         {
-            Uint8 *p = (Uint8 *)s->pixels + j * s->w * bpp + i;
-            switch (bpp)
-            {
-                case 1:
-                {
-                    if (check) pixel = *p;
-                    else *p >>= t;
-                    break;
-                }
-                case 2:
-                {
-                    if (check) pixel = *(Uint16 *)p;
-                    else { p[0] >>= t; p[1] >>= t; }
-                    break;
-                }
-                case 3:
-                {
-                    if (check)
-                    {
-                        if (SDL_BYTEORDER == SDL_BIG_ENDIAN)
-                            pixel = p[0] << 16 | p[1] << 8 | p[2];
-                        else
-                            pixel = p[0] | p[1] << 8 | p[2] << 16;
-                    }
-                    else { loopk(3) p[k] >>= t; }
-                    break;
-                }
-               case 4:
-               {
-                   if (check) pixel = *(Uint32 *)p;
-                   else {
-                       Uint8 r = 0, g = 0, b = 0, a = 0;
-                       SDL_GetRGBA(pixel, s->format, &r, &g, &b, &a);
-                       r >>= t; g >>= t; b >>= t;
-                       Uint32 *q = (Uint32 *)p;
-                       *q = SDL_MapRGBA(s->format, r,g,b,a);
-                   }
-                   break;
-               }
-                default: break;
-            }
-            if (check) {
-                Uint8 r = 0, g = 0, b = 0, a = 0;
-                SDL_GetRGBA(pixel, s->format, &r, &g, &b, &a);
-                F += r > g ? ( r > b ? r : b ) : ( g > b ? g : b ); N++;
-            }
+            w += iabs(((pix[0] * pix[0]) | (pix[1] * pix[1]) | (pix[2] * pix[2])) - ((pix[0] * pix[1] * pix[2]) / 222));
+            pix += s->format->BytesPerPixel;
+        }
+        sum += w / s->w;
+    }
+    sum = sqrtf(sum / s->h);
+    int t = sum / threshold + 1;
+    if(t > 1) for(int y = 0; y < s->h; y++)
+    {
+        uchar *pix = ((uchar *)s->pixels) + y * s->pitch + a0;
+        for(int x = 0; x < s->w; x++)
+        {
+            loopi(3) pix[i] /= t;
+            pix += s->format->BytesPerPixel;
         }
     }
-    if (!N) return 0;
-    return F/N;
+    return t;
 }
 
 SDL_Surface *fixsurfaceformat(SDL_Surface *s)
@@ -389,9 +356,8 @@ GLuint loadsurface(const char *texname, int &xs, int &ys, int &bpp, int clamp = 
         return 0;
     }
     s = fixsurfaceformat(s);
-    Uint8 x = 0;
-    if(strstr(texname,"playermodel") && (x = fixcl(s)) > 35) { fixcl(s,false,x,35); }
-    else if(strstr(texname,"skin") && strstr(texname,"weapon") && (x = fixcl(s)) > 40 ) { fixcl(s,false,x,40); }
+    if(strstr(texname,"playermodel")) { fixcl(s, 45); }
+    else if(strstr(texname,"skin") && strstr(texname,"weapon")) { fixcl(s, 44); }
 
     GLenum format = texformat(s->format->BitsPerPixel);
     if(!format)
