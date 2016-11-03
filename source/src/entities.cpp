@@ -260,7 +260,8 @@ void renderentities()
                 {
                     case 0: skin = "packages/models/playermodels/CLA/red.jpg"; break;
                     case 1: skin = "packages/models/playermodels/RVSF/blue.jpg"; break;
-                    default: skin = "packages/models/playermodels/ffaspawn.jpg"; break;
+                    case 100: skin = "packages/models/playermodels/ffaspawn.jpg"; break;
+                    default: skin = "packages/models/playermodels/unknownspawn.jpg"; break;
                 }
                 rendermodel("playermodels", ANIM_IDLE, -(int)textureload(skin)->id, 1.5f, o, 0, e.attr1 / ENTSCALE10 + 90, 0);
             }
