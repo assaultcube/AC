@@ -874,6 +874,7 @@ int load_world(char *mname)        // still supports all map formats that have e
     mapoverride_nostencilshadows = (hdr.flags & MHF_DISABLESTENCILSHADOWS) ? 1 : 0;
 
     // read and convert all entities
+    cleartodoentities();
     persistent_entity *tempents = new persistent_entity[hdr.numents];
     bool oldentityformat = hdr.version < 10; // version < 10 have only 4 attributes and no scaling
     loopi(hdr.numents)
@@ -899,7 +900,8 @@ int load_world(char *mname)        // still supports all map formats that have e
             if((ss = abs(entwraparound[e.type][x - 1] / entscale[e.type][x - 1]))) e.attr##x = (int(e.attr##x) % ss + ss) % ss; \
             e.attr##x = ov = e.attr##x * entscale[e.type][x - 1]; \
             if(ov != e.attr##x) { conoutf("overflow during conversion of attr%d of entity #%d (%s): value %d can no longer be represented - pls fix manually before saving the map",\
-                                           x, i, entnames[e.type], oe.attr##x); e.attr##x = oe.attr##x; res |= LWW_ENTATTROVERFLOW; }
+                                           x, i, entnames[e.type], oe.attr##x); e.attr##x = oe.attr##x; res |= LWW_ENTATTROVERFLOW; \
+                                  defformatstring(desc)("%s: attr%d was %d, value can no longer be represented", entnames[e.type], x, oe.attr##x); addtodoentity(i, desc); }
             SCALEATTR(1);
             SCALEATTR(2);
             SCALEATTR(3);
@@ -1115,6 +1117,8 @@ struct xmap
     vector<headerextra *> headerextras;
     vector<persistent_entity> ents, delents;
     vector<char> mapconfig;
+    vector<int> todoents;
+    vector<char *> todoentdescs;
     sqr *world;
     header hdr;
     int ssize, cubicsize, numundo;
@@ -1139,6 +1143,7 @@ struct xmap
         vector<uchar> tmp;  // add undo/redo data in compressed form as temporary headerextra
         numundo = backupeditundo(tmp, MAXHEADEREXTRA, MAXHEADEREXTRA);
         headerextras.add(new headerextra(tmp.length(), HX_EDITUNDO, tmp.getbuf()));
+        loopv(::todoents) { todoents.add(::todoents[i]); todoentdescs.add(newstring(::todoentdescs[i])); }
     }
 
     ~xmap()
@@ -1148,6 +1153,8 @@ struct xmap
         ents.setsize(0);
         delents.setsize(0);
         mapconfig.setsize(0);
+        todoents.setsize(0);
+        todoentdescs.deletearrays();
     }
 
     void restoreent(int i)
@@ -1191,6 +1198,8 @@ struct xmap
         loadskymap(true);
         startmap(name, false, true);      // "start" but don't respawn: basically just set clientmap
         restoreposition(position);
+        cleartodoentities();
+        loopv(todoents) addtodoentity(todoents[i], todoentdescs[i]);
     }
 
     void write(stream *f)   // write xmap as cubescript to a file
@@ -1228,6 +1237,7 @@ struct xmap
             }
             delstring(t);
         }
+        loopv(todoents) f->printf("restorexmap todoent %d %s\n", todoents[i], escapestring(todoentdescs[i]));
         f->printf("restorexmap position %d %d %d %d %d  // EOF, don't touch this\n\n", int(position[0]), int(position[1]), int(position[2]), int(position[3]), int(position[4]));
     }
 };
@@ -1351,8 +1361,8 @@ COMMANDF(xmap_restore, "s", (const char *nick)     // use xmap as current map
 
 void restorexmap(char **args, int numargs)   // read an xmap from a cubescript file
 {
-    const char *cmdnames[] = { "version", "names", "sizes", "header", "world", "headerextra", "ent", "delent", "config", "position", "" };
-    const char cmdnumarg[] = {         3,       2,       3,        0,       0,             1,    11,       11,        1,          5     };
+    const char *cmdnames[] = { "version", "names", "sizes", "header", "world", "headerextra", "ent", "delent", "config", "todoent", "position", "" };
+    const char cmdnumarg[] = {         3,       2,       3,        0,       0,             1,    11,       11,        1,         2,          5     };
 
     if(!xmjigsaw || numargs < 1) return; // { conoutf("restorexmap out of context"); return; }
     bool abort = false;
@@ -1403,7 +1413,11 @@ void restorexmap(char **args, int numargs)   // read an xmap from a cubescript f
         case 8:     // config
             cvecprintf(xmjigsaw->mapconfig, "%s\n", args[1]);
             break;
-        case 9:     // position - this is also the last command and will finish the xmap
+        case 9:     // todoent
+            xmjigsaw->todoents.add(ATOI(args[1]));
+            xmjigsaw->todoentdescs.add(args[2]);
+            break;
+        case 10:     // position - this is also the last command and will finish the xmap
         {
             loopi(5) xmjigsaw->position[i] = ATOI(args[i + 1]);
             int i;

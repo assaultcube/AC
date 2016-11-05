@@ -524,6 +524,42 @@ void enumentities(char *type)
 }
 COMMAND(enumentities, "s");
 
+vector<int> todoents;
+vector<char *> todoentdescs;
+
+void cleartodoentities(const char *n)
+{
+    int ni = n ? ATOI(n) : -1;
+    if(!n || !*n || ni < 0)
+    {
+        todoents.setsize(0);
+        todoentdescs.deletearrays();
+    }
+    else loopvrev(todoents) if(todoents[i] == ni)
+    {
+        todoents.remove(i);
+        delstring(todoentdescs.remove(i));
+    }
+}
+COMMAND(cleartodoentities, "s");
+
+void addtodoentity(int n, const char *desc)
+{
+    todoents.add(n);
+    todoentdescs.add(newstring(desc));
+}
+COMMANDF(addtodoentity, "is", (int *n, const char *desc) { if(ents.inrange(*n)) addtodoentity(*n, desc); });
+
+void enumtodoentities()
+{
+    vector<char> res;
+    loopv(todoents) cvecprintf(res, "%d %s\n", todoents[i], escapestring(todoentdescs[i], true));
+    if(!res.length()) res.add('\0');
+    else res.last() = '\0';
+    result(res.getbuf());
+}
+COMMAND(enumtodoentities, "");
+
 void scalecomp(uchar &c, int intens)
 {
     int n = c*intens/100;
