@@ -1415,7 +1415,7 @@ void restorexmap(char **args, int numargs)   // read an xmap from a cubescript f
             break;
         case 9:     // todoent
             xmjigsaw->todoents.add(ATOI(args[1]));
-            xmjigsaw->todoentdescs.add(args[2]);
+            xmjigsaw->todoentdescs.add(newstring(args[2]));
             break;
         case 10:     // position - this is also the last command and will finish the xmap
         {
