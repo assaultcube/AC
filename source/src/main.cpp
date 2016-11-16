@@ -1132,7 +1132,7 @@ int main(int argc, char **argv)
 
     initlog("video: misc");
     SDL_WM_SetCaption("AssaultCube", NULL);
-    SDL_Surface *icon = IMG_Load("packages/misc/icon.bmp");
+    SDL_Surface *icon = IMG_Load("packages/misc/icons/sdl.bmp");
     SDL_WM_SetIcon(icon, NULL);
     keyrepeat(false);
     SDL_ShowCursor(0);
