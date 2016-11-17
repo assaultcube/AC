@@ -1274,8 +1274,10 @@ void rendermenumdl()
     if(!isweapon) pos = vec(2.0f, 1.2f, -0.4f);
     else pos = vec(2.0f, 0, 1.7f);
 
-    float yaw = 1.0f;
+    float yaw = 1.0f, pitch = camera1->pitch;
     if(m.rotspeed) yaw += lastmillis/5.0f/100.0f*m.rotspeed;
+    if(fabs(pitch) < 10.0f) pitch = 0.0f;
+    else pitch += 10.0f * (pitch < 0 ? 1 : -1);
 
     int tex = 0;
     if(isplayermodel)
@@ -1289,7 +1291,7 @@ void rendermenumdl()
         a[0].name = "weapons/subgun/world";
         a[0].tag = "tag_weapon";
     }
-    rendermodel(isplayermodel ? "playermodels" : m.mdl, m.anim|ANIM_DYNALLOC, tex, -1, pos, 0, yaw, 0, 0, 0, NULL, a, m.scale ? m.scale/25.0f : 1.0f);
+    rendermodel(isplayermodel ? "playermodels" : m.mdl, m.anim|ANIM_DYNALLOC, tex, -1, pos, 0, yaw, pitch, 0, 0, NULL, a, m.scale ? m.scale/25.0f : 1.0f);
 
     glPopMatrix();
 }
