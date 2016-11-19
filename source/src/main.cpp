@@ -1116,6 +1116,11 @@ int main(int argc, char **argv)
     initlog("video: sdl");
     if(SDL_InitSubSystem(SDL_INIT_VIDEO)<0) fatal("Unable to initialize SDL Video");
 
+#ifndef __APPLE__
+    SDL_Surface *icon = IMG_Load("packages/misc/icon.png");
+    SDL_WM_SetIcon(icon, NULL);
+#endif
+
     initlog("video: mode");
     const SDL_VideoInfo *video = SDL_GetVideoInfo();
     if(video)
@@ -1132,8 +1137,7 @@ int main(int argc, char **argv)
 
     initlog("video: misc");
     SDL_WM_SetCaption("AssaultCube", NULL);
-    SDL_Surface *icon = IMG_Load("packages/misc/icon.bmp");
-    SDL_WM_SetIcon(icon, NULL);
+
     keyrepeat(false);
     SDL_ShowCursor(0);
 
