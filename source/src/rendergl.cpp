@@ -949,12 +949,11 @@ void drawhudgun()
 {
     sethudgunperspective(true);
 
-    if(hudgun && (specthudgun || !player1->isspectating()) && camera1->type==ENT_PLAYER)
+    if(!rendermenumdl() && hudgun && (specthudgun || !player1->isspectating()) && camera1->type==ENT_PLAYER)
     {
         playerent *p = (playerent *)camera1;
         if(p->state==CS_ALIVE) p->weaponsel->renderhudmodel();
     }
-    rendermenumdl();
 
     sethudgunperspective(false);
 }

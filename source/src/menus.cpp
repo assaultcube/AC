@@ -1255,11 +1255,11 @@ bool menukey(int code, bool isdown, int unicode, SDLMod mod)
     }
 }
 
-void rendermenumdl()
+bool rendermenumdl()
 {
-    if(!curmenu) return;
+    if(!curmenu) return false;
     gmenu &m = *curmenu;
-    if(!m.mdl) return;
+    if(!m.mdl) return false;
 
     glPushMatrix();
     glLoadIdentity();
@@ -1294,6 +1294,7 @@ void rendermenumdl()
     rendermodel(isplayermodel ? "playermodels" : m.mdl, m.anim|ANIM_DYNALLOC, tex, -1, pos, 0, yaw, pitch, 0, 0, NULL, a, m.scale ? m.scale/25.0f : 1.0f);
 
     glPopMatrix();
+    return !(isplayermodel || isweapon);
 }
 
 void gmenu::refresh()
