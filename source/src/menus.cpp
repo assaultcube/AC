@@ -1274,7 +1274,7 @@ bool rendermenumdl()
     if(!isweapon) pos = vec(2.0f, 1.2f, -0.4f);
     else pos = vec(2.0f, 0, 1.7f);
 
-    float yaw = 1.0f, pitch = camera1->pitch;
+    float yaw = 1.0f, pitch = isplayermodel || isweapon ? 0.0f : camera1->pitch;
     if(m.rotspeed) yaw += lastmillis/5.0f/100.0f*m.rotspeed;
     if(fabs(pitch) < 10.0f) pitch = 0.0f;
     else pitch += 10.0f * (pitch < 0 ? 1 : -1);
