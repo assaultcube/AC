@@ -19,8 +19,8 @@ AC readme:                                source/README.txt
 CUBE readme:                              source/README_CUBEENGINE.txt
 Cube Bots readme:                         docs/cube_bot-readme.txt
 ENet license:                             source/enet/LICENSE
-SDL readme:                               bin_win32/readme_SDL.txt
-Libraries used with SDL_image license:    bin_win32/LICENSE.jpeg.txt , bin_win32/LICENSE.png.txt , bin_win32/LICENSE.zlib.txt
+SDL readme:                               bin_win32/README-SDL.txt
+Libraries used with SDL_image license:    bin_win32/README-SDL_image.txt, bin_win32/LICENSE.jpeg.txt , bin_win32/LICENSE.png.txt , bin_win32/LICENSE.zlib.txt
 JPEG license:                             source/include/README_jpeg.txt
 Vorbis/Ogg license:                       bin_win32/LICENSE.vorbis_ogg.txt
 OpenAL readme:                            bin_win32/readme_OpenAL.txt
