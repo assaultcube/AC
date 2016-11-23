@@ -414,19 +414,8 @@ void setresdata(char *s, enet_uint32 c)
 
 COMMANDF(screenres, "ii", (int *w, int *h) { screenres(*w, *h); });
 
-int desktopw = 0, desktoph = 0;
-
-void setdesktopres()
-{
-    if(desktopw && desktoph)
-    {
-        scr_w = desktopw;
-        scr_h = desktoph;
-    }
-    else conoutf("Could not set resolution as in desktop");
-}
-
-COMMAND(setdesktopres, "");
+VAR(desktopw, 1, 0, 0);
+VAR(desktoph, 1, 0, 0);
 
 static int curgamma = 100;
 VARNFP(gamma, vgamma, 30, 100, 300,
@@ -449,6 +438,22 @@ void restoregamma()
     SDL_SetGamma(1, 1, 1);
     SDL_SetGamma(f, f, f);
 }
+
+void getdisplayresolutions()
+{
+    string res = "";
+    int lh = 0, lw = 0;
+    SDL_Rect **modes = SDL_ListModes(NULL, SDL_OPENGL|SDL_RESIZABLE|SDL_FULLSCREEN);
+    if(modes && modes!=(SDL_Rect **)-1)
+    {
+        for(int i = 0; modes[i]; i++)
+        {
+            if(lw != modes[i]->w && lh != modes[i]->h) concatformatstring(res, "%s%d %d", *res ? " " : "", (lw = modes[i]->w), (lh = modes[i]->h));
+        }
+    }
+    result(res);
+}
+COMMAND(getdisplayresolutions, "");
 
 void setupscreen(int &usedcolorbits, int &useddepthbits, int &usedfsaa)
 {
