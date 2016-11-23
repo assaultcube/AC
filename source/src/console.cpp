@@ -305,7 +305,7 @@ void saycommand(char *init)                         // turns input to the comman
     saycommandon = (init!=NULL);
     setscope(false);
     setburst(false);
-    if(!editmode) keyrepeat(saycommandon);
+    if(!editmode) keyrepeat = saycommandon;
     copystring(cmdline.buf, init ? escapestring(init, false, true) : "");
     DELETEA(cmdaction);
     DELETEA(cmdprompt);
@@ -333,49 +333,6 @@ SVARFF(mapmsg,
     copystring(hdr.maptitle, text, 128);
     if(editmode) unsavededits++;
 });
-
-#if !defined(WIN32) && !defined(__APPLE__)
-#include <X11/Xlib.h>
-#include <SDL_syswm.h>
-#endif
-
-void pasteconsole(char *dst)
-{
-    #ifdef WIN32
-    if(!IsClipboardFormatAvailable(CF_TEXT)) return;
-    if(!OpenClipboard(NULL)) return;
-    char *cb = (char *)GlobalLock(GetClipboardData(CF_TEXT));
-    concatstring(dst, cb);
-    GlobalUnlock(cb);
-    CloseClipboard();
-    #elif defined(__APPLE__)
-    extern void mac_pasteconsole(char *commandbuf);
-
-    mac_pasteconsole(dst);
-    #else
-    SDL_SysWMinfo wminfo;
-    SDL_VERSION(&wminfo.version);
-    wminfo.subsystem = SDL_SYSWM_X11;
-    extern SDL_Window *screen;
-    if(!SDL_GetWindowWMInfo(screen, &wminfo)) return;
-    int cbsize;
-    char *cb = XFetchBytes(wminfo.info.x11.display, &cbsize);
-    if(!cb || !cbsize) return;
-    int commandlen = strlen(dst);
-    for(char *cbline = cb, *cbend; commandlen + 1 < MAXSTRLEN && cbline < &cb[cbsize]; cbline = cbend + 1)
-    {
-        cbend = (char *)memchr(cbline, '\0', &cb[cbsize] - cbline);
-        if(!cbend) cbend = &cb[cbsize];
-        if(commandlen + cbend - cbline + 1 > MAXSTRLEN) cbend = cbline + MAXSTRLEN - commandlen - 1;
-        memcpy(&dst[commandlen], cbline, cbend - cbline);
-        commandlen += cbend - cbline;
-        dst[commandlen] = '\n';
-        if(commandlen + 1 < MAXSTRLEN && cbend < &cb[cbsize]) ++commandlen;
-        dst[commandlen] = '\0';
-    }
-    XFree(cb);
-    #endif
-}
 
 struct hline
 {
@@ -498,11 +455,7 @@ void execbind(keym &k, bool isdown)
         keypressed = NULL;
         if(keyaction!=action) delete[] keyaction;
     }
-}
-
-void consoletext(const char *text)
-{
-    cmdline.say(text);
+    k.pressed = isdown;
 }
 
 void consolekey(int code, bool isdown, SDL_Keymod mod)
@@ -600,13 +553,14 @@ void consolekey(int code, bool isdown, SDL_Keymod mod)
     }
 }
 
-extern bool menusay(const char *);
-
 void textinput(const char *text)
 {
-    if(saycommandon) {
+    if(saycommandon)
+    {
         cmdline.say(text);
-    } else {
+    }
+    else
+    {
         menusay(text);
     }
 }
@@ -645,20 +599,313 @@ void writebinds(stream *f)
 
 bool textinputbuffer::say(const char *c)
 {
-    int buflen = strlen(buf);
-    if(buflen >= maxlen()) return false;
-    int clen = strlen(c);
-    if(buflen+clen < sizeof(buf))
+    string txt;
+    copystring(txt, c);
+    if(filterunrenderables(txt)) audiomgr.playsound(S_PAIN1, SP_LOW);
+    int buflen = (int)strlen(buf), txtlen = (int)strlen(txt);
+    if(txtlen && buflen < maxlen() &&  buflen + txtlen < (int)sizeof(buf))
     {
-        if(pos < 0) strncpy(buf + buflen, c, clen);
+        if(pos < 0) strncpy(buf + buflen, txt, txtlen);
         else
         {
-            memmove(&buf[pos+clen], &buf[pos], buflen - pos);
-            memcpy(&buf[pos], c, clen);
-            pos += clen;
+            memmove(&buf[pos + txtlen], &buf[pos], buflen - pos);
+            memcpy(&buf[pos], txt, txtlen);
+            pos += txtlen;
         }
-        buf[buflen+clen] = '\0';
+        buf[buflen + txtlen] = '\0';
         return true;
     }
     return false;
 }
+
+void textinputbuffer::pasteclipboard()
+{
+    const char *s = SDL_GetClipboardText();
+    if(s)
+    {
+        string f;
+        filtertext(f, s, FTXT__CONSOLEPASTE);
+        say(f);
+        SDL_free((void*)s);
+    }
+}
+
+#ifdef _DEBUG
+void writekeymap() // create keymap.cfg with proper constants from SDL2 header files
+{
+    const struct _keymaptab { int keycode; const char *keyname; } keymaptab[] = {
+        { -1, "MOUSE1" },
+        { -3, "MOUSE2" },
+        { -2, "MOUSE3" },
+        { -4, "MOUSE4" },
+        { -5, "MOUSE5" },
+        { -6, "MOUSE6" },
+        { -7, "MOUSE7" },
+        { -8, "MOUSE8" },
+        { -9, "MOUSE9" },
+        { -10, "MOUSE10" },
+        { -11, "MOUSE11" },
+        { -12, "MOUSE12" },
+        { -13, "MOUSE13" },
+        { -14, "MOUSE14" },
+        { -15, "MOUSE15" },
+        { -16, "MOUSE16" },
+        { SDLK_BACKSPACE, "BACKSPACE" },
+        { SDLK_TAB, "TAB" },
+        { SDLK_CLEAR, "CLEAR" },
+        { SDLK_RETURN, "RETURN" },
+        { SDLK_PAUSE, "PAUSE" },
+        { SDLK_ESCAPE, "ESCAPE" },
+        { SDLK_SPACE, "SPACE" },
+        { SDLK_EXCLAIM, "EXCLAIM" },
+        { SDLK_QUOTEDBL, "QUOTEDBL" },
+        { SDLK_HASH, "HASH" },
+        { SDLK_DOLLAR, "DOLLAR" },
+        { SDLK_AMPERSAND, "AMPERSAND" },
+        { SDLK_QUOTE, "QUOTE" },
+        { SDLK_LEFTPAREN, "LEFTPAREN" },
+        { SDLK_RIGHTPAREN, "RIGHTPAREN" },
+        { SDLK_ASTERISK, "ASTERISK" },
+        { SDLK_PLUS, "PLUS" },
+        { SDLK_COMMA, "COMMA" },
+        { SDLK_MINUS, "MINUS" },
+        { SDLK_PERIOD, "PERIOD" },
+        { SDLK_SLASH, "SLASH" },
+        { SDLK_0, "0" },
+        { SDLK_1, "1" },
+        { SDLK_2, "2" },
+        { SDLK_3, "3" },
+        { SDLK_4, "4" },
+        { SDLK_5, "5" },
+        { SDLK_6, "6" },
+        { SDLK_7, "7" },
+        { SDLK_8, "8" },
+        { SDLK_9, "9" },
+        { SDLK_COLON, "COLON" },
+        { SDLK_SEMICOLON, "SEMICOLON" },
+        { SDLK_LESS, "LESS" },
+        { SDLK_EQUALS, "EQUALS" },
+        { SDLK_GREATER, "GREATER" },
+        { SDLK_QUESTION, "QUESTION" },
+        { SDLK_AT, "AT" },
+        { SDLK_LEFTBRACKET, "LEFTBRACKET" },
+        { SDLK_BACKSLASH, "BACKSLASH" },
+        { SDLK_RIGHTBRACKET, "RIGHTBRACKET" },
+        { SDLK_CARET, "CARET" },
+        { SDLK_UNDERSCORE, "UNDERSCORE" },
+        { SDLK_BACKQUOTE, "BACKQUOTE" },
+        { SDLK_a, "A" },
+        { SDLK_b, "B" },
+        { SDLK_c, "C" },
+        { SDLK_d, "D" },
+        { SDLK_e, "E" },
+        { SDLK_f, "F" },
+        { SDLK_g, "G" },
+        { SDLK_h, "H" },
+        { SDLK_i, "I" },
+        { SDLK_j, "J" },
+        { SDLK_k, "K" },
+        { SDLK_l, "L" },
+        { SDLK_m, "M" },
+        { SDLK_n, "N" },
+        { SDLK_o, "O" },
+        { SDLK_p, "P" },
+        { SDLK_q, "Q" },
+        { SDLK_r, "R" },
+        { SDLK_s, "S" },
+        { SDLK_t, "T" },
+        { SDLK_u, "U" },
+        { SDLK_v, "V" },
+        { SDLK_w, "W" },
+        { SDLK_x, "X" },
+        { SDLK_y, "Y" },
+        { SDLK_z, "Z" },
+        { SDLK_DELETE, "DELETE" },
+        { SDLK_KP_0, "KP0" },
+        { SDLK_KP_1, "KP1" },
+        { SDLK_KP_2, "KP2" },
+        { SDLK_KP_3, "KP3" },
+        { SDLK_KP_4, "KP4" },
+        { SDLK_KP_5, "KP5" },
+        { SDLK_KP_6, "KP6" },
+        { SDLK_KP_7, "KP7" },
+        { SDLK_KP_8, "KP8" },
+        { SDLK_KP_9, "KP9" },
+        { SDLK_KP_PERIOD, "KP_PERIOD" },
+        { SDLK_KP_DIVIDE, "KP_DIVIDE" },
+        { SDLK_KP_MULTIPLY, "KP_MULTIPLY" },
+        { SDLK_KP_MINUS, "KP_MINUS" },
+        { SDLK_KP_PLUS, "KP_PLUS" },
+        { SDLK_KP_ENTER, "KP_ENTER" },
+        { SDLK_KP_EQUALS, "KP_EQUALS" },
+        { SDLK_UP, "UP" },
+        { SDLK_DOWN, "DOWN" },
+        { SDLK_RIGHT, "RIGHT" },
+        { SDLK_LEFT, "LEFT" },
+        { SDLK_INSERT, "INSERT" },
+        { SDLK_HOME, "HOME" },
+        { SDLK_END, "END" },
+        { SDLK_PAGEUP, "PAGEUP" },
+        { SDLK_PAGEDOWN, "PAGEDOWN" },
+        { SDLK_F1, "F1" },
+        { SDLK_F2, "F2" },
+        { SDLK_F3, "F3" },
+        { SDLK_F4, "F4" },
+        { SDLK_F5, "F5" },
+        { SDLK_F6, "F6" },
+        { SDLK_F7, "F7" },
+        { SDLK_F8, "F8" },
+        { SDLK_F9, "F9" },
+        { SDLK_F10, "F10" },
+        { SDLK_F11, "F11" },
+        { SDLK_F12, "F12" },
+        { SDLK_F13, "F13" },
+        { SDLK_F14, "F14" },
+        { SDLK_F15, "F15" },
+        { SDLK_NUMLOCKCLEAR, "NUMLOCK" },
+        { SDLK_CAPSLOCK, "CAPSLOCK" },
+        { SDLK_SCROLLLOCK, "SCROLLOCK" },
+        { SDLK_RSHIFT, "RSHIFT" },
+        { SDLK_LSHIFT, "LSHIFT" },
+        { SDLK_RCTRL, "RCTRL" },
+        { SDLK_LCTRL, "LCTRL" },
+        { SDLK_RALT, "RALT" },
+        { SDLK_LALT, "LALT" },
+        { SDLK_RGUI, "RMETA" },
+        { SDLK_LGUI, "LMETA" },
+        { SDLK_MODE, "MODE" },
+        { SDLK_APPLICATION, "COMPOSE" },
+        { SDLK_HELP, "HELP" },
+        { SDLK_PRINTSCREEN, "PRINT" },
+        { SDLK_SYSREQ, "SYSREQ" },
+        { SDLK_MENU, "MENU" },
+        { 223, "SZ" }, // appear to work, but are undocumented...
+        { 252, "UE" },
+        { 246, "OE" },
+        { 228, "AE" },
+        { -1, " " }, // keys below are commented out by default
+        { SDLK_PERCENT, "PERCENT" },
+        { SDLK_POWER, "POWER" },
+        { SDLK_F16, "F16" },
+        { SDLK_F17, "F17" },
+        { SDLK_F18, "F18" },
+        { SDLK_F19, "F19" },
+        { SDLK_F20, "F20" },
+        { SDLK_F21, "F21" },
+        { SDLK_F22, "F22" },
+        { SDLK_F23, "F23" },
+        { SDLK_F24, "F24" },
+        { SDLK_EXECUTE, "EXECUTE" },
+        { SDLK_SELECT, "SELECT" },
+        { SDLK_STOP, "STOP" },
+        { SDLK_AGAIN, "AGAIN" },
+        { SDLK_UNDO, "UNDO" },
+        { SDLK_CUT, "CUT" },
+        { SDLK_COPY, "COPY" },
+        { SDLK_PASTE, "PASTE" },
+        { SDLK_FIND, "FIND" },
+        { SDLK_MUTE, "MUTE" },
+        { SDLK_VOLUMEUP, "VOLUMEUP" },
+        { SDLK_VOLUMEDOWN, "VOLUMEDOWN" },
+        { SDLK_KP_COMMA, "KP_COMMA" },
+        { SDLK_KP_EQUALSAS400, "KP_EQUALSAS400" },
+        { SDLK_ALTERASE, "ALTERASE" },
+        { SDLK_CANCEL, "CANCEL" },
+        { SDLK_PRIOR, "PRIOR" },
+        { SDLK_RETURN2, "RETURN2" },
+        { SDLK_SEPARATOR, "SEPARATOR" },
+        { SDLK_OUT, "OUT" },
+        { SDLK_OPER, "OPER" },
+        { SDLK_CLEARAGAIN, "CLEARAGAIN" },
+        { SDLK_CRSEL, "CRSEL" },
+        { SDLK_EXSEL, "EXSEL" },
+        { SDLK_KP_00, "KP_00" },
+        { SDLK_KP_000, "KP_000" },
+        { SDLK_THOUSANDSSEPARATOR, "THOUSANDSSEPARATOR" },
+        { SDLK_DECIMALSEPARATOR, "DECIMALSEPARATOR" },
+        { SDLK_CURRENCYUNIT, "CURRENCYUNIT" },
+        { SDLK_CURRENCYSUBUNIT, "CURRENCYSUBUNIT" },
+        { SDLK_KP_LEFTPAREN, "KP_LEFTPAREN" },
+        { SDLK_KP_RIGHTPAREN, "KP_RIGHTPAREN" },
+        { SDLK_KP_LEFTBRACE, "KP_LEFTBRACE" },
+        { SDLK_KP_RIGHTBRACE, "KP_RIGHTBRACE" },
+        { SDLK_KP_TAB, "KP_TAB" },
+        { SDLK_KP_BACKSPACE, "KP_BACKSPACE" },
+        { SDLK_KP_A, "KP_A" },
+        { SDLK_KP_B, "KP_B" },
+        { SDLK_KP_C, "KP_C" },
+        { SDLK_KP_D, "KP_D" },
+        { SDLK_KP_E, "KP_E" },
+        { SDLK_KP_F, "KP_F" },
+        { SDLK_KP_XOR, "KP_XOR" },
+        { SDLK_KP_POWER, "KP_POWER" },
+        { SDLK_KP_PERCENT, "KP_PERCENT" },
+        { SDLK_KP_LESS, "KP_LESS" },
+        { SDLK_KP_GREATER, "KP_GREATER" },
+        { SDLK_KP_AMPERSAND, "KP_AMPERSAND" },
+        { SDLK_KP_DBLAMPERSAND, "KP_DBLAMPERSAND" },
+        { SDLK_KP_VERTICALBAR, "KP_VERTICALBAR" },
+        { SDLK_KP_DBLVERTICALBAR, "KP_DBLVERTICALBAR" },
+        { SDLK_KP_COLON, "KP_COLON" },
+        { SDLK_KP_HASH, "KP_HASH" },
+        { SDLK_KP_SPACE, "KP_SPACE" },
+        { SDLK_KP_AT, "KP_AT" },
+        { SDLK_KP_EXCLAM, "KP_EXCLAM" },
+        { SDLK_KP_MEMSTORE, "KP_MEMSTORE" },
+        { SDLK_KP_MEMRECALL, "KP_MEMRECALL" },
+        { SDLK_KP_MEMCLEAR, "KP_MEMCLEAR" },
+        { SDLK_KP_MEMADD, "KP_MEMADD" },
+        { SDLK_KP_MEMSUBTRACT, "KP_MEMSUBTRACT" },
+        { SDLK_KP_MEMMULTIPLY, "KP_MEMMULTIPLY" },
+        { SDLK_KP_MEMDIVIDE, "KP_MEMDIVIDE" },
+        { SDLK_KP_PLUSMINUS, "KP_PLUSMINUS" },
+        { SDLK_KP_CLEAR, "KP_CLEAR" },
+        { SDLK_KP_CLEARENTRY, "KP_CLEARENTRY" },
+        { SDLK_KP_BINARY, "KP_BINARY" },
+        { SDLK_KP_OCTAL, "KP_OCTAL" },
+        { SDLK_KP_DECIMAL, "KP_DECIMAL" },
+        { SDLK_KP_HEXADECIMAL, "KP_HEXADECIMAL" },
+        { SDLK_AUDIONEXT, "AUDIONEXT" },
+        { SDLK_AUDIOPREV, "AUDIOPREV" },
+        { SDLK_AUDIOSTOP, "AUDIOSTOP" },
+        { SDLK_AUDIOPLAY, "AUDIOPLAY" },
+        { SDLK_AUDIOMUTE, "AUDIOMUTE" },
+        { SDLK_MEDIASELECT, "MEDIASELECT" },
+        { SDLK_WWW, "WWW" },
+        { SDLK_MAIL, "MAIL" },
+        { SDLK_CALCULATOR, "CALCULATOR" },
+        { SDLK_COMPUTER, "COMPUTER" },
+        { SDLK_AC_SEARCH, "AC_SEARCH" },
+        { SDLK_AC_HOME, "AC_HOME" },
+        { SDLK_AC_BACK, "AC_BACK" },
+        { SDLK_AC_FORWARD, "AC_FORWARD" },
+        { SDLK_AC_STOP, "AC_STOP" },
+        { SDLK_AC_REFRESH, "AC_REFRESH" },
+        { SDLK_AC_BOOKMARKS, "AC_BOOKMARKS" },
+        { SDLK_BRIGHTNESSDOWN, "BRIGHTNESSDOWN" },
+        { SDLK_BRIGHTNESSUP, "BRIGHTNESSUP" },
+        { SDLK_DISPLAYSWITCH, "DISPLAYSWITCH" },
+        { SDLK_KBDILLUMTOGGLE, "KBDILLUMTOGGLE" },
+        { SDLK_KBDILLUMDOWN, "KBDILLUMDOWN" },
+        { SDLK_KBDILLUMUP, "KBDILLUMUP" },
+        { SDLK_EJECT, "EJECT" },
+        { SDLK_SLEEP, "SLEEP" },
+        { 0, "" }
+        };
+
+    const char *c = "";
+    stream *f = openfile("config" PATHDIVS "keymap.cfg", "w");
+    if(f)
+    {
+        f->printf("push sc [ result (|b 0x40000000 $arg1) ]\n\n");
+        for(int i = 0; keymaptab[i].keycode; i++)
+        {
+            if(keymaptab[i].keyname[0] == ' ') c = "//";
+            else f->printf(keymaptab[i].keycode < (1<<30) ? "%skeymap %d %s\n" : "%skeymap (sc %d) %s\n", c, keymaptab[i].keycode & (keymaptab[i].keycode > 0 ? ((1<<30)-1) : -1), keymaptab[i].keyname);
+        }
+        f->printf("\npop sc\nexec config/resetbinds.cfg\n");
+        delete f;
+    }
+}
+COMMAND(writekeymap, "");
+#endif

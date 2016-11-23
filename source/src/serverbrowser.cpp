@@ -84,12 +84,7 @@ void resolverstop(resolverthread &rt)
     SDL_LockMutex(resolvermutex);
     if(rt.query)
     {
-#ifndef __APPLE__
-        // FIXME SDL2: implement a replacement for this if necessary
-        // Looks like the resolver thread should bail whenever
-        // a new one is created anyway, no idea why this was ever necessary.
-        //SDL_KillThread(rt.thread);
-#endif
+        SDL_DetachThread(rt.thread);
         rt.thread = SDL_CreateThread(resolverloop, "ResolverThread", &rt);
     }
     rt.query = NULL;
@@ -1171,7 +1166,7 @@ void refreshservers(void *menu, bool init)
     }
 }
 
-bool serverskey(void *menu, int code, bool isdown, int unicode)
+bool serverskey(void *menu, int code, bool isdown)
 {
     int fk[] = { SDLK_1, SDLK_2, SDLK_3, SDLK_4, SDLK_5, SDLK_6, SDLK_7, SDLK_8, SDLK_9, SDLK_0 }, gogetem = 1;
     if(!isdown) return false;
@@ -1269,7 +1264,7 @@ bool serverskey(void *menu, int code, bool isdown, int unicode)
     return false;
 }
 
-bool serverinfokey(void *menu, int code, bool isdown, int unicode)
+bool serverinfokey(void *menu, int code, bool isdown)
 {
     if(!isdown) return false;
     switch(code)

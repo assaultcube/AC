@@ -131,8 +131,8 @@ extern char *getcurcommand(int *pos);
 extern char *addreleaseaction(const char *s);
 extern void savehistory();
 extern void loadhistory();
+extern void textinput(const char *text);
 extern void writebinds(stream *f);
-extern void pasteconsole(char *dst);
 extern void clientlogf(const char *s, ...) PRINTFARGS(1, 2);
 
 struct keym
@@ -170,8 +170,9 @@ extern void menuimagemanual(void *menu, const char *filename1, const char *filen
 extern void menutitlemanual(void *menu, const char *title);
 extern bool needscoresreorder;
 extern void menuheader(void *menu, char *header, char *footer, bool heap = false);
+extern void menusay(const char *text);
 extern bool menukey(int code, bool isdown = true, SDL_Keymod mod = KMOD_NONE);
-extern void *addmenu(const char *name, const char *title = NULL, bool allowinput = true, void (__cdecl *refreshfunc)(void *, bool) = NULL, bool (__cdecl *keyfunc)(void *, int, bool, int) = NULL, bool hotkeys = false, bool forwardkeys = false);
+extern void *addmenu(const char *name, const char *title = NULL, bool allowinput = true, void (__cdecl *refreshfunc)(void *, bool) = NULL, bool (__cdecl *keyfunc)(void *, int, bool) = NULL, bool hotkeys = false, bool forwardkeys = false);
 extern bool rendermenumdl();
 extern void menuset(void *m, bool save = true);
 extern void menuselect(void *menu, int sel);
@@ -195,6 +196,7 @@ struct mitem
     virtual int width() = 0;
     virtual int select() { return 0; }
     virtual void focus(bool on) { }
+    virtual void say(const char *text) { }
     virtual void key(int code, bool isdown) { }
     virtual void init() {}
     virtual const char *getdesc() { return NULL; }
@@ -226,7 +228,7 @@ struct gmenu
     int menusel, menuselinit;
     bool allowinput, inited, hotkeys, forwardkeys;
     void (__cdecl *refreshfunc)(void *, bool);
-    bool (__cdecl *keyfunc)(void *, int, bool, int);
+    bool (__cdecl *keyfunc)(void *, int, bool);
     char *initaction;
     char *usefont;
     bool allowblink;
@@ -272,8 +274,8 @@ extern bool resolverwait(const char *name, ENetAddress *address);
 extern int connectwithtimeout(ENetSocket sock, const char *hostname, ENetAddress &remoteaddress);
 extern void writeservercfg();
 extern void refreshservers(void *menu, bool init);
-extern bool serverskey(void *menu, int code, bool isdown, int unicode);
-extern bool serverinfokey(void *menu, int code, bool isdown, int unicode);
+extern bool serverskey(void *menu, int code, bool isdown);
+extern bool serverinfokey(void *menu, int code, bool isdown);
 
 struct serverinfo
 {
@@ -673,7 +675,7 @@ extern char *lang;
 extern SDL_Window *screen;
 extern int colorbits, depthbits, stencilbits;
 
-extern void keyrepeat(bool on);
+extern bool keyrepeat;
 extern bool interceptkey(int sym);
 extern bool inmainloop;
 

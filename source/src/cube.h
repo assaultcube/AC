@@ -18,6 +18,8 @@
  #include "console.h"
  enum
  {
+   SDL_AC_BUTTON_WHEELLEFT = -7,
+   SDL_AC_BUTTON_WHEELRIGHT = -6,
    SDL_AC_BUTTON_WHEELDOWN = -5,
    SDL_AC_BUTTON_WHEELUP = -4,
    SDL_AC_BUTTON_RIGHT = -3,

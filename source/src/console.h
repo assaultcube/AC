@@ -46,10 +46,11 @@ struct textinputbuffer
         return max ? max : sizeof(buf);
     }
 
-    /// Insert a string (utf8/ascii)
     bool say(const char *c);    // returns true if buffer was modified
 
-    bool key(int code)    // returns true if buffer was modified
+    void pasteclipboard();
+
+    bool key(int code)          // returns true if buffer was modified
     {
         switch(code)
         {
@@ -94,24 +95,15 @@ struct textinputbuffer
                 break;
 
             case SDLK_v:
-                extern void pasteconsole(char *dst);
                 if(SDL_GetModState() & MOD_KEYS_CTRL)
                 {
-                    pasteconsole(buf);
+                    pasteclipboard();
                     return true;
                 }
-                // fall through
+                break;
 
             default:
                 break;
-            /*
-                if(code <= 127 && code >= -128 && isprint(code)) {
-                    char c[2];
-                    c[0] = static_cast<char>(code);
-                    c[1] = 0;
-                    return text(c);
-                }
-                */
         }
         return false;
     }

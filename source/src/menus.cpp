@@ -15,7 +15,7 @@ inline gmenu *setcurmenu(gmenu *newcurmenu)      // only change curmenu through 
 {
     curmenu = newcurmenu;
     extern bool saycommandon;
-    if(!editmode && !saycommandon) keyrepeat(curmenu && curmenu->allowinput && !curmenu->hotkeys);
+    if(!editmode && !saycommandon) keyrepeat = curmenu && curmenu->allowinput && !curmenu->hotkeys;
     return curmenu;
 }
 
@@ -380,6 +380,8 @@ struct mitemmapload : mitemmanual
 
 // text input item
 
+bool menutextinputon = false;
+
 struct mitemtextinput : mitemtext
 {
     textinputbuffer input;
@@ -438,6 +440,7 @@ struct mitemtextinput : mitemtext
     {
         if(on && hoveraction) execute(hoveraction);
 
+        menutextinputon = on;
         if(action && !on && modified && parent->items.find(this) != parent->items.length() - 1)
         {
             modified = false;
@@ -455,10 +458,9 @@ struct mitemtextinput : mitemtext
         }
     }
 
-    bool say(const char *text)
+    void say(const char *text)
     {
-        if(input.say(text)) return modified = true;
-        return false;
+        if(input.say(text)) modified = true;
     }
 
     virtual void init()
@@ -783,7 +785,7 @@ struct mitemcheckbox : mitem
 
 // console iface
 
-void *addmenu(const char *name, const char *title, bool allowinput, void (__cdecl *refreshfunc)(void *, bool), bool (__cdecl *keyfunc)(void *, int, bool, int), bool hotkeys, bool forwardkeys)
+void *addmenu(const char *name, const char *title, bool allowinput, void (__cdecl *refreshfunc)(void *, bool), bool (__cdecl *keyfunc)(void *, int, bool), bool hotkeys, bool forwardkeys)
 {
     gmenu *m = menus.access(name);
     if(!m)
@@ -1096,16 +1098,9 @@ static bool iskeypressed(int key)
     return key < numkeys && state[key] != 0;
 }
 
-/// Check if the currently selected menu item is a text field
-bool menutextinputon()
+void menusay(const char *text)
 {
-    return curmenu && curmenu->allowinput && curmenu->items[curmenu->menusel]->mitemtype == mitem::TYPE_TEXTINPUT;
-}
-
-bool menusay(const char *text)
-{
-    if(!menutextinputon()) return false;
-    return static_cast<mitemtextinput *>(curmenu->items[curmenu->menusel])->say(text);
+    if(menutextinputon && curmenu && curmenu->allowinput && curmenu->items.inrange(curmenu->menusel)) curmenu->items[curmenu->menusel]->say(text);
 }
 
 bool menukey(int code, bool isdown, SDL_Keymod mod)
@@ -1183,7 +1178,7 @@ bool menukey(int code, bool isdown, SDL_Keymod mod)
             default:
             {
                 if(!curmenu->allowinput) return false;
-                if(curmenu->keyfunc && (*curmenu->keyfunc)(curmenu, code, false, 0)) return true;
+                if(curmenu->keyfunc && (*curmenu->keyfunc)(curmenu, code, isdown)) return true;
                 if(!curmenu->items.inrange(menusel)) return false;
                 mitem &m = *curmenu->items[menusel];
                 if(!m.greyedout) m.key(code, isdown);
