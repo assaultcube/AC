@@ -915,7 +915,7 @@ void *sl_createthread(int (*fn)(void *), void *data)
     ti->data = data;
     ti->fn = fn;
     ti->done = 0;
-    ti->handle = SDL_CreateThread(sl_thread_indir, ti);
+    ti->handle = SDL_CreateThread(sl_thread_indir, NULL, ti);
     return (void *) ti;
 }
 

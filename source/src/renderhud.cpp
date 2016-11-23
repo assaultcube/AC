@@ -1142,7 +1142,7 @@ void loadingscreen(const char *fmt, ...)
             draw_text(str, w>=VIRTW ? 0 : (VIRTW-w)/2, VIRTH*3/4);
             glDisable(GL_BLEND);
         }
-        SDL_GL_SwapBuffers();
+        SDL_GL_SwapWindow(screen);
     }
 
     glDisable(GL_TEXTURE_2D);
@@ -1218,6 +1218,6 @@ void show_out_of_renderloop_progress(float bar1, const char *text1, float bar2, 
     glPopMatrix();
 
     glEnable(GL_DEPTH_TEST);
-    SDL_GL_SwapBuffers();
+    SDL_GL_SwapWindow(screen);
 }
 

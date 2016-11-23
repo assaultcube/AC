@@ -337,7 +337,7 @@ struct mitemmapload : mitemmanual
         DELETEA(desc);
     }
 
-    virtual void key(int code, bool isdown, int unicode)
+    virtual void key(int code, bool isdown)
     {
         if(code == SDLK_LEFT && parent->xoffs > -50) parent->xoffs -= 2;
         else if(code == SDLK_RIGHT && parent->xoffs < 50) parent->xoffs += 2;
@@ -438,7 +438,6 @@ struct mitemtextinput : mitemtext
     {
         if(on && hoveraction) execute(hoveraction);
 
-        SDL_EnableUNICODE(on);
         if(action && !on && modified && parent->items.find(this) != parent->items.length() - 1)
         {
             modified = false;
@@ -446,14 +445,20 @@ struct mitemtextinput : mitemtext
         }
     }
 
-    virtual void key(int code, bool isdown, int unicode)
+    virtual void key(int code, bool isdown)
     {
-        if(input.key(code, isdown, unicode)) modified = true;
+        if(input.key(code)) modified = true;
         if(action && code == SDLK_RETURN && modified && parent->items.find(this) != parent->items.length() - 1)
         {
             modified = false;
             execaction(input.buf);
         }
+    }
+
+    bool say(const char *text)
+    {
+        if(input.say(text)) return modified = true;
+        return false;
     }
 
     virtual void init()
@@ -548,7 +553,7 @@ struct mitemslider : mitem
         }
     }
 
-    virtual void key(int code, bool isdown, int unicode)
+    virtual void key(int code, bool isdown)
     {
         if(code == SDLK_LEFT) slide(false);
         else if(code == SDLK_RIGHT) slide(true);
@@ -671,10 +676,10 @@ struct mitemkeyinput : mitem
         return 0;
     }
 
-    virtual void key(int code, bool isdown, int unicode)
+    virtual void key(int code, bool isdown)
     {
         keym *km;
-        if(!capture || code < -5 || code > SDLK_MENU || !((km = findbindc(code)))) return;
+        if(!capture || !((km = findbindc(code)))) return;
         if(code == SDLK_ESCAPE)
         {
             capture = false;
@@ -1087,11 +1092,23 @@ COMMAND(menuselectiondescbgcolor, "ssss");
 static bool iskeypressed(int key)
 {
     int numkeys = 0;
-    Uint8* state = SDL_GetKeyState(&numkeys);
+    Uint8 const* state = SDL_GetKeyboardState(&numkeys);
     return key < numkeys && state[key] != 0;
 }
 
-bool menukey(int code, bool isdown, int unicode, SDLMod mod)
+/// Check if the currently selected menu item is a text field
+bool menutextinputon()
+{
+    return curmenu && curmenu->allowinput && curmenu->items[curmenu->menusel]->mitemtype == mitem::TYPE_TEXTINPUT;
+}
+
+bool menusay(const char *text)
+{
+    if(!menutextinputon()) return false;
+    return static_cast<mitemtextinput *>(curmenu->items[curmenu->menusel])->say(text);
+}
+
+bool menukey(int code, bool isdown, SDL_Keymod mod)
 {
     if(!curmenu) return false;
     int n = curmenu->items.length(), menusel = curmenu->menusel;
@@ -1101,7 +1118,7 @@ bool menukey(int code, bool isdown, int unicode, SDLMod mod)
         mitem *m = curmenu->items[menusel];
         if(m->mitemtype == mitem::TYPE_KEYINPUT && ((mitemkeyinput *)m)->capture)
         {
-            m->key(code, isdown, unicode);
+            m->key(code, isdown);
             return true;
         }
     }
@@ -1125,15 +1142,15 @@ bool menukey(int code, bool isdown, int unicode, SDLMod mod)
                 break;
             case SDLK_UP:
             case SDL_AC_BUTTON_WHEELUP:
-                if(iskeypressed(SDLK_LCTRL)) return menukey(SDLK_LEFT, isdown, 0);
-                if(iskeypressed(SDLK_LALT)) return menukey(SDLK_RIGHTBRACKET, isdown, 0);
+                if(iskeypressed(SDL_SCANCODE_LCTRL)) return menukey(SDLK_LEFT);
+                if(iskeypressed(SDL_SCANCODE_LALT)) return menukey(SDLK_RIGHTBRACKET);
                 if(!curmenu->allowinput) return false;
                 menusel--;
                 break;
             case SDLK_DOWN:
             case SDL_AC_BUTTON_WHEELDOWN:
-                if(iskeypressed(SDLK_LCTRL)) return menukey(SDLK_RIGHT, isdown, 0);
-                if(iskeypressed(SDLK_LALT)) return menukey(SDLK_LEFTBRACKET, isdown, 0);
+                if(iskeypressed(SDL_SCANCODE_LCTRL)) return menukey(SDLK_RIGHT);
+                if(iskeypressed(SDL_SCANCODE_LALT)) return menukey(SDLK_LEFTBRACKET);
                 if(!curmenu->allowinput) return false;
                 menusel++;
                 break;
@@ -1166,10 +1183,10 @@ bool menukey(int code, bool isdown, int unicode, SDLMod mod)
             default:
             {
                 if(!curmenu->allowinput) return false;
-                if(curmenu->keyfunc && (*curmenu->keyfunc)(curmenu, code, isdown, unicode)) return true;
+                if(curmenu->keyfunc && (*curmenu->keyfunc)(curmenu, code, false, 0)) return true;
                 if(!curmenu->items.inrange(menusel)) return false;
                 mitem &m = *curmenu->items[menusel];
-                if(!m.greyedout) m.key(code, isdown, unicode);
+                if(!m.greyedout) m.key(code, isdown);
                 if(code == SDLK_HOME && m.mitemtype != mitem::TYPE_TEXTINPUT) menuselect(curmenu, (menusel = 0));
                 return !curmenu->forwardkeys;
             }
@@ -1182,7 +1199,7 @@ bool menukey(int code, bool isdown, int unicode, SDLMod mod)
     {
         switch(code)   // action on keyup to avoid repeats
         {
-            case SDLK_PRINT:
+            case SDLK_PRINTSCREEN:
                 curmenu->conprintmenu();
                 return true;
 

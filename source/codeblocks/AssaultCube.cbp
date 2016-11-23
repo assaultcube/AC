@@ -33,8 +33,9 @@
 				</ResourceCompiler>
 				<Linker>
 					<Add option="-mwindows" />
-					<Add library="SDL" />
-					<Add library="SDL_image" />
+					<Add library="SDL2main" />
+					<Add library="SDL2" />
+					<Add library="SDL2_image" />
 					<Add library="zdll" />
 					<Add library="opengl32" />
 					<Add library="enet" />
@@ -66,8 +67,9 @@
 					<Add directory="../vcpp" />
 				</ResourceCompiler>
 				<Linker>
-					<Add library="SDL" />
-					<Add library="SDL_image" />
+					<Add library="SDL2main" />
+					<Add library="SDL2" />
+					<Add library="SD2L_image" />
 					<Add library="zdll" />
 					<Add library="opengl32" />
 					<Add library="enet" />
@@ -99,7 +101,7 @@
 					<Add directory="../vcpp" />
 				</ResourceCompiler>
 				<Linker>
-					<Add library="SDL" />
+					<Add library="SDL2" />
 					<Add library="zdll" />
 					<Add library="enet" />
 					<Add library="ws2_32" />
@@ -128,7 +130,7 @@
 					<Add directory="../vcpp" />
 				</ResourceCompiler>
 				<Linker>
-					<Add library="SDL" />
+					<Add library="SDL2" />
 					<Add library="zdll" />
 					<Add library="enet" />
 					<Add library="ws2_32" />
