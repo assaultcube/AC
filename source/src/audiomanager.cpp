@@ -779,7 +779,7 @@ COMMANDF(sound, "i", (int *n)
 });
 
 COMMANDF(applymapsoundchanges, "", (){
-    audiomgr.applymapsoundchanges();
+    if(m_coop || !multiplayer("applymapsoundchanges")) audiomgr.applymapsoundchanges();
 });
 
 COMMANDF(unmuteallsounds, "", () {
