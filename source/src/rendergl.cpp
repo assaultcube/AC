@@ -125,7 +125,7 @@ void gl_checkextensions()
 #endif
 }
 
-void gl_init(int w, int h, int bpp, int depth, int fsaa)
+void gl_init(int w, int h, int depth, int fsaa)
 {
     //#define fogvalues 0.5f, 0.6f, 0.7f, 1.0f
 

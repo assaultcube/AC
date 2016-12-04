@@ -1,14 +1,8 @@
+dist: trusty
 language: cpp
 compiler: clang
 before_install: sudo apt-get update
-install: 
-  - sudo apt-get install clang make automake libogg-dev libopenal-dev libvorbis-dev -y
-  - curl -O http://www.libsdl.org/release/SDL2-2.0.3.tar.gz
-  - tar -xzvf SDL2-2.0.3.tar.gz
-  - (cd SDL2-2.0.3 && ./configure && make && sudo make install)
-  - curl -O https://www.libsdl.org/projects/SDL_image/release/SDL2_image-2.0.0.tar.gz
-  - tar -xvf SDL2_image-2.0.0.tar.gz
-  - (cd SDL2_image-2.0.0 && ./configure && make && sudo make install)
+install: sudo apt-get install clang make automake libsdl2-dev libogg-dev libsdl2-image-dev libopenal-dev libvorbis-dev -y
 script: cd source/src && make
 notifications:
   irc:

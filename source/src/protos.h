@@ -379,7 +379,7 @@ extern glmatrixf mvmatrix, projmatrix, clipmatrix, mvpmatrix, invmvmatrix, invmv
 extern void resetcamera();
 
 extern void gl_checkextensions();
-extern void gl_init(int w, int h, int bpp, int depth, int fsaa);
+extern void gl_init(int w, int h, int depth, int fsaa);
 extern void enablepolygonoffset(GLenum type);
 extern void disablepolygonoffset(GLenum type, bool restore = true);
 extern void line(int x1, int y1, float z1, int x2, int y2, float z2);
@@ -673,7 +673,7 @@ extern int isoccluded(float vx, float vy, float cx, float cy, float csize);
 // main
 extern char *lang;
 extern SDL_Window *screen;
-extern int colorbits, depthbits, stencilbits;
+extern int depthbits, stencilbits;
 
 extern bool keyrepeat;
 extern bool interceptkey(int sym);
