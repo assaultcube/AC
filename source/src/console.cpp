@@ -302,10 +302,11 @@ COMMAND(onrelease, "s");
 
 void saycommand(char *init)                         // turns input to the command line on or off
 {
-    saycommandon = (init!=NULL);
+    saycommandon = (init != NULL);
+    textinput(saycommandon, TI_CONSOLE);
+    keyrepeat(saycommandon, KR_CONSOLE);
     setscope(false);
     setburst(false);
-    if(!editmode) keyrepeat = saycommandon;
     copystring(cmdline.buf, init ? escapestring(init, false, true) : "");
     DELETEA(cmdaction);
     DELETEA(cmdprompt);
@@ -553,7 +554,7 @@ void consolekey(int code, bool isdown, SDL_Keymod mod)
     }
 }
 
-void textinput(const char *text)
+void processtextinput(const char *text)
 {
     if(saycommandon)
     {

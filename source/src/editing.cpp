@@ -54,7 +54,7 @@ void toggleedit(bool force)
         //put call to clear/restart gamemode
         player1->attacking = false;
     }
-    keyrepeat = editmode;
+    keyrepeat(editmode, KR_EDITMODE);
     editing = editmode ? 1 : 0;
     editing_sp = editmode && !multiplayer(NULL) ? 1 : 0;
     player1->state = editing ? CS_EDITING : (watchingdemo ? CS_SPECTATE : CS_ALIVE);

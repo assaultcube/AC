@@ -14,8 +14,7 @@ COMMANDF(curmenu, "", () {result(curmenu ? curmenu->name : "");} );
 inline gmenu *setcurmenu(gmenu *newcurmenu)      // only change curmenu through here!
 {
     curmenu = newcurmenu;
-    extern bool saycommandon;
-    if(!editmode && !saycommandon) keyrepeat = curmenu && curmenu->allowinput && !curmenu->hotkeys;
+    keyrepeat(curmenu && curmenu->allowinput && !curmenu->hotkeys, KR_MENU);
     return curmenu;
 }
 
@@ -380,8 +379,6 @@ struct mitemmapload : mitemmanual
 
 // text input item
 
-bool menutextinputon = false;
-
 struct mitemtextinput : mitemtext
 {
     textinputbuffer input;
@@ -440,7 +437,7 @@ struct mitemtextinput : mitemtext
     {
         if(on && hoveraction) execute(hoveraction);
 
-        menutextinputon = on;
+        textinput(on, TI_MENU);
         if(action && !on && modified && parent->items.find(this) != parent->items.length() - 1)
         {
             modified = false;
@@ -1100,7 +1097,7 @@ static bool iskeypressed(int key)
 
 void menusay(const char *text)
 {
-    if(menutextinputon && curmenu && curmenu->allowinput && curmenu->items.inrange(curmenu->menusel)) curmenu->items[curmenu->menusel]->say(text);
+    if(curmenu && curmenu->allowinput && curmenu->items.inrange(curmenu->menusel)) curmenu->items[curmenu->menusel]->say(text);
 }
 
 bool menukey(int code, bool isdown, SDL_Keymod mod)

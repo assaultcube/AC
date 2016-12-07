@@ -131,7 +131,7 @@ extern char *getcurcommand(int *pos);
 extern char *addreleaseaction(const char *s);
 extern void savehistory();
 extern void loadhistory();
-extern void textinput(const char *text);
+extern void processtextinput(const char *text);
 extern void writebinds(stream *f);
 extern void clientlogf(const char *s, ...) PRINTFARGS(1, 2);
 
@@ -673,23 +673,19 @@ extern int isoccluded(float vx, float vy, float cx, float cy, float csize);
 // main
 extern char *lang;
 extern SDL_Window *screen;
-extern int depthbits, stencilbits;
+extern int stencilbits;
 
-extern bool keyrepeat;
+enum { KR_CONSOLE = 1<<0, KR_MENU = 1<<1, KR_EDITMODE = 1<<2 };
+extern void keyrepeat(bool on, int mask = ~0);
+
+enum { TI_CONSOLE = 1<<0, TI_MENU = 1<<1 };
+extern void textinput(bool on, int mask = ~0);
+
 extern bool interceptkey(int sym);
 extern bool inmainloop;
 
-enum
-{
-    NOT_INITING = 0,
-    INIT_LOAD,
-    INIT_RESET
-};
-enum
-{
-    CHANGE_GFX   = 1<<0,
-    CHANGE_SOUND = 1<<1
-};
+enum { NOT_INITING = 0, INIT_LOAD, INIT_RESET };
+enum { CHANGE_GFX = 1<<0, CHANGE_SOUND = 1<<1 };
 extern bool initwarning(const char *desc, int level = INIT_RESET, int type = CHANGE_GFX);
 
 // rendertext
