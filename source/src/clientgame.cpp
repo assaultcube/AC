@@ -1662,6 +1662,8 @@ void spectate()
     else tryrespawn();
 }
 
+COMMAND(spectate, "");
+
 void setfollowplayer(int cn)
 {
     // silently ignores invalid player-cn value passed
@@ -1674,6 +1676,8 @@ void setfollowplayer(int cn)
         }
     }
 }
+
+COMMANDF(setfollowplayer, "i", (int *cn) { setfollowplayer(*cn); });
 
 // set new spect mode
 void spectatemode(int mode)
@@ -1713,6 +1717,8 @@ void spectatemode(int mode)
     player1->spectatemode = mode;
 }
 
+COMMANDF(spectatemode, "i", (int *mode) { spectatemode(*mode); });
+
 void togglespect() // cycle through all spectating modes
 {
     if(m_botmode)
@@ -1726,16 +1732,24 @@ void togglespect() // cycle through all spectating modes
     }
 }
 
+COMMAND(togglespect, "");
+
 void changefollowplayer(int shift)
 {
     if(!m_botmode) updatefollowplayer(shift);
 }
 
-COMMAND(spectate, "");
-COMMANDF(spectatemode, "i", (int *mode) { spectatemode(*mode); });
-COMMAND(togglespect, "");
 COMMANDF(changefollowplayer, "i", (int *dir) { changefollowplayer(*dir); });
-COMMANDF(setfollowplayer, "i", (int *cn) { setfollowplayer(*cn); });
+
+void spectatecn()
+{
+    int spectcn = -1;
+    if(player1->isspectating() && player1->spectatemode >= SM_FOLLOW1ST && player1->spectatemode <= SM_FOLLOW3RD_TRANSPARENT)
+        spectcn = player1->followplayercn;
+    intret(spectcn);
+}
+
+COMMAND(spectatecn, "");
 
 void serverextension(char *ext, char *args)
 {
