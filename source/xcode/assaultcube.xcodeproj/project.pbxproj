@@ -7,10 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		4F93906E1A1598140049877C /* SDL_image.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9EB8171611ED9AEF00799589 /* SDL_image.framework */; };
-		4F9390711A15985A0049877C /* SDL_image.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9EB8171611ED9AEF00799589 /* SDL_image.framework */; };
-		4FEAF3381A147F9F00B42D47 /* SDL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9EB8171511ED9AEF00799589 /* SDL.framework */; };
-		4FEAF3391A147FAE00B42D47 /* SDL.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9EB8171511ED9AEF00799589 /* SDL.framework */; };
+		4F93906E1A1598140049877C /* SDL2_image.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9EB8171611ED9AEF00799589 /* SDL2_image.framework */; };
+		4F9390711A15985A0049877C /* SDL2_image.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9EB8171611ED9AEF00799589 /* SDL2_image.framework */; };
+		4FEAF3381A147F9F00B42D47 /* SDL2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9EB8171511ED9AEF00799589 /* SDL2.framework */; };
+		4FEAF3391A147FAE00B42D47 /* SDL2.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9EB8171511ED9AEF00799589 /* SDL2.framework */; };
 		665CDCA60AFE7ECD0030D605 /* callbacks.c in Sources */ = {isa = PBXBuildFile; fileRef = 665CDC6B0AFE7ECC0030D605 /* callbacks.c */; };
 		665CDCB80AFE7ECD0030D605 /* host.c in Sources */ = {isa = PBXBuildFile; fileRef = 665CDC7E0AFE7ECD0030D605 /* host.c */; };
 		665CDCCB0AFE7ECD0030D605 /* list.c in Sources */ = {isa = PBXBuildFile; fileRef = 665CDC930AFE7ECD0030D605 /* list.c */; };
@@ -88,7 +88,6 @@
 		B914CEDA11CAC42F009BA307 /* worldocull.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B914CE8B11CAC42F009BA307 /* worldocull.cpp */; };
 		B914CEDB11CAC42F009BA307 /* worldrender.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B914CE8C11CAC42F009BA307 /* worldrender.cpp */; };
 		B914CEDC11CAC42F009BA307 /* zip.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B914CE8D11CAC42F009BA307 /* zip.cpp */; };
-		B94198A809207E810029DAD1 /* SDLMain.m in Sources */ = {isa = PBXBuildFile; fileRef = F5A47A9E01A0483001D3D55B /* SDLMain.m */; };
 		B94198C309207E810029DAD1 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
 		B94198C409207E810029DAD1 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B2F67ED704C74A3F00A80002 /* OpenGL.framework */; };
 		B96D0D590920970C00B6C936 /* Launcher.m in Sources */ = {isa = PBXBuildFile; fileRef = B96D0D580920970C00B6C936 /* Launcher.m */; };
@@ -114,8 +113,8 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				4F9390711A15985A0049877C /* SDL_image.framework in CopyFiles */,
-				4FEAF3391A147FAE00B42D47 /* SDL.framework in CopyFiles */,
+				4F9390711A15985A0049877C /* SDL2_image.framework in CopyFiles */,
+				4FEAF3391A147FAE00B42D47 /* SDL2.framework in CopyFiles */,
 				9EB8179511ED9EDF00799589 /* Ogg.framework in CopyFiles */,
 				9EB8179A11ED9EDF00799589 /* Vorbis.framework in CopyFiles */,
 			);
@@ -158,8 +157,8 @@
 		9E595538121EA8E9005ED5F7 /* crypto_tools.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = crypto_tools.h; sourceTree = "<group>"; };
 		9EAE4BD9120F2D0A0041E6E4 /* English */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/Localizable.strings; sourceTree = "<group>"; };
 		9EB8171411ED9AEF00799589 /* Ogg.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Ogg.framework; path = Frameworks/Ogg.framework; sourceTree = "<group>"; };
-		9EB8171511ED9AEF00799589 /* SDL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL.framework; path = Frameworks/SDL.framework; sourceTree = "<group>"; };
-		9EB8171611ED9AEF00799589 /* SDL_image.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL_image.framework; path = Frameworks/SDL_image.framework; sourceTree = "<group>"; };
+		9EB8171511ED9AEF00799589 /* SDL2.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL2.framework; path = Frameworks/SDL2.framework; sourceTree = "<group>"; };
+		9EB8171611ED9AEF00799589 /* SDL2_image.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL2_image.framework; path = Frameworks/SDL2_image.framework; sourceTree = "<group>"; };
 		9EB8171911ED9AEF00799589 /* Vorbis.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Vorbis.framework; path = Frameworks/Vorbis.framework; sourceTree = "<group>"; };
 		9EB817DE11EDA3A300799589 /* assaultcube.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = assaultcube.icns; sourceTree = "<group>"; };
 		9EB8183711EDA6EE00799589 /* assaultcube.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = assaultcube.plist; sourceTree = "<group>"; };
@@ -248,8 +247,6 @@
 		B96D0D6C0920976E00B6C936 /* main.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		B975E7F30EBCC3A200880D5D /* map.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = map.icns; sourceTree = "<group>"; };
 		B9FA3B7C0DD9E6E400581F8D /* OpenAL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenAL.framework; path = /System/Library/Frameworks/OpenAL.framework; sourceTree = "<absolute>"; };
-		F5A47A9D01A0482F01D3D55B /* SDLMain.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = SDLMain.h; sourceTree = SOURCE_ROOT; };
-		F5A47A9E01A0483001D3D55B /* SDLMain.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = SDLMain.m; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -257,9 +254,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4F93906E1A1598140049877C /* SDL_image.framework in Frameworks */,
+				4F93906E1A1598140049877C /* SDL2_image.framework in Frameworks */,
 				B94198C309207E810029DAD1 /* Cocoa.framework in Frameworks */,
-				4FEAF3381A147F9F00B42D47 /* SDL.framework in Frameworks */,
+				4FEAF3381A147F9F00B42D47 /* SDL2.framework in Frameworks */,
 				B9FA3B7D0DD9E6E400581F8D /* OpenAL.framework in Frameworks */,
 				B94198C409207E810029DAD1 /* OpenGL.framework in Frameworks */,
 				9EB8171C11ED9AEF00799589 /* Ogg.framework in Frameworks */,
@@ -286,8 +283,6 @@
 				66899E6E0C1485E200927C34 /* ConsoleView.m */,
 				B96D0D570920970C00B6C936 /* Launcher.h */,
 				B96D0D580920970C00B6C936 /* Launcher.m */,
-				F5A47A9D01A0482F01D3D55B /* SDLMain.h */,
-				F5A47A9E01A0483001D3D55B /* SDLMain.m */,
 			);
 			name = Classes;
 			sourceTree = "<group>";
@@ -297,8 +292,8 @@
 			children = (
 				9EB8171411ED9AEF00799589 /* Ogg.framework */,
 				9EB8171911ED9AEF00799589 /* Vorbis.framework */,
-				9EB8171511ED9AEF00799589 /* SDL.framework */,
-				9EB8171611ED9AEF00799589 /* SDL_image.framework */,
+				9EB8171511ED9AEF00799589 /* SDL2.framework */,
+				9EB8171611ED9AEF00799589 /* SDL2_image.framework */,
 				1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */,
 				B9FA3B7C0DD9E6E400581F8D /* OpenAL.framework */,
 				B2F67ED704C74A3F00A80002 /* OpenGL.framework */,
@@ -609,7 +604,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B94198A809207E810029DAD1 /* SDLMain.m in Sources */,
 				665CDCA60AFE7ECD0030D605 /* callbacks.c in Sources */,
 				665CDCB80AFE7ECD0030D605 /* host.c in Sources */,
 				665CDCCB0AFE7ECD0030D605 /* list.c in Sources */,
@@ -755,7 +749,7 @@
 					"$(inherited)",
 					"\"$(SRCROOT)/../lib\"",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				MACOSX_DEPLOYMENT_TARGET_i386 = 10.5;
 				OTHER_LDFLAGS = "-lz";
 				PRODUCT_NAME = assaultcube;
@@ -795,7 +789,7 @@
 					"$(inherited)",
 					"\"$(SRCROOT)/../lib\"",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				MACOSX_DEPLOYMENT_TARGET_i386 = 10.5;
 				OTHER_LDFLAGS = "-lz";
 				PRODUCT_NAME = assaultcube;
@@ -807,7 +801,6 @@
 		B94198EB09207F510029DAD1 /* Release-Deployment */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEPLOYMENT_POSTPROCESSING = YES;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -841,7 +834,7 @@
 					"$(inherited)",
 					"\"$(SRCROOT)/../lib\"",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				MACOSX_DEPLOYMENT_TARGET_i386 = 10.5;
 				OTHER_LDFLAGS = "-lz";
 				PRODUCT_NAME = assaultcube;
@@ -853,7 +846,6 @@
 		B94198EC09207F510029DAD1 /* Release-Deployment */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				COPY_PHASE_STRIP = YES;
 				DEPLOYMENT_POSTPROCESSING = YES;
 				FRAMEWORK_SEARCH_PATHS = "";
@@ -869,7 +861,6 @@
 		B960CF36085F3CC7004FB142 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
 				COPY_PHASE_STRIP = NO;
 				FRAMEWORK_SEARCH_PATHS = "";
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -885,7 +876,6 @@
 		B960CF37085F3CC7004FB142 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				COPY_PHASE_STRIP = YES;
 				DEPLOYMENT_POSTPROCESSING = YES;
 				FRAMEWORK_SEARCH_PATHS = "";

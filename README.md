@@ -20,7 +20,7 @@ on old hardware (Pentium III and above).
  * With the correct settings, it can run on old hardware
  (Pentium III and above).
  * Officially runs on most major systems (Windows: 2000/XP/Vista/7/8/10, Linux,
- Mac OS X: 10.4+), and maybe even some
+ Mac OS X: 10.6+ 64-bit), and maybe even some
  [non-major ones](http://assault.cubers.net/docs/getstarted.html)?
  * Has a built in, in-game map editor to help players create their own maps and
  allows for co-operative editmode in realtime with others!

@@ -488,8 +488,8 @@ static int numberForKey(CFDictionaryRef desc, CFStringRef key)
     [args addObject:[NSString stringWithFormat:@"-w%@", [res objectAtIndex:0]]];
     [args addObject:[NSString stringWithFormat:@"-h%@", [res objectAtIndex:1]]];
     [args addObject:@"-z32"]; //otherwise seems to have a fondness to use -z16 which looks crap
-    [args addObject:[NSString stringWithFormat:@"-a%d", [defs integerForKey:dkFSAA]]];
-    [args addObject:[NSString stringWithFormat:@"-t%d", [defs integerForKey:dkFULLSCREEN]]];
+    [args addObject:[NSString stringWithFormat:@"-a%ld", (long)[defs integerForKey:dkFSAA]]];
+    [args addObject:[NSString stringWithFormat:@"-t%ld", (long)[defs integerForKey:dkFULLSCREEN]]];
 
     if ([stencil state] == NSOnState)
         [args addObject:@"-s8"];
