@@ -5,10 +5,10 @@
 # all questions in this script.
 
 # This is the main AssaultCube folder:
-PATHTOACDIR=~/AssaultCube/SVN_Trunk
+PATHTOACDIR=~/AssaultCube/AC
 
 # This is the docs folder (which holds reference.xml):
-ABSOLUTEPATHTODOCS=~/AssaultCube/SVN_Website/htdocs/docs
+ABSOLUTEPATHTODOCS=$PATHTOACDIR/docs
 
 # Path to "official" folder:
 MAPSPATH="$PATHTOACDIR/packages/maps/official"
@@ -48,7 +48,7 @@ if [ "$1" != "--all" ]; then
 fi
 if [ "$ANSR" = "y" ] || [ "$ANSR" = "Y" ] || [ "$ANSR" = "yes" ] || [ "$ANSR" = "YES" ] || [ "$1" = "--all" ]; then
   cd $PATHTOACDIR
-  sh config/convert_mapconfig.sh -osp ./packages/maps/official/*.cfg
+  bash config/convert_pre_v1.2_mapconfig.sh -osp ./packages/maps/official/*.cfg
   echo -e "DONE.\n"
 else
   echo -e "\a\E[1mNOTE:\E[0m Map config files have been left alone.\n"
@@ -60,8 +60,14 @@ if [ "$1" != "--all" ]; then
 fi
 if [ "$ANSR" = "y" ] || [ "$ANSR" = "Y" ] || [ "$ANSR" = "yes" ] || [ "$ANSR" = "YES" ] || [ "$1" = "--all" ]; then
   cd $PATHTOACDIR/config
-  sed -i 's/^M$//' *
-  sed -i 's/[ \t]*$//' *
+  sed -i 's/^M$//' *.cfg *.txt
+  sed -i 's/[ \t]*$//' *.cfg *.txt
+  cd $PATHTOACDIR/config/autostart
+  sed -i 's/^M$//' *.cfg *.txt
+  sed -i 's/[ \t]*$//' *.cfg *.txt
+  cd $PATHTOACDIR/config/opt
+  sed -i 's/^M$//' *.cfg *.txt
+  sed -i 's/[ \t]*$//' *.cfg *.txt
   echo -e "DONE.\n"
 else
   echo -e "\a\E[1mNOTE:\E[0m Config files haven't had leading whitespace stripped.\n"
@@ -89,11 +95,7 @@ if [ "$ANSR" = "y" ] || [ "$ANSR" = "Y" ] || [ "$ANSR" = "yes" ] || [ "$ANSR" = 
   # Replacement text for "const defaultmaps":
   DEFLTMAPS=`echo "const defaultmaps [" $MAPSLIST "]"`
 
-  # Replacement text for the bot silders:
-  BOTSLIDER=`echo 'menuitemslider (_ [Map: ]) 0 (- (listlen $defaultmaps) 1) "$survMap" 1 [' $MAPSLIST '] [ survMap = $arg1 ]'`
-
   sed -i 's/const defaultmaps..*/'"$DEFLTMAPS"'/g' menus.cfg
-  sed -i 's/menuitemslider \[Map: \] 0..*/'"$BOTSLIDER"'/g' menus_bot.cfg
   echo "The following official maps are NOT listed for CTF mode currently:"
   echo $NONCTFLIST
   echo "Add a map to this list (Y/N)?"

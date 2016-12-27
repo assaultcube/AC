@@ -364,7 +364,7 @@ Section "AssaultCube ${AC_FULLVERSION} Update" PATCH
 
     SetOutPath "$INSTDIR"
 
-    File /r ac_patch\*.*      
+    File /r AC_patch\*.*
 
 SectionEnd
 

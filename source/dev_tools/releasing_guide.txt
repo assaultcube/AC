@@ -1,0 +1,25 @@
+Last steps/commits/actions effected in releasing new AssaultCube version:
+
+Note: changes should be commited.
+
+I. Documentation ("assaultcube.github.io" repository):
+
+1. Change everywhere number of AC version, date in copyrights info, release notes, uninstall notes, changelog, download page (download links are predicable on GitHub), etc.
+2. Add release tag (vMAJOR.MINOR.BUILD.REVISION) to the "master" branch in assaultcube.github.io repository.
+3. Synchronise local and remote "master" branches in assaultcube.github.io repository.
+
+II. AssaultCube ("AC" repository - "master" branch):
+
+1. Transform docs/reference.xml in assaultcube.github.io repository into docs.cfg, copy it to config/ folder in AC repository.
+2. Make sure that config/pcksources.cfg contains only trusted package source servers, if not, update them.
+3. Replace maps in packages/maps/official folder by newer dev_* maps from packages/maps/ folder.
+4. Check, whether in packages/maps/official/preview/ folder there are preview .jpg files for new official maps, if missing, add them.
+5. Check, whether in bot/waypoint/ folder there are files with bot waypoints for new official maps, if missing, add them.
+6. Update official maps list in config/: menus.cfg, securemaps.cfg, etc.
+7. Change everywhere number of AC version, date in copyrights informations. Note: on Mac number of version is also saved in binary file English.lproj/InfoPlist.strings .
+8. Change everywhere path to profile to assaultcube/v.MAJOR.MINOR .
+9. Change protocol number, if necessary.
+10. Update changelog.txt file.
+11. Add release tag (vMAJOR.MINOR.BUILD.REVISION) to the "master" branch in AC repository. 
+12. Synchronise local and remote "master" branches in AC repository.
+

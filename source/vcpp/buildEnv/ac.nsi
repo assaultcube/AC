@@ -60,7 +60,7 @@ SetCompressor /SOLID lzma
 !define AC_URLPROTOCOL "assaultcube"
 !define AC_MAJORVERSIONINT 1
 !define AC_MINORVERSIONINT 2
-!define AC_NEWVERSIONDIR "ac" ; directory with prepared new AC version
+!define AC_NEWVERSIONDIR "AC" ; directory with prepared new AC version
 ; path to profile folder in "MYDOCUMENTS" directory, should be the same as in assaultcube.bat
 !define AC_PROFILEPATH "My Games\AssaultCube\v${AC_MAJORVERSIONINT}.${AC_MINORVERSIONINT}"
 
@@ -484,6 +484,7 @@ Section "Uninstall"
     RMDir "$INSTDIR\demos"
     RMDir /r "$INSTDIR\docs"
     Delete "$INSTDIR\mods\ac_mods_README.html"
+    Delete "$INSTDIR\mods\protox_hq_reskin.zip"
     RMDir "$INSTDIR\mods"
     RMDir /r "$INSTDIR\packages"
     RMDir "$INSTDIR\screenshots"

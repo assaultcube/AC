@@ -1,67 +1,76 @@
 @echo off
-set acdir=ac
-set workingacdir=..\..\..\
+set ACDIR=AC
+set ACDIRTESTING=AC_testing
 
-rem delete stuff related to git and GitHub
-rmdir /S /Q %acdir%\.git
-del %acdir%\.gitattributes
-del %acdir%\.travis.yml
-for /r %acdir% %%i in (*) do if "%%~nxi"==".gitignore" del "%%i"
+echo make sure, that you compiled new binaries in %ACDIRTESTING% folder, tested them and generated fresh config\mapmodelattributes.cfg file (/loadallmapmodels)
+pause
 
-rem delete config and logs
-del %acdir%\config\init*.cfg
-del %acdir%\config\saved*.cfg
-del %acdir%\config\servervita*.cfg
-del %acdir%\config\servers.cfg
-del %acdir%\config\history
-del %acdir%\clientlog*.txt
+rem copy binaries
+copy /Y %ACDIRTESTING%\bin_win32\ac_* %ACDIR%\bin_win32\
 
-rem create config template
-7z a -tzip -aoa %acdir%\config\configtemplates.zip .\%acdir%\config\autoexec.cfg .\%acdir%\config\favourites.cfg .\%acdir%\config\pcksources.cfg 
-del %acdir%\config\autoexec.cfg
-del %acdir%\config\favourites.cfg
-del %acdir%\config\pcksources.cfg
-
-rem delete map files
-del %acdir%\packages\maps\*.cgz
-del %acdir%\packages\maps\*.cfg
-del %acdir%\packages\maps\servermaps\incoming\*.cgz
-del %acdir%\packages\maps\servermaps\incoming\*.cfg
-
-rem purge screenshots
-del /Q %acdir%\screenshots\*
-
-rem purge demo directory, but leave tutorial demo, just in case of future use
-for %%i in (%acdir%\demos\*) do if not "%%~nxi"=="tutorial_demo.dmo" del /Q "%%i"
-
-rem remove linux stuff
-del %acdir%\*.sh
-del %acdir%\config\*.sh
-rmdir /S /Q %acdir%\bin_unix
-
-rem remove source files (those are available in the source pkg)
-rmdir /S /Q %acdir%\source
+rem copy mapmodelattributes.cfg
+copy /Y %ACDIRTESTING%\profile\config\mapmodelattributes.cfg %ACDIR%\config\
 
 rem copy shadow files
-copy /Y %workingacdir%\packages\models\misc\gib01\shadows.dat %acdir%\packages\models\misc\gib01\shadows.dat
-copy /Y %workingacdir%\packages\models\misc\gib02\shadows.dat %acdir%\packages\models\misc\gib02\shadows.dat
-copy /Y %workingacdir%\packages\models\misc\gib03\shadows.dat %acdir%\packages\models\misc\gib03\shadows.dat
-copy /Y %workingacdir%\packages\models\pickups\akimbo\shadows.dat %acdir%\packages\models\pickups\akimbo\shadows.dat
-copy /Y %workingacdir%\packages\models\pickups\ammobox\shadows.dat %acdir%\packages\models\pickups\ammobox\shadows.dat
-copy /Y %workingacdir%\packages\models\pickups\health\shadows.dat %acdir%\packages\models\pickups\health\shadows.dat
-copy /Y %workingacdir%\packages\models\pickups\helmet\shadows.dat %acdir%\packages\models\pickups\helmet\shadows.dat
-copy /Y %workingacdir%\packages\models\pickups\kevlar\shadows.dat %acdir%\packages\models\pickups\kevlar\shadows.dat
-copy /Y %workingacdir%\packages\models\pickups\nade\shadows.dat %acdir%\packages\models\pickups\nade\shadows.dat
-copy /Y %workingacdir%\packages\models\pickups\pistolclips\shadows.dat %acdir%\packages\models\pickups\pistolclips\shadows.dat
-copy /Y %workingacdir%\packages\models\playermodels\shadows.dat %acdir%\packages\models\playermodels\shadows.dat
-copy /Y %workingacdir%\packages\models\weapons\assault\world\shadows.dat %acdir%\packages\models\weapons\assault\world\shadows.dat
-copy /Y %workingacdir%\packages\models\weapons\carbine\world\shadows.dat %acdir%\packages\models\weapons\carbine\world\shadows.dat
-copy /Y %workingacdir%\packages\models\weapons\grenade\static\shadows.dat %acdir%\packages\models\weapons\grenade\static\shadows.dat
-copy /Y %workingacdir%\packages\models\weapons\grenade\world\shadows.dat %acdir%\packages\models\weapons\grenade\world\shadows.dat
-copy /Y %workingacdir%\packages\models\weapons\knife\world\shadows.dat %acdir%\packages\models\weapons\knife\world\shadows.dat
-copy /Y %workingacdir%\packages\models\weapons\pistol\world\shadows.dat %acdir%\packages\models\weapons\pistol\world\shadows.dat
-copy /Y %workingacdir%\packages\models\weapons\shotgun\world\shadows.dat %acdir%\packages\models\weapons\shotgun\world\shadows.dat
-copy /Y %workingacdir%\packages\models\weapons\sniper\world\shadows.dat %acdir%\packages\models\weapons\sniper\world\shadows.dat
-copy /Y %workingacdir%\packages\models\weapons\subgun\world\shadows.dat %acdir%\packages\models\weapons\subgun\world\shadows.dat
+set ACDIRMODELS_SHADOWS=%ACDIRTESTING%\profile\packages\models
+copy /Y %ACDIRMODELS_SHADOWS%\misc\gib01\shadows.dat %ACDIR%\packages\models\misc\gib01\shadows.dat
+copy /Y %ACDIRMODELS_SHADOWS%\misc\gib02\shadows.dat %ACDIR%\packages\models\misc\gib02\shadows.dat
+copy /Y %ACDIRMODELS_SHADOWS%\misc\gib03\shadows.dat %ACDIR%\packages\models\misc\gib03\shadows.dat
+copy /Y %ACDIRMODELS_SHADOWS%\pickups\akimbo\shadows.dat %ACDIR%\packages\models\pickups\akimbo\shadows.dat
+copy /Y %ACDIRMODELS_SHADOWS%\pickups\ammobox\shadows.dat %ACDIR%\packages\models\pickups\ammobox\shadows.dat
+copy /Y %ACDIRMODELS_SHADOWS%\pickups\health\shadows.dat %ACDIR%\packages\models\pickups\health\shadows.dat
+copy /Y %ACDIRMODELS_SHADOWS%\pickups\helmet\shadows.dat %ACDIR%\packages\models\pickups\helmet\shadows.dat
+copy /Y %ACDIRMODELS_SHADOWS%\pickups\kevlar\shadows.dat %ACDIR%\packages\models\pickups\kevlar\shadows.dat
+copy /Y %ACDIRMODELS_SHADOWS%\pickups\nade\shadows.dat %ACDIR%\packages\models\pickups\nade\shadows.dat
+copy /Y %ACDIRMODELS_SHADOWS%\pickups\pistolclips\shadows.dat %ACDIR%\packages\models\pickups\pistolclips\shadows.dat
+copy /Y %ACDIRMODELS_SHADOWS%\playermodels\shadows.dat %ACDIR%\packages\models\playermodels\shadows.dat
+copy /Y %ACDIRMODELS_SHADOWS%\weapons\assault\world\shadows.dat %ACDIR%\packages\models\weapons\assault\world\shadows.dat
+copy /Y %ACDIRMODELS_SHADOWS%\weapons\carbine\world\shadows.dat %ACDIR%\packages\models\weapons\carbine\world\shadows.dat
+copy /Y %ACDIRMODELS_SHADOWS%\weapons\grenade\static\shadows.dat %ACDIR%\packages\models\weapons\grenade\static\shadows.dat
+copy /Y %ACDIRMODELS_SHADOWS%\weapons\grenade\world\shadows.dat %ACDIR%\packages\models\weapons\grenade\world\shadows.dat
+copy /Y %ACDIRMODELS_SHADOWS%\weapons\knife\world\shadows.dat %ACDIR%\packages\models\weapons\knife\world\shadows.dat
+copy /Y %ACDIRMODELS_SHADOWS%\weapons\pistol\world\shadows.dat %ACDIR%\packages\models\weapons\pistol\world\shadows.dat
+copy /Y %ACDIRMODELS_SHADOWS%\weapons\shotgun\world\shadows.dat %ACDIR%\packages\models\weapons\shotgun\world\shadows.dat
+copy /Y %ACDIRMODELS_SHADOWS%\weapons\sniper\world\shadows.dat %ACDIR%\packages\models\weapons\sniper\world\shadows.dat
+copy /Y %ACDIRMODELS_SHADOWS%\weapons\subgun\world\shadows.dat %ACDIR%\packages\models\weapons\subgun\world\shadows.dat
+
+rem delete stuff related to git and GitHub
+rmdir /S /Q %ACDIR%\.git
+del %ACDIR%\.gitattributes
+del %ACDIR%\.travis.yml
+for /r %ACDIR% %%i in (*) do if "%%~nxi"==".gitignore" del "%%i"
+
+rem create config template
+7z a -tzip -aoa %ACDIR%\config\configtemplates.zip %ACDIR%\config\autoexec.cfg %ACDIR%\config\favourites.cfg %ACDIR%\config\pcksources.cfg
+
+rem remove source files (those are available in the source pkg)
+rmdir /S /Q %ACDIR%\source
+
+rem delete config and logs
+del %ACDIR%\config\autoexec.cfg
+del %ACDIR%\config\favourites.cfg
+del %ACDIR%\config\pcksources.cfg
+del %ACDIR%\config\init*.cfg
+del %ACDIR%\config\saved*.cfg
+del %ACDIR%\config\servervita*.cfg
+del %ACDIR%\config\servers.cfg
+del %ACDIR%\config\history
+del %ACDIR%\clientlog*.txt
+
+rem delete map files
+del %ACDIR%\packages\maps\*.cgz
+del %ACDIR%\packages\maps\*.cfg
+del %ACDIR%\packages\maps\servermaps\incoming\*.cgz
+del %ACDIR%\packages\maps\servermaps\incoming\*.cfg
+
+rem purge screenshots
+del /Q %ACDIR%\screenshots\*
+
+rem purge demo directory, but leave tutorial demo, just in case of future use
+for %%i in (%ACDIR%\demos\*) do if not "%%~nxi"=="tutorial_demo.dmo" del /Q "%%i"
+
+rem remove linux stuff
+for /r %ACDIR% %%i in (*.sh) do del "%%i"
+rmdir /S /Q %ACDIR%\bin_unix
 
 pause
