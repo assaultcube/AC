@@ -529,6 +529,13 @@ struct mitemtextinput : mitemtext
     virtual void key(int code, bool isdown, int unicode)
     {
         if(input.key(code, isdown, unicode)) modified = true;
+        if(action && code == SDLK_RETURN && modified && parent->items.find(this) != parent->items.length() - 1)
+        {
+            modified = false;
+            push("arg1", input.buf);
+            execute(action);
+            pop("arg1");
+        }
     }
 
     virtual void init()
