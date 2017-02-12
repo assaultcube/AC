@@ -1100,8 +1100,9 @@ void refreshservers(void *menu, bool init)
                 {
                     filtertext(text, si.sdesc, FTXT_NOCOLOR|FTXT_NOWHITE|FTXT_ALLOWBLANKS);
                     for(char *p = text; (p = strchr(p, '\"')); *p++ = ' ');
-                    text[30] = '\0';
-                    formatstring(si.cmd)("sbconnect %s %d %d %d %d %d \"%s\"", si.name, si.port, serverfull ?1:0, needspasswd ?1:0, mmode, banned, text);
+                    formatstring(si.cmd)("sbconnect %s %d %d %d %d %d", si.name, si.port, serverfull ? 1 : 0, needspasswd ? 1 : 0, mmode, banned);
+                    text[max(int(MAXSTRLEN - strlen(si.cmd) - 10), 0)] = '\0';
+                    concatformatstring(si.cmd, " \"%s\"", text);
                 }
                 else formatstring(si.cmd)("connect %s %d", si.name, si.port);
                 menuimagemanual(menu, favimage, "serverquality", si.full, si.cmd, si.bgcolor, si.description);
