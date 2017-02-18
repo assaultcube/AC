@@ -35,7 +35,7 @@ Categories=Game;ActionGame;Shooter;
 Terminal=false
 StartupNotify=false
 Exec=$CUBE_DIR/$CUBE_EXEC
-Icon=$CUBE_DIR/docs/images/icon.png
+Icon=$CUBE_DIR/packages/misc/icon.png
 Comment=A multiplayer, first-person shooter game, based on the CUBE engine. Fast, arcade gameplay.
 EOF
 

@@ -383,7 +383,6 @@ void deathstate(playerent *pl)
         setscope(false);
         setburst(false);
         if(editmode) toggleedit(true);
-        damageblend(-1);
         if(pl->team == TEAM_SPECT) spectatemode(SM_FLY);
         else if(team_isspect(pl->team)) spectatemode(SM_FOLLOW1ST);
     }

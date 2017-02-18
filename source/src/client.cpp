@@ -312,7 +312,7 @@ void pm(char *text)
     trimtrailingwhitespace(text);
 
     addmsg(SV_TEXTPRIVATE, "ris", cn, text);
-    conoutf("to %s:\f9 %s", colorname(to), highlight(text));
+    conoutf("to %s (PM):\f9 %s", colorname(to), highlight(text));
 }
 COMMAND(pm, "c");
 
@@ -841,12 +841,12 @@ void listdemos()
 
 void shiftgametime(int newmillis)
 {
-    newmillis = max(0, newmillis);
-    int gamemillis = gametimecurrent + (lastmillis - lastgametimeupdate);
-
     if(!watchingdemo) { conoutf("You have to be watching a demo to change game time"); return; }
+
+    newmillis = max(0, newmillis);
     if(newmillis > gametimemaximum) { conoutf("Invalid time specified"); return; }
 
+    int gamemillis = gametimecurrent + (lastmillis - lastgametimeupdate);
     if(newmillis < gamemillis)
     {
         // if rewinding

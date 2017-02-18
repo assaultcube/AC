@@ -130,9 +130,9 @@ void audiomanager::musicpreload(int id)
         conoutf("preloading music #%d : %s", id, name);
         if(gamemusic->open(name))
         {
-            defformatstring(whendone)("musicvol %d", musicvol);
+            /*defformatstring(whendone)("musicvol %d", musicvol);
             musicdonecmd = newstring(whendone);
-            //conoutf("when done: %s", musicdonecmd);
+            conoutf("when done: %s", musicdonecmd);*/
             const int preloadfadetime = 3;
             gamemusic->fadein(lastmillis, preloadfadetime);
             gamemusic->fadeout(lastmillis+2*preloadfadetime, preloadfadetime);

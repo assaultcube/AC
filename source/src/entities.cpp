@@ -89,11 +89,16 @@ void rendermapmodels()
 
 void showedithide()
 {
-    loopv(eh_ents)
+    if(eh_ents.length())
     {
-        if(eh_ents[i]>0 && eh_ents[i]<MAXENTTYPES) { conoutf("#%02d: %d : %s", i, eh_ents[i], entnames[eh_ents[i]]); }
-        else { conoutf("#%02d: %d : -n/a-", i, eh_ents[i]);  }
+        conoutf("Hidden entities:");
+        loopv(eh_ents)
+        {
+            if(eh_ents[i]>0 && eh_ents[i]<MAXENTTYPES) { conoutf("#%02d: %d : %s", i, eh_ents[i], entnames[eh_ents[i]]); }
+            else { conoutf("#%02d: %d : -n/a-", i, eh_ents[i]);  }
+        }
     }
+    else conoutf("all entities are visible");
 }
 COMMAND(showedithide, "");
 
