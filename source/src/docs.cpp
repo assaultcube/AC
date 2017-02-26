@@ -631,11 +631,13 @@ void renderdoc(int x, int y, int doch)
                     else cury += FONTH;
                 }
 
+                if(docskip > offset) docskip = offset;
                 if(maxl < doclines.length()) draw_text("\f4more (F3)", x, y+doch); // footer
                 if(offset > 0) draw_text("\f4less (F2)", x, y+doch+FONTH);
                 draw_text("\f4disable doc reference (F1)", x, y+doch+2*FONTH);
                 return;
             }
+            else docskip = 0;
         }
     }
 }
