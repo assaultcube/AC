@@ -51,6 +51,9 @@ else
 USRLIB=$(shell if [ -e /usr/lib64 ]; then echo "/usr/lib64"; else echo "/usr/lib"; fi)
 CLIENT_INCLUDES= $(INCLUDES) -I/usr/include `sdl-config --cflags` -idirafter ../include
 CLIENT_LIBS= -L../enet/.libs -lenet -L$(USRLIB) -lX11 `sdl-config --libs` -lSDL_image -lz -lGL -lopenal -lvorbisfile
+ifneq (,$(findstring BSD,$(PLATFORM)))
+CLIENT_LIBS+= -lintl
+endif
 endif
 
 CLIENT_OBJS= \
@@ -115,7 +118,10 @@ SERVER_INCLUDES= -DSTANDALONE $(INCLUDES) -I../include
 SERVER_LIBS= -L../lib -lzdll -lenet -lws2_32 -lwinmm
 else
 SERVER_INCLUDES= -DSTANDALONE $(INCLUDES)
-SERVER_LIBS= -L../enet/.libs -lenet -lz -lpthread -lrt
+SERVER_LIBS= -L../enet/.libs -lenet -lz -lpthread
+ifeq (,$(findstring BSD,$(PLATFORM)))
+SERVER_LIBS+= -lrt
+endif
 endif
 
 SERVER_OBJS= \
