@@ -119,7 +119,7 @@ SERVER_LIBS= -L../lib -lzdll -lenet -lws2_32 -lwinmm
 else
 SERVER_INCLUDES= -DSTANDALONE $(INCLUDES)
 SERVER_LIBS= -L../enet/.libs -lenet -lz -lpthread
-ifeq (,$(findstring BSD,$(PLATFORM)))
+ifeq (,$(findstring OpenBSD,$(PLATFORM)))
 SERVER_LIBS+= -lrt
 endif
 endif
