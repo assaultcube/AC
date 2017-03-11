@@ -298,6 +298,7 @@ void mapscreenshot(const char *imagepath, bool mapshot, int fileformat)
         {
             conoutf("no mapshot prepared!");
             SDL_FreeSurface(image);
+            delete[] tmpdst;
             return;
         }
         loopi(dst_h)
