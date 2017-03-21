@@ -1062,7 +1062,7 @@ void grenadeent::onmoved(const vec &dist)
 
 // grenades
 
-grenades::grenades(playerent *owner) : weapon(owner, GUN_GRENADE), inhandnade(NULL), throwwait((13*1000)/40), throwmillis(0), state(GST_NONE) {}
+grenades::grenades(playerent *owner) : weapon(owner, GUN_GRENADE), inhandnade(NULL), throwwait((13*1000)/40), throwmillis(0), cookingmillis(0), state(GST_NONE) {}
 
 int grenades::flashtime() const { return 0; }
 
@@ -1113,6 +1113,7 @@ bool grenades::attack(vec &targ)
 void grenades::attackfx(const vec &from, const vec &to, int millis) // other player's grenades
 {
     throwmillis = lastmillis-millis;
+    cookingmillis = millis;
     if(millis == 0) audiomgr.playsound(S_GRENADEPULL, owner); // activate
     else if(millis > 0) // throw
     {
@@ -1185,7 +1186,7 @@ void grenades::renderstats()
 }
 
 bool grenades::selectable() { return weapon::selectable() && state != GST_INHAND && mag; }
-void grenades::reset() { throwmillis = 0; quicknade = false; state = GST_NONE; }
+void grenades::reset() { throwmillis = 0; cookingmillis = 0; quicknade = false; state = GST_NONE; }
 
 void grenades::onselecting()
 {

@@ -59,6 +59,7 @@ struct grenades : weapon
     grenadeent *inhandnade;
     const int throwwait;
     int throwmillis;
+    int cookingmillis;
     int state;
 
     grenades(playerent *owner);
