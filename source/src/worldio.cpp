@@ -1149,7 +1149,7 @@ struct xmap
     ~xmap()
     {
         headerextras.deletecontents();
-        delete world;
+        delete[] world;
         ents.setsize(0);
         delents.setsize(0);
         mapconfig.setsize(0);

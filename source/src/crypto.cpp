@@ -985,6 +985,10 @@ void authkey_(char **args, int numargs)  // set up misc keys
                     }
                     conoutf("authkey %s generated.", ak->name);
                 }
+                else
+                {
+                    delete ak;
+                }
             }
         }
         else if(!strcasecmp(args[0], "ADD"))
@@ -993,7 +997,7 @@ void authkey_(char **args, int numargs)  // set up misc keys
             {
                 delauthkey(args[1]);
                 authkey *ak = new authkey(args[1], args[2]);
-                if(ak->name) authkeys.add(ak);
+                if(ak->name) authkeys.add(ak); else delete ak;
             }
         }
         else if(!strcasecmp(args[0], "SELFCERT"))
