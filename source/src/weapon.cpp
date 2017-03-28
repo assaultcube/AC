@@ -1114,7 +1114,7 @@ void grenades::attackfx(const vec &from, const vec &to, int millis) // other pla
 {
     throwmillis = lastmillis-millis;
     cookingmillis = millis;
-    if(millis == 0) audiomgr.playsound(S_GRENADEPULL, owner); // activate
+    if(millis == 0 || millis == -1) audiomgr.playsound(S_GRENADEPULL, owner); // activate
     else if(millis > 0) // throw
     {
         grenadeent *g = new grenadeent(owner, millis);
