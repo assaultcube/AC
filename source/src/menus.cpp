@@ -1497,15 +1497,24 @@ void gmenu::render()
         if(hw>w) w = hw;
     }
 
+    bool mpages = offset > 0 || offset+pagesize < items.length();
     int step = (FONTH*5)/4;
     int h = (mdisp+hitems+2)*step;
     int y = (2*VIRTH-h)/2;
     int x = hotkeys ? (2*VIRTW-w)/6 : (2*VIRTW-w)/2;
     x = clamp(x + (VIRTW * xoffs) / 100, 3 * FONTH, 2 * VIRTW - w - 3 * FONTH);
     y = clamp(y + (VIRTH * yoffs) / 100, 3 * FONTH, 2 * VIRTH - h - 3 * FONTH);
-    if(!hotkeys) renderbg(x-FONTH*3/2, y-FONTH, x+w+FONTH*3/2, y+h+FONTH, true);
-    if(offset>0)                        drawarrow(1, x+w+FONTH*3/2-FONTH*5/6, y-FONTH*5/6, FONTH*2/3);
-    if(offset+pagesize<items.length()) drawarrow(0, x+w+FONTH*3/2-FONTH*5/6, y+h+FONTH/6, FONTH*2/3);
+
+    defformatstring(menupages)("%d/%d", (int)((offset / pagesize) % pagesize) + 1, pagesize ? (int)ceil(items.length() / pagesize) + 1 : 1);
+    if(mpages) w += text_width(menupages);
+    if(!hotkeys) renderbg(x - FONTH*3/2, y - FONTH, x + w + FONTH*3/2, y + h + FONTH, true);
+    if(mpages)
+    {
+        if(offset > 0) drawarrow(1, x + w + FONTH*3/2 - FONTH*5/6, y - FONTH*5/6, FONTH*2/3);
+        if(offset + pagesize < items.length()) drawarrow(0, x + w + FONTH*3/2 - FONTH*5/6, y + h + FONTH/6, FONTH*2/3);
+        draw_text(menupages, x + w + FONTH*3/2 - FONTH*5/6 - text_width(menupages), y);
+    }
+
     if(header)
     {
         draw_text(header, x, y);
