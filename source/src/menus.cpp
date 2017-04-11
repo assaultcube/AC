@@ -207,11 +207,6 @@ void mitem::render(int x, int y, int w)
 {
     if(isselection()) renderbg(x, y, w, menuselbgcolor);
     else if(bgcolor) renderbg(x, y, w, bgcolor);
-    if(!menuseldescbgcolor)
-    {
-        static color seldbcolor(0.2f, 0.2f, 0.2f, 0.2f);
-        menuseldescbgcolor = &seldbcolor;
-    }
 }
 
 void mitem::renderbg(int x, int y, int w, color *c)
@@ -708,19 +703,24 @@ struct mitemkeyinput : mitem
 
     virtual void render(int x, int y, int w)
     {
-        int tk = text_width(keyname ? keyname : " ");
+        int tw = text_width(keyname ? keyname : " ");
         static color capturec(0.4f, 0, 0);
-        if(isselection()) blendbox(x+w-tk-FONTH, y-FONTH/6, x+w+FONTH, y+FONTH+FONTH/6, false, -1, capture ? &capturec : NULL);
+        if(isselection())
+        {
+            blendbox(x+w-tw-FONTH, y-FONTH/6, x+w+FONTH, y+FONTH+FONTH/6, false, -1, capture ? &capturec : NULL);
+            blendbox(x, y-FONTH/6, x+w-tw-FONTH, y+FONTH+FONTH/6, false, -1, menuseldescbgcolor);
+        }
         draw_text(text, x, y);
-        draw_text(keyname, x+w-tk, y);
+        draw_text(keyname, x+w-tw, y);
     }
 
     virtual void init()
     {
         keynames[0] = 0;
-        for(keym **km = findbinda(bindcmd, bindtype); *km; km++) concatformatstring(keynames, " + %s", (*km)->name);
-        keyname = *keynames ? keynames + 3 : unknown;
+        for(keym **km = findbinda(bindcmd, bindtype); *km; km++) concatformatstring(keynames, " or %s", (*km)->name);
+        keyname = *keynames ? keynames + 4 : unknown;
         capture = false;
+        menuheader(parent, NULL, NULL);
     }
 
     virtual int select()
@@ -735,7 +735,8 @@ struct mitemkeyinput : mitem
 
     virtual void key(int code, bool isdown, int unicode)
     {
-        if(!capture || code < -5 || code > SDLK_MENU || !findbindc(code)) return;
+        keym *km;
+        if(!capture || code < -5 || code > SDLK_MENU || !((km = findbindc(code)))) return;
         if(code == SDLK_ESCAPE)
         {
             capture = false;
@@ -747,8 +748,13 @@ struct mitemkeyinput : mitem
         {
             if(!known)
             {
+                if(km->actions[bindtype][0] && strcmp(km->actions[bindtype], bindcmd))
+                {
+                    static defformatstring(keybound)("\f3Warning: \"%s\" key is already in use. You can press ESC to cancel.", km->name);
+                    menuheader(parent, NULL, keybound);
+                }
                 newkeys.add(code);
-                concatformatstring(keynames, "%s + ", findbindc(code)->name);
+                concatformatstring(keynames, "%s or ", km->name);
                 keyname = keynames;
             }
         }
@@ -1346,6 +1352,11 @@ int (*menufilesortcmp[])(const char **, const char **) = { stringsort, stringsor
 
 void gmenu::init()
 {
+    if(!menuseldescbgcolor)
+    {
+        static color seldescbgcolor(0.2f, 0.2f, 0.2f, 0.2f);
+        menuseldescbgcolor = &seldescbgcolor;
+    }
     if(dirlist && dirlist->dir && dirlist->ext)
     {
         items.deletecontents();
