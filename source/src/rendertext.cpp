@@ -13,6 +13,7 @@ VARP(allowblinkingtext, 0, 0, 1); // if you're so inclined
 
 void newfont(char *name, char *tex, int *defaultw, int *defaulth, int *offsetx, int *offsety, int *offsetw, int *offseth)
 {
+    if(*defaulth < 10) return;          // (becomes FONTH)
     font *f = fonts.access(name);
     if(!f)
     {

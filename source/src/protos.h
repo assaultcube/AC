@@ -200,6 +200,7 @@ struct mitem
     virtual const char *getaction() { return NULL; }
     bool isselection();
     void renderbg(int x, int y, int w, color *c);
+    int execaction(const char *arg1);
     static color gray, white, whitepulse;
     int mitemtype;
 
@@ -232,6 +233,7 @@ struct gmenu
     char *usefont;
     bool allowblink;
     bool persistentselection;
+    bool hasdesc;
     const char *mdl;
     int anim, rotspeed, scale;
     int footlen;
@@ -239,7 +241,7 @@ struct gmenu
     char *previewtexture, *previewtexturetitle;
     mdirlist *dirlist;
 
-    gmenu() : name(0), title(0), header(0), footer(0), menuselinit(-1), initaction(0), usefont(0), allowblink(false), persistentselection(false), mdl(0), footlen(0), xoffs(0), yoffs(0), previewtexture(NULL), previewtexturetitle(NULL), dirlist(0) {}
+    gmenu() : name(0), title(0), header(0), footer(0), menuselinit(-1), initaction(0), usefont(0), allowblink(false), persistentselection(false), hasdesc(false), mdl(0), footlen(0), xoffs(0), yoffs(0), previewtexture(NULL), previewtexturetitle(NULL), dirlist(0) {}
     virtual ~gmenu()
     {
         DELETEA(name);
@@ -257,6 +259,7 @@ struct gmenu
     void open();
     void close();
     void init();
+    int headeritems();
 };
 
 struct mline { string name, cmd; };

@@ -220,6 +220,20 @@ void mitem::renderbg(int x, int y, int w, color *c)
     else blendbox(x, y, x+w, y+FONTH, false, -1, c);
 }
 
+int mitem::execaction(const char *arg1)
+{
+    int result = 0;
+    if(getaction())
+    {
+        if(curmenu) setcontext("menu", curmenu->name);
+        push("arg1", arg1);
+        result = execute(getaction());
+        pop("arg1");
+        resetcontext();
+    }
+    return result;
+}
+
 bool mitem::isselection() { return parent->allowinput && !parent->hotkeys && parent->items.inrange(parent->menusel) && parent->items[parent->menusel]==this; }
 
 color mitem::gray(0.2f, 0.2f, 0.2f);
@@ -253,11 +267,7 @@ struct mitemmanual : mitem
         if(action && action[0])
         {
             gmenu *oldmenu = curmenu;
-            push("arg1", text);
-            setcontext("menu", curmenu->name);
-            result = execute(action);
-            resetcontext();
-            pop("arg1");
+            result = execaction(text);
             if(result >= 0 && oldmenu == curmenu)
             {
                 menuset(NULL, false);
@@ -520,9 +530,7 @@ struct mitemtextinput : mitemtext
         if(action && !on && modified && parent->items.find(this) != parent->items.length() - 1)
         {
             modified = false;
-            push("arg1", input.buf);
-            execute(action);
-            pop("arg1");
+            execaction(input.buf);
         }
     }
 
@@ -532,9 +540,7 @@ struct mitemtextinput : mitemtext
         if(action && code == SDLK_RETURN && modified && parent->items.find(this) != parent->items.length() - 1)
         {
             modified = false;
-            push("arg1", input.buf);
-            execute(action);
-            pop("arg1");
+            execaction(input.buf);
         }
     }
 
@@ -644,9 +650,7 @@ struct mitemslider : mitem
         {
             string v;
             itoa(v, value);
-            push("arg1", v);
-            execute(action);
-            pop("arg1");
+            execaction(v);
         }
     }
 
@@ -674,6 +678,8 @@ struct mitemslider : mitem
         value = oldvalue;
         displaycurvalue();
     }
+
+    virtual const char *getaction() { return action; }
 };
 
 int mitemslider::sliderwidth = 0;
@@ -785,15 +791,8 @@ struct mitemcheckbox : mitem
 
     virtual int select()
     {
-        int result = 0;
         checked = !checked;
-        if(action && action[0])
-        {
-            push("arg1", checked ? "1" : "0");
-            result = execute(action);
-            pop("arg1");
-        }
-        return result;
+        return execaction(checked ? "1" : "0");
     }
 
     virtual void init()
@@ -822,6 +821,8 @@ struct mitemcheckbox : mitem
             line(x2, y1, x1, y2, sel ? &whitepulse : &white);
         }
     }
+
+    virtual const char *getaction() { return action; }
 };
 
 
@@ -1163,10 +1164,7 @@ bool menukey(int code, bool isdown, int unicode, SDLMod mod)
 
     if(isdown)
     {
-        bool hasdesc = false;
-        loopv(curmenu->items) if(curmenu->items[i]->getdesc()) { hasdesc = true; break;}
-        //int pagesize = MAXMENU - (curmenu->header ? 2 : 0) - (curmenu->footer || hasdesc ? 2 : 0); // FIXME: footer-length
-        int pagesize = MAXMENU - (curmenu->header ? 2 : 0) - (curmenu->footer ? (curmenu->footlen?(curmenu->footlen+1):2) : (hasdesc ? 2 : 0)); // FIXME: footer-length
+        int pagesize = MAXMENU - curmenu->headeritems();
 
         switch(code)
         {
@@ -1427,6 +1425,13 @@ void gmenu::init()
     loopv(items) items[i]->init();
 }
 
+int gmenu::headeritems()  // returns number of header and footer lines (and also recalculates hasdesc)
+{
+    hasdesc = false;
+    loopv(items) if(items[i]->getdesc()) { hasdesc = true; break; }
+    return (header ? 2 : 0) + (footer ? (footlen ? (footlen + 1) : 2) : (hasdesc ? 2 : 0));
+}
+
 FVAR(menutexturesize, 0.1f, 1.0f, 5.0f);
 FVAR(menupicturesize, 0.1f, 1.6f, 5.0f);
 
@@ -1468,36 +1473,28 @@ void gmenu::render()
         else formatstring(buf)("[ %s menu ]", name);
         t = buf;
     }
-    bool hasdesc = false;
     if(title) text_startcolumns();
     int w = 0;
     loopv(items)
     {
-        int x = items[i]->width();
-        if(x>w) w = x;
+        w = max(w, items[i]->width());
         if(items[i]->getdesc())
         {
-            hasdesc = true;
-            x = text_width(items[i]->getdesc());
-            if(x>w) w = x;
+            w = max(w, text_width(items[i]->getdesc()));
         }
     }
-    //int hitems = (header ? 2 : 0) + (footer || hasdesc ? 2 : 0), // FIXME: footer-length
-    int hitems = (header ? 2 : 0) + (footer ? (footlen?(footlen+1):2) : (hasdesc ? 2 : 0)),
+    int hitems = headeritems(),
         pagesize = MAXMENU - hitems,
         offset = menusel - (menusel%pagesize),
         mdisp = min(items.length(), pagesize),
-        cdisp = min(items.length()-offset, pagesize);
+        cdisp = min(items.length()-offset, pagesize),
+        pages = (items.length() - 1) / pagesize;
     mitem::whitepulse.alpha = (sinf(lastmillis/200.0f)+1.0f)/2.0f;
-    int tw = text_width(t);
-    if(tw>w) w = tw;
-    if(header)
-    {
-        int hw = text_width(header);
-        if(hw>w) w = hw;
-    }
+    defformatstring(menupages)("%d/%d", (offset / pagesize) + 1, pages + 1);
+    int menupageswidth = pages ? text_width(menupages) : 0; // adds to topmost line, either menu title or header
+    w = max(w, text_width(t) + (header ? 0 : menupageswidth));
+    if(header) w = max(w, text_width(header) + menupageswidth);
 
-    bool mpages = offset > 0 || offset+pagesize < items.length();
     int step = (FONTH*5)/4;
     int h = (mdisp+hitems+2)*step;
     int y = (2*VIRTH-h)/2;
@@ -1505,14 +1502,12 @@ void gmenu::render()
     x = clamp(x + (VIRTW * xoffs) / 100, 3 * FONTH, 2 * VIRTW - w - 3 * FONTH);
     y = clamp(y + (VIRTH * yoffs) / 100, 3 * FONTH, 2 * VIRTH - h - 3 * FONTH);
 
-    defformatstring(menupages)("%d/%d", (int)((offset / pagesize) % pagesize) + 1, pagesize ? (int)ceil(items.length() / pagesize) + 1 : 1);
-    if(mpages) w += text_width(menupages);
     if(!hotkeys) renderbg(x - FONTH*3/2, y - FONTH, x + w + FONTH*3/2, y + h + FONTH, true);
-    if(mpages)
+    if(pages)
     {
         if(offset > 0) drawarrow(1, x + w + FONTH*3/2 - FONTH*5/6, y - FONTH*5/6, FONTH*2/3);
         if(offset + pagesize < items.length()) drawarrow(0, x + w + FONTH*3/2 - FONTH*5/6, y + h + FONTH/6, FONTH*2/3);
-        draw_text(menupages, x + w + FONTH*3/2 - FONTH*5/6 - text_width(menupages), y);
+        draw_text(menupages, x + w + FONTH*3/2 - FONTH*5/6 - menupageswidth, y);
     }
 
     if(header)
@@ -1533,13 +1528,10 @@ void gmenu::render()
         y += ((mdisp-cdisp)+1)*step;
         if(!hasdesc)
         {
-            footlen = 0;
-            if(text_width(footer)>w)
-            {
-                if(w) footlen = (int)ceil((double)text_width(footer) / w);
-                draw_text(footer, x, y, 0xFF, 0xFF, 0xFF, 0xFF, -1, w);
-            }
-            else draw_text(footer, x, y);
+            int footwidth, footheight;
+            text_bounds(footer, footwidth, footheight, w);
+            footlen = min(MAXMENU / 4, (footheight + step / 2) / step);
+            draw_text(footer, x, y, 0xFF, 0xFF, 0xFF, 0xFF, -1, w);
         }
         else if(items.inrange(menusel) && items[menusel]->getdesc())
             draw_text(items[menusel]->getdesc(), x, y);

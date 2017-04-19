@@ -1080,9 +1080,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
                 if(m_teammode)
                 {
                     defformatstring(count)("%d", flagscores[i]);
-                    int cw, ch;
-                    text_bounds(count, cw, ch);
-                    draw_textf("%s", i * 120 + VIRTW / 4.0f * 3.0f + 60 - cw / 2, 1590, count);
+                    draw_textf("%s", i * 120 + VIRTW / 4.0f * 3.0f + 60 - text_width(count) / 2, 1590, count);
                 }
             }
 
