@@ -859,7 +859,7 @@ void dodamage(int damage, playerent *pl, playerent *actor, int gun, bool gib, bo
 
     if(actor==h && pl!=actor)
     {
-        if( (hitsound == 1 || (hitsound && h != player1) ) && lasthit != lastmillis) audiomgr.playsound(S_HITSOUND, SP_HIGH);
+        if( (hitsound == 1 || (hitsound && h != player1) ) && lasthit != lastmillis) audiomgr.playsound(S_HITSOUND, SP_HIGHEST);
         lasthit = lastmillis;
     }
 
