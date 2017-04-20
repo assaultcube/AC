@@ -773,9 +773,12 @@ bool staticreference::operator==(const worldobjreference &other)
 
 audiomanager audiomgr;
 
-COMMANDF(sound, "i", (int *n)
+const char *soundprioritynames[] = {"LOW", "NORMAL", "HIGH", "HIGHEST", ""}; // keep in sync with enum { SP_LOW = 0, SP_NORMAL, SP_HIGH, SP_HIGHEST }
+
+COMMANDF(sound, "is", (int *n, char *priorityname)
 {
-    audiomgr.playsound(*n);
+    int priority = getlistindex(priorityname, soundprioritynames, true, SP_NORMAL);
+    audiomgr.playsound(*n, priority);
 });
 
 COMMANDF(applymapsoundchanges, "", (){
