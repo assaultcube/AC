@@ -40,7 +40,7 @@ struct textinputbuffer
         buf[0] = '\0';
     }
 
-    bool key(int code, bool isdown, int unicode)
+    bool key(int code, bool isdown, int unicode)    // returns true if buffer was modified
     {
         switch(code)
         {
@@ -86,12 +86,7 @@ struct textinputbuffer
 
             case SDLK_v:
                 extern void pasteconsole(char *dst);
-#ifdef __APPLE__
-#define MOD_KEYS (KMOD_LMETA|KMOD_RMETA)
-#else
-#define MOD_KEYS (KMOD_LCTRL|KMOD_RCTRL)
-#endif
-                if(SDL_GetModState()&MOD_KEYS)
+                if(SDL_GetModState() & MOD_KEYS_CTRL)
                 {
                     pasteconsole(buf);
                     return true;

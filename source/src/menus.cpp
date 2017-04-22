@@ -475,7 +475,7 @@ struct mitemtextinput : mitemtext
     {
         mitemtype = TYPE_TEXTINPUT;
         copystring(input.buf, value);
-        input.max = maxchars > 0 ? maxchars : 15;
+        input.max = maxchars > 0 ? min(maxchars, MAXSTRLEN - 1) : 15;
         hideinput = (maskinput != 0);
     }
 
@@ -489,7 +489,7 @@ struct mitemtextinput : mitemtext
     virtual void render(int x, int y, int w)
     {
         bool sel = isselection();
-        int tw = max(VIRTW/4, 15*text_width("w"));
+        int fieldwidth = 15 * text_width("w"), tw = max(VIRTW/4, fieldwidth);
         if(sel)
         {
             renderbg(x+w-tw, y-FONTH/6, tw, NULL);
@@ -497,28 +497,27 @@ struct mitemtextinput : mitemtext
         }
         draw_text(text, x, y);
         int cibl = (int)strlen(input.buf); // current input-buffer length
-        int iboff = input.pos > 14 ? (input.pos < cibl ? input.pos - 14 : cibl - 14) : input.pos==-1 ? (cibl > 14 ? cibl - 14 : 0) : 0; // input-buffer offset
-        string showinput; int sc = 14;
+        int iboff = input.pos > 14 ? (input.pos < cibl ? input.pos - 14 : cibl - 14) : (input.pos == -1 ? (cibl > 14 ? cibl - 14 : 0) : 0); // input-buffer offset
+        string showinput, tempinputbuf; int sc = 14;
+        copystring(tempinputbuf, input.buf);
+        if(hideinput && !(SDL_GetModState() & MOD_KEYS_CTRL))
+        { // "mask" user input with asterisks, use for menuitemtextinputs that take passwords
+            for(char *c = tempinputbuf; *c; c++)
+                *c = '*';
+        }
         while(iboff > 0)
         {
-            copystring(showinput, input.buf + iboff - 1, sc + 2);
-            if(text_width(showinput) > 15 * text_width("w")) break;
+            copystring(showinput, tempinputbuf + iboff - 1, sc + 2);
+            if(text_width(showinput) > fieldwidth) break;
             iboff--; sc++;
         }
         while(iboff + sc < cibl)
         {
-            copystring(showinput, input.buf + iboff, sc + 2);
-            if(text_width(showinput) > 15 * text_width("w")) break;
+            copystring(showinput, tempinputbuf + iboff, sc + 2);
+            if(text_width(showinput) > fieldwidth) break;
             sc++;
         }
-        copystring(showinput, input.buf + iboff, sc + 1);
-
-        if(hideinput) // "mask" user input with asterisks, use for menuitemtextinputs that take passwords
-        {
-            for(char *c = showinput; *c; c++)
-                *c = '*';
-        }
-
+        copystring(showinput, tempinputbuf + iboff, sc + 1);
         draw_text(showinput, x+w-tw, y, 255, 255, 255, 255, sel ? (input.pos>=0 ? (input.pos > sc ? sc : input.pos) : cibl) : -1);
     }
 
