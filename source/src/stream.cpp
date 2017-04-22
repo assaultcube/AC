@@ -594,7 +594,7 @@ struct gzstream : stream
 
         if(reading)
         {
-            if(!checkheader()) { stopreading(); return false; }
+            if(!checkheader()) { stopreading(); file = NULL; return false; }
         }
         else if(writing) writeheader();
         return true;
