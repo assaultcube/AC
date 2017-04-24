@@ -589,7 +589,7 @@ void renderdoc(int x, int y, int doch)
                 {
                     string refs = "";
                     loopvj(curident->references) concatformatstring(refs, ", %s", curident->references[j]);
-                    formatstring(doclines.add(newstringbuf()))("~related identifiers:%s", refs + 1);
+                    formatstring(doclines.add(newstringbuf()))("Related identifiers:%s", refs + 1);
                 }
 
                 while(doclines.length() && !doclines.last()) doclines.pop();

@@ -536,7 +536,7 @@ void checkpings()
                             if(*text && !p.overread())
                             {
                                 text[MAXINFOLINELEN] = '\0';
-                                cutcolorstring(text, 80);
+                                cutcolorstring(text, 100);
                                 ADDINFOLINE(strcmp(text, ".") ? text : "");
                             }
                             else break;
@@ -1094,8 +1094,8 @@ void refreshservers(void *menu, bool init)
             }
             if(showthisone)
             {
-                cutcolorstring(si.full, 76); // cut off too long server descriptions
-                cutcolorstring(si.description, 76);
+                cutcolorstring(si.full, 105); // cut off too long server descriptions
+                cutcolorstring(si.description, 100);
                 if(sbconnectexists)
                 {
                     filtertext(text, si.sdesc, FTXT_NOCOLOR|FTXT_NOWHITE|FTXT_ALLOWBLANKS);

@@ -384,3 +384,18 @@ void reloadfonts()
         if(!reloadtexture(*f.tex)) fatal("failed to reload font texture");
     );
 }
+
+void cutcolorstring(char *text, int maxlen)
+{ // limit string length, ignore color codes
+    if(!curfont) return;
+    int len = 0;
+    maxlen *= curfont->defaultw;
+    while(*text)
+    {
+        if(*text == '\f' && text[1]) text++;
+        else if(*text == '\t') len = TABALIGN(len);
+        else len += curfont->chars.inrange(*text - curfont->skip) ? curfont->chars[*text - curfont->skip].w : curfont->defaultw;
+        if(len > maxlen) { *text = '\0'; break; }
+        text++;
+    }
+}

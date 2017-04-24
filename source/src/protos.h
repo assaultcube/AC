@@ -719,6 +719,7 @@ extern int text_visible(const char *str, int hitx, int hity, int maxwidth);
 extern void text_pos(const char *str, int cursor, int &cx, int &cy, int maxwidth);
 extern void text_startcolumns();
 extern void text_endcolumns();
+extern void cutcolorstring(char *text, int len);
 
 // editing
 #define EDITSEL(x)   if(noteditmode(x) || noselection()) return
@@ -1071,7 +1072,6 @@ extern char *filtertext(char *dst, const char *src, int flags = 1, int len = siz
 extern void filterrichtext(char *dst, const char *src, int len = sizeof(string)-1);
 extern void filterlang(char *d, const char *s);
 extern void trimtrailingwhitespace(char *s);
-extern void cutcolorstring(char *text, int len);
 extern void startintermission();
 extern void restoreserverstate(vector<entity> &ents);
 extern string mastername;
