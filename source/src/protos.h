@@ -233,6 +233,7 @@ struct gmenu
     char *usefont;
     bool allowblink;
     bool persistentselection;
+    bool synctabstops;
     bool hasdesc;
     const char *mdl;
     int anim, rotspeed, scale;
@@ -241,7 +242,7 @@ struct gmenu
     char *previewtexture, *previewtexturetitle;
     mdirlist *dirlist;
 
-    gmenu() : name(0), title(0), header(0), footer(0), menuselinit(-1), initaction(0), usefont(0), allowblink(false), persistentselection(false), hasdesc(false), mdl(0), footlen(0), xoffs(0), yoffs(0), previewtexture(NULL), previewtexturetitle(NULL), dirlist(0) {}
+    gmenu() : name(0), title(0), header(0), footer(0), menuselinit(-1), initaction(0), usefont(0), allowblink(false), persistentselection(false), synctabstops(false), hasdesc(false), mdl(0), footlen(0), xoffs(0), yoffs(0), previewtexture(NULL), previewtexturetitle(NULL), dirlist(0) {}
     virtual ~gmenu()
     {
         DELETEA(name);

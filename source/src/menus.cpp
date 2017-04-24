@@ -965,6 +965,12 @@ void menuselectionpersistent()
 }
 COMMAND(menuselectionpersistent, "");
 
+void menusynctabstops(int *onoff)
+{
+    if(curmenu) curmenu->synctabstops = *onoff != 0;
+}
+COMMAND(menusynctabstops, "i");
+
 void menurenderoffset(int *xoff, int *yoff)
 {
     if(!lastmenu) return;
@@ -1475,6 +1481,7 @@ void gmenu::render()
     extern bool ignoreblinkingbit;
     if(usefont) pushfont(usefont);
     if(!allowblink) ignoreblinkingbit = true;
+    bool synctabs = title != NULL || synctabstops;
     const char *t = title;
     if(!t)
     {
@@ -1483,16 +1490,10 @@ void gmenu::render()
         else formatstring(buf)("[ %s menu ]", name);
         t = buf;
     }
-    if(title) text_startcolumns();
     int w = 0;
-    loopv(items)
-    {
-        w = max(w, items[i]->width());
-        if(items[i]->getdesc())
-        {
-            w = max(w, text_width(items[i]->getdesc()));
-        }
-    }
+    loopv(items) if(items[i]->getdesc()) w = max(w, text_width(items[i]->getdesc()));
+    if(synctabs) text_startcolumns();
+    loopv(items) w = max(w, items[i]->width());
     int hitems = headeritems(),
         pagesize = MAXMENU - hitems,
         offset = menusel - (menusel%pagesize),
@@ -1532,7 +1533,7 @@ void gmenu::render()
         items[offset+j]->render(x, y, w);
         y += step;
     }
-    if(title) text_endcolumns();
+    if(synctabs) text_endcolumns();
     if(footer || hasdesc)
     {
         y += ((mdisp-cdisp)+1)*step;
