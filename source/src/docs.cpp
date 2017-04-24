@@ -20,20 +20,6 @@ struct docargument
     }
 };
 
-struct docref
-{
-    char *name, *ident, *url, *article;
-
-    docref() : name(NULL), ident(NULL), url(NULL), article(NULL) {}
-    ~docref()
-    {
-        DELETEA(name);
-        DELETEA(ident);
-        DELETEA(url);
-        DELETEA(article);
-    }
-};
-
 struct docexample
 {
     char *code, *explanation;
@@ -64,7 +50,7 @@ struct docident
     char *name, *desc;
     vector<docargument> arguments;
     vector<char *> remarks;
-    vector<docref> references;
+    vector<char *> references;
     vector<docexample> examples;
     vector<dockey> keys;
 
@@ -96,49 +82,54 @@ docident *lastident = NULL;
 
 void adddocsection(char *name)
 {
-    if(!name) return;
+    if(!name || !*name) { lastsection = NULL; return; }
     docsection &s = sections.add();
     s.name = newstring(name);
     s.menu = addmenu(s.name, NULL, true, renderdocsection);
     lastsection = &s;
 }
+COMMANDN(docsection, adddocsection, "s");
 
 void adddocident(char *name, char *desc)
 {
-    if(!name || !desc || !lastsection) return;
+    if(!name || !desc || !lastsection || !*name) { lastident = NULL; return; }
     name = newstring(name);
     docident &c = docidents[name];
     lastsection->idents.add(&c);
     c.name = name;
     c.desc = newstring(desc);
     lastident = &c;
+#ifdef _DEBUG
+    if(strlen(desc) > 111) clientlogf("docident: very long description for ident %s (%d)", name, (int)strlen(desc));
+#endif
 }
+COMMANDN(docident, adddocident, "ss");
 
 void adddocargument(char *token, char *desc, char *values, char *vararg)
 {
     if(!lastident || !token || !desc) return;
+    if(*token) loopv(lastident->arguments) if(!strcmp(token, lastident->arguments[i].token)) clientlogf("docargument: double token %s in reference %s", token, lastident->name);
     docargument &a = lastident->arguments.add();
     a.token = newstring(token);
     a.desc = newstring(desc);
     a.values = values && strlen(values) ? newstring(values) : NULL;
     a.vararg = vararg && atoi(vararg) == 1 ? true : false;
 }
+COMMANDN(docargument, adddocargument, "ssss");
 
 void adddocremark(char *remark)
 {
-    if(!lastident || !remark) return;
+    if(!lastident || !remark || !*remark) return;
     lastident->remarks.add(newstring(remark));
 }
+COMMANDN(docremark, adddocremark, "s");
 
-void adddocref(char *name, char *ident, char *url, char *article)
+void adddocref(char *refident)
 {
-    if(!lastident || !name) return;
-    docref &r = lastident->references.add();
-    r.name = newstring(name);
-    r.ident = ident && strlen(ident) ? newstring(ident) : NULL;
-    r.url = url && strlen(url) ? newstring(url) : NULL;
-    r.article = article && strlen(article) ? newstring(article) : NULL;
+    if(!lastident || !refident || !*refident) return;
+    lastident->references.add(newstring(refident));
 }
+COMMANDN(docref, adddocref, "s");
 
 void adddocexample(char *code, char *explanation)
 {
@@ -147,6 +138,7 @@ void adddocexample(char *code, char *explanation)
     e.code = newstring(code);
     e.explanation = explanation && strlen(explanation) ? newstring(explanation) : NULL;
 }
+COMMANDN(docexample, adddocexample, "ss");
 
 void adddockey(char *alias, char *name, char *desc)
 {
@@ -156,14 +148,8 @@ void adddockey(char *alias, char *name, char *desc)
     k.name = name && strlen(name) ? newstring(name) : NULL;
     k.desc = desc && strlen(desc) ? newstring(desc) : NULL;
 }
-
-COMMANDN(docsection, adddocsection, "s");
-COMMANDN(docident, adddocident, "ss");
-COMMANDN(docargument, adddocargument, "ssss");
-COMMANDN(docremark, adddocremark, "s");
-COMMANDN(docref, adddocref, "ssss");
-COMMANDN(docexample, adddocexample, "ss");
 COMMANDN(dockey, adddockey, "sss");
+
 
 const char *docgetdesc(const char *name)
 {
@@ -201,12 +187,7 @@ void listundoneidents(vector<const char *> &inames, int allidents)
                     srch.add(id->arguments[j].desc);
                     srch.add(id->arguments[j].values);
                 }
-                loopvj(id->references)
-                {
-                    srch.add(id->references[j].ident);
-                    srch.add(id->references[j].name);
-                    srch.add(id->references[j].url);
-                }
+                loopvj(id->references) srch.add(id->references[j]);
                 if(cvecstr(srch, "TODO") || cvecstr(srch, "UNDONE")) id = NULL;
             }
             if(!id) inames.add(name);
@@ -222,6 +203,7 @@ void docundone(int *allidents)
     inames.sort(stringsort);
     loopv(inames) conoutf("%s", inames[i]);
 }
+COMMAND(docundone, "i");
 
 void docinvalid()
 {
@@ -234,6 +216,7 @@ void docinvalid()
             conoutf("%s", d.name);
     });
 }
+COMMAND(docinvalid, "");
 
 void docfind(char *search)
 {
@@ -255,6 +238,7 @@ void docfind(char *search)
         }
     });
 }
+COMMAND(docfind, "s");
 
 char *xmlstringenc(char *d, const char *s, size_t len)
 {
@@ -362,18 +346,16 @@ void docwritebaseref(char *ref, char *schemalocation, char *transformation)
 {
     docwriteref(-1, ref, schemalocation, transformation);
 }
+COMMAND(docwritebaseref, "sss");
 
 void docwritetodoref(int *allidents)
 {
     docwriteref(*allidents ? 1 : 0, "", "", "");
 }
-
-COMMAND(docundone, "i");
-COMMAND(docinvalid, "");
-COMMAND(docfind, "s");
-COMMAND(docwritebaseref, "sss");
 COMMAND(docwritetodoref, "i");
+
 VAR(docvisible, 0, 1, 1);
+VAR(docrefvisible, 0, 1, 1);
 VAR(docskip, 0, 0, 1000);
 
 void toggledoc() { docvisible = !docvisible; }
@@ -445,7 +427,7 @@ void renderdoc(int x, int y, int doch)
 
     bool nc = false; //tests if text after open parenthesis is not a command
 
-    docident *ident = NULL;
+    docident *curident = NULL;
 
     for(size_t i = 0; i < clen; i++) // search first matching cmd doc by stripping arguments of exp from right to left
     {
@@ -465,36 +447,36 @@ void renderdoc(int x, int y, int doch)
                     if(!*dnd || *dnd == ' ')
                     {
                         copystring(dmd, d, dlen-j+1);
-                        ident = docidents.access(dmd);
+                        curident = docidents.access(dmd);
                     }
-                    if (j == dlen-1 && !ident)
+                    if (j == dlen-1 && !curident)
                     nc = true;
                 }
             }
             else
             {
                 nc = true;
-                ident = docidents.access(cmd);
+                curident = docidents.access(cmd);
             }
 
-            if(ident)
+            if(curident)
             {
                 vector<const char *> doclines;
 
                 char *label = newstringbuf(); // label
                 doclines.add(label);
-                formatstring(label)("~%s", ident->name);
-                loopvj(ident->arguments)
+                formatstring(label)("~%s", curident->name);
+                loopvj(curident->arguments)
                 {
                     concatstring(label, " ");
-                    concatstring(label, ident->arguments[j].token);
+                    concatstring(label, curident->arguments[j].token);
                 }
                 doclines.add(NULL);
 
-                doclines.add(ident->desc);
+                doclines.add(curident->desc);
                 doclines.add(NULL);
 
-                if(ident->arguments.length() > 0) // args
+                if(curident->arguments.length() > 0) // args
                 {
                     extern textinputbuffer cmdline;
 
@@ -526,12 +508,12 @@ void renderdoc(int x, int y, int doch)
                         }
 
                         // fixes offset for var args
-                        if(arg >= ident->arguments.length() && ident->arguments.last().vararg) arg = ident->arguments.length() - 1;
+                        if(arg >= curident->arguments.length() && curident->arguments.last().vararg) arg = curident->arguments.length() - 1;
                     }
 
-                    loopvj(ident->arguments)
+                    loopvj(curident->arguments)
                     {
-                        docargument *a = &ident->arguments[j];
+                        docargument *a = &curident->arguments[j];
                         if(!a) continue;
                         formatstring(doclines.add(newstringbuf()))("\f%d%-8s%s %s%s%s", j == arg ? 4 : 5, a->token, a->desc,
                             a->values ? "(" : "", a->values ? a->values : "", a->values ? ")" : "");
@@ -540,51 +522,40 @@ void renderdoc(int x, int y, int doch)
                     doclines.add(NULL);
                 }
 
-                if(ident->remarks.length()) // remarks
+                if(curident->remarks.length()) // remarks
                 {
-                    loopvj(ident->remarks) doclines.add(ident->remarks[j]);
+                    loopvj(curident->remarks) doclines.add(curident->remarks[j]);
                     doclines.add(NULL);
                 }
 
-                if(ident->examples.length()) // examples
+                if(curident->examples.length()) // examples
                 {
-                    doclines.add(ident->examples.length() == 1 ? "Example:" : "Examples:");
-                    loopvj(ident->examples)
+                    doclines.add(curident->examples.length() == 1 ? "Example:" : "Examples:");
+                    loopvj(curident->examples)
                     {
-                        doclines.add(ident->examples[j].code);
-                        doclines.add(ident->examples[j].explanation);
+                        doclines.add(curident->examples[j].code);
+                        doclines.add(curident->examples[j].explanation);
                     }
                     doclines.add(NULL);
                 }
 
-                if(ident->keys.length()) // default keys
+                if(curident->keys.length()) // default keys
                 {
-                    doclines.add(ident->keys.length() == 1 ? "Default key:" : "Default keys:");
-                    loopvj(ident->keys)
+                    doclines.add(curident->keys.length() == 1 ? "Default key:" : "Default keys:");
+                    loopvj(curident->keys)
                     {
-                        dockey &k = ident->keys[j];
+                        dockey &k = curident->keys[j];
                         defformatstring(line)("~%-10s %s", k.name ? k.name : k.alias, k.desc ? k.desc : "");
                         doclines.add(newstring(line));
                     }
                     doclines.add(NULL);
                 }
 
-                if(ident->references.length()) // references
+                if(docrefvisible && curident->references.length()) // references
                 {
-                    struct category { string label; string refs; }
-                    categories[] = {{"related identifiers", ""} , {"web resources", ""}, {"wiki articles", ""}, {"other", ""}};
-                    loopvj(ident->references)
-                    {
-                        docref &r = ident->references[j];
-                        char *ref = r.ident ? categories[0].refs : (r.url ? categories[1].refs : (r.article ? categories[2].refs : categories[3].refs));
-                        concatstring(ref, r.name);
-                        if(j < ident->references.length()-1) concatstring(ref, ", ");
-                    }
-                    loopj(sizeof(categories)/sizeof(category))
-                    {
-                        if(!strlen(categories[j].refs)) continue;
-                        formatstring(doclines.add(newstringbuf()))("~%s: %s", categories[j].label, categories[j].refs);
-                    }
+                    string refs = "";
+                    loopvj(curident->references) concatformatstring(refs, ", %s", curident->references[j]);
+                    formatstring(doclines.add(newstringbuf()))("~related identifiers:%s", refs + 1);
                 }
 
                 while(doclines.length() && !doclines.last()) doclines.pop();
@@ -601,6 +572,7 @@ void renderdoc(int x, int y, int doch)
                     cury += height;
                     maxl = j+1;
                 }
+
                 if(offset > 0 && maxl >= doclines.length())
                 {
                     for(int j = offset-1; j >= 0; j--)
@@ -613,7 +585,6 @@ void renderdoc(int x, int y, int doch)
                         offset = j;
                     }
                 }
-
 
                 cury = y;
                 for(int j = offset; j < maxl; j++)
