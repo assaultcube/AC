@@ -5,6 +5,7 @@
 hashtable<const char *, gmenu> menus;
 gmenu *curmenu = NULL, *lastmenu = NULL;
 color *menuselbgcolor, *menuseldescbgcolor = NULL;
+static int menurighttabwidth = 888; // width of sliders and text input fields (is adapted to font and screen size later)
 
 vector<gmenu *> menustack;
 
@@ -82,6 +83,7 @@ void menuset(void *m, bool save)
 
 void showmenu(const char *name, bool top)
 {
+    menurighttabwidth = max(VIRTW/4, 15 * text_width("w")); // adapt to screen and font size every time a menu opens
     if(!name)
     {
         setcurmenu(NULL);
@@ -248,7 +250,15 @@ struct mitemmanual : mitem
     virtual void render(int x, int y, int w)
     {
         mitem::render(x, y, w);
-        draw_text(text, x, y);
+        const char *nl = strchr(text, '\n');
+        if(nl)
+        {
+            string l;
+            copystring(l, text, min(MAXSTRLEN, (int)strcspn(text, "\n") + 1));
+            draw_text(l, x, y);
+            draw_text(nl + 1, x + w - max(menurighttabwidth, text_width(nl + 1)), y);
+        }
+        else draw_text(text, x, y);
     }
 
     virtual void focus(bool on)
@@ -476,19 +486,16 @@ struct mitemtextinput : mitemtext
 
     virtual int width()
     {
-        int labelw = text_width(text);
-        int maxw = min(input.max, 15)*text_width("w"); // w is broadest, not a - but limit to 15*w
-        return labelw + maxw;
+        return text_width(text) + menurighttabwidth;
     }
 
     virtual void render(int x, int y, int w)
     {
         bool sel = isselection();
-        int fieldwidth = 15 * text_width("w"), tw = max(VIRTW/4, fieldwidth);
         if(sel)
         {
-            renderbg(x+w-tw, y-FONTH/6, tw, NULL);
-            renderbg(x, y-FONTH/6, w-tw-FONTH/2, menuseldescbgcolor);
+            renderbg(x+w-menurighttabwidth, y-FONTH/6, menurighttabwidth, NULL);
+            renderbg(x, y-FONTH/6, w-menurighttabwidth-FONTH/2, menuseldescbgcolor);
         }
         draw_text(text, x, y);
         int cibl = (int)strlen(input.buf); // current input-buffer length
@@ -503,17 +510,17 @@ struct mitemtextinput : mitemtext
         while(iboff > 0)
         {
             copystring(showinput, tempinputbuf + iboff - 1, sc + 2);
-            if(text_width(showinput) > fieldwidth) break;
+            if(text_width(showinput) > menurighttabwidth) break;
             iboff--; sc++;
         }
         while(iboff + sc < cibl)
         {
             copystring(showinput, tempinputbuf + iboff, sc + 2);
-            if(text_width(showinput) > fieldwidth) break;
+            if(text_width(showinput) > menurighttabwidth) break;
             sc++;
         }
         copystring(showinput, tempinputbuf + iboff, sc + 1);
-        draw_text(showinput, x+w-tw, y, 255, 255, 255, 255, sel ? (input.pos>=0 ? (input.pos > sc ? sc : input.pos) : cibl) : -1);
+        draw_text(showinput, x+w-menurighttabwidth, y, 255, 255, 255, 255, sel ? (input.pos>=0 ? (input.pos > sc ? sc : input.pos) : cibl) : -1);
     }
 
     virtual void focus(bool on)
@@ -574,12 +581,8 @@ struct mitemslider : mitem
     int min_, max_, step, value, maxvaluewidth;
     char *text, *valueexp, *display, *action;
     string curval;
-    static int sliderwidth;
 
-    mitemslider(gmenu *parent, char *text, int min_, int max_, int step, char *value, char *display, char *action, color *bgcolor) : mitem(parent, bgcolor, mitem::TYPE_SLIDER), min_(min_), max_(max_), step(step), value(min_), maxvaluewidth(0), text(text), valueexp(value), display(display), action(action)
-    {
-        if(sliderwidth==0) sliderwidth = max(VIRTW/4, 15*text_width("w"));  // match slider width with width of text input fields
-    }
+    mitemslider(gmenu *parent, char *text, int min_, int max_, int step, char *value, char *display, char *action, color *bgcolor) : mitem(parent, bgcolor, mitem::TYPE_SLIDER), min_(min_), max_(max_), step(step), value(min_), maxvaluewidth(0), text(text), valueexp(value), display(display), action(action) { }
 
     virtual ~mitemslider()
     {
@@ -589,7 +592,7 @@ struct mitemslider : mitem
         DELETEA(action);
     }
 
-    virtual int width() { return text_width(text) + sliderwidth + maxvaluewidth + 2*FONTH; }
+    virtual int width() { return text_width(text) + menurighttabwidth + maxvaluewidth + 2*FONTH; }
 
     virtual void render(int x, int y, int w)
     {
@@ -600,15 +603,15 @@ struct mitemslider : mitem
         int tw = text_width(text);
         if(sel)
         {
-            renderbg(x+w-sliderwidth, y, sliderwidth, NULL);
-            renderbg(x, y, w-sliderwidth-FONTH/2, menuseldescbgcolor);
+            renderbg(x+w-menurighttabwidth, y, menurighttabwidth, NULL);
+            renderbg(x, y, w-menurighttabwidth-FONTH/2, menuseldescbgcolor);
         }
         draw_text(text, x, y);
         draw_text(curval, x+tw, y);
 
-        blendbox(x+w-sliderwidth, y+FONTH/3, x+w, y+FONTH*2/3, false, -1, &gray);
-        int offset = (int)(cval/((float)range)*sliderwidth);
-        blendbox(x+w-sliderwidth+offset-FONTH/6, y, x+w-sliderwidth+offset+FONTH/6, y+FONTH, false, -1, sel ? &whitepulse : &white);
+        blendbox(x+w-menurighttabwidth, y+FONTH/3, x+w, y+FONTH*2/3, false, -1, &gray);
+        int offset = (int)(cval/((float)range)*menurighttabwidth);
+        blendbox(x+w-menurighttabwidth+offset-FONTH/6, y, x+w-menurighttabwidth+offset+FONTH/6, y+FONTH, false, -1, sel ? &whitepulse : &white);
     }
 
     virtual void key(int code, bool isdown, int unicode)
@@ -675,8 +678,6 @@ struct mitemslider : mitem
 
     virtual const char *getaction() { return action; }
 };
-
-int mitemslider::sliderwidth = 0;
 
 // key input item
 
