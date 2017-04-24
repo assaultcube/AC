@@ -218,27 +218,61 @@ void docinvalid()
 }
 COMMAND(docinvalid, "");
 
-void docfind(char *search)
+void docfind(char *search, int *silent)
 {
-    enumerate(docidents, docident, i,
+    vector<char> res;
+    vector<const char *> inames;
+    enumerate(docidents, docident, i, inames.add(i.name));
+    inames.sort(stringsort);
+    loopvj(inames)
     {
+        docident &i = *docidents.access(inames[j]);
         vector<char *> srch;
-        srch.add(i.name);
-        srch.add(i.desc);
+        srch.add(i.name); // 0
+        srch.add(i.desc); // 1
         loopvk(i.remarks) srch.add(i.remarks[k]);
 
         char *r;
         int rline;
         if((r = cvecstr(srch, search, &rline)))
         {
-            const int matchchars = 200;
-            string match;
-            copystring(match, r-srch[rline] > matchchars/2 ? r-matchchars/2 : srch[rline], matchchars/2);
-            conoutf("%-20s%s", i.name, match);
+            cvecprintf(res, "%s %d\n", escapestring(i.name, false), rline);
+            if(!rline) r = srch[(rline = 1)];
+            if(!*silent)
+            {
+                const int showchars = 100;
+                string match;
+                int pos = r - srch[rline];
+                copystring(match, srch[rline] + (pos < showchars - 10 ? 0 : pos - 10), showchars);
+                conoutf("%-20s%s", i.name, match);
+            }
         }
-    });
+    }
+    if(res.length()) res.last() = '\0';
+    else res.add('\0');
+    result(res.getbuf());
 }
-COMMAND(docfind, "s");
+COMMAND(docfind, "si");
+
+void getdoc(char *name, int *line)
+{
+    const char *res = "";
+    docident *d = docidents.access(name);
+    if(d)
+    {
+        switch(*line)
+        {
+            case 0: res = d->name; break;
+            case 1: res = d->desc; break;
+            default:
+                if(d->remarks.inrange(*line - 2)) res = d->remarks[*line - 2];
+                break;
+        }
+    }
+    else conoutf("\f3getdoc: \"%s\" not found", name);
+    result(res);
+}
+COMMAND(getdoc, "si");
 
 char *xmlstringenc(char *d, const char *s, size_t len)
 {
