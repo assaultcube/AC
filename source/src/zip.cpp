@@ -620,9 +620,7 @@ void zipmodlist(char *which) // "active", "inactive", "all"(default)
         }
         files.deletearrays();
     }
-    if(res.length()) res.last() = '\0';
-    else res.add('\0');
-    result(res.getbuf());
+    resultcharvector(res, -1);
 }
 COMMAND(zipmodlist, "s");
 
@@ -664,9 +662,7 @@ void zipmodgetdesc(char *name) // open zip, read desc.txt and mount preview pict
         }
         zipmanualclose(mz);
     }
-    if(res.length()) res.last() = '\0';
-    else res.add('\0');
-    result(res.getbuf());
+    resultcharvector(res, -1);
 }
 COMMAND(zipmodgetdesc, "s");
 
@@ -683,9 +679,7 @@ void zipmodgetfiles(char *name) // open zip, read list of files
         loopv(files) cvecprintf(res, "%s\n", escapestring(files[i]));
         zipmanualclose(mz);
     }
-    if(res.length()) res.last() = '\0';
-    else res.add('\0');
-    result(res.getbuf());
+    resultcharvector(res, -1);
 }
 COMMAND(zipmodgetfiles, "s");
 

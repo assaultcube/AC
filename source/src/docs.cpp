@@ -248,9 +248,7 @@ void docfind(char *search, int *silent)
             }
         }
     }
-    if(res.length()) res.last() = '\0';
-    else res.add('\0');
-    result(res.getbuf());
+    resultcharvector(res, -1);
 }
 COMMAND(docfind, "si");
 

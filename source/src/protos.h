@@ -1006,6 +1006,7 @@ extern void intret(int v);
 extern const char *floatstr(float v, bool neat = false);
 extern void floatret(float v, bool neat = false);
 extern void result(const char *s);
+extern void resultcharvector(const vector<char> &res, int adj);
 extern void exec(const char *cfgfile);
 extern bool execfile(const char *cfgfile);
 extern int listlen(const char *s);

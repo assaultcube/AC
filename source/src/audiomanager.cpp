@@ -978,10 +978,8 @@ void getmapsoundlist() // create a list of mapsound filenames
             }
         }
     }
-    if(res.length()) res.last() = '\0';
-    else res.add('\0');
     files.deletearrays();
-    result(res.getbuf());
+    resultcharvector(res, -1);
 }
 COMMAND(getmapsoundlist, "");
 

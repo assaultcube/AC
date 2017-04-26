@@ -930,13 +930,11 @@ void gettexturelist(char *_filter, char *_exclude, char *_exts) // create a list
         }
         res.add('\n');
     }
-    if(res.length()) res.last() = '\0';
-    else res.add('\0');
     filter.deletearrays();
     exclude.deletearrays();
     exts.deletearrays();
     files.deletearrays();
-    result(res.getbuf());
+    resultcharvector(res, -1);
 }
 COMMAND(gettexturelist, "sss");
 
@@ -1015,8 +1013,7 @@ void textureslotusagelist(char *what)
     vector<char> res;
     if(onlymostvisible) cvecprintf(res, "wall %d floor %d ceiling %d \"upper wall\" %d ", mostvisible[0], mostvisible[1], mostvisible[2], mostvisible[3]);
     else loopi(256) cvecprintf(res, "%d %d ", used[i], visible[i]);
-    res.last() = '\0';
-    result(res.getbuf());
+    resultcharvector(res, -1);
 }
 COMMAND(textureslotusagelist, "s");
 

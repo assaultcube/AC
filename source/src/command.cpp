@@ -335,32 +335,29 @@ const char *getalias(const char *name)
 }
 void _getalias(char *name)
 {
-    string o;
+    string o = "";
+    const char *res = o;
     ident *id = idents->access(name);
-    const char *action = getalias(name);
     if(id)
     {
         switch(id->type)
         {
             case ID_VAR:
                 formatstring(o)("%d", *id->storage.i);
-                result(o);
                 break;
             case ID_FVAR:
                 formatstring(o)("%.3f", *id->storage.f);
-                result(o);
                 break;
             case ID_SVAR:
                 if(id->getfun) ((void (__cdecl *)())id->getfun)();
-                formatstring(o)("%s", *id->storage.s);
-                result(o);
+                res = *id->storage.s;
                 break;
             case ID_ALIAS:
-                result(action ? action : "");
+                if(id->action) res = id->action;
                 break;
-            default: break;
         }
     }
+    result(res);
 }
 COMMANDN(getalias, _getalias, "s");
 
@@ -535,6 +532,12 @@ void floatret(float v, bool neat)
 
 void result(const char *s) { commandret = newstring(s); }
 COMMAND(result, "s");
+
+void resultcharvector(const vector<char> &res, int adj)     // use char vector as result, optionally remove some bytes at the end
+{
+    adj += res.length();
+    commandret = adj <= 0 ? newstring("", 0) : newstring(res.getbuf(), (size_t) adj);
+}
 
 #if 0
 // seer : script evaluation excessive recursion
@@ -1168,14 +1171,8 @@ COMMANDF(concatword, "w", (const char *s) { result(s); });
 
 void format(char **args, int numargs)
 {
-    if(numargs < 1)
-    {
-        result("");
-        return;
-    }
-
     vector<char> s;
-    char *f = args[0];
+    const char *f = numargs > 0 ? args[0] : "";
     while(*f)
     {
         int c = *f++;
@@ -1192,8 +1189,7 @@ void format(char **args, int numargs)
         }
         else s.add(c);
     }
-    s.add('\0');
-    result(s.getbuf());
+    resultcharvector(s, 0);
 }
 COMMAND(format, "v");
 
@@ -1581,9 +1577,7 @@ void enumalias(char *prefix)
     enumerate(*idents, ident, id, if(id.type == ID_ALIAS && id.persist && !id.isconst && !id.istemp && !strncmp(id.name, prefix, np)) sids.add(&id); );
     sids.sort(sortident);
     loopv(sids) cvecprintf(res, "%s %s\n", sids[i]->name, sids[i]->name + np);
-    if(res.length()) res.last() = '\0';
-    else res.add('\0');
-    result(res.getbuf());
+    resultcharvector(res, -1);
 }
 COMMAND(enumalias, "s");
 

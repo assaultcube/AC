@@ -180,35 +180,32 @@ keym *findbindc(int code)
 
 void findkey(int *code)
 {
-    for (int i = 0; i < keyms.length(); i++)
+    const char *res = "-255";
+    loopv(keyms)
     {
-        if(keyms[i].code==*code)
+        if(keyms[i].code == *code)
         {
-            defformatstring(out)("%s", keyms[i].name);
-            result(out);
-            return;
+            res = keyms[i].name;
+            break;
         }
     }
-    result("-255");
-    return;
+    result(res);
 }
+COMMAND(findkey, "i");
 
 void findkeycode(const char* s)
 {
-     for (int i = 0; i < keyms.length(); i++)
-     {
-         if(strcmp(s, keyms[i].name) == 0)
-         {
-             defformatstring(out)("%d", keyms[i].code);
-             result(out);
-             return;
-         }
-     }
-     result("-255");
-     return;
+    int res = -255;
+    loopv(keyms)
+    {
+        if(!strcmp(s, keyms[i].name))
+        {
+            res = keyms[i].code;
+            break;
+        }
+    }
+    intret(res);
 }
-
-COMMAND(findkey, "i");
 COMMAND(findkeycode, "s");
 
 keym *keypressed = NULL;
@@ -265,8 +262,7 @@ void searchbinds(const char *action, int type)
             names.put(keyms[i].name, strlen(keyms[i].name));
         }
     }
-    names.add('\0');
-    result(names.getbuf());
+    resultcharvector(names, 0);
 }
 
 COMMANDF(keybind, "s", (const char *key) { keybind(key, keym::ACTION_DEFAULT); } );

@@ -60,9 +60,7 @@ void getpckserver() // return a table of all package servers with four columns
         loopv(pckservers) cvecprintf(res, "\"%s\" %d %d %d\n", pckservers[i]->host, pckservers[i]->priority, pckservers[i]->ping, pckservers[i]->resolved);
         sem_pckservers.post();
     }
-    if(res.length()) res.last() = '\0';
-    else res.add('\0');
-    result(res.getbuf());
+    resultcharvector(res, -1);
 }
 COMMAND(getpckserver, "");
 

@@ -543,10 +543,8 @@ void listallmapmodelattributes(char **args, int numargs) // create a list of map
         loopvj(a) if(a[j] < MMA_NUM) cvecprintf(res, " %s", escapestring(mmas[i]->n[a[j]]));
         res.add('\n');
     }
-    if(res.length()) res.last() = '\0';
-    else res.add('\0');
     loopv(emmas) { delstring(emmas[i]->n[MMA_KEYWORDS]); delete emmas[i]; } // only delete what was exploded
-    result(res.getbuf());
+    resultcharvector(res, -1);
 }
 COMMAND(listallmapmodelattributes, "v");
 

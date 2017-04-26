@@ -313,9 +313,7 @@ void getdeletedentities()
         int t = e.type < MAXENTTYPES ? e.type : NOTUSED;
         cvecprintf(res,"%s %d %d %d  %s\n", entnames[t], e.x, e.y, e.z, formatentityattributes(e));
     }
-    if(res.length()) res.last() = '\0';
-    else res.add('\0');
-    result(res.getbuf());
+    resultcharvector(res, -1);
 }
 COMMAND(getdeletedentities, "");
 
@@ -518,9 +516,7 @@ void enumentities(char *type)
     vector<char> res;
     int t = getlistindex(type, entnames, false, -1);
     loopv(ents) if(ents[i].type == t) cvecprintf(res, "%d ", i);
-    if(!res.length()) res.add('\0');
-    else res.last() = '\0';
-    result(res.getbuf());
+    resultcharvector(res, -1);
 }
 COMMAND(enumentities, "s");
 
@@ -554,9 +550,7 @@ void enumtodoentities()
 {
     vector<char> res;
     loopv(todoents) cvecprintf(res, "%d %s\n", todoents[i], escapestring(todoentdescs[i], true));
-    if(!res.length()) res.add('\0');
-    else res.last() = '\0';
-    result(res.getbuf());
+    resultcharvector(res, -1);
 }
 COMMAND(enumtodoentities, "");
 
@@ -1024,8 +1018,7 @@ void mapareacheck(char *what) // "vdelta" | "steepest" | "total" | "pprest" | "p
             cvecprintf(res, "%d %d %d  %d %d %.5g\n", x, y, z, ms.ppa[i], ms.ppv[i], ms.ppa[i] ? float(ms.ppv[i]) / ms.ppa[i] : 0.0f);
         }
     }
-    res.last() = '\0';
-    result(res.getbuf());
+    resultcharvector(res, -1);
 }
 
 COMMAND(mapareacheck, "s");
