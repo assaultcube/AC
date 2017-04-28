@@ -124,7 +124,7 @@ void audiomanager::musicpreload(int id)
 {
     if(nosound) return;
     stopsound();
-    if(musicvol && (id>=M_FLAGGRAB && id<=M_LASTMINUTE2))
+    if(musicvol && (id>=M_FLAGGRAB && id<=M_LASTMINUTE2) && musics.inrange(id))
     {
         char *name = musics[id];
         conoutf("preloading music #%d : %s", id, name);
