@@ -280,7 +280,7 @@ void circle(GLuint tex, float x, float y, float r, float tx, float ty, float tr,
     glVertex2f(x, y);
     loopi(subdiv+1)
     {
-        float c = cosf(2*M_PI*i/float(subdiv)), s = sinf(2*M_PI*i/float(subdiv));
+        float c = cosf(PI2 * i / float(subdiv)), s = sinf(PI2 * i / float(subdiv));
         glTexCoord2f(tx + tr*c, ty + tr*s);
         glVertex2f(x + r*c, y + r*s);
     }

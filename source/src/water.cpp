@@ -69,7 +69,7 @@ COMMAND(setwatercolour, "si");
     } \
     inline void vertw(float v1, float v2, float v3, float t) \
     { \
-        float angle = v1*v2*0.1f/(2*M_PI) + t; \
+        float angle = v1*v2*0.1f/PI2 + t; \
         float s = angle - int(angle) - 0.5f; \
         s *= 8 - fabs(s)*16; \
         float h = effective_waveheight*0.5f*s; \
@@ -201,7 +201,7 @@ int renderwater(float hf, GLuint reflecttex, GLuint refracttex)
     wx1 -= wx1%watersubdiv;
     wy1 -= wy1%watersubdiv;
 
-    float t = fmod(float(lastmillis/300.0f/(2*M_PI)), 1.0f);
+    float t = fmod(float(lastmillis/300.0f/PI2), 1.0f);
 
     if(mtwater && maxtmus>=2 && reflecttex)
     {

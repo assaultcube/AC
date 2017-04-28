@@ -114,7 +114,7 @@ void drawscope(bool preload)
     glVertex2f(x1 + 0.5f*sz, y1 + 0.5f*sz);
     loopi(8+1)
     {
-        float c = 0.5f*(1 + border*cosf(i*2*M_PI/8.0f)), s = 0.5f*(1 + border*sinf(i*2*M_PI/8.0f));
+        float c = 0.5f*(1 + border*cosf(i*PI2/8.0f)), s = 0.5f*(1 + border*sinf(i*PI2/8.0f));
         glTexCoord2f(c, s);
         glVertex2f(x1 + c*sz, y1 + s*sz);
     }
@@ -126,7 +126,7 @@ void drawscope(bool preload)
     glBegin(GL_TRIANGLE_STRIP);
     loopi(8+1)
     {
-        float c = 0.5f*(1 + border*cosf(i*2*M_PI/8.0f)), s = 0.5f*(1 + border*sinf(i*2*M_PI/8.0f));
+        float c = 0.5f*(1 + border*cosf(i*PI2/8.0f)), s = 0.5f*(1 + border*sinf(i*PI2/8.0f));
         glTexCoord2f(c, s);
         glVertex2f(x1 + c*sz, y1 + s*sz);
         c = c < 0.4f ? 0 : (c > 0.6f ? 1 : 0.5f);
@@ -628,7 +628,7 @@ void drawradar_vicinity(playerent *p, int w, int h)
                 {
                     cpos.mul(scaled);
                     float flgoff=radarentsize/0.68f;
-                    float ryaw=(camera1->yaw-45)*(2*PI/360);
+                    float ryaw=(camera1->yaw-45)*RAD;
                     float offx=flgoff*cosf(-ryaw);
                     float offy=flgoff*sinf(-ryaw);
                     drawradarent(cpos.x+offx, cpos.y-offy, camera1->yaw, 3, m_ktf ? 2 : f.team, iconsize, false); // draw flag on entity pos or whereever dropped
@@ -1155,7 +1155,7 @@ static void bar(float bar, int o, float r, float g, float b)
     glBegin(GL_TRIANGLE_STRIP);
     loopk(10)
     {
-       float c = 1.2f*cosf(M_PI/2 + k/9.0f*M_PI), s = 1 + 1.2f*sinf(M_PI/2 + k/9.0f*M_PI);
+       float c = 1.2f*cosf(PI/2 + k/9.0f*PI), s = 1 + 1.2f*sinf(PI/2 + k/9.0f*PI);
        glVertex2f(x2 - c*FONTH, y1 + s*FONTH);
        glVertex2f(x1 + c*FONTH, y1 + s*FONTH);
     }
@@ -1165,7 +1165,7 @@ static void bar(float bar, int o, float r, float g, float b)
     glBegin(GL_TRIANGLE_STRIP);
     loopk(10)
     {
-       float c = cosf(M_PI/2 + k/9.0f*M_PI), s = 1 + sinf(M_PI/2 + k/9.0f*M_PI);
+       float c = cosf(PI/2 + k/9.0f*PI), s = 1 + sinf(PI/2 + k/9.0f*PI);
        glVertex2f(x2 - c*FONTH, y1 + s*FONTH);
        glVertex2f(x1 + c*FONTH, y1 + s*FONTH);
     }

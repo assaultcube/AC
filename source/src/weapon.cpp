@@ -182,7 +182,7 @@ void createrays(const vec &from, const vec &to) // create random spread of rays 
             case 2:
             default: base = SGCCbase / 100.0f; wrange = SGCCrange; break;
         }
-        float rnddir = rndscale(2*M_PI);
+        float rnddir = rndscale(PI2);
         loopi(SGRAYS)
         {
             int j = k * SGRAYS + i;
@@ -192,7 +192,7 @@ void createrays(const vec &from, const vec &to) // create random spread of rays 
             float veclen = base + rndmul/100.0f;
             p.mul(veclen);
 
-            p.rotate(2 * M_PI / SGRAYS * i + rnddir, dir);
+            p.rotate(PI2 / SGRAYS * i + rnddir, dir);
             vec rray = vec(to);
             rray.add(p);
             sgr[j].rv = rray;

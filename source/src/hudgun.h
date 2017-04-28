@@ -41,7 +41,7 @@ struct weaponmove
             anim = ANIM_GUN_RELOAD;
             basetime = p->weaponchanging;
             float progress = clamp((lastmillis - p->weaponchanging)/(float)weapon::weaponchangetime, 0.0f, 1.0f);
-            k_rot = -90*sinf(progress*M_PI);
+            k_rot = -90*sinf(progress*PI);
         }
         else if(p->weaponsel->reloading)
         {
@@ -49,7 +49,7 @@ struct weaponmove
             basetime = p->weaponsel->reloading;
             float reloadtime = (float)p->weaponsel->info.reloadtime,
                   progress = clamp((lastmillis - p->weaponsel->reloading)/reloadtime, 0.0f, clamp(1.0f - (p->lastaction + p->weaponsel->gunwait - lastmillis)/reloadtime, 0.5f, 1.0f));
-            k_rot = -90*sinf(progress*M_PI);
+            k_rot = -90*sinf(progress*PI);
         }
         else
         {

@@ -963,57 +963,6 @@ bool preload_mapmodels(bool trydl)
     return !missing;
 }
 
-inline void renderhboxpart(playerent *d, vec top, vec bottom, vec up)
-{
-    if(d->state==CS_ALIVE && d->head.x >= 0)
-    {
-        glBegin(GL_LINE_LOOP);
-        loopi(8)
-        {
-            vec pos(camright);
-            pos.rotate(2*M_PI*i/8.0f, camdir).mul(HEADSIZE).add(d->head);
-            glVertex3fv(pos.v);
-        }
-        glEnd();
-
-        glBegin(GL_LINES);
-        glVertex3fv(bottom.v);
-        glVertex3fv(d->head.v);
-        glEnd();
-    }
-
-    vec spoke;
-    spoke.orthogonal(up);
-    spoke.normalize().mul(d->radius);
-
-    glBegin(GL_LINE_LOOP);
-    loopi(8)
-    {
-        vec pos(spoke);
-        pos.rotate(2*M_PI*i/8.0f, up).add(top);
-        glVertex3fv(pos.v);
-    }
-    glEnd();
-    glBegin(GL_LINE_LOOP);
-    loopi(8)
-    {
-        vec pos(spoke);
-        pos.rotate(2*M_PI*i/8.0f, up).add(bottom);
-        glVertex3fv(pos.v);
-    }
-    glEnd();
-    glBegin(GL_LINES);
-    loopi(8)
-    {
-        vec pos(spoke);
-        pos.rotate(2*M_PI*i/8.0f, up).add(bottom);
-        glVertex3fv(pos.v);
-        pos.sub(bottom).add(top);
-        glVertex3fv(pos.v);
-    }
-    glEnd();
-}
-
 void renderclient(playerent *d, const char *mdlname, const char *vwepname, int tex)
 {
     int varseed = (int)(size_t)d;

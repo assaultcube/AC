@@ -76,18 +76,13 @@ inline int iabs(int n) { return labs(n); }
 #define DELETEP(p) if(p) { delete   p; p = 0; }
 #define DELETEA(p) if(p) { delete[] p; p = 0; }
 
-#define PI  (3.1415927f)
-#define PI2 (2*PI)
-#define SQRT2 (1.4142136f)
-#define SQRT3 (1.7320508f)
-#define RAD (PI / 180.0f)
+#define PI    (3.141592654f)
+#define PI2   (6.283185307f)   /* 2 * PI */
+#define SQRT2 (1.414213562f)
+#define SQRT3 (1.732050808f)
+#define RAD   (0.01745329252f) /* PI / 180 */
 
 #ifdef WIN32
-#ifdef M_PI
-#undef M_PI
-#endif
-#define M_PI 3.14159265
-
 #ifndef __GNUC__
 #pragma warning (3: 4189)       // local variable is initialized but not referenced
 #pragma warning (disable: 4244) // conversion from 'int' to 'float', possible loss of data

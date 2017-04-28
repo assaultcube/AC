@@ -102,7 +102,6 @@ float RandomFloat (float from, float to)
 
 void AnglesToVectors(vec angles, vec &forward, vec &right, vec &up)
 {
-     static float degrees_to_radians = 2 * PI / 360;
      float angle;
      float sin_pitch;
      float sin_yaw;
@@ -117,17 +116,17 @@ void AnglesToVectors(vec angles, vec &forward, vec &right, vec &up)
      angles.y -= 90;
 
      // compute the sin and cosine of the pitch component
-     angle = angles.x * degrees_to_radians;
+     angle = angles.x * RAD;
      sin_pitch = sinf (angle);
      cos_pitch = cosf (angle);
 
      // compute the sin and cosine of the yaw component
-     angle = angles.y * degrees_to_radians;
+     angle = angles.y * RAD;
      sin_yaw = sinf (angle);
      cos_yaw = cosf (angle);
 
      // compute the sin and cosine of the roll component
-     angle = angles.z * degrees_to_radians;
+     angle = angles.z * RAD;
      sin_roll = sinf (angle);
      cos_roll = cosf (angle);
 

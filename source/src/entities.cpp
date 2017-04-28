@@ -164,7 +164,7 @@ void renderentarrow(const entity &e, const vec &dir, float radius)
     loopi(5)
     {
         vec p(spoke);
-        p.rotate(2*M_PI*i/4.0f, dir);
+        p.rotate(PI2 * i / 4.0f, dir);
         p.add(arrowbase);
         glVertex3fv(p.v);
     }
