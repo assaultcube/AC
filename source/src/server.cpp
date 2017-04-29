@@ -2959,6 +2959,10 @@ void putinitclient(client &c, packetbuf &p)
     putint(p, c.skin[TEAM_CLA]);
     putint(p, c.skin[TEAM_RVSF]);
     putint(p, c.team);
+    putint(p, c.maxroll);
+    putint(p, c.maxrolleffect);
+    putint(p, c.ffov);
+    putint(p, c.scopefov);
     putint(p, c.ip_censored);
 }
 
@@ -3260,6 +3264,10 @@ void process(ENetPacket *packet, int sender, int chan)
             int wantrole = getint(p), np = getint(p);
             cl->state.nextprimary = np > 0 && np < NUMGUNS ? np : GUN_ASSAULT;
             loopi(2) cl->skin[i] = getint(p);
+            cl->maxroll = getint(p);
+            cl->maxrolleffect = getint(p);
+            cl->ffov = getint(p);
+            cl->scopefov = getint(p);
             int bantype = getbantype(sender);
             bool banned = bantype > BAN_NONE;
             bool srvfull = numnonlocalclients() > scl.maxclients;

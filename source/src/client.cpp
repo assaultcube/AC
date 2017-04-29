@@ -564,6 +564,10 @@ void sendintro()
     connectrole = CR_DEFAULT;
     putint(p, player1->nextprimweap->type);
     loopi(2) putint(p, player1->skin(i));
+    putint(p, player1->maxroll);
+    putint(p, player1->maxrolleffect);
+    putint(p, player1->ffov);
+    putint(p, player1->scopefov);
     sendpackettoserv(1, p.finalize());
 }
 

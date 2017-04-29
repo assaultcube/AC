@@ -621,6 +621,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     getstring(text, p);
                     loopi(2) getint(p);
                     getint(p);
+                    loopi(4) getint(p);
                     if(!demo || !watchingdemo || demoprotocol > 1132) getint(p);
                     break;
                 }
@@ -641,8 +642,10 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 loopi(2) d->setskin(i, getint(p));
                 d->team = getint(p);
 
-//                d->maxroll = (float)clamp(getint(p), 0, ROLLMOVMAX);          FIXME: uncomment on protocol bump + etc.
-//                d->maxrolleffect = (float)clamp(getint(p), 0, ROLLEFFMAX);    FIXME: uncomment on protocol bump
+                d->maxroll = (float)clamp(getint(p), 0, ROLLMOVMAX);
+                d->maxrolleffect = (float)clamp(getint(p), 0, ROLLEFFMAX);
+                d->ffov = (float)clamp(getint(p), 75, 120);
+                d->scopefov = (float)clamp(getint(p), 5, 60);
 
                 if(!demo || !watchingdemo || demoprotocol > 1132) d->address = getint(p); // partial IP address
 

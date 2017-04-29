@@ -259,6 +259,7 @@ struct client                   // server side version of "dynent" type
     string servinforesponse;
     string name;
     int team;
+    int maxroll, maxrolleffect, ffov, scopefov;
     char lang[3];
     int ping;
     int skin[2];
@@ -359,6 +360,7 @@ struct client                   // server side version of "dynent" type
         vita = NULL;
         bottomRTT = ping = 9999;
         team = TEAM_SPECT;
+        maxroll = maxrolleffect = ffov = scopefov = 0;
         state.state = CS_SPECTATE;
         loopi(2) skin[i] = 0;
         position.setsize(0);

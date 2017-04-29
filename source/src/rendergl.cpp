@@ -469,18 +469,22 @@ void fovchanged();
 FVARFP(fov, 75, 90, 120, fovchanged());
 VARFP(scopefov, 5, 50, 60, fovchanged());
 VARP(spectfov, 5, 110, 120);
+VARP(spectfovremote, 0, 0, 1); // use spectfov or remote player's fov when spectating
 void fovchanged()
 {
     extern float autoscopesensscale;
     autoscopesensscale = tan(((float)scopefov)*0.5f*RAD)/tan(fov*0.5f*RAD);
+    player1->ffov = (int)fov;
+    player1->scopefov = scopefov;
 }
 
 float dynfov()
 {
     bool isscoped = player1->weaponsel->type == GUN_SNIPER && ((sniperrifle *)player1->weaponsel)->scoped;
+    bool useremote = spectfovremote && camera1 != player1 && camera1->type == ENT_PLAYER && ((playerent *)camera1)->ffov && ((playerent *)camera1)->scopefov;
     if(camera1 != player1 && camera1->type < ENT_CAMERA) isscoped = ((playerent *)camera1)->scoping;
-    if(isscoped) return (float)scopefov;
-    else if(player1->isspectating()) return (float)spectfov;
+    if(isscoped) return (float) (useremote ? ((playerent *)camera1)->scopefov : scopefov);
+    else if(player1->isspectating()) return (float)(useremote ? ((playerent *)camera1)->ffov : spectfov);
     else return (float)fov;
 }
 
