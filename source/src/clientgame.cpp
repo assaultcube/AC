@@ -373,7 +373,7 @@ void deathstate(playerent *pl)
     pl->spectatemode = SM_DEATHCAM;
     pl->respawnoffset = pl->lastpain = lastmillis;
     pl->move = pl->strafe = 0;
-    pl->pitch = pl->roll = 0;
+    pl->pitch = pl->roll = pl->movroll = pl->effroll = 0;
     pl->attacking = false;
     pl->weaponsel->onownerdies();
 
@@ -661,7 +661,7 @@ void gotoplayerstart(playerent *d, entity *e)
     d->o.z = e->z;
     d->yaw = float(e->attr1) / ENTSCALE10;
     d->pitch = 0;
-    d->roll = 0;
+    d->roll = d->movroll = d->effroll = 0;
 }
 
 void findplayerstart(playerent *d, bool mapcenter, int arenaspawn)

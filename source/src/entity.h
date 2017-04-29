@@ -407,6 +407,11 @@ public:
 #ifndef STANDALONE
 #define HEADSIZE 0.4f
 
+#define ROLLMOVMAX 20
+#define ROLLMOVDEF 0
+#define ROLLEFFMAX 30
+#define ROLLEFFDEF 10
+
 class playerent : public dynent, public playerstate
 {
 private:
@@ -426,6 +431,7 @@ public:
     int spectatemode, followplayercn;
     int eardamagemillis;
     int respawnoffset;
+    float maxroll, maxrolleffect, movroll, effroll;  // roll added by movement and damage
     bool allowmove() { return state!=CS_DEAD || spectatemode==SM_FLY; }
 
     weapon *weapons[NUMGUNS];
@@ -443,7 +449,7 @@ public:
     bool ignored, muted;
 
     playerent() : curskin(0), clientnum(-1), lastupdate(0), plag(0), ping(0), address(0), lifesequence(0), frags(0), flagscore(0), deaths(0), points(0), tks(0), lastpain(0), lastvoicecom(0), clientrole(CR_DEFAULT),
-                  team(TEAM_SPECT), spectatemode(SM_NONE), eardamagemillis(0), respawnoffset(0),
+                  team(TEAM_SPECT), spectatemode(SM_NONE), eardamagemillis(0), respawnoffset(0), maxroll(ROLLMOVDEF), maxrolleffect(ROLLEFFDEF), movroll(0), effroll(0),
                   prevweaponsel(NULL), weaponsel(NULL), nextweaponsel(NULL), primweap(NULL), nextprimweap(NULL), lastattackweapon(NULL),
                   smoothmillis(-1),
                   head(-1, -1, -1), ignored(false), muted(false)
@@ -477,10 +483,8 @@ public:
 
     void damageroll(float damage)
     {
-        extern void clamproll(physent *pl);
-        float damroll = 2.0f*damage;
-        roll += roll>0 ? damroll : (roll<0 ? -damroll : (rnd(2) ? damroll : -damroll)); // give player a kick
-        clamproll(this);
+        damage *= effroll > 0.001f || (effroll > -0.001f && rnd(2)) ? 2.0f : -2.0f; // give player a kick
+        effroll = clamp(effroll + damage, -maxrolleffect, maxrolleffect);
     }
 
     void hitpush(int damage, const vec &dir, playerent *actor, int gun)

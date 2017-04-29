@@ -10,7 +10,7 @@ void lightray(float bx, float by, const persistent_entity &light, float fade = 1
     float ly = light.y+(flicker ? (rnd(21)-10)*0.1f : 0);
     float dx = bx-lx;
     float dy = by-ly;
-    float dist = (float)sqrt(dx*dx+dy*dy);
+    float dist = sqrtf(dx*dx+dy*dy);
     if(dist<1.0f) return;
     int reach = light.attr1;
     int steps = (int)(reach*reach*1.6f/dist);

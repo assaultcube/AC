@@ -108,8 +108,6 @@ void updatelagtime(playerent *d)
 
 extern void trydisconnect();
 
-VARP(maxrollremote, 0, 0, 20); // bound remote "roll" values by our maxroll?!
-
 void parsepositions(ucharbuf &p)
 {
     int type;
@@ -120,7 +118,7 @@ void parsepositions(ucharbuf &p)
         {
             int cn, f, g;
             vec o, vel;
-            float yaw, pitch, roll = 0;
+            float yaw, pitch = 0;
             bool scoping;//, shoot;
             if(type == SV_POSC)
             {
@@ -131,7 +129,7 @@ void parsepositions(ucharbuf &p)
                 o.y = q.getbits(usefactor + 4) / DMF;
                 yaw = q.getbits(9) * 360.0f / 512;
                 pitch = (q.getbits(8) - 128) * 90.0f / 127;
-                roll = !q.getbits(1) ? (q.getbits(6) - 32) * 20.0f / 31 : 0.0f;
+                if(!q.getbits(1)) q.getbits(6);
                 if(!q.getbits(1))
                 {
                     vel.x = (q.getbits(4) - 8) / DVELF;
@@ -160,7 +158,7 @@ void parsepositions(ucharbuf &p)
                 yaw   = (float)getuint(p);
                 pitch = (float)getint(p);
                 g = getuint(p);
-                if ((g>>3) & 1) roll  = (float)(getint(p)*20.0f/125.0f);
+                if ((g>>3) & 1) getint(p);
                 if (g & 1) vel.x = getint(p)/DVELF; else vel.x = 0;
                 if ((g>>1) & 1) vel.y = getint(p)/DVELF; else vel.y = 0;
                 if ((g>>2) & 1) vel.z = getint(p)/DVELF; else vel.z = 0;
@@ -190,7 +188,6 @@ void parsepositions(ucharbuf &p)
                 sniperrifle *sr = (sniperrifle *)d->weaponsel;
                 sr->scoped = d->scoping = scoping;
             }
-            d->roll = roll;
             d->strafe = (f&3)==3 ? -1 : f&3;
             f >>= 2;
             d->move = (f&3)==3 ? -1 : f&3;
@@ -230,8 +227,6 @@ void parsepositions(ucharbuf &p)
             if(d->state==CS_LAGGED || d->state==CS_SPAWNING) d->state = CS_ALIVE;
             // when playing a demo spectate first player we know about
             if(player1->isspectating() && player1->spectatemode==SM_NONE) togglespect();
-            extern void clamproll(physent *pl);
-            clamproll((physent *) d);
             break;
         }
 
@@ -604,6 +599,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 exechook(HOOK_SP_MP, "onConnect", "%d", d->clientnum);
                 loopi(2) d->setskin(i, getint(p));
                 d->team = getint(p);
+
+//                d->maxroll = (float)clamp(getint(p), 0, ROLLMOVMAX);          FIXME: uncomment on protocol bump + etc.
+//                d->maxrolleffect = (float)clamp(getint(p), 0, ROLLEFFMAX);    FIXME: uncomment on protocol bump
 
                 if(!demo || !watchingdemo || demoprotocol > 1132) d->address = getint(p); // partial IP address
 

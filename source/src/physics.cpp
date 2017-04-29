@@ -351,7 +351,9 @@ bool collide(physent *d, bool spawn, float drop, float rise)
     return false;
 }
 
-VARP(maxroll, 0, 0, 20); // note: when changing max value, fix network transmission
+VARFP(maxroll, 0, ROLLMOVDEF, ROLLMOVMAX, player1->maxroll = maxroll);
+VARFP(maxrolleffect, 0, ROLLEFFDEF, ROLLEFFMAX, player1->maxrolleffect = maxrolleffect);
+VARP(maxrollremote, 0, ROLLMOVDEF + ROLLEFFDEF, ROLLMOVMAX + ROLLEFFMAX);
 //VAR(recoilbackfade, 0, 100, 1000);
 
 void resizephysent(physent *pl, int moveres, int curtime, float min, float max)
@@ -392,18 +394,6 @@ void resizephysent(physent *pl, int moveres, int curtime, float min, float max)
 // main physics routine, moves a player/monster for a curtime step
 // moveres indicated the physics precision (which is lower for monsters and multiplayer prediction)
 // local is false for multiplayer prediction
-
-void clamproll(physent *pl)
-{
-    extern int maxrollremote;
-    int mroll = pl == player1 ? maxroll : maxrollremote;
-    if(pl->roll > mroll) pl->roll = mroll;
-    else if(pl->roll < -mroll) pl->roll = -mroll;
-}
-
-float var_f = 0;
-int var_i = 0;
-bool var_b = true;
 
 FVARP(flyspeed, 1.0, 2.0, 5.0);
 
@@ -719,19 +709,25 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 
     if(pl->type==ENT_CAMERA) return;
 
-    if(pl->type!=ENT_BOUNCE && pl==player1)
+    if(pl->type!=ENT_BOUNCE)
     {
-        // automatically apply smooth roll when strafing
-        if(pl->strafe==0)
+        if(pl->type == ENT_PLAYER)
         {
-            pl->roll = pl->roll/(1+(float)sqrt((float)curtime)/25);
+            // automatically apply smooth roll when strafing
+            playerent *p = (playerent *)pl;
+            float iir = 1.0f + sqrtf((float)curtime) / 25.0f;
+            if(pl->strafe==0)
+            {
+                p->movroll /= iir;
+            }
+            else
+            {
+                p->movroll = clamp(p->movroll + pl->strafe * curtime / -30.0f, -p->maxroll, p->maxroll);
+            }
+            p->effroll /= iir; // fade damage roll
+            pl->roll = p->movroll + p->effroll;
+            if(pl != player1) pl->roll = clamp(pl->roll, (float)-maxrollremote, (float)maxrollremote);
         }
-        else
-        {
-            pl->roll += pl->strafe*curtime/-30.0f;
-            clamproll(pl);
-        }
-
         // smooth pitch
         const float fric = 6.0f/curtime*20.0f;
         pl->pitch += pl->pitchvel*(curtime/1000.0f)*pl->maxspeed*(pl->crouching ? 0.75f : 1.0f);
