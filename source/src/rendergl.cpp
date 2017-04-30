@@ -464,14 +464,14 @@ void fixresizedscreen()
 #endif
 }
 
-float scopesensfunc = 0.4663077f;
-void scopefunc();
-FVARFP(fov, 75, 90, 120, scopefunc());
-VARFP(scopefov, 5, 50, 60, scopefunc());
+void fovchanged();
+FVARFP(fov, 75, 90, 120, fovchanged());
+VARFP(scopefov, 5, 50, 60, fovchanged());
 VARP(spectfov, 5, 110, 120);
-void scopefunc()
+void fovchanged()
 {
-    scopesensfunc = tan(((float)scopefov)*0.5f*RAD)/tan(fov*0.5f*RAD);
+    extern float autoscopesensscale;
+    autoscopesensscale = tan(((float)scopefov)*0.5f*RAD)/tan(fov*0.5f*RAD);
 }
 
 float dynfov()

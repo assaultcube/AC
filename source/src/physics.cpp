@@ -905,153 +905,36 @@ void fixcamerarange(physent *cam)
     while(cam->yaw>=360.0f) cam->yaw -= 360.0f;
 }
 
-FVARP(sensitivity, 1e-3f, 3.0f, 1000.0f);
-FVARP(scopesensscale, 1e-3f, 0.5f, 1000.0f);
-FVARP(sensitivityscale, 1e-3f, 1, 1000);
-FVARP(scopesens, 0, 0, 1000);
-VARP(invmouse, 0, 0, 1);
-FVARP(mouseaccel, 0, 0, 1000);
-FVARP(mfilter, 0.0f, 0.0f, 6.0f);
-VARP(autoscopesens, 0, 0, 1);
+FVARP(sensitivity, 1e-3f, 3.0f, 1000.0f);       // general mouse sensitivity ("unscoped")
+FVARP(scopesens, 0, 0, 1000);                   // scoped mouse sensitivity (if zero, autoscopesens determines, how sensitivity is changed during scoping)
+FVARP(sensitivityscale, 1e-3f, 1, 1000);        // scale all sensitivity values (if unsure, keep at default value "1"- this parameter achieves cosmetic value changes only)
 
-float testsens=0;
-bool senst=0;
-int tsens(int x)
-{
-    static bool highlock=0,lowlock=0;
-    static bool hightry=0,lowtry=0;
-    static float sensn=0,sensl=0,sensh=0;
-    static int nstep=1;
-    if (x==-2000) {  // RENDERING PART!!!
-        if(senst) {
-        draw_textf(
-        "\fJSensitivity Training (hotkeys):\n\fE1. try High Sens. %s\n2. try Low Sens. %s\n\fJ%s :"
-        "\fE\n3. choose: High Sens.\n4. choose: Low Sens.\n\fIrepeat the steps above until the training stops.\n\f35. Stop Training.",
-        VIRTW/4  , VIRTH/3,
-        hightry?"(TRIED)":"" , lowtry?"(TRIED)":"",
-        hightry&&lowtry?"after trying both choose the one you liked most":"now you can choose the sensitivity you preferred");
-        glPushMatrix(); glScalef(2,2,2);
-        draw_textf("step: \f0%d",VIRTW/2  , VIRTH/3*2,nstep);
-        glPopMatrix();
-        }
-        return 0;
-    }
-    if (x == SDLK_3 || x == SDLK_4)
-    {
-        if(!hightry || !lowtry) {
-            if(!hightry && !lowtry) {
-                conoutf("--- \f3ERROR:\f0before choosing a sensitivity, first try both higher and lower sens.");
-            } else {
-                conoutf("--- \f3ERROR:\f0try the %s%ser sensitivity too.",hightry?"":"high",lowtry?"":"low");
-            }
-        } else {
-            if (x == SDLK_3) //high sens
-            {
-                lowlock=1;
-                if (highlock)
-                {
-                    sensl=sensn;
-                    sensn=(sensh+sensl)/2.0f;
-                }
-                else
-                {
-                    sensl=sensn;
-                    sensn=sensh;
-                    sensh=sensn*2.0f;
-                }
-            }
-            if (x == SDLK_4) //low sens
-            {
-                highlock=1;
-                if (lowlock)
-                {
-                    sensh=sensn;
-                    sensn=(sensh+sensl)/2.0f;
-                }
-                else
-                {
-                    sensh=sensn;
-                    sensn=sensl;
-                    sensl=sensn/2.0f;
-                }
-            }
-            if(sensh/sensn > 1.04f) {
-            conoutf("--- \f0you chose the %ser sensitivity.",x==SDLK_3?"higher":"lower");
-            conoutf("--- \f0repeat previous steps by trying both higher and lower sens and then by choosing the one you like most.");
-            hudoutf("next step!");
-            nstep++;
-            }
-            testsens=sensn;
-            hightry=lowtry=0;
-        }
+VARP(autoscopesens, 0, 0, 1);                   // switches between scopesensscale and autoscopesensscale to calculate a scoped sensitivity (if scopesens is 0)
+FVARP(scopesensscale, 1e-3f, 0.5f, 1000.0f);    // if scoped, sens = sensitivity * scopesensscale (roughly)
+float autoscopesensscale = 0.4663077f;          // roughly scopefov/fov, recalculated if fov or scopefov changes (init value fits defaults fov 90 and scopefov 50, update, if defaults change)
 
-    }
-    if (x == SDLK_2)
-    {
-        testsens=sensl;
-        conoutf("--- \f0You are now %strying the lower sensitivity.",lowtry?"re-":""); lowtry=1;
-    }
-    if (x == SDLK_1)
-    {
-        testsens=sensh;
-        conoutf("--- \f0You are now %strying the higher sensitivity.",hightry?"re-":""); hightry=1;
-    }
-    if (x==-1000)
-    {
-        float factor=rnd(800)+600;
-        factor/=1000;
-        sensh=sensitivity*factor*2.0f;
-        sensl=sensitivity*factor/2.0f;
-        sensn=sensitivity*factor;
-    }
-    if (sensh/sensn <= 1.04f || x == SDLK_5)
-    {
-        senst=0;
-        if(sensh/sensn <= 1.04f) {
-            conoutf("--- \f0Sensitivity Training Ended. happy fragging.");
-            sensitivity=sensn;
-        } else {
-            conoutf("--- \f0Sensitivity Training Stopped.");
-        }
-        hightry=lowtry=highlock=lowlock=0;
-        sensn=sensl=sensh=0;
-        testsens=0;
-        nstep=1;
-    }
-    return 0;
-}
-
-void findsens()
-{
-    if(!watchingdemo) {
-        senst=1;
-        tsens(-1000);
-        testsens=sensitivity;
-        conoutf("--- \f0Sensitivity Training Started.");
-        return;
-    }
-}
-COMMAND(findsens, "");
+VARP(invmouse, 0, 0, 1);                        // invert y-axis movement (if "1")
+FVARP(mouseaccel, 0, 0, 1000);                  // make fast movement even faster (zero deactivates the feature)
+FVARP(mfilter, 0.0f, 0.0f, 6.0f);               // simple lowpass filtering (zero deactivates the feature)
 
 void mousemove(int idx, int idy)
 {
-    static float fdx = 0, fdy = 0;
     if(intermission || (player1->isspectating() && player1->spectatemode==SM_FOLLOW1ST)) return;
     bool zooming = player1->weaponsel->type == GUN_SNIPER && ((sniperrifle *)player1->weaponsel)->scoped;               // check if player uses scope
     float dx = idx, dy = idy;
     if(mfilter > 0.0001f)
-    { // simple IIR filter (1st order lowpass)
+    { // simple IIR-like filter (1st order lowpass)
+        static float fdx = 0, fdy = 0;
         float k = mfilter * 0.1f;
         dx = fdx = dx * ( 1.0f - k ) + fdx * k;
         dy = fdy = dy * ( 1.0f - k ) + fdy * k;
     }
-    extern float scopesensfunc;
-    double cursens = senst ? testsens : sensitivity;                                                                    // basic unscoped sensitivity
+    double cursens = sensitivity;                                                                                       // basic unscoped sensitivity
     if(mouseaccel > 0.0001f && curtime && (idx || idy)) cursens += 0.02f * mouseaccel * sqrtf(dx*dx + dy*dy)/curtime;   // optionally accelerated
     if(zooming)
     {                                                                                                                   //      when scoped:
         if(scopesens > 0.0001f) cursens = scopesens;                                                                    //          if specified, use dedicated (fixed) scope sensitivity
-        else cursens *= autoscopesens ? scopesensfunc : scopesensscale;                                                 //          or adjust sensitivity by given (fixed) factor or based on fov/scopefov
+        else cursens *= autoscopesens ? autoscopesensscale : scopesensscale;                                            //          or adjust sensitivity by given (fixed) factor or based on scopefov/fov
     }
     cursens /= 33.0f * sensitivityscale;                                                                                // final scaling
 

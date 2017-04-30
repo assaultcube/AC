@@ -848,8 +848,6 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     else if(targetplayer && showtargetname) draw_text(colorname(targetplayer), HUDPOS_X_BOTTOMLEFT, HUDPOS_Y_BOTTOMLEFT);
     glLoadIdentity();
     glOrtho(0, VIRTW*2, VIRTH*2, 0, -1, 1);
-    extern int tsens(int x);
-    tsens(-2000);
     extern void r_accuracy(int h);
     extern void *scoremenu;
     extern gmenu *curmenu;
