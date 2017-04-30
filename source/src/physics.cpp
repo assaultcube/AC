@@ -909,7 +909,6 @@ FVARP(sensitivity, 1e-3f, 3.0f, 1000.0f);
 FVARP(scopesensscale, 1e-3f, 0.5f, 1000.0f);
 FVARP(sensitivityscale, 1e-3f, 1, 1000);
 FVARP(scopesens, 0, 0, 1000);
-VARP(scopesensfeel, 0, 0, 1);
 VARP(invmouse, 0, 0, 1);
 FVARP(mouseaccel, 0, 0, 1000);
 FVARP(mfilter, 0.0f, 0.0f, 6.0f);
@@ -1034,49 +1033,30 @@ void findsens()
 }
 COMMAND(findsens, "");
 
-inline bool zooming(playerent *plx) { return (plx->weaponsel->type == GUN_SNIPER && ((sniperrifle *)plx->weaponsel)->scoped); }
-
-void mousemove(int odx, int ody)
+void mousemove(int idx, int idy)
 {
     static float fdx = 0, fdy = 0;
     if(intermission || (player1->isspectating() && player1->spectatemode==SM_FOLLOW1ST)) return;
-    float dx = odx, dy = ody;
-    if(mfilter > 0.0f)
-    {
+    bool zooming = player1->weaponsel->type == GUN_SNIPER && ((sniperrifle *)player1->weaponsel)->scoped;               // check if player uses scope
+    float dx = idx, dy = idy;
+    if(mfilter > 0.0001f)
+    { // simple IIR filter (1st order lowpass)
         float k = mfilter * 0.1f;
         dx = fdx = dx * ( 1.0f - k ) + fdx * k;
         dy = fdy = dy * ( 1.0f - k ) + fdy * k;
     }
     extern float scopesensfunc;
-    float cursens = sensitivity;
-    if(senst) {cursens=testsens;}
-    if(mouseaccel && curtime && (dx || dy)) cursens += 0.02f * mouseaccel * sqrtf(dx*dx + dy*dy)/curtime;
-    if(scopesens==0 || !zooming(player1))
-    {
-        if(scopesensfeel)
-        {
-            // AC 1.1
-            cursens /= 33.0f*sensitivityscale;
-            if( zooming(player1) ) { cursens *= autoscopesens ? scopesensfunc : scopesensscale; }
-            camera1->yaw += dx*cursens;
-            camera1->pitch -= dy*cursens*(invmouse ? -1 : 1);
-        }
-        else
-        {
-            // AC 1.0
-            if( zooming(player1) ) { cursens *= autoscopesens ? scopesensfunc : scopesensscale; }
-            float sensfactor = 33.0f*sensitivityscale;
-            camera1->yaw += dx*cursens/sensfactor;
-            camera1->pitch -= dy*cursens*(invmouse ? -1 : 1)/sensfactor;
-        }
+    double cursens = senst ? testsens : sensitivity;                                                                    // basic unscoped sensitivity
+    if(mouseaccel > 0.0001f && curtime && (idx || idy)) cursens += 0.02f * mouseaccel * sqrtf(dx*dx + dy*dy)/curtime;   // optionally accelerated
+    if(zooming)
+    {                                                                                                                   //      when scoped:
+        if(scopesens > 0.0001f) cursens = scopesens;                                                                    //          if specified, use dedicated (fixed) scope sensitivity
+        else cursens *= autoscopesens ? scopesensfunc : scopesensscale;                                                 //          or adjust sensitivity by given (fixed) factor or based on fov/scopefov
     }
-    else
-    {
-        // user provided value
-        float sensfactor = 33.0f*sensitivityscale;
-        camera1->yaw += dx*scopesens/sensfactor;
-        camera1->pitch -= dy*scopesens*(invmouse ? -1 : 1)/sensfactor;
-    }
+    cursens /= 33.0f * sensitivityscale;                                                                                // final scaling
+
+    camera1->yaw += (float) (dx * cursens);
+    camera1->pitch -= (float) (dy * cursens * (invmouse ? -1 : 1));
 
     fixcamerarange();
     if(camera1!=player1 && player1->spectatemode!=SM_DEATHCAM)

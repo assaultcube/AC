@@ -864,7 +864,7 @@ extern void moveplayer(physent *pl, int moveres, bool local, int curtime);
 extern void movebounceent(bounceent *p, int moveres, bool local);
 extern void entinmap(physent *d);
 extern void physicsframe();
-extern void mousemove(int dx, int dy);
+extern void mousemove(int idx, int idy);
 extern void fixcamerarange(physent *cam = camera1);
 extern void updatecrouch(playerent *p, bool on);
 extern bool objcollide(physent *d, const vec &objpos, float objrad, float objheight);
