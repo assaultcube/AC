@@ -572,7 +572,7 @@ void drawradar_vicinity(playerent *p, int w, int h)
     float offy = gdim == clmapdims.xspan ? offd : 0;
     vec rtr = vec(clmapdims.x1 - offx, clmapdims.y1 - offy, 0);
     vec rsd = vec(clmapdims.xm, clmapdims.ym, 0);
-    float d2s = radarheight/2.0f;
+    float d2s = radarheight * radarheight / 4.0f;
     glColor3f(1.0f, 1.0f, 1.0f);
     glPushMatrix();
     vec centerpos(VIRTW-halfviewsize-72, halfviewsize+64, 0);
@@ -595,7 +595,7 @@ void drawradar_vicinity(playerent *p, int w, int h)
         if(p->team < TEAM_SPECT && ((m_teammode && !isteam(p_baseteam, pl_baseteam)) || (!m_teammode && !(spect3rd && d == pl)))) continue;
         if(p->team == TEAM_SPECT && !(spect3rd && (isteam(p_baseteam, pl_baseteam) || d == pl))) continue;
         vec rtmp = vec(pl->o).sub(d->o);
-        bool isok = rtmp.magnitude() < d2s;
+        bool isok = rtmp.sqrxy() < d2s;
         if(isok)
         {
             rtmp.mul(scaled);
@@ -615,7 +615,7 @@ void drawradar_vicinity(playerent *p, int w, int h)
             if(hasflagent)
             {
                 vec pos = vec(e->x, e->y, 0).sub(d->o);
-                if(pos.magnitude() < d2s)
+                if(pos.sqrxy() < d2s)
                 {
                     pos.mul(scaled);
                     drawradarent(pos.x, pos.y, 0, m_ktf ? 2 : f.team, 3, iconsize, false); // draw bases [circle doesn't need rotating]
@@ -624,7 +624,7 @@ void drawradar_vicinity(playerent *p, int w, int h)
             if((f.state == CTFF_INBASE && hasflagent) || f.state == CTFF_DROPPED)
             {
                 vec cpos = vec(f.pos.x, f.pos.y, f.pos.z).sub(d->o);
-                if(cpos.magnitude() < d2s)
+                if(cpos.sqrxy() < d2s)
                 {
                     cpos.mul(scaled);
                     float flgoff=radarentsize/0.68f;
@@ -647,7 +647,7 @@ void drawradar_vicinity(playerent *p, int w, int h)
                     if(tm)
                     {
                         apos.sub(d->o);
-                        if(apos.magnitude() < d2s)
+                        if(apos.sqrxy() < d2s)
                         {
                             apos.mul(scaled);
                             drawradarent(apos.x, apos.y, camera1->yaw, 3, m_ktf ? 2 : f.team, iconsize, true); // draw near flag thief
