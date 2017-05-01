@@ -9,20 +9,15 @@ VARP(showplayerstarts, 0, 0, 1);
 
 vector<entity> ents;
 vector<int> eh_ents; // edithide entities
+
 const char *entmdlnames[] =
 {
-    "pistolclips", "ammobox", "nade", "health", "helmet", "kevlar", "akimbo", "nades" //FIXME
+    "pickups/nades", "pickups/pistolclips", "pickups/ammobox", "pickups/nade", "pickups/health", "pickups/helmet", "pickups/kevlar", "pickups/akimbo", ""   // doublenades + I_CLIPS..I_AKIMBO
 };
 
 void renderent(entity &e)
 {
-    /* FIXME: if the item list change, this hack will be messed */
-
-    defformatstring(widn)("modmdlpickup%d", e.type-3);
-    defformatstring(mdlname)("pickups/%s", identexists(widn)?getalias(widn):
-
-    entmdlnames[e.type-I_CLIPS+(m_lss && e.type==I_GRENADE ? 5:0)]);
-
+    const char *mdlname = entmdlnames[isitem(e.type) && !(m_lss && e.type == I_GRENADE) ? e.type - I_CLIPS + 1 : 0];  // render double nades in lss
     float z = (float)(1+sinf(lastmillis/100.0f+e.x+e.y)/20), yaw = lastmillis/10.0f;
     rendermodel(mdlname, ANIM_MAPMODEL|ANIM_LOOP|ANIM_DYNALLOC, 0, 0, vec(e.x, e.y, z+S(e.x, e.y)->floor + float(e.attr1) / ENTSCALE10), 0, yaw, 0);
 }

@@ -509,23 +509,13 @@ void renderbounceents()
         switch(p->bouncetype)
         {
             case BT_NADE:
-            if (identexists("modmdlbounce3"))
-                copystring(model, getalias("modmdlbounce3"));
-                else
                 copystring(model, "weapons/grenade/static");
                 break;
             case BT_GIB:
             default:
             {
                 uint n = (((4*(uint)(size_t)p)+(uint)p->timetolive)%3)+1;
-
-                defformatstring(widn)("modmdlbounce%d", n-1);
-
-                if (identexists(widn))
-                copystring(model, getalias(widn));
-                else
                 formatstring(model)("misc/gib0%u", n);
-
                 int t = lastmillis-p->millis;
                 if(t>p->timetolive-2000)
                 {
@@ -537,7 +527,6 @@ void renderbounceents()
                 break;
             }
         }
-        path(model);
         rendermodel(model, anim|ANIM_LOOP|ANIM_DYNALLOC, 0, 1.1f, o, 0, p->yaw+90, p->pitch, 0, basetime);
     }
 }
@@ -892,8 +881,7 @@ void weapon::renderhudmodel(int lastaction, int index)
     weaponmove wm;
     if(!intermission) wm.calcmove(unitv, lastaction, p);
 //    if(!intermission) wm.calcmove(unitv, p->lastaction, p);
-    defformatstring(widn)("modmdlweap%d", type);
-    defformatstring(path)("weapons/%s", identexists(widn)?getalias(widn):info.modelname);
+    defformatstring(path)("weapons/%s", info.modelname);
     bool emit = (wm.anim&ANIM_INDEX)==ANIM_GUN_SHOOT && (lastmillis - lastaction) < flashtime();
 //    bool emit = (wm.anim&ANIM_INDEX)==ANIM_GUN_SHOOT && (lastmillis - p->lastaction) < flashtime();
     rendermodel(path, wm.anim|ANIM_DYNALLOC|(righthanded==index ? ANIM_MIRROR : 0)|(emit ? ANIM_PARTICLE : 0), 0, -1, wm.pos, 0, p->yaw+90, p->pitch+wm.k_rot, 40.0f, wm.basetime, NULL, NULL, 1.28f);

@@ -115,9 +115,8 @@ void preload_hudguns()
 {
     loopi(NUMGUNS)
     {
-        if (i==GUN_CPISTOL) continue; //RR 18/12/12 - Remove when cpistol is added.
-        defformatstring(widn)("modmdlweap%d", i);
-        defformatstring(path)("weapons/%s", identexists(widn)?getalias(widn):guns[i].modelname);
+        if(i == GUN_CPISTOL) continue;
+        defformatstring(path)("weapons/%s", guns[i].modelname);
         loadmodel(path);
     }
 }

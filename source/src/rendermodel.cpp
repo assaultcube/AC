@@ -905,9 +905,8 @@ void preload_playermodels()
     if(dynshadow && playermdl) playermdl->genshadows(8.0f, 4.0f);
     loopi(NUMGUNS)
     {
-        if (i==GUN_CPISTOL) continue; //RR 18/12/12 - Remove when cpistol is added.
-        defformatstring(widn)("modmdlvwep%d", i);
-        defformatstring(vwep)("weapons/%s/world", identexists(widn)?getalias(widn):guns[i].modelname);
+        if(i == GUN_CPISTOL) continue;
+        defformatstring(vwep)("weapons/%s/world", guns[i].modelname);
         model *vwepmdl = loadmodel(vwep);
         if(dynshadow && vwepmdl) vwepmdl->genshadows(8.0f, 4.0f);
     }
@@ -915,37 +914,18 @@ void preload_playermodels()
 
 void preload_entmodels()
 {
-     string buf;
-
-     extern const char *entmdlnames[];
-     loopi(I_AKIMBO-I_CLIPS+1)
-     {
-         strcpy(buf, "pickups/");
-
-         defformatstring(widn)("modmdlpickup%d", i-3);
-
-         if (identexists(widn))
-            concatstring(buf, getalias(widn));
-         else
-            concatstring(buf, entmdlnames[i]);
-
-         model *mdl = loadmodel(buf);
-
-         if(dynshadow && mdl) mdl->genshadows(8.0f, 2.0f);
-     }
-     static const char *bouncemdlnames[] = { "misc/gib01", "misc/gib02", "misc/gib03", "weapons/grenade/static" };
-     loopi(sizeof(bouncemdlnames)/sizeof(bouncemdlnames[0]))
-     {
-         model *mdl = NULL;
-         defformatstring(widn)("modmdlbounce%d", i);
-
-         if (identexists(widn))
-         mdl = loadmodel(getalias(widn));
-         else
-         mdl = loadmodel(bouncemdlnames[i]);
-
-         if(dynshadow && mdl) mdl->genshadows(8.0f, 2.0f);
-     }
+    extern const char *entmdlnames[];
+    for(int i = 0; entmdlnames[i][0]; i++)
+    {
+        model *mdl = loadmodel(entmdlnames[i]);
+        if(dynshadow && mdl) mdl->genshadows(8.0f, 2.0f);
+    }
+    static const char *bouncemdlnames[] = { "misc/gib01", "misc/gib02", "misc/gib03", "weapons/grenade/static" };
+    loopi(sizeof(bouncemdlnames)/sizeof(bouncemdlnames[0]))
+    {
+        model *mdl = loadmodel(bouncemdlnames[i]);
+        if(dynshadow && mdl) mdl->genshadows(8.0f, 2.0f);
+    }
 }
 
 bool preload_mapmodels(bool trydl)
@@ -1095,8 +1075,7 @@ void renderclient(playerent *d)
         }
     }
     string vwep;
-    defformatstring(widn)("modmdlvwep%d", d->weaponsel->type);
-    if(d->weaponsel) formatstring(vwep)("weapons/%s/world", identexists(widn)?getalias(widn):d->weaponsel->info.modelname);
+    if(d->weaponsel) formatstring(vwep)("weapons/%s/world", d->weaponsel->info.modelname);
     else vwep[0] = 0;
     renderclient(d, "playermodels", vwep[0] ? vwep : NULL, -(int)textureload(skin)->id);
 }
