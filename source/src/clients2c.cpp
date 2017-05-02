@@ -313,6 +313,16 @@ VARP(hudextras, 0, 0, 3);
 
 int teamworkid = -1;
 
+char *strcaps(const char *s, bool on)
+{
+    static string r;
+    char *o = r;
+    if(on) while(*s && o < &r[sizeof(r)-1]) *o++ = toupper(*s++);
+    else while(*s && o < &r[sizeof(r)-1]) *o++ = tolower(*s++);
+    *o = '\0';
+    return r;
+}
+
 void showhudextras(char hudextras, char value){
     void (*outf)(const char *s, ...) = (hudextras > 1 ? hudoutf : conoutf);
     bool caps = hudextras < 3 ? false : true;
@@ -699,7 +709,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 vec from, to;
                 loopk(3) to[k] = getint(p)/DMF;
                 playerent *s = getclient(scn);
-                if(!s || !weapon::valid(gun)) break;
+                if(!s || !valid_weapon(gun)) break;
                 loopk(3) from[k] = s->o.v[k];
                 if(gun==GUN_SHOTGUN) createrays(from, to);
                 s->lastaction = lastmillis;

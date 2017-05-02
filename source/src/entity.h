@@ -54,7 +54,8 @@ struct entity : persistent_entity
 };
 
 enum { GUN_KNIFE = 0, GUN_PISTOL, GUN_CARBINE, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIPER, GUN_ASSAULT, GUN_CPISTOL, GUN_GRENADE, GUN_AKIMBO, NUMGUNS };
-#define reloadable_gun(g) (g != GUN_KNIFE && g != GUN_GRENADE)
+#define valid_weapon(g) ((g) >= GUN_KNIFE && (g) < NUMGUNS)
+#define reloadable_gun(g) ((g) != GUN_KNIFE && (g) != GUN_GRENADE)
 
 #define SGRAYS 21
 #define SGDMGTOTAL 90
@@ -82,7 +83,7 @@ struct itemstat { int add, start, max, sound; };
 extern itemstat ammostats[NUMGUNS];
 extern itemstat powerupstats[I_ARMOUR-I_HEALTH+1];
 
-struct guninfo { string modelname; short sound, reload, reloadtime, attackdelay, damage, piercing, projspeed, part, spread, recoil, magsize, mdl_kick_rot, mdl_kick_back, recoilincrease, recoilbase, maxrecoil, recoilbackfade, pushfactor; bool isauto; };
+struct guninfo { char modelname[23], title[42]; short sound, reload, reloadtime, attackdelay, damage, piercing, projspeed, part, spread, recoil, magsize, mdl_kick_rot, mdl_kick_back, recoilincrease, recoilbase, maxrecoil, recoilbackfade, pushfactor; bool isauto; };
 extern guninfo guns[NUMGUNS];
 extern const char *gunnames[];
 
@@ -489,7 +490,7 @@ public:
 
     void hitpush(int damage, const vec &dir, playerent *actor, int gun)
     {
-        if(gun<0 || gun>NUMGUNS) return;
+        if(!valid_weapon(gun)) return;
         vec push(dir);
         push.mul(damage/100.0f*guns[gun].pushfactor);
         vel.add(push);

@@ -135,34 +135,6 @@ struct stringformatter
 #define defformatstring(d) string d; formatstring(d)
 #define defvformatstring(d,last,fmt) string d; { va_list ap; va_start(ap, last); vformatstring(d, fmt, ap); va_end(ap); }
 
-inline char *strcaps(const char *s, bool on)
-{
-    static string r;
-    char *o = r;
-    if(on) while(*s && o < &r[sizeof(r)-1]) *o++ = toupper(*s++);
-    else while(*s && o < &r[sizeof(r)-1]) *o++ = tolower(*s++);
-    *o = '\0';
-    return r;
-}
-
-inline bool issimilar (char s, char d)
-{
-    s = tolower(s); d = tolower(d);
-    if ( s == d ) return true;
-    switch (d)
-    {
-        case 'a': if ( s == '@' || s == '4' ) return true; break;
-        case 'c': if ( s == 'k' ) return true; break;
-        case 'e': if ( s == '3' ) return true; break;
-        case 'i': if ( s == '!' || s == '1' ) return true; break;
-        case 'o': if ( s == '0' ) return true; break;
-        case 's': if ( s == '$' || s == '5' ) return true; break;
-        case 't': if ( s == '7' ) return true; break;
-        case 'u': if ( s == '#' ) return true; break;
-    }
-    return false;
-}
-
 #define MAXMAPNAMELEN 64
 inline bool validmapname(const char *s)
 {
@@ -190,31 +162,6 @@ inline bool validmapname(const char *s)
         ++s;
     }
     return true;
-}
-
-inline bool findpattern (char *s, char *d) // returns true if there is more than 80% of similarity
-{
-    int len, hit = 0;
-    if (!d || (len = strlen(d)) < 1) return false;
-    char *dp = d, *s_end = s + strlen(s);
-    while (s != s_end)
-    {
-        if ( *s == ' ' )                                                         // spaces separate words
-        {
-            if ( !issimilar(*(s+1),*dp) ) { dp = d; hit = 0; }                   // d e t e c t  i t
-        }
-        else if ( issimilar(*s,*dp) ) { dp++; hit++; }                           // hit!
-        else if ( hit > 0 )                                                      // this is not a pair, but there is a previous pattern
-        {
-            if (*s == '.' || *s == *(s-1) || issimilar(*(s+1),*dp) );            // separator or typo (do nothing)
-            else if ( issimilar(*(s+1),*(dp+1)) || *s == '*' ) dp++;             // wild card or typo
-            else hit--;                                                          // maybe this is nothing
-        }
-        else dp = d;                                                             // nothing here
-        s++;                                  // walk on the string
-        if ( hit && 5 * hit > 4 * len ) return true;                             // found it!
-    }
-    return false;
 }
 
 #define loopv(v)    for(int i = 0; i<(v).length(); i++)

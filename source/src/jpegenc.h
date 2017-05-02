@@ -5,12 +5,11 @@
 // Based on work by Cristian Cuturicu
 // http://www.wotsit.org/download.asp?f=jpeg&sc=335837440
 
-typedef unsigned char BYTE;
-typedef signed char SBYTE;
-typedef signed short int SWORD;
-typedef unsigned short int WORD;
-typedef unsigned long int DWORD;
-typedef signed long int SDWORD;
+typedef uint8_t BYTE;
+typedef int8_t SBYTE;
+typedef int16_t SWORD;
+typedef uint16_t WORD;
+typedef int32_t SDWORD;
 
 typedef struct { BYTE length; WORD value;} bitstring;
 

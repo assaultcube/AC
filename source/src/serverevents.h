@@ -38,7 +38,7 @@ void processevent(client *c, shotevent &e)
     clientstate &gs = c->state;
     int wait = e.millis - gs.lastshot;
     if(!gs.isalive(gamemillis) ||
-       e.gun<GUN_KNIFE || e.gun>=NUMGUNS ||
+       !valid_weapon(e.gun) ||
        wait<gs.gunwait[e.gun] ||
        gs.mag[e.gun]<=0)
         return;
@@ -121,7 +121,7 @@ void processevent(client *c, reloadevent &e)
 {
     clientstate &gs = c->state;
     if(!gs.isalive(gamemillis) ||
-       e.gun<GUN_KNIFE || e.gun>=NUMGUNS ||
+       !valid_weapon(e.gun) ||
        !reloadable_gun(e.gun) ||
        gs.ammo[e.gun]<=0)
         return;

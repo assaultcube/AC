@@ -678,38 +678,14 @@ void raydamage(vec &from, vec &to, playerent *d)
     }
 }
 
-const char *weapstr(unsigned int i)
-{
-    switch (i)
-    {
-    case GUN_AKIMBO:
-        return "Akimbo";
-    case GUN_PISTOL:
-        return "Pistol";
-    case GUN_ASSAULT:
-        return "MTP-57 AR";
-    case GUN_SUBGUN:
-        return "A-ARD/10 SMG";
-    case GUN_SNIPER:
-        return "AD-81 SR";
-    case GUN_SHOTGUN:
-        return "V-19 CS";
-    case GUN_KNIFE:
-        return "Knife";
-    case GUN_CARBINE:
-        return "TMP-M&A CB";
-    case GUN_GRENADE:
-        return "Grenades";
-    }
-    return "x";
-}
+const char *weapstr(int i) { return valid_weapon(i) ? guns[i].title : "x"; }
 
 VARP(accuracy,0,0,1);
 
 void r_accuracy(int h)
 {
     int i = player1->weaponsel->type;
-    if(accuracy && i >= 0 && i < NUMGUNS && i != GUN_CPISTOL)
+    if(accuracy && valid_weapon(i) && i != GUN_CPISTOL)
     {
         int x_offset = 2 * HUDPOS_X_BOTTOMLEFT, y_offset = 2 * (h - 1.75 * FONTH);
         string line;
@@ -927,8 +903,6 @@ void weapon::equipplayer(playerent *pl)
     pl->setprimary(GUN_ASSAULT);
     pl->setnextprimary(GUN_ASSAULT);
 }
-
-bool weapon::valid(int id) { return id>=0 && id<NUMGUNS; }
 
 // grenadeent
 

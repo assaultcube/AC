@@ -332,8 +332,7 @@ void drawequipicons(playerent *p)
     if(c==GUN_AKIMBO || c==GUN_CPISTOL) c = GUN_PISTOL; // same icon for akimb & pistol
     if(c>3) { c -= 4; r = 1; }
 
-    if(p->weaponsel && p->weaponsel->type>=GUN_KNIFE && p->weaponsel->type<NUMGUNS)
-        drawequipicon(HUDPOS_WEAPON*2, 1650, c, r);
+    if(p->weaponsel && valid_weapon(p->weaponsel->type)) drawequipicon(HUDPOS_WEAPON*2, 1650, c, r);
     glEnable(GL_BLEND);
 }
 
@@ -1051,7 +1050,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             pushfont("huddigits");
             draw_textf("%d", HUDPOS_HEALTH + HUDPOS_NUMBERSPACING, 823, p->health);
             if(p->armour) draw_textf("%d", HUDPOS_ARMOUR + HUDPOS_NUMBERSPACING, 823, p->armour);
-            if(p->weaponsel && p->weaponsel->type>=GUN_KNIFE && p->weaponsel->type<NUMGUNS)
+            if(p->weaponsel && valid_weapon(p->weaponsel->type))
             {
                 glMatrixMode(GL_MODELVIEW);
                 if (p->weaponsel->type!=GUN_GRENADE) p->weaponsel->renderstats();

@@ -45,8 +45,6 @@ struct weapon
     bool modelattacking();
     void renderhudmodel(int lastaction, int index = 0);
 
-    static bool valid(int id);
-
     virtual int flashtime() const;
 };
 
