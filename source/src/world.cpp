@@ -387,7 +387,7 @@ void newentity(int index, int x, int y, int z, const char *what, float v1f, floa
         case LIGHT: calclight(); break;
         case SOUND: audiomgr.preloadmapsound(e); break;
     }
-    unsavededits++;
+    if(index >= 0 || type != DUMMYENT) unsavededits++;      // no need to save dummies
 }
 
 void entset(char *what, float *a1, float *a2, float *a3, float *a4)

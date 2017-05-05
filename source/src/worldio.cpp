@@ -624,7 +624,7 @@ void save_world(char *mname, bool skipoptimise, bool addcomfort)
     hdr.numents = 0;
     ASSERT(MAXENTITIES < (1 << 16));
     numbered_persistent_entity npe;
-    loopv(ents) if(ents[i].type != NOTUSED && ents[i].type!=DUMMYENT) // omit deleted entities and dummies
+    loopv(ents) if(ents[i].type != NOTUSED && ents[i].type != DUMMYENT) // omit deleted entities and dummies
     {
         hdr.numents++;
         npe.e = ents[i];
@@ -728,7 +728,7 @@ void save_world9(char *mname)
     hdr.headersize = sizeof(header);
     hdr.timestamp = (int) time(NULL); // non-zero timestamps in format 9 can be used to identify "exported" maps
     hdr.numents = 0;
-    loopv(ents) if(ents[i].type!=NOTUSED && ents[i].type!=DUMMYENT) hdr.numents++;
+    loopv(ents) if(ents[i].type != NOTUSED && ents[i].type != DUMMYENT) hdr.numents++;
     if(hdr.numents > MAXENTITIES)
     {
         conoutf("too many map entities (%d), only %d will be written to file", hdr.numents, MAXENTITIES);
@@ -745,7 +745,7 @@ void save_world9(char *mname)
     int ne = hdr.numents, ec = 0;
     loopv(ents)
     {
-        if(ents[i].type!=NOTUSED && ents[i].type!=DUMMYENT)
+        if(ents[i].type != NOTUSED && ents[i].type != DUMMYENT)
         {
             if(!ne--) break;
             persistent_entity tmp = ents[i];
