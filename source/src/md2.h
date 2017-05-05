@@ -259,16 +259,13 @@ struct md2 : vertmodel
         loopv(mdl.meshes) mdl.meshes[i]->skin  = skin;
         if(skin==notexture) { conoutf("could not load model skin for %s", name1); flagmapconfigerror(LWW_MODELERR); }
         loadingmd2 = this;
+        ASSERT(execcontext == IEXC_MDLCFG);
         defformatstring(name2)("packages/models/%s/md2.cfg", loadname);
-        per_idents = false;
-        neverpersist = true;
         if(!execfile(name2))
         {
             formatstring(name2)("packages/models/%s/md2.cfg", pname);
             execfile(name2);
         }
-        neverpersist = false;
-        per_idents = true;
         loadingmd2 = 0;
         loopv(parts) parts[i]->scaleverts(scale/16.0f, vec(translate.x, -translate.y, translate.z));
         radius = calcradius(zradius);

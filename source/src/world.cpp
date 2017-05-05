@@ -728,11 +728,7 @@ bool empty_world(int factor, bool force)    // main empty world creation routine
     if(clearmap)
     {
         pushscontext(IEXC_MAPCFG);
-        per_idents = false;
-        neverpersist = true;
         execfile("config/default_map_settings.cfg");
-        neverpersist = false;
-        per_idents = true;
         popscontext();
         setvar("fullbright", 1);
         fullbrightlight();

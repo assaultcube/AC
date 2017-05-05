@@ -1002,6 +1002,7 @@ int main(int argc, char **argv)
     entropy_init(time(NULL) + (uint)(size_t)&serverport + (uint)(size_t)entropy_init);
 
     pushscontext(IEXC_CFG);
+    persistidents = false;
 
     #define initlog(s) clientlogf("init: " s)
 
@@ -1143,7 +1144,6 @@ int main(int argc, char **argv)
     if(!notexture) fatal("could not find core textures (hint: run AssaultCube from the parent of the bin directory)");
 
     initlog("console");
-    per_idents = false;
     autostartscripts("_veryfirst_");
     // Main font file, all other font files execute from here.
     if(!execfile("config/font.cfg")) fatal("cannot find default font definitions");
@@ -1190,7 +1190,7 @@ int main(int argc, char **argv)
     setupautodownload();
     int xmn = loadallxmaps();
     if(xmn) conoutf("loaded %d xmaps", xmn);
-    per_idents = true;
+    persistidents = true;
 
     static char resdata[] = { 112, 97, 99, 107, 97, 103, 101, 115, 47, 116, 101, 120, 116, 117, 114, 101, 115, 47, 107, 117, 114, 116, 47, 107, 108, 105, 116, 101, 50, 46, 106, 112, 103, 0 };
     stream *f = opengzfile(resdata, "rb");
@@ -1227,9 +1227,9 @@ int main(int argc, char **argv)
     preload_entmodels();
 
     initlog("docs");
-    per_idents = false;
+    persistidents = false;
     execfile("config/docs.cfg");
-    per_idents = true;
+    persistidents = true;
 
     initlog("localconnect");
     extern string clientmap;

@@ -985,7 +985,7 @@ extern bool checkchallenge(const char *answerstr, void *correct);
 extern void conoutf(const char *s, ...) PRINTFARGS(1, 2);
 
 // command
-extern bool per_idents, neverpersist;
+extern bool persistidents;
 extern char *exchangestr(char *o, const char *n);
 extern int variable(const char *name, int min, int cur, int max, int *storage, void (*fun)(), bool persist);
 extern float fvariable(const char *name, float min, float cur, float max, float *storage, void (*fun)(), bool persist);

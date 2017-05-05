@@ -18,11 +18,12 @@ int loop_level = 0;                                      // avoid bad calls of b
 
 hashtable<const char *, ident> *idents = NULL;          // contains ALL vars/commands/aliases
 
-VAR(persistidents, 0, 1, 1);
+bool persistidents = false;
 
-bool per_idents = true, neverpersist = false;
-COMMANDF(per_idents, "i", (int *on) {
-    per_idents = neverpersist ? false : (*on != 0);
+COMMANDF(persistidents, "s", (char *on)
+{
+    if(on && *on) persistidents = ATOI(on) != 0;
+    intret(persistidents ? 1 : 0);
 });
 
 void clearstack(ident &id)
@@ -66,7 +67,7 @@ ident *newident(const char *name, int context = execcontext)
     ident *id = idents->access(name);
     if(!id)
     {
-        ident init(ID_ALIAS, newstring(name), newstring(""), per_idents, context);
+        ident init(ID_ALIAS, newstring(name), newstring(""), persistidents, context);
         id = &idents->access(init.name, init);
     }
     return id;
@@ -1047,6 +1048,7 @@ bool execfile(const char *cfgfile)
     string s;
     copystring(s, cfgfile);
     setcontext("file", cfgfile);
+    bool oldpersist = persistidents;
     char *buf = loadfile(path(s), NULL);
     if(!buf)
     {
@@ -1056,6 +1058,7 @@ bool execfile(const char *cfgfile)
     execute(buf);
     delete[] buf;
     resetcontext();
+    persistidents = oldpersist;
     return true;
 }
 

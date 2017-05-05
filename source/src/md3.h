@@ -218,19 +218,15 @@ struct md3 : vertmodel
         defformatstring(cfgname)("packages/models/%s/md3.cfg", loadname);
 
         loadingmd3 = this;
-        per_idents = false;
-        neverpersist = true;
+        ASSERT(execcontext == IEXC_MDLCFG);
         if(execfile(cfgname) && parts.length()) // configured md3, will call the md3* commands below
         {
-            neverpersist = false;
-            per_idents = true;
             loadingmd3 = NULL;
             if(parts.empty()) return false;
             loopv(parts) if(!parts[i]->filename) return false;
         }
         else // md3 without configuration, try default tris and skin
         {
-            per_idents = false;
             loadingmd3 = NULL;
             md3part &mdl = *new md3part;
             parts.add(&mdl);

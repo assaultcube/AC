@@ -983,8 +983,6 @@ int load_world(char *mname)        // still supports all map formats that have e
     conoutf("%s", hdr.maptitle);
     mapconfigerror = 0;
     pushscontext(IEXC_MAPCFG); // untrusted altogether
-    per_idents = false;
-    neverpersist = true;
     if(hdr.flags & MHF_AUTOMAPCONFIG)
     { // full featured embedded config: no need to read any other map config files
         copystring(lastloadedconfigfile, "");
@@ -996,8 +994,6 @@ int load_world(char *mname)        // still supports all map formats that have e
         copystring(lastloadedconfigfile, mcfname);
     }
     parseheaderextra();
-    neverpersist = false;
-    per_idents = true;
     popscontext();
 
     c2skeepalive();
@@ -1183,8 +1179,6 @@ struct xmap
         calclight();  // includes full remip()
         loopv(headerextras) ::headerextras.add(headerextras[i]->duplicate());
         pushscontext(IEXC_MAPCFG); // untrusted altogether
-        per_idents = false;
-        neverpersist = true;
         if(mapconfig.length()) execute(mapconfig.getbuf());
         else
         {
@@ -1192,8 +1186,6 @@ struct xmap
             execfile(lastloadedconfigfile);
         }
         parseheaderextra(true, mapconfig.length() ? (1<<HX_CONFIG) : 0); // don't execute headerextra config, if we already executed an autostored config
-        neverpersist = false;
-        per_idents = true;
         popscontext();
         loadskymap(true);
         startmap(name, false, true);      // "start" but don't respawn: basically just set clientmap
