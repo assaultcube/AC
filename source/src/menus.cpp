@@ -1359,11 +1359,7 @@ int (*menufilesortcmp[])(const char **, const char **) = { stringsort, stringsor
 
 void gmenu::init()
 {
-    if(!menuseldescbgcolor)
-    {
-        static color seldescbgcolor(0.2f, 0.2f, 0.2f, 0.2f);
-        menuseldescbgcolor = &seldescbgcolor;
-    }
+    if(!menuseldescbgcolor) menuseldescbgcolor = new color(0.2f, 0.2f, 0.2f, 0.2f);
     if(dirlist && dirlist->dir && dirlist->ext)
     {
         items.deletecontents();
