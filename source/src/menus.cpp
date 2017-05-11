@@ -494,7 +494,7 @@ struct mitemtextinput : mitemtext
         bool sel = isselection();
         if(sel)
         {
-            renderbg(x+w-menurighttabwidth, y-FONTH/6, menurighttabwidth, NULL);
+            renderbg(x+w-menurighttabwidth, y-FONTH/6, menurighttabwidth, menuselbgcolor);
             renderbg(x, y-FONTH/6, w-menurighttabwidth-FONTH/2, menuseldescbgcolor);
         }
         draw_text(text, x, y);
@@ -603,7 +603,7 @@ struct mitemslider : mitem
         int tw = text_width(text);
         if(sel)
         {
-            renderbg(x+w-menurighttabwidth, y, menurighttabwidth, NULL);
+            renderbg(x+w-menurighttabwidth, y, menurighttabwidth, menuselbgcolor);
             renderbg(x, y, w-menurighttabwidth-FONTH/2, menuseldescbgcolor);
         }
         draw_text(text, x, y);
@@ -816,7 +816,7 @@ struct mitemcheckbox : mitem
         draw_text(text, x, y);
         if(sel)
         {
-            renderbg(x+w-boxsize, y, boxsize, NULL);
+            renderbg(x+w-boxsize, y, boxsize, menuselbgcolor);
             renderbg(x, y, w-boxsize-FONTH/2, menuseldescbgcolor);
         }
         blendbox(x+w-boxsize, y, x+w, y+boxsize, false, -1, &gray);
