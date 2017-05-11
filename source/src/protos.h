@@ -1031,6 +1031,7 @@ extern int execcontext;
 extern const char *currentserver(int i);
 extern void setcontext(const char *context, const char *info);
 extern void resetcontext();
+extern void dumpexecutionstack(stream *f);
 
 // server
 extern int modeacronyms;

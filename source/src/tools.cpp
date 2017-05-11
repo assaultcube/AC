@@ -517,6 +517,9 @@ void stackdumper(unsigned int type, EXCEPTION_POINTERS *ep)
             concatstring(out, t);
         }
     }
+#if !defined(STANDALONE)
+    if(clientlogfile) clientlogfile->printf("%s\n", out);
+#endif
     fatal("%s", out);
 }
 #elif defined(linux) || defined(__linux) || defined(__linux__)
@@ -530,7 +533,9 @@ struct signalbinder
     static void stackdumper(int sig)
     {
         printf("stacktrace:\n");
-
+#if !defined(STANDALONE)
+        if(clientlogfile) clientlogfile->printf("stacktrace\n");
+#endif
         const int BTSIZE = 25;
         void *array[BTSIZE];
         int n = backtrace(array, BTSIZE);
@@ -538,6 +543,9 @@ struct signalbinder
         for(int i = 0; i < n; i++)
         {
             printf("%s\n", symbols[i]);
+#if !defined(STANDALONE)
+            if(clientlogfile) clientlogfile->printf("%s\n", symbols[i]);
+#endif
         }
         free(symbols);
 

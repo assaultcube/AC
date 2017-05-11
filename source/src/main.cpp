@@ -22,6 +22,11 @@ void cleanup(char *msg)         // single program exit point;
         #else
         printf("%s", msg);
         #endif
+        if(clientlogfile)
+        {
+            clientlogfile->printf("%s\n", msg);
+            dumpexecutionstack(clientlogfile);
+        }
     }
     SDL_Quit();
 }
@@ -68,6 +73,7 @@ void fatal(const char *s, ...)    // failure exit
         }
         else puts(msg);
     }
+    DELETEP(clientlogfile);
     exit(EXIT_FAILURE);
 }
 

@@ -7,6 +7,7 @@ bool allowidentaccess(ident *id);
 char *exchangestr(char *o, const char *n) { delete[] o; return newstring(n); }
 void scripterr();
 
+vector<const char *> executionstack;                    // keep history of recursive command execution (to write to log in case of a crash)
 vector<int> contextstack;
 bool contextsealed = false;
 bool contextisolated[IEXC_NUM] = { false };
@@ -550,6 +551,7 @@ vector<long long> seer_t2; // timestamp of last n3 (10) level-2 calls
 char *executeret(const char *p)                            // all evaluation happens here, recursively
 {
     if(!p || !p[0]) return NULL;
+    executionstack.add(p);
     bool noproblem = true;
 #if 0
     if(execcontext>IEXC_CFG) // only PROMPT and MAP-CFG are checked for this, fooling with core/cfg at your own risk!
@@ -760,6 +762,7 @@ char *executeret(const char *p)                            // all evaluation hap
             loopj(numargs) if(w[j]) delete[] w[j];
         }
     }
+    executionstack.pop();
     return retval;
 }
 
@@ -1041,6 +1044,17 @@ void setcontext(const char *context, const char *info)
 void resetcontext()
 {
     curcontext = curinfo = NULL;
+}
+
+void dumpexecutionstack(stream *f)
+{
+    if(f && executionstack.length())
+    {
+        f->printf("cubescript execution stack (%d levels)\n", executionstack.length());
+        if(curcontext) f->printf("  cubescript context:  %s %s\n", curcontext, curinfo ? curinfo : "");
+        loopvrev(executionstack) f->printf("%4d:  %s\n", i + 1, executionstack[i]);
+        f->fflush();
+    }
 }
 
 bool execfile(const char *cfgfile)
