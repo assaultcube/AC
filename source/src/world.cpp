@@ -19,7 +19,7 @@ _mapconfigdata mapconfigdata;
 void remip(const block &b, int level)
 {
     if(level>=SMALLEST_FACTOR) return;
-    int lighterr = getvar("lighterror")*3;
+    int lighterr = lighterror*3;
     sqr *w = wmip[level];
     sqr *v = wmip[level+1];
     int wfactor = sfactor - level;

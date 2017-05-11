@@ -426,7 +426,7 @@ void getcurrentmapconfig(vector<char> &f, bool onlysounds)
 {
     if(!onlysounds)
     {
-        extern int fog, fogcolour, shadowyaw;
+        extern int fogcolour, shadowyaw;
         extern char *loadsky;
         if(fog != DEFAULT_FOG)             cvecprintf(f, "fog %d\n", fog);
         if(fogcolour != DEFAULT_FOGCOLOUR) cvecprintf(f, "fogcolour 0x%06x\n", fogcolour);

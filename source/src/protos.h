@@ -401,6 +401,7 @@ extern void rendercursor(int x, int y, int w);
 extern void renderaboveheadicon(playerent *p);
 extern void drawscope(bool preload = false);
 extern float dynfov();
+extern int fog;
 extern void damageblend(int n);
 
 // shadow
@@ -481,6 +482,7 @@ struct zone { int x1, x2, y1, y2, color; }; // zones (drawn on the minimap)
 extern void mipstats(const int a[]);
 extern const char *cubetypenames[];
 extern bool editfocusdetails(sqr *s);
+extern int lighterror;
 extern void render_flat(int tex, int x, int y, int size, int h, sqr *l1, sqr *l2, sqr *l3, sqr *l4, bool isceil);
 extern void render_flatdelta(int wtex, int x, int y, int size, float h1, float h2, float h3, float h4, sqr *l1, sqr *l2, sqr *l3, sqr *l4, bool isceil);
 extern void render_square(int wtex, float floor1, float floor2, float ceil1, float ceil2, int x1, int y1, int x2, int y2, int size, sqr *l1, sqr *l2, bool topleft, int dir);
@@ -993,7 +995,6 @@ extern char *svariable(const char *name, const char *cur, char **storage, void (
 extern void setvar(const char *name, int i, bool dofunc = false);
 extern void setfvar(const char *name, float f, bool dofunc = false);
 extern void setsvar(const char *name, const char *str, bool dofunc = false);
-extern int getvar(const char *name);
 extern bool identexists(const char *name);
 extern bool addcommand(const char *name, void (*fun)(), const char *sig);
 extern int execute(const char *p);

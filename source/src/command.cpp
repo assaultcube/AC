@@ -206,26 +206,25 @@ char *svariable(const char *name, const char *cur, char **storage, void (*fun)()
     return newstring(cur);
 }
 
-#define _GETVAR(id, vartype, name, retval) \
+#define GETVAR(id, vartype, name) \
     ident *id = idents->access(name); \
     ASSERT(id && id->type == vartype); \
-    if(!id || id->type!=vartype) return retval;
-#define GETVAR(id, name, retval) _GETVAR(id, ID_VAR, name, retval)
+    if(!id || id->type!=vartype) return;
 void setvar(const char *name, int i, bool dofunc)
 {
-    GETVAR(id, name, );
+    GETVAR(id, ID_VAR, name);
     *id->storage.i = clamp(i, id->minval, id->maxval);
     if(dofunc && id->fun) ((void (__cdecl *)())id->fun)();            // call trigger function if available
 }
 void setfvar(const char *name, float f, bool dofunc)
 {
-    _GETVAR(id, ID_FVAR, name, );
+    GETVAR(id, ID_FVAR, name);
     *id->storage.f = clamp(f, id->minvalf, id->maxvalf);
     if(dofunc && id->fun) ((void (__cdecl *)())id->fun)();            // call trigger function if available
 }
 void setsvar(const char *name, const char *str, bool dofunc)
 {
-    _GETVAR(id, ID_SVAR, name, );
+    GETVAR(id, ID_SVAR, name);
     *id->storage.s = exchangestr(*id->storage.s, str);
     if(dofunc && id->fun) ((void (__cdecl *)())id->fun)();            // call trigger function if available
 }
@@ -322,12 +321,6 @@ COMMANDN(-=f, subeqf, "sf");
 COMMANDN(*=f, muleqf, "sf");
 COMMANDN(div=f, diveqf, "sf");
 
-int getvar(const char *name)
-{
-    GETVAR(id, name, 0);
-    return *id->storage.i;
-}
-
 bool identexists(const char *name) { return idents->access(name)!=NULL; }
 
 const char *getalias(const char *name)
@@ -393,6 +386,7 @@ COMMANDF(isIdent, "s", (char *name) { intret(identexists(name) ? 1 : 0); });
 
 bool addcommand(const char *name, void (*fun)(), const char *sig)
 {
+    ASSERT(strlen(sig) < 9);
     if(!idents) idents = new hashtable<const char *, ident>;
     ident c(ID_COMMAND, name, fun, sig, IEXC_CORE);
     idents->access(name, c);
@@ -1091,7 +1085,7 @@ void loopa(char *var, int *times, char *body)
     pushident(*id, buf);
     loop_level++;
     execute(body);
-    if(loop_skip) loop_skip = false;
+    loop_skip = false;
     if(loop_break) loop_break = false;
     else
     {
@@ -1104,7 +1098,7 @@ void loopa(char *var, int *times, char *body)
             }
             itoa(id->action, i+1);
             execute(body);
-            if(loop_skip) loop_skip = false;
+            loop_skip = false;
             if(loop_break)
             {
                 loop_break = false;
@@ -1123,7 +1117,7 @@ void whilea(char *cond, char *body)
     while(execute(cond))
     {
         execute(body);
-        if(loop_skip) loop_skip = false;
+        loop_skip = false;
         if(loop_break)
         {
             loop_break = false;
@@ -1295,16 +1289,6 @@ int find(char *s, const char *key)
     return -1;
 }
 COMMANDF(findlist, "ss", (char *s, char *key) { intret(find(s, key)); });
-
-void colora(char *s)
-{
-    if(s[0] && s[1]=='\0')
-    {
-        defformatstring(x)("\f%c",s[0]);
-        commandret = newstring(x);
-    }
-}
-COMMANDN(c, colora, "s");
 
 #ifndef STANDALONE
 // Easily inject a string into various CubeScript punctuations

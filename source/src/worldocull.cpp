@@ -28,7 +28,7 @@ void computeraytable(float vx, float vy, float fov)
 {
     static int ndist[NUMRAYS];
     if(!ocull) { disableraytable(); return; }
-    odist = getvar("fog")*1.5f;
+    odist = fog * 1.5f;
 
     float apitch = (float)fabs(camera1->pitch);
     float af = fov/2+max(apitch/1.5f,4.2f);
