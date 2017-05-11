@@ -541,226 +541,180 @@ void resultcharvector(const vector<char> &res, int adj)     // use char vector a
     commandret = adj <= 0 ? newstring("", 0) : newstring(res.getbuf(), (size_t) adj);
 }
 
-#if 0
-// seer : script evaluation excessive recursion
-static int seer_count = 0; // count calls to executeret, check time every n1 (100) calls
-static int seer_index = -1; // position in timestamp vector
-vector<long long> seer_t1; // timestamp of last n2 (10) level-1 calls
-vector<long long> seer_t2; // timestamp of last n3 (10) level-2 calls
-#endif
 char *executeret(const char *p)                            // all evaluation happens here, recursively
 {
     if(!p || !p[0]) return NULL;
     executionstack.add(p);
-    bool noproblem = true;
-#if 0
-    if(execcontext>IEXC_CFG) // only PROMPT and MAP-CFG are checked for this, fooling with core/cfg at your own risk!
-    {
-        seer_count++;
-        if(seer_count>=100)
-        {
-            seer_index = (seer_index+1)%10;
-            long long cts = (long long) time(NULL);
-            if(seer_t1.length()>=10) seer_t1[seer_index] = cts;
-            seer_t1.add(cts);
-            int lc = (seer_index+11)%10;
-            if(lc<=seer_t1.length())
-            {
-                int dt = seer_t1[seer_index] - seer_t1[lc];
-                if(iabs(dt)<2)
-                {
-                    conoutf("SCRIPT EXECUTION warning [%d:%s]", &p, p);
-                    seer_t2.add(seer_t1[seer_index]);
-                    if(seer_t2.length() >= 10)
-                    {
-                        if(seer_t2[0] == seer_t2.last())
-                        {
-                            conoutf("SCRIPT EXECUTION in danger of crashing the client - dropping script [%s].", p);
-                            noproblem = false;
-                            seer_t2.shrink(0);
-                            seer_t1.shrink(0);
-                            seer_index = 0;
-                        }
-                    }
-                }
-            }
-            seer_count = 0;
-        }
-    }
-#endif
     const int MAXWORDS = 25;                    // limit, remove
     char *w[MAXWORDS], emptychar = '\0';
     char *retval = NULL;
     #define setretval(v) { char *rv = v; if(rv) retval = rv; }
-    if(noproblem) // if the "seer"-algorithm doesn't object
+    for(bool cont = true; cont;)                // for each ; seperated statement
     {
-        for(bool cont = true; cont;)                // for each ; seperated statement
+        if(loop_level && loop_skip) break;
+        int numargs = MAXWORDS, infix = 0;
+        loopi(MAXWORDS)                         // collect all argument values
         {
-            if(loop_level && loop_skip) break;
-            int numargs = MAXWORDS, infix = 0;
-            loopi(MAXWORDS)                         // collect all argument values
+            w[i] = &emptychar;
+            if(i>numargs) continue;
+            char *s = parseword(p, i, infix);   // parse and evaluate exps
+            if(s) w[i] = s;
+            else numargs = i;
+        }
+
+        p += strcspn(p, ";\n\r\0");
+        cont = *p++!=0;                         // more statements if this isn't the end of the string
+        const char *c = w[0];
+        if(!*c) continue;                       // empty statement
+
+        DELETEA(retval);
+
+        if(infix)
+        {
+            switch(infix)
             {
-                w[i] = &emptychar;
-                if(i>numargs) continue;
-                char *s = parseword(p, i, infix);   // parse and evaluate exps
-                if(s) w[i] = s;
-                else numargs = i;
+                case '=':
+                    DELETEA(w[1]);
+                    swap(w[0], w[1]);
+                    c = "alias";
+                    break;
             }
+        }
 
-            p += strcspn(p, ";\n\r\0");
-            cont = *p++!=0;                         // more statements if this isn't the end of the string
-            const char *c = w[0];
-            if(!*c) continue;                       // empty statement
-
-            DELETEA(retval);
-
-            if(infix)
+        ident *id = idents->access(c);
+        if(!id)
+        {
+            if(!isdigit(*c) && ((*c!='+' && *c!='-' && *c!='.') || !isdigit(c[1])))
             {
-                switch(infix)
-                {
-                    case '=':
-                        DELETEA(w[1]);
-                        swap(w[0], w[1]);
-                        c = "alias";
-                        break;
-                }
-            }
-
-            ident *id = idents->access(c);
-            if(!id)
-            {
-                if(!isdigit(*c) && ((*c!='+' && *c!='-' && *c!='.') || !isdigit(c[1])))
-                {
-                    conoutf("unknown command: %s", c);
-                    scripterr();
-                }
-                setretval(newstring(c));
-            }
-            else if(!allowidentaccess(id))
-            {
-                conoutf("not allowed in this execution context: %s", id->name);
+                conoutf("unknown command: %s", c);
                 scripterr();
             }
-            else
+            setretval(newstring(c));
+        }
+        else if(!allowidentaccess(id))
+        {
+            conoutf("not allowed in this execution context: %s", id->name);
+            scripterr();
+        }
+        else
+        {
+            switch(id->type)
             {
-                switch(id->type)
+                case ID_COMMAND:                    // game defined commands
                 {
-                    case ID_COMMAND:                    // game defined commands
+
+                    if(strstr(id->sig, "v")) ((void (__cdecl *)(char **, int))id->fun)(&w[1], numargs-1);
+                    else if(strstr(id->sig, "c") || strstr(id->sig, "w"))
                     {
-
-                        if(strstr(id->sig, "v")) ((void (__cdecl *)(char **, int))id->fun)(&w[1], numargs-1);
-                        else if(strstr(id->sig, "c") || strstr(id->sig, "w"))
-                        {
-                            char *r = conc((const char **)w+1, numargs-1, strstr(id->sig, "c") != NULL);
-                            ((void (__cdecl *)(char *))id->fun)(r);
-                            delete[] r;
-                        }
-                        else if(strstr(id->sig, "d"))
-                        {
+                        char *r = conc((const char **)w+1, numargs-1, strstr(id->sig, "c") != NULL);
+                        ((void (__cdecl *)(char *))id->fun)(r);
+                        delete[] r;
+                    }
+                    else if(strstr(id->sig, "d"))
+                    {
 #ifndef STANDALONE
-                            ((void (__cdecl *)(bool))id->fun)(addreleaseaction(id->name)!=NULL);
+                        ((void (__cdecl *)(bool))id->fun)(addreleaseaction(id->name)!=NULL);
 #endif
-                        }
-                        else
+                    }
+                    else
+                    {
+                        int ib1, ib2, ib3, ib4, ib5, ib6, ib7, ib8;
+                        float fb1, fb2, fb3, fb4, fb5, fb6, fb7, fb8;
+                        #define ARG(i) (id->sig[i-1] == 'i' ? ((void *)&(ib##i=strtol(w[i], NULL, 0))) : (id->sig[i-1] == 'f' ? ((void *)&(fb##i=atof(w[i]))) : (void *)w[i]))
+
+                        switch(strlen(id->sig))                // use very ad-hoc function signature, and just call it
                         {
-                            int ib1, ib2, ib3, ib4, ib5, ib6, ib7, ib8;
-                            float fb1, fb2, fb3, fb4, fb5, fb6, fb7, fb8;
-                            #define ARG(i) (id->sig[i-1] == 'i' ? ((void *)&(ib##i=strtol(w[i], NULL, 0))) : (id->sig[i-1] == 'f' ? ((void *)&(fb##i=atof(w[i]))) : (void *)w[i]))
-
-                            switch(strlen(id->sig))                // use very ad-hoc function signature, and just call it
-                            {
-                                case 0: ((void (__cdecl *)())id->fun)(); break;
-                                case 1: ((void (__cdecl *)(void*))id->fun)(ARG(1)); break;
-                                case 2: ((void (__cdecl *)(void*, void*))id->fun)(ARG(1), ARG(2)); break;
-                                case 3: ((void (__cdecl *)(void*, void*, void*))id->fun)(ARG(1), ARG(2), ARG(3)); break;
-                                case 4: ((void (__cdecl *)(void*, void*, void*, void*))id->fun)(ARG(1), ARG(2), ARG(3), ARG(4)); break;
-                                case 5: ((void (__cdecl *)(void*, void*, void*, void*, void*))id->fun)(ARG(1), ARG(2), ARG(3), ARG(4), ARG(5)); break;
-                                case 6: ((void (__cdecl *)(void*, void*, void*, void*, void*, void*))id->fun)(ARG(1), ARG(2), ARG(3), ARG(4), ARG(5), ARG(6)); break;
-                                case 7: ((void (__cdecl *)(void*, void*, void*, void*, void*, void*, void*))id->fun)(ARG(1), ARG(2), ARG(3), ARG(4), ARG(5), ARG(6), ARG(7)); break;
-                                case 8: ((void (__cdecl *)(void*, void*, void*, void*, void*, void*, void*, void*))id->fun)(ARG(1), ARG(2), ARG(3), ARG(4), ARG(5), ARG(6), ARG(7), ARG(8)); break;
-                                default: fatal("command %s has too many arguments (signature: %s)", id->name, id->sig); break;
-                            }
-                            #undef ARG
+                            case 0: ((void (__cdecl *)())id->fun)(); break;
+                            case 1: ((void (__cdecl *)(void*))id->fun)(ARG(1)); break;
+                            case 2: ((void (__cdecl *)(void*, void*))id->fun)(ARG(1), ARG(2)); break;
+                            case 3: ((void (__cdecl *)(void*, void*, void*))id->fun)(ARG(1), ARG(2), ARG(3)); break;
+                            case 4: ((void (__cdecl *)(void*, void*, void*, void*))id->fun)(ARG(1), ARG(2), ARG(3), ARG(4)); break;
+                            case 5: ((void (__cdecl *)(void*, void*, void*, void*, void*))id->fun)(ARG(1), ARG(2), ARG(3), ARG(4), ARG(5)); break;
+                            case 6: ((void (__cdecl *)(void*, void*, void*, void*, void*, void*))id->fun)(ARG(1), ARG(2), ARG(3), ARG(4), ARG(5), ARG(6)); break;
+                            case 7: ((void (__cdecl *)(void*, void*, void*, void*, void*, void*, void*))id->fun)(ARG(1), ARG(2), ARG(3), ARG(4), ARG(5), ARG(6), ARG(7)); break;
+                            case 8: ((void (__cdecl *)(void*, void*, void*, void*, void*, void*, void*, void*))id->fun)(ARG(1), ARG(2), ARG(3), ARG(4), ARG(5), ARG(6), ARG(7), ARG(8)); break;
+                            default: fatal("command %s has too many arguments (signature: %s)", id->name, id->sig); break;
                         }
-
-                        setretval(commandret);
-                        commandret = NULL;
-                        break;
+                        #undef ARG
                     }
 
-                    case ID_VAR:                        // game defined variables
-                        if(!w[1][0]) conoutf("%s = %d", c, *id->storage.i);      // var with no value just prints its current value
-                        else if(id->minval>id->maxval) conoutf("variable %s is read-only", id->name);
-                        else
-                        {
-                            int i1 = ATOI(w[1]);
-                            if(i1<id->minval || i1>id->maxval)
-                            {
-                                i1 = i1<id->minval ? id->minval : id->maxval;       // clamp to valid range
-                                conoutf("valid range for %s is %d..%d", id->name, id->minval, id->maxval);
-                                flagmapconfigerror(LWW_SCRIPTERR);
-                            }
-                            *id->storage.i = i1;
-                            if(id->fun) ((void (__cdecl *)())id->fun)();            // call trigger function if available
-                        }
-                        break;
-
-                    case ID_FVAR:                        // game defined variables
-                        if(!w[1][0]) conoutf("%s = %s", c, floatstr(*id->storage.f));      // var with no value just prints its current value
-                        else if(id->minvalf>id->maxvalf) conoutf("variable %s is read-only", id->name);
-                        else
-                        {
-                            float f1 = atof(w[1]);
-                            if(f1<id->minvalf || f1>id->maxvalf)
-                            {
-                                f1 = f1<id->minvalf ? id->minvalf : id->maxvalf;       // clamp to valid range
-                                conoutf("valid range for %s is %s..%s", id->name, floatstr(id->minvalf), floatstr(id->maxvalf));
-                                flagmapconfigerror(LWW_SCRIPTERR * 2);
-                            }
-                            *id->storage.f = f1;
-                            if(id->fun) ((void (__cdecl *)())id->fun)();            // call trigger function if available
-                        }
-                        break;
-
-                    case ID_SVAR:                        // game defined variables
-                        if(!w[1][0])
-                        {
-                            if(id->getfun) ((void (__cdecl *)())id->getfun)();
-                            conoutf(strchr(*id->storage.s, '"') ? "%s = [%s]" : "%s = \"%s\"", c, *id->storage.s); // var with no value just prints its current value
-                        }
-                        else
-                        {
-                            *id->storage.s = exchangestr(*id->storage.s, newstring(w[1]));
-                            if(id->fun) ((void (__cdecl *)())id->fun)();            // call trigger function if available
-                        }
-                        break;
-
-                    case ID_ALIAS:                              // alias, also used as functions and (global) variables
-                        delete[] w[0];
-                        static vector<ident *> argids;
-                        for(int i = 1; i<numargs; i++)
-                        {
-                            if(i > argids.length())
-                            {
-                                defformatstring(argname)("arg%d", i);
-                                argids.add(newident(argname, IEXC_CORE));
-                            }
-                            pushident(*argids[i-1], w[i]); // set any arguments as (global) arg values so functions can access them
-                        }
-                        int old_numargs = _numargs;
-                        _numargs = numargs-1;
-                        char *wasexecuting = id->executing;
-                        id->executing = id->action;
-                        setretval(executeret(id->action));
-                        if(id->executing!=id->action && id->executing!=wasexecuting) delete[] id->executing;
-                        id->executing = wasexecuting;
-                        _numargs = old_numargs;
-                        for(int i = 1; i<numargs; i++) popident(*argids[i-1]);
-                        continue;
+                    setretval(commandret);
+                    commandret = NULL;
+                    break;
                 }
+
+                case ID_VAR:                        // game defined variables
+                    if(!w[1][0]) conoutf("%s = %d", c, *id->storage.i);      // var with no value just prints its current value
+                    else if(id->minval>id->maxval) conoutf("variable %s is read-only", id->name);
+                    else
+                    {
+                        int i1 = ATOI(w[1]);
+                        if(i1<id->minval || i1>id->maxval)
+                        {
+                            i1 = i1<id->minval ? id->minval : id->maxval;       // clamp to valid range
+                            conoutf("valid range for %s is %d..%d", id->name, id->minval, id->maxval);
+                            flagmapconfigerror(LWW_SCRIPTERR);
+                        }
+                        *id->storage.i = i1;
+                        if(id->fun) ((void (__cdecl *)())id->fun)();            // call trigger function if available
+                    }
+                    break;
+
+                case ID_FVAR:                        // game defined variables
+                    if(!w[1][0]) conoutf("%s = %s", c, floatstr(*id->storage.f));      // var with no value just prints its current value
+                    else if(id->minvalf>id->maxvalf) conoutf("variable %s is read-only", id->name);
+                    else
+                    {
+                        float f1 = atof(w[1]);
+                        if(f1<id->minvalf || f1>id->maxvalf)
+                        {
+                            f1 = f1<id->minvalf ? id->minvalf : id->maxvalf;       // clamp to valid range
+                            conoutf("valid range for %s is %s..%s", id->name, floatstr(id->minvalf), floatstr(id->maxvalf));
+                            flagmapconfigerror(LWW_SCRIPTERR * 2);
+                        }
+                        *id->storage.f = f1;
+                        if(id->fun) ((void (__cdecl *)())id->fun)();            // call trigger function if available
+                    }
+                    break;
+
+                case ID_SVAR:                        // game defined variables
+                    if(!w[1][0])
+                    {
+                        if(id->getfun) ((void (__cdecl *)())id->getfun)();
+                        conoutf(strchr(*id->storage.s, '"') ? "%s = [%s]" : "%s = \"%s\"", c, *id->storage.s); // var with no value just prints its current value
+                    }
+                    else
+                    {
+                        *id->storage.s = exchangestr(*id->storage.s, newstring(w[1]));
+                        if(id->fun) ((void (__cdecl *)())id->fun)();            // call trigger function if available
+                    }
+                    break;
+
+                case ID_ALIAS:                              // alias, also used as functions and (global) variables
+                    delete[] w[0];
+                    static vector<ident *> argids;
+                    for(int i = 1; i<numargs; i++)
+                    {
+                        if(i > argids.length())
+                        {
+                            defformatstring(argname)("arg%d", i);
+                            argids.add(newident(argname, IEXC_CORE));
+                        }
+                        pushident(*argids[i-1], w[i]); // set any arguments as (global) arg values so functions can access them
+                    }
+                    int old_numargs = _numargs;
+                    _numargs = numargs-1;
+                    char *wasexecuting = id->executing;
+                    id->executing = id->action;
+                    setretval(executeret(id->action));
+                    if(id->executing!=id->action && id->executing!=wasexecuting) delete[] id->executing;
+                    id->executing = wasexecuting;
+                    _numargs = old_numargs;
+                    for(int i = 1; i<numargs; i++) popident(*argids[i-1]);
+                    continue;
             }
-            loopj(numargs) if(w[j]) delete[] w[j];
         }
+        loopj(numargs) if(w[j]) delete[] w[j];
     }
     executionstack.pop();
     return retval;
