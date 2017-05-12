@@ -494,9 +494,8 @@ char *conc(const char **w, int n, bool space)
     loopi(n)
     {
         strcat(r, w[i]);  // make string-list out of all arguments
-        if(i==n-1) break;
-        bool col = w[i][0] == '\f' && w[i][1] && w[i][2] == '\0';
-        if(space && !col) strcat(r, " ");
+        if(i == n - 1) break;
+        if(space) strcat(r, " ");
     }
     return r;
 }
