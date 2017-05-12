@@ -402,7 +402,6 @@ extern void renderaboveheadicon(playerent *p);
 extern void drawscope(bool preload = false);
 extern float dynfov();
 extern int fog;
-extern void damageblend(int n);
 
 // shadow
 extern bool addshadowbox(const vec &bbmin, const vec &bbmax, const vec &extrude, const glmatrixf &mat);
@@ -772,6 +771,7 @@ enum
     HUDMSG_TYPE = 0xFF,
     HUDMSG_OVERWRITE = 1<<8
 };
+extern void damageblend(int n, void *p);
 extern void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwater);
 extern void loadingscreen(const char *fmt = NULL, ...) PRINTFARGS(1, 2);
 extern void hudoutf(const char *s, ...) PRINTFARGS(1, 2);

@@ -692,17 +692,19 @@ void drawteamicons(int w, int h, bool spect)
 }
 
 int damageblendmillis = 0;
+void *damageblendplayer = NULL;
 
 VARFP(damagescreen, 0, 1, 1, { if(!damagescreen) damageblendmillis = 0; });
 VARP(damagescreenfactor, 1, 7, 100);
 VARP(damagescreenalpha, 1, 45, 100);
 VARP(damagescreenfade, 0, 125, 1000);
 
-void damageblend(int n)
+void damageblend(int n, void *p)
 {
     if(!damagescreen) return;
-    if(lastmillis > damageblendmillis) damageblendmillis = lastmillis;
+    if(lastmillis > damageblendmillis || damageblendplayer != p) damageblendmillis = lastmillis;
     damageblendmillis += n*damagescreenfactor;
+    damageblendplayer = p;
 }
 
 void drawmedals(float x, float y, int col, int row, Texture *tex)
@@ -790,7 +792,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         glEnd();
     }
 
-    if(lastmillis < damageblendmillis)
+    if(lastmillis < damageblendmillis && damageblendplayer == p)
     {
         static Texture *damagetex = NULL;
         if(!damagetex) damagetex = textureload("packages/misc/damage.png", 3);

@@ -388,7 +388,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
 {
     static char text[MAXTRANS];
     int type, joining = 0;
-    bool demoplayback = false;
 
     while(p.remaining())
     {
@@ -1385,6 +1384,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
 
             case SV_DEMOPLAYBACK:
             {
+                bool demoplayback = false;
                 string demofile;
                 extern char *curdemofile;
                 if(demo && watchingdemo && demoprotocol == 1132)
