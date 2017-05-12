@@ -349,8 +349,20 @@ void mapmodelregister_(char **args, int numargs)  // read model attributes witho
 }
 COMMANDN(mapmodelregister, mapmodelregister_, "v");
 
+void mapmodelregistryclear()
+{
+    enumerate(mdlregistry, mapmodelattributes *, m,
+        loopi(MMA_NUM) DELSTRING(m->n[i]);
+        DELETEP(m);
+    );
+    mdlregistry.clear();
+    mapmodelchanged = 1;
+}
+COMMAND(mapmodelregistryclear, "");
+
 hashtable<const char *, model *> mdllookup;
 hashtable<const char *, char> mdlnotfound;
+bool silentmodelloaderror = false;
 
 model *loadmodel(const char *name, int i, bool trydl)     // load model by name (optional) or from mapmodels[i]
 {
@@ -383,7 +395,7 @@ model *loadmodel(const char *name, int i, bool trydl)     // load model by name 
                 if(trydl && !strncmp(name, mmpath, strlen(mmpath))) requirepackage(PCK_MAPMODEL, name);
                 else
                 {
-                    conoutf("\f3failed to load model %s", name);
+                    if(!silentmodelloaderror) conoutf("\f3failed to load model %s", name);
                     mdlnotfound.access(newstring(name), 0);  // do not search for this name again
                 }
             }
@@ -1096,11 +1108,13 @@ void loadallmapmodels()  // try to find all mapmodels in packages/models/mapmode
     loopvrev(files) if(!strchr(files[i], '/')) delstring(files.remove(i)); // require minimum path depth of two
     files.sort(stringsort);
     loopvrev(files) if(files.inrange(i + 1) && !strcmp(files[i], files[i + 1])) delstring(files.remove(i + 1)); // remove doubles
+    silentmodelloaderror = true;
     loopv(files)
     {
         const char *mn = files[i] + strlen("packages/models/");
         clientlogf("loadallmaps: %s %s", mn, loadmodel(mn) ? "loaded" : "failed to load");
         delstring(files[i]);
     }
+    silentmodelloaderror = false;
 }
 COMMAND(loadallmapmodels, "");
