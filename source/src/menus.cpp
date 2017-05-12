@@ -1451,14 +1451,15 @@ FVAR(menupicturesize, 0.1f, 1.6f, 5.0f);
 void rendermenutexturepreview(char *previewtexture, int w, const char *title)
 {
     static Texture *pt = NULL;
-    static char *last_pt = NULL;
+    static uint last_pt = 0;
     bool ispicture = title != NULL;
-    if(previewtexture != last_pt)
+    uint cur_pt = hthash(previewtexture);
+    if(cur_pt != last_pt)
     {
         silent_texture_load = ispicture;
         defformatstring(texpath)("packages/textures/%s", previewtexture);
         pt = textureload(texpath, ispicture ? 3 : 0);
-        last_pt = previewtexture;
+        last_pt = cur_pt;
         silent_texture_load = false;
     }
     if(pt && pt != notexture && pt->xs && pt->ys)
