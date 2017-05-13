@@ -736,7 +736,7 @@ static void checkmousemotion(int &dx, int &dy)
     }
 }
 
-static int ignoremouse = 5;
+int ignoremouse = 5, bootstrapentropy = 0;
 
 void checkinput()
 {
@@ -760,6 +760,7 @@ void checkinput()
             #endif
 
             case SDL_KEYDOWN:
+                if(bootstrapentropy > 0 && (--bootstrapentropy & 2)) mapscreenshot(NULL, false, -1);
             case SDL_KEYUP:
                 entropy_add_byte(event.key.keysym.sym ^ totalmillis);
                 keypress(event.key.keysym.sym, event.key.state==SDL_PRESSED, event.key.keysym.unicode, event.key.keysym.mod);
@@ -1005,7 +1006,6 @@ int main(int argc, char **argv)
     crosshairnames[CROSSHAIR_SCOPE] = "scope";
     crosshairnames[CROSSHAIR_EDIT] = "edit";
     crosshairnames[CROSSHAIR_NUM] = gunnames[NUMGUNS] = "";
-    entropy_init(time(NULL) + (uint)(size_t)&serverport + (uint)(size_t)entropy_init);
 
     pushscontext(IEXC_CFG);
     persistidents = false;
@@ -1080,6 +1080,7 @@ int main(int argc, char **argv)
             else conoutf("\f3unknown commandline argument: %c", argv[i][0]);
         }
     }
+    entropy_init(time(NULL) + (uint)(size_t)&serverport + (uint)(size_t)entropy_init);
     initclientlog();
     if(quitdirectly) return EXIT_SUCCESS;
 
@@ -1218,6 +1219,7 @@ int main(int argc, char **argv)
     if(!execfile("config/saved.cfg"))
     {
         exec("config/defaults.cfg");
+        bootstrapentropy += 5 + rnd(7);
     }
     autostartscripts("_aftersaved_");
     exechook(HOOK_SP_MP, "afterinit", "");

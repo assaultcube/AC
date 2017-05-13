@@ -366,6 +366,14 @@ void entropy_init(uint seed)
     int len = 0;
     char *buf = loadfile(ENTROPYSAVEFILE, &len);
     if(buf && len) entropy_add_block((uchar*)buf, len);
+#ifndef STANDALONE
+    else
+    {
+        extern int bootstrapentropy;
+        bootstrapentropy += 7 + rnd(13);
+        clientlogf(ENTROPYSAVEFILE " not found.");
+    }
+#endif
     DELETEA(buf);
     entropy_get((uchar*)mt_state, MT_N * sizeof(uint));
 }
