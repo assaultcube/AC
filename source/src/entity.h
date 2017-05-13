@@ -422,7 +422,7 @@ public:
     enet_uint32 address;
     int lifesequence;                   // sequence id for each respawn, used in damage test
     int frags, flagscore, deaths, points, tks;
-    int lastaction, lastmove, lastpain, lastvoicecom;
+    int lastaction, lastmove, lastpain, lastvoicecom, lastdeath;
     int clientrole;
     bool attacking;
     string name;
@@ -431,7 +431,6 @@ public:
     int nextweapon; // weapon we switch to
     int spectatemode, followplayercn;
     int eardamagemillis;
-    int respawnoffset;
     float maxroll, maxrolleffect, movroll, effroll;  // roll added by movement and damage
     bool allowmove() { return state!=CS_DEAD || spectatemode==SM_FLY; }
 
@@ -449,8 +448,8 @@ public:
 
     bool ignored, muted;
 
-    playerent() : curskin(0), clientnum(-1), lastupdate(0), plag(0), ping(0), address(0), lifesequence(0), frags(0), flagscore(0), deaths(0), points(0), tks(0), lastpain(0), lastvoicecom(0), clientrole(CR_DEFAULT),
-                  team(TEAM_SPECT), spectatemode(SM_NONE), eardamagemillis(0), respawnoffset(0), maxroll(ROLLMOVDEF), maxrolleffect(ROLLEFFDEF), movroll(0), effroll(0),
+    playerent() : curskin(0), clientnum(-1), lastupdate(0), plag(0), ping(0), address(0), lifesequence(0), frags(0), flagscore(0), deaths(0), points(0), tks(0), lastpain(0), lastvoicecom(0), lastdeath(0), clientrole(CR_DEFAULT),
+                  team(TEAM_SPECT), spectatemode(SM_NONE), eardamagemillis(0), maxroll(ROLLMOVDEF), maxrolleffect(ROLLEFFDEF), movroll(0), effroll(0),
                   prevweaponsel(NULL), weaponsel(NULL), nextweaponsel(NULL), primweap(NULL), nextprimweap(NULL), lastattackweapon(NULL),
                   smoothmillis(-1),
                   head(-1, -1, -1), ignored(false), muted(false)

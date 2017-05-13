@@ -868,7 +868,7 @@ void jumpn(bool on)
     wason = on;
     if(player1->isspectating())
     {
-        if(lastmillis - player1->respawnoffset > 1000 && on) togglespect();
+        if(lastmillis - player1->lastdeath > 1000 && on) togglespect();
     }
 }
 

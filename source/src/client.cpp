@@ -853,11 +853,11 @@ void shiftgametime(int newmillis)
         if(!curdemofile || !curdemofile[0]) return;
         watchingdemo = false;
         callvote(SA_MAP, curdemofile, "-1", "0");
-        nextmillis = newmillis;
+        skipmillis = newmillis;
     }
     else
     {
-        nextmillis = newmillis - gamemillis;
+        skipmillis = newmillis - gamemillis;
     }
 }
 

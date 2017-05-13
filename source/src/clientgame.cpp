@@ -27,7 +27,7 @@ struct serverstate servstate = { 0 };
 playerent *player1 = newplayerent();          // our client
 vector<playerent *> players;                  // other clients
 
-int lastmillis = 0, totalmillis = 0, nextmillis = 0;
+int lastmillis = 0, totalmillis = 0, skipmillis = 0;
 int lasthit = 0;
 int curtime = 0;
 string clientmap = "";
@@ -371,7 +371,7 @@ void deathstate(playerent *pl)
 {
     pl->state = CS_DEAD;
     pl->spectatemode = SM_DEATHCAM;
-    pl->respawnoffset = pl->lastpain = lastmillis;
+    pl->lastdeath = pl->lastpain = lastmillis;
     pl->move = pl->strafe = 0;
     pl->pitch = pl->roll = pl->movroll = pl->effroll = 0;
     pl->attacking = false;
@@ -562,7 +562,7 @@ void showrespawntimer()
     else if(player1->state==CS_DEAD && m_flags && (!player1->isspectating() || player1->spectatemode==SM_DEATHCAM))
     {
         int secs = 5;
-        showhudtimer(secs, player1->respawnoffset, "READY!", lastspawnattempt >= arenaintermission && lastmillis < lastspawnattempt+100);
+        showhudtimer(secs, player1->lastdeath, "READY!", lastspawnattempt >= arenaintermission && lastmillis < lastspawnattempt+100);
     }
 }
 
@@ -784,7 +784,7 @@ bool tryrespawn()
         }
         else
         {
-            int respawnmillis = player1->respawnoffset+(m_arena ? 0 : (m_flags ? 5000 : 2000));
+            int respawnmillis = player1->lastdeath + (m_arena ? 0 : (m_flags ? 5000 : 2000));
             if(lastmillis>respawnmillis)
             {
                 player1->attacking = false;
@@ -850,7 +850,7 @@ COMMANDF(burstshots, "si", (char *gun, int *shots)
 void dodamage(int damage, playerent *pl, playerent *actor, int gun, bool gib, bool local)
 {
     if(pl->state != CS_ALIVE || intermission) return;
-    pl->respawnoffset = pl->lastpain = lastmillis;
+    pl->lastpain = lastmillis;
     // could the author of the FIXME below please elaborate what's to fix?! (ft:2011mar28)
     // I suppose someone wanted to play the hitsound for player1 or spectated player (lucas:2011may22)
     playerent *h = player1->isspectating() && player1->followplayercn >= 0 && (player1->spectatemode == SM_FOLLOW1ST || player1->spectatemode == SM_FOLLOW3RD || player1->spectatemode == SM_FOLLOW3RD_TRANSPARENT) ? getclient(player1->followplayercn) : NULL;

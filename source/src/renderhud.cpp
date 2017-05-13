@@ -703,7 +703,7 @@ void damageblend(int n, void *p)
 {
     if(!damagescreen) return;
     if(lastmillis > damageblendmillis || damageblendplayer != p) damageblendmillis = lastmillis;
-    damageblendmillis += n*damagescreenfactor;
+    damageblendmillis = min(damageblendmillis + n * damagescreenfactor, lastmillis + 3999);
     damageblendplayer = p;
 }
 

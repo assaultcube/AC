@@ -1284,10 +1284,12 @@ int main(int argc, char **argv)
             int scaledtime = elapsed*gamespeed + timeerr;
             curtime = scaledtime/100;
             timeerr = scaledtime%100;
-            if(nextmillis && watchingdemo)
+            if(!watchingdemo) skipmillis = 0;
+            if(skipmillis && watchingdemo)
             {
-                curtime += nextmillis;
-                nextmillis = 0;
+                int skipmillisnow = skipmillis > 5000 ? skipmillis - 5000 : min(1000, skipmillis);
+                curtime += skipmillisnow;
+                skipmillis -= skipmillisnow;
             }
             if(paused) curtime = 0;
         }
