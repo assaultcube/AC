@@ -109,7 +109,7 @@ struct teamscore
     }
 };
 
-void teamflagscores(int &team1, int &team2)
+void calcteamscores(int scores[4])
 {
     teamscore teamscores[2] = { teamscore(TEAM_CLA), teamscore(TEAM_RVSF) };
     loopv(players) if(players[i] && players[i]->team != TEAM_SPECT)
@@ -121,8 +121,11 @@ void teamflagscores(int &team1, int &team2)
         teamscores[team_base(discscores[i].team)].addscore(discscores[i]);
     }
     if(!watchingdemo && player1->team != TEAM_SPECT) teamscores[team_base(player1->team)].addplayer(player1);
-    team1 = teamscores[0].flagscore;
-    team2 = teamscores[1].flagscore;
+    loopi(2)
+    {
+        scores[i] = teamscores[i].flagscore;
+        scores[i + 2] = teamscores[i].frags;
+    }
 }
 
 static int teamscorecmp(const teamscore *x, const teamscore *y)

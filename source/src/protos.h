@@ -610,7 +610,7 @@ extern void showscores(bool on);
 extern void renderscores(void *menu, bool init);
 extern const char *asciiscores(bool destjpg = false);
 extern void consolescores();
-extern void teamflagscores(int &team1, int &team2);
+extern void calcteamscores(int scores[4]);
 
 // world
 extern void setupworld(int factor);

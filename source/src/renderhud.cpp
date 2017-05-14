@@ -82,7 +82,7 @@ VARP(crosshairteamsign, 0, 1, 1);
 VARP(hideradar, 0, 0, 1);
 VARP(hidecompass, 0, 0, 1);
 VARP(hideteam, 0, 0, 1);
-VARP(hidectfhud, 0, 0, 1);
+VARP(hideteamscorehud, 0, 0, 1);
 VARP(hidevote, 0, 0, 2);
 VARP(hidehudmsgs, 0, 0, 1);
 VARP(hidehudequipment, 0, 0, 1);
@@ -1064,31 +1064,34 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             popfont();
         }
 
-        if(m_flags && !hidectfhud)
+        if((m_flags || m_teammode) && !hideteamscorehud)
         {
             glLoadIdentity();
             glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
             glColor4f(1.0f, 1.0f, 1.0f, 0.2f);
             turn_on_transparency(255);
-            int flagscores[2];
-            teamflagscores(flagscores[0], flagscores[1]);
+            int scores[4], offs = m_flags ? 0 : 2;
+            calcteamscores(scores);
+            const char *cc = scores[offs] > 99 || scores[offs + 1] > 99 ? "31" : "55";
 
-            loopi(2) // flag state
+            loopi(2) // flag state or frag-counter
             {
-                drawctficon(i*120+VIRTW/4.0f*3.0f, 1650, 120, i, 0, 1/4.0f, flaginfos[i].state == CTFF_INBASE ? 255 : 100);
+                drawctficon(i*120+VIRTW/4.0f*3.0f, 1650, 120, i, offs / 2, 1/4.0f, flaginfos[i].state == CTFF_INBASE || offs ? 255 : 100);
                 if(m_teammode)
                 {
-                    defformatstring(count)("%d", flagscores[i]);
-                    draw_textf("%s", i * 120 + VIRTW / 4.0f * 3.0f + 60 - text_width(count) / 2, 1590, count);
+                    defformatstring(count)("\f%c%d", cc[i], scores[i + offs]);
+                    draw_text(count, i * 120 + VIRTW / 4.0f * 3.0f + 60 - text_width(count) / 2, 1590);
                 }
             }
-
-            // big flag-stolen icon
-            int ft = 0;
-            if((flaginfos[0].state==CTFF_STOLEN && flaginfos[0].actor == p && flaginfos[0].ack) ||
-               (flaginfos[1].state==CTFF_STOLEN && flaginfos[1].actor == p && flaginfos[1].ack && ++ft))
+            if(!offs)
             {
-                drawctficon(VIRTW-225-10, VIRTH*5/8, 225, ft, 1, 1/2.0f, (sinf(lastmillis/100.0f)+1.0f) *128);
+                // big flag-stolen icon
+                int ft = 0;
+                if((flaginfos[0].state==CTFF_STOLEN && flaginfos[0].actor == p && flaginfos[0].ack) ||
+                   (flaginfos[1].state==CTFF_STOLEN && flaginfos[1].actor == p && flaginfos[1].ack && ++ft))
+                {
+                    drawctficon(VIRTW-225-10, VIRTH*5/8, 225, ft, 1, 1/2.0f, (sinf(lastmillis/100.0f)+1.0f) *128);
+                }
             }
         }
     }
