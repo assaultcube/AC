@@ -563,7 +563,7 @@ void consolekey(int code, bool isdown, int cooked, SDLMod mod)
             if(code == SDL_AC_BUTTON_LEFT && histpos == history.length()) return;
 
             hline *h = NULL;
-            if(cmdline.buf[0])
+            if(cmdline.buf[0] || cmdaction)
             {
                 if(history.empty() || history.last()->shouldsave())
                 {
