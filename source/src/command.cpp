@@ -734,7 +734,9 @@ bool exechook(int context, const char *ident, const char *body,...)  // execute 
     {
         defvformatstring(arglist, body, body);
         defformatstring(execbody)("%s%c%s", ident, *arglist ? ' ' : '\0', arglist);
+        setcontext("hook", execbody);
         execute(execbody);
+        resetcontext();
         return true;
     }
     return false;
