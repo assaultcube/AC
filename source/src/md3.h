@@ -262,6 +262,7 @@ void md3load(char *model)
     mdl.index = loadingmd3->parts.length()-1;
     if(!mdl.load(path(filename))) { conoutf("could not load %s", filename); flagmapconfigerror(LWW_MODELERR); } // ignore failure
 }
+COMMAND(md3load, "s");
 
 void md3skin(char *objname, char *skin)
 {
@@ -287,6 +288,7 @@ void md3skin(char *objname, char *skin)
         flagmapconfigerror(LWW_MODELERR);
     }
 }
+COMMAND(md3skin, "ss");
 
 void md3anim(char *anim, int *startframe, int *range, float *speed)
 {
@@ -295,6 +297,7 @@ void md3anim(char *anim, int *startframe, int *range, float *speed)
     if(num<0) { conoutf("could not find animation %s", anim); flagmapconfigerror(LWW_MODELERR); return; };
     loadingmd3->parts.last()->setanim(num, *startframe, *range, *speed);
 }
+COMMAND(md3anim, "siif");
 
 void md3link(int *parent, int *child, char *tagname)
 {
@@ -302,16 +305,14 @@ void md3link(int *parent, int *child, char *tagname)
     if(!loadingmd3->parts.inrange(*parent) || !loadingmd3->parts.inrange(*child)) { conoutf("no models loaded to link"); flagmapconfigerror(LWW_MODELERR); return; }
     if(!loadingmd3->parts[*parent]->link(loadingmd3->parts[*child], tagname)) { conoutf("could not link model %s", loadingmd3->loadname); flagmapconfigerror(LWW_MODELERR); }
 }
+COMMAND(md3link, "iis");
 
-void md3emit(char *tag, int *type, int *arg1, int *arg2)
+void md3emit(char *tag, char *_type, int *arg1, int *arg2)
 {
     if(!loadingmd3 || loadingmd3->parts.empty()) { conoutf("not loading an md3"); flagmapconfigerror(LWW_MODELERR); return; };
+    int type = getlistindex(_type, particletypenames, true, -1);
+    if(type < 0 || type >= MAXPARTYPES) { conoutf("unknown particle type %s", _type); flagmapconfigerror(LWW_MODELERR); return; };
     md3::part &mdl = *loadingmd3->parts.last();
-    if(!mdl.addemitter(tag, *type, *arg1, *arg2)) { conoutf("could not find tag %s", tag); flagmapconfigerror(LWW_MODELERR); return; }
+    if(!mdl.addemitter(tag, type, *arg1, *arg2)) { conoutf("could not find tag %s", tag); flagmapconfigerror(LWW_MODELERR); return; }
 }
-
-COMMAND(md3load, "s");
-COMMAND(md3skin, "ss");
-COMMAND(md3anim, "siif");
-COMMAND(md3link, "iis");
-COMMAND(md3emit, "siii");
+COMMAND(md3emit, "ssii");

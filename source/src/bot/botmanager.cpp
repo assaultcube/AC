@@ -286,7 +286,7 @@ void CBotManager::RenderBots()
     {
         if (bots[i] && (bots[i] != m_pBotToView))
         {
-            renderclient(bots[i]);
+            renderclientp(bots[i]);
         }
     }
 }

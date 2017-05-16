@@ -818,7 +818,8 @@ enum
     PART_EMODEL,
     PART_ECARROT,
     PART_ELADDER,
-    PART_EFLAG
+    PART_EFLAG,
+    MAXPARTYPES
 };
 
 extern void particleinit();
@@ -832,8 +833,8 @@ extern void particle_fireball(int type, const vec &o);
 extern void addshotline(dynent *d, const vec &from, const vec &to);
 extern bool addbullethole(dynent *d, const vec &from, const vec &to, float radius = 1, bool noisy = true);
 extern bool addscorchmark(vec &o, float radius = 7);
-
 extern void render_particles(int time, int typemask = ~0);
+extern const char *particletypenames[MAXPARTYPES + 1];
 
 // worldio
 enum { LWW_ENTATTROVERFLOW = 0x1, LWW_DECODEERR = 0x10, LWW_WORLDERROR = 0x100, LWW_MISSINGMEDIA = 0x1000, LWW_CONFIGERR = 0x10000, LWW_MODELERR = 0x100000, LWW_SCRIPTERR = 0x1000000 };
@@ -907,7 +908,7 @@ extern void preload_entmodels();
 extern void preload_hudguns();
 extern bool preload_mapmodels(bool trydl = false);
 extern void renderclients();
-extern void renderclient(playerent *d);
+extern void renderclientp(playerent *d);
 extern void renderclient(playerent *d, const char *mdlname, const char *vwepname, int tex = 0);
 extern void updateclientname(playerent *d);
 extern void updatemapmodeldependencies();

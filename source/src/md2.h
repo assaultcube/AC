@@ -282,6 +282,7 @@ void md2anim(char *anim, int *frame, int *range, float *speed)
     if(num<0) { conoutf("could not find animation %s", anim); flagmapconfigerror(LWW_MODELERR); return; }
     loadingmd2->parts.last()->setanim(num, *frame, *range, *speed);
 }
+COMMAND(md2anim, "siif");
 
 void md2tag(char *name, char *vert1, char *vert2, char *vert3, char *vert4)
 {
@@ -321,14 +322,14 @@ void md2tag(char *name, char *vert1, char *vert2, char *vert3, char *vert4)
     }
     if(!mdl.gentag(name, indexes, numverts)) { conoutf("could not generate tag %s", name); flagmapconfigerror(LWW_MODELERR); return; }
 }
+COMMAND(md2tag, "sssss");
 
-void md2emit(char *tag, int *type, int *arg1, int *arg2)
+void md2emit(char *tag, char *_type, int *arg1, int *arg2)
 {
     if(!loadingmd2 || loadingmd2->parts.empty()) { conoutf("not loading an md2"); flagmapconfigerror(LWW_MODELERR); return; };
+    int type = getlistindex(_type, particletypenames, true, -1);
+    if(type < 0 || type >= MAXPARTYPES) { conoutf("unknown particle type %s", _type); flagmapconfigerror(LWW_MODELERR); return; };
     md2::part &mdl = *loadingmd2->parts.last();
-    if(!mdl.addemitter(tag, *type, *arg1, *arg2)) { conoutf("could not find tag %s", tag); flagmapconfigerror(LWW_MODELERR); return; }
+    if(!mdl.addemitter(tag, type, *arg1, *arg2)) { conoutf("could not find tag %s", tag); flagmapconfigerror(LWW_MODELERR); return; }
 }
-
-COMMAND(md2anim, "siif");
-COMMAND(md2tag, "sssss");
-COMMAND(md2emit, "siii");
+COMMAND(md2emit, "ssii");

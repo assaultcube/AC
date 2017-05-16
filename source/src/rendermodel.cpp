@@ -1063,7 +1063,7 @@ void updateclientname(playerent *d)
     d->skin_rvsf = getclientskin(d->name, "_rvsf");
 }
 
-void renderclient(playerent *d)
+void renderclientp(playerent *d)
 {
     if(!d) return;
     int team = team_base(d->team);
@@ -1079,10 +1079,10 @@ void renderclient(playerent *d)
         formatstring(skin)("%s/custom/%s.jpg", skinbase, cs);
     else
     {
-        if(!m_teammode || !teamdisplaymode) formatstring(skin)("%s/%s/%02i.jpg", skinbase, teamname, skinid);
+        if(!m_teammode || !teamdisplaymode) formatstring(skin)("%s/%s/%02d.jpg", skinbase, teamname, skinid);
         else switch(teamdisplaymode)
         {
-            case 1: formatstring(skin)("%s/%s/%02i_%svest.jpg", skinbase, teamname, skinid, team ? "blue" : "red"); break;
+            case 1: formatstring(skin)("%s/%s/%02d_%svest.jpg", skinbase, teamname, skinid, team ? "blue" : "red"); break;
             case 2: default: formatstring(skin)("%s/%s/%s.jpg", skinbase, teamname, team ? "blue" : "red"); break;
         }
     }
@@ -1095,8 +1095,8 @@ void renderclient(playerent *d)
 void renderclients()
 {
     playerent *d;
-    loopv(players) if((d = players[i]) && d->state!=CS_SPAWNING && d->state!=CS_SPECTATE && (!player1->isspectating() || player1->spectatemode != SM_FOLLOW1ST || player1->followplayercn != i)) renderclient(d);
-    if(player1->state==CS_DEAD || (reflecting && !refracting)) renderclient(player1);
+    loopv(players) if((d = players[i]) && d->state!=CS_SPAWNING && d->state!=CS_SPECTATE && (!player1->isspectating() || player1->spectatemode != SM_FOLLOW1ST || player1->followplayercn != i)) renderclientp(d);
+    if(player1->state==CS_DEAD || (reflecting && !refracting)) renderclientp(player1);
 }
 
 void loadallmapmodels()  // try to find all mapmodels in packages/models/mapmodels

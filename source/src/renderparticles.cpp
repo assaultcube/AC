@@ -184,8 +184,6 @@ void cleanupexplosion()
     }
 }
 
-#define MAXPARTYPES 20
-
 struct particle { vec o, d; int fade, type; int millis; particle *next; };
 particle *parlist[MAXPARTYPES], *parempty = NULL;
 
@@ -248,7 +246,10 @@ void newparticle(const vec &o, const vec &d, int fade, int type)
     parlist[type] = p;
 }
 
-static struct parttype { int type; float r, g, b; int gr, tex; float sz; } parttypes[] =
+const char *particletypenames[MAXPARTYPES + 1] = { "SPARK", "SMOKE", "ECLOSEST", "BLOOD", "DEMOTRACK", "FIREBALL", "SHOTLINE", "BULLETHOLE", "BLOODSTAIN", "SCORCH",        // 0..9
+                                                   "HUDMUZZLEFLASH", "MUZZLEFLASH", "ELIGHT", "ESPAWN", "EAMMO", "EPICKUP", "EMODEL", "ECARROT", "ELADDER", "EFLAG", "" };  // 10..19
+
+static struct parttype { int type; float r, g, b; int gr, tex; float sz; } parttypes[MAXPARTYPES] =
 {
     { PT_PART,       0.4f, 0.4f, 0.4f, 2,  0, 0.06f }, // yellow: sparks
     { PT_PART,       1.0f, 1.0f, 1.0f, 20, 1, 0.15f }, // grey:   small smoke
