@@ -1031,6 +1031,7 @@ extern int curscontext();
 extern const char *escapestring(const char *s, bool force = true, bool noquotes = false);
 extern int execcontext;
 extern const char *currentserver(int i);
+extern void scripterr();
 extern void setcontext(const char *context, const char *info);
 extern void resetcontext();
 extern void dumpexecutionstack(stream *f);

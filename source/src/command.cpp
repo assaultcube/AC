@@ -5,7 +5,6 @@
 
 bool allowidentaccess(ident *id);
 char *exchangestr(char *o, const char *n) { delete[] o; return newstring(n); }
-void scripterr();
 
 vector<const char *> executionstack;                    // keep history of recursive command execution (to write to log in case of a crash)
 vector<int> contextstack;
@@ -15,7 +14,7 @@ int execcontext;
 char *commandret = NULL;
 
 bool loop_break = false, loop_skip = false;             // break or continue (skip) current loop
-int loop_level = 0;                                      // avoid bad calls of break & continue
+int loop_level = 0;                                     // avoid bad calls of break & continue
 
 hashtable<const char *, ident> *idents = NULL;          // contains ALL vars/commands/aliases
 
@@ -409,6 +408,7 @@ char *parseexp(const char *&p, int right)             // parse any nested set of
             p--;
             conoutf("missing \"%c\"", right);
             scripterr();
+            flagmapconfigerror(LWW_SCRIPTERR * 4);
             return NULL;
         }
     }
@@ -444,6 +444,7 @@ char *lookup(char *n)                           // find value of ident reference
     }
     conoutf("unknown alias lookup: %s", n+1);
     scripterr();
+    flagmapconfigerror(LWW_SCRIPTERR * 4);
     return n;
 }
 
@@ -581,6 +582,7 @@ char *executeret(const char *p)                            // all evaluation hap
             {
                 conoutf("unknown command: %s", c);
                 scripterr();
+                flagmapconfigerror(LWW_SCRIPTERR * 4);
             }
             setretval(newstring(c));
         }
@@ -588,6 +590,7 @@ char *executeret(const char *p)                            // all evaluation hap
         {
             conoutf("not allowed in this execution context: %s", id->name);
             scripterr();
+            flagmapconfigerror(LWW_SCRIPTERR * 4);
         }
         else
         {
@@ -981,7 +984,6 @@ void scripterr()
 {
     if(curcontext) conoutf("(%s: %s)", curcontext, curinfo);
     else conoutf("(from console or builtin)");
-    flagmapconfigerror(LWW_SCRIPTERR * 4);
 }
 
 void setcontext(const char *context, const char *info)

@@ -951,7 +951,7 @@ struct vertmodel : model
         {
             if(frame<0 || frame>=numframes || range<=0 || frame+range>numframes)
             {
-                conoutf("invalid frame %d, range %d in model %s", frame, range, model->loadname);
+                conoutf("mdanim: invalid frame %d, range %d in model %s", frame, range, model->loadname);
                 return;
             }
             if(!anims) anims = new vector<animinfo>[NUMANIMS];

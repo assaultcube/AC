@@ -253,21 +253,21 @@ struct md3 : vertmodel
 
 void md3load(char *model)
 {
-    if(!loadingmd3) { conoutf("not loading an md3"); flagmapconfigerror(LWW_MODELERR); return; };
+    if(!loadingmd3) { conoutf("not loading an md3"); flagmapconfigerror(LWW_MODELERR); scripterr(); return; };
     filtertext(model, model, FTXT__MEDIAFILEPATH);
     defformatstring(filename)("%s/%s", md3dir, model);
     md3::md3part &mdl = *new md3::md3part;
     loadingmd3->parts.add(&mdl);
     mdl.model = loadingmd3;
     mdl.index = loadingmd3->parts.length()-1;
-    if(!mdl.load(path(filename))) { conoutf("could not load %s", filename); flagmapconfigerror(LWW_MODELERR); } // ignore failure
+    if(!mdl.load(path(filename))) { conoutf("could not load %s", filename); flagmapconfigerror(LWW_MODELERR); scripterr(); } // ignore failure
 }
 COMMAND(md3load, "s");
 
 void md3skin(char *objname, char *skin)
 {
     filtertext(skin, skin, FTXT__MEDIAFILEPATH);
-    if(!loadingmd3 || loadingmd3->parts.empty()) { conoutf("not loading an md3"); flagmapconfigerror(LWW_MODELERR); return; };
+    if(!loadingmd3 || loadingmd3->parts.empty()) { conoutf("not loading an md3"); flagmapconfigerror(LWW_MODELERR); scripterr(); return; };
     md3::part &mdl = *loadingmd3->parts.last();
     bool used = false;
     loopv(mdl.meshes)
@@ -286,15 +286,16 @@ void md3skin(char *objname, char *skin)
         loopv(mdl.meshes) concatformatstring(s, "|%s", mdl.meshes[i]->name);
         conoutf("mesh \"%s\" not found in model %s, skin %s not loaded%s", objname, loadingmd3->loadname, skin, mdl.meshes.length() ? s : "");
         flagmapconfigerror(LWW_MODELERR);
+        scripterr();
     }
 }
 COMMAND(md3skin, "ss");
 
 void md3anim(char *anim, int *startframe, int *range, float *speed)
 {
-    if(!loadingmd3 || loadingmd3->parts.empty()) { conoutf("not loading an md3"); flagmapconfigerror(LWW_MODELERR); return; };
+    if(!loadingmd3 || loadingmd3->parts.empty()) { conoutf("not loading an md3"); flagmapconfigerror(LWW_MODELERR); scripterr(); return; };
     int num = findanim(anim);
-    if(num<0) { conoutf("could not find animation %s", anim); flagmapconfigerror(LWW_MODELERR); return; };
+    if(num<0) { conoutf("could not find animation %s", anim); flagmapconfigerror(LWW_MODELERR); scripterr(); return; };
     loadingmd3->parts.last()->setanim(num, *startframe, *range, *speed);
 }
 COMMAND(md3anim, "siif");
@@ -302,17 +303,17 @@ COMMAND(md3anim, "siif");
 void md3link(int *parent, int *child, char *tagname)
 {
     if(!loadingmd3) { conoutf("not loading an md3"); return; };
-    if(!loadingmd3->parts.inrange(*parent) || !loadingmd3->parts.inrange(*child)) { conoutf("no models loaded to link"); flagmapconfigerror(LWW_MODELERR); return; }
-    if(!loadingmd3->parts[*parent]->link(loadingmd3->parts[*child], tagname)) { conoutf("could not link model %s", loadingmd3->loadname); flagmapconfigerror(LWW_MODELERR); }
+    if(!loadingmd3->parts.inrange(*parent) || !loadingmd3->parts.inrange(*child)) { conoutf("no models loaded to link"); flagmapconfigerror(LWW_MODELERR); scripterr(); return; }
+    if(!loadingmd3->parts[*parent]->link(loadingmd3->parts[*child], tagname)) { conoutf("could not link model %s", loadingmd3->loadname); flagmapconfigerror(LWW_MODELERR); scripterr(); }
 }
 COMMAND(md3link, "iis");
 
 void md3emit(char *tag, char *_type, int *arg1, int *arg2)
 {
-    if(!loadingmd3 || loadingmd3->parts.empty()) { conoutf("not loading an md3"); flagmapconfigerror(LWW_MODELERR); return; };
+    if(!loadingmd3 || loadingmd3->parts.empty()) { conoutf("not loading an md3"); flagmapconfigerror(LWW_MODELERR); scripterr(); return; };
     int type = getlistindex(_type, particletypenames, true, -1);
-    if(type < 0 || type >= MAXPARTYPES) { conoutf("unknown particle type %s", _type); flagmapconfigerror(LWW_MODELERR); return; };
+    if(type < 0 || type >= MAXPARTYPES) { conoutf("unknown particle type %s", _type); flagmapconfigerror(LWW_MODELERR); scripterr(); return; };
     md3::part &mdl = *loadingmd3->parts.last();
-    if(!mdl.addemitter(tag, type, *arg1, *arg2)) { conoutf("could not find tag %s", tag); flagmapconfigerror(LWW_MODELERR); return; }
+    if(!mdl.addemitter(tag, type, *arg1, *arg2)) { conoutf("could not find tag %s", tag); flagmapconfigerror(LWW_MODELERR); scripterr(); return; }
 }
 COMMAND(md3emit, "ssii");

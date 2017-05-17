@@ -11,7 +11,7 @@ mapmodelattributes loadingattributes;
 #include "md2.h"
 #include "md3.h"
 
-#define checkmdl if(!loadingmodel) { conoutf("not loading a model"); flagmapconfigerror(LWW_MODELERR); return; }
+#define checkmdl if(!loadingmodel) { conoutf("not loading a model"); flagmapconfigerror(LWW_MODELERR); scripterr(); return; }
 
 void mdlcullface(int *cullface)
 {
@@ -113,7 +113,7 @@ void mapmodel(int *rad, int *h, int *zoff, char *scale, char *name, char *flags)
 {
     if(*scale && *name) // ignore "mapmodel" commands with insufficient parameters
     {
-        if(!_ignoreillegalpaths && !strchr(name, '/') && !strchr(name, '\\')) flagmapconfigerror(LWW_CONFIGERR * 2); // throw errors for unconverted mapmodels (unspecific, because not all get detected)
+        if(!_ignoreillegalpaths && !strchr(name, '/') && !strchr(name, '\\')) { flagmapconfigerror(LWW_CONFIGERR * 2); scripterr(); } // throw errors for unconverted mapmodels (unspecific, because not all get detected)
         intret(mapmodels.length());
         mapmodelinfo &mmi = mapmodels.add();
         mmi.rad = *rad;
@@ -125,7 +125,7 @@ void mapmodel(int *rad, int *h, int *zoff, char *scale, char *name, char *flags)
         if(mmi.scale < 0.25f || mmi.scale > 4.0f)
         {
             mmi.scale = 1.0f;
-            if(strcmp(scale, "0")) flagmapconfigerror(LWW_CONFIGERR * 2);
+            if(strcmp(scale, "0")) { flagmapconfigerror(LWW_CONFIGERR * 2); scripterr(); }
         }
         mmi.m = NULL;
 
@@ -134,7 +134,7 @@ void mapmodel(int *rad, int *h, int *zoff, char *scale, char *name, char *flags)
         mapmodelchanged = 1;
         flagmapconfigchange();
     }
-    else flagmapconfigerror(LWW_CONFIGERR * 2);
+    else { flagmapconfigerror(LWW_CONFIGERR * 2); scripterr(); }
 }
 COMMAND(mapmodel, "iiisss");
 

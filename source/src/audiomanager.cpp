@@ -830,6 +830,7 @@ COMMANDF(mapsound, "si", (char *name, int *maxuses)
     {
         conoutf("\f3error: too many mapsounds");
         flagmapconfigerror(LWW_CONFIGERR);
+        scripterr();
     }
     else if(!strncmp(stripped, mapsoundbasepath, mapsoundbasepath_n))
     {
@@ -846,6 +847,7 @@ COMMANDF(mapsound, "si", (char *name, int *maxuses)
     {
         conoutf("\f3error: mapsound \"%s\" outside packages/audio/", stripped);
         flagmapconfigerror(LWW_CONFIGERR);
+        scripterr();
     }
 });
 
