@@ -1442,7 +1442,7 @@ int gmenu::headeritems()  // returns number of header and footer lines (and also
 {
     hasdesc = false;
     loopv(items) if(items[i]->getdesc()) { hasdesc = true; break; }
-    return (header ? 2 : 0) + (footer ? (footlen ? (footlen + 1) : 2) : (hasdesc ? 2 : 0));
+    return (header ? 2 : 0) + (footer || hasdesc ? (footlen ? (footlen + 1) : 2) : 0);
 }
 
 FVAR(menutexturesize, 0.1f, 1.0f, 5.0f);
@@ -1488,12 +1488,16 @@ void gmenu::render()
         else formatstring(buf)("[ %s menu ]", name);
         t = buf;
     }
-    int w = 0;
-    loopv(items) if(items[i]->getdesc()) w = max(w, text_width(items[i]->getdesc()));
+    int w = 0, footermaxw = 2 * VIRTW - 6 * FONTH, hitems = headeritems(), footwidth, footheight, maxfootheight = 0;
+    if(hasdesc) loopv(items) if(items[i]->getdesc())
+    {
+        text_bounds(items[i]->getdesc(), footwidth, footheight, footermaxw);
+        w = max(w, footwidth);
+        maxfootheight = max(maxfootheight, footheight);
+    }
     if(synctabs) text_startcolumns();
     loopv(items) w = max(w, items[i]->width());
-    int hitems = headeritems(),
-        pagesize = MAXMENU - hitems,
+    int pagesize = MAXMENU - hitems,
         offset = menusel - (menusel%pagesize),
         mdisp = min(items.length(), pagesize),
         cdisp = min(items.length()-offset, pagesize),
@@ -1535,16 +1539,10 @@ void gmenu::render()
     if(footer || hasdesc)
     {
         y += ((mdisp-cdisp)+1)*step;
-        if(!hasdesc)
-        {
-            int footwidth, footheight;
-            text_bounds(footer, footwidth, footheight, w);
-            footlen = min(MAXMENU / 4, (footheight + step / 2) / step);
-            draw_text(footer, x, y, 0xFF, 0xFF, 0xFF, 0xFF, -1, w);
-        }
-        else if(items.inrange(menusel) && items[menusel]->getdesc())
-            draw_text(items[menusel]->getdesc(), x, y);
-
+        const char *usefoot = hasdesc && items.inrange(menusel) ? items[menusel]->getdesc() : footer;
+        if(!hasdesc) text_bounds(footer, footwidth, maxfootheight, w);
+        if(maxfootheight) footlen = min(MAXMENU / 4, (maxfootheight + step / 2) / step);
+        if(usefoot) draw_text(usefoot, x, y, 0xFF, 0xFF, 0xFF, 0xFF, -1, w);
     }
     if(previewtexture && *previewtexture) rendermenutexturepreview(previewtexture, w, previewtexturetitle);
     if(usefont) popfont(); // setfont("default");
