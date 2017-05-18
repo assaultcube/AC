@@ -479,16 +479,7 @@ void checkitems(playerent *d)
     }
 }
 
-void spawnallitems()            // spawns items locally
-{
-    loopv(ents) if(ents[i].fitsmode(gamemode) || (multiplayer(NULL) && gamespeed!=100 && (i=-1)))
-    {
-        ents[i].spawned = true;
-        ents[i].lastmillis = lastmillis;
-    }
-}
-
-void resetspawns(int type)
+void resetpickups(int type)
 {
     loopv(ents) if(type < 0 || type == ents[i].type) ents[i].spawned = false;
     if(m_noitemsnade || m_pistol)
@@ -497,7 +488,7 @@ void resetspawns(int type)
     }
 }
 
-void setspawn(int i, bool on)
+void setpickupspawn(int i, bool on)
 {
     if(ents.inrange(i))
     {

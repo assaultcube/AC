@@ -819,31 +819,6 @@ void cleanuptmus()
     loopi(MAXTMUS) tmus[i] = invalidtmu;
 }
 
-
-// only works on 32 bit surfaces with alpha in 4th byte!
-void blitsurface(SDL_Surface *dst, SDL_Surface *src, int x, int y)
-{
-    uchar *dstp = (uchar *)dst->pixels + y*dst->pitch + x*4,
-          *srcp = (uchar *)src->pixels;
-    int dstpitch = dst->pitch - 4*src->w,
-        srcpitch = src->pitch - 4*src->w;
-    loop(dy, src->h)
-    {
-        loop(dx, src->w)
-        {
-            uint k1 = (255U - srcp[3]) * dstp[3], k2 = srcp[3] * 255U, kmax = max(dstp[3], srcp[3]), kscale = max(kmax * 255U, 1U);
-            dstp[0] = (dstp[0]*k1 + srcp[0]*k2) / kscale;
-            dstp[1] = (dstp[1]*k1 + srcp[1]*k2) / kscale;
-            dstp[2] = (dstp[2]*k1 + srcp[2]*k2) / kscale;
-            dstp[3] = kmax;
-            dstp += 4;
-            srcp += 4;
-        }
-        dstp += dstpitch;
-        srcp += srcpitch;
-    }
-}
-
 Texture *e_wall = NULL, *e_floor = NULL, *e_ceil = NULL;
 
 void guidetoggle()

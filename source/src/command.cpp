@@ -3,14 +3,10 @@
 
 #include "cube.h"
 
-bool allowidentaccess(ident *id);
+inline bool identaccessdenied(ident *id);
 char *exchangestr(char *o, const char *n) { delete[] o; return newstring(n); }
 
 vector<const char *> executionstack;                    // keep history of recursive command execution (to write to log in case of a crash)
-vector<int> contextstack;
-bool contextsealed = false;
-bool contextisolated[IEXC_NUM] = { false };
-int execcontext;
 char *commandret = NULL;
 
 bool loop_break = false, loop_skip = false;             // break or continue (skip) current loop
@@ -76,7 +72,7 @@ ident *newident(const char *name, int context = execcontext)
 void pusha(const char *name, char *action)
 {
     ident *id = newident(name, execcontext);
-    if(contextisolated[execcontext] && execcontext > id->context)
+    if(identaccessdenied(id))
     {
         conoutf("cannot redefine alias %s in this execution context", id->name);
         scripterr();
@@ -95,7 +91,7 @@ void pop(const char *name)
 {
     ident *id = idents->access(name);
     if(!id) return;
-    if(contextisolated[execcontext] && execcontext > id->context)
+    if(identaccessdenied(id))
     {
         conoutf("cannot redefine alias %s in this execution context", id->name);
         scripterr();
@@ -118,7 +114,7 @@ void delalias(const char *name)
 {
     ident *id = idents->access(name);
     if(!id || id->type != ID_ALIAS) return;
-    if(contextisolated[execcontext] && execcontext > id->context)
+    if(identaccessdenied(id))
     {
         conoutf("cannot remove alias %s in this execution context", id->name);
         scripterr();
@@ -141,7 +137,7 @@ void alias(const char *name, const char *action, bool temp, bool constant)
     }
     else if(b->type==ID_ALIAS)
     {
-        if(contextisolated[execcontext] && execcontext > b->context)
+        if(identaccessdenied(b))
         {
             conoutf("cannot redefine alias %s in this execution context", b->name);
             scripterr();
@@ -232,7 +228,7 @@ void modifyvar(const char *name, int arg, char op)
 {
     ident *id = idents->access(name);
     if(!id) return;
-    if(!allowidentaccess(id))
+    if(identaccessdenied(id))
     {
         conoutf("not allowed in this execution context: %s", id->name);
         scripterr();
@@ -269,7 +265,7 @@ void modifyfvar(const char *name, float arg, char op)
 {
     ident *id = idents->access(name);
     if(!id) return;
-    if(!allowidentaccess(id))
+    if(identaccessdenied(id))
     {
         conoutf("not allowed in this execution context: %s", id->name);
         scripterr();
@@ -489,16 +485,20 @@ char *conc(const char **w, int n, bool space)
         n = 0;
         while(w[n] && w[n][0]) n++;
     }
+    static vector<int> wlen;
+    wlen.setsize(0);
     int len = space ? max(n-1, 0) : 0;
-    loopj(n) len += (int)strlen(w[j]);
-    char *r = newstring("", len);
+    loopj(n) len += wlen.add((int)strlen(w[j]));
+    char *r = newstring("", len), *res = r;
     loopi(n)
     {
-        strcat(r, w[i]);  // make string-list out of all arguments
-        if(i == n - 1) break;
-        if(space) strcat(r, " ");
+        strncpy(r, w[i], wlen[i]);  // make string-list out of all arguments
+        r += wlen[i];
+        if(space) *r++ = ' ';
     }
-    return r;
+    if(space) --r;
+    *r = '\0';
+    return res;
 }
 
 VARN(numargs, _numargs, 25, 0, 0);
@@ -586,7 +586,7 @@ char *executeret(const char *p)                            // all evaluation hap
             }
             setretval(newstring(c));
         }
-        else if(!allowidentaccess(id))
+        else if(identaccessdenied(id))
         {
             conoutf("not allowed in this execution context: %s", id->name);
             scripterr();
@@ -977,36 +977,6 @@ void complete(char *s, bool reversedirection)
     }
 }
 #endif
-
-const char *curcontext = NULL, *curinfo = NULL;
-
-void scripterr()
-{
-    if(curcontext) conoutf("(%s: %s)", curcontext, curinfo);
-    else conoutf("(from console or builtin)");
-}
-
-void setcontext(const char *context, const char *info)
-{
-    curcontext = context;
-    curinfo = info;
-}
-
-void resetcontext()
-{
-    curcontext = curinfo = NULL;
-}
-
-void dumpexecutionstack(stream *f)
-{
-    if(f && executionstack.length())
-    {
-        f->printf("cubescript execution stack (%d levels)\n", executionstack.length());
-        if(curcontext) f->printf("  cubescript context:  %s %s\n", curcontext, curinfo ? curinfo : "");
-        loopvrev(executionstack) f->printf("%4d:  %s\n", i + 1, executionstack[i]);
-        f->fflush();
-    }
-}
 
 bool execfile(const char *cfgfile)
 {
@@ -1665,6 +1635,14 @@ void identnames(vector<const char *> &names, bool builtinonly)
     });
 }
 
+// script execution context management
+
+const char *contextnames[IEXC_NUM + 1] = { "CORE", "CFG", "PROMPT", "MAPCFG", "MDLCFG", "" };
+bool contextisolated[IEXC_NUM] = { false };
+bool contextsealed = false;
+vector<int> contextstack;
+int execcontext;
+
 void pushscontext(int newcontext)
 {
     contextstack.add(execcontext);
@@ -1697,30 +1675,62 @@ int popscontext()
     return execcontext;
 }
 
-void scriptcontext(int *context, char *idname)
+void scriptcontext(char *context, char *idname)
 {
     if(contextsealed) return;
     ident *id = idents->access(idname);
     if(!id) return;
-    int c = *context;
+    int c = getlistindex(context, contextnames, true, -1);
     if(c >= 0 && c < IEXC_NUM) id->context = c;
 }
-COMMAND(scriptcontext, "is");
+COMMAND(scriptcontext, "ss");
 
-void isolatecontext(int *context)
+void isolatecontext(char *context)
 {
-    if(*context >= 0 && *context < IEXC_NUM && !contextsealed) contextisolated[*context] = true;
+    int c = getlistindex(context, contextnames, true, -1);
+    if(c >= 0 && c < IEXC_NUM && !contextsealed) contextisolated[c] = true;
 }
-COMMAND(isolatecontext, "i");
+COMMAND(isolatecontext, "s");
 
 COMMANDF(sealcontexts, "",() { contextsealed = true; });
 
-bool allowidentaccess(ident *id) // check if ident is allowed in current context
+inline bool identaccessdenied(ident *id) // check if ident is allowed in current context
+{
+    ASSERT(execcontext >= 0 && execcontext < IEXC_NUM && id);
+    return contextisolated[execcontext] && execcontext > id->context;
+}
+
+// script origin tracking
+
+const char *curcontext = NULL, *curinfo = NULL;
+
+void scripterr()
 {
     ASSERT(execcontext >= 0 && execcontext < IEXC_NUM);
-    if(!id) return false;
-    if(!contextisolated[execcontext]) return true; // only check if context is isolated
-    return execcontext <= id->context;
+    if(curcontext) conoutf("(%s: %s [%s])", curcontext, curinfo, contextnames[execcontext]);
+    else conoutf("(from console or builtin [%s])", contextnames[execcontext]);
+}
+
+void setcontext(const char *context, const char *info)
+{
+    curcontext = context;
+    curinfo = info;
+}
+
+void resetcontext()
+{
+    curcontext = curinfo = NULL;
+}
+
+void dumpexecutionstack(stream *f)
+{
+    if(f && executionstack.length())
+    {
+        f->printf("cubescript execution stack (%d levels)\n", executionstack.length());
+        if(curcontext) f->printf("  cubescript context:  %s %s\n", curcontext, curinfo ? curinfo : "");
+        loopvrev(executionstack) f->printf("%4d:  %s\n", i + 1, executionstack[i]);
+        f->fflush();
+    }
 }
 
 #ifndef STANDALONE

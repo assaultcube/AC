@@ -37,7 +37,9 @@ void quit()                     // normal exit
 {
     if(clientlogfile) clientlogfile->fflush();
     const char *onquit = getalias("onQuit");
+    setcontext("hook", "onQuit");
     if(onquit && onquit[0]) execute(onquit);
+    resetcontext();
     alias("onQuit", "");
     alias("mapstartonce", "");
     extern void writeinitcfg();

@@ -267,7 +267,6 @@ struct mline { string name, cmd; };
 
 // serverbrowser
 extern void addserver(const char *servername, int serverport, int weight);
-extern char *getservername(int n);
 extern bool resolverwait(const char *name, ENetAddress *address);
 extern int connectwithtimeout(ENetSocket sock, const char *hostname, ENetAddress &remoteaddress);
 extern void writeservercfg();
@@ -378,7 +377,6 @@ extern void resetcamera();
 
 extern void gl_checkextensions();
 extern void gl_init(int w, int h, int bpp, int depth, int fsaa);
-extern void cleangl();
 extern void enablepolygonoffset(GLenum type);
 extern void disablepolygonoffset(GLenum type, bool restore = true);
 extern void line(int x1, int y1, float z1, int x2, int y2, float z2);
@@ -432,7 +430,6 @@ extern Texture *lookuptexture(int tex, Texture *failtex = notexture, bool trydl 
 extern const char *gettextureslot(int i);
 extern bool reloadtexture(Texture &t);
 extern void reloadtextures();
-extern void blitsurface(SDL_Surface *dst, SDL_Surface *src, int x, int y);
 extern bool loadskymap(bool reload);
 extern void *texconfig_copy();
 extern void texconfig_delete(void *s);
@@ -443,6 +440,13 @@ static inline Texture *lookupworldtexture(int tex, bool trydl = true)
 
 extern float skyfloor;
 extern void draw_envbox(int fogdist);
+
+extern int maxtmus;
+extern void inittmus();
+extern void resettmu(int n);
+extern void scaletmu(int n, int rgbscale, int alphascale = 0);
+extern void colortmu(int n, float r = 0, float g = 0, float b = 0, float a = 0);
+extern void setuptmu(int n, const char *rgbfunc = NULL, const char *alphafunc = NULL);
 
 // renderhud
 enum
@@ -467,13 +471,6 @@ extern bool requirepackage(int type, const char *name, const char *host = NULL);
 extern int downloadpackages(bool loadscr = true);
 extern void sortpckservers();
 extern void writepcksourcecfg();
-
-extern int maxtmus;
-extern void inittmus();
-extern void resettmu(int n);
-extern void scaletmu(int n, int rgbscale, int alphascale = 0);
-extern void colortmu(int n, float r = 0, float g = 0, float b = 0, float a = 0);
-extern void setuptmu(int n, const char *rgbfunc = NULL, const char *alphafunc = NULL);
 
 struct zone { int x1, x2, y1, y2, color; }; // zones (drawn on the minimap)
 
@@ -520,13 +517,9 @@ extern int getbuildtype();
 extern void sendintro();
 extern void getdemo(int *idx, char *dsp);
 extern void listdemos();
-//extern bool tryauth(const char *desc);
-//extern authkey *findauthkey(const char *desc);
 
 // serverms
 bool requestmasterf(const char *fmt, ...); // for AUTH et al
-//moving to server.cpp seems a bad idea.
-// :for AUTH
 
 // clientgame
 extern flaginfo flaginfos[2];
@@ -572,11 +565,9 @@ extern void flagdropped(int flag, float x, float y, float z);
 extern void flaginbase(int flag);
 extern void flagidle(int flag);
 extern void flagmsg(int flag, int message, int actor, int flagtime);
-extern void arenarespawn();
 extern bool tryrespawn();
 extern void gotoplayerstart(playerent *d, entity *e);
 extern void findplayerstart(playerent *d, bool mapcenter = false, int arenaspawn = -1);
-extern void serveropcommand(int cmd, int arg1);
 extern void refreshsopmenu(void *menu, bool init);
 extern char *colorname(playerent *d, char *name = NULL, const char *prefix = "");
 extern char *colorping(int ping);
@@ -651,7 +642,6 @@ extern void blockpaste(const block &b, int bx, int by, bool light, uchar *texmap
 extern void blockpaste(const block &b);
 extern void freeblockp(block *b);
 extern void freeblock(block *&b);
-extern block *duplicateblock(const block *s);
 
 // worldrender
 extern void render_world(float vx, float vy, float vh, float changelod, int yaw, int pitch, float fov, float fovy, int w, int h);
@@ -874,25 +864,6 @@ extern bool objcollide(physent *d, const vec &objpos, float objrad, float objhei
 extern bool collide(physent *d, bool spawn = false, float drop = 0, float rise = 0);
 extern void attack(bool on);
 
-// sound
-/*
-extern void audiomgr.playsound(int n, int priority = SP_NORMAL);
-extern void audiomgr.playsound(int n, physent *p, int priority = SP_NORMAL);
-extern void audiomgr.playsound(int n, entity *e, int priority = SP_NORMAL);
-extern void audiomgr.playsound(int n, const vec *v, int priority = SP_NORMAL);
-extern void audiomgr.playsoundc(int n, physent *p = NULL, int priority = SP_NORMAL);
-extern void initsound();
-extern void soundcleanup();
-extern void musicsuggest(int id, int millis = 0, bool rndofs = false);
-extern void musicfadeout(int id);
-extern void clearworldsounds(bool fullclean = true);
-extern void detachsounds(playerent *owner);
-extern void updateaudio();
-extern void preloadmapsound(entity &e);
-extern void preloadmapsounds();
-extern void writesoundconfig(stream *f);
-*/
-
 // rendermodel
 extern void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, float roll, float yaw, float pitch, float speed = 0, int basetime = 0, playerent *d = NULL, modelattach *a = NULL, float scale = 1.0f);
 extern void startmodelbatches();
@@ -932,16 +903,14 @@ extern bool intersect(entity *e, const vec &from, const vec &to, vec *end = NULL
 extern void damageeffect(int damage, playerent *d);
 extern void tryreload(playerent *p);
 extern void checkweaponstate();
-extern struct projectile *newprojectile(vec &from, vec &to, float speed, bool local, playerent *owner, int gun, int id = lastmillis);
 extern int burstshotssettings[NUMGUNS];
 
 // entities
-extern void spawnallitems();
 extern void pickupeffects(int n, playerent *d);
 extern void renderentities();
 extern void rendermapmodels();
-extern void resetspawns(int type = -1);
-extern void setspawn(int i, bool on);
+extern void resetpickups(int type = -1);
+extern void setpickupspawn(int i, bool on);
 extern void checkitems(playerent *d);
 extern vector<int> changedents;
 extern void syncentchanges(bool force = false);
@@ -999,7 +968,7 @@ extern void setsvar(const char *name, const char *str, bool dofunc = false);
 extern bool identexists(const char *name);
 extern bool addcommand(const char *name, void (*fun)(), const char *sig);
 extern int execute(const char *p);
-enum { HOOK_SP_MP = 1, HOOK_SP, HOOK_MP, HOOK_FLAGMASK = 0xff, HOOK_TEAM = 0x100, HOOK_NOTEAM = 0x200, HOOK_BOTMODE = 0x400, HOOK_FLAGMODE = 0x800, HOOK_ARENA = 0x1000 };
+enum { HOOK_MP = 1, HOOK_SP, HOOK_SP_MP, HOOK_FLAGMASK = 0xff, HOOK_TEAM = 0x100, HOOK_NOTEAM = 0x200, HOOK_BOTMODE = 0x400, HOOK_FLAGMODE = 0x800, HOOK_ARENA = 0x1000 };
 extern bool exechook(int context, const char *ident, const char *body,...) PRINTFARGS(3, 4);  // execute cubescript hook if available and allowed in current context/gamemode
 extern void identhash(uint64_t *d);
 extern char *executeret(const char *p);
@@ -1021,20 +990,17 @@ extern const char *getalias(const char *name);
 extern void writecfg();
 extern void deletecfg();
 extern void identnames(vector<const char *> &names, bool builtinonly);
-extern void changescriptcontext(int newcontext);
 extern void explodelist(const char *s, vector<char *> &elems);
 extern char *indexlist(const char *s, int pos);
-extern char *parseword(const char *&p);
-extern void pushscontext(int newcontext);
-extern int popscontext();
-extern int curscontext();
 extern const char *escapestring(const char *s, bool force = true, bool noquotes = false);
 extern int execcontext;
-extern const char *currentserver(int i);
+extern void pushscontext(int newcontext);
+extern int popscontext();
 extern void scripterr();
 extern void setcontext(const char *context, const char *info);
 extern void resetcontext();
 extern void dumpexecutionstack(stream *f);
+extern const char *currentserver(int i);
 
 // server
 extern int modeacronyms;
@@ -1077,12 +1043,9 @@ extern char *filtertext(char *dst, const char *src, int flags = 1, int len = siz
 extern void filterrichtext(char *dst, const char *src, int len = sizeof(string)-1);
 extern void filterlang(char *d, const char *s);
 extern void trimtrailingwhitespace(char *s);
-extern void startintermission();
-extern void restoreserverstate(vector<entity> &ents);
 extern string mastername;
 extern int masterport, mastertype;
 extern ENetSocket connectmaster();
-extern uchar *retrieveservers(uchar *buf, int buflen);
 extern void serverms(int mode, int numplayers, int minremain, char *smapname, int millis, const ENetAddress &localaddr, int *mnum, int *msend, int *mrec, int *cnum, int *csend, int *crec, int protocol_version);
 extern int msgsizelookup(int msg);
 extern const char *genpwdhash(const char *name, const char *pwd, int salt);

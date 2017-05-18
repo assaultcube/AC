@@ -403,15 +403,6 @@ savedscore *findscore(client &c, bool insert)
     return &sc;
 }
 
-void restoreserverstate(vector<entity> &ents)   // hack: called from savegame code, only works in SP
-{
-    loopv(sents)
-    {
-        sents[i].spawned = ents[i].spawned;
-        sents[i].spawntime = 0;
-    }
-}
-
 void sendf(int cn, int chan, const char *format, ...)
 {
     int exclude = -1;

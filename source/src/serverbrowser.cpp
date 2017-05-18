@@ -285,8 +285,6 @@ vector<serverinfo *> servers;
 ENetSocket pingsock = ENET_SOCKET_NULL;
 int lastinfo = 0;
 
-char *getservername(int n) { return servers[n]->name; }
-
 serverinfo *findserverinfo(ENetAddress address)
 {
     loopv(servers) if(servers[i]->address.host == address.host && servers[i]->port == address.port) return servers[i];

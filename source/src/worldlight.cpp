@@ -438,11 +438,3 @@ void freeblock(block *&b)
     if(b) { freeblockp(b); b = NULL; }
 }
 
-block *duplicateblock(const block *s)
-{
-    size_t len = sizeof(block) + s->xs * s->ys * sizeof(sqr);
-    block *b = (block *)new uchar[len];
-    memcpy(b, s, len);
-    return b;
-}
-

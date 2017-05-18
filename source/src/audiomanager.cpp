@@ -648,7 +648,9 @@ void audiomanager::updateaudio()
             {
                 char *cmd = musicdonecmd;
                 musicdonecmd = NULL;
+                setcontext("hook", "musicdonecmd");
                 execute(cmd);
+                resetcontext();
                 delete[] cmd;
             }
         }
