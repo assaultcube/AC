@@ -496,7 +496,7 @@ char *conc(const char **w, int n, bool space)
         r += wlen[i];
         if(space) *r++ = ' ';
     }
-    if(space) --r;
+    if(space && n) --r;
     *r = '\0';
     return res;
 }
