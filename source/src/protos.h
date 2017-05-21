@@ -555,6 +555,7 @@ extern void setskin(playerent *pl, int skin, int team = -1);
 extern void callvote(int type, const char *arg1 = NULL, const char *arg2 = NULL, const char *arg3 = NULL);
 extern void addsleep(int msec, const char *cmd, bool persist = false);
 extern void resetsleep(bool force = false);
+extern int lastpm;
 //game mode extras
 extern void flagpickup(int fln);
 extern void tryflagdrop(bool manual = false);

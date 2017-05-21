@@ -241,7 +241,6 @@ char *mlayout = NULL;
 int Mv = 0, Ma = 0, F2F = 1000 * MINFF; // moved up:, MA = 0;
 float Mh = 0;
 extern int connected;
-extern int lastpm;
 extern bool noflags;
 bool item_fail = false;
 int map_quality = MAP_IS_EDITABLE;

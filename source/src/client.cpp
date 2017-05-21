@@ -185,6 +185,7 @@ void disconnect(int onlyclean, int async)
         player1->clientnum = -1;
         player1->lifesequence = 0;
         player1->clientrole = CR_DEFAULT;
+        lastpm = -1;
         kickallbots();
         loopv(players) zapplayer(players[i]);
         clearvote();
