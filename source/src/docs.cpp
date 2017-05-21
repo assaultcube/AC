@@ -647,7 +647,7 @@ void renderdoc(int x, int y, int doch)
 
 void *docmenu = NULL;
 
-struct msection { char *name; string cmd; };
+struct msection { char *name, *desc; string cmd; };
 
 int msectionsort(const msection *a, const msection *b)
 {
@@ -658,7 +658,6 @@ void renderdocsection(void *menu, bool init)
 {
     static vector<msection> msections;
     msections.shrink(0);
-
     loopv(sections)
     {
         if(sections[i].menu != menu) continue;
@@ -668,10 +667,11 @@ void renderdocsection(void *menu, bool init)
             msection &s = msections.add();
             s.name = id.name;
             formatstring(s.cmd)("saycommand [/%s ]", id.name);
+            s.desc = id.desc;
         }
         msections.sort(msectionsort);
         menureset(menu);
-        loopv(msections) { menumanual(menu, msections[i].name, msections[i].cmd); }
+        loopv(msections) { menumanual(menu, msections[i].name, msections[i].cmd, NULL, msections[i].desc); }
         return;
     }
 }
