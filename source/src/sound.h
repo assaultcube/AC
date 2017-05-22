@@ -69,11 +69,15 @@ enum
     S_THANKS2,
     S_AWESOME1,
     S_AWESOME2,
+// end: voicecoms
     S_ITEMHELMET, // begin: Sounds for AssaultCube v1.1.0.4 onwards
     S_HEARTBEAT,
     S_KTFSCORE,
     S_NULL
 };
+
+#define valid_voicecom(x) ((x) >= S_AFFIRMATIVE && (x) <= S_AWESOME2)           // all voicecoms
+#define valid_voicecom_public(x) ((x) >= S_NICESHOT && (x) <= S_AWESOME2)       // voicecoms always sent to all players
 
 // hardcoded music
 
@@ -446,6 +450,7 @@ extern vector<soundconfig> gamesounds, mapsounds;
 extern ov_callbacks oggcallbacks;
 extern int soundvol;
 extern int audiodebug;
+extern int voicecomsounds;
 
 extern audiomanager audiomgr;
 

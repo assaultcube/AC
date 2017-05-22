@@ -427,12 +427,11 @@ void voicecom(char *sound, char *text)
     static int last = 0;
     if(!last || lastmillis-last > 2000)
     {
-        extern int voicecomsounds;
         defformatstring(soundpath)("voicecom/%s", sound);
         int s = audiomgr.findsound(soundpath, 0, gamesounds);
-        if(s < 0 || s < S_AFFIRMATIVE || s >= S_NULL) return;
+        if(!valid_voicecom(s)) return;
         if(voicecomsounds>0) audiomgr.playsound(s, SP_HIGH);
-        if(s >= S_NICESHOT) // public
+        if(valid_voicecom_public(s)) // public
         {
             addmsg(SV_VOICECOM, "ri", s);
             toserver(text);
