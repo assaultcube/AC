@@ -1074,7 +1074,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             calcteamscores(scores);
             const char *cc = scores[offs] > 99 || scores[offs + 1] > 99 ? "31" : "55";
 
-            loopi(2) // flag state or frag-counter
+            if(!offs || scores[2] || scores[3]) loopi(2) // flag state or frag-counter
             {
                 drawctficon(i*120+VIRTW/4.0f*3.0f, 1650, 120, i, offs / 2, 1/4.0f, flaginfos[i].state == CTFF_INBASE || offs ? 255 : 100);
                 if(m_teammode)
