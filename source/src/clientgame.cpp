@@ -823,7 +823,7 @@ void setkillmessage(const char *gun, bool gib, const char *message)
         defformatstring(aname)("%smessage_%s", gib ? "gib" : "frag", gunnames[guni]);
         if(*message) alias(aname, message);
         const char *res = getalias(aname);
-        result(res ? res : "");
+        result(res ? res : killmessages[gib ? 1 : 0][guni]);
     }
 }
 
@@ -834,7 +834,6 @@ const char *killmessage(int gun, bool gib = false)
 {
     if(valid_weapon(gun))
     {
-        extern const char *killmessages[2][NUMGUNS];
         defformatstring(aname)("%smessage_%s", gib ? "gib" : "frag", gunnames[gun]);
         const char *res = getalias(aname);
         return res ? res : killmessages[gib ? 1 : 0][gun];

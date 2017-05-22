@@ -96,6 +96,7 @@ static inline int magsize(int gun) { return guns[gun].magsize; }
 enum { TEAM_CLA = 0, TEAM_RVSF, TEAM_CLA_SPECT, TEAM_RVSF_SPECT, TEAM_SPECT, TEAM_NUM, TEAM_ANYACTIVE };
 extern const char *teamnames[];
 extern const char *teamnames_s[];
+extern const char *killmessages[2][NUMGUNS];
 
 #define TEAM_VOID TEAM_NUM
 #define isteam(a,b)   (m_teammode && (a) == (b))
