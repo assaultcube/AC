@@ -201,7 +201,7 @@ void audiomanager::registermusic(char *name)
     musics.add(newstring(name));
 }
 
-int audiomanager::findsound(char *name, int vol, vector<soundconfig> &sounds)
+int audiomanager::findsound(const char *name, int vol, vector<soundconfig> &sounds)
 {
     loopv(sounds)
     {
@@ -210,7 +210,7 @@ int audiomanager::findsound(char *name, int vol, vector<soundconfig> &sounds)
     return -1;
 }
 
-int audiomanager::addsound(char *name, int vol, int maxuses, bool loop, vector<soundconfig> &sounds, bool load, int audibleradius)
+int audiomanager::addsound(const char *name, int vol, int maxuses, bool loop, vector<soundconfig> &sounds, bool load, int audibleradius)
 {
     if(nosound) return -1;
     if(!soundvol) return -1;
@@ -429,9 +429,9 @@ void voicecom(char *sound, char *text)
     {
         defformatstring(soundpath)("voicecom/%s", sound);
         int s = audiomgr.findsound(soundpath, 0, gamesounds);
-        if(!valid_voicecom(s)) return;
+        if(!gamesound_isvoicecom(s)) return;
         if(voicecomsounds>0) audiomgr.playsound(s, SP_HIGH);
-        if(valid_voicecom_public(s)) // public
+        if(gamesound_ispublicvoicecom(s)) // public
         {
             addmsg(SV_VOICECOM, "ri", s);
             toserver(text);
@@ -818,6 +818,34 @@ COMMANDF(registersound, "siii", (char *name, int *vol, int *loop, int *audiblera
 {
     intret(audiomgr.addsound(name, *vol, -1, *loop != 0, gamesounds, true, *audibleradius));
 });
+
+void registerdefaultsounds()
+{
+    loopi(S_NULL)
+    {
+        ASSERT(soundcfg[i].key == i);
+        audiomgr.addsound(soundcfg[i].name, soundcfg[i].vol, -1, soundcfg[i].loop != 0, gamesounds, true, soundcfg[i].audibleradius);
+    }
+}
+
+const char *soundcategories[SC_NUM + 1] = { "PAIN", "OWNPAIN", "WEAPON", "PICKUP", "MOVEMENT", "BULLET", "OTHER", "VOICECOM", "TEAM", "PUBLIC", "FFA", "FLAGONLY", "" };
+
+void enumsounds(char *what)
+{
+    vector<char *> w;
+    explodelist(what, w);
+    int flags = 0, nflags = 0;
+    loopv(w)
+    {
+        if(w[i][0] == '!') nflags |= 1 << getlistindex(w[i] + 1, soundcategories, false, 0);
+        else flags |= 1 << getlistindex(w[i], soundcategories, false, 0);
+        delstring(w[i]);
+    }
+    vector<char> res;
+    loopi(S_NULL) if((soundcfg[i].flags & flags) && !(soundcfg[i].flags & nflags)) cvecprintf(res, "%d %s\n", i, escapestring(soundcfg[i].desc));
+    resultcharvector(res, -1);
+}
+COMMAND(enumsounds, "s");
 
 const char *mapsoundbasepath = "packages/audio/", *mapsoundfinalpath = "ambience/";
 const int mapsoundbasepath_n = strlen(mapsoundbasepath), mapsoundfinalpath_n = strlen(mapsoundfinalpath);

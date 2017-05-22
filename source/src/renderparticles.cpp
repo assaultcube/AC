@@ -689,6 +689,6 @@ void addshotline(dynent *pl, const vec &from, const vec &to)
     soundpos.mul(fd/(fd+td)*dist);
     soundpos.add(from);
     if(!bulletairsound || soundpos.dist(camera1->o) > bulletairsoundrad) return; // outside player radius
-    audiomgr.playsound(S_BULLETAIR1 + rnd(2), &soundpos, SP_LOW);
+    audiomgr.playsound(rnd(2) ? S_BULLETAIR1 : S_BULLETAIR2, &soundpos, SP_LOW);
 }
 

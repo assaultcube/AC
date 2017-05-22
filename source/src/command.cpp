@@ -1794,9 +1794,9 @@ COMMANDF(getmode, "i", (int *acr) { result(modestr(gamemode, *acr != 0)); });
 
 void listoptions(char *s)
 {
-    extern const char *menufilesortorders[], *texturestacktypes[], *soundprioritynames[];
-    const char *optionnames[] = { "entities", "ents", "weapons", "teamnames", "teamnames-abbrv", "punctuations", "crosshairnames", "menufilesortorders", "texturestacktypes", "cubetypes", "soundpriorities", "" };
-    const char **optionlists[] = { optionnames, entnames + 1, entnames + 1, gunnames, teamnames, teamnames_s, punctnames, crosshairnames, menufilesortorders, texturestacktypes, cubetypenames, soundprioritynames };
+    extern const char *menufilesortorders[], *texturestacktypes[], *soundprioritynames[], *soundcategories[];
+    const char *optionnames[] = { "entities", "ents", "weapons", "teamnames", "teamnames-abbrv", "punctuations", "crosshairnames", "menufilesortorders", "texturestacktypes", "cubetypes", "soundpriorities", "soundcategories", "" };
+    const char **optionlists[] = { optionnames, entnames + 1, entnames + 1, gunnames, teamnames, teamnames_s, punctnames, crosshairnames, menufilesortorders, texturestacktypes, cubetypenames, soundprioritynames, soundcategories };
     const char **listp = optionlists[getlistindex(s, optionnames, true, -1) + 1];
     commandret = conc(listp, -1, true);
 }

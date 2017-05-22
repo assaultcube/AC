@@ -363,7 +363,7 @@ void sbuffer::unload()
 
 bufferhashtable::~bufferhashtable() {}
 
-sbuffer *bufferhashtable::find(char *name)
+sbuffer *bufferhashtable::find(const char *name)
 {
     sbuffer *b = access(name);
     if(!b)

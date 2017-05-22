@@ -926,7 +926,7 @@ void dokill(playerent *pl, playerent *act, bool gib, int gun)
 
     deathstate(pl);
     pl->deaths++;
-    audiomgr.playsound(S_DIE1+rnd(2), pl);
+    audiomgr.playsound(rnd(2) ? S_DIE1 : S_DIE2, pl);
 }
 
 void pstat_weap(int *cn)

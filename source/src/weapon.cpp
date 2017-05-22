@@ -783,7 +783,7 @@ bool weapon::reload(bool autoreloaded)
     ammo -= numbullets;
 
     bool local = (player1 == owner);
-    audiomgr.playsound(info.reload, owner, local ? SP_HIGH : SP_NORMAL);
+    if(info.reload != S_NULL) audiomgr.playsound(info.reload, owner, local ? SP_HIGH : SP_NORMAL);
     if(local)
     {
         addmsg(SV_RELOAD, "ri2", lastmillis, owner->weaponsel->type);
@@ -1013,7 +1013,7 @@ bool grenadeent::applyphysics() { return nadestate==NS_THROWN; }
 
 void grenadeent::oncollision()
 {
-    if(distsincebounce>=1.5f) audiomgr.playsound(S_GRENADEBOUNCE1+rnd(2), &o);
+    if(distsincebounce>=1.5f) audiomgr.playsound(rnd(2) ? S_GRENADEBOUNCE1 : S_GRENADEBOUNCE2, &o);
     distsincebounce = 0.0f;
 }
 

@@ -547,3 +547,111 @@ const char *teamnames_s[] = {"CLA", "RVSF", "CSPC", "RSPC", "SPEC", "", "void"};
 // for both client and server
 // default messages are hardcoded !
 char killmessages[2][NUMGUNS][MAXKILLMSGLEN] = {{ "", "busted", "picked off", "peppered", "sprayed", "punctured", "shredded", "busted", "", "busted" }, { "slashed", "", "", "splattered", "", "headshot", "", "", "gibbed", "" }};
+
+#define C(x) (1<<(SC_##x))
+soundcfgitem soundcfg[S_NULL] =
+{ //  name                      desc                    vol, loop, rad, key,                 flags
+    { "player/jump",            "Jump",                    80, 0,  0, S_JUMP,                   C(MOVEMENT)      }, // 0
+    { "player/step",            "Soft landing",            90, 0, 24, S_SOFTLAND,               C(MOVEMENT)      }, // 1
+    { "player/land",            "Hard landing",            95, 0, 24, S_HARDLAND,               C(MOVEMENT)      }, // 2
+    { "weapon/ric1",            "Ricochet air 1",           0, 0,  0, S_BULLETAIR1,             C(BULLET)        }, // 3
+    { "weapon/ric2",            "Ricochet air 2",           0, 0,  0, S_BULLETAIR2,             C(BULLET)        }, // 4
+    { "weapon/ric3",            "Ricochet hit",             0, 0,  0, S_BULLETHIT,              C(BULLET)        }, // 5
+    { "weapon/waterimpact",     "Bullet (water impact)",    0, 0,  0, S_BULLETWATERHIT,         C(BULLET)        }, // 6
+    { "weapon/knife",           "Knife",                    0, 0,  0, S_KNIFE,                  C(WEAPON)        }, // 7
+    { "weapon/usp",             "Pistol",                   0, 0,  0, S_PISTOL,                 C(WEAPON)        }, // 8
+    { "weapon/pistol_reload",   "Pistol reloading",         0, 0,  0, S_RPISTOL,                C(WEAPON)        }, // 9
+    { "weapon/carbine",         "Carbine",                  0, 0,  0, S_CARBINE,                C(WEAPON)        }, // 10
+    { "weapon/carbine_reload",  "Carbine reloading",        0, 0,  0, S_RCARBINE,               C(WEAPON)        }, // 11
+    { "weapon/shotgun",         "Shotgun",                  0, 0,  0, S_SHOTGUN,                C(WEAPON)        }, // 12
+    { "weapon/shotgun_reload",  "Shotgun reloading",        0, 0,  0, S_RSHOTGUN,               C(WEAPON)        }, // 13
+    { "weapon/sub",             "Submachine gun",           0, 0,  0, S_SUBGUN,                 C(WEAPON)        }, // 14
+    { "weapon/sub_reload",      "Submachine gun reloading", 0, 0,  0, S_RSUBGUN,                C(WEAPON)        }, // 15
+    { "weapon/sniper",          "Sniper",                   0, 0,  0, S_SNIPER,                 C(WEAPON)        }, // 16
+    { "weapon/sniper_reload",   "Sniper reloading",         0, 0,  0, S_RSNIPER,                C(WEAPON)        }, // 17
+    { "weapon/auto",            "Assault rifle",            0, 0,  0, S_ASSAULT,                C(WEAPON)        }, // 18
+    { "weapon/auto_reload",     "Assault rifle reloading",  0, 0,  0, S_RASSAULT,               C(WEAPON)        }, // 19
+    { "misc/pickup_ammo_clip",  "Ammo pickup",              0, 0,  0, S_ITEMAMMO,               C(PICKUP)        }, // 20
+    { "misc/pickup_health",     "Health pickup",            0, 0,  0, S_ITEMHEALTH,             C(PICKUP)        }, // 21
+    { "misc/pickup_armour",     "Armour pickup",            0, 0,  0, S_ITEMARMOUR,             C(PICKUP)        }, // 22
+    { "misc/tick9",             "Akimbo pickup",            0, 0,  0, S_ITEMAKIMBO,             C(PICKUP)        }, // 23
+    { "weapon/clip_empty",      "Empty clip",               0, 0,  0, S_NOAMMO,                 C(WEAPON)        }, // 24
+    { "misc/tick11",            "Akimbo finished",          0, 0,  0, S_AKIMBOOUT,              C(PICKUP)        }, // 25
+    { "player/pain1",           "Pain 1",                   0, 0,  0, S_PAIN1,                  C(PAIN)          }, // 26
+    { "player/pain2",           "Pain 2",                   0, 0,  0, S_PAIN2,                  C(PAIN)          }, // 27
+    { "player/pain3",           "Pain 3",                   0, 0,  0, S_PAIN3,                  C(PAIN)          }, // 28
+    { "player/pain4",           "Pain 4",                   0, 0,  0, S_PAIN4,                  C(PAIN)          }, // 29
+    { "player/pain5",           "Pain 5",                   0, 0,  0, S_PAIN5,                  C(PAIN)          }, // 30
+    { "player/pain6",           "Pain 6",                   0, 0,  0, S_PAIN6,                  C(PAIN)          }, // 31
+    { "player/die1",            "Die 1",                    0, 0,  0, S_DIE1,                   C(PAIN)          }, // 32
+    { "player/die2",            "Die 2",                    0, 0,  0, S_DIE2,                   C(PAIN)          }, // 33
+    { "weapon/grenade_exp",     "Grenade explosion",        0, 0,  0, S_FEXPLODE,               C(BULLET)        }, // 34
+    { "player/splash1",         "Splash 1",                 0, 0,  0, S_SPLASH1,                C(MOVEMENT)      }, // 35
+    { "player/splash2",         "Splash 2",                 0, 0,  0, S_SPLASH2,                C(MOVEMENT)      }, // 36
+    { "ctf/flagdrop",           "Flag drop",                0, 0,  0, S_FLAGDROP,               C(OTHER)         }, // 37
+    { "ctf/flagpickup",         "Flag pickup",              0, 0,  0, S_FLAGPICKUP,             C(OTHER)         }, // 38
+    { "ctf/flagreturn",         "Flag return",              0, 0,  0, S_FLAGRETURN,             C(OTHER)         }, // 39
+    { "ctf/flagscore",          "Flag score",               0, 0,  0, S_FLAGSCORE,              C(OTHER)         }, // 40
+    { "weapon/grenade_pull",    "Grenade pull",             0, 0,  0, S_GRENADEPULL,            C(WEAPON)        }, // 41
+    { "weapon/grenade_throw",   "Grenade throw",            0, 0,  0, S_GRENADETHROW,           C(WEAPON)        }, // 42
+    { "weapon/grenade_bounce1", "Grenade bounce 1",         0, 0,  0, S_GRENADEBOUNCE1,         C(WEAPON)        }, // 43
+    { "weapon/grenade_bounce2", "Grenade bounce 2",         0, 0,  0, S_GRENADEBOUNCE2,         C(WEAPON)        }, // 44
+    { "weapon/pistol_akreload", "Akimbo reload",            0, 0,  0, S_RAKIMBO,                C(WEAPON)        }, // 45
+    { "misc/change_gun",        "Change weapon",            0, 0,  0, S_GUNCHANGE,              C(WEAPON)        }, // 46
+    { "misc/impact_t",          "Hit sound",                0, 0,  0, S_HITSOUND,               C(BULLET)        }, // 47
+    { "player/gib",             "Gib sounds",               0, 0,  0, S_GIB,                    C(PAIN)          }, // 48
+    { "misc/headshot",          "Headshot",                10, 0,  0, S_HEADSHOT,               C(OTHER)         }, // 49
+    { "vote/vote_call",         "Call vote",                0, 0,  0, S_CALLVOTE,               C(OTHER)         }, // 50
+    { "vote/vote_pass",         "Pass vote",                0, 0,  0, S_VOTEPASS,               C(OTHER)         }, // 51
+    { "vote/vote_fail",         "Fail vote",                0, 0,  0, S_VOTEFAIL,               C(OTHER)         }, // 52
+    { "player/footsteps",       "Footsteps",               40, 1, 20, S_FOOTSTEPS,              C(MOVEMENT)      }, // 53
+    { "player/crouch",          "Crouch",                  40, 1, 10, S_FOOTSTEPSCROUCH,        C(MOVEMENT)      }, // 54
+    { "player/watersteps",      "Water footsteps",         40, 1, 20, S_WATERFOOTSTEPS,         C(MOVEMENT)      }, // 55
+    { "player/watercrouch",     "Water crouching",         40, 1, 10, S_WATERFOOTSTEPSCROUCH,   C(MOVEMENT)      }, // 56
+    { "player/crouch_in",       "Crouch-in",               85, 0, 14, S_CROUCH,                 C(MOVEMENT)      }, // 57
+    { "player/crouch_out",      "Crouch-out",              75, 0, 14, S_UNCROUCH,               C(MOVEMENT)      }, // 58
+    { "misc/menu_click1",       "Menu select",              0, 0,  0, S_MENUSELECT,             C(OTHER)         }, // 59
+    { "misc/menu_click2",       "Menu enter",               0, 0,  0, S_MENUENTER,              C(OTHER)         }, // 60
+    { "player/underwater",      "Underwater",               0, 0,  0, S_UNDERWATER,             C(MOVEMENT)      }, // 61
+    { "misc/tinnitus",          "Tinnitus",                 2, 0,  0, S_TINNITUS,               C(OWNPAIN)       }, // 62
+    { "voicecom/affirmative",   "Affirmative",              0, 0,  0, S_AFFIRMATIVE,            C(VOICECOM)|C(TEAM)                                 }, // 63
+    { "voicecom/allrightsir",   "All-right sir",            0, 0,  0, S_ALLRIGHTSIR,            C(VOICECOM)|C(TEAM)                                 }, // 64
+    { "voicecom/comeonmove",    "Come on, move",            0, 0,  0, S_COMEONMOVE,             C(VOICECOM)|C(TEAM)|C(PUBLIC)|C(FFA)                }, // 65
+    { "voicecom/cominginwiththeflag", "Coming in with the flag", 0,0,0, S_COMINGINWITHTHEFLAG,  C(VOICECOM)|C(TEAM)                 |C(FLAGONLY)    }, // 66
+    { "voicecom/coverme",       "Cover me",                 0, 0,  0, S_COVERME,                C(VOICECOM)|C(TEAM)                                 }, // 67
+    { "voicecom/defendtheflag", "Defend the flag",          0, 0,  0, S_DEFENDTHEFLAG,          C(VOICECOM)|C(TEAM)                 |C(FLAGONLY)    }, // 68
+    { "voicecom/enemydown",     "Enemy down",               0, 0,  0, S_ENEMYDOWN,              C(VOICECOM)|C(TEAM)|C(PUBLIC)                       }, // 69
+    { "voicecom/gogetemboys",   "Go get 'em boys!",         0, 0,  0, S_GOGETEMBOYS,            C(VOICECOM)|C(TEAM)                                 }, // 70
+    { "voicecom/goodjobteam",   "Good job team",            0, 0,  0, S_GOODJOBTEAM,            C(VOICECOM)|C(TEAM)                                 }, // 71
+    { "voicecom/igotone",       "I got one!",               0, 0,  0, S_IGOTONE,                C(VOICECOM)|C(TEAM)|C(PUBLIC)                       }, // 72
+    { "voicecom/imadecontact",  "I made contact",           0, 0,  0, S_IMADECONTACT,           C(VOICECOM)|C(TEAM)                                 }, // 73
+    { "voicecom/imattacking",   "I'm attacking",            0, 0,  0, S_IMATTACKING,            C(VOICECOM)|C(TEAM)                                 }, // 74
+    { "voicecom/imondefense",   "I'm on defense",           0, 0,  0, S_IMONDEFENSE,            C(VOICECOM)|C(TEAM)                                 }, // 75
+    { "voicecom/imonyourteamman", "I'm on your team",       0, 0,  0, S_IMONYOURTEAMMAN,        C(VOICECOM)|C(TEAM)                                 }, // 76
+    { "voicecom/negative",      "Negative",                 0, 0,  0, S_NEGATIVE,               C(VOICECOM)|C(TEAM)                                 }, // 77
+    { "voicecom/nocando",       "No can do",                0, 0,  0, S_NOCANDO,                C(VOICECOM)|C(TEAM)                                 }, // 78
+    { "voicecom/recovertheflag", "Recover the flag",        0, 0,  0, S_RECOVERTHEFLAG,         C(VOICECOM)|C(TEAM)                 |C(FLAGONLY)    }, // 79
+    { "voicecom/sorry",         "Sorry",                    0, 0,  0, S_SORRY,                  C(VOICECOM)|C(TEAM)|C(PUBLIC)|C(FFA)                }, // 80
+    { "voicecom/spreadout",     "Spread out",               0, 0,  0, S_SPREADOUT,              C(VOICECOM)|C(TEAM)                                 }, // 81
+    { "voicecom/stayhere",      "Stay here",                0, 0,  0, S_STAYHERE,               C(VOICECOM)|C(TEAM)                                 }, // 82
+    { "voicecom/staytogether",  "Stay together",            0, 0,  0, S_STAYTOGETHER,           C(VOICECOM)|C(TEAM)                                 }, // 83
+    { "voicecom/theresnowaysir", "There's no way sir",      0, 0,  0, S_THERESNOWAYSIR,         C(VOICECOM)|C(TEAM)                                 }, // 84
+    { "voicecom/wedidit",       "We did it!",               0, 0,  0, S_WEDIDIT,                C(VOICECOM)|C(TEAM)                                 }, // 85
+    { "voicecom/yes",           "Yes",                      0, 0,  0, S_YES,                    C(VOICECOM)|C(TEAM)                                 }, // 86
+    { "voicecom/onthemove_1",   "Under way",                0, 0,  0, S_ONTHEMOVE1,             C(VOICECOM)|C(TEAM)                                 }, // 87
+    { "voicecom/onthemove_2",   "On the move",              0, 0,  0, S_ONTHEMOVE2,             C(VOICECOM)|C(TEAM)                                 }, // 88
+    { "voicecom/igotyourback",  "Got your back",            0, 0,  0, S_GOTURBACK,              C(VOICECOM)|C(TEAM)                                 }, // 89
+    { "voicecom/igotyoucovered", "Got you covered",         0, 0,  0, S_GOTUCOVERED,            C(VOICECOM)|C(TEAM)                                 }, // 90
+    { "voicecom/inposition_1",  "In position",              0, 0,  0, S_INPOSITION1,            C(VOICECOM)|C(TEAM)                                 }, // 91
+    { "voicecom/inposition_2",  "In position now",          0, 0,  0, S_INPOSITION2,            C(VOICECOM)|C(TEAM)                                 }, // 92
+    { "voicecom/reportin",      "Report in!",               0, 0,  0, S_REPORTIN,               C(VOICECOM)|C(TEAM)                                 }, // 93
+    { "voicecom/niceshot",      "Nice shot",                0, 0,  0, S_NICESHOT,               C(VOICECOM)|C(TEAM)|C(PUBLIC)|C(FFA)                }, // 94
+    { "voicecom/thanks_1",      "Thanks",                   0, 0,  0, S_THANKS1,                C(VOICECOM)|C(TEAM)|C(PUBLIC)|C(FFA)                }, // 95
+    { "voicecom/thanks_2",      "Thanks, man",              0, 0,  0, S_THANKS2,                C(VOICECOM)|C(TEAM)|C(PUBLIC)|C(FFA)                }, // 96
+    { "voicecom/awesome_1",     "Awesome (1)",              0, 0,  0, S_AWESOME1,               C(VOICECOM)|C(TEAM)|C(PUBLIC)|C(FFA)                }, // 97
+    { "voicecom/awesome_2",     "Awesome (2)",              0, 0,  0, S_AWESOME2,               C(VOICECOM)|C(TEAM)|C(PUBLIC)|C(FFA)                }, // 98
+    { "misc/pickup_helmet",     "Helmet pickup",            0, 0,  0, S_ITEMHELMET,             C(PICKUP)        }, // 99
+    { "player/heartbeat",       "Heartbeat",                0, 0,  0, S_HEARTBEAT,              C(OWNPAIN)       }, // 100
+    { "ktf/flagscore",          "KTF score",                0, 0,  0, S_KTFSCORE,               C(OTHER)         }  // 101
+};
+#undef C

@@ -1187,6 +1187,7 @@ int main(int argc, char **argv)
     exec("config/menus.cfg");
     exec("config/scripts.cfg");
     exec("config/prefabs.cfg");
+    registerdefaultsounds();
     exec("config/sounds.cfg");
     exec("config/securemaps.cfg");
     exec("config/admin.cfg");
