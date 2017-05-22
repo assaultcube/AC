@@ -926,10 +926,6 @@ extern void renderdoc(int x, int y, int doch);
 extern void renderdocmenu(void *menu, bool init);
 extern void toggledoc();
 extern void scrolldoc(int i);
-extern int stringsort(const char **a, const char **b);
-extern int stringsortrev(const char **a, const char **b);
-extern int stringsortignorecase(const char **a, const char **b);
-extern int stringsortignorecaserev(const char **a, const char **b);
 extern const char *docgetdesc(const char *name);
 #endif
 

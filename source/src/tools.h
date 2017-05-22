@@ -22,9 +22,11 @@ typedef unsigned int uint;
 #include <iostream>
 #define DEBUG(v) if(DEBUGCOND) { std::cout << behindpath(__FILE__) << ":" << __LINE__ << " " << __FUNCTION__ << "(..) " << v << std::endl; }
 #define DEBUGVAR(v) if(DEBUGCOND) { std::cout << behindpath(__FILE__) << ":" << __LINE__ << " " << __FUNCTION__ << "(..) " << #v << " = " << v << std::endl; }
+#define DEBUGCODE(v) v
 #else
 #define DEBUG(v) {}
 #define DEBUGVAR(v) {}
+#define DEBUGCODE(v)
 #define ASSERT(c) if(c) {}
 #endif
 
@@ -949,8 +951,12 @@ extern void parseupdatelist(hashtable<const char *, int> &ht, char *buf, const c
 
 struct twoint { int key, val; };
 struct threeint { int key, val1, val2; };
-int cmpintasc(const int *a, const int *b);  // leads to ascending sort order
-int cmpintdesc(const int *a, const int *b); // leads to descending sort order
+extern int cmpintasc(const int *a, const int *b);  // leads to ascending sort order
+extern int cmpintdesc(const int *a, const int *b); // leads to descending sort order
+extern int stringsort(const char **a, const char **b);
+extern int stringsortrev(const char **a, const char **b);
+extern int stringsortignorecase(const char **a, const char **b);
+extern int stringsortignorecaserev(const char **a, const char **b);
 
 #if defined(WIN32) && !defined(_DEBUG) && !defined(__GNUC__)
 extern void stackdumper(unsigned int type, EXCEPTION_POINTERS *ep);

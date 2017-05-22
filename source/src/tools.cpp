@@ -320,6 +320,10 @@ const char *rateentitystats(entitystats_s &es)
 
 int cmpintasc(const int *a, const int *b) { return *a - *b; } // leads to ascending sort order
 int cmpintdesc(const int *a, const int *b) { return *b - *a; } // leads to descending sort order
+int stringsort(const char **a, const char **b) { return strcmp(*a, *b); }
+int stringsortrev(const char **a, const char **b) { return strcmp(*b, *a); }
+int stringsortignorecase(const char **a, const char **b) { return strcasecmp(*a, *b); }
+int stringsortignorecaserev(const char **a, const char **b) { return strcasecmp(*b, *a); }
 
 extern char *maplayout, *testlayout;
 extern int maplayout_factor, testlayout_factor, Mvolume, Marea, Mopen, SHhits;

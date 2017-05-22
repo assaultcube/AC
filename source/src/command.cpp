@@ -1347,11 +1347,6 @@ char *strreplace(char *dest, const char *source, const char *search, const char 
 }
 COMMANDF(strreplace, "sss", (const char *source, const char *search, const char *replace) { string d; result(strreplace(d, source, search, replace)); });
 
-int stringsort(const char **a, const char **b) { return strcmp(*a, *b); }
-int stringsortrev(const char **a, const char **b) { return strcmp(*b, *a); }
-int stringsortignorecase(const char **a, const char **b) { return strcasecmp(*a, *b); }
-int stringsortignorecaserev(const char **a, const char **b) { return strcasecmp(*b, *a); }
-
 void sortlist(char *list)
 {
     vector<char *> elems;
