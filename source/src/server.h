@@ -544,9 +544,11 @@ const char *gunnames[NUMGUNS + 1];
 const char *teamnames[] = {"CLA", "RVSF", "CLA-SPECT", "RVSF-SPECT", "SPECTATOR", "", "void"};
 const char *teamnames_s[] = {"CLA", "RVSF", "CSPC", "RSPC", "SPEC", "", "void"};
 
-// for both client and server
-// default messages are hardcoded !
-char killmessages[2][NUMGUNS][MAXKILLMSGLEN] = {{ "", "busted", "picked off", "peppered", "sprayed", "punctured", "shredded", "busted", "", "busted" }, { "slashed", "", "", "splattered", "", "headshot", "", "", "gibbed", "" }};
+const char *killmessages[2][NUMGUNS] =
+{
+    { "",        "busted", "picked off", "peppered",   "sprayed", "punctured", "shredded", "busted", "",       "busted" },
+    { "slashed", "",       "",           "splattered", "",        "headshot",  "",         "",       "gibbed", ""       }
+};
 
 #define C(x) (1<<(SC_##x))
 soundcfgitem soundcfg[S_NULL] =

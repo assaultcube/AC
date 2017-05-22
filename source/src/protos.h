@@ -1109,7 +1109,7 @@ struct serverconfigfile
 struct servercommandline
 {
     int uprate, serverport, syslogfacility, filethres, syslogthres, maxdemos, maxclients, kickthreshold, banthreshold, verbose, incoming_limit, afk_limit, ban_time, demotimelocal;
-    const char *ip, *master, *logident, *serverpassword, *adminpasswd, *demopath, *maprot, *pwdfile, *blfile, *nbfile, *infopath, *motdpath, *forbidden, *killmessages, *demofilenameformat, *demotimestampformat;
+    const char *ip, *master, *logident, *serverpassword, *adminpasswd, *demopath, *maprot, *pwdfile, *blfile, *nbfile, *infopath, *motdpath, *forbidden, *demofilenameformat, *demotimestampformat;
     bool logtimestamp, demo_interm, loggamestatus;
     string motd, servdesc_full, servdesc_pre, servdesc_suf, voteperm, mapperm;
     int clfilenesting;
@@ -1119,7 +1119,7 @@ struct servercommandline
                             maxclients(DEFAULTCLIENTS), kickthreshold(-5), banthreshold(-6), verbose(0), incoming_limit(10), afk_limit(45000), ban_time(20*60*1000), demotimelocal(0),
                             ip(""), master(NULL), logident(""), serverpassword(""), adminpasswd(""), demopath(""),
                             maprot("config/maprot.cfg"), pwdfile("config/serverpwd.cfg"), blfile("config/serverblacklist.cfg"), nbfile("config/nicknameblacklist.cfg"),
-                            infopath("config/serverinfo"), motdpath("config/motd"), forbidden("config/forbidden.cfg"), killmessages("config/serverkillmessages.cfg"),
+                            infopath("config/serverinfo"), motdpath("config/motd"), forbidden("config/forbidden.cfg"),
                             logtimestamp(false), demo_interm(false), loggamestatus(true),
                             clfilenesting(0)
     {
@@ -1136,7 +1136,7 @@ struct servercommandline
         int ai = atoi(a);
         // client: dtwhzbsave
         switch(arg[1])
-        { // todo: gjlqGHJQUYZ
+        { // todo: gjlqEGHJQUYZ
             case '-':
                     if(!strncmp(arg, "--demofilenameformat=", 21))
                     {
@@ -1212,7 +1212,6 @@ struct servercommandline
             case 'X': pwdfile = a; break;
             case 'B': blfile = a; break;
             case 'K': nbfile = a; break;
-            case 'E': killmessages = a; break;
             case 'I': infopath = a; break;
             case 'o': filterrichtext(motd, a); break;
             case 'O': motdpath = a; break;

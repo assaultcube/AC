@@ -814,25 +814,33 @@ VARP(hitsound, 0, 0, 2);
 void setkillmessage(const char *gun, bool gib, const char *message)
 {
     int guni = getlistindex(gun, gunnames, true, -1);
-    if(guni < 0)
+    if(!valid_weapon(guni))
     {
         conoutf("invalid gun specified");
     }
     else
     {
-        if(!message || !*message)
-        {
-            result(killmessage(guni, gib));
-        }
-        else
-        {
-            copystring(killmessages[gib ? 1 : 0][guni], message, sizeof(killmessages[gib ? 1 : 0][guni]));
-        }
+        defformatstring(aname)("%smessage_%s", gib ? "gib" : "frag", gunnames[guni]);
+        if(*message) alias(aname, message);
+        const char *res = getalias(aname);
+        result(res ? res : "");
     }
 }
 
 COMMANDF(fragmessage, "ss", (const char *gun, const char *message) { setkillmessage(gun, false, message); });
 COMMANDF(gibmessage, "ss", (const char *gun, const char *message) { setkillmessage(gun, true, message); });
+
+const char *killmessage(int gun, bool gib = false)
+{
+    if(valid_weapon(gun))
+    {
+        extern const char *killmessages[2][NUMGUNS];
+        defformatstring(aname)("%smessage_%s", gib ? "gib" : "frag", gunnames[gun]);
+        const char *res = getalias(aname);
+        return res ? res : killmessages[gib ? 1 : 0][gun];
+    }
+    return "";
+}
 
 COMMANDF(burstshots, "si", (char *gun, int *shots)
 {

@@ -1531,9 +1531,9 @@ void writecfg()
     f->printf("\n");
     audiomgr.writesoundconfig(f);
     f->printf("\n");
-    f->printf("// crosshairs and kill messages for each weapon\n\nlooplist [\n");
-    loopi(NUMGUNS) f->printf("  %-7s %-11s %-12s %s\n", gunnames[i], crosshairs[i] && crosshairs[i] != notexture ? behindpath(crosshairs[i]->name) : "\"\"", escapestring(killmessage(i, false)), escapestring(killmessage(i, true)));
-    f->printf("] [ w cc f g ] [ loadcrosshair $w $cc ; fragmessage $w $f ; gibmessage $w $g ]\n");
+    f->printf("// crosshairs for each weapon\n\nlooplist [\n");
+    loopi(NUMGUNS) f->printf("  %-7s %s\n", gunnames[i], crosshairs[i] && crosshairs[i] != notexture ? behindpath(crosshairs[i]->name) : "\"\"");
+    f->printf("] [ w cc ] [ loadcrosshair $w $cc ]\n");
     f->printf("\n\n// client variables (unchanged default values %s)\n", omitunchangeddefaults ? "omitted" : "commented out");
     vector<ident *> sids;
     enumerate(*idents, ident, id,
