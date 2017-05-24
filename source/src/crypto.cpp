@@ -21,7 +21,7 @@ static const char *hexdigits = "0123456789abcdef";
 
 namespace tiger
 {
-    typedef unsigned long long int chunk;
+    typedef uint64_t chunk;
 
     union hashval
     {
@@ -33,6 +33,7 @@ namespace tiger
 
     void compress(const chunk *str, chunk state[3])
     {
+        ASSERT(sizeof(chunk) == 8);
         chunk a, b, c;
         chunk aa, bb, cc;
         chunk x0, x1, x2, x3, x4, x5, x6, x7;
@@ -41,13 +42,12 @@ namespace tiger
         b = state[1];
         c = state[2];
 
-        x0=str[0]; x1=str[1]; x2=str[2]; x3=str[3];
-        x4=str[4]; x5=str[5]; x6=str[6]; x7=str[7];
+        x0 = lilswap(str[0]); x1 = lilswap(str[1]); x2 = lilswap(str[2]); x3 = lilswap(str[3]);
+        x4 = lilswap(str[4]); x5 = lilswap(str[5]); x6 = lilswap(str[6]); x7 = lilswap(str[7]);
 
         aa = a;
         bb = b;
         cc = c;
-
         loop(pass_no, TIGER_PASSES)
         {
             if(pass_no)
@@ -91,17 +91,14 @@ namespace tiger
     {
         const char *str = "Tiger - A Fast New Hash Function, by Ross Anderson and Eli Biham";
         chunk state[3] = { 0x0123456789ABCDEFULL, 0xFEDCBA9876543210ULL, 0xF096A5B4C3B2E187ULL };
-        uchar temp[64];
 
-        if(!*(const uchar *)&islittleendian) loopj(64) temp[j^7] = str[j];
-        else loopj(64) temp[j] = str[j];
         loopi(1024) loop(col, 8) ((uchar *)&sboxes[i])[col] = i&0xFF;
 
         int abc = 2;
         loop(pass, 5) loopi(256) for(int sb = 0; sb < 1024; sb += 256)
         {
             abc++;
-            if(abc >= 3) { abc = 0; compress((chunk *)temp, state); }
+            if(abc >= 3) { abc = 0; compress((const chunk *)str, state); }
             loop(col, 8)
             {
                 uchar val = ((uchar *)&sboxes[sb+i])[col];
@@ -111,58 +108,103 @@ namespace tiger
         }
     }
 
-    void hash(const uchar *str, int length, hashval &val)
+    struct incremental_buffer { int len, total; union { uchar u[64]; chunk c[8]; }; incremental_buffer() { len = total = 0; } };
+
+    incremental_buffer *hash_init(hashval &val)
     {
         static bool init = false;
         if(!init) { gensboxes(); init = true; }
-
-        uchar temp[64];
 
         val.chunks[0] = 0x0123456789ABCDEFULL;
         val.chunks[1] = 0xFEDCBA9876543210ULL;
         val.chunks[2] = 0xF096A5B4C3B2E187ULL;
 
+        return new incremental_buffer;
+    }
+
+    void hash_incremental(const uchar *msg, int len, hashval &val, incremental_buffer *b)
+    {
+        ASSERT(b && b->len >= 0 && b->len < 64);
+        b->total += len;
+        while(b->len + len >= 64)
+        {
+            if(b->len > 0)
+            { // fill up buffer and compress
+                int fill = 64 - b->len;
+                memcpy(b->u + b->len, msg, fill);
+                compress(b->c, val.chunks);
+                b->len = 0;
+                len -= fill;
+                msg += fill;
+            }
+            else
+            { // compress directly from msg
+                compress((chunk *)msg, val.chunks);
+                len -= 64;
+                msg += 64;
+            }
+        }
+        if(len > 0)
+        { // pur rest in buffer
+            memcpy(b->u + b->len, msg, len);
+            b->len += len;
+        }
+    }
+
+    void hash_finish(hashval &val, incremental_buffer *b)
+    {
+        ASSERT(b && b->len >= 0 && b->len < 64);
+        memset(b->u + b->len, 0, 64 - b->len);
+        b->u[b->len] = 0x01;
+        if(b->len >= 56)
+        {
+            compress(b->c, val.chunks);
+            memset(b->u, 0, 64);
+            b->len = 0;
+        }
+        b->c[7] = lilswap(chunk(b->total << 3));
+        compress(b->c, val.chunks);
+        lilswap(val.chunks, 3);
+        delete b;
+    }
+
+    void hash(const uchar *str, int length, hashval &val)
+    {
+        incremental_buffer *b = hash_init(val);
+
         int i = length;
         for(; i >= 64; i -= 64, str += 64)
         {
-            if(!*(const uchar *)&islittleendian)
-            {
-                loopj(64) temp[j^7] = str[j];
-                compress((chunk *)temp, val.chunks);
-            }
-            else compress((chunk *)str, val.chunks);
+            compress((chunk *)str, val.chunks);
         }
 
-        int j;
-        if(!*(const uchar *)&islittleendian)
-        {
-            for(j = 0; j < i; j++) temp[j^7] = str[j];
-            temp[j^7] = 0x01;
-            while(++j&7) temp[j^7] = 0;
-        }
-        else
-        {
-            for(j = 0; j < i; j++) temp[j] = str[j];
-            temp[j] = 0x01;
-            while(++j&7) temp[j] = 0;
-        }
+        memcpy(b->u, str, i);
+        b->len = i;
+        b->total = length;
 
-        if(j > 56)
-        {
-            while(j < 64) temp[j++] = 0;
-            compress((chunk *)temp, val.chunks);
-            j = 0;
-        }
-        while(j < 56) temp[j++] = 0;
-        *(chunk *)(temp+56) = (chunk)length<<3;
-        compress((chunk *)temp, val.chunks);
-        lilswap(val.chunks, 3);
+        hash_finish(val, b);
     }
 }
 
 void tigerhash(uchar *hash, const uchar *msg, int len)
 {
     tiger::hash(msg, len, *((tiger::hashval *) hash));
+}
+
+void *tigerhash_init(uchar *hash)
+{
+    return (void *)tiger::hash_init(*((tiger::hashval *) hash));
+}
+
+void tigerhash_add(uchar *hash, const void *msg, int len, void *state)
+{
+    tiger::hash_incremental((const uchar *)msg, len, *((tiger::hashval *) hash), (tiger::incremental_buffer *)state);
+}
+
+void tigerhash_finish(uchar *hash, void *state)
+{
+    if(hash) tiger::hash_finish(*((tiger::hashval *) hash), (tiger::incremental_buffer *)state);
+    else delete (tiger::incremental_buffer *)state;
 }
 
 #undef sb1
@@ -256,7 +298,10 @@ COMMANDF(sha512, "s", (char *msg)   // SHA512 debug command
 COMMANDF(tiger, "s", (char *msg)    // tiger debug command
 {
     tiger::hashval hash;
-    tiger::hash((uchar *)msg, (int)strlen(msg), hash);
+//    tiger::hash((uchar *)msg, (int)strlen(msg), hash);
+    void *s = tigerhash_init((uchar *)&hash);
+    tigerhash_add((uchar *)&hash, msg, (int)strlen(msg), s);
+    tigerhash_finish((uchar *)&hash, s);
     defformatstring(erg)("TIGER: ");
     loopi(24) concatformatstring(erg, "%02x", hash.bytes[i]);
     conoutf("%s", erg);
@@ -264,6 +309,23 @@ COMMANDF(tiger, "s", (char *msg)    // tiger debug command
 #endif
 #endif
 
+#ifdef _DEBUG
+int __hashtest() // crash, if hash functions don't work properly - no one ever tested the big endian code
+{
+    const char *msg = "The quick brown fox jumps over the lazy dog";
+    const uchar ht[] = { 0x6d, 0x12, 0xa4, 0x1e, 0x72, 0xe6, 0x44, 0xf0, 0x17, 0xb6, 0xf0, 0xe2, 0xf7, 0xb4, 0x4c, 0x62, 0x85, 0xf0, 0x6d, 0xd5, 0xd2, 0xc5, 0xb0, 0x75 };
+    const uchar hs[] = { 0x07, 0xe5, 0x47, 0xd9, 0x58, 0x6f, 0x6a, 0x73, 0xf7, 0x3f, 0xba, 0xc0, 0x43, 0x5e, 0xd7, 0x69, 0x51, 0x21, 0x8f, 0xb7, 0xd0, 0xc8, 0xd7, 0x88, 0xa3, 0x09, 0xd7, 0x85, 0x43, 0x6b, 0xbb, 0x64,
+                         0x2e, 0x93, 0xa2, 0x52, 0xa9, 0x54, 0xf2, 0x39, 0x12, 0x54, 0x7d, 0x1e, 0x8a, 0x3b, 0x5e, 0xd6, 0xe1, 0xbf, 0xd7, 0x09, 0x78, 0x21, 0x23, 0x3f, 0xa0, 0x53, 0x8f, 0x3d, 0xb8, 0x54, 0xfe, 0xe6 };
+    tiger::hashval hash;
+    tiger::hash((uchar *)msg, (int)strlen(msg), hash);
+    uchar shash[SHA512SIZE];
+    sha512(shash, (uchar*)msg, strlen(msg));
+    int res = memcmp(hash.bytes, ht, TIGERHASHSIZE) | memcmp(shash, hs, SHA512SIZE);
+    ASSERT(!res);
+    return res;
+}
+static int __ht = __hashtest();
+#endif
 
 /////////////////////////////////////////////////////////  FNV-1a  ///////////////////////////////////////////////////////////////////
 // Fowler–Noll–Vo is a non-cryptographic hash function created by Glenn Fowler, Landon Curt Noll, and Phong Vo. It is public domain.

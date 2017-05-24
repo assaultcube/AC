@@ -937,6 +937,9 @@ extern int defaultgamelimit(int gamemode);
 // crypto
 #define TIGERHASHSIZE 24
 extern void tigerhash(uchar *hash, const uchar *msg, int len);
+extern void *tigerhash_init(uchar *hash);
+extern void tigerhash_add(uchar *hash, const void *msg, int len, void *state);
+extern void tigerhash_finish(uchar *hash, void *state);
 extern void loadcertdir();     // load all certs in "config/certs"
 #if 0
 // crypto // for AUTH
