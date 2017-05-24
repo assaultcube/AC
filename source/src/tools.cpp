@@ -953,6 +953,10 @@ void sl_detachthread(void *ti) // SDL can't actually detach threads, so this is 
         sem_oldthreads.post();
     }
 }
+
+static uint32_t mainthreadid = SDL_ThreadID();
+bool ismainthread() { return mainthreadid == SDL_ThreadID(); }
+
 #else
 struct sl_threadinfo { int (*fn)(void *); void *data; pthread_t handle; int res; volatile char done; };
 
@@ -997,6 +1001,10 @@ void sl_detachthread(void *ti)
         sem_oldthreads.post();
     }
 }
+
+static pthread_t mainthreadid = pthread_self();
+bool ismainthread() { return pthread_equal(mainthreadid, pthread_self()) != 0; }
+
 #endif
 
 bool sl_pollthread(void *ti)

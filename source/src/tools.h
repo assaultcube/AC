@@ -1023,6 +1023,7 @@ extern int sl_waitthread(void *ti);
 extern bool sl_pollthread(void *ti);
 extern void sl_detachthread(void *ti);
 extern void sl_sleep(int duration);
+extern bool ismainthread();
 
 #endif
 
