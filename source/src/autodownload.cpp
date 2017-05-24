@@ -314,8 +314,8 @@ void processdownload(package *pck, stream *f) // write downloaded data to file(s
                     stream *zf = openfile(path(filename), "wb");
                     if(zf)
                     {
-                        int got = zipmanualread(mz, i, zf, MAXMEDIADOWNLOADFILESIZE); // extract file from zip and write to @filename
-                        clientlogf("extracted %d bytes from %s %s, written to %s", got, pck->name, files[i], filename);
+                        DEBUGCODE(int got =) zipmanualread(mz, i, zf, MAXMEDIADOWNLOADFILESIZE); // extract file from zip and write to @filename
+                        DEBUGCODE(clientlogf("extracted %d bytes from %s %s, written to %s", got, pck->name, files[i], filename));
                         delete zf;
                     }
                 }
@@ -396,7 +396,7 @@ bool dlpackage(httpget &h, package *pck, pckserver *s) // download one package f
         {
             if(h.response == 200)
             {
-                clientlogf("downloaded %s:%d%s, %d bytes (%d raw), %d msec", u.domain, h.ip.port, url, got, h.contentlength, h.elapsedtime);
+                DEBUGCODE(clientlogf("downloaded %s:%d%s, %d bytes (%d raw), %d msec", u.domain, h.ip.port, url, got, h.contentlength, h.elapsedtime));
                 processdownload(pck, h.outstream);
                 h.outstream = NULL; // deleted by processdownload()
                 return true;

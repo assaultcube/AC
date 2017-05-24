@@ -99,9 +99,7 @@ void adddocident(char *name, char *desc)
     c.name = name;
     c.desc = newstring(desc);
     lastident = &c;
-#ifdef _DEBUG
-    if(strlen(desc) > 111) clientlogf("docident: very long description for ident %s (%d)", name, (int)strlen(desc));
-#endif
+    DEBUGCODE(if(strlen(desc) > 111) clientlogf("docident: very long description for ident %s (%d)", name, (int)strlen(desc)));
 }
 COMMANDN(docident, adddocident, "ss");
 
@@ -127,6 +125,10 @@ COMMANDN(docremark, adddocremark, "s");
 void adddocref(char *refident)
 {
     if(!lastident || !refident || !*refident) return;
+#ifdef _DEBUG
+    if(!strcasecmp(refident, lastident->name)) clientlogf("docref: circular reference for %s", refident);
+    loopv(lastident->references) if(!strcasecmp(lastident->references[i], refident)) clientlogf("docref: double reference %s in %s", refident, lastident->name);
+#endif
     lastident->references.add(newstring(refident));
 }
 COMMANDN(docref, adddocref, "s");
@@ -207,14 +209,23 @@ COMMAND(docundone, "i");
 
 void docinvalid()
 {
-    vector<const char *> inames;
-    identnames(inames, true);
+    vector<const char *> inames, irefs;
+    enumerate(docidents, docident, d, if(!strchr(d.name, ' ') && !identexists(d.name)) inames.add(d.name););
     inames.sort(stringsort);
+    if(inames.length()) conoutf("no such ident:");
+    loopv(inames) conoutf(" %s", inames[i]);
     enumerate(docidents, docident, d,
     {
-        if(!strchr(d.name, ' ') && !identexists(d.name))
-            conoutf("%s", d.name);
+        loopv(d.references) if(!identexists(d.references[i]))
+        {
+            bool add = true;
+            loopvj(inames) if(!strcasecmp(inames[j], d.references[i])) add = false; // don't list references to nonexisting but documented entries
+            if(add) irefs.add(d.references[i]);
+        }
     });
+    irefs.sort(stringsort);
+    if(irefs.length()) conoutf("no such reference:");
+    loopv(irefs) conoutf(" %s", irefs[i]);
 }
 COMMAND(docinvalid, "");
 

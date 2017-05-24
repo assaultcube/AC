@@ -553,7 +553,7 @@ void addzipmod(char *name)
     mountzip(*arch, NULL, NULL, !strncmp(behindpath(name), "###", 3));
     archives.add(arch);
     rebuildzipfilehashtable();
-    clientlogf("added zipmod %s, %d bytes, %d files", pname, zipsize, arch->files.length());
+    DEBUGCODE(clientlogf("added zipmod %s, %d bytes, %d files", pname, zipsize, arch->files.length()));
 }
 COMMAND(addzipmod, "s");
 

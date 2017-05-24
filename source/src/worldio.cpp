@@ -281,9 +281,9 @@ void unpackheaderextra(uchar *buf, int len)  // break the extra data from the ma
     DEBUG("unpacking " << len << " bytes");
     while(1)
     {
-        int len = getuint(p), flags = getuint(p), type = flags & HX_TYPEMASK;
+        int len = getuint(p), flags = getuint(p);
         if(p.overread() || len > p.remaining()) break;
-        clientlogf(" found headerextra \"%s\", %d bytes%s", hx_name(type), len, flags & HX_FLAG_PERSIST ? ", persistent" : "");  // debug info
+        DEBUGCODE(clientlogf(" found headerextra \"%s\", %d bytes%s", hx_name(flags & HX_TYPEMASK), len, flags & HX_FLAG_PERSIST ? ", persistent" : ""));  // debug info
         headerextras.add(new headerextra(len, flags, p.subbuf(len).buf));
     }
 }
