@@ -1412,6 +1412,7 @@ void retrieveservers(vector<char> &data)
 }
 
 VARP(masterupdatefrequency, 1, 60*60, 24*60*60);
+VAR(msctrl, 1, 1, INT_MAX);
 
 void updatefrommaster(int force)
 {

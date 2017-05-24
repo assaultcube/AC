@@ -782,9 +782,10 @@ const char *mitemkeyinput::empty = " ";
 struct mitemcheckbox : mitem
 {
     char *text, *valueexp, *action;
+    int pos;
     bool checked;
 
-    mitemcheckbox(gmenu *parent, char *text, char *value, char *action, color *bgcolor) : mitem(parent, bgcolor, mitem::TYPE_CHECKBOX), text(text), valueexp(value), action(action), checked(false) {};
+    mitemcheckbox(gmenu *parent, char *text, char *value, char *action, int pos, color *bgcolor) : mitem(parent, bgcolor, mitem::TYPE_CHECKBOX), text(text), valueexp(value), action(action), pos(pos), checked(false) {}
 
     ~mitemcheckbox()
     {
@@ -793,7 +794,7 @@ struct mitemcheckbox : mitem
         DELETEA(action);
     }
 
-    virtual int width() { return text_width(text) + FONTH + FONTH/3; }
+    virtual int width() { return text_width(text) + (pos ? menurighttabwidth : FONTH + FONTH/3); }
 
     virtual int select()
     {
@@ -813,12 +814,16 @@ struct mitemcheckbox : mitem
     {
         bool sel = isselection();
         const static int boxsize = FONTH;
+        int offs = ((menurighttabwidth - FONTH) * (msctrl % 41 ? pos : 50 + 50 * sinf(totalmillis / 300.0f + y))) / 100;
+
         draw_text(text, x, y);
         if(sel)
         {
-            renderbg(x+w-boxsize, y, boxsize, menuselbgcolor);
-            renderbg(x, y, w-boxsize-FONTH/2, menuseldescbgcolor);
+            renderbg(x, y, w-boxsize-offs-FONTH/2, menuseldescbgcolor);
+            renderbg(x+w-boxsize-offs, y, boxsize, menuselbgcolor);
+            if(offs > FONTH/2) renderbg(x+w-offs+FONTH/2, y, offs-FONTH/2, menuseldescbgcolor);
         }
+        x -= offs;
         blendbox(x+w-boxsize, y, x+w, y+boxsize, false, -1, &gray);
         if(checked)
         {
@@ -1066,12 +1071,12 @@ void menuitemspectkeyinput(char *text, char *bindcmd)
 }
 COMMAND(menuitemspectkeyinput, "ss");
 
-void menuitemcheckbox(char *text, char *value, char *action)
+void menuitemcheckbox(char *text, char *value, char *action, int *pos)
 {
     if(!lastmenu) return;
-    lastmenu->items.add(new mitemcheckbox(lastmenu, newstring(text), newstring(value), action[0] ? newstring(action) : NULL, NULL));
+    lastmenu->items.add(new mitemcheckbox(lastmenu, newstring(text), newstring(value), action[0] ? newstring(action) : NULL, clamp(*pos, 0, 100), NULL));
 }
-COMMAND(menuitemcheckbox, "sss");
+COMMAND(menuitemcheckbox, "sssi");
 
 void menumdl(char *mdl, char *anim, int *rotspeed, int *scale)
 {

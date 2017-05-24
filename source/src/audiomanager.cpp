@@ -837,8 +837,8 @@ void enumsounds(char *what)
     int flags = 0, nflags = 0;
     loopv(w)
     {
-        if(w[i][0] == '!') nflags |= 1 << getlistindex(w[i] + 1, soundcategories, false, 0);
-        else flags |= 1 << getlistindex(w[i], soundcategories, false, 0);
+        if(w[i][0] == '!') nflags |= 1 << getlistindex(w[i] + 1, soundcategories, false, SC_NUM);
+        else flags |= 1 << getlistindex(w[i], soundcategories, false, SC_NUM);
         delstring(w[i]);
     }
     vector<char> res;

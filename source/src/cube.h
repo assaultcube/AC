@@ -54,8 +54,7 @@ extern bool intermission;
 extern int arenaintermission;
 extern hashtable<char *, enet_uint32> mapinfo;
 extern int hwtexsize, hwmaxaniso;
-extern int maploaded;
-extern int verbose;
+extern int maploaded, msctrl;
 extern float waterlevel;
 
 #define AC_VERSION 1202

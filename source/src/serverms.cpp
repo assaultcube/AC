@@ -161,7 +161,6 @@ void flushmasterinput()
 }
 
 extern char *global_name;
-extern int interm;
 extern int totalclients;
 
 // send alive signal to masterserver after 40 minutes of uptime and if currently in intermission (so theoretically <= 1 hour)
