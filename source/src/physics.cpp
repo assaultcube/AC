@@ -133,7 +133,7 @@ static int cornersurface = 0;
 
 bool mmcollide(physent *d, float &hi, float &lo)           // collide with a mapmodel
 {
-    const float eyeheight = d->eyeheight;
+    const float eyeheight = d->eyeheight, SQRT2HALF = SQRT2 / 2.0f;
     const float playerheight = eyeheight + d->aboveeye;
     if(editmode) clentstats.firstclip = 0;
     for(int i = clentstats.firstclip; i < ents.length(); i++)
@@ -150,7 +150,7 @@ bool mmcollide(physent *d, float &hi, float &lo)           // collide with a map
                     break;
                 case 3: // clip rotated 45°
                 {
-                    float rx = (e.x - d->o.x) * 0.707106781f, ry = (e.y - d->o.y) * 0.707106781f, rr = d->radius * 1.414213562f; // rotate player instead of clip (adjust player radius to compensate)
+                    float rx = (e.x - d->o.x) * SQRT2HALF, ry = (e.y - d->o.y) * SQRT2HALF, rr = d->radius * SQRT2; // rotate player instead of clip (adjust player radius to compensate)
                     float a1 = fabs(rx - ry) - float(e.attr3) / ENTSCALE5 - rr, a2 = fabs(rx + ry) - float(e.attr2) / ENTSCALE5 - rr;
                     if(a1 < 0 && a2 < 0)
                     {
@@ -243,8 +243,8 @@ bool collide(physent *d, bool spawn, float drop, float rise)
 
             case CORNER:
             {
-                sqr *ns = NULL, *h = NULL;
-                int bx = x, by = y, bs = 1;
+                sqr *ns, *h = NULL;
+                int bx, by, bs;
                 int q = cornertest(x, y, bx, by, bs, ns, h);
                 bool matter = false, match = false;
                 switch(q)                          //  0XX3

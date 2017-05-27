@@ -1004,6 +1004,7 @@ void readdepth(int w, int h, vec &pos)
     vec4 world;
     invmvpmatrix.transform(screen, world);
     pos = vec(world.x, world.y, world.z).div(world.w);
+    intersectgeometry(camera1->o, pos);
 }
 
 VARP(ignoreoverride_nowaterreflect, 0, 0, 1);

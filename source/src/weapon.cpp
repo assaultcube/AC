@@ -320,13 +320,6 @@ int intersect(playerent *d, const vec &from, const vec &to, vec *end)
         return 1;
     }
     return 0;
-
-#if 0
-    const float eyeheight = d->eyeheight;
-    vec o(d->o);
-    o.z += (d->aboveeye - eyeheight)/2;
-    return intersectbox(o, vec(d->radius, d->radius, (d->aboveeye + eyeheight)/2), from, to, end) ? 1 : 0;
-#endif
 }
 
 bool intersect(entity *e, const vec &from, const vec &to, vec *end)
@@ -373,6 +366,196 @@ playerent *playerincrosshair()
         return intersectclosest(camera1->o, worldpos, (playerent *)camera1, dist, hitzone, false);
     }
     else return NULL;
+}
+
+inline bool intersecttriangle(const vec &from, const vec &dir, const vec &v0, const vec &v1, const vec &v2, vec *end, float *_t) // precise but rather expensive, based on Moeller–Trumbore intersection algorithm
+{
+    const float EPSILON = 0.00001f;
+    vec edge1 = v1; edge1.sub(v0);      // edge1 = v1 - v0
+    vec edge2 = v2; edge2.sub(v0);      // edge2 = v2 - v0
+    vec pvec; pvec.cross(dir, edge2);   // pvec = dir x edge2
+    float det = edge1.dot(pvec);        // det = edge1 * pvec
+    if(fabs(det) < EPSILON) return false;
+    float invdet = 1.0f / det;
+    vec tvec = from; tvec.sub(v0);      // tvec = from - v0
+    float u = invdet * tvec.dot(pvec);  // u = tvec * pvec / det
+    if(u < 0.0f || u > 1.0f) return false;
+    vec qvec; qvec.cross(tvec, edge1);  // qvec = tvec x edge1
+    float v = invdet * dir.dot(qvec);   // v = dir * qvec / det
+    if(v < 0.0f || u + v > 1.0f) return false;
+    float t = invdet * edge2.dot(qvec); // t = edge2 * qvec / det
+    if(t < EPSILON) return false;
+    if(_t) *_t = t;                     // 0..1 if intersection is between from and to
+    if(end) *end = dir, end->mul(t).add(from); // calculate point of intersection
+    return true;
+}
+
+inline bool intersecttriangle2(const vec &from, const vec &to, const vec &v0, const vec &v1, const vec &v2, vec *end, float *_t)
+{
+    vec dir = to; dir.sub(from);        // dir = to - from
+    return intersecttriangle(from, dir, v0, v1, v2, end, _t);
+}
+
+inline bool intersectcorner(const vec &from, const vec &dir, int x, int y, int size, bool cdir, vec *end, float *_t)
+{
+    float fsx, fsy, dsx, dsy;
+    if(cdir)
+    {
+        dsx = dir.x + dir.y; fsx = from.x - x + from.y - y - size;
+        dsy = dir.y - dir.x; fsy = from.y - y - from.x + x + size;
+    }
+    else
+    {
+        dsx = dir.x - dir.y; fsx = from.x - x - from.y + y;
+        dsy = dir.y + dir.x; fsy = from.y - y + from.x - x;
+    }
+    if(!dsx) return false;
+    float t = -fsx / dsx;
+    float dy = dsy * t + fsy;
+    if(fabs(t * dsx + fsx) < NEARZERO && dy >= 0 && dy <= 2 * size)
+    {
+        if(_t) *_t = t;
+        if(end) *end = dir, end->mul(t).add(from);
+        return true;
+    }
+    return false;
+}
+
+void intersectgeometry(const vec &from, vec &to) // check line for contact with map geometry, shorten if necessary
+{
+    int x = from.x, y = from.y, hfnb[4] = { 0, 1, ssize, ssize +1 };
+    if(OUTBORD(x, y) || from.z < -127.0f || from.z > 127.0f) return;
+    vec d = to;                                     // d: direction
+    d.sub(from);
+
+    float distmin = 1.0f, vdelta[4];
+    sqr *r[2], *s, *nb[4];
+    if(fabs(d.x) + fabs(d.y) < 2.0f) d.mul((distmin = 32.0f));
+    loop(xy, 2) // first check x == const planes and then y == const planes
+    {
+        float dxy = xy ? d.y : d.x, fromxy = xy ? from.y : from.x;
+        bool dxynz = fabs(dxy) < NEARZERO;
+        if(dxy == 0.0f) dxy = 1e-20;        // hack
+
+        int ixy = fromxy, step = dxy < 0 ? -1 : 1, steps = fabs(dxy) + 1, sqrdir = xy ? -ssize : -1;
+        while(steps-- > 0)
+        {
+            // intersect d with plane
+            float t = dxynz ? distmin : (ixy - fromxy) / dxy;
+            vec p = d;
+            p.mul(t).add(from);
+
+            // check position
+            if(xy) x = p.x, y = ixy;
+            else x = ixy, y = p.y;
+            if(t > distmin || OUTBORD(x, y)) break;
+
+            // always check cubes on both sides of the plane
+            r[0] = S(x, y);
+            r[1] = r[0] + sqrdir;
+            if(t > 0) loopk(2)
+            {
+                s = r[k];
+                if(SOLID(s) || s->floor > p.z || s->ceil < p.z || s->type == CORNER)
+                { // cube s is a probable hit, examine further
+                    if(k)
+                    { // match x|y back to s
+                        if(xy) y--;
+                        else x--;
+                    }
+
+                    if(s->type == CORNER)
+                    {
+                        sqr *ns, *h = NULL, *n;
+                        int bx, by, bs;
+                        int q = cornertest(x, y, bx, by, bs, ns, h);
+                        vec newto; float newdist;
+                        if(intersectcorner(from, d, bx, by, bs, !(q & 1), &newto, &newdist) && newdist < distmin && (!h || newto.z < ns->floor || newto.z > ns->ceil)) to = newto, distmin = newdist;
+                        if(d.z)
+                        { // intersect with z == const plane where the corner ends
+                            bool downwards = d.z < 0.0f;
+                            n = h ? h : ns;
+                            float endplate = downwards ? n->floor : n->ceil;
+                            float tz = (endplate - from.z) / d.z;
+                            vec pz = d;
+                            pz.mul(tz).add(from);
+                            if(pz.x >= bx && pz.x <= bx + bs && pz.y >= by && pz.y <= by + bs && tz < distmin) to = pz, distmin = tz;
+                            if(h)
+                            { // intersect with the triangles where socket corners end
+                                float sockplate = downwards ? ns->floor : ns->ceil;
+                                tz = (sockplate - from.z) / d.z;
+                                pz = d; pz.mul(tz).add(from);
+                                float cx = pz.x - bx, cy = pz.y - by;
+                                bool hit = false;
+                                switch(q)                                   //  0XX3
+                                {                                           //  XXXX
+                                    case 0: hit = cx + cy >= bs; break;     //  1XX2
+                                    case 1: hit = cx >= cy;      break;
+                                    case 2: hit = cx + cy <= bs; break;
+                                    case 3: hit = cx <= cy;      break;
+                                    default: hit = true;         break;     // annoy bad mappers
+                                }
+                                if(hit && cx >= 0 && cy >= 0 && cx <= bs && cy <= bs && tz < distmin) to = pz, distmin = tz;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // finish checking walls
+                        if(SOLID(s) || s->type == SPACE || (s->type == CHF && s->floor > p.z) || (s->type == FHF && s->ceil < p.z))
+                        {
+                            if(t < distmin) to = p, distmin = t;
+                        }
+                        else if(s->type == CHF || s->type == FHF)
+                        {
+                            loopi(4) vdelta[i] = ((nb[i] = s + hfnb[i]))->vdelta;   // 23
+                            int nb2 = "\002\001\013\023"[xy + 2 * k], nb1 = nb2 >> 3; nb2 &= 3;
+                            if(s->type == FHF)
+                            { // FHF side surfaces
+                                float a = s->floor - vdelta[nb1] / 4.0f, b = (vdelta[nb1] - vdelta[nb2]) / 4.0f, dummy, i = modff(xy ? p.x : p.y, &dummy);
+                                if(a + i * b > p.z && t < distmin) to = p, distmin = t;
+                            }
+                            else
+                            { // CHF side surfaces
+                                float a = s->ceil + vdelta[nb1] / 4.0f, b = (vdelta[nb2] - vdelta[nb1]) / 4.0f, dummy, i = modff(xy ? p.x : p.y, &dummy);
+                                if(a + i * b < p.z && t < distmin) to = p, distmin = t;
+                            }
+                        }
+
+                        // check floor and ceiling
+                        bool isflat = true, downwards = d.z < 0.0f;
+                        if(s->type == CHF || s->type == FHF) loopi(3) if(vdelta[3] != vdelta[i]) isflat = false;
+                        float h = downwards ? s->floor - (isflat && s->type == FHF ? vdelta[0] / 4.0f : 0) : s->ceil + (isflat && s->type == CHF ? vdelta[0] / 4.0f : 0);
+                        if(isflat || (downwards && s->type == CHF) || (!downwards && s->type == FHF))
+                        { // intersect with z == const plane on either SPACE or flat ends of FHF and CHF
+                            float tz = d.z != 0.0f ? (h - from.z) / d.z : distmin;
+                            vec pz = d;
+                            pz.mul(tz).add(from);
+                            if(int(pz.x) == x && int(pz.y) == y && tz < distmin) to = pz, distmin = tz;
+                        }
+                        if(!isflat)
+                        { // sloped CHF or FHF: check two triangles, regardless of "downwards" or not (FHF slopes can be seen looking upwards)
+                            if(s->type == FHF) loopi(4) vdelta[i] *= -1.0f;
+                            float hh = s->type == FHF ? s->floor : s->ceil;
+                            vec v0(x, y, hh + vdelta[0] / 4.0f), v1(x + 1, y, hh + vdelta[1] / 4.0f), v2(x, y + 1, hh + vdelta[2] / 4.0f), v3(x + 1, y + 1, hh + vdelta[3] / 4.0f);
+                            float newdist; vec newto;
+                            if(s->type == FHF)
+                            {
+                                if(intersecttriangle(from, d, v0, v1, v2, &newto, &newdist) && newdist < distmin) to = newto, distmin = newdist;
+                                if(intersecttriangle(from, d, v3, v1, v2, &newto, &newdist) && newdist < distmin) to = newto, distmin = newdist;
+                            }
+                            else
+                            {
+                                if(intersecttriangle(from, d, v0, v1, v3, &newto, &newdist) && newdist < distmin) to = newto, distmin = newdist;
+                                if(intersecttriangle(from, d, v2, v0, v3, &newto, &newdist) && newdist < distmin) to = newto, distmin = newdist;
+                            }
+                        }
+                    }
+                }
+            }
+            ixy += step;
+        }
+    }
 }
 
 void damageeffect(int damage, playerent *d)

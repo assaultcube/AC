@@ -83,6 +83,7 @@ inline int iabs(int n) { return labs(n); }
 #define SQRT2 (1.414213562f)
 #define SQRT3 (1.732050808f)
 #define RAD   (0.01745329252f) /* PI / 180 */
+#define NEARZERO (0.000245f)   /* epsilon for 1<<LARGEST_FACTOR, use to check if "zero enough" */
 
 #ifdef WIN32
 #ifndef __GNUC__

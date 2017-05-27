@@ -976,12 +976,21 @@ void initclientlog()  // rotate old logfiles and create new one
     DELETEP(bootclientlog);
 }
 
+#ifdef _DEBUG
+void sanitychecks()
+{
+    ASSERT((GMMASK__BOT ^ GMMASK__MP ^ GMMASK__TEAM ^ GMMASK__FFA ^ GMMASK__TEAMSPAWN ^ GMMASK__FFASPAWN) == GMMASK__ALL);
+    float fa = 1 << LARGEST_FACTOR, fb = fa;
+    while(fa != fa + fb) fb /= 2;
+    ASSERT(2 * fb < NEARZERO);
+}
+#endif
+
 #define DEFAULTPROFILEPATH "profile"
 
 int main(int argc, char **argv)
 {
-    ASSERT((GMMASK__BOT ^ GMMASK__MP ^ GMMASK__TEAM ^ GMMASK__FFA ^ GMMASK__TEAMSPAWN ^ GMMASK__FFASPAWN) == GMMASK__ALL);
-
+    DEBUGCODE(sanitychecks());
     extern struct servercommandline scl;
     #ifdef WIN32
     //atexit((void (__cdecl *)(void))_CrtDumpMemoryLeaks);

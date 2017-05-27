@@ -853,6 +853,7 @@ extern int loadallxmaps();
 // physics
 extern float raycube(const vec &o, const vec &ray, vec &surface);
 extern bool raycubelos(const vec &from, const vec &to, float margin = 0);
+extern int cornertest(int x, int y, int &bx, int &by, int &bs, sqr *&s, sqr *&h);
 extern void moveplayer(physent *pl, int moveres, bool local);
 extern void moveplayer(physent *pl, int moveres, bool local, int curtime);
 extern void movebounceent(bounceent *p, int moveres, bool local);
@@ -899,6 +900,7 @@ extern playerent *playerincrosshair();
 extern int magsize(int gun);
 extern void setscope(bool activate);
 extern void setburst(bool activate);
+extern void intersectgeometry(const vec &from, vec &to);
 extern int intersect(playerent *d, const vec &from, const vec &to, vec *end = NULL);
 extern bool intersect(entity *e, const vec &from, const vec &to, vec *end = NULL);
 extern void damageeffect(int damage, playerent *d);
