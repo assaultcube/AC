@@ -862,16 +862,18 @@ void shiftgametime(int newmillis)
     }
 }
 
-void setminutesremaining(int *minutes)
+void setminutesremaining(char *minutes)
 {
-    shiftgametime(gametimemaximum - (*minutes)*60000);
+    if(*minutes) shiftgametime(gametimemaximum - ATOI(minutes) * 60000);
 }
+COMMANDN(setmr, setminutesremaining, "s");
 
-void rewinddemo(int *seconds)
+void rewinddemo(char *seconds)
 {
     int gamemillis = gametimecurrent+(lastmillis-lastgametimeupdate);
-    shiftgametime(gamemillis - (*seconds)*1000);
+    if(*seconds) shiftgametime(gamemillis - ATOI(seconds) * 1000);
 }
+COMMANDN(rewind, rewinddemo, "s");
 
 COMMAND(sendmap, "s");
 COMMAND(getmap, "ss");
@@ -880,6 +882,4 @@ COMMAND(resetsecuremaps, "");
 COMMAND(securemap, "s");
 COMMAND(getdemo, "is");
 COMMAND(listdemos, "");
-COMMANDN(setmr, setminutesremaining, "i");
-COMMANDN(rewind, rewinddemo, "i");
 
