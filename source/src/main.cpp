@@ -152,9 +152,10 @@ void writeinitcfg()
     f->printf("stencilbits %d\n", stencilbits);
     f->printf("fsaa %d\n", fsaa);
     f->printf("vsync %d\n", vsync);
-    extern int audio, soundchannels;
+    extern int audio, soundchannels, igraphdefaultframetime;
     f->printf("audio %d\n", audio > 0 ? 1 : 0);
     f->printf("soundchannels %d\n", soundchannels);
+    f->printf("igraphdefaultframetime %d\n", igraphdefaultframetime);
     if(lang && *lang) f->printf("lang %s\n", lang);
     extern void writezipmodconfig(stream *f);
     writezipmodconfig(f);
@@ -1171,6 +1172,7 @@ int main(int argc, char **argv)
     if(!notexture) fatal("could not find core textures (hint: run AssaultCube from the parent of the bin directory)");
 
     initlog("console");
+    updateigraphs();
     autostartscripts("_veryfirst_");
     // Main font file, all other font files execute from here.
     if(!execfile("config/font.cfg")) fatal("cannot find default font definitions");

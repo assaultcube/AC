@@ -763,7 +763,6 @@ void resetcomplete()
 bool nickcomplete(char *s, bool reversedirection)
 {
     static int nickcompleteidx;
-    if(!players.length()) return false;
 
     char *cp = strrchr(s, ' '); // find last space
     cp = cp ? cp + 1 : s;
@@ -775,13 +774,18 @@ bool nickcomplete(char *s, bool reversedirection)
     }
 
     vector<int> matchingnames;
+    vector<const char *> matchingigs;
     loopv(players) if(players[i] && !strncasecmp(players[i]->name, cp, nickcompletesize)) matchingnames.add(i);   // find all matching player names first
-    if(matchingnames.length())
+    if(nickcompletesize > 0 && *cp == ':') enumigraphs(matchingigs, cp + 1, nickcompletesize - 1); // find all matching igraphs
+    int totalmatches = matchingnames.length() + matchingigs.length();
+    if(totalmatches)
     {
-        nickcompleteidx += reversedirection ? matchingnames.length() - 1 : 1;
-        nickcompleteidx %= matchingnames.length();
-        const char *fillin = players[matchingnames[nickcompleteidx]]->name;
+        nickcompleteidx += reversedirection ? totalmatches - 1 : 1;
+        nickcompleteidx %= totalmatches;
+        bool isig = nickcompleteidx >= matchingnames.length();
+        const char *fillin = isig ? matchingigs[nickcompleteidx - matchingnames.length()] : players[matchingnames[nickcompleteidx]]->name;
         if(*fillin == '/' && cp == s) *cp++ = ' ';
+        if(isig) cp++;
         *cp = '\0';
         concatstring(s, fillin);
         return true;

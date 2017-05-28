@@ -12,7 +12,8 @@ template<class LINE> struct consolebuffer
         LINE cl;
         cl.line = conlines.length()>maxlines ? conlines.pop().line : newstringbuf("");   // constrain the buffer size
         cl.millis = millis;                        // for how long to keep line on screen
-        copystring(cl.line, sf);
+        extern void encodeigraphs(char *d, const char *s, int len);
+        encodeigraphs(cl.line, sf, MAXSTRLEN);
         return conlines.insert(0, cl);
     }
 

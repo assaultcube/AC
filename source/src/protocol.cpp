@@ -287,6 +287,11 @@ char *filtertext(char *dst, const char *src, int flags, int len)
             }
             pass = true;
         }
+        if(c == '\1')
+        { // always filter encoded igraphs
+            if(src[1]) ++src;
+            continue;
+        }
         if(mapname && !isalnum(c) && !strchr("_-./\\", c)) continue;
         if(isspace(c))
         {
@@ -326,6 +331,7 @@ void filterrichtext(char *dst, const char *src, int len)
             {
                 case '\0': --src; continue;
                 case 'f': c = '\f'; break;
+                case 'i': c = '\1'; break;
                 case 'a': c = '\a'; break;
                 case 't': c = '\t'; break;
                 case 'n': c = '\n'; break;
