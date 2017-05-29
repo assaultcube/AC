@@ -1338,7 +1338,7 @@ int main(int argc, char **argv)
         computeraytable(camera1->o.x, camera1->o.y, dynfov());
         if(frames>3 && !minimized)
         {
-            gl_drawframe(screen->w, screen->h, fps<lowfps ? fps/lowfps : (fps>highfps ? fps/highfps : 1.0f), fps);
+            gl_drawframe(screen->w, screen->h, fps<lowfps ? fps/lowfps : (fps>highfps ? fps/highfps : 1.0f), fps, elapsed);
             if(frames>4) SDL_GL_SwapBuffers();
         }
 
@@ -1349,7 +1349,7 @@ int main(int argc, char **argv)
             // in the screenshot regardless of which frame buffer is current
             if (!minimized)
             {
-                gl_drawframe(screen->w, screen->h, fps<lowfps ? fps/lowfps : (fps>highfps ? fps/highfps : 1.0f), fps);
+                gl_drawframe(screen->w, screen->h, fps<lowfps ? fps/lowfps : (fps>highfps ? fps/highfps : 1.0f), fps, elapsed);
             }
             addsleep(0, "screenshot");
             needsautoscreenshot = false;

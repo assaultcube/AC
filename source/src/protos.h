@@ -392,7 +392,7 @@ extern void circle(GLuint tex, float x, float y, float r, float tx, float ty, fl
 extern void framedquadtexture(GLuint tex, int x, int y, int xs, int ys, int border = 0, int backlight = 255, bool blend = false);
 extern void setperspective(float fovy, float aspect, float nearplane, float farplane);
 extern void sethudgunperspective(bool on);
-extern void gl_drawframe(int w, int h, float changelod, float curfps);
+extern void gl_drawframe(int w, int h, float changelod, float curfps, int elapsed);
 extern void clearminimap();
 extern void resetzones();
 extern void rendercursor(int x, int y, int w);
@@ -775,8 +775,9 @@ enum
     HUDMSG_TYPE = 0xFF,
     HUDMSG_OVERWRITE = 1<<8
 };
+extern int dimeditinfopanel;
 extern void damageblend(int n, void *p);
-extern void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwater);
+extern void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwater, int elapsed);
 extern void loadingscreen(const char *fmt = NULL, ...) PRINTFARGS(1, 2);
 extern void hudoutf(const char *s, ...) PRINTFARGS(1, 2);
 extern void hudonlyf(const char *s, ...) PRINTFARGS(1, 2);

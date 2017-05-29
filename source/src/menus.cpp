@@ -1316,6 +1316,7 @@ bool rendermenumdl()
     rendermodel(isplayermodel ? "playermodels" : m.mdl, m.anim|ANIM_DYNALLOC, tex, -1, pos, 0, yaw, pitch, 0, 0, NULL, a, m.scale ? m.scale/25.0f : 1.0f);
 
     glPopMatrix();
+    dimeditinfopanel = 0;
     return !(isplayermodel || isweapon);
 }
 

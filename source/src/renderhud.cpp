@@ -83,12 +83,14 @@ VARP(hideradar, 0, 0, 1);
 VARP(hidecompass, 0, 0, 1);
 VARP(hideteam, 0, 0, 1);
 VARP(hideteamscorehud, 0, 0, 1);
+VARP(hideeditinfopanel, 0, 0, 1);
 VARP(hidevote, 0, 0, 2);
 VARP(hidehudmsgs, 0, 0, 1);
 VARP(hidehudequipment, 0, 0, 1);
 VARP(hideconsole, 0, 0, 1);
 VARP(hidespecthud, 0, 0, 1);
 VAR(showmap, 0, 0, 1);
+VARP(editinfopanelmillis, 5, 80, 2000);
 
 void drawscope(bool preload)
 {
@@ -769,10 +771,12 @@ VARP(showtargetname,0,1,1);
 VARP(showspeed, 0, 0, 1);
 VAR(blankouthud, 0, 0, 10000); //for "clean" screenshot
 string gtime;
+int dimeditinfopanel = 255;
 
-void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwater)
+void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwater, int elapsed)
 {
-    if(blankouthud > 0) { blankouthud--; return; }
+    if(blankouthud > 0) { blankouthud -= elapsed; return; }
+    else blankouthud = 0;
     playerent *p = camera1->type<ENT_CAMERA ? (playerent *)camera1 : player1;
     bool spectating = player1->isspectating();
 
@@ -910,6 +914,27 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         }
     }
     else if(wallclock) draw_text(ltime, VIRTW*2 - text_width(ltime) - FONTH, VIRTH*2 - 3*FONTH/2);
+
+    if(editmode && !hideeditinfopanel)
+    {
+        static int lasteditip = 0;
+        static char *editip = NULL;
+        if(!lasteditip || totalmillis - lasteditip > editinfopanelmillis)
+        { // update edit info panel
+            lasteditip = totalmillis;
+            const char *editipfunc = getalias("updateeditinfopanel");
+            DELSTRING(editip);
+            editip = executeret(editipfunc);
+        }
+        if(editip && dimeditinfopanel)
+        {
+            int w, h;
+            text_bounds(editip, w, h, -1);
+            draw_text(editip, VIRTW*2 - w - FONTH, VIRTH*13/8 - h, 255, 255, 255, dimeditinfopanel);
+        }
+        dimeditinfopanel += elapsed;
+        if(dimeditinfopanel > 255) dimeditinfopanel = 255;
+    }
 
     if(!intermission && lastgametimeupdate!=0)
     {

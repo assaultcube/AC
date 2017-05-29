@@ -404,6 +404,7 @@ void framedquadtexture(GLuint tex, int x, int y, int xs, int ys, int border, int
     glTexCoord2f(1, 1); glVertex2f(x + xs, y + ys);
     glEnd();
     xtraverts += 4;
+    dimeditinfopanel = 99;
     if(!blend) glEnable(GL_BLEND);
 }
 
@@ -1012,7 +1013,7 @@ VARP(ignoreoverride_nostencilshadows, 0, 0, 1);
 
 int effective_stencilshadow = 0;
 
-void gl_drawframe(int w, int h, float changelod, float curfps)
+void gl_drawframe(int w, int h, float changelod, float curfps, int elapsed)
 {
     extern int mapoverride_nostencilshadows, mapoverride_nowaterreflect;
     effective_stencilshadow = mapoverride_nostencilshadows && !ignoreoverride_nostencilshadows ? 0 : stencilshadow;
@@ -1155,7 +1156,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
     tagclipcubes.setsize(0);
 
     extern vector<vertex> verts;
-    gl_drawhud(w, h, int(curfps + 0.5f), nquads, verts.length(), underwater);
+    gl_drawhud(w, h, int(curfps + 0.5f), nquads, verts.length(), underwater, elapsed);
 
     glEnable(GL_CULL_FACE);
     glEnable(GL_FOG);
