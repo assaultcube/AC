@@ -707,6 +707,14 @@ void damageblend(int n, void *p)
     damageblendplayer = p;
 }
 
+inline char rangecolor(int val, const char *colors, int thres1, int thres2, int thres3)
+{
+    if(val < thres1) return colors[0];
+    else if(val < thres2) return colors[1];
+    else if(val < thres3) return colors[2];
+    return colors[3];
+}
+
 void drawmedals(float x, float y, int col, int row, Texture *tex)
 {
     if(tex)
@@ -753,8 +761,7 @@ void drawscores()
 }
 
 string enginestateinfo = "";
-void CSgetEngineState() { result(enginestateinfo); }
-COMMANDN(getEngineState, CSgetEngineState, "");
+COMMANDF(getEngineState, "", () { result(enginestateinfo); });
 
 VARP(gametimedisplay,0,1,2);
 VARP(dbgpos,0,0,1);
@@ -856,7 +863,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     if(!hideconsole) renderconsole();
     formatstring(enginestateinfo)("%d %d %d %d %d", curfps, lod_factor(), nquads, curvert, xtraverts);
 
-    string ltime;
+    string ltime, text;
     const char *ltimeformat = getalias("wallclockformat");
     bool wallclock = ltimeformat && *ltimeformat;
     //wallclockformat beginning with "U" shows UTC/GMT time
@@ -866,52 +873,20 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     {
         if(showstats==2 && !dbgpos)
         {
-            const int left = (VIRTW-225-10)*2, top = (VIRTH*7/8)*2;
-            const int ttll = VIRTW*2 - 3*FONTH/2;
+            int left = (VIRTW-225-10)*2, top = (VIRTH*7/8)*2, ttll = VIRTW*2 - 3*FONTH/2, lf = lod_factor();
             blendbox(left - 24, top - 24, VIRTW*2 - 72, VIRTH*2 - 48, true, -1);
-            int c_num;
-            int c_r = 255;      int c_g = 255;      int c_b = 255;
-            string c_val;
-    #define TXTCOLRGB \
-            switch(c_num) \
-            { \
-                case 0: c_r = 120; c_g = 240; c_b = 120; break; \
-                case 1: c_r = 120; c_g = 120; c_b = 240; break; \
-                case 2: c_r = 230; c_g = 230; c_b = 110; break; \
-                case 3: c_r = 250; c_g = 100; c_b = 100; break; \
-                default: \
-                    c_r = 255; c_g = 255; c_b =  64; \
-                break; \
-            }
 
-            draw_text("fps", left - (text_width("fps") + FONTH/2), top    );
-            draw_text("lod", left - (text_width("lod") + FONTH/2), top+ 80);
-            draw_text("wqd", left - (text_width("wqd") + FONTH/2), top+160);
-            draw_text("wvt", left - (text_width("wvt") + FONTH/2), top+240);
-            draw_text("evt", left - (text_width("evt") + FONTH/2), top+320);
+            draw_text("fps", left - (text_width("fps") + FONTH/2), top);
+            draw_text("lod", left - (text_width("lod") + FONTH/2), top + 80);
+            draw_text("wqd", left - (text_width("wqd") + FONTH/2), top + 160);
+            draw_text("wvt", left - (text_width("wvt") + FONTH/2), top + 240);
+            draw_text("evt", left - (text_width("evt") + FONTH/2), top + 320);
 
-            //ttll -= 3*FONTH/2;
-
-            formatstring(c_val)("%d", curfps);
-            c_num = curfps > 150 ? 0 : (curfps > 100 ? 1 : (curfps > 30 ? 2 : 3)); TXTCOLRGB
-            draw_text(c_val, ttll - text_width(c_val), top    , c_r, c_g, c_b);
-
-            int lf = lod_factor();
-            formatstring(c_val)("%d", lf);
-            c_num = lf>199?(lf>299?(lf>399?3:2):1):0; TXTCOLRGB
-            draw_text(c_val, ttll - text_width(c_val), top+ 80, c_r, c_g, c_b);
-
-            formatstring(c_val)("%d", nquads);
-            c_num = nquads>3999?(nquads>5999?(nquads>7999?3:2):1):0; TXTCOLRGB
-            draw_text(c_val, ttll - text_width(c_val), top+160, c_r, c_g, c_b);
-
-            formatstring(c_val)("%d", curvert);
-            c_num = curvert>3999?(curvert>5999?(curvert>7999?3:2):1):0; TXTCOLRGB
-            draw_text(c_val, ttll - text_width(c_val), top+240, c_r, c_g, c_b);
-
-            formatstring(c_val)("%d", xtraverts);
-            c_num = xtraverts>3999?(xtraverts>5999?(xtraverts>7999?3:2):1):0; TXTCOLRGB
-            draw_text(c_val, ttll - text_width(c_val), top+320, c_r, c_g, c_b);
+            formatstring(text)("\f%c%d", rangecolor(curfps, "xwvu", 30, 100, 150), curfps);             draw_text(text, ttll - text_width(text), top);
+            formatstring(text)("\f%c%d", rangecolor(lf, "uvwx", 199, 299, 399), lf);                    draw_text(text, ttll - text_width(text), top + 80);
+            formatstring(text)("\f%c%d", rangecolor(nquads, "uvwx", 3999, 5999, 7999), nquads);         draw_text(text, ttll - text_width(text), top + 160);
+            formatstring(text)("\f%c%d", rangecolor(curvert, "uvwx", 3999, 5999, 7999), curvert);       draw_text(text, ttll - text_width(text), top + 240);
+            formatstring(text)("\f%c%d", rangecolor(xtraverts, "uvwx", 3999, 5999, 7999), xtraverts);   draw_text(text, ttll - text_width(text), top + 320);
 
             if(wallclock) draw_text(ltime, ttll - text_width(ltime), top - 90);
             if(unsavededits) draw_text("U", ttll - text_width("U"), top - 90 - (wallclock ? 2*FONTH/2 : 0));
@@ -921,20 +896,14 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             if(dbgpos)
             {
                 pushfont("mono");
-                defformatstring(o_yw)("%05.2f YAW", p->yaw);
-                draw_text(o_yw, VIRTW*2 - ( text_width(o_yw) + FONTH ), VIRTH*2 - 17*FONTH/2);
-                defformatstring(o_p)("%05.2f PIT", p->pitch);
-                draw_text(o_p, VIRTW*2 - ( text_width(o_p) + FONTH ), VIRTH*2 - 15*FONTH/2);
-                defformatstring(o_x)("%05.2f X  ", p->o.x);
-                draw_text(o_x, VIRTW*2 - ( text_width(o_x) + FONTH ), VIRTH*2 - 13*FONTH/2);
-                defformatstring(o_y)("%05.2f Y  ", p->o.y);
-                draw_text(o_y, VIRTW*2 - ( text_width(o_y) + FONTH ), VIRTH*2 - 11*FONTH/2);
-                defformatstring(o_z)("%05.2f Z  ", p->o.z);
-                draw_text(o_z, VIRTW*2 - ( text_width(o_z) + FONTH ), VIRTH*2 - 9*FONTH/2);
+                formatstring(text)("%05.2f YAW", p->yaw);     draw_text(text, VIRTW*2 - ( text_width(text) + FONTH ), VIRTH*2 - 17*FONTH/2);
+                formatstring(text)("%05.2f PIT", p->pitch);   draw_text(text, VIRTW*2 - ( text_width(text) + FONTH ), VIRTH*2 - 15*FONTH/2);
+                formatstring(text)("%05.2f X  ", p->o.x);     draw_text(text, VIRTW*2 - ( text_width(text) + FONTH ), VIRTH*2 - 13*FONTH/2);
+                formatstring(text)("%05.2f Y  ", p->o.y);     draw_text(text, VIRTW*2 - ( text_width(text) + FONTH ), VIRTH*2 - 11*FONTH/2);
+                formatstring(text)("%05.2f Z  ", p->o.z);     draw_text(text, VIRTW*2 - ( text_width(text) + FONTH ), VIRTH*2 - 9*FONTH/2);
                 popfont();
             }
-            defformatstring(c_val)("fps %d", curfps);
-            draw_text(c_val, VIRTW*2 - ( text_width(c_val) + FONTH ), VIRTH*2 - 3*FONTH/2);
+            defformatstring(c_val)("fps %d", curfps);         draw_text(c_val, VIRTW*2 - ( text_width(c_val) + FONTH ), VIRTH*2 - 3*FONTH/2);
 
             if(wallclock) draw_text(ltime, VIRTW*2 - text_width(ltime) - FONTH, VIRTH*2 - 5*FONTH/2);
             if(unsavededits) draw_text("U", VIRTW*2 - text_width("U") - FONTH, VIRTH*2 - (wallclock ? 7 : 5)*FONTH/2);

@@ -214,6 +214,11 @@ static void text_color(char c, char *stack, int size, int &sp, bvec color, int a
 
             case 'Y':color = bvec( 0xC7, 0xD1, 0xE2); break;   // lt gray
             case 'Z':color = bvec( 0x32, 0x32, 0x32); break;   // dark gray
+
+            case 'u': color = bvec(120, 240, 120); break;   // stats: green
+            case 'v': color = bvec(120, 120, 240); break;   // stats: blue
+            case 'w': color = bvec(230, 230, 110); break;   // stats: yellow
+            case 'x': color = bvec(250, 100, 100); break;   // stats: red
         }
         int b = (int) (sinf(lastmillis / 200.0f) * 115.0f);
         b = stack[sp] > 0 ? 100 : min(iabs(b), 100);
