@@ -1121,9 +1121,11 @@ void format(char **args, int numargs)
         if(c == '%')
         {
             int i = *f++;
-            if(i >= '1' && i <= '9')
+            bool twodigit = i == '0' && isdigit(f[0]) && isdigit(f[1]);
+            if((i >= '1' && i <= '9') || twodigit)
             {
-                i -= '0';
+                if(twodigit) i = (f[0] - '0') * 10 + f[1] - '0', f += 2;
+                else i -= '0';
                 const char *sub = i < numargs ? args[i] : "";
                 while(*sub) s.add(*sub++);
             }
@@ -1134,6 +1136,19 @@ void format(char **args, int numargs)
     resultcharvector(s, 0);
 }
 COMMAND(format, "v");
+
+void format2(char **args, int numargs)
+{
+    if(numargs > 0)
+    {
+        vector<char *> pars;
+        pars.add(newstring(args[0]));
+        for(int i = 1; i < numargs ; i++) explodelist(args[i], pars);
+        format(pars.getbuf(), pars.length());
+        loopv(pars) delstring(pars[i]);
+    }
+}
+COMMAND(format2, "v");
 
 #define whitespaceskip do { s += strspn(s, "\n\r\t "); } while(s[0] == '/' && s[1] == '/' && (s += strcspn(s, "\n\r\0")))
 #define elementskip { if(*s=='"') { do { ++s; s += strcspn(s, "\"\n\r"); } while(*s == '\"' && s[-1] == '\\'); s += *s=='"'; } else s += strcspn(s, "\n\r\t "); }
