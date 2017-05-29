@@ -96,6 +96,8 @@ bool noselection()
     return !selset();
 }
 
+VARP(hideeditslotinfo, 0, 0, 2);
+
 char *editinfo()
 {
     static string info;
@@ -107,7 +109,7 @@ char *editinfo()
         entity &c = ents[e];
         int t = c.type < MAXENTTYPES ? c.type : 0;
         formatstring(info)("%s entity: %s (%s)", pinnedclosestent ? "\fs\f3pinned\fr" : "closest", entnames[t], formatentityattributes(c, true));
-        const char *slotinfo = "unassigned slot";
+        const char *unassigned = "unassigned slot", *slotinfo = unassigned;
         if(t == MAPMODEL)
         {
             mapmodelinfo *mmi = getmminfo(c.attr2);
@@ -118,7 +120,7 @@ char *editinfo()
             if(mapconfigdata.mapsoundlines.inrange(c.attr1))  slotinfo = mapconfigdata.mapsoundlines[c.attr1].name;
         }
         else slotinfo = "";
-        if(*slotinfo) concatformatstring(info, " %s", slotinfo);
+        if(*slotinfo && (hideeditslotinfo == 0 || (hideeditslotinfo == 1 && slotinfo == unassigned))) concatformatstring(info, " %s", slotinfo);
     }
     if(selset())
     {
