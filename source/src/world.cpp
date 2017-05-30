@@ -116,21 +116,46 @@ void remipmore(const block &b, int level)
     remip(bb, level);
 }
 
-static int clentsel = 0, clenttype = NOTUSED;
+static int clentsel = 0, clenttype = NOTUSED, pinnedent = -1;
+bool pinnedclosestent = false, pointingatents = false;
 
-void nextclosestent(void) { clentsel++; }
+COMMANDF(nextclosestent, "", () { clentsel++; } );
 
 void closestenttype(char *what)
 {
     clenttype = what[0] ? findtype(what) : NOTUSED;
 }
-
-COMMAND(nextclosestent, "");
 COMMAND(closestenttype, "s");
 
-bool pinnedclosestent = false;
-static int pinnedent = -1;
 COMMANDF(toggleclosestentpin, "", () { pinnedclosestent = ents.inrange((pinnedent = pinnedclosestent ? -1 : closestent())); });
+
+void pointatent(int *_on)
+{
+    bool on = *_on != 0;
+    if(pointingatents != on)
+    {
+        if(on) pinnedclosestent = false;
+        else if(!pinnedclosestent)
+        {
+            int n = closestent();
+            if(n >= 0) pinnedent = n, pinnedclosestent = true;
+        }
+        pointingatents = on;
+    }
+}
+COMMAND(pointatent, "i");
+
+FVARP(pointatentmaxangle, 0.01f, 2.0f, 180.0f);
+
+bool intersectangular(const vec &from, vec ray, vec ent, float maxangle, float &dist)
+{
+    ray.sub(from);
+    ent.sub(from);
+    float v = ent.dot(ray), e = ent.magnitude(), r = ray.magnitude();
+    if(v < maxangle * e * r) return false;
+    dist = e;
+    return true;
+}
 
 int closestent()        // used for delent and edit mode ent display
 {
@@ -141,7 +166,7 @@ int closestent()        // used for delent and edit mode ent display
         pinnedclosestent = false; // release lock when ent is deleted
     }
     int best = -1, bcnt = 0;
-    float bdist = 99999;
+    float bdist = 99999, dist, maxangle = pointingatents ? cosf(pointatentmaxangle * RAD) : -SQRT3;
     loopj(3)
     {
         bcnt = 0;
@@ -153,8 +178,7 @@ int closestent()        // used for delent and edit mode ent display
             bool ice = false;
             loopk(eh_ents.length()) if(eh_ents[k]==e.type) ice = true;
             if(ice) continue;
-            vec v(e.x, e.y, e.z);
-            float dist = v.dist(camera1->o);
+            if(!intersectangular(camera1->o, worldpos, vec(e.x, e.y, e.z), maxangle, dist)) continue;
             if(j)
             {
                 if(ents[best].x == e.x && ents[best].y == e.y && ents[best].z == e.z)
