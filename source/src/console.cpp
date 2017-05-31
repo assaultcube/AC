@@ -82,7 +82,7 @@ struct console : consolebuffer<cline>
 console con;
 textinputbuffer cmdline;
 char *cmdaction = NULL, *cmdprompt = NULL;
-bool saycommandon = false;
+bool saycommandon = false, storeinputcommand = false;
 
 VARFP(maxcon, 10, 200, 1000, con.setmaxlines(maxcon));
 
@@ -313,13 +313,14 @@ void saycommand(char *init)                         // turns input to the comman
 }
 COMMAND(saycommand, "c");
 
-void inputcommand(char *init, char *action, char *prompt)
+void inputcommand(char *init, char *action, char *prompt, int *nopersist)
 {
     saycommand(init);
     if(action[0]) cmdaction = newstring(action);
     if(prompt[0]) cmdprompt = newstring(prompt);
+    storeinputcommand = cmdaction && !*nopersist;
 }
-COMMAND(inputcommand, "sss");
+COMMAND(inputcommand, "sssi");
 
 SVARFF(mapmsg,
 { // read mapmsg
@@ -395,6 +396,7 @@ struct hline
         DELETEA(cmdprompt);
         if(action) cmdaction = newstring(action);
         if(prompt) cmdprompt = newstring(prompt);
+        storeinputcommand = false;
     }
 
     bool shouldsave()
@@ -578,7 +580,11 @@ void consolekey(int code, bool isdown, int cooked, SDLMod mod)
             }
             histpos = history.length();
             saycommand(NULL);
-            if(h) h->run();
+            if(h)
+            {
+                h->run();
+                if(h->action && !storeinputcommand) history.drop();
+            }
         }
         else if((code==SDLK_ESCAPE && !ignoreescup) || code== SDL_AC_BUTTON_RIGHT)
         {
