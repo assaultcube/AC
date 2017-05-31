@@ -6,9 +6,9 @@ VAR(showclips, 0, 1, 1);
 VARP(showmodelclipping, 0, 0, 1);
 VARP(showladderentities, 0, 0, 1);
 VARP(showplayerstarts, 0, 0, 1);
+VAR(edithideentmask, 0, 0, INT_MAX);
 
 vector<entity> ents;
-vector<int> eh_ents; // edithide entities
 
 const char *entmdlnames[] =
 {
@@ -82,62 +82,6 @@ void rendermapmodels()
     }
 }
 
-void showedithide()
-{
-    if(eh_ents.length())
-    {
-        conoutf("Hidden entities:");
-        loopv(eh_ents)
-        {
-            if(eh_ents[i]>0 && eh_ents[i]<MAXENTTYPES) { conoutf("#%02d: %d : %s", i, eh_ents[i], entnames[eh_ents[i]]); }
-            else { conoutf("#%02d: %d : -n/a-", i, eh_ents[i]);  }
-        }
-    }
-    else conoutf("all entities are visible");
-}
-COMMAND(showedithide, "");
-
-void setedithide(char *text) // FIXME: human indexing inside
-{
-    eh_ents.setsize(0);
-    if(text && text[0] != '\0')
-    {
-        char *b, *s = strtok_r(text, " ", &b);
-        do
-        {
-            bool k = false;
-            int sn = -1;
-            int tn = atoi(s);
-            loopi(MAXENTTYPES) if(!strcmp(entnames[i], s)) sn = i;
-            if(sn!=-1) { loopv(eh_ents) { if(eh_ents[i]==sn) { k = true; } } }
-            else sn = tn;
-            if(!k) { if(sn>0 && sn<MAXENTTYPES) eh_ents.add(sn); }
-            s = strtok_r(NULL, " ", &b);
-        }
-        while(s);
-    }
-}
-COMMAND(setedithide, "c");
-
-void seteditshow(char *just)
-{
-    eh_ents.setsize(0);
-    if(just && just[0] != '\0')
-    {
-        char *b, *s = strtok_r(just, " ", &b);
-        int sn = -1;
-        int tn = atoi(s);
-        loopi(MAXENTTYPES) if(!strcmp(entnames[i], s)) sn = i;
-        if(sn==-1) sn = tn;
-        loopi(MAXENTTYPES-1)
-        {
-            int j = i+1;
-            if(j!=sn) eh_ents.add(j);
-        }
-    }
-}
-COMMAND(seteditshow, "s");
-
 void renderentarrow(const entity &e, const vec &dir, float radius)
 {
     if(radius <= 0) return;
@@ -183,9 +127,7 @@ void renderentities()
             {
                 entity &e = ents[i];
                 if(e.type==NOTUSED) continue;
-                bool ice = false;
-                loopk(eh_ents.length()) if(eh_ents[k]==e.type) ice = true;
-                if(ice) continue;
+                if(edithideentmask & (1 << (e.type - 1))) continue;
                 vec v(e.x, e.y, e.z);
                 if(vec(v).sub(camera1->o).dot(camdir) < 0) continue;
                 //particle_splash(i == closest ? PART_ELIGHT : PART_ECLOSEST, 2, 40, v);

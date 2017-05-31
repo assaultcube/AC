@@ -38,7 +38,6 @@ extern vector<bounceent *> bounceents;
 extern bool editmode;
 extern int unsavededits;
 extern vector<entity> ents;             // map entities
-extern vector<int> eh_ents;             // edithide entities
 extern vec worldpos, camup, camright, camdir; // current target of the crosshair in the world
 extern int lastmillis, totalmillis, skipmillis; // last time
 extern int curtime;                     // current frame time

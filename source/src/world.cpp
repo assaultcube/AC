@@ -175,9 +175,7 @@ int closestent()        // used for delent and edit mode ent display
             entity &e = ents[i];
             if(e.type==NOTUSED) continue;
             if(clenttype != NOTUSED && e.type != clenttype) continue;
-            bool ice = false;
-            loopk(eh_ents.length()) if(eh_ents[k]==e.type) ice = true;
-            if(ice) continue;
+            if(edithideentmask & (1 << (e.type - 1))) continue;
             if(!intersectangular(camera1->o, worldpos, vec(e.x, e.y, e.z), maxangle, dist)) continue;
             if(j)
             {

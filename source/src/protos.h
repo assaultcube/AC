@@ -923,6 +923,7 @@ extern void checkweaponstate();
 extern int burstshotssettings[NUMGUNS];
 
 // entities
+extern int edithideentmask;
 extern void pickupeffects(int n, playerent *d);
 extern void renderentities();
 extern void rendermapmodels();
