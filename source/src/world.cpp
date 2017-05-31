@@ -123,7 +123,8 @@ COMMANDF(nextclosestent, "", () { clentsel++; } );
 
 void closestenttype(char *what)
 {
-    clenttype = what[0] ? findtype(what) : NOTUSED;
+    if(strcmp(what, "-")) clenttype = what[0] ? findtype(what) : NOTUSED;
+    intret(clenttype);
 }
 COMMAND(closestenttype, "s");
 
@@ -160,39 +161,36 @@ bool intersectangular(const vec &from, vec ray, vec ent, float maxangle, float &
 int closestent()        // used for delent and edit mode ent display
 {
     if(noteditmode("closestent")) return -1;
+    int best = -1, enttypemask = clenttype == NOTUSED ? ((~edithideentmask) << 1) : (1 << clenttype); // bitmask of selectable ent types
+    float bdist = 99999, dist, maxangle = pointingatents ? cosf(pointatentmaxangle * RAD) : -SQRT3;
     if(pinnedclosestent)
     {
-        if(ents.inrange(pinnedent) && ents[pinnedent].type != NOTUSED) return pinnedent;
-        pinnedclosestent = false; // release lock when ent is deleted
+        if(ents.inrange(pinnedent) && (enttypemask & (1 << ents[pinnedent].type))) best = pinnedent;
+        else pinnedclosestent = false; // release lock when ent is deleted or no longer selectable
     }
-    int best = -1, bcnt = 0;
-    float bdist = 99999, dist, maxangle = pointingatents ? cosf(pointatentmaxangle * RAD) : -SQRT3;
-    loopj(3)
-    {
-        bcnt = 0;
+    if(best < 0)
+    { // find entity of closest distance in desired solid angle
         loopv(ents)
         {
             entity &e = ents[i];
-            if(e.type==NOTUSED) continue;
-            if(clenttype != NOTUSED && e.type != clenttype) continue;
-            if(edithideentmask & (1 << (e.type - 1))) continue;
-            if(!intersectangular(camera1->o, worldpos, vec(e.x, e.y, e.z), maxangle, dist)) continue;
-            if(j)
-            {
-                if(ents[best].x == e.x && ents[best].y == e.y && ents[best].z == e.z)
-                {
-                    if(j == 2 && bcnt == clentsel) return i;
-                    bcnt++;
-                }
-            }
-            else if(dist<bdist)
+            if(!(enttypemask & (1 << e.type))) continue;
+            if(intersectangular(camera1->o, worldpos, vec(e.x, e.y, e.z), maxangle, dist) && dist < bdist)
             {
                 best = i;
                 bdist = dist;
             }
         }
-        if(best < 0 || bcnt == 1) break;
-        if(bcnt) clentsel %= bcnt;
+    }
+    if(best >= 0)
+    { // if closest ent shares location with other ents, pick one with clentsel
+        vector<int> bs;
+        loopv(ents)
+        {
+            entity &e = ents[i];
+            if(!(enttypemask & (1 << e.type))) continue;
+            if(ents[best].x == e.x && ents[best].y == e.y && ents[best].z == e.z) bs.add(i);
+        }
+        best = bs[(clentsel %= bs.length())];
     }
     return best;
 }

@@ -122,7 +122,6 @@ void renderentities()
         if(lastmillis - lastsparkle >= 20)
         {
             lastsparkle = lastmillis - (lastmillis%20);
-            // closest see above
             loopv(ents)
             {
                 entity &e = ents[i];
@@ -130,33 +129,31 @@ void renderentities()
                 if(edithideentmask & (1 << (e.type - 1))) continue;
                 vec v(e.x, e.y, e.z);
                 if(vec(v).sub(camera1->o).dot(camdir) < 0) continue;
-                //particle_splash(i == closest ? PART_ELIGHT : PART_ECLOSEST, 2, 40, v);
-                int sc = PART_ECARROT; // "carrot" (orange) - entity slot currently unused, possibly "reserved"
-                if(i==closest)
+                int sc = PART_ECARROT; // use "carrot" for unknown types
+                if(i == closest)
                 {
                     sc = PART_ECLOSEST; // blue
                 }
                 else switch(e.type)
                 {
-                    case LIGHT : sc = PART_ELIGHT; break; // white
-                    case PLAYERSTART: sc = PART_ESPAWN; break; // green
+                    case LIGHT:       sc = PART_ELIGHT;  break; // white
+                    case PLAYERSTART: sc = PART_ESPAWN;  break; // green
                     case I_CLIPS:
                     case I_AMMO:
-                    case I_GRENADE: sc = PART_EAMMO; break; // red
+                    case I_GRENADE:   sc = PART_EAMMO;   break; // red
                     case I_HEALTH:
                     case I_HELMET:
                     case I_ARMOUR:
-                    case I_AKIMBO: sc = PART_EPICKUP; break; // yellow
+                    case I_AKIMBO:    sc = PART_EPICKUP; break; // yellow
                     case MAPMODEL:
-                    case SOUND: sc = PART_EMODEL; break; // magenta
+                    case SOUND:       sc = PART_EMODEL;  break; // magenta
                     case LADDER:
                     case CLIP:
-                    case PLCLIP: sc = PART_ELADDER; break; // grey
-                    case CTF_FLAG: sc = PART_EFLAG; break; // turquoise
+                    case PLCLIP:      sc = PART_ELADDER; break; // grey
+                    case CTF_FLAG:    sc = PART_EFLAG;   break; // turquoise
                     default: break;
                 }
-                //particle_splash(sc, i==closest?6:2, i==closest?120:40, v);
-                particle_splash(sc, 2, 40, v);
+                particle_splash(sc, i == closest ? 14 : 2, i == closest ? 50 : 40, v);
             }
         }
     }
@@ -208,7 +205,7 @@ void renderentities()
                 rendermodel("playermodels", ANIM_IDLE, -(int)textureload(skin)->id, 1.5f, o, 0, e.attr1 / ENTSCALE10 + 90, 0);
             }
         }
-        if(editmode && i==closest && !stenciling)//closest see above
+        if(editmode && i == closest && !stenciling)
         {
             switch(e.type)
             {
