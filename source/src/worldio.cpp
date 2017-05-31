@@ -1303,6 +1303,14 @@ COMMANDF(xmap_list, "", ()                       // list xmaps (and status)
     if(bak) conoutf("backup stored before %s", xmapdescstring(bak));
 } );
 
+COMMANDF(getxmaplist, "s", (char *what)          // return list of xmap nicks and descriptions
+{
+    vector<char> res;
+    if(strcasecmp(what, "bak")) loopv(xmaps) cvecprintf(res, "%s %s\n", escapestring(xmaps[i]->nick), escapestring(xmapdescstring(xmaps[i])));
+    else if(bak) cvecprintf(res, "%s %s", escapestring(bak->nick), escapestring(xmapdescstring(bak)));
+    resultcharvector(res, -1);
+} );
+
 COMMANDF(xmap_store, "s", (const char *nick)     // store current map in an xmap buffer
 {
     if(noteditmode("xmap_store")) return;   // (may also be used in coopedit)
