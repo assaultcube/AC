@@ -491,31 +491,51 @@ void setvantagepoint()
     storeposition(p);
     vector<uchar> buf;
     loopi(5) putint(buf, p[i]);
-    headerextras.add(new headerextra(buf.length(), HX_VANTAGEPOINT|HX_FLAG_PERSIST, buf.getbuf()));
-    conoutf("vantage point set");
+    physent d = *player1;
+    d.radius = d.eyeheight = d.maxeyeheight = d.aboveeye = 0.1;
+    if(collide(&d, false)) { conoutf("\f3collision with map: vantage point not set"); return; }
+    if(!OUTBORD(p[0] / DMF, p[1] / DMF) && iabs(p[2]) < 127 * int(DMF) && p[3] >= 0 && p[3] < 360 && iabs(p[4]) <= 90)
+    {
+        headerextras.add(new headerextra(buf.length(), HX_VANTAGEPOINT|HX_FLAG_PERSIST, buf.getbuf()));
+        conoutf("vantage point set");
+    }
 }
 COMMAND(setvantagepoint, "");
 
-bool gotovantagepoint()
+bool getvantagepoint(short p[5])
 {
-    short p[5];
     int n = findheaderextra(HX_VANTAGEPOINT);
     if(n >= 0)
     {
         ucharbuf q(headerextras[n]->data, headerextras[n]->len);
         loopi(5) p[i] = getint(q);
+        if(!OUTBORD(p[0] / DMF, p[1] / DMF) && iabs(p[2]) < 127 * int(DMF) && p[3] >= 0 && p[3] < 360 && iabs(p[4]) <= 90) return true; // check for sane values
+    }
+    return false;
+}
+
+COMMANDF(getvantagepoint, "", ()
+{
+    short p[5];
+    string res = "";
+    if(getvantagepoint(p)) formatstring(res)("%s %s %s %d %d", floatstr(p[0] / DMF), floatstr(p[1] / DMF), floatstr(p[2] / DMF), p[3], p[4]);
+    result(res);
+});
+
+void gotovantagepoint()
+{
+    short p[5];
+    if(getvantagepoint(p))
+    {
         restoreposition(p);
         physent d = *player1;
         d.radius = d.eyeheight = d.maxeyeheight = d.aboveeye = 0.1;
-        if(collide(&d, false)) n = -1;       // don't use out-of-map vantage points
+        if(!collide(&d, false)) return;  // don't use out-of-map vantage points
     }
-    if(n < 0)  // if there is no vantage point set, we go to the first playerstart instead
-    {
-        int s = findentity(PLAYERSTART, 0);
-        if(ents.inrange(s)) gotoplayerstart(player1, &ents[s]);
-        entinmap(player1);
-    }
-    return n >= 0;
+    // if there is no (valid) vantage point set, we go to the first playerstart instead
+    int s = findentity(PLAYERSTART, 0);
+    if(ents.inrange(s)) gotoplayerstart(player1, &ents[s]);
+    entinmap(player1);
 }
 COMMANDF(gotovantagepoint, "", () { if(editmode) gotovantagepoint(); });
 
