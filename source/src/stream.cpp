@@ -762,9 +762,10 @@ struct vecstream : stream
 {
     vector<uchar> *data;
     int pointer;
+    bool autodelete;
 
-    vecstream(vector<uchar> *s) : data(s), pointer(0) {}
-    ~vecstream() { DELETEP(data); }
+    vecstream(vector<uchar> *s, bool autodelete) : data(s), pointer(0), autodelete(autodelete) {}
+    ~vecstream() { if(autodelete)  { DELETEP(data); } }
 
     void close() { DELETEP(data); }
     bool end() { return data ? pointer >= data->length() : true; }
@@ -881,9 +882,9 @@ struct memstream : stream
     }
 };
 
-stream *openvecfile(vector<uchar> *s)
+stream *openvecfile(vector<uchar> *s, bool autodelete)
 {
-    return new vecstream(s ? s : new vector<uchar>);
+    return new vecstream(s ? s : new vector<uchar>, autodelete);
 }
 
 stream *openmemfile(const uchar *buf, int size, int *refcnt)

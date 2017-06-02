@@ -943,7 +943,7 @@ extern int findfilelocation;
 enum { FFL_WORKDIR = -2, FFL_HOME = -1, FFL_ZIP = 0 };
 extern const char *findfile(const char *filename, const char *mode);
 extern int getfilesize(const char *filename);
-extern stream *openvecfile(vector<uchar> *s = NULL);
+extern stream *openvecfile(vector<uchar> *s = NULL, bool autodelete = true);
 extern stream *openmemfile(const uchar *buf, int size, int *refcnt);
 extern bool findzipfile(const char *name);
 extern stream *openzipfile(const char *filename, const char *mode);
