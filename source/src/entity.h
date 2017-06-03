@@ -115,14 +115,9 @@ enum { ENT_PLAYER = 0, ENT_BOT, ENT_CAMERA, ENT_BOUNCE };
 enum { CS_ALIVE = 0, CS_DEAD, CS_SPAWNING, CS_LAGGED, CS_EDITING, CS_SPECTATE };
 enum { CR_DEFAULT = 0, CR_MASTER, CR_ADMIN, CR_OWNER, CR_NUM };
 enum { SM_NONE = 0, SM_DEATHCAM, SM_FOLLOW1ST, SM_FOLLOW3RD, SM_FOLLOW3RD_TRANSPARENT, SM_FLY, SM_OVERVIEW, SM_NUM };
+enum { FPCN_VOID = -4, FPCN_DEATHCAM = -2, FPCN_FLY = -2, FPCN_OVERVIEW = -1 };
 
-class worldobject
-{
-public:
-    virtual ~worldobject() {};
-};
-
-class physent : public worldobject
+class physent
 {
 public:
     vec o, vel;                         // origin, velocity
@@ -452,7 +447,7 @@ public:
     bool nocorpse;
 
     playerent() : curskin(0), clientnum(-1), lastupdate(0), plag(0), ping(0), address(0), lifesequence(0), frags(0), flagscore(0), deaths(0), points(0), tks(0), lastpain(0), lastvoicecom(0), lastdeath(0), clientrole(CR_DEFAULT),
-                  team(TEAM_SPECT), spectatemode(SM_NONE), eardamagemillis(0), maxroll(ROLLMOVDEF), maxrolleffect(ROLLEFFDEF), movroll(0), effroll(0), ffov(0), scopefov(0),
+                  team(TEAM_SPECT), spectatemode(SM_NONE), followplayercn(FPCN_VOID), eardamagemillis(0), maxroll(ROLLMOVDEF), maxrolleffect(ROLLEFFDEF), movroll(0), effroll(0), ffov(0), scopefov(0),
                   prevweaponsel(NULL), weaponsel(NULL), nextweaponsel(NULL), primweap(NULL), nextprimweap(NULL), lastattackweapon(NULL),
                   smoothmillis(-1),
                   head(-1, -1, -1), ignored(false), muted(false), nocorpse(false)
@@ -503,6 +498,7 @@ public:
     void resetspec()
     {
         spectatemode = SM_NONE;
+        followplayercn = FPCN_VOID;
     }
 
     void respawn()
@@ -551,6 +547,10 @@ public:
         const int maxskin[2] = { 4, 6 };
         t = team_base(t < 0 ? team : t);
         nextskin[t] = iabs(s) % maxskin[t];
+    }
+    void startmap()
+    {
+        frags = flagscore = deaths = lifesequence = points = tks = 0;
     }
 };
 
@@ -647,7 +647,4 @@ public:
     void oncollision();
     void onmoved(const vec &dist);
 };
-
-enum {MD_FRAGS = 0, MD_DEATHS, END_MDS};
-struct medalsst {bool assigned; int cn; int item;};
 

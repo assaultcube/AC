@@ -510,6 +510,7 @@ Texture *lookuptexture(int tex, Texture *failtex, bool trydl)
         {
             defformatstring(pname)("packages/textures/%s", path(s.name, true));
             s.tex = textureload(pname, 0, true, true, s.scale, trydl);
+            if(s.tex != notexture) s.loaded = true;
             if(!trydl)
             {
                 if(s.tex==notexture) s.tex = failtex;

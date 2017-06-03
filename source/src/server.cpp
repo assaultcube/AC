@@ -99,7 +99,9 @@ serverinfofile serverinfomotd;
 bool isdedicated = false;
 ENetHost *serverhost = NULL;
 
-int laststatus = 0, servmillis = 0, servclock = 0;
+int laststatus = 0,                 // last per-minute log status
+    servmillis = 0,                 // millis since server start
+    servclock = 0;                  // unixtime in minutes
 
 vector<client *> clients;
 vector<worldstate *> worldstates;
@@ -642,6 +644,7 @@ void sendf(int cn, int chan, const char *format, ...)
     {
         case 'x': // exclude client from getting this message
             exclude = va_arg(args, int);
+            ASSERT(cn == -1);
             break;
 
         case 'v': // integer array of variable length
@@ -691,42 +694,6 @@ void sendf(int cn, int chan, const char *format, ...)
     }
     va_end(args);
     sendpacket(cn, chan, p.finalize(), exclude);
-}
-
-void sendextras()
-{
-    if (sg->gamemillis < sg->nextsendscore ) return;
-    int count = 0, list[MAXCLIENTS];
-    loopv(clients)
-    {
-        client &c = *clients[i];
-        if ( c.type!=ST_TCPIP || !c.isauthed || !(c.md.updated && c.md.upmillis < sg->gamemillis) ) continue;
-        if ( c.md.combosend )
-        {
-            sendf(c.clientnum, 1, "ri2", SV_HUDEXTRAS, min(c.md.combo,c.md.combofrags)-1 + HE_COMBO);
-            c.md.combosend = false;
-        }
-        if ( c.md.dpt )
-        {
-            list[count] = i;
-            count++;
-        }
-    }
-    sg->nextsendscore = sg->gamemillis + 160; // about 4 cicles
-    if ( !count ) return;
-
-    packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
-    putint(p, SV_POINTS);
-    putint(p,count);
-    int *v = list;
-    loopi(count)
-    {
-        client &c = *clients[*v];
-        putint(p,c.clientnum); putint(p,c.md.dpt); c.md.updated = false; c.md.upmillis = c.md.dpt = 0;
-        v++;
-    }
-
-    sendpacket(-1, 1, p.finalize());
 }
 
 void sendservmsg(const char *msg, int cn = -1)
@@ -1220,8 +1187,7 @@ void setupdemoplayback()
         lilswap(&hdr.version, 1);
         lilswap(&hdr.protocol, 1);
         if(hdr.version!=DEMO_VERSION) formatstring(msg)("demo \"%s\" requires an %s version of AssaultCube", file, hdr.version<DEMO_VERSION ? "older" : "newer");
-        else if(hdr.protocol != PROTOCOL_VERSION && !(hdr.protocol < 0 && hdr.protocol == -PROTOCOL_VERSION) && hdr.protocol != 1132) formatstring(msg)("demo \"%s\" requires an %s version of AssaultCube", file, hdr.protocol<PROTOCOL_VERSION ? "older" : "newer");
-        else if(hdr.protocol == 1132) sendservmsg("WARNING: using experimental compatibility mode for older demo protocol, expect breakage");
+        else if(hdr.protocol != PROTOCOL_VERSION && !(hdr.protocol < 0 && hdr.protocol == -PROTOCOL_VERSION)) formatstring(msg)("demo \"%s\" requires an %s version of AssaultCube", file, hdr.protocol<PROTOCOL_VERSION ? "older" : "newer");
         demoprotocol = hdr.protocol;
     }
     if(msg[0])
@@ -1456,7 +1422,6 @@ void flagaction(int flag, int action, int actor)
         client *c = clients[actor];
         c->state.flagscore += score;
         sendf(-1, 1, "riii", SV_FLAGCNT, actor, c->state.flagscore);
-        if (m_teammode) computeteamwork(c->team, c->clientnum); /** WIP */
     }
     if(valid_client(actor))
     {
@@ -1489,7 +1454,6 @@ void flagaction(int flag, int action, int actor)
                 mlog(ACLOG_INFO, "flagaction %d, actor %d, flag %d, message %d", action, actor, flag, message);
                 break;
         }
-        flagpoints (&c, message);
     }
     else
     {
@@ -1768,12 +1732,13 @@ void sendteamtext(char *text, int sender, int msgtype)
     ENetPacket *packet = p.finalize();
     recordpacket(1, packet);
     int &st = clients[sender]->team;
-    loopv(clients) if(i!=sender)
+    loopv(clients)
     {
         int &rt = clients[i]->team;
         if((rt == TEAM_SPECT && clients[i]->role == CR_ADMIN) ||  // spect-admin reads all
            (team_isactive(st) && st == team_group(rt)) ||         // player to own team + own spects
-           (team_isspect(st) && team_isspect(rt)))                // spectator to other spectators
+           (team_isspect(st) && team_isspect(rt)) ||              // spectator to other spectators
+           (i == sender))                                         // "local" echo
             sendpacket(i, 1, packet);
     }
 }
@@ -1888,7 +1853,6 @@ void checkitemspawns(int diff)
 
 void serverdamage(client *target, client *actor, int damage, int gun, bool gib, const vec &hitpush = vec(0, 0, 0))
 {
-    if (!m_demo && !m_coop && !validdamage(target, actor, damage, gun, gib)) return;
     if ( m_arena && gun == GUN_GRENADE && sg->arenaroundstartmillis + 2000 > sg->gamemillis && target != actor ) return;
     clientstate &ts = target->state;
     ts.dodamage(damage, gun);
@@ -1898,7 +1862,6 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
         sendf(-1, 1, "ri7", gib ? SV_GIBDAMAGE : SV_DAMAGE, target->clientnum, actor->clientnum, gun, damage, ts.armour, ts.health);
         if(target!=actor)
         {
-            checkcombo (target, actor, damage, gun);
             if(!hitpush.iszero())
             {
                 vec v(hitpush);
@@ -1913,7 +1876,6 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
         int targethasflag = clienthasflag(target->clientnum);
         bool tk = false, suic = false;
         target->state.deaths++;
-        checkfrag(target, actor, gun, gib);
         if(target!=actor)
         {
             if(!isteam(target->team, actor->team)) actor->state.frags += gib && gun != GUN_GRENADE && gun != GUN_SHOTGUN ? 2 : 1;
@@ -2142,103 +2104,6 @@ void shuffleteams(int ftr = FTR_AUTOTEAM)
     }
 }
 
-bool balanceteams(int ftr)  // pro vs noobs never more
-{
-    if(sg->mastermode != MM_OPEN || totalclients < 3 ) return true;
-    int tsize[2] = {0, 0}, tscore[2] = {0, 0};
-    int totalscore = 0, nplayers = 0;
-    int flagmult = (m_ctf ? 50 : (m_htf ? 25 : 12));
-
-    loopv(clients) if(clients[i]->type!=ST_EMPTY)
-    {
-        client *c = clients[i];
-        if(c->isauthed && team_isactive(c->team))
-        {
-            int time = servmillis - c->connectmillis + 5000;
-            if(time > sg->gamemillis ) time = sg->gamemillis + 5000;
-            tsize[c->team]++;
-            // effective score per minute, thanks to wtfthisgame for the nice idea
-            // in a normal game, normal players will do 500 points in 10 minutes
-            c->eff_score = c->state.points * 60 * 1000 / time + c->state.points / 6 + c->state.flagscore * flagmult;
-            tscore[c->team] += c->eff_score;
-            nplayers++;
-            totalscore += c->state.points;
-        }
-    }
-
-    int h = 0, l = 1;
-    if ( tscore[1] > tscore[0] ) { h = 1; l = 0; }
-    if ( 2 * tscore[h] < 3 * tscore[l] || totalscore < nplayers * 100 ) return true;
-    if ( tscore[h] > 3 * tscore[l] && tscore[h] > 150 * nplayers )
-    {
-//        sendf(-1, 1, "ri2", SV_SERVERMODE, sendservermode(false) | AT_SHUFFLE);
-        shuffleteams();
-        return true;
-    }
-
-    float diffscore = tscore[h] - tscore[l];
-
-    int besth = 0, hid = -1;
-    int bestdiff = 0, bestpair[2] = {-1, -1};
-    if ( tsize[h] - tsize[l] > 0 ) // the h team has more players, so we will force only one player
-    {
-        loopv(clients) if( clients[i]->type!=ST_EMPTY )
-        {
-            client *c = clients[i]; // loop for h
-            // client from the h team, not forced in this game, and without the flag
-            if( c->isauthed && c->team == h && !c->state.forced && clienthasflag(i) < 0 )
-            {
-                // do not exchange in the way that weaker team becomes the stronger or the change is less than 20% effective
-                if ( 2 * c->eff_score <= diffscore && 10 * c->eff_score >= diffscore && c->eff_score > besth )
-                {
-                    besth = c->eff_score;
-                    hid = i;
-                }
-            }
-        }
-        if ( hid >= 0 )
-        {
-            updateclientteam(hid, l, ftr);
-            clients[hid]->at3_lastforce = sg->gamemillis;
-            clients[hid]->state.forced = true;
-            return true;
-        }
-    } else { // the h score team has less or the same player number, so, lets exchange
-        loopv(clients) if(clients[i]->type!=ST_EMPTY)
-        {
-            client *c = clients[i]; // loop for h
-            if( c->isauthed && c->team == h && !c->state.forced && clienthasflag(i) < 0 )
-            {
-                loopvj(clients) if(clients[j]->type!=ST_EMPTY && j != i )
-                {
-                    client *cj = clients[j]; // loop for l
-                    if( cj->isauthed && cj->team == l && !cj->state.forced && clienthasflag(j) < 0 )
-                    {
-                        int pairdiff = 2 * (c->eff_score - cj->eff_score);
-                        if ( pairdiff <= diffscore && 5 * pairdiff >= diffscore && pairdiff > bestdiff )
-                        {
-                            bestdiff = pairdiff;
-                            bestpair[h] = i;
-                            bestpair[l] = j;
-                        }
-                    }
-                }
-            }
-        }
-        if ( bestpair[h] >= 0 && bestpair[l] >= 0 )
-        {
-            updateclientteam(bestpair[h], l, ftr);
-            updateclientteam(bestpair[l], h, ftr);
-            clients[bestpair[h]]->at3_lastforce = clients[bestpair[l]]->at3_lastforce = sg->gamemillis;
-            clients[bestpair[h]]->state.forced = clients[bestpair[l]]->state.forced = true;
-            return true;
-        }
-    }
-    return false;
-}
-
-int lastbalance = 0, waitbalance = 2 * 60 * 1000;
-
 bool refillteams(bool now, int ftr)  // force only minimal amounts of players
 {
     if(sg->mastermode == MM_MATCH) return false;
@@ -2310,21 +2175,6 @@ bool refillteams(bool now, int ftr)  // force only minimal amounts of players
     }
     if(diffnum < 2)
     {
-        if ( ( sg->gamemillis - lastbalance ) > waitbalance && ( sg->gamelimit - sg->gamemillis ) > 4*60*1000 )
-        {
-            if ( balanceteams (ftr) )
-            {
-                waitbalance = 2 * 60 * 1000 + sg->gamemillis / 3;
-                switched = true;
-            }
-            else waitbalance = 20 * 1000;
-            lastbalance = sg->gamemillis;
-        }
-        else if ( lastbalance > sg->gamemillis )
-        {
-            lastbalance = 0;
-            waitbalance = 2 * 60 * 1000;
-        }
         lasttime_eventeams = sg->gamemillis;
     }
     return switched;
@@ -2830,71 +2680,6 @@ void disconnect_client(int n, int reason)
     if(*scoresaved && sg->mastermode == MM_MATCH) senddisconnectedscores(-1);
 }
 
-// for AUTH: WIP
-
-client *findauth(uint id)
-{
-    loopv(clients) if(clients[i]->authreq == id) return clients[i];
-    return NULL;
-}
-
-void authfailed(uint id)
-{
-    client *cl = findauth(id);
-    if(!cl) return;
-    cl->authreq = 0;
-}
-
-void authsucceeded(uint id)
-{
-    client *cl = findauth(id);
-    if(!cl) return;
-    cl->authreq = 0;
-    mlog(ACLOG_INFO, "player authenticated: %s", cl->name);
-    defformatstring(auth4u)("player authenticated: %s", cl->name);
-    sendf(-1, 1, "ris", SV_SERVMSG, auth4u);
-    //setmaster(cl, true, "", ci->authname);//TODO? compare to sauerbraten
-}
-
-void authchallenged(uint id, const char *val)
-{
-    client *cl = findauth(id);
-    if(!cl) return;
-    sendf(cl->clientnum, 1, "risis", SV_AUTHCHAL, "", id, val);
-}
-
-uint nextauthreq = 0;
-
-void tryauth(client *cl, const char *user)
-{
-    extern bool requestmasterf(const char *fmt, ...);
-    if(!nextauthreq) nextauthreq = 1;
-    cl->authreq = nextauthreq++;
-    filtertext(cl->authname, user, FTXT__AUTH, 100);
-    if(!requestmasterf("reqauth %u %s\n", cl->authreq, cl->authname))
-    {
-        cl->authreq = 0;
-        sendf(cl->clientnum, 1, "ris", SV_SERVMSG, "not connected to authentication server");
-    }
-}
-
-void answerchallenge(client *cl, uint id, char *val)
-{
-    if(cl->authreq != id) return;
-    extern bool requestmasterf(const char *fmt, ...);
-    for(char *s = val; *s; s++)
-    {
-        if(!isxdigit(*s)) { *s = '\0'; break; }
-    }
-    if(!requestmasterf("confauth %u %s\n", id, val))
-    {
-        cl->authreq = 0;
-        sendf(cl->clientnum, 1, "ris", SV_SERVMSG, "not connected to authentication server");
-    }
-}
-
-// :for AUTH
-
 void sendiplist(int receiver, int cn)
 {
     if(!valid_client(receiver)) return;
@@ -3079,7 +2864,7 @@ int checktype(int type, client *cl)
     if(type < 0 || type >= SV_NUM) return -1;
     // server only messages
     static int servtypes[] = { SV_SERVINFO, SV_WELCOME, SV_INITCLIENT, SV_POSN, SV_CDIS, SV_GIBDIED, SV_DIED,
-                        SV_GIBDAMAGE, SV_DAMAGE, SV_HITPUSH, SV_SHOTFX, SV_AUTHREQ, SV_AUTHCHAL,
+                        SV_GIBDAMAGE, SV_DAMAGE, SV_HITPUSH, SV_SHOTFX,
                         SV_SPAWNSTATE, SV_SPAWNDENY, SV_FORCEDEATH, SV_RESUME,
                         SV_DISCSCORES, SV_TIMEUP, SV_ITEMACC, SV_MAPCHANGE, SV_ITEMSPAWN, SV_PONG,
                         SV_SERVMSG, SV_SERVMSGVERB, SV_ITEMLIST, SV_FLAGINFO, SV_FLAGMSG, SV_FLAGCNT,
@@ -3087,7 +2872,7 @@ int checktype(int type, client *cl)
                         SV_CALLVOTESUC, SV_CALLVOTEERR, SV_VOTERESULT,
                         SV_SETTEAM, SV_TEAMDENY, SV_SERVERMODE, SV_IPLIST,
                         SV_SENDDEMOLIST, SV_SENDDEMO, SV_DEMOPLAYBACK,
-                        SV_CLIENT, SV_HUDEXTRAS, SV_POINTS, SV_DEMOCHECKSUM };
+                        SV_CLIENT, SV_DEMOCHECKSUM };
     // only allow edit messages in coop-edit mode
     static int edittypes[] = { SV_EDITENT, SV_EDITXY, SV_EDITARCH, SV_EDITBLOCK, SV_EDITD, SV_EDITE, SV_NEWMAP };
     if(cl)
@@ -3394,14 +3179,12 @@ void process(ENetPacket *packet, int sender, int chan)
         else protocoldebug(false);
         #endif
 
-        type = checkmessage(cl,type);
         switch(type)
         {
             case SV_TEAMTEXTME:
             case SV_TEAMTEXT:
                 getstring(text, p);
                 filtertext(text, text, FTXT__CHAT);
-                trimtrailingwhitespace(text);
                 if(*text)
                 {
                     bool canspeech = forbiddenlist.canspeech(text);
@@ -3434,7 +3217,6 @@ void process(ENetPacket *packet, int sender, int chan)
                 int mid1 = curmsg, mid2 = p.length();
                 getstring(text, p);
                 filtertext(text, text, FTXT__CHAT);
-                trimtrailingwhitespace(text);
                 if(*text)
                 {
                     bool canspeech = forbiddenlist.canspeech(text);
@@ -3445,6 +3227,8 @@ void process(ENetPacket *packet, int sender, int chan)
                             mlog(ACLOG_INFO, "[%s] %s%s says: '%s'", cl->hostname, type == SV_TEXTME ? "(me) " : "", cl->name, text);
                             if(cl->type==ST_TCPIP) while(mid1<mid2) cl->messages.add(p.buf[mid1++]);
                             QUEUE_STR(text);
+                            ASSERT(SV_TEXT < 126 && SV_TEXTME < 126);
+                            sendf(sender, 1, "riiuis", SV_CLIENT, sender, (int) strlen(text) + 2, type, text); // "local" echo
                         }
                         else // spect chat
                         {
@@ -3476,7 +3260,6 @@ void process(ENetPacket *packet, int sender, int chan)
                 int targ = getint(p);
                 getstring(text, p);
                 filtertext(text, text, FTXT__CHAT);
-                trimtrailingwhitespace(text);
 
                 if(!valid_client(targ)) break;
                 client *target = clients[targ];
@@ -3488,7 +3271,11 @@ void process(ENetPacket *packet, int sender, int chan)
                     {
                         bool allowed = !(sg->mastermode == MM_MATCH && cl->team != target->team) && cl->role >= roleconf('t');
                         mlog(ACLOG_INFO, "[%s] %s says to %s: '%s' (%s)", cl->hostname, cl->name, target->name, text, allowed ? "allowed":"disallowed");
-                        if(allowed) sendf(target->clientnum, 1, "riis", SV_TEXTPRIVATE, cl->clientnum, text);
+                        if(allowed)
+                        {
+                            sendf(cl->clientnum, 1, "riiis", SV_TEXTPRIVATE, cl->clientnum, target->clientnum, text); // "local" echo
+                            sendf(target->clientnum, 1, "riiis", SV_TEXTPRIVATE, cl->clientnum, -1, text);
+                        }
                     }
                     else
                     {
@@ -3521,7 +3308,6 @@ void process(ENetPacket *packet, int sender, int chan)
                     if ( cl->spam < 0 ) cl->spam = 0;
                     cl->lastvc = servmillis; // register
                     if ( cl->spam > 4 ) { cl->mute = servmillis + 10000; break; } // 5 vcs in less than 20 seconds... shut up please
-                    if ( m_teammode ) checkteamplay(s,sender); // finally here we check the teamplay comm
                     if ( type == SV_VOICECOM ) { QUEUE_MSG; }
                     else sendvoicecomteam(s, sender);
                 }
@@ -3582,7 +3368,6 @@ void process(ENetPacket *packet, int sender, int chan)
             {
                 int gunselect = getint(p);
                 if(!valid_weapon(gunselect) || gunselect == GUN_CPISTOL) break;
-                if(!m_demo && !m_coop) checkweapon(type,gunselect);
                 cl->state.gunselect = gunselect;
                 QUEUE_MSG;
                 break;
@@ -3701,6 +3486,11 @@ void process(ENetPacket *packet, int sender, int chan)
                 break;
             }
 
+            case SV_SPECTCN:
+                cl->spectcn = getint(p);
+                QUEUE_MSG;                      // FIXME: demo only
+                break;
+
             case SV_SUICIDE:
             {
                 gameevent &suicide = cl->addevent();
@@ -3728,21 +3518,19 @@ void process(ENetPacket *packet, int sender, int chan)
                 loopk(3) { shot.shot.from[k] = cl->state.o.v[k] + ( k == 2 ? (((cl->f>>7)&1)?2.2f:4.2f) : 0); }
                 loopk(3) { float v = getint(p)/DMF; shot.shot.to[k] = ((k<2 && v<0.0f)?0.0f:v); }
                 int hits = getint(p);
-                int tcn = -1;
                 loopk(hits)
                 {
                     gameevent &hit = cl->addevent();
                     hit.type = GE_HIT;
-                    tcn = hit.hit.target = getint(p);
+                    hit.hit.target = getint(p);
                     hit.hit.lifesequence = getint(p);
                     hit.hit.info = getint(p);
                     loopk(3) hit.hit.dir[k] = getint(p)/DNF;
                 }
-                if(!m_demo && !m_coop) checkshoot(sender, shot, hits, tcn);
                 break;
             }
 
-            case SV_EXPLODE: // Brahma says: FIXME handle explosion by location and deal damage from server
+            case SV_EXPLODE:
             {
                 gameevent &exp = cl->addevent();
                 exp.type = GE_EXPLODE;
@@ -3778,37 +3566,6 @@ void process(ENetPacket *packet, int sender, int chan)
                 reload.reload.gun = getint(p);
                 break;
             }
-
-            // for AUTH:
-
-            case SV_AUTHTRY:
-            {
-                string desc, name;
-                getstring(desc, p, sizeof(desc)); // unused for now
-                getstring(name, p, sizeof(name));
-                if(!desc[0]) tryauth(cl, name);
-                break;
-            }
-
-            case SV_AUTHANS:
-            {
-                string desc, ans;
-                getstring(desc, p, sizeof(desc)); // unused for now
-                uint id = (uint)getint(p);
-                getstring(ans, p, sizeof(ans));
-                if(!desc[0]) answerchallenge(cl, id, ans);
-                break;
-            }
-
-
-            case SV_AUTHT:
-            {
-/*                int n = getint(p);
-                loopi(n) getint(p);*/
-//                 if (cl) disconnect_client(cl->clientnum, DISC_TAGT); // remove this in the future, when auth is complete
-                break;
-            }
-            // :for AUTH
 
             case SV_PING:
                 sendf(sender, 1, "ii", SV_PONG, getint(p));
@@ -3850,7 +3607,6 @@ void process(ENetPacket *packet, int sender, int chan)
                     cl->position.setsize(0);
                     while(curmsg<p.length()) cl->position.add(p.buf[curmsg++]);
                 }
-                if(!m_demo && !m_coop) checkmove(cl);
                 break;
             }
 
@@ -3894,7 +3650,6 @@ void process(ENetPacket *packet, int sender, int chan)
                     cl->position.setsize(0);
                     while(curmsg<p.length()) cl->position.add(p.buf[curmsg++]);
                 }
-                if(!m_demo && !m_coop) checkmove(cl);
                 break;
             }
 
@@ -4098,7 +3853,6 @@ void process(ENetPacket *packet, int sender, int chan)
                         getstring(text, p);
                         strncpy(vi->text,text,128);
                         filtertext(text, text, FTXT__KICKBANREASON);
-                        trimtrailingwhitespace(text);
                         vi->action = new kickaction(cn2boot, newstring(text, 128));
                         vi->boot = 1;
                         break;
@@ -4109,7 +3863,6 @@ void process(ENetPacket *packet, int sender, int chan)
                         getstring(text, p);
                         strncpy(vi->text,text,128);
                         filtertext(text, text, FTXT__KICKBANREASON);
-                        trimtrailingwhitespace(text);
                         vi->action = new banaction(cn2boot, newstring(text, 128));
                         vi->boot = 2;
                         break;
@@ -4568,7 +4321,6 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
         if(m_ktf && !ktfflagingame) flagaction(rnd(2), FA_RESET, -1); // ktf flag watchdog
         if(m_arena) arenacheck();
         else if(m_autospawn) autospawncheck();
-        sendextras();
         if(scl.afk_limit && sg->mastermode == MM_OPEN && next_afk_check < servmillis && sg->gamemillis > 20 * 1000) check_afk();
     }
 
@@ -4863,13 +4615,8 @@ void localconnect()
 
 void processmasterinput(const char *cmd, int cmdlen, const char *args)
 {
-// AUTH WiP
-    uint id;
     string val;
-    if(sscanf(cmd, "failauth %u", &id) == 1) authfailed(id);
-    else if(sscanf(cmd, "succauth %u", &id) == 1) authsucceeded(id);
-    else if(sscanf(cmd, "chalauth %u %s", &id, val) == 2) authchallenged(id, val);
-    else if(!strncmp(cmd, "cleargbans", cmdlen)) cleargbans();
+    if(!strncmp(cmd, "cleargbans", cmdlen)) cleargbans();
     else if(sscanf(cmd, "addgban %s", val) == 1) addgban(val);
 }
 

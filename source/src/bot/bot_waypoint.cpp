@@ -15,11 +15,8 @@ vec v_debuggoal = g_vecZero;
 CACWaypointClass WaypointClass;
 
 VAR(xhairwpsel, 0, 1, 1);
-// FIXME: multiple selections support ?
-// well, TBH I haven't groked this myself yet, but the following curselection segfaults the client, so I'm just putting in a sane-variant until someone groks it ;-) - ft 2011sep28
 extern vector<block> sels;
-//#define curselection (xhairwpsel ? vec(sels.last().x, sels.last().y, S(sels.last().x, sels.last().y)->floor+2.0f) : vec(player1->o.x, player1->o.y, player1->o.z))
-#define curselection (vec(player1->o.x, player1->o.y, player1->o.z))
+#define curselection (xhairwpsel && sels.length() ? vec(sels.last().x, sels.last().y, S(sels.last().x, sels.last().y)->floor+2.0f) : vec(player1->o.x, player1->o.y, player1->o.z))
 
 // Waypoint class begin
 

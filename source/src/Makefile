@@ -131,7 +131,6 @@ SERVER_OBJS= \
 	tools-standalone.o \
 	wizard-standalone.o
 MASTER_OBJS= \
-	crypto-standalone.o \
 	stream-standalone.o \
 	command-standalone.o \
 	master-standalone.o

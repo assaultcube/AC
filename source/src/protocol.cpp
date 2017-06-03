@@ -304,14 +304,14 @@ char *filtertext(char *dst, const char *src, int flags, int len)
          filename = (flags & FTXT_FILENAME) != 0,           // strict a-z, 0-9 and "-_.()" (also translates "[]" and "{}" to "()"), removes everything between '<' and '>'
          allowslash = (flags & FTXT_ALLOWSLASH) != 0,       // only in combination with FTXT_FILENAME or FTXT_MAPNAME
          mapname = (flags & FTXT_MAPNAME) != 0,             // only allows lowercase chars, digits, '_', '-' and '.'; probably should be used in combination with TOLOWER
-         cropwhite = (flags & FTXT_CROPWHITE) != 0,         // removes leading and trailing whitespace
+         cropwhitelead = (flags & FTXT_CROPWHITE_LEAD) != 0,    // removes leading whitespace
+         cropwhitetrail = (flags & FTXT_CROPWHITE_TRAIL) != 0,  // removes trailing whitespace
          pass = false;
     if(leet || mapname) nocolor = true;
 #ifdef FILENAMESALLLOWERCASE
     if(filename) tolow = true;
 #endif
     bool trans = toupp || tolow || leet || filename || fillblanks;
-    bool leadingwhite = cropwhite;
     char *lastwhite = NULL;
     bool insidepointybrackets = false;
     for(int c = *src; c; c = *++src)
@@ -369,7 +369,7 @@ char *filtertext(char *dst, const char *src, int flags, int len)
         if(mapname && !isalnum(c) && !strchr("_-.", c) && !(allowslash && strchr("/\\", c))) continue;
         if(isspace(c))
         {
-            if(leadingwhite) continue;
+            if(cropwhitelead) continue;
             if(nowhite && !((c == ' ' && allowblanks) || (c == '\n' && allownl)) && !pass) continue;
             if(!lastwhite) lastwhite = dst;
         }
@@ -378,11 +378,11 @@ char *filtertext(char *dst, const char *src, int flags, int len)
             lastwhite = NULL;
             if(!pass && !isprint(c)) continue;
         }
-        leadingwhite = false;
+        cropwhitelead = false;
         *dst++ = c;
         if(!--len || !*src) break;
     }
-    if(cropwhite && lastwhite) *lastwhite = '\0';
+    if(cropwhitetrail && lastwhite) *lastwhite = '\0';
     *dst = '\0';
     return res;
 }
@@ -583,12 +583,12 @@ static const int msgsizes[] =               // size inclusive message token, 0 f
     SV_SERVINFO, 1, SV_SERVINFO_RESPONSE, 0, SV_SERVINFO_CONTD, 0, SV_WELCOME, 2, SV_INITCLIENT, 0, SV_POS, 0, SV_POSC, 0, SV_POSC2, 0, SV_POSC3, 0, SV_POSC4, 0, SV_POSN, 0,
     SV_TEXT, 0, SV_TEAMTEXT, 0, SV_TEXTME, 0, SV_TEAMTEXTME, 0, SV_TEXTPRIVATE, 0,
     SV_SOUND, 2, SV_VOICECOM, 2, SV_VOICECOMTEAM, 2, SV_CDIS, 2,
-    SV_SHOOT, 0, SV_EXPLODE, 0, SV_SUICIDE, 1, SV_AKIMBO, 2, SV_RELOAD, 3, SV_AUTHT, 0, SV_AUTHREQ, 0, SV_AUTHTRY, 0, SV_AUTHANS, 0, SV_AUTHCHAL, 0,
+    SV_SHOOT, 0, SV_EXPLODE, 0, SV_SUICIDE, 1, SV_AKIMBO, 2, SV_RELOAD, 3,
     SV_GIBDIED, 5, SV_DIED, 5, SV_GIBDAMAGE, 7, SV_DAMAGE, 7, SV_HITPUSH, 6, SV_SHOTFX, 6, SV_THROWNADE, 8,
     SV_TRYSPAWN, 1, SV_SPAWNSTATE, 23, SV_SPAWN, 3, SV_SPAWNDENY, 2, SV_FORCEDEATH, 2, SV_RESUME, 0,
     SV_DISCSCORES, 0, SV_TIMEUP, 3, SV_EDITENT, 13, SV_ITEMACC, 2,
     SV_MAPCHANGE, 0, SV_ITEMSPAWN, 2, SV_ITEMPICKUP, 2,
-    SV_PING, 2, SV_PONG, 2, SV_CLIENTPING, 2, SV_GAMEMODE, 2,
+    SV_PING, 2, SV_PONG, 2, SV_CLIENTPING, 2,
     SV_EDITMODE, 2, SV_EDITXY, 8, SV_EDITARCH, 56, SV_EDITBLOCK, 0, SV_EDITD, 6, SV_EDITE, 6, SV_NEWMAP, 2,
     SV_SENDMAP, 0, SV_RECVMAP, 1, SV_REMOVEMAP, 0,
     SV_SERVMSG, 0, SV_SERVMSGVERB, 0, SV_ITEMLIST, 0, SV_WEAPCHANGE, 2, SV_PRIMARYWEAP, 2,
@@ -597,13 +597,13 @@ static const int msgsizes[] =               // size inclusive message token, 0 f
     SV_SETADMIN, 0, SV_SERVOPINFO, 3,
     SV_CALLVOTE, 0, SV_CALLVOTESUC, 1, SV_CALLVOTEERR, 2, SV_VOTE, 2, SV_VOTERESULT, 2,
     SV_SETTEAM, 3, SV_TEAMDENY, 2, SV_SERVERMODE, 2,
-    SV_IPLIST, 0,
+    SV_IPLIST, 0, SV_SPECTCN, 2,
     SV_LISTDEMOS, 1, SV_SENDDEMOLIST, 0, SV_GETDEMO, 2, SV_SENDDEMO, 0, SV_DEMOPLAYBACK, 3,
     SV_CONNECT, 0,
     SV_SWITCHNAME, 0, SV_SWITCHSKIN, 0, SV_SWITCHTEAM, 0,
     SV_CLIENT, 0,
     SV_EXTENSION, 0,
-    SV_MAPIDENT, 3, SV_HUDEXTRAS, 2, SV_POINTS, 0, SV_DEMOCHECKSUM, 0, SV_DEMOSIGNATURE, 0,
+    SV_MAPIDENT, 3, SV_DEMOCHECKSUM, 0, SV_DEMOSIGNATURE, 0,
     -1
 };
 

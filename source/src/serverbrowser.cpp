@@ -1305,8 +1305,6 @@ void clearservers()
 
 #define RETRIEVELIMIT 5000
 
-bool cllock = false, clfail = false;
-
 int progress_callback_retrieveservers(void *data, float progress)
 {
     if(progress < 0) show_out_of_renderloop_progress(progress + 1.0f, "waiting for response (esc to abort)");
@@ -1335,12 +1333,10 @@ void retrieveservers(vector<char> &data)
             if(got < 0 || h.response != 200) data.setsize(0);
             h.outvec = NULL; // must not be cleaned up by httpget
             if(data.length()) data.add('\0');
-            clfail = false;
         }
         else
         {
             conoutf("failed to resolve host %s", mastername);
-            clfail = true;
         }
     }
     else
@@ -1349,10 +1345,8 @@ void retrieveservers(vector<char> &data)
         if(sock == ENET_SOCKET_NULL)
         {
             conoutf("Master server is not replying.");
-            clfail = true;
             return;
         }
-        clfail = false;
         defformatstring(text)("retrieving servers from %s:%d... (esc to abort)", mastername, masterport);
         show_out_of_renderloop_progress(0, text);
         int starttime = SDL_GetTicks(), timeout = 0;
@@ -1406,17 +1400,12 @@ VAR(msctrl, 1, 1, INT_MAX);
 void updatefrommaster(int *force)
 {
     static int lastupdate = 0;
-    if(lastupdate==0) cllock = true;
     if(!*force && lastupdate && totalmillis-lastupdate<masterupdatefrequency*1000) return;
 
     vector<char> data;
     retrieveservers(data);
 
-    if(data.empty())
-    {
-        if (!clfail) conoutf("Master server is not replying. \f1Get more information at http://masterserver.cubers.net/");
-        cllock = !clfail;
-    }
+    if(data.empty()) conoutf("Master server is not replying. \f1Get more information at http://masterserver.cubers.net/");
     else
     {
         // preserve currently connected server from deletion
@@ -1425,12 +1414,10 @@ void updatefrommaster(int *force)
         if(curserver) copystring(curname, curserver->name);
 
         clearservers();
-        if(!strncmp(data.getbuf(), "addserver", 9)) cllock = false; // the ms could reply other thing... but currently, this is useless
-        if(!cllock )
-        {
-            execute(data.getbuf());
-            if(curserver) addserver(curname, curserver->port, curserver->msweight);
-        }
+
+        execute(data.getbuf());
+        if(curserver) addserver(curname, curserver->port, curserver->msweight);
+
         lastupdate = totalmillis;
     }
 }

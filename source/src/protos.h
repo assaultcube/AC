@@ -973,17 +973,6 @@ extern void ed25519_sign(uchar *sm, int *smlen, const uchar *m, int mlen, const 
 extern uchar *ed25519_sign_check(uchar *sm, int smlen, const uchar *pk);
 extern uchar *sk; // client game key
 extern void loadcertdir();     // load all certs in "config/certs"
-#if 0
-// crypto // for AUTH
-extern void genprivkey(const char *seed, vector<char> &privstr, vector<char> &pubstr);
-extern bool hashstring(const char *str, char *result, int maxlen);
-extern void answerchallenge(const char *privstr, const char *challenge, vector<char> &answerstr);
-extern void *parsepubkey(const char *pubstr);
-extern void freepubkey(void *pubkey);
-extern void *genchallenge(void *pubkey, const void *seed, int seedlen, vector<char> &challengestr);
-extern void freechallenge(void *answer);
-extern bool checkchallenge(const char *answerstr, void *correct);
-#endif
 
 // console
 extern void conoutf(const char *s, ...) PRINTFARGS(1, 2);

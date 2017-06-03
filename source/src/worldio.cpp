@@ -920,10 +920,6 @@ VARF(mapoverride_limitwaveheight, 0, 0, 1, changemapflag(mapoverride_limitwavehe
 VARF(mapoverride_nostencilshadows, 0, 0, 1, changemapflag(mapoverride_nostencilshadows, MHF_DISABLESTENCILSHADOWS));
 VAR(_ignoreillegalpaths, 0, 0, 1);
 
-extern char *mlayout;
-extern int Mv, Ma, Hhits;
-extern float Mh;
-
 static string lastloadedconfigfile;
 
 int load_world(char *mname)        // still supports all map formats that have existed since the earliest cube betas!
@@ -1077,34 +1073,15 @@ int load_world(char *mname)        // still supports all map formats that have e
     res |= LWW_WORLDERROR * (iabs(we) & 0xf);
     delete[] smallworld;
 
-
-
-    DELETEA(mlayout);
-    mlayout = new char[cubicsize + 256];
-    memset(mlayout, 0, cubicsize * sizeof(char));
-    Mv = Ma = Hhits = 0;
-    char texuse[256];
-    loopi(256) texuse[i] = 0;
-    loopk(cubicsize)
+    // check texture slot usage
+    char texuse[256] = { 0 };
+    sqr *s = world;
+    loopirev(cubicsize)
     {
-        sqr *s = &world[k];
-        if(SOLID(s)) mlayout[k] = 127;
-        else
-        {
-            mlayout[k] = s->floor; // FIXME
-            int diff = s->ceil - s->floor;
-            if(diff > 6)
-            {
-                if(diff > MAXMHEIGHT) Hhits += diff - MAXMHEIGHT;
-                Ma += 1;
-                Mv += diff;
-            }
-            texuse[s->utex] = texuse[s->ftex] = texuse[s->ctex] = 1;
-        }
+        if(!SOLID(s)) texuse[s->utex] = texuse[s->ftex] = texuse[s->ctex] = 1;
         texuse[s->wtex] = 1;
+        s++;
     }
-    Mh = Ma ? (float)Mv/Ma : 0;
-
     c2skeepalive();
     calclight();
     conoutf("read map %s rev %d (%d milliseconds)", cgzname, hdr.maprevision, watch.elapsed());

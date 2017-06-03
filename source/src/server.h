@@ -203,26 +203,6 @@ struct savedscore
     }
 };
 
-struct medals
-{
-    int dpt, lasthit, lastgun, ncovers, nhs;
-    int combohits, combo, combofrags, combotime, combodamage, ncombos;
-    int ask, askmillis, linked, linkmillis, linkreason, upmillis, flagmillis;
-    int totalhits, totalshots;
-    bool updated, combosend;
-    vec pos, flagpos;
-    void reset()
-    {
-        dpt = lasthit = lastgun = ncovers = nhs = 0;
-        combohits = combo = combofrags = combotime = combodamage = ncombos = 0;
-        askmillis = linkmillis = upmillis = flagmillis = 0;
-        linkreason = linked = ask = -1;
-        totalhits = totalshots = 0;
-        updated = combosend = false;
-        pos = flagpos = vec(-1e10f, -1e10f, -1e10f);
-    }
-};
-
 #define VITANAMEHISTLEN 4
 #define VITAIPHISTLEN 4
 #define VITACCHISTLEN 4
@@ -265,7 +245,7 @@ struct client                   // server side version of "dynent" type
     int skin[2];
     int vote;
     int role;
-    int connectmillis, lmillis, ldt, spj;
+    int connectmillis, ldt, spj;
     int mute, spam, lastvc; // server side voice comm spam control
     int acversion, acbuildtype;
     bool isauthed; // for passworded servers
@@ -289,25 +269,15 @@ struct client                   // server side version of "dynent" type
     bool autospawn;
     int salt;
     string pwd;
-    uint authreq; // for AUTH
-    string authname; // for AUTH
+    int spectcn;
     int mapcollisions, farpickups;
     enet_uint32 bottomRTT;
-    medals md;
     bool upspawnp;
     int lag;
     vec spawnp;
     int nvotes;
     int input, inputmillis;
     int ffire, wn, f, t, yaw, pitch;
-    int yb, pb, oy, op, lda, ldda, fam;
-    int nt[10], np, lp, ls, lsm, ld, nd, nlt, lem, led;
-    vec cp[10], dp[10], d0, lv, lt, le;
-    float dda, tr, sda;
-    int ps, ph, tcn, bdt, pws;
-    float pr;
-    int yls, pls, tls;
-    int bs, bt, blg, bp;
 
     gameevent &addevent()
     {
@@ -334,22 +304,12 @@ struct client                   // server side version of "dynent" type
         lastevent = 0;
         at3_lastforce = eff_score = 0;
         mapcollisions = farpickups = 0;
-        md.reset();
         upspawnp = false;
         lag = 0;
         spawnp = vec(-1e10f, -1e10f, -1e10f);
-        lmillis = ldt = spj = 0;
+        ldt = spj = 0;
         ffire = 0;
         f = yaw = pitch = t = 0;
-        yb = pb = oy = op = lda = ldda = fam = 0;
-        np = lp = ls = lsm = ld = nd = nlt = lem = led = 0;
-        d0 = lv = lt = le = vec(0,0,0);
-        loopi(10) { cp[i] = dp[i] = vec(0,0,0); nt[i] = 0; }
-        dda = tr = sda = 0;
-        ps = ph = bdt = pws = 0;
-        tcn = -1;
-        pr = 0.0f;
-        yls = pls = tls = 0;
     }
 
     void reset()
@@ -373,13 +333,10 @@ struct client                   // server side version of "dynent" type
         lastsaytext[0] = '\0';
         saychars = 0;
         spawnindex = -1;
-        authreq = 0; // for AUTH
         mapchange();
         freshgame = false;         // don't spawn into running games
         mute = spam = lastvc = badspeech = badmillis = nvotes = 0;
         input = inputmillis = 0;
-        wn = -1;
-        bs = bt = blg = bp = 0;
     }
 
     void zap()
@@ -460,12 +417,12 @@ const char *messagenames[SV_NUM] =
     "SV_SERVINFO", "SV_SERVINFO_RESPONSE", "SV_SERVINFO_CONTD", "SV_WELCOME", "SV_INITCLIENT", "SV_POS", "SV_POSC", "SV_POSC2", "SV_POSC3", "SV_POSC4", "SV_POSN",
     "SV_TEXT", "SV_TEAMTEXT", "SV_TEXTME", "SV_TEAMTEXTME", "SV_TEXTPRIVATE",
     "SV_SOUND", "SV_VOICECOM", "SV_VOICECOMTEAM", "SV_CDIS",
-    "SV_SHOOT", "SV_EXPLODE", "SV_SUICIDE", "SV_AKIMBO", "SV_RELOAD", "SV_AUTHT", "SV_AUTHREQ", "SV_AUTHTRY", "SV_AUTHANS", "SV_AUTHCHAL",
+    "SV_SHOOT", "SV_EXPLODE", "SV_SUICIDE", "SV_AKIMBO", "SV_RELOAD",
     "SV_GIBDIED", "SV_DIED", "SV_GIBDAMAGE", "SV_DAMAGE", "SV_HITPUSH", "SV_SHOTFX", "SV_THROWNADE",
     "SV_TRYSPAWN", "SV_SPAWNSTATE", "SV_SPAWN", "SV_SPAWNDENY", "SV_FORCEDEATH", "SV_RESUME",
     "SV_DISCSCORES", "SV_TIMEUP", "SV_EDITENT", "SV_ITEMACC",
     "SV_MAPCHANGE", "SV_ITEMSPAWN", "SV_ITEMPICKUP",
-    "SV_PING", "SV_PONG", "SV_CLIENTPING", "SV_GAMEMODE",
+    "SV_PING", "SV_PONG", "SV_CLIENTPING",
     "SV_EDITMODE", "SV_EDITXY", "SV_EDITARCH", "SV_EDITBLOCK", "SV_EDITD", "SV_EDITE", "SV_NEWMAP",
     "SV_SENDMAP", "SV_RECVMAP", "SV_REMOVEMAP",
     "SV_SERVMSG", "SV_SERVMSGVERB", "SV_ITEMLIST", "SV_WEAPCHANGE", "SV_PRIMARYWEAP",
@@ -474,13 +431,13 @@ const char *messagenames[SV_NUM] =
     "SV_SETADMIN", "SV_SERVOPINFO",
     "SV_CALLVOTE", "SV_CALLVOTESUC", "SV_CALLVOTEERR", "SV_VOTE", "SV_VOTERESULT",
     "SV_SETTEAM", "SV_TEAMDENY", "SV_SERVERMODE",
-    "SV_IPLIST",
+    "SV_IPLIST", "SV_SPECTCN",
     "SV_LISTDEMOS", "SV_SENDDEMOLIST", "SV_GETDEMO", "SV_SENDDEMO", "SV_DEMOPLAYBACK",
     "SV_CONNECT",
     "SV_SWITCHNAME", "SV_SWITCHSKIN", "SV_SWITCHTEAM",
     "SV_CLIENT",
     "SV_EXTENSION",
-    "SV_MAPIDENT", "SV_HUDEXTRAS", "SV_POINTS", "SV_DEMOCHECKSUM", "SV_DEMOSIGNATURE",
+    "SV_MAPIDENT", "SV_DEMOCHECKSUM", "SV_DEMOSIGNATURE",
 };
 
 const char *entnames[] =

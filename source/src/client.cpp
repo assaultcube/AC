@@ -9,7 +9,6 @@ ENetHost *clienthost = NULL;
 ENetPeer *curpeer = NULL, *connpeer = NULL;
 int connmillis = 0, connattempts = 0, discmillis = 0;
 SVAR(curdemofile, "n/a");
-extern bool clfail, cllock;
 extern int searchlan;
 
 int getclientnum() { return player1 ? player1->clientnum : -1; }
@@ -52,20 +51,12 @@ void abortconnect()
     connectrole = CR_DEFAULT;
     if(connpeer->state!=ENET_PEER_STATE_DISCONNECTED) enet_peer_reset(connpeer);
     connpeer = NULL;
-#if 0
-    if(!curpeer)
-    {
-        enet_host_destroy(clienthost);
-        clienthost = NULL;
-    }
-#endif
 }
 
 void connectserv_(const char *servername, int serverport = 0, const char *password = NULL, int role = CR_DEFAULT)
 {
     if(serverport <= 0) serverport = CUBE_DEFAULT_SERVER_PORT;
     if(watchingdemo) enddemoplayback();
-    if(!clfail && cllock && searchlan<2) return;
 
     if(connpeer)
     {
@@ -119,6 +110,7 @@ void connectserv(char *servername, int *serverport, char *password)
     modprotocol = false;
     connectserv_(servername, *serverport, password);
 }
+COMMANDN(connect, connectserv, "sis");
 
 void connectadmin(char *servername, int *serverport, char *password)
 {
@@ -126,18 +118,21 @@ void connectadmin(char *servername, int *serverport, char *password)
     if(!password[0]) return;
     connectserv_(servername, *serverport, password, CR_ADMIN);
 }
+COMMAND(connectadmin, "sis");
 
 void lanconnect()
 {
     modprotocol = false;
     connectserv_(NULL);
 }
+COMMAND(lanconnect, "");
 
 void modconnectserv(char *servername, int *serverport, char *password)
 {
     modprotocol = true;
     connectserv_(servername, *serverport, password);
 }
+COMMANDN(modconnect, modconnectserv, "sis");
 
 void modconnectadmin(char *servername, int *serverport, char *password)
 {
@@ -145,17 +140,14 @@ void modconnectadmin(char *servername, int *serverport, char *password)
     if(!password[0]) return;
     connectserv_(servername, *serverport, password, CR_ADMIN);
 }
+COMMAND(modconnectadmin, "sis");
 
 void modlanconnect()
 {
     modprotocol = true;
     connectserv_(NULL);
 }
-
-void whereami()
-{
-    conoutf("you are at (%.2f,%.2f)", player1->o.x, player1->o.y);
-}
+COMMAND(modlanconnect, "");
 
 void disconnect(int onlyclean, int async)
 {
@@ -192,13 +184,6 @@ void disconnect(int onlyclean, int async)
         audiomgr.clearworldsounds(false);
         localdisconnect();
     }
-#if 0
-    if(!connpeer && clienthost)
-    {
-        enet_host_destroy(clienthost);
-        clienthost = NULL;
-    }
-#endif
     if(!onlyclean) localconnect();
     exechook(HOOK_SP_MP, "onDisconnect", "%d", -1);
 }
@@ -219,6 +204,9 @@ void trydisconnect()
     conoutf("attempting to disconnect...");
     disconnect(0, !discmillis);
 }
+COMMANDN(disconnect, trydisconnect, "");
+
+// core game function: ingame chat
 
 void _toserver(char *text, int msg, int msgt)
 {
@@ -226,25 +214,34 @@ void _toserver(char *text, int msg, int msgt)
     if(!toteam && text[0] == '%' && strlen(text) > 1) text++; // convert team-text to normal-text if no team-mode is active
     if(toteam) text++;
     filtertext(text, text, FTXT__CHAT);
-    trimtrailingwhitespace(text);
     if(servstate.mastermode == MM_MATCH && servstate.matchteamsize && !team_isactive(player1->team) && !(player1->team == TEAM_SPECT && player1->clientrole == CR_ADMIN)) toteam = true; // spect chat
-    if(*text)
-    {
-        if(msg == SV_TEXTME) conoutf("\f%d%s %s", toteam ? 1 : 0, colorname(player1), highlight(text));
-        else conoutf("%s:\f%d %s", colorname(player1), toteam ? 1 : 0, highlight(text));
-        addmsg(toteam ? msgt : msg, "rs", text);
-    }
+    if(*text) addmsg(toteam ? msgt : msg, "rs", text);
 }
 
 void toserver(char *text)
 {
     _toserver(text, SV_TEXT, SV_TEAMTEXT);
 }
+COMMANDN(say, toserver, "c");
 
 void toserverme(char *text)
 {
     _toserver(text, SV_TEXTME, SV_TEAMTEXTME);
 }
+COMMANDN(me, toserverme, "c");
+
+void pm(char *text)
+{
+    char *msg;
+    int cn = (int) strtol(text, &msg, 10);
+    if(msg != text && getclient(cn))
+    {
+        filtertext(msg, msg, FTXT__CHAT | FTXT_CROPWHITE_LEAD);
+        if(*msg) addmsg(SV_TEXTPRIVATE, "ris", cn, msg);
+    }
+    else conoutf("\f3pm: invalid client number specified");
+}
+COMMAND(pm, "c");
 
 void echo(char *text)
 {
@@ -256,8 +253,10 @@ void echo(char *text)
     }
     while(s);
 }
+COMMAND(echo, "c");
 
 VARP(allowhudechos, 0, 1, 1);
+
 void hudecho(char *text)
 {
     char *b, *s = strtok_r(text, "\n", &b);
@@ -269,65 +268,12 @@ void hudecho(char *text)
     }
     while(s);
 }
-
-void pm(char *text)
-{
-    if(!text || !text[0]) return;
-    int cn = -1;
-    char digit;
-    while ((digit = *text++) != '\0')
-    {
-        if (digit < '0' || digit > '9') break;
-        if(cn < 0) cn = 0;
-        else cn *= 10;
-        cn += digit - '0';
-    }
-    playerent *to = getclient(cn);
-    if(!to)
-    {
-        conoutf("invalid client number specified");
-        return;
-    }
-
-    if(!isspace(digit)) { --text; }
-
-    // FIXME:
-    /*if(!text || !text[0] || !isdigit(text[0])) return;
-    int cn = -1;
-    char *numend = strpbrk(text, " \t");
-    if(!numend) return;
-    string cnbuf;
-    copystring(cnbuf, text, min(numend-text+1, MAXSTRLEN));
-    cn = atoi(cnbuf);
-    playerent *to = getclient(cn);
-    if(!to)
-    {
-        conoutf("invalid client number specified");
-        return;
-    }
-
-    if(*numend) numend++;*/
-    // :FIXME
-
-    filtertext(text, text, FTXT__CHAT);
-    trimtrailingwhitespace(text);
-
-    addmsg(SV_TEXTPRIVATE, "ris", cn, text);
-    conoutf("to %s (PM):\f9 %s", colorname(to), highlight(text));
-}
-COMMAND(pm, "c");
-
-COMMAND(echo, "c");
 COMMAND(hudecho, "c");
-COMMANDN(say, toserver, "c");
-COMMANDN(me, toserverme, "c");
-COMMANDN(connect, connectserv, "sis");
-COMMAND(connectadmin, "sis");
-COMMAND(lanconnect, "");
-COMMANDN(modconnect, modconnectserv, "sis");
-COMMAND(modconnectadmin, "sis");
-COMMAND(modlanconnect, "");
-COMMANDN(disconnect, trydisconnect, "");
+
+void whereami()
+{
+    conoutf("you are at (%.2f,%.2f)", player1->o.x, player1->o.y);
+}
 COMMAND(whereami, "");
 
 void current_version(char *text)
@@ -633,84 +579,13 @@ void gets2c()           // get updates from the server
     }
 }
 
-#if 0
-// for AUTH:
-
-vector<authkey *> authkeys;
-
-VARP(autoauth, 0, 1, 1);
-
-authkey *findauthkey(const char *desc)
-{
-    loopv(authkeys) if(!strcmp(authkeys[i]->desc, desc) && !strcmp(authkeys[i]->name, player1->name)) return authkeys[i];
-    loopv(authkeys) if(!strcmp(authkeys[i]->desc, desc)) return authkeys[i];
-    return NULL;
-}
-
-void addauthkey(const char *name, const char *key, const char *desc)
-{
-    loopvrev(authkeys) if(!strcmp(authkeys[i]->desc, desc) && !strcmp(authkeys[i]->name, name)) delete authkeys.remove(i);
-    if(name[0] && key[0]) authkeys.add(new authkey(name, key, desc));
-}
-
-bool _hasauthkey(const char *name, const char *desc)
-{
-    if(!name[0] && !desc[0]) return authkeys.length() > 0;
-    loopvrev(authkeys) if(!strcmp(authkeys[i]->desc, desc) && !strcmp(authkeys[i]->name, name)) return true;
-    return false;
-}
-
-void genauthkey(const char *secret)
-{
-    if(!secret[0]) { conoutf("you must specify a secret password"); return; }
-    vector<char> privkey, pubkey;
-    genprivkey(secret, privkey, pubkey);
-    conoutf("private key: %s", privkey.getbuf());
-    conoutf("public key: %s", pubkey.getbuf());
-}
-
-void saveauthkeys()
-{
-    if(authkeys.length())
-    {
-        stream *f = openfile("config/auth.cfg", "w");
-        if(!f) { conoutf("failed to open config/auth.cfg for writing"); return; }
-        loopv(authkeys)
-        {
-            authkey *a = authkeys[i];
-            f->printf("authkey \"%s\" \"%s\" \"%s\"\n", a->name, a->key, a->desc);
-        }
-        conoutf("saved authkeys to config/auth.cfg");
-        delete f;
-    }
-    else conoutf("you need to use 'addauthkey USER KEY DESC' first; one DESC 'public', one DESC empty(=private)");
-}
-
-bool tryauth(const char *desc)
-{
-    authkey *a = findauthkey(desc);
-    if(!a) return false;
-    a->lastauth = lastmillis;
-    addmsg(SV_AUTHTRY, "rss", a->desc, a->name);
-    return true;
-}
-
-COMMANDN(authkey, addauthkey, "sss");
-COMMANDF(hasauthkey, "ss", (char *name, char *desc) { intret(_hasauthkey(name, desc) ? 1 : 0); });
-COMMAND(genauthkey, "s");
-COMMAND(saveauthkeys, "");
-COMMANDF(auth, "s", (char *desc) { intret(tryauth(desc)); });
-
-// :for AUTH
-
-#endif
-
 // sendmap/getmap commands, should be replaced by more intuitive map downloading
 
 vector<char *> securemaps;
 
-void resetsecuremaps() { securemaps.deletearrays(); }
-void securemap(char *map) { if(map) securemaps.add(newstring(map)); }
+COMMANDF(resetsecuremaps, "", () { securemaps.deletearrays(); });
+COMMANDF(securemap, "s", (char *map) { if(map) securemaps.add(newstring(map)); });
+
 bool securemapcheck(const char *map, bool msg)
 {
     if(strstr(map, "maps/")==map || strstr(map, "maps\\")==map) map += strlen("maps/");
@@ -719,7 +594,7 @@ bool securemapcheck(const char *map, bool msg)
         if(msg)
         {
             conoutf("\f3Map \f4%s\f3 is secured. This means you CAN'T send, receive or overwrite it.", map);
-            if(connected)
+            if(curpeer)
             {
                 conoutf("\f3If you get this error often, you (or the server) may be running an outdated game.");
                 conoutf("\f3You can check for updates at \f1http://assault.cubers.net/download.html");
@@ -768,11 +643,12 @@ void sendmap(char *mapname)
     sendpackettoserv(2, p.finalize());
     conoutf("sending map %s to server...", mapname);
 }
+COMMAND(sendmap, "s");
 
 void getmap(char *name, char *callback)
 {
     if((!name || !*name)
-        || (connected && !strcmp(name, getclientmap())) )
+        || (curpeer && !strcmp(name, getclientmap())) )
     {
         conoutf("requesting map from server...");
         packetbuf p(10, ENET_PACKET_FLAG_RELIABLE);
@@ -790,6 +666,7 @@ void getmap(char *name, char *callback)
         else conoutf("\f3map download failed");
     }
 }
+COMMAND(getmap, "ss");
 
 void deleteservermap(char *mapname)
 {
@@ -797,6 +674,7 @@ void deleteservermap(char *mapname)
     if(!*name || securemapcheck(name)) return;
     addmsg(SV_REMOVEMAP, "rs", name);
 }
+COMMAND(deleteservermap, "s");
 
 string demosubpath;
 void getdemo(int *idx, char *dsp)
@@ -812,6 +690,7 @@ void getdemo(int *idx, char *dsp)
     else conoutf("getting demo %d...", *idx);
     addmsg(SV_GETDEMO, "ri", *idx);
 }
+COMMAND(getdemo, "is");
 
 void listdemos()
 {
@@ -823,6 +702,7 @@ void listdemos()
     conoutf("listing demos...");
     addmsg(SV_LISTDEMOS, "r");
 }
+COMMAND(listdemos, "");
 
 void shiftgametime(int newmillis)
 {
@@ -859,13 +739,6 @@ void rewinddemo(char *seconds)
 }
 COMMANDN(rewind, rewinddemo, "s");
 
-COMMAND(sendmap, "s");
-COMMAND(getmap, "ss");
-COMMAND(deleteservermap, "s");
-COMMAND(resetsecuremaps, "");
-COMMAND(securemap, "s");
-COMMAND(getdemo, "is");
-COMMAND(listdemos, "");
 
 COMMANDF(watchingdemo, "", () { intret(watchingdemo); });
 

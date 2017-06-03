@@ -692,9 +692,7 @@ bool empty_world(int factor, bool force)    // main empty world creation routine
     if(clearmap && unsavededits) { xmapbackup("newmap", ""); unsavededits = 0; }
     if(copy) ow = blockcopy(shrink ? bs : be);
 
-    extern char *mlayout;
     DELETEA(world);
-    DELETEA(mlayout);
 
     setupworld(factor);
     loop(x,ssize) loop(y,ssize)
@@ -1038,4 +1036,11 @@ void mapareacheck(char *what) // "vdelta" | "steepest" | "total" | "pprest" | "p
 }
 
 COMMAND(mapareacheck, "s");
+
+void showmapstats()
+{
+    conoutf("\f2Map quality stats");
+    conoutf("this map %s", rnd(3) ? "is great" : "sucks");
+}
+COMMAND(showmapstats, "");
 
