@@ -882,53 +882,38 @@ void createconfigtemplates(const char *templatezip)  // create customisable conf
     findfile(AUTOSTARTPATH "dummy", "w"); // create empty autostart directory, if it doesn't exist yet
 }
 
-extern void connectserv(char *, int *, char *);
-
-void connectprotocol(char *protocolstring, string &servername, int &serverport, string &password, bool &direct_connect)
+void connectprotocol(char *protocolstring) // assaultcube://example.org[:28763][/][?[port=28763][&password=secret]]
 {
-    const char *c = &protocolstring[14], *p = c;
-    int len = 0;
-    direct_connect = false;
-    string sp;
-    servername[0] = password[0] = '\0';
-    serverport = 0;
-    while(*c && *c!='/' && *c!='?' && *c!=':') { len++; c++; }
-    if(!len) { conoutf("\f3bad commandline syntax (\"%s\")", protocolstring); return; }
-    copystring(servername, p, min(len+1, MAXSTRLEN));
-    direct_connect = true;
-    if(*c && *c==':')
+    urlparse u;
+    u.set(protocolstring);
+    if(strcmp(u.scheme, "assaultcube") || !*u.domain) { conoutf("\f3bad commandline syntax (\"%s\")", protocolstring); return; }
+    if(*u.userpassword) clientlogf(" ignoring user:password part of url (%s)", u.userpassword);
+    if(*u.fragment) clientlogf(" ignoring fragment part of url (%s)", u.fragment);
+    if(*u.path) clientlogf(" ignoring path part of url (%s)", u.path);
+    int port = ATOI(u.port);
+    const char *q = u.query, *passwd = NULL;
+    while(q && *q)
     {
-        c++; p = c; len = 0;
-        while(*c && *c!='/' && *c!='?') { len++; c++; }
-        if(len)
+        if(*q == '&') q++;
+        if(!strncmp(q, "port=", 5))
         {
-            copystring(sp, p, min(len+1, MAXSTRLEN));
-            serverport = atoi(sp);
+            q += 5;
+            port = ATOI(q);
+            q = strchr(q, '&');
         }
-    }
-    if(*c && *c=='/') c++;
-    if(!*c || *c!='?') return;
-    do
-    {
-        if(*c) c++;
-        if(!strncmp(c, "port=", 5))
+        else if(!strncmp(q, "password=", 9))
         {
-            c += 5; p = c; len = 0;
-            while(*c && *c!='&' && *c!='/') { len++; c++; }
-            if(len)
-            {
-                copystring(sp, p, min(len+1, MAXSTRLEN));
-                serverport = atoi(sp);
-            }
-        }
-        else if(!strncmp(c, "password=", 9))
-        {
-            c += 9; p = c; len = 0;
-            while(*c && *c!='&' && *c!='/') { len++, c++; }
-            if(len) copystring(password, p, min(len+1, MAXSTRLEN));
+            q += 9;
+            const char *e = strchr(q, '&');
+            passwd = e ? newstring(q, e - q) : newstring(q);
+            q = e;
         }
         else break;
-    } while(*c && *c=='&' && *c!='/');
+    }
+    defformatstring(cmd)("connect %s %d %s", u.domain, port, passwd ? passwd : "");
+    DEBUGCODE(clientlogf("connectprotocol: %s", cmd));
+    addsleep(5, cmd, true);
+    DELSTRING(passwd);
 }
 
 #ifdef WIN32
@@ -1006,9 +991,6 @@ int main(int argc, char **argv)
     bool quitdirectly = false;
     char *initscript = NULL;
     char *initdemo = NULL;
-    bool direct_connect = false;               // to connect via assaultcube:// browser switch
-    string servername, password;
-    int serverport;
 
     if(bootclientlog) cvecprintf(*bootclientlog, "######## start logging: %s\n", timestring(true));
 
@@ -1095,13 +1077,13 @@ int main(int argc, char **argv)
             }
             else if(!strncmp(argv[i], "assaultcube://", 14)) // browser direct connection
             {
-                connectprotocol(argv[i], servername, serverport, password, direct_connect);
+                connectprotocol(argv[i]);
             }
             else conoutf("\f3unknown commandline argument: %c", argv[i][0]);
         }
     }
     if(!havehomedir()) sethomedir(DEFAULTPROFILEPATH);
-    entropy_init(time(NULL) + (uint)(size_t)&serverport + (uint)(size_t)entropy_init);
+    entropy_init(time(NULL) + (uint)(size_t)&initscript + (uint)(size_t)entropy_init);
     initclientlog();
     if(quitdirectly) return EXIT_SUCCESS;
 
@@ -1347,7 +1329,7 @@ int main(int argc, char **argv)
             showscores(true);
             // draw again after swapping buffers, to make sure menu is captured
             // in the screenshot regardless of which frame buffer is current
-            if (!minimized)
+            if(!minimized)
             {
                 gl_drawframe(screen->w, screen->h, fps<lowfps ? fps/lowfps : (fps>highfps ? fps/highfps : 1.0f), fps, elapsed);
             }
@@ -1357,11 +1339,6 @@ int main(int argc, char **argv)
 #ifdef _DEBUG
         if(millis>lastflush+60000) { fflush(stdout); lastflush = millis; }
 #endif
-        if (direct_connect)
-        {
-            direct_connect = false;
-            connectserv(servername, &serverport, password);
-        }
         pollautodownloadresponse();
     }
 
