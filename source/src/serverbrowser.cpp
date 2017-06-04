@@ -1209,10 +1209,6 @@ bool serverskey(void *menu, int code, bool isdown, int unicode)
     }
     switch(code)
     {
-        case SDLK_HOME:
-            if(menu) ((gmenu *)menu)->menusel = 0;
-            return true;
-
         case SDLK_LEFT:
             serversort = (serversort+NUMSERVSORT-1) % NUMSERVSORT;
             return true;
@@ -1276,10 +1272,6 @@ bool serverinfokey(void *menu, int code, bool isdown, int unicode)
     if(!isdown) return false;
     switch(code)
     {
-        case SDLK_HOME:
-            if(menu) ((gmenu *)menu)->menusel = 0;
-            return true;
-
         case SDLK_F5:
             if(lastselectedserver) lastselectedserver->getinfo = EXTPING_SERVERINFO;
             pinglastselected = true;

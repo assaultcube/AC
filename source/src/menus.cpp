@@ -1243,6 +1243,7 @@ bool menukey(int code, bool isdown, int unicode, SDLMod mod)
                 if(!curmenu->items.inrange(menusel)) return false;
                 mitem &m = *curmenu->items[menusel];
                 m.key(code, isdown, unicode);
+                if(code == SDLK_HOME && m.mitemtype != mitem::TYPE_TEXTINPUT) menuselect(curmenu, (menusel = 0));
                 return !curmenu->forwardkeys;
             }
         }
