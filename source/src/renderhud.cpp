@@ -83,6 +83,7 @@ VARP(hideradar, 0, 0, 1);
 VARP(hidecompass, 0, 0, 1);
 VARP(hideteam, 0, 0, 1);
 VARP(hideteamscorehud, 0, 0, 1);
+VARP(flagscorehudtransparency, 0, 1, 1);
 VARP(hideeditinfopanel, 0, 0, 1);
 VARP(hidevote, 0, 0, 2);
 VARP(hidehudmsgs, 0, 0, 1);
@@ -1070,7 +1071,8 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
             if(!offs || scores[2] || scores[3]) loopi(2) // flag state or frag-counter
             {
-                drawctficon(i*120+VIRTW/4.0f*3.0f, 1650, 120, i, offs / 2, 1/4.0f, flaginfos[i].state == CTFF_INBASE || offs ? 255 : 100);
+                bool inbase = flaginfos[i].state == CTFF_INBASE || offs;
+                drawctficon(i*120+VIRTW/4.0f*3.0f, 1650, 120, i + (inbase || flagscorehudtransparency ? 0 : 2), offs / 2, 1/4.0f, inbase || !flagscorehudtransparency ? 255 : 100);
                 if(m_teammode)
                 {
                     defformatstring(count)("\f%c%d", cc[i], scores[i + offs]);
