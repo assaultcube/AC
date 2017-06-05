@@ -3,4 +3,6 @@ igraphs "1" to "9" are hardcoded to be used in menus:
 1: menu icon (indicating a sub-menu)
 2: not assigned yet
 3: ellipsis (three dots, indicating a sub-menu)
-4..9: not assigned yet
+4..7: not assigned yet
+8: radio button, off
+9: radio button, on

@@ -579,21 +579,38 @@ VARP(wrapslider, 0, 0, 1);
 struct mitemslider : mitem
 {
     int min_, max_, step, value, maxvaluewidth;
-    char *text, *valueexp, *display, *action;
+    char *text, *valueexp, *action;
     string curval;
-    bool wrap;
+    vector<char *> opts;
+    bool wrap, isradio;
 
-    mitemslider(gmenu *parent, char *text, int min_, int max_, int step, char *value, char *display, char *action, color *bgcolor, bool wrap) : mitem(parent, bgcolor, mitem::TYPE_SLIDER), min_(min_), max_(max_), step(step), value(min_), maxvaluewidth(0), text(text), valueexp(value), display(display), action(action), wrap(wrap) { }
+    mitemslider(gmenu *parent, char *text, int _min, int _max, char *value, char *display, char *action, color *bgcolor, bool wrap, bool isradio) : mitem(parent, bgcolor, mitem::TYPE_SLIDER),
+                               min_(_min), max_(_max), value(_min), maxvaluewidth(0), text(text), valueexp(value), action(action), wrap(wrap), isradio(isradio)
+    {
+        char *enddigits;
+        step = (int) strtol(display, &enddigits, 10);
+        if(!*display || *enddigits)
+        {
+            step = 1;
+            explodelist(display, opts);
+            if(max_ - min_ + 1 != opts.length())
+            {
+                if(max_ != -1) clientlogf("menuitemslider: display string length (%d) doesn't match max-min (%d) \"%s\" [%s]", opts.length(), max_ - min_ + 1, text, display);
+                max_ = min_ + opts.length() - 1;
+            }
+        }
+        getmaxvaluewidth();
+    }
 
     virtual ~mitemslider()
     {
+        opts.deletearrays();
         DELETEA(text);
         DELETEA(valueexp);
-        DELETEA(display);
         DELETEA(action);
     }
 
-    virtual int width() { return text_width(text) + menurighttabwidth + maxvaluewidth + 2*FONTH; }
+    virtual int width() { return text_width(text) + (isradio ? 0 : menurighttabwidth) + maxvaluewidth + 2*FONTH; }
 
     virtual void render(int x, int y, int w)
     {
@@ -601,18 +618,22 @@ struct mitemslider : mitem
         int range = max_-min_;
         int cval = value-min_;
 
-        int tw = text_width(text);
+        int tw = text_width(text), ow = isradio ? text_width(curval) : menurighttabwidth, pos = !isradio || ow < menurighttabwidth ? menurighttabwidth : ow;
         if(sel)
         {
-            renderbg(x+w-menurighttabwidth, y, menurighttabwidth, menuselbgcolor);
-            renderbg(x, y, w-menurighttabwidth-FONTH/2, menuseldescbgcolor);
+            renderbg(x + w - pos, y, ow, menuselbgcolor);
+            renderbg(x, y, w - pos - FONTH/2, menuseldescbgcolor);
+            if(pos - ow > FONTH/2) renderbg(x + w - pos + ow + FONTH/2, y, pos - ow - FONTH/2, menuseldescbgcolor);
         }
         draw_text(text, x, y);
-        draw_text(curval, x+tw, y);
+        draw_text(curval, x + (isradio ? w - pos : tw), y);
 
-        blendbox(x+w-menurighttabwidth, y+FONTH/3, x+w, y+FONTH*2/3, false, -1, &gray);
-        int offset = (int)(cval/((float)range)*menurighttabwidth);
-        blendbox(x+w-menurighttabwidth+offset-FONTH/6, y, x+w-menurighttabwidth+offset+FONTH/6, y+FONTH, false, -1, sel ? &whitepulse : &white);
+        if(!isradio)
+        {
+            blendbox(x+w-menurighttabwidth, y+FONTH/3, x+w, y+FONTH*2/3, false, -1, &gray);
+            int offset = (int)(cval/((float)range)*menurighttabwidth);
+            blendbox(x+w-menurighttabwidth+offset-FONTH/6, y, x+w-menurighttabwidth+offset+FONTH/6, y+FONTH, false, -1, sel ? &whitepulse : &white);
+        }
     }
 
     virtual void key(int code, bool isdown, int unicode)
@@ -627,11 +648,10 @@ struct mitemslider : mitem
         char *v = executeret(p);
         if(v)
         {
-            value = min(max_, max(min_, atoi(v)));
+            value = clamp(int(ATOI(v)), min_, max_);
             delete[] v;
         }
         displaycurvalue();
-        getmaxvaluewidth();
     }
 
     void slide(bool right)
@@ -654,11 +674,15 @@ struct mitemslider : mitem
 
     void displaycurvalue()
     {
-        if(display) // extract display name from list
+        if(isradio)
         {
-            char *val = indexlist(display, value-min_);
-            copystring(curval, val);
-            delete[] val;
+            *curval = '\0';
+            loopv(opts) concatformatstring(curval, "%s\1%c %s", i ? "  " : "", (i + min_ == value) ? '\11' : '\10', opts[i]);
+        }
+        else if(opts.length()) // extract display name from list
+        {
+            int idx = value - min_;
+            copystring(curval, opts.inrange(idx) ? opts[idx] : "");
         }
         else itoa(curval, value); // display number only
     }
@@ -1044,12 +1068,19 @@ void menuitemtextinput(char *text, char *value, char *action, char *hoveraction,
 }
 COMMAND(menuitemtextinput, "ssssii");
 
-void menuitemslider(char *text, int *min_, int *max_, char *value, int *step, char *display, char *action, int *wrap)
+void menuitemslider(char *text, int *min_, int *max_, char *value, char *display, char *action, int *wrap)
 {
     if(!lastmenu) return;
-    lastmenu->items.add(new mitemslider(lastmenu, newstring(text), *min_, *max_, *step, newstring(value), display[0] ? newstring(display) : NULL, action[0] ? newstring(action) : NULL, NULL, *wrap != 0));
+    lastmenu->items.add(new mitemslider(lastmenu, newstring(text), *min_, *max_, newstring(value), display, action[0] ? newstring(action) : NULL, NULL, *wrap != 0, false));
 }
-COMMAND(menuitemslider, "siisissi");
+COMMAND(menuitemslider, "siisssi");
+
+void menuitemradio(char *text, int *min_, int *max_, char *value, char *display, char *action)
+{
+    if(!lastmenu) return;
+    lastmenu->items.add(new mitemslider(lastmenu, newstring(text), *min_, *max_, newstring(value), display, action[0] ? newstring(action) : NULL, NULL, true, true));
+}
+COMMAND(menuitemradio, "siisss");
 
 void menuitemkeyinput(char *text, char *bindcmd)
 {
