@@ -581,8 +581,9 @@ struct mitemslider : mitem
     int min_, max_, step, value, maxvaluewidth;
     char *text, *valueexp, *display, *action;
     string curval;
+    bool wrap;
 
-    mitemslider(gmenu *parent, char *text, int min_, int max_, int step, char *value, char *display, char *action, color *bgcolor) : mitem(parent, bgcolor, mitem::TYPE_SLIDER), min_(min_), max_(max_), step(step), value(min_), maxvaluewidth(0), text(text), valueexp(value), display(display), action(action) { }
+    mitemslider(gmenu *parent, char *text, int min_, int max_, int step, char *value, char *display, char *action, color *bgcolor, bool wrap) : mitem(parent, bgcolor, mitem::TYPE_SLIDER), min_(min_), max_(max_), step(step), value(min_), maxvaluewidth(0), text(text), valueexp(value), display(display), action(action), wrap(wrap) { }
 
     virtual ~mitemslider()
     {
@@ -636,7 +637,7 @@ struct mitemslider : mitem
     void slide(bool right)
     {
         value += right ? step : -step;
-        if (wrapslider)
+        if (wrapslider || wrap)
         {
             if (value > max_) value = min_;
             if (value < min_) value = max_;
@@ -1043,12 +1044,12 @@ void menuitemtextinput(char *text, char *value, char *action, char *hoveraction,
 }
 COMMAND(menuitemtextinput, "ssssii");
 
-void menuitemslider(char *text, int *min_, int *max_, char *value, int *step, char *display, char *action)
+void menuitemslider(char *text, int *min_, int *max_, char *value, int *step, char *display, char *action, int *wrap)
 {
     if(!lastmenu) return;
-    lastmenu->items.add(new mitemslider(lastmenu, newstring(text), *min_, *max_, *step, newstring(value), display[0] ? newstring(display) : NULL, action[0] ? newstring(action) : NULL, NULL));
+    lastmenu->items.add(new mitemslider(lastmenu, newstring(text), *min_, *max_, *step, newstring(value), display[0] ? newstring(display) : NULL, action[0] ? newstring(action) : NULL, NULL, *wrap != 0));
 }
-COMMAND(menuitemslider, "siisiss");
+COMMAND(menuitemslider, "siisissi");
 
 void menuitemkeyinput(char *text, char *bindcmd)
 {
