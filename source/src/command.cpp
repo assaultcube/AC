@@ -418,19 +418,10 @@ char *parseexp(const char *&p, int right)             // parse any nested set of
     return s;
 }
 
-char *lookup(char *n)                           // find value of ident referenced with $ in exp
+char *lookup(char *n, int levels)                           // find value of ident referenced with $ in exp
 {
-    if(n[1] == '$') // nested ("$$var")
-    {
-        char *nn = lookup(newstring(n + 1));
-        delete[] n;
-        int nnl = strlen(nn);
-        n = newstring(nnl + 1);
-        n[0] = '$';
-        copystring(n + 1, nn, nnl + 1);
-        delete[] nn;
-    }
-    ident *id = idents->access(n+1);
+    if(levels > 1) n = exchangestr(n, lookup(newstring(n), levels - 1)); // nested ("$$var")
+    ident *id = idents->access(n);
     if(id) switch(id->type)
     {
         case ID_VAR: { string t; itoa(t, *id->storage.i); return exchangestr(n, t); }
@@ -438,7 +429,7 @@ char *lookup(char *n)                           // find value of ident reference
         case ID_SVAR: { { if(id->getfun) ((void (__cdecl *)())id->getfun)(); } return exchangestr(n, *id->storage.s); }
         case ID_ALIAS: return exchangestr(n, id->action);
     }
-    conoutf("unknown alias lookup: %s", n+1);
+    conoutf("unknown alias lookup: %s", n);
     scripterr();
     flagmapconfigerror(LWW_SCRIPTERR * 4);
     return n;
@@ -466,6 +457,13 @@ char *parseword(const char *&p, int arg, int &infix)                       // pa
     }
     if(*p=='(') return parseexp(p, ')');
     if(*p=='[') return parseexp(p, ']');
+    int lvls = strspn(p, "$");
+    if(p[lvls]=='(')
+    { // $()
+        p += lvls;
+        char *b = parseexp(p, ')');
+        if(b) return lookup(b, lvls);
+    }
     const char *word = p;
     p += strcspn(p, "; \t\n\r\0");
     if(p-word==0) return NULL;
@@ -473,9 +471,7 @@ char *parseword(const char *&p, int arg, int &infix)                       // pa
     {
         case '=': infix = *word; break;
     }
-    char *s = newstring(word, p-word);
-    if(*s=='$') return lookup(s);
-    return s;
+    return lvls ? lookup(newstring(word + lvls, p - word - lvls), lvls) : newstring(word, p-word);
 }
 
 char *conc(const char **w, int n, bool space)
