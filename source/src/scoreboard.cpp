@@ -294,7 +294,7 @@ void reorderscorecolumns()
     sscore.addcol(sc_clientnum, "cn");
     sscore.addcol(sc_name, "name");
     copystring(scoreboardtitle, sscore.getcols());
-    menutitle(scoremenu, scoreboardtitle);
+    menutitlemanual(scoremenu, scoreboardtitle);
 }
 
 void renderscores(void *menu, bool init)

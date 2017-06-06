@@ -1363,7 +1363,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     conoutf("no demos available");
                     mline &m = demo_mlines.add();
                     copystring(m.name, "no demos available");
-                    menumanual(downloaddemomenu,m.name);
+                    menuitemmanual(downloaddemomenu,m.name);
                 }
                 else
                 {
@@ -1375,7 +1375,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                         mline &m = demo_mlines.add();
                         formatstring(m.name)("%d. %s", i+1, text);
                         formatstring(m.cmd)("getdemo %d", i+1);
-                        menumanual(downloaddemomenu, m.name, m.cmd);
+                        menuitemmanual(downloaddemomenu, m.name, m.cmd);
                     }
                 }
                 break;

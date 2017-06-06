@@ -165,11 +165,11 @@ extern keym *findbindc(int code);
 extern void rendermenu();
 extern bool menuvisible();
 extern void menureset(void *menu);
-extern void menumanual(void *menu, char *text, char *action = NULL, color *bgcolor = NULL, const char *desc = NULL);
+extern void menuitemmanual(void *menu, char *text, char *action = NULL, color *bgcolor = NULL, const char *desc = NULL);
 extern void menuimagemanual(void *menu, const char *filename1, const char *filename2, char *text, char *action = NULL, color *bgcolor = NULL, const char *desc = NULL);
-extern void menutitle(void *menu, const char *title = NULL);
+extern void menutitlemanual(void *menu, const char *title);
 extern bool needscoresreorder;
-extern void menuheader(void *menu, char *header = NULL, char *footer = NULL);
+extern void menuheader(void *menu, char *header, char *footer, bool heap = false);
 extern bool menukey(int code, bool isdown, int unicode, SDLMod mod = KMOD_NONE);
 extern void *addmenu(const char *name, const char *title = NULL, bool allowinput = true, void (__cdecl *refreshfunc)(void *, bool) = NULL, bool (__cdecl *keyfunc)(void *, int, bool, int) = NULL, bool hotkeys = false, bool forwardkeys = false);
 extern bool rendermenumdl();
@@ -224,7 +224,6 @@ struct gmenu
 {
     const char *name, *title, *header, *footer;
     vector<mitem *> items;
-    int mwidth;
     int menusel, menuselinit;
     bool allowinput, inited, hotkeys, forwardkeys;
     void (__cdecl *refreshfunc)(void *, bool);
@@ -235,6 +234,7 @@ struct gmenu
     bool persistentselection;
     bool synctabstops;
     bool hasdesc;
+    bool headfootheap;
     const char *mdl;
     int anim, rotspeed, scale;
     int footlen;
@@ -242,7 +242,9 @@ struct gmenu
     char *previewtexture, *previewtexturetitle;
     mdirlist *dirlist;
 
-    gmenu() : name(0), title(0), header(0), footer(0), menuselinit(-1), initaction(0), usefont(0), allowblink(false), persistentselection(false), synctabstops(false), hasdesc(false), mdl(0), footlen(0), xoffs(0), yoffs(0), previewtexture(NULL), previewtexturetitle(NULL), dirlist(0) {}
+    gmenu() : name(NULL), title(NULL), header(NULL), footer(NULL), menuselinit(-1), initaction(NULL), usefont(NULL),
+              allowblink(false), persistentselection(false), synctabstops(false), hasdesc(false), headfootheap(false),
+              mdl(NULL), footlen(0), xoffs(0), yoffs(0), previewtexture(NULL), previewtexturetitle(NULL), dirlist(NULL) {}
     virtual ~gmenu()
     {
         DELETEA(name);

@@ -1174,7 +1174,7 @@ int main(int argc, char **argv)
     scoremenu = addmenu("score", "columns", false, renderscores, NULL, false, true);
     servmenu = addmenu("server", NULL, true, refreshservers, serverskey);
     searchmenu = addmenu("search", NULL, true, refreshservers, serverskey);
-    serverinfomenu = addmenu("serverinfo", NULL, true, refreshservers, serverinfokey);
+    serverinfomenu = addmenu("serverinfo", "extended server information (F5: refresh)", true, refreshservers, serverinfokey);
     kickmenu = addmenu("kick player", NULL, true, refreshsopmenu);
     banmenu = addmenu("ban player", NULL, true, refreshsopmenu);
     forceteammenu = addmenu("force team", NULL, true, refreshsopmenu);
@@ -1231,7 +1231,6 @@ int main(int argc, char **argv)
     autostartscripts("");    // all remaining scripts
     execfile("config/autoexec.cfg");
     exechook(HOOK_SP_MP, "autoexec", "");
-    execute("addallfavcatmenus");  // exec here, to add all categories (including those defined in autoexec.cfg)
     initing = NOT_INITING;
     uniformtexres = !hirestextures;
 

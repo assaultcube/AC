@@ -682,7 +682,7 @@ void renderdocsection(void *menu, bool init)
         }
         msections.sort(msectionsort);
         menureset(menu);
-        loopv(msections) { menumanual(menu, msections[i].name, msections[i].cmd, NULL, msections[i].desc); }
+        loopv(msections) { menuitemmanual(menu, msections[i].name, msections[i].cmd, NULL, msections[i].desc); }
         return;
     }
 }
@@ -698,6 +698,6 @@ void renderdocmenu(void *menu, bool init)
     {
         maction &a = actions.add();
         formatstring(a.cmd)("showmenu [%s]", sections[i].name);
-        menumanual(menu, sections[i].name, a.cmd);
+        menuitemmanual(menu, sections[i].name, a.cmd);
     }
 }

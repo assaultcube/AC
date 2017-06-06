@@ -298,29 +298,6 @@ struct mitemtext : mitemmanual
     }
 };
 
-struct mitemtextvar : mitemmanual
-{
-    string dtext;
-    const char *textexp;
-    mitemtextvar(gmenu *parent, const char *evalp, char *action, char *hoveraction) : mitemmanual(parent, dtext, action, hoveraction, NULL, NULL)
-    {
-        dtext[0] = '\0';
-        textexp = evalp;
-    }
-    virtual ~mitemtextvar()
-    {
-        DELETEA(textexp);
-        DELETEA(action);
-        DELETEA(hoveraction);
-    }
-    virtual void init()
-    {
-        char *r = executeret(textexp);
-        copystring(dtext, r ? r : "");
-        if(r) delete[] r;
-    }
-};
-
 VARP(hidebigmenuimages, 0, 0, 1);
 
 struct mitemimagemanual : mitemmanual
@@ -912,7 +889,7 @@ void delmenu(const char *name)
 }
 COMMAND(delmenu, "s");
 
-void menumanual(void *menu, char *text, char *action, color *bgcolor, const char *desc)
+void menuitemmanual(void *menu, char *text, char *action, color *bgcolor, const char *desc)
 {
     gmenu &m = *(gmenu *)menu;
     m.items.add(new mitemmanual(&m, text, action, NULL, bgcolor, desc));
@@ -924,45 +901,33 @@ void menuimagemanual(void *menu, const char *filename, const char *altfontname, 
     m.items.add(new mitemimagemanual(&m, filename, altfontname, text, action, NULL, bgcolor, desc));
 }
 
-void menutitle(void *menu, const char *title)
+void menutitlemanual(void *menu, const char *title)
 {
     gmenu &m = *(gmenu *)menu;
     m.title = title;
 }
 
-void menuheader(void *menu, char *header, char *footer)
+void menuheader(void *menu, char *header, char *footer, bool heap)
 {
     gmenu &m = *(gmenu *)menu;
-    m.header = header && header[0] ? header : NULL;
-    m.footer = footer && footer[0] ? footer : NULL;
+    if(m.headfootheap) { DELSTRING(m.header); DELSTRING(m.footer); }
+    m.header = header;
+    m.footer = footer;
+    m.headfootheap = heap; // false: "manual"
 }
 
-void lastmenu_header(char *header, char *footer)
+COMMANDF(menuheader, "ss", (char *header, char *footer) { if(lastmenu) menuheader(lastmenu, *header ? newstring(header) : NULL, *footer ? newstring(footer) : NULL, true); });
+
+void menufont(char *menu, const char *usefont)
 {
-    if(lastmenu)
+    gmenu *m = *menu ? menus.access(menu) : lastmenu;
+    if(m)
     {
-        menuheader(lastmenu, newstring(header), newstring(footer));
+        DELSTRING(m->usefont);
+        m->usefont = usefont && *usefont ? newstring(usefont) : NULL;
     }
-    else conoutf("no last menu to apply to");
 }
-COMMANDN(menuheader, lastmenu_header, "ss");
-
-void menufont(void *menu, const char *usefont)
-{
-    gmenu &m = *(gmenu *)menu;
-    if(usefont==NULL)
-    {
-        DELETEA(m.usefont);
-        m.usefont = NULL;
-    } else m.usefont = newstring(usefont);
-}
-
-void setmenufont(char *usefont)
-{
-    if(!lastmenu) return;
-    menufont(lastmenu, usefont);
-}
-COMMANDN(menufont, setmenufont, "s");
+COMMAND(menufont, "ss");
 
 void setmenublink(int *truth)
 {
@@ -975,6 +940,7 @@ COMMANDN(menucanblink, setmenublink, "i");
 void menuinit(char *initaction)
 {
     if(!lastmenu) return;
+    DELSTRING(lastmenu->initaction);
     lastmenu->initaction = newstring(initaction);
 }
 COMMAND(menuinit, "s");
@@ -1021,18 +987,9 @@ COMMAND(menuselection, "si");
 void menuitem(char *text, char *action, char *hoveraction, char *desc)
 {
     if(!lastmenu) return;
-    char *t = newstring(text);
-    lastmenu->items.add(new mitemtext(lastmenu, t, newstring(action[0] ? action : text), hoveraction[0] ? newstring(hoveraction) : NULL, NULL, *desc ? newstring(desc) : NULL));
+    lastmenu->items.add(new mitemtext(lastmenu, newstring(text), newstring(action[0] ? action : text), hoveraction[0] ? newstring(hoveraction) : NULL, NULL, *desc ? newstring(desc) : NULL));
 }
 COMMAND(menuitem, "ssss");
-
-void menuitemvar(char *eval, char *action, char *hoveraction)
-{
-    if(!lastmenu) return;
-    char *t = newstring(eval);
-    lastmenu->items.add(new mitemtextvar(lastmenu, t, action[0] ? newstring(action) : NULL, hoveraction[0] ? newstring(hoveraction) : NULL));
-}
-COMMAND(menuitemvar, "sss");
 
 void menuitemimage(char *name, char *text, char *action, char *hoveraction)
 {
@@ -1082,6 +1039,13 @@ void menuitemradio(char *text, int *min_, int *max_, char *value, char *display,
 }
 COMMAND(menuitemradio, "siisss");
 
+void menuitemcheckbox(char *text, char *value, char *action, int *pos)
+{
+    if(!lastmenu) return;
+    lastmenu->items.add(new mitemcheckbox(lastmenu, newstring(text), newstring(value), action[0] ? newstring(action) : NULL, clamp(*pos, 0, 100), NULL));
+}
+COMMAND(menuitemcheckbox, "sssi");
+
 void menuitemkeyinput(char *text, char *bindcmd)
 {
     if(!lastmenu) return;
@@ -1103,23 +1067,18 @@ void menuitemspectkeyinput(char *text, char *bindcmd)
 }
 COMMAND(menuitemspectkeyinput, "ss");
 
-void menuitemcheckbox(char *text, char *value, char *action, int *pos)
+void menumdl(char *menu, char *mdl, char *anim, int *rotspeed, int *scale)
 {
-    if(!lastmenu) return;
-    lastmenu->items.add(new mitemcheckbox(lastmenu, newstring(text), newstring(value), action[0] ? newstring(action) : NULL, clamp(*pos, 0, 100), NULL));
+    gmenu *m = *menu ? menus.access(menu) : lastmenu;
+    if(!m) return;
+    DELETEA(m->mdl);
+    if(!*mdl) return;
+    m->mdl = newstring(mdl);
+    m->anim = findanim(anim)|ANIM_LOOP;
+    m->rotspeed = clamp(*rotspeed, 0, 100);
+    m->scale = clamp(*scale, 0, 100);
 }
-COMMAND(menuitemcheckbox, "sssi");
-
-void menumdl(char *mdl, char *anim, int *rotspeed, int *scale)
-{
-    if(!lastmenu || !mdl || !anim) return;
-    gmenu &menu = *lastmenu;
-    menu.mdl = newstring(mdl);
-    menu.anim = findanim(anim)|ANIM_LOOP;
-    menu.rotspeed = clamp(*rotspeed, 0, 100);
-    menu.scale = clamp(*scale, 0, 100);
-}
-COMMAND(menumdl, "ssii");
+COMMAND(menumdl, "sssii");
 
 void menudirlist(char *dir, char *ext, char *action, int *image, char *searchfile)
 {
@@ -1136,28 +1095,14 @@ void menudirlist(char *dir, char *ext, char *action, int *image, char *searchfil
 }
 COMMAND(menudirlist, "sssis");
 
-void chmenumdl(char *menu, char *mdl, char *anim, int *rotspeed, int *scale)
-{
-    if(!menu || !menus.access(menu)) return;
-    gmenu &m = menus[menu];
-    DELETEA(m.mdl);
-    if(!mdl ||!*mdl) return;
-    m.mdl = newstring(mdl);
-    m.anim = findanim(anim)|ANIM_LOOP;
-    m.rotspeed = clamp(*rotspeed, 0, 100);
-    m.scale = clamp(*scale, 0, 100);
-}
-COMMAND(chmenumdl, "sssii");
-
 void chmenutexture(char *menu, char *texname, char *title)
 {
-    if(!*menu || !menus.access(menu)) return;
-    gmenu &m = menus[menu];
-    char *newtex = *texname ? newstring(texname) : NULL;
-    DELETEA(m.previewtexture);
-    m.previewtexture = newtex;
-    DELETEA(m.previewtexturetitle);
-    m.previewtexturetitle = *title ? newstring(title) : NULL;
+    gmenu *m = *menu ? menus.access(menu) : NULL;
+    if(!m) return;
+    DELETEA(m->previewtexture);
+    if(*texname) m->previewtexture = newstring(texname);
+    DELETEA(m->previewtexturetitle);
+    if(*title) m->previewtexturetitle = newstring(title);
 }
 COMMAND(chmenutexture, "sss");
 
@@ -1633,17 +1578,4 @@ void refreshapplymenu(void *menu, bool init)
     m->items.add(new mitemtext(m, newstring("Yes"), newstring("resetgl"), NULL, NULL));
     m->items.add(new mitemtext(m, newstring("No"), newstring("echo [..restart AssaultCube to apply the new settings]"), NULL, NULL));
     if(init) m->menusel = m->items.length()-2; // select OK
-}
-
-void setscorefont();
-VARFP(scorefont, 0, 0, 1, setscorefont());
-void setscorefont()
-{
-    switch(scorefont)
-    {
-        case 1: menufont(scoremenu, "mono"); break;
-
-        case 0:
-        default: menufont(scoremenu, NULL); break;
-    }
 }

@@ -1628,7 +1628,7 @@ void refreshsopmenu(void *menu, bool init)
         string kbr;
         if(getalias("_kickbanreason")!=NULL) formatstring(kbr)(" [ %s ]", getalias("_kickbanreason")); // leading space!
         formatstring(m.cmd)("%s %d%s", menu==kickmenu ? "kick" : (menu==banmenu ? "ban" : (menu==forceteammenu ? "forceteam" : "giveadmin")), i, (menu==kickmenu||menu==banmenu)?(strlen(kbr)>8?kbr:" NONE"):""); // 8==3 + "format-extra-chars"
-        menumanual(menu, m.name, m.cmd);
+        menuitemmanual(menu, m.name, m.cmd);
     }
 }
 

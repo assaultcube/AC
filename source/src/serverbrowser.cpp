@@ -803,7 +803,7 @@ void addfavcategory(const char *refdes)
 
 void listfavcats()
 {
-    const char *str = conc((const char **)&favcats[0], favcats.length(), true);
+    const char *str = conc((const char **)favcats.getbuf(), favcats.length(), true);
     result(str);
     delete [] str;
 }
@@ -986,7 +986,6 @@ void refreshservers(void *menu, bool init)
             loopv(servers) if(lastselectedserver == servers[i]) { found = true; break; }
             if(!found) lastselectedserver = NULL;
         }
-        menutitle(menu, "extended server information (F5: refresh)");
         menureset(menu);
         static string infotext;
         static char dummy = '\0';
@@ -994,8 +993,8 @@ void refreshservers(void *menu, bool init)
         {
             serverinfo &si = *lastselectedserver;
             formatstring(si.full)("%s:%d  %s", si.name, si.port, si.sdesc);
-            menumanual(menu, si.full);
-            menumanual(menu, &dummy);
+            menuitemmanual(menu, si.full);
+            menuitemmanual(menu, &dummy);
             if(si.infotexts.length() && !pinglastselected)
             {
                 infotext[0] = '\0';
@@ -1011,7 +1010,7 @@ void refreshservers(void *menu, bool init)
         }
         else
             copystring(infotext, "  -- no server selected --");
-        if(*infotext) menumanual(menu, infotext);
+        if(*infotext) menuitemmanual(menu, infotext);
         return;
     }
     if((init && issearch) || totalmillis - lastinfo >= (servpingrate * (issearch ? 2 : 1))/(maxservpings ? max(1, (servers.length() + maxservpings - 1) / maxservpings) : 1))
@@ -1126,11 +1125,11 @@ void refreshservers(void *menu, bool init)
                         cur++;
                         if(cur == 4)
                         {
-                            menumanual(menu, t, NULL, NULL, NULL);
+                            menuitemmanual(menu, t, NULL, NULL, NULL);
                             cur = 0;
                         }
                     }
-                    if(cur) menumanual(menu, t, NULL, NULL, NULL);
+                    if(cur) menuitemmanual(menu, t, NULL, NULL, NULL);
                 }
             }
             si.menuline_to = ((gmenu *)menu)->items.length();
@@ -1150,7 +1149,7 @@ void refreshservers(void *menu, bool init)
         };
         defformatstring(allplrs)("%d", allplayers);
         formatstring(title)(titles[serversort], showfavtag ? "fav\t" : "", !issearch && showallplayersnumber ? allplrs : "", issearch ? "      search results for \f3" : "     (F1: Help/Settings)", issearch ? cursearch : "");
-        menutitle(menu, title);
+        menutitlemanual(menu, title);
 
         static string notfoundmsg, headermsg;
         notfoundmsg[0] = '\0';
@@ -1165,7 +1164,7 @@ void refreshservers(void *menu, bool init)
             menuheader(menu, headermsg, NULL);
             if(!((gmenu *)menu)->items.length() && !issearch) formatstring(notfoundmsg)("\t(no servers in this category)");
         }
-        if(*notfoundmsg) menumanual(menu, notfoundmsg, NULL, NULL, NULL);
+        if(*notfoundmsg) menuitemmanual(menu, notfoundmsg, NULL, NULL, NULL);
     }
 }
 
