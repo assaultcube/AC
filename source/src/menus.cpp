@@ -911,8 +911,8 @@ void menuheader(void *menu, char *header, char *footer, bool heap)
 {
     gmenu &m = *(gmenu *)menu;
     if(m.headfootheap) { DELSTRING(m.header); DELSTRING(m.footer); }
-    m.header = header;
-    m.footer = footer;
+    m.header = (header && *header) || heap ? header : NULL;
+    m.footer = (footer && *footer) || heap ? footer : NULL;
     m.headfootheap = heap; // false: "manual"
 }
 
