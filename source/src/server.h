@@ -504,7 +504,6 @@ itemstat ammostats[NUMGUNS] =
     { 60, 90,  90,  S_ITEMAMMO  },   // subgun
     { 10, 20,  15,  S_ITEMAMMO  },   // sniper
     { 40, 60,  60,  S_ITEMAMMO  },   // assault
-    { 30, 45,  75,  S_ITEMAMMO  },   // cpistol
     {  1,  0,   3,  S_ITEMAMMO  },   // grenade
     {100,  0, 100,  S_ITEMAKIMBO}    // akimbo
 };
@@ -531,7 +530,6 @@ guninfo guns[NUMGUNS] =
     { "subgun",  "A-ARD/10 SMG", S_SUBGUN,  S_RSUBGUN,  1650,   80,     16,   0,     0,   0, 45,   15,   30,   1,  2,   5,  25,   50,   188,  1,   true  },
     { "sniper",  "AD-81 SR",     S_SNIPER,  S_RSNIPER,  1950,   1500,   82,  25,     0,   0, 50,   50,    5,   4,  4,  10,  85,   85,   100,  1,   false },
     { "assault", "MTP-57 AR",    S_ASSAULT, S_RASSAULT, 2000,   120,    22,   0,     0,   0, 18,   30,   20,   0,  2,   3,  25,   50,   115,  1,   true  },
-    { "cpistol", "nop",          S_PISTOL,  S_RPISTOL,  1400,   120,    19,   0,     0,   0, 35,   10,   15,   6,  5,   6,  35,   50,   125,  1,   false },   // temporary
     { "grenade", "Grenades",     S_NULL,    S_NULL,     1000,   650,    200,  0,    20,   6,  1,    1,   1,    3,  1,   0,   0,    0,    0,   3,   false },
     { "pistol",  "Akimbo",       S_PISTOL,  S_RAKIMBO,  1400,   80,     18,   0,     0,   0, 50,   10,   20,   6,  5,   4,  15,   25,   115,  1,   true  },
 };
@@ -545,8 +543,8 @@ const char *rolenames[CR_NUM + 1] = { "unarmed", "master", "admin", "owner", "" 
 
 const char *killmessages[2][NUMGUNS] =
 {
-    { "",        "busted", "picked off", "peppered",   "sprayed", "punctured", "shredded", "busted", "",       "busted" },
-    { "slashed", "",       "",           "splattered", "",        "headshot",  "",         "",       "gibbed", ""       }
+    { "",        "busted", "picked off", "peppered",   "sprayed", "punctured", "shredded", "",       "busted" },
+    { "slashed", "",       "",           "splattered", "",        "headshot",  "",         "gibbed", ""       }
 };
 
 #define C(x) (1<<(SC_##x))

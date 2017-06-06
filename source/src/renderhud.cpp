@@ -187,7 +187,7 @@ void loadcrosshair(const char *type, const char *filename)
     }
     else if(strchr(type, '.'))
     {   // old syntax "loadcrosshair filename type", remove this in 2020
-        const char *oldcrosshairnames[CROSSHAIR_NUM + 1] = { "default", "teammate", "scope", "knife", "pistol", "carbine", "shotgun", "smg", "sniper", "ar", "cpistol", "grenades", "akimbo", "" };
+        const char *oldcrosshairnames[CROSSHAIR_NUM + 1] = { "default", "teammate", "scope", "knife", "pistol", "carbine", "shotgun", "smg", "sniper", "ar", "grenades", "akimbo", "" };
         index = getlistindex(filename, oldcrosshairnames, false, 0);
         if(index > 2) index -= 3;
         else index += NUMGUNS;
@@ -338,7 +338,7 @@ void drawequipicons(playerent *p)
 
     // weapons
     int c = p->weaponsel->type != GUN_GRENADE ? p->weaponsel->type : getprevweaponsel(p), r = 0;
-    if(c==GUN_AKIMBO || c==GUN_CPISTOL) c = GUN_PISTOL; // same icon for akimb & pistol
+    if(c==GUN_AKIMBO) c = GUN_PISTOL; // same icon for akimb & pistol
     if(c>3) { c -= 4; r = 1; }
 
     if(p->weaponsel && valid_weapon(p->weaponsel->type)) drawequipicon(HUDPOS_WEAPON*2, 1650, c, r);

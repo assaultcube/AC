@@ -143,18 +143,6 @@ struct assaultrifle : gun
     bool selectable();
 };
 
-struct cpistol : gun
-{
-    bool bursting;
-    cpistol(playerent *owner);
-    bool reload(bool autoreloaded);
-    bool selectable();
-    void onselecting();
-    void ondeselecting();
-    bool attack(vec &targ);
-    void setburst(bool enable);
-};
-
 struct pistol : gun
 {
     pistol(playerent *owner);

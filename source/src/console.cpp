@@ -304,7 +304,6 @@ void saycommand(char *init)                         // turns input to the comman
 {
     SDL_EnableUNICODE(saycommandon = (init!=NULL));
     setscope(false);
-    setburst(false);
     if(!editmode) keyrepeat(saycommandon);
     copystring(cmdline.buf, init ? escapestring(init, false, true) : "");
     DELETEA(cmdaction);

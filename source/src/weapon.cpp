@@ -14,7 +14,7 @@ struct sgray {
 
 sgray sgr[SGRAYS*3];
 
-int burstshotssettings[NUMGUNS] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, };
+int burstshotssettings[NUMGUNS] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, };
 
 void updatelastaction(playerent *d, int millis = lastmillis)
 {
@@ -868,7 +868,7 @@ VARP(accuracy,0,0,1);
 void r_accuracy(int h)
 {
     int i = player1->weaponsel->type;
-    if(accuracy && valid_weapon(i) && i != GUN_CPISTOL)
+    if(accuracy && valid_weapon(i))
     {
         int x_offset = 2 * HUDPOS_X_BOTTOMLEFT, y_offset = 2 * (h - 1.75 * FONTH);
         string line;
@@ -889,7 +889,7 @@ void r_accuracy(int h)
 void accuracyinfo()
 {
     vector <char*>lines;
-    loopi(NUMGUNS) if(i != GUN_CPISTOL && accuracym[i].shots)
+    loopi(NUMGUNS) if(accuracym[i].shots)
     {
         float acc = 100.0 * accuracym[i].hits / (float)accuracym[i].shots;
         string line;
@@ -1075,7 +1075,6 @@ void weapon::equipplayer(playerent *pl)
     pl->weapons[GUN_GRENADE] = new grenades(pl);
     pl->weapons[GUN_KNIFE] = new knife(pl);
     pl->weapons[GUN_PISTOL] = new pistol(pl);
-    pl->weapons[GUN_CPISTOL] = new cpistol(pl);
     pl->weapons[GUN_CARBINE] = new carbine(pl);
     pl->weapons[GUN_SHOTGUN] = new shotgun(pl);
     pl->weapons[GUN_SNIPER] = new sniperrifle(pl);
@@ -1538,111 +1537,6 @@ int assaultrifle::dynspread() { return shots > 2 ? 55 : ( info.spread + ( shots 
 float assaultrifle::dynrecoil() { return info.recoil + (rnd(8)*-0.01f); }
 bool assaultrifle::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
 
-// combat pistol
-
-cpistol::cpistol(playerent *owner) : gun(owner, GUN_CPISTOL), bursting(false) {}
-bool cpistol::selectable() { return false; /*return weapon::selectable() && !m_noprimary && this == owner->primweap;*/ }
-void cpistol::onselecting() { weapon::onselecting(); bursting = false; }
-void cpistol::ondeselecting() { bursting = false; }
-bool cpistol::reload(bool autoreloaded)
-{
-    bool r = weapon::reload(autoreloaded);
-    if(owner==player1 && r) { bursting = false; }
-    return r;
-}
-
-bool burst = false;
-int burstshots = 0;
-
-bool cpistol::attack(vec &targ) // modded from gun::attack // FIXME
-{
-    int attackmillis = lastmillis-owner->lastaction - gunwait;
-    if(attackmillis<0) return false;
-    gunwait = reloading = 0;
-
-    if (bursting) burst = true;
-
-    if(!owner->attacking)
-    {
-        shots = 0;
-        checkautoreload();
-        return false;
-    }
-
-    attackmillis = lastmillis - min(attackmillis, curtime);
-    updatelastaction(owner, attackmillis);
-    if(!mag)
-    {
-        audiomgr.playsoundc(S_NOAMMO);
-        gunwait += 250;
-        owner->lastattackweapon = NULL;
-        shots = 0;
-        checkautoreload();
-        return false;
-    }
-
-    owner->lastattackweapon = this;
-    shots++;
-    if (burst) burstshots++;
-
-    if(!burst) owner->attacking = false;
-
-    vec from = owner->o;
-    vec to = targ;
-    from.z -= weaponbeloweye;
-
-    attackphysics(from, to);
-
-    hits.setsize(0);
-    raydamage(from, to, owner);
-    attackfx(from, to, 0);
-
-    if ( burst && burstshots > 2 )
-    {
-        gunwait = 500;
-        burstshots = 0;
-        burst = owner->attacking = false;
-    }
-    else if ( burst )
-    {
-        gunwait = 80;
-    }
-    else
-    {
-        gunwait = info.attackdelay;
-    }
-    mag--;
-
-    sendshoot(from, to, attackmillis);
-    return true;
-}
-
-void cpistol::setburst(bool enable)
-{
-    if(this == owner->weaponsel && !reloading && owner->state == CS_ALIVE)
-    {
-        bursting = enable;
-    }
-}
-
-void setburst(bool enable)
-{
-    if(player1->weaponsel->type != GUN_CPISTOL) return;
-    if(intermission) return;
-    cpistol *cp = (cpistol *)player1->weaponsel;
-    cp->setburst(enable);
-    if (!burst)
-    {
-        if ( enable && burstshots == 0 ) attack(true);
-    }
-    else
-    {
-        if ( burstshots == 0 ) burst = player1->attacking = enable;
-    }
-}
-
-COMMAND(setburst, "d");
-
 // pistol
 
 pistol::pistol(playerent *owner) : gun(owner, GUN_PISTOL) {}
@@ -1750,7 +1644,6 @@ void setscope(bool enable)
 }
 
 COMMANDF(setscope, "i", (int *on) { setscope(*on != 0); });
-
 
 void shoot(playerent *p, vec &targ)
 {

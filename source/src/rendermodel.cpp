@@ -916,7 +916,6 @@ void preload_playermodels()
     if(dynshadow && playermdl) playermdl->genshadows(8.0f, 4.0f);
     loopi(NUMGUNS)
     {
-        if(i == GUN_CPISTOL) continue;
         defformatstring(vwep)("weapons/%s/world", guns[i].modelname);
         model *vwepmdl = loadmodel(vwep);
         if(dynshadow && vwepmdl) vwepmdl->genshadows(8.0f, 4.0f);
