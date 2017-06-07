@@ -15,6 +15,7 @@ int loop_level = 0;                                     // avoid bad calls of br
 hashtable<const char *, ident> *idents = NULL;          // contains ALL vars/commands/aliases
 
 bool persistidents = false;
+bool currentcontextisolated = false;
 
 COMMANDF(persistidents, "s", (char *on)
 {
@@ -388,13 +389,35 @@ bool addcommand(const char *name, void (*fun)(), const char *sig)
     return false;
 }
 
+inline char *parsequotes(const char *&p)
+{
+    const char *word = p + 1;
+    do
+    {
+        p++;
+        p += strcspn(p, "\"\n\r");
+    }
+    while(*p == '\"' && p[-1] == '\\');                                 // skip escaped quotes
+    char *s = newstring(word, p - word);
+#ifndef STANDALONE
+    filterrichtext(s, s, p - word);
+#endif
+    if(*p=='\"') p++;
+    return s;
+}
+
+char *lookup(char *n, int levels);
+
 char *parseexp(const char *&p, int right)             // parse any nested set of () or []
 {
+    vector<char> res;
     int left = *p++;
     const char *word = p;
-    bool quot = false;
+    char *s;
+    bool quot = false, issq = left == '[';
     for(int brak = 1; brak; )
     {
+        p += strcspn(p, "([\"])@");
         int c = *p++;
         if(c==left && !quot) brak++;
         else if(c=='"') quot = !quot;
@@ -403,12 +426,45 @@ char *parseexp(const char *&p, int right)             // parse any nested set of
         {
             p--;
             conoutf("missing \"%c\"", right);
-            scripterr();
-            flagmapconfigerror(LWW_SCRIPTERR * 4);
-            return NULL;
+            goto screrr;
+        }
+        else if(issq && c == '@' && !quot)
+        {
+            const char *sq = p;
+            while(*p == '@') p++;
+            int level = p - sq + 1;
+            if(level == brak)
+            {
+                res.put(word, sq - word - 1);
+                char *n, a = *p;
+                switch(a)
+                {
+                    case '(': n = parseexp(p, ')'); break;
+                    case '"': n = parsequotes(p); break;
+                    case '[':
+                        n = parseexp(p, ']');
+                        if(n) n = lookup(n, 1);
+                        break;
+                    default:
+                    {
+                        const char *w = p;
+                        p += strcspn(p, "])@; \t\n\r");
+                        n = lookup(newstring(w, p - w), 1);
+                        break;
+                    }
+                }
+                if(n) res.put(n, strlen(n)), delete[] n;
+                word = p;
+            }
+            else if(level > brak) { conoutf("too many @"); goto screrr; }
         }
     }
-    char *s = newstring(word, p-word-1);
+    if(res.length())
+    {
+        res.put(word, p - word - 1);
+        return newstring(res.getbuf(), res.length());
+    }
+    s = newstring(word, p-word-1);
     if(left=='(')
     {
         char *ret = executeret(s); // evaluate () exps directly, and substitute result
@@ -416,11 +472,16 @@ char *parseexp(const char *&p, int right)             // parse any nested set of
         s = ret ? ret : newstring("");
     }
     return s;
+
+screrr:
+    scripterr();
+    flagmapconfigerror(LWW_SCRIPTERR * 4);
+    return NULL;
 }
 
 char *lookup(char *n, int levels)                           // find value of ident referenced with $ in exp
 {
-    if(levels > 1) n = exchangestr(n, lookup(newstring(n), levels - 1)); // nested ("$$var")
+    if(levels > 1) n = exchangestr(n, lookup(newstring(n), min(levels - 1, 2))); // nested ("$$var"), limit to three levels
     ident *id = idents->access(n);
     if(id) switch(id->type)
     {
@@ -435,42 +496,24 @@ char *lookup(char *n, int levels)                           // find value of ide
     return n;
 }
 
-char *parseword(const char *&p, int arg, int &infix)                       // parse single argument, including expressions
+char *parseword(const char *&p, int arg, int *infix)                       // parse single argument, including expressions
 {
     p += strspn(p, " \t");
     if(p[0]=='/' && p[1]=='/') p += strcspn(p, "\n\r\0");
-    if(*p=='\"')
-    {
-        const char *word = p + 1;
-        do
-        {
-            p++;
-            p += strcspn(p, "\"\n\r");
-        }
-        while(*p == '\"' && p[-1] == '\\');                                 // skip escaped quotes
-        char *s = newstring(word, p - word);
-        if(*p=='\"') p++;
-#ifndef STANDALONE
-        filterrichtext(s, s, strlen(s));
-#endif
-        return s;
-    }
-    if(*p=='(') return parseexp(p, ')');
-    if(*p=='[') return parseexp(p, ']');
-    int lvls = strspn(p, "$");
-    if(p[lvls]=='(')
-    { // $()
+    if(*p=='"') return parsequotes(p);
+    if(*p=='(' && !currentcontextisolated) return parseexp(p, ')');
+    if(*p=='[' && !currentcontextisolated) return parseexp(p, ']');
+    int lvls = currentcontextisolated ? 0 : strspn(p, "$");
+    if(lvls && (p[lvls]=='(' || p[lvls]=='['))
+    { // $() $[]
         p += lvls;
-        char *b = parseexp(p, ')');
+        char *b = parseexp(p, *p == '(' ? ')' : ']');
         if(b) return lookup(b, lvls);
     }
     const char *word = p;
     p += strcspn(p, "; \t\n\r\0");
     if(p-word==0) return NULL;
-    if(arg==1 && p-word==1) switch(*word)
-    {
-        case '=': infix = *word; break;
-    }
+    if(arg == 1 && *word == '=' && p - word == 1) *infix = *word;
     return lvls ? lookup(newstring(word + lvls, p - word - lvls), lvls) : newstring(word, p-word);
 }
 
@@ -547,7 +590,7 @@ char *executeret(const char *p)                            // all evaluation hap
         {
             w[i] = &emptychar;
             if(i>numargs) continue;
-            char *s = parseword(p, i, infix);   // parse and evaluate exps
+            char *s = parseword(p, i, &infix);   // parse and evaluate exps
             if(s) w[i] = s;
             else numargs = i;
         }
@@ -559,16 +602,11 @@ char *executeret(const char *p)                            // all evaluation hap
 
         DELETEA(retval);
 
-        if(infix)
+        if(infix == '=')
         {
-            switch(infix)
-            {
-                case '=':
-                    DELETEA(w[1]);
-                    swap(w[0], w[1]);
-                    c = "alias";
-                    break;
-            }
+            DELETEA(w[1]);
+            swap(w[0], w[1]);
+            c = "alias";
         }
 
         ident *id = idents->access(c);
@@ -1156,9 +1194,12 @@ void explodelist(const char *s, vector<char *> &elems)
     {
         const char *elem = s;
         elementskip;
+#ifdef STANDALONE
         char *newelem = *elem == '"' ? newstring(elem + 1, s - elem - (s[-1]=='"' ? 2 : 1)) : newstring(elem, s-elem);
-#ifndef STANDALONE
-        if(*elem == '\"') filterrichtext(newelem, newelem, strlen(newelem));
+#else
+        size_t len;
+        char *newelem = *elem == '"' ? newstring(elem + 1, (len = s - elem - (s[-1]=='"' ? 2 : 1))) : newstring(elem, s-elem);
+        if(*elem == '\"') filterrichtext(newelem, newelem, len);
 #endif
         elems.add(newelem);
         whitespaceskip;
@@ -1655,8 +1696,10 @@ int execcontext;
 
 void pushscontext(int newcontext)
 {
+    ASSERT(newcontext >= 0 && newcontext < IEXC_NUM);
     contextstack.add(execcontext);
     execcontext = newcontext;
+    currentcontextisolated = contextsealed && contextisolated[execcontext];
 }
 
 int popscontext()
@@ -1664,6 +1707,7 @@ int popscontext()
     ASSERT(contextstack.length() > 0);
     int old = execcontext;
     execcontext = contextstack.pop();
+    currentcontextisolated = contextsealed && contextisolated[execcontext];
 
     if(execcontext < old && old >= IEXC_MAPCFG) // clean up aliases created in the old (map cfg) context
     {
