@@ -1010,7 +1010,6 @@ extern void writecfg();
 extern void deletecfg();
 extern void identnames(vector<const char *> &names, bool builtinonly);
 extern void explodelist(const char *s, vector<char *> &elems);
-extern char *indexlist(const char *s, int pos);
 extern const char *escapestring(const char *s, bool force = true, bool noquotes = false);
 extern int execcontext;
 extern void pushscontext(int newcontext);

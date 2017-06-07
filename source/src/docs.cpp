@@ -65,7 +65,7 @@ struct docident
 struct docsection
 {
     char *name;
-    vector<docident *> idents;
+    vector<docident *> sidents;
     void *menu;
 
     docsection() : name(NULL) {};
@@ -95,7 +95,7 @@ void adddocident(char *name, char *desc)
     if(!name || !desc || !lastsection || !*name) { lastident = NULL; return; }
     name = newstring(name);
     docident &c = docidents[name];
-    lastsection->idents.add(&c);
+    lastsection->sidents.add(&c);
     c.name = name;
     c.desc = newstring(desc);
     lastident = &c;
@@ -672,9 +672,9 @@ void renderdocsection(void *menu, bool init)
     loopv(sections)
     {
         if(sections[i].menu != menu) continue;
-        loopvj(sections[i].idents)
+        loopvj(sections[i].sidents)
         {
-            docident &id = *sections[i].idents[j];
+            docident &id = *sections[i].sidents[j];
             msection &s = msections.add();
             s.name = id.name;
             formatstring(s.cmd)("saycommand [/%s ]", id.name);

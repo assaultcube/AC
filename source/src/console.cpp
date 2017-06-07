@@ -128,8 +128,6 @@ void conoutf(const char *s, ...)
     delete[] conline; conline=newstring(sf);
 }
 
-COMMANDF(strstr, "ss", (char *a, char *b) { intret(strstr(a, b) ? 1 : 0); });
-
 int rendercommand(int x, int y, int w)
 {
     const char *useprompt = cmdprompt ? cmdprompt : "#";

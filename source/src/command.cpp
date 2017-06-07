@@ -225,98 +225,6 @@ void setsvar(const char *name, const char *str, bool dofunc)
     if(dofunc && id->fun) ((void (__cdecl *)())id->fun)();            // call trigger function if available
 }
 
-void modifyvar(const char *name, int arg, char op)
-{
-    ident *id = idents->access(name);
-    if(!id) return;
-    if(identaccessdenied(id))
-    {
-        conoutf("not allowed in this execution context: %s", id->name);
-        scripterr();
-        return;
-    }
-    if((id->type == ID_VAR && id->minval > id->maxval) || (id->type == ID_FVAR && id->minvalf > id->maxvalf)) { conoutf("variable %s is read-only", id->name); return; }
-    int val = 0;
-    switch(id->type)
-    {
-        case ID_VAR: val = *id->storage.i; break;
-        case ID_FVAR: val = int(*id->storage.f); break;
-        case ID_SVAR: { { if(id->getfun) ((void (__cdecl *)())id->getfun)(); } val = ATOI(*id->storage.s); break; }
-        case ID_ALIAS: val = ATOI(id->action); break;
-    }
-    switch(op)
-    {
-        case '+': val += arg; break;
-        case '-': val -= arg; break;
-        case '*': val *= arg; break;
-        case '/': val = arg ? val/arg : 0; break;
-    }
-    switch(id->type)
-    {
-        case ID_VAR: *id->storage.i = clamp(val, id->minval, id->maxval); break;
-        case ID_FVAR: *id->storage.f = clamp((float)val, id->minvalf, id->maxvalf); break;
-        case ID_SVAR: { string str; itoa(str, val); *id->storage.s = exchangestr(*id->storage.s, str); break; }
-        case ID_ALIAS: { string str; itoa(str, val); alias(name, str); return; }
-        default: return;
-    }
-    if(id->fun) ((void (__cdecl *)())id->fun)();
-}
-
-void modifyfvar(const char *name, float arg, char op)
-{
-    ident *id = idents->access(name);
-    if(!id) return;
-    if(identaccessdenied(id))
-    {
-        conoutf("not allowed in this execution context: %s", id->name);
-        scripterr();
-        return;
-    }
-    if((id->type == ID_VAR && id->minval > id->maxval) || (id->type == ID_FVAR && id->minvalf > id->maxvalf)) { conoutf("variable %s is read-only", id->name); return; }
-    float val = 0;
-    switch(id->type)
-    {
-        case ID_VAR: val = *id->storage.i; break;
-        case ID_FVAR: val = *id->storage.f; break;
-        case ID_SVAR: { { if(id->getfun) ((void (__cdecl *)())id->getfun)(); } val = atof(*id->storage.s); break; }
-        case ID_ALIAS: val = atof(id->action); break;
-    }
-    switch(op)
-    {
-        case '+': val += arg; break;
-        case '-': val -= arg; break;
-        case '*': val *= arg; break;
-        case '/': val = (arg == 0.0f) ? 0 : val/arg; break;
-    }
-    switch(id->type)
-    {
-        case ID_VAR: *id->storage.i = clamp((int)val, id->minval, id->maxval); break;
-        case ID_FVAR: *id->storage.f = clamp(val, id->minvalf, id->maxvalf); break;
-        case ID_SVAR: *id->storage.s = exchangestr(*id->storage.s, floatstr(val)); break;
-        case ID_ALIAS: alias(name, floatstr(val)); return;
-        default: return;
-    }
-    if(id->fun) ((void (__cdecl *)())id->fun)();
-}
-
-void addeq(char *name, int *arg) { modifyvar(name, *arg, '+'); }
-void subeq(char *name, int *arg) { modifyvar(name, *arg, '-'); }
-void muleq(char *name, int *arg) { modifyvar(name, *arg, '*'); }
-void diveq(char *name, int *arg) { modifyvar(name, *arg, '/'); }
-void addeqf(char *name, float *arg) { modifyfvar(name, *arg, '+'); }
-void subeqf(char *name, float *arg) { modifyfvar(name, *arg, '-'); }
-void muleqf(char *name, float *arg) { modifyfvar(name, *arg, '*'); }
-void diveqf(char *name, float *arg) { modifyfvar(name, *arg, '/'); }
-
-COMMANDN(+=, addeq, "si");
-COMMANDN(-=, subeq, "si");
-COMMANDN(*=, muleq, "si");
-COMMANDN(div=, diveq, "si");
-COMMANDN(+=f, addeqf, "sf");
-COMMANDN(-=f, subeqf, "sf");
-COMMANDN(*=f, muleqf, "sf");
-COMMANDN(div=f, diveqf, "sf");
-
 bool identexists(const char *name) { return idents->access(name)!=NULL; }
 
 const char *getalias(const char *name)
@@ -1320,10 +1228,42 @@ int find(char *s, const char *key)
 COMMANDF(findlist, "ss", (char *s, char *key) { intret(find(s, key)); });
 
 #ifndef STANDALONE
-// Easily inject a string into various CubeScript punctuations
+COMMANDF(l0, "ii", (int *p, int *v) { defformatstring(f)("%%0%dd", clamp(*p, 0, 200)); defformatstring(r)(f, *v); result(r); });
+COMMANDF(h0, "ii", (int *p, int *v) { defformatstring(f)("%%0%dx", clamp(*p, 0, 200)); defformatstring(r)(f, *v); result(r); });
+COMMANDF(strlen, "s", (char *s) { intret(strlen(s)); });
+COMMANDF(strstr, "ss", (char *h, char *n) { char *r = strstr(h, n); intret(r ? r - h + 1 : 0); });
+
+void substr_(char *text, int *_start, int *_len)
+{
+    int start = *_start, len = *_len, textlen = (int)strlen(text);
+    if(start < 0) start += textlen; // negative positions count from the end
+    if(len < 0) len += textlen; // negative len subtracts from total
+    if(start > textlen || start < 0 || len < 0) return;
+
+    if(!len) len = textlen - start; // zero len gets all
+    if(len >= 0 && len < int(strlen(text + start))) (text + start)[len] = '\0'; // cut text at len, if too long
+    result(text + start);
+}
+COMMANDN(substr, substr_, "sii");
+
+void strreplace(char *text, char *search, char *replace)
+{
+    vector<char> buf;
+    char *o = text;
+    while(*search && (o = strstr(text, search)))
+    {
+        buf.put(text, o - text);
+        buf.put(replace, strlen(replace));
+        text = o + strlen(search);
+    }
+    buf.put(text, strlen(text));
+    resultcharvector(buf, 0);
+}
+COMMAND(strreplace, "sss");
+
 const char *punctnames[] = { "QUOTES", "BRACKETS", "PARENTHESIS", "_$_", "QUOTE", "PERCENT", "" };
 
-void addpunct(char *s, char *type)
+void addpunct(char *s, char *type) // Easily inject a string into various CubeScript punctuations
 {
     int t = getlistindex(type, punctnames, true, 0);
     const char *puncts[] = { "\"%s\"", "[%s]", "(%s)", "$%s", "\"", "%" }, *punct = puncts[t];
@@ -1344,64 +1284,11 @@ COMMANDF(toupper, "s", (char *s) { toany(s, toupper); result(s); });
 
 void testchar(char *s, int *type)
 {
-    bool istrue = false;
-    switch(*type) {
-        case 1:
-            if(isalpha(s[0]) != 0) { istrue = true; }
-            break;
-        case 2:
-            if(isalnum(s[0]) != 0) { istrue = true; }
-            break;
-        case 3:
-            if(islower(s[0]) != 0) { istrue = true; }
-            break;
-        case 4:
-            if(isupper(s[0]) != 0) { istrue = true; }
-            break;
-        case 5:
-            if(isprint(s[0]) != 0) { istrue = true; }
-            break;
-        case 6:
-            if(ispunct(s[0]) != 0) { istrue = true; }
-            break;
-        case 7:
-            if(isspace(s[0]) != 0) { istrue = true; }
-            break;
-        case 8: // Without this it is impossible to determine if a character === " in cubescript
-            if(!strcmp(s, "\"")) { istrue = true; }
-            break;
-        default:
-            if(isdigit(s[0]) != 0) { istrue = true; }
-            break;
-    }
-    intret(istrue ? 1 : 0);
+    int (*funcs[8])(int) = { isdigit, isalpha, isalnum, islower, isupper, isprint, ispunct, isspace };
+    if(*type < 1 || *type > 7) *type = 0; // default to isdigit
+    intret((funcs[*type])(*s) ? 1 : 0);
 }
 COMMAND(testchar, "si");
-
-char *strreplace(char *dest, const char *source, const char *search, const char *replace)
-{
-    vector<char> buf;
-
-    int searchlen = strlen(search);
-    if(!searchlen) { copystring(dest, source); return dest; }
-    for(;;)
-    {
-        const char *found = strstr(source, search);
-        if(found)
-        {
-            while(source < found) buf.add(*source++);
-            for(const char *n = replace; *n; n++) buf.add(*n);
-            source = found + searchlen;
-        }
-        else
-        {
-            while(*source) buf.add(*source++);
-            buf.add('\0');
-            return copystring(dest, buf.getbuf());
-        }
-    }
-}
-COMMANDF(strreplace, "sss", (const char *source, const char *search, const char *replace) { string d; result(strreplace(d, source, search, replace)); });
 
 void sortlist(char *list)
 {
@@ -1413,33 +1300,89 @@ void sortlist(char *list)
 }
 COMMAND(sortlist, "c");
 
-void swapelements(char *list, char *v)
+void modifyvar(const char *name, int arg, char op)
 {
-    vector<char *> elems;
-    explodelist(list, elems);
-
-    vector<char *> swap;
-    explodelist(v, swap);
-    vector<int> swapi;
-    loopv(swap) swapi.add(atoi(swap[i]));
-
-    if(swapi.length() && !(swapi.length() & 1)) // swap needs to have an even number of elements
+    ident *id = idents->access(name);
+    if(!id) return;
+    if(identaccessdenied(id))
     {
-        for(int i = 0; i < swapi.length(); i += 2)
-        {
-            if (elems.inrange(swapi[i]) && elems.inrange(swapi[i + 1]))
-            {
-                char *tmp = elems[swapi[i]];
-                elems[swapi[i]] = elems[swapi[i + 1]];
-                elems[swapi[i + 1]] = tmp;
-            }
-        }
+        conoutf("not allowed in this execution context: %s", id->name);
+        scripterr();
+        return;
     }
-    commandret = conc((const char **)elems.getbuf(), elems.length(), true);
-    elems.deletearrays();
-    swap.deletearrays();
+    if((id->type == ID_VAR && id->minval > id->maxval) || (id->type == ID_FVAR && id->minvalf > id->maxvalf)) { conoutf("variable %s is read-only", id->name); return; }
+    int val = 0;
+    switch(id->type)
+    {
+        case ID_VAR: val = *id->storage.i; break;
+        case ID_FVAR: val = int(*id->storage.f); break;
+        case ID_SVAR: { { if(id->getfun) ((void (__cdecl *)())id->getfun)(); } val = ATOI(*id->storage.s); break; }
+        case ID_ALIAS: val = ATOI(id->action); break;
+        default: return;
+    }
+    switch(op)
+    {
+        case '+': val += arg; break;
+        case '-': val -= arg; break;
+        case '*': val *= arg; break;
+        case '/': val = arg ? val / arg : 0; break;
+    }
+    switch(id->type)
+    {
+        case ID_VAR: *id->storage.i = clamp(val, id->minval, id->maxval); break;
+        case ID_FVAR: *id->storage.f = clamp((float)val, id->minvalf, id->maxvalf); break;
+        case ID_SVAR:  { string str; itoa(str, val); *id->storage.s = exchangestr(*id->storage.s, str); break; }
+        case ID_ALIAS: { string str; itoa(str, val); alias(name, str); return; }
+    }
+    if(id->fun) ((void (__cdecl *)())id->fun)();
 }
-COMMAND(swapelements, "ss");
+
+void addeq(char *name, int *arg) { modifyvar(name, *arg, '+'); }    COMMANDN(+=, addeq, "si");
+void subeq(char *name, int *arg) { modifyvar(name, *arg, '-'); }    COMMANDN(-=, subeq, "si");
+void muleq(char *name, int *arg) { modifyvar(name, *arg, '*'); }    COMMANDN(*=, muleq, "si");
+void diveq(char *name, int *arg) { modifyvar(name, *arg, '/'); }    COMMANDN(div=, diveq, "si");
+
+void modifyfvar(const char *name, float arg, char op)
+{
+    ident *id = idents->access(name);
+    if(!id) return;
+    if(identaccessdenied(id))
+    {
+        conoutf("not allowed in this execution context: %s", id->name);
+        scripterr();
+        return;
+    }
+    if((id->type == ID_VAR && id->minval > id->maxval) || (id->type == ID_FVAR && id->minvalf > id->maxvalf)) { conoutf("variable %s is read-only", id->name); return; }
+    float val = 0;
+    switch(id->type)
+    {
+        case ID_VAR: val = *id->storage.i; break;
+        case ID_FVAR: val = *id->storage.f; break;
+        case ID_SVAR: { { if(id->getfun) ((void (__cdecl *)())id->getfun)(); } val = atof(*id->storage.s); break; }
+        case ID_ALIAS: val = atof(id->action); break;
+        default: return;
+    }
+    switch(op)
+    {
+        case '+': val += arg; break;
+        case '-': val -= arg; break;
+        case '*': val *= arg; break;
+        case '/': val = (arg == 0.0f) ? 0 : val / arg; break;
+    }
+    switch(id->type)
+    {
+        case ID_VAR: *id->storage.i = clamp((int)val, id->minval, id->maxval); break;
+        case ID_FVAR: *id->storage.f = clamp(val, id->minvalf, id->maxvalf); break;
+        case ID_SVAR: *id->storage.s = exchangestr(*id->storage.s, floatstr(val)); break;
+        case ID_ALIAS: alias(name, floatstr(val)); return;
+    }
+    if(id->fun) ((void (__cdecl *)())id->fun)();
+}
+
+void addeqf(char *name, float *arg) { modifyfvar(name, *arg, '+'); }    COMMANDN(+=f, addeqf, "sf");
+void subeqf(char *name, float *arg) { modifyfvar(name, *arg, '-'); }    COMMANDN(-=f, subeqf, "sf");
+void muleqf(char *name, float *arg) { modifyfvar(name, *arg, '*'); }    COMMANDN(*=f, muleqf, "sf");
+void diveqf(char *name, float *arg) { modifyfvar(name, *arg, '/'); }    COMMANDN(div=f, diveqf, "sf");
 
 void add_(char **args, int numargs)
 {
@@ -1788,63 +1731,6 @@ void dumpexecutionstack(stream *f)
 }
 
 #ifndef STANDALONE
-COMMANDF(watchingdemo, "", () { intret(watchingdemo); });
-
-COMMANDF(systime, "", () { result(numtime()); });
-COMMANDF(timestamp, "", () { result(timestring(true, "%Y %m %d %H %M %S")); });
-COMMANDF(datestring, "", () { result(timestring(true, "%c")); });
-
-COMMANDF(timestring, "", ()
-{
-    const char *res = timestring(true, "%H:%M:%S");
-    result(res[0] == '0' ? res + 1 : res);
-});
-
-COMMANDF(millis, "", () { intret(totalmillis); });
-COMMANDF(strlen, "s", (char *s) { intret(strlen(s)); });
-
-void substr_(char *fs, int *pa, int *len)
-{
-    int ia = *pa;
-    int ilen = *len;
-    int fslen = (int)strlen(fs);
-    if(ia<0) ia += fslen;
-    if(ia>fslen || ia < 0 || ilen < 0) return;
-
-    if(!ilen) ilen = fslen-ia;
-    if(ilen >= 0 && ilen < int(strlen(fs+ia))) (fs+ia)[ilen] = '\0';
-    result(fs+ia);
-}
-COMMANDN(substr, substr_, "sii");
-
-void strpos_(char *haystack, char *needle, int *occurence)
-{
-    int position = -1;
-    char *ptr = haystack;
-
-    if(haystack && needle)
-    for(int iocc = *occurence; iocc >= 0; iocc--)
-    {
-        ptr = strstr(ptr, needle);
-        if (ptr)
-        {
-            position = ptr-haystack;
-            ptr += strlen(needle);
-        }
-        else
-        {
-            position = -1;
-            break;
-        }
-    }
-    intret(position);
-}
-COMMANDN(strpos, strpos_, "ssi");
-
-COMMANDF(l0, "ii", (int *p, int *v) { defformatstring(f)("%%0%dd", clamp(*p, 0, 200)); defformatstring(r)(f, *v); result(r); });
-COMMANDF(h0, "ii", (int *p, int *v) { defformatstring(f)("%%0%dx", clamp(*p, 0, 200)); defformatstring(r)(f, *v); result(r); });
-
-COMMANDF(getmode, "i", (int *acr) { result(modestr(gamemode, *acr != 0)); });
 
 void listoptions(char *s)
 {
@@ -1856,75 +1742,6 @@ void listoptions(char *s)
 }
 COMMAND(listoptions, "s");
 
-const char *currentserver(int i) // [client version]
-{
-    static string curSRVinfo;
-    // using the curpeer directly we can get the info of our currently connected server
-    string r;
-    r[0] = '\0';
-    extern ENetPeer *curpeer;
-    if(curpeer)
-    {
-        switch(i)
-        {
-            case 1: // IP
-            {
-                uchar *ip = (uchar *)&curpeer->address.host;
-                formatstring(r)("%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
-                break;
-            }
-            case 2: // HOST
-            {
-                char hn[1024];
-                formatstring(r)("%s", (enet_address_get_host(&curpeer->address, hn, sizeof(hn))==0) ? hn : "unknown");
-                break;
-            }
-            case 3: // PORT
-            {
-                formatstring(r)("%d", curpeer->address.port);
-                break;
-            }
-            case 4: // STATE
-            {
-                const char *statenames[] =
-                {
-                    "disconnected",
-                    "connecting",
-                    "acknowledging connect",
-                    "connection pending",
-                    "connection succeeded",
-                    "connected",
-                    "disconnect later",
-                    "disconnecting",
-                    "acknowledging disconnect",
-                    "zombie"
-                };
-                if(curpeer->state>=0 && curpeer->state<int(sizeof(statenames)/sizeof(statenames[0])))
-                    copystring(r, statenames[curpeer->state]);
-                break; // 5 == Connected (compare ../enet/include/enet/enet.h +165)
-            }
-            // CAUTION: the following are only filled if the serverbrowser was used or the scoreboard shown
-            // SERVERNAME
-            case 5: { serverinfo *si = getconnectedserverinfo(); if(si) copystring(r, si->name); break; }
-            // DESCRIPTION (3)
-            case 6: { serverinfo *si = getconnectedserverinfo(); if(si) copystring(r, si->sdesc); break; }
-            case 7: { serverinfo *si = getconnectedserverinfo(); if(si) copystring(r, si->description); break; }
-            // CAUTION: the following is only the last full-description _seen_ in the serverbrowser!
-            case 8: { serverinfo *si = getconnectedserverinfo(); if(si) copystring(r, si->full); break; }
-            // just IP & PORT as default response - always available, no lookup-delay either
-             default:
-            {
-                uchar *ip = (uchar *)&curpeer->address.host;
-                formatstring(r)("%d.%d.%d.%d %d", ip[0], ip[1], ip[2], ip[3], curpeer->address.port);
-                break;
-            }
-        }
-    }
-    copystring(curSRVinfo, r);
-    return curSRVinfo;
-}
-
-COMMANDF(curserver, "i", (int *i) { result(currentserver(*i)); });
 #endif
 
 void debugargs(char **args, int numargs)

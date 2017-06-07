@@ -883,3 +883,16 @@ COMMAND(securemap, "s");
 COMMAND(getdemo, "is");
 COMMAND(listdemos, "");
 
+COMMANDF(watchingdemo, "", () { intret(watchingdemo); });
+
+COMMANDF(systime, "", () { result(numtime()); });
+COMMANDF(timestamp, "", () { result(timestring(true, "%Y %m %d %H %M %S")); });
+COMMANDF(datestring, "", () { result(timestring(true, "%c")); });
+
+COMMANDF(timestring, "", ()
+{
+    const char *res = timestring(true, "%H:%M:%S");
+    result(res[0] == '0' ? res + 1 : res);
+});
+
+COMMANDF(millis, "", () { intret(totalmillis); });

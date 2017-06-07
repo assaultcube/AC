@@ -367,6 +367,78 @@ void teaminfo(const char *team, const char *attr)
 
 COMMAND(teaminfo, "ss");
 
+const char *currentserver(int i) // [client version]
+{
+    static string curSRVinfo;
+    // using the curpeer directly we can get the info of our currently connected server
+    string r;
+    r[0] = '\0';
+    extern ENetPeer *curpeer;
+    if(curpeer)
+    {
+        switch(i)
+        {
+            case 1: // IP
+            {
+                uchar *ip = (uchar *)&curpeer->address.host;
+                formatstring(r)("%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
+                break;
+            }
+            case 2: // HOST
+            {
+                char hn[1024];
+                formatstring(r)("%s", (enet_address_get_host(&curpeer->address, hn, sizeof(hn))==0) ? hn : "unknown");
+                break;
+            }
+            case 3: // PORT
+            {
+                formatstring(r)("%d", curpeer->address.port);
+                break;
+            }
+            case 4: // STATE
+            {
+                const char *statenames[] =
+                {
+                    "disconnected",
+                    "connecting",
+                    "acknowledging connect",
+                    "connection pending",
+                    "connection succeeded",
+                    "connected",
+                    "disconnect later",
+                    "disconnecting",
+                    "acknowledging disconnect",
+                    "zombie"
+                };
+                if(curpeer->state>=0 && curpeer->state<int(sizeof(statenames)/sizeof(statenames[0])))
+                    copystring(r, statenames[curpeer->state]);
+                break; // 5 == Connected (compare ../enet/include/enet/enet.h +165)
+            }
+            // CAUTION: the following are only filled if the serverbrowser was used or the scoreboard shown
+            // SERVERNAME
+            case 5: { serverinfo *si = getconnectedserverinfo(); if(si) copystring(r, si->name); break; }
+            // DESCRIPTION (3)
+            case 6: { serverinfo *si = getconnectedserverinfo(); if(si) copystring(r, si->sdesc); break; }
+            case 7: { serverinfo *si = getconnectedserverinfo(); if(si) copystring(r, si->description); break; }
+            // CAUTION: the following is only the last full-description _seen_ in the serverbrowser!
+            case 8: { serverinfo *si = getconnectedserverinfo(); if(si) copystring(r, si->full); break; }
+            // just IP & PORT as default response - always available, no lookup-delay either
+             default:
+            {
+                uchar *ip = (uchar *)&curpeer->address.host;
+                formatstring(r)("%d.%d.%d.%d %d", ip[0], ip[1], ip[2], ip[3], curpeer->address.port);
+                break;
+            }
+        }
+    }
+    copystring(curSRVinfo, r);
+    return curSRVinfo;
+}
+
+COMMANDF(curserver, "i", (int *i) { result(currentserver(*i)); });
+
+COMMANDF(getmode, "i", (int *acr) { result(modestr(gamemode, *acr != 0)); });
+
 void deathstate(playerent *pl)
 {
     pl->state = CS_DEAD;
