@@ -835,7 +835,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     {
         bool drawteamwarning = crosshairteamsign && targetplayer && isteam(targetplayer->team, p->team) && targetplayer->state==CS_ALIVE;
         if(!reloading) p->weaponsel->renderaimhelp(drawteamwarning);
-        if(!editmode) drawktfindicator(p);
+        if(!editmode && !showmap) drawktfindicator(p);
     }
 
     drawdmgindicator();
@@ -845,8 +845,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     bool is_spect = (( player1->spectatemode==SM_FOLLOW1ST || player1->spectatemode==SM_FOLLOW3RD || player1->spectatemode==SM_FOLLOW3RD_TRANSPARENT ) &&
             players.inrange(player1->followplayercn) && players[player1->followplayercn]);
 
-    if(/*!menu &&*/ (!hideradar || showmap)) drawradar(p, w, h);
-    //if(showsgpat) drawsgpat(w,h); // shotty
+    if(!hideradar || showmap) drawradar(p, w, h);
     if(!editmode)
     {
         glMatrixMode(GL_MODELVIEW);
@@ -1096,7 +1095,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
     glLoadIdentity();
     glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
-    if(command) commandh -= rendercommand(HUDPOS_X_BOTTOMLEFT, HUDPOS_Y_BOTTOMLEFT, VIRTW - FONTH);
+    if(command) rendercommand(HUDPOS_X_BOTTOMLEFT, HUDPOS_Y_BOTTOMLEFT, VIRTW - FONTH);
 
     glDisable(GL_BLEND);
     glDisable(GL_TEXTURE_2D);
