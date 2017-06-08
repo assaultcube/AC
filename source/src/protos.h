@@ -312,7 +312,7 @@ struct serverinfo
 
 extern serverinfo *getconnectedserverinfo();
 extern void pingservers();
-extern void updatefrommaster(int force);
+extern void updatefrommaster(int *force);
 
 // http
 struct httpget

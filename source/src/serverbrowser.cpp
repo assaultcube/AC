@@ -1170,7 +1170,7 @@ void refreshservers(void *menu, bool init)
 
 bool serverskey(void *menu, int code, bool isdown, int unicode)
 {
-    const int fk[] = { SDLK_1, SDLK_2, SDLK_3, SDLK_4, SDLK_5, SDLK_6, SDLK_7, SDLK_8, SDLK_9, SDLK_0 };
+    int fk[] = { SDLK_1, SDLK_2, SDLK_3, SDLK_4, SDLK_5, SDLK_6, SDLK_7, SDLK_8, SDLK_9, SDLK_0 }, gogetem = 1;
     if(!isdown) return false;
     loopi(sizeof(fk)/sizeof(fk[0])) if(code == fk[i] && favcats.inrange(i))
     {
@@ -1225,7 +1225,7 @@ bool serverskey(void *menu, int code, bool isdown, int unicode)
             return true;
 
         case SDLK_F5:
-            updatefrommaster(1);
+            updatefrommaster(&gogetem);
             return true;
 
         case SDLK_F6:
@@ -1405,7 +1405,7 @@ void retrieveservers(vector<char> &data)
 VARP(masterupdatefrequency, 1, 60*60, 24*60*60);
 VAR(msctrl, 1, 1, INT_MAX);
 
-void updatefrommaster(int force)
+void updatefrommaster(int *force)
 {
     static int lastupdate = 0;
     if(lastupdate==0) cllock = true;
@@ -1439,7 +1439,7 @@ void updatefrommaster(int force)
 
 COMMANDF(addserver, "sii", (char *n, int *p, int *w) { addserver(n, *p, *w); });
 COMMAND(clearservers, "");
-COMMANDF(updatefrommaster, "i", (int *f) { updatefrommaster(*f); });
+COMMAND(updatefrommaster, "i");
 
 void writeservercfg()
 {

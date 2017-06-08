@@ -3,7 +3,15 @@
 
 #include "cube.h"
 
+#define CSLIMIT_LOOKUPNESTING 3         // fails silently
+#define CSLIMIT_RECURSION 333           // rarely depths over 20 will be reached and setting this one over 10000 won't prevent crashes anymore
+#define CSLIMIT_PUSHLEVEL 33            // beware: also grows with alias execution nesting as arg1 gets pushed
+#define CSLIMIT_ITERATION 33333         // determines length of endlees loop (while 1)
+#define CSLIMIT_STRINGLEN 333333        // yet another arbitrary limit
+
 inline bool identaccessdenied(ident *id);
+void cslimiterr(const char*msg);
+
 char *exchangestr(char *o, const char *n) { delete[] o; return newstring(n); }
 
 vector<const char *> executionstack;                    // keep history of recursive command execution (to write to log in case of a crash)
@@ -15,7 +23,7 @@ int loop_level = 0;                                     // avoid bad calls of br
 hashtable<const char *, ident> *idents = NULL;          // contains ALL vars/commands/aliases
 
 bool persistidents = false;
-bool currentcontextisolated = false;
+bool currentcontextisolated = false;                    // true for map and model config files
 
 COMMANDF(persistidents, "s", (char *on)
 {
@@ -39,6 +47,8 @@ void clearstack(ident &id)
 void pushident(ident &id, char *val, int context = execcontext)
 {
     if(id.type != ID_ALIAS) { delete[] val; return; }
+    int d = 0;
+    for(identstack *s = id.stack; s; s = s->next, d++) { if(d > CSLIMIT_PUSHLEVEL) { cslimiterr("push level"); delete[] val; return; } }
     identstack *stack = new identstack;
     stack->action = id.executing==id.action ? newstring(id.action) : id.action;
     stack->context = id.context;
@@ -316,8 +326,9 @@ inline char *parsequotes(const char *&p)
 
 char *lookup(char *n, int levels);
 
-char *parseexp(const char *&p, int right)             // parse any nested set of () or []
+char *parseexp(const char *&p, int right, int rec)             // parse any nested set of () or []
 {
+    if(rec > CSLIMIT_RECURSION) { cslimiterr("recursion depth"); return NULL; }
     vector<char> res;
     int left = *p++;
     const char *word = p;
@@ -347,10 +358,10 @@ char *parseexp(const char *&p, int right)             // parse any nested set of
                 char *n, a = *p;
                 switch(a)
                 {
-                    case '(': n = parseexp(p, ')'); break;
+                    case '(': n = parseexp(p, ')', rec + 1); break;
                     case '"': n = parsequotes(p); break;
                     case '[':
-                        n = parseexp(p, ']');
+                        n = parseexp(p, ']', rec + 1);
                         if(n) n = lookup(n, 1);
                         break;
                     default:
@@ -370,6 +381,7 @@ char *parseexp(const char *&p, int right)             // parse any nested set of
     if(res.length())
     {
         res.put(word, p - word - 1);
+        if(res.length() > CSLIMIT_STRINGLEN) { cslimiterr("string length"); return newstring(""); }
         return newstring(res.getbuf(), res.length());
     }
     s = newstring(word, p-word-1);
@@ -389,7 +401,7 @@ screrr:
 
 char *lookup(char *n, int levels)                           // find value of ident referenced with $ in exp
 {
-    if(levels > 1) n = exchangestr(n, lookup(newstring(n), min(levels - 1, 2))); // nested ("$$var"), limit to three levels
+    if(levels > 1) n = exchangestr(n, lookup(newstring(n), min(levels - 1, CSLIMIT_LOOKUPNESTING - 1))); // nested ("$$var"), limit to three levels
     ident *id = idents->access(n);
     if(id) switch(id->type)
     {
@@ -404,18 +416,18 @@ char *lookup(char *n, int levels)                           // find value of ide
     return n;
 }
 
-char *parseword(const char *&p, int arg, int *infix)                       // parse single argument, including expressions
+char *parseword(const char *&p, int arg, int *infix, int rec)                       // parse single argument, including expressions
 {
     p += strspn(p, " \t");
     if(p[0]=='/' && p[1]=='/') p += strcspn(p, "\n\r\0");
     if(*p=='"') return parsequotes(p);
-    if(*p=='(' && !currentcontextisolated) return parseexp(p, ')');
-    if(*p=='[' && !currentcontextisolated) return parseexp(p, ']');
+    if(*p=='(' && !currentcontextisolated) return parseexp(p, ')', rec + 1);
+    if(*p=='[' && !currentcontextisolated) return parseexp(p, ']', rec + 1);
     int lvls = currentcontextisolated ? 0 : strspn(p, "$");
     if(lvls && (p[lvls]=='(' || p[lvls]=='['))
     { // $() $[]
         p += lvls;
-        char *b = parseexp(p, *p == '(' ? ')' : ']');
+        char *b = parseexp(p, *p == '(' ? ')' : ']', rec + 1);
         if(b) return lookup(b, lvls);
     }
     const char *word = p;
@@ -436,6 +448,7 @@ char *conc(const char **w, int n, bool space)
     wlen.setsize(0);
     int len = space ? max(n-1, 0) : 0;
     loopj(n) len += wlen.add((int)strlen(w[j]));
+    if(len > CSLIMIT_STRINGLEN) { cslimiterr("string length"); return newstring(""); }
     char *r = newstring("", len), *res = r;
     loopi(n)
     {
@@ -479,12 +492,14 @@ COMMAND(result, "s");
 void resultcharvector(const vector<char> &res, int adj)     // use char vector as result, optionally remove some bytes at the end
 {
     adj += res.length();
+    if(adj > CSLIMIT_STRINGLEN) { cslimiterr("string length"); commandret = newstring(""); return; }
     commandret = adj <= 0 ? newstring("", 0) : newstring(res.getbuf(), (size_t) adj);
 }
 
-char *executeret(const char *p)                            // all evaluation happens here, recursively
+char *executeret(const char *p)                 // all evaluation happens here, recursively
 {
     if(!p || !p[0]) return NULL;
+    if(executionstack.length() > CSLIMIT_RECURSION) { cslimiterr("recursion depth"); return NULL; }
     executionstack.add(p);
     const int MAXWORDS = 25;                    // limit, remove
     char *w[MAXWORDS], emptychar = '\0';
@@ -498,7 +513,7 @@ char *executeret(const char *p)                            // all evaluation hap
         {
             w[i] = &emptychar;
             if(i>numargs) continue;
-            char *s = parseword(p, i, &infix);   // parse and evaluate exps
+            char *s = parseword(p, i, &infix, executionstack.length());   // parse and evaluate exps
             if(s) w[i] = s;
             else numargs = i;
         }
@@ -924,6 +939,30 @@ void complete(char *s, bool reversedirection)
 }
 #endif
 
+void cleancubescript(char *buf) // drop easy to spot surplus whitespace and comments
+{
+    if(!buf || !*buf) return;
+    char *src = buf, c;
+    bool quot = false;
+    for(char l = 0; (c = *src++); l = c)
+    {
+        if(c == '\r') c = '\n';
+        if(quot)
+        {
+            if((c == '"' && l != '\\') || c == '\n') quot = false;
+        }
+        else
+        {
+            if(c == l && isspace(c)) continue;
+            if(c == ' ' && l == '\n') continue;
+            if(c == '/' && *src == '/') { src += strcspn(src, "\n\r\0"); continue; }
+            if(c == '"') quot = true;
+        }
+        *buf++ = c;
+    }
+    *buf = '\0';
+}
+
 bool execfile(const char *cfgfile)
 {
     string s;
@@ -936,6 +975,7 @@ bool execfile(const char *cfgfile)
         resetcontext();
         return false;
     }
+    if(!currentcontextisolated && !strstr(s, "docs.cfg")) cleancubescript(buf);
     execute(buf);
     delete[] buf;
     resetcontext();
@@ -992,10 +1032,12 @@ COMMAND(execdir, "s");
 // () and [] expressions, any control construct can be defined trivially.
 
 void ifthen(char *cond, char *thenp, char *elsep) { commandret = executeret(cond[0]!='0' ? thenp : elsep); }
-COMMANDN(if, ifthen, "sss");
+bool __dummy_ifthen = addcommand("if", (void (*)())ifthen, "sss");
+//COMMANDN(if, ifthen, "sss");  // CB seriously trips over this one ;)
 
 void loopa(char *var, int *times, char *body)
 {
+    if(*times > CSLIMIT_ITERATION) { cslimiterr("loop iterations"); return; }
     int t = *times;
     if(t<=0) return;
     ident *id = newident(var, execcontext);
@@ -1033,6 +1075,7 @@ COMMANDN(loop, loopa, "sis");
 void whilea(char *cond, char *body)
 {
     loop_level++;
+    int its = 0;
     while(execute(cond))
     {
         execute(body);
@@ -1042,6 +1085,7 @@ void whilea(char *cond, char *body)
             loop_break = false;
             break;
         }
+        if(++its > CSLIMIT_ITERATION) { cslimiterr("loop iterations"); return; }
     }
     loop_level--;
 }
@@ -1105,9 +1149,9 @@ void explodelist(const char *s, vector<char *> &elems)
 #ifdef STANDALONE
         char *newelem = *elem == '"' ? newstring(elem + 1, s - elem - (s[-1]=='"' ? 2 : 1)) : newstring(elem, s-elem);
 #else
-        size_t len;
+        size_t len = 0;
         char *newelem = *elem == '"' ? newstring(elem + 1, (len = s - elem - (s[-1]=='"' ? 2 : 1))) : newstring(elem, s-elem);
-        if(*elem == '\"') filterrichtext(newelem, newelem, len);
+        if(*elem == '"') filterrichtext(newelem, newelem, len);
 #endif
         elems.add(newelem);
         whitespaceskip;
@@ -1119,7 +1163,7 @@ void looplist(char *list, char *varlist, char *body, bool withi)
     vector<char *> vars;
     explodelist(varlist, vars);
     if(vars.length() < 1) return;
-    int varslen = vars.length();
+    int columns = vars.length();
     if(withi) vars.add(newstring("i"));
     vector<ident *> ids;
     bool ok = true;
@@ -1131,12 +1175,13 @@ void looplist(char *list, char *varlist, char *body, bool withi)
         explodelist(list, elems);
         loopv(ids) pushident(*ids[i], newstring(""));
         loop_level++;
-        for(int i = 0; i <= elems.length() - varslen; i += varslen)
+        if(elems.length() / columns > CSLIMIT_ITERATION) cslimiterr("loop iterations");
+        else for(int i = 0; i <= elems.length() - columns; i += columns)
         {
             loopj(vars.length())
             {
                 if(ids[j]->action != ids[j]->executing) delete[] ids[j]->action;
-                if(j < varslen)
+                if(j < columns)
                 {
                     ids[j]->action = elems[i + j];
                     elems[i + j] = NULL;
@@ -1706,6 +1751,8 @@ void scripterr()
     ASSERT(execcontext >= 0 && execcontext < IEXC_NUM);
     if(curcontext) conoutf("(%s: %s [%s])", curcontext, curinfo, contextnames[execcontext]);
     else conoutf("(from console or builtin [%s])", contextnames[execcontext]);
+    clientlogf("exec nesting level: %d", executionstack.length());
+    clientlogf("%s", executionstack.length() ? executionstack.last() : ":::nevermind:::");
 }
 
 void setcontext(const char *context, const char *info)
@@ -1728,6 +1775,12 @@ void dumpexecutionstack(stream *f)
         loopvrev(executionstack) f->printf("%4d:  %s\n", i + 1, executionstack[i]);
         f->fflush();
     }
+}
+
+void cslimiterr(const char*msg)
+{
+    conoutf("\f3[ERROR] cubescript hard limit reached: max %s exceeded (check log for details)", msg);
+    scripterr();
 }
 
 #ifndef STANDALONE
