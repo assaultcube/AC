@@ -884,7 +884,7 @@ void updatecrouch(playerent *p, bool on)
 
 void crouch(bool on)
 {
-    if(player1->isspectating()) return;
+    if(player1->isspectating() && on) return;
     player1->trycrouch = on;
 }
 
