@@ -1078,11 +1078,11 @@ COMMAND(deletetextureslot, "iss");
 void edittextureslot(int *n, char *scale, char *name) // edit slot parameters != ""
 {
     string res = "";
-    EDITMP("edittextureslot");
+    EDIT("edittextureslot");
     if(slots.inrange(*n))
     {
         Slot &s = slots[*n];
-        if(*scale || *name)
+        if((*scale || *name) && !multiplayer("edittextureslot"))
         { // change attributes
             float newscale = atof(scale);
             _texture(s, *scale ? &newscale : NULL, *name ? name : NULL);

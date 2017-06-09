@@ -944,12 +944,12 @@ COMMAND(deletemapsoundslot, "is");
 
 void editmapsoundslot(int *n, char *name, char *maxuses) // edit slot parameters != ""
 {
-    EDITMP("editmapsoundslot");
+    EDIT("editmapsoundslot");
     string res = "";
     if(mapconfigdata.mapsoundlines.inrange(*n))
     {
         mapsoundline &msl = mapconfigdata.mapsoundlines[*n];
-        if(*name || *maxuses)
+        if((*name || *maxuses) && !multiplayer("editmapsoundslot"))
         { // change attributes
             if(*maxuses) msl.maxuses = strtol(maxuses, NULL, 0);
             if(*name) copystring(msl.name, strncmp(name, mapsoundfinalpath, mapsoundfinalpath_n) ? name : name + mapsoundfinalpath_n);

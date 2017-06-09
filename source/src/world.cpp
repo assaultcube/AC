@@ -485,13 +485,13 @@ void editentity(char **args, int numargs) // index x y z a1 a2 a3 a4 ...
     if(numargs > 0)
     {
         int n = ATOI(args[0]);
-        EDITMP("editentity");
+        EDIT("editentity");
         if(!*args[0] || !ents.inrange(n)) return;
         entity &e = ents[n];
         bool edit = false;
         for(int i = 1; i < numargs; i++) if(*args[i]) edit = true; // only arguments other than empty strings can edit anything - otherwise we're just browsing
         int t = e.type < MAXENTTYPES ? e.type : NOTUSED;
-        if(edit)
+        if((edit) && !multiplayer("editentity"))
         {
             if(e.type == SOUND)
             { // disable sound /before/ changing it
