@@ -245,7 +245,7 @@ struct mitemmanual : mitem
 
     mitemmanual(gmenu *parent, char *text, char *action, char *hoveraction, color *bgcolor, const char *desc) : mitem(parent, bgcolor, mitem::TYPE_MANUAL), text(text), action(action), hoveraction(hoveraction), desc(desc) {}
 
-    virtual int width() { return text_width(text); }
+    virtual int width() { return text_width(text) + (strchr(text, '\n') ? menurighttabwidth : 0); }
 
     virtual void render(int x, int y, int w)
     {

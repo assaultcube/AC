@@ -172,12 +172,18 @@ Texture *loadcrosshairtexture(const char *c)
     return crosshair;
 }
 
-void loadcrosshair(char *type, char *filename)
+void loadcrosshair(const char *type, const char *filename)
 {
     int index = CROSSHAIR_DEFAULT;
     if(!*filename)
     {   // special form: loadcrosshair filename   // short for "loadcrosshair default filename"
-        filename = type;
+        if(strcasecmp(type, "reset")) filename = type;
+        else
+        { // "loadcrosshair reset" does exactly that
+            filename = "default.png";
+            crosshairs[CROSSHAIR_TEAMMATE] = loadcrosshairtexture("teammate.png");
+            crosshairs[CROSSHAIR_SCOPE] = loadcrosshairtexture("red_dot.png");
+        }
     }
     else if(strchr(type, '.'))
     {   // old syntax "loadcrosshair filename type", remove this in 2020

@@ -81,7 +81,7 @@ bool changemapserv(char *name, int mode, int download, int revision)        // f
 // don't care if he's in the scenery or other players,
 // just don't overlap with our client
 
-void updatepos(playerent *d)
+void updateplayerpos(playerent *d)
 {
     const float r = player1->radius+d->radius;
     const float dx = player1->o.x-d->o.x;
@@ -198,7 +198,7 @@ void parsepositions(ucharbuf &p)
             f >>= 2;
             d->last_pos = totalmillis;
             updatecrouch(d, f&1);
-            updatepos(d);
+            updateplayerpos(d);
             updatelagtime(d);
             extern int smoothmove, smoothdist;
             if(d->state==CS_DEAD)
