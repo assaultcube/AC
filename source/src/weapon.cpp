@@ -1779,15 +1779,9 @@ void checkakimbo()
             weapon &p = *player1->weapons[GUN_PISTOL];
             player1->akimbo = false;
             a.reset();
-            // transfer ammo to pistol
-            p.mag = min((int)p.info.magsize, max(a.mag, p.mag));
-            p.ammo = max(p.ammo, p.ammo);
-            // fix akimbo magcontent
-            a.mag = 0;
-            a.ammo = 0;
+
             if(player1->weaponsel->type==GUN_AKIMBO || (player1->weaponchanging && player1->nextweaponsel->type==GUN_AKIMBO))
             {
-
                 switch(akimboendaction)
                 {
                     case 0: player1->weaponswitch(player1->weapons[GUN_KNIFE]); break;

@@ -42,6 +42,8 @@ void processevent(client *c, shotevent &e)
        wait<gs.gunwait[e.gun] ||
        gs.mag[e.gun]<=0)
         return;
+
+    if(e.gun == GUN_AKIMBO && gs.akimbomillis < gamemillis) return;
     if(e.gun!=GUN_KNIFE) gs.mag[e.gun]--;
     loopi(NUMGUNS) if(gs.gunwait[i]) gs.gunwait[i] = max(gs.gunwait[i] - (e.millis-gs.lastshot), 0);
     gs.lastshot = e.millis;
@@ -126,6 +128,7 @@ void processevent(client *c, reloadevent &e)
        gs.ammo[e.gun]<=0)
         return;
 
+    if(e.gun == GUN_AKIMBO && gs.akimbomillis < gamemillis) return;
     bool akimbo = e.gun==GUN_PISTOL && gs.akimbomillis>e.millis;
     int mag = (akimbo ? 2 : 1) * magsize(e.gun), numbullets = min(gs.ammo[e.gun], mag - gs.mag[e.gun]);
     if(numbullets<=0) return;
