@@ -5,7 +5,6 @@
 #include "hudgun.h"
 
 VARP(autoreload, 0, 1, 1);
-VARP(akimboautoswitch, 0, 1, 1);
 VARP(akimboendaction, 0, 3, 3); // 0: switch to knife, 1: stay with pistol (if has ammo), 2: switch to grenade (if possible), 3: switch to primary (if has ammo) - all fallback to previous one w/o ammo for target
 
 struct sgray {
@@ -1669,8 +1668,7 @@ void akimbo::onammopicked()
     akimbomillis = lastmillis + 30000;
     if(owner==player1)
     {
-        // if(owner->weaponsel->type!=GUN_SNIPER && owner->weaponsel->type!=GUN_GRENADE) owner->weaponswitch(this);
-        if(akimboautoswitch || owner->weaponsel->type==GUN_PISTOL) owner->weaponswitch(this); // Give the client full control over akimbo auto-switching // Bukz 2011apr23
+        owner->weaponswitch(this);
         addmsg(SV_AKIMBO, "ri", lastmillis);
     }
 }
