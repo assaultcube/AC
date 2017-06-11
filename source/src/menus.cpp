@@ -370,13 +370,12 @@ struct mitemmaploadmanual : mitemmanual
 {
     const char *filename;
     string maptitle;
-    string mapstats;
     Texture *image;
 
     mitemmaploadmanual(gmenu *parent, const char *filename, const char *altfontname, char *text, char *action, char *hoveraction, color *bgcolor, const char *desc = NULL) : mitemmanual(parent, text, action, NULL,        NULL,    NULL), filename(filename)
     {
         image = notexture;
-        copystring(maptitle, filename ? filename : "-n/a-");
+        maptitle[0] = '\0';
         silent_texture_load = true;
         if(filename)
         { // load map description and preview picture
@@ -386,42 +385,46 @@ struct mitemmaploadmanual : mitemmanual
             if(!d) d = getfiledesc((cgzpath = "packages" PATHDIVS "maps" PATHDIVS "official"), filename, "cgz"); // check for official map
             if(d)
             {
-                if(*d) copystring(maptitle, d);
+                filtertext(maptitle, d, FTXT__MAPMSG);
                 delstring(d);
             }
-            else formatstring(maptitle)("-n/a-:%s", filename);
             defformatstring(p2p)("%s/preview/%s.jpg", cgzpath, filename);
             image = textureload(p2p, 3);
         }
         if(image == notexture) image = textureload("packages/misc/nopreview.jpg", 3);
         silent_texture_load = false;
-        copystring(mapstats, "");
     }
+
     virtual ~mitemmaploadmanual() {}
+
     virtual int width()
     {
         if(image && *text != '\t') return (FONTH*image->xs)/image->ys + FONTH/2 + mitemmanual::width();
         return mitemmanual::width();
     }
+
+    virtual void key(int code, bool isdown, int unicode)
+    {
+        if(code == SDLK_LEFT && parent->xoffs > -50) parent->xoffs -= 2;
+        else if(code == SDLK_RIGHT && parent->xoffs < 50) parent->xoffs += 2;
+    }
+
     virtual void render(int x, int y, int w)
     {
         mitem::render(x, y, w);
         if(image)
         {
-            //int xs = 0;
-            draw_text(text, x, y); // !image || *text == '\t' ? x : x+xs + FONTH/2
-            if(image && isselection() && !hidebigmenuimages && image->ys > FONTH)
+            draw_text(text, x, y);
+            if(isselection())
             {
-                w += FONTH;
-                int xs = (2 * VIRTW - w) / 5, ys = (xs * image->ys) / image->xs;
-                x = (6 * VIRTW + w - 2 * xs) / 4; y = VIRTH - ys / 2;
-                framedquadtexture(image->id, x, y, xs, ys, FONTH);
-                if(maptitle[0])
+                if(!hidebigmenuimages && image->ys > FONTH)
                 {
-                    filtertext(maptitle, maptitle, FTXT__MAPMSG);
-                    draw_text(maptitle, FONTH/2, VIRTH - FONTH/2, 0xFF, 0xFF, 0xFF, 0xFF, -1, maploaditemlength*FONTH/2);
+                    w += FONTH;
+                    int xs = (2 * VIRTW - w - x) / 2, ys = (xs * image->ys) / image->xs, xp = x + w + xs/2, yp = VIRTH - ys / 2;
+                    framedquadtexture(image->id, xp, yp, xs, ys, FONTH);
+                    draw_text(text, xp + xs/2 - text_width(text)/2, yp + ys);
                 }
-                //if(mapstats[0]) draw_text(mapstats, x, y+ys+5*FONTH/2);
+                if(maptitle[0]) draw_text(maptitle, x / 6, VIRTH - FONTH/2, 0xFF, 0xFF, 0xFF, 0xFF, -1, (x * 3) / 4);
             }
         }
         else mitemmanual::render(x, y, w);
