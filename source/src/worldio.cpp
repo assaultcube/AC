@@ -522,7 +522,7 @@ COMMANDF(getvantagepoint, "", ()
     result(res);
 });
 
-void gotovantagepoint()
+bool gotovantagepoint()
 {
     short p[5];
     if(getvantagepoint(p))
@@ -530,14 +530,15 @@ void gotovantagepoint()
         restoreposition(p);
         physent d = *player1;
         d.radius = d.eyeheight = d.maxeyeheight = d.aboveeye = 0.1;
-        if(!collide(&d, false)) return;  // don't use out-of-map vantage points
+        if(!collide(&d, false)) return true;  // don't use out-of-map vantage points
     }
     // if there is no (valid) vantage point set, we go to the first playerstart instead
     int s = findentity(PLAYERSTART, 0);
     if(ents.inrange(s)) gotoplayerstart(player1, &ents[s]);
     entinmap(player1);
+    return false;
 }
-COMMANDF(gotovantagepoint, "", () { if(editmode) gotovantagepoint(); });
+COMMANDF(gotovantagepoint, "", () { intret((editmode || (!multiplayer(NULL) && player1->isspectating())) && gotovantagepoint() ? 1 : 0); });
 
 void setmapinfo(const char *newlicense, const char *newcomment)
 {

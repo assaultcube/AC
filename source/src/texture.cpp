@@ -530,7 +530,7 @@ void cleanuptextures()
 
 bool reloadtexture(Texture &t)
 {
-    if(t.id) return true;
+    if(t.id) glDeleteTextures(1, &t.id);
     int xs = 1, ys = 1, bpp = 0;
     t.id = loadsurface(t.name, xs, ys, bpp, t.clamp, t.mipmap, t.canreduce, t.scale);
     t.xs = xs;

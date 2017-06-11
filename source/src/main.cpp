@@ -275,23 +275,35 @@ error:
     return -1;
 }
 
-FVARP(screenshotscale, 0.1f, 1.0f, 1.0f);
-VARP(jpegquality, 10, 85, 100);  // best: 100 - good: 85 [default] - bad: 70 - terrible: 50
-
 #include "jpegenc.h"
 
-void mapscreenshot(const char *imagepath, bool mapshot, int fileformat)
+void mapscreenshot(const char *imagepath, bool mapshot, int fileformat, float scale, int height, int quality)
 {
     extern int minimaplastsize;
     int src_w = mapshot ? minimaplastsize : screen->w;
     int src_h = mapshot ? minimaplastsize : screen->h;
-    int dst_w = mapshot ? src_w : src_w * screenshotscale;
-    int dst_h = mapshot ? src_h : src_h * screenshotscale;
+    int dst_w = mapshot ? src_w : src_w * scale, img_w = dst_w;
+    int dst_h = mapshot ? src_h : src_h * scale, img_h = dst_h;
+    if(height)
+    { // create 4:3 of exact height
+        if(dst_w >= (dst_h * 4) / 3)
+        { // 4:3 or wider: crop width
+            dst_w = (src_w * height) / src_h;
+            img_h = dst_h = height;
+            img_w = (img_h * 4) / 3;
+        }
+        else
+        { // probably 5:4: crop height
+            img_h = height;
+            dst_w = img_w = (img_h * 4) / 3;
+            dst_h = (src_h * dst_w) / src_w;
+        }
+    }
 
-    SDL_Surface *image = creatergbsurface(dst_w, dst_h);
+    SDL_Surface *image = creatergbsurface(img_w, img_h);
     if(!image) return;
 
-    int tmpdstsize = dst_w * dst_h * 3, dstpitch = dst_w * 3;
+    int tmpdstsize = dst_w * dst_h * 3, tmpdstpitch = dst_w * 3;
     uchar *tmpdst = new uchar[tmpdstsize], *dst = (uchar *)image->pixels;
 
     if(mapshot)
@@ -310,9 +322,9 @@ void mapscreenshot(const char *imagepath, bool mapshot, int fileformat)
             delete[] tmpdst;
             return;
         }
-        loopi(dst_h)
+        loopi(img_h)
         { // copy image
-            memcpy(dst, &tmpdst[dstpitch * i], dstpitch);
+            memcpy(dst, &tmpdst[tmpdstpitch * i], image->pitch);
             dst += image->pitch;
         }
     }
@@ -327,9 +339,11 @@ void mapscreenshot(const char *imagepath, bool mapshot, int fileformat)
             delete[] tmpsrc;
         }
         else glReadPixels(0, 0, dst_w, dst_h, GL_RGB, GL_UNSIGNED_BYTE, tmpdst);
-        loopirev(dst_h)
+        int crop_w = height ? ((dst_w - img_w) / 2) * 3 : 0;
+        int crop_h = height ? (dst_h - img_h) / 2 : 0;
+        loopirev(img_h)
         { // flip image
-            memcpy(dst, &tmpdst[dstpitch * i], dstpitch);
+            memcpy(dst, &tmpdst[tmpdstpitch * (i + crop_h) + crop_w], image->pitch);
             dst += image->pitch;
         }
     }
@@ -352,7 +366,7 @@ void mapscreenshot(const char *imagepath, bool mapshot, int fileformat)
         case 1: // jpeg
         {
             jpegenc jpegencoder;
-            jpegencoder.encode(imagepath, image, jpegquality);
+            jpegencoder.encode(imagepath, image, quality);
             break;
         }
         case 2: // png
@@ -363,6 +377,8 @@ void mapscreenshot(const char *imagepath, bool mapshot, int fileformat)
     SDL_FreeSurface(image);
 }
 
+FVARP(screenshotscale, 0.1f, 1.0f, 1.0f);
+VARP(jpegquality, 10, 85, 100);  // best: 100 - good: 85 [default] - bad: 70 - terrible: 50
 VARP(screenshottype, 0, 1, 2);
 
 const char *getscrext()
@@ -379,16 +395,25 @@ void screenshot(const char *filename)
     else if(getclientmap()[0]) formatstring(buf)("screenshots/%s_%s_%s%s", timestring(), behindpath(getclientmap()), modestr(gamemode, true), getscrext());
     else formatstring(buf)("screenshots/%s%s", timestring(), getscrext());
     path(buf);
-    mapscreenshot(buf, false, screenshottype);
+    mapscreenshot(buf, false, screenshottype, screenshotscale, 0, jpegquality);
 }
 COMMAND(screenshot, "s");
 
 void mapshot()
 {
     defformatstring(buf)("screenshots" PATHDIVS "mapshot_%s_%s%s", behindpath(getclientmap()), timestring(), getscrext());
-    mapscreenshot(buf, true, screenshottype);
+    mapscreenshot(buf, true, screenshottype, screenshotscale, 0, jpegquality);
 }
 COMMAND(mapshot, "");
+
+void screenshotpreview(int *res)
+{
+    static int lastres = 240;
+    defformatstring(buf)("packages" PATHDIVS "maps" PATHDIVS "%spreview" PATHDIVS "%s.jpg", securemapcheck(getclientmap(), false) ? "official" PATHDIVS : "", behindpath(getclientmap()));
+    mapscreenshot(buf, false, 1, 1.0f, (lastres = clamp(((*res ? *res : lastres) / 48) * 48, 144, 480)), 80);
+    reloadtexture(*textureload(buf, 3));
+}
+COMMAND(screenshotpreview, "i");
 
 bool needsautoscreenshot = false;
 
@@ -579,7 +604,6 @@ void resetgl()
     gl_init(scr_w, scr_h, usedcolorbits, useddepthbits, usedfsaa);
 
     extern void reloadfonts();
-    extern void reloadtextures();
     extern Texture *startscreen;
     c2skeepalive();
     if(!reloadtexture(*notexture) ||
@@ -739,7 +763,7 @@ static void checkmousemotion(int &dx, int &dy)
     }
 }
 
-int ignoremouse = 5, bootstrapentropy = 0;
+int ignoremouse = 5, bootstrapentropy = 2;
 
 void checkinput()
 {
@@ -763,7 +787,7 @@ void checkinput()
             #endif
 
             case SDL_KEYDOWN:
-                if(bootstrapentropy > 0 && (--bootstrapentropy & 2)) mapscreenshot(NULL, false, -1);
+                if(bootstrapentropy > 0 && (--bootstrapentropy & 2)) mapscreenshot(NULL, false, -1, 1000.0f / (1000 + rnd(400)), 0, 0);
             case SDL_KEYUP:
                 entropy_add_byte(event.key.keysym.sym ^ totalmillis);
                 keypress(event.key.keysym.sym, event.key.state==SDL_PRESSED, event.key.keysym.unicode, event.key.keysym.mod);

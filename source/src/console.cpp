@@ -206,6 +206,8 @@ void findkeycode(const char* s)
 }
 COMMAND(findkeycode, "s");
 
+COMMANDF(modkeypressed, "", () { intret((SDL_GetModState() & MOD_KEYS_CTRL) ? 1 : 0); });
+
 keym *keypressed = NULL;
 char *keyaction = NULL;
 
