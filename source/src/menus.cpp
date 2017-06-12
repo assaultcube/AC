@@ -372,27 +372,10 @@ struct mitemmaploadmanual : mitemmanual
     string maptitle;
     Texture *image;
 
-    mitemmaploadmanual(gmenu *parent, const char *filename, const char *altfontname, char *text, char *action, char *hoveraction, color *bgcolor, const char *desc = NULL) : mitemmanual(parent, text, action, NULL,        NULL,    NULL), filename(filename)
+    mitemmaploadmanual(gmenu *parent, const char *filename, const char *altfontname, char *text, char *action, char *hoveraction, color *bgcolor, const char *desc = NULL) : mitemmanual(parent, text, action, NULL, NULL, NULL), filename(filename)
     {
-        image = notexture;
+        image = NULL;
         maptitle[0] = '\0';
-        silent_texture_load = true;
-        if(filename)
-        { // load map description and preview picture
-            filename = behindpath(filename);
-            const char *cgzpath = "packages" PATHDIVS "maps";
-            char *d = getfiledesc(cgzpath, filename, "cgz"); // check for regular map
-            if(!d) d = getfiledesc((cgzpath = "packages" PATHDIVS "maps" PATHDIVS "official"), filename, "cgz"); // check for official map
-            if(d)
-            {
-                filtertext(maptitle, d, FTXT__MAPMSG);
-                delstring(d);
-            }
-            defformatstring(p2p)("%s/preview/%s.jpg", cgzpath, filename);
-            image = textureload(p2p, 3);
-        }
-        if(image == notexture) image = textureload("packages/misc/nopreview.jpg", 3);
-        silent_texture_load = false;
     }
 
     virtual ~mitemmaploadmanual() {}
@@ -412,22 +395,37 @@ struct mitemmaploadmanual : mitemmanual
     virtual void render(int x, int y, int w)
     {
         mitem::render(x, y, w);
-        if(image)
+        draw_text(text, x, y);
+        if(isselection())
         {
-            draw_text(text, x, y);
-            if(isselection())
+            if(!image)
             {
-                if(!hidebigmenuimages && image->ys > FONTH)
-                {
-                    w += FONTH;
-                    int xs = (2 * VIRTW - w - x) / 2, ys = (xs * image->ys) / image->xs, xp = x + w + xs/2, yp = VIRTH - ys / 2;
-                    framedquadtexture(image->id, xp, yp, xs, ys, FONTH);
-                    draw_text(text, xp + xs/2 - text_width(text)/2, yp + ys);
+                silent_texture_load = true;
+                if(filename)
+                { // load map description and preview picture
+                    const char *cgzpath = "packages" PATHDIVS "maps";
+                    char *d = getfiledesc(cgzpath, behindpath(filename), "cgz"); // check for regular map
+                    if(!d) d = getfiledesc((cgzpath = "packages" PATHDIVS "maps" PATHDIVS "official"), behindpath(filename), "cgz"); // check for official map
+                    if(d)
+                    {
+                        filtertext(maptitle, d, FTXT__MAPMSG);
+                        delstring(d);
+                    }
+                    defformatstring(p2p)("%s/preview/%s.jpg", cgzpath, filename);
+                    if(!hidebigmenuimages) image = textureload(p2p, 3);
                 }
-                if(maptitle[0]) draw_text(maptitle, x / 6, VIRTH - FONTH/2, 0xFF, 0xFF, 0xFF, 0xFF, -1, (x * 3) / 4);
+                if(!image || image == notexture) image = textureload("packages/misc/nopreview.jpg", 3);
+                silent_texture_load = false;
             }
+            if(image && !hidebigmenuimages && image->ys > FONTH)
+            {
+                w += FONTH;
+                int xs = (2 * VIRTW - w - x) / 2, ys = (xs * image->ys) / image->xs, xp = x + w + xs/2, yp = VIRTH - ys / 2;
+                framedquadtexture(image->id, xp, yp, xs, ys, FONTH);
+                draw_text(text, xp + xs/2 - text_width(text)/2, yp + ys);
+            }
+            if(maptitle[0]) draw_text(maptitle, x / 6, VIRTH - FONTH/2, 0xFF, 0xFF, 0xFF, 0xFF, -1, (x * 3) / 4);
         }
-        else mitemmanual::render(x, y, w);
     }
 };
 
@@ -1370,7 +1368,7 @@ void gmenu::init()
         {
             char *f = files[i];
             if(!f || !f[0]) continue;
-            char *d = getfiledesc(dirlist->dir, f, dirlist->ext);
+            char *d = strcmp(dirlist->ext, "cgz") || dirlist->searchfile ? getfiledesc(dirlist->dir, f, dirlist->ext) : NULL;
             defformatstring(jpgname)("%s/preview/%s.jpg", dirlist->dir, f);
             bool filefound = false;
             if(dirlist->searchfile)
@@ -1378,7 +1376,7 @@ void gmenu::init()
                 string fuc, duc;
                 copystring(fuc, f);
                 strtoupper(fuc);
-                copystring(duc, d);
+                copystring(duc, d ? d : "");
                 strtoupper(duc);
                 if(strstr(fuc, searchfileuc) || strstr(duc, searchfileuc)) filefound = true;
             }
@@ -1399,21 +1397,9 @@ void gmenu::init()
             {
                 if(!dirlist->searchfile || filefound)
                 {
-                    int diroffset = 0;
-                    if(dirlist->dir[0])
-                    {
-                        unsigned int ddsl = strlen("packages/");
-                        if(strlen(dirlist->dir)>ddsl)
-                        {
-                            string prefix;
-                            copystring(prefix, dirlist->dir, ddsl+1);
-                            if(!strcmp(prefix,"packages/")) diroffset = ddsl;
-                        }
-                    }
-                    defformatstring(fullname)("%s%s%s", dirlist->dir[0]?dirlist->dir+diroffset:"", dirlist->dir[0]?"/":"", f);
-                    defformatstring(title)("%s", f);
-                    items.add(new mitemmapload(this, newstring(fullname), newstring(title), newstring(dirlist->action), NULL, NULL, NULL));
+                    items.add(new mitemmapload(this, newstring(f), newstring(f), newstring(dirlist->action), NULL, NULL, NULL));
                 }
+                DELSTRING(d);
             }
             else if(!strcmp(dirlist->ext, "dmo"))
             {
