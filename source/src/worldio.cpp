@@ -1085,6 +1085,68 @@ COMMANDF(loadmap, "s", (char *mapname)
     intret(!multiplayer("loadmap") ? load_world(mapname) : -42);
 });
 
+char *getfiledesc(const char *dir, const char *name, const char *ext) // extract demo and map descriptions
+{
+    if(!dir || !name || !ext) return NULL;
+    defformatstring(fn)("%s/%s.%s", dir, name, ext);
+    path(fn);
+    string text, demodescalias;
+    if(!strcmp(ext, "dmo"))
+    {
+        stream *f = opengzfile(fn, "rb");
+        if(!f) return NULL;
+        demoheader hdr;
+        if(f->read(&hdr, sizeof(demoheader))!=sizeof(demoheader) || memcmp(hdr.magic, DEMO_MAGIC, sizeof(hdr.magic))) { delete f; return NULL; }
+        delete f;
+        lilswap(&hdr.version, 1);
+        lilswap(&hdr.protocol, 1);
+        const char *tag = "(incompatible file) ";
+        if(hdr.version == DEMO_VERSION)
+        {
+            if(hdr.protocol == PROTOCOL_VERSION) tag = "";
+            else if(hdr.protocol == -PROTOCOL_VERSION) tag = "(recorded on modded server) ";
+        }
+        formatstring(text)("%s%s", tag, hdr.desc);
+        text[DHDR_DESCCHARS - 1] = '\0';
+        formatstring(demodescalias)("demodesc_%s", name);
+        const char *customdesc = getalias(demodescalias);
+        if(customdesc)
+        {
+            int textlen = strlen(text);
+            concatformatstring(text, " \n\f4(Description: \f0%s\f4)", customdesc);
+            ASSERT(MAXSTRLEN > 2 * DHDR_DESCCHARS);
+            text[textlen + DHDR_DESCCHARS - 1] = '\0';
+        }
+        return newstring(text);
+    }
+    else if(!strcmp(ext, "cgz"))
+    {
+        stream *f = opengzfile(fn, "rb");
+        if(!f) return NULL;
+        header hdr;
+        if(f->read(&hdr, sizeof(header))!=sizeof(header) || (strncmp(hdr.head, "CUBE", 4) && strncmp(hdr.head, "ACMP",4))) { delete f; return NULL; }
+        delete f;
+        lilswap(&hdr.version, 1);
+        filtertext(hdr.maptitle, hdr.maptitle, FTXT__MAPMSG, 127);
+        formatstring(text)("%s%s", (hdr.version>MAPVERSION) ? "(incompatible file) " : "", hdr.maptitle);
+        text[DHDR_DESCCHARS - 1] = '\0';
+        return newstring(text);
+    }
+    return NULL;
+}
+
+void enumfiles(char *dir, char *ext)
+{
+    vector<char> res;
+    vector<char *> files;
+    if(!strcasecmp(ext, "dir")) listsubdirs(dir, files, stringsort);
+    else listfiles(dir, *ext ? ext : NULL, files, stringsort);
+    loopv(files) cvecprintf(res, "%s\n", escapestring(files[i]));
+    files.deletearrays();
+    resultcharvector(res, -1);
+}
+COMMAND(enumfiles, "ss");
+
 // support reading and writing binary data in config files
 
 static bool hexbinenabled = false;

@@ -209,14 +209,11 @@ struct mitem
 
 struct mdirlist
 {
-    char *dir, *ext, *action, *searchfile;
-    bool image;
+    char *dir, *ext, *action, *searchfile, *subdiraction;
+    bool image, subdirdots;
     ~mdirlist()
     {
-        DELETEA(dir);
-        DELETEA(ext);
-        DELETEA(action);
-        DELETEA(searchfile);
+        DELETEA(dir); DELETEA(ext); DELETEA(action); DELETEA(searchfile); DELETEA(subdiraction);
     }
 };
 
@@ -849,6 +846,7 @@ extern const char *setnames(const char *name);
 extern void save_world(char *mname, bool skipoptimise = false, bool addcomfort = false);
 extern int _ignoreillegalpaths;
 extern int load_world(char *mname);
+extern char *getfiledesc(const char *dir, const char *name, const char *ext);
 extern void writemap(char *name, int size, uchar *data);
 extern void writecfggz(char *name, int size, int sizegz, uchar *data);
 extern uchar *readmap(char *name, int *size, int *revision);

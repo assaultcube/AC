@@ -954,6 +954,7 @@ extern char *loadfile(const char *fn, int *size, const char *mode = NULL);
 extern int streamcopy(stream *dest, stream *source, int maxlen = INT_MAX);
 extern void filerotate(const char *basename, const char *ext, int keepold, const char *oldformat = NULL);
 extern const char *stream_capabilities();
+extern void listsubdirs(const char *dir, vector<char *> &subdirs, int (__cdecl *sf)(const char **, const char **));
 extern bool listdir(const char *dir, const char *ext, vector<char *> &files);
 extern void listfiles(const char *dir, const char *ext, vector<char *> &files, int (__cdecl *sf)(const char **, const char **) = NULL);
 extern void listfilesrecursive(const char *dir, vector<char *> &files, int level = 0);

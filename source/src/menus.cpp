@@ -10,57 +10,6 @@ static int menurighttabwidth = 888; // width of sliders and text input fields (i
 vector<gmenu *> menustack;
 
 COMMANDF(curmenu, "", () {result(curmenu ? curmenu->name : "");} );
-VARP(browsefiledesc, 0, 1, 1);
-
-char *getfiledesc(const char *dir, const char *name, const char *ext)
-{
-    if(!browsefiledesc || !dir || !name || !ext) return NULL;
-    defformatstring(fn)("%s/%s.%s", dir, name, ext);
-    path(fn);
-    string text, demodescalias;
-    if(!strcmp(ext, "dmo"))
-    {
-        stream *f = opengzfile(fn, "rb");
-        if(!f) return NULL;
-        demoheader hdr;
-        if(f->read(&hdr, sizeof(demoheader))!=sizeof(demoheader) || memcmp(hdr.magic, DEMO_MAGIC, sizeof(hdr.magic))) { delete f; return NULL; }
-        delete f;
-        lilswap(&hdr.version, 1);
-        lilswap(&hdr.protocol, 1);
-        const char *tag = "(incompatible file) ";
-        if(hdr.version == DEMO_VERSION)
-        {
-            if(hdr.protocol == PROTOCOL_VERSION) tag = "";
-            else if(hdr.protocol == -PROTOCOL_VERSION) tag = "(recorded on modded server) ";
-        }
-        formatstring(text)("%s%s", tag, hdr.desc);
-        text[DHDR_DESCCHARS - 1] = '\0';
-        formatstring(demodescalias)("demodesc_%s", name);
-        const char *customdesc = getalias(demodescalias);
-        if(customdesc)
-        {
-            int textlen = strlen(text);
-            concatformatstring(text, " \n\f4(Description: \f0%s\f4)", customdesc);
-            ASSERT(MAXSTRLEN > 2 * DHDR_DESCCHARS);
-            text[textlen + DHDR_DESCCHARS - 1] = '\0';
-        }
-        return newstring(text);
-    }
-    else if(!strcmp(ext, "cgz"))
-    {
-        stream *f = opengzfile(fn, "rb");
-        if(!f) return NULL;
-        header hdr;
-        if(f->read(&hdr, sizeof(header))!=sizeof(header) || (strncmp(hdr.head, "CUBE", 4) && strncmp(hdr.head, "ACMP",4))) { delete f; return NULL; }
-        delete f;
-        lilswap(&hdr.version, 1);
-        // hdr.maprevision, hdr.maptitle ... hdr.version, hdr.headersize,
-        formatstring(text)("%s%s", (hdr.version>MAPVERSION) ? "(incompatible file) " : "", hdr.maptitle);
-        text[DHDR_DESCCHARS - 1] = '\0';
-        return newstring(text);
-    }
-    return NULL;
-}
 
 inline gmenu *setcurmenu(gmenu *newcurmenu)      // only change curmenu through here!
 {
@@ -365,25 +314,24 @@ struct mitemimage : mitemimagemanual
         DELETEA(desc);
     }
 };
-VARP(maploaditemlength, 0, 46, 255);
-struct mitemmaploadmanual : mitemmanual
+
+VARP(browsefiledesc, 0, 1, 1);
+
+struct mitemmapload : mitemmanual
 {
-    const char *filename;
-    string maptitle;
+    const char *filename, *maptitle;
     Texture *image;
 
-    mitemmaploadmanual(gmenu *parent, const char *filename, const char *altfontname, char *text, char *action, char *hoveraction, color *bgcolor, const char *desc = NULL) : mitemmanual(parent, text, action, NULL, NULL, NULL), filename(filename)
-    {
-        image = NULL;
-        maptitle[0] = '\0';
-    }
+    mitemmapload(gmenu *parent, const char *filename, char *text, char *action, char *hoveraction, const char *desc) : mitemmanual(parent, text, action, hoveraction, NULL, desc), filename(filename), maptitle(NULL), image(NULL) {}
 
-    virtual ~mitemmaploadmanual() {}
-
-    virtual int width()
+    virtual ~mitemmapload()
     {
-        if(image && *text != '\t') return (FONTH*image->xs)/image->ys + FONTH/2 + mitemmanual::width();
-        return mitemmanual::width();
+        delstring(filename);
+        DELETEA(maptitle);
+        DELETEA(text);
+        DELETEA(action);
+        DELETEA(hoveraction);
+        DELETEA(desc);
     }
 
     virtual void key(int code, bool isdown, int unicode)
@@ -398,22 +346,17 @@ struct mitemmaploadmanual : mitemmanual
         draw_text(text, x, y);
         if(isselection())
         {
-            if(!image)
-            {
+            if(!image && !maptitle)
+            { // load map description and preview picture
                 silent_texture_load = true;
-                if(filename)
-                { // load map description and preview picture
-                    const char *cgzpath = "packages" PATHDIVS "maps";
-                    char *d = getfiledesc(cgzpath, behindpath(filename), "cgz"); // check for regular map
-                    if(!d) d = getfiledesc((cgzpath = "packages" PATHDIVS "maps" PATHDIVS "official"), behindpath(filename), "cgz"); // check for official map
-                    if(d)
-                    {
-                        filtertext(maptitle, d, FTXT__MAPMSG);
-                        delstring(d);
-                    }
-                    defformatstring(p2p)("%s/preview/%s.jpg", cgzpath, filename);
-                    if(!hidebigmenuimages) image = textureload(p2p, 3);
+                const char *cgzpath = "packages" PATHDIVS "maps";
+                if(browsefiledesc)
+                { // checking maptitles is slow and may be disabled
+                    maptitle = getfiledesc(cgzpath, behindpath(filename), "cgz"); // check for regular map
+                    if(!maptitle) maptitle = getfiledesc((cgzpath = "packages" PATHDIVS "maps" PATHDIVS "official"), behindpath(filename), "cgz"); // check for official map
                 }
+                defformatstring(p2p)("%s/preview/%s.jpg", cgzpath, filename);
+                if(!hidebigmenuimages) image = textureload(p2p, 3);
                 if(!image || image == notexture) image = textureload("packages/misc/nopreview.jpg", 3);
                 silent_texture_load = false;
             }
@@ -424,25 +367,8 @@ struct mitemmaploadmanual : mitemmanual
                 framedquadtexture(image->id, xp, yp, xs, ys, FONTH);
                 draw_text(text, xp + xs/2 - text_width(text)/2, yp + ys);
             }
-            if(maptitle[0]) draw_text(maptitle, x / 6, VIRTH - FONTH/2, 0xFF, 0xFF, 0xFF, 0xFF, -1, (x * 3) / 4);
+            if(maptitle && *maptitle) draw_text(maptitle, x / 6, VIRTH - FONTH/2, 0xFF, 0xFF, 0xFF, 0xFF, -1, (x * 3) / 4);
         }
-    }
-};
-
-struct mitemmapload : mitemmaploadmanual
-{
-    mitemmapload(gmenu *parent, const char *filename, char *text, char *action, char *hoveraction, color *bgcolor, const char *desc = NULL) : mitemmaploadmanual(parent, filename, NULL, text, action, hoveraction, bgcolor, desc) {}
-//  mitemimage  (gmenu *parent, const char *filename, char *text, char *action, char *hoveraction, color *bgcolor, const char *desc = NULL) : mitemimagemanual  (parent, filename, NULL, text, action, hoveraction, bgcolor, desc) {}
-//  mitemmapload(gmenu *parent, const char *filename, char *text, char *action, char *hoveraction, color *bgcolor, const char *desc = NULL) : mitemmaploadmanual(parent, filename, NULL, text, action, hoveraction, bgcolor, desc) {}
-//  mitemmanual (gmenu *parent, char *text, char *action, char *hoveraction, color *bgcolor, const char *desc) : mitem(parent, bgcolor), text(text), action(action), hoveraction(hoveraction), desc(desc) {}
-
-    virtual ~mitemmapload()
-    {
-        DELETEA(filename);
-        //DELETEA(maptitle);
-        //DELETEA(mapstats);
-        DELETEA(text);
-        DELETEA(action);
     }
 };
 
@@ -855,15 +781,14 @@ void *addmenu(const char *name, const char *title, bool allowinput, void (__cdec
         m->menusel = 0;
     }
     m->title = title;
-    m->mdl = NULL;
+    DELSTRING(m->mdl);
     m->allowinput = allowinput;
     m->inited = false;
     m->hotkeys = hotkeys;
     m->refreshfunc = refreshfunc;
     m->keyfunc = keyfunc;
-    m->usefont = NULL;
+    DELSTRING(m->usefont);
     m->allowblink = false;
-    m->dirlist = NULL;
     m->forwardkeys = forwardkeys;
     lastmenu = m;
     return m;
@@ -1009,15 +934,12 @@ void menuitemaltfont(char *altfont, char *text, char *action, char *hoveraction,
 }
 COMMAND(menuitemaltfont, "sssss");
 
-void menuitemmapload(char *name, char *text)
+void menuitemmapload(char *name, char *action, char *hoveraction, char *desc)
 {
     if(!lastmenu) return;
-    string caction;
-    if(!text || text[0]=='\0') formatstring(caction)("map %s", name);
-    else formatstring(caction)("%s", text);
-    lastmenu->items.add(new mitemmapload(lastmenu, newstring(name), newstring(name), newstring(caction), NULL, NULL, NULL));
+    lastmenu->items.add(new mitemmapload(lastmenu, newstring(name), newstring(name), *action ? newstring(action) : NULL, *hoveraction ? newstring(hoveraction) : NULL, *desc ? newstring(desc) : NULL));
 }
-COMMAND(menuitemmapload, "ss");
+COMMAND(menuitemmapload, "ssss");
 
 void menuitemtextinput(char *text, char *value, char *action, char *hoveraction, int *maxchars, int *maskinput)
 {
@@ -1083,18 +1005,28 @@ COMMAND(menumdl, "sssii");
 
 void menudirlist(char *dir, char *ext, char *action, int *image, char *searchfile)
 {
-    if(!lastmenu) return;
-    if(!action || !action[0]) return;
-    gmenu *menu = lastmenu;
-    if(menu->dirlist) delete menu->dirlist;
-    mdirlist *d = menu->dirlist = new mdirlist;
+    if(!lastmenu || !*action) return;
+    if(lastmenu->dirlist) delete lastmenu->dirlist;
+    mdirlist *d = lastmenu->dirlist = new mdirlist;
     d->dir = newstring(dir);
     d->ext = ext[0] ? newstring(ext): NULL;
     d->action = action[0] ? newstring(action) : NULL;
     d->image = *image!=0;
     d->searchfile = searchfile[0] ? newstring(searchfile) : NULL;
+    d->subdiraction = NULL;
+    d->subdirdots = false;
 }
 COMMAND(menudirlist, "sssis");
+
+void menudirlistsub(char *action, int *dots)
+{
+    if(!lastmenu || !lastmenu->dirlist || !*action) return;
+    mdirlist *d = lastmenu->dirlist;
+    d->subdirdots = *dots != 0;
+    DELETEA(d->subdiraction);
+    d->subdiraction = *action ? newstring(action) : NULL;
+}
+COMMAND(menudirlistsub, "si");
 
 void chmenutexture(char *menu, char *texname, char *title)
 {
@@ -1348,13 +1280,27 @@ void gmenu::init()
     if(dirlist && dirlist->dir && dirlist->ext)
     {
         items.deletecontents();
-        vector<char *> files;
-        listfiles(dirlist->dir, dirlist->ext, files);
+
+        if(dirlist->subdiraction)
+        {
+            vector<char *> subdirs;
+            if(dirlist->subdirdots) subdirs.add(newstring(".."));
+            listsubdirs(dirlist->dir, subdirs, stringsort);
+            loopv(subdirs)
+            {
+                defformatstring(cdir)("\fs\f1[%s]\fr", subdirs[i]);
+                defformatstring(act)("%s %s", dirlist->subdiraction, escapestring(subdirs[i]));
+                items.add(new mitemtext(this, newstring(cdir), newstring(act), NULL, NULL, NULL));
+            }
+        }
+
         defformatstring(sortorderalias)("menufilesort_%s", dirlist->ext);
         int sortorderindex = 0;
         const char *customsortorder = getalias(sortorderalias);
         if(customsortorder) sortorderindex = getlistindex(customsortorder, menufilesortorders, true, 0);
-        files.sort(menufilesortcmp[sortorderindex]);
+
+        vector<char *> files;
+        listfiles(dirlist->dir, dirlist->ext, files, menufilesortcmp[sortorderindex]);
 
         string searchfileuc;
         if(dirlist->searchfile)
@@ -1366,10 +1312,7 @@ void gmenu::init()
 
         loopv(files)
         {
-            char *f = files[i];
-            if(!f || !f[0]) continue;
-            char *d = strcmp(dirlist->ext, "cgz") || dirlist->searchfile ? getfiledesc(dirlist->dir, f, dirlist->ext) : NULL;
-            defformatstring(jpgname)("%s/preview/%s.jpg", dirlist->dir, f);
+            char *f = files[i], *d = (strcmp(dirlist->ext, "cgz") || dirlist->searchfile) && browsefiledesc ? getfiledesc(dirlist->dir, f, dirlist->ext) : NULL;
             bool filefound = false;
             if(dirlist->searchfile)
             {
@@ -1397,7 +1340,7 @@ void gmenu::init()
             {
                 if(!dirlist->searchfile || filefound)
                 {
-                    items.add(new mitemmapload(this, newstring(f), newstring(f), newstring(dirlist->action), NULL, NULL, NULL));
+                    items.add(new mitemmapload(this, newstring(f), newstring(f), newstring(dirlist->action), NULL, NULL));
                 }
                 DELSTRING(d);
             }

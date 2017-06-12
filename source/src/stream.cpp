@@ -279,7 +279,7 @@ bool listsubdir(const char *dir, vector<char *> &subdirs)
     if(Find != INVALID_HANDLE_VALUE)
     {
         do {
-            if(FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) subdirs.add(newstring(FindFileData.cFileName));
+            if((FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && FindFileData.cFileName[0] != '.') subdirs.add(newstring(FindFileData.cFileName));
         } while(FindNextFile(Find, &FindFileData));
         FindClose(Find);
         return true;
@@ -294,12 +294,12 @@ bool listsubdir(const char *dir, vector<char *> &subdirs)
         while(!readdir_r(d, &b, &de) && de != NULL)
         {
         #ifdef _DIRENT_HAVE_D_TYPE
-            if(de->d_type == DT_DIR) subdirs.add(newstring(de->d_name));
+            if(de->d_type == DT_DIR && de->d_name[0] != '.') subdirs.add(newstring(de->d_name));
         #else
             struct stat s;
             int dl = (int)strlen(pathname);
             concatformatstring(pathname, "/%s", de->d_name);
-            if(!lstat(pathname, &s) && S_ISDIR(s.st_mode)) subdirs.add(newstring(de->d_name));
+            if(!lstat(pathname, &s) && S_ISDIR(s.st_mode) && de->d_name[0] != '.') subdirs.add(newstring(de->d_name));
             pathname[dl] = '\0';
         #endif
         }
