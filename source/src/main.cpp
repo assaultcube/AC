@@ -861,12 +861,7 @@ void autostartscripts(const char *prefix)
     if(!files)
     {  // first run: fetch file names and sort them
         files = new vector<char *>;
-        listfiles(AUTOSTARTPATH, "cfg", *files);
-        files->sort(stringsort);
-        for(int i = files->length() - 1; i > 0; i--)
-        {
-            if(!strcmp((*files)[i], (*files)[i - 1])) delstring(files->remove(i));   // delete doubles
-        }
+        listfiles(AUTOSTARTPATH, "cfg", *files, stringsort);
     }
     loopv(*files)
     {
@@ -1031,6 +1026,8 @@ int main(int argc, char **argv)
     persistidents = false;
 
     #define initlog(s) clientlogf("init: " s)
+
+    if(*stream_capabilities()) clientlogf("info: %s", stream_capabilities());
 
     initing = INIT_RESET;
     for(int i = 1; i<argc; i++)

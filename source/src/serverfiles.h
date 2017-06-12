@@ -466,9 +466,9 @@ int readmapsthread(void *logfileprefix)
         vector<char *> maps_off, maps_serv, maps_incom;
 
         // get all map file names
-        listfiles(servermappath_off, "cgz", maps_off);
-        listfiles(servermappath_serv, "cgz", maps_serv);
-        listfiles(servermappath_incom, "cgz", maps_incom);
+        listfiles(servermappath_off, "cgz", maps_off, stringsort);
+        listfiles(servermappath_serv, "cgz", maps_serv, stringsort);
+        listfiles(servermappath_incom, "cgz", maps_incom, stringsort);
         if(readmaplog) readmaplog->printf("\n#### %s #### scanning all map directories... found %d official maps, %d servermaps and %d maps in 'incoming'\n", timestring(false), maps_off.length(), maps_serv.length(), maps_incom.length());
 
         // enforce priority: official > servermaps > incoming

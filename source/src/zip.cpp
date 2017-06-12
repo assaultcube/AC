@@ -798,3 +798,16 @@ void listzipfiles(const char *dir, const char *ext, vector<char *> &files) // (d
     });
 }
 
+void listzipdirs(const char *dir, vector<char *> &subdirs) // (does not list memfiles)
+{
+    int dirsize = (int)strlen(dir);
+    enumerate(zipfiles, zipfile *, zf,
+    {
+        if(strncmp(zf->fullname, dir, dirsize)) continue;
+        const char *name = zf->fullname + dirsize;
+        if(name[0] == PATHDIV) name++;
+        const char *endname = strchr(name, PATHDIV);
+        if(!endname) continue;
+        subdirs.add(newstring(name, endname - name));
+    });
+}

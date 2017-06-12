@@ -261,17 +261,25 @@ const char *findfile(const char *filename, const char *mode)
     return filename;
 }
 
-bool listdir(const char *dir, const char *ext, vector<char *> &files)
+const char *stream_capabilities()
 {
-    int extsize = ext ? (int)strlen(ext)+1 : 0;
+    #if !defined(WIN32) && !defined(_DIRENT_HAVE_D_TYPE)
+    return "no support for d_type, listing directories may be slow";
+    #else
+    return "";
+    #endif
+}
+
+bool listsubdir(const char *dir, vector<char *> &subdirs)
+{
     #if defined(WIN32)
-    defformatstring(pathname)("%s\\*.%s", dir, ext ? ext : "*");
+    defformatstring(pathname)("%s\\*", dir);
     WIN32_FIND_DATA FindFileData;
     HANDLE Find = FindFirstFile(path(pathname), &FindFileData);
     if(Find != INVALID_HANDLE_VALUE)
     {
         do {
-            files.add(newstring(FindFileData.cFileName, (int)strlen(FindFileData.cFileName) - extsize));
+            if(FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) subdirs.add(newstring(FindFileData.cFileName));
         } while(FindNextFile(Find, &FindFileData));
         FindClose(Find);
         return true;
@@ -285,12 +293,90 @@ bool listdir(const char *dir, const char *ext, vector<char *> &files)
         struct dirent *de, b;
         while(!readdir_r(d, &b, &de) && de != NULL)
         {
-            if(!ext) files.add(newstring(de->d_name));
-            else
+        #ifdef _DIRENT_HAVE_D_TYPE
+            if(de->d_type == DT_DIR) subdirs.add(newstring(de->d_name));
+        #else
+            struct stat s;
+            int dl = (int)strlen(pathname);
+            concatformatstring(pathname, "/%s", de->d_name);
+            if(!lstat(pathname, &s) && S_ISDIR(s.st_mode)) subdirs.add(newstring(de->d_name));
+            pathname[dl] = '\0';
+        #endif
+        }
+        closedir(d);
+        return true;
+    }
+    #endif
+    else return false;
+}
+
+void listsubdirs(const char *dir, vector<char *> &subdirs, int (__cdecl *sf)(const char **, const char **))
+{
+    listsubdir(dir, subdirs);
+    string s;
+    if(homedir[0])
+    {
+        formatstring(s)("%s%s", homedir, dir);
+        listsubdir(s, subdirs);
+    }
+    loopv(packagedirs)
+    {
+        formatstring(s)("%s%s", packagedirs[i], dir);
+        listsubdir(s, subdirs);
+    }
+#ifndef STANDALONE
+    listzipdirs(dir, subdirs);
+#endif
+    subdirs.sort(sf);
+    for(int i = subdirs.length() - 1; i > 0; i--)
+    { // remove doubles
+        if(!strcmp(subdirs[i], subdirs[i - 1])) delstring(subdirs.remove(i));
+    }
+}
+
+bool listdir(const char *dir, const char *ext, vector<char *> &files)
+{
+    int extsize = ext ? (int)strlen(ext)+1 : 0;
+    #if defined(WIN32)
+    defformatstring(pathname)("%s\\*.%s", dir, ext ? ext : "*");
+    WIN32_FIND_DATA FindFileData;
+    HANDLE Find = FindFirstFile(path(pathname), &FindFileData);
+    if(Find != INVALID_HANDLE_VALUE)
+    {
+        do {
+            if(!(FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
+                files.add(newstring(FindFileData.cFileName, (int)strlen(FindFileData.cFileName) - extsize));
+        } while(FindNextFile(Find, &FindFileData));
+        FindClose(Find);
+        return true;
+    }
+    #else
+    string pathname;
+    copystring(pathname, dir);
+    DIR *d = opendir(path(pathname));
+    if(d)
+    {
+        struct dirent *de, b;
+        while(!readdir_r(d, &b, &de) && de != NULL)
+        {
+        #ifdef _DIRENT_HAVE_D_TYPE
+            if(de->d_type == DT_REG)
+        #else
+            struct stat s;
+            int dl = (int)strlen(pathname);
+            concatformatstring(pathname, "/%s", de->d_name);
+            bool isreg = !lstat(pathname, &s) && !S_ISDIR(s.st_mode);
+            pathname[dl] = '\0';
+            if(isreg)
+        #endif
             {
-                int namelength = (int)strlen(de->d_name) - extsize;
-                if(namelength > 0 && de->d_name[namelength] == '.' && strncmp(de->d_name+namelength+1, ext, extsize-1)==0)
-                    files.add(newstring(de->d_name, namelength));
+                if(!ext) files.add(newstring(de->d_name));
+                else
+                {
+                    int namelength = (int)strlen(de->d_name) - extsize;
+                    if(namelength > 0 && de->d_name[namelength] == '.' && strncmp(de->d_name+namelength+1, ext, extsize-1)==0)
+                        files.add(newstring(de->d_name, namelength));
+                }
             }
         }
         closedir(d);
@@ -300,7 +386,7 @@ bool listdir(const char *dir, const char *ext, vector<char *> &files)
     else return false;
 }
 
-void listfiles(const char *dir, const char *ext, vector<char *> &files)
+void listfiles(const char *dir, const char *ext, vector<char *> &files, int (__cdecl *sf)(const char **, const char **))
 {
     listdir(dir, ext, files);
     string s;
@@ -317,23 +403,54 @@ void listfiles(const char *dir, const char *ext, vector<char *> &files)
 #ifndef STANDALONE
     listzipfiles(dir, ext, files);
 #endif
+    if(sf)
+    { // sort and remove doubles
+        files.sort(sf);
+        for(int i = files.length() - 1; i > 0; i--)
+        {
+            if(!strcmp(files[i], files[i - 1])) delstring(files.remove(i));
+        }
+    }
 }
 
 #ifndef STANDALONE
 void listfilesrecursive(const char *dir, vector<char *> &files, int level)
 {
     if(level > 8) return; // 8 levels is insane enough...
-    vector<char *> thisdir;
+    vector<char *> dirs, thisdir;
+    listsubdirs(dir, dirs, stringsort);
+    loopv(dirs)
+    {
+        if(dirs[i][0] != '.')  // ignore "." and ".." (and also other directories starting with '.', like it is unix-convention - and doesn't hurt on windows)
+        {
+            defformatstring(name)("%s/%s", dir, dirs[i]);
+            listfilesrecursive(name, files, level + 1);
+        }
+        delstring(dirs[i]);
+    }
     listfiles(dir, NULL, thisdir);
     loopv(thisdir)
     {
-        if(thisdir[i][0] != '.')  // ignore "." and ".." (and also other directories starting with '.', like it is unix-convention - and doesn't hurt on windows)
-        {
-            defformatstring(name)("%s/%s", dir, thisdir[i]);
-            files.add(newstring(name));
-            listfilesrecursive(name, files, level + 1);
-        }
+        defformatstring(name)("%s/%s", dir, thisdir[i]);
+        files.add(newstring(name));
         delstring(thisdir[i]);
+    }
+}
+
+void listdirsrecursive(const char *dir, vector<char *> &subdirs, int level)
+{
+    if(level > 8) return; // 8 levels is insane enough...
+    vector<char *> dirs;
+    listsubdirs(dir, dirs, stringsort);
+    loopv(dirs)
+    {
+        if(dirs[i][0] != '.')  // ignore "." and ".." (and also other directories starting with '.', like it is unix-convention - and doesn't hurt on windows)
+        {
+            defformatstring(name)("%s/%s", dir, dirs[i]);
+            subdirs.add(newstring(name));
+            listdirsrecursive(name, subdirs, level + 1);
+        }
+        delstring(dirs[i]);
     }
 }
 #endif

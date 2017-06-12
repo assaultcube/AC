@@ -953,10 +953,13 @@ extern stream *opengzfile(const char *filename, const char *mode, stream *file =
 extern char *loadfile(const char *fn, int *size, const char *mode = NULL);
 extern int streamcopy(stream *dest, stream *source, int maxlen = INT_MAX);
 extern void filerotate(const char *basename, const char *ext, int keepold, const char *oldformat = NULL);
+extern const char *stream_capabilities();
 extern bool listdir(const char *dir, const char *ext, vector<char *> &files);
-extern void listfiles(const char *dir, const char *ext, vector<char *> &files);
+extern void listfiles(const char *dir, const char *ext, vector<char *> &files, int (__cdecl *sf)(const char **, const char **) = NULL);
 extern void listfilesrecursive(const char *dir, vector<char *> &files, int level = 0);
+extern void listdirsrecursive(const char *dir, vector<char *> &subdirs, int level = 0);
 extern void listzipfiles(const char *dir, const char *ext, vector<char *> &files);
+extern void listzipdirs(const char *dir, vector<char *> &subdirs);
 extern bool delfile(const char *path);
 extern void backup(char *name, char *backupname);
 extern bool validzipmodname(char *name);

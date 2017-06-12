@@ -881,8 +881,7 @@ void commandcomplete(char *s, bool reversedirection)
            vector<char *> files;
            loopv(cdata->dirlist)
            {
-               listfiles(cdata->dirlist[i], cdata->ext, files);
-               files.sort(stringsort);
+               listfiles(cdata->dirlist[i], cdata->ext, files, stringsort);
                loopv(files) cdata->list.add(files[i]);
                files.setsize(0);
            }
@@ -1017,7 +1016,7 @@ void execdir(const char *dir)
     if(dir[0])
     {
         vector<char *> files;
-        listfiles(dir, "cfg", files);
+        listfiles(dir, "cfg", files, stringsort);
         loopv(files)
         {
             defformatstring(d)("%s/%s.cfg",dir,files[i]);

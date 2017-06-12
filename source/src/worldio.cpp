@@ -1493,8 +1493,7 @@ int loadallxmaps()     // at game start, load all xmaps from mapediting/xmaps
 {
     vector<char *> xmapnames;
     string filename;
-    listfiles(xmapspath, "xmap", xmapnames);
-    xmapnames.sort(stringsort);
+    listfiles(xmapspath, "xmap", xmapnames, stringsort);
     loopv(xmapnames)
     {
         loadxmap(xmapnames[i]);
