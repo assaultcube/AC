@@ -295,13 +295,15 @@ bool listsubdir(const char *dir, vector<char *> &subdirs)
         {
         #ifdef _DIRENT_HAVE_D_TYPE
             if(de->d_type == DT_DIR && de->d_name[0] != '.') subdirs.add(newstring(de->d_name));
-        #else
-            struct stat s;
-            int dl = (int)strlen(pathname);
-            concatformatstring(pathname, "/%s", de->d_name);
-            if(!lstat(pathname, &s) && S_ISDIR(s.st_mode) && de->d_name[0] != '.') subdirs.add(newstring(de->d_name));
-            pathname[dl] = '\0';
+            else if(de->d_type == DT_UNKNOWN && de->d_name[0] != '.')
         #endif
+            {
+                struct stat s;
+                int dl = (int)strlen(pathname);
+                concatformatstring(pathname, "/%s", de->d_name);
+                if(!lstat(pathname, &s) && S_ISDIR(s.st_mode) && de->d_name[0] != '.') subdirs.add(newstring(de->d_name));
+                pathname[dl] = '\0';
+            }
         }
         closedir(d);
         return true;
@@ -359,16 +361,19 @@ bool listdir(const char *dir, const char *ext, vector<char *> &files)
         struct dirent *de, b;
         while(!readdir_r(d, &b, &de) && de != NULL)
         {
+            bool isreg = false;
         #ifdef _DIRENT_HAVE_D_TYPE
-            if(de->d_type == DT_REG)
-        #else
-            struct stat s;
-            int dl = (int)strlen(pathname);
-            concatformatstring(pathname, "/%s", de->d_name);
-            bool isreg = !lstat(pathname, &s) && !S_ISDIR(s.st_mode);
-            pathname[dl] = '\0';
-            if(isreg)
+            if(de->d_type == DT_REG) isreg = true;
+            else if(de->d_type == DT_UNKNOWN)
         #endif
+            {
+                struct stat s;
+                int dl = (int)strlen(pathname);
+                concatformatstring(pathname, "/%s", de->d_name);
+                isreg = !lstat(pathname, &s) && S_ISREG(s.st_mode);
+                pathname[dl] = '\0';
+            }
+            if(isreg)
             {
                 if(!ext) files.add(newstring(de->d_name));
                 else
