@@ -349,6 +349,7 @@ void mapscreenshot(const char *imagepath, bool mapshot, int fileformat, float sc
     }
     entropy_add_block(tmpdst, tmpdstsize);
     delete[] tmpdst;
+    if(!mapshot && imagepath) audiomgr.playsound(S_CAMERA);
 
     switch(fileformat)
     {
