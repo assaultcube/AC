@@ -197,11 +197,10 @@ COMMAND(deletemapmodelslot, "is");
 void editmapmodelslot(int *n, char *rad, char *h, char *zoff, char *scale, char *name) // edit slot parameters != ""
 {
     string res = "";
-    EDIT("editmapmodelslot");
     if(mapmodels.inrange(*n))
     {
         mapmodelinfo &mmi = mapmodels[*n];
-        if((*rad || *h || *zoff || *scale || *name) && !multiplayer("editmapmodelslot"))
+        if((*rad || *h || *zoff || *scale || *name) && !noteditmode("editmapmodelslot") && !multiplayer("editmapmodelslot"))
         { // change attributes
             if(*rad) mmi.rad = strtol(rad, NULL, 0);
             if(*h) mmi.h = strtol(h, NULL, 0);

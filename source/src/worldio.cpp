@@ -485,7 +485,7 @@ COMMANDF(clearvantagepoint, "", () { if(!noteditmode("clearvantagepoint") && !mu
 
 void setvantagepoint()
 {
-    EDITMP("setvantagepoint");
+    if(multiplayer("setvantagepoint") || (!player1->isspectating() && noteditmode("setvantagepoint"))) return;
     clearvantagepoint();
     short p[5];
     storeposition(p);

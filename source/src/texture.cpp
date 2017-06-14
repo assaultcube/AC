@@ -1078,11 +1078,10 @@ COMMAND(deletetextureslot, "iss");
 void edittextureslot(int *n, char *scale, char *name) // edit slot parameters != ""
 {
     string res = "";
-    EDIT("edittextureslot");
     if(slots.inrange(*n))
     {
         Slot &s = slots[*n];
-        if((*scale || *name) && !multiplayer("edittextureslot"))
+        if((*scale || *name) && !noteditmode("edittextureslot") && !multiplayer("edittextureslot"))
         { // change attributes
             float newscale = atof(scale);
             _texture(s, *scale ? &newscale : NULL, *name ? name : NULL);
@@ -1097,6 +1096,7 @@ COMMAND(edittextureslot, "iss");
 
 void gettextureorigin(char *fname)
 {
+    if(!*fname) return;
     defformatstring(s)("packages/textures/%s", fname);
     findfile(path(s), "r");
     const char *res = s;

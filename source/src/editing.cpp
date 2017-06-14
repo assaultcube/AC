@@ -24,6 +24,7 @@ int lasttype = 0, lasttex = 0;
 sqr rtex;
 
 VAR(editing, 1, 0, 0);
+VAR(editing_sp, 1, 0, 0);
 VAR(unsavededits, 1, 0, 0);
 
 VAR(editmetakeydown, 1, 0, 0);
@@ -55,6 +56,7 @@ void toggleedit(bool force)
     }
     keyrepeat(editmode);
     editing = editmode ? 1 : 0;
+    editing_sp = editmode && !multiplayer(NULL) ? 1 : 0;
     player1->state = editing ? CS_EDITING : (watchingdemo ? CS_SPECTATE : CS_ALIVE);
     if(editing && player1->onladder) player1->onladder = false;
     if(editing && (player1->weaponsel->type == GUN_SNIPER && ((sniperrifle *)player1->weaponsel)->scoped)) ((sniperrifle *)player1->weaponsel)->onownerdies(); // or ondeselecting()
