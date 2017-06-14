@@ -1209,63 +1209,60 @@ void selectionwalk(char *action, char *beginsel, char *endsel)
 {
     EDITSEL("selectionwalk");
     bool mp = multiplayer(NULL);
-    if(*action)
+    const char *localvars[] = { "sw_cursel", "sw_abs_x", "sw_abs_y", "sw_rel_x", "sw_rel_y", "sw_type", "sw_floor", "sw_ceil", "sw_wtex", "sw_ftex", "sw_ctex", "sw_utex", "sw_vdelta", "sw_tag", "sw_r", "sw_g", "sw_b", "" };
+    for(int i = 0; *localvars[i]; i++) push(localvars[i], "");
+    int maxsels = sels.length();
+    loopv(sels)
     {
-        const char *localvars[] = { "sw_cursel", "sw_abs_x", "sw_abs_y", "sw_rel_x", "sw_rel_y", "sw_type", "sw_floor", "sw_ceil", "sw_wtex", "sw_ftex", "sw_ctex", "sw_utex", "sw_vdelta", "sw_tag", "sw_r", "sw_g", "sw_b", "" };
-        for(int i = 0; *localvars[i]; i++) push(localvars[i], "");
-        int maxsels = sels.length();
-        loopv(sels)
+        if(i >= maxsels) break; // don't allow the script to add selections
+        block sel = sels[i]; // (copy, not reference)
+        defformatstring(tmp)("%d %d %d %d", sel.x, sel.y, sel.xs, sel.ys);
+        alias("sw_cursel", tmp);
+        if(*beginsel) execute(beginsel);
+        bool haveundo = false, isro = mp && sel.xs * sel.ys > MAXNETBLOCKSQR, didwarn = false;
+        loop(x, sel.xs) loop(y, sel.ys)
         {
-            if(i >= maxsels) break; // don't allow the script to add selections
-            block sel = sels[i]; // (copy, not reference)
-            defformatstring(tmp)("%d %d %d %d", sel.x, sel.y, sel.xs, sel.ys);
-            alias("sw_cursel", tmp);
-            if(*beginsel) execute(beginsel);
-            bool haveundo = false, isro = mp && sel.xs * sel.ys > MAXNETBLOCKSQR, didwarn = false;
-            loop(x, sel.xs) loop(y, sel.ys)
+            sqr *s = S(sel.x + x, sel.y + y), so = *s;
+            formatstring(tmp)("%d", sel.x + x); alias("sw_abs_x", tmp);
+            formatstring(tmp)("%d", sel.y + y); alias("sw_abs_y", tmp);
+            formatstring(tmp)("%d", x); alias("sw_rel_x", tmp);
+            formatstring(tmp)("%d", y); alias("sw_rel_y", tmp);
+            #define AATTR(x) formatstring(tmp)("%d", s->x); alias("sw_"#x, tmp)
+            AATTR(type); AATTR(floor); AATTR(ceil); AATTR(wtex); AATTR(ftex); AATTR(ctex); AATTR(utex); AATTR(vdelta); AATTR(tag); AATTR(r); AATTR(g); AATTR(b);
+            #undef AATTR
+            if(*action) execute(action);
+            so.type = getlistindex(getalias("sw_type"), cubetypenames, true, int(SPACE));
+            #define GETA(x) so.x = ATOI(getalias("sw_"#x))
+            GETA(floor); GETA(ceil); GETA(wtex); GETA(ftex); GETA(ctex); GETA(utex); GETA(vdelta); GETA(tag); GETA(r); GETA(g); GETA(b);
+            #undef GETA
+            if(memcmp(s, &so, sizeof(sqr)))
             {
-                sqr *s = S(sel.x + x, sel.y + y), so = *s;
-                formatstring(tmp)("%d", sel.x + x); alias("sw_abs_x", tmp);
-                formatstring(tmp)("%d", sel.y + y); alias("sw_abs_y", tmp);
-                formatstring(tmp)("%d", x); alias("sw_rel_x", tmp);
-                formatstring(tmp)("%d", y); alias("sw_rel_y", tmp);
-                #define AATTR(x) formatstring(tmp)("%d", s->x); alias("sw_"#x, tmp)
-                AATTR(type); AATTR(floor); AATTR(ceil); AATTR(wtex); AATTR(ftex); AATTR(ctex); AATTR(utex); AATTR(vdelta); AATTR(tag); AATTR(r); AATTR(g); AATTR(b);
-                #undef AATTR
-                execute(action);
-                so.type = getlistindex(getalias("sw_type"), cubetypenames, true, int(SPACE));
-                #define GETA(x) so.x = ATOI(getalias("sw_"#x))
-                GETA(floor); GETA(ceil); GETA(wtex); GETA(ftex); GETA(ctex); GETA(utex); GETA(vdelta); GETA(tag); GETA(r); GETA(g); GETA(b);
-                #undef GETA
-                if(memcmp(s, &so, sizeof(sqr)))
+                if(isro)
                 {
-                    if(isro)
-                    {
-                        if(!didwarn) conoutf("\f3selectionwalk: selected area %dx%d too big for multiplayer editing, changes ignored!", sel.xs, sel.ys);
-                        didwarn = true;
-                    }
-                    else
-                    {
-                        if(!haveundo) makeundo(sel);
-                        haveundo = true;
-                        *s = so;
-                    }
+                    if(!didwarn) conoutf("\f3selectionwalk: selected area %dx%d too big for multiplayer editing, changes ignored!", sel.xs, sel.ys);
+                    didwarn = true;
+                }
+                else
+                {
+                    if(!haveundo) makeundo(sel);
+                    haveundo = true;
+                    *s = so;
                 }
             }
-            if(haveundo)
-            {
-                if(mp)
-                {
-                    block *b = blockcopy(sel);
-                    netblockpaste(*b, sel.x, sel.y, true);
-                    freeblockp(b);
-                }
-                remip(sel);
-            }
-            if(*endsel) execute(endsel);
         }
-        for(int i = 0; *localvars[i]; i++) pop(localvars[i]);
+        if(haveundo)
+        {
+            if(mp)
+            {
+                block *b = blockcopy(sel);
+                netblockpaste(*b, sel.x, sel.y, true);
+                freeblockp(b);
+            }
+            remip(sel);
+        }
+        if(*endsel) execute(endsel);
     }
+    for(int i = 0; *localvars[i]; i++) pop(localvars[i]);
 }
 COMMAND(selectionwalk, "sss");
 
