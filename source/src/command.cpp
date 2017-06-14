@@ -1207,6 +1207,8 @@ COMMANDF(looplisti, "sss", (char *list, char *varlist, char *body) { looplist(li
 
 char *indexlist(const char *s, int pos)
 {
+    DEBUGCODE(if(pos < 0) conoutf("\f3warning: negative index for 'at' \"%s\" %d", s, pos);) // FIXME remove this warning before release
+    if(pos < 0) return newstring("");
     whitespaceskip;
     loopi(pos)
     {
