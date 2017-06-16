@@ -113,7 +113,7 @@ void mapmodel(int *rad, int *h, int *zoff, char *scale, char *name, char *flags)
 {
     if(*scale && *name) // ignore "mapmodel" commands with insufficient parameters
     {
-        if(!_ignoreillegalpaths && !strchr(name, '/') && !strchr(name, '\\')) { flagmapconfigerror(LWW_CONFIGERR * 2); scripterr(); } // throw errors for unconverted mapmodels (unspecific, because not all get detected)
+        if(!_ignoreillegalpaths && !strchr(name, '/') && !strchr(name, '\\')) { flagmapconfigerror(LWW_CONFIGERR * 2); } // throw errors for unconverted mapmodels (unspecific, because not all get detected)
         intret(mapmodels.length());
         mapmodelinfo &mmi = mapmodels.add();
         mmi.rad = *rad;

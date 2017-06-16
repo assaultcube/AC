@@ -1544,7 +1544,7 @@ void enumalias(char *prefix)
     size_t np = strlen(prefix);
     enumerate(*idents, ident, id, if(id.type == ID_ALIAS && id.persist && !id.isconst && !id.istemp && !strncmp(id.name, prefix, np)) sids.add(&id); );
     sids.sort(sortident);
-    loopv(sids) cvecprintf(res, "%s %s\n", sids[i]->name, sids[i]->name + np);
+    loopv(sids) cvecprintf(res, "%s %s\n", escapestring(sids[i]->name, false), escapestring(sids[i]->name + np, false));
     resultcharvector(res, -1);
 }
 COMMAND(enumalias, "s");
