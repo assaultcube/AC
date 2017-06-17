@@ -864,7 +864,7 @@ int load_world(char *mname)        // still supports all map formats that have e
         if(extrasize)
         { // map file actually has extra header data that we want too preserve
             uchar *extrabuf = new uchar[extrasize];
-            if(f->read(extrabuf, extrasize) != extrasize) { conoutf("\f3while reading map: header malformatted (3)"); delete f; return -7; }
+            if(f->read(extrabuf, extrasize) != extrasize) { conoutf("\f3while reading map: header malformatted (3)"); delete f; delete[] extrabuf; return -7; }
             unpackheaderextra(extrabuf, extrasize);
             delete[] extrabuf;
         }

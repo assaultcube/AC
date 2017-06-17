@@ -669,7 +669,7 @@ void enddemorecord()
     demofile &d = demofiles.add();
 
     //2010oct10:ft: suggests : formatstring(d.info)("%s, %s, %.2f%s", modestr(gamemode), smapname, len > 1024*1024 ? len/(1024*1024.f) : len/1024.0f, len > 1024*1024 ? "MB" : "kB"); // the datetime bit is pretty useless in the servmesg, no?!
-    formatstring(d.info)("%s: %s, %s, %.2f%s", asctime(), modestr(gamemode), smapname, len > 1024*1024 ? len/(1024*1024.f) : len/1024.0f, len > 1024*1024 ? "MB" : "kB");
+    formatstring(d.info)("%s: %s, %s, %.2f%s", asctimestr(), modestr(gamemode), smapname, len > 1024*1024 ? len/(1024*1024.f) : len/1024.0f, len > 1024*1024 ? "MB" : "kB");
     if(mr) { concatformatstring(d.info, ", %d mr", mr); concatformatstring(d.file, "_%dmr", mr); }
     defformatstring(msg)("Demo \"%s\" recorded\nPress F10 to download it from the server..", d.info);
     sendservmsg(msg);
@@ -740,9 +740,9 @@ void setupdemorecord()
     lilswap(&hdr.version, 1);
     lilswap(&hdr.protocol, 1);
     memset(hdr.desc, 0, DHDR_DESCCHARS);
-    defformatstring(desc)("%s, %s, %s %s", modestr(gamemode, false), behindpath(smapname), asctime(), servdesc_current);
+    defformatstring(desc)("%s, %s, %s %s", modestr(gamemode, false), behindpath(smapname), asctimestr(), servdesc_current);
     if(strlen(desc) > DHDR_DESCCHARS)
-        formatstring(desc)("%s, %s, %s %s", modestr(gamemode, true), behindpath(smapname), asctime(), servdesc_current);
+        formatstring(desc)("%s, %s, %s %s", modestr(gamemode, true), behindpath(smapname), asctimestr(), servdesc_current);
     desc[DHDR_DESCCHARS - 1] = '\0';
     strcpy(hdr.desc, desc);
     memset(hdr.plist, 0, DHDR_PLISTCHARS);

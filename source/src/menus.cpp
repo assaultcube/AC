@@ -743,7 +743,7 @@ struct mitemcheckbox : mitem
     {
         bool sel = isselection();
         const static int boxsize = FONTH;
-        int offs = ((menurighttabwidth - FONTH) * (msctrl % 41 ? pos : 50 + 50 * sinf(totalmillis / 300.0f + y))) / 100;
+        int offs = ((menurighttabwidth - FONTH) * ((msctrl % 41) ? pos : (50 + 50 * sinf(totalmillis / 300.0f + y)))) / 100;
 
         draw_text(text, x, y);
         if(sel)

@@ -458,7 +458,7 @@ const char *asciiscores(bool destjpg)
     buf[0] = '\0';
     if(destjpg)
     {
-        formatstring(text)("AssaultCube Screenshot (%s)\n", asctime());
+        formatstring(text)("AssaultCube Screenshot (%s)\n", asctimestr());
         addstr(buf, text);
     }
     if(getclientmap()[0])

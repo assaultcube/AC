@@ -305,7 +305,7 @@ void processdownload(package *pck, stream *f) // write downloaded data to file(s
                     else
                     { // any name with listed extension, written to subdirectory
                         int zlen = (int)strlen(zname), elen = (int)strlen(pck->exts[n]);
-                        if((isok = zlen > elen && !strcmp(zname + zlen - elen, pck->exts[n]))) formatstring(filename)("%s/%s", pck->fullpath, zname);
+                        if((isok = (zlen > elen && !strcmp(zname + zlen - elen, pck->exts[n])))) formatstring(filename)("%s/%s", pck->fullpath, zname);
                     }
                     if(isok) break;
                 }

@@ -30,7 +30,7 @@ const char *timestring(time_t t, bool local, const char *fmt, char *buf)
     return buf;
 }
 
-const char *asctime()
+const char *asctimestr()
 {
     return timestring(true, "%c");
 }

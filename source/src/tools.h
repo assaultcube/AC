@@ -924,7 +924,7 @@ struct stream
 extern string _timestringbuffer;
 extern const char *timestring(time_t t, bool local = false, const char *fmt = NULL, char *buf = _timestringbuffer);
 inline const char *timestring(bool local = false, const char *fmt = NULL, char *buf = _timestringbuffer) { return timestring(time(NULL), local, fmt, buf); }
-extern const char *asctime();
+extern const char *asctimestr();
 extern const char *numtime();
 extern void transformoldentitytypes(int mapversion, uchar &enttype);
 extern int fixmapheadersize(int version, int headersize);
