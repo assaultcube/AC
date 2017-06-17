@@ -1409,7 +1409,7 @@ void updatefrommaster(int *force)
 {
     static int lastupdate = 0;
     if(lastupdate==0) cllock = true;
-    if(!force && lastupdate && totalmillis-lastupdate<masterupdatefrequency*1000) return;
+    if(!*force && lastupdate && totalmillis-lastupdate<masterupdatefrequency*1000) return;
 
     vector<char> data;
     retrieveservers(data);
