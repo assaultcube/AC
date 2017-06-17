@@ -31,9 +31,8 @@ COMMANDF(persistidents, "s", (char *on)
     intret(persistidents ? 1 : 0);
 });
 
-void clearstack(ident &id)
+void clearstack(identstack *&stack)
 {
-    identstack *stack = id.stack;
     while(stack)
     {
         delete[] stack->action;
@@ -41,7 +40,6 @@ void clearstack(ident &id)
         stack = stack->next;
         delete tmp;
     }
-    id.stack = NULL;
 }
 
 void pushident(ident &id, char *val, int context = execcontext)
@@ -101,14 +99,15 @@ COMMAND(push, "ss");
 void pop(const char *name)
 {
     ident *id = idents->access(name);
-    if(!id) return;
-    if(identaccessdenied(id))
+    if(!id || id->type != ID_ALIAS) conoutf("unknown alias %s", name);
+    else if(identaccessdenied(id))  conoutf("cannot redefine alias %s in this execution context", name);
+    else if(!id->stack)             conoutf("ident stack exhausted");
+    else
     {
-        conoutf("cannot redefine alias %s in this execution context", id->name);
-        scripterr();
+        popident(*id);
         return;
     }
-    popident(*id);
+    scripterr();
 }
 
 COMMANDF(pop, "v", (char **args, int numargs)
@@ -124,14 +123,15 @@ COMMANDF(pop, "v", (char **args, int numargs)
 void delalias(const char *name)
 {
     ident *id = idents->access(name);
-    if(!id || id->type != ID_ALIAS) return;
-    if(identaccessdenied(id))
+    if(!id || id->type != ID_ALIAS) conoutf("unknown alias %s", name);
+    else if(identaccessdenied(id))  conoutf("cannot remove alias %s in this execution context", id->name);
+    else
     {
-        conoutf("cannot remove alias %s in this execution context", id->name);
-        scripterr();
+        clearstack(id->stack);
+        idents->remove(name);
         return;
     }
-    idents->remove(name);
+    scripterr();
 }
 COMMAND(delalias, "s");
 
@@ -139,44 +139,30 @@ void alias(const char *name, const char *action, bool temp, bool constant)
 {
     ident *b = idents->access(name);
     if(!b)
-    {
+    { // new alias
         ident b(ID_ALIAS, newstring(name), newstring(action), persistidents && !constant && !temp, execcontext);
         b.isconst = constant;
         b.istemp = temp;
         idents->access(b.name, b);
         return;
     }
-    else if(b->type==ID_ALIAS)
-    {
-        if(identaccessdenied(b))
-        {
-            conoutf("cannot redefine alias %s in this execution context", b->name);
-            scripterr();
-            return;
-        }
-
-        if(b->isconst)
-        {
-            conoutf("alias %s is a constant and cannot be redefined", b->name);
-            scripterr();
-            return;
-        }
-
+    else if(b->type != ID_ALIAS)  conoutf("cannot redefine builtin %s with an alias", name);
+    else if(identaccessdenied(b)) conoutf("cannot redefine alias %s in this execution context", name);
+    else if(b->isconst)           conoutf("alias %s is a constant and cannot be redefined", name);
+    else
+    { // new action
         b->isconst = constant;
         if(temp) b->istemp = true;
         if(!constant || (action && action[0]))
         {
-            if(b->action!=b->executing) delete[] b->action;
+            if(b->action != b->executing) delete[] b->action;
             b->action = newstring(action);
-            b->persist = persistidents != 0;
+            if(!b->stack) b->persist = persistidents != 0;
         }
         if(b->istemp) b->persist = false;
+        return;
     }
-    else
-    {
-        conoutf("cannot redefine builtin %s with an alias", name);
-        scripterr();
-    }
+    scripterr();
 }
 
 COMMANDF(alias, "ss", (const char *name, const char *action) { alias(name, action, false, false); });
