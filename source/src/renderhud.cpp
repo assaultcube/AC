@@ -835,7 +835,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
     playerent *targetplayer = playerincrosshair();
     bool menu = menuvisible();
-    bool command = getcurcommand() ? true : false;
+    bool command = getcurcommand(NULL) ? true : false;
     bool reloading = lastmillis < p->weaponsel->reloading + p->weaponsel->info.reloadtime;
     if(p->state==CS_ALIVE || p->state==CS_EDITING)
     {

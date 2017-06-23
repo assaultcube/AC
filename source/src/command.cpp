@@ -447,7 +447,7 @@ char *conc(const char **w, int n, bool space)
     return res;
 }
 
-VARN(numargs, _numargs, 25, 0, 0);
+VARN(numargs, _numargs, MAXWORDS, 0, 0);
 
 void intret(int v)
 {
@@ -487,7 +487,6 @@ char *executeret(const char *p)                 // all evaluation happens here, 
     if(!p || !p[0]) return NULL;
     if(executionstack.length() > CSLIMIT_RECURSION) { cslimiterr("recursion depth"); return NULL; }
     executionstack.add(p);
-    const int MAXWORDS = 25;                    // limit, remove
     char *w[MAXWORDS], emptychar = '\0';
     char *retval = NULL;
     #define setretval(v) { char *rv = v; if(rv) retval = rv; }
@@ -977,7 +976,7 @@ COMMANDF(exec, "v", (char **args, int numargs)
 {
     defformatstring(buf)("%d", numargs - 1);
     push("execnumargs", buf);
-    for(int i = 1; i < 24; i++) // MAXWORDS - 1
+    for(int i = 1; i <= MAXWORDS - 2; i++)
     {
         formatstring(buf)("execarg%d", i);
         push(buf, i < numargs ? args[i] : "");
@@ -987,7 +986,7 @@ COMMANDF(exec, "v", (char **args, int numargs)
     const char *res = getalias("execresult");
     if(res) result(res);
     pop("execresult");
-    for(int i = 23; i > 0; i--)
+    for(int i = MAXWORDS - 2; i >= 1; i--)
     {
         formatstring(buf)("execarg%d", i);
         pop(buf);

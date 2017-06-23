@@ -32,19 +32,6 @@ struct docexample
     }
 };
 
-struct dockey
-{
-    char *alias, *name, *desc;
-
-    dockey() : alias(NULL), name(NULL), desc(NULL) {}
-    ~dockey()
-    {
-        DELETEA(alias);
-        DELETEA(name);
-        DELETEA(desc);
-    }
-};
-
 struct docident
 {
     char *name, *desc;
@@ -52,13 +39,17 @@ struct docident
     vector<char *> remarks;
     vector<char *> references;
     vector<docexample> examples;
-    vector<dockey> keys;
+    vector<char *> keylines;
+    int a, b, c;
+    char *label, *related;
 
-    docident() : name(NULL), desc(NULL) {}
+    docident() : name(NULL), desc(NULL), label(NULL), related(NULL) {}
     ~docident()
     {
         DELETEA(name);
         DELETEA(desc);
+        DELETEA(label);
+        DELETEA(related);
     }
 };
 
@@ -145,10 +136,8 @@ COMMANDN(docexample, adddocexample, "ss");
 void adddockey(char *alias, char *name, char *desc)
 {
     if(!lastident || !alias) return;
-    dockey &k = lastident->keys.add();
-    k.alias = newstring(alias);
-    k.name = name && strlen(name) ? newstring(name) : NULL;
-    k.desc = desc && strlen(desc) ? newstring(desc) : NULL;
+    defformatstring(line)("~%-10s %s", *name ? name : alias, desc);
+    lastident->keylines.add(newstring(line));
 }
 COMMANDN(dockey, adddockey, "sss");
 
@@ -400,260 +389,255 @@ COMMAND(docwritetodoref, "i");
 VAR(docvisible, 0, 1, 1);
 VAR(docrefvisible, 0, 1, 1);
 VAR(docskip, 0, 0, 1000);
+VAR(docidentverbose, 0, 1, 3);
 
 void toggledoc() { docvisible = !docvisible; }
 void scrolldoc(int i) { docskip += i; if(docskip < 0) docskip = 0; }
 
-int numargs(char *args)
+int docs_parsecmd(const char *p, const char *pos, const char *w[MAXWORDS], int wl[MAXWORDS], bool outer, int *unmatched)
 {
-    if(!args || !strlen(args)) return -1;
-
-    int argidx = -1;
-    char *argstart = NULL;
-
-    for(char *t = args; *t; t++)
+    vector<const char *> brak;
+    for(;;) // loop statements
     {
-        if(!argstart && *t != ' ') { argstart = t; argidx++; }
-        else if(argstart && *t == ' ') if(t-1 >= args)
+        int nargs = MAXWORDS, curarg = -1;
+        loopi(MAXWORDS)
         {
-            switch(*argstart)
-            {
-                case '[': if(*(t-1) != ']') continue; break;
-                case '(': if(*(t-1) != ')') continue; break;
-                case '"': if(*(t-1) != '"') continue; break;
-                default: break;
+            w[i] = NULL; wl[i] = 0;
+            if(i >  nargs) continue;
+            w[i] = (p += strspn(p, " \t")); // skip whitespace
+            if(p[0]=='/' && p[1]=='/') p += strcspn(p, "\n\r\0"); // skip comment
+            if(*p == '"')
+            { // find matching "
+                do
+                {
+                    ++p;
+                    p += strcspn(p, "\"\n\r");
+                } while(*p == '\"' && p[-1] == '\\');
+                p++;
             }
-            argstart = NULL;
+            else if(*p == '[' || *p == '(')
+            { // find matching ) or ]
+                bool quot = false;
+                char right = *p == '[' ? ']' : ')', left = *p++;
+                brak.add(p);
+                while(brak.length())
+                {
+                    p += strcspn(p, "([\"])");
+                    int c = *p++;
+                    if(c == left && !quot) brak.add(p);
+                    else if(c == '"') quot = !quot;
+                    else if(c == right && !quot) brak.drop();
+                    else if(!c)
+                    { // unmatched braces, interpret from there (in first pass)
+                        *unmatched = right;
+                        if(w[0] == brak.last() || brak.last() == p - 1 || outer) break;
+                        p = brak.last();
+                        brak.setsize(0);
+                        i = -1;
+                    }
+                }
+            }
+            else p += strcspn(p, "; \t\n\r\0"); // skip regular word
+            if(i < 0) continue;
+            if(!(wl[i] = (int) (p - w[i]))) w[i] = NULL, nargs = i;
+            else if(w[i] <= pos) curarg = i - 1;
         }
+        p += strcspn(p, ";\n\r\0"); // skip statement delimiter
+        if(!*p++ || pos < p) return curarg; // was last statement, or the one we wanted
     }
-    return argidx;
 }
 
 void renderdoc(int x, int y, int doch)
 {
     if(!docvisible) return;
+    doch -= 3*FONTH + FONTH/2;
 
-    char *exp = getcurcommand();
-    if(!exp || !*exp) return;
+    int cmdpos;
+    const char *exp = getcurcommand(&cmdpos); // get command buffer and cursor position
+    if(!exp || *exp != '/') return;
 
-    int o = 0; //offset
-    int f = 0; //last found
-
-    while (*exp)
-    {exp++; o++; if (*exp == ';' || (*exp == ' ' && f == o-1)) f = o;} exp--;
-
-    if (f > 0)
-    {
-        for (int i = o - f - 1; i > 0; i--) exp--;
-        if (o > f + 1) exp++;
-    }
-
-    else {for (int i = o; i > 1; i--) exp--;}
-
-    char *openblock = strrchr(exp+1, '('); //find last open parenthesis
-    char *closeblock = strrchr(exp+1, ')'); //find last closed parenthesis
-    char *temp = NULL;
-
-    if (openblock)
-    {
-        if (!closeblock || closeblock < openblock) //open block
-        temp = openblock + 1;
-    }
-
-    if(!exp || (*exp != '/' && f == 0) || strlen(exp) < 2) return;
-
-    char *c = exp+1; if (f > 0) c = exp;
-    char *d = NULL; if (temp) d = temp;
-
-    size_t clen = strlen(c);
-    size_t dlen = 0; if (d) dlen = strlen(d);
-
-    bool nc = false; //tests if text after open parenthesis is not a command
-
+    const char *pos = exp + (cmdpos < 0 ? strlen(exp) : cmdpos), *w[MAXWORDS];
+    int wl[MAXWORDS], carg, unmatched = 0;
     docident *curident = NULL;
-
-    for(size_t i = 0; i < clen; i++) // search first matching cmd doc by stripping arguments of exp from right to left
+    string buf;
+    loopi(2) // two scan passes, first one retries on unmatched braces
     {
-        char *end = c+clen-i;
-        if(!*end || *end == ' ')
+        carg = docs_parsecmd(exp + 1, pos, w, wl, i != 0, &unmatched); // break into words
+        if(!w[0]) return;
+        copystring(buf, w[0], wl[0] + 1);
+        curident = docidents.access(buf); // get doc entry
+        if(curident) break;
+    }
+    if(unmatched) draw_textf("\f3missing '%c'", x + 1111, y + doch + 2*FONTH, unmatched);
+
+    ident *csident = idents->access(buf); // check for cs ident
+
+    if(!curident && !csident && docidentverbose < 3) { docskip = 0; return; }
+
+    vector<const char *> doclines;
+    vector<char *> heaplines;
+
+    if(curident)
+    {
+        if(!curident->label)
         {
-            string cmd;
-            string dmd;
+            formatstring(buf)("~%s", curident->name); // label
+            loopvj(curident->arguments) concatformatstring(buf, " %s", curident->arguments[j].token);
+            curident->label = newstring(buf);
+        }
+        doclines.add(curident->label);
 
-            copystring(cmd, c, clen-i+1);
+        doclines.add(NULL);
+        doclines.add(curident->desc);
+        doclines.add(NULL);
 
-            if (d && !nc && dlen > 1)
+        if(curident->arguments.length()) // args
+        {
+            if(carg >= curident->arguments.length() && curident->arguments.last().vararg) carg = curident->arguments.length() - 1; // vararg spans the line
+
+            loopvj(curident->arguments)
             {
-                for(size_t j = 0; j < dlen; j++) //test text after parenthesis
-                {
-                    char *dnd = d+dlen-j;
-                    if(!*dnd || *dnd == ' ')
-                    {
-                        copystring(dmd, d, dlen-j+1);
-                        curident = docidents.access(dmd);
-                    }
-                    if (j == dlen-1 && !curident)
-                    nc = true;
-                }
+                docargument *a = &curident->arguments[j];
+                formatstring(doclines.add(heaplines.add(newstringbuf())))("\f%c%-8s%s", j == carg ? '4' : '5', a->token, a->desc);
+                if(a->values) concatformatstring(heaplines.last(), " (%s)", a->values);
             }
-            else
+            doclines.add(NULL);
+        }
+
+        if(curident->remarks.length()) // remarks
+        {
+            loopvj(curident->remarks) doclines.add(curident->remarks[j]);
+            doclines.add(NULL);
+        }
+
+        if(curident->examples.length()) // examples
+        {
+            doclines.add(curident->examples.length() == 1 ? "Example:" : "Examples:");
+            loopvj(curident->examples)
             {
-                nc = true;
-                curident = docidents.access(cmd);
+                doclines.add(curident->examples[j].code);
+                doclines.add(curident->examples[j].explanation);
             }
+            doclines.add(NULL);
+        }
 
-            if(curident)
+        if(curident->keylines.length()) // default keys
+        {
+            doclines.add(curident->keylines.length() == 1 ? "Default key:" : "Default keys:");
+            loopvj(curident->keylines) doclines.add(curident->keylines[j]); // stored preformatted
+            doclines.add(NULL);
+        }
+
+        if(docrefvisible && curident->references.length()) // references
+        {
+            if(!curident->related)
             {
-                vector<const char *> doclines;
-
-                char *label = newstringbuf(); // label
-                doclines.add(label);
-                formatstring(label)("~%s", curident->name);
-                loopvj(curident->arguments)
-                {
-                    concatstring(label, " ");
-                    concatstring(label, curident->arguments[j].token);
-                }
-                doclines.add(NULL);
-
-                doclines.add(curident->desc);
-                doclines.add(NULL);
-
-                if(curident->arguments.length() > 0) // args
-                {
-                    extern textinputbuffer cmdline;
-
-                    if (d && dlen > 1) c = d;
-                    char *args = strchr(c, ' ');
-
-                    int arg = -1;
-
-                    if(args)
-                    {
-                        args++;
-                        if(cmdline.pos >= 0)
-                        {
-                            if(cmdline.pos >= args-c)
-                            {
-                                string a;
-                                copystring(a, args, cmdline.pos-(args-c)+1);
-                                args = a;
-                                arg = numargs(args);
-                            }
-                        }
-                        else arg = numargs(args);
-
-                        if(arg >= 0) // multipart idents need a fixed argument offset
-                        {
-                            char *c = cmd;
-                            if (!nc) c = dmd;
-                            while((c = strchr(c, ' ')) && c++) arg--;
-                        }
-
-                        // fixes offset for var args
-                        if(arg >= curident->arguments.length() && curident->arguments.last().vararg) arg = curident->arguments.length() - 1;
-                    }
-
-                    loopvj(curident->arguments)
-                    {
-                        docargument *a = &curident->arguments[j];
-                        if(!a) continue;
-                        formatstring(doclines.add(newstringbuf()))("\f%d%-8s%s %s%s%s", j == arg ? 4 : 5, a->token, a->desc,
-                            a->values ? "(" : "", a->values ? a->values : "", a->values ? ")" : "");
-                    }
-
-                    doclines.add(NULL);
-                }
-
-                if(curident->remarks.length()) // remarks
-                {
-                    loopvj(curident->remarks) doclines.add(curident->remarks[j]);
-                    doclines.add(NULL);
-                }
-
-                if(curident->examples.length()) // examples
-                {
-                    doclines.add(curident->examples.length() == 1 ? "Example:" : "Examples:");
-                    loopvj(curident->examples)
-                    {
-                        doclines.add(curident->examples[j].code);
-                        doclines.add(curident->examples[j].explanation);
-                    }
-                    doclines.add(NULL);
-                }
-
-                if(curident->keys.length()) // default keys
-                {
-                    doclines.add(curident->keys.length() == 1 ? "Default key:" : "Default keys:");
-                    loopvj(curident->keys)
-                    {
-                        dockey &k = curident->keys[j];
-                        defformatstring(line)("~%-10s %s", k.name ? k.name : k.alias, k.desc ? k.desc : "");
-                        doclines.add(newstring(line));
-                    }
-                    doclines.add(NULL);
-                }
-
-                if(docrefvisible && curident->references.length()) // references
-                {
-                    string refs = "";
-                    loopvj(curident->references) concatformatstring(refs, ", %s", curident->references[j]);
-                    formatstring(doclines.add(newstringbuf()))("Related identifiers:%s", refs + 1);
-                }
-
-                while(doclines.length() && !doclines.last()) doclines.pop();
-
-                doch -= 3*FONTH + FONTH/2;
-
-                int offset = min(docskip, doclines.length()-1), maxl = offset, cury = 0;
-                for(int j = offset; j < doclines.length(); j++)
-                {
-                    const char *str = doclines[j];
-                    int width = 0, height = FONTH;
-                    if(str) text_bounds(*str=='~' ? str+1 : str, width, height, *str=='~' ? -1 : VIRTW*4/3);
-                    if(cury + height > doch) break;
-                    cury += height;
-                    maxl = j+1;
-                }
-
-                if(offset > 0 && maxl >= doclines.length())
-                {
-                    for(int j = offset-1; j >= 0; j--)
-                    {
-                        const char *str = doclines[j];
-                        int width = 0, height = FONTH;
-                        if(str) text_bounds(*str=='~' ? str+1 : str, width, height, *str=='~' ? -1 : VIRTW*4/3);
-                        if(cury + height > doch) break;
-                        cury += height;
-                        offset = j;
-                    }
-                }
-
-                cury = y;
-                for(int j = offset; j < maxl; j++)
-                {
-                    const char *str = doclines[j];
-                    if(str)
-                    {
-                        const char *text = *str=='~' ? str+1 : str;
-                        draw_text(text, x, cury, 0xFF, 0xFF, 0xFF, 0xFF, -1, str==text ? VIRTW*4/3 : -1);
-                        int width, height;
-                        text_bounds(text, width, height, str==text ? VIRTW*4/3 : -1);
-                        cury += height;
-                        if(str!=text) delete[] str;
-                    }
-                    else cury += FONTH;
-                }
-
-                if(docskip > offset) docskip = offset;
-                if(maxl < doclines.length()) draw_text("\f4more (F3)", x, y+doch); // footer
-                if(offset > 0) draw_text("\f4less (F2)", x, y+doch+FONTH);
-                draw_text("\f4disable doc reference (F1)", x, y+doch+2*FONTH);
-                return;
+                string refs = "";
+                loopvj(curident->references) concatformatstring(refs, ", %s", curident->references[j]);
+                formatstring(buf)("Related identifiers:%s", refs + 1);
+                curident->related = newstring(buf);
             }
-            else docskip = 0;
+            doclines.add(curident->related);
+            doclines.add(NULL);
         }
     }
+
+    if(csident && docidentverbose) // cs ident details
+    {
+        doclines.add("\f4Ident info:");
+        formatstring(buf)("\fs\f1%s\fr: ", csident->name);
+        switch(csident->type)
+        {
+            case ID_VAR:
+                if(csident->maxval < csident->minval) concatformatstring(buf, "integer variable, current %d, read-only", *csident->storage.i);
+                else concatformatstring(buf, "integer variable, current %d, min %d, max %d, default %d", *csident->storage.i, csident->minval, csident->maxval, csident->defaultval);
+                break;
+            case ID_FVAR:
+                if(csident->maxvalf < csident->minvalf) concatformatstring(buf, "float variable, current %s, read-only", floatstr(*csident->storage.f));
+                else concatformatstring(buf, "float variable, current %s, min %s, max %s, default %s", floatstr(*csident->storage.f), floatstr(csident->minvalf), floatstr(csident->maxvalf), floatstr(csident->defaultvalf));
+                break;
+            case ID_SVAR:
+                concatstring(buf, "string variable");
+                break;
+            case ID_COMMAND:
+                concatformatstring(buf, "builtin command%s", strchr("sif", *csident->sig) ? ", arguments:" : "");
+                loopi(strlen(csident->sig)) switch(csident->sig[i])
+                {
+                    case 's': concatstring(buf, i == carg ? " \fs\f4string\fr": " string"); break;
+                    case 'i': concatstring(buf, i == carg ? " \fs\f4int\fr"   : " int");    break;
+                    case 'f': concatstring(buf, i == carg ? " \fs\f4float\fr" : " float");  break;
+                    case 'd': concatstring(buf, ", keybind-only"); break;
+                    case 'v': concatstring(buf, ", argument list varies");  break;
+                    case 'c': concatstring(buf, ", concatenates arguments with spaces");  break;
+                    case 'w': concatstring(buf, ", concatenates arguments without spaces"); break;
+                }
+                break;
+            case ID_ALIAS:
+                concatformatstring(buf, "alias, %s", csident->istemp ? "temp" : (csident->isconst ? "const" : (csident->persist ? "persistent" : "non-persistent")));
+                break;
+        }
+        doclines.add(heaplines.add(newstring(buf)));
+        doclines.add(NULL);
+    }
+
+    if(docidentverbose >= 2)
+    {
+        doclines.add("\f4Cubescript statement broken into words:");
+        int n;
+        loopi(MAXWORDS) if(w[i])
+        {
+            if(i) formatstring(buf)("\fs\f4arg%d: \fr%n%s", i, &n, w[i]);
+            else formatstring(buf)("\fs\f4cmd: \fr%n%s", &n, w[i]);
+            doclines.add(heaplines.add(newstring(buf, n + wl[i])));
+        }
+    }
+
+    while(doclines.length() && !doclines.last()) doclines.pop();
+
+    int offset = min(docskip, doclines.length()-1), maxl = offset, cury = 0;
+    for(int j = offset; j < doclines.length(); j++)
+    {
+        const char *str = doclines[j];
+        int width = 0, height = FONTH;
+        if(str) text_bounds(*str=='~' ? str+1 : str, width, height, *str=='~' ? -1 : VIRTW*4/3);
+        if(cury + height > doch) break;
+        cury += height;
+        maxl = j+1;
+    }
+
+    if(offset > 0 && maxl >= doclines.length())
+    {
+        for(int j = offset-1; j >= 0; j--)
+        {
+            const char *str = doclines[j];
+            int width = 0, height = FONTH;
+            if(str) text_bounds(*str=='~' ? str+1 : str, width, height, *str=='~' ? -1 : VIRTW*4/3);
+            if(cury + height > doch) break;
+            cury += height;
+            offset = j;
+        }
+    }
+
+    cury = y;
+    for(int j = offset; j < maxl; j++)
+    {
+        const char *str = doclines[j];
+        if(str)
+        {
+            const char *text = *str=='~' ? str+1 : str;
+            draw_text(text, x, cury, 0xFF, 0xFF, 0xFF, 0xFF, -1, str==text ? VIRTW*4/3 : -1);
+            int width, height;
+            text_bounds(text, width, height, str==text ? VIRTW*4/3 : -1);
+            cury += height;
+        }
+        else cury += FONTH;
+    }
+    heaplines.deletearrays();
+
+    if(docskip > offset) docskip = offset;
+    if(maxl < doclines.length()) draw_text("\f4more (F3)", x, y+doch); // footer
+    if(offset > 0) draw_text("\f4less (F2)", x, y+doch+FONTH);
+    draw_text("\f4disable doc reference (F1)", x, y+doch+2*FONTH);
 }
 
 void *docmenu = NULL;

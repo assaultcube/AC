@@ -608,8 +608,9 @@ void keypress(int code, bool isdown, int cooked, SDLMod mod)
     else exechook(HOOK_SP, "KEYRELEASE", "%d", code);
 }
 
-char *getcurcommand()
+char *getcurcommand(int *pos)
 {
+    if(pos && saycommandon) *pos = cmdline.pos;
     return saycommandon ? cmdline.buf : NULL;
 }
 

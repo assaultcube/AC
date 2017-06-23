@@ -127,7 +127,7 @@ extern vector<char> *bootclientlog;
 extern void keypress(int code, bool isdown, int cooked, SDLMod mod = KMOD_NONE);
 extern int rendercommand(int x, int y, int w);
 extern void renderconsole();
-extern char *getcurcommand();
+extern char *getcurcommand(int *pos);
 extern char *addreleaseaction(const char *s);
 extern void savehistory();
 extern void loadhistory();

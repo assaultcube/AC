@@ -107,4 +107,5 @@ enum { IEXC_CORE = 0, IEXC_CFG, IEXC_PROMPT, IEXC_MAPCFG, IEXC_MDLCFG, IEXC_NUM 
 #define SVARFF(name, getb, checkb)  extern char *name; void var_get##name() { getb; } void var_check##name() { checkb; } char *name = svariable(#name, "", &name, var_check##name, var_get##name, false)
 
 #define ATOI(s) strtol(s, NULL, 0)      // supports hexadecimal numbers
+#define MAXWORDS 25
 
