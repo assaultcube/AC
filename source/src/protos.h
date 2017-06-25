@@ -124,7 +124,7 @@ struct color
 extern stream *clientlogfile;
 extern vector<char> *bootclientlog;
 
-extern void keypress(int code, bool isdown, SDL_Keymod mod = KMOD_NONE);
+extern void keypress(int keycode, int scancode, bool isdown, SDL_Keymod mod = KMOD_NONE);
 extern int rendercommand(int x, int y, int w);
 extern void renderconsole();
 extern char *getcurcommand(int *pos);

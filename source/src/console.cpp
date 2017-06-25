@@ -141,14 +141,15 @@ int rendercommand(int x, int y, int w)
 
 // keymap is defined externally in keymap.cfg
 
-vector<keym> keyms;
+hashtable<int, keym> keyms(256);
 
 const char *keycmds[keym::NUMACTIONS] = { "bind", "editbind", "specbind" };
 inline const char *keycmd(int type) { return type >= 0 && type < keym::NUMACTIONS ? keycmds[type] : ""; }
 
 void keymap(int *code, char *key)
 {
-    keym &km = keyms.add();
+    if(findbindc(*code)) { clientlogf("keymap: double assignment for code %d ignored", *code); return; }
+    keym &km = keyms[*code];
     km.code = *code;
     km.name = newstring(key);
 }
@@ -157,7 +158,7 @@ COMMAND(keymap, "is");
 
 keym *findbind(const char *key)
 {
-    loopv(keyms) if(!strcasecmp(keyms[i].name, key)) return &keyms[i];
+    enumerate(keyms, keym, km, if(!strcasecmp(km.name, key)) return &km;);
     return NULL;
 }
 
@@ -165,28 +166,26 @@ keym **findbinda(const char *action, int type)
 {
     static vector<keym *> res;
     res.setsize(0);
-    loopv(keyms) if(!strcasecmp(keyms[i].actions[type], action)) res.add(&keyms[i]);
+    enumerate(keyms, keym, km, if(!strcasecmp(km.actions[type], action)) res.add(&km););
     res.add(NULL);
     return res.getbuf();
 }
 
 keym *findbindc(int code)
 {
-    loopv(keyms) if(keyms[i].code==code) return &keyms[i];
-    return NULL;
+    return keyms.access(code);
 }
 
 void findkey(int *code)
 {
     const char *res = "-255";
-    loopv(keyms)
-    {
-        if(keyms[i].code == *code)
+    enumerate(keyms, keym, km,
+        if(km.code == *code)
         {
-            res = keyms[i].name;
+            res = km.name;
             break;
         }
-    }
+    );
     result(res);
 }
 COMMAND(findkey, "i");
@@ -194,14 +193,13 @@ COMMAND(findkey, "i");
 void findkeycode(const char* s)
 {
     int res = -255;
-    loopv(keyms)
-    {
-        if(!strcmp(s, keyms[i].name))
+    enumerate(keyms, keym, km,
+        if(!strcmp(s, km.name))
         {
-            res = keyms[i].code;
+            res = km.code;
             break;
         }
-    }
+    );
     intret(res);
 }
 COMMAND(findkeycode, "s");
@@ -213,7 +211,7 @@ char *keyaction = NULL;
 
 VAR(_defaultbinds, 0, 0, 1);
 
-COMMANDF(_resetallbinds, "", () { if(_defaultbinds) loopv(keyms) loopj(keym::NUMACTIONS) bindkey(&keyms[i], "", j); });
+COMMANDF(_resetallbinds, "", () { if(_defaultbinds) enumerate(keyms, keym, km, loopj(keym::NUMACTIONS) bindkey(&km, "", j);); });
 
 bool bindkey(keym *km, const char *action, int type)
 {
@@ -254,14 +252,13 @@ void searchbinds(const char *action, int type)
     if(!action || !action[0]) return;
     if(type < keym::ACTION_DEFAULT || type >= keym::NUMACTIONS) { conoutf("invalid bind type \"%d\"", type); return; }
     vector<char> names;
-    loopv(keyms)
-    {
-        if(!strcmp(keyms[i].actions[type], action))
+    enumerate(keyms, keym, km,
+        if(!strcmp(km.actions[type], action))
         {
             if(names.length()) names.add(' ');
-            names.put(keyms[i].name, strlen(keyms[i].name));
+            names.put(km.name, strlen(km.name));
         }
-    }
+    );
     resultcharvector(names, 0);
 }
 
@@ -566,18 +563,19 @@ void processtextinput(const char *text)
     }
 }
 
-void keypress(int code, bool isdown, SDL_Keymod mod)
+void keypress(int keycode, int scancode, bool isdown, SDL_Keymod mod)
 {
-    keym *haskey = NULL;
-    loopv(keyms) if(keyms[i].code==code) { haskey = &keyms[i]; break; }
+    keym *haskey = keyms.access(keycode);
+    if(!haskey && !(keycode & SDLK_SCANCODE_MASK) && scancode) haskey = keyms.access(scancode | SDLK_SCANCODE_MASK); // keycode not found: maybe we know the scancode
     if(haskey && haskey->pressed) execbind(*haskey, isdown); // allow pressed keys to release
-    else if(saycommandon) consolekey(code, isdown, mod); // keystrokes go to commandline
-    else if(!menukey(code, isdown)) // keystrokes go to menu
+    else if(saycommandon) consolekey(keycode, isdown, mod); // keystrokes go to commandline
+    else if(!menukey(keycode, isdown)) // keystrokes go to menu
     {
         if(haskey) execbind(*haskey, isdown);
     }
-    if(isdown) exechook(HOOK_SP, "KEYPRESS", "KEYPRESS %d", code);
-    else exechook(HOOK_SP, "KEYRELEASE", "%d", code);
+    if(keycode & SDLK_SCANCODE_MASK) scancode = keycode & ~SDLK_SCANCODE_MASK;
+    if(isdown) exechook(HOOK_SP, "KEYPRESS", "KEYPRESS %d %d", keycode, scancode);
+    else exechook(HOOK_SP, "KEYRELEASE", "%d %d", keycode, scancode);
 }
 
 char *getcurcommand(int *pos)
@@ -590,12 +588,10 @@ VARP(omitunchangeddefaultbinds, 0, 1, 2);
 
 void writebinds(stream *f)
 {
-    loopv(keyms)
-    {
-        keym *km = &keyms[i];
-        loopj(3) if(*km->actions[j] && (!km->unchangeddefault[j] || omitunchangeddefaultbinds < 2))
-            f->printf("%s%s \"%s\" %s\n", km->unchangeddefault[j] && omitunchangeddefaultbinds ? "//" : "", keycmd(j), km->name, escapestring(km->actions[j]));
-    }
+    enumerate(keyms, keym, km,
+        loopj(3) if(*km.actions[j] && (!km.unchangeddefault[j] || omitunchangeddefaultbinds < 2))
+            f->printf("%s%s \"%s\" %s\n", km.unchangeddefault[j] && omitunchangeddefaultbinds ? "//" : "", keycmd(j), km.name, escapestring(km.actions[j]));
+    );
 }
 
 bool textinputbuffer::say(const char *c)
@@ -784,6 +780,8 @@ void writekeymap() // create keymap.cfg with proper constants from SDL2 header f
         { 252, "UE" },
         { 246, "OE" },
         { 228, "AE" },
+        { SDL_SCANCODE_GRAVE | SDLK_SCANCODE_MASK, "LEFTOF1" }, // may not produce a proper keycode if the layout has dead keys
+        { SDL_SCANCODE_EQUALS | SDLK_SCANCODE_MASK, "LEFTOFDEL" },
         { -1, " " }, // keys below are commented out by default
         { SDLK_PERCENT, "PERCENT" },
         { SDLK_POWER, "POWER" },
@@ -902,7 +900,7 @@ void writekeymap() // create keymap.cfg with proper constants from SDL2 header f
         for(int i = 0; keymaptab[i].keycode; i++)
         {
             if(keymaptab[i].keyname[0] == ' ') c = "//";
-            else f->printf(keymaptab[i].keycode < (1<<30) ? "%skeymap %d %s\n" : "%skeymap (sc %d) %s\n", c, keymaptab[i].keycode & (keymaptab[i].keycode > 0 ? ((1<<30)-1) : -1), keymaptab[i].keyname);
+            else f->printf(keymaptab[i].keycode < SDLK_SCANCODE_MASK ? "%skeymap %d %s\n" : "%skeymap (sc %d) %s\n", c, keymaptab[i].keycode & (keymaptab[i].keycode > 0 ? (SDLK_SCANCODE_MASK-1) : -1), keymaptab[i].keyname);
         }
         f->printf("\npop sc\nexec config/resetbinds.cfg\n");
         delete f;
