@@ -724,6 +724,7 @@ extern void text_pos(const char *str, int cursor, int &cx, int &cy, int maxwidth
 extern void text_startcolumns();
 extern void text_endcolumns();
 extern void cutcolorstring(char *text, int len);
+extern bool filterunrenderables(char *s);
 
 // editing
 #define EDITSEL(x)   if(noteditmode(x) || noselection()) return

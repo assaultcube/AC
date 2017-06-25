@@ -96,7 +96,9 @@ struct textinputbuffer
 
             default:
             {
-                if(unicode)
+                extern bool filterunrenderables(char *s);
+                char tmp[2] = { (char)unicode, 0 };
+                if(unicode && !filterunrenderables(tmp))
                 {
                     size_t len = strlen(buf);
                     if(max && (int)len>=max) break;

@@ -445,6 +445,19 @@ void cutcolorstring(char *text, int maxlen)
     }
 }
 
+bool filterunrenderables(char *s)
+{
+    bool res = false;
+    char *d = s;
+    while(*s)
+    {
+        if(!curfont->chars.inrange(*s - curfont->skip) && *s != ' ') res = true;
+        else *d++ = *s;
+        s++;
+    }
+    return res;
+}
+
 // animated inlined graphics
 
 VAR(igraphdefaultframetime, 5, 200, 2000);
