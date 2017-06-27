@@ -723,6 +723,7 @@ void addgib(playerent *d)
 {
     if(!d || !gib || !gibttl) return;
     audiomgr.playsound(S_GIB, d);
+    d->nocorpse = true; // don't render regular corpse: it was gibbed
 
     loopi(gibnum)
     {
