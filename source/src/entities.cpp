@@ -113,103 +113,94 @@ void renderentarrow(const entity &e, const vec &dir, float radius)
     glEnable(GL_TEXTURE_2D);
 }
 
-void renderentities()
+void rendereditentities()
 {
-    int closest = editmode ? closestent() : -1;
-    if(editmode && !reflecting && !refracting && !stenciling)
-    {
-        static int lastsparkle = 0;
-        if(lastmillis - lastsparkle >= 20)
+    if(!editmode) return;
+    int closest = closestent();
+
+    static int lastsparkle = 0;
+    if(lastmillis - lastsparkle >= 20)
+    { // render edit mode sparklies
+        lastsparkle = lastmillis - (lastmillis%20);
+        loopv(ents)
         {
-            lastsparkle = lastmillis - (lastmillis%20);
-            loopv(ents)
+            entity &e = ents[i];
+            if(e.type==NOTUSED) continue;
+            if(edithideentmask & (1 << (e.type - 1))) continue;
+            vec v(e.x, e.y, e.z);
+            if(vec(v).sub(camera1->o).dot(camdir) < 0) continue;
+            int sc = PART_ECARROT; // use "carrot" for unknown types
+            if(i == closest)
             {
-                entity &e = ents[i];
-                if(e.type==NOTUSED) continue;
-                if(edithideentmask & (1 << (e.type - 1))) continue;
-                vec v(e.x, e.y, e.z);
-                if(vec(v).sub(camera1->o).dot(camdir) < 0) continue;
-                int sc = PART_ECARROT; // use "carrot" for unknown types
-                if(i == closest)
-                {
-                    sc = PART_ECLOSEST; // blue
-                }
-                else switch(e.type)
-                {
-                    case LIGHT:       sc = PART_ELIGHT;  break; // white
-                    case PLAYERSTART: sc = PART_ESPAWN;  break; // green
-                    case I_CLIPS:
-                    case I_AMMO:
-                    case I_GRENADE:   sc = PART_EAMMO;   break; // red
-                    case I_HEALTH:
-                    case I_HELMET:
-                    case I_ARMOUR:
-                    case I_AKIMBO:    sc = PART_EPICKUP; break; // yellow
-                    case MAPMODEL:
-                    case SOUND:       sc = PART_EMODEL;  break; // magenta
-                    case LADDER:
-                    case CLIP:
-                    case PLCLIP:      sc = PART_ELADDER; break; // grey
-                    case CTF_FLAG:    sc = PART_EFLAG;   break; // turquoise
-                    default: break;
-                }
-                particle_splash(sc, i == closest ? 14 : 2, i == closest ? 50 : 40, v);
+                sc = PART_ECLOSEST; // blue
             }
+            else switch(e.type)
+            {
+                case LIGHT:       sc = PART_ELIGHT;  break; // white
+                case PLAYERSTART: sc = PART_ESPAWN;  break; // green
+                case I_CLIPS:
+                case I_AMMO:
+                case I_GRENADE:   sc = PART_EAMMO;   break; // red
+                case I_HEALTH:
+                case I_HELMET:
+                case I_ARMOUR:
+                case I_AKIMBO:    sc = PART_EPICKUP; break; // yellow
+                case MAPMODEL:
+                case SOUND:       sc = PART_EMODEL;  break; // magenta
+                case LADDER:
+                case CLIP:
+                case PLCLIP:      sc = PART_ELADDER; break; // grey
+                case CTF_FLAG:    sc = PART_EFLAG;   break; // turquoise
+                default: break;
+            }
+            particle_splash(sc, i == closest ? 14 : 2, i == closest ? 50 : 40, v);
         }
     }
+
     loopv(ents)
     {
         entity &e = ents[i];
-        if(isitem(e.type))
-        {
-            if((!OUTBORD(e.x, e.y) && e.spawned) || editmode)
-            {
-                renderent(e);
-            }
-        }
-        else if(editmode)
-        {
-            if(e.type==CTF_FLAG)
+        if(OUTBORD(e.x, e.y)) continue;
+        if(isitem(e.type)) renderent(e);
+        else switch(e.type)
+        { // render special representation for entities in edit mode
+            case CTF_FLAG:
             {
                 defformatstring(path)("pickups/flags/%s", team_basestring(e.attr2));
                 rendermodel(path, ANIM_FLAG|ANIM_LOOP, 0, 0, vec(e.x, e.y, (float)S(e.x, e.y)->floor), 0, float(e.attr1) / ENTSCALE10, 0, 120.0f);
+                break;
             }
-            else if((e.type == CLIP || e.type == PLCLIP) && showclips && !stenciling)
-            {
-                renderclip(e.type, e.x, e.y, float(e.attr2) / ENTSCALE5, float(e.attr3) / ENTSCALE5, float(e.attr4) / ENTSCALE5, float(e.attr1) / ENTSCALE10, float(e.attr6) / (4 * ENTSCALE10), e.attr7);
-            }
-            else if(e.type == MAPMODEL && showclips && showmodelclipping && !stenciling)
-            {
-                mapmodelinfo *mmi = getmminfo(e.attr2);
-                if(mmi && mmi->h)
+            case CLIP:
+            case PLCLIP:
+                if(showclips) renderclip(e.type, e.x, e.y, float(e.attr2) / ENTSCALE5, float(e.attr3) / ENTSCALE5, float(e.attr4) / ENTSCALE5, float(e.attr1) / ENTSCALE10, float(e.attr6) / (4 * ENTSCALE10), e.attr7);
+                break;
+
+            case MAPMODEL:
+                if(showclips && showmodelclipping)
                 {
-                    renderclip(e.type, e.x, e.y, mmi->rad, mmi->rad, mmi->h, mmi->zoff + float(e.attr3) / ENTSCALE5, 0, 0);
+                    mapmodelinfo *mmi = getmminfo(e.attr2);
+                    if(mmi && mmi->h) renderclip(e.type, e.x, e.y, mmi->rad, mmi->rad, mmi->h, mmi->zoff + float(e.attr3) / ENTSCALE5, 0, 0);
                 }
-            }
-            else if(e.type == LADDER && showladderentities && !stenciling)
-            {
-                renderclip(e.type, e.x, e.y, 0, 0, e.attr1, 0, 0, 3);
-            }
-            else if(e.type == PLAYERSTART && showplayerstarts)
-            {
-                vec o(e.x, e.y, 0);
-                if(!OUTBORD(e.x, e.y)) o.z += S(e.x, e.y)->floor;
-                const char *skin;
-                switch(e.attr2)
+                break;
+
+            case LADDER:
+                if(showladderentities) renderclip(e.type, e.x, e.y, 0, 0, e.attr1, 0, 0, 3);
+                break;
+
+            case PLAYERSTART:
+                if(showplayerstarts)
                 {
-                    case 0: skin = "packages/models/playermodels/CLA/red.jpg"; break;
-                    case 1: skin = "packages/models/playermodels/RVSF/blue.jpg"; break;
-                    case 100: skin = "packages/models/playermodels/ffaspawn.jpg"; break;
-                    default: skin = "packages/models/playermodels/unknownspawn.jpg"; break;
+                    vec o(e.x, e.y, S(e.x, e.y)->floor);
+                    const char *skin = "packages/models/playermodels/unknownspawn.jpg";
+                    switch(e.attr2)
+                    {
+                        case 0: skin = "packages/models/playermodels/CLA/red.jpg"; break;
+                        case 1: skin = "packages/models/playermodels/RVSF/blue.jpg"; break;
+                        case 100: skin = "packages/models/playermodels/ffaspawn.jpg"; break;
+                    }
+                    rendermodel("playermodels", ANIM_IDLE, -(int)textureload(skin)->id, 1.5f, o, 0, e.attr1 / ENTSCALE10 + 90, 0);
                 }
-                rendermodel("playermodels", ANIM_IDLE, -(int)textureload(skin)->id, 1.5f, o, 0, e.attr1 / ENTSCALE10 + 90, 0);
-            }
-        }
-        if(editmode && i == closest && !stenciling)
-        {
-            switch(e.type)
-            {
-                case PLAYERSTART:
+                if(i == closest)
                 {
                     glColor3f(0, 1, 1);
                     vec dir(0, -1, 0);
@@ -217,11 +208,26 @@ void renderentities()
                     renderentarrow(e, dir, 4);
                     glColor3f(1, 1, 1);
                 }
-                default: break;
+                break;
+        }
+    }
+}
+
+void renderentities()
+{
+    if(editmode) return;
+    loopv(ents)
+    {
+        entity &e = ents[i];
+        if(isitem(e.type))
+        {
+            if(e.spawned && !OUTBORD(e.x, e.y))
+            {
+                renderent(e);
             }
         }
     }
-    if(m_flags && !editmode) loopi(2)
+    if(m_flags) loopi(2)
     {
         flaginfo &f = flaginfos[i];
         switch(f.state)
@@ -234,6 +240,7 @@ void renderentities()
                     rendermodel(path, ANIM_FLAG|ANIM_START|ANIM_DYNALLOC, 0, 0, vec(f.actor->o).add(vec(0, 0, 0.3f+(sinf(lastmillis/100.0f)+1)/10)), 0, lastmillis/2.5f, 0, 120.0f);
                 }
                 break;
+
             case CTFF_INBASE:
                 if(!clentstats.flags[i]) break;
             case CTFF_DROPPED:

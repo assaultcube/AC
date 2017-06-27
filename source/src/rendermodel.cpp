@@ -751,9 +751,6 @@ void endmodelbatches(bool flush)
     if(flush) clearmodelbatches();
 }
 
-const int dbgmbatch = 0;
-//VAR(dbgmbatch, 0, 0, 1);
-
 VARP(popdeadplayers, 0, 0, 1);
 void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, float roll, float yaw, float pitch, float speed, int basetime, playerent *d, modelattach *a, float scale)
 {
@@ -797,7 +794,7 @@ void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, fl
         //if(a[i].m && a[i].m->type()!=m->type()) a[i].m = NULL;
     }
 
-    if(numbatches>=0 && !dbgmbatch)
+    if(numbatches>=0)
     {
         batchedmodel &b = addbatchedmodel(m);
         b.o = o;
@@ -819,7 +816,7 @@ void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, fl
     if(stenciling)
     {
         m->startrender();
-        m->render(anim|ANIM_NOSKIN, varseed, speed, basetime, o, 0, yaw, pitch, d, a, scale);
+        m->render(anim|ANIM_NOSKIN, varseed, speed, basetime, o, roll, yaw, pitch, d, a, scale);
         m->endrender();
         return;
     }
@@ -870,7 +867,7 @@ void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, fl
         glColor4f(color[0], color[1], color[2], m->translucency);
     }
 
-    m->render(anim, varseed, speed, basetime, o, 0, yaw, pitch, d, a, scale);
+    m->render(anim, varseed, speed, basetime, o, roll, yaw, pitch, d, a, scale);
 
     if(anim&ANIM_TRANSLUCENT)
     {

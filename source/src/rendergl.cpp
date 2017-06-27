@@ -861,7 +861,6 @@ void drawminimap(int w, int h)
     glDepthFunc(GL_LESS);
     rendermapmodels();
     renderzones(clmapdims.maxceil);
-    //renderentities();// IMHO better done by radar itself, if at all
     resettmu(0);
     float hf = waterlevel - 0.3f;
     renderwater(hf, 0, 0);
@@ -1115,7 +1114,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps, int elapsed)
     if(effective_stencilshadow && hasstencil && stencilbits >= 8) drawstencilshadows();
 
     startmodelbatches();
-    renderentities();
+    rendereditentities();
     endmodelbatches();
 
     readdepth(w, h, worldpos);
@@ -1125,6 +1124,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps, int elapsed)
     endmodelbatches();
 
     startmodelbatches();
+    renderentities();
     renderbounceents();
     endmodelbatches();
 

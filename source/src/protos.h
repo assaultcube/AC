@@ -926,6 +926,7 @@ extern int burstshotssettings[NUMGUNS];
 // entities
 extern int edithideentmask;
 extern void pickupeffects(int n, playerent *d);
+extern void rendereditentities();
 extern void renderentities();
 extern void rendermapmodels();
 extern void resetpickups(int type = -1);
