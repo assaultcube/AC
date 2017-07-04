@@ -153,7 +153,6 @@ void keymap(int *code, char *key)
     km.code = *code;
     km.name = newstring(key);
 }
-
 COMMAND(keymap, "is");
 
 keym *findbind(const char *key)
@@ -174,6 +173,21 @@ keym **findbinda(const char *action, int type)
 keym *findbindc(int code)
 {
     return keyms.access(code);
+}
+
+keym *autokeymap(int keycode, int scancode)
+{
+    static bool scdone[SDL_NUM_SCANCODES] = { false };
+    int sc = keycode <= SDLK_SCANCODE_MASK ? scancode : (keycode & (SDLK_SCANCODE_MASK - 1));
+    if(sc < 0 || sc >= SDL_NUM_SCANCODES || scdone[sc]) return NULL;
+    scdone[sc] = true;
+    string text;
+    filtertext(text, SDL_GetScancodeName((SDL_Scancode) sc), FTXT__AUTOKEYMAPNAME);
+    if(!*text || (int)SDL_GetScancodeFromName(text) != sc || findbind(text)) return NULL; // name is not unique (collision probably caused by filtertext) or can't be properly resolved in reverse
+    clientlogf("autokeymap: create keymap entry for scancode %d, \"%s\"", sc, text);
+    sc |= SDLK_SCANCODE_MASK;
+    keymap(&sc, text);
+    return keyms.access(sc);
 }
 
 void findkey(int *code)
@@ -228,6 +242,19 @@ bool bindkey(keym *km, const char *action, int type)
 void bindk(const char *key, const char *action, int type)
 {
     keym *km = findbind(key);
+    if(!km)
+    {
+        string text;
+        filtertext(text, key, FTXT__AUTOKEYMAPNAME);
+        int sc = *text && !strcmp(key, text) ? (int)SDL_GetScancodeFromName(text) : SDL_SCANCODE_UNKNOWN;
+        if(sc != SDL_SCANCODE_UNKNOWN)
+        {
+            clientlogf("autokeymap: re-create keymap entry for scancode %d, \"%s\"", sc, text);
+            sc |= SDLK_SCANCODE_MASK;
+            keymap(&sc, text);
+            km = findbind(key);
+        }
+    }
     if(!km) { conoutf("unknown key \"%s\"", key); return; }
     bindkey(km, action, type);
 }
@@ -567,6 +594,7 @@ void keypress(int keycode, int scancode, bool isdown, SDL_Keymod mod)
 {
     keym *haskey = keyms.access(keycode);
     if(!haskey && !(keycode & SDLK_SCANCODE_MASK) && scancode) haskey = keyms.access(scancode | SDLK_SCANCODE_MASK); // keycode not found: maybe we know the scancode
+    if(!haskey && isdown) haskey = autokeymap(keycode, scancode);
     if(haskey && haskey->pressed) execbind(*haskey, isdown); // allow pressed keys to release
     else if(saycommandon) consolekey(keycode, isdown, mod); // keystrokes go to commandline
     else if(!menukey(keycode, isdown)) // keystrokes go to menu
