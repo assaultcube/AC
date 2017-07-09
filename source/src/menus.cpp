@@ -107,7 +107,7 @@ void menuselect(void *menu, int sel)
             if(sel!=oldsel)
             {
                 if(m.items.inrange(oldsel)) m.items[oldsel]->focus(false);
-                m.items[sel]->focus(true);
+                if(!m.items[sel]->greyedout) m.items[sel]->focus(true);
                 audiomgr.playsound(S_MENUSELECT, SP_HIGHEST);
                 if(m.persistentselection)
                 {
@@ -186,6 +186,8 @@ color mitem::gray(0.2f, 0.2f, 0.2f);
 color mitem::white(1.0f, 1.0f, 1.0f);
 color mitem::whitepulse(1.0f, 1.0f, 1.0f);
 
+bool mitem::menugreyedout = false;
+
 // text item
 
 struct mitemmanual : mitem
@@ -198,16 +200,17 @@ struct mitemmanual : mitem
 
     virtual void render(int x, int y, int w)
     {
+        int c = greyedout ? 128 : 255;
         mitem::render(x, y, w);
         const char *nl = strchr(text, '\n');
         if(nl)
         {
             string l;
             copystring(l, text, min(MAXSTRLEN, (int)strcspn(text, "\n") + 1));
-            draw_text(l, x, y);
-            draw_text(nl + 1, x + w - max(menurighttabwidth, text_width(nl + 1)), y);
+            draw_text(l, x, y, c, c, c);
+            draw_text(nl + 1, x + w - max(menurighttabwidth, text_width(nl + 1)), y, c, c, c);
         }
-        else draw_text(text, x, y);
+        else draw_text(text, x, y, c, c, c);
     }
 
     virtual void focus(bool on)
@@ -270,13 +273,13 @@ struct mitemimagemanual : mitemmanual
         mitem::render(x, y, w);
         if(image || altfont)
         {
-            int xs = 0;
+            int xs = 0, c = greyedout ? 128 : 255;
             if(image)
             {
                 xs = (FONTH*image->xs)/image->ys;
                 framedquadtexture(image->id, x, y, xs, FONTH, 0, 255, true);
             }
-            draw_text(text, !image || *text == '\t' ? x : x+xs + FONTH/2, y);
+            draw_text(text, !image || *text == '\t' ? x : x+xs + FONTH/2, y, c, c, c);
             if(altfont && strchr(text, '\a'))
             {
                 char *r = newstring(text), *re, *l = r;
@@ -286,7 +289,7 @@ struct mitemimagemanual : mitemmanual
                     x += text_width(l);
                     l = re + 2;
                     pushfont(altfont->name);
-                    draw_textf("%c", x, y, re[1]);
+                    draw_textf("%s%c", x, y, greyedout ? "\f4" : "", re[1]);
                     popfont();
                 }
                 delete[] r;
@@ -342,8 +345,9 @@ struct mitemmapload : mitemmanual
 
     virtual void render(int x, int y, int w)
     {
+        int c = greyedout ? 128 : 255;
         mitem::render(x, y, w);
-        draw_text(text, x, y);
+        draw_text(text, x, y, c, c, c);
         if(isselection())
         {
             if(!image && !maptitle)
@@ -395,13 +399,14 @@ struct mitemtextinput : mitemtext
 
     virtual void render(int x, int y, int w)
     {
+        int c = greyedout ? 128 : 255;
         bool sel = isselection();
         if(sel)
         {
             renderbg(x+w-menurighttabwidth, y-FONTH/6, menurighttabwidth, menuselbgcolor);
             renderbg(x, y-FONTH/6, w-menurighttabwidth-FONTH/2, menuseldescbgcolor);
         }
-        draw_text(text, x, y);
+        draw_text(text, x, y, c, c, c);
         int cibl = (int)strlen(input.buf); // current input-buffer length
         int iboff = input.pos > 14 ? (input.pos < cibl ? input.pos - 14 : cibl - 14) : (input.pos == -1 ? (cibl > 14 ? cibl - 14 : 0) : 0); // input-buffer offset
         string showinput, tempinputbuf; int sc = 14;
@@ -424,7 +429,7 @@ struct mitemtextinput : mitemtext
             sc++;
         }
         copystring(showinput, tempinputbuf + iboff, sc + 1);
-        draw_text(showinput, x+w-menurighttabwidth, y, 255, 255, 255, 255, sel ? (input.pos>=0 ? (input.pos > sc ? sc : input.pos) : cibl) : -1);
+        draw_text(showinput, x+w-menurighttabwidth, y, c, c, c, 255, sel && !greyedout ? (input.pos>=0 ? (input.pos > sc ? sc : input.pos) : cibl) : -1);
     }
 
     virtual void focus(bool on)
@@ -529,14 +534,15 @@ struct mitemslider : mitem
             renderbg(x, y, w - pos - FONTH/2, menuseldescbgcolor);
             if(pos - ow > FONTH/2) renderbg(x + w - pos + ow + FONTH/2, y, pos - ow - FONTH/2, menuseldescbgcolor);
         }
-        draw_text(text, x, y);
-        draw_text(curval, x + (isradio ? w - pos : tw), y);
+        int c = greyedout ? 128 : 255;
+        draw_text(text, x, y, c, c, c);
+        draw_text(curval, x + (isradio ? w - pos : tw), y, c, c, c);
 
         if(!isradio)
         {
             blendbox(x+w-menurighttabwidth, y+FONTH/3, x+w, y+FONTH*2/3, false, -1, &gray);
             int offset = (int)(cval/((float)range)*menurighttabwidth);
-            blendbox(x+w-menurighttabwidth+offset-FONTH/6, y, x+w-menurighttabwidth+offset+FONTH/6, y+FONTH, false, -1, sel ? &whitepulse : &white);
+            blendbox(x+w-menurighttabwidth+offset-FONTH/6, y, x+w-menurighttabwidth+offset+FONTH/6, y+FONTH, false, -1, greyedout ? &gray : (sel ? &whitepulse : &white));
         }
     }
 
@@ -633,15 +639,15 @@ struct mitemkeyinput : mitem
 
     virtual void render(int x, int y, int w)
     {
-        int tw = text_width(keyname ? keyname : " ");
+        int tw = text_width(keyname ? keyname : " "), c = greyedout ? 128 : 255;
         static color capturec(0.4f, 0, 0);
         if(isselection())
         {
             blendbox(x+w-tw-FONTH, y-FONTH/6, x+w+FONTH, y+FONTH+FONTH/6, false, -1, capture ? &capturec : NULL);
             blendbox(x, y-FONTH/6, x+w-tw-FONTH, y+FONTH+FONTH/6, false, -1, menuseldescbgcolor);
         }
-        draw_text(text, x, y);
-        draw_text(keyname, x+w-tw, y);
+        draw_text(text, x, y, c, c, c);
+        draw_text(keyname, x+w-tw, y, c, c, c);
     }
 
     virtual void init()
@@ -744,8 +750,9 @@ struct mitemcheckbox : mitem
         bool sel = isselection();
         const static int boxsize = FONTH;
         int offs = ((menurighttabwidth - FONTH) * ((msctrl % 41) ? pos : (50 + 50 * sinf(totalmillis / 300.0f + y)))) / 100;
+        int c = greyedout ? 128 : 255;
 
-        draw_text(text, x, y);
+        draw_text(text, x, y, c, c, c);
         if(sel)
         {
             renderbg(x, y, w-boxsize-offs-FONTH/2, menuseldescbgcolor);
@@ -754,11 +761,12 @@ struct mitemcheckbox : mitem
         }
         x -= offs;
         blendbox(x+w-boxsize, y, x+w, y+boxsize, false, -1, &gray);
+        color *col = greyedout ? &gray : (sel ? &whitepulse : &white);
         if(checked)
         {
             int x1 = x+w-boxsize-FONTH/6, x2 = x+w+FONTH/6, y1 = y-FONTH/6, y2 = y+boxsize+FONTH/6;
-            line(x1, y1, x2, y2, sel ? &whitepulse : &white);
-            line(x2, y1, x1, y2, sel ? &whitepulse : &white);
+            line(x1, y1, x2, y2, col);
+            line(x2, y1, x1, y2, col);
         }
     }
 
@@ -791,6 +799,7 @@ void *addmenu(const char *name, const char *title, bool allowinput, void (__cdec
     m->allowblink = false;
     m->forwardkeys = forwardkeys;
     lastmenu = m;
+    mitem::menugreyedout = false;
     return m;
 }
 
@@ -909,6 +918,12 @@ void menuselection(char *menu, int *line)
     menuselect(&m, *line);
 }
 COMMAND(menuselection, "si");
+
+void menuitemgreyedout(int *onoff)
+{
+    mitem::menugreyedout = *onoff != 0;
+}
+COMMAND(menuitemgreyedout, "i");
 
 void menuitem(char *text, char *action, char *hoveraction, char *desc)
 {
@@ -1079,7 +1094,7 @@ bool menukey(int code, bool isdown, int unicode, SDLMod mod)
     if(!curmenu) return false;
     int n = curmenu->items.length(), menusel = curmenu->menusel;
 
-    if(curmenu->items.inrange(menusel))
+    if(curmenu->items.inrange(menusel) && !curmenu->items[menusel]->greyedout)
     {
         mitem *m = curmenu->items[menusel];
         if(m->mitemtype == mitem::TYPE_KEYINPUT && ((mitemkeyinput *)m)->capture)
@@ -1138,7 +1153,7 @@ bool menukey(int code, bool isdown, int unicode, SDLMod mod)
                 if(curmenu->allowinput && curmenu->hotkeys)
                 {
                     int idx = code-SDLK_1;
-                    if(curmenu->items.inrange(idx))
+                    if(curmenu->items.inrange(idx) && !curmenu->items[idx]->greyedout)
                     {
                         menuselect(curmenu, idx);
                         mitem &m = *curmenu->items[idx];
@@ -1152,7 +1167,7 @@ bool menukey(int code, bool isdown, int unicode, SDLMod mod)
                 if(curmenu->keyfunc && (*curmenu->keyfunc)(curmenu, code, isdown, unicode)) return true;
                 if(!curmenu->items.inrange(menusel)) return false;
                 mitem &m = *curmenu->items[menusel];
-                m.key(code, isdown, unicode);
+                if(!m.greyedout) m.key(code, isdown, unicode);
                 if(code == SDLK_HOME && m.mitemtype != mitem::TYPE_TEXTINPUT) menuselect(curmenu, (menusel = 0));
                 return !curmenu->forwardkeys;
             }
@@ -1181,7 +1196,7 @@ bool menukey(int code, bool isdown, int unicode, SDLMod mod)
         mitem &m = *curmenu->items[menusel];
         if(code==SDLK_RETURN || code==SDLK_SPACE || code==SDL_AC_BUTTON_LEFT || code==SDL_AC_BUTTON_MIDDLE)
         {
-            if(m.select() != -1) audiomgr.playsound(S_MENUENTER, SP_HIGHEST);
+            if(!m.greyedout && m.select() != -1) audiomgr.playsound(S_MENUENTER, SP_HIGHEST);
             return true;
         }
         return false;
@@ -1255,7 +1270,7 @@ void gmenu::open()
         lastmenu = oldlastmenu;
     }
     if(items.inrange(menuselinit)) { menusel = menuselinit; menuselinit = -1; }
-    if(items.inrange(menusel)) items[menusel]->focus(true);
+    if(items.inrange(menusel) && !items[menusel]->greyedout) items[menusel]->focus(true);
     init();
     resetcontext();
 }

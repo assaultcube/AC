@@ -185,8 +185,10 @@ struct mitem
 {
     struct gmenu *parent;
     color *bgcolor;
+    bool greyedout;
+    static bool menugreyedout;
 
-    mitem(gmenu *parent, color *bgcolor, int type) : parent(parent), bgcolor(bgcolor), mitemtype(type) {}
+    mitem(gmenu *parent, color *bgcolor, int type) : parent(parent), bgcolor(bgcolor), greyedout(menugreyedout), mitemtype(type) {}
     virtual ~mitem() {}
 
     virtual void render(int x, int y, int w);
