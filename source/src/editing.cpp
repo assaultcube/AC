@@ -185,9 +185,9 @@ COMMANDF(selxs, "", (void) { SEL_ATTR(xs); });
 COMMANDF(selys, "", (void) { SEL_ATTR(ys); });
 #undef SEL_ATTR
 
-VAR(flrceil,0,0,2);
-VAR(editaxis,0,0,13);
-VARP(showgrid,0,1,1);
+VAR(flrceil, 2, 0, 0);
+VAR(editaxis, 113, 0, 0);
+VARP(showgrid, 0, 1, 1);
 
 // VC8 optimizer screws up rendering somehow if this is an actual function
 #define sheight(s,t,z) (!flrceil ? (s->type==FHF ? s->floor-t->vdelta/4.0f : (float)s->floor) : (s->type==CHF ? s->ceil+t->vdelta/4.0f : (float)s->ceil))
@@ -212,9 +212,9 @@ inline void forceinsideborders(int &xy)
 
 void cursorupdate()                                     // called every frame from hud
 {
-    flrceil = ((int)(camera1->pitch>=0))*2;
-    int cyaw = ((int) camera1->yaw) % 180;
-    editaxis = editmode ? (fabs(camera1->pitch) > 65 ? 13 : (cyaw < 45 || cyaw > 135 ? 12 : 11)) : 0;
+    ASSERT(editmode);
+    flrceil = camera1->pitch >= 0 ? 2 : 0;
+    editaxis = fabs(camera1->pitch) > 60 ? "\161\15\15"[flrceil] : "\160\13\14\157"[(int(camera1->yaw + 45) / 90) & 3];
 
     volatile float x = worldpos.x;                      // volatile needed to prevent msvc7 optimizer bug?
     volatile float y = worldpos.y;

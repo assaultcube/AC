@@ -198,12 +198,13 @@ COMMANDF(getclosestent, "", () { intret(closestent()); });
 
 void entproperty(int *prop, float *famount, int *unscaled)
 {
-    int n = closestent();
+    int n = closestent(), amount = *prop >= 100 ? -1 : 1;
+    *prop %= 100;
     if(n < 0) return;
     entity &e = ents[n];
     int old_a1 = e.attr1;
     int t = e.type < MAXENTTYPES ? e.type : 0;
-    int amount = int(*famount * (*prop >= 0 && *prop < 7 && !*unscaled ? entscale[t][*prop] : 1));
+    amount *= int(*famount * (*prop >= 0 && *prop < 7 && !*unscaled ? entscale[t][*prop] : 1));
 
     switch(*prop)
     {
