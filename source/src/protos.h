@@ -625,6 +625,7 @@ extern bool worldbordercheck(int x1, int x2, int y1, int y2, int z1, int z2);
 extern bool empty_world(int factor, bool force);
 extern void remip(const block &b, int level = 0);
 extern void remipmore(const block &b, int level = 0);
+extern void remipgenerous(const block &b);
 extern bool pinnedclosestent;
 extern int closestent();
 extern void deletesoundentity(entity &e);

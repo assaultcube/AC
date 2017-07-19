@@ -116,6 +116,16 @@ void remipmore(const block &b, int level)
     remip(bb, level);
 }
 
+void remipgenerous(const block &b)
+{
+    block bb = b;
+    if(bb.x>1) bb.x--;
+    if(bb.y>1) bb.y--;
+    bb.xs = min(ssize - bb.x - 1, bb.xs + 2);
+    bb.ys = min(ssize - bb.y - 1, bb.ys + 2);
+    remip(bb);
+}
+
 static int clentsel = 0, clenttype = NOTUSED, pinnedent = -1;
 bool pinnedclosestent = false, pointingatents = false;
 

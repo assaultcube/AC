@@ -10,7 +10,7 @@ bool editmode = false;
 
 vector<block> sels;
 
-#define loopselxy(sel, b) { makeundo(sel); loop(x,(sel).xs) loop(y,(sel).ys) { sqr *s = S((sel).x+x, (sel).y+y); b; } remip(sel); }
+#define loopselxy(sel, b) { makeundo(sel); loop(x,(sel).xs) loop(y,(sel).ys) { sqr *s = S((sel).x+x, (sel).y+y); b; } remipgenerous(sel); }
 #define loopselsxy(b) { loopv(sels) loopselxy(sels[i], b); }
 
 int cx, cy, ch;
@@ -934,7 +934,6 @@ COMMAND(equalize, "i");
 void setvdeltaxy(int delta, block &sel)
 {
     loopselxy(sel, s->vdelta = max(s->vdelta+delta, 0));
-    remipmore(sel);
 }
 
 void setvdelta(int *delta)
@@ -973,7 +972,6 @@ void archxy(int sidedelta, int *averts, block &sel)
         sel.xs>sel.ys
             ? (averts[x] + (y==0 || y==sel.ys-1 ? sidedelta : 0))
             : (averts[y] + (x==0 || x==sel.xs-1 ? sidedelta : 0)));
-    remipmore(sel);
 }
 
 void arch(int *sidedelta)
@@ -1002,7 +1000,6 @@ void slopexy(int xd, int yd, block &sel)
     sel.xs++;
     sel.ys++;
     loopselxy(sel, s->vdelta = xd * x + yd * y + off);
-    remipmore(sel);
 }
 
 void slope(int *xd, int *yd)
@@ -1022,7 +1019,6 @@ void stairsxy(int xd, int yd, block &sel)
 {
     int off = xd || yd ? 1 : 0, xo = xd < 0 ? 1 - sel.xs : 0, yo = yd < 0 ? 1 - sel.ys : 0;
     loopselxy(sel, s->floor += (xd ? (x + xo) / xd : 0) + (yd ? (y + yo) / yd : 0) + off);
-    remipmore(sel);
 }
 
 void stairs(int *xd, int *yd)
@@ -1051,7 +1047,7 @@ void perlin(int *scale, int *seed, int *psize)
         perlinarea(sel, *scale, *seed, *psize);
         sel.xs++;
         sel.ys++;
-        remipmore(sel);
+        remipgenerous(sel);
         if(!enlargearchslopeselections) { sel.xs--; sel.ys--; }
     }
 }
@@ -1170,7 +1166,7 @@ void selfliprotate(block &sel, int dir)
             for(y = y2; y >= y1; y--) for(x = x1; x <= x2; x++) *S(x,y) = *q++;
             break;
     }
-    remipmore(sel);
+    remipgenerous(sel);
     freeblock(org);
 }
 
@@ -1258,7 +1254,7 @@ void selectionwalk(char *action, char *beginsel, char *endsel)
                 netblockpaste(*b, sel.x, sel.y, true);
                 freeblockp(b);
             }
-            remip(sel);
+            remipgenerous(sel);
         }
         if(*endsel) execute(endsel);
     }
