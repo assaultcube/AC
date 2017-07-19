@@ -590,8 +590,8 @@ void hit(int damage, playerent *d, playerent *at, const vec &vel, int gun, bool 
         {
             defformatstring(hitsnd)("sound %d %d;", S_HITSOUND, SP_HIGHEST);
             addsleep(60, hitsnd);
+            lasthit = lastmillis;
         }
-        lasthit = lastmillis;
     }
 
     if(!m_mp(gamemode)) dodamage(damage, d, at, gun, gib);
