@@ -439,7 +439,7 @@ void renderscores(void *menu, bool init)
 
 #define MAXJPGCOM 65533  // maximum JPEG comment length
 
-void addstr(char *dest, const char *src) { if(strlen(dest) + strlen(src) < MAXJPGCOM) strcat(dest, src); }
+static void addstr(char *&dest, const char *end, const char *src) { size_t l = strlen(src); if(dest + l < end) copystring(dest, src, l + 1), dest += l; }
 
 const char *asciiscores(bool destjpg)
 {
@@ -455,16 +455,17 @@ const char *asciiscores(bool destjpg)
     loopv(players) if(players[i]) scores.add(players[i]);
     scores.sort(scorecmp);
 
-    buf[0] = '\0';
+    copystring(buf, "Comment", MAXJPGCOM);              // include PNG keyword and skip it (which looks like a hack because it is one)
+    char *t = buf + 8, *e = buf + MAXJPGCOM;
     if(destjpg)
     {
         formatstring(text)("AssaultCube Screenshot (%s)\n", asctimestr());
-        addstr(buf, text);
+        addstr(t, e, text);
     }
     if(getclientmap()[0])
     {
         formatstring(text)("\n\"%s\" on map %s", modestr(gamemode, 0), getclientmap());
-        addstr(buf, text);
+        addstr(t, e, text);
     }
     if(multiplayer(NULL))
     {
@@ -474,15 +475,15 @@ const char *asciiscores(bool destjpg)
             string sdesc;
             filtertext(sdesc, s->sdesc, FTXT__SERVDESC | FTXT_NOCOLOR);
             formatstring(text)(", %s:%d %s", s->name, s->port, sdesc);
-            addstr(buf, text);
+            addstr(t, e, text);
         }
     }
     if(destjpg)
-        addstr(buf, "\n");
+        addstr(t, e, "\n");
     else
     {
         formatstring(text)("\n%sfrags deaths cn%s name\n", m_flags ? "flags " : "", m_teammode ? " team" : "");
-        addstr(buf, text);
+        addstr(t, e, text);
     }
     loopv(scores)
     {
@@ -495,7 +496,7 @@ const char *asciiscores(bool destjpg)
         else
             formatstring(text)("%s %4d   %4d %2d%s %s%s\n", m_flags ? flags : "", d->frags, d->deaths, d->clientnum,
                             m_teammode ? team : "", d->name, d->clientrole==CR_ADMIN ? " (admin)" : d==player1 ? " (you)" : "");
-        addstr(buf, text);
+        addstr(t, e, text);
     }
     discscores.sort(discscorecmp);
     loopv(discscores)
@@ -508,15 +509,15 @@ const char *asciiscores(bool destjpg)
             formatstring(text)("%s(disconnected)%s (%s%d/%d)\n", d.name, m_teammode ? team : "", m_flags ? flags : "", d.frags, d.deaths);
         else
             formatstring(text)("%s %4d   %4d --%s %s(disconnected)\n", m_flags ? flags : "", d.frags, d.deaths, m_teammode ? team : "", d.name);
-        addstr(buf, text);
+        addstr(t, e, text);
     }
     if(destjpg)
     {
         extern int minutesremaining;
         formatstring(text)("(%sfrags/deaths), %d minute%s remaining\n", m_flags ? "flags/" : "", minutesremaining, minutesremaining == 1 ? "" : "s");
-        addstr(buf, text);
+        addstr(t, e, text);
     }
-    return buf;
+    return buf + 8;
 }
 
 void consolescores()

@@ -31,10 +31,23 @@
 					<Add option="-s" />
 				</Linker>
 			</Target>
+			<Target title="lib">
+				<Option output="enet_dll" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Compiler>
+					<Add option="-fomit-frame-pointer" />
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
-			<Add option="-DENET_DLL" />
 			<Add directory="include" />
 		</Compiler>
 		<Linker>

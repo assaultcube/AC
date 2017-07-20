@@ -51,6 +51,22 @@ struct APP0infotype
     };
 };
 
+struct APP1infotype
+{
+    WORD marker;
+    WORD length;
+    const char *sig1, *sig2;
+    APP1infotype()
+    {
+        marker = 0xFFE1;
+        length = 46;
+        sig1 = "Exif\0\0MM";
+        sig2 = "\0\x2a\0\0\0\10\0\1\1\x31\0\2\0\0\0\14"
+               "\0\0\0\x1a\0\0\0\0\101\x73\x73\141\165"
+               "\154\164\103\165\142\145";
+    };
+};
+
 struct  SOF0infotype
 {
     WORD marker;
@@ -189,6 +205,7 @@ class jpegenc
         static WORD mask[];
 
         APP0infotype APP0info;
+        APP1infotype APP1info;
         SOF0infotype SOF0info;
         DQTinfotype DQTinfo;
         SOSinfotype SOSinfo;
@@ -198,6 +215,7 @@ class jpegenc
         SBYTE bytepos;
 
         void write_APP0info(void);
+        void write_APP1info(void);
         void write_SOF0info(void);
         void write_DQTinfo(void);
         void set_quant_table(BYTE *basic_table, BYTE scale_factor, BYTE *newtable);
@@ -205,7 +223,7 @@ class jpegenc
         void write_DHTinfo(void);
         void set_DHTinfo(void);
         void write_SOSinfo(void);
-        void write_comment(BYTE *comment);
+        void write_comment(const char *comment);
         void writebits(bitstring bs);
         void compute_Huffman_table(BYTE *nrcodes, BYTE *std_table, bitstring *HT);
         void init_Huffman_tables(void);
@@ -255,7 +273,7 @@ class jpegenc
 
         stream *fp_jpeg_stream;
 
-        int encode(const char *filename, SDL_Surface *image, int jpegquality);
+        int encode(const char *filename, SDL_Surface *image, int jpegquality, const char *comment);
 };
 
 BYTE jpegenc::zigzag[64] = {
@@ -347,11 +365,6 @@ BYTE jpegenc::std_ac_chrominance_values[162] = {
 
 WORD jpegenc::mask[16] = {1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768};
 
-
-//******************************************************************************
-//******************************************************************************
-// Toca: TODO: the following goes into jpegenc.cpp or some other .cpp file
-
 void jpegenc::write_APP0info() //Nothing to overwrite for APP0info
 {
     writeword(APP0info.marker);
@@ -368,6 +381,14 @@ void jpegenc::write_APP0info() //Nothing to overwrite for APP0info
     writeword(APP0info.ydensity);
     writebyte(APP0info.thumbnwidth);
     writebyte(APP0info.thumbnheight);
+}
+
+void jpegenc::write_APP1info()
+{
+    writeword(APP1info.marker);
+    writeword(APP1info.length);
+    loopi(8) writebyte(APP1info.sig1[i]);
+    loopi(APP1info.length - 10) writebyte(APP1info.sig2[i]);
 }
 
 void jpegenc::write_SOF0info()
@@ -500,7 +521,7 @@ void jpegenc::write_SOSinfo() //Nothing to overwrite for SOSinfo
     writebyte(SOSinfo.Bf);
 }
 
-void jpegenc::write_comment(BYTE *comment)
+void jpegenc::write_comment(const char *comment)
 {
     WORD i, length;
     writeword(0xFFFE);
@@ -811,7 +832,7 @@ void jpegenc::main_encoder()
     }
 }
 
-int jpegenc::encode(const char *filename, SDL_Surface *image, int jpegquality)
+int jpegenc::encode(const char *filename, SDL_Surface *image, int jpegquality, const char *comment)
 {
     RGB_buffer = (BYTE *)image->pixels;
     width =  image->w;
@@ -842,7 +863,8 @@ int jpegenc::encode(const char *filename, SDL_Surface *image, int jpegquality)
 
     writeword(0xFFD8);
     write_APP0info();
-    // write_comment("Cris made this JPEG with his own encoder");
+    write_APP1info();
+    if(comment) write_comment(comment);
     write_DQTinfo();
     write_SOF0info();
     write_DHTinfo();

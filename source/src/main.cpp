@@ -175,16 +175,16 @@ void setprocesspriority(bool high)
 
 VARP(pngcompress, 0, 9, 9);
 
-void writepngchunk(stream *f, const char *type, uchar *data = NULL, uint len = 0)
+void writepngchunk(stream *f, const char *type, const void *data = NULL, uint len = 0)
 {
     f->putbig<uint>(len);
     f->write(type, 4);
-    f->write(data, len);
+    if(data) f->write(data, len);
 
     uint crc = crc32(0, Z_NULL, 0);
-    crc = crc32(crc, (const Bytef *)type, 4);
-    if(data) crc = crc32(crc, data, len);
-    f->putbig<uint>(crc);
+    crc = ~crc32(crc, (const Bytef *)type, 4);
+    if(data) loopi(len) enet_crc32_inc(&crc, ((const uchar *)data)[i]);
+    f->putbig<uint>(~crc);
 }
 
 int save_png(const char *filename, SDL_Surface *image)
@@ -194,6 +194,7 @@ int save_png(const char *filename, SDL_Surface *image)
 
     stream *f = openfile(filename, "wb");
     if(!f) { conoutf("could not write to %s", filename); return -1; }
+    const char *scores = asciiscores(true);
 
     uchar signature[] = { 137, 80, 78, 71, 13, 10, 26, 10 };
     f->write(signature, sizeof(signature));
@@ -261,6 +262,8 @@ int save_png(const char *filename, SDL_Surface *image)
     f->seek(0, SEEK_END);
     f->putbig<uint>(crc);
 
+    writepngchunk(f, "tEXt", "\123o\165rc\145\0\101ss\141" "\165\154\164\103\165\142\145", 18);
+    writepngchunk(f, "tEXt", scores - 8, strlen(scores) + 8);
     writepngchunk(f, "IEND");
 
     delete f;
@@ -367,7 +370,7 @@ void mapscreenshot(const char *imagepath, bool mapshot, int fileformat, float sc
         case 1: // jpeg
         {
             jpegenc jpegencoder;
-            jpegencoder.encode(imagepath, image, quality);
+            jpegencoder.encode(imagepath, image, quality, asciiscores(true));
             break;
         }
         case 2: // png
