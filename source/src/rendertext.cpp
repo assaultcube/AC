@@ -14,6 +14,8 @@ VARP(allowblinkingtext, 0, 0, 1); // if you're so inclined
 void newfont(char *name, char *tex, int *defaultw, int *defaulth, int *offsetx, int *offsety, int *offsetw, int *offseth)
 {
     if(*defaulth < 10) return;          // (becomes FONTH)
+    Texture *_tex = textureload(tex);
+    if(_tex == notexture || !_tex->xs || !_tex->ys) return;
     font *f = fonts.access(name);
     if(!f)
     {
@@ -22,7 +24,7 @@ void newfont(char *name, char *tex, int *defaultw, int *defaulth, int *offsetx, 
         f->name = name;
     }
 
-    f->tex = textureload(tex);
+    f->tex = _tex;
     f->chars.shrink(0);
     f->defaultw = *defaultw;
     f->defaulth = *defaulth;
@@ -41,10 +43,12 @@ void fontchar(int *x, int *y, int *w, int *h)
     if(!fontdef) return;
 
     font::charinfo &c = fontdef->chars.add();
-    c.x = *x;
-    c.y = *y;
     c.w = *w ? *w : fontdef->defaultw;
     c.h = *h ? *h : fontdef->defaulth;
+    c.left    = (*x + fontdef->offsetx) / float(fontdef->tex->xs);
+    c.top     = (*y + fontdef->offsety) / float(fontdef->tex->ys);
+    c.right   = (*x + c.w + fontdef->offsetw) / float(fontdef->tex->xs);
+    c.bottom  = (*y + c.h + fontdef->offseth) / float(fontdef->tex->ys);
 }
 COMMAND(fontchar, "iiii");
 
@@ -98,17 +102,12 @@ void draw_textf(const char *fstr, int left, int top, ...)
     draw_text(str, left, top);
 }
 
-int draw_char_contd(font &f, font::charinfo &info, int charcode, int x, int y)
+inline int draw_char_contd(font &f, font::charinfo &info, int charcode, int x, int y)
 {
-    float tc_left    = (info.x + f.offsetx) / float(f.tex->xs);
-    float tc_top     = (info.y + f.offsety) / float(f.tex->ys);
-    float tc_right   = (info.x + info.w + f.offsetw) / float(f.tex->xs);
-    float tc_bottom  = (info.y + info.h + f.offseth) / float(f.tex->ys);
-
-    glTexCoord2f(tc_left,  tc_top   ); glVertex2f(x,          y);
-    glTexCoord2f(tc_right, tc_top   ); glVertex2f(x + info.w, y);
-    glTexCoord2f(tc_right, tc_bottom); glVertex2f(x + info.w, y + info.h);
-    glTexCoord2f(tc_left,  tc_bottom); glVertex2f(x,          y + info.h);
+    glTexCoord2f(info.left,  info.top   ); glVertex2f(x,          y);
+    glTexCoord2f(info.right, info.top   ); glVertex2f(x + info.w, y);
+    glTexCoord2f(info.right, info.bottom); glVertex2f(x + info.w, y + info.h);
+    glTexCoord2f(info.left,  info.bottom); glVertex2f(x,          y + info.h);
 
     xtraverts += 4;
     return info.w;

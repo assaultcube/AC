@@ -29,7 +29,7 @@ struct ident
     } storage;
     union
     {
-        void (*fun)();      // ID_VAR, ID_COMMAND
+        void (*fun)();      // ID_VAR, ID_FVAR, ID_SVAR, ID_COMMAND
         identstack *stack;  // ID_ALIAS
     };
     const char *sig;        // command signature
@@ -40,7 +40,7 @@ struct ident
         char *executing;     // ID_ALIAS
         int defaultval;      // ID_VAR
         float defaultvalf;   // ID_FVAR
-     };
+    };
     short context;          // one of IEXC_* below
     bool persist;           // if true, value gets written to saved.cfg on exit; set to true, if it's an ID_ALIAS and the value gets changed
     bool isconst;           // ID_ALIAS: value may not be overwritten

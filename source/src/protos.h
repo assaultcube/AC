@@ -695,7 +695,8 @@ struct font
 {
     struct charinfo
     {
-        short x, y, w, h;
+        short w, h;
+        float left, right, top, bottom;
     };
 
     char *name;
