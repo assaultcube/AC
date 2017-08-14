@@ -65,7 +65,7 @@
 		B914CEB311CAC42F009BA307 /* rendercubes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B914CE6411CAC42F009BA307 /* rendercubes.cpp */; };
 		B914CEB411CAC42F009BA307 /* rendergl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B914CE6511CAC42F009BA307 /* rendergl.cpp */; };
 		B914CEB511CAC42F009BA307 /* renderhud.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B914CE6611CAC42F009BA307 /* renderhud.cpp */; };
-		B914CEB611CAC42F009BA307 /* rendermodel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B914CE6711CAC42F009BA307 /* rendermodel.cpp */; };
+		B914CEB611CAC42F009BA307 /* rendermodel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B914CE6711CAC42F009BA307 /* rendermodel.cpp */; settings = {COMPILER_FLAGS = "-fno-strict-aliasing"; }; };
 		B914CEB711CAC42F009BA307 /* renderparticles.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B914CE6811CAC42F009BA307 /* renderparticles.cpp */; };
 		B914CEB811CAC42F009BA307 /* rendertext.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B914CE6911CAC42F009BA307 /* rendertext.cpp */; };
 		B914CEB911CAC42F009BA307 /* rndmap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B914CE6A11CAC42F009BA307 /* rndmap.cpp */; };
@@ -319,7 +319,7 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		29B97314FDCFA39411CA2CEA /* sauerbraten */ = {
+		29B97314FDCFA39411CA2CEA /* assaultcube */ = {
 			isa = PBXGroup;
 			children = (
 				080E96DDFE201D6D7F000001 /* Classes */,
@@ -328,7 +328,7 @@
 				29B97323FDCFA39411CA2CEA /* Frameworks */,
 				19C28FACFE9D520D11CA2CBB /* Products */,
 			);
-			name = sauerbraten;
+			name = assaultcube;
 			sourceTree = "<group>";
 		};
 		29B97315FDCFA39411CA2CEA /* Other Sources */ = {
@@ -507,7 +507,7 @@
 			);
 			name = assaultcube;
 			productInstallPath = "$(HOME)/Applications";
-			productName = sauerbraten;
+			productName = assaultcube;
 			productReference = B94198CB09207E810029DAD1 /* assaultcube.app */;
 			productType = "com.apple.product-type.application";
 		};
@@ -534,7 +534,7 @@
 		29B97313FDCFA39411CA2CEA /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0410;
+				LastUpgradeCheck = 0420;
 			};
 			buildConfigurationList = B960CF35085F3CC7004FB142 /* Build configuration list for PBXProject "assaultcube" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -546,7 +546,7 @@
 				French,
 				German,
 			);
-			mainGroup = 29B97314FDCFA39411CA2CEA /* sauerbraten */;
+			mainGroup = 29B97314FDCFA39411CA2CEA /* assaultcube */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -721,6 +721,7 @@
 		B94198C709207E810029DAD1 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_TARGET_1)",
@@ -750,7 +751,6 @@
 					"\"$(SRCROOT)/../lib\"",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.6;
-				MACOSX_DEPLOYMENT_TARGET_i386 = 10.5;
 				OTHER_LDFLAGS = "-lz";
 				PRODUCT_NAME = assaultcube;
 				SDKROOT = macosx;
@@ -761,6 +761,7 @@
 		B94198C809207E810029DAD1 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_TARGET_1)",
@@ -790,7 +791,6 @@
 					"\"$(SRCROOT)/../lib\"",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.6;
-				MACOSX_DEPLOYMENT_TARGET_i386 = 10.5;
 				OTHER_LDFLAGS = "-lz";
 				PRODUCT_NAME = assaultcube;
 				SDKROOT = macosx;
@@ -801,6 +801,7 @@
 		B94198EB09207F510029DAD1 /* Release-Deployment */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEPLOYMENT_POSTPROCESSING = YES;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -835,7 +836,6 @@
 					"\"$(SRCROOT)/../lib\"",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.6;
-				MACOSX_DEPLOYMENT_TARGET_i386 = 10.5;
 				OTHER_LDFLAGS = "-lz";
 				PRODUCT_NAME = assaultcube;
 				SDKROOT = macosx;
@@ -846,13 +846,13 @@
 		B94198EC09207F510029DAD1 /* Release-Deployment */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				COPY_PHASE_STRIP = YES;
 				DEPLOYMENT_POSTPROCESSING = YES;
 				FRAMEWORK_SEARCH_PATHS = "";
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_VERSION = "";
-				MACOSX_DEPLOYMENT_TARGET_i386 = 10.4;
-				MACOSX_DEPLOYMENT_TARGET_ppc = 10.3;
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				SDKROOT = macosx;
 				STRIP_INSTALLED_PRODUCT = YES;
 			};
@@ -861,12 +861,12 @@
 		B960CF36085F3CC7004FB142 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = "$(NATIVE_ARCH_ACTUAL)";
 				COPY_PHASE_STRIP = NO;
 				FRAMEWORK_SEARCH_PATHS = "";
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_VERSION = "";
-				MACOSX_DEPLOYMENT_TARGET_i386 = 10.4;
-				MACOSX_DEPLOYMENT_TARGET_ppc = 10.3;
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
 				STRIP_INSTALLED_PRODUCT = NO;
@@ -876,13 +876,13 @@
 		B960CF37085F3CC7004FB142 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				COPY_PHASE_STRIP = YES;
 				DEPLOYMENT_POSTPROCESSING = YES;
 				FRAMEWORK_SEARCH_PATHS = "";
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_VERSION = "";
-				MACOSX_DEPLOYMENT_TARGET_i386 = 10.4;
-				MACOSX_DEPLOYMENT_TARGET_ppc = 10.3;
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				SDKROOT = macosx;
 				STRIP_INSTALLED_PRODUCT = YES;
 			};
@@ -891,6 +891,8 @@
 		B96D0D50092096F300B6C936 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = "$(NATIVE_ARCH_ACTUAL)";
+				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_MODEL_TUNING = G5;
@@ -900,6 +902,7 @@
 				GCC_VERSION = "";
 				INFOPLIST_FILE = launcher.plist;
 				INSTALL_PATH = "$(USER_APPS_DIR)";
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = (
 					"-framework",
@@ -922,12 +925,15 @@
 		B96D0D51092096F300B6C936 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = YES;
 				DEPLOYMENT_POSTPROCESSING = YES;
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_VERSION = "";
 				INFOPLIST_FILE = launcher.plist;
 				INSTALL_PATH = "$(USER_APPS_DIR)";
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = (
 					"-framework",
@@ -951,12 +957,15 @@
 		B96D0D52092096F300B6C936 /* Release-Deployment */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = YES;
 				DEPLOYMENT_POSTPROCESSING = YES;
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_VERSION = "";
 				INFOPLIST_FILE = launcher.plist;
 				INSTALL_PATH = "$(USER_APPS_DIR)";
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = (
 					"-framework",
