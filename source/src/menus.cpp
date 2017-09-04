@@ -322,15 +322,15 @@ VARP(browsefiledesc, 0, 1, 1);
 
 struct mitemmapload : mitemmanual
 {
-    const char *filename, *maptitle;
+    const char *filename, *mapmessage;
     Texture *image;
 
-    mitemmapload(gmenu *parent, const char *filename, char *text, char *action, char *hoveraction, const char *desc) : mitemmanual(parent, text, action, hoveraction, NULL, desc), filename(filename), maptitle(NULL), image(NULL) {}
+    mitemmapload(gmenu *parent, const char *filename, char *text, char *action, char *hoveraction, const char *desc) : mitemmanual(parent, text, action, hoveraction, NULL, desc), filename(filename), mapmessage(NULL), image(NULL) {}
 
     virtual ~mitemmapload()
     {
         delstring(filename);
-        DELETEA(maptitle);
+        DELETEA(mapmessage);
         DELETEA(text);
         DELETEA(action);
         DELETEA(hoveraction);
@@ -350,28 +350,30 @@ struct mitemmapload : mitemmanual
         draw_text(text, x, y, c, c, c);
         if(isselection())
         {
-            if(!image && !maptitle)
+            if(!image && !mapmessage)
             { // load map description and preview picture
                 silent_texture_load = true;
                 const char *cgzpath = "packages" PATHDIVS "maps";
                 if(browsefiledesc)
-                { // checking maptitles is slow and may be disabled
-                    maptitle = getfiledesc(cgzpath, behindpath(filename), "cgz"); // check for regular map
-                    if(!maptitle) maptitle = getfiledesc((cgzpath = "packages" PATHDIVS "maps" PATHDIVS "official"), behindpath(filename), "cgz"); // check for official map
+                { // checking map messages is slow and may be disabled
+                    mapmessage = getfiledesc(cgzpath, behindpath(filename), "cgz"); // check for regular map
+                    if(!mapmessage) mapmessage = getfiledesc((cgzpath = "packages" PATHDIVS "maps" PATHDIVS "official"), behindpath(filename), "cgz"); // check for official map
                 }
                 defformatstring(p2p)("%s/preview/%s.jpg", cgzpath, filename);
                 if(!hidebigmenuimages) image = textureload(p2p, 3);
                 if(!image || image == notexture) image = textureload("packages/misc/nopreview.jpg", 3);
                 silent_texture_load = false;
             }
+            w += FONTH;
+            int xs = (2 * VIRTW - w - x) / 2, xp = x + w + xs / 2, ym = VIRTH - FONTH/2;
             if(image && !hidebigmenuimages && image->ys > FONTH)
             {
-                w += FONTH;
-                int xs = (2 * VIRTW - w - x) / 2, ys = (xs * image->ys) / image->xs, xp = x + w + xs/2, yp = VIRTH - ys / 2;
+                int ys = (xs * image->ys) / image->xs, yp = VIRTH - ys / 2;
+                ym = yp + ys + 2 * FONTH;
                 framedquadtexture(image->id, xp, yp, xs, ys, FONTH);
                 draw_text(text, xp + xs/2 - text_width(text)/2, yp + ys);
             }
-            if(maptitle && *maptitle) draw_text(maptitle, x / 6, VIRTH - FONTH/2, 0xFF, 0xFF, 0xFF, 0xFF, -1, (x * 3) / 4);
+            if(mapmessage && *mapmessage) draw_text(mapmessage, xp - FONTH, ym, 0xFF, 0xFF, 0xFF, 0xFF, -1, 2 * VIRTW - (xp - FONTH) - FONTH/2);
         }
     }
 };
