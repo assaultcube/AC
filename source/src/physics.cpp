@@ -325,7 +325,7 @@ bool collide(physent *d, bool spawn, float drop, float rise)
         const float spacelo = d->o.z-eyeheight-lo;
         if(spacelo<0)
         {
-            if(spacelo>-0.01)
+            if(spacelo>-0.01 || (spacelo>-0.1 && d==player1 && player1->spectatemode==SM_FLY))
             {
                 d->o.z = lo+eyeheight;   // stick on step
             }
