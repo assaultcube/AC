@@ -582,7 +582,8 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         volatile vec gcco3(pl->o.x, pl->o.y, pl->o.z);  // force capping the o-values to float-representables (avoid player stuck conditions on 32-bit g++ builds)
         pl->o = vec(gcco3.x, gcco3.y, gcco3.z);
         hitplayer = NULL;
-        if(!collide(pl, false, drop, rise)) continue;
+        bool spect3rd = player1->spectatemode > SM_FOLLOW1ST && player1->spectatemode <= SM_FOLLOW3RD_TRANSPARENT;
+        if((pl->type == ENT_CAMERA && pl == camera1 && spect3rd) || !collide(pl, false, drop, rise)) continue;
         int cornersurface1 = cornersurface;
         vec o_trying = pl->o;  // o_trying = o_null + f * d  (= one microstep in desired direction)
         if(!cornersurface1)
