@@ -1121,6 +1121,7 @@ void grenadeent::explode()
     if(local)
         addmsg(SV_EXPLODE, "ri3iv", lastmillis, GUN_GRENADE, millis, hits.length(), hits.length()*sizeof(hitmsg)/sizeof(int), hits.getbuf());
     audiomgr.playsound(S_FEXPLODE, &o);
+    if(((grenades *)owner->weapons[GUN_GRENADE])->state == GST_NONE) owner->weapons[GUN_GRENADE]->reset();
 }
 
 void grenadeent::splash()
@@ -1260,10 +1261,15 @@ void grenades::attackfx(const vec &from, const vec &to, int millis) // other pla
 {
     throwmillis = lastmillis-millis;
     cookingmillis = millis;
-    if(millis == 0 || millis == -1) audiomgr.playsound(S_GRENADEPULL, owner); // activate
+    if(millis == 0 || millis == -1)
+    {
+        state = GST_INHAND;
+        audiomgr.playsound(S_GRENADEPULL, owner); // activate
+    }
     else if(millis > 0) // throw
     {
         grenadeent *g = new grenadeent(owner, millis);
+        state = GST_THROWING;
         bounceents.add(g);
         g->_throw(from, to);
     }
@@ -1271,7 +1277,11 @@ void grenades::attackfx(const vec &from, const vec &to, int millis) // other pla
 
 int grenades::modelanim()
 {
-    if(state == GST_THROWING) return ANIM_GUN_THROW;
+    if(state == GST_THROWING)
+    {
+        if(lastmillis - owner->lastaction >= throwwait) state = GST_NONE;
+        return ANIM_GUN_THROW;
+    }
     else
     {
         int animtime = min(gunwait, (int)info.attackdelay);
