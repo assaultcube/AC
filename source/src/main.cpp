@@ -755,9 +755,6 @@ static inline bool skipmousemotion(SDL_Event &event)
     if(event.type != SDL_MOUSEMOTION) return true;
     if(!(SDL_GetWindowFlags(screen) & SDL_WINDOW_FULLSCREEN))
     {
-        #ifdef __APPLE__
-        if(event.motion.y == 0) return true;  // let mac users drag windows via the title bar
-        #endif
         if(event.motion.x == screenw / 2 && event.motion.y == screenh / 2) return true;  // ignore any motion events generated SDL_WarpMouse
     }
     return false;
