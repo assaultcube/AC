@@ -1680,8 +1680,11 @@ void akimbo::onammopicked()
     akimbomillis = lastmillis + 30000;
     if(owner==player1)
     {
-        // if(owner->weaponsel->type!=GUN_SNIPER && owner->weaponsel->type!=GUN_GRENADE) owner->weaponswitch(this);
-        if(akimboautoswitch || owner->weaponsel->type==GUN_PISTOL) owner->weaponswitch(this); // Give the client full control over akimbo auto-switching // Bukz 2011apr23
+        if(akimboautoswitch || owner->weaponsel->type==GUN_PISTOL)
+        {
+            if(player1->weapons[GUN_GRENADE]->busy()) player1->attacking = false;
+            owner->weaponswitch(this);
+        }
         addmsg(SV_AKIMBO, "ri", lastmillis);
     }
 }
