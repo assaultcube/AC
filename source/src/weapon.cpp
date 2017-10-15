@@ -1764,20 +1764,13 @@ void setscope(bool enable)
 
 COMMANDF(setscope, "i", (int *on) { setscope(*on != 0); });
 
-
 void shoot(playerent *p, vec &targ)
 {
-    if(p->state!=CS_ALIVE || p->weaponchanging) return;
-    weapon *weap = p->weaponsel;
-    if(weap)
-    {
-        weap->attack(targ);
-        loopi(NUMGUNS)
-        {
-            weapon *bweap = p->weapons[i];
-            if(bweap != weap && bweap->busy()) bweap->attack(targ);
-        }
-    }
+    if(p->state!=CS_ALIVE) return;
+    weapon *weap = p->weaponsel, *bweap = p->weapons[GUN_GRENADE];
+    if(bweap->busy()) bweap->attack(targ); // continue ongoing nade action
+    else bweap = NULL;
+    if(weap && !p->weaponchanging && weap != bweap) weap->attack(targ);
 }
 
 void checkakimbo()
