@@ -6,7 +6,7 @@ CUBE_EXEC=assaultcube.sh
 LAUNCHERPATH="${HOME}/.local/share/applications/"
 
 LAUNCHERFILE=assaultcube_dev.desktop
-LAUNCHERTITLE="Assaultcube v1.2dev"
+LAUNCHERTITLE="AssaultCube v1.2dev"
 
 # Remove existing menuitem, if it exists:
 EXISTINGEXEC=`find "${LAUNCHERPATH}" -name "assaultcube*" | xargs`

@@ -5,6 +5,7 @@ Note: changes should be commited.
 I. Documentation ("assaultcube.github.io" repository):
 
 1. Change everywhere number of AC version, date in copyrights info, release notes, uninstall notes, changelog, download page (download links are predicable on GitHub), etc.
+See also https://github.com/assaultcube/assaultcube.github.io/blob/master/README.md - "LIST OF FILES TO CHANGE UPON NEW RELEASES: [...]".
 2. Add release tag (vMAJOR.MINOR.BUILD.REVISION) to the "master" branch in assaultcube.github.io repository.
 3. Synchronise local and remote "master" branches in assaultcube.github.io repository.
 
@@ -20,6 +21,7 @@ II. AssaultCube ("AC" repository - "master" branch):
 8. Change everywhere path to profile to assaultcube/v.MAJOR.MINOR .
 9. Change protocol number, if necessary.
 10. Update changelog.txt file.
-11. Add release tag (vMAJOR.MINOR.BUILD.REVISION) to the "master" branch in AC repository. 
-12. Synchronise local and remote "master" branches in AC repository.
+11. Change links in README.md file.
+12. Add release tag (vMAJOR.MINOR.BUILD.REVISION) to the "master" branch in AC repository.
+13. Synchronise local and remote "master" branches in AC repository.
 

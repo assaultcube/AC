@@ -19,7 +19,7 @@ II. Part 2 - concerns AssaultCube folder purposed to packaging:
 4. Delete the whole source/ folder, but only then, if you prepare .exe, .dmg etc. installer (generally at least for Windows and Mac). DON'T delete it, if compressed archive/package is prepared on Linux, instead of that delete source/doxygen/, source/vcpp/, source/xcode/, source/lib/ folders and source/codeblocks/AssaultCube.cbp file.
 5. Delete config/autoexec.cfg, config/favourites.cfg, config/pcksources.cfg, config/init*.cfg, config/saved*.cfg, config/servervita*.cfg, config/servers.cfg, config/history, clientlog*.txt, packages/maps/*.cgz and .cfg, packages/maps/servermaps/incoming/*.cgz and .cfg, if existent.
 6. Delete contents of screenshots/ folder.
-7. Delete contents of demos/ folder, besides tutorial_demo.dmo, if existent.
+7. Delete contents of demos/ folder except tutorial_demo.dmo, if existent.
 8. Delete for Windows all remaining *.sh files, and for Linux and Mac all remaining *.bat files. Delete the bin_*/ folders that are not needed on the target platform.
 9. Generate checksum file packages/misc/checksums_md5.txt, with use source/dev_tools/generate_md5_checksums.* script (generally at least on Linux).
 10. Package AC (.exe/.tar.bz2/etc.) and name it like AssaultCube_vMAJOR.MINOR.BUILD.REVISION.EXTENSION - on Windows this could be AssaultCube_v1.0.0.0.exe

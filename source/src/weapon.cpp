@@ -876,7 +876,7 @@ void r_accuracy(int h)
         float acc = accuracym[i].shots ? 100.0 * accuracym[i].hits / (float)accuracym[i].shots : 0;
         if(i == GUN_GRENADE || i == GUN_SHOTGUN)
         {
-            formatstring(line)("\f5%5.1f%% (%.1f/%d): \f0%s", acc, accuracym[i].hits, (int)accuracym[i].shots, weapstr(i));
+            formatstring(line)("\f5%5.1f%% (%.1f/%d): \f0%s", acc, accuracym[i].hits, accuracym[i].shots, weapstr(i));
         }
         else
         {
@@ -896,7 +896,7 @@ void accuracyinfo()
         string line;
         if(i == GUN_GRENADE || i == GUN_SHOTGUN)
         {
-            formatstring(line)("\f0%-10s\t\f5 %.1f%% (%.1f/%d)", weapstr(i), acc, accuracym[i].hits, (int)accuracym[i].shots);
+            formatstring(line)("\f0%-10s\t\f5 %.1f%% (%.1f/%d)", weapstr(i), acc, accuracym[i].hits, accuracym[i].shots);
         }
         else
         {
