@@ -2173,11 +2173,16 @@ void addgban(const char *name)
     }
 }
 
+inline void registeraddressban(ENetAddress address, int type)
+{
+    ban b = { address, servmillis+scl.ban_time, type };
+    bans.add(b);
+}
+
 inline void addban(client *cl, int reason, int type)
 {
     if(!cl) return;
-    ban b = { cl->peer->address, servmillis+scl.ban_time, type };
-    bans.add(b);
+    registeraddressban(cl->peer->address, type);
     disconnect_client(cl->clientnum, reason);
 }
 
@@ -2258,7 +2263,7 @@ struct voteinfo
         bool min_time = servmillis - callmillis > 10*1000;
 #define yes_condition ((min_time && stats[VOTE_YES] - stats[VOTE_NO] > 0.34f*total && totalclients > 4) || stats[VOTE_YES] > requiredcount*total)
 #define no_condition (forceend || !valid_client(owner) || stats[VOTE_NO] >= stats[VOTE_YES]+stats[VOTE_NEUTRAL] || adminvote == VOTE_NO)
-#define boot_condition (!boot || (boot && valid_client(num1) && clients[num1]->peer->address.host == host))
+#define boot_condition ((boot != 1) || (valid_client(num1) && clients[num1]->peer->address.host == host))
         if( (yes_condition || admin || adminvote == VOTE_YES) && boot_condition ) end(VOTE_YES);
         else if( no_condition || (min_time && !boot_condition)) end(VOTE_NO);
         else return;
