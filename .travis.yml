@@ -1,8 +1,12 @@
 dist: trusty
 language: cpp
 compiler: clang
+addons:
+  apt:
+    packages:
+    - libsdl2-dev
 before_install: sudo apt-get update
-install: sudo apt-get install clang make automake libsdl2-dev libogg-dev libsdl2-image-dev libopenal-dev libvorbis-dev -y
+install: sudo apt-get install clang make automake libogg-dev libsdl2-image-dev libopenal-dev libvorbis-dev -y
 script: cd source/src && make
 notifications:
   irc:
