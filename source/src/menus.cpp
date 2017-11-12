@@ -754,13 +754,13 @@ struct mitemcheckbox : mitem
         int offs = ((menurighttabwidth - FONTH) * ((msctrl % 41) ? pos : (50 + 50 * sinf(totalmillis / 300.0f + y)))) / 100;
         int c = greyedout ? 128 : 255;
 
-        draw_text(text, x, y, c, c, c);
         if(sel)
         {
             renderbg(x, y, w-boxsize-offs-FONTH/2, menuseldescbgcolor);
             renderbg(x+w-boxsize-offs, y, boxsize, menuselbgcolor);
             if(offs > FONTH/2) renderbg(x+w-offs+FONTH/2, y, offs-FONTH/2, menuseldescbgcolor);
         }
+        draw_text(text, x, y, c, c, c);
         x -= offs;
         blendbox(x+w-boxsize, y, x+w, y+boxsize, false, -1, &gray);
         color *col = greyedout ? &gray : (sel ? &whitepulse : &white);
