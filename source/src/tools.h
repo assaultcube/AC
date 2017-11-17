@@ -55,9 +55,19 @@ static inline T max(T a, T b)
     return a > b ? a : b;
 }
 template<class T>
+static inline T max(T a, T b, T c, T d)
+{
+    return max(a, max(b, max(c, d)));
+}
+template<class T>
 static inline T min(T a, T b)
 {
     return a < b ? a : b;
+}
+template<class T>
+static inline T min(T a, T b, T c, T d)
+{
+    return min(a, min(b, min(c, d)));
 }
 template <typename T> inline T pow2(T x) { return x*x; }
 inline int iabs(int n) { return labs(n); }

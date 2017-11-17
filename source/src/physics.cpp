@@ -207,6 +207,39 @@ bool objcollide(physent *d, const vec &objpos, float objrad, float objheight) //
     return false;
 }
 
+// Interpolate the vdelta at the exact given point using the
+// corner vdeltas of the cube containing it
+
+float interpolated_vdelta(float x, float y)
+{
+    float xoff = x - floor(x), yoff = y - floor(y);
+    int sx = int(x);
+    int sy = int(y);
+    float htop = S(sx,sy)->vdelta * (1.0f - xoff) + S(sx+1,sy)->vdelta * xoff;
+    float hbot = S(sx, sy+1)->vdelta * (1.0f - xoff) + S(sx+1,sy+1)->vdelta * xoff;
+    float vavg = htop * (1.0f - yoff) + hbot * yoff;
+    ASSERT(vavg >= 0.0f);
+    return vavg * 0.25f;
+}
+
+
+void updatehfhilo(float x, float y, float &hi, float &lo)
+{
+    sqr const *s = S(int(x), int(y));
+    if(s->type != FHF && s->type != CHF) return;
+    float vdelta = interpolated_vdelta(x, y);
+    if(s->type == FHF)
+    {
+        float floor = s->floor - vdelta;
+        if(floor>lo) lo = floor;
+    }
+    else if(s->type == CHF)
+    {
+        float ceil = s->ceil + vdelta;
+        if(ceil<hi) hi = ceil;
+    }
+}
+
 // all collision happens here
 // spawn is a dirty side effect used in spawning
 // drop & rise are supplied by the physics below to indicate gravity/push for current mini-timestep
@@ -229,11 +262,13 @@ bool collide(physent *d, bool spawn, float drop, float rise)
     if(d->type != ENT_BOUNCE) z1 += 1.26;
     const int applyclip = d->type == ENT_BOT || d->type == ENT_PLAYER || (d->type == ENT_BOUNCE && ((bounceent *)d)->plclipped) ? TAGANYCLIP : TAGCLIP;
 
+    bool heightfieldcheck = false;
     for(int y = y1; y<=y2; y++) for(int x = x1; x<=x2; x++)     // collide with map
     {
         if(OUTBORD(x,y)) return true;
         sqr *s = S(x,y);
         bool tagclipped = (s->tag & applyclip) != 0;
+        bool inside = x >= fx1 && y >= fy1; // *s is 100% inside the entity rect
         float ceil = s->ceil;
         float floor = s->floor;
         switch(s->type)
@@ -283,22 +318,52 @@ bool collide(physent *d, bool spawn, float drop, float rise)
                 cornersurface = 0;
                 break;
             }
-
-            case FHF:       // FIXME: too simplistic collision with slopes, makes it feels like tiny stairs
-                floor -= (s->vdelta+S(x+1,y)->vdelta+S(x,y+1)->vdelta+S(x+1,y+1)->vdelta)/16.0f;
-                break;
-
+            case FHF:
             case CHF:
-                ceil += (s->vdelta+S(x+1,y)->vdelta+S(x,y+1)->vdelta+S(x+1,y+1)->vdelta)/16.0f;
-
+                heightfieldcheck = true;
+                if(inside)
+                {
+                    // The cube being tested is completely inside the entity rect
+                    ASSERT(x <= fx2);
+                    ASSERT(y <= fy2);
+                    float delta = 0.25f * max(S(x,y)->vdelta, S(x,y+1)->vdelta, S(x+1,y)->vdelta, S(x+1,y+1)->vdelta);
+                    if(s->type == FHF) floor -= delta;
+                    else ceil += delta;
+                }
         }
         if(tagclipped) return true; // tagged clips feel like solids
-        if(ceil<hi) hi = ceil;
-        if(floor>lo) lo = floor;
+        if((inside || s->type != CHF) && ceil<hi) hi = ceil;
+        if((inside || s->type != FHF) && floor>lo) lo = floor;
+    }
+    
+    if(heightfieldcheck)
+    { 
+        // Update hi & lo using interpolated vdeltas at the edges
+        // of the entity bounding rect for smooth slopes
+        
+        // Check the corners of the entity collision rect
+        updatehfhilo(fx1, fy1, hi, lo);
+        updatehfhilo(fx1, fy2, hi, lo);
+        updatehfhilo(fx2, fy1, hi, lo);
+        updatehfhilo(fx2, fy2, hi, lo);
+        
+        // Check along the top & bottom sides of the entity rect
+        for(int x = x1 + 1; x < x2; ++x)
+        {
+            updatehfhilo(x, fy1, hi, lo);
+            updatehfhilo(x, fy2, hi, lo);
+        }
+        
+        // Check along the left & right sides of the entity rect
+        for(int y = y1 + 1; y < y2; ++y)
+        {
+            updatehfhilo(fx1, y, hi, lo);
+            updatehfhilo(fx2, y, hi, lo);
+        }
     }
 
     if(hi - lo < playerheight) return true;
-
+    
     float headspace = 10.0f;
 
     if(d->type!=ENT_CAMERA)
