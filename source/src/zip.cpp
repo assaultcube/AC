@@ -421,7 +421,7 @@ static void mountzip(ziparchive &arch, const char *mountdir, const char *stripdi
 #if defined(_DEBUG) && !defined(STANDALONE)
             clientlogf("mountzip: ignored file %s from zip %s", fname, arch.name);
 #endif
-            arch.files.remove(i--).~zipfile();
+            DELSTRING(zf->fullname);
         }
         else path(zf->fullname);
     }
@@ -436,7 +436,7 @@ static void rebuildzipfilehashtable()
         loopvj(arch->files)
         {
             zipfile *zf = &arch->files[j];
-            zipfiles.access(zf->fullname, zf);
+            if(zf->fullname) zipfiles.access(zf->fullname, zf);
         }
     }
 }
