@@ -27,12 +27,12 @@
             StrCmp $1 "" found
             IntOp $3 $3 + 1
             Goto loop
- 
+
         found:
             StrCpy $1 $0 $3
             StrCmp $2 " " +2
             StrCpy $1 '$1"'
- 
+
         Pop $0
         Exec '$1 $0'
         Pop $1
@@ -56,7 +56,6 @@ SetCompressor /SOLID lzma
 !define AC_FULLVERSION "v${AC_FULLVERSIONINT}"
 !define AC_SHORTNAME "AssaultCube"
 !define AC_FULLNAME "AssaultCube ${AC_FULLVERSION}"
-!define AC_FULLNAMESAVE "AssaultCube_${AC_FULLVERSION}"
 !define AC_URLPROTOCOL "assaultcube"
 !define AC_MAJORVERSIONINT 1
 !define AC_MINORVERSIONINT 2
@@ -64,8 +63,9 @@ SetCompressor /SOLID lzma
 ; path to profile folder in "MYDOCUMENTS" directory, should be the same as in assaultcube.bat
 !define AC_PROFILEPATH "My Games\AssaultCube\v${AC_MAJORVERSIONINT}.${AC_MINORVERSIONINT}"
 
-Name "AssaultCube"
+Name "${AC_SHORTNAME}"
 VAR StartMenuFolder
+!define AC_STARTMENUFOLDER "$SMPROGRAMS\$StartMenuFolder"
 OutFile "AssaultCube_${AC_FULLVERSION}.exe"
 InstallDir "$PROGRAMFILES\${AC_SHORTNAME}"
 InstallDirRegKey HKLM "Software\${AC_SHORTNAME}" ""
@@ -425,21 +425,21 @@ Section "AssaultCube ${AC_FULLVERSION}" AC
     WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "NoRepair" 1
 
     WriteUninstaller "$INSTDIR\Uninstall.exe"
-    
+
 
     ; create shortcuts
-    
+
     !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
-       
+
         SetShellVarContext current
         StrCpy $0 $DOCUMENTS
         SetShellVarContext all
 
-        CreateDirectory "$SMPROGRAMS\$StartMenuFolder"
-        CreateShortCut "$SMPROGRAMS\$StartMenuFolder\${AC_SHORTNAME}.lnk" "$INSTDIR\assaultcube.bat" "" "$INSTDIR\docs\images\favicon.ico" 0 SW_SHOWMINIMIZED
-        CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\docs\images\favicon.ico" 0
-        CreateShortCut "$SMPROGRAMS\$StartMenuFolder\README.lnk" "$INSTDIR\README.html" "" "" 0
-        CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Profile folder.lnk" "$0\${AC_PROFILEPATH}"
+        CreateDirectory "${AC_STARTMENUFOLDER}"
+        CreateShortCut "${AC_STARTMENUFOLDER}\${AC_SHORTNAME}.lnk" "$INSTDIR\assaultcube.bat" "" "$INSTDIR\docs\images\favicon.ico" 0 SW_SHOWMINIMIZED
+        CreateShortCut "${AC_STARTMENUFOLDER}\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\docs\images\favicon.ico" 0
+        CreateShortCut "${AC_STARTMENUFOLDER}\README.lnk" "$INSTDIR\README.html" "" "" 0
+        CreateShortCut "${AC_STARTMENUFOLDER}\Profile folder.lnk" "$0\${AC_PROFILEPATH}"
 
     !insertmacro MUI_STARTMENU_WRITE_END
 
@@ -470,7 +470,7 @@ Section "Register URL protocol" REGISTERURL
 SectionEnd
 
 Section "Uninstall"
-  
+
     SetShellVarContext all
 
     ; delete installation directory
@@ -499,22 +499,22 @@ Section "Uninstall"
 
     ; delete shortcuts
 
-    Delete "$DESKTOP\AssaultCube.lnk"
-    
+    Delete "$DESKTOP\${AC_SHORTNAME}.lnk"
+
     !insertmacro MUI_STARTMENU_GETFOLDER Application $StartMenuFolder 
-    
-    Delete "$SMPROGRAMS\$StartMenuFolder\${AC_SHORTNAME}.lnk"
-    Delete "$SMPROGRAMS\$StartMenuFolder\Uninstall.lnk"
-    Delete "$SMPROGRAMS\$StartMenuFolder\README.lnk"
-    Delete "$SMPROGRAMS\$StartMenuFolder\Profile folder.lnk"
-    RMDir  "$SMPROGRAMS\$StartMenuFolder"
-    
+
+    Delete "${AC_STARTMENUFOLDER}\${AC_SHORTNAME}.lnk"
+    Delete "${AC_STARTMENUFOLDER}\Uninstall.lnk"
+    Delete "${AC_STARTMENUFOLDER}\README.lnk"
+    Delete "${AC_STARTMENUFOLDER}\Profile folder.lnk"
+    RMDir  "${AC_STARTMENUFOLDER}"
+
     ; delete reg keys
-    
+
     DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}"
     DeleteRegKey HKLM "SOFTWARE\${AC_SHORTNAME}"
     DeleteRegKey HKCR "${AC_URLPROTOCOL}"
-    
+
 SectionEnd
 
 

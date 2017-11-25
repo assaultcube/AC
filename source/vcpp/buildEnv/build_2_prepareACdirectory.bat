@@ -6,7 +6,8 @@ echo make sure, that you compiled new binaries in %ACDIRTESTING% folder, tested 
 pause
 
 rem copy binaries
-copy /Y %ACDIRTESTING%\bin_win32\ac_* %ACDIR%\bin_win32\
+copy /Y %ACDIRTESTING%\bin_win32\ac_client.exe %ACDIR%\bin_win32\
+copy /Y %ACDIRTESTING%\bin_win32\ac_server.exe %ACDIR%\bin_win32\
 
 rem copy mapmodelattributes.cfg
 copy /Y %ACDIRTESTING%\profile\config\mapmodelattributes.cfg %ACDIR%\config\

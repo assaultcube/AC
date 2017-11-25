@@ -13,7 +13,7 @@ del tmpFile
 
 rem get AC files from latest local release tag
 cd ..\..\..\
-git archive --format zip --output source\vcpp\buildEnv\%ACDIR%\%NEWACTAG%.zip experimental
+git archive --format zip --output source\vcpp\buildEnv\%ACDIR%\%NEWACTAG%.zip %NEWACTAG%
 cd source\vcpp\buildEnv\%ACDIR%
 7z x %NEWACTAG%.zip
 7z x %NEWACTAG%.zip -o..\%ACDIRTESTING%
