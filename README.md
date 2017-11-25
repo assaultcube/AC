@@ -10,6 +10,10 @@ connection. It's tiny too, weighing in at a lightweight about 50 MB package
 available for [Windows](https://github.com/assaultcube/AC/releases/download/v1.2.0.2/AssaultCube_v1.2.0.2.exe), [Mac](https://github.com/assaultcube/AC/releases/download/v1.2.0.2/AssaultCube_v1.2.0.2.dmg) and [Linux](https://github.com/assaultcube/AC/releases/download/v1.2.0.2/AssaultCube_v1.2.0.2.tar.bz2). On the correct settings, it can even run
 on old hardware (Pentium III and above).
 
+**Important information for Windows 10 users:**
+if you experience a mouse glitch (random camera movement), you can use the experimental [hotfix for AssaultCube 1.2.0.2 on Windows 10](https://github.com/assaultcube/AC/releases/download/v1.2.0.2/AssaultCube_v1.2.0.2_experimental_win10_hotfix_1.exe).
+Note: the hotfix **SHOULD NOT** be used to competitive play and mapping - see [known issues](https://assault.cubers.net/docs/knownissues.html).
+
 ## Features in a nutshell:
 
  * It's **FREE**.

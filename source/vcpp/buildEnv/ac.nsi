@@ -52,9 +52,9 @@
 SetCompressor /SOLID lzma
 
 !define CURPATH ".\" ; must include the installer graphics and the AC_NEWVERSIONDIR directory
-!define AC_FULLVERSIONINT "1.2.0.2"
+!define AC_FULLVERSIONINT "1.2.0.2_hotfix1"
 !define AC_FULLVERSION "v${AC_FULLVERSIONINT}"
-!define AC_SHORTNAME "AssaultCube"
+!define AC_SHORTNAME "AssaultCube ${AC_FULLVERSIONINT}"
 !define AC_FULLNAME "AssaultCube ${AC_FULLVERSION}"
 !define AC_URLPROTOCOL "assaultcube"
 !define AC_MAJORVERSIONINT 1
@@ -66,7 +66,7 @@ SetCompressor /SOLID lzma
 Name "${AC_SHORTNAME}"
 VAR StartMenuFolder
 !define AC_STARTMENUFOLDER "$SMPROGRAMS\$StartMenuFolder"
-OutFile "AssaultCube_${AC_FULLVERSION}.exe"
+OutFile "AssaultCube_v1.2.0.2_experimental_win10_hotfix_1.exe"
 InstallDir "$PROGRAMFILES\${AC_SHORTNAME}"
 InstallDirRegKey HKLM "Software\${AC_SHORTNAME}" ""
 RequestExecutionLevel admin ; require admin in Vista/7

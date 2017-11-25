@@ -790,7 +790,7 @@ static void checkmousemotion(int &dx, int &dy)
 int ignoremouse = 5, bootstrapentropy = 2;
 #define EVENTDEBUG(x) x
 //#define EVENTDEBUG(x)
-EVENTDEBUG(VAR(debugevents, 0, 1, 2));
+EVENTDEBUG(VAR(debugevents, 0, 0, 2));
 
 void checkinput()
 {

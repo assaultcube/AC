@@ -27,6 +27,10 @@ void neterr(const char *s)
 
 VARP(autogetmap, 0, 1, 1); // only if the client doesn't have that map
 VARP(autogetnewmaprevisions, 0, 1, 1);
+VAR(disconnectonmaperror, 0, 1, 1);
+
+extern bool incompatiblemap;
+extern void trydisconnect();
 
 bool localwrongmap = false;
 int MA = 0, Hhits = 0; // flowtron: moved here
@@ -42,6 +46,7 @@ bool changemapserv(char *name, int mode, int download, int revision)        // f
     }
     else if(player1->state==CS_EDITING) { /*conoutf("SANITY drop from EDITING");*/ toggleedit(true); } // fix stuck-in-editmode bug
     bool loaded = load_world(name) >= 0;
+    if(disconnectonmaperror && incompatiblemap && multiplayer(NULL)) trydisconnect();
     if(download > 0)
     {
         bool revmatch = hdr.maprevision == revision || revision == 0;
