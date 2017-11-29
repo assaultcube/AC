@@ -626,10 +626,7 @@ GLuint reflecttex = 0, refracttex = 0;
 int reflectlastsize = 0;
 
 VARP(reflectsize, 6, 8, 10);
-// FIXME The bug: HUD (equipment icons etc.) reflects on the water surface.
-// Therefore previous default value of reflectlip was changed from 3 to 1, in order to minimalize this negative effect.
-// Restore it, when the bug will be fixed.
-VAR(reflectclip, 0, 1, 100);
+VAR(reflectclip, 0, 3, 100);
 VARP(waterreflect, 0, 1, 1);
 VARP(waterrefract, 0, 0, 1);
 VAR(reflectscissor, 0, 1, 1);
@@ -674,6 +671,8 @@ void drawreflection(float hf, int w, int h, float changelod, bool refract)
         glScissor(sx, sy, sw, sh);
         glEnable(GL_SCISSOR_TEST);
     }
+    
+    glClear(GL_COLOR_BUFFER_BIT); // Fix HUD components appearing in reflection
 
     resetcubes();
 
