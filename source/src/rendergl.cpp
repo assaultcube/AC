@@ -674,6 +674,8 @@ void drawreflection(float hf, int w, int h, float changelod, bool refract)
         glScissor(sx, sy, sw, sh);
         glEnable(GL_SCISSOR_TEST);
     }
+    
+    glClear(GL_COLOR_BUFFER_BIT); // Fix HUD components appearing in reflection
 
     resetcubes();
 
