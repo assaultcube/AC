@@ -666,8 +666,6 @@ void drawreflection(float hf, int w, int h, float changelod, bool refract)
         glEnable(GL_SCISSOR_TEST);
     }
     
-    glClear(GL_COLOR_BUFFER_BIT); // Fix HUD components appearing in reflection
-
     resetcubes();
 
     render_world(camera1->o.x, camera1->o.y, refract ? camera1->o.z : hf, changelod,
@@ -677,7 +675,7 @@ void drawreflection(float hf, int w, int h, float changelod, bool refract)
 
     if(!refract) glCullFace(GL_BACK);
     glViewport(0, 0, size, size);
-    glClear(GL_DEPTH_BUFFER_BIT);
+    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
     glEnable(GL_TEXTURE_2D);
 
