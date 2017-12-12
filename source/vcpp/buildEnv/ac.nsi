@@ -72,7 +72,7 @@ InstallDirRegKey HKLM "Software\${AC_SHORTNAME}" ""
 RequestExecutionLevel admin ; require admin in Vista/7
 
 Function LeaveDirectory
-  IfFileExists $INSTDIR\Uninstall.exe 0 true
+  IfFileExists $INSTDIR\assaultcube.bat 0 true
     MessageBox MB_YESNO|MB_ICONQUESTION \
     "The directory $INSTDIR already exists. \
     $\nPrevious AssaultCube version in this directory will be uninstalled, if you will install there new version. \
@@ -80,7 +80,7 @@ Function LeaveDirectory
     IDYES true IDNO false
   true:
     ClearErrors
-    ExecWait '$INSTDIR\Uninstall.exe /S'
+    ExecWait '$INSTDIR\Uninstall.exe /S _?=$INSTDIR' ; wait until previous AC installation will be uninstalled
     Goto next
   false:
     Abort
