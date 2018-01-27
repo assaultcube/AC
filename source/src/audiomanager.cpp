@@ -365,7 +365,7 @@ void audiomanager::updateplayerfootsteps(playerent *p)
         {
             // play
             float rndoffset = float(rnd(500))/500.0f;
-            audiomgr._playsound(stepsound, ref, local ? SP_HIGH : SP_LOW, rndoffset);
+            _playsound(stepsound, ref, local ? SP_HIGH : SP_LOW, rndoffset);
         }
     }
 }
