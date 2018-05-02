@@ -1,5 +1,6 @@
 !include MUI.nsh
 !include Sections.nsh
+!include FileFunc.nsh
 
 ## TOOLS
 
@@ -55,7 +56,7 @@ SetCompressor /SOLID lzma
 !define AC_FULLVERSIONINT "1.2.0.2"
 !define AC_FULLVERSION "v${AC_FULLVERSIONINT}"
 !define AC_SHORTNAME "AssaultCube"
-!define AC_FULLNAME "AssaultCube ${AC_FULLVERSION}"
+!define AC_FULLNAME "AssaultCube ${AC_FULLVERSIONINT}"
 !define AC_URLPROTOCOL "assaultcube"
 !define AC_MAJORVERSIONINT 1
 !define AC_MINORVERSIONINT 2
@@ -69,14 +70,25 @@ VAR StartMenuFolder
 OutFile "AssaultCube_${AC_FULLVERSION}.exe"
 InstallDir "$PROGRAMFILES\${AC_SHORTNAME}"
 InstallDirRegKey HKLM "Software\${AC_SHORTNAME}" ""
+!define ARP "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}"
 RequestExecutionLevel admin ; require admin in Vista/7
+
+; Variables
+Var EstimatedSize
+Var Day
+Var Month
+Var Year
+Var DoW
+Var Hour
+Var Minute
+Var Second
 
 Function LeaveDirectory
   IfFileExists $INSTDIR\assaultcube.bat 0 true
     MessageBox MB_YESNO|MB_ICONQUESTION \
-    "The directory $INSTDIR already exists. \
-    $\nPrevious AssaultCube version in this directory will be uninstalled, if you will install there new version. \
-    $\n$\nDo you want to continue? Press 'No' to install AssaultCube in different directory." \
+    "The folder $INSTDIR already exists. \
+    $\nThe previous AssaultCube version in this folder will be uninstalled if you install the new version here. \
+    $\n$\nDo you want to continue? Click 'No' to install AssaultCube in a different folder." \
     IDYES true IDNO false
   true:
     ClearErrors
@@ -343,7 +355,7 @@ Function WelcomePage
 
     SendMessage $HEADLINE ${WM_SETFONT} $HEADLINE_FONT 0
 
-    nsDialogs::CreateControl /NOUNLOAD STATIC ${WS_VISIBLE}|${WS_CHILD}|${WS_CLIPSIBLINGS} 0 120u 32u -130u -32u "This wizard will guide you through the installation of AssaultCube.$\r$\n$\r$\nIt is recommended that you close all other applications before starting Setup. This will make it possible to update relevant system files without having to reboot your computer.$\r$\n$\r$\nClick next to continue."
+    nsDialogs::CreateControl /NOUNLOAD STATIC ${WS_VISIBLE}|${WS_CHILD}|${WS_CLIPSIBLINGS} 0 120u 32u -130u -32u "This wizard will guide you through the installation of AssaultCube ${AC_FULLVERSIONINT}.$\r$\n$\r$\nClick Next to continue."
     Pop $TEXT
 
     SetCtlColors $DIALOG "" 0xffffff
@@ -400,7 +412,7 @@ FunctionEnd
 
 ; Installer Sections
 
-Section "AssaultCube ${AC_FULLVERSION}" AC
+Section "AssaultCube ${AC_FULLVERSIONINT}" AC
 
     SectionIn RO
 
@@ -411,18 +423,28 @@ Section "AssaultCube ${AC_FULLVERSION}" AC
     WriteRegStr HKLM "Software\${AC_SHORTNAME}" "" $INSTDIR
     WriteRegStr HKLM "Software\${AC_SHORTNAME}" "version" ${AC_FULLVERSIONINT}
 
+    ; Determine installed size (will include all files, even user placed in $INSTDIR!)
+    ${GetSize} "$INSTDIR" "/S=0K" $0 $1 $2
+    IntFmt $EstimatedSize "0x%08X" $0
+
+    ${GetTime} "" "LS" $Day $Month $Year $DoW $Hour $Minute $Second
+
     ; Create uninstaller
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "DisplayName" "${AC_FULLNAME}"
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "UninstallString" '"$INSTDIR\Uninstall.exe"'
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "DisplayIcon" '"$INSTDIR\docs\images\favicon.ico"'
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "HelpLink" "$INSTDIR\README.html"
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "URLInfoAbout" "http://assault.cubers.net"
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "URLUpdateInfo" "http://assault.cubers.net/download.html"
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "DisplayVersion" "${AC_FULLVERSIONINT}"
-    WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "VersionMajor" ${AC_MAJORVERSIONINT}
-    WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "VersionMinor" ${AC_MINORVERSIONINT}
-    WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "NoModify" 1
-    WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "NoRepair" 1
+    WriteRegStr HKLM "${ARP}" "DisplayName" "${AC_FULLNAME}"
+    WriteRegStr HKLM "${ARP}" "Publisher" "Rabid Viper Productions"
+    WriteRegStr HKLM "${ARP}" "InstallDate" "$Year$Month$Day"
+    WriteRegStr HKLM "${ARP}" "InstallLocation" "$INSTDIR"
+    WriteRegStr HKLM "${ARP}" "UninstallString" "$INSTDIR\Uninstall.exe"
+    WriteRegStr HKLM "${ARP}" "DisplayIcon" "$INSTDIR\docs\images\favicon.ico"
+    WriteRegStr HKLM "${ARP}" "HelpLink" "$INSTDIR\README.html"
+    WriteRegStr HKLM "${ARP}" "URLInfoAbout" "http://assault.cubers.net"
+    WriteRegStr HKLM "${ARP}" "URLUpdateInfo" "http://assault.cubers.net/download.html"
+    WriteRegStr HKLM "${ARP}" "DisplayVersion" "${AC_FULLVERSIONINT}"
+    WriteRegDWORD HKLM "${ARP}" "EstimatedSize" "$EstimatedSize"
+    WriteRegDWORD HKLM "${ARP}" "VersionMajor" ${AC_MAJORVERSIONINT}
+    WriteRegDWORD HKLM "${ARP}" "VersionMinor" ${AC_MINORVERSIONINT}
+    WriteRegDWORD HKLM "${ARP}" "NoModify" 1
+    WriteRegDWORD HKLM "${ARP}" "NoRepair" 1
 
     WriteUninstaller "$INSTDIR\Uninstall.exe"
 
@@ -488,6 +510,7 @@ Section "Uninstall"
     RMDir "$INSTDIR\mods"
     RMDir /r "$INSTDIR\packages"
     RMDir "$INSTDIR\screenshots"
+    RMDir /r "$INSTDIR\scripts"
     Delete "$INSTDIR\assaultcube*.bat"
     Delete "$INSTDIR\changelog.txt"
     Delete "$INSTDIR\README*"
@@ -511,7 +534,7 @@ Section "Uninstall"
 
     ; delete reg keys
 
-    DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}"
+    DeleteRegKey HKLM "${ARP}"
     DeleteRegKey HKLM "SOFTWARE\${AC_SHORTNAME}"
     DeleteRegKey HKCR "${AC_URLPROTOCOL}"
 

@@ -1,5 +1,6 @@
 !include MUI.nsh
 !include Sections.nsh
+!include FileFunc.nsh
 
 ## TOOLS
 
@@ -46,20 +47,32 @@ FunctionEnd
 
 SetCompressor /SOLID lzma
 
-!define CURPATH ".\" ; CHANGE ME
-!define AC_FULLVERSION "v1.2.0.2"
+!define CURPATH ".\" ; must include the installer graphics and the AC_NEWPATCHDIR directory
 !define AC_FULLVERSIONINT "1.2.0.2"
+!define AC_FULLVERSION "v${AC_FULLVERSIONINT}"
 !define AC_SHORTNAME "AssaultCube"
-!define AC_FULLNAME "AssaultCube v1.2.0.2"
-!define AC_FULLNAMESAVE "AssaultCube_v1.2.0.2"
+!define AC_FULLNAME "AssaultCube ${AC_FULLVERSIONINT}"
+!define AC_FULLNAMESAVE "AssaultCube_${AC_FULLVERSION}"
 !define AC_MAJORVERSIONINT 1
 !define AC_MINORVERSIONINT 2
+!define AC_NEWPATCHDIR "AC_patch" ; directory with prepared new AC patch
 
-Name "AssaultCube"
+Name "${AC_SHORTNAME}"
 OutFile "AssaultCube_${AC_FULLVERSION}-Update.exe"
 InstallDir "$PROGRAMFILES\${AC_SHORTNAME}"
 InstallDirRegKey HKLM "Software\${AC_SHORTNAME}" ""
+!define ARP "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}"
 RequestExecutionLevel admin  ; require admin in Vista/7
+
+; Variables
+Var EstimatedSize
+Var Day
+Var Month
+Var Year
+Var DoW
+Var Hour
+Var Minute
+Var Second
 
 ; Interface Configuration
 
@@ -70,9 +83,7 @@ RequestExecutionLevel admin  ; require admin in Vista/7
 
 XPStyle on
 Icon "${CURPATH}\icon.ico"
-UninstallIcon "${CURPATH}\icon.ico"
 !define MUI_ICON "${CURPATH}\icon.ico"
-!define MUI_UNICON "${CURPATH}\icon.ico"
 
 ; Pages
 
@@ -83,11 +94,7 @@ Page custom WelcomePage
 !insertmacro MUI_PAGE_INSTFILES
 Page custom FinishPage
 
-!insertmacro MUI_UNPAGE_CONFIRM
-!insertmacro MUI_UNPAGE_INSTFILES
-
 !insertmacro MUI_LANGUAGE "English"
-
 
 ; Custom Welcome Page
 
@@ -290,7 +297,7 @@ Function WelcomePage
 
 	SendMessage $HEADLINE ${WM_SETFONT} $HEADLINE_FONT 0
 
-	nsDialogs::CreateControl /NOUNLOAD STATIC ${WS_VISIBLE}|${WS_CHILD}|${WS_CLIPSIBLINGS} 0 120u 32u -130u -32u "This wizard will guide you through the update of AssaultCube.$\r$\n$\r$\nIt is recommended that you close all other applications before starting Setup. This will make it possible to update relevant system files without having to reboot your computer.$\r$\n$\r$\nClick next to continue."
+	nsDialogs::CreateControl /NOUNLOAD STATIC ${WS_VISIBLE}|${WS_CHILD}|${WS_CLIPSIBLINGS} 0 120u 32u -130u -32u "This wizard will guide you through the update of AssaultCube ${AC_FULLVERSIONINT}.$\r$\n$\r$\nClick Next to continue."
 	Pop $TEXT
 
 	SetCtlColors $DIALOG "" 0xffffff
@@ -315,6 +322,11 @@ Function WelcomePage
 	Quit
 	success:
 
+    ClearErrors
+    ReadRegStr $0 HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "InstallLocation"
+    ${IfNot} ${Errors}
+      StrCpy $INSTDIR $0
+    ${EndIf}
 
 FunctionEnd
 
@@ -356,15 +368,23 @@ FunctionEnd
 
 ; Installer Sections
 
-Section "AssaultCube ${AC_FULLVERSION} Update" PATCH
+Section "AssaultCube ${AC_FULLVERSIONINT} Update" PATCH
 
     SectionIn RO
-    
-    WriteRegStr HKLM "Software\${AC_SHORTNAME}" "version" ${AC_FULLVERSIONINT}
 
     SetOutPath "$INSTDIR"
 
-    File /r AC_patch\*.*
+    File /r "${AC_NEWPATCHDIR}\*.*"
+
+    ; Determine installed size (will include all files, even user placed in $INSTDIR!)
+    ${GetSize} "$INSTDIR" "/S=0K" $0 $1 $2
+    IntFmt $EstimatedSize "0x%08X" $0
+
+    ${GetTime} "" "LS" $Day $Month $Year $DoW $Hour $Minute $Second
+
+    WriteRegStr HKLM "${ARP}" "DisplayVersion" "${AC_FULLVERSIONINT}"
+    WriteRegStr HKLM "${ARP}" "InstallDate" "$Year$Month$Day"
+    WriteRegDWORD HKLM "${ARP}" "EstimatedSize" "$EstimatedSize"
 
 SectionEnd
 
