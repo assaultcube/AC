@@ -772,6 +772,8 @@ void renderhudtexturepreview(int slot, int pos, bool highlight)
         color c(0, 0, 0.6f, 1);
         blendbox(x, y, x + bs, y + bs, false, -1, &c);
     }
+    defformatstring(texslotnumber)("#%d", slot);
+    draw_text(texslotnumber, x + bs / 2 - text_width(texslotnumber) / 2, y + bs + border + FONTH / 8);
     if(highlight)
     {
         glDisable(GL_BLEND);
