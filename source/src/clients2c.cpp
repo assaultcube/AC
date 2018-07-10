@@ -350,7 +350,8 @@ void showhudextras(char hudextras, char value){
             {
                 playerent *p = getclient(teamworkid);
                 if (!p || p == player1) teamworkid = -1;
-                else outf("\f5you covered %s",p->name); break;
+                else outf("\f5you covered %s",p->name);
+                break;
             }
         default:
         {
