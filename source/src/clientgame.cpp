@@ -1686,7 +1686,7 @@ COMMAND(setadmin, "is");
 
 static vector<mline> mlines;
 
-void *kickmenu = NULL, *banmenu = NULL, *forceteammenu = NULL, *giveadminmenu = NULL;
+void *kickmenu = NULL, *banmenu = NULL, *forceteammenu = NULL, *giveadminmenu = NULL, *forcespectatemenu = NULL;
 
 void refreshsopmenu(void *menu, bool init)
 {
@@ -1699,8 +1699,8 @@ void refreshsopmenu(void *menu, bool init)
         copystring(m.name, colorname(players[i]));
         string kbr;
         if(getalias("_kickbanreason")!=NULL) formatstring(kbr)(" [ %s ]", getalias("_kickbanreason")); // leading space!
-        formatstring(m.cmd)("%s %d%s", menu==kickmenu ? "kick" : (menu==banmenu ? "ban" : (menu==forceteammenu ? "forceteam" : "giveadmin")), i, (menu==kickmenu||menu==banmenu)?(strlen(kbr)>8?kbr:" NONE"):""); // 8==3 + "format-extra-chars"
-        menuitemmanual(menu, m.name, m.cmd);
+        formatstring(m.cmd)("%s %d%s",menu==kickmenu ? "kick" : (menu==banmenu ? "ban" : ((menu==forceteammenu||menu==forcespectatemenu) ? "forceteam" : "giveadmin")), i, (menu==kickmenu||menu==banmenu)?(strlen(kbr)>8?kbr:" NONE"):(menu==forcespectatemenu?" 4":"")); // 8==3 + "format-extra-chars"
+		menuitemmanual(menu, m.name, m.cmd);
     }
 }
 
