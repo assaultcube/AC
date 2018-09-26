@@ -27,7 +27,7 @@ endif
 
 ifneq (,$(findstring clang,$(CXX)))
 	CXXFLAGS= -O3 -fomit-frame-pointer
-	override CXXFLAGS+= -Wall -fsigned-char
+	override CXXFLAGS+= -Wall -fsigned-char -std=c++11
 else
 	CXXFLAGS= -O3 -fomit-frame-pointer
 	override CXXFLAGS+= -Wall -fsigned-char -ffast-math -rdynamic -Wno-format-zero-length
