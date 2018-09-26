@@ -712,7 +712,7 @@ int spawncycle = -1;
 int fixspawn = 2;
 
 // returns -1 for a free place, else dist to the nearest enemy
-float nearestenemy(vec place, int team)
+float nearestenemy(const vec &place, int team)
 {
     float nearestenemydist = -1;
     loopv(players)

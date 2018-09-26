@@ -709,6 +709,8 @@ void enddemorecord()
             logline(ACLOG_INFO, "failed to write demo to file \"%s\"", msg);
         }
     }
+
+    delete[] d.data;
 }
 
 void setupdemorecord()
