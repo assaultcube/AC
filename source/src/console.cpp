@@ -585,8 +585,6 @@ void consolekey(int code, bool isdown, int cooked, SDLMod mod)
                 h->run();
                 if(h->action && !storeinputcommand) history.drop();
             }
-
-            delete h;
         }
         else if((code==SDLK_ESCAPE && !ignoreescup) || code== SDL_AC_BUTTON_RIGHT)
         {
