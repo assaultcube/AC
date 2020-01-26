@@ -24,7 +24,6 @@
 
 //tab names, i.e. image names (text is localised)
 #define tkMAIN @"Main"
-#define tkKEYS @"Keys"
 #define tkSERVER @"Server"
 
 
@@ -125,8 +124,6 @@ static int numberForKey(CFDictionaryRef desc, CFStringRef key)
 
 - (void)switchViews:(NSToolbarItem *)item 
 {
-    //20/7/13: RR Removing keys submenu
-//    NSView *views[] = {view1, view3, view4};
     NSView *views[] = {view1, view4};
     NSView *prefsView = views[[item tag]-1];
     
@@ -161,8 +158,6 @@ static int numberForKey(CFDictionaryRef desc, CFStringRef key)
         SEL action = @selector(displayHelp:);
         id target = self;
         if(tag) {
-            //20/7/13: RR Removing keys submenu
-//            NSString *names[] = {tkMAIN, tkKEYS, tkSERVER};
             NSString *names[] = {tkMAIN, tkSERVER};
             name = names[tag-1];
             action = @selector(switchViews:);
@@ -213,8 +208,6 @@ static int numberForKey(CFDictionaryRef desc, CFStringRef key)
 - (NSArray *)toolbarSelectableItemIdentifiers: (NSToolbar *)toolbar 
 {
     NSMutableArray *array = [NSMutableArray array];
-    //20/7/13: RR Removing keys submenu
-//    NSView *views[] = {view1, view3, view4};
     NSView *views[] = {view1, view4};
     int i;
     for(i = 0; i < sizeof(views)/sizeof(NSView*); i++) if(views[i]) [array addObject:[NSString stringWithFormat:@"%d", i+1]];
@@ -282,98 +275,6 @@ static int numberForKey(CFDictionaryRef desc, CFStringRef key)
             [self addResolutionsForDisplay:display[i]];
     }
     [resolutions selectItemAtIndex: [[NSUserDefaults standardUserDefaults] integerForKey:dkRESOLUTION]];	
-}
-
-/* build key array from config data */
--(NSArray *)getKeys:(NSDictionary *)dict 
-{	
-    NSMutableArray *arr = [NSMutableArray array];
-    NSEnumerator *e = [dict keyEnumerator];
-    NSString *key;
-    while ((key = [e nextObject])) 
-    {
-        int pos = [key rangeOfString:@"bind."].location;
-        if(pos == NSNotFound || pos > 5) continue;
-        [arr addObject:[NSDictionary dictionaryWithObjectsAndKeys: //keys used in nib
-            [key substringFromIndex:pos+5], @"key",
-            [key substringToIndex:pos], @"mode",
-            [dict objectForKey:key], @"action",
-            nil]];
-    }
-    return arr;
-}
-
-/*
- * extract a dictionary from the config files containing:
- * - name, team, gamma strings
- * - bind/editbind '.' key strings
- */
--(NSDictionary *)readConfigFiles 
-{
-    NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
-    [dict setObject:@"" forKey:@"name"]; //ensure these entries are never nil
-    [dict setObject:@"" forKey:@"team"]; 
-    
-    NSMutableArray *lines = [NSMutableArray array];
-    NSString *files[] = {@"config/saved.cfg", @"config/autoexec.cfg"};
-
-    int i;
-    for(i = 0; i < sizeof(files)/sizeof(NSString*); i++) 
-    {
-        NSString *file = [Launcher userdir];
-        file = [file stringByAppendingPathComponent:files[i]];
-        
-        [lines addObjectsFromArray:[[NSString stringWithContentsOfFile:file usedEncoding:NULL error:NULL] componentsSeparatedByString:@"\n"]]; // 10.4+
-        
-        if(i==0 && ![lines count])  // ugh - special case when first run...
-        {
-            NSString *defaultfiles[] = {@"config/defaults.cfg", @"config/resetbinds.cfg"};
-            
-            int j;
-            for(j = 0; j < sizeof(defaultfiles)/sizeof(NSString*); j++)
-            {
-                file = [[Launcher cwd] stringByAppendingPathComponent:defaultfiles[j]];
-                [lines addObjectsFromArray:[[NSString stringWithContentsOfFile:file usedEncoding:NULL error:NULL] componentsSeparatedByString:@"\n"]]; // 10.4+
-            }
-        }
-		
-        NSString *line; 
-        NSEnumerator *e = [lines objectEnumerator];
-        while(line = [e nextObject]) 
-        {
-            NSRange r; // more flexible to do this manually rather than via NSScanner...
-            int j = 0;
-            while(j < [line length] && [line characterAtIndex:j] <= ' ') j++; //skip white
-            if(j != 0) continue; // shouldn't be indented
-            r.location = j;
-            while(j < [line length] && [line characterAtIndex:j] > ' ') j++; //until white
-            r.length = j - r.location;
-            NSString *type = [line substringWithRange:r];
-			
-            while(j < [line length] && [line characterAtIndex:j] <= ' ') j++; //skip white
-            if(j < [line length] && [line characterAtIndex:j] == '"') 
-            {
-                r.location = ++j;
-                while(j < [line length] && [line characterAtIndex:j] != '"') j++; //until close quote
-                r.length = (j++) - r.location;
-            } else {
-                r.location = j;
-                while(j < [line length] && [line characterAtIndex:j] > ' ') j++; //until white
-                r.length = j - r.location;
-            }
-            if(r.location+r.length >= [line length]) continue; //missing value
-            NSString *value = [line substringWithRange:r];
-            
-            while(j < [line length] && [line characterAtIndex:j] <= ' ') j++; //skip white
-            NSString *remainder = [line substringFromIndex:j];
-			
-            if([type isEqual:@"name"] || [type isEqual:@"team"] || [type isEqual:@"gamma"]) 
-                [dict setObject:value forKey:type];
-            else if([type isEqual:@"bind"] || [type isEqual:@"editbind"] || [type isEqual:@"specbind"]) 
-                [dict setObject:remainder forKey:[NSString stringWithFormat:@"%@.%@", type,value]];
-        }
-    }
-    return dict;
 }
 
 - (void)killServer {
@@ -595,10 +496,7 @@ static int numberForKey(CFDictionaryRef desc, CFStringRef key)
         [fm removeFileAtPath:[dir stringByAppendingPathComponent:@"saved.cfg"] handler:nil];
     }
     [defs setObject:appVersion forKey:dkVERSION];
-    
-    NSDictionary *dict = [self readConfigFiles];
-    [keys addObjects:[self getKeys:dict]];
-    	
+
     [self initMaps];
     [self initResolutions];
     server = -1;
