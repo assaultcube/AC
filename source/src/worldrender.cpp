@@ -273,7 +273,7 @@ void render_world(float vx, float vy, float vh, float changelod, int yaw, int pi
     min_lod = minimap || (player1->isspectating() && player1->spectatemode == SM_OVERVIEW) ? MAX_LOD : MIN_LOD+abs(pitch)/12;
     yaw = 360-yaw;
     float widef = fov/75.0f;
-    int cdist = abs(yaw%90-45);
+    int cdist = iabs(yaw%90-45);
     if(cdist<7)    // hack to avoid popup at high fovs at 45 yaw
     {
         min_lod = max(min_lod, (int)(MIN_LOD+(10-cdist)/1.0f*widef)); // less if lod worked better

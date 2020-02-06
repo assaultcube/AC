@@ -79,9 +79,9 @@ void remip(const block &b, int level)
                 || o[i]->ceil!=o[3]->ceil
                 || o[i]->ftex!=o[3]->ftex
                 || o[i]->ctex!=o[3]->ctex
-                || abs(o[i+1]->r-o[0]->r)>lighterr          // perfect mip even if light is not exactly equal
-                || abs(o[i+1]->g-o[0]->g)>lighterr
-                || abs(o[i+1]->b-o[0]->b)>lighterr
+                || iabs(o[i+1]->r-o[0]->r)>lighterr          // perfect mip even if light is not exactly equal
+                || iabs(o[i+1]->g-o[0]->g)>lighterr
+                || iabs(o[i+1]->b-o[0]->b)>lighterr
                 || o[i]->utex!=o[3]->utex
                 || o[i]->wtex!=o[3]->wtex) goto c;
             }

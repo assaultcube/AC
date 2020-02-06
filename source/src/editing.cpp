@@ -126,11 +126,11 @@ void checkselections()
 void makesel(bool isnew)
 {
     block &cursel = sels.last(); //RR 10/12/12 - FIXEME, error checking should happen with "isnew", not here checking if it really is new.
-    if(isnew || sels.length() == 0) addselection(min(lastx, cx), min(lasty, cy), abs(lastx-cx)+1, abs(lasty-cy)+1, max(lasth, ch));
+    if(isnew || sels.length() == 0) addselection(min(lastx, cx), min(lasty, cy), iabs(lastx-cx)+1, iabs(lasty-cy)+1, max(lasth, ch));
     else
     {
         cursel.x = min(lastx, cx); cursel.y = min(lasty, cy);
-        cursel.xs = abs(lastx-cx)+1; cursel.ys = abs(lasty-cy)+1;
+        cursel.xs = iabs(lastx-cx)+1; cursel.ys = iabs(lasty-cy)+1;
         cursel.h = max(lasth, ch);
         correctsel(cursel);
     }
@@ -645,7 +645,7 @@ void movemap(int xo, int yo, int zo) // move whole map
     }
     if(xo || yo)
     {
-        block b = { max(-xo, 0), max(-yo, 0), ssize - abs(xo), ssize - abs(yo) }, *cp = blockcopy(b);
+        block b = { max(-xo, 0), max(-yo, 0), ssize - iabs(xo), ssize - iabs(yo) }, *cp = blockcopy(b);
         cp->x = max(xo, 0);
         cp->y = max(yo, 0);
         blockpaste(*cp);

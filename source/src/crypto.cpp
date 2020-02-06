@@ -763,7 +763,7 @@ bool hashstring(const char *str, char *result, int maxlen)
 const char *genpwdhash(const char *name, const char *pwd, int salt)
 {
     static string temp;
-    formatstring(temp)("%s %d %s %s %d", pwd, salt, name, pwd, abs(PROTOCOL_VERSION));
+    formatstring(temp)("%s %d %s %s %d", pwd, salt, name, pwd, iabs(PROTOCOL_VERSION));
     tiger::hashval hash;
     tiger::hash((uchar *)temp, (int)strlen(temp), hash);
     formatstring(temp)("%llx %llx %llx", hash.chunks[0], hash.chunks[1], hash.chunks[2]);

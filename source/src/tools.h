@@ -55,7 +55,7 @@ static inline T min(T a, T b)
     return a < b ? a : b;
 }
 
-static inline float round(float x) { return floor(x + 0.5f); }
+inline int iabs(int n) { return labs(n); }
 
 #define clamp(a,b,c) (max(b, min(a, c)))
 #define rnd(x) ((int)(randomMT()&0xFFFFFF)%(x))
