@@ -103,7 +103,7 @@ void mapmodelreset()
     if(execcontext==IEXC_MAPCFG) mapmodels.shrink(0);
 }
 
-mapmodelinfo &getmminfo(int i) { return mapmodels.inrange(i) ? mapmodels[i] : *(mapmodelinfo *)0; }
+mapmodelinfo *getmminfo(int i) { return mapmodels.inrange(i) ? &mapmodels[i] : NULL; }
 
 COMMAND(mapmodel, "iiiss");
 COMMAND(mapmodelreset, "");
