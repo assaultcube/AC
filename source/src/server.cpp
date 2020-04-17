@@ -4058,6 +4058,19 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
         {
             case ENET_EVENT_TYPE_CONNECT:
             {
+                int count = 0;
+                if(scl.maxplayer_for_ip > 0){
+                    for (int i = 0 ; i < clients.length(); i++){
+                        if(clients[i]->peer->address.host == event.peer->address.host){
+                            count++;
+                        }
+                    }
+                    if(count >= scl.maxplayer_for_ip){
+                        logline(ACLOG_INFO,"found [%i] with a maximum of [%i] player with same ip, refusing new connection.",count,scl.maxplayer_for_ip);
+                        enet_peer_disconnect(event.peer,19);
+                        break;
+                    }
+                }
                 client &c = addclient();
                 c.type = ST_TCPIP;
                 c.peer = event.peer;
@@ -4067,9 +4080,14 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
                 c.salt = rnd(0x1000000)*((servmillis%1000)+1);
                 char hn[1024];
                 copystring(c.hostname, (enet_address_get_host_ip(&c.peer->address, hn, sizeof(hn))==0) ? hn : "unknown");
-                logline(ACLOG_INFO,"[%s] client connected", c.hostname);
+                if(scl.maxplayer_for_ip > 0){
+                    logline(ACLOG_INFO,"[%s] client connected, found %i of %i with same ip", c.hostname, count,scl.maxplayer_for_ip);
+                } else {
+                    logline(ACLOG_INFO,"[%s] client connected", c.hostname);
+                }
                 sendservinfo(c);
                 totalclients++;
+
                 break;
             }
 
