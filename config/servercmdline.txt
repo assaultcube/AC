@@ -91,6 +91,8 @@
 // --demotimestampformat="%H%M_%Y%m%d"      // default: "%Y%m%d_%H%M"
 // --demotimelocal=1                        // default: 0
 
+// -Q    // Set the number of maximum player allowed for a single ip, 0 disable this, default 2
+
 // don't use these switches, unless you really know what you're doing:
 
 // -u     // uprate
