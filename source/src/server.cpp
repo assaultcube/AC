@@ -4061,7 +4061,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
                 int count = 0;
                 if(scl.maxplayer_for_ip > 0){
                     for (int i = 0 ; i < clients.length(); i++){
-                        if(clients[i]->peer->address.host == event.peer->address.host){
+                        if(clients[i]->type==ST_TCPIP && clients[i]->peer->address.host == event.peer->address.host){
                             count++;
                         }
                     }
