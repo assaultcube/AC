@@ -947,7 +947,7 @@ int load_world(char *mname)        // still supports all map formats that have e
     // read world geometry
     delete[] world;
     setupworld(hdr.sfactor);
-    if(!mapinfo.numelems || (mapinfo.access(mname) && !cmpf(cgzname, mapinfo[mname]))) world = (sqr *)ents.getbuf();
+    if(!mapinfo.size() || (mapinfo.access(mname) && !cmpf(cgzname, mapinfo[mname]))) world = (sqr *)ents.getbuf();
     c2skeepalive();
 
     vector<uchar> rawcubes; // fetch whole file into buffer

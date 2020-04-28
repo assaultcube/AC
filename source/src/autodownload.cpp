@@ -102,7 +102,7 @@ int pingpckserver(void *data) // fetch updates.txt from a media server, measure 
                     s->updates.clear();
                     parseupdatelist(s->updates, (char *)h.outvec->getbuf()); // don't filter entries
                     SDL_mutexP(pckpinglog_lock);
-                    cvecprintf(pckping_log, "lgot %s:%d%s: %d bytes, %d valid update lines\n", u.domain, h.ip.port, url, res, s->updates.numelems);
+                    cvecprintf(pckping_log, "lgot %s:%d%s: %d bytes, %d valid update lines\n", u.domain, h.ip.port, url, res, s->updates.size());
                     SDL_mutexV(pckpinglog_lock);
                 }
                 else
@@ -526,7 +526,7 @@ void writepcksourcecfg()
         loopv(pckservers)
         {
             pckserver *s = pckservers[i];
-            if(s->priority > -10000) f->printf("addpckserver %s %d // ping: %d, resolved: %d, updates: %d\n", s->host, s->priority, s->ping, s->resolved, s->updates.numelems);
+            if(s->priority > -10000) f->printf("addpckserver %s %d // ping: %d, resolved: %d, updates: %d\n", s->host, s->priority, s->ping, s->resolved, s->updates.size());
         }
         delete f;
     }

@@ -581,24 +581,30 @@ static inline bool htcmp(uint x, uint y)
 template <class K, class T> 
 struct hashtable
 {
+private:
+    enum { CHUNKSIZE = 16 };
+
+public:
+    struct chain      { T data; K key; chain *next; };
+    struct chainchunk { chain chains[CHUNKSIZE]; chainchunk *next; };
+
+private:
+    int m_size;
+    int numelems;
+    chainchunk *chunks;
+    chain *unused;
+    chain **table;
+
+public:
     typedef K key;
     typedef const K const_key;
     typedef T value;
     typedef const T const_value;
 
-    enum { CHUNKSIZE = 16 };
-
-    struct chain      { T data; K key; chain *next; };
-    struct chainchunk { chain chains[CHUNKSIZE]; chainchunk *next; };
-
-    int size;
-    int numelems;
-    chainchunk *chunks;
-    chain *unused;
-    chain **table;
+public:    
     
     hashtable(int size = 1<<10)
-      : size(size)
+      : m_size(size)
       , numelems(0)
       , chunks(0)
       , unused(0)
@@ -612,13 +618,12 @@ struct hashtable
         deletechunks();
     }
 
-    void insertchains(chainchunk *emptychunk)
-    {
-        loopi(CHUNKSIZE-1) emptychunk->chains[i].next = &emptychunk->chains[i+1];
-        emptychunk->chains[CHUNKSIZE-1].next = unused;
-        unused = emptychunk->chains;
-    }
+    int size() { return numelems; }
+    int capacity() { return m_size; }
+    chain*& at(int i) { return table[i]; }
 
+
+public:
     chain *insert(const K &key, uint h)
     {
         if(!unused)
@@ -633,12 +638,12 @@ struct hashtable
         c->key = key;
         c->next = table[h];
         table[h] = c;
-        numelems++;
+        ++numelems;
         return c;
     }
 
     #define HTFIND(success, fail) \
-        uint h = hthash(key)&(size-1); \
+        uint h = hthash(key)&(m_size-1); \
         for(chain *c = table[h]; c; c = c->next) \
         { \
             if(htcmp(key, c->key)) return (success); \
@@ -664,7 +669,7 @@ struct hashtable
 
     bool remove(const K &key)
     {
-        uint h = hthash(key)&(size-1);
+        uint h = hthash(key)&(m_size-1);
         for(chain **p = &table[h], *c = table[h]; c; p = &c->next, c = c->next)
         {
             if(htcmp(key, c->key))
@@ -683,6 +688,27 @@ struct hashtable
         return false;
     }
 
+    void clear(bool del = true)
+    {
+        loopi(m_size) table[i] = NULL;
+        numelems = 0;
+        unused = NULL;
+        if(del) deletechunks();
+        else
+        {
+            for(chainchunk *chunk = chunks; chunk; chunk = chunk->next) insertchains(chunk);
+        }
+    }
+
+
+private:
+    void insertchains(chainchunk *emptychunk)
+    {
+        loopi(CHUNKSIZE-1) emptychunk->chains[i].next = &emptychunk->chains[i+1];
+        emptychunk->chains[CHUNKSIZE-1].next = unused;
+        unused = emptychunk->chains;
+    }
+
     void deletechunks()
     {
         for(chainchunk *nextchunk; chunks; chunks = nextchunk)
@@ -692,18 +718,11 @@ struct hashtable
         }
     }
 
-    void clear(bool del = true)
-    {
-        loopi(size) table[i] = NULL;
-        numelems = 0;
-        unused = NULL;
-        if(del) deletechunks();
-        else
-        {
-            for(chainchunk *chunk = chunks; chunk; chunk = chunk->next) insertchains(chunk);
-        }
-    }
 };
+
+#define enumeratekt(ht,k,e,t,f,b) loopi((ht).capacity()) for(hashtable<k,t>::chain *enumc = (ht).at(i); enumc;) { hashtable<k,t>::const_key &e = enumc->key; t &f = enumc->data; enumc = enumc->next; b; }
+#define enumeratek(ht,k,e,b)      loopi((ht).capacity()) for(std::remove_reference<decltype(ht)>::type::chain *enumc = (ht).at(i); enumc;) { k &e = enumc->key; enumc = enumc->next; b; }
+#define enumerate(ht,t,e,b)       loopi((ht).capacity()) for(std::remove_reference<decltype(ht)>::type::chain *enumc = (ht).at(i); enumc;) { t &e = enumc->data; enumc = enumc->next; b; }
 
 template <class T, int SIZE> struct ringbuf
 {
@@ -806,9 +825,6 @@ template <class T, int SIZE> struct ringbuf
 #define itoa(s, i) sprintf(s, "%d", i)
 #define ftoa(s, f) sprintf(s, (f) == int(f) ? "%.1f" : "%.7g", f)
 
-#define enumeratekt(ht,k,e,t,f,b) loopi((ht).size) for(hashtable<k,t>::chain *enumc = (ht).table[i]; enumc;) { hashtable<k,t>::const_key &e = enumc->key; t &f = enumc->data; enumc = enumc->next; b; }
-#define enumeratek(ht,k,e,b)      loopi((ht).size) for(std::remove_reference<decltype(ht)>::type::chain *enumc = (ht).table[i]; enumc;) { k &e = enumc->key; enumc = enumc->next; b; }
-#define enumerate(ht,t,e,b)       loopi((ht).size) for(std::remove_reference<decltype(ht)>::type::chain *enumc = (ht).table[i]; enumc;) { t &e = enumc->data; enumc = enumc->next; b; }
 
 #ifndef STANDALONE
 // ease time measurement

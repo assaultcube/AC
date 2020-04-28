@@ -1060,7 +1060,7 @@ struct servernickblacklist : serverconfigfile
             line++;
         }
         DELETEA(buf);
-        logline(ACLOG_VERBOSE," nickname whitelist (%d entries):", whitelist.numelems);
+        logline(ACLOG_VERBOSE," nickname whitelist (%d entries):", whitelist.size());
         string text;
         enumeratekt(whitelist, const char *, key, int, idx,
         {
@@ -1084,7 +1084,7 @@ struct servernickblacklist : serverconfigfile
             }
             logline(ACLOG_VERBOSE, "  %2d block%s%s", blacklines[i].line, blacklines[i].ignorecase ? "i" : "", text);
         }
-        logline(ACLOG_INFO,"read %d + %d entries from nickname blacklist file '%s', %d errors", whitelist.numelems, blacklines.length(), filename, errors);
+        logline(ACLOG_INFO,"read %d + %d entries from nickname blacklist file '%s', %d errors", whitelist.size(), blacklines.length(), filename, errors);
     }
 
     int checkwhitelist(const client &c)
