@@ -349,22 +349,32 @@ template <class T> struct vector
     T *buf;
     int alen, ulen;
 
-    vector() : buf(NULL), alen(0), ulen(0)
+    vector() : buf(0), alen(0), ulen(0)
     {
     }
 
-    vector(const vector &v) : buf(NULL), alen(0), ulen(0)
+    vector(const vector &v) : buf(0), alen(0), ulen(0)
     {
         *this = v;
     }
 
-    ~vector() { shrink(0); if(buf) delete[] (uchar *)buf; }
+    ~vector() { 
+        if(buf){
+            shrink(0); 
+            delete[] (uchar *)buf;
+        }
+    }
 
     vector<T> &operator=(const vector<T> &v)
     {
-        shrink(0);
-        if(v.length() > alen) growbuf(v.length());
-        loopv(v) add(v[i]);
+        if(&v != this){
+            shrink(0);
+            if(v.length() > alen) {
+                growbuf(v.length());
+            }
+            //loopv(v) add(v[i]);
+            loopv(v) new (&buf[ulen++]) T(v[i]);
+        }
         return *this;
     }
 
