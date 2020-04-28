@@ -3,6 +3,7 @@
 #ifndef _TOOLS_H
 #define _TOOLS_H
 
+#include <type_traits>
 #ifdef NULL
 #undef NULL
 #endif
@@ -36,6 +37,7 @@ extern char *strtok_r(char *s, const char *delim, char **b); // homebrew
 #ifdef swap
 #undef swap
 #endif
+
 template<class T>
 static inline void swap(T &a, T &b)
 {
@@ -43,6 +45,7 @@ static inline void swap(T &a, T &b)
     a = b;
     b = t;
 }
+
 #ifdef max
 #undef max
 #endif
@@ -371,8 +374,7 @@ template <class T> struct vector
             shrink(0);
             if(v.length() > alen) {
                 growbuf(v.length());
-            }
-            //loopv(v) add(v[i]);
+            }            
             loopv(v) new (&buf[ulen++]) T(v[i]);
         }
         return *this;
@@ -576,7 +578,8 @@ static inline bool htcmp(uint x, uint y)
     return x==y;
 }
 
-template <class K, class T> struct hashtable
+template <class K, class T> 
+struct hashtable
 {
     typedef K key;
     typedef const K const_key;
@@ -590,20 +593,17 @@ template <class K, class T> struct hashtable
 
     int size;
     int numelems;
-    chain **table;
-    chain *enumc;
-
     chainchunk *chunks;
     chain *unused;
-
+    chain **table;
+    
     hashtable(int size = 1<<10)
       : size(size)
-    {
-        numelems = 0;
-        chunks = NULL;
-        unused = NULL;
-        table = new chain *[size];
-        loopi(size) table[i] = NULL;
+      , numelems(0)
+      , chunks(0)
+      , unused(0)
+      , table(new chain *[size]())
+    {        
     }
 
     ~hashtable()
@@ -807,8 +807,8 @@ template <class T, int SIZE> struct ringbuf
 #define ftoa(s, f) sprintf(s, (f) == int(f) ? "%.1f" : "%.7g", f)
 
 #define enumeratekt(ht,k,e,t,f,b) loopi((ht).size) for(hashtable<k,t>::chain *enumc = (ht).table[i]; enumc;) { hashtable<k,t>::const_key &e = enumc->key; t &f = enumc->data; enumc = enumc->next; b; }
-#define enumeratek(ht,k,e,b)      loopi((ht).size) for((ht).enumc = (ht).table[i]; (ht).enumc;) { k &e = (ht).enumc->key; (ht).enumc = (ht).enumc->next; b; }
-#define enumerate(ht,t,e,b)       loopi((ht).size) for((ht).enumc = (ht).table[i]; (ht).enumc;) { t &e = (ht).enumc->data; (ht).enumc = (ht).enumc->next; b; }
+#define enumeratek(ht,k,e,b)      loopi((ht).size) for(std::remove_reference<decltype(ht)>::type::chain *enumc = (ht).table[i]; enumc;) { k &e = enumc->key; enumc = enumc->next; b; }
+#define enumerate(ht,t,e,b)       loopi((ht).size) for(std::remove_reference<decltype(ht)>::type::chain *enumc = (ht).table[i]; enumc;) { t &e = enumc->data; enumc = enumc->next; b; }
 
 #ifndef STANDALONE
 // ease time measurement

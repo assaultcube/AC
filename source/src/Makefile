@@ -23,15 +23,15 @@ PLATFORM_PREFIX=native
 
 
 ifeq ($(ACDEBUG),yes)
-	CXXFLAGS= -O0
+	CXXFLAGS+= -O0
 	override CXXFLAGS+= -g -D_DEBUG
 endif
 
 ifneq (,$(findstring clang,$(CXX)))
-	CXXFLAGS= -O3 -fomit-frame-pointer
+	CXXFLAGS+= -O3 -fomit-frame-pointer
 	override CXXFLAGS+= -Wall -fsigned-char
 else
-	CXXFLAGS= -O3 -fomit-frame-pointer
+	CXXFLAGS+= -O3 -fomit-frame-pointer
 	override CXXFLAGS+= -Wall -fsigned-char -ffast-math -rdynamic -Wno-format-zero-length
 endif
 
