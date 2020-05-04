@@ -27,12 +27,14 @@ public:
 
     void CloseManager()
     {
-        if(scm) CloseServiceHandle(scm);
+        if (scm)
+            CloseServiceHandle(scm);
     }
 
     int IsInstalled()
     {
-        if(!scm) return -1;
+        if (!scm)
+            return -1;
         SC_HANDLE svc = OpenService(scm, name, SC_MANAGER_CONNECT);
         bool installed = svc != NULL;
         CloseServiceHandle(svc);
@@ -41,9 +43,11 @@ public:
 
     int Install()
     {
-        if(!scm) return -1;
+        if (!scm)
+            return -1;
         SC_HANDLE svc = CreateService(scm, name, displayName, SERVICE_ALL_ACCESS, SERVICE_WIN32_OWN_PROCESS, SERVICE_DEMAND_START, SERVICE_ERROR_NORMAL, path, NULL, NULL, NULL, NULL, NULL);
-        if(svc == NULL) return 0;
+        if (svc == NULL)
+            return 0;
         else
         {
             CloseServiceHandle(svc);
@@ -51,4 +55,3 @@ public:
         }
     }
 };
-

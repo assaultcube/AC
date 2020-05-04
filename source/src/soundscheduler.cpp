@@ -4,7 +4,7 @@
 
 #include "cube.h"
 
-#define DEBUGCOND (audiodebug==1)
+#define DEBUGCOND (audiodebug == 1)
 
 VARP(soundschedpriorityscore, 0, 100, 1000);
 VARP(soundscheddistancescore, 0, 5, 1000);
@@ -19,7 +19,8 @@ sourcescheduler::sourcescheduler()
 
 sourcescheduler &sourcescheduler::instance()
 {
-    if(inst==NULL) inst = new sourcescheduler();
+    if (inst == NULL)
+        inst = new sourcescheduler();
     return *inst;
 }
 
@@ -27,27 +28,31 @@ void sourcescheduler::init(int numsoundchannels)
 {
     this->numsoundchannels = numsoundchannels;
     int newchannels = numsoundchannels - sources.length();
-    if(newchannels < 0)
+    if (newchannels < 0)
     {
         loopv(sources)
         {
             source *src = sources[i];
-            if(src->locked) continue;
+            if (src->locked)
+                continue;
             sources.remove(i--);
             delete src;
-            if(sources.length() <= numsoundchannels) break;
+            if (sources.length() <= numsoundchannels)
+                break;
         }
     }
-    else loopi(newchannels)
-    {
-        source *src = new source();
-        if(src->valid) sources.add(src);
-        else
+    else
+        loopi(newchannels)
         {
-            DELETEP(src);
-            break;
+            source *src = new source();
+            if (src->valid)
+                sources.add(src);
+            else
+            {
+                DELETEP(src);
+                break;
+            }
         }
-    }
 }
 
 void sourcescheduler::reset()
@@ -61,7 +66,7 @@ void sourcescheduler::reset()
 
 source *sourcescheduler::newsource(int priority, const vec &o)
 {
-    if(!sources.length())
+    if (!sources.length())
     {
         DEBUG("empty source collection");
         return NULL;
@@ -70,13 +75,13 @@ source *sourcescheduler::newsource(int priority, const vec &o)
     source *src = NULL;
 
     // reserve some sources for sounds of higher priority
-    int reserved = (SP_HIGHEST-priority)*soundschedreserve;
+    int reserved = (SP_HIGHEST - priority) * soundschedreserve;
     DEBUGVAR(reserved);
 
     // search unused source
     loopv(sources)
     {
-        if(!sources[i]->locked && reserved--<=0)
+        if (!sources[i]->locked && reserved-- <= 0)
         {
             src = sources[i];
             DEBUGVAR(src);
@@ -84,12 +89,12 @@ source *sourcescheduler::newsource(int priority, const vec &o)
         }
     }
 
-    if(!src)
+    if (!src)
     {
         DEBUG("no empty source found");
 
         // low priority sounds can't replace others
-        if(SP_LOW==priority)
+        if (SP_LOW == priority)
         {
             DEBUG("low prio sound aborted");
             return NULL;
@@ -98,7 +103,7 @@ source *sourcescheduler::newsource(int priority, const vec &o)
         // try replacing a used source
         // score our sound
         const float dist = o.iszero() ? 0.0f : camera1->o.dist(o);
-        const float score = (priority*soundschedpriorityscore) - (dist*soundscheddistancescore);
+        const float score = (priority * soundschedpriorityscore) - (dist * soundscheddistancescore);
 
         // score other sounds
         float worstscore = 0.0f;
@@ -107,12 +112,13 @@ source *sourcescheduler::newsource(int priority, const vec &o)
         loopv(sources)
         {
             source *s = sources[i];
-            if(s->priority==SP_HIGHEST) continue; // highest priority sounds can't be replaced
+            if (s->priority == SP_HIGHEST)
+                continue; // highest priority sounds can't be replaced
 
-            const vec & otherpos = s->position();
+            const vec &otherpos = s->position();
             float otherdist = otherpos.iszero() ? 0.0f : camera1->o.dist(otherpos);
-            float otherscore = (s->priority*soundschedpriorityscore) - (otherdist*soundscheddistancescore) + soundschedoldbonus;
-            if(!worstsource || otherscore < worstscore)
+            float otherscore = (s->priority * soundschedpriorityscore) - (otherdist * soundscheddistancescore) + soundschedoldbonus;
+            if (!worstsource || otherscore < worstscore)
             {
                 worstsource = s;
                 worstscore = otherscore;
@@ -120,7 +126,7 @@ source *sourcescheduler::newsource(int priority, const vec &o)
         }
 
         // pick worst source and replace it
-        if(worstsource && score>worstscore)
+        if (worstsource && score > worstscore)
         {
             src = worstsource;
             src->onreassign(); // inform previous owner about the take-over
@@ -128,14 +134,14 @@ source *sourcescheduler::newsource(int priority, const vec &o)
         }
     }
 
-    if(!src)
+    if (!src)
     {
         DEBUG("sound aborted, no channel takeover possible");
         return NULL;
     }
 
-    src->reset();       // default settings
-    src->lock();        // exclusive lock
+    src->reset(); // default settings
+    src->lock();  // exclusive lock
     src->priority = priority;
     return src;
 }
@@ -146,18 +152,17 @@ void sourcescheduler::releasesource(source *src)
     ASSERT(src);
     ASSERT(src->locked); // detect double release
 
-    if(!src) return;
+    if (!src)
+        return;
 
     DEBUG("unlocking source");
 
     src->unlock();
 
-    if(sources.length() > numsoundchannels)
+    if (sources.length() > numsoundchannels)
     {
         sources.removeobj(src);
         delete src;
         DEBUG("source deleted");
     }
 }
-
-

@@ -1,6 +1,6 @@
 inline bool is_lagging(client *cl)
 {
-    return ( cl->spj > 50 || cl->ping > 500 || cl->ldt > 80 ); // do not change this except if you really know what are you doing
+    return (cl->spj > 50 || cl->ping > 500 || cl->ldt > 80); // do not change this except if you really know what are you doing
 }
 
 inline bool outside_border(vec &po)
@@ -11,17 +11,18 @@ inline bool outside_border(vec &po)
 inline void checkclientpos(client *cl)
 {
     vec &po = cl->state.o;
-    if( outside_border(po) || maplayout[((int) po.x) + (((int) po.y) << maplayout_factor)] > po.z + 3)
+    if (outside_border(po) || maplayout[((int)po.x) + (((int)po.y) << maplayout_factor)] > po.z + 3)
     {
-        if(gamemillis > 10000 && (servmillis - cl->connectmillis) > 10000) cl->mapcollisions++;
-        if(cl->mapcollisions && !(cl->mapcollisions % 25))
+        if (gamemillis > 10000 && (servmillis - cl->connectmillis) > 10000)
+            cl->mapcollisions++;
+        if (cl->mapcollisions && !(cl->mapcollisions % 25))
         {
             logline(ACLOG_INFO, "[%s] %s is colliding with the map", cl->hostname, cl->name);
         }
     }
 }
 
-#define POW2XY(A,B) (pow2(A.x-B.x)+pow2(A.y-B.y))
+#define POW2XY(A, B) (pow2(A.x - B.x) + pow2(A.y - B.y))
 
 extern inline void addban(client *cl, int reason, int type = BAN_AUTO);
 
@@ -40,51 +41,70 @@ int getmaxarea(int inversed_x, int inversed_y, int transposed, int ml_factor, ch
     int area = 0, maxarea = 0;
     bool sav_x = false, sav_y = false;
 
-    if (transposed) fx = ml_factor;
-    else fy = ml_factor;
+    if (transposed)
+        fx = ml_factor;
+    else
+        fy = ml_factor;
 
     // walk on x for each y
-    for ( int y = (inversed_y ? ls-1 : 0); (inversed_y ? y >= 0 : y < ls); (inversed_y ? y-- : y++) ) {
+    for (int y = (inversed_y ? ls - 1 : 0); (inversed_y ? y >= 0 : y < ls); (inversed_y ? y-- : y++))
+    {
 
-    /* Analyzing each cube of the line */
-        for ( int x = (inversed_x ? ls-1 : 0); (inversed_x ? x >= 0 : x < ls); (inversed_x ? x-- : x++) ) {
-            if ( ml[ ( x << fx ) + ( y << fy ) ] != 127 ) {      // if it is not solid
-                if ( sav_x ) {                                          // if the last cube was saved
-                    xf = x;                                             // new end for this line
+        /* Analyzing each cube of the line */
+        for (int x = (inversed_x ? ls - 1 : 0); (inversed_x ? x >= 0 : x < ls); (inversed_x ? x-- : x++))
+        {
+            if (ml[(x << fx) + (y << fy)] != 127)
+            { // if it is not solid
+                if (sav_x)
+                {           // if the last cube was saved
+                    xf = x; // new end for this line
                 }
-                else {
-                    xi = x;                                             // new begin of the line
-                    sav_x = true;                                       // accumulating cubes from now
+                else
+                {
+                    xi = x;       // new begin of the line
+                    sav_x = true; // accumulating cubes from now
                 }
-            } else {                                    // solid
-                if ( xf - xi > MINELINE ) break;                        // if the empty line is greater than a minimum, get out
-                sav_x = false;                                          // stop the accumulation of cubes
+            }
+            else
+            { // solid
+                if (xf - xi > MINELINE)
+                    break;     // if the empty line is greater than a minimum, get out
+                sav_x = false; // stop the accumulation of cubes
             }
         }
 
-    /* Analyzing this line with the previous one */
-        if ( xf - xi > MINELINE ) {                                     // if the line has the minimun threshold of emptiness
-            if ( sav_y ) {                                              // if the last line was saved
-                if ( 2*oxi + MINELINE < 2*xf &&
-                     2*xi + MINELINE < 2*oxf ) {                        // if the last line intersect this one
+        /* Analyzing this line with the previous one */
+        if (xf - xi > MINELINE)
+        { // if the line has the minimun threshold of emptiness
+            if (sav_y)
+            { // if the last line was saved
+                if (2 * oxi + MINELINE < 2 * xf &&
+                    2 * xi + MINELINE < 2 * oxf)
+                { // if the last line intersect this one
                     area += xf - xi;
-                } else {
-                    oxi = xi;                                           // new area vertices
+                }
+                else
+                {
+                    oxi = xi; // new area vertices
                     oxf = xf;
                 }
             }
-            else {
+            else
+            {
                 oxi = xi;
                 oxf = xf;
-                sav_y = true;                                           // accumulating lines from now
+                sav_y = true; // accumulating lines from now
             }
-        } else {
-            sav_y = false;                                              // stop the accumulation of lines
-            if (area > maxarea) maxarea = area;                         // new max area
-            area=0;
+        }
+        else
+        {
+            sav_y = false; // stop the accumulation of lines
+            if (area > maxarea)
+                maxarea = area; // new max area
+            area = 0;
         }
 
-        sav_x = false;                                                  // reset x
+        sav_x = false; // reset x
         xi = xf = 0;
     }
     return maxarea;
@@ -93,9 +113,11 @@ int getmaxarea(int inversed_x, int inversed_y, int transposed, int ml_factor, ch
 int checkarea(int maplayout_factor, char *maplayout)
 {
     int area = 0, maxarea = 0;
-    for (int i=0; i < 8; i++) {
-        area = getmaxarea((i & 1),(i & 2),(i & 4), maplayout_factor, maplayout);
-        if ( area > maxarea ) maxarea = area;
+    for (int i = 0; i < 8; i++)
+    {
+        area = getmaxarea((i & 1), (i & 2), (i & 4), maplayout_factor, maplayout);
+        if (area > maxarea)
+            maxarea = area;
     }
     return maxarea;
 }
@@ -104,51 +126,61 @@ int checkarea(int maplayout_factor, char *maplayout)
 This part is related to medals system. WIP
  */
 
-const char * medal_messages[] = { "defended the flag", "covered the flag stealer", "defended the dropped flag", "covered the flag keeper", "covered teammate" };
-enum { CTFLDEF, CTFLCOV, HTFLDEF, HTFLCOV, COVER, MEDALMESSAGENUM };
+const char *medal_messages[] = {"defended the flag", "covered the flag stealer", "defended the dropped flag", "covered the flag keeper", "covered teammate"};
+enum
+{
+    CTFLDEF,
+    CTFLCOV,
+    HTFLDEF,
+    HTFLCOV,
+    COVER,
+    MEDALMESSAGENUM
+};
 inline void print_medal_messages(client *c, int n)
 {
-    if (n<0 || n>=MEDALMESSAGENUM) return;
+    if (n < 0 || n >= MEDALMESSAGENUM)
+        return;
     logline(ACLOG_VERBOSE, "[%s] %s %s", c->hostname, c->name, medal_messages[n]);
 }
 
-inline void addpt(client *c, int points, int n = -1) {
+inline void addpt(client *c, int points, int n = -1)
+{
     c->state.points += points;
     c->md.dpt += points;
     c->md.updated = true;
     c->md.upmillis = gamemillis + 240; // about 2 AR shots
-    print_medal_messages(c,n);
+    print_medal_messages(c, n);
 }
 
 /** cnumber is the number of players in the game, at a max value of 12 */
-#define CTFPICKPT     cnumber                      // player picked the flag (ctf)
-#define CTFDROPPT    -cnumber                      // player dropped the flag to other player (probably)
-#define HTFLOSTPT  -2*cnumber                      // penalty
-#define CTFLOSTPT     cnumber*distance/100         // bonus: 1/4 of the flag score bonus
-#define CTFRETURNPT   cnumber                      // flag return
-#define CTFSCOREPT   (cnumber*distance/25+10)      // flag score
-#define HTFSCOREPT   (cnumber*4+10)
-#define KTFSCOREPT   (cnumber*2+10)
-#define COMBOPT       5                            // player frags with combo
-#define REPLYPT       2                            // reply success
-#define TWDONEPT      5                            // team work done
-#define CTFLDEFPT     cnumber                      // player defended the flag in the base (ctf)
-#define CTFLCOVPT     cnumber*2                    // player covered the flag stealer (ctf)
-#define HTFLDEFPT     cnumber                      // player defended a droped flag (htf)
-#define HTFLCOVPT     cnumber*3                    // player covered the flag keeper (htf)
-#define COVERPT       cnumber*2                    // player covered teammate
-#define DEATHPT      -4                            // player died
-#define BONUSPT       target->state.points/400     // bonus (for killing high level enemies :: beware with exponential behavior!)
-#define FLBONUSPT     target->state.points/300     // bonus if flag team mode
-#define TMBONUSPT     target->state.points/200     // bonus if team mode (to give some extra reward for playing tdm modes)
-#define HTFFRAGPT     cnumber/2                    // player frags while carrying the flag
-#define CTFFRAGPT   2*cnumber                      // player frags the flag stealer
-#define FRAGPT        10                           // player frags (normal)
-#define HEADSHOTPT    15                           // player gibs with head shot
-#define KNIFEPT       20                           // player gibs with the knife
-#define SHOTGPT       12                           // player gibs with the shotgun
-#define TKPT         -20                           // player tks
-#define FLAGTKPT     -2*(10+cnumber)               // player tks the flag keeper/stealer
+#define CTFPICKPT cnumber                         // player picked the flag (ctf)
+#define CTFDROPPT -cnumber                        // player dropped the flag to other player (probably)
+#define HTFLOSTPT -2 * cnumber                    // penalty
+#define CTFLOSTPT cnumber *distance / 100         // bonus: 1/4 of the flag score bonus
+#define CTFRETURNPT cnumber                       // flag return
+#define CTFSCOREPT (cnumber * distance / 25 + 10) // flag score
+#define HTFSCOREPT (cnumber * 4 + 10)
+#define KTFSCOREPT (cnumber * 2 + 10)
+#define COMBOPT 5                            // player frags with combo
+#define REPLYPT 2                            // reply success
+#define TWDONEPT 5                           // team work done
+#define CTFLDEFPT cnumber                    // player defended the flag in the base (ctf)
+#define CTFLCOVPT cnumber * 2                // player covered the flag stealer (ctf)
+#define HTFLDEFPT cnumber                    // player defended a droped flag (htf)
+#define HTFLCOVPT cnumber * 3                // player covered the flag keeper (htf)
+#define COVERPT cnumber * 2                  // player covered teammate
+#define DEATHPT -4                           // player died
+#define BONUSPT target->state.points / 400   // bonus (for killing high level enemies :: beware with exponential behavior!)
+#define FLBONUSPT target->state.points / 300 // bonus if flag team mode
+#define TMBONUSPT target->state.points / 200 // bonus if team mode (to give some extra reward for playing tdm modes)
+#define HTFFRAGPT cnumber / 2                // player frags while carrying the flag
+#define CTFFRAGPT 2 * cnumber                // player frags the flag stealer
+#define FRAGPT 10                            // player frags (normal)
+#define HEADSHOTPT 15                        // player gibs with head shot
+#define KNIFEPT 20                           // player gibs with the knife
+#define SHOTGPT 12                           // player gibs with the shotgun
+#define TKPT -20                             // player tks
+#define FLAGTKPT -2 * (10 + cnumber)         // player tks the flag keeper/stealer
 
 void flagpoints(client *c, int message)
 {
@@ -156,57 +188,65 @@ void flagpoints(client *c, int message)
     int cnumber = totalclients < 13 ? totalclients : 12;
     switch (message)
     {
-        case FM_PICKUP:
-            c->md.flagpos.x = c->state.o.x;
-            c->md.flagpos.y = c->state.o.y;
-            c->md.flagmillis = servmillis;
-            if (m_ctf) addpt(c, CTFPICKPT);
-            break;
-        case FM_DROP:
-            if (m_ctf) addpt(c, CTFDROPPT);
-            break;
-        case FM_LOST:
-            if (m_htf) addpt(c, HTFLOSTPT);
-            else if (m_ctf) {
-                distance = sqrt(POW2XY(c->state.o,c->md.flagpos));
-                if (distance > 200) distance = 200;                   // ~200 is the distance between the flags in ac_depot
-                addpt(c, CTFLOSTPT);
-            }
-            break;
-        case FM_RETURN:
-            addpt(c, CTFRETURNPT);
-            break;
-        case FM_SCORE:
-            if (m_ctf) {
-                distance = sqrt(POW2XY(c->state.o,c->md.flagpos));
-                if (distance > 200) distance = 200;
+    case FM_PICKUP:
+        c->md.flagpos.x = c->state.o.x;
+        c->md.flagpos.y = c->state.o.y;
+        c->md.flagmillis = servmillis;
+        if (m_ctf)
+            addpt(c, CTFPICKPT);
+        break;
+    case FM_DROP:
+        if (m_ctf)
+            addpt(c, CTFDROPPT);
+        break;
+    case FM_LOST:
+        if (m_htf)
+            addpt(c, HTFLOSTPT);
+        else if (m_ctf)
+        {
+            distance = sqrt(POW2XY(c->state.o, c->md.flagpos));
+            if (distance > 200)
+                distance = 200; // ~200 is the distance between the flags in ac_depot
+            addpt(c, CTFLOSTPT);
+        }
+        break;
+    case FM_RETURN:
+        addpt(c, CTFRETURNPT);
+        break;
+    case FM_SCORE:
+        if (m_ctf)
+        {
+            distance = sqrt(POW2XY(c->state.o, c->md.flagpos));
+            if (distance > 200)
+                distance = 200;
 #ifdef ACAC
-                if ( validflagscore(distance,c) )
+            if (validflagscore(distance, c))
 #endif
-                    addpt(c, CTFSCOREPT);
-            } else addpt(c, HTFSCOREPT);
-            break;
-        case FM_KTFSCORE:
-            addpt(c, KTFSCOREPT);
-            break;
-        default:
-            break;
+                addpt(c, CTFSCOREPT);
+        }
+        else
+            addpt(c, HTFSCOREPT);
+        break;
+    case FM_KTFSCORE:
+        addpt(c, KTFSCOREPT);
+        break;
+    default:
+        break;
     }
 }
-
 
 inline int minhits2combo(int gun)
 {
     switch (gun)
     {
-        case GUN_SUBGUN:
-        case GUN_AKIMBO:
-            return 4;
-        case GUN_GRENADE:
-        case GUN_ASSAULT:
-            return 3;
-        default:
-            return 2;
+    case GUN_SUBGUN:
+    case GUN_AKIMBO:
+        return 4;
+    case GUN_GRENADE:
+    case GUN_ASSAULT:
+        return 3;
+    default:
+        return 2;
     }
 }
 
@@ -220,18 +260,20 @@ void checkcombo(client *target, client *actor, int damage, int gun)
         return;
     }
 
-    if ( diffhittime < 750 ) {
-        if ( gun == actor->md.lastgun )
+    if (diffhittime < 750)
+    {
+        if (gun == actor->md.lastgun)
         {
-            if ( diffhittime * 2 < guns[gun].attackdelay * 3 )
+            if (diffhittime * 2 < guns[gun].attackdelay * 3)
             {
                 actor->md.combohits++;
-                actor->md.combotime+=diffhittime;
-                actor->md.combodamage+=damage;
+                actor->md.combotime += diffhittime;
+                actor->md.combodamage += damage;
                 int mh2c = minhits2combo(gun);
-                if ( actor->md.combohits > mh2c && actor->md.combohits % mh2c == 1 )
+                if (actor->md.combohits > mh2c && actor->md.combohits % mh2c == 1)
                 {
-                    if (actor->md.combo < 5) actor->md.combo++;
+                    if (actor->md.combo < 5)
+                        actor->md.combo++;
                     actor->md.ncombos++;
                 }
             }
@@ -240,18 +282,21 @@ void checkcombo(client *target, client *actor, int damage, int gun)
         {
             switch (gun)
             {
-                case GUN_KNIFE:
-                case GUN_PISTOL:
-                    if ( guns[actor->md.lastgun].isauto ) break;
-                case GUN_SNIPER:
-                    if ( actor->md.lastgun > GUN_PISTOL ) break;
-                default:
-                    actor->md.combohits++;
-                    actor->md.combotime+=diffhittime;
-                    actor->md.combodamage+=damage;
-                    if (actor->md.combo < 5) actor->md.combo++;
-                    actor->md.ncombos++;
+            case GUN_KNIFE:
+            case GUN_PISTOL:
+                if (guns[actor->md.lastgun].isauto)
                     break;
+            case GUN_SNIPER:
+                if (actor->md.lastgun > GUN_PISTOL)
+                    break;
+            default:
+                actor->md.combohits++;
+                actor->md.combotime += diffhittime;
+                actor->md.combodamage += damage;
+                if (actor->md.combo < 5)
+                    actor->md.combo++;
+                actor->md.ncombos++;
+                break;
             }
         }
     }
@@ -275,18 +320,22 @@ int checkteamrequests(int sender)
     int dtime, besttime = -1;
     int bestid = -1;
     client *ant = clients[sender];
-    loopv(clients) {
+    loopv(clients)
+    {
         client *prot = clients[i];
-        if ( i!=sender && prot->type != ST_EMPTY && prot->team == ant->team &&
-             prot->state.state == CS_ALIVE && prot->md.askmillis > gamemillis && prot->md.ask >= 0 ) {
-            float dist = POW2XY(ant->state.o,prot->state.o);
-            if ( dist < REPLYDIST && (dtime=prot->md.askmillis-gamemillis) > besttime) {
+        if (i != sender && prot->type != ST_EMPTY && prot->team == ant->team &&
+            prot->state.state == CS_ALIVE && prot->md.askmillis > gamemillis && prot->md.ask >= 0)
+        {
+            float dist = POW2XY(ant->state.o, prot->state.o);
+            if (dist < REPLYDIST && (dtime = prot->md.askmillis - gamemillis) > besttime)
+            {
                 bestid = i;
                 besttime = dtime;
             }
         }
     }
-    if ( besttime >= 0 ) return bestid;
+    if (besttime >= 0)
+        return bestid;
     return -1;
 }
 
@@ -295,39 +344,44 @@ void checkteamplay(int s, int sender)
 {
     client *actor = clients[sender];
 
-    if ( actor->state.state != CS_ALIVE ) return;
-    switch(s){
-        case S_IMONDEFENSE: // informs
-            actor->md.linkmillis = gamemillis + 20000;
-            actor->md.linkreason = s;
-            break;
-        case S_COVERME: // demands
-        case S_STAYTOGETHER:
-        case S_STAYHERE:
-            actor->md.ask = s;
-            actor->md.askmillis = gamemillis + 5000;
-            break;
-        case S_AFFIRMATIVE: // replies
-        case S_ALLRIGHTSIR:
-        case S_YES:
+    if (actor->state.state != CS_ALIVE)
+        return;
+    switch (s)
+    {
+    case S_IMONDEFENSE: // informs
+        actor->md.linkmillis = gamemillis + 20000;
+        actor->md.linkreason = s;
+        break;
+    case S_COVERME: // demands
+    case S_STAYTOGETHER:
+    case S_STAYHERE:
+        actor->md.ask = s;
+        actor->md.askmillis = gamemillis + 5000;
+        break;
+    case S_AFFIRMATIVE: // replies
+    case S_ALLRIGHTSIR:
+    case S_YES:
+    {
+        int id = checkteamrequests(sender);
+        if (id >= 0)
         {
-            int id = checkteamrequests(sender);
-            if ( id >= 0 ) {
-                client *sgt = clients[id];
-                actor->md.linked = id;
-                if ( actor->md.linkmillis < gamemillis ) addpt(actor,REPLYPT);
-                actor->md.linkmillis = gamemillis + 30000;
-                actor->md.linkreason = sgt->md.ask;
-                sendf(actor->clientnum, 1, "ri2", SV_HUDEXTRAS, HE_NUM+id);
-                switch( actor->md.linkreason ) { // check demands
-                    case S_STAYHERE:
-                        actor->md.pos = sgt->state.o;
-                        addpt(sgt,REPLYPT);
-                        break;
-                }
+            client *sgt = clients[id];
+            actor->md.linked = id;
+            if (actor->md.linkmillis < gamemillis)
+                addpt(actor, REPLYPT);
+            actor->md.linkmillis = gamemillis + 30000;
+            actor->md.linkreason = sgt->md.ask;
+            sendf(actor->clientnum, 1, "ri2", SV_HUDEXTRAS, HE_NUM + id);
+            switch (actor->md.linkreason)
+            { // check demands
+            case S_STAYHERE:
+                actor->md.pos = sgt->state.o;
+                addpt(sgt, REPLYPT);
+                break;
             }
-            break;
         }
+        break;
+    }
     }
 }
 
@@ -336,30 +390,32 @@ void computeteamwork(int team, int exclude) // testing
     loopv(clients)
     {
         client *actor = clients[i];
-        if ( i == exclude || actor->type == ST_EMPTY || actor->team != team || actor->state.state != CS_ALIVE || actor->md.linkmillis < gamemillis ) continue;
+        if (i == exclude || actor->type == ST_EMPTY || actor->team != team || actor->state.state != CS_ALIVE || actor->md.linkmillis < gamemillis)
+            continue;
         vec position;
         bool teamworkdone = false;
-        switch( actor->md.linkreason )
+        switch (actor->md.linkreason)
         {
-            case S_IMONDEFENSE:
-                position = actor->spawnp;
-                teamworkdone = true;
-                break;
-            case S_STAYTOGETHER:
-                if ( valid_client(actor->md.linked) ) position = clients[actor->md.linked]->state.o;
-                teamworkdone = true;
-                break;
-            case S_STAYHERE:
-                position = actor->md.pos;
-                teamworkdone = true;
-                break;
+        case S_IMONDEFENSE:
+            position = actor->spawnp;
+            teamworkdone = true;
+            break;
+        case S_STAYTOGETHER:
+            if (valid_client(actor->md.linked))
+                position = clients[actor->md.linked]->state.o;
+            teamworkdone = true;
+            break;
+        case S_STAYHERE:
+            position = actor->md.pos;
+            teamworkdone = true;
+            break;
         }
-        if ( teamworkdone )
+        if (teamworkdone)
         {
-            float dist = POW2XY(actor->state.o,position);
+            float dist = POW2XY(actor->state.o, position);
             if (dist < COVERDIST)
             {
-                addpt(actor,TWDONEPT);
+                addpt(actor, TWDONEPT);
                 sendf(actor->clientnum, 1, "ri2", SV_HUDEXTRAS, HE_TEAMWORK);
             }
         }
@@ -370,7 +426,7 @@ float a2c = 0, c2t = 0, a2t = 0; // distances: actor to covered, covered to targ
 
 inline bool testcover(int msg, int factor, client *actor)
 {
-    if ( a2c < coverdist && c2t < coverdist && a2t < coverdist )
+    if (a2c < coverdist && c2t < coverdist && a2t < coverdist)
     {
         sendf(actor->clientnum, 1, "ri2", SV_HUDEXTRAS, msg);
         addpt(actor, factor);
@@ -380,10 +436,10 @@ inline bool testcover(int msg, int factor, client *actor)
     return false;
 }
 
-#define CALCCOVER(C) \
-    a2c = POW2XY(actor->state.o,C);\
-    c2t = POW2XY(C,target->state.o);\
-    a2t = POW2XY(actor->state.o,target->state.o)
+#define CALCCOVER(C)                  \
+    a2c = POW2XY(actor->state.o, C);  \
+    c2t = POW2XY(C, target->state.o); \
+    a2t = POW2XY(actor->state.o, target->state.o)
 
 bool validlink(client *actor, int cn)
 {
@@ -401,51 +457,62 @@ void checkcover(client *target, client *actor)
 
     int cnumber = totalclients < 13 ? totalclients : 12;
 
-    if ( m_flags ) {
+    if (m_flags)
+    {
         sflaginfo &f = sflaginfos[team];
         sflaginfo &of = sflaginfos[oteam];
 
-        if ( m_ctf )
+        if (m_ctf)
         {
-            if ( f.state == CTFF_INBASE )
+            if (f.state == CTFF_INBASE)
             {
                 CALCCOVER(f);
-                if ( testcover(HE_FLAGDEFENDED, CTFLDEFPT, actor) ) print_medal_messages(actor,CTFLDEF);
+                if (testcover(HE_FLAGDEFENDED, CTFLDEFPT, actor))
+                    print_medal_messages(actor, CTFLDEF);
             }
-            if ( of.state == CTFF_STOLEN && actor->clientnum != of.actor_cn )
+            if (of.state == CTFF_STOLEN && actor->clientnum != of.actor_cn)
             {
-                covered = true; coverid = of.actor_cn;
+                covered = true;
+                coverid = of.actor_cn;
                 CALCCOVER(clients[of.actor_cn]->state.o);
-                if ( testcover(HE_FLAGCOVERED, CTFLCOVPT, actor) ) print_medal_messages(actor,CTFLCOV);
+                if (testcover(HE_FLAGCOVERED, CTFLCOVPT, actor))
+                    print_medal_messages(actor, CTFLCOV);
             }
         }
-        else if ( m_htf )
+        else if (m_htf)
         {
-            if ( actor->clientnum != f.actor_cn )
+            if (actor->clientnum != f.actor_cn)
             {
-                if ( f.state == CTFF_DROPPED )
+                if (f.state == CTFF_DROPPED)
                 {
-                    struct { short x, y; } nf;
-                    nf.x = f.pos[0]; nf.y = f.pos[1];
+                    struct
+                    {
+                        short x, y;
+                    } nf;
+                    nf.x = f.pos[0];
+                    nf.y = f.pos[1];
                     CALCCOVER(nf);
-                    if ( testcover(HE_FLAGDEFENDED, HTFLDEFPT, actor) ) print_medal_messages(actor,HTFLDEF);
+                    if (testcover(HE_FLAGDEFENDED, HTFLDEFPT, actor))
+                        print_medal_messages(actor, HTFLDEF);
                 }
-                if ( f.state == CTFF_STOLEN )
+                if (f.state == CTFF_STOLEN)
                 {
-                    covered = true; coverid = f.actor_cn;
+                    covered = true;
+                    coverid = f.actor_cn;
                     CALCCOVER(clients[f.actor_cn]->state.o);
-                    if ( testcover(HE_FLAGCOVERED, HTFLCOVPT, actor) ) print_medal_messages(actor,HTFLCOV);
+                    if (testcover(HE_FLAGCOVERED, HTFLCOVPT, actor))
+                        print_medal_messages(actor, HTFLCOV);
                 }
             }
         }
     }
 
-    if ( !(covered && actor->md.linked==coverid) && validlink(actor,actor->md.linked) )
+    if (!(covered && actor->md.linked == coverid) && validlink(actor, actor->md.linked))
     {
         CALCCOVER(clients[actor->md.linked]->state.o);
-        if ( testcover(HE_COVER, COVERPT, actor) ) print_medal_messages(actor,COVER);
+        if (testcover(HE_COVER, COVERPT, actor))
+            print_medal_messages(actor, COVER);
     }
-
 }
 
 #undef CALCCOVER
@@ -456,44 +523,60 @@ void checkfrag(client *target, client *actor, int gun, bool gib)
     int targethasflag = clienthasflag(target->clientnum);
     int actorhasflag = clienthasflag(actor->clientnum);
     int cnumber = totalclients < 13 ? totalclients : 12;
-    addpt(target,DEATHPT);
-    if(target!=actor) {
-        if(!isteam(target->team, actor->team)) {
+    addpt(target, DEATHPT);
+    if (target != actor)
+    {
+        if (!isteam(target->team, actor->team))
+        {
 
-            if (m_teammode) {
-                if(!m_flags) addpt(actor, TMBONUSPT);
-                else addpt(actor, FLBONUSPT);
+            if (m_teammode)
+            {
+                if (!m_flags)
+                    addpt(actor, TMBONUSPT);
+                else
+                    addpt(actor, FLBONUSPT);
 
-                checkcover (target, actor);
-                if ( m_htf && actorhasflag >= 0 ) addpt(actor, HTFFRAGPT);
+                checkcover(target, actor);
+                if (m_htf && actorhasflag >= 0)
+                    addpt(actor, HTFFRAGPT);
 
-                if ( m_ctf && targethasflag >= 0 ) {
+                if (m_ctf && targethasflag >= 0)
+                {
                     addpt(actor, CTFFRAGPT);
                 }
             }
-            else addpt(actor, BONUSPT);
+            else
+                addpt(actor, BONUSPT);
 
-            if (gib && gun != GUN_GRENADE) {
-                if ( gun == GUN_SNIPER ) {
+            if (gib && gun != GUN_GRENADE)
+            {
+                if (gun == GUN_SNIPER)
+                {
                     addpt(actor, HEADSHOTPT);
                     actor->md.nhs++;
                 }
-                else if ( gun == GUN_KNIFE ) addpt(actor, KNIFEPT);
-                else if ( gun == GUN_SHOTGUN ) addpt(actor, SHOTGPT);
+                else if (gun == GUN_KNIFE)
+                    addpt(actor, KNIFEPT);
+                else if (gun == GUN_SHOTGUN)
+                    addpt(actor, SHOTGPT);
             }
-            else addpt(actor, FRAGPT);
+            else
+                addpt(actor, FRAGPT);
 
-            if ( actor->md.combo ) {
+            if (actor->md.combo)
+            {
                 actor->md.combofrags++;
-                addpt(actor,COMBOPT);
+                addpt(actor, COMBOPT);
                 actor->md.combosend = true;
             }
+        }
+        else
+        {
 
-        } else {
-
-            if ( targethasflag >= 0 ) addpt(actor, FLAGTKPT);
-            else addpt(actor, TKPT);
-
+            if (targethasflag >= 0)
+                addpt(actor, FLAGTKPT);
+            else
+                addpt(actor, TKPT);
         }
     }
 }
@@ -505,17 +588,19 @@ void check_afk()
 {
     next_afk_check = servmillis + 7 * 1000;
     /* if we have few people (like 2x2), or it is not a teammode with the server not full: do nothing! */
-    if ( totalclients < 5 || ( totalclients < scl.maxclients && !m_teammode)  ) return;
+    if (totalclients < 5 || (totalclients < scl.maxclients && !m_teammode))
+        return;
     loopv(clients)
     {
         client &c = *clients[i];
-        if ( c.type != ST_TCPIP || c.connectmillis + 60 * 1000 > servmillis ||
-             c.inputmillis + scl.afk_limit > servmillis || clienthasflag(c.clientnum) != -1 ) continue;
-        if ( ( c.state.state == CS_DEAD && !m_arena && c.state.lastdeath + 45 * 1000 < gamemillis) ||
-             ( c.state.state == CS_ALIVE && c.upspawnp ) /*||
+        if (c.type != ST_TCPIP || c.connectmillis + 60 * 1000 > servmillis ||
+            c.inputmillis + scl.afk_limit > servmillis || clienthasflag(c.clientnum) != -1)
+            continue;
+        if ((c.state.state == CS_DEAD && !m_arena && c.state.lastdeath + 45 * 1000 < gamemillis) ||
+            (c.state.state == CS_ALIVE && c.upspawnp) /*||
              ( c.state.state == CS_SPECTATE && totalclients >= scl.maxclients )  // only kick spectator if server is full - 2011oct16:flowtron: mmh, that seems reasonable enough .. still, kicking spectators for inactivity seems harsh! disabled ATM, kick them manually if you must.
              */
-            )
+        )
         {
             logline(ACLOG_INFO, "[%s] %s %s", c.hostname, c.name, "is afk");
             defformatstring(msg)("%s is afk", c.name);
@@ -530,9 +615,11 @@ void check_afk()
     In normal games, the players go over 6 tks only in the worst cases */
 void check_ffire(client *target, client *actor, int damage)
 {
-    if ( mastermode != MM_OPEN ) return;
+    if (mastermode != MM_OPEN)
+        return;
     actor->ffire += damage;
-    if ( actor->ffire > 300 && actor->ffire * 600 > gamemillis) {
+    if (actor->ffire > 300 && actor->ffire * 600 > gamemillis)
+    {
         logline(ACLOG_INFO, "[%s] %s %s", actor->hostname, actor->name, "kicked for excessive friendly fire");
         defformatstring(msg)("%s %s", actor->name, "kicked for excessive friendly fire");
         sendservmsg(msg);
@@ -540,15 +627,16 @@ void check_ffire(client *target, client *actor, int damage)
     }
 }
 
-inline int check_pdist(client *c, float & dist) // pick up distance
+inline int check_pdist(client *c, float &dist) // pick up distance
 {
     // ping 1000ms at max velocity can produce an error of 20 cubes
     float delay = 9.0f + (float)c->ping * 0.02f + (float)c->spj * 0.025f; // at pj/ping 40/100, delay = 12
-    if ( dist > delay )
+    if (dist > delay)
     {
-        if ( dist < 1.5f * delay ) return 1;
+        if (dist < 1.5f * delay)
+            return 1;
 #ifdef ACAC
-        pickup_checks(c,dist-delay);
+        pickup_checks(c, dist - delay);
 #endif
         return 2;
     }
@@ -575,23 +663,25 @@ inline void checkmove(client *cl)
 {
     cl->ldt = gamemillis - cl->lmillis;
     cl->lmillis = gamemillis;
-    if ( cl->ldt < 40 ) cl->ldt = 40;
+    if (cl->ldt < 40)
+        cl->ldt = 40;
     cl->t += cl->ldt;
-    cl->spj = (( 7 * cl->spj + cl->ldt ) >> 3);
+    cl->spj = ((7 * cl->spj + cl->ldt) >> 3);
 
-    if ( cl->input != cl->f )
+    if (cl->input != cl->f)
     {
         cl->input = cl->f;
         cl->inputmillis = servmillis;
     }
 
-    if(maplayout) checkclientpos(cl);
+    if (maplayout)
+        checkclientpos(cl);
 
 #ifdef ACAC
     m_engine(cl);
 #endif
 
-    if ( !cl->upspawnp )
+    if (!cl->upspawnp)
     {
         cl->spawnp = cl->state.o;
         cl->upspawnp = true;
@@ -601,7 +691,7 @@ inline void checkmove(client *cl)
     return;
 }
 
-inline void checkshoot(int & cn, gameevent & shot, int & hits, int & tcn)
+inline void checkshoot(int &cn, gameevent &shot, int &hits, int &tcn)
 {
 #ifdef ACAC
     s_engine(cn, shot, hits, tcn);
@@ -609,10 +699,10 @@ inline void checkshoot(int & cn, gameevent & shot, int & hits, int & tcn)
     return;
 }
 
-inline void checkweapon(int & type, int & var)
+inline void checkweapon(int &type, int &var)
 {
 #ifdef ACAC
-    w_engine(type,var);
+    w_engine(type, var);
 #endif
     return;
 }
@@ -620,7 +710,8 @@ inline void checkweapon(int & type, int & var)
 bool validdamage(client *&target, client *&actor, int &damage, int &gun, bool &gib)
 {
 #ifdef ACAC
-    if (!d_engine(target, actor, damage, gun, gib)) return false;
+    if (!d_engine(target, actor, damage, gun, gib))
+        return false;
 #endif
     return true;
 }
@@ -628,8 +719,7 @@ bool validdamage(client *&target, client *&actor, int &damage, int &gun, bool &g
 inline int checkmessage(client *c, int type)
 {
 #ifdef ACAC
-    type = p_engine(c,type);
+    type = p_engine(c, type);
 #endif
     return type;
 }
-

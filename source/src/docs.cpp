@@ -11,7 +11,7 @@ struct docargument
     char *token, *desc, *values;
     bool vararg;
 
-    docargument() : token(NULL), desc(NULL), values(NULL) {};
+    docargument() : token(NULL), desc(NULL), values(NULL){};
     ~docargument()
     {
         DELETEA(token);
@@ -59,7 +59,7 @@ struct docsection
     vector<docident *> sidents;
     void *menu;
 
-    docsection() : name(NULL) {};
+    docsection() : name(NULL){};
     ~docsection()
     {
         DELETEA(name);
@@ -73,7 +73,11 @@ docident *lastident = NULL;
 
 void adddocsection(char *name)
 {
-    if(!name || !*name) { lastsection = NULL; return; }
+    if (!name || !*name)
+    {
+        lastsection = NULL;
+        return;
+    }
     docsection &s = sections.add();
     s.name = newstring(name);
     s.menu = addmenu(s.name, NULL, true, renderdocsection);
@@ -83,21 +87,27 @@ COMMANDN(docsection, adddocsection, "s");
 
 void adddocident(char *name, char *desc)
 {
-    if(!name || !desc || !lastsection || !*name) { lastident = NULL; return; }
+    if (!name || !desc || !lastsection || !*name)
+    {
+        lastident = NULL;
+        return;
+    }
     name = newstring(name);
     docident &c = docidents[name];
     lastsection->sidents.add(&c);
     c.name = name;
     c.desc = newstring(desc);
     lastident = &c;
-    DEBUGCODE(if(strlen(desc) > 111) clientlogf("docident: very long description for ident %s (%d)", name, (int)strlen(desc)));
+    DEBUGCODE(if (strlen(desc) > 111) clientlogf("docident: very long description for ident %s (%d)", name, (int)strlen(desc)));
 }
 COMMANDN(docident, adddocident, "ss");
 
 void adddocargument(char *token, char *desc, char *values, char *vararg)
 {
-    if(!lastident || !token || !desc) return;
-    if(*token) loopv(lastident->arguments) if(!strcmp(token, lastident->arguments[i].token)) clientlogf("docargument: double token %s in reference %s", token, lastident->name);
+    if (!lastident || !token || !desc)
+        return;
+    if (*token)
+        loopv(lastident->arguments) if (!strcmp(token, lastident->arguments[i].token)) clientlogf("docargument: double token %s in reference %s", token, lastident->name);
     docargument &a = lastident->arguments.add();
     a.token = newstring(token);
     a.desc = newstring(desc);
@@ -108,17 +118,20 @@ COMMANDN(docargument, adddocargument, "ssss");
 
 void adddocremark(char *remark)
 {
-    if(!lastident || !remark || !*remark) return;
+    if (!lastident || !remark || !*remark)
+        return;
     lastident->remarks.add(newstring(remark));
 }
 COMMANDN(docremark, adddocremark, "s");
 
 void adddocref(char *refident)
 {
-    if(!lastident || !refident || !*refident) return;
+    if (!lastident || !refident || !*refident)
+        return;
 #ifdef _DEBUG
-    if(!strcasecmp(refident, lastident->name)) clientlogf("docref: circular reference for %s", refident);
-    loopv(lastident->references) if(!strcasecmp(lastident->references[i], refident)) clientlogf("docref: double reference %s in %s", refident, lastident->name);
+    if (!strcasecmp(refident, lastident->name))
+        clientlogf("docref: circular reference for %s", refident);
+    loopv(lastident->references) if (!strcasecmp(lastident->references[i], refident)) clientlogf("docref: double reference %s in %s", refident, lastident->name);
 #endif
     lastident->references.add(newstring(refident));
 }
@@ -126,7 +139,8 @@ COMMANDN(docref, adddocref, "s");
 
 void adddocexample(char *code, char *explanation)
 {
-    if(!lastident || !code) return;
+    if (!lastident || !code)
+        return;
     docexample &e = lastident->examples.add();
     e.code = newstring(code);
     e.explanation = explanation && strlen(explanation) ? newstring(explanation) : NULL;
@@ -135,12 +149,12 @@ COMMANDN(docexample, adddocexample, "ss");
 
 void adddockey(char *alias, char *name, char *desc)
 {
-    if(!lastident || !alias) return;
+    if (!lastident || !alias)
+        return;
     defformatstring(line)("~%-10s %s", *name ? name : alias, desc);
     lastident->keylines.add(newstring(line));
 }
 COMMANDN(dockey, adddockey, "sss");
-
 
 const char *docgetdesc(const char *name)
 {
@@ -151,9 +165,10 @@ const char *docgetdesc(const char *name)
 char *cvecstr(vector<char *> &cvec, const char *substr, int *rline = NULL)
 {
     char *r = NULL;
-    loopv(cvec) if(cvec[i]) if((r = strstr(cvec[i], substr)) != NULL)
+    loopv(cvec) if (cvec[i]) if ((r = strstr(cvec[i], substr)) != NULL)
     {
-        if(rline) *rline = i;
+        if (rline)
+            *rline = i;
         break;
     }
     return r;
@@ -162,28 +177,30 @@ char *cvecstr(vector<char *> &cvec, const char *substr, int *rline = NULL)
 void listundoneidents(vector<const char *> &inames, int allidents)
 {
     enumeratekt(*idents, const char *, name, ident, id,
-    {
-        if((allidents > 0) || id.type != ID_ALIAS)
-        {
-            docident *id = docidents.access(name);
-            if(id) // search for substrings that indicate undoneness
-            {
-                vector<char *> srch;
-                srch.add(id->name);
-                srch.add(id->desc);
-                loopvj(id->remarks) srch.add(id->remarks[j]);
-                loopvj(id->arguments)
                 {
-                    srch.add(id->arguments[j].token);
-                    srch.add(id->arguments[j].desc);
-                    srch.add(id->arguments[j].values);
-                }
-                loopvj(id->references) srch.add(id->references[j]);
-                if(cvecstr(srch, "TODO") || cvecstr(srch, "UNDONE")) id = NULL;
-            }
-            if(!id) inames.add(name);
-        }
-    });
+                    if ((allidents > 0) || id.type != ID_ALIAS)
+                    {
+                        docident *id = docidents.access(name);
+                        if (id) // search for substrings that indicate undoneness
+                        {
+                            vector<char *> srch;
+                            srch.add(id->name);
+                            srch.add(id->desc);
+                            loopvj(id->remarks) srch.add(id->remarks[j]);
+                            loopvj(id->arguments)
+                            {
+                                srch.add(id->arguments[j].token);
+                                srch.add(id->arguments[j].desc);
+                                srch.add(id->arguments[j].values);
+                            }
+                            loopvj(id->references) srch.add(id->references[j]);
+                            if (cvecstr(srch, "TODO") || cvecstr(srch, "UNDONE"))
+                                id = NULL;
+                        }
+                        if (!id)
+                            inames.add(name);
+                    }
+                });
     inames.sort(stringsort);
 }
 
@@ -199,21 +216,24 @@ COMMAND(docundone, "i");
 void docinvalid()
 {
     vector<const char *> inames, irefs;
-    enumerate(docidents, docident, d, if(!strchr(d.name, ' ') && !identexists(d.name)) inames.add(d.name););
+    enumerate(docidents, docident, d, if (!strchr(d.name, ' ') && !identexists(d.name)) inames.add(d.name););
     inames.sort(stringsort);
-    if(inames.length()) conoutf("no such ident:");
+    if (inames.length())
+        conoutf("no such ident:");
     loopv(inames) conoutf(" %s", inames[i]);
     enumerate(docidents, docident, d,
-    {
-        loopv(d.references) if(!identexists(d.references[i]))
-        {
-            bool add = true;
-            loopvj(inames) if(!strcasecmp(inames[j], d.references[i])) add = false; // don't list references to nonexisting but documented entries
-            if(add) irefs.add(d.references[i]);
-        }
-    });
+              {
+                  loopv(d.references) if (!identexists(d.references[i]))
+                  {
+                      bool add = true;
+                      loopvj(inames) if (!strcasecmp(inames[j], d.references[i])) add = false; // don't list references to nonexisting but documented entries
+                      if (add)
+                          irefs.add(d.references[i]);
+                  }
+              });
     irefs.sort(stringsort);
-    if(irefs.length()) conoutf("no such reference:");
+    if (irefs.length())
+        conoutf("no such reference:");
     loopv(irefs) conoutf(" %s", irefs[i]);
 }
 COMMAND(docinvalid, "");
@@ -234,11 +254,12 @@ void docfind(char *search, int *silent)
 
         char *r;
         int rline;
-        if((r = cvecstr(srch, search, &rline)))
+        if ((r = cvecstr(srch, search, &rline)))
         {
             cvecprintf(res, "%s %d\n", escapestring(i.name, false), rline);
-            if(!rline) r = srch[(rline = 1)];
-            if(!*silent)
+            if (!rline)
+                r = srch[(rline = 1)];
+            if (!*silent)
             {
                 const int showchars = 100;
                 string match;
@@ -256,45 +277,57 @@ void getdoc(char *name, int *line)
 {
     const char *res = "";
     docident *d = docidents.access(name);
-    if(d)
+    if (d)
     {
-        switch(*line)
+        switch (*line)
         {
-            case 0: res = d->name; break;
-            case 1: res = d->desc; break;
-            default:
-                if(d->remarks.inrange(*line - 2)) res = d->remarks[*line - 2];
-                break;
+        case 0:
+            res = d->name;
+            break;
+        case 1:
+            res = d->desc;
+            break;
+        default:
+            if (d->remarks.inrange(*line - 2))
+                res = d->remarks[*line - 2];
+            break;
         }
     }
-    else conoutf("\f3getdoc: \"%s\" not found", name);
+    else
+        conoutf("\f3getdoc: \"%s\" not found", name);
     result(res);
 }
 COMMAND(getdoc, "si");
 
 char *xmlstringenc(char *d, const char *s, size_t len)
 {
-    if(!d || !s) return NULL;
-    struct spchar { char c; char repl[8]; } const spchars[] = { {'&', "&amp;"}, {'<', "&lt;"}, {'>', "gt;"}, {'"', "&quot;"}, {'\'', "&apos;"}};
+    if (!d || !s)
+        return NULL;
+    struct spchar
+    {
+        char c;
+        char repl[8];
+    } const spchars[] = {{'&', "&amp;"}, {'<', "&lt;"}, {'>', "gt;"}, {'"', "&quot;"}, {'\'', "&apos;"}};
 
     char *dc = d;
     const char *sc = s;
 
-    while(*sc && (size_t)(dc - d) < len - 1)
+    while (*sc && (size_t)(dc - d) < len - 1)
     {
         bool specialc = false;
-        loopi(sizeof(spchars)/sizeof(spchar)) if(spchars[i].c == *sc)
+        loopi(sizeof(spchars) / sizeof(spchar)) if (spchars[i].c == *sc)
         {
             specialc = true;
             size_t rlen = strlen(spchars[i].repl);
-            if(dc - d + rlen <= len - 1)
+            if (dc - d + rlen <= len - 1)
             {
                 memcpy(dc, spchars[i].repl, rlen);
                 dc += rlen;
                 break;
             }
         }
-        if(!specialc) memcpy(dc++, sc, 1);
+        if (!specialc)
+            memcpy(dc++, sc, 1);
         *dc = 0;
         sc++;
     }
@@ -304,15 +337,18 @@ char *xmlstringenc(char *d, const char *s, size_t len)
 void docwriteref(int allidents, const char *ref, const char *schemalocation, const char *transformation)
 {
     stream *f = openfile(path(allidents < 0 ? "docs/autogenerated_base_reference.xml" : "docs/autogenerated_todo_reference.xml", true), "w");
-    if(!f) return;
+    if (!f)
+        return;
     char desc[] = "<description>TODO: Description</description>";
 
     vector<const char *> inames;
-    if(allidents < 0) identnames(inames, true);   // -1: all builtin
-    else listundoneidents(inames, allidents);      // 0: todo builtin, 1: todo builtin + alias
+    if (allidents < 0)
+        identnames(inames, true); // -1: all builtin
+    else
+        listundoneidents(inames, allidents); // 0: todo builtin, 1: todo builtin + alias
     inames.sort(stringsort);
 
-    if(allidents < 0)
+    if (allidents < 0)
     {
         f->printf("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n");
         f->printf("<?xml-stylesheet type=\"text/xsl\" href=\"%s\"?>\n", transformation && strlen(transformation) ? transformation : "transformations/cuberef2xhtml.xslt");
@@ -328,10 +364,11 @@ void docwriteref(int allidents, const char *ref, const char *schemalocation, con
     loopv(inames)
     {
         ident *id = idents->access(inames[i]);
-        if(!id || id->type != ID_COMMAND) continue;
+        if (!id || id->type != ID_COMMAND)
+            continue;
         f->printf("\t\t\t\t<command name=\"%s\">\n", xmlstringenc(name, id->name, MAXSTRLEN));
         f->printf("\t\t\t\t\t%s\n", desc);
-        if(id->sig && id->sig[0])
+        if (id->sig && id->sig[0])
         {
             f->printf("\t\t\t\t\t<arguments>\n");
             loopi(strlen(id->sig))
@@ -345,32 +382,35 @@ void docwriteref(int allidents, const char *ref, const char *schemalocation, con
     loopv(inames)
     {
         ident *id = idents->access(inames[i]);
-        if(!id || (id->type != ID_VAR && id->type != ID_FVAR)) continue;
+        if (!id || (id->type != ID_VAR && id->type != ID_FVAR))
+            continue;
         f->printf("\t\t\t\t<variable name=\"%s\">\n", xmlstringenc(name, id->name, MAXSTRLEN));
         f->printf("\t\t\t\t\t<description>TODO</description>\n");
-        switch(id->type)
+        switch (id->type)
         {
-            case ID_VAR:
-                f->printf("\t\t\t\t\t<value %s description=\"TODO\" minValue=\"%d\" maxValue=\"%d\" defaultValue=\"%d\" %s/>\n", id->minval>id->maxval ? "" : "token=\"N\"", id->minval, id->maxval, *id->storage.i, id->minval>id->maxval ? "readOnly=\"true\"" : "");
-                break;
-            case ID_FVAR:
-                f->printf("\t\t\t\t\t<value %s description=\"TODO\" minValue=\"%s\" maxValue=\"%s\" defaultValue=\"%s\" %s/>\n", id->minvalf>id->maxvalf ? "" : "token=\"N\"",
-                    floatstr(id->minvalf), floatstr(id->maxvalf), floatstr(*id->storage.f),
-                    id->minvalf>id->maxvalf ? "readOnly=\"true\"" : "");
-                break;
+        case ID_VAR:
+            f->printf("\t\t\t\t\t<value %s description=\"TODO\" minValue=\"%d\" maxValue=\"%d\" defaultValue=\"%d\" %s/>\n", id->minval > id->maxval ? "" : "token=\"N\"", id->minval, id->maxval, *id->storage.i, id->minval > id->maxval ? "readOnly=\"true\"" : "");
+            break;
+        case ID_FVAR:
+            f->printf("\t\t\t\t\t<value %s description=\"TODO\" minValue=\"%s\" maxValue=\"%s\" defaultValue=\"%s\" %s/>\n", id->minvalf > id->maxvalf ? "" : "token=\"N\"",
+                      floatstr(id->minvalf), floatstr(id->maxvalf), floatstr(*id->storage.f),
+                      id->minvalf > id->maxvalf ? "readOnly=\"true\"" : "");
+            break;
         }
         f->printf("\t\t\t\t</variable>\n");
     }
     loopv(inames)
     {
         ident *id = idents->access(inames[i]);
-        if(!id || id->type != ID_ALIAS) continue;
+        if (!id || id->type != ID_ALIAS)
+            continue;
         f->printf("\t\t\t\t<command name=\"%s\">\n", xmlstringenc(name, id->name, MAXSTRLEN));
         f->printf("\t\t\t\t\t%s\n", desc);
         f->printf("\t\t\t\t</command>\n");
     }
 
-    if(allidents < 0) f->printf("\t\t\t</identifiers>\n\t\t</section>\n\t</sections>\n</cuberef>\n");
+    if (allidents < 0)
+        f->printf("\t\t\t</identifiers>\n\t\t</section>\n\t</sections>\n</cuberef>\n");
     delete f;
 }
 
@@ -392,69 +432,88 @@ VAR(docskip, 0, 0, 1000);
 VAR(docidentverbose, 0, 1, 3);
 
 void toggledoc() { docvisible = !docvisible; }
-void scrolldoc(int i) { docskip += i; if(docskip < 0) docskip = 0; }
+void scrolldoc(int i)
+{
+    docskip += i;
+    if (docskip < 0)
+        docskip = 0;
+}
 
 int docs_parsecmd(const char *p, const char *pos, const char *w[MAXWORDS], int wl[MAXWORDS], bool outer, int *unmatched)
 {
     vector<const char *> brak;
-    for(;;) // loop statements
+    for (;;) // loop statements
     {
         int nargs = MAXWORDS, curarg = -1;
         loopi(MAXWORDS)
         {
-            w[i] = NULL; wl[i] = 0;
-            if(i >  nargs) continue;
+            w[i] = NULL;
+            wl[i] = 0;
+            if (i > nargs)
+                continue;
             w[i] = (p += strspn(p, " \t")); // skip whitespace
-            if(p[0]=='/' && p[1]=='/') p += strcspn(p, "\n\r\0"); // skip comment
-            if(*p == '"')
+            if (p[0] == '/' && p[1] == '/')
+                p += strcspn(p, "\n\r\0"); // skip comment
+            if (*p == '"')
             { // find matching "
                 do
                 {
                     ++p;
                     p += strcspn(p, "\"\n\r");
-                } while(*p == '\"' && p[-1] == '\\');
+                } while (*p == '\"' && p[-1] == '\\');
                 p++;
             }
-            else if(*p == '[' || *p == '(')
+            else if (*p == '[' || *p == '(')
             { // find matching ) or ]
                 bool quot = false;
                 char right = *p == '[' ? ']' : ')', left = *p++;
                 brak.add(p);
-                while(brak.length())
+                while (brak.length())
                 {
                     p += strcspn(p, "([\"])");
                     int c = *p++;
-                    if(c == left && !quot) brak.add(p);
-                    else if(c == '"') quot = !quot;
-                    else if(c == right && !quot) brak.drop();
-                    else if(!c)
+                    if (c == left && !quot)
+                        brak.add(p);
+                    else if (c == '"')
+                        quot = !quot;
+                    else if (c == right && !quot)
+                        brak.drop();
+                    else if (!c)
                     { // unmatched braces, interpret from there (in first pass)
                         *unmatched = right;
-                        if(w[0] == brak.last() || brak.last() == p - 1 || outer) break;
+                        if (w[0] == brak.last() || brak.last() == p - 1 || outer)
+                            break;
                         p = brak.last();
                         brak.setsize(0);
                         i = -1;
                     }
                 }
             }
-            else p += strcspn(p, "; \t\n\r\0"); // skip regular word
-            if(i < 0) continue;
-            if(!(wl[i] = (int) (p - w[i]))) w[i] = NULL, nargs = i;
-            else if(w[i] <= pos) curarg = i - 1;
+            else
+                p += strcspn(p, "; \t\n\r\0"); // skip regular word
+            if (i < 0)
+                continue;
+            if (!(wl[i] = (int)(p - w[i])))
+                w[i] = NULL, nargs = i;
+            else if (w[i] <= pos)
+                curarg = i - 1;
         }
         p += strcspn(p, ";\n\r\0"); // skip statement delimiter
-        if(!*p++ || pos < p) return curarg; // was last statement, or the one we wanted
+        if (!*p++ || pos < p)
+            return curarg; // was last statement, or the one we wanted
     }
 }
 
 void renderdoc(int x, int y, int doch)
 {
-    if(!docvisible) return;
-    doch -= 3*FONTH + FONTH/2;
+    if (!docvisible)
+        return;
+    doch -= 3 * FONTH + FONTH / 2;
 
     int cmdpos;
     const char *exp = getcurcommand(&cmdpos); // get command buffer and cursor position
-    if(!exp || *exp != '/') return;
+    if (!exp || *exp != '/')
+        return;
 
     const char *pos = exp + (cmdpos < 0 ? strlen(exp) : cmdpos), *w[MAXWORDS];
     int wl[MAXWORDS], carg, unmatched = 0;
@@ -463,23 +522,30 @@ void renderdoc(int x, int y, int doch)
     loopi(2) // two scan passes, first one retries on unmatched braces
     {
         carg = docs_parsecmd(exp + 1, pos, w, wl, i != 0, &unmatched); // break into words
-        if(!w[0]) return;
+        if (!w[0])
+            return;
         copystring(buf, w[0], wl[0] + 1);
         curident = docidents.access(buf); // get doc entry
-        if(curident) break;
+        if (curident)
+            break;
     }
-    if(unmatched) draw_textf("\f3missing '%c'", x + 1111, y + doch + 2*FONTH, unmatched);
+    if (unmatched)
+        draw_textf("\f3missing '%c'", x + 1111, y + doch + 2 * FONTH, unmatched);
 
     ident *csident = idents->access(buf); // check for cs ident
 
-    if(!curident && !csident && docidentverbose < 3) { docskip = 0; return; }
+    if (!curident && !csident && docidentverbose < 3)
+    {
+        docskip = 0;
+        return;
+    }
 
     vector<const char *> doclines;
     vector<char *> heaplines;
 
-    if(curident)
+    if (curident)
     {
-        if(!curident->label)
+        if (!curident->label)
         {
             formatstring(buf)("~%s", curident->name); // label
             loopvj(curident->arguments) concatformatstring(buf, " %s", curident->arguments[j].token);
@@ -491,26 +557,28 @@ void renderdoc(int x, int y, int doch)
         doclines.add(curident->desc);
         doclines.add(NULL);
 
-        if(curident->arguments.length()) // args
+        if (curident->arguments.length()) // args
         {
-            if(carg >= curident->arguments.length() && curident->arguments.last().vararg) carg = curident->arguments.length() - 1; // vararg spans the line
+            if (carg >= curident->arguments.length() && curident->arguments.last().vararg)
+                carg = curident->arguments.length() - 1; // vararg spans the line
 
             loopvj(curident->arguments)
             {
                 docargument *a = &curident->arguments[j];
                 formatstring(doclines.add(heaplines.add(newstringbuf())))("\f%c%-8s%s", j == carg ? '4' : '5', a->token, a->desc);
-                if(a->values) concatformatstring(heaplines.last(), " (%s)", a->values);
+                if (a->values)
+                    concatformatstring(heaplines.last(), " (%s)", a->values);
             }
             doclines.add(NULL);
         }
 
-        if(curident->remarks.length()) // remarks
+        if (curident->remarks.length()) // remarks
         {
             loopvj(curident->remarks) doclines.add(curident->remarks[j]);
             doclines.add(NULL);
         }
 
-        if(curident->examples.length()) // examples
+        if (curident->examples.length()) // examples
         {
             doclines.add(curident->examples.length() == 1 ? "Example:" : "Examples:");
             loopvj(curident->examples)
@@ -521,16 +589,16 @@ void renderdoc(int x, int y, int doch)
             doclines.add(NULL);
         }
 
-        if(curident->keylines.length()) // default keys
+        if (curident->keylines.length()) // default keys
         {
             doclines.add(curident->keylines.length() == 1 ? "Default key:" : "Default keys:");
             loopvj(curident->keylines) doclines.add(curident->keylines[j]); // stored preformatted
             doclines.add(NULL);
         }
 
-        if(docrefvisible && curident->references.length()) // references
+        if (docrefvisible && curident->references.length()) // references
         {
-            if(!curident->related)
+            if (!curident->related)
             {
                 string refs = "";
                 loopvj(curident->references) concatformatstring(refs, ", %s", curident->references[j]);
@@ -542,107 +610,140 @@ void renderdoc(int x, int y, int doch)
         }
     }
 
-    if(csident && docidentverbose) // cs ident details
+    if (csident && docidentverbose) // cs ident details
     {
         doclines.add("\f4Ident info:");
         formatstring(buf)("\fs\f1%s\fr: ", csident->name);
-        switch(csident->type)
+        switch (csident->type)
         {
-            case ID_VAR:
-                if(csident->maxval < csident->minval) concatformatstring(buf, "integer variable, current %d, read-only", *csident->storage.i);
-                else concatformatstring(buf, "integer variable, current %d, min %d, max %d, default %d", *csident->storage.i, csident->minval, csident->maxval, csident->defaultval);
+        case ID_VAR:
+            if (csident->maxval < csident->minval)
+                concatformatstring(buf, "integer variable, current %d, read-only", *csident->storage.i);
+            else
+                concatformatstring(buf, "integer variable, current %d, min %d, max %d, default %d", *csident->storage.i, csident->minval, csident->maxval, csident->defaultval);
+            break;
+        case ID_FVAR:
+            if (csident->maxvalf < csident->minvalf)
+                concatformatstring(buf, "float variable, current %s, read-only", floatstr(*csident->storage.f));
+            else
+                concatformatstring(buf, "float variable, current %s, min %s, max %s, default %s", floatstr(*csident->storage.f), floatstr(csident->minvalf), floatstr(csident->maxvalf), floatstr(csident->defaultvalf));
+            break;
+        case ID_SVAR:
+            concatstring(buf, "string variable");
+            break;
+        case ID_COMMAND:
+            concatformatstring(buf, "builtin command%s", strchr("sif", *csident->sig) ? ", arguments:" : "");
+            loopi(strlen(csident->sig)) switch (csident->sig[i])
+            {
+            case 's':
+                concatstring(buf, i == carg ? " \fs\f4string\fr" : " string");
                 break;
-            case ID_FVAR:
-                if(csident->maxvalf < csident->minvalf) concatformatstring(buf, "float variable, current %s, read-only", floatstr(*csident->storage.f));
-                else concatformatstring(buf, "float variable, current %s, min %s, max %s, default %s", floatstr(*csident->storage.f), floatstr(csident->minvalf), floatstr(csident->maxvalf), floatstr(csident->defaultvalf));
+            case 'i':
+                concatstring(buf, i == carg ? " \fs\f4int\fr" : " int");
                 break;
-            case ID_SVAR:
-                concatstring(buf, "string variable");
+            case 'f':
+                concatstring(buf, i == carg ? " \fs\f4float\fr" : " float");
                 break;
-            case ID_COMMAND:
-                concatformatstring(buf, "builtin command%s", strchr("sif", *csident->sig) ? ", arguments:" : "");
-                loopi(strlen(csident->sig)) switch(csident->sig[i])
-                {
-                    case 's': concatstring(buf, i == carg ? " \fs\f4string\fr": " string"); break;
-                    case 'i': concatstring(buf, i == carg ? " \fs\f4int\fr"   : " int");    break;
-                    case 'f': concatstring(buf, i == carg ? " \fs\f4float\fr" : " float");  break;
-                    case 'd': concatstring(buf, ", keybind-only"); break;
-                    case 'v': concatstring(buf, ", argument list varies");  break;
-                    case 'c': concatstring(buf, ", concatenates arguments with spaces");  break;
-                    case 'w': concatstring(buf, ", concatenates arguments without spaces"); break;
-                }
+            case 'd':
+                concatstring(buf, ", keybind-only");
                 break;
-            case ID_ALIAS:
-                concatformatstring(buf, "alias, %s", csident->istemp ? "temp" : (csident->isconst ? "const" : (csident->persist ? "persistent" : "non-persistent")));
+            case 'v':
+                concatstring(buf, ", argument list varies");
                 break;
+            case 'c':
+                concatstring(buf, ", concatenates arguments with spaces");
+                break;
+            case 'w':
+                concatstring(buf, ", concatenates arguments without spaces");
+                break;
+            }
+            break;
+        case ID_ALIAS:
+            concatformatstring(buf, "alias, %s", csident->istemp ? "temp" : (csident->isconst ? "const" : (csident->persist ? "persistent" : "non-persistent")));
+            break;
         }
         doclines.add(heaplines.add(newstring(buf)));
         doclines.add(NULL);
     }
 
-    if(docidentverbose >= 2)
+    if (docidentverbose >= 2)
     {
         doclines.add("\f4Cubescript statement broken into words:");
         int n;
-        loopi(MAXWORDS) if(w[i])
+        loopi(MAXWORDS) if (w[i])
         {
-            if(i) formatstring(buf)("\fs\f4arg%d: \fr%n%s", i, &n, w[i]);
-            else formatstring(buf)("\fs\f4cmd: \fr%n%s", &n, w[i]);
+            if (i)
+                formatstring(buf)("\fs\f4arg%d: \fr%n%s", i, &n, w[i]);
+            else
+                formatstring(buf)("\fs\f4cmd: \fr%n%s", &n, w[i]);
             doclines.add(heaplines.add(newstring(buf, n + wl[i])));
         }
     }
 
-    while(doclines.length() && !doclines.last()) doclines.pop();
+    while (doclines.length() && !doclines.last())
+        doclines.pop();
 
-    int offset = min(docskip, doclines.length()-1), maxl = offset, cury = 0;
-    for(int j = offset; j < doclines.length(); j++)
+    int offset = min(docskip, doclines.length() - 1), maxl = offset, cury = 0;
+    for (int j = offset; j < doclines.length(); j++)
     {
         const char *str = doclines[j];
         int width = 0, height = FONTH;
-        if(str) text_bounds(*str=='~' ? str+1 : str, width, height, *str=='~' ? -1 : VIRTW*4/3);
-        if(cury + height > doch) break;
+        if (str)
+            text_bounds(*str == '~' ? str + 1 : str, width, height, *str == '~' ? -1 : VIRTW * 4 / 3);
+        if (cury + height > doch)
+            break;
         cury += height;
-        maxl = j+1;
+        maxl = j + 1;
     }
 
-    if(offset > 0 && maxl >= doclines.length())
+    if (offset > 0 && maxl >= doclines.length())
     {
-        for(int j = offset-1; j >= 0; j--)
+        for (int j = offset - 1; j >= 0; j--)
         {
             const char *str = doclines[j];
             int width = 0, height = FONTH;
-            if(str) text_bounds(*str=='~' ? str+1 : str, width, height, *str=='~' ? -1 : VIRTW*4/3);
-            if(cury + height > doch) break;
+            if (str)
+                text_bounds(*str == '~' ? str + 1 : str, width, height, *str == '~' ? -1 : VIRTW * 4 / 3);
+            if (cury + height > doch)
+                break;
             cury += height;
             offset = j;
         }
     }
 
     cury = y;
-    for(int j = offset; j < maxl; j++)
+    for (int j = offset; j < maxl; j++)
     {
         const char *str = doclines[j];
-        if(str)
+        if (str)
         {
-            const char *text = *str=='~' ? str+1 : str;
-            draw_text(text, x, cury, 0xFF, 0xFF, 0xFF, 0xFF, -1, str==text ? VIRTW*4/3 : -1);
+            const char *text = *str == '~' ? str + 1 : str;
+            draw_text(text, x, cury, 0xFF, 0xFF, 0xFF, 0xFF, -1, str == text ? VIRTW * 4 / 3 : -1);
             int width, height;
-            text_bounds(text, width, height, str==text ? VIRTW*4/3 : -1);
+            text_bounds(text, width, height, str == text ? VIRTW * 4 / 3 : -1);
             cury += height;
         }
-        else cury += FONTH;
+        else
+            cury += FONTH;
     }
     heaplines.deletearrays();
 
-    if(docskip > offset) docskip = offset;
-    if(maxl < doclines.length()) draw_text("\f4more (F3)", x, y+doch); // footer
-    if(offset > 0) draw_text("\f4less (F2)", x, y+doch+FONTH);
-    draw_text("\f4disable doc reference (F1)", x, y+doch+2*FONTH);
+    if (docskip > offset)
+        docskip = offset;
+    if (maxl < doclines.length())
+        draw_text("\f4more (F3)", x, y + doch); // footer
+    if (offset > 0)
+        draw_text("\f4less (F2)", x, y + doch + FONTH);
+    draw_text("\f4disable doc reference (F1)", x, y + doch + 2 * FONTH);
 }
 
 void *docmenu = NULL;
 
-struct msection { char *name, *desc; string cmd; };
+struct msection
+{
+    char *name, *desc;
+    string cmd;
+};
 
 int msectionsort(const msection *a, const msection *b)
 {
@@ -655,7 +756,8 @@ void renderdocsection(void *menu, bool init)
     msections.shrink(0);
     loopv(sections)
     {
-        if(sections[i].menu != menu) continue;
+        if (sections[i].menu != menu)
+            continue;
         loopvj(sections[i].sidents)
         {
             docident &id = *sections[i].sidents[j];
@@ -671,7 +773,10 @@ void renderdocsection(void *menu, bool init)
     }
 }
 
-struct maction { string cmd; };
+struct maction
+{
+    string cmd;
+};
 
 void renderdocmenu(void *menu, bool init)
 {

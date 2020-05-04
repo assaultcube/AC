@@ -50,7 +50,12 @@ struct weapon
 
 class grenadeent;
 
-enum { GST_NONE = 0, GST_INHAND, GST_THROWING };
+enum
+{
+    GST_NONE = 0,
+    GST_INHAND,
+    GST_THROWING
+};
 
 struct grenades : weapon
 {
@@ -78,7 +83,6 @@ struct grenades : weapon
     int flashtime() const;
 };
 
-
 struct gun : weapon
 {
     gun(playerent *owner, int type);
@@ -89,14 +93,12 @@ struct gun : weapon
     void onownerdies();
 };
 
-
 struct subgun : gun
 {
     subgun(playerent *owner);
     int dynspread();
     bool selectable();
 };
-
 
 struct sniperrifle : gun
 {
@@ -118,7 +120,6 @@ struct sniperrifle : gun
     void setscope(bool enable);
 };
 
-
 struct carbine : gun
 {
     carbine(playerent *owner);
@@ -133,7 +134,6 @@ struct shotgun : gun
     void attackfx(const vec &from, const vec &to, int millis);
     bool selectable();
 };
-
 
 struct assaultrifle : gun
 {
@@ -161,7 +161,6 @@ struct pistol : gun
     bool selectable();
 };
 
-
 struct akimbo : gun
 {
     akimbo(playerent *owner);
@@ -180,7 +179,6 @@ struct akimbo : gun
     bool timerout();
 };
 
-
 struct knife : weapon
 {
     knife(playerent *owner);
@@ -194,4 +192,3 @@ struct knife : weapon
 
     int flashtime() const;
 };
-

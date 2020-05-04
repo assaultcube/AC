@@ -23,9 +23,9 @@ struct md2 : vertmodel
 
     struct md2_frame
     {
-        float      scale[3];
-        float      translate[3];
-        char       name[16];
+        float scale[3];
+        float translate[3];
+        char name[16];
     };
 
     md2(const char *name) : vertmodel(name) {}
@@ -38,21 +38,25 @@ struct md2 : vertmodel
         {
             hashtable<ivec, int> tchash;
             vector<ushort> idxs;
-            for(int *command = glcommands; (*command)!=0;)
+            for (int *command = glcommands; (*command) != 0;)
             {
                 int numvertex = *command++;
-                bool isfan = numvertex<0;
-                if(isfan) numvertex = -numvertex;
+                bool isfan = numvertex < 0;
+                if (isfan)
+                    numvertex = -numvertex;
                 idxs.setsize(0);
                 loopi(numvertex)
                 {
-                    union { int i; float f; } u, v;
+                    union {
+                        int i;
+                        float f;
+                    } u, v;
                     u.i = *command++;
                     v.i = *command++;
                     int vindex = *command++;
                     ivec tckey(u.i, v.i, vindex);
                     int *idx = tchash.access(tckey);
-                    if(!idx)
+                    if (!idx)
                     {
                         idx = &tchash[tckey];
                         *idx = tcverts.length();
@@ -63,32 +67,35 @@ struct md2 : vertmodel
                     }
                     idxs.add(*idx);
                 }
-                loopi(numvertex-2)
+                loopi(numvertex - 2)
                 {
                     tri &t = tris.add();
-                    if(isfan)
+                    if (isfan)
                     {
                         t.vert[0] = idxs[0];
-                        t.vert[1] = idxs[i+1];
-                        t.vert[2] = idxs[i+2];
+                        t.vert[1] = idxs[i + 1];
+                        t.vert[2] = idxs[i + 2];
                     }
-                    else loopk(3) t.vert[k] = idxs[i&1 && k ? i+(1-(k-1))+1 : i+k];
+                    else
+                        loopk(3) t.vert[k] = idxs[i & 1 && k ? i + (1 - (k - 1)) + 1 : i + k];
                 }
             }
         }
 
         bool load(char *path)
         {
-            if(filename) return true;
+            if (filename)
+                return true;
 
             stream *file = openfile(path, "rb");
-            if(!file) return false;
+            if (!file)
+                return false;
 
             md2_header header;
             file->read(&header, sizeof(md2_header));
-            lilswap((int *)&header, sizeof(md2_header)/sizeof(int));
+            lilswap((int *)&header, sizeof(md2_header) / sizeof(int));
 
-            if(header.magic!=844121161 || header.version!=8)
+            if (header.magic != 844121161 || header.version != 8)
             {
                 delete file;
                 return false;
@@ -102,9 +109,10 @@ struct md2 : vertmodel
 
             int *glcommands = new int[header.numglcommands];
             file->seek(header.offsetglcommands, SEEK_SET);
-            int numglcommands = (int)file->read(glcommands, sizeof(int)*header.numglcommands)/sizeof(int);
+            int numglcommands = (int)file->read(glcommands, sizeof(int) * header.numglcommands) / sizeof(int);
             lilswap(glcommands, numglcommands);
-            if(numglcommands < header.numglcommands) memset(&glcommands[numglcommands], 0, (header.numglcommands-numglcommands)*sizeof(int));
+            if (numglcommands < header.numglcommands)
+                memset(&glcommands[numglcommands], 0, (header.numglcommands - numglcommands) * sizeof(int));
 
             vector<tcvert> tcgen;
             vector<ushort> vgen;
@@ -114,12 +122,12 @@ struct md2 : vertmodel
 
             m.numverts = tcgen.length();
             m.tcverts = new tcvert[m.numverts];
-            memcpy(m.tcverts, tcgen.getbuf(), m.numverts*sizeof(tcvert));
+            memcpy(m.tcverts, tcgen.getbuf(), m.numverts * sizeof(tcvert));
             m.numtris = trigen.length();
             m.tris = new tri[m.numtris];
-            memcpy(m.tris, trigen.getbuf(), m.numtris*sizeof(tri));
+            memcpy(m.tris, trigen.getbuf(), m.numtris * sizeof(tri));
 
-            m.verts = new vec[m.numverts*numframes+1];
+            m.verts = new vec[m.numverts * numframes + 1];
 
             md2_vertex *tmpverts = new md2_vertex[header.numvertices];
             int frame_offset = header.offsetframes;
@@ -131,13 +139,13 @@ struct md2 : vertmodel
                 file->read(&frame, sizeof(md2_frame));
                 lilswap((float *)&frame, 6);
 
-                file->read(tmpverts, sizeof(md2_vertex)*header.numvertices);
+                file->read(tmpverts, sizeof(md2_vertex) * header.numvertices);
                 loopj(m.numverts)
                 {
                     const md2_vertex &v = tmpverts[vgen[j]];
-                    *curvert++ = vec(v.vertex[0]*frame.scale[0]+frame.translate[0],
-                                   -(v.vertex[1]*frame.scale[1]+frame.translate[1]),
-                                     v.vertex[2]*frame.scale[2]+frame.translate[2]);
+                    *curvert++ = vec(v.vertex[0] * frame.scale[0] + frame.translate[0],
+                                     -(v.vertex[1] * frame.scale[1] + frame.translate[1]),
+                                     v.vertex[2] * frame.scale[2] + frame.translate[2]);
                 }
                 frame_offset += header.framesize;
             }
@@ -157,14 +165,15 @@ struct md2 : vertmodel
             static int range[] =  { 40, 6,  8,  4,  4,  4,  3,  3,  12, 11, 17, 11, 12, 19, 6,  9,  4,  5,  6,  6,  8,  1,  1,  1,   7 };
             static int animfr[] = { 0,  1,  2,  3,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15, 16, 17, 18, 21, 24 };
 
-            if((size_t)anim >= sizeof(animfr)/sizeof(animfr[0]))
+            if ((size_t)anim >= sizeof(animfr) / sizeof(animfr[0]))
             {
                 as.frame = 0;
                 as.range = 1;
                 return;
             }
             int n = animfr[anim];
-            if(anim==ANIM_PAIN || anim==ANIM_DEATH || anim==ANIM_LYING_DEAD) n += uint(varseed)%3;
+            if (anim == ANIM_PAIN || anim == ANIM_DEATH || anim == ANIM_LYING_DEAD)
+                n += uint(varseed) % 3;
             as.frame = frame[n];
             as.range = range[n];
         }
@@ -173,28 +182,33 @@ struct md2 : vertmodel
         {
             matrixpos = 0;
             matrixstack[0].identity();
-            matrixstack[0].rotate_around_z(180*RAD);
+            matrixstack[0].rotate_around_z(180 * RAD);
         }
     };
 
     void render(int anim, int varseed, float speed, int basetime, const vec &o, float roll, float yaw, float pitch, dynent *d, modelattach *a, float scale)
     {
-        if(!loaded) return;
+        if (!loaded)
+            return;
 
-        if(a) for(int i = 0; a[i].tag; i++)
+        if (a)
+            for (int i = 0; a[i].tag; i++)
+            {
+                if (a[i].pos)
+                    link(NULL, a[i].tag, a[i].pos);
+            }
+
+        if (!cullface)
+            glDisable(GL_CULL_FACE);
+        else if (anim & ANIM_MIRROR)
+            glCullFace(GL_BACK);
+
+        if (stenciling && !parts[0]->index)
         {
-            if(a[i].pos) link(NULL, a[i].tag, a[i].pos);
-        }
-
-        if(!cullface) glDisable(GL_CULL_FACE);
-        else if(anim&ANIM_MIRROR) glCullFace(GL_BACK);
-
-        if(stenciling && !parts[0]->index)
-        {
-            shadowdir = vec(0, 1/SQRT2, -1/SQRT2);
-            shadowdir.rotate_around_z((-shadowyaw-yaw-180.0f)*RAD);
-            shadowdir.rotate_around_y(-pitch*RAD);
-            shadowdir.rotate_around_x(roll*RAD);
+            shadowdir = vec(0, 1 / SQRT2, -1 / SQRT2);
+            shadowdir.rotate_around_z((-shadowyaw - yaw - 180.0f) * RAD);
+            shadowdir.rotate_around_y(-pitch * RAD);
+            shadowdir.rotate_around_x(roll * RAD);
             (shadowpos = shadowdir).mul(shadowdist);
         }
 
@@ -204,72 +218,88 @@ struct md2 : vertmodel
         modelpitch = pitch;
 
         matrixpos = 0;
-        quat q(- yaw - 180, pitch);
+        quat q(-yaw - 180, pitch);
         matrixstack[0].fromquat(roll == 0.0f ? q : q.roll(roll));
         matrixstack[0].translate(o);
 
-        if(anim&ANIM_MIRROR || scale!=1) matrixstack[0].scale(scale, anim&ANIM_MIRROR ? -scale : scale, scale);
+        if (anim & ANIM_MIRROR || scale != 1)
+            matrixstack[0].scale(scale, anim & ANIM_MIRROR ? -scale : scale, scale);
         parts[0]->render(anim, varseed, speed, basetime, d);
 
-        if(!cullface) glEnable(GL_CULL_FACE);
-        else if(anim&ANIM_MIRROR) glCullFace(GL_FRONT);
+        if (!cullface)
+            glEnable(GL_CULL_FACE);
+        else if (anim & ANIM_MIRROR)
+            glCullFace(GL_FRONT);
 
-        if(a) for(int i = 0; a[i].tag; i++)
-        {
-            if(a[i].pos) link(NULL, a[i].tag, NULL);
+        if (a)
+            for (int i = 0; a[i].tag; i++)
+            {
+                if (a[i].pos)
+                    link(NULL, a[i].tag, NULL);
 
-            vertmodel *m = (vertmodel *)a[i].m;
-            if(!m) continue;
-            m->parts[0]->index = parts.length()+i;
-            m->setskin();
-            m->render(anim, varseed, speed, basetime, o, roll, yaw, pitch, d, NULL, scale);
-        }
+                vertmodel *m = (vertmodel *)a[i].m;
+                if (!m)
+                    continue;
+                m->parts[0]->index = parts.length() + i;
+                m->setskin();
+                m->render(anim, varseed, speed, basetime, o, roll, yaw, pitch, d, NULL, scale);
+            }
 
-        if(d) d->lastrendered = lastmillis;
+        if (d)
+            d->lastrendered = lastmillis;
     }
 
     void rendershadow(int anim, int varseed, float speed, int basetime, const vec &o, float yaw, modelattach *a)
     {
         parts[0]->rendershadow(anim, varseed, speed, basetime, o, yaw);
-        if(a) for(int i = 0; a[i].tag; i++)
-        {
-            vertmodel *m = (vertmodel *)a[i].m;
-            if(!m) continue;
-            part *p = m->parts[0];
-            p->rendershadow(anim, varseed, speed, basetime, o, yaw);
-        }
+        if (a)
+            for (int i = 0; a[i].tag; i++)
+            {
+                vertmodel *m = (vertmodel *)a[i].m;
+                if (!m)
+                    continue;
+                part *p = m->parts[0];
+                p->rendershadow(anim, varseed, speed, basetime, o, yaw);
+            }
     }
 
     bool load()
     {
-        if(loaded) return true;
+        if (loaded)
+            return true;
         md2part &mdl = *new md2part;
         parts.add(&mdl);
         mdl.model = this;
         mdl.index = 0;
         const char *pname = parentdir(loadname);
         defformatstring(name1)("packages/models/%s/tris.md2", loadname);
-        if(!mdl.load(path(name1)))
+        if (!mdl.load(path(name1)))
         {
-            formatstring(name1)("packages/models/%s/tris.md2", pname);    // try md2 in parent folder (vert sharing)
-            if(!mdl.load(path(name1))) return false;
+            formatstring(name1)("packages/models/%s/tris.md2", pname); // try md2 in parent folder (vert sharing)
+            if (!mdl.load(path(name1)))
+                return false;
         }
         Texture *skin;
         loadskin(loadname, pname, skin);
-        loopv(mdl.meshes) mdl.meshes[i]->skin  = skin;
-        if(skin==notexture) { conoutf("could not load model skin for %s", name1); flagmapconfigerror(LWW_MODELERR); }
+        loopv(mdl.meshes) mdl.meshes[i]->skin = skin;
+        if (skin == notexture)
+        {
+            conoutf("could not load model skin for %s", name1);
+            flagmapconfigerror(LWW_MODELERR);
+        }
         loadingmd2 = this;
         ASSERT(execcontext == IEXC_MDLCFG);
         defformatstring(name2)("packages/models/%s/md2.cfg", loadname);
-        if(!execfile(name2))
+        if (!execfile(name2))
         {
             formatstring(name2)("packages/models/%s/md2.cfg", pname);
             execfile(name2);
         }
         loadingmd2 = NULL;
-        loopv(parts) parts[i]->scaleverts(scale/16.0f, vec(translate.x, -translate.y, translate.z));
+        loopv(parts) parts[i]->scaleverts(scale / 16.0f, vec(translate.x, -translate.y, translate.z));
         radius = calcradius(zradius);
-        if(shadowdist) calcneighbors();
+        if (shadowdist)
+            calcneighbors();
         calcbbs();
         return loaded = true;
     }
@@ -277,59 +307,129 @@ struct md2 : vertmodel
 
 void md2anim(char *anim, int *frame, int *range, float *speed)
 {
-    if(!loadingmd2 || loadingmd2->parts.empty()) { conoutf("not loading an md2"); flagmapconfigerror(LWW_MODELERR); scripterr(); return; }
+    if (!loadingmd2 || loadingmd2->parts.empty())
+    {
+        conoutf("not loading an md2");
+        flagmapconfigerror(LWW_MODELERR);
+        scripterr();
+        return;
+    }
     int num = findanim(anim);
-    if(num<0) { conoutf("could not find animation %s", anim); flagmapconfigerror(LWW_MODELERR); scripterr(); return; }
+    if (num < 0)
+    {
+        conoutf("could not find animation %s", anim);
+        flagmapconfigerror(LWW_MODELERR);
+        scripterr();
+        return;
+    }
     loadingmd2->parts.last()->setanim(num, *frame, *range, *speed);
 }
 COMMAND(md2anim, "siif");
 
 void md2tag(char *name, char *vert1, char *vert2, char *vert3, char *vert4)
 {
-    if(!loadingmd2 || loadingmd2->parts.empty()) { conoutf("not loading an md2"); flagmapconfigerror(LWW_MODELERR); scripterr(); return; }
+    if (!loadingmd2 || loadingmd2->parts.empty())
+    {
+        conoutf("not loading an md2");
+        flagmapconfigerror(LWW_MODELERR);
+        scripterr();
+        return;
+    }
     md2::part &mdl = *loadingmd2->parts.last();
-    int indexes[4] = { -1, -1, -1, -1 }, numverts = 0;
+    int indexes[4] = {-1, -1, -1, -1}, numverts = 0;
     loopi(4)
     {
         char *vert = NULL;
-        switch(i)
+        switch (i)
         {
-            case 0: vert = vert1; break;
-            case 1: vert = vert2; break;
-            case 2: vert = vert3; break;
-            case 3: vert = vert4; break;
+        case 0:
+            vert = vert1;
+            break;
+        case 1:
+            vert = vert2;
+            break;
+        case 2:
+            vert = vert3;
+            break;
+        case 3:
+            vert = vert4;
+            break;
         }
-        if(!vert[0]) break;
-        if(isdigit(vert[0])) indexes[i] = ATOI(vert);
+        if (!vert[0])
+            break;
+        if (isdigit(vert[0]))
+            indexes[i] = ATOI(vert);
         else
         {
             int axis = 0, dir = 1;
-            for(char *s = vert; *s; s++) switch(*s)
-            {
-                case '+': dir = 1; break;
-                case '-': dir = -1; break;
+            for (char *s = vert; *s; s++)
+                switch (*s)
+                {
+                case '+':
+                    dir = 1;
+                    break;
+                case '-':
+                    dir = -1;
+                    break;
                 case 'x':
-                case 'X': axis = 0; break;
+                case 'X':
+                    axis = 0;
+                    break;
                 case 'y':
-                case 'Y': axis = 1; break;
+                case 'Y':
+                    axis = 1;
+                    break;
                 case 'z':
-                case 'Z': axis = 2; break;
-            }
-            if(!mdl.meshes.empty()) indexes[i] = mdl.meshes[0]->findvert(axis, dir);
+                case 'Z':
+                    axis = 2;
+                    break;
+                }
+            if (!mdl.meshes.empty())
+                indexes[i] = mdl.meshes[0]->findvert(axis, dir);
         }
-        if(indexes[i] < 0) { conoutf("could not find vertex %s", vert); flagmapconfigerror(LWW_MODELERR); scripterr(); return; }
+        if (indexes[i] < 0)
+        {
+            conoutf("could not find vertex %s", vert);
+            flagmapconfigerror(LWW_MODELERR);
+            scripterr();
+            return;
+        }
         numverts = i + 1;
     }
-    if(!mdl.gentag(name, indexes, numverts)) { conoutf("could not generate tag %s", name); flagmapconfigerror(LWW_MODELERR); scripterr(); return; }
+    if (!mdl.gentag(name, indexes, numverts))
+    {
+        conoutf("could not generate tag %s", name);
+        flagmapconfigerror(LWW_MODELERR);
+        scripterr();
+        return;
+    }
 }
 COMMAND(md2tag, "sssss");
 
 void md2emit(char *tag, char *_type, int *arg1, int *arg2)
 {
-    if(!loadingmd2 || loadingmd2->parts.empty()) { conoutf("not loading an md2"); flagmapconfigerror(LWW_MODELERR); scripterr(); return; };
+    if (!loadingmd2 || loadingmd2->parts.empty())
+    {
+        conoutf("not loading an md2");
+        flagmapconfigerror(LWW_MODELERR);
+        scripterr();
+        return;
+    };
     int type = getlistindex(_type, particletypenames, true, -1);
-    if(type < 0 || type >= MAXPARTYPES) { conoutf("unknown particle type %s", _type); flagmapconfigerror(LWW_MODELERR); scripterr(); return; };
+    if (type < 0 || type >= MAXPARTYPES)
+    {
+        conoutf("unknown particle type %s", _type);
+        flagmapconfigerror(LWW_MODELERR);
+        scripterr();
+        return;
+    };
     md2::part &mdl = *loadingmd2->parts.last();
-    if(!mdl.addemitter(tag, type, *arg1, *arg2)) { conoutf("could not find tag %s", tag); flagmapconfigerror(LWW_MODELERR); scripterr(); return; }
+    if (!mdl.addemitter(tag, type, *arg1, *arg2))
+    {
+        conoutf("could not find tag %s", tag);
+        flagmapconfigerror(LWW_MODELERR);
+        scripterr();
+        return;
+    }
 }
 COMMAND(md2emit, "ssii");
