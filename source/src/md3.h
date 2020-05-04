@@ -51,15 +51,17 @@ struct md3 : vertmodel
     {
         bool load(char *path)
         {
-            if(filename) return true;
+            if (filename)
+                return true;
 
             stream *f = openfile(path, "rb");
-            if(!f) return false;
+            if (!f)
+                return false;
             md3header header;
             f->read(&header, sizeof(md3header));
             lilswap(&header.version, 1);
             lilswap(&header.flags, 9);
-            if(strncmp(header.id, "IDP3", 4) != 0 || header.version != 15) // header check
+            if (strncmp(header.id, "IDP3", 4) != 0 || header.version != 15) // header check
             {
                 delete f;
                 conoutf("md3: corrupted header");
@@ -69,17 +71,18 @@ struct md3 : vertmodel
 
             numframes = header.numframes;
             numtags = header.numtags;
-            if(numtags)
+            if (numtags)
             {
-                tags = new tag[numframes*numtags];
+                tags = new tag[numframes * numtags];
                 f->seek(header.ofs_tags, SEEK_SET);
                 md3tag tag;
 
-                loopi(header.numframes*header.numtags)
+                loopi(header.numframes * header.numtags)
                 {
                     f->read(&tag, sizeof(md3tag));
                     lilswap((float *)&tag.pos, 12);
-                    if(tag.name[0] && i<header.numtags) tags[i].name = newstring(tag.name);
+                    if (tag.name[0] && i < header.numtags)
+                        tags[i].name = newstring(tag.name);
                     tags[i].pos = vec(tag.pos.y, tag.pos.x, tag.pos.z);
                     memcpy(tags[i].transform, tag.rotation, sizeof(tag.rotation));
                     // undo the x/y swap
@@ -98,7 +101,7 @@ struct md3 : vertmodel
                 f->read(&mheader, sizeof(md3meshheader));
                 lilswap(&mheader.flags, 10);
 
-                if(mheader.numtriangles <= 0)
+                if (mheader.numtriangles <= 0)
                 {
                     mesh_offset += mheader.meshsize;
                     continue;
@@ -121,21 +124,21 @@ struct md3 : vertmodel
 
                 m.numverts = mheader.numvertices;
                 m.tcverts = new tcvert[m.numverts];
-                f->seek(mesh_offset + mheader.ofs_uv , SEEK_SET);
-                f->read(m.tcverts, 2*sizeof(float)*m.numverts); // read the UV data
-                lilswap(&m.tcverts[0].u, 2*m.numverts);
+                f->seek(mesh_offset + mheader.ofs_uv, SEEK_SET);
+                f->read(m.tcverts, 2 * sizeof(float) * m.numverts); // read the UV data
+                lilswap(&m.tcverts[0].u, 2 * m.numverts);
 
-                m.verts = new vec[numframes*m.numverts + 1];
+                m.verts = new vec[numframes * m.numverts + 1];
                 f->seek(mesh_offset + mheader.ofs_vertices, SEEK_SET);
-                loopj(numframes*mheader.numvertices)
+                loopj(numframes * mheader.numvertices)
                 {
                     md3vertex v;
                     f->read(&v, sizeof(md3vertex)); // read the vertices
                     lilswap((short *)&v, 4);
 
-                    m.verts[j].x = v.vertex[1]/64.0f;
-                    m.verts[j].y = v.vertex[0]/64.0f;
-                    m.verts[j].z = v.vertex[2]/64.0f;
+                    m.verts[j].x = v.vertex[1] / 64.0f;
+                    m.verts[j].y = v.vertex[0] / 64.0f;
+                    m.verts[j].z = v.vertex[2] / 64.0f;
                 }
 
                 mesh_offset += mheader.meshsize;
@@ -150,35 +153,41 @@ struct md3 : vertmodel
         {
             matrixpos = 0;
             matrixstack[0].identity();
-            matrixstack[0].rotate_around_z(180*RAD);
+            matrixstack[0].rotate_around_z(180 * RAD);
         }
     };
 
     void render(int anim, int varseed, float speed, int basetime, const vec &o, float roll, float yaw, float pitch, dynent *d, modelattach *a, float scale)
     {
-        if(!loaded) return;
+        if (!loaded)
+            return;
 
-        if(a) for(int i = 0; a[i].tag; i++)
-        {
-            vertmodel *m = (vertmodel *)a[i].m;
-            if(!m)
+        if (a)
+            for (int i = 0; a[i].tag; i++)
             {
-                if(a[i].pos) link(NULL, a[i].tag);
-                continue;
+                vertmodel *m = (vertmodel *)a[i].m;
+                if (!m)
+                {
+                    if (a[i].pos)
+                        link(NULL, a[i].tag);
+                    continue;
+                }
+                part *p = m->parts[0];
+                if (link(p, a[i].tag, a[i].pos))
+                    p->index = parts.length() + i;
             }
-            part *p = m->parts[0];
-            if(link(p, a[i].tag, a[i].pos)) p->index = parts.length()+i;
-        }
 
-        if(!cullface) glDisable(GL_CULL_FACE);
-        else if(anim&ANIM_MIRROR) glCullFace(GL_BACK);
+        if (!cullface)
+            glDisable(GL_CULL_FACE);
+        else if (anim & ANIM_MIRROR)
+            glCullFace(GL_BACK);
 
-        if(stenciling)
+        if (stenciling)
         {
-            shadowdir = vec(0, 1/SQRT2, -1/SQRT2);
-            shadowdir.rotate_around_z((-shadowyaw-yaw-180.0f)*RAD);
-            shadowdir.rotate_around_y(-pitch*RAD);
-            shadowdir.rotate_around_x(roll*RAD);
+            shadowdir = vec(0, 1 / SQRT2, -1 / SQRT2);
+            shadowdir.rotate_around_z((-shadowyaw - yaw - 180.0f) * RAD);
+            shadowdir.rotate_around_y(-pitch * RAD);
+            shadowdir.rotate_around_x(roll * RAD);
             (shadowpos = shadowdir).mul(shadowdist);
         }
 
@@ -188,30 +197,38 @@ struct md3 : vertmodel
         modelpitch = pitch;
 
         matrixpos = 0;
-        quat q(- yaw - 180, pitch);
+        quat q(-yaw - 180, pitch);
         matrixstack[0].fromquat(roll == 0.0f ? q : q.roll(roll));
         matrixstack[0].translate(o);
 
-        if(anim&ANIM_MIRROR || scale!=1) matrixstack[0].scale(scale, anim&ANIM_MIRROR ? -scale : scale, scale);
+        if (anim & ANIM_MIRROR || scale != 1)
+            matrixstack[0].scale(scale, anim & ANIM_MIRROR ? -scale : scale, scale);
         parts[0]->render(anim, varseed, speed, basetime, d);
 
-        if(!cullface) glEnable(GL_CULL_FACE);
-        else if(anim&ANIM_MIRROR) glCullFace(GL_FRONT);
+        if (!cullface)
+            glEnable(GL_CULL_FACE);
+        else if (anim & ANIM_MIRROR)
+            glCullFace(GL_FRONT);
 
-        if(a) for(int i = 0; a[i].tag; i++) link(NULL, a[i].tag);
+        if (a)
+            for (int i = 0; a[i].tag; i++)
+                link(NULL, a[i].tag);
 
-        if(d) d->lastrendered = lastmillis;
+        if (d)
+            d->lastrendered = lastmillis;
     }
 
     void rendershadow(int anim, int varseed, float speed, int basetime, const vec &o, float yaw, modelattach *a)
     {
-        if(parts.length()>1) return;
+        if (parts.length() > 1)
+            return;
         parts[0]->rendershadow(anim, varseed, speed, basetime, o, yaw);
     }
 
     bool load()
     {
-        if(loaded) return true;
+        if (loaded)
+            return true;
         formatstring(md3dir)("packages/models/%s", loadname);
 
         const char *pname = parentdir(loadname);
@@ -219,11 +236,12 @@ struct md3 : vertmodel
 
         loadingmd3 = this;
         ASSERT(execcontext == IEXC_MDLCFG);
-        if(execfile(cfgname) && parts.length()) // configured md3, will call the md3* commands below
+        if (execfile(cfgname) && parts.length()) // configured md3, will call the md3* commands below
         {
             loadingmd3 = NULL;
-            if(parts.empty()) return false;
-            loopv(parts) if(!parts[i]->filename) return false;
+            if (parts.empty())
+                return false;
+            loopv(parts) if (!parts[i]->filename) return false;
         }
         else // md3 without configuration, try default tris and skin
         {
@@ -233,19 +251,25 @@ struct md3 : vertmodel
             mdl.model = this;
             mdl.index = 0;
             defformatstring(name1)("packages/models/%s/tris.md3", loadname);
-            if(!mdl.load(path(name1)))
+            if (!mdl.load(path(name1)))
             {
-                formatstring(name1)("packages/models/%s/tris.md3", pname);    // try md3 in parent folder (vert sharing)
-                if(!mdl.load(path(name1))) return false;
+                formatstring(name1)("packages/models/%s/tris.md3", pname); // try md3 in parent folder (vert sharing)
+                if (!mdl.load(path(name1)))
+                    return false;
             };
             Texture *skin;
             loadskin(loadname, pname, skin);
-            loopv(mdl.meshes) mdl.meshes[i]->skin  = skin;
-            if(skin==notexture) { conoutf("could not load model skin for %s", name1); flagmapconfigerror(LWW_MODELERR); }
+            loopv(mdl.meshes) mdl.meshes[i]->skin = skin;
+            if (skin == notexture)
+            {
+                conoutf("could not load model skin for %s", name1);
+                flagmapconfigerror(LWW_MODELERR);
+            }
         }
-        loopv(parts) parts[i]->scaleverts(scale/16.0f, vec(translate.x, -translate.y, translate.z));
+        loopv(parts) parts[i]->scaleverts(scale / 16.0f, vec(translate.x, -translate.y, translate.z));
         radius = calcradius(zradius);
-        if(shadowdist) calcneighbors();
+        if (shadowdist)
+            calcneighbors();
         calcbbs();
         return loaded = true;
     }
@@ -253,34 +277,51 @@ struct md3 : vertmodel
 
 void md3load(char *model)
 {
-    if(!loadingmd3) { conoutf("not loading an md3"); flagmapconfigerror(LWW_MODELERR); scripterr(); return; };
+    if (!loadingmd3)
+    {
+        conoutf("not loading an md3");
+        flagmapconfigerror(LWW_MODELERR);
+        scripterr();
+        return;
+    };
     filtertext(model, model, FTXT__MEDIAFILEPATH);
     defformatstring(filename)("%s/%s", md3dir, model);
     md3::md3part &mdl = *new md3::md3part;
     loadingmd3->parts.add(&mdl);
     mdl.model = loadingmd3;
-    mdl.index = loadingmd3->parts.length()-1;
-    if(!mdl.load(path(filename))) { conoutf("could not load %s", filename); flagmapconfigerror(LWW_MODELERR); scripterr(); } // ignore failure
+    mdl.index = loadingmd3->parts.length() - 1;
+    if (!mdl.load(path(filename)))
+    {
+        conoutf("could not load %s", filename);
+        flagmapconfigerror(LWW_MODELERR);
+        scripterr();
+    } // ignore failure
 }
 COMMAND(md3load, "s");
 
 void md3skin(char *objname, char *skin)
 {
     filtertext(skin, skin, FTXT__MEDIAFILEPATH);
-    if(!loadingmd3 || loadingmd3->parts.empty()) { conoutf("not loading an md3"); flagmapconfigerror(LWW_MODELERR); scripterr(); return; };
+    if (!loadingmd3 || loadingmd3->parts.empty())
+    {
+        conoutf("not loading an md3");
+        flagmapconfigerror(LWW_MODELERR);
+        scripterr();
+        return;
+    };
     md3::part &mdl = *loadingmd3->parts.last();
     bool used = false;
     loopv(mdl.meshes)
     {
         md3::mesh &m = *mdl.meshes[i];
-        if(!strcmp(objname, "*") || !strcmp(m.name, objname))
+        if (!strcmp(objname, "*") || !strcmp(m.name, objname))
         {
             defformatstring(spath)("%s/%s", md3dir, skin);
             m.skin = textureload(spath);
             used = true;
         }
     }
-    if(!used)
+    if (!used)
     {
         defformatstring(s)(", possibilities are: *");
         loopv(mdl.meshes) concatformatstring(s, "|%s", mdl.meshes[i]->name);
@@ -293,27 +334,72 @@ COMMAND(md3skin, "ss");
 
 void md3anim(char *anim, int *startframe, int *range, float *speed)
 {
-    if(!loadingmd3 || loadingmd3->parts.empty()) { conoutf("not loading an md3"); flagmapconfigerror(LWW_MODELERR); scripterr(); return; };
+    if (!loadingmd3 || loadingmd3->parts.empty())
+    {
+        conoutf("not loading an md3");
+        flagmapconfigerror(LWW_MODELERR);
+        scripterr();
+        return;
+    };
     int num = findanim(anim);
-    if(num<0) { conoutf("could not find animation %s", anim); flagmapconfigerror(LWW_MODELERR); scripterr(); return; };
+    if (num < 0)
+    {
+        conoutf("could not find animation %s", anim);
+        flagmapconfigerror(LWW_MODELERR);
+        scripterr();
+        return;
+    };
     loadingmd3->parts.last()->setanim(num, *startframe, *range, *speed);
 }
 COMMAND(md3anim, "siif");
 
 void md3link(int *parent, int *child, char *tagname)
 {
-    if(!loadingmd3) { conoutf("not loading an md3"); return; };
-    if(!loadingmd3->parts.inrange(*parent) || !loadingmd3->parts.inrange(*child)) { conoutf("no models loaded to link"); flagmapconfigerror(LWW_MODELERR); scripterr(); return; }
-    if(!loadingmd3->parts[*parent]->link(loadingmd3->parts[*child], tagname)) { conoutf("could not link model %s", loadingmd3->loadname); flagmapconfigerror(LWW_MODELERR); scripterr(); }
+    if (!loadingmd3)
+    {
+        conoutf("not loading an md3");
+        return;
+    };
+    if (!loadingmd3->parts.inrange(*parent) || !loadingmd3->parts.inrange(*child))
+    {
+        conoutf("no models loaded to link");
+        flagmapconfigerror(LWW_MODELERR);
+        scripterr();
+        return;
+    }
+    if (!loadingmd3->parts[*parent]->link(loadingmd3->parts[*child], tagname))
+    {
+        conoutf("could not link model %s", loadingmd3->loadname);
+        flagmapconfigerror(LWW_MODELERR);
+        scripterr();
+    }
 }
 COMMAND(md3link, "iis");
 
 void md3emit(char *tag, char *_type, int *arg1, int *arg2)
 {
-    if(!loadingmd3 || loadingmd3->parts.empty()) { conoutf("not loading an md3"); flagmapconfigerror(LWW_MODELERR); scripterr(); return; };
+    if (!loadingmd3 || loadingmd3->parts.empty())
+    {
+        conoutf("not loading an md3");
+        flagmapconfigerror(LWW_MODELERR);
+        scripterr();
+        return;
+    };
     int type = getlistindex(_type, particletypenames, true, -1);
-    if(type < 0 || type >= MAXPARTYPES) { conoutf("unknown particle type %s", _type); flagmapconfigerror(LWW_MODELERR); scripterr(); return; };
+    if (type < 0 || type >= MAXPARTYPES)
+    {
+        conoutf("unknown particle type %s", _type);
+        flagmapconfigerror(LWW_MODELERR);
+        scripterr();
+        return;
+    };
     md3::part &mdl = *loadingmd3->parts.last();
-    if(!mdl.addemitter(tag, type, *arg1, *arg2)) { conoutf("could not find tag %s", tag); flagmapconfigerror(LWW_MODELERR); scripterr(); return; }
+    if (!mdl.addemitter(tag, type, *arg1, *arg2))
+    {
+        conoutf("could not find tag %s", tag);
+        flagmapconfigerror(LWW_MODELERR);
+        scripterr();
+        return;
+    }
 }
 COMMAND(md3emit, "ssii");
