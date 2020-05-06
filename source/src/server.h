@@ -1,15 +1,30 @@
 // server.h
 
-#define gamemode smode   // allows the gamemode macros to work with the server mode
+#define gamemode smode // allows the gamemode macros to work with the server mode
 
-#define SERVER_PROTOCOL_VERSION    (PROTOCOL_VERSION)    // server without any gameplay modification
+#define SERVER_PROTOCOL_VERSION (PROTOCOL_VERSION) // server without any gameplay modification
 //#define SERVER_PROTOCOL_VERSION   (-PROTOCOL_VERSION)  // server with gameplay modification but compatible to vanilla client (using /modconnect)
 //#define SERVER_PROTOCOL_VERSION  (PROTOCOL_VERSION)    // server with incompatible protocol (change PROTOCOL_VERSION in file protocol.h to a negative number!)
 
 #define valid_flag(f) (f >= 0 && f < 2)
 
-enum { GE_NONE = 0, GE_SHOT, GE_EXPLODE, GE_HIT, GE_AKIMBO, GE_RELOAD, GE_SUICIDE, GE_PICKUP };
-enum { ST_EMPTY, ST_LOCAL, ST_TCPIP };
+enum
+{
+    GE_NONE = 0,
+    GE_SHOT,
+    GE_EXPLODE,
+    GE_HIT,
+    GE_AKIMBO,
+    GE_RELOAD,
+    GE_SUICIDE,
+    GE_PICKUP
+};
+enum
+{
+    ST_EMPTY,
+    ST_LOCAL,
+    ST_TCPIP
+};
 
 extern int smode, servmillis;
 
@@ -33,8 +48,7 @@ struct hitevent
     int type;
     int target;
     int lifesequence;
-    union
-    {
+    union {
         int info;
         float dist;
     };
@@ -65,8 +79,7 @@ struct reloadevent
     int gun;
 };
 
-union gameevent
-{
+union gameevent {
     int type;
     shotevent shot;
     explodeevent explode;
@@ -89,13 +102,14 @@ struct projectilestate
 
     void add(int val)
     {
-        if(numprojs>=N) numprojs = 0;
+        if (numprojs >= N)
+            numprojs = 0;
         projs[numprojs++] = val;
     }
 
     bool remove(int val)
     {
-        loopi(numprojs) if(projs[i]==val)
+        loopi(numprojs) if (projs[i] == val)
         {
             projs[i] = projs[--numprojs];
             return true;
@@ -122,13 +136,13 @@ struct clientstate : playerstate
 
     bool isalive(int gamemillis)
     {
-        return state==CS_ALIVE || (state==CS_DEAD && gamemillis - lastdeath <= DEATHMILLIS);
+        return state == CS_ALIVE || (state == CS_DEAD && gamemillis - lastdeath <= DEATHMILLIS);
     }
 
     bool waitexpired(int gamemillis)
     {
         int wait = gamemillis - lastshot;
-        loopi(NUMGUNS) if(wait < gunwait[i]) return false;
+        loopi(NUMGUNS) if (wait < gunwait[i]) return false;
         return true;
     }
 
@@ -223,7 +237,7 @@ struct medals
     }
 };
 
-struct client                   // server side version of "dynent" type
+struct client // server side version of "dynent" type
 {
     int type;
     int clientnum;
@@ -259,7 +273,7 @@ struct client                   // server side version of "dynent" type
     bool autospawn;
     int salt;
     string pwd;
-    uint authreq; // for AUTH
+    uint authreq;    // for AUTH
     string authname; // for AUTH
     int mapcollisions, farpickups;
     enet_uint32 bottomRTT;
@@ -282,7 +296,8 @@ struct client                   // server side version of "dynent" type
     gameevent &addevent()
     {
         static gameevent dummy;
-        if(events.length()>100) return dummy;
+        if (events.length() > 100)
+            return dummy;
         return events.add();
     }
 
@@ -296,10 +311,10 @@ struct client                   // server side version of "dynent" type
         spawnperm = SP_WRONGMAP;
         spawnpermsent = servmillis;
         autospawn = false;
-        if(!getmap)
+        if (!getmap)
         {
             loggedwrongmap = false;
-            freshgame = true;         // permission to spawn at once
+            freshgame = true; // permission to spawn at once
         }
         lastevent = 0;
         at3_lastforce = eff_score = 0;
@@ -313,8 +328,12 @@ struct client                   // server side version of "dynent" type
         f = g = y = p = t = 0;
         yb = pb = oy = op = lda = ldda = fam = 0;
         np = lp = ls = lsm = ld = nd = nlt = lem = led = 0;
-        d0 = lv = lt = le = vec(0,0,0);
-        loopi(10) { cp[i] = dp[i] = vec(0,0,0); nt[i] = 0; }
+        d0 = lv = lt = le = vec(0, 0, 0);
+        loopi(10)
+        {
+            cp[i] = dp[i] = vec(0, 0, 0);
+            nt[i] = 0;
+        }
         dda = tr = sda = 0;
         ps = ph = bdt = pws = 0;
         tcn = -1;
@@ -341,7 +360,7 @@ struct client                   // server side version of "dynent" type
         spawnindex = -1;
         authreq = 0; // for AUTH
         mapchange();
-        freshgame = false;         // don't spawn into running games
+        freshgame = false; // don't spawn into running games
         mute = spam = lastvc = badspeech = badmillis = nvotes = 0;
         input = inputmillis = 0;
         wn = -1;
@@ -368,7 +387,7 @@ struct worldstate
     vector<uchar> positions, messages;
 };
 
-struct server_entity            // server side version of "entity" type
+struct server_entity // server side version of "entity" type
 {
     int type;
     bool spawned, legalpickup, twice;
@@ -396,7 +415,7 @@ void disconnect_client(int n, int reason = -1);
 void sendiplist(int receiver, int cn = -1);
 int clienthasflag(int cn);
 bool refillteams(bool now = false, int ftr = FTR_AUTOTEAM);
-void changeclientrole(int client, int role, char *pwd = NULL, bool force=false);
+void changeclientrole(int client, int role, char *pwd = NULL, bool force = false);
 mapstats *getservermapstats(const char *mapname, bool getlayout = false, int *maploc = NULL);
 int findmappath(const char *mapname, char *filename = NULL);
 int calcscores();
@@ -417,31 +436,30 @@ extern mapstats smapstats;
 extern char *maplayout;
 
 const char *messagenames[SV_NUM] =
-{
-    "SV_SERVINFO", "SV_WELCOME", "SV_INITCLIENT", "SV_POS", "SV_POSC", "SV_POSN", "SV_TEXT", "SV_TEAMTEXT", "SV_TEXTME", "SV_TEAMTEXTME", "SV_TEXTPRIVATE",
-    "SV_SOUND", "SV_VOICECOM", "SV_VOICECOMTEAM", "SV_CDIS",
-    "SV_SHOOT", "SV_EXPLODE", "SV_SUICIDE", "SV_AKIMBO", "SV_RELOAD", "SV_AUTHT", "SV_AUTHREQ", "SV_AUTHTRY", "SV_AUTHANS", "SV_AUTHCHAL",
-    "SV_GIBDIED", "SV_DIED", "SV_GIBDAMAGE", "SV_DAMAGE", "SV_HITPUSH", "SV_SHOTFX", "SV_THROWNADE",
-    "SV_TRYSPAWN", "SV_SPAWNSTATE", "SV_SPAWN", "SV_SPAWNDENY", "SV_FORCEDEATH", "SV_RESUME",
-    "SV_DISCSCORES", "SV_TIMEUP", "SV_EDITENT", "SV_ITEMACC",
-    "SV_MAPCHANGE", "SV_ITEMSPAWN", "SV_ITEMPICKUP",
-    "SV_PING", "SV_PONG", "SV_CLIENTPING", "SV_GAMEMODE",
-    "SV_EDITMODE", "SV_EDITXY", "SV_EDITARCH", "SV_EDITBLOCK", "SV_EDITD", "SV_EDITE", "SV_NEWMAP",
-    "SV_SENDMAP", "SV_RECVMAP", "SV_REMOVEMAP",
-    "SV_SERVMSG", "SV_ITEMLIST", "SV_WEAPCHANGE", "SV_PRIMARYWEAP",
-    "SV_FLAGACTION", "SV_FLAGINFO", "SV_FLAGMSG", "SV_FLAGCNT",
-    "SV_ARENAWIN",
-    "SV_SETADMIN", "SV_SERVOPINFO",
-    "SV_CALLVOTE", "SV_CALLVOTESUC", "SV_CALLVOTEERR", "SV_VOTE", "SV_VOTERESULT",
-    "SV_SETTEAM", "SV_TEAMDENY", "SV_SERVERMODE",
-    "SV_IPLIST",
-    "SV_LISTDEMOS", "SV_SENDDEMOLIST", "SV_GETDEMO", "SV_SENDDEMO", "SV_DEMOPLAYBACK",
-    "SV_CONNECT",
-    "SV_SWITCHNAME", "SV_SWITCHSKIN", "SV_SWITCHTEAM",
-    "SV_CLIENT",
-    "SV_EXTENSION",
-    "SV_MAPIDENT", "SV_HUDEXTRAS", "SV_POINTS"
-};
+    {
+        "SV_SERVINFO", "SV_WELCOME", "SV_INITCLIENT", "SV_POS", "SV_POSC", "SV_POSN", "SV_TEXT", "SV_TEAMTEXT", "SV_TEXTME", "SV_TEAMTEXTME", "SV_TEXTPRIVATE",
+        "SV_SOUND", "SV_VOICECOM", "SV_VOICECOMTEAM", "SV_CDIS",
+        "SV_SHOOT", "SV_EXPLODE", "SV_SUICIDE", "SV_AKIMBO", "SV_RELOAD", "SV_AUTHT", "SV_AUTHREQ", "SV_AUTHTRY", "SV_AUTHANS", "SV_AUTHCHAL",
+        "SV_GIBDIED", "SV_DIED", "SV_GIBDAMAGE", "SV_DAMAGE", "SV_HITPUSH", "SV_SHOTFX", "SV_THROWNADE",
+        "SV_TRYSPAWN", "SV_SPAWNSTATE", "SV_SPAWN", "SV_SPAWNDENY", "SV_FORCEDEATH", "SV_RESUME",
+        "SV_DISCSCORES", "SV_TIMEUP", "SV_EDITENT", "SV_ITEMACC",
+        "SV_MAPCHANGE", "SV_ITEMSPAWN", "SV_ITEMPICKUP",
+        "SV_PING", "SV_PONG", "SV_CLIENTPING", "SV_GAMEMODE",
+        "SV_EDITMODE", "SV_EDITXY", "SV_EDITARCH", "SV_EDITBLOCK", "SV_EDITD", "SV_EDITE", "SV_NEWMAP",
+        "SV_SENDMAP", "SV_RECVMAP", "SV_REMOVEMAP",
+        "SV_SERVMSG", "SV_ITEMLIST", "SV_WEAPCHANGE", "SV_PRIMARYWEAP",
+        "SV_FLAGACTION", "SV_FLAGINFO", "SV_FLAGMSG", "SV_FLAGCNT",
+        "SV_ARENAWIN",
+        "SV_SETADMIN", "SV_SERVOPINFO",
+        "SV_CALLVOTE", "SV_CALLVOTESUC", "SV_CALLVOTEERR", "SV_VOTE", "SV_VOTERESULT",
+        "SV_SETTEAM", "SV_TEAMDENY", "SV_SERVERMODE",
+        "SV_IPLIST",
+        "SV_LISTDEMOS", "SV_SENDDEMOLIST", "SV_GETDEMO", "SV_SENDDEMO", "SV_DEMOPLAYBACK",
+        "SV_CONNECT",
+        "SV_SWITCHNAME", "SV_SWITCHSKIN", "SV_SWITCHTEAM",
+        "SV_CLIENT",
+        "SV_EXTENSION",
+        "SV_MAPIDENT", "SV_HUDEXTRAS", "SV_POINTS"};
 
 const char *entnames[] =
 {

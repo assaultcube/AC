@@ -75,14 +75,30 @@ enum
     S_NULL
 };
 
-enum { SC_PAIN = 0, SC_OWNPAIN, SC_WEAPON, SC_PICKUP, SC_MOVEMENT, SC_BULLET, SC_OTHER, SC_VOICECOM, SC_TEAM, SC_PUBLIC, SC_FFA, SC_FLAGONLY, SC_NUM };   // sound categories
+enum
+{
+    SC_PAIN = 0,
+    SC_OWNPAIN,
+    SC_WEAPON,
+    SC_PICKUP,
+    SC_MOVEMENT,
+    SC_BULLET,
+    SC_OTHER,
+    SC_VOICECOM,
+    SC_TEAM,
+    SC_PUBLIC,
+    SC_FFA,
+    SC_FLAGONLY,
+    SC_NUM
+}; // sound categories
 
-#define gamesound_isvalid(x) ((x) >= 0 && (x) < S_NULL)                           // bounds check for soundcfg[]
+#define gamesound_isvalid(x) ((x) >= 0 && (x) < S_NULL) // bounds check for soundcfg[]
 #define gamesound_hasflag(x, mask) (gamesound_isvalid(x) && (soundcfg[x].flags & mask) != 0)
-#define gamesound_isvoicecom(x)       gamesound_hasflag(x, 1 << SC_VOICECOM)      // all voicecoms
-#define gamesound_ispublicvoicecom(x) gamesound_hasflag(x, 1 << SC_PUBLIC)        // voicecoms always sent to all players
+#define gamesound_isvoicecom(x) gamesound_hasflag(x, 1 << SC_VOICECOM)     // all voicecoms
+#define gamesound_ispublicvoicecom(x) gamesound_hasflag(x, 1 << SC_PUBLIC) // voicecoms always sent to all players
 
-struct soundcfgitem {
+struct soundcfgitem
+{
     const char *name, *desc;
     uchar vol, loop, audibleradius, key;
     int flags;
@@ -163,7 +179,6 @@ public:
 
     void printposition();
 };
-
 
 // represents an OpenAL sound buffer
 
@@ -251,11 +266,10 @@ public:
     void seek(double offset);
 };
 
-
 struct soundconfig
 {
-    sbuffer *buf; // sound data
-    int vol; // volume
+    sbuffer *buf;      // sound data
+    int vol;           // volume
     int uses, maxuses; // track uses
     bool loop;
     bool muted;
@@ -264,7 +278,7 @@ struct soundconfig
     enum distancemodel
     {
         DM_DEFAULT = 0, // use openal distance model
-        DM_LINEAR // custom linear model (used in conjunction with audibleradius)
+        DM_LINEAR       // custom linear model (used in conjunction with audibleradius)
     };
 
     distancemodel model;
@@ -274,12 +288,16 @@ struct soundconfig
     void ondetach();
 };
 
-
 class worldobjreference
 {
 public:
-
-    enum worldobjtype { WR_CAMERA, WR_PHYSENT, WR_ENTITY, WR_STATICPOS };
+    enum worldobjtype
+    {
+        WR_CAMERA,
+        WR_PHYSENT,
+        WR_ENTITY,
+        WR_STATICPOS
+    };
     int type;
 
     worldobjreference(int t) : type(t) {}
@@ -288,11 +306,10 @@ public:
     virtual const vec &currentposition() const = 0;
     virtual bool nodistance() = 0;
     virtual bool operator==(const worldobjreference &other) = 0;
-    virtual bool operator!=(const worldobjreference &other) { return !(*this==other); }
+    virtual bool operator!=(const worldobjreference &other) { return !(*this == other); }
     virtual void attach() {}
     virtual void detach() {}
 };
-
 
 class camerareference : public worldobjreference
 {
@@ -304,7 +321,6 @@ public:
     bool nodistance();
     bool operator==(const worldobjreference &other);
 };
-
 
 class physentreference : public worldobjreference
 {
@@ -318,7 +334,6 @@ public:
     bool operator==(const worldobjreference &other);
 };
 
-
 struct entityreference : public worldobjreference
 {
 public:
@@ -331,7 +346,6 @@ public:
     bool operator==(const worldobjreference &other);
 };
 
-
 struct staticreference : public worldobjreference
 {
 public:
@@ -343,7 +357,6 @@ public:
     bool nodistance();
     bool operator==(const worldobjreference &other);
 };
-
 
 class location : sourceowner
 {
@@ -370,19 +383,17 @@ public:
     void drop();
 };
 
-
 struct locvector : vector<location *>
 {
     virtual ~locvector() {}
 
-    location *find(int sound, worldobjreference *ref/* = NULL*/, const vector<soundconfig> &soundcollection /* = gamesounds*/);
+    location *find(int sound, worldobjreference *ref /* = NULL*/, const vector<soundconfig> &soundcollection /* = gamesounds*/);
     void delete_(int i);
     void replaceworldobjreference(const worldobjreference &oldr, const worldobjreference &newr);
     void updatelocations();
     void forcepitch(float pitch);
     void deleteworldobjsounds();
 };
-
 
 // audio interface to the engine
 
@@ -398,7 +409,6 @@ class audiomanager
     oggstream *gamemusic;
 
 public:
-
     locvector locations;
 
     audiomanager();

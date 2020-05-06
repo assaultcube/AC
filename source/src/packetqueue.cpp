@@ -14,18 +14,22 @@ packetqueue::~packetqueue()
 // adds packet to log buffer
 void packetqueue::queue(ENetPacket *p)
 {
-    if(packets.length() >= packets.maxsize()) enet_packet_destroy(packets.remove());
+    if (packets.length() >= packets.maxsize())
+        enet_packet_destroy(packets.remove());
     packets.add(p);
 }
 
 // writes all currently queued packets to disk and clears the queue
 bool packetqueue::flushtolog(const char *logfile)
 {
-    if(packets.empty()) return false;
+    if (packets.empty())
+        return false;
 
     stream *f = NULL;
-    if(logfile && logfile[0]) f = openfile(logfile, "w");
-    if(!f) return false;
+    if (logfile && logfile[0])
+        f = openfile(logfile, "w");
+    if (!f)
+        return false;
 
     // header
     f->printf("AC v%d PACKET LOG : proto %d : @ %11s\n", AC_VERSION, PROTOCOL_VERSION, numtime());
@@ -54,6 +58,6 @@ bool packetqueue::flushtolog(const char *logfile)
 // clear queue
 void packetqueue::clear()
 {
-    while(!packets.empty()) enet_packet_destroy(packets.remove());
+    while (!packets.empty())
+        enet_packet_destroy(packets.remove());
 }
-

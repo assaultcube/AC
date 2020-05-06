@@ -2,14 +2,14 @@
 
 #include "cube.h"
 
-#define DEBUGCOND (audiodebug==1)
+#define DEBUGCOND (audiodebug == 1)
 
 // ogg compat
 
 static size_t oggcallbackread(void *ptr, size_t size, size_t nmemb, void *datasource)
 {
     stream *s = (stream *)datasource;
-    return s ? s->read(ptr, int(size*nmemb))/size : 0;
+    return s ? s->read(ptr, int(size * nmemb)) / size : 0;
 }
 
 static int oggcallbackseek(void *datasource, ogg_int64_t offset, int whence)
@@ -21,7 +21,8 @@ static int oggcallbackseek(void *datasource, ogg_int64_t offset, int whence)
 static int oggcallbackclose(void *datasource)
 {
     stream *s = (stream *)datasource;
-    if(!s) return -1;
+    if (!s)
+        return -1;
     delete s;
     return 0;
 }
@@ -32,7 +33,7 @@ static long oggcallbacktell(void *datasource)
     return s ? s->tell() : -1;
 }
 
-ov_callbacks oggcallbacks = { oggcallbackread, oggcallbackseek, oggcallbackclose, oggcallbacktell };
+ov_callbacks oggcallbacks = {oggcallbackread, oggcallbackseek, oggcallbackclose, oggcallbacktell};
 
 // ogg audio streaming
 
@@ -42,9 +43,9 @@ oggstream::oggstream() : valid(false), isopen(false), src(NULL)
 
     // grab a source and keep it during the whole lifetime
     src = sourcescheduler::instance().newsource(SP_HIGHEST, camera1->o);
-    if(src)
+    if (src)
     {
-        if(src->valid)
+        if (src->valid)
         {
             src->init(this);
             src->sourcerelative(true);
@@ -56,7 +57,8 @@ oggstream::oggstream() : valid(false), isopen(false), src(NULL)
         }
     }
 
-    if(!src) return;
+    if (!src)
+        return;
 
     alclearerr();
     alGenBuffers(2, bufferids);
@@ -67,9 +69,10 @@ oggstream::~oggstream()
 {
     reset();
 
-    if(src) sourcescheduler::instance().releasesource(src);
+    if (src)
+        sourcescheduler::instance().releasesource(src);
 
-    if(alIsBuffer(bufferids[0]) || alIsBuffer(bufferids[1]))
+    if (alIsBuffer(bufferids[0]) || alIsBuffer(bufferids[1]))
     {
         alclearerr();
         alDeleteBuffers(2, bufferids);
@@ -82,7 +85,7 @@ void oggstream::reset()
     name[0] = '\0';
 
     // stop playing
-    if(src)
+    if (src)
     {
         src->stop();
         src->unqueueallbuffers();
@@ -91,7 +94,7 @@ void oggstream::reset()
     format = AL_NONE;
 
     // reset file handler
-    if(isopen)
+    if (isopen)
     {
         isopen = !ov_clear(&oggfile);
     }
@@ -107,20 +110,23 @@ void oggstream::reset()
 bool oggstream::open(const char *f)
 {
     ASSERT(valid);
-    if(!f) return false;
-    if(playing() || isopen) reset();
+    if (!f)
+        return false;
+    if (playing() || isopen)
+        reset();
 
-    const char *exts[] = { "", ".wav", ".ogg" };
+    const char *exts[] = {"", ".wav", ".ogg"};
     string filepath;
 
-    loopi(sizeof(exts)/sizeof(exts[0]))
+    loopi(sizeof(exts) / sizeof(exts[0]))
     {
         formatstring(filepath)("packages/audio/soundtracks/%s%s", f, exts[i]);
         ::stream *file = openfile(path(filepath), "rb");
-        if(!file) continue;
+        if (!file)
+            continue;
 
         isopen = !ov_open_callbacks(file, &oggfile, NULL, 0, oggcallbacks);
-        if(!isopen)
+        if (!isopen)
         {
             delete file;
             continue;
@@ -140,7 +146,7 @@ void oggstream::onsourcereassign(source *s)
 {
     // should NEVER happen because streams do have the highest priority, see constructor
     ASSERT(0);
-    if(src && src==s)
+    if (src && src == s)
     {
         reset();
         src = NULL;
@@ -156,18 +162,23 @@ bool oggstream::stream(ALuint bufid)
         char pcm[BUFSIZE];
         ALsizei size = 0;
         int bitstream;
-        while(size < BUFSIZE)
+        while (size < BUFSIZE)
         {
             long bytes = ov_read(&oggfile, pcm + size, BUFSIZE - size, isbigendian(), 2, 1, &bitstream);
-            if(bytes > 0) size += bytes;
-            else if (bytes < 0) return false;
-            else break; // done
+            if (bytes > 0)
+                size += bytes;
+            else if (bytes < 0)
+                return false;
+            else
+                break; // done
         }
 
-        if(size==0)
+        if (size == 0)
         {
-            if(looping && !ov_pcm_seek(&oggfile, 0)) continue; // try again to replay
-            else return false;
+            if (looping && !ov_pcm_seek(&oggfile, 0))
+                continue; // try again to replay
+            else
+                return false;
         }
 
         alclearerr();
@@ -181,7 +192,8 @@ bool oggstream::stream(ALuint bufid)
 bool oggstream::update()
 {
     ASSERT(valid);
-    if(!isopen || !playing()) return false;
+    if (!isopen || !playing())
+        return false;
 
     // update buffer queue
     ALint processed;
@@ -192,16 +204,17 @@ bool oggstream::update()
         ALuint buffer;
         alSourceUnqueueBuffers(src->id, 1, &buffer);
         active = stream(buffer);
-        if(active) alSourceQueueBuffers(src->id, 1, &buffer);
+        if (active)
+            alSourceQueueBuffers(src->id, 1, &buffer);
     }
 
-    if(active)
+    if (active)
     {
         // fade in
-        if(startmillis > 0)
+        if (startmillis > 0)
         {
-            const float start = (lastmillis-startmillis)/(float)startfademillis;
-            if(start>=0.00f && start<=1.00001f)
+            const float start = (lastmillis - startmillis) / (float)startfademillis;
+            if (start >= 0.00f && start <= 1.00001f)
             {
                 setgain(start);
                 return true;
@@ -209,25 +222,26 @@ bool oggstream::update()
         }
 
         // fade out
-        if(endmillis > 0)
+        if (endmillis > 0)
         {
-            if(lastmillis<=endmillis) // set gain
+            if (lastmillis <= endmillis) // set gain
             {
-                const float end = (endmillis-lastmillis)/(float)endfademillis;
-                if(end>=-0.00001f && end<=1.00f)
+                const float end = (endmillis - lastmillis) / (float)endfademillis;
+                if (end >= -0.00001f && end <= 1.00f)
                 {
                     setgain(end);
                     return true;
                 }
             }
-            else  // stop
+            else // stop
             {
                 active = false;
             }
         }
     }
 
-    if(!active) reset(); // reset stream if the end is reached
+    if (!active)
+        reset(); // reset stream if the end is reached
     return active;
 }
 
@@ -240,7 +254,7 @@ bool oggstream::playing()
 void oggstream::updategain()
 {
     ASSERT(valid);
-    src->gain(gain*volume);
+    src->gain(gain * volume);
 }
 
 void oggstream::setgain(float g)
@@ -268,17 +282,20 @@ void oggstream::fadein(int startmillis, int fademillis)
 void oggstream::fadeout(int endmillis, int fademillis)
 {
     ASSERT(valid);
-    this->endmillis = (endmillis || totalseconds > 0.0f) ? endmillis : lastmillis+(int)totalseconds;
+    this->endmillis = (endmillis || totalseconds > 0.0f) ? endmillis : lastmillis + (int)totalseconds;
     this->endfademillis = fademillis;
 }
 
 bool oggstream::playback(bool looping)
 {
     ASSERT(valid);
-    if(playing()) return true;
+    if (playing())
+        return true;
     this->looping = looping;
-    if(!stream(bufferids[0]) || !stream(bufferids[1])) return false;
-    if(!startmillis && !endmillis && !startfademillis && !endfademillis) setgain(1.0f);
+    if (!stream(bufferids[0]) || !stream(bufferids[1]))
+        return false;
+    if (!startmillis && !endmillis && !startfademillis && !endfademillis)
+        setgain(1.0f);
 
     updategain();
     src->queuebuffers(2, bufferids);
@@ -290,7 +307,7 @@ bool oggstream::playback(bool looping)
 void oggstream::seek(double offset)
 {
     ASSERT(valid);
-    if(!totalseconds) return;
-    ov_time_seek_page(&oggfile, fmod(totalseconds-5.0f, totalseconds));
+    if (!totalseconds)
+        return;
+    ov_time_seek_page(&oggfile, fmod(totalseconds - 5.0f, totalseconds));
 }
-

@@ -20,7 +20,11 @@ void setupstrips()
     glTexCoordPointer(2, GL_FLOAT, sizeof(vertex), &buf->u);
 }
 
-struct strips { vector<GLint> first; vector<GLsizei> count; };
+struct strips
+{
+    vector<GLint> first;
+    vector<GLsizei> count;
+};
 
 struct stripbatch
 {
@@ -28,25 +32,28 @@ struct stripbatch
     strips tris, tristrips, quads;
 };
 
-stripbatch skystrips = { DEFAULT_SKY };
+stripbatch skystrips = {DEFAULT_SKY};
 stripbatch stripbatches[256];
 uchar renderedtex[256];
 int renderedtexs = 0;
 
 extern int ati_mda_bug;
 
-#define RENDERSTRIPS(strips, type) \
-    if(strips.first.length()) \
-    { \
-        if(hasMDA && !ati_mda_bug) glMultiDrawArrays_(type, strips.first.getbuf(), strips.count.getbuf(), strips.first.length()); \
-        else loopv(strips.first) glDrawArrays(type, strips.first[i], strips.count[i]); \
-        strips.first.setsize(0); \
-        strips.count.setsize(0); \
+#define RENDERSTRIPS(strips, type)                                                                         \
+    if (strips.first.length())                                                                             \
+    {                                                                                                      \
+        if (hasMDA && !ati_mda_bug)                                                                        \
+            glMultiDrawArrays_(type, strips.first.getbuf(), strips.count.getbuf(), strips.first.length()); \
+        else                                                                                               \
+            loopv(strips.first) glDrawArrays(type, strips.first[i], strips.count[i]);                      \
+        strips.first.setsize(0);                                                                           \
+        strips.count.setsize(0);                                                                           \
     }
 
 void renderstripssky()
 {
-    if(skystrips.tris.first.empty() && skystrips.tristrips.first.empty() && skystrips.quads.first.empty()) return;
+    if (skystrips.tris.first.empty() && skystrips.tristrips.first.empty() && skystrips.quads.first.empty())
+        return;
     glDisable(GL_TEXTURE_2D);
     glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
     RENDERSTRIPS(skystrips.tris, GL_TRIANGLES);
@@ -76,23 +83,24 @@ void renderstrips()
 void addstrip(int type, int tex, int start, int n)
 {
     stripbatch *sb = NULL;
-    if(tex==DEFAULT_SKY)
+    if (tex == DEFAULT_SKY)
     {
-        if(minimap) return;
+        if (minimap)
+            return;
         sb = &skystrips;
         loopi(n) skyfloor = min(skyfloor, verts[start + i].z);
     }
     else
     {
         sb = &stripbatches[renderedtex[tex]];
-        if(sb->tex!=tex || sb>=&stripbatches[renderedtexs])
+        if (sb->tex != tex || sb >= &stripbatches[renderedtexs])
         {
             sb = &stripbatches[renderedtex[tex] = renderedtexs++];
             sb->tex = tex;
         }
     }
-    strips &s = (type==GL_QUADS ? sb->quads : (type==GL_TRIANGLES ? sb->tris : sb->tristrips));
-    if(type!=GL_TRIANGLE_STRIP && s.first.length() && s.first.last()+s.count.last() == start)
+    strips &s = (type == GL_QUADS ? sb->quads : (type == GL_TRIANGLES ? sb->tris : sb->tristrips));
+    if (type != GL_TRIANGLE_STRIP && s.first.length() && s.first.last() + s.count.last() == start)
     {
         s.count.last() += n;
         return;
@@ -106,12 +114,18 @@ void addstrip(int type, int tex, int start, int n)
 // machines, hence the macros.
 
 #define vert(v1, v2, v3, ls, t1, t2) \
-{ \
-    vertex &v = verts.add(); \
-    v.u = t1; v.v = t2; \
-    v.x = (float)(v1); v.y = (float)(v2); v.z = (float)(v3); \
-    v.r = ls->r; v.g = ls->g; v.b = ls->b; v.a = 255; \
-}
+    {                                \
+        vertex &v = verts.add();     \
+        v.u = t1;                    \
+        v.v = t2;                    \
+        v.x = (float)(v1);           \
+        v.y = (float)(v2);           \
+        v.z = (float)(v3);           \
+        v.r = ls->r;                 \
+        v.g = ls->g;                 \
+        v.b = ls->b;                 \
+        v.a = 255;                   \
+    }
 
 enum
 {
@@ -126,26 +140,32 @@ int nquads;
 const float texturescale = 32.0f;
 //VARP(texturescale, 16, 32, 64);
 
-#define TEXTURESCALE (float(texturescale) * ((uniformtexres && t->scale>1.0f) ? 1.0f : t->scale))
+#define TEXTURESCALE (float(texturescale) * ((uniformtexres && t->scale > 1.0f) ? 1.0f : t->scale))
 
-int striptype = 0, striptex, oh, oy, ox, odir;                         // the o* vars are used by the stripification
+int striptype = 0, striptex, oh, oy, ox, odir; // the o* vars are used by the stripification
 int ol1r, ol1g, ol1b, ol2r, ol2g, ol2b;
 float ofloor, oceil;
 bool ohf;
 int firstindex;
 bool showm = false, showef = false;
 
-COMMANDF(showmip, "",() { showm = !showm; });
-COMMANDF(showfocuscubedetails, "",() { showef = !showef; });
+COMMANDF(
+    showmip, "", () { showm = !showm; });
+COMMANDF(
+    showfocuscubedetails, "", () { showef = !showef; });
 
 const char *cubetypenames[] = {"SOLID", "CORNER", "FHF", "CHF", "SPACE", ""};
 const char *cubetypename(int t) { return t >= 0 && t < SEMISOLID ? cubetypenames[t] : "unknown"; }
 
-void mipstats(const int a[]) { if(showm && !showef) hudeditf(HUDMSG_MIPSTATS, "1x1/2x2/4x4/8x8: %d / %d / %d / %d", a[0], a[1], a[2], a[3]); }
+void mipstats(const int a[])
+{
+    if (showm && !showef)
+        hudeditf(HUDMSG_MIPSTATS, "1x1/2x2/4x4/8x8: %d / %d / %d / %d", a[0], a[1], a[2], a[3]);
+}
 
 bool editfocusdetails(sqr *s)
 {
-    if(showef)
+    if (showef)
     {
         const char *g = SOLID(s) ? "\f4" : "";
         hudeditf(HUDMSG_EDITFOCUS, "%s: \fs%s%d..%d\fr W:%d \fs%sU:%d F:%d C:%d v:%d t:0x%X (%02X%02X%02X)\fr", cubetypename(s->type), g, s->floor, s->ceil, s->wtex, g, s->utex, s->ftex, s->ctex, s->vdelta, s->tag, s->r, s->g, s->b);
@@ -156,39 +176,52 @@ bool editfocusdetails(sqr *s)
 
 VAR(mergestrips, 0, 1, 1);
 
-#define stripend(verts) \
-    if(striptype) \
-    { \
-        int type = GL_TRIANGLE_STRIP, len = verts.length()-firstindex; \
-        if(mergestrips) switch(len) \
-        { \
-            case 3: type = GL_TRIANGLES; break; \
-            case 4: type = GL_QUADS; swap(verts.last(), verts[verts.length()-2]); break; \
-        } \
-        addstrip(type, striptex, firstindex, len); \
-        striptype = 0; \
+#define stripend(verts)                                                  \
+    if (striptype)                                                       \
+    {                                                                    \
+        int type = GL_TRIANGLE_STRIP, len = verts.length() - firstindex; \
+        if (mergestrips)                                                 \
+            switch (len)                                                 \
+            {                                                            \
+            case 3:                                                      \
+                type = GL_TRIANGLES;                                     \
+                break;                                                   \
+            case 4:                                                      \
+                type = GL_QUADS;                                         \
+                swap(verts.last(), verts[verts.length() - 2]);           \
+                break;                                                   \
+            }                                                            \
+        addstrip(type, striptex, firstindex, len);                       \
+        striptype = 0;                                                   \
     }
 
-void finishstrips() { stripend(verts); }
+void finishstrips()
+{
+    stripend(verts);
+}
 
 sqr sbright, sdark;
 VARP(lighterror, 1, 4, 100);
 
-void render_flat(int wtex, int x, int y, int size, int h, sqr *l1, sqr *l4, sqr *l3, sqr *l2, bool isceil)  // floor/ceil quads
+void render_flat(int wtex, int x, int y, int size, int h, sqr *l1, sqr *l4, sqr *l3, sqr *l2, bool isceil) // floor/ceil quads
 {
-    if(showm) { l3 = l1 = &sbright; l4 = l2 = &sdark; }
+    if (showm)
+    {
+        l3 = l1 = &sbright;
+        l4 = l2 = &sdark;
+    }
 
     Texture *t = lookupworldtexture(wtex);
-    float xf = TEXTURESCALE/t->xs;
-    float yf = TEXTURESCALE/t->ys;
-    float xs = size*xf;
-    float ys = size*yf;
-    float xo = xf*x;
-    float yo = yf*y;
+    float xf = TEXTURESCALE / t->xs;
+    float yf = TEXTURESCALE / t->ys;
+    float xs = size * xf;
+    float ys = size * yf;
+    float xo = xf * x;
+    float yo = yf * y;
 
-    bool first = striptype!=STRIP_FLOOR || x!=ox+size || striptex!=wtex || h!=oh || y!=oy;
+    bool first = striptype != STRIP_FLOOR || x != ox + size || striptex != wtex || h != oh || y != oy;
 
-    if(first)       // start strip here
+    if (first) // start strip here
     {
         stripend(verts);
         firstindex = verts.length();
@@ -196,10 +229,10 @@ void render_flat(int wtex, int x, int y, int size, int h, sqr *l1, sqr *l4, sqr 
         oh = h;
         oy = y;
         striptype = STRIP_FLOOR;
-        if(isceil)
+        if (isceil)
         {
-            vert(x, y,      h, l1, xo, yo);
-            vert(x, y+size, h, l2, xo, yo+ys);
+            vert(x, y, h, l1, xo, yo);
+            vert(x, y + size, h, l2, xo, yo + ys);
         }
         else
         {
@@ -325,79 +358,86 @@ void render_2tris(sqr *h, sqr *s, int x1, int y1, int x2, int y2, int x3, int y3
 void render_tris(int x, int y, int size, bool topleft,
                  sqr *h1, sqr *h2, sqr *s, sqr *t, sqr *u, sqr *v)
 {
-    if(topleft)
+    if (topleft)
     {
-        if(h1) render_2tris(h1, s, x+size, y+size, x, y+size, x, y, u, v, s);
-        if(h2) render_2tris(h2, s, x, y, x+size, y, x+size, y+size, s, t, v);
+        if (h1)
+            render_2tris(h1, s, x + size, y + size, x, y + size, x, y, u, v, s);
+        if (h2)
+            render_2tris(h2, s, x, y, x + size, y, x + size, y + size, s, t, v);
     }
     else
     {
-        if(h1) render_2tris(h1, s, x, y, x+size, y, x, y+size, s, t, u);
-        if(h2) render_2tris(h2, s, x+size, y, x+size, y+size, x, y+size, t, u, v);
+        if (h1)
+            render_2tris(h1, s, x, y, x + size, y, x, y + size, s, t, u);
+        if (h2)
+            render_2tris(h2, s, x + size, y, x + size, y + size, x, y + size, t, u, v);
     }
 }
 
-void render_square(int wtex, float floor1, float floor2, float ceil1, float ceil2, int x1, int y1, int x2, int y2, int size, sqr *l1, sqr *l2, bool flip, int dir)   // wall quads
+void render_square(int wtex, float floor1, float floor2, float ceil1, float ceil2, int x1, int y1, int x2, int y2, int size, sqr *l1, sqr *l2, bool flip, int dir) // wall quads
 {
-    if(showm) { l1 = &sbright; l2 = &sdark; }
+    if (showm)
+    {
+        l1 = &sbright;
+        l2 = &sdark;
+    }
 
     Texture *t = lookupworldtexture(wtex);
-    float xf = TEXTURESCALE/t->xs;
-    float yf = -TEXTURESCALE/t->ys;
-    float xs = size*xf;
-    float xo = xf*(x1==x2 ? min(y1,y2) : min(x1,x2));
+    float xf = TEXTURESCALE / t->xs;
+    float yf = -TEXTURESCALE / t->ys;
+    float xs = size * xf;
+    float xo = xf * (x1 == x2 ? min(y1, y2) : min(x1, x2));
 
-    bool first = striptype!=STRIP_WALL || striptex!=wtex || ox!=x1 || oy!=y1 || ofloor!=floor1 || oceil!=ceil1 || odir!=dir,
-         hf = floor1!=floor2 || ceil1!=ceil2;
+    bool first = striptype != STRIP_WALL || striptex != wtex || ox != x1 || oy != y1 || ofloor != floor1 || oceil != ceil1 || odir != dir,
+         hf = floor1 != floor2 || ceil1 != ceil2;
 
-    if(first)
+    if (first)
     {
         stripend(verts);
         firstindex = verts.length();
         striptex = wtex;
         striptype = STRIP_WALL;
 
-        if(!flip)
+        if (!flip)
         {
-            vert(x1, y1, ceil1,  l1, xo, yf*ceil1);
-            vert(x1, y1, floor1, l1, xo, yf*floor1);
+            vert(x1, y1, ceil1, l1, xo, yf * ceil1);
+            vert(x1, y1, floor1, l1, xo, yf * floor1);
         }
         else
         {
-            vert(x1, y1, floor1, l1, xo, yf*floor1);
-            vert(x1, y1, ceil1,  l1, xo, yf*ceil1);
+            vert(x1, y1, floor1, l1, xo, yf * floor1);
+            vert(x1, y1, ceil1, l1, xo, yf * ceil1);
         }
         ol1r = l1->r;
         ol1g = l1->g;
         ol1b = l1->b;
     }
-    else        // continue strip
+    else // continue strip
     {
-        int lighterr = lighterror*2;
-        if((!hf && !ohf)
-        && ((iabs(ol1r-l2->r)<lighterr && iabs(ol1g-l2->g)<lighterr && iabs(ol1b-l2->b)<lighterr) || !wtex))       // skip vertices if light values are close enough
+        int lighterr = lighterror * 2;
+        if ((!hf && !ohf) && ((iabs(ol1r - l2->r) < lighterr && iabs(ol1g - l2->g) < lighterr && iabs(ol1b - l2->b) < lighterr) || !wtex)) // skip vertices if light values are close enough
         {
-            verts.setsize(verts.length()-2);
+            verts.setsize(verts.length() - 2);
             nquads--;
         }
         else
         {
-            uchar *p1 = (uchar *)(&verts[verts.length()-1].r);
+            uchar *p1 = (uchar *)(&verts[verts.length() - 1].r);
             ol1r = p1[0];
             ol1g = p1[1];
             ol1b = p1[2];
         }
     }
 
-    if(!flip)
+    if (!flip)
     {
-        vert(x2, y2, ceil2,  l2, xo+xs, yf*ceil2);
-        vert(x2, y2, floor2, l2, xo+xs, yf*floor2);
+        vert(x2, y2, ceil2, l2, xo + xs, yf * ceil2);
+        vert(x2, y2, floor2, l2, xo + xs, yf * floor2);
     }
     else
     {
-        vert(x2, y2, floor2, l2, xo+xs, yf*floor2);
-        vert(x2, y2, ceil2,  l2, xo+xs, yf*ceil2);
+        vert(x2, y2, floor2, l2, xo + xs, yf * floor2);
+        vert(x2, y2, ceil2, l2, xo + xs, yf * ceil2);
     }
 
     ox = x2;
@@ -422,7 +462,10 @@ void resetcubes()
     resetwater();
 }
 
-struct shadowvertex { float u, v, x, y, z; };
+struct shadowvertex
+{
+    float u, v, x, y, z;
+};
 vector<shadowvertex> shadowverts;
 
 static void resetshadowverts()
@@ -456,20 +499,22 @@ static void rendershadowstrips()
     xtraverts += shadowverts.length();
 }
 
-#define shadowvert(v1, v2, v3) \
-{ \
-    shadowvertex &v = shadowverts.add(); \
-    v.x = (float)(v1); v.y = (float)(v2); v.z = (float)(v3); \
-}
+#define shadowvert(v1, v2, v3)               \
+    {                                        \
+        shadowvertex &v = shadowverts.add(); \
+        v.x = (float)(v1);                   \
+        v.y = (float)(v2);                   \
+        v.z = (float)(v3);                   \
+    }
 
-void rendershadow_tri(sqr *h, int x1, int y1, int x2, int y2, int x3, int y3)   // floor tris on a corner cube
+void rendershadow_tri(sqr *h, int x1, int y1, int x2, int y2, int x3, int y3) // floor tris on a corner cube
 {
     stripend(shadowverts);
 
     shadowvert(x1, y1, h->floor);
     shadowvert(x2, y2, h->floor);
     shadowvert(x3, y3, h->floor);
-    addstrip(mergestrips ? GL_TRIANGLES : GL_TRIANGLE_STRIP, DEFAULT_FLOOR, shadowverts.length()-3, 3);
+    addstrip(mergestrips ? GL_TRIANGLES : GL_TRIANGLE_STRIP, DEFAULT_FLOOR, shadowverts.length() - 3, 3);
 }
 
 void rendershadow_tris(int x, int y, bool topleft, sqr *h1, sqr *h2)
@@ -488,9 +533,9 @@ void rendershadow_tris(int x, int y, bool topleft, sqr *h1, sqr *h2)
 
 static void rendershadow_flat(int x, int y, int h) // floor quads
 {
-    bool first = striptype!=STRIP_FLOOR || x!=ox+1 || h!=oh || y!=oy;
+    bool first = striptype != STRIP_FLOOR || x != ox + 1 || h != oh || y != oy;
 
-    if(first)       // start strip here
+    if (first) // start strip here
     {
         stripend(shadowverts);
         firstindex = shadowverts.length();
@@ -498,32 +543,32 @@ static void rendershadow_flat(int x, int y, int h) // floor quads
         oh = h;
         oy = y;
         striptype = STRIP_FLOOR;
-        shadowvert(x, y+1, h);
-        shadowvert(x, y,   h);
+        shadowvert(x, y + 1, h);
+        shadowvert(x, y, h);
     }
-    else        // continue strip
+    else // continue strip
     {
-        shadowverts.setsize(shadowverts.length()-2);
+        shadowverts.setsize(shadowverts.length() - 2);
     }
 
-    shadowvert(x+1, y+1, h);
-    shadowvert(x+1, y,   h);
+    shadowvert(x + 1, y + 1, h);
+    shadowvert(x + 1, y, h);
 
     ox = x;
 }
 
-static void rendershadow_flatdelta(int x, int y, float h1, float h4, float h3, float h2)  // floor quads on a slope
+static void rendershadow_flatdelta(int x, int y, float h1, float h4, float h3, float h2) // floor quads on a slope
 {
-    bool first = striptype!=STRIP_DELTA || x!=ox+1 || y!=oy;
+    bool first = striptype != STRIP_DELTA || x != ox + 1 || y != oy;
 
-    if(first)
+    if (first)
     {
         stripend(shadowverts);
         firstindex = shadowverts.length();
         striptex = DEFAULT_FLOOR;
         oy = y;
         striptype = STRIP_DELTA;
-        shadowvert(x, y+1, h2);
+        shadowvert(x, y + 1, h2);
         shadowvert(x, y,   h1);
     }
 
@@ -537,68 +582,100 @@ void rendershadow(int x, int y, int xs, int ys, const vec &texgenS, const vec &t
 {
     x = max(x, 1);
     y = max(y, 1);
-    xs = min(xs, ssize-1);
-    ys = min(ys, ssize-1);
+    xs = min(xs, ssize - 1);
+    ys = min(ys, ssize - 1);
 
     resetshadowverts();
 
-    #define df(x) s->floor-(x->vdelta/4.0f)
+#define df(x) s->floor - (x->vdelta / 4.0f)
 
     sqr *w = wmip[0];
-    for(int yy = y; yy<ys; yy++) for(int xx = x; xx<xs; xx++)
-    {
-        sqr *s = SW(w,xx,yy);
-        if(s->type==SPACE || s->type==CHF)
+    for (int yy = y; yy < ys; yy++)
+        for (int xx = x; xx < xs; xx++)
         {
-            rendershadow_flat(xx, yy, s->floor);
-        }
-        else if(s->type==FHF)
-        {
-            sqr *t = SW(s,1,0), *u = SW(s,1,1), *v = SW(s,0,1);
-            rendershadow_flatdelta(xx, yy, df(s), df(t), df(u), df(v));
-        }
-        else if(s->type==CORNER)
-        {
-            sqr *t = SW(s,1,0), *v = SW(s,0,1), *w = SW(s,0,-1), *z = SW(s,-1,0);
-            bool topleft = true;
-            sqr *h1 = NULL, *h2 = NULL;
-            if(SOLID(z))
+            sqr *s = SW(w, xx, yy);
+            if (s->type == SPACE || s->type == CHF)
             {
-                if(SOLID(w))      { h2 = s; topleft = false; }
-                else if(SOLID(v)) { h2 = s; }
+                rendershadow_flat(xx, yy, s->floor);
             }
-            else if(SOLID(t))
+            else if (s->type == FHF)
             {
-                if(SOLID(w))      { h1 = s; }
-                else if(SOLID(v)) { h1 = s; topleft = false; }
+                sqr *t = SW(s, 1, 0), *u = SW(s, 1, 1), *v = SW(s, 0, 1);
+                rendershadow_flatdelta(xx, yy, df(s), df(t), df(u), df(v));
             }
-            else
+            else if (s->type == CORNER)
             {
-                bool wv = w->ceil-w->floor < v->ceil-v->floor;
-                if(z->ceil-z->floor < t->ceil-t->floor)
+                sqr *t = SW(s, 1, 0), *v = SW(s, 0, 1), *w = SW(s, 0, -1), *z = SW(s, -1, 0);
+                bool topleft = true;
+                sqr *h1 = NULL, *h2 = NULL;
+                if (SOLID(z))
                 {
-                    if(wv) { h1 = s; h2 = v; topleft = false; }
-                    else   { h1 = s; h2 = w; }
+                    if (SOLID(w))
+                    {
+                        h2 = s;
+                        topleft = false;
+                    }
+                    else if (SOLID(v))
+                    {
+                        h2 = s;
+                    }
+                }
+                else if (SOLID(t))
+                {
+                    if (SOLID(w))
+                    {
+                        h1 = s;
+                    }
+                    else if (SOLID(v))
+                    {
+                        h1 = s;
+                        topleft = false;
+                    }
                 }
                 else
                 {
-                    if(wv) { h2 = s; h1 = v; }
-                    else   { h2 = s; h1 = w; topleft = false; }
+                    bool wv = w->ceil - w->floor < v->ceil - v->floor;
+                    if (z->ceil - z->floor < t->ceil - t->floor)
+                    {
+                        if (wv)
+                        {
+                            h1 = s;
+                            h2 = v;
+                            topleft = false;
+                        }
+                        else
+                        {
+                            h1 = s;
+                            h2 = w;
+                        }
+                    }
+                    else
+                    {
+                        if (wv)
+                        {
+                            h2 = s;
+                            h1 = v;
+                        }
+                        else
+                        {
+                            h2 = s;
+                            h1 = w;
+                            topleft = false;
+                        }
+                    }
                 }
+                rendershadow_tris(xx, yy, topleft, h1, h2);
             }
-            rendershadow_tris(xx, yy, topleft, h1, h2);
         }
-    }
 
     stripend(shadowverts);
 
-    for(shadowvertex *v = shadowverts.getbuf(), *end = &v[shadowverts.length()]; v < end; v++)
+    for (shadowvertex *v = shadowverts.getbuf(), *end = &v[shadowverts.length()]; v < end; v++)
     {
         float vx = v->x, vy = v->y;
-        v->u = vx*texgenS.x + vy*texgenS.y + texgenS.z;
-        v->v = vx*texgenT.x + vy*texgenT.y + texgenT.z;
+        v->u = vx * texgenS.x + vy * texgenS.y + texgenS.z;
+        v->v = vx * texgenT.x + vy * texgenT.y + texgenT.z;
     }
 
     rendershadowstrips();
 }
-

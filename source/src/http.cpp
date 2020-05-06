@@ -13,7 +13,7 @@ const char lfcrlf[] = { LF, CR, LF, 0x00 }, *crlf = lfcrlf + 1;
 void httpget::reset(int keep) // keep == 0: delete all, keep == 1: keep connection, keep == 2: keep connection and url
 {
     if(keep < 1)
-    { // reset connection
+    { // reset connectionu
         DELSTRING(hostname);
         ip.host = ENET_HOST_ANY;
         ip.port = 80;         // change manually, if needed

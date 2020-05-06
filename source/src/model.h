@@ -1,29 +1,67 @@
-enum { ANIM_IDLE = 0, ANIM_RUN, ANIM_ATTACK, ANIM_PAIN, ANIM_JUMP, ANIM_LAND, ANIM_FLIPOFF, ANIM_SALUTE, ANIM_TAUNT, ANIM_WAVE, ANIM_POINT, ANIM_CROUCH_IDLE, ANIM_CROUCH_WALK, ANIM_CROUCH_ATTACK, ANIM_CROUCH_PAIN, ANIM_CROUCH_DEATH, ANIM_DEATH, ANIM_LYING_DEAD, ANIM_FLAG, ANIM_GUN_IDLE, ANIM_GUN_SHOOT, ANIM_GUN_RELOAD, ANIM_GUN_THROW, ANIM_MAPMODEL, ANIM_TRIGGER, ANIM_DECAY, ANIM_ALL, NUMANIMS };
+enum
+{
+    ANIM_IDLE = 0,
+    ANIM_RUN,
+    ANIM_ATTACK,
+    ANIM_PAIN,
+    ANIM_JUMP,
+    ANIM_LAND,
+    ANIM_FLIPOFF,
+    ANIM_SALUTE,
+    ANIM_TAUNT,
+    ANIM_WAVE,
+    ANIM_POINT,
+    ANIM_CROUCH_IDLE,
+    ANIM_CROUCH_WALK,
+    ANIM_CROUCH_ATTACK,
+    ANIM_CROUCH_PAIN,
+    ANIM_CROUCH_DEATH,
+    ANIM_DEATH,
+    ANIM_LYING_DEAD,
+    ANIM_FLAG,
+    ANIM_GUN_IDLE,
+    ANIM_GUN_SHOOT,
+    ANIM_GUN_RELOAD,
+    ANIM_GUN_THROW,
+    ANIM_MAPMODEL,
+    ANIM_TRIGGER,
+    ANIM_DECAY,
+    ANIM_ALL,
+    NUMANIMS
+};
 
-#define ANIM_INDEX       0xFF
-#define ANIM_LOOP        (1<<8)
-#define ANIM_START       (1<<9)
-#define ANIM_END         (1<<10)
-#define ANIM_REVERSE     (1<<11)
-#define ANIM_NOINTERP    (1<<12)
-#define ANIM_MIRROR      (1<<13)
-#define ANIM_NOSKIN      (1<<14)
-#define ANIM_TRANSLUCENT (1<<15)
-#define ANIM_PARTICLE    (1<<16)
-#define ANIM_DYNALLOC    (1<<17)
+#define ANIM_INDEX 0xFF
+#define ANIM_LOOP (1 << 8)
+#define ANIM_START (1 << 9)
+#define ANIM_END (1 << 10)
+#define ANIM_REVERSE (1 << 11)
+#define ANIM_NOINTERP (1 << 12)
+#define ANIM_MIRROR (1 << 13)
+#define ANIM_NOSKIN (1 << 14)
+#define ANIM_TRANSLUCENT (1 << 15)
+#define ANIM_PARTICLE (1 << 16)
+#define ANIM_DYNALLOC (1 << 17)
 
-struct animstate                                // used for animation blending of animated characters
+struct animstate // used for animation blending of animated characters
 {
     int anim, frame, range, basetime;
     float speed;
     animstate() { reset(); }
-    void reset() { anim = frame = range = basetime = 0; speed = 100.0f; };
+    void reset()
+    {
+        anim = frame = range = basetime = 0;
+        speed = 100.0f;
+    };
 
-    bool operator==(const animstate &o) const { return frame==o.frame && range==o.range && basetime==o.basetime && speed==o.speed; }
-    bool operator!=(const animstate &o) const { return frame!=o.frame || range!=o.range || basetime!=o.basetime || speed!=o.speed; }
+    bool operator==(const animstate &o) const { return frame == o.frame && range == o.range && basetime == o.basetime && speed == o.speed; }
+    bool operator!=(const animstate &o) const { return frame != o.frame || range != o.range || basetime != o.basetime || speed != o.speed; }
 };
 
-enum { MDL_MD2 = 1, MDL_MD3 };
+enum
+{
+    MDL_MD2 = 1,
+    MDL_MD3
+};
 
 struct model;
 struct modelattach
@@ -41,13 +79,13 @@ class dynent;
 
 struct model
 {
-    bool cullface, vertexlight, alphablend;  //ALX Alpha channel models
+    bool cullface, vertexlight, alphablend; //ALX Alpha channel models
     float alphatest, translucency, scale, radius, zradius, shadowdist;
     vec translate;
     int cachelimit, batch;
 
     //model() : cullface(true), vertexlight(false), alphatest(0.9f), translucency(0.25f), scale(1), radius(0), shadowdist(0), translate(0, 0, 0), cachelimit(8), batch(-1) {}
-    model() : cullface(true), vertexlight(false),  alphablend(false), alphatest(0.9f), translucency(0.25f), scale(1), radius(0), zradius(0), shadowdist(0), translate(0, 0, 0), cachelimit(8), batch(-1) {}
+    model() : cullface(true), vertexlight(false), alphablend(false), alphatest(0.9f), translucency(0.25f), scale(1), radius(0), zradius(0), shadowdist(0), translate(0, 0, 0), cachelimit(8), batch(-1) {}
     virtual ~model() {}
 
     virtual bool load() = 0;
@@ -67,10 +105,34 @@ struct model
     virtual void endrender() {}
 };
 
-struct mapmodelinfo { int rad, h, zoff; float scale; string name; model *m; int flags; };
+struct mapmodelinfo
+{
+    int rad, h, zoff;
+    float scale;
+    string name;
+    model *m;
+    int flags;
+};
 
-enum { MMA_KEYWORDS = 0, MMA_DESC, MMA_DEFAULTPARAMS, MMA_USAGE, MMA_AUTHOR, MMA_LICENSE, MMA_DISTRIBUTION, MMA_VERSION, MMA_REQUIRES, MMA_NUM };
-enum { MMF_REQUIRED = 1<<0, MMF_TEMP_USED = 1<<30, MMF_CONFIGMASK = 0xff };
+enum
+{
+    MMA_KEYWORDS = 0,
+    MMA_DESC,
+    MMA_DEFAULTPARAMS,
+    MMA_USAGE,
+    MMA_AUTHOR,
+    MMA_LICENSE,
+    MMA_DISTRIBUTION,
+    MMA_VERSION,
+    MMA_REQUIRES,
+    MMA_NUM
+};
+enum
+{
+    MMF_REQUIRED = 1 << 0,
+    MMF_TEMP_USED = 1 << 30,
+    MMF_CONFIGMASK = 0xff
+};
 
 struct mapmodelattributes
 {

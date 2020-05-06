@@ -9,41 +9,55 @@ struct authkey
 
     ~authkey()
     {
-        if(name) printf("deleting %s\n", name);
+        if (name)
+            printf("deleting %s\n", name);
         DELSTRING(name);
     }
 };
 
-enum { CERT_MISC = 0, CERT_DEV, CERT_MASTER, CERT_SERVER, CERT_PLAYER, CERT_CLANBOSS, CERT_CLAN, CERT_NUM };   // keep the lists of certtype-attributes in crypto.cpp in sync with this!
+enum
+{
+    CERT_MISC = 0,
+    CERT_DEV,
+    CERT_MASTER,
+    CERT_SERVER,
+    CERT_PLAYER,
+    CERT_CLANBOSS,
+    CERT_CLAN,
+    CERT_NUM
+}; // keep the lists of certtype-attributes in crypto.cpp in sync with this!
 
-struct certline { char *key, *val, *comment; };
+struct certline
+{
+    char *key, *val, *comment;
+};
 
 struct cert
 {
-    char *orgmsg,               // original file content, unchanged
-         *workmsg,              // copy of orgmsg, with changes
-         *name,                 // name of the cert (player name, clan name, etc), needs to be unique (in combination with type)
-         *orgfilename;          // name of the file, the cert was loaded from - without path or extension
-    uchar *signedby,            // public key the cert was signed with
-          *pubkey;              // public key of the cert
-    int orglen,                 // original filesize
-        signeddate,             // date, the cert was signed, in _minutes_ since the epoch
+    char *orgmsg,     // original file content, unchanged
+        *workmsg,     // copy of orgmsg, with changes
+        *name,        // name of the cert (player name, clan name, etc), needs to be unique (in combination with type)
+        *orgfilename; // name of the file, the cert was loaded from - without path or extension
+    uchar *signedby,  // public key the cert was signed with
+        *pubkey;      // public key of the cert
+    int orglen,       // original filesize
+        signeddate,   // date, the cert was signed, in _minutes_ since the epoch
         days2expire, days2renew;
 
-    struct cert *parent,        // cert of the signedby-key, if in tree
-                *next;          // used to chain certs
+    struct cert *parent, // cert of the signedby-key, if in tree
+        *next;           // used to chain certs
 
     vector<certline> lines;
 
-    uchar rank,                 // hierarchy level of the cert, 0 if not in tree
-          type;                 // parsed type (value has to be in range all the time!)
-    bool isvalid,               // signature is valid and cert is not expired
-         ischecked,             // signature is checked valid
-         needsrenewal,          // cert is valid, but should be renewed
-         expired,               // true, if the cert type does expire and the cert is properly signed, but the expired-date is passed
-         superseded,            // a newer valid cert of same type and name exists
-         blacklisted,           // pubkey of the cert is listed on the blacklist
-         illegal;               // cert has too high rank for its type
+    uchar rank,       // hierarchy level of the cert, 0 if not in tree
+        type;         // parsed type (value has to be in range all the time!)
+    bool isvalid,     // signature is valid and cert is not expired
+        ischecked,    // signature is checked valid
+        needsrenewal, // cert is valid, but should be renewed
+        expired,      // true, if the cert type does expire and the cert is properly signed, but the expired-date is passed
+        superseded,   // a newer valid cert of same type and name exists
+        blacklisted,  // pubkey of the cert is listed on the blacklist
+        illegal;      // cert has too high rank for its type
 
     bool parse();
     struct certline *getline(const char *key);
@@ -59,12 +73,14 @@ struct cert
                                  isvalid(false), ischecked(false), needsrenewal(false), expired(false), superseded(false), blacklisted(false), illegal(false)
     {
         orgfilename = filename ? newstring(filename) : NULL;
-        if(orgfilename)
+        if (orgfilename)
         {
             char *ofn = getcertfilename(NULL);
             orgmsg = loadfile(ofn, &orglen);
-            if(orgmsg) parse();
-            if(!ischecked) movecertfile("invalid");   // move invalid certs out of the way
+            if (orgmsg)
+                parse();
+            if (!ischecked)
+                movecertfile("invalid"); // move invalid certs out of the way
             delstring(ofn);
         }
     }
@@ -93,13 +109,13 @@ struct makecert
 extern bool hasTE, hasMT, hasMDA, hasDRE, hasstencil, hasST2, hasSTW, hasSTS, hasAF;
 
 // GL_ARB_multitexture
-extern PFNGLACTIVETEXTUREARBPROC       glActiveTexture_;
+extern PFNGLACTIVETEXTUREARBPROC glActiveTexture_;
 extern PFNGLCLIENTACTIVETEXTUREARBPROC glClientActiveTexture_;
-extern PFNGLMULTITEXCOORD2FARBPROC     glMultiTexCoord2f_;
-extern PFNGLMULTITEXCOORD3FARBPROC     glMultiTexCoord3f_;
+extern PFNGLMULTITEXCOORD2FARBPROC glMultiTexCoord2f_;
+extern PFNGLMULTITEXCOORD3FARBPROC glMultiTexCoord3f_;
 
 // GL_EXT_multi_draw_arrays
-extern PFNGLMULTIDRAWARRAYSEXTPROC   glMultiDrawArrays_;
+extern PFNGLMULTIDRAWARRAYSEXTPROC glMultiDrawArrays_;
 extern PFNGLMULTIDRAWELEMENTSEXTPROC glMultiDrawElements_;
 
 // GL_EXT_draw_range_elements
@@ -109,13 +125,13 @@ extern PFNGLDRAWRANGEELEMENTSEXTPROC glDrawRangeElements_;
 extern PFNGLACTIVESTENCILFACEEXTPROC glActiveStencilFace_;
 
 // GL_ATI_separate_stencil
-extern PFNGLSTENCILOPSEPARATEATIPROC   glStencilOpSeparate_;
+extern PFNGLSTENCILOPSEPARATEATIPROC glStencilOpSeparate_;
 extern PFNGLSTENCILFUNCSEPARATEATIPROC glStencilFuncSeparate_;
 
 struct color
 {
     float r, g, b, alpha;
-    color(){}
+    color() {}
     color(float r, float g, float b) : r(r), g(g), b(b), alpha(1.0f) {}
     color(float r, float g, float b, float a) : r(r), g(g), b(b), alpha(a) {}
 };
@@ -150,8 +166,19 @@ struct keym
     char *name, *actions[NUMACTIONS];
     bool pressed, unchangeddefault[NUMACTIONS];
 
-    keym() : code(-1), name(NULL), pressed(false) { loopi(NUMACTIONS) { actions[i] = newstring(""); unchangeddefault[i] = false; } }
-    ~keym() { DELETEA(name); loopi(NUMACTIONS) DELETEA(actions[i]); }
+    keym() : code(-1), name(NULL), pressed(false)
+    {
+        loopi(NUMACTIONS)
+        {
+            actions[i] = newstring("");
+            unchangeddefault[i] = false;
+        }
+    }
+    ~keym()
+    {
+        DELETEA(name);
+        loopi(NUMACTIONS) DELETEA(actions[i]);
+    }
 };
 
 extern keym *keypressed;
@@ -171,7 +198,7 @@ extern void menutitlemanual(void *menu, const char *title);
 extern bool needscoresreorder;
 extern void menuheader(void *menu, char *header, char *footer, bool heap = false);
 extern bool menukey(int code, bool isdown, int unicode, SDLMod mod = KMOD_NONE);
-extern void *addmenu(const char *name, const char *title = NULL, bool allowinput = true, void (__cdecl *refreshfunc)(void *, bool) = NULL, bool (__cdecl *keyfunc)(void *, int, bool, int) = NULL, bool hotkeys = false, bool forwardkeys = false);
+extern void *addmenu(const char *name, const char *title = NULL, bool allowinput = true, void(__cdecl *refreshfunc)(void *, bool) = NULL, bool(__cdecl *keyfunc)(void *, int, bool, int) = NULL, bool hotkeys = false, bool forwardkeys = false);
 extern bool rendermenumdl();
 extern void menuset(void *m, bool save = true);
 extern void menuselect(void *menu, int sel);
@@ -194,8 +221,8 @@ struct mitem
     virtual void render(int x, int y, int w);
     virtual int width() = 0;
     virtual int select() { return 0; }
-    virtual void focus(bool on) { }
-    virtual void key(int code, bool isdown, int unicode) { }
+    virtual void focus(bool on) {}
+    virtual void key(int code, bool isdown, int unicode) {}
     virtual void init() {}
     virtual const char *getdesc() { return NULL; }
     virtual const char *gettext() { return NULL; }
@@ -206,7 +233,14 @@ struct mitem
     static color gray, white, whitepulse;
     int mitemtype;
 
-    enum { TYPE_TEXTINPUT, TYPE_KEYINPUT, TYPE_CHECKBOX, TYPE_MANUAL, TYPE_SLIDER };
+    enum
+    {
+        TYPE_TEXTINPUT,
+        TYPE_KEYINPUT,
+        TYPE_CHECKBOX,
+        TYPE_MANUAL,
+        TYPE_SLIDER
+    };
 };
 
 struct mdirlist
@@ -215,7 +249,11 @@ struct mdirlist
     bool image, subdirdots;
     ~mdirlist()
     {
-        DELETEA(dir); DELETEA(ext); DELETEA(action); DELETEA(searchfile); DELETEA(subdiraction);
+        DELETEA(dir);
+        DELETEA(ext);
+        DELETEA(action);
+        DELETEA(searchfile);
+        DELETEA(subdiraction);
     }
 };
 
@@ -225,8 +263,8 @@ struct gmenu
     vector<mitem *> items;
     int menusel, menuselinit;
     bool allowinput, inited, hotkeys, forwardkeys;
-    void (__cdecl *refreshfunc)(void *, bool);
-    bool (__cdecl *keyfunc)(void *, int, bool, int);
+    void(__cdecl *refreshfunc)(void *, bool);
+    bool(__cdecl *keyfunc)(void *, int, bool, int);
     char *initaction;
     char *usefont;
     bool allowblink;
@@ -264,7 +302,10 @@ struct gmenu
     int headeritems();
 };
 
-struct mline { string name, cmd; };
+struct mline
+{
+    string name, cmd;
+};
 
 // serverbrowser
 extern void addserver(const char *servername, int serverport, int weight);
@@ -277,7 +318,12 @@ extern bool serverinfokey(void *menu, int code, bool isdown, int unicode);
 
 struct serverinfo
 {
-    enum { UNRESOLVED = 0, RESOLVING, RESOLVED };
+    enum
+    {
+        UNRESOLVED = 0,
+        RESOLVING,
+        RESOLVED
+    };
 
     string name;
     string full;
@@ -299,9 +345,9 @@ struct serverinfo
     unsigned char uplinkstats[MAXCLIENTS + 1];
 
     serverinfo()
-     : mode(0), numplayers(0), maxclients(0), ping(9999), protocol(0), minremain(0),
-       resolved(UNRESOLVED), port(-1), lastpingmillis(0), pongflags(0), getinfo(EXTPING_NOP),
-       bgcolor(NULL), favcat(-1), msweight(0), weight(0), uplinkqual(0), uplinkqual_age(0)
+        : mode(0), numplayers(0), maxclients(0), ping(9999), protocol(0), minremain(0),
+          resolved(UNRESOLVED), port(-1), lastpingmillis(0), pongflags(0), getinfo(EXTPING_NOP),
+          bgcolor(NULL), favcat(-1), msweight(0), weight(0), uplinkqual(0), uplinkqual_age(0)
     {
         name[0] = full[0] = map[0] = sdesc[0] = description[0] = '\0';
         loopi(3) lang[i] = '\0';
@@ -317,12 +363,12 @@ extern void updatefrommaster(int *force);
 struct httpget
 {
     // parameters
-    const char *hostname, *url;                        // set by set_host() and get()
-    const char *useragent, *referrer;                  // can be set manually with "newstrings", deleted automatically
-    const char *err;                                   // read-only
-    ENetAddress ip;                                    // set by set_host()
-    int maxredirects, maxtransfer, maxsize, connecttimeout;  // set manually
-    int (__cdecl *callbackfunc)(void *data, float progress);
+    const char *hostname, *url;                             // set by set_host() and get()
+    const char *useragent, *referrer;                       // can be set manually with "newstrings", deleted automatically
+    const char *err;                                        // read-only
+    ENetAddress ip;                                         // set by set_host()
+    int maxredirects, maxtransfer, maxsize, connecttimeout; // set manually
+    int(__cdecl *callbackfunc)(void *data, float progress);
     void *callbackdata;
 
     // internal
@@ -334,14 +380,26 @@ struct httpget
     char *header;
     int response, chunked, gzipped, contentlength, offset, traffic;
     uint elapsedtime;
-    vector<uchar> *outvec;                             // receives data, if not NULL (must be set up manually)
-    stream *outstream;                                 // receives data, if not NULL (must be set up manually)
+    vector<uchar> *outvec; // receives data, if not NULL (must be set up manually)
+    stream *outstream;     // receives data, if not NULL (must be set up manually)
 
-    httpget() { memset(&hostname, 0, sizeof(struct httpget)); tcp = ENET_SOCKET_NULL; reset(); }
-    ~httpget() { reset(); DELSTRING(useragent); DELSTRING(referrer); DELETEP(outvec); DELETEP(outstream); }
-    void reset(int keep = 0);                          // cleanup
-    bool set_host(const char *newhostname);            // set and resolve host
-    void set_port(int port);                           // set port (disconnect, if different to previous)
+    httpget()
+    {
+        memset(&hostname, 0, sizeof(struct httpget));
+        tcp = ENET_SOCKET_NULL;
+        reset();
+    }
+    ~httpget()
+    {
+        reset();
+        DELSTRING(useragent);
+        DELSTRING(referrer);
+        DELETEP(outvec);
+        DELETEP(outstream);
+    }
+    void reset(int keep = 0);               // cleanup
+    bool set_host(const char *newhostname); // set and resolve host
+    void set_port(int port);                // set port (disconnect, if different to previous)
     bool execcallback(float progress);
     void disconnect();
     bool connect(bool force = false);
@@ -356,7 +414,7 @@ struct urlparse
 
     urlparse() { memset(&buf, 0, sizeof(struct urlparse)); }
     ~urlparse() { DELSTRING(buf); }
-    void set(const char *newurl);      // set and parse url
+    void set(const char *newurl); // set and parse url
 };
 
 extern char *urlencode(const char *s, bool strict = false);
@@ -437,7 +495,9 @@ extern void texconfig_delete(void *s);
 extern uchar *texconfig_paste(void *_s, uchar *usedslots);
 
 static inline Texture *lookupworldtexture(int tex, bool trydl = true)
-{ return lookuptexture(tex, noworldtexture, trydl); }
+{
+    return lookuptexture(tex, noworldtexture, trydl);
+}
 
 extern float skyfloor;
 extern void draw_envbox(int fogdist);
@@ -477,7 +537,16 @@ extern Texture *crosshairs[];
 extern void drawcrosshair(playerent *p, int n, struct color *c = NULL, float size = -1.0f);
 
 // autodownload
-enum { PCK_TEXTURE = 0, PCK_SKYBOX, PCK_MAPMODEL, PCK_AUDIO, PCK_MAP, PCK_MOD, PCK_NUM };
+enum
+{
+    PCK_TEXTURE = 0,
+    PCK_SKYBOX,
+    PCK_MAPMODEL,
+    PCK_AUDIO,
+    PCK_MAP,
+    PCK_MOD,
+    PCK_NUM
+};
 extern int autodownload;
 extern void setupautodownload();
 extern void pollautodownloadresponse();
@@ -486,7 +555,10 @@ extern int downloadpackages(bool loadscr = true);
 extern void sortpckservers();
 extern void writepcksourcecfg();
 
-struct zone { int x1, x2, y1, y2, color; }; // zones (drawn on the minimap)
+struct zone
+{
+    int x1, x2, y1, y2, color;
+}; // zones (drawn on the minimap)
 
 // rendercubes
 extern void mipstats(const int a[]);
@@ -543,7 +615,13 @@ extern int sessionid;
 extern int gametimecurrent;
 extern int gametimemaximum;
 extern int lastgametimeupdate;
-struct serverstate { int autoteam; int mastermode; int matchteamsize; void reset() { autoteam = mastermode = matchteamsize = 0; }};
+struct serverstate
+{
+    int autoteam;
+    int mastermode;
+    int matchteamsize;
+    void reset() { autoteam = mastermode = matchteamsize = 0; }
+};
 extern struct serverstate servstate;
 extern void updateworld(int curtime, int lastmillis);
 extern void resetmap(bool mrproper = true);
@@ -610,7 +688,11 @@ extern void votecount(int v);
 extern void clearvote();
 
 // scoreboard
-struct discscore { int team, flags, frags, deaths, points; char name[MAXNAMELEN + 1]; };
+struct discscore
+{
+    int team, flags, frags, deaths, points;
+    char name[MAXNAMELEN + 1];
+};
 extern vector<discscore> discscores;
 extern void showscores(bool on);
 extern void renderscores(void *menu, bool init);
@@ -685,8 +767,8 @@ enum
 };
 enum
 {
-    CHANGE_GFX   = 1<<0,
-    CHANGE_SOUND = 1<<1
+    CHANGE_GFX = 1 << 0,
+    CHANGE_SOUND = 1 << 1
 };
 extern bool initwarning(const char *desc, int level = INIT_RESET, int type = CHANGE_GFX);
 
@@ -709,7 +791,7 @@ struct font
 
 #define VIRTH 1800
 #define FONTH (curfont->defaulth)
-#define PIXELTAB (10*curfont->defaultw)
+#define PIXELTAB (10 * curfont->defaultw)
 
 extern int VIRTW; // virtual screen size for text & HUD
 extern bool ignoreblinkingbit;
@@ -731,10 +813,18 @@ extern void cutcolorstring(char *text, int len);
 extern bool filterunrenderables(char *s);
 
 // editing
-#define EDITSEL(x)   if(noteditmode(x) || noselection()) return
-#define EDITSELMP(x) if(noteditmode(x) || noselection() || multiplayer(x)) return
-#define EDITMP(x)    if(noteditmode(x) || multiplayer(x)) return
-#define EDIT(x)      if(noteditmode(x)) return
+#define EDITSEL(x)                       \
+    if (noteditmode(x) || noselection()) \
+    return
+#define EDITSELMP(x)                                       \
+    if (noteditmode(x) || noselection() || multiplayer(x)) \
+    return
+#define EDITMP(x)                         \
+    if (noteditmode(x) || multiplayer(x)) \
+    return
+#define EDIT(x)         \
+    if (noteditmode(x)) \
+    return
 extern void cursorupdate();
 extern void toggleedit(bool force = false);
 extern void reseteditor();
@@ -753,7 +843,7 @@ extern void slopexy(int xd, int yd, block &sel);
 extern void stairsxy(int xd, int yd, block &sel);
 extern void edittagxy(int orv, int andv, block &sel);
 extern void selfliprotate(block &sel, int dir);
-extern bool noteditmode(const char* func = NULL);
+extern bool noteditmode(const char *func = NULL);
 extern void storeposition(short p[]);
 extern void restoreposition(short p[]);
 extern void restoreeditundo(ucharbuf &q);
@@ -777,7 +867,7 @@ enum
     HUDMSG_EDITFOCUS,
 
     HUDMSG_TYPE = 0xFF,
-    HUDMSG_OVERWRITE = 1<<8
+    HUDMSG_OVERWRITE = 1 << 8
 };
 extern int dimeditinfopanel;
 extern void damageblend(int n, void *p);
@@ -804,7 +894,7 @@ enum
     PT_HUDFLASH
 };
 
-#define PT_DECAL_MASK ((1<<PT_DECAL)|(1<<PT_BULLETHOLE)|(1<<PT_STAIN))
+#define PT_DECAL_MASK ((1 << PT_DECAL) | (1 << PT_BULLETHOLE) | (1 << PT_STAIN))
 
 enum
 {
@@ -846,7 +936,16 @@ extern void render_particles(int time, int typemask = ~0);
 extern const char *particletypenames[MAXPARTYPES + 1];
 
 // worldio
-enum { LWW_ENTATTROVERFLOW = 0x1, LWW_DECODEERR = 0x10, LWW_WORLDERROR = 0x100, LWW_MISSINGMEDIA = 0x1000, LWW_CONFIGERR = 0x10000, LWW_MODELERR = 0x100000, LWW_SCRIPTERR = 0x1000000 };
+enum
+{
+    LWW_ENTATTROVERFLOW = 0x1,
+    LWW_DECODEERR = 0x10,
+    LWW_WORLDERROR = 0x100,
+    LWW_MISSINGMEDIA = 0x1000,
+    LWW_CONFIGERR = 0x10000,
+    LWW_MODELERR = 0x100000,
+    LWW_SCRIPTERR = 0x1000000
+};
 extern const char *setnames(const char *name);
 extern void save_world(char *mname, bool skipoptimise = false, bool addcomfort = false);
 extern int _ignoreillegalpaths;
@@ -962,7 +1061,7 @@ extern void tigerhash(uchar *hash, const uchar *msg, int len);
 extern void *tigerhash_init(uchar *hash);
 extern void tigerhash_add(uchar *hash, const void *msg, int len, void *state);
 extern void tigerhash_finish(uchar *hash, void *state);
-extern void loadcertdir();     // load all certs in "config/certs"
+extern void loadcertdir(); // load all certs in "config/certs"
 #if 0
 // crypto // for AUTH
 extern void genprivkey(const char *seed, vector<char> &privstr, vector<char> &pubstr);
@@ -990,8 +1089,19 @@ extern void setsvar(const char *name, const char *str, bool dofunc = false);
 extern bool identexists(const char *name);
 extern bool addcommand(const char *name, void (*fun)(), const char *sig);
 extern int execute(const char *p);
-enum { HOOK_MP = 1, HOOK_SP, HOOK_SP_MP, HOOK_FLAGMASK = 0xff, HOOK_TEAM = 0x100, HOOK_NOTEAM = 0x200, HOOK_BOTMODE = 0x400, HOOK_FLAGMODE = 0x800, HOOK_ARENA = 0x1000 };
-extern bool exechook(int context, const char *ident, const char *body,...) PRINTFARGS(3, 4);  // execute cubescript hook if available and allowed in current context/gamemode
+enum
+{
+    HOOK_MP = 1,
+    HOOK_SP,
+    HOOK_SP_MP,
+    HOOK_FLAGMASK = 0xff,
+    HOOK_TEAM = 0x100,
+    HOOK_NOTEAM = 0x200,
+    HOOK_BOTMODE = 0x400,
+    HOOK_FLAGMODE = 0x800,
+    HOOK_ARENA = 0x1000
+};
+extern bool exechook(int context, const char *ident, const char *body, ...) PRINTFARGS(3, 4); // execute cubescript hook if available and allowed in current context/gamemode
 extern void identhash(uint64_t *d);
 extern char *executeret(const char *p);
 extern char *conc(const char **w, int n, bool space);
@@ -1058,10 +1168,10 @@ extern void sendstring(const char *t, packetbuf &p);
 extern void sendstring(const char *t, vector<uchar> &p);
 extern void getstring(char *t, ucharbuf &p, int len = MAXTRANS);
 extern void putgzbuf(vector<uchar> &d, vector<uchar> &s); // zips a vector into a stream, stored in another vector
-extern ucharbuf *getgzbuf(ucharbuf &p); // fetch a gzipped buffer; needs to be freed properly later
-extern void freegzbuf(ucharbuf *p);  // free a ucharbuf created by getgzbuf()
-extern char *filtertext(char *dst, const char *src, int flags, int len = sizeof(string)-1);
-extern void filterrichtext(char *dst, const char *src, int len = sizeof(string)-1);
+extern ucharbuf *getgzbuf(ucharbuf &p);                   // fetch a gzipped buffer; needs to be freed properly later
+extern void freegzbuf(ucharbuf *p);                       // free a ucharbuf created by getgzbuf()
+extern char *filtertext(char *dst, const char *src, int flags, int len = sizeof(string) - 1);
+extern void filterrichtext(char *dst, const char *src, int len = sizeof(string) - 1);
 extern void filterlang(char *d, const char *s);
 extern void trimtrailingwhitespace(char *s);
 extern string mastername;
@@ -1104,7 +1214,15 @@ extern void enddemoplayback();
 
 // logging
 
-enum { ACLOG_DEBUG = 0, ACLOG_VERBOSE, ACLOG_INFO, ACLOG_WARNING, ACLOG_ERROR, ACLOG_NUM };
+enum
+{
+    ACLOG_DEBUG = 0,
+    ACLOG_VERBOSE,
+    ACLOG_INFO,
+    ACLOG_WARNING,
+    ACLOG_ERROR,
+    ACLOG_NUM
+};
 
 extern bool initlogging(const char *identity, int facility_, int consolethres, int filethres, int syslogthres, bool logtimestamp);
 extern void exitlogging();
@@ -1135,13 +1253,13 @@ struct servercommandline
     int clfilenesting;
     vector<const char *> adminonlymaps;
 
-    servercommandline() :   uprate(0), serverport(CUBE_DEFAULT_SERVER_PORT), syslogfacility(6), filethres(-1), syslogthres(-1), maxdemos(5),
-                            maxclients(DEFAULTCLIENTS), kickthreshold(-5), banthreshold(-6), verbose(0), incoming_limit(10), afk_limit(45000), ban_time(20*60*1000), demotimelocal(0),
-                            ip(""), master(NULL), logident(""), serverpassword(""), adminpasswd(""), demopath(""),
-                            maprot("config/maprot.cfg"), pwdfile("config/serverpwd.cfg"), blfile("config/serverblacklist.cfg"), nbfile("config/nicknameblacklist.cfg"),
-                            infopath("config/serverinfo"), motdpath("config/motd"), forbidden("config/forbidden.cfg"),
-                            logtimestamp(false), demo_interm(false), loggamestatus(true),
-                            clfilenesting(0)
+    servercommandline() : uprate(0), serverport(CUBE_DEFAULT_SERVER_PORT), syslogfacility(6), filethres(-1), syslogthres(-1), maxdemos(5),
+                          maxclients(DEFAULTCLIENTS), kickthreshold(-5), banthreshold(-6), verbose(0), incoming_limit(10), afk_limit(45000), ban_time(20 * 60 * 1000), demotimelocal(0),
+                          ip(""), master(NULL), logident(""), serverpassword(""), adminpasswd(""), demopath(""),
+                          maprot("config/maprot.cfg"), pwdfile("config/serverpwd.cfg"), blfile("config/serverblacklist.cfg"), nbfile("config/nicknameblacklist.cfg"),
+                          infopath("config/serverinfo"), motdpath("config/motd"), forbidden("config/forbidden.cfg"),
+                          logtimestamp(false), demo_interm(false), loggamestatus(true),
+                          clfilenesting(0)
     {
         motd[0] = servdesc_full[0] = servdesc_pre[0] = servdesc_suf[0] = voteperm[0] = mapperm[0] = '\0';
         demofilenameformat = DEFDEMOFILEFMT;
@@ -1150,129 +1268,215 @@ struct servercommandline
 
     bool checkarg(const char *arg)
     {
-        if(!strncmp(arg, "assaultcube://", 13)) return false;
-        else if(arg[0] != '-' || arg[1] == '\0') return false;
+        if (!strncmp(arg, "assaultcube://", 13))
+            return false;
+        else if (arg[0] != '-' || arg[1] == '\0')
+            return false;
         const char *a = arg + 2 + strspn(arg + 2, " ");
         int ai = atoi(a);
         // client: dtwhzbsave
-        switch(arg[1])
+        switch (arg[1])
         { // todo: gjlqEGHJQUYZ
-            case '-':
-                    if(!strncmp(arg, "--demofilenameformat=", 21))
-                    {
-                        demofilenameformat = arg+21;
-                    }
-                    else if(!strncmp(arg, "--demotimestampformat=", 22))
-                    {
-                        demotimestampformat = arg+22;
-                    }
-                    else if(!strncmp(arg, "--demotimelocal=", 16))
-                    {
-                        int ai = atoi(arg+16);
-                        demotimelocal = ai == 0 ? 0 : 1;
-                    }
-                    else if(!strncmp(arg, "--masterport=", 13))
-                    {
-                        int ai = atoi(arg+13);
-                        masterport = ai == 0 ? AC_MASTER_PORT : ai;
-                    }
-                    else return false;
-                    break;
-            case 'u': uprate = ai; break;
-            case 'f': if(ai > 0 && ai < 65536) serverport = ai; break;
-            case 'i': ip     = a; break;
-            case 'm': master = a; break;
-            case 'N': logident = a; break;
-            case 'l': loggamestatus = ai != 0; break;
-            case 'F': if(isdigit(*a) && ai >= 0 && ai <= 7) syslogfacility = ai; break;
-            case 'T': logtimestamp = true; break;
-            case 'L':
-                switch(*a)
-                {
-                    case 'F': filethres = atoi(a + 1); break;
-                    case 'S': syslogthres = atoi(a + 1); break;
-                }
-                break;
-            case 'A': if(*a) adminonlymaps.add(a); break;
-            case 'c': if(ai > 0) maxclients = min(ai, MAXCLIENTS); break;
-            case 'k':
+        case '-':
+            if (!strncmp(arg, "--demofilenameformat=", 21))
             {
-                if(arg[2]=='A' && arg[3]!='\0')
-                {
-                    if ((ai = atoi(&arg[3])) >= 30) afk_limit = ai * 1000;
-                    else afk_limit = 0;
-                }
-                else if(arg[2]=='B' && arg[3]!='\0')
-                {
-                    if ((ai = atoi(&arg[3])) >= 0) ban_time = ai * 60 * 1000;
-                    else ban_time = 0;
-                }
-                else if(ai < 0) kickthreshold = ai;
+                demofilenameformat = arg + 21;
+            }
+            else if (!strncmp(arg, "--demotimestampformat=", 22))
+            {
+                demotimestampformat = arg + 22;
+            }
+            else if (!strncmp(arg, "--demotimelocal=", 16))
+            {
+                int ai = atoi(arg + 16);
+                demotimelocal = ai == 0 ? 0 : 1;
+            }
+            else if (!strncmp(arg, "--masterport=", 13))
+            {
+                int ai = atoi(arg + 13);
+                masterport = ai == 0 ? AC_MASTER_PORT : ai;
+            }
+            else
+                return false;
+            break;
+        case 'u':
+            uprate = ai;
+            break;
+        case 'f':
+            if (ai > 0 && ai < 65536)
+                serverport = ai;
+            break;
+        case 'i':
+            ip = a;
+            break;
+        case 'm':
+            master = a;
+            break;
+        case 'N':
+            logident = a;
+            break;
+        case 'l':
+            loggamestatus = ai != 0;
+            break;
+        case 'F':
+            if (isdigit(*a) && ai >= 0 && ai <= 7)
+                syslogfacility = ai;
+            break;
+        case 'T':
+            logtimestamp = true;
+            break;
+        case 'L':
+            switch (*a)
+            {
+            case 'F':
+                filethres = atoi(a + 1);
+                break;
+            case 'S':
+                syslogthres = atoi(a + 1);
                 break;
             }
-            case 'y': if(ai < 0) banthreshold = ai; break;
-            case 'x': adminpasswd = a; break;
-            case 'p': serverpassword = a; break;
-            case 'D':
+            break;
+        case 'A':
+            if (*a)
+                adminonlymaps.add(a);
+            break;
+        case 'c':
+            if (ai > 0)
+                maxclients = min(ai, MAXCLIENTS);
+            break;
+        case 'k':
+        {
+            if (arg[2] == 'A' && arg[3] != '\0')
             {
-                if(arg[2]=='I')
-                {
-                    demo_interm = true;
-                }
-                else if(ai > 0) maxdemos = ai;
+                if ((ai = atoi(&arg[3])) >= 30)
+                    afk_limit = ai * 1000;
+                else
+                    afk_limit = 0;
+            }
+            else if (arg[2] == 'B' && arg[3] != '\0')
+            {
+                if ((ai = atoi(&arg[3])) >= 0)
+                    ban_time = ai * 60 * 1000;
+                else
+                    ban_time = 0;
+            }
+            else if (ai < 0)
+                kickthreshold = ai;
+            break;
+        }
+        case 'y':
+            if (ai < 0)
+                banthreshold = ai;
+            break;
+        case 'x':
+            adminpasswd = a;
+            break;
+        case 'p':
+            serverpassword = a;
+            break;
+        case 'D':
+        {
+            if (arg[2] == 'I')
+            {
+                demo_interm = true;
+            }
+            else if (ai > 0)
+                maxdemos = ai;
+            break;
+        }
+        case 'W':
+            demopath = a;
+            break;
+        case 'r':
+            maprot = a;
+            break;
+        case 'X':
+            pwdfile = a;
+            break;
+        case 'B':
+            blfile = a;
+            break;
+        case 'K':
+            nbfile = a;
+            break;
+        case 'I':
+            infopath = a;
+            break;
+        case 'o':
+            filterrichtext(motd, a);
+            break;
+        case 'O':
+            motdpath = a;
+            break;
+        case 'g':
+            forbidden = a;
+            break;
+        case 'n':
+        {
+            char *t = servdesc_full;
+            switch (*a)
+            {
+            case '1':
+                t = servdesc_pre;
+                a += 1 + strspn(a + 1, " ");
+                break;
+            case '2':
+                t = servdesc_suf;
+                a += 1 + strspn(a + 1, " ");
                 break;
             }
-            case 'W': demopath = a; break;
-            case 'r': maprot = a; break;
-            case 'X': pwdfile = a; break;
-            case 'B': blfile = a; break;
-            case 'K': nbfile = a; break;
-            case 'I': infopath = a; break;
-            case 'o': filterrichtext(motd, a); break;
-            case 'O': motdpath = a; break;
-            case 'g': forbidden = a; break;
-            case 'n':
-            {
-                char *t = servdesc_full;
-                switch(*a)
-                {
-                    case '1': t = servdesc_pre; a += 1 + strspn(a + 1, " "); break;
-                    case '2': t = servdesc_suf; a += 1 + strspn(a + 1, " "); break;
-                }
-                filterrichtext(t, a);
-                filtertext(t, t, FTXT__SERVDESC);
-                break;
-            }
-            case 'P': concatstring(voteperm, a); break;
-            case 'M': concatstring(mapperm, a); break;
-            case 'Z': if(ai >= 0) incoming_limit = ai; break;
-            case 'V': verbose++; break;
-            case 'C': if(*a && clfilenesting < 3)
+            filterrichtext(t, a);
+            filtertext(t, t, FTXT__SERVDESC);
+            break;
+        }
+        case 'P':
+            concatstring(voteperm, a);
+            break;
+        case 'M':
+            concatstring(mapperm, a);
+            break;
+        case 'Z':
+            if (ai >= 0)
+                incoming_limit = ai;
+            break;
+        case 'V':
+            verbose++;
+            break;
+        case 'C':
+            if (*a && clfilenesting < 3)
             {
                 serverconfigfile cfg;
                 cfg.init(a);
                 cfg.load();
                 int line = 1;
                 clfilenesting++;
-                if(cfg.buf)
+                if (cfg.buf)
                 {
                     printf("reading commandline parameters from file '%s'\n", a);
-                    for(char *p = cfg.buf, *l; p < cfg.buf + cfg.filelen; line++)
+                    for (char *p = cfg.buf, *l; p < cfg.buf + cfg.filelen; line++)
                     {
-                        l = p; p += strlen(p) + 1;
-                        for(char *c = p - 2; c > l; c--) { if(*c == ' ') *c = '\0'; else break; }
+                        l = p;
+                        p += strlen(p) + 1;
+                        for (char *c = p - 2; c > l; c--)
+                        {
+                            if (*c == ' ')
+                                *c = '\0';
+                            else
+                                break;
+                        }
                         l += strspn(l, " \t");
-                        if(*l && !this->checkarg(newstring(l)))
+                        if (*l && !this->checkarg(newstring(l)))
                             printf("unknown parameter in file '%s', line %d: '%s'\n", cfg.filename, line, l);
                     }
                 }
-                else printf("failed to read file '%s'\n", a);
+                else
+                    printf("failed to read file '%s'\n", a);
                 clfilenesting--;
                 break;
             }
-            default: return false;
+        default:
+            return false;
         }
         return true;
     }
 };
-
