@@ -873,8 +873,8 @@ COMMAND(menufont, "ss");
 void setmenublink(int *truth)
 {
     if(!lastmenu) return;
-    gmenu &m = *(gmenu *)lastmenu;
-    m.allowblink = *truth != 0;
+    gmenu *m = lastmenu;
+    m->allowblink = *truth != 0;
 }
 COMMANDN(menucanblink, setmenublink, "i");
 
@@ -1418,7 +1418,6 @@ void rendermenutexturepreview(char *previewtexture, int w, const char *title)
 
 void gmenu::render()
 {
-    extern bool ignoreblinkingbit;
     if(usefont) pushfont(usefont);
     if(!allowblink) ignoreblinkingbit = true;
     bool synctabs = title != NULL || synctabstops;
