@@ -1340,7 +1340,7 @@ void grenades::renderstats()
 {
     char gunstats[64];
     sprintf(gunstats, "%d", mag);
-    draw_text(gunstats, oldfashionedgunstats ? HUDPOS_GRENADE + HUDPOS_NUMBERSPACING + 25 : HUDPOS_GRENADE + HUDPOS_NUMBERSPACING, 823);
+    draw_text(gunstats, oldfashionedgunstats ? HUDPOS_GRENADE + HUDPOS_NUMBERSPACING + (((float)screen->w / (float)screen->h > 1.5f) ? 75 : 25) : HUDPOS_GRENADE + HUDPOS_NUMBERSPACING, 823);
 }
 
 bool grenades::selectable() { return weapon::selectable() && state != GST_INHAND && mag; }
