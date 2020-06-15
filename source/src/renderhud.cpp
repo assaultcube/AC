@@ -541,7 +541,7 @@ void drawradar_showmap(playerent *p, int w, int h)
             }
             if(f.state == CTFF_STOLEN)
             {
-                if(m_teammode && !m_ktf && player1->team == TEAM_SPECT && p->spectatemode > SM_FOLLOW3RD_TRANSPARENT) continue;
+                if(m_teammode && !m_ktf && player1->team == TEAM_SPECT && (p->spectatemode == SM_DEATHCAM || p->spectatemode > SM_FOLLOW3RD_TRANSPARENT)) continue;
                 float d2c = 1.6f * radarentsize/16.0f;
                 vec apos(d2c, -d2c, 0);
                 if(f.actor)
@@ -645,7 +645,7 @@ void drawradar_vicinity(playerent *p, int w, int h)
             }
             if(f.state == CTFF_STOLEN)
             {
-                if(m_teammode && !m_ktf && player1->team == TEAM_SPECT && p->spectatemode > SM_FOLLOW3RD_TRANSPARENT) continue;
+                if(m_teammode && !m_ktf && player1->team == TEAM_SPECT && (p->spectatemode == SM_DEATHCAM || p->spectatemode > SM_FOLLOW3RD_TRANSPARENT)) continue;
                 vec apos(d2c, -d2c, 0);
                 if(f.actor)
                 {
