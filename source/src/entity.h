@@ -429,7 +429,7 @@ public:
     int eardamagemillis;
     float maxroll, maxrolleffect, movroll, effroll;  // roll added by movement and damage
     int ffov, scopefov;
-    bool allowmove() { return state!=CS_DEAD || spectatemode==SM_FLY; }
+    bool allowmove() { return (state!=CS_DEAD && state!=CS_SPECTATE) || spectatemode==SM_FLY; }
 
     weapon *weapons[NUMGUNS];
     weapon *prevweaponsel, *weaponsel, *nextweaponsel, *primweap, *nextprimweap, *lastattackweapon;
