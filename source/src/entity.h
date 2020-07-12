@@ -517,6 +517,12 @@ public:
         eyeheight = maxeyeheight;
         curskin = nextskin[team_base(team)];
         nocorpse = false;
+        extern void *damageindicatorplayer;
+        if(damageindicatorplayer == this)
+        {
+            extern int damagedirections[8];
+            loopi(8) damagedirections[i] = lastmillis;
+        }
     }
 
     void spawnstate(int gamemode)

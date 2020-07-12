@@ -248,6 +248,7 @@ VARP(damageindicatordist, 0, 500, 10000);
 VARP(damageindicatortime, 1, 1000, 10000);
 VARP(damageindicatoralpha, 1, 50, 100);
 int damagedirections[8] = {0};
+void *damageindicatorplayer = NULL;
 
 void updatedmgindicator(playerent *p, vec &attack)
 {
@@ -255,9 +256,10 @@ void updatedmgindicator(playerent *p, vec &attack)
     vec base_d = p->o;
     base_d.sub(attack);
     damagedirections[(int(742.5f - p->yaw - base_d.anglexy()) / 45) & 0x7] = lastmillis + damageindicatortime;
+    damageindicatorplayer = p;
 }
 
-void drawdmgindicator()
+void drawdmgindicator(playerent *p)
 {
     if(!damageindicatorsize) return;
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -466,6 +468,7 @@ void drawradar_showmap(playerent *p, int w, int h)
     float iconsize = radarentsize/0.2f;
     glColor3f(1.0f, 1.0f, 1.0f);
     glPushMatrix();
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     bool spect3rd = p->spectatemode > SM_FOLLOW1ST && p->spectatemode <= SM_FOLLOW3RD_TRANSPARENT;
     playerent *d = spect3rd ? players[p->followplayercn] : p;
     int p_baseteam = p->team == TEAM_SPECT && spect3rd ? team_base(players[p->followplayercn]->team) : team_base(p->team);
@@ -591,6 +594,7 @@ void drawradar_vicinity(playerent *p, int w, int h)
     vec d4rc = vec(d->o).sub(rsd).normalize().mul(0);
     vec usecenter = vec(d->o).sub(rtr).sub(d4rc);
     glDisable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     circle(minimaptex, halfviewsize, halfviewsize, halfviewsize, usecenter.x/(float)gdim, usecenter.y/(float)gdim, scaleh, 31); //Draw mimimaptext as radar background
     glTranslatef(halfviewsize, halfviewsize, 0);
 
@@ -742,6 +746,8 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     else blankouthud = 0;
     playerent *p = camera1->type<ENT_CAMERA ? (playerent *)camera1 : player1;
     bool spectating = player1->isspectating();
+    bool is_spect = (player1->spectatemode >= SM_FOLLOW1ST && player1->spectatemode <= SM_FOLLOW3RD_TRANSPARENT &&
+        players.inrange(player1->followplayercn) && players[player1->followplayercn]);
 
     glDisable(GL_DEPTH_TEST);
 
@@ -800,12 +806,10 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         if(!editmode && !showmap) drawktfindicator(p);
     }
 
-    drawdmgindicator();
+    // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // without below condition it was always set in drawdmgindicator()
+    if(damageindicatorplayer == p || (is_spect && getclient(player1->followplayercn) == damageindicatorplayer)) drawdmgindicator(p);
 
     if(p->state==CS_ALIVE && !hidehudequipment) drawequipicons(p);
-
-    bool is_spect = (( player1->spectatemode==SM_FOLLOW1ST || player1->spectatemode==SM_FOLLOW3RD || player1->spectatemode==SM_FOLLOW3RD_TRANSPARENT ) &&
-            players.inrange(player1->followplayercn) && players[player1->followplayercn]);
 
     if(!hideradar || showmap) drawradar(p, w, h);
     if(!editmode)
