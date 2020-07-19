@@ -379,7 +379,7 @@ bool dlpackage(httpget &h, package *pck, pckserver *s) // download one package f
     u.set(s ? s->host : pck->host);
     h.callbackfunc = progress_callback_dlpackage;
     h.callbackdata = pck->name;
-    progress_n = progress_of - pendingpackages.length();
+    progress_n = progress_of - pendingpackages.length() + 1;
     if(*u.domain && h.set_host(u.domain))
     {
         if(*u.port) h.set_port(atoi(u.port));
