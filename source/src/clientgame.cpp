@@ -1196,6 +1196,7 @@ COMMAND(showmapstats, "");
 
 VARP(showmodedescriptions, 0, 1, 1);
 extern bool canceldownloads;
+extern bool showm;
 
 void startmap(const char *name, bool reset, bool norespawn)   // called just after a map load
 {
@@ -1207,6 +1208,7 @@ void startmap(const char *name, bool reset, bool norespawn)   // called just aft
     sendmapidenttoserver = true;
     if(m_botmode) BotManager.BeginMap(name);
     else kickallbots();
+    showm = false;
     clearbounceents();
     preparectf(!m_flags);
     suicided = -1;
