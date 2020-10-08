@@ -3047,7 +3047,7 @@ void process(ENetPacket *packet, int sender, int chan)
             {
                 int gzs = getint(p);
                 int rev = getint(p);
-                if(!isdedicated || (smapstats.cgzsize == gzs && smapstats.hdr.maprevision == rev))
+                if(!isdedicated || (smapstats.cgzsize == gzs && smapstats.hdr.maprevision == rev) || m_coop)
                 { // here any game really starts for a client: spawn, if it's a new game - don't spawn if the game was already running
                     cl->isonrightmap = true;
                     int sp = canspawn(cl);
