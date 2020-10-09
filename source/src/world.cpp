@@ -190,17 +190,18 @@ int closestent()        // used for delent and edit mode ent display
                 bdist = dist;
             }
         }
-    }
-    if(best >= 0)
-    { // if closest ent shares location with other ents, pick one with clentsel
-        vector<int> bs;
-        loopv(ents)
-        {
-            entity &e = ents[i];
-            if(!(enttypemask & (1 << e.type))) continue;
-            if(ents[best].x == e.x && ents[best].y == e.y && ents[best].z == e.z) bs.add(i);
+
+        if(best >= 0)
+        { // if closest ent shares location with other ents, pick one with clentsel
+            vector<int> bs;
+            loopv(ents)
+            {
+                entity &e = ents[i];
+                if(!(enttypemask & (1 << e.type))) continue;
+                if(ents[best].x == e.x && ents[best].y == e.y && ents[best].z == e.z) bs.add(i);
+            }
+            best = bs[(clentsel %= bs.length())];
         }
-        best = bs[(clentsel %= bs.length())];
     }
     return best;
 }
