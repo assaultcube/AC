@@ -95,7 +95,7 @@ float RandomFloat (float from, float to)
      if (to <= from)
           return (from);
           
-     return (from + (float) lrand () / (LRAND_MAX / (to - from)));
+     return (from + (float) lrand () / ((float) LRAND_MAX / (to - from)));
 }
 
 // End random functions
