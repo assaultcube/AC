@@ -106,7 +106,13 @@ inline int iabs(int n) { return labs(n); }
 typedef char string[MAXSTRLEN];
 
 inline void vformatstring(char *d, const char *fmt, va_list v, int len = MAXSTRLEN) { _vsnprintf(d, len, fmt, v); d[len-1] = 0; }
-inline char *copystring(char *d, const char *s, size_t len = MAXSTRLEN) { strncpy(d, s, len); d[len-1] = 0; return d; }
+inline char *copystring(char *d, const char *s, size_t len = MAXSTRLEN)
+{
+    size_t slen = min(strlen(s), len-1);
+    memcpy(d, s, slen);
+    d[slen] = 0;
+    return d;
+}
 inline char *concatstring(char *d, const char *s, size_t len = MAXSTRLEN) { size_t used = strlen(d); return used < len ? copystring(d+used, s, len-used) : d; }
 extern char *concatformatstring(char *d, const char *s, ...);
 

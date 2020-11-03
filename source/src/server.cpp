@@ -3449,7 +3449,7 @@ void process(ENetPacket *packet, int sender, int chan)
                         }
                         else
                         {
-                            strncpy(vi->text,text,MAXTRANS-1);
+                            copystring(vi->text,text,MAXTRANS);
                             vi->num1 = mode;
                             vi->num2 = time;
                         }
@@ -3466,7 +3466,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     {
                         vi->num1 = cn2boot = getint(p);
                         getstring(text, p);
-                        strncpy(vi->text,text,128);
+                        copystring(vi->text,text,128);
                         filtertext(text, text);
                         trimtrailingwhitespace(text);
                         vi->action = new kickaction(cn2boot, newstring(text, 128));
@@ -3477,7 +3477,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     {
                         vi->num1 = cn2boot = getint(p);
                         getstring(text, p);
-                        strncpy(vi->text,text,128);
+                        copystring(vi->text,text,128);
                         filtertext(text, text);
                         trimtrailingwhitespace(text);
                         vi->action = new banaction(cn2boot, newstring(text, 128));
@@ -3515,7 +3515,7 @@ void process(ENetPacket *packet, int sender, int chan)
                         break;
                     case SA_SERVERDESC:
                         getstring(text, p);
-                        strncpy(vi->text,text,MAXTRANS-1);
+                        copystring(vi->text,text,MAXTRANS);
                         filtertext(text, text);
                         vi->action = new serverdescaction(newstring(text), sender);
                         break;

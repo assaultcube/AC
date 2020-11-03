@@ -1298,8 +1298,7 @@ void retrieveservers(vector<char> &data)
 {
     if(mastertype == AC_MASTER_HTTP)
     {
-        string request;
-        sprintf(request, "http://%s/retrieve.do?action=list&name=%s&version=%d&build=%d", mastername, global_name, AC_VERSION, getbuildtype()|(1<<16));
+        defformatstring(request)("http://%s/retrieve.do?action=list&name=%s&version=%d&build=%d", mastername, global_name, AC_VERSION, getbuildtype()|(1<<16));
 
         const char *tmpname = findfile(path("config/servers.cfg", true), "wb");
         FILE *outfile = fopen(tmpname, "w+");

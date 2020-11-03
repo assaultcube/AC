@@ -347,7 +347,7 @@ void teaminfo(const char *team, const char *attr)
         t_deaths += players[i]->deaths;
         t_points += players[i]->points;
         t_flags += players[i]->flagscore;
-        sprintf(tmp, "%s%d ", teammembers, players[i]->clientnum);
+        formatstring(tmp)("%s%d ", teammembers, players[i]->clientnum);
         concatstring(teammembers, tmp);
     }
 
@@ -365,7 +365,7 @@ void teaminfo(const char *team, const char *attr)
         t_deaths += player1->deaths;
         t_points += player1->points;
         t_flags += player1->flagscore;
-        sprintf(tmp, "%s%d ", teammembers, player1->clientnum);
+        formatstring(tmp)("%s%d ", teammembers, player1->clientnum);
         concatstring(teammembers, tmp);
     }
 
