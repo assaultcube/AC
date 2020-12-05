@@ -951,7 +951,7 @@ inline void send_item_list(packetbuf &p)
     putint(p, SV_ITEMLIST);
     loopv(sents) if(sents[i].spawned) putint(p, i);
     putint(p, -1);
-    if(m_flags) loopi(2) putflaginfo(p, i);
+    if(m_genflags) loopi(2) putflaginfo(p, i);
 }
 
 #include "serverchecks.h"
@@ -1165,7 +1165,7 @@ void flagaction(int flag, int action, int actor)
 
 int clienthasflag(int cn)
 {
-    if(m_flags && valid_client(cn))
+    if(m_genflags && valid_client(cn))
     {
         loopi(2) { if(sflaginfos[i].state==CTFF_STOLEN && sflaginfos[i].actor_cn==cn) return i; }
     }
@@ -1604,7 +1604,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
         ts.state = CS_DEAD;
         ts.lastdeath = gamemillis;
         if(!suic) logline(ACLOG_INFO, "[%s] %s %s%s %s", actor->hostname, actor->name, valid_weapon(gun) ? killmessages[gib ? 1 : 0][gun] : "smurfed", tk ? " their teammate" : "", target->name);
-        if(m_flags && targethasflag >= 0)
+        if(m_genflags && targethasflag >= 0)
         {
             if(m_ctf)
                 flagaction(targethasflag, tk ? FA_RESET : FA_LOST, -1);
@@ -1657,7 +1657,7 @@ void updatesdesc(const char *newdesc, ENetAddress *caller = NULL)
 int canspawn(client *c)   // beware: canspawn() doesn't check m_arena!
 {
     if(!c || c->type == ST_EMPTY || !c->isauthed || !team_isvalid(c->team) ||
-        (c->type == ST_TCPIP && (c->state.lastdeath > 0 ? gamemillis - c->state.lastdeath : servmillis - c->connectmillis) < (m_arena ? 0 : (m_flags ? 5000 : 2000))) ||
+        (c->type == ST_TCPIP && (c->state.lastdeath > 0 ? gamemillis - c->state.lastdeath : servmillis - c->connectmillis) < (m_arena ? 0 : (m_genflags ? 5000 : 2000))) ||
         (c->type == ST_TCPIP && (servmillis - c->connectmillis < 1000 + c->state.reconnections * 2000 &&
           gamemillis > 10000 && totalclients > 3 && !team_isspect(c->team)))) return SP_OK_NUM; // equivalent to SP_DENY
     if(!c->isonrightmap) return SP_WRONGMAP;
@@ -3523,7 +3523,7 @@ void process(ENetPacket *packet, int sender, int chan)
             {
                 int action = getint(p);
                 int flag = getint(p);
-                if(!m_flags || flag < 0 || flag > 1 || action < 0 || action > FA_NUM) break;
+                if(!m_genflags || flag < 0 || flag > 1 || action < 0 || action > FA_NUM) break;
                 flagaction(flag, action, sender);
                 break;
             }
@@ -3825,14 +3825,14 @@ void loggamestatus(const char *reason)
     logline(ACLOG_INFO, "Game status: %s on %s, %s, %s, %d clients%c %s",
                       modestr(gamemode), smapname, reason ? reason : text, mmfullname(mastermode), totalclients, custom_servdesc ? ',' : '\0', servdesc_current);
     if(!scl.loggamestatus) return;
-    logline(ACLOG_INFO, "cn name             %s%s score frag death %sping role    host", m_teammode ? "team " : "", m_flags ? "flag " : "", m_teammode ? "tk " : "");
+    logline(ACLOG_INFO, "cn name             %s%s score frag death %sping role    host", m_teammode ? "team " : "", m_genflags ? "flag " : "", m_teammode ? "tk " : "");
     loopv(clients)
     {
         client &c = *clients[i];
         if(c.type == ST_EMPTY || !c.name[0]) continue;
         formatstring(text)("%2d %-16s ", c.clientnum, c.name);                 // cn name
         if(m_teammode) concatformatstring(text, "%-4s ", team_string(c.team, true)); // teamname (abbreviated)
-        if(m_flags) concatformatstring(text, "%4d ", c.state.flagscore);             // flag
+        if(m_genflags) concatformatstring(text, "%4d ", c.state.flagscore);             // flag
         concatformatstring(text, "%6d ", c.state.points);                            // score
         concatformatstring(text, "%4d %5d", c.state.frags, c.state.deaths);          // frag death
         if(m_teammode) concatformatstring(text, " %2d", c.state.teamkills);          // tk
@@ -3854,7 +3854,7 @@ void loggamestatus(const char *reason)
             {
                 if(m_teammode) formatstring(text)("%-4s ", team_string(sc.team, true));
                 else text[0] = '\0';
-                if(m_flags) concatformatstring(text, "%4d ", sc.flagscore);
+                if(m_genflags) concatformatstring(text, "%4d ", sc.flagscore);
                 logline(ACLOG_INFO, "   %-16s %s%4d %5d%s    - disconnected", sc.name, text, sc.frags, sc.deaths, m_teammode ? "  -" : "");
                 if(sc.team != TEAM_SPECT)
                 {
@@ -3868,7 +3868,7 @@ void loggamestatus(const char *reason)
     }
     if(m_teammode)
     {
-        loopi(2) logline(ACLOG_INFO, "Team %4s:%3d players,%5d frags%c%5d flags", team_string(i), pnum[i], fragscore[i], m_flags ? ',' : '\0', flagscore[i]);
+        loopi(2) logline(ACLOG_INFO, "Team %4s:%3d players,%5d frags%c%5d flags", team_string(i), pnum[i], fragscore[i], m_genflags ? ',' : '\0', flagscore[i]);
     }
     logline(ACLOG_INFO, "");
 }
@@ -3964,7 +3964,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
         processevents();
         checkitemspawns(diff);
         bool ktfflagingame = false;
-        if(m_flags) loopi(2)
+        if(m_genflags) loopi(2)
         {
             sflaginfo &f = sflaginfos[i];
             if(f.state == CTFF_DROPPED && gamemillis-f.lastupdate > (m_ctf ? 30000 : 10000)) flagaction(i, FA_RESET, -1);
@@ -4231,7 +4231,7 @@ void extinfo_teamscorebuf(ucharbuf &p)
     {
         sendstring(team_string(i), p); // team name
         putint(p, fragscores[i]); // add fragscore per team
-        putint(p, m_flags ? flagscores[i] : -1); // add flagscore per team
+        putint(p, m_genflags ? flagscores[i] : -1); // add flagscore per team
         putint(p, -1); // ?
     }
 }

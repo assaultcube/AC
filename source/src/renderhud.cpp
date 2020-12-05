@@ -517,7 +517,7 @@ void drawradar_showmap(playerent *p, int w, int h)
         vec rtmp = vec(pl->o).sub(mdd).mul(coordtrans);
         drawradarent(rtmp.x, rtmp.y, pl->yaw, pl->state==CS_ALIVE ? (isattacking(pl) ? 2 : 0) : 1, spect3rd && d == pl ? 2 : pl_baseteam, iconsize, isattacking(pl), "%s", colorname(pl));
     }
-    if(m_flags)
+    if(m_genflags)
     {
         glColor4f(1.0f, 1.0f, 1.0f, (sinf(lastmillis / 100.0f) + 1.0f) / 2.0f);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -610,7 +610,7 @@ void drawradar_vicinity(playerent *p, int w, int h)
             drawradarent(rtmp.x, rtmp.y, pl->yaw, pl->state==CS_ALIVE ? (isattacking(pl) ? 2 : 0) : 1, spect3rd && d == pl ? 2 : pl_baseteam, iconsize, isattacking(pl), "%s", colorname(pl));
         }
     }
-    if(m_flags)
+    if(m_genflags)
     {
         glColor4f(1.0f, 1.0f, 1.0f, (sinf(lastmillis / 100.0f) + 1.0f) / 2.0f);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1064,13 +1064,13 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             popfont();
         }
 
-        if((m_flags || m_teammode) && !hideteamscorehud)
+        if((m_genflags || m_teammode) && !hideteamscorehud)
         {
             glLoadIdentity();
             glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
             glColor4f(1.0f, 1.0f, 1.0f, 0.2f);
             turn_on_transparency(255);
-            int scores[4], offs = m_flags ? 0 : 2;
+            int scores[4], offs = m_genflags ? 0 : 2;
             calcteamscores(scores);
             const char *cc = scores[offs] > 99 || scores[offs + 1] > 99 ? "31" : "55";
 

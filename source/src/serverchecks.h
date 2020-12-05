@@ -401,7 +401,7 @@ void checkcover(client *target, client *actor)
 
     int cnumber = totalclients < 13 ? totalclients : 12;
 
-    if ( m_flags ) {
+    if ( m_genflags ) {
         sflaginfo &f = sflaginfos[team];
         sflaginfo &of = sflaginfos[oteam];
 
@@ -461,7 +461,7 @@ void checkfrag(client *target, client *actor, int gun, bool gib)
         if(!isteam(target->team, actor->team)) {
 
             if (m_teammode) {
-                if(!m_flags) addpt(actor, TMBONUSPT);
+                if(!m_genflags) addpt(actor, TMBONUSPT);
                 else addpt(actor, FLBONUSPT);
 
                 checkcover (target, actor);

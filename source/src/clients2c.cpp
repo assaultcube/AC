@@ -252,7 +252,7 @@ bool good_map() // call this function only at startmap
     if (mlayout) MA = checkarea(sfactor, mlayout);
 
     F2F = 1000 * MINFF;
-    if(m_flags)
+    if(m_genflags)
     {
 //        flaginfo &f0 = flaginfos[0];
   //      flaginfo &f1 = flaginfos[1];
@@ -613,7 +613,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
 
                 if(!demo || !watchingdemo || demoprotocol > 1132) d->address = getint(p); // partial IP address
 
-                if(m_flags) loopi(2)
+                if(m_genflags) loopi(2)
                 {
                     flaginfo &f = flaginfos[i];
                     if(!f.actor) f.actor = getclient(f.actor_cn);

@@ -221,7 +221,7 @@ void renderentities()
             }
         }
     }
-    if(m_flags && !editmode) loopi(2)
+    if(m_genflags && !editmode) loopi(2)
     {
         flaginfo &f = flaginfos[i];
         switch(f.state)
@@ -399,7 +399,7 @@ void checkitems(playerent *d)
         if(isitem(e.type)) v.z += float(e.attr1) / ENTSCALE10;
         if(d->o.dist(v)<2.5f) trypickup(i, d);
     }
-    if(m_flags) loopi(2)
+    if(m_genflags) loopi(2)
     {
         flaginfo &f = flaginfos[i];
         entity &e = *f.flagent;
