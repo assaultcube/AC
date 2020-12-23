@@ -19,6 +19,7 @@ VARFP(sc_frags,      0,  1, 100, needscoresreorder = true);
 VARFP(sc_deaths,    -1,  2, 100, needscoresreorder = true);
 VARFP(sc_ratio,     -1, -1, 100, needscoresreorder = true);
 VARFP(sc_score,     -1,  4, 100, needscoresreorder = true);
+VARFP(sc_damage,     0,  3, 100, needscoresreorder = true);
 VARFP(sc_lag,       -1,  5, 100, needscoresreorder = true);
 VARFP(sc_clientnum,  0,  6, 100, needscoresreorder = true);
 VARFP(sc_name,       0,  7, 100, needscoresreorder = true);
@@ -86,9 +87,9 @@ vector<discscore> discscores;
 
 struct teamscore
 {
-    int team, frags, deaths, flagscore, points;
+    int team, frags, deaths, flagscore, points, damage;
     vector<playerent *> teammembers;
-    teamscore(int t) : team(t), frags(0), deaths(0), flagscore(0), points(0) {}
+    teamscore(int t) : team(t), frags(0), deaths(0), flagscore(0), points(0), damage(0) {}
 
     void addplayer(playerent *d)
     {
@@ -97,6 +98,7 @@ struct teamscore
         frags += d->frags;
         deaths += d->deaths;
         points += d->points;
+        damage += d->damage;
         if(m_flags) flagscore += d->flagscore;
     }
 
@@ -105,6 +107,7 @@ struct teamscore
         frags += d.frags;
         deaths += d.deaths;
         points += d.points;
+        damage += d.damage;
         if(m_flags) flagscore += d.flags;
     }
 };
@@ -195,6 +198,7 @@ void renderdiscscores(int team)
         line.addcol(sc_frags, "%d", d.frags);
         line.addcol(sc_deaths, "%d", d.deaths);
         line.addcol(sc_ratio, "%.2f", SCORERATIO(d.frags, d.deaths));
+        line.addcol(sc_damage, "%i", d.damage);
         if(multiplayer(NULL) || watchingdemo) line.addcol(sc_score, "%d", max(d.points, 0));
         line.addcol(sc_lag, "%s", clag);
         line.addcol(sc_clientnum, "DISC");
@@ -226,6 +230,7 @@ void renderscore(playerent *d)
     if(m_flags) line.addcol(sc_flags, "%d", d->flagscore);
     line.addcol(sc_frags, "%d", d->frags);
     line.addcol(sc_deaths, "%d", d->deaths);
+    line.addcol(sc_damage, "%i", d->damage);
     line.addcol(sc_ratio, "%.2f", SCORERATIO(d->frags, d->deaths));
     if(multiplayer(NULL) || watchingdemo)
     {
@@ -259,6 +264,7 @@ void renderteamscore(teamscore *t)
     line.addcol(sc_frags, "%d", t->frags);
     line.addcol(sc_deaths, "%d", t->deaths);
     line.addcol(sc_ratio, "%.2f", SCORERATIO(t->frags, t->deaths));
+    line.addcol(sc_damage, "%i", t->damage);
     if(multiplayer(NULL) || watchingdemo)
     {
         line.addcol(sc_score, "%d", max(t->points, 0));
@@ -286,6 +292,7 @@ void reorderscorecolumns()
     sscore.addcol(sc_frags, "frags");
     sscore.addcol(sc_deaths, "deaths");
     sscore.addcol(sc_ratio, "ratio");
+    sscore.addcol(sc_damage, "damage");
     if(multiplayer(NULL) || watchingdemo)
     {
         sscore.addcol(sc_score, "score");
