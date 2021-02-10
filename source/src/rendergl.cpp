@@ -469,16 +469,22 @@ void fovchanged();
 FVARFP(fov, 75, 90, 120, fovchanged());
 VARFP(scopefov, 5, 50, 60, fovchanged());
 VARP(spectfov, 5, 110, 120);
+VARP(spectfovremote, 0, 0, 1); // use spectfov or remote player's fov when spectating
 void fovchanged()
 {
     extern float autoscopesensscale;
     autoscopesensscale = tan(((float)scopefov)*0.5f*RAD)/tan(fov*0.5f*RAD);
+    player1->ffov = (int)fov;
+    player1->scopefov = scopefov;
 }
 
 float dynfov()
 {
-    if(player1->weaponsel->type == GUN_SNIPER && ((sniperrifle *)player1->weaponsel)->scoped) return (float)scopefov;
-    else if(player1->isspectating()) return (float)spectfov;
+    bool isscoped = player1->weaponsel->type == GUN_SNIPER && ((sniperrifle *)player1->weaponsel)->scoped;
+    bool useremote = spectfovremote && camera1 != player1 && camera1->type == ENT_PLAYER && ((playerent *)camera1)->ffov && ((playerent *)camera1)->scopefov;
+    if(camera1 != player1 && camera1->type < ENT_CAMERA) isscoped = ((playerent *)camera1)->scoping;
+    if(isscoped) return (float) (useremote ? ((playerent *)camera1)->scopefov : scopefov);
+    else if(player1->isspectating()) return (float)(useremote ? ((playerent *)camera1)->ffov : spectfov);
     else return (float)fov;
 }
 
@@ -851,7 +857,6 @@ void drawminimap(int w, int h)
     glDepthFunc(GL_LESS);
     rendermapmodels();
     renderzones(clmapdims.maxceil);
-    //renderentities();// IMHO better done by radar itself, if at all
     resettmu(0);
     float hf = waterlevel - 0.3f;
     renderwater(hf, 0, 0);
@@ -1105,7 +1110,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps, int elapsed)
     if(effective_stencilshadow && hasstencil && stencilbits >= 8) drawstencilshadows();
 
     startmodelbatches();
-    renderentities();
+    rendereditentities();
     endmodelbatches();
 
     readdepth(w, h, worldpos);
@@ -1115,6 +1120,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps, int elapsed)
     endmodelbatches();
 
     startmodelbatches();
+    renderentities();
     renderbounceents();
     endmodelbatches();
 

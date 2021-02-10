@@ -19,11 +19,13 @@ struct winservice : servercontroller
     HANDLE stopevent;
     const char *name;
 
-    winservice(const char *name) : name(name)
+    winservice(const char *name, int _argc, char **_argv) : name(name)
     {
-        callbacks::svc = this;
+        callbacks::svc =  this;
         statushandle = 0;
-    };
+        argc = _argc;
+        argv = _argv;
+    }
 
     ~winservice()
     {
@@ -109,25 +111,12 @@ struct winservice : servercontroller
         return main(argc, argv);
     }
 
-
     struct callbacks
     {
         static winservice *svc;
         static int WINAPI main() { return svc->svcmain(); };
         static void WINAPI requesthandler(DWORD request) { svc->requesthandler(request); };
     };
-
-    /*void log(const char *msg, bool error)
-    {
-        HANDLE eventsrc = RegisterEventSource(NULL, "AC Server");
-        if(eventsrc)
-        {
-            int eventid = ((error ? 0x11 : 0x1) << 10) & (0x1 << 9) & (FACILITY_NULL << 6) & 0x1; // TODO: create event definitions
-            LPCTSTR msgs[1] = { msg };
-            int r = ReportEvent(eventsrc, error ? EVENTLOG_ERROR_TYPE : EVENTLOG_INFORMATION_TYPE, 0, 4, NULL, 1, 0, msgs, NULL);
-            DeregisterEventSource(eventsrc);
-        }
-    }*/
 };
 
 winservice *winservice::callbacks::svc = (winservice *)NULL;

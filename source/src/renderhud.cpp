@@ -187,7 +187,7 @@ void loadcrosshair(const char *type, const char *filename)
     }
     else if(strchr(type, '.'))
     {   // old syntax "loadcrosshair filename type", remove this in 2020
-        const char *oldcrosshairnames[CROSSHAIR_NUM + 1] = { "default", "teammate", "scope", "knife", "pistol", "carbine", "shotgun", "smg", "sniper", "ar", "cpistol", "grenades", "akimbo", "" };
+        const char *oldcrosshairnames[CROSSHAIR_NUM + 1] = { "default", "teammate", "scope", "knife", "pistol", "carbine", "shotgun", "smg", "sniper", "ar", "grenades", "akimbo", "" };
         index = getlistindex(filename, oldcrosshairnames, false, 0);
         if(index > 2) index -= 3;
         else index += NUMGUNS;
@@ -338,7 +338,7 @@ void drawequipicons(playerent *p)
 
     // weapons
     int c = p->weaponsel->type != GUN_GRENADE ? p->weaponsel->type : getprevweaponsel(p), r = 0;
-    if(c==GUN_AKIMBO || c==GUN_CPISTOL) c = GUN_PISTOL; // same icon for akimb & pistol
+    if(c==GUN_AKIMBO) c = GUN_PISTOL; // same icon for akimb & pistol
     if(c>3) { c -= 4; r = 1; }
 
     if(p->weaponsel && valid_weapon(p->weaponsel->type)) drawequipicon(HUDPOS_WEAPON*2, 1650, c, r);
@@ -724,51 +724,6 @@ inline char rangecolor(int val, const char *colors, int thres1, int thres2, int 
     return colors[3];
 }
 
-void drawmedals(float x, float y, int col, int row, Texture *tex)
-{
-    if(tex)
-    {
-        glPushAttrib(GL_COLOR_BUFFER_BIT);
-        glDisable(GL_BLEND);
-        drawicon(tex, x, y, 120, col, row, 1/4.0f);
-        glPopAttrib();
-    }
-}
-const char *medal_str[] =
-{
-    "Best Fragger", "Dude that dies a lot"
-}; //just some medals string tests, nothing serious
-extern bool medals_arrived;
-extern medalsst a_medals[END_MDS];
-void drawscores()
-{
-    static float time=0;
-    if(!medals_arrived) {time=0; return;} else if(time > 5){time=0; medals_arrived=0;}
-    static Texture *tex = NULL;
-    if(!tex) tex = textureload("packages/misc/nice_medals.png", 4);
-    time+=((float)(curtime))/1000;
-    float vw=VIRTW*7/4,vh=VIRTH*7/4;
-    glPushAttrib(GL_COLOR_BUFFER_BIT);
-    glLoadIdentity();
-    glOrtho(0, vw, vh, 0, -1, 1);
-    int left = vw/4, top = vh/4;
-    blendbox(left, top, left*3, top*3, true, -1);
-    top+=10;left+=10;const float txtdx=160,txtdy=30,medalsdy=130;
-    glColor4f(1,1,1,1);
-    float desttime=0;
-    loopi(END_MDS) {
-        if(a_medals[i].assigned) {
-            desttime+=0.3;
-            if(time < desttime) continue;
-            drawmedals(left, top, 0, 0, tex);
-            playerent *mpl = getclient(a_medals[i].cn);
-            draw_textf("%s %s: %d", left+txtdx, top+txtdy, medal_str[i], mpl->name, a_medals[i].item); top+=medalsdy;
-        }
-    }
-
-    glPopAttrib();
-}
-
 string enginestateinfo = "";
 COMMANDF(getEngineState, "", () { result(enginestateinfo); });
 
@@ -1025,7 +980,6 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         glPopMatrix();
     }
 
-    drawscores();
     if(!hidespecthud && spectating && player1->spectatemode!=SM_DEATHCAM)
     {
         glLoadIdentity();

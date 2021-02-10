@@ -11,6 +11,11 @@
 
 inline bool identaccessdenied(ident *id);
 void cslimiterr(const char*msg);
+#ifdef STANDALONE
+    #define FLAGMAPCONFIGERR(x)
+#else
+    #define FLAGMAPCONFIGERR(x) flagmapconfigerror(x);
+#endif
 
 char *exchangestr(char *o, const char *n) { delete[] o; return newstring(n); }
 
@@ -381,7 +386,6 @@ char *parseexp(const char *&p, int right, int rec)             // parse any nest
 
 screrr:
     scripterr();
-    flagmapconfigerror(LWW_SCRIPTERR * 4);
     return NULL;
 }
 
@@ -398,7 +402,6 @@ char *lookup(char *n, int levels)                           // find value of ide
     }
     conoutf("unknown alias lookup: %s", n);
     scripterr();
-    flagmapconfigerror(LWW_SCRIPTERR * 4);
     return n;
 }
 
@@ -407,7 +410,7 @@ char *parseword(const char *&p, int arg, int *infix, int rec)                   
     p += strspn(p, " \t");
     if(p[0]=='/' && p[1]=='/') p += strcspn(p, "\n\r\0");
     if(*p=='"') return parsequotes(p);
-    if(*p=='(' && !currentcontextisolated) return parseexp(p, ')', rec + 1);
+    if(*p=='(' && !currentcontextisolated) return parseexp(p, ')', rec + 1);        // on isolated contexts, only quotes are parsed
     if(*p=='[' && !currentcontextisolated) return parseexp(p, ']', rec + 1);
     int lvls = currentcontextisolated ? 0 : strspn(p, "$");
     if(lvls && (p[lvls]=='(' || p[lvls]=='['))
@@ -524,7 +527,7 @@ char *executeret(const char *p)                 // all evaluation happens here, 
             {
                 conoutf("unknown command: %s", c);
                 scripterr();
-                flagmapconfigerror(LWW_SCRIPTERR * 4);
+                FLAGMAPCONFIGERR(LWW_SCRIPTERR * 4);
             }
             setretval(newstring(c));
         }
@@ -532,7 +535,7 @@ char *executeret(const char *p)                 // all evaluation happens here, 
         {
             conoutf("not allowed in this execution context: %s", id->name);
             scripterr();
-            flagmapconfigerror(LWW_SCRIPTERR * 4);
+            FLAGMAPCONFIGERR(LWW_SCRIPTERR * 4);
         }
         else
         {
@@ -591,7 +594,7 @@ char *executeret(const char *p)                 // all evaluation happens here, 
                         {
                             i1 = i1<id->minval ? id->minval : id->maxval;       // clamp to valid range
                             conoutf("valid range for %s is %d..%d", id->name, id->minval, id->maxval);
-                            flagmapconfigerror(LWW_SCRIPTERR);
+                            FLAGMAPCONFIGERR(LWW_SCRIPTERR);
                         }
                         *id->storage.i = i1;
                         if(id->fun) ((void (__cdecl *)())id->fun)();            // call trigger function if available
@@ -608,7 +611,7 @@ char *executeret(const char *p)                 // all evaluation happens here, 
                         {
                             f1 = f1<id->minvalf ? id->minvalf : id->maxvalf;       // clamp to valid range
                             conoutf("valid range for %s is %s..%s", id->name, floatstr(id->minvalf), floatstr(id->maxvalf));
-                            flagmapconfigerror(LWW_SCRIPTERR * 2);
+                            FLAGMAPCONFIGERR(LWW_SCRIPTERR * 2);
                         }
                         *id->storage.f = f1;
                         if(id->fun) ((void (__cdecl *)())id->fun)();            // call trigger function if available
@@ -1306,7 +1309,6 @@ void addpunct(char *s, char *type) // Easily inject a string into various CubeSc
     else result(punct);
 }
 COMMAND(addpunct, "ss");
-#endif
 
 void toany(char *s, int (*c)(int)) { while(*s) { *s = (*c)(*s); s++; } }
 
@@ -1330,6 +1332,8 @@ void sortlist(char *list)
     elems.deletearrays();
 }
 COMMAND(sortlist, "c");
+
+#endif
 
 void modifyvar(const char *name, int arg, char op)
 {
@@ -1488,36 +1492,10 @@ void bnot_(int *a)         { intret(~(*a)); }         COMMANDN(!b, bnot_, "i");
 
 COMMANDF(strcmp, "ss", (char *a, char *b) { intret((strcmp(a, b) == 0) ? 1 : 0); });
 
-COMMANDF(rnd, "i", (int *a) { intret(*a>0 ? rnd(*a) : 0); });
-
 #ifndef STANDALONE
 
-const char *escapestring(const char *s, bool force, bool noquotes)
-{
-    static vector<char> strbuf[3];
-    static int stridx = 0;
-    if(noquotes) force = false;
-    if(!s) return force ? "\"\"" : "";
-    if(!force && !*(s + strcspn(s, "\"/\\;()[] \f\t\n\r$"))) return s;
-    stridx = (stridx + 1) % 3;
-    vector<char> &buf = strbuf[stridx];
-    buf.setsize(0);
-    if(!noquotes) buf.add('"');
-    for(; *s; s++) switch(*s)
-    {
-        case '\n': buf.put("\\n", 2); break;
-        case '\r': buf.put("\\n", 2); break;
-        case '\t': buf.put("\\t", 2); break;
-        case '\a': buf.put("\\a", 2); break;
-        case '\f': buf.put("\\f", 2); break;
-        case '"': buf.put("\\\"", 2); break;
-        case '\\': buf.put("\\\\", 2); break;
-        default: buf.add(*s); break;
-    }
-    if(!noquotes) buf.add('"');
-    buf.add(0);
-    return buf.getbuf();
-}
+COMMANDF(rnd, "i", (int *a) { intret(*a>0 ? rnd(*a) : 0); });
+
 COMMANDF(escape, "s", (const char *s) { result(escapestring(s));});
 
 int sortident(ident **a, ident **b) { return strcasecmp((*a)->name, (*b)->name); }
@@ -1703,6 +1681,7 @@ int popscontext()
     return execcontext;
 }
 
+#ifndef STANDALONE
 void scriptcontext(char *context, char *idname)
 {
     if(contextsealed) return;
@@ -1721,6 +1700,7 @@ void isolatecontext(char *context)
 COMMAND(isolatecontext, "s");
 
 COMMANDF(sealcontexts, "",() { contextsealed = true; });
+#endif
 
 inline bool identaccessdenied(ident *id) // check if ident is allowed in current context
 {
@@ -1737,8 +1717,10 @@ void scripterr()
     ASSERT(execcontext >= 0 && execcontext < IEXC_NUM);
     if(curcontext) conoutf("(%s: %s [%s])", curcontext, curinfo, contextnames[execcontext]);
     else conoutf("(from console or builtin [%s])", contextnames[execcontext]);
+#ifndef STANDALONE
     clientlogf("exec nesting level: %d", executionstack.length());
     clientlogf("%s", executionstack.length() ? executionstack.last() : ":::nevermind:::");
+#endif
 }
 
 void setcontext(const char *context, const char *info)
@@ -1808,5 +1790,7 @@ void debugline(char *fname, char *line) // print one line to a logfile
     }
 }
 COMMAND(debugline, "ss");
+
+COMMANDF(numberofidents, "", () { intret(idents->numelems); });
 #endif
 #endif

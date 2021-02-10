@@ -53,7 +53,7 @@ struct entity : persistent_entity
     }
 };
 
-enum { GUN_KNIFE = 0, GUN_PISTOL, GUN_CARBINE, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIPER, GUN_ASSAULT, GUN_CPISTOL, GUN_GRENADE, GUN_AKIMBO, NUMGUNS };
+enum { GUN_KNIFE = 0, GUN_PISTOL, GUN_CARBINE, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIPER, GUN_ASSAULT, GUN_GRENADE, GUN_AKIMBO, NUMGUNS };
 #define valid_weapon(g) ((g) >= GUN_KNIFE && (g) < NUMGUNS)
 #define reloadable_gun(g) ((g) != GUN_KNIFE && (g) != GUN_GRENADE)
 
@@ -113,19 +113,14 @@ static inline const char *team_string(int t, bool abbr = false) { const char **n
 
 enum { ENT_PLAYER = 0, ENT_BOT, ENT_CAMERA, ENT_BOUNCE };
 enum { CS_ALIVE = 0, CS_DEAD, CS_SPAWNING, CS_LAGGED, CS_EDITING, CS_SPECTATE };
-enum { CR_DEFAULT = 0, CR_ADMIN };
+enum { CR_DEFAULT = 0, CR_MASTER, CR_ADMIN, CR_OWNER, CR_NUM };
 enum { SM_NONE = 0, SM_DEATHCAM, SM_FOLLOW1ST, SM_FOLLOW3RD, SM_FOLLOW3RD_TRANSPARENT, SM_FLY, SM_OVERVIEW, SM_NUM };
+enum { FPCN_VOID = -4, FPCN_DEATHCAM = -2, FPCN_FLY = -2, FPCN_OVERVIEW = -1 };
 
-class worldobject
+class physent
 {
 public:
-    virtual ~worldobject() {};
-};
-
-class physent : public worldobject
-{
-public:
-    vec o, vel, vel_t;                         // origin, velocity
+    vec o, vel;                         // origin, velocity
     vec deltapos, newpos;                       // movement interpolation
     float yaw, pitch, roll;             // used as vec in one place
     float pitchvel;
@@ -133,7 +128,7 @@ public:
     int timeinair;                      // used for fake gravity
     float radius, eyeheight, maxeyeheight, aboveeye;  // bounding box size
     bool inwater;
-    bool onfloor, onladder, jumpnext, crouching, crouchedinair, trycrouch, cancollide, stuck, scoping, shoot;
+    bool onfloor, onladder, jumpnext, jumpd, crouching, crouchedinair, trycrouch, cancollide, stuck, scoping;
     int lastjump;
     float lastjumpheight;
     int lastsplash;
@@ -143,7 +138,7 @@ public:
     int last_pos;
 
     physent() : o(0, 0, 0), deltapos(0, 0, 0), newpos(0, 0, 0), yaw(270), pitch(0), roll(0), pitchvel(0),
-            crouching(false), crouchedinair(false), trycrouch(false), cancollide(true), stuck(false), scoping(false), shoot(false), lastjump(0), lastjumpheight(200), lastsplash(0), state(CS_ALIVE), last_pos(0)
+            crouching(false), crouchedinair(false), trycrouch(false), cancollide(true), stuck(false), scoping(false), lastjump(0), lastjumpheight(200), lastsplash(0), state(CS_ALIVE), last_pos(0)
     {
         reset();
     }
@@ -158,10 +153,10 @@ public:
 
     void reset()
     {
-        vel.x = vel.y = vel.z = eyeheightvel = vel_t.x = vel_t.y = vel_t.z = 0.0f;
+        vel.x = vel.y = vel.z = eyeheightvel = 0.0f;
         move = strafe = 0;
         timeinair = lastjump = lastsplash = 0;
-        onfloor = onladder = inwater = jumpnext = crouching = crouchedinair = trycrouch = stuck = false;
+        onfloor = onladder = inwater = jumpnext = jumpd = crouching = crouchedinair = trycrouch = stuck = false;
         last_pos = 0;
     }
 
@@ -433,6 +428,7 @@ public:
     int spectatemode, followplayercn;
     int eardamagemillis;
     float maxroll, maxrolleffect, movroll, effroll;  // roll added by movement and damage
+    int ffov, scopefov;
     bool allowmove() { return state!=CS_DEAD || spectatemode==SM_FLY; }
 
     weapon *weapons[NUMGUNS];
@@ -451,7 +447,7 @@ public:
     bool nocorpse;
 
     playerent() : curskin(0), clientnum(-1), lastupdate(0), plag(0), ping(0), address(0), lifesequence(0), frags(0), flagscore(0), deaths(0), points(0), tks(0), lastpain(0), lastvoicecom(0), lastdeath(0), clientrole(CR_DEFAULT),
-                  team(TEAM_SPECT), spectatemode(SM_NONE), eardamagemillis(0), maxroll(ROLLMOVDEF), maxrolleffect(ROLLEFFDEF), movroll(0), effroll(0),
+                  team(TEAM_SPECT), spectatemode(SM_NONE), followplayercn(FPCN_VOID), eardamagemillis(0), maxroll(ROLLMOVDEF), maxrolleffect(ROLLEFFDEF), movroll(0), effroll(0), ffov(0), scopefov(0),
                   prevweaponsel(NULL), weaponsel(NULL), nextweaponsel(NULL), primweap(NULL), nextprimweap(NULL), lastattackweapon(NULL),
                   smoothmillis(-1),
                   head(-1, -1, -1), ignored(false), muted(false), nocorpse(false)
@@ -502,6 +498,7 @@ public:
     void resetspec()
     {
         spectatemode = SM_NONE;
+        followplayercn = FPCN_VOID;
     }
 
     void respawn()
@@ -550,6 +547,10 @@ public:
         const int maxskin[2] = { 4, 6 };
         t = team_base(t < 0 ? team : t);
         nextskin[t] = iabs(s) % maxskin[t];
+    }
+    void startmap()
+    {
+        frags = flagscore = deaths = lifesequence = points = tks = 0;
     }
 };
 
@@ -646,7 +647,4 @@ public:
     void oncollision();
     void onmoved(const vec &dist);
 };
-
-enum {MD_FRAGS = 0, MD_DEATHS, END_MDS};
-struct medalsst {bool assigned; int cn; int item;};
 

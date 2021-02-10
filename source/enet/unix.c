@@ -131,8 +131,10 @@ enet_address_get_host_ip (const ENetAddress * address, char * name, size_t nameL
 #else
     char * addr = inet_ntoa (* (struct in_addr *) & address -> host);
     if (addr != NULL)
+    {
         strncpy (name, addr, nameLength);
         name[nameLength - 1] = '\0';
+    }
     else
 #endif
         return -1;

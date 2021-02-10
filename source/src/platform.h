@@ -12,6 +12,7 @@
 #include <time.h>
 #include <limits.h>
 #include <math.h>
+#include <locale.h>
 #include <stdint.h>
 #ifdef __GNUC__
     #include <new>

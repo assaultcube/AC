@@ -24,7 +24,6 @@ weaponinfo_s WeaponInfoTable[MAX_WEAPONS] =
     { TYPE_AUTO,       0.0f,   25.0f,   3.0f,   60.0f,  10 }, // SUBGUN
     { TYPE_SNIPER,    10.0f,  125.0f,   3.0f,  200.0f,   3 }, // SNIPER
     { TYPE_AUTO,      20.0f,   80.0f,   3.0f,  150.0f,   6 }, // ASSAULT
-    { TYPE_AUTO,       0.0f,    0.0f,   3.0f,    0.0f,   6 }, // CPISTOL
     { TYPE_GRENADE,    5.0f,   30.0f,   3.0f,   50.0f,   1 }, // GRENADE
     { TYPE_AUTO,       0.0f,   50.0f,   3.0f,   50.0f,   0 }  // AKIMBO
 };

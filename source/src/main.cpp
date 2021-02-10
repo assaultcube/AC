@@ -1131,6 +1131,7 @@ int main(int argc, char **argv)
     char *initscript = NULL;
     char *initdemo = NULL;
 
+    setlocale(LC_ALL, "POSIX");
     if(bootclientlog) cvecprintf(*bootclientlog, "######## start logging: %s\n", timestring(true));
 
     const char *initmap = rndmapname();
@@ -1253,8 +1254,8 @@ int main(int argc, char **argv)
     if(enet_initialize()<0) fatal("Unable to initialise network module");
 
     if (!dedicated) initclient();
-        //FIXME the server executed in this way does not catch the SIGTERM or ^C
-    initserver(dedicated,argc,argv);  // never returns if dedicated
+
+    initserver(dedicated);  // never returns if dedicated
 
     initlog("world (" STRINGIFY(AC_VERSION) ")");
     empty_world(7, true);

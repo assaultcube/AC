@@ -354,7 +354,6 @@ bool collide(physent *d, bool spawn, float drop, float rise)
 VARFP(maxroll, 0, ROLLMOVDEF, ROLLMOVMAX, player1->maxroll = maxroll);
 VARFP(maxrolleffect, 0, ROLLEFFDEF, ROLLEFFMAX, player1->maxrolleffect = maxrolleffect);
 VARP(maxrollremote, 0, ROLLMOVDEF + ROLLEFFDEF, ROLLMOVMAX + ROLLEFFMAX);
-//VAR(recoilbackfade, 0, 100, 1000);
 
 void resizephysent(physent *pl, int moveres, int curtime, float min, float max)
 {
@@ -517,6 +516,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
                     {
                         if(pl->jumpnext)
                         {
+                            pl->jumpd = true;
                             pl->jumpnext = false;
                             bool doublejump = pl->lastjump && lastmillis - pl->lastjump < 250 && pl->strafe != 0 && pl->o.z - pl->eyeheight - pl->lastjumpheight > 0.2f;
                             pl->lastjumpheight = pl->o.z - pl->eyeheight;
@@ -734,12 +734,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         pl->pitch += pl->pitchvel*(curtime/1000.0f)*pl->maxspeed*(pl->crouching ? 0.75f : 1.0f);
         pl->pitchvel *= fric-3;
         pl->pitchvel /= fric;
-        /*extern int recoiltest;
-        if(recoiltest)
-        {
-            if(pl->pitchvel < 0.05f && pl->pitchvel > 0.001f) pl->pitchvel -= recoilbackfade/100.0f; // slide back
-        }
-        else*/ if(pl->pitchvel < 0.05f && pl->pitchvel > 0.001f) pl->pitchvel -= ((playerent *)pl)->weaponsel->info.recoilbackfade/100.0f; // slide back
+        if(pl->pitchvel < 0.05f && pl->pitchvel > 0.001f) pl->pitchvel -= ((playerent *)pl)->weaponsel->info.recoilbackfade/100.0f; // slide back
         if(pl->pitchvel) fixcamerarange(pl); // fix pitch if necessary
     }
 
@@ -899,7 +894,6 @@ COMMAND(crouch, "d");
 
 void fixcamerarange(physent *cam)
 {
-    const float MAXPITCH = 90.0f;
     if(cam->pitch>MAXPITCH) cam->pitch = MAXPITCH;
     if(cam->pitch<-MAXPITCH) cam->pitch = -MAXPITCH;
     while(cam->yaw<0.0f) cam->yaw += 360.0f;
