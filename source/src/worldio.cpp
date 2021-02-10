@@ -634,7 +634,6 @@ void save_world(char *mname, bool skipoptimise, bool addcomfort)
     }
 
     // update (and fix) map header
-    strncpy(hdr.head, "ACMP", 4); // ensure map now declares itself as an AssaultCube map, even if imported as CUBE
     hdr.version = MAPVERSION;
     hdr.headersize = sizeof(header);
     hdr.timestamp = (int) time(NULL);
