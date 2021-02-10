@@ -124,15 +124,15 @@ struct color
 extern stream *clientlogfile;
 extern vector<char> *bootclientlog;
 
-extern void keypress(int code, bool isdown, int cooked, SDLMod mod = KMOD_NONE);
+extern void keypress(int keycode, int scancode, bool isdown, SDL_Keymod mod = KMOD_NONE);
 extern int rendercommand(int x, int y, int w);
 extern void renderconsole();
 extern char *getcurcommand(int *pos);
 extern char *addreleaseaction(const char *s);
 extern void savehistory();
 extern void loadhistory();
+extern void processtextinput(const char *text);
 extern void writebinds(stream *f);
-extern void pasteconsole(char *dst);
 extern void clientlogf(const char *s, ...) PRINTFARGS(1, 2);
 
 struct keym
@@ -170,8 +170,9 @@ extern void menuimagemanual(void *menu, const char *filename1, const char *filen
 extern void menutitlemanual(void *menu, const char *title);
 extern bool needscoresreorder;
 extern void menuheader(void *menu, char *header, char *footer, bool heap = false);
-extern bool menukey(int code, bool isdown, int unicode, SDLMod mod = KMOD_NONE);
-extern void *addmenu(const char *name, const char *title = NULL, bool allowinput = true, void (__cdecl *refreshfunc)(void *, bool) = NULL, bool (__cdecl *keyfunc)(void *, int, bool, int) = NULL, bool hotkeys = false, bool forwardkeys = false);
+extern void menusay(const char *text);
+extern bool menukey(int code, bool isdown = true, SDL_Keymod mod = KMOD_NONE);
+extern void *addmenu(const char *name, const char *title = NULL, bool allowinput = true, void (__cdecl *refreshfunc)(void *, bool) = NULL, bool (__cdecl *keyfunc)(void *, int, bool) = NULL, bool hotkeys = false, bool forwardkeys = false);
 extern bool rendermenumdl();
 extern void menuset(void *m, bool save = true);
 extern void menuselect(void *menu, int sel);
@@ -195,7 +196,8 @@ struct mitem
     virtual int width() = 0;
     virtual int select() { return 0; }
     virtual void focus(bool on) { }
-    virtual void key(int code, bool isdown, int unicode) { }
+    virtual void say(const char *text) { }
+    virtual void key(int code, bool isdown) { }
     virtual void init() {}
     virtual const char *getdesc() { return NULL; }
     virtual const char *gettext() { return NULL; }
@@ -226,7 +228,7 @@ struct gmenu
     int menusel, menuselinit;
     bool allowinput, inited, hotkeys, forwardkeys;
     void (__cdecl *refreshfunc)(void *, bool);
-    bool (__cdecl *keyfunc)(void *, int, bool, int);
+    bool (__cdecl *keyfunc)(void *, int, bool);
     char *initaction;
     char *usefont;
     bool allowblink;
@@ -272,8 +274,8 @@ extern bool resolverwait(const char *name, ENetAddress *address);
 extern int connectwithtimeout(ENetSocket sock, const char *hostname, ENetAddress &remoteaddress);
 extern void writeservercfg();
 extern void refreshservers(void *menu, bool init);
-extern bool serverskey(void *menu, int code, bool isdown, int unicode);
-extern bool serverinfokey(void *menu, int code, bool isdown, int unicode);
+extern bool serverskey(void *menu, int code, bool isdown);
+extern bool serverinfokey(void *menu, int code, bool isdown);
 
 struct serverinfo
 {
@@ -377,7 +379,7 @@ extern glmatrixf mvmatrix, projmatrix, clipmatrix, mvpmatrix, invmvmatrix, invmv
 extern void resetcamera();
 
 extern void gl_checkextensions();
-extern void gl_init(int w, int h, int bpp, int depth, int fsaa);
+extern void gl_init(int w, int h, int depth, int fsaa);
 extern void enablepolygonoffset(GLenum type);
 extern void disablepolygonoffset(GLenum type, bool restore = true);
 extern void line(int x1, int y1, float z1, int x2, int y2, float z2);
@@ -670,24 +672,20 @@ extern int isoccluded(float vx, float vy, float cx, float cy, float csize);
 
 // main
 extern char *lang;
-extern SDL_Surface *screen;
-extern int colorbits, depthbits, stencilbits;
+extern SDL_Window *screen;
+extern int stencilbits;
 
-extern void keyrepeat(bool on);
+enum { KR_CONSOLE = 1<<0, KR_MENU = 1<<1, KR_EDITMODE = 1<<2 };
+extern void keyrepeat(bool on, int mask = ~0);
+
+enum { TI_CONSOLE = 1<<0, TI_MENU = 1<<1 };
+extern void textinput(bool on, int mask = ~0);
+
 extern bool interceptkey(int sym);
 extern bool inmainloop;
 
-enum
-{
-    NOT_INITING = 0,
-    INIT_LOAD,
-    INIT_RESET
-};
-enum
-{
-    CHANGE_GFX   = 1<<0,
-    CHANGE_SOUND = 1<<1
-};
+enum { NOT_INITING = 0, INIT_LOAD, INIT_RESET };
+enum { CHANGE_GFX = 1<<0, CHANGE_SOUND = 1<<1 };
 extern bool initwarning(const char *desc, int level = INIT_RESET, int type = CHANGE_GFX);
 
 // rendertext

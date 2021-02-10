@@ -1,5 +1,5 @@
 The source code to this library used with SDL_image can be found here:
-http://www.libsdl.org/projects/SDL_image/libs/
+https://hg.libsdl.org/SDL_image/file/default/external
 ---
 
 LEGAL ISSUES
@@ -21,7 +21,7 @@ with respect to this software, its quality, accuracy, merchantability, or
 fitness for a particular purpose.  This software is provided "AS IS", and you,
 its user, assume the entire risk as to its quality and accuracy.
 
-This software is copyright (C) 1991-2012, Thomas G. Lane, Guido Vollbeding.
+This software is copyright (C) 1991-2016, Thomas G. Lane, Guido Vollbeding.
 All Rights Reserved except as specified below.
 
 Permission is hereby granted to use, copy, modify, and distribute this
@@ -52,14 +52,15 @@ commercial products, provided that all warranty or liability claims are
 assumed by the product vendor.
 
 
-The IJG distribution formerly included code to read and write GIF files.
-To avoid entanglement with the Unisys LZW patent, GIF reading support has
-been removed altogether, and the GIF writer has been simplified to produce
-"uncompressed GIFs".  This technique does not use the LZW algorithm; the
-resulting GIF files are larger than usual, but are readable by all standard
-GIF decoders.
+The Unix configuration script "configure" was produced with GNU Autoconf.
+It is copyright by the Free Software Foundation but is freely distributable.
+The same holds for its supporting scripts (config.guess, config.sub,
+ltmain.sh).  Another support script, install-sh, is copyright by X Consortium
+but is also freely distributable.
 
-We are required to state that
-    "The Graphics Interchange Format(c) is the Copyright property of
-    CompuServe Incorporated.  GIF(sm) is a Service Mark property of
-    CompuServe Incorporated."
+The IJG distribution formerly included code to read and write GIF files.
+To avoid entanglement with the Unisys LZW patent (now expired), GIF reading
+support has been removed altogether, and the GIF writer has been simplified
+to produce "uncompressed GIFs".  This technique does not use the LZW
+algorithm; the resulting GIF files are larger than usual, but are readable
+by all standard GIF decoders.

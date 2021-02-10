@@ -74,7 +74,7 @@ void resolverinit()
         resolverthread &rt = resolverthreads.add();
         rt.query = NULL;
         rt.starttime = 0;
-        rt.thread = SDL_CreateThread(resolverloop, &rt);
+        rt.thread = SDL_CreateThread(resolverloop, "ResolverThread", &rt);
     }
     SDL_UnlockMutex(resolvermutex);
 }
@@ -84,10 +84,8 @@ void resolverstop(resolverthread &rt)
     SDL_LockMutex(resolvermutex);
     if(rt.query)
     {
-#ifndef __APPLE__
-        SDL_KillThread(rt.thread);
-#endif
-        rt.thread = SDL_CreateThread(resolverloop, &rt);
+        SDL_DetachThread(rt.thread);
+        rt.thread = SDL_CreateThread(resolverloop, "ResolverThread", &rt);
     }
     rt.query = NULL;
     rt.starttime = 0;
@@ -252,7 +250,7 @@ int connectwithtimeout(ENetSocket sock, const char *hostname, ENetAddress &addre
     if(!conncond) conncond = SDL_CreateCond();
     SDL_LockMutex(connmutex);
     connectdata cd = { sock, address, -1 };
-    connthread = SDL_CreateThread(connectthread, &cd);
+    connthread = SDL_CreateThread(connectthread, "ConnectThread", &cd);
 
     int starttime = SDL_GetTicks(), timeout = 0;
     for(;;)
@@ -1168,7 +1166,7 @@ void refreshservers(void *menu, bool init)
     }
 }
 
-bool serverskey(void *menu, int code, bool isdown, int unicode)
+bool serverskey(void *menu, int code, bool isdown)
 {
     int fk[] = { SDLK_1, SDLK_2, SDLK_3, SDLK_4, SDLK_5, SDLK_6, SDLK_7, SDLK_8, SDLK_9, SDLK_0 }, gogetem = 1;
     if(!isdown) return false;
@@ -1266,7 +1264,7 @@ bool serverskey(void *menu, int code, bool isdown, int unicode)
     return false;
 }
 
-bool serverinfokey(void *menu, int code, bool isdown, int unicode)
+bool serverinfokey(void *menu, int code, bool isdown)
 {
     if(!isdown) return false;
     switch(code)

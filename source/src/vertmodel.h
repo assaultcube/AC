@@ -1058,9 +1058,9 @@ struct vertmodel : model
             shadows = new GLuint[numframes];
             glGenTextures(numframes, shadows);
 
-            extern SDL_Surface *screen;
+            extern int screenw, screenh;
             int aasize = 1<<(dynshadowsize + aadynshadow);
-            while(aasize > screen->w || aasize > screen->h) aasize /= 2;
+            while(aasize > screenw || aasize > screenh) aasize /= 2;
 
             stream *f = filename ? opengzfile(filename, "wb") : NULL;
             if(f)
@@ -1095,7 +1095,7 @@ struct vertmodel : model
             endgenshadow();
 
             glEnable(GL_FOG);
-            glViewport(0, 0, screen->w, screen->h);
+            glViewport(0, 0, screenw, screenh);
 
             if(f) delete f;
         }

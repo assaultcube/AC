@@ -819,8 +819,11 @@ extern float Mh;
 
 static string lastloadedconfigfile;
 
+bool incompatiblemap = false;
+
 int load_world(char *mname)        // still supports all map formats that have existed since the earliest cube betas!
 {
+    incompatiblemap = false;
     const int sizeof_header = sizeof(header), sizeof_baseheader = sizeof_header - sizeof(int) * 16;
     stopwatch watch;
     watch.start();
@@ -922,7 +925,7 @@ int load_world(char *mname)        // still supports all map formats that have e
             e.attr##x = ov = e.attr##x * entscale[e.type][x - 1]; \
             if(ov != e.attr##x) { conoutf("overflow during conversion of attr%d of entity #%d (%s): value %d can no longer be represented - pls fix manually before saving the map",\
                                            x, i, entnames[e.type], oe.attr##x); e.attr##x = oe.attr##x; res |= LWW_ENTATTROVERFLOW; \
-                                  defformatstring(desc)("%s: attr%d was %d, value can no longer be represented", entnames[e.type], x, oe.attr##x); addtodoentity(i, desc); }
+                                  defformatstring(desc)("%s: attr%d was %d, value can no longer be represented", entnames[e.type], x, oe.attr##x); addtodoentity(i, desc); incompatiblemap = true; }
             SCALEATTR(1);
             SCALEATTR(2);
             SCALEATTR(3);

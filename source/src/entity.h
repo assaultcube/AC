@@ -412,7 +412,7 @@ public:
 #define ROLLMOVMAX 20
 #define ROLLMOVDEF 0
 #define ROLLEFFMAX 30
-#define ROLLEFFDEF 10
+#define ROLLEFFDEF 0
 
 class playerent : public dynent, public playerstate
 {

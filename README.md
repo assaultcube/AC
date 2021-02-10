@@ -10,6 +10,10 @@ connection. It's tiny too, weighing in at a lightweight about 50 MB package
 available for [Windows, Linux, Mac](https://assault.cubers.net/download.html).
 On the correct settings, it can even run on old hardware (Pentium III and above).
 
+**Important information for Windows 10 users:**
+if you experience a mouse glitch (random camera movement), you can use the experimental [hotfix for AssaultCube 1.2.0.2 on Windows 10](https://github.com/assaultcube/AC/releases/download/v1.2.0.2/AssaultCube_v1.2.0.2_experimental_win10_hotfix_1.exe).
+Note: the hotfix **SHOULD NOT** be used to competitive play and mapping - see [known issues](https://assault.cubers.net/docs/knownissues.html).
+
 ## Features in a nutshell:
 
  * It's **FREE**.
@@ -20,7 +24,7 @@ On the correct settings, it can even run on old hardware (Pentium III and above)
  * With the correct settings, it can run on old hardware
  (Pentium III and above).
  * Officially runs on most major systems (Windows: 2000/XP/Vista/7/8/10, Linux,
- Mac OS X: 10.6+), and maybe even some
+ Mac OS X: 10.6+ 64-bit), and maybe even some
  [non-major ones](https://assault.cubers.net/docs/getstarted.html)?
  * Has a built in, in-game map editor to help players create their own maps and
  allows for co-operative editmode in realtime with others!

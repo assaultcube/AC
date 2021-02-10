@@ -1023,7 +1023,7 @@ struct sl_semaphore
     void post();     // increments (unlocks) semaphore
 };
 
-extern void *sl_createthread(int (*fn)(void *), void *data);
+extern void *sl_createthread(int (*fn)(void *), void *data, const char *name = NULL);
 extern int sl_waitthread(void *ti);
 extern bool sl_pollthread(void *ti);
 extern void sl_detachthread(void *ti);
