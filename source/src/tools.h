@@ -118,6 +118,7 @@ inline int iabs(int n) { return labs(n); }
 typedef char string[MAXSTRLEN];
 
 #define vformatstring(d,last,fmt) { va_list ap; va_start(ap, last); vformatstring_(d, fmt, ap); va_end(ap); }
+inline void vformatstring_(char* d, const char* fmt, va_list v, int len = MAXSTRLEN) { _vsnprintf(d, len, fmt, v); d[len - 1] = 0; }
 inline char *copystring(char *d, const char *s, size_t len = MAXSTRLEN)
 {
     size_t slen = min(strlen(s), len-1);
