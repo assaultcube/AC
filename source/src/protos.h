@@ -674,6 +674,7 @@ extern int isoccluded(float vx, float vy, float cx, float cy, float csize);
 // main
 extern char *lang;
 extern SDL_Window *screen;
+extern int screenw, screenh;
 extern int stencilbits;
 
 enum { KR_CONSOLE = 1<<0, KR_MENU = 1<<1, KR_EDITMODE = 1<<2 };
