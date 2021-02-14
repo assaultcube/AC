@@ -82,7 +82,7 @@ bool plcollide(physent *d, physent *o, float &headspace, float &hi, float &lo)  
     if((d->type==ENT_PLAYER && o->type==ENT_PLAYER ? dr.sqrxy() < r*r : fabs(dr.x)<r && fabs(dr.y)<r) && dr.dotxy(d->vel) >= 0.0f)
     {
         if(d->o.z-deyeheight<o->o.z-oeyeheight) { if(o->o.z-oeyeheight<hi) hi = o->o.z-oeyeheight-1; }
-        else if(o->o.z+o->aboveeye>lo) lo = o->o.z+o->aboveeye+1;
+        else if(o->o.z+o->aboveeye>lo) lo = o->o.z+o->aboveeye;
 
         if(fabs(o->o.z-d->o.z)<o->aboveeye+deyeheight) { hitplayer = o; return true; }
         headspace = d->o.z-o->o.z-o->aboveeye-deyeheight;
