@@ -304,8 +304,8 @@ public:
         switch(type)
         {
             case I_CLIPS:
-                additem(ammostats[GUN_PISTOL], ammo[GUN_PISTOL]);
-                additem(ammostats[GUN_AKIMBO], ammo[GUN_AKIMBO]);
+                if(akimbo) additem(ammostats[GUN_AKIMBO], ammo[GUN_AKIMBO]);
+                else additem(ammostats[GUN_PISTOL], ammo[GUN_PISTOL]);
                 break;
             case I_AMMO: additem(ammostats[primary], ammo[primary]); break;
             case I_GRENADE: additem(ammostats[GUN_GRENADE], mag[GUN_GRENADE]); break;
