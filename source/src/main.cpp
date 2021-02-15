@@ -873,7 +873,7 @@ void checkinput()
                     case SDL_WINDOWEVENT_RESTORED: // window has been restored to normal size and position
                         EVENTDEBUG(concatstring(eb, event.window.event == SDL_WINDOWEVENT_RESTORED ? "SDL_WINDOWEVENT_RESTORED" : "SDL_WINDOWEVENT_MAXIMIZED"));
                         minimized = 0;
-                        inputgrab(grabinput);
+                        inputgrab(grabinput = true);
                         break;
 
                     case SDL_WINDOWEVENT_ENTER: // window has gained mouse focus
@@ -886,7 +886,7 @@ void checkinput()
 
                     case SDL_WINDOWEVENT_FOCUS_GAINED: // window has gained keyboard focus
                         EVENTDEBUG(concatstring(eb, " SDL_WINDOWEVENT_FOCUS_GAINED"));
-                        if(fullscreen) inputgrab(grabinput = true);  // click-to-grab for windowed mode
+                        inputgrab(grabinput = true);  // click-to-grab for windowed mode
                         break;
 
                     case SDL_WINDOWEVENT_FOCUS_LOST: // window has lost keyboard focus
