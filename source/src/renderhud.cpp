@@ -7,7 +7,7 @@ void drawicon(Texture *tex, float x, float y, float s, int col, int row, float t
     if(tex && tex->xs == tex->ys) quad(tex->id, x, y, s, ts*col, ts*row, ts);
 }
 
-inline void turn_on_transparency(int alpha = 255)
+void turn_on_transparency(int alpha = 255)
 {
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
