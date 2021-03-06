@@ -230,6 +230,7 @@ void parsepositions(ucharbuf &p)
     }
 }
 
+            break;
 int lastspawn = 0;
 
 void onCallVote(int type, int vcn, char *text, char *a)
