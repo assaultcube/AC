@@ -76,11 +76,23 @@ struct sliderview : view
     virtual void captureevent(SDL_Event *event)
     {
         view::captureevent(event);
+
+        bool binary = labels.length() == 2;
+
         switch(event->type)
         {
             case SDL_FINGERDOWN:
+            {
+                if(binary) // switch binary sliders with a single tap
+                {
+                    currentval++;
+                    if(currentval > maxval) currentval = minval;
+                    break;
+                }
+            }
             case SDL_FINGERMOTION:
             {
+                if(binary) break;
                 // we want to apply the new value immediately whenever a valid finger motion happens
                 int val = event->tfinger.x * VIRTW - linex1;
                 float perc = clamp(float(val) / (linex2 - linex1), 0.0f, 1.0f);

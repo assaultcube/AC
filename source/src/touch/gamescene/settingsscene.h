@@ -30,9 +30,6 @@ struct settingsscene : view
 
         devmode = new sliderview(this, "Developer Mode", 0, 1, game.settings.devmode, &onoff);
         children.add(devmode);
-
-        // have same text width for all sliders so that we get a 2-columns layout
-        pointerspeed->mintextwidth = pointeracceleration->mintextwidth = volumeup->mintextwidth = devmode->mintextwidth = text_width(volumeup->text);
     };
 
     ~settingsscene()
@@ -53,6 +50,10 @@ struct settingsscene : view
         pointeracceleration->measure(availablewidth/2, availableheight/4);
         volumeup->measure(availablewidth/2, availableheight/4);
         devmode->measure(availablewidth/2, availableheight/4);
+
+        pointerspeed->mintextwidth = pointeracceleration->mintextwidth = text_width(pointeracceleration->text);
+        volumeup->mintextwidth = devmode->mintextwidth = volumeup->width * 0.8;
+
         width = availablewidth;
         height = availableheight;
     }

@@ -38,7 +38,7 @@ struct config
     // * the map must not have dead-ends so that mobile players can navigate without 180° turns
     // * the map must support a team-based mode
     // * the map must have good quality bot waypoints
-    const static int NUM_SUPPORTEDMAPS = 10;
+    const static int NUM_SUPPORTEDMAPS = 9;
     const char *SUPPORTEDMAPS[NUM_SUPPORTEDMAPS] = {
             "ac_arctic",
             "ac_complex",
