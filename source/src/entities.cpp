@@ -456,6 +456,7 @@ SVARFP(nextprimary, guns[GUN_ASSAULT].modelname,
     }
 });
 
+
 // flag ent actions done by the local player
 
 int flagdropmillis = 0;

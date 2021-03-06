@@ -1,5 +1,8 @@
 // protos for ALL external functions in cube...
 
+#ifndef PROTOS_H
+#define PROTOS_H
+
 struct authkey
 {
     const char *name;
@@ -124,7 +127,7 @@ struct color
 extern stream *clientlogfile;
 extern vector<char> *bootclientlog;
 
-extern void keypress(int code, bool isdown, int cooked, SDLMod mod = KMOD_NONE);
+extern void keypress(int code, bool isdown, int cooked, SDL_Keymod mod = KMOD_NONE);
 extern int rendercommand(int x, int y, int w);
 extern void renderconsole();
 extern char *getcurcommand(int *pos);
@@ -161,8 +164,16 @@ extern keym **findbinda(const char *action, int type = keym::ACTION_DEFAULT);
 extern bool bindc(int code, const char *action, int type = keym::ACTION_DEFAULT);
 extern keym *findbindc(int code);
 
+// touch
+extern bool touchenabled();
+extern void showtouchmenu(bool servers);
+extern void rendertouchhud(playerent *p);
+extern void checktouchinput();
+extern bool touchmenuvisible();
+
 // menus
 extern void rendermenu();
+extern void rendertouchmenu();
 extern bool menuvisible();
 extern void menureset(void *menu);
 extern void menuitemmanual(void *menu, char *text, char *action = NULL, color *bgcolor = NULL, const char *desc = NULL);
@@ -170,7 +181,7 @@ extern void menuimagemanual(void *menu, const char *filename1, const char *filen
 extern void menutitlemanual(void *menu, const char *title);
 extern bool needscoresreorder;
 extern void menuheader(void *menu, char *header, char *footer, bool heap = false);
-extern bool menukey(int code, bool isdown, int unicode, SDLMod mod = KMOD_NONE);
+extern bool menukey(int code, bool isdown, int unicode, SDL_Keymod mod = KMOD_NONE);
 extern void *addmenu(const char *name, const char *title = NULL, bool allowinput = true, void (__cdecl *refreshfunc)(void *, bool) = NULL, bool (__cdecl *keyfunc)(void *, int, bool, int) = NULL, bool hotkeys = false, bool forwardkeys = false);
 extern bool rendermenumdl();
 extern void menuset(void *m, bool save = true);
@@ -180,6 +191,7 @@ extern void closemenu(const char *name);
 extern void addchange(const char *desc, int type);
 extern void clearchanges(int type);
 extern void refreshapplymenu(void *menu, bool init);
+extern void *scoremenu;
 
 struct mitem
 {
@@ -389,7 +401,10 @@ extern void linestyle(float width, int r, int g, int b);
 extern void blendbox(int x1, int y1, int x2, int y2, bool border, int tex = -1, color *c = NULL);
 extern void quad(GLuint tex, float x, float y, float s, float tx, float ty, float tsx, float tsy = 0);
 extern void quad(GLuint tex, vec &c1, vec &c2, float tx, float ty, float tsx, float tsy);
+extern void rect(GLuint tex, float x, float y, float xs, float ys, float tx, float ty, float tsx, float tsy);
 extern void circle(GLuint tex, float x, float y, float r, float tx, float ty, float tr, int subdiv = 32);
+extern void circlelines(float x, float y, float r, int subdiv, color *c);
+extern void arrow(GLuint tex, int dir, float x, float y, float size, float tx, float ty);
 extern void framedquadtexture(GLuint tex, int x, int y, int xs, int ys, int border = 0, int backlight = 255, bool blend = false);
 extern void setperspective(float fovy, float aspect, float nearplane, float farplane);
 extern void sethudgunperspective(bool on);
@@ -670,7 +685,7 @@ extern int isoccluded(float vx, float vy, float cx, float cy, float csize);
 
 // main
 extern char *lang;
-extern SDL_Surface *screen;
+extern SDL_Window *screen;
 extern int colorbits, depthbits, stencilbits;
 
 extern void keyrepeat(bool on);
@@ -786,6 +801,7 @@ extern void loadingscreen(const char *fmt = NULL, ...) PRINTFARGS(1, 2);
 extern void hudoutf(const char *s, ...) PRINTFARGS(1, 2);
 extern void hudonlyf(const char *s, ...) PRINTFARGS(1, 2);
 extern void hudeditf(int type, const char *s, ...) PRINTFARGS(2, 3);
+extern void hudkeeplastline(int dispmillis);
 extern void show_out_of_renderloop_progress(float bar1, const char *text1, float bar2 = 0, const char *text2 = NULL);
 extern void updatedmgindicator(playerent *p, vec &attack);
 extern vec getradarpos();
@@ -1276,3 +1292,5 @@ struct servercommandline
     }
 };
 
+
+#endif

@@ -1,0 +1,63 @@
+apply plugin: 'com.android.application'
+
+def platformVersion = 24      // openGLES 3.2 min api level
+// def platformVersion = 18    //openGLES 3 min api level
+// def platformVersion = 12    //openGLES 2 min api level
+
+android {
+    compileSdkVersion 29
+    ndkVersion '21.3.6528147'
+
+    defaultConfig {
+        applicationId 'net.cubers.assaultcube'
+        minSdkVersion "${platformVersion}"
+        targetSdkVersion 29
+        versionName '0.8.4'
+        versionCode 6
+        externalNativeBuild {
+            cmake {
+                arguments '-DANDROID_STL=c++_static'
+
+                // required for address sanitizer to debug memory issues
+                // see also https://developer.android.com/ndk/guides/asan#cmake
+                //arguments "-DANDROID_ARM_MODE=arm", "-DANDROID_STL=c++_shared"
+            }
+        }
+        ndk {
+            // Specifies the ABI configurations of your native
+            // libraries Gradle should build and package with your APK.
+            abiFilters 'x86' , 'armeabi-v7a' , 'arm64-v8a' , 'x86_64'
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled = false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'),
+                          'proguard-rules.pro'
+
+            ndk {
+                debugSymbolLevel 'FULL'
+            }
+        }
+    }
+    externalNativeBuild {
+        cmake {
+            version '3.10.2'
+            path 'src/main/cpp/CMakeLists.txt'
+        }
+    }
+    packagingOptions {
+        // it is not sure yet if we really need this doNotStrip option to keep the debug symbols
+        // it seems to add 10+ mb of extra space to the bundle.
+        // https://medium.com/@juliozynger/native-code-and-debug-symbols-954c31c0bc2e
+        doNotStrip '**.so'
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+    implementation 'com.google.android.play:core:1.9.1'
+}

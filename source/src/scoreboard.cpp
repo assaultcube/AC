@@ -279,7 +279,6 @@ void reorderscorecolumns()
 {
     static string scoreboardtitle;
     needscoresreorder = false;
-    extern void *scoremenu;
     sline sscore;
 
     if(m_flags) sscore.addcol(sc_flags, "flags");

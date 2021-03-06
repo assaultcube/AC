@@ -12,6 +12,16 @@
 string homedir = "";
 vector<char *> packagedirs;
 
+// Android does not play well with relative paths and so we need to make all paths absolute.
+// And since the engine does not yet offer an uniform way to manage paths we need to patch this
+// in different locations.
+const char *absbasedir =
+#ifdef __ANDROID__
+    "/storage/emulated/0/Android/data/net.cubers.assaultcube/files/";
+#else
+    NULL;
+#endif
+
 char *makerelpath(const char *dir, const char *file, const char *prefix, const char *cmd)
 {
     static string tmp;
@@ -111,10 +121,20 @@ bool fileexists(const char *path, const char *mode)
 {
     bool exists = true;
     if(mode[0]=='w' || mode[0]=='a') path = parentdir(path);
+
+    if(absbasedir)
+    {
+        string abspath;
+        formatstring(abspath)("%s%s", absbasedir, path);
+        path = abspath;
+    }
+
 #ifdef WIN32
     if(GetFileAttributes(path) == INVALID_FILE_ATTRIBUTES) exists = false;
 #else
-    if(access(path, R_OK | (mode[0]=='w' || mode[0]=='a' ? W_OK : 0)) == -1) exists = false;
+    int f = R_OK | (mode[0]=='w' || mode[0]=='a' ? W_OK : 0);
+    int a = access(path, f);
+    if(a == -1) exists = false;
 #endif
     return exists;
 }
@@ -226,7 +246,11 @@ int findfilelocation;
 
 const char *findfile(const char *filename, const char *mode)
 {
-    while(filename[0] == PATHDIV) filename++; // skip leading pathdiv
+    if(!absbasedir)
+    {
+        while(filename[0] == PATHDIV) filename++; // skip leading pathdiv
+    }
+
     while(!strncmp(".." PATHDIVS, filename, 3)) filename += 3; // skip leading "../" (don't allow access to files below "AC root dir")
     static string s;
     formatstring(s)("%s%s", homedir, filename);         // homedir may be ""
@@ -258,6 +282,7 @@ const char *findfile(const char *filename, const char *mode)
         if(fileexists(s, mode)) return s;
     }
     findfilelocation = FFL_WORKDIR;
+
     return filename;
 }
 
@@ -285,8 +310,11 @@ bool listsubdir(const char *dir, vector<char *> &subdirs)
         return true;
     }
     #else
+
     string pathname;
-    copystring(pathname, dir);
+    if(absbasedir) formatstring(pathname)("%s%s", absbasedir, dir);
+    else copystring(pathname, dir);
+
     DIR *d = opendir(path(pathname));
     if(d)
     {
@@ -353,8 +381,11 @@ bool listdir(const char *dir, const char *ext, vector<char *> &files)
         return true;
     }
     #else
+
     string pathname;
-    copystring(pathname, dir);
+    if(absbasedir) formatstring(pathname)("%s%s", absbasedir, dir);
+    else copystring(pathname, dir);
+
     DIR *d = opendir(path(pathname));
     if(d)
     {
@@ -474,20 +505,20 @@ void backup(char *name, char *backupname)
 }
 
 #ifndef STANDALONE
-static int rwopsseek(SDL_RWops *rw, int offset, int whence)
+static Sint64  rwopsseek(SDL_RWops *rw, Sint64 offset, int whence)
 {
     stream *f = (stream *)rw->hidden.unknown.data1;
     if((!offset && whence==SEEK_CUR) || f->seek(offset, whence)) return f->tell();
     return -1;
 }
 
-static int rwopsread(SDL_RWops *rw, void *buf, int size, int nmemb)
+static size_t rwopsread(SDL_RWops *rw, void *buf, size_t size, size_t nmemb)
 {
     stream *f = (stream *)rw->hidden.unknown.data1;
     return f->read(buf, size*nmemb)/size;
 }
 
-static int rwopswrite(SDL_RWops *rw, const void *buf, int size, int nmemb)
+static size_t rwopswrite(SDL_RWops *rw, const void *buf, size_t size, size_t nmemb)
 {
     stream *f = (stream *)rw->hidden.unknown.data1;
     return f->write(buf, size*nmemb)/size;
@@ -545,6 +576,14 @@ struct filestream : stream
     bool open(const char *name, const char *mode)
     {
         if(file) return false;
+
+        if(absbasedir)
+        {
+            string absname;
+            formatstring(absname)("%s%s", absbasedir, name);
+            name = absname;
+        }
+
         file = fopen(name, mode);
 #ifndef WIN32
         struct statvfs buf;

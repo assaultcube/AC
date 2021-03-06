@@ -1035,7 +1035,11 @@ struct vertmodel : model
 
             int texsize = min(aasize, 1<<dynshadowsize);
             blurshadow(pixels, &pixels[texsize*texsize], texsize);
-            if(f) f->write(&pixels[texsize*texsize], texsize*texsize);
+            if(f)
+            {
+                if(!f->write(&pixels[texsize*texsize], texsize*texsize))
+                    conoutf("could not write shadow");
+            }
             createtexture(shadows[frame], texsize, texsize, &pixels[texsize*texsize], 3, true, false, GL_ALPHA);
 
             delete[] pixels;
@@ -1058,9 +1062,11 @@ struct vertmodel : model
             shadows = new GLuint[numframes];
             glGenTextures(numframes, shadows);
 
-            extern SDL_Surface *screen;
+            extern SDL_Window *screen;
             int aasize = 1<<(dynshadowsize + aadynshadow);
-            while(aasize > screen->w || aasize > screen->h) aasize /= 2;
+            int scrw, scrh;
+            SDL_GetWindowSize(screen, &scrw, &scrh);
+            while(aasize > scrw || aasize > scrh) aasize /= 2;
 
             stream *f = filename ? opengzfile(filename, "wb") : NULL;
             if(f)
@@ -1095,7 +1101,9 @@ struct vertmodel : model
             endgenshadow();
 
             glEnable(GL_FOG);
-            glViewport(0, 0, screen->w, screen->h);
+            int w, h;
+            SDL_GetWindowSize(screen, &w, &h);
+            glViewport(0, 0, w, h);
 
             if(f) delete f;
         }

@@ -420,6 +420,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
             case SV_SERVINFO:  // welcome message from the server
             {
                 int mycn = getint(p), prot = getint(p);
+                sessionid = getint(p);
                 if(prot!=CUR_PROTOCOL_VERSION && !(watchingdemo && prot == -PROTOCOL_VERSION))
                 {
                     conoutf("\f3incompatible game protocol (local protocol: %d :: server protocol: %d)", CUR_PROTOCOL_VERSION, prot);
@@ -428,7 +429,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     else disconnect();
                     return;
                 }
-                sessionid = getint(p);
+
                 player1->clientnum = mycn;
                 if(getint(p) > 0) conoutf("INFO: this server is password protected");
                 sendintro();

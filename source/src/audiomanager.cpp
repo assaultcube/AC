@@ -89,7 +89,7 @@ void audiomanager::initsound()
     }
 }
 
-void audiomanager::music(char *name, int millis, char *cmd)
+void audiomanager::music(const char *name, int millis, const char *cmd)
 {
     if(nosound) return;
     stopsound();
@@ -890,7 +890,7 @@ COMMANDF(musicpreload, "i", (int *id)
     audiomgr.musicpreload(*id);
 });
 
-COMMANDF(music, "sis", (char *name, int *millis, char *cmd)
+COMMANDF(music, "sis", (const char *name, int *millis, char *cmd)
 {
     audiomgr.music(name, *millis, cmd);
 });

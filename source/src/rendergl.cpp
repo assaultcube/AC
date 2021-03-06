@@ -58,10 +58,18 @@ void gl_checkextensions()
     conoutf("Renderer: %s (%s)", renderer, vendor);
     conoutf("Driver: %s", version);
 
+    // the GL4ES library that we use on Android does not support most extensions
+    const bool gl4es =
+#ifdef __ANDROID__
+        true;
+#else
+        false;
+#endif
+
     if(hasext(exts, "GL_EXT_texture_env_combine") || hasext(exts, "GL_ARB_texture_env_combine")) hasTE = true;
     else conoutf("WARNING: cannot use overbright lighting, using old lighting model!");
 
-    if(hasext(exts, "GL_ARB_multitexture"))
+    if(hasext(exts, "GL_ARB_multitexture") && !gl4es)
     {
         glActiveTexture_       = (PFNGLACTIVETEXTUREARBPROC)      getprocaddress("glActiveTextureARB");
         glClientActiveTexture_ = (PFNGLCLIENTACTIVETEXTUREARBPROC)getprocaddress("glClientActiveTextureARB");
@@ -70,7 +78,7 @@ void gl_checkextensions()
         hasMT = true;
     }
 
-    if(hasext(exts, "GL_EXT_multi_draw_arrays"))
+    if(hasext(exts, "GL_EXT_multi_draw_arrays") && !gl4es)
     {
         glMultiDrawArrays_   = (PFNGLMULTIDRAWARRAYSEXTPROC)  getprocaddress("glMultiDrawArraysEXT");
         glMultiDrawElements_ = (PFNGLMULTIDRAWELEMENTSEXTPROC)getprocaddress("glMultiDrawElementsEXT");
@@ -79,28 +87,28 @@ void gl_checkextensions()
         if(strstr(vendor, "ATI")) ati_mda_bug = 1;
     }
 
-    if(hasext(exts, "GL_EXT_draw_range_elements"))
+    if(hasext(exts, "GL_EXT_draw_range_elements") && !gl4es)
     {
         glDrawRangeElements_ = (PFNGLDRAWRANGEELEMENTSEXTPROC)getprocaddress("glDrawRangeElementsEXT");
         hasDRE = true;
     }
 
-    if(hasext(exts, "GL_EXT_stencil_two_side"))
+    if(hasext(exts, "GL_EXT_stencil_two_side") && !gl4es)
     {
         glActiveStencilFace_ = (PFNGLACTIVESTENCILFACEEXTPROC)getprocaddress("glActiveStencilFaceEXT");
         hasST2 = true;
     }
 
-    if(hasext(exts, "GL_ATI_separate_stencil"))
+    if(hasext(exts, "GL_ATI_separate_stencil") && !gl4es)
     {
         glStencilOpSeparate_   = (PFNGLSTENCILOPSEPARATEATIPROC)  getprocaddress("glStencilOpSeparateATI");
         glStencilFuncSeparate_ = (PFNGLSTENCILFUNCSEPARATEATIPROC)getprocaddress("glStencilFuncSeparateATI");
         hasSTS = true;
     }
 
-    if(hasext(exts, "GL_EXT_stencil_wrap")) hasSTW = true;
+    if(hasext(exts, "GL_EXT_stencil_wrap") && !gl4es) hasSTW = true;
 
-    if(hasext(exts, "GL_EXT_texture_filter_anisotropic"))
+    if(hasext(exts, "GL_EXT_texture_filter_anisotropic")  && !gl4es)
     {
        GLint val;
        glGetIntegerv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &val);
@@ -108,7 +116,7 @@ void gl_checkextensions()
        hasAF = true;
     }
 
-    if(!hasext(exts, "GL_ARB_fragment_program"))
+    if(!hasext(exts, "GL_ARB_fragment_program") && !gl4es)
     {
         // not a required extension, but ensures the card has enough power to do reflections
         extern int waterreflect, waterrefract;
@@ -272,11 +280,24 @@ void quad(GLuint tex, const vec &c1, const vec &c2, float tx, float ty, float ts
     xtraverts += 4;
 }
 
+void rect(GLuint tex, float x, float y, float xs, float ys, float tx, float ty, float tsx, float tsy)
+{
+    if(!tsy) tsy = tsx;
+    glBindTexture(GL_TEXTURE_2D, tex);
+    glBegin(GL_TRIANGLE_STRIP);
+    glTexCoord2f(tx,     ty);     glVertex2f(x,   y);
+    glTexCoord2f(tx+tsx, ty);     glVertex2f(x+xs, y);
+    glTexCoord2f(tx,     ty+tsy); glVertex2f(x,   y+ys);
+    glTexCoord2f(tx+tsx, ty+tsy); glVertex2f(x+xs, y+ys);
+    glEnd();
+    xtraverts += 4;
+}
+
 void circle(GLuint tex, float x, float y, float r, float tx, float ty, float tr, int subdiv)
 {
-    glBindTexture(GL_TEXTURE_2D, tex);
+    if(tex >= 0) glBindTexture(GL_TEXTURE_2D, tex);
     glBegin(GL_TRIANGLE_FAN);
-    glTexCoord2f(tx, ty);
+    if(tex >= 0) glTexCoord2f(tx, ty);
     glVertex2f(x, y);
     loopi(subdiv+1)
     {
@@ -286,6 +307,53 @@ void circle(GLuint tex, float x, float y, float r, float tx, float ty, float tr,
     }
     glEnd();
     xtraverts += subdiv+2;
+}
+
+void circlelines(float x, float y, float r, int subdiv, color *c)
+{
+    //glDisable(GL_BLEND);
+    //if(c) glColor4f(c->r, c->g, c->b, c->alpha);
+    glBegin(GL_LINE_STRIP);
+    glVertex2f(x, y);
+    loopi(subdiv+1)
+    {
+        float c = cosf(PI2 * i / float(subdiv)), s = sinf(PI2 * i / float(subdiv));
+        glVertex2f(x + r*c, y + r*s);
+    }
+    xtraverts += subdiv+2;
+    glEnd();
+}
+
+void arrow(GLuint tex, int dir, float x, float y, float size, float tx, float ty) // dir: top, bottom, right, left
+{
+    if(tex >= 0) glBindTexture(GL_TEXTURE_2D, tex);
+    glBegin(GL_TRIANGLES);
+    if(tex >= 0) glTexCoord2f(tx, ty);
+    switch(dir)
+    {
+        case 0:
+        glVertex2f(x, y);
+        glVertex2f(x+size/2, y+size);
+        glVertex2f(x+size, y);
+        break;
+        case 1:
+        glVertex2f(x, y+size);
+        glVertex2f(x+size/2, y);
+        glVertex2f(x+size, y+size);
+        break;
+        case 2:
+        glVertex2f(x, y);
+        glVertex2f(x+size, y+size/2);
+        glVertex2f(x, y+size);
+        break;
+        case 3:
+        glVertex2f(x+size, y);
+        glVertex2f(x, y+size/2);
+        glVertex2f(x+size, y+size);
+        break;
+    }
+    glEnd();
+    xtraverts += 3;
 }
 
 void dot(int x, int y, float z)
@@ -360,11 +428,22 @@ void blendbox(int x1, int y1, int x2, int y2, bool border, int tex, color *c)
 
         if(c)
         {
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-            glColor4f(c->r, c->g, c->b, c->alpha);
+            if(c->alpha==1.0)
+            {
+                // ignore alpha and apply color directly
+                glBlendFunc(GL_ONE, GL_ZERO);
+                glColor3f(c->r, c->g, c->b);
+            }
+            else
+            {
+                // blend with alpha
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+                glColor4f(c->r, c->g, c->b, c->alpha);
+            }
         }
         else
         {
+            // default gray color
             glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_COLOR);
             glColor3f(0.5f, 0.5f, 0.5f);
         }
@@ -792,6 +871,11 @@ COMMAND(clearminimap, "");
 VARFP(minimapres, 7, 9, 10, clearminimap());
 void drawminimap(int w, int h)
 {
+#ifdef __ANDROID__
+    // causes crashes in android due to a bug in GL4ES draw_renderlist()
+    return;
+#endif
+
     if(!minimapdirty) return;
     int size = 1<<minimapres, sizelimit = min(hwtexsize, min(w, h));
     while(size > sizelimit) size /= 2;
@@ -949,7 +1033,7 @@ void drawhudgun()
     if(!rendermenumdl() && hudgun && (specthudgun || !player1->isspectating()) && camera1->type==ENT_PLAYER)
     {
         playerent *p = (playerent *)camera1;
-        if(p->state==CS_ALIVE) p->weaponsel->renderhudmodel();
+        if(p->state==CS_ALIVE && !touchmenuvisible()) p->weaponsel->renderhudmodel();
     }
 
     sethudgunperspective(false);
@@ -988,20 +1072,148 @@ float depthcorrect(float d)
     return (d<=1/256.0f) ? d*256 : d;
 }
 
+// fast pentium f2i
+
+#ifdef _MSC_VER
+inline int fast_f2nat(float a) {        // only for positive floats
+    static const float fhalf = 0.5f;
+    int retval;
+
+    __asm fld a
+    __asm fsub fhalf
+    __asm fistp retval      // perf regalloc?
+
+    return retval;
+};
+#else
+#define fast_f2nat(val) ((int)(val))
+#endif
+
+
+
+bool los(float stepdiv, float lx, float ly, float lz, float bx, float by, float bz, vec &v) // height-correct line of sight for monster shooting/seeing
+{
+    if(OUTBORD((int)lx, (int)ly) || OUTBORD((int)bx, (int)by)) return false;
+    float dx = bx-lx;
+    float dy = by-ly;
+    int steps = (int)(sqrt(dx*dx+dy*dy)/stepdiv);
+    if(!steps) return false;
+    float x = lx;
+    float y = ly;
+    int i = 0;
+    for(;;)
+    {
+        sqr *s = S(fast_f2nat(x), fast_f2nat(y));
+        if(SOLID(s)) break;
+        float floor = s->floor;
+        if(s->type==FHF) floor -= s->vdelta/4.0f;
+        float ceil = s->ceil;
+        if(s->type==CHF) ceil += s->vdelta/4.0f;
+        float rz = lz-((lz-bz)*(i/(float)steps));
+        if(rz<floor || rz>ceil) break;
+        v.x = x;
+        v.y = y;
+        v.z = rz;
+        x += dx/(float)steps;
+        y += dy/(float)steps;
+        i++;
+    };
+    return i>=steps;
+};
+
+extern float rad(float x);
+
+bool intersectent(entity *e, vec &from, vec &to)   // if lineseg hits entity bounding box
+{
+    mapmodelinfo &mmi = *getmminfo(e->attr2);
+    if(!&mmi) return false;
+    float z = (float)S(e->x, e->y)->floor+mmi.zoff+e->attr3+mmi.h/2, radius = mmi.rad;
+
+    vec v = to, w = { (float)e->x, (float)e->y, z }, o = w, *p;
+    //vsub(v, from);
+    //vsub(w, from);
+    v.sub(from);
+    w.sub(from);
+    //float c1 = dotprod(w, v);
+    float c1 = w.dot(v);
+    if(c1<=0) p = &from;
+    else
+    {
+        //float c2 = dotprod(v, v);
+        float c2 = v.dot(v);
+        if(c2<=c1) p = &to;
+        else
+        {
+            float f = c1/c2;
+            //vmul(v, f);
+            v.mul(f);
+            //vadd(v, from);
+            v.add(from);
+            p = &v;
+        }
+    }
+
+    return p->x <= o.x+radius
+        && p->x >= o.x-radius
+        && p->y <= o.y+radius
+        && p->y >= o.y-radius
+        && p->z <= o.z+mmi.h/2
+        && p->z >= o.z-mmi.h/2;
+};
+
+
 // find out the 3d target of the crosshair in the world easily and very acurately.
 // sadly many very old cards and drivers appear to fuck up on glReadPixels() and give false
 // coordinates, making shooting and such impossible.
 // also hits map entities which is unwanted.
 // could be replaced by a more acurate version of monster.cpp los() if needed
+// for android there is a special variation since GL4ES does not support glReadPixels()
 
 void readdepth(int w, int h, vec &pos)
 {
+#ifdef __ANDROID__
+    // https://github.com/ptitSeb/gl4es/issues/138
+    float yaw = player1->yaw-90, pitch = -player1->pitch;
+    vec dir;
+
+    float sin_yaw = sinf(RAD*yaw);
+    float cos_yaw = cosf(RAD*yaw);
+    float sin_pitch = sinf(RAD*pitch);
+    float cos_pitch = cosf(RAD*pitch);
+    dir.x = cos_pitch * cos_yaw;
+    dir.y = cos_pitch * sin_yaw;
+    dir.z = -sin_pitch;
+    dir.add(player1->o);
+
+    vec pos_;
+    los(0.05, player1->o.x, player1->o.y, player1->o.z, dir.x, dir.y, dir.z, pos_);
+    dir.x = pos_.x-player1->o.x;
+    dir.y = pos_.y-player1->o.y;
+    dir.z = pos_.z-player1->o.z;
+    float dist = sqrt(dir.x*dir.x + dir.y*dir.y);
+    dir.mul(1/dist);
+
+    loopv(ents)
+            {
+                      entity &e = ents[i];
+                        if(e.type != MAPMODEL) continue;
+                        vec eo = { (float) e.x, (float) e.y, (float) e.z };
+                        float curdist = player1->o.dist(eo);
+                        if(curdist < dist && intersectent(&e, player1->o, pos_)) dist = curdist;
+                    }
+
+    dir.mul(dist);
+    dir.add(player1->o);
+    worldpos = dir;
+#else
     glReadPixels(w/2, h/2, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &cursordepth);
     vec screen(0, 0, depthcorrect(cursordepth)*2 - 1);
     vec4 world;
     invmvpmatrix.transform(screen, world);
     pos = vec(world.x, world.y, world.z).div(world.w);
     intersectgeometry(camera1->o, pos);
+    float dist = camera1->o.dist(pos);
+#endif
 }
 
 VARP(ignoreoverride_nowaterreflect, 0, 0, 1);
@@ -1152,7 +1364,9 @@ void gl_drawframe(int w, int h, float changelod, float curfps, int elapsed)
     tagclipcubes.setsize(0);
 
     extern vector<vertex> verts;
-    gl_drawhud(w, h, int(curfps + 0.5f), nquads, verts.length(), underwater, elapsed);
+
+    if (touchmenuvisible()) rendertouchmenu();
+    else gl_drawhud(w, h, int(curfps + 0.5f), nquads, verts.length(), underwater, elapsed);
 
     glEnable(GL_CULL_FACE);
     glEnable(GL_FOG);

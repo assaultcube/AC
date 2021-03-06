@@ -1022,6 +1022,7 @@ VAR(minutesremaining, 1, 0, 0);
 VAR(gametimecurrent, 1, 0, 0);
 VAR(gametimemaximum, 1, 0, 0);
 VAR(lastgametimeupdate, 1, 0, 0);
+VARP(numgamesplayed, 0, 0, INT_MAX);
 
 void silenttimeupdate(int milliscur, int millismax)
 {
@@ -1050,6 +1051,7 @@ void timeupdate(int milliscur, int millismax)
         conoutf("game has ended!");
         consolescores();
         showscores(true);
+        numgamesplayed++;
         exechook(HOOK_SP_MP, "start_intermission", "");
     }
     else
@@ -1237,7 +1239,9 @@ void startmap(const char *name, bool reset, bool norespawn)   // called just aft
 
     if(showmodedescriptions && (multiplayer(NULL) || m_botmode))
     {
-        loopv(gmdescs) if(gmdescs[i].mode == gamemode) conoutf("\f1%s", gmdescs[i].desc);
+        void (*outf)(const char *s, ...) = touchenabled() && !m_botmode ? hudoutf : conoutf;
+        loopv(gmdescs) if(gmdescs[i].mode == gamemode) outf("\f1%s", gmdescs[i].desc);
+        if(touchenabled()) hudkeeplastline(10000);
     }
 
     // execute mapstart event once

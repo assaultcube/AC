@@ -74,7 +74,7 @@ void resolverinit()
         resolverthread &rt = resolverthreads.add();
         rt.query = NULL;
         rt.starttime = 0;
-        rt.thread = SDL_CreateThread(resolverloop, &rt);
+        rt.thread = SDL_CreateThread(resolverloop, NULL, &rt);
     }
     SDL_UnlockMutex(resolvermutex);
 }
@@ -84,10 +84,7 @@ void resolverstop(resolverthread &rt)
     SDL_LockMutex(resolvermutex);
     if(rt.query)
     {
-#ifndef __APPLE__
-        SDL_KillThread(rt.thread);
-#endif
-        rt.thread = SDL_CreateThread(resolverloop, &rt);
+        rt.thread = SDL_CreateThread(resolverloop, NULL, &rt);
     }
     rt.query = NULL;
     rt.starttime = 0;
@@ -252,7 +249,7 @@ int connectwithtimeout(ENetSocket sock, const char *hostname, ENetAddress &addre
     if(!conncond) conncond = SDL_CreateCond();
     SDL_LockMutex(connmutex);
     connectdata cd = { sock, address, -1 };
-    connthread = SDL_CreateThread(connectthread, &cd);
+    connthread = SDL_CreateThread(connectthread, NULL, &cd);
 
     int starttime = SDL_GetTicks(), timeout = 0;
     for(;;)
@@ -1327,6 +1324,7 @@ void retrieveservers(vector<char> &data)
         h.callbackfunc = progress_callback_retrieveservers;
         h.callbackdata = progresstext;
         show_out_of_renderloop_progress(0.01f, progresstext);
+
         if(h.set_host(mastername))
         {
             formatstring(progresstext)("retrieving servers from %s:%d... (esc to abort)", mastername, masterport);
@@ -1444,12 +1442,11 @@ COMMAND(updatefrommaster, "i");
 void writeservercfg()
 {
     stream *f = openfile(path("config/servers.cfg", true), "w");
-    if(!f) return;
+    if (!f) return;
     f->printf("// servers connected to are added here automatically\n");
-    loopvrev(servers)
-    {
+    loopvrev(servers) {
         f->printf("\naddserver %s %d", servers[i]->name, servers[i]->port);
-        if(servers[i]->msweight) f->printf(" %d", servers[i]->msweight);
+        if (servers[i]->msweight) f->printf(" %d", servers[i]->msweight);
     }
     f->printf("\n");
     delete f;

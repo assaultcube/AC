@@ -302,7 +302,6 @@ COMMAND(onrelease, "s");
 
 void saycommand(char *init)                         // turns input to the command line on or off
 {
-    SDL_EnableUNICODE(saycommandon = (init!=NULL));
     setscope(false);
     setburst(false);
     if(!editmode) keyrepeat(saycommandon);
@@ -334,7 +333,7 @@ SVARFF(mapmsg,
     if(editmode) unsavededits++;
 });
 
-#if !defined(WIN32) && !defined(__APPLE__)
+#if !defined(WIN32) && !defined(__APPLE__) && !defined(__ANDROID__)
 #include <X11/Xlib.h>
 #include <SDL_syswm.h>
 #endif
@@ -352,11 +351,12 @@ void pasteconsole(char *dst)
     extern void mac_pasteconsole(char *commandbuf);
 
     mac_pasteconsole(dst);
+    #elif defined(__ANDROID__)
     #else
     SDL_SysWMinfo wminfo;
     SDL_VERSION(&wminfo.version);
     wminfo.subsystem = SDL_SYSWM_X11;
-    if(!SDL_GetWMInfo(&wminfo)) return;
+    if(!SDL_GetWindowWMInfo(screen, &wminfo)) return;
     int cbsize;
     char *cb = XFetchBytes(wminfo.info.x11.display, &cbsize);
     if(!cb || !cbsize) return;
@@ -500,7 +500,7 @@ void execbind(keym &k, bool isdown)
     k.pressed = isdown;
 }
 
-void consolekey(int code, bool isdown, int cooked, SDLMod mod)
+void consolekey(int code, bool isdown, int cooked, SDL_Keymod mod)
 {
     static char *beforecomplete = NULL;
     static bool ignoreescup = false;
@@ -594,7 +594,7 @@ void consolekey(int code, bool isdown, int cooked, SDLMod mod)
     }
 }
 
-void keypress(int code, bool isdown, int cooked, SDLMod mod)
+void keypress(int code, bool isdown, int cooked, SDL_Keymod mod)
 {
     keym *haskey = NULL;
     loopv(keyms) if(keyms[i].code==code) { haskey = &keyms[i]; break; }
@@ -602,7 +602,9 @@ void keypress(int code, bool isdown, int cooked, SDLMod mod)
     else if(saycommandon) consolekey(code, isdown, cooked, mod);  // keystrokes go to commandline
     else if(!menukey(code, isdown, cooked, mod))                  // keystrokes go to menu
     {
-        if(haskey) execbind(*haskey, isdown);
+        if(haskey) {
+            execbind(*haskey, isdown);
+        }
     }
     if(isdown) exechook(HOOK_SP, "KEYPRESS", "KEYPRESS %d", code);
     else exechook(HOOK_SP, "KEYRELEASE", "%d", code);

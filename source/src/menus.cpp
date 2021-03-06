@@ -40,6 +40,10 @@ void showmenu(const char *name, bool top)
     }
     gmenu *m = menus.access(name);
     if(!m) return;
+
+    // in touch mode the only supported classical menu is the scoreboard
+    if(touchenabled() && m != scoremenu) return;
+
     if(!top && curmenu)
     {
         if(curmenu==m) return;
@@ -124,14 +128,7 @@ void drawarrow(int dir, int x, int y, int size, float r = 1.0f, float g = 1.0f, 
     glDisable(GL_BLEND);
     glDisable(GL_TEXTURE_2D);
     glColor3f(r, g, b);
-
-    glBegin(GL_TRIANGLES);
-    glVertex2f(x, dir ? y+size : y);
-    glVertex2f(x+size/2, dir ? y : y+size);
-    glVertex2f(x+size, dir ? y+size : y);
-    glEnd();
-    xtraverts += 3;
-
+    arrow(-1, dir, x, y, size, 0, 0);
     glEnable(GL_TEXTURE_2D);
     glEnable(GL_BLEND);
 }
@@ -143,8 +140,6 @@ bool menuvisible()
     if(!curmenu) return false;
     return true;
 }
-
-extern void *scoremenu;
 
 void rendermenu()
 {
@@ -438,7 +433,6 @@ struct mitemtextinput : mitemtext
     {
         if(on && hoveraction) execute(hoveraction);
 
-        SDL_EnableUNICODE(on);
         if(action && !on && modified && parent->items.find(this) != parent->items.length() - 1)
         {
             modified = false;
@@ -775,7 +769,6 @@ struct mitemcheckbox : mitem
     virtual const char *getaction() { return action; }
 };
 
-
 // console iface
 
 void *addmenu(const char *name, const char *title, bool allowinput, void (__cdecl *refreshfunc)(void *, bool), bool (__cdecl *keyfunc)(void *, int, bool, int), bool hotkeys, bool forwardkeys)
@@ -1087,11 +1080,11 @@ COMMAND(menuselectiondescbgcolor, "ssss");
 static bool iskeypressed(int key)
 {
     int numkeys = 0;
-    Uint8* state = SDL_GetKeyState(&numkeys);
+    const Uint8* state = SDL_GetKeyboardState(&numkeys);
     return key < numkeys && state[key] != 0;
 }
 
-bool menukey(int code, bool isdown, int unicode, SDLMod mod)
+bool menukey(int code, bool isdown, int unicode, SDL_Keymod mod)
 {
     if(!curmenu) return false;
     int n = curmenu->items.length(), menusel = curmenu->menusel;
@@ -1119,12 +1112,14 @@ bool menukey(int code, bool isdown, int unicode, SDLMod mod)
                 break;
             case SDLK_ESCAPE:
             case SDL_AC_BUTTON_RIGHT:
+            case TOUCH_MENU_LEFTSIDE:
                 if(!curmenu->allowinput) return false;
                 menuset(menustack.empty() ? NULL : menustack.pop(), false);
                 return true;
                 break;
             case SDLK_UP:
             case SDL_AC_BUTTON_WHEELUP:
+            case TOUCH_MENU_RIGHTSIDE_TOP:
                 if(iskeypressed(SDLK_LCTRL)) return menukey(SDLK_LEFT, isdown, 0);
                 if(iskeypressed(SDLK_LALT)) return menukey(SDLK_RIGHTBRACKET, isdown, 0);
                 if(!curmenu->allowinput) return false;
@@ -1132,6 +1127,7 @@ bool menukey(int code, bool isdown, int unicode, SDLMod mod)
                 break;
             case SDLK_DOWN:
             case SDL_AC_BUTTON_WHEELDOWN:
+            case TOUCH_MENU_RIGHTSIDE_BOTTOM:
                 if(iskeypressed(SDLK_LCTRL)) return menukey(SDLK_RIGHT, isdown, 0);
                 if(iskeypressed(SDLK_LALT)) return menukey(SDLK_LEFTBRACKET, isdown, 0);
                 if(!curmenu->allowinput) return false;
@@ -1182,11 +1178,11 @@ bool menukey(int code, bool isdown, int unicode, SDLMod mod)
     {
         switch(code)   // action on keyup to avoid repeats
         {
-            case SDLK_PRINT:
+            case SDL_SCANCODE_PRINTSCREEN:
                 curmenu->conprintmenu();
                 return true;
 
-            case SDLK_F12:
+            case SDL_SCANCODE_F12:
                 if(curmenu->allowinput)
                 {
                     extern void screenshot(const char *filename);
@@ -1196,7 +1192,7 @@ bool menukey(int code, bool isdown, int unicode, SDLMod mod)
         }
         if(!curmenu->allowinput || !curmenu->items.inrange(menusel)) return false;
         mitem &m = *curmenu->items[menusel];
-        if(code==SDLK_RETURN || code==SDLK_SPACE || code==SDL_AC_BUTTON_LEFT || code==SDL_AC_BUTTON_MIDDLE)
+        if(code==SDL_SCANCODE_RETURN || code==SDL_SCANCODE_SPACE || code==SDL_AC_BUTTON_LEFT || code==SDL_AC_BUTTON_MIDDLE) // fixme: ah
         {
             if(!m.greyedout && m.select() != -1) audiomgr.playsound(S_MENUENTER, SP_HIGHEST);
             return true;

@@ -1,11 +1,14 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual C++ Express 2010
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30907.101
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "assaultcube", "assaultcube.vcxproj", "{1FAF5BB4-C49A-4124-9F23-188528BAE7C8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
+		Master|Win32 = Master|Win32
 		Profile|Win32 = Profile|Win32
 		Release|Win32 = Release|Win32
 		Standalone Debug|Win32 = Standalone Debug|Win32
@@ -14,6 +17,8 @@ Global
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{1FAF5BB4-C49A-4124-9F23-188528BAE7C8}.Debug|Win32.ActiveCfg = Debug|Win32
 		{1FAF5BB4-C49A-4124-9F23-188528BAE7C8}.Debug|Win32.Build.0 = Debug|Win32
+		{1FAF5BB4-C49A-4124-9F23-188528BAE7C8}.Master|Win32.ActiveCfg = Master|Win32
+		{1FAF5BB4-C49A-4124-9F23-188528BAE7C8}.Master|Win32.Build.0 = Master|Win32
 		{1FAF5BB4-C49A-4124-9F23-188528BAE7C8}.Profile|Win32.ActiveCfg = Profile|Win32
 		{1FAF5BB4-C49A-4124-9F23-188528BAE7C8}.Profile|Win32.Build.0 = Profile|Win32
 		{1FAF5BB4-C49A-4124-9F23-188528BAE7C8}.Release|Win32.ActiveCfg = Release|Win32
@@ -25,5 +30,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B365DB92-CFE5-4A28-9796-C3D2CFEC1426}
 	EndGlobalSection
 EndGlobal

@@ -68,7 +68,7 @@ COMMANDN(weapon, requestweapon, "s");
 
 void shiftweapon(int *s)
 {
-    if(keypressed && player1->state == CS_ALIVE)
+    if((keypressed || touchenabled()) && player1->state == CS_ALIVE)
     {
         if(!player1->weaponsel->deselectable()) return;
 

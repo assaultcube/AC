@@ -22,7 +22,31 @@
    SDL_AC_BUTTON_WHEELUP = -4,
    SDL_AC_BUTTON_RIGHT = -3,
    SDL_AC_BUTTON_MIDDLE = -2,
-   SDL_AC_BUTTON_LEFT = -1
+   SDL_AC_BUTTON_LEFT = -1,
+
+   // touch layout for menu navigation
+   TOUCH_MENU_LEFTSIDE = 10000,
+   TOUCH_MENU_RIGHTSIDE_TOP = 10001,
+   TOUCH_MENU_RIGHTSIDE_MIDDLE = 10002,
+   TOUCH_MENU_RIGHTSIDE_BOTTOM = 10003,
+   // touch layout for gameplay - ordering matters
+   TOUCH_GAME_LEFTSIDE_TOP_CORNER = 10004,
+   TOUCH_GAME_LEFTSIDE_TOPRIGHT = 10005,
+   TOUCH_GAME_LEFTSIDE_TOP = 10006,
+   TOUCH_GAME_LEFTSIDE_TOPLEFT = 10007,
+   TOUCH_GAME_LEFTSIDE_LEFT = 10008,
+   TOUCH_GAME_LEFTSIDE_BOTTOMLEFT = 10009,
+   TOUCH_GAME_LEFTSIDE_BOTTOM = 10010,
+   TOUCH_GAME_LEFTSIDE_BOTTOMRIGHT = 10011,
+   TOUCH_GAME_LEFTSIDE_RIGHT = 10012,
+   TOUCH_GAME_LEFTSIDE_OUTERCIRCLE = 10013,
+
+   TOUCH_GAME_RIGHTSIDE_TOP_0 = 10020,
+   TOUCH_GAME_RIGHTSIDE_TOP_1 = 10021,
+   TOUCH_GAME_RIGHTSIDE_MIDDLE_0 = 10022,
+   TOUCH_GAME_RIGHTSIDE_MIDDLE_1 = 10023,
+   TOUCH_GAME_RIGHTSIDE_BOTTOM_0 = 10024,
+   TOUCH_GAME_RIGHTSIDE_BOTTOM_1 = 10025,
  };
 #endif
 
@@ -57,7 +81,13 @@ extern int maploaded, msctrl;
 extern float waterlevel;
 
 #define AC_VERSION 1202
+
+#ifdef __ANDROID__
+#define AC_MASTER_URI "acmaster.centralus.cloudapp.azure.com"
+#else
 #define AC_MASTER_URI "ms.cubers.net"
+#endif
+
 #define AC_MASTER_PORT 28760
 #define MAXCL 16
 #define CONFIGROTATEMAX 5               // keep 5 old versions of saved.cfg and init.cfg around
@@ -70,3 +100,9 @@ extern float waterlevel;
 
 #endif
 
+#ifdef MASTER
+
+
+#include "protos.h"
+
+#endif

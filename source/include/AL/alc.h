@@ -5,16 +5,11 @@
 extern "C" {
 #endif
 
-#if defined(_WIN32) && !defined(_XBOX)
- /* _OPENAL32LIB is deprecated */
- #if defined(AL_BUILD_LIBRARY) || defined (_OPENAL32LIB)
-  #define ALC_API __declspec(dllexport)
- #else
+#ifndef ALC_API
+ #if defined(AL_LIBTYPE_STATIC)
+  #define ALC_API
+ #elif defined(_WIN32)
   #define ALC_API __declspec(dllimport)
- #endif
-#else
- #if defined(AL_BUILD_LIBRARY) && defined(HAVE_GCC_VISIBILITY)
-  #define ALC_API __attribute__((visibility("default")))
  #else
   #define ALC_API extern
  #endif
@@ -52,7 +47,7 @@ typedef char ALCboolean;
 typedef char ALCchar;
 
 /** signed 8-bit 2's complement integer */
-typedef char ALCbyte;
+typedef signed char ALCbyte;
 
 /** unsigned 8-bit integer */
 typedef unsigned char ALCubyte;
@@ -166,18 +161,22 @@ typedef void ALCvoid;
 #define ALC_ATTRIBUTES_SIZE                      0x1002
 #define ALC_ALL_ATTRIBUTES                       0x1003
 
-/**
- * ALC_ENUMERATE_ALL_EXT enums
- */
-#define ALC_DEFAULT_ALL_DEVICES_SPECIFIER        0x1012
-#define ALC_ALL_DEVICES_SPECIFIER                0x1013
 
 /**
  * Capture extension
  */
+#define ALC_EXT_CAPTURE 1
 #define ALC_CAPTURE_DEVICE_SPECIFIER             0x310
 #define ALC_CAPTURE_DEFAULT_DEVICE_SPECIFIER     0x311
 #define ALC_CAPTURE_SAMPLES                      0x312
+
+
+/**
+ * ALC_ENUMERATE_ALL_EXT enums
+ */
+#define ALC_ENUMERATE_ALL_EXT 1
+#define ALC_DEFAULT_ALL_DEVICES_SPECIFIER        0x1012
+#define ALC_ALL_DEVICES_SPECIFIER                0x1013
 
 
 /*

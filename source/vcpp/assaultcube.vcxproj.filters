@@ -29,6 +29,18 @@
     <Filter Include="sound">
       <UniqueIdentifier>{f1b104ac-e944-435e-8b70-99868aa7c7e4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="touch">
+      <UniqueIdentifier>{1e6bfa62-91c2-4221-9c05-3f98d9c0666a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="touch\core">
+      <UniqueIdentifier>{8ab6b6ee-2541-4b02-9b68-3b7eed847e6b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="touch\gamescene">
+      <UniqueIdentifier>{c1d6e561-f14f-460e-911e-ec31de010e20}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="touch\mainscene">
+      <UniqueIdentifier>{c5a6b52a-1607-40d1-8803-a4a8cc833042}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\command.h">
@@ -99,6 +111,57 @@
     </ClInclude>
     <ClInclude Include="..\src\world.h">
       <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\touch\core\game.h">
+      <Filter>touch\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\touch\core\modelview.h">
+      <Filter>touch\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\touch\core\navigationbutton.h">
+      <Filter>touch\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\touch\core\renderer.h">
+      <Filter>touch\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\touch\core\sliderview.h">
+      <Filter>touch\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\touch\core\textview.h">
+      <Filter>touch\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\touch\core\touchmenu.h">
+      <Filter>touch\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\touch\core\view.h">
+      <Filter>touch\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\touch\gamescene\equipmentscene.h">
+      <Filter>touch\gamescene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\touch\gamescene\gamescene.h">
+      <Filter>touch\gamescene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\touch\gamescene\settingsscene.h">
+      <Filter>touch\gamescene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\touch\mainscene\mainscene.h">
+      <Filter>touch\mainscene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\touch\mainscene\namescene.h">
+      <Filter>touch\mainscene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\touch\mainscene\serverscene.h">
+      <Filter>touch\mainscene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\touch\mainscene\skinscene.h">
+      <Filter>touch\mainscene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\touch\mainscene\teamscene.h">
+      <Filter>touch\mainscene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\touch\mainscene\weaponscene.h">
+      <Filter>touch\mainscene</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -388,6 +451,12 @@
     </ClCompile>
     <ClCompile Include="..\src\soundscheduler.cpp">
       <Filter>sound</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\touch\touch.cpp">
+      <Filter>touch</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\master.cpp">
+      <Filter>cs</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

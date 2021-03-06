@@ -9,6 +9,7 @@
 
 
 #include "cube.h"
+
 #include "bot.h"
 
 weaponinfo_s WeaponInfoTable[MAX_WEAPONS] =

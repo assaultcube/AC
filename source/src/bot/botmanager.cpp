@@ -427,8 +427,20 @@ void CBotManager::MakeBotFileName(const char *szFileName, const char *szDir1, co
     DirSeperator = "\\";
     strcpy(szOutput, "bot\\");
 #else
+
     DirSeperator = "/";
-    strcpy(szOutput, "bot/");
+
+    extern char *absbasedir;
+    if(absbasedir)
+    {
+        strcpy(szOutput, absbasedir);
+        strcat(szOutput, "bot/");
+    }
+    else
+    {
+        strcpy(szOutput, "bot/");
+    }
+
 #endif
 
     if (szDir1)
@@ -444,6 +456,7 @@ void CBotManager::MakeBotFileName(const char *szFileName, const char *szDir1, co
     }
 
     strcat(szOutput, szFileName);
+
 }
 
 void CBotManager::CreateSkillData()
@@ -930,7 +943,7 @@ bool botmode()
 
 // Bot manager class end
 
-void addbot(char *arg1, char *arg2, char *arg3)
+void addbot(const char *arg1, const char *arg2, const char *arg3)
 {
     if(!botmode()) return;
     botent *b = BotManager.CreateBot(arg1, arg2, arg3);
@@ -939,7 +952,7 @@ void addbot(char *arg1, char *arg2, char *arg3)
 }
 COMMAND(addbot, "sss");
 
-void addnbot(char *arg1, char *arg2, char *arg3)
+void addnbot(const char *arg1, const char *arg2, const char *arg3)
 {
     if(!botmode()) return;
     if (!arg1 || !arg1[0]) return;

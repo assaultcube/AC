@@ -47,7 +47,7 @@
 #include <sys/poll.h>
 #endif
 
-#ifndef HAS_SOCKLEN_T
+#if !defined(HAS_SOCKLEN_T) && !defined(__ANDROID__)
 typedef int socklen_t;
 #endif
 
@@ -131,11 +131,14 @@ enet_address_get_host_ip (const ENetAddress * address, char * name, size_t nameL
 #else
     char * addr = inet_ntoa (* (struct in_addr *) & address -> host);
     if (addr != NULL)
-        strncpy (name, addr, nameLength);
+    {
+        strncpy(name, addr, nameLength);
         name[nameLength - 1] = '\0';
+    }
     else
 #endif
         return -1;
+
     return 0;
 }
 
@@ -172,6 +175,8 @@ enet_address_get_host (const ENetAddress * address, char * name, size_t nameLeng
 }
 
 int
+
+
 enet_socket_bind (ENetSocket socket, const ENetAddress * address)
 {
     struct sockaddr_in sin;

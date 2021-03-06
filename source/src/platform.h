@@ -42,10 +42,15 @@
     #include <SDL_image.h>
 
     #define GL_GLEXT_LEGACY
+
+    #ifdef __ANDROID__
+    #include "GL/gl.h"
+    #else
     #define __glext_h__
     #define NO_SDL_GLEXT
     #include <SDL_opengl.h>
     #undef __glext_h__
+    #endif
 
     #include "GL/glext.h"
 
@@ -61,10 +66,21 @@
         #define MOD_KEYS_CTRL (KMOD_LCTRL|KMOD_RCTRL)
     #endif
 
+    #ifndef __ANDROID__
     #include <setjmp.h>
+    #endif
 #endif
 
 #if defined(WIN32) || defined(__APPLE__) || !defined(STANDALONE) || defined(AC_FORCE_SDL_THREADS)
     #define AC_USE_SDL_THREADS
 #endif
 
+#ifdef __ANDROID__
+#include <gl4eshint.h>
+#include <android/log.h>
+#define TAG "AC"
+#define LOGE(...) __android_log_print(ANDROID_LOG_ERROR,    TAG, __VA_ARGS__)
+#define LOGW(...) __android_log_print(ANDROID_LOG_WARN,     TAG, __VA_ARGS__)
+#define LOGI(...) __android_log_print(ANDROID_LOG_INFO,     TAG, __VA_ARGS__)
+#define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG,    TAG, __VA_ARGS__)
+#endif

@@ -373,8 +373,8 @@ void drawradarent(float x, float y, float yaw, int col, int row, float iconsize,
 struct hudline : cline
 {
     int type;
-
-    hudline() : type(HUDMSG_INFO) {}
+    int dispmillis;
+    hudline() : type(HUDMSG_INFO), dispmillis(0) {}
 };
 
 struct hudmessages : consolebuffer<hudline>
@@ -401,18 +401,29 @@ struct hudmessages : consolebuffer<hudline>
         }
         else consolebuffer<hudline>::addline(sf, totalmillis).type = type;
     }
+    void keeplastline(int dispmillis)
+    {
+        if(conlines.length() > 0)
+        {
+            conlines[0].dispmillis = dispmillis;
+        }
+    }
     void render()
     {
         if(!conlines.length()) return;
         glPushMatrix();
         glLoadIdentity();
         glOrtho(0, VIRTW*0.9f, VIRTH*0.9f, 0, -1, 1);
-        int dispmillis = arenaintermission ? 6000 : 3000;
-        loopi(min(conlines.length(), 3)) if(totalmillis-conlines[i].millis<dispmillis)
+
+        loopi(min(conlines.length(), 3))
         {
-            cline &c = conlines[i];
-            int tw = text_width(c.line);
-            draw_text(c.line, int(tw > VIRTW*0.9f ? 0 : (VIRTW*0.9f-tw)/2), int(((VIRTH*0.9f)/4*3)+FONTH*i+pow((totalmillis-c.millis)/(float)dispmillis, 4)*VIRTH*0.9f/4.0f));
+            int dispmillis = arenaintermission ? 6000 : (conlines[i].dispmillis > 0 ? conlines[i].dispmillis : 3000);
+            if(totalmillis-conlines[i].millis<dispmillis)
+            {
+                cline &c = conlines[i];
+                int tw = text_width(c.line);
+                draw_text(c.line, int(tw > VIRTW*0.9f ? 0 : (VIRTW*0.9f-tw)/2), int(((VIRTH*0.9f)/4*3)+FONTH*i+pow((totalmillis-c.millis)/(float)dispmillis, 4)*VIRTH*0.9f/4.0f));
+            }
         }
         glPopMatrix();
     }
@@ -437,6 +448,11 @@ void hudeditf(int type, const char *s, ...)
 {
     defvformatstring(sf, s, s);
     hudmsgs.editline(type, sf);
+}
+
+void hudkeeplastline(int dispmillis)
+{
+    hudmsgs.keeplastline(dispmillis);
 }
 
 bool insideradar(const vec &centerpos, float radius, const vec &o)
@@ -777,11 +793,13 @@ VARP(dbgpos,0,0,1);
 VARP(showtargetname,0,1,1);
 VARP(showspeed, 0, 0, 1);
 VAR(blankouthud, 0, 0, 10000); //for "clean" screenshot
+FVARP(menuzoom, 0.0, 0.0f, 1.0f);
 string gtime;
 int dimeditinfopanel = 255;
 
 void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwater, int elapsed)
 {
+    bool menu = false;
     if(blankouthud > 0) { blankouthud -= elapsed; return; }
     else blankouthud = 0;
     playerent *p = camera1->type<ENT_CAMERA ? (playerent *)camera1 : player1;
@@ -834,10 +852,12 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     glEnable(GL_TEXTURE_2D);
 
     playerent *targetplayer = playerincrosshair();
-    bool menu = menuvisible();
+
+    extern gmenu *curmenu;
+    menu = menuvisible() && curmenu == scoremenu;
     bool command = getcurcommand(NULL) ? true : false;
     bool reloading = lastmillis < p->weaponsel->reloading + p->weaponsel->info.reloadtime;
-    if(p->state==CS_ALIVE || p->state==CS_EDITING)
+    if((p->state==CS_ALIVE || p->state==CS_EDITING) && !menu)
     {
         bool drawteamwarning = crosshairteamsign && targetplayer && isteam(targetplayer->team, p->team) && targetplayer->state==CS_ALIVE;
         if(!reloading) p->weaponsel->renderaimhelp(drawteamwarning);
@@ -845,8 +865,12 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     }
 
     drawdmgindicator();
+    if(p->state==CS_ALIVE && !menu)
+    {
+        if(!hidehudequipment) drawequipicons(p);
+    }
 
-    if(p->state==CS_ALIVE && !hidehudequipment) drawequipicons(p);
+    rendertouchhud(p);
 
     bool is_spect = (( player1->spectatemode==SM_FOLLOW1ST || player1->spectatemode==SM_FOLLOW3RD || player1->spectatemode==SM_FOLLOW3RD_TRANSPARENT ) &&
             players.inrange(player1->followplayercn) && players[player1->followplayercn]);
@@ -867,8 +891,6 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     glLoadIdentity();
     glOrtho(0, VIRTW*2, VIRTH*2, 0, -1, 1);
     extern void r_accuracy(int h);
-    extern void *scoremenu;
-    extern gmenu *curmenu;
     if(!is_spect && !editmode && !watchingdemo && !command && curmenu == scoremenu) r_accuracy(commandh);
     if(!hideconsole) renderconsole();
     formatstring(enginestateinfo)("%d %d %d %d %d", curfps, lod_factor(), nquads, curvert, xtraverts);
@@ -992,7 +1014,15 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     }
     //else draw_textf("%c%d here F1/F2 will be praised during a vote", 20*2, VIRTH+560, '\f', 0); // see position (left/top) setting in block above
 
-    if(menu) rendermenu();
+    if(menu) {
+        glLoadIdentity();
+        glOrtho(VIRTW*menuzoom, VIRTW*2-VIRTW*menuzoom, VIRTH*2-VIRTH*menuzoom, VIRTH*menuzoom, -1, 1);
+
+        rendermenu();
+
+        glLoadIdentity();
+        glOrtho(0, VIRTW*2, VIRTH*2, 0, -1, 1);
+    }
     else if(command) renderdoc(40, VIRTH, max(commandh*2 - VIRTH, 0));
 
     if(!hidespecthud && !menu && p->state==CS_DEAD && p->spectatemode<=SM_DEATHCAM)
@@ -1047,7 +1077,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         glLoadIdentity();
         glOrtho(0, VIRTW/2, VIRTH/2, 0, -1, 1);
 
-        if(p->state == CS_ALIVE && !hidehudequipment)
+        if(p->state == CS_ALIVE && !hidehudequipment && !menu)
         {
             pushfont("huddigits");
             draw_textf("%d", HUDPOS_HEALTH + HUDPOS_NUMBERSPACING, 823, p->health);
@@ -1142,7 +1172,7 @@ void loadingscreen(const char *fmt, ...)
             draw_text(str, w>=VIRTW ? 0 : (VIRTW-w)/2, VIRTH*3/4);
             glDisable(GL_BLEND);
         }
-        SDL_GL_SwapBuffers();
+        SDL_GL_SwapWindow(screen);
     }
 
     glDisable(GL_TEXTURE_2D);
@@ -1218,6 +1248,6 @@ void show_out_of_renderloop_progress(float bar1, const char *text1, float bar2, 
     glPopMatrix();
 
     glEnable(GL_DEPTH_TEST);
-    SDL_GL_SwapBuffers();
+    SDL_GL_SwapWindow(screen);
 }
 

@@ -24,7 +24,7 @@ void putint(vector<uchar> &p, int n) { putint_(p, n); }
 
 int getint(ucharbuf &p)
 {
-    int c = (char)p.get();
+    int c = (char) p.get();
     if(c==-128) { int n = p.get(); n |= char(p.get())<<8; DEBUGVAR(n); return n; }
     else if(c==-127) { int n = p.get(); n |= p.get()<<8; n |= p.get()<<16; n |= (p.get()<<24); DEBUGVAR(n); return n; }
     else

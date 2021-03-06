@@ -1,0 +1,12 @@
+.google/
+.gradle/
+.idea/
+app/build/
+app/.cxx/
+*.obj
+app/src/main/cpp/lib_src/
+app/src/main/cpp/lib/
+app/src/main/assets/bot/
+app/src/main/assets/config/
+app/src/main/assets/demos/
+app/src/main/assets/packages/

@@ -526,6 +526,8 @@ void stackdumper(unsigned int type, EXCEPTION_POINTERS *ep)
 #endif
     fatal("%s", out);
 }
+#elif defined(__ANDROID__)
+// fixme ah
 #elif defined(linux) || defined(__linux) || defined(__linux__)
 
 #include <execinfo.h>
@@ -915,7 +917,7 @@ void *sl_createthread(int (*fn)(void *), void *data)
     ti->data = data;
     ti->fn = fn;
     ti->done = 0;
-    ti->handle = SDL_CreateThread(sl_thread_indir, ti);
+    ti->handle = SDL_CreateThread(sl_thread_indir, NULL, ti);
     return (void *) ti;
 }
 

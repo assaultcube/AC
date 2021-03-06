@@ -425,7 +425,7 @@ public:
     void stopsound();
 
     // music handling
-    void music(char *name, int millis, char *cmd);
+    void music(const char *name, int millis, const char *cmd);
     void musicpreload(int id);
     void musicsuggest(int id, int millis, bool rndofs);
     void musicfadeout(int id);
