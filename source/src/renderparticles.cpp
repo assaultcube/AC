@@ -647,6 +647,7 @@ VARP(scorchttl, 0, 10000, 30000);
 bool addscorchmark(vec &o, float radius)
 {
     if(!scorchttl || !scorch) return false;
+    if(OUTBORD((int)o.x, (int)o.y)) return false;
     sqr *s = S((int)o.x, (int)o.y);
     if(s->type!=SPACE || o.z-s->floor>radius) return false;
     newparticle(vec(o.x, o.y, s->floor+0.02f), vec(0, 0, 1), scorchttl, 9);
