@@ -124,15 +124,15 @@ struct color
 extern stream *clientlogfile;
 extern vector<char> *bootclientlog;
 
-extern void keypress(int code, bool isdown, int cooked, SDLMod mod = KMOD_NONE);
+extern void keypress(int keycode, int scancode, bool isdown, SDL_Keymod mod = KMOD_NONE);
 extern int rendercommand(int x, int y, int w);
 extern void renderconsole();
 extern char *getcurcommand(int *pos);
 extern char *addreleaseaction(const char *s);
 extern void savehistory();
 extern void loadhistory();
+extern void processtextinput(const char *text);
 extern void writebinds(stream *f);
-extern void pasteconsole(char *dst);
 extern void clientlogf(const char *s, ...) PRINTFARGS(1, 2);
 
 struct keym
@@ -170,8 +170,9 @@ extern void menuimagemanual(void *menu, const char *filename1, const char *filen
 extern void menutitlemanual(void *menu, const char *title);
 extern bool needscoresreorder;
 extern void menuheader(void *menu, char *header, char *footer, bool heap = false);
-extern bool menukey(int code, bool isdown, int unicode, SDLMod mod = KMOD_NONE);
-extern void *addmenu(const char *name, const char *title = NULL, bool allowinput = true, void (__cdecl *refreshfunc)(void *, bool) = NULL, bool (__cdecl *keyfunc)(void *, int, bool, int) = NULL, bool hotkeys = false, bool forwardkeys = false);
+extern void menusay(const char *text);
+extern bool menukey(int code, bool isdown = true, SDL_Keymod mod = KMOD_NONE);
+extern void *addmenu(const char *name, const char *title = NULL, bool allowinput = true, void (__cdecl *refreshfunc)(void *, bool) = NULL, bool (__cdecl *keyfunc)(void *, int, bool) = NULL, bool hotkeys = false, bool forwardkeys = false);
 extern bool rendermenumdl();
 extern void menuset(void *m, bool save = true);
 extern void menuselect(void *menu, int sel);
@@ -195,7 +196,8 @@ struct mitem
     virtual int width() = 0;
     virtual int select() { return 0; }
     virtual void focus(bool on) { }
-    virtual void key(int code, bool isdown, int unicode) { }
+    virtual void say(const char *text) { }
+    virtual void key(int code, bool isdown) { }
     virtual void init() {}
     virtual const char *getdesc() { return NULL; }
     virtual const char *gettext() { return NULL; }
@@ -226,7 +228,7 @@ struct gmenu
     int menusel, menuselinit;
     bool allowinput, inited, hotkeys, forwardkeys;
     void (__cdecl *refreshfunc)(void *, bool);
-    bool (__cdecl *keyfunc)(void *, int, bool, int);
+    bool (__cdecl *keyfunc)(void *, int, bool);
     char *initaction;
     char *usefont;
     bool allowblink;
@@ -272,8 +274,8 @@ extern bool resolverwait(const char *name, ENetAddress *address);
 extern int connectwithtimeout(ENetSocket sock, const char *hostname, ENetAddress &remoteaddress);
 extern void writeservercfg();
 extern void refreshservers(void *menu, bool init);
-extern bool serverskey(void *menu, int code, bool isdown, int unicode);
-extern bool serverinfokey(void *menu, int code, bool isdown, int unicode);
+extern bool serverskey(void *menu, int code, bool isdown);
+extern bool serverinfokey(void *menu, int code, bool isdown);
 
 struct serverinfo
 {
@@ -377,7 +379,7 @@ extern glmatrixf mvmatrix, projmatrix, clipmatrix, mvpmatrix, invmvmatrix, invmv
 extern void resetcamera();
 
 extern void gl_checkextensions();
-extern void gl_init(int w, int h, int bpp, int depth, int fsaa);
+extern void gl_init(int w, int h, int depth, int fsaa);
 extern void enablepolygonoffset(GLenum type);
 extern void disablepolygonoffset(GLenum type, bool restore = true);
 extern void line(int x1, int y1, float z1, int x2, int y2, float z2);
@@ -523,6 +525,7 @@ extern void gets2c();
 extern void c2sinfo(playerent *d);
 extern void c2skeepalive();
 extern void neterr(const char *s);
+extern ENetPeer *curpeer;
 extern int getclientnum();
 extern void getmap(char *name = NULL, char *callback = NULL);
 extern void newteam(char *name);
@@ -670,24 +673,21 @@ extern int isoccluded(float vx, float vy, float cx, float cy, float csize);
 
 // main
 extern char *lang;
-extern SDL_Surface *screen;
-extern int colorbits, depthbits, stencilbits;
+extern SDL_Window *screen;
+extern int screenw, screenh;
+extern int stencilbits;
 
-extern void keyrepeat(bool on);
+enum { KR_CONSOLE = 1<<0, KR_MENU = 1<<1, KR_EDITMODE = 1<<2 };
+extern void keyrepeat(bool on, int mask = ~0);
+
+enum { TI_CONSOLE = 1<<0, TI_MENU = 1<<1 };
+extern void textinput(bool on, int mask = ~0);
+
 extern bool interceptkey(int sym);
 extern bool inmainloop;
 
-enum
-{
-    NOT_INITING = 0,
-    INIT_LOAD,
-    INIT_RESET
-};
-enum
-{
-    CHANGE_GFX   = 1<<0,
-    CHANGE_SOUND = 1<<1
-};
+enum { NOT_INITING = 0, INIT_LOAD, INIT_RESET };
+enum { CHANGE_GFX = 1<<0, CHANGE_SOUND = 1<<1 };
 extern bool initwarning(const char *desc, int level = INIT_RESET, int type = CHANGE_GFX);
 
 // rendertext
@@ -847,15 +847,15 @@ extern const char *particletypenames[MAXPARTYPES + 1];
 
 // worldio
 enum { LWW_ENTATTROVERFLOW = 0x1, LWW_DECODEERR = 0x10, LWW_WORLDERROR = 0x100, LWW_MISSINGMEDIA = 0x1000, LWW_CONFIGERR = 0x10000, LWW_MODELERR = 0x100000, LWW_SCRIPTERR = 0x1000000 };
-extern const char *setnames(const char *name);
+extern const char **setnames(const char *name);
 extern void save_world(char *mname, bool skipoptimise = false, bool addcomfort = false);
 extern int _ignoreillegalpaths;
 extern int load_world(char *mname);
 extern char *getfiledesc(const char *dir, const char *name, const char *ext);
-extern void writemap(char *name, int size, uchar *data);
-extern void writecfggz(char *name, int size, int sizegz, uchar *data);
-extern uchar *readmap(char *name, int *size, int *revision);
-extern uchar *readmcfggz(char *name, int *size, int *sizegz);
+extern void writemap(const char *name, int size, uchar *data);
+extern void writecfggz(const char *name, int size, int sizegz, uchar *data);
+extern uchar *readmap(const char *name, int *size, int *revision);
+extern uchar *readmcfggz(const char *name, int *size, int *sizegz);
 extern void rlencodecubes(vector<uchar> &f, sqr *s, int len, bool preservesolids);
 extern bool rldecodecubes(ucharbuf &f, sqr *s, int len, int version, bool silent);
 extern void clearheaderextras();
@@ -918,7 +918,6 @@ extern void addgib(playerent *d);
 extern playerent *playerincrosshair();
 extern int magsize(int gun);
 extern void setscope(bool activate);
-extern void setburst(bool activate);
 extern void intersectgeometry(const vec &from, vec &to);
 extern int intersect(playerent *d, const vec &from, const vec &to, vec *end = NULL);
 extern bool intersect(entity *e, const vec &from, const vec &to, vec *end = NULL);
@@ -930,6 +929,7 @@ extern int burstshotssettings[NUMGUNS];
 // entities
 extern int edithideentmask;
 extern void pickupeffects(int n, playerent *d);
+extern void rendereditentities();
 extern void renderentities();
 extern void rendermapmodels();
 extern void resetpickups(int type = -1);
@@ -955,6 +955,13 @@ extern const char *docgetdesc(const char *name);
 extern const char *acronymmodestr(int n);
 extern const char *fullmodestr(int n);
 extern int defaultgamelimit(int gamemode);
+extern int gmode_possible(bool hasffaspawns, bool hasteamspawns, bool hasflags);
+extern int gmode_parse(const char *list);
+extern char *gmode_enum(int gm, char *buf);
+extern int encodepitch(float p);
+extern float decodepitch(int r);
+extern int encodeyaw(float y);
+extern float decodeyaw(int r);
 
 // crypto
 #define TIGERHASHSIZE 24
@@ -962,18 +969,13 @@ extern void tigerhash(uchar *hash, const uchar *msg, int len);
 extern void *tigerhash_init(uchar *hash);
 extern void tigerhash_add(uchar *hash, const void *msg, int len, void *state);
 extern void tigerhash_finish(uchar *hash, void *state);
+extern const char *bin2hex(char *d, const uchar *s, int len);
+extern int hex2bin(uchar *d, const char *s, int maxlen);
+extern void ed25519_pubkey_from_private(uchar *pubkey, const uchar *privkey);
+extern void ed25519_sign(uchar *sm, int *smlen, const uchar *m, int mlen, const uchar *sk);
+extern uchar *ed25519_sign_check(uchar *sm, int smlen, const uchar *pk);
+extern uchar *sk; // client game key
 extern void loadcertdir();     // load all certs in "config/certs"
-#if 0
-// crypto // for AUTH
-extern void genprivkey(const char *seed, vector<char> &privstr, vector<char> &pubstr);
-extern bool hashstring(const char *str, char *result, int maxlen);
-extern void answerchallenge(const char *privstr, const char *challenge, vector<char> &answerstr);
-extern void *parsepubkey(const char *pubstr);
-extern void freepubkey(void *pubkey);
-extern void *genchallenge(void *pubkey, const void *seed, int seedlen, vector<char> &challengestr);
-extern void freechallenge(void *answer);
-extern bool checkchallenge(const char *answerstr, void *correct);
-#endif
 
 // console
 extern void conoutf(const char *s, ...) PRINTFARGS(1, 2);
@@ -1013,7 +1015,6 @@ extern void writecfg();
 extern void deletecfg();
 extern void identnames(vector<const char *> &names, bool builtinonly);
 extern void explodelist(const char *s, vector<char *> &elems);
-extern const char *escapestring(const char *s, bool force = true, bool noquotes = false);
 extern int execcontext;
 extern void pushscontext(int newcontext);
 extern int popscontext();
@@ -1024,14 +1025,18 @@ extern void dumpexecutionstack(stream *f);
 extern const char *currentserver(int i);
 
 // server
+enum { /* timecodes */ VS_FIRSTLOGIN = 0, VS_LASTLOGIN, VS_MUTE, VS_NOVOTE, VS_BAN, VS_ADMIN, VS_OWNER, VS_MAPUPLOAD,
+       /* stats/counters */ VS_MINUTESCONNECTED, VS_MINUTESACTIVE, VS_FLAGS, VS_FRAGS, VS_DEATHS, VS_TKS, VS_DAMAGE, VS_FF, VS_NUM, VS_NUMCOUNTERS = VS_MINUTESCONNECTED };
+extern const char *vskeywords[VS_NUM + 1], *vsnames[VS_NUM + 1];
 extern int modeacronyms;
 extern void servertoclient(int chan, uchar *buf, int len, bool demo = false);
 extern void localservertoclient(int chan, uchar *buf, int len, bool demo = false);
 extern const char *modestr(int n, bool acronyms = false);
 extern const char *voteerrorstr(int n);
 extern const char *mmfullname(int n);
+extern void filterconfigset(char *list, void *cs = NULL);
 extern void fatal(const char *s, ...) PRINTFARGS(1, 2);
-extern void initserver(bool dedicated, int argc = 0, char **argv = NULL);
+extern void initserver(bool dedicated);
 extern void cleanupserver();
 extern void localconnect();
 extern void localdisconnect();
@@ -1057,20 +1062,33 @@ extern void sendstring(const char *t, ucharbuf &p);
 extern void sendstring(const char *t, packetbuf &p);
 extern void sendstring(const char *t, vector<uchar> &p);
 extern void getstring(char *t, ucharbuf &p, int len = MAXTRANS);
+extern void putip4(ucharbuf &p, enet_uint32 ip);
+extern void putip4(packetbuf &p, enet_uint32 ip);
+extern void putip4(vector<uchar> &p, enet_uint32 ip);
+extern enet_uint32 getip4(ucharbuf &p);
+extern void putuintn(ucharbuf &p, uint64_t val, int n);
+extern void putuintn(packetbuf &p, uint64_t val, int n);
+extern void putuintn(vector<uchar> &p, uint64_t val, int n);
+extern uint64_t getuintn(ucharbuf &p, int n);
 extern void putgzbuf(vector<uchar> &d, vector<uchar> &s); // zips a vector into a stream, stored in another vector
 extern ucharbuf *getgzbuf(ucharbuf &p); // fetch a gzipped buffer; needs to be freed properly later
 extern void freegzbuf(ucharbuf *p);  // free a ucharbuf created by getgzbuf()
+extern bool validmapname(const char *s); // checks for length, allowed chars and special DOS filenames
 extern char *filtertext(char *dst, const char *src, int flags, int len = sizeof(string)-1);
 extern void filterrichtext(char *dst, const char *src, int len = sizeof(string)-1);
+extern const char *escapestring(const char *s, bool force = true, bool noquotes = false, vector<char> *buf = NULL);
 extern void filterlang(char *d, const char *s);
+extern void filtercountrycode(char *d, const char *s); // returns exactly two uppercase chars or "--"
 extern void trimtrailingwhitespace(char *s);
+extern int msgsizelookup(int msg);
+extern const char *disc_reason(int reason);
 extern string mastername;
 extern int masterport;
+extern bool usemaster;
 extern ENetSocket connectmaster();
-extern void serverms(int mode, int numplayers, int minremain, char *smapname, int millis, const ENetAddress &localaddr, int *mnum, int *msend, int *mrec, int *cnum, int *csend, int *crec, int protocol_version);
-extern int msgsizelookup(int msg);
+extern void serverms(int mode, int numplayers, int minremain, char *smapname, int millis, const ENetAddress &localaddr, int *mnum, int *msend, int *mrec, int *cnum, int *csend, int *crec, int protocol_version, const char *servdesccur, int _interm);
 extern const char *genpwdhash(const char *name, const char *pwd, int salt);
-extern void servermsinit(const char *master, const char *ip, int serverport, bool listen);
+extern void servermsinit(bool listen);
 extern bool serverpickup(int i, int sender);
 extern bool valid_client(int cn);
 extern void extinfo_cnbuf(ucharbuf &p, int cn);
@@ -1080,6 +1098,7 @@ extern char *votestring(int type, char *arg1, char *arg2, char *arg3);
 extern int wizardmain(int argc, char **argv);
 
 // some tools
+extern header *peekmapheader(uchar *data, int len);
 extern servsqr *createservworld(const sqr *s, int _cubicsize);
 extern int calcmapdims(mapdim_s &md, const servsqr *s, int _ssize);
 extern int calcmapareastats(mapareastats_s &ms, servsqr *s, int _ssize, const mapdim_s &md);
@@ -1095,8 +1114,6 @@ struct demoheader
     char desc[DHDR_DESCCHARS];
     char plist[DHDR_PLISTCHARS];
 };
-#define DEFDEMOFILEFMT "%w_%h_%n_%Mmin_%G"
-#define DEFDEMOTIMEFMT "%Y%m%d_%H%M"
 
 extern bool watchingdemo;
 extern int demoprotocol;
@@ -1106,9 +1123,13 @@ extern void enddemoplayback();
 
 enum { ACLOG_DEBUG = 0, ACLOG_VERBOSE, ACLOG_INFO, ACLOG_WARNING, ACLOG_ERROR, ACLOG_NUM };
 
-extern bool initlogging(const char *identity, int facility_, int consolethres, int filethres, int syslogthres, bool logtimestamp);
+extern bool initlogging(const char *identity, int facility_, int consolethres, int filethres, int syslogthres, bool logtimestamp, const char *logfilepath);
 extern void exitlogging();
-extern bool logline(int level, const char *msg, ...) PRINTFARGS(2, 3);
+extern bool logcheck(int level);
+extern void mlog(int level, const char *msg, ...) PRINTFARGS(2, 3); // log line from main thread (never blocks)
+extern void tlog(int level, const char *msg, ...) PRINTFARGS(2, 3); // log line from other-than-main thread (may block)
+extern void xlog(int level, const char *msg, ...) PRINTFARGS(2, 3); // log line from any thread (more expensive: only use for functions, that are called from main and other threads)
+extern void poll_logbuffers();
 
 // server config
 
@@ -1117,35 +1138,40 @@ struct serverconfigfile
     string filename;
     int filelen;
     char *buf;
-    serverconfigfile() : filelen(0), buf(NULL) { filename[0] = '\0'; }
+    uint32_t filehash;
+    sl_semaphore busy;
+    bool readfailed, updated;
+    serverconfigfile() : filelen(0), buf(NULL), busy(1, NULL) { filename[0] = '\0'; fnv1a_init(filehash); }
     virtual ~serverconfigfile() { DELETEA(buf); }
 
+    virtual void clear() {}
     virtual void read() {}
-    void init(const char *name);
-    bool load();
+    void init(const char *name, bool tracking = true);
+    virtual bool load();
+    bool isbusy();
+    void trypreload();
+    void process();
 };
 
 // server commandline parsing
 struct servercommandline
 {
-    int uprate, serverport, syslogfacility, filethres, syslogthres, maxdemos, maxclients, kickthreshold, banthreshold, verbose, incoming_limit, afk_limit, ban_time, demotimelocal;
-    const char *ip, *master, *logident, *serverpassword, *adminpasswd, *demopath, *maprot, *pwdfile, *blfile, *nbfile, *infopath, *motdpath, *forbidden, *demofilenameformat, *demotimestampformat;
+    int uprate, serverport, syslogfacility, filethres, syslogthres, maxdemos, maxclients, kickthreshold, banthreshold, verbose, incoming_limit, afk_limit, ban_time;
+    const char *ip, *master, *logident, *serverpassword, *adminpasswd, *demopath, *maprotfile, *pwdfile, *blfile, *geoipfile, *nbfile, *infopath, *motdpath, *forbidden, *service, *logfilepath, *parfilepath, *ssk, *vitabasename;
     bool logtimestamp, demo_interm, loggamestatus;
     string motd, servdesc_full, servdesc_pre, servdesc_suf, voteperm, mapperm;
     int clfilenesting;
-    vector<const char *> adminonlymaps;
+    vector<const char *> adminonlymaps; // FIXME: remove this
 
-    servercommandline() :   uprate(0), serverport(CUBE_DEFAULT_SERVER_PORT), syslogfacility(6), filethres(-1), syslogthres(-1), maxdemos(5),
-                            maxclients(DEFAULTCLIENTS), kickthreshold(-5), banthreshold(-6), verbose(0), incoming_limit(10), afk_limit(45000), ban_time(20*60*1000), demotimelocal(0),
-                            ip(""), master(NULL), logident(""), serverpassword(""), adminpasswd(""), demopath(""),
-                            maprot("config/maprot.cfg"), pwdfile("config/serverpwd.cfg"), blfile("config/serverblacklist.cfg"), nbfile("config/nicknameblacklist.cfg"),
-                            infopath("config/serverinfo"), motdpath("config/motd"), forbidden("config/forbidden.cfg"),
+    servercommandline() :   uprate(0), serverport(CUBE_DEFAULT_SERVER_PORT), syslogfacility(6), filethres(-1), syslogthres(-1), maxdemos(-1),
+                            maxclients(DEFAULTCLIENTS), kickthreshold(-5), banthreshold(-6), verbose(0), incoming_limit(10), afk_limit(45000), ban_time(20*60*1000),
+                            ip(""), master(NULL), logident(""), serverpassword(""), adminpasswd(""), demopath(NULL),
+                            maprotfile("config/maprot.cfg"), pwdfile("config/serverpwd.cfg"), blfile("config/serverblacklist.cfg"), geoipfile("config/geoip.cfg"), nbfile("config/nicknameblacklist.cfg"),
+                            infopath("config/serverinfo"), motdpath("config/motd"), forbidden("config/forbidden.cfg"), service(NULL), logfilepath("logs/"), parfilepath("config/serverparameters.cfg"), ssk(NULL), vitabasename("config/servervita"),
                             logtimestamp(false), demo_interm(false), loggamestatus(true),
                             clfilenesting(0)
     {
         motd[0] = servdesc_full[0] = servdesc_pre[0] = servdesc_suf[0] = voteperm[0] = mapperm[0] = '\0';
-        demofilenameformat = DEFDEMOFILEFMT;
-        demotimestampformat = DEFDEMOTIMEFMT;
     }
 
     bool checkarg(const char *arg)
@@ -1156,22 +1182,10 @@ struct servercommandline
         int ai = atoi(a);
         // client: dtwhzbsave
         switch(arg[1])
-        { // todo: gjlqEGHJQUYZ
+        { // todo: gjlqEJQU
+            case 'Y': ssk = a; break; // private server key
             case '-':
-                    if(!strncmp(arg, "--demofilenameformat=", 21))
-                    {
-                        demofilenameformat = arg+21;
-                    }
-                    else if(!strncmp(arg, "--demotimestampformat=", 22))
-                    {
-                        demotimestampformat = arg+22;
-                    }
-                    else if(!strncmp(arg, "--demotimelocal=", 16))
-                    {
-                        int ai = atoi(arg+16);
-                        demotimelocal = ai == 0 ? 0 : 1;
-                    }
-                    else if(!strncmp(arg, "--masterport=", 13))
+                    if(!strncmp(arg, "--masterport=", 13))
                     {
                         int ai = atoi(arg+13);
                         masterport = ai == 0 ? AC_MASTER_PORT : ai;
@@ -1193,7 +1207,9 @@ struct servercommandline
                     case 'S': syslogthres = atoi(a + 1); break;
                 }
                 break;
-            case 'A': if(*a) adminonlymaps.add(a); break;
+            case 'H': logfilepath = a; break;
+            case 'A': parfilepath = a; break;
+            case 'U': vitabasename = a; break;
             case 'c': if(ai > 0) maxclients = min(ai, MAXCLIENTS); break;
             case 'k':
             {
@@ -1223,9 +1239,10 @@ struct servercommandline
                 break;
             }
             case 'W': demopath = a; break;
-            case 'r': maprot = a; break;
+            case 'r': maprotfile = a; break;
             case 'X': pwdfile = a; break;
             case 'B': blfile = a; break;
+            case 'G': geoipfile = a; break;
             case 'K': nbfile = a; break;
             case 'I': infopath = a; break;
             case 'o': filterrichtext(motd, a); break;
@@ -1246,11 +1263,12 @@ struct servercommandline
             case 'P': concatstring(voteperm, a); break;
             case 'M': concatstring(mapperm, a); break;
             case 'Z': if(ai >= 0) incoming_limit = ai; break;
+            case 'S': service = a; break;
             case 'V': verbose++; break;
             case 'C': if(*a && clfilenesting < 3)
             {
                 serverconfigfile cfg;
-                cfg.init(a);
+                cfg.init(a, false);
                 cfg.load();
                 int line = 1;
                 clfilenesting++;

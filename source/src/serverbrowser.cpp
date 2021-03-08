@@ -74,7 +74,7 @@ void resolverinit()
         resolverthread &rt = resolverthreads.add();
         rt.query = NULL;
         rt.starttime = 0;
-        rt.thread = SDL_CreateThread(resolverloop, &rt);
+        rt.thread = SDL_CreateThread(resolverloop, "ResolverThread", &rt);
     }
     SDL_UnlockMutex(resolvermutex);
 }
@@ -84,10 +84,8 @@ void resolverstop(resolverthread &rt)
     SDL_LockMutex(resolvermutex);
     if(rt.query)
     {
-#ifndef __APPLE__
-        SDL_KillThread(rt.thread);
-#endif
-        rt.thread = SDL_CreateThread(resolverloop, &rt);
+        SDL_DetachThread(rt.thread);
+        rt.thread = SDL_CreateThread(resolverloop, "ResolverThread", &rt);
     }
     rt.query = NULL;
     rt.starttime = 0;
@@ -252,7 +250,7 @@ int connectwithtimeout(ENetSocket sock, const char *hostname, ENetAddress &addre
     if(!conncond) conncond = SDL_CreateCond();
     SDL_LockMutex(connmutex);
     connectdata cd = { sock, address, -1 };
-    connthread = SDL_CreateThread(connectthread, &cd);
+    connthread = SDL_CreateThread(connectthread, "ConnectThread", &cd);
 
     int starttime = SDL_GetTicks(), timeout = 0;
     for(;;)
@@ -293,7 +291,6 @@ serverinfo *findserverinfo(ENetAddress address)
 
 serverinfo *getconnectedserverinfo()
 {
-    extern ENetPeer *curpeer;
     if(!curpeer) return NULL;
     return findserverinfo(curpeer->address);
 }
@@ -1043,7 +1040,7 @@ void refreshservers(void *menu, bool init)
         {
             serverinfo &si = *servers[i];
             si.menuline_to = si.menuline_from = ((gmenu *)menu)->items.length();
-            if( (!showallservers && si.lastpingmillis <= servermenumillis) || (si.maxclients>MAXCL && searchlan<2) ) continue; // no pong yet or forbidden
+            if((!showallservers && si.lastpingmillis <= servermenumillis) || (si.maxclients > MAXCLIENTSONMASTER && searchlan<2) ) continue; // no pong yet or forbidden
             int banned = ((si.pongflags >> PONGFLAG_BANNED) & 1) | ((si.pongflags >> (PONGFLAG_BLACKLIST - 1)) & 2);
             bool showthisone = !(banned && showonlygoodservers) && !(showonlyfavourites > 0 && si.favcat != showonlyfavourites - 1);
             bool serverfull = si.numplayers >= si.maxclients;
@@ -1168,7 +1165,7 @@ void refreshservers(void *menu, bool init)
     }
 }
 
-bool serverskey(void *menu, int code, bool isdown, int unicode)
+bool serverskey(void *menu, int code, bool isdown)
 {
     int fk[] = { SDLK_1, SDLK_2, SDLK_3, SDLK_4, SDLK_5, SDLK_6, SDLK_7, SDLK_8, SDLK_9, SDLK_0 }, gogetem = 1;
     if(!isdown) return false;
@@ -1266,7 +1263,7 @@ bool serverskey(void *menu, int code, bool isdown, int unicode)
     return false;
 }
 
-bool serverinfokey(void *menu, int code, bool isdown, int unicode)
+bool serverinfokey(void *menu, int code, bool isdown)
 {
     if(!isdown) return false;
     switch(code)
@@ -1306,9 +1303,6 @@ void clearservers()
 
 #define RETRIEVELIMIT 5000
 
-extern char *global_name;
-bool cllock = false, clfail = false;
-
 int progress_callback_retrieveservers(void *data, float progress)
 {
     if(progress < 0) show_out_of_renderloop_progress(progress + 1.0f, "waiting for response (esc to abort)");
@@ -1330,19 +1324,17 @@ void retrieveservers(vector<char> &data)
         if(h.set_host(mastername))
         {
             formatstring(progresstext)("retrieving servers from %s:%d... (esc to abort)", mastername, masterport);
-            defformatstring(url)("/retrieve.do?action=list&name=%s&version=%d&build=%d", urlencode(global_name, true), AC_VERSION, getbuildtype()|(1<<16));
+            defformatstring(url)("/retrieve.do?action=list&name=%s&version=%d&build=%d", urlencode(player1->name, true), AC_VERSION, getbuildtype()|(1<<16));
             h.outvec = (vector<uchar> *) &data; // ouch...
             show_out_of_renderloop_progress(0, progresstext);
             int got = h.get(url, RETRIEVELIMIT, RETRIEVELIMIT);
             if(got < 0 || h.response != 200) data.setsize(0);
             h.outvec = NULL; // must not be cleaned up by httpget
             if(data.length()) data.add('\0');
-            clfail = false;
         }
         else
         {
             conoutf("failed to resolve host %s", mastername);
-            clfail = true;
         }
     }
     else
@@ -1351,14 +1343,12 @@ void retrieveservers(vector<char> &data)
         if(sock == ENET_SOCKET_NULL)
         {
             conoutf("Master server is not replying.");
-            clfail = true;
             return;
         }
-        clfail = false;
         defformatstring(text)("retrieving servers from %s:%d... (esc to abort)", mastername, masterport);
         show_out_of_renderloop_progress(0, text);
         int starttime = SDL_GetTicks(), timeout = 0;
-        defformatstring(request)("list %s %d %d\n", global_name, AC_VERSION, getbuildtype());
+        defformatstring(request)("list %s %d %d\n", player1->name, AC_VERSION, getbuildtype());
         const char *req = request;
         int reqlen = strlen(req);
         ENetBuffer buf;
@@ -1408,17 +1398,12 @@ VAR(msctrl, 1, 1, INT_MAX);
 void updatefrommaster(int *force)
 {
     static int lastupdate = 0;
-    if(lastupdate==0) cllock = true;
     if(!*force && lastupdate && totalmillis-lastupdate<masterupdatefrequency*1000) return;
 
     vector<char> data;
     retrieveservers(data);
 
-    if(data.empty())
-    {
-        if (!clfail) conoutf("Master server is not replying. \f1Get more information at http://masterserver.cubers.net/");
-        cllock = !clfail;
-    }
+    if(data.empty()) conoutf("Master server is not replying. \f1Get more information at http://masterserver.cubers.net/");
     else
     {
         // preserve currently connected server from deletion
@@ -1427,12 +1412,10 @@ void updatefrommaster(int *force)
         if(curserver) copystring(curname, curserver->name);
 
         clearservers();
-        if(!strncmp(data.getbuf(), "addserver", 9)) cllock = false; // the ms could reply other thing... but currently, this is useless
-        if(!cllock )
-        {
-            execute(data.getbuf());
-            if(curserver) addserver(curname, curserver->port, curserver->msweight);
-        }
+
+        execute(data.getbuf());
+        if(curserver) addserver(curname, curserver->port, curserver->msweight);
+
         lastupdate = totalmillis;
     }
 }

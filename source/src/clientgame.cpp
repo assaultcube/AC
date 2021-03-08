@@ -5,7 +5,6 @@
 
 int nextmode = 0;   // nextmode becomes gamemode after next map load
 VAR(gamemode, 1, 0, 0);
-VAR(nextGameMode, 1, 0, 0);
 VARP(modeacronyms, 0, 1, 1);
 
 flaginfo flaginfos[2];
@@ -15,8 +14,6 @@ mapdim_s clmapdims;     // min/max X/Y and delta X/Y and min/max Z
 void mode(int *n)
 {
     nextmode = *n;
-    nextGameMode = nextmode;
-    if(m_mp(*n) || !multiplayer()) addmsg(SV_GAMEMODE, "ri", *n);
 }
 COMMAND(mode, "i");
 
@@ -45,15 +42,12 @@ void setskin(playerent *pl, int skin, int team)
     pl->setskin(team, skin);
 }
 
-extern char *global_name;
-
 bool duplicatename(playerent *d, char *name = NULL)
 {
     if(!name) name = d->name;
     if(d!=player1 && !strcmp(name, player1->name) && !watchingdemo) return true;
     if(!strcmp(name, "you")) return true;
     loopv(players) if(players[i] && d!=players[i] && !strcmp(name, players[i]->name)) return true;
-    global_name = player1->name; // this certainly is not the best place to put this
     return false;
 }
 
@@ -115,6 +109,7 @@ void ignore(int *cn)
     playerent *d = getclient(*cn);
     if(d && d != player1) d->ignored = true;
 }
+COMMAND(ignore, "i");
 
 void listignored()
 {
@@ -124,17 +119,20 @@ void listignored()
     if(*pl) conoutf("ignored players: %s", pl + 2);
     else conoutf("no players are ignored");
 }
+COMMAND(listignored, "");
 
 void clearignored(int *cn)
 {
     loopv(players) if(players[i] && (*cn < 0 || *cn == i)) players[i]->ignored = false;
 }
+COMMAND(clearignored, "i");
 
 void muteplayer(int *cn)
 {
     playerent *d = getclient(*cn);
     if(d && d != player1) d->muted = true;
 }
+COMMAND(muteplayer, "i");
 
 void listmuted()
 {
@@ -144,17 +142,12 @@ void listmuted()
     if(*pl) conoutf("muted players: %s", pl + 2);
     else conoutf("no players are muted");
 }
+COMMAND(listmuted, "");
 
 void clearmuted(char *cn)
 {
     loopv(players) if(players[i] && (*cn < 0 || *cn == i)) players[i]->muted = false;
 }
-
-COMMAND(ignore, "i");
-COMMAND(listignored, "");
-COMMAND(clearignored, "i");
-COMMAND(muteplayer, "i");
-COMMAND(listmuted, "");
 COMMAND(clearmuted, "i");
 
 void newname(const char *name)
@@ -171,6 +164,7 @@ void newname(const char *name)
     }
     else conoutf("your name is: %s", player1->name);
 }
+COMMANDN(name, newname, "s");
 
 SVARFF(curname, { curname = exchangestr(curname, player1->name); }, {} );
 
@@ -191,12 +185,14 @@ void newteam(char *name)
     }
     else conoutf("your team is: %s", team_string(player1->team));
 }
+COMMANDN(team, newteam, "s");
 
 void benchme()
 {
     if(team_isactive(player1->team) && servstate.mastermode == MM_MATCH)
         addmsg(SV_SWITCHTEAM, "ri", team_tospec(player1->team));
 }
+COMMAND(benchme, "");
 
 int _setskin(int s, int t)
 {
@@ -217,14 +213,11 @@ void curmodeattr(char *attr)
     else if(!strcmp(attr, "bot")) { intret(m_botmode); return; }
     intret(0);
 }
+COMMAND(curmodeattr, "s");
 
-COMMANDN(team, newteam, "s");
-COMMANDN(name, newname, "s");
-COMMAND(benchme, "");
 COMMANDF(isclient, "i", (int *cn) { intret(getclient(*cn) != NULL ? 1 : 0); } );
 COMMANDF(curmastermode, "", (void) { intret(servstate.mastermode); });
 COMMANDF(curautoteam, "", (void) { intret(servstate.autoteam); });
-COMMAND(curmodeattr, "s");
 COMMANDF(curmap, "", (void) { result(behindpath(getclientmap())); });
 COMMANDF(curplayers, "", (void) { intret(players.length() + 1); });
 VARP(showscoresondeath, 0, 1, 1);
@@ -295,11 +288,8 @@ void playerinfo(int *cn, const char *attr)
     ATTR_INT(skin_rvsf, p->skin(TEAM_RVSF));
     ATTR_INT(skin, p->skin(player1->team));
 
-    string addrstr = "";
-    uint2ip(p->address, addr);
-    if(addr[3] != 0 || player1->clientrole==CR_ADMIN)
-        formatstring(addrstr)("%d.%d.%d.%d", addr[0], addr[1], addr[2], addr[3]); // full IP
-    else formatstring(addrstr)("%d.%d.%d.x", addr[0], addr[1], addr[2]); // censored IP
+    string addrstr;
+    iptoa(p->address, addrstr);
     ATTR_STR(ip, addrstr);
 
     conoutf("invalid attribute: %s", attr);
@@ -373,7 +363,6 @@ const char *currentserver(int i) // [client version]
     // using the curpeer directly we can get the info of our currently connected server
     string r;
     r[0] = '\0';
-    extern ENetPeer *curpeer;
     if(curpeer)
     {
         switch(i)
@@ -453,10 +442,10 @@ void deathstate(playerent *pl)
     {
         if(showscoresondeath) showscores(true);
         setscope(false);
-        setburst(false);
         if(editmode) toggleedit(true);
         if(pl->team == TEAM_SPECT) spectatemode(SM_FLY);
         else if(team_isspect(pl->team)) spectatemode(SM_FOLLOW1ST);
+        if(pl->spectatemode == SM_DEATHCAM) addmsg(SV_SPECTCN, "ri", (player1->followplayercn = FPCN_DEATHCAM));
     }
     else pl->resetinterp();
 }
@@ -468,7 +457,6 @@ void spawnstate(playerent *d)              // reset player state not persistent 
     if(d==player1)
     {
         setscope(false);
-        setburst(false);
     }
     if(d->deaths==0) d->resetstats();
 }
@@ -529,7 +517,7 @@ void zapplayer(playerent *&d)
 
 void movelocalplayer()
 {
-    if(player1->state==CS_DEAD && !player1->allowmove())
+    if(!player1->allowmove())
     {
         if(lastmillis-player1->lastpain<2000)
         {
@@ -657,6 +645,7 @@ void addsleep_(int *msec, char *cmd, int *persist)
 {
     addsleep(*msec, cmd, *persist != 0);
 }
+COMMANDN(sleep, addsleep_, "isi");
 
 void resetsleep(bool force)
 {
@@ -669,7 +658,6 @@ void resetsleep(bool force)
     sleepssemaphore->post();
 }
 
-COMMANDN(sleep, addsleep_, "isi");
 COMMANDF(resetsleeps, "", (void) { resetsleep(true); });
 
 void updateworld(int curtime, int lastmillis)        // main game update loop
@@ -800,22 +788,12 @@ void respawnself()
         }
         showscores(false);
         setscope(false);
-        setburst(false);
         lasthit = 0;
         spawnplayer(player1);
         player1->lifesequence++;
         player1->weaponswitch(player1->primweap);
         player1->weaponchanging -= player1->weapons[player1->gunselect]->weaponchangetime/2; // 2011jan16:ft: for a little no-shoot after spawn
     }
-}
-
-extern int checkarea(int maplayout_factor, char *maplayout);
-extern int MA;
-extern float Mh;
-
-bool bad_map() // this function makes a pair with good_map from clients2c
-{
-    return (gamemode != GMODE_COOPEDIT && ( Mh >= MAXMHEIGHT || MA >= MAXMAREA ));
 }
 
 inline const char * spawn_message()
@@ -839,11 +817,7 @@ int waiting_permission = 0;
 
 bool tryrespawn()
 {
-    if(m_mp(gamemode) && multiplayer(NULL) && bad_map())
-    {
-        hudoutf("This map is not supported in multiplayer. Read the docs about map quality/dimensions.");
-    }
-    else if(spawnpermission > SP_OK_NUM)
+    if(spawnpermission > SP_OK_NUM)
     {
         hudeditf(HUDMSG_TIMER, "\f%s", spawn_message());
     }
@@ -930,8 +904,6 @@ void dodamage(int damage, playerent *pl, playerent *actor, int gun, bool gib, bo
 {
     if(pl->state != CS_ALIVE || intermission) return;
     pl->lastpain = lastmillis;
-    // could the author of the FIXME below please elaborate what's to fix?! (ft:2011mar28)
-    // I suppose someone wanted to play the hitsound for player1 or spectated player (lucas:2011may22)
     playerent *h = player1->isspectating() && player1->followplayercn >= 0 && (player1->spectatemode == SM_FOLLOW1ST || player1->spectatemode == SM_FOLLOW3RD || player1->spectatemode == SM_FOLLOW3RD_TRANSPARENT) ? getclient(player1->followplayercn) : NULL;
     if(!h) h = player1;
     exechook(HOOK_SP, "onHit", "%d %d %d %d %d", actor->clientnum, pl->clientnum, damage, gun, gib ? 1 : 0);
@@ -969,10 +941,9 @@ void dokill(playerent *pl, playerent *act, bool gib, int gun)
 
     exechook(HOOK_SP, "onKill", "%d %d %d %d", act->clientnum, pl->clientnum, gun, gib ? 1 : 0);
 
-    string pname, aname, death;
-    copystring(pname, pl==player1 ? "you" : colorname(pl));
-    copystring(aname, act==player1 ? "you" : colorname(act));
-    copystring(death, killmessage(gun, gib));
+    const char *pname = pl == player1 ? "you" : colorname(pl);
+    const char *aname = act == player1 ? "you" : colorname(act);
+    const char *death = killmessage(gun, gib);
     void (*outf)(const char *s, ...) = (pl == player1 || act == player1) ? hudoutf : conoutf;
 
     if(pl==act)
@@ -1176,29 +1147,12 @@ void resetmap(bool mrproper)
 }
 
 int suicided = -1;
-extern bool good_map();
-extern bool item_fail;
-extern int MA, F2F, Ma, Hhits;
-extern float Mh;
-
-VARP(mapstats_hud, 0, 0, 1);
-
-void showmapstats()
-{
-    conoutf("\f2Map Quality Stats");
-    conoutf("  The mean height is: %.2f", Mh);
-    if (Hhits) conoutf("  Height check is: %d", Hhits);
-    if (MA) conoutf("  The max area is: %d (of %d)", MA, Ma);
-    if (m_flags && F2F < 1000) conoutf("  Flag-to-flag distance is: %d", (int)sqrtf(F2F));
-    if (item_fail) conoutf("  There are one or more items too close to each other in this map");
-}
-COMMAND(showmapstats, "");
 
 VARP(showmodedescriptions, 0, 1, 1);
-extern bool canceldownloads;
 
 void startmap(const char *name, bool reset, bool norespawn)   // called just after a map load
 {
+    extern bool canceldownloads;
     canceldownloads = false;
     copystring(clientmap, name);
 
@@ -1212,16 +1166,13 @@ void startmap(const char *name, bool reset, bool norespawn)   // called just aft
     suicided = -1;
     spawncycle = -1;
     lasthit = 0;
-    player1->followplayercn = -1;
     if(m_valid(gamemode) && !m_mp(gamemode)) respawnself();
     else findplayerstart(player1);
-    if(good_map()==MAP_IS_BAD) conoutf("You cannot play in this map due to quality requisites. Please, report this incident.");
-    if (mapstats_hud) showmapstats();
 
     if(!reset) return;
 
-    player1->frags = player1->flagscore = player1->deaths = player1->lifesequence = player1->points = player1->tks = 0;
-    loopv(players) if(players[i]) players[i]->frags = players[i]->flagscore = players[i]->deaths = players[i]->lifesequence = players[i]->points = players[i]->tks = 0;
+    player1->startmap();
+    loopv(players) if(players[i]) players[i]->startmap();
     if(editmode) toggleedit(true);
     intermission = false;
     showscores(false);
@@ -1297,6 +1248,7 @@ void flagmsg(int flag, int message, int actor, int flagtime)
             }
             else hudoutf("\f2%s%s has %s flag", flagteam, colorname(act), teamstr);
             break;
+
         case FM_LOST:
         case FM_DROP:
         {
@@ -1315,6 +1267,7 @@ void flagmsg(int flag, int message, int actor, int flagtime)
             if(firstperson) hudoutf("\f2you returned your flag");
             else hudoutf("\f2%s returned %s flag", colorname(act), teamstr);
             break;
+
         case FM_SCORE:
             audiomgr.playsound(S_FLAGSCORE, SP_HIGHEST);
             if(firstperson)
@@ -1324,6 +1277,7 @@ void flagmsg(int flag, int message, int actor, int flagtime)
             }
             else hudoutf("\f2%s scored for %s", colorname(act), neutral ? teamnames[act->team] : teammate ? "your team" : "the enemy team");
             break;
+
         case FM_KTFSCORE:
         {
             audiomgr.playsound(S_KTFSCORE, SP_HIGHEST);
@@ -1340,6 +1294,7 @@ void flagmsg(int flag, int message, int actor, int flagtime)
         case FM_SCOREFAIL: // sound?
             hudoutf("\f2%s failed to score (own team flag not taken)", firstperson ? "you" : colorname(act));
             break;
+
         case FM_RESET:
             audiomgr.playsound(S_FLAGRETURN, SP_HIGHEST);
             hudoutf("the server reset the flag");
@@ -1646,13 +1601,11 @@ void cleanplayervotes(playerent *p)
 
 void whois(int *cn)
 {
+    string tmp;
     loopv(players) if(players[i] && players[i]->type == ENT_PLAYER && (*cn == -1 || players[i]->clientnum == *cn))
     {
         playerent *p = players[i];
-        uint2ip(p->address, ip);
-        if(ip[3] != 0 || player1->clientrole==CR_ADMIN)
-            conoutf("WHOIS client %d:\tname %s , IP %d.%d.%d.%d , %d teamkill%s", p->clientnum, colorname(p), ip[0], ip[1], ip[2], ip[3], p->tks, p->tks == 1 ? "" : "s"); // full IP
-        else conoutf("WHOIS client %d:\tname %s , IP %d.%d.%d.x , %d teamkill%s", p->clientnum, colorname(p), ip[0], ip[1], ip[2], p->tks, p->tks == 1 ? "" : "s"); // censored IP
+        conoutf("WHOIS client %d:\tname %s , IP %s , %d teamkill%s", p->clientnum, colorname(p), iptoa(p->address, tmp), p->tks, p->tks == 1 ? "" : "s"); // full IP
     }
 }
 COMMAND(whois, "i");
@@ -1681,7 +1634,6 @@ void setadmin(int *claim, char *password)
     else if(*claim != 0 && *password)
         addmsg(SV_SETADMIN, "ris", *claim, genpwdhash(player1->name, password, sessionid));
 }
-
 COMMAND(setadmin, "is");
 
 static vector<mline> mlines;
@@ -1729,6 +1681,7 @@ playerent *updatefollowplayer(int shiftdirection)
     if(oldidx < 0) oldidx = 0;
     int idx = ((oldidx + shiftdirection) % available.length() + available.length()) % available.length();
 
+    if(player1->followplayercn != available[idx]->clientnum) addmsg(SV_SPECTCN, "ri", available[idx]->clientnum);
     player1->followplayercn = available[idx]->clientnum;
     return players[player1->followplayercn];
 }
@@ -1739,7 +1692,6 @@ void spectate()
     if(!team_isspect(player1->team)) addmsg(SV_SWITCHTEAM, "ri", TEAM_SPECT);
     else tryrespawn();
 }
-
 COMMAND(spectate, "");
 
 void setfollowplayer(int cn)
@@ -1749,12 +1701,11 @@ void setfollowplayer(int cn)
     {
         if(!(m_teammode && player1->team != TEAM_SPECT && !watchingdemo && team_base(players[cn]->team) != team_base(player1->team)))
         {
-            player1->followplayercn = cn;
+            if(player1->followplayercn != cn) addmsg(SV_SPECTCN, "ri", (player1->followplayercn = cn));
             if(player1->spectatemode == SM_FLY) player1->spectatemode = SM_FOLLOW1ST;
         }
     }
 }
-
 COMMANDF(setfollowplayer, "i", (int *cn) { setfollowplayer(*cn); });
 
 // set new spect mode
@@ -1762,9 +1713,11 @@ void spectatemode(int mode)
 {
     if((player1->state != CS_DEAD && player1->state != CS_SPECTATE && !team_isspect(player1->team)) || (!m_teammode && !team_isspect(player1->team) && servstate.mastermode == MM_MATCH)) return;  // during ffa matches only SPECTATORS can spectate
     if(mode == player1->spectatemode || (m_botmode && mode != SM_FLY)) return;
+    if (mode == SM_OVERVIEW && player1->clientrole != CR_ADMIN && servstate.mastermode != MM_MATCH && servstate.mastermode != MM_PRIVATE) return;
     showscores(false);
     switch(mode)
     {
+        case SM_DEATHCAM:
         case SM_FOLLOW1ST:
         case SM_FOLLOW3RD:
         case SM_FOLLOW3RD_TRANSPARENT:
@@ -1785,16 +1738,17 @@ void spectatemode(int mode)
                     player1->resetinterp();
                 }
                 else entinmap(player1); // or drop 'em at a random place
+                addmsg(SV_SPECTCN, "ri", (player1->followplayercn = FPCN_FLY));
             }
             break;
         }
         case SM_OVERVIEW:
+            addmsg(SV_SPECTCN, "ri", (player1->followplayercn = FPCN_OVERVIEW));
             break;
         default: break;
     }
     player1->spectatemode = mode;
 }
-
 COMMANDF(spectatemode, "i", (int *mode) { spectatemode(*mode); });
 
 void togglespect() // cycle through all spectating modes
@@ -1809,15 +1763,13 @@ void togglespect() // cycle through all spectating modes
         spectatemode(mode);
     }
 }
-
 COMMAND(togglespect, "");
 
-void changefollowplayer(int shift)
+void changefollowplayer(int *shift)
 {
-    if(!m_botmode) updatefollowplayer(shift);
+    if(!m_botmode) updatefollowplayer(*shift);
 }
-
-COMMANDF(changefollowplayer, "i", (int *dir) { changefollowplayer(*dir); });
+COMMAND(changefollowplayer, "i");
 
 void spectatecn()
 {
@@ -1826,7 +1778,6 @@ void spectatecn()
         spectcn = player1->followplayercn;
     intret(spectcn);
 }
-
 COMMAND(spectatecn, "");
 
 void serverextension(char *ext, char *args)
@@ -1836,5 +1787,4 @@ void serverextension(char *ext, char *args)
     if(n>0) addmsg(SV_EXTENSION, "rsis", ext, n, args);
     else addmsg(SV_EXTENSION, "rsi", ext, n);
 }
-
 COMMAND(serverextension, "ss");

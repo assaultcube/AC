@@ -66,6 +66,7 @@ inline int iabs(int n) { return labs(n); }
 #define rnd(x) ((int)(randomMT()&0xFFFFFF)%(x))
 #define rndscale(x) (float((randomMT()&0xFFFFFF)*double(x)/double(0xFFFFFF)))
 #define detrnd(s, x) ((int)(((((uint)(s))*1103515245+12345)>>16)%(x)))
+#define constarraysize(x) ((int)(sizeof(x)/sizeof(*x)))
 
 #define loop(v,m) for(int v = 0; v<int(m); v++)
 #define loopi(m) loop(i,m)
@@ -116,8 +117,15 @@ inline int iabs(int n) { return labs(n); }
 #define MAXSTRLEN 260
 typedef char string[MAXSTRLEN];
 
-inline void vformatstring(char *d, const char *fmt, va_list v, int len = MAXSTRLEN) { _vsnprintf(d, len, fmt, v); d[len-1] = 0; }
-inline char *copystring(char *d, const char *s, size_t len = MAXSTRLEN) { strncpy(d, s, len); d[len-1] = 0; return d; }
+#define vformatstring(d,last,fmt) { va_list ap; va_start(ap, last); vformatstring_(d, fmt, ap); va_end(ap); }
+inline void vformatstring_(char* d, const char* fmt, va_list v, int len = MAXSTRLEN) { _vsnprintf(d, len, fmt, v); d[len - 1] = 0; }
+inline char *copystring(char *d, const char *s, size_t len = MAXSTRLEN)
+{
+    size_t slen = min(strlen(s), len-1);
+    memcpy(d, s, slen);
+    d[slen] = 0;
+    return d;
+}
 inline char *concatstring(char *d, const char *s, size_t len = MAXSTRLEN) { size_t used = strlen(d); return used < len ? copystring(d+used, s, len-used) : d; }
 extern char *concatformatstring(char *d, const char *s, ...) PRINTFARGS(2, 3);
 
@@ -127,45 +135,13 @@ struct stringformatter
     stringformatter(char *buf): buf((char *)buf) {}
     void operator()(const char *fmt, ...) PRINTFARGS(2, 3)
     {
-        va_list v;
-        va_start(v, fmt);
-        vformatstring(buf, fmt, v);
-        va_end(v);
+        vformatstring(buf, fmt, fmt);
     }
 };
 
 #define formatstring(d) stringformatter((char *)d)
 #define defformatstring(d) string d; formatstring(d)
-#define defvformatstring(d,last,fmt) string d; { va_list ap; va_start(ap, last); vformatstring(d, fmt, ap); va_end(ap); }
-
-#define MAXMAPNAMELEN 64
-inline bool validmapname(const char *s)
-{
-    int len = strlen(s);
-    if(len > MAXMAPNAMELEN) return false;
-    if(len == 3 || len == 4)
-    {
-        char uc[4];
-        loopi(3) uc[i] = toupper(s[i]);
-        uc[3] = '\0';
-        const char *resd = "COMLPTCONPRNAUXNUL", *fnd = strstr(resd, uc);
-        if(fnd)
-        {
-            int pos = (int) (fnd - resd);
-            if(pos == 0 || pos == 3)
-            {
-                if(isdigit(s[3])) return false; // COMx, LPTx
-            }
-            else if(pos % 3 == 0) return false; // CON, PRN, AUX, NUL
-        }
-    }
-    while(*s != '\0')
-    {
-        if(!isalnum(*s) && *s != '_' && *s != '-' && *s != '.') return false;
-        ++s;
-    }
-    return true;
-}
+#define defvformatstring(d,last,fmt) string d; vformatstring(d,last,fmt)
 
 #define loopv(v)    for(int i = 0; i<(v).length(); i++)
 #define loopvj(v)   for(int j = 0; j<(v).length(); j++)
@@ -536,14 +512,16 @@ static inline bool htcmp(const char *x, const char *y)
     return !strcmp(x, y);
 }
 
-static inline uint hthash(const uchar *key)
+struct uchar32 { uchar u[32]; };
+
+static inline uint hthash(const uchar32 &key)
 {
-    return *((uint *)key);
+    return *((uint *)&key);
 }
 
-static inline bool htcmp(const uchar *x, const uchar *y)  // assume "uchar *" points to 32byte public keys
+static inline bool htcmp(const uchar32 &x, const uchar32 &y)
 {
-    return !memcmp(x, y, 32);
+    return !memcmp(&x, &y, 32);
 }
 
 static inline uint hthash(int key)
@@ -620,10 +598,10 @@ template <class K, class T> struct hashtable
         }
         chain *c = unused;
         unused = unused->next;
-        c->key = key;
         c->next = table[h];
-        table[h] = c;
+        c->key = key;
         numelems++;
+        table[h] = c;
         return c;
     }
 
@@ -873,14 +851,6 @@ template<class T> inline void endiansame(T *buf, int len) {}
     template<class T> inline void bigswap(T *buf, int len) { if(*(const uchar *)&islittleendian) endianswap(buf, len); }
 #endif
 
-#define uint2ip(address, ip) uchar ip[4]; \
-if(isbigendian())\
-{ \
-    enet_uint32 big = endianswap(address);\
-    memcpy(&ip, &big, 4);\
-}\
-else memcpy(&ip, &address, 4);\
-
 /* workaround for some C platforms that have these two functions as macros - not used anywhere */
 #ifdef getchar
 #undef getchar
@@ -968,11 +938,9 @@ extern void *zipmanualopen(stream *f, vector<const char *> &files);
 extern stream *zipmanualstream(void *a, int n);
 extern int zipmanualread(void *a, int n, stream *f, int maxlen = INT_MAX);
 extern void zipmanualclose(void *a);
-extern struct mapstats *loadmapstats(const char *filename, bool getlayout);
 extern bool cmpb(void *b, int n, enet_uint32 c);
 extern bool cmpf(char *fn, enet_uint32 c);
 extern enet_uint32 adler(unsigned char *data, size_t len);
-extern void endianswap(void *, int, int);
 extern bool isbigendian();
 extern void strtoupper(char *t, const char *s = NULL);
 extern void seedMT(uint seed);
@@ -985,13 +953,16 @@ extern void entropy_add_block(const uchar *s, int len);
 extern void entropy_get(uchar *buf, int len);
 
 struct iprange { enet_uint32 lr, ur; };
+struct iprangecc : iprange { union { int ci; char cc[4]; enet_uint32 cu; };  };
 extern const char *atoip(const char *s, enet_uint32 *ip);
 extern const char *atoipr(const char *s, iprange *ir);
-extern const char *iptoa(const enet_uint32 ip);
-extern const char *iprtoa(const struct iprange &ipr);
+extern const char *iptoa(const enet_uint32 ip, char *b);
+extern const char *iprtoa(const struct iprange &ipr, char *b);
+extern char *formatdemofilename(const char *demoformat, const char *timestampformat, const char *map, int mode, int srvclock, int secondsplayed, int secondsremaining, enet_uint32 ip, char *buf);
 extern int cmpiprange(const struct iprange *a, const struct iprange *b);
 extern int cmpipmatch(const struct iprange *a, const struct iprange *b);
 extern int cvecprintf(vector<char> &v, const char *s, ...) PRINTFARGS(2, 3);
+extern int cvecconcat(vector<char> &v, const char *s);
 extern const char *hiddenpwd(const char *pwd, int showchars = 0);
 extern int getlistindex(const char *key, const char *list[], bool acceptnumeric = true, int deflt = -1);
 extern void parseupdatelist(hashtable<const char *, int> &ht, char *buf, const char *prefix = NULL, const char *suffix = NULL);
@@ -1017,18 +988,32 @@ struct sl_semaphore
     sl_semaphore(int init, int *errorcount);  // init: initial semaphore value; errorcount: pointer to error counter for semaphore-related errors or NULL
     ~sl_semaphore();
     void wait();     // blocks, until semaphore gets available
-    int trywait();   // returns 0, if semaphore was locked (like wait(), but returns !=0 instead of blocking)
+    int trywait();   // returns 0, if semaphore was successfully locked (like wait(), but returns !=0 instead of blocking)
     int timedwait(int howlongmillis); // like trywait(), but waits for a litte before returning failure
     int getvalue();  // returns current semaphore value
     void post();     // increments (unlocks) semaphore
 };
 
-extern void *sl_createthread(int (*fn)(void *), void *data);
+extern void *sl_createthread(int (*fn)(void *), void *data, const char *name = NULL);
 extern int sl_waitthread(void *ti);
 extern bool sl_pollthread(void *ti);
 extern void sl_detachthread(void *ti);
 extern void sl_sleep(int duration);
 extern bool ismainthread();
 
-#endif
+/////////////////////////////////////////////////////////  FNV-1a  ///////////////////////////////////////////////////////////////////
+// Fowler–Noll–Vo is a non-cryptographic hash function created by Glenn Fowler, Landon Curt Noll, and Phong Vo. It is public domain.
+// We use the 32-bit-version here.
 
+inline void fnv1a_init(uint32_t &hash)
+{
+    hash = 2166136261UL;
+}
+
+inline void fnv1a_add(uint32_t &hash, uchar byte)
+{
+    hash ^= byte;
+    hash *= 16777619;
+}
+
+#endif

@@ -13,7 +13,7 @@ del tmpFile
 
 rem get AC files from latest local release tag
 cd ..\..\..\
-git archive --format zip --output source\vcpp\buildEnv\%ACDIR%\%NEWACTAG%.zip %NEWACTAG%
+git archive --format zip --output source\vcpp\buildEnv\%ACDIR%\%NEWACTAG%.zip experimental
 cd source\vcpp\buildEnv\%ACDIR%
 7z x %NEWACTAG%.zip
 7z x %NEWACTAG%.zip -o..\%ACDIRTESTING%
@@ -21,6 +21,6 @@ del ..\%ACDIRTESTING%\assaultcube.bat
 del %NEWACTAG%.zip
 
 rem get documentation files from latest remote release tag
-svn export --force https://github.com/assaultcube/assaultcube.github.io/tags/%NEWACTAG%/htdocs/docs/ docs
+svn export --force https://github.com/assaultcube/assaultcube.github.io/trunk/htdocs/docs/ docs
 
 pause

@@ -187,7 +187,7 @@ void loadcrosshair(const char *type, const char *filename)
     }
     else if(strchr(type, '.'))
     {   // old syntax "loadcrosshair filename type", remove this in 2020
-        const char *oldcrosshairnames[CROSSHAIR_NUM + 1] = { "default", "teammate", "scope", "knife", "pistol", "carbine", "shotgun", "smg", "sniper", "ar", "cpistol", "grenades", "akimbo", "" };
+        const char *oldcrosshairnames[CROSSHAIR_NUM + 1] = { "default", "teammate", "scope", "knife", "pistol", "carbine", "shotgun", "smg", "sniper", "ar", "grenades", "akimbo", "" };
         index = getlistindex(filename, oldcrosshairnames, false, 0);
         if(index > 2) index -= 3;
         else index += NUMGUNS;
@@ -248,6 +248,7 @@ VARP(damageindicatordist, 0, 500, 10000);
 VARP(damageindicatortime, 1, 1000, 10000);
 VARP(damageindicatoralpha, 1, 50, 100);
 int damagedirections[8] = {0};
+void *damageindicatorplayer = NULL;
 
 void updatedmgindicator(playerent *p, vec &attack)
 {
@@ -255,9 +256,10 @@ void updatedmgindicator(playerent *p, vec &attack)
     vec base_d = p->o;
     base_d.sub(attack);
     damagedirections[(int(742.5f - p->yaw - base_d.anglexy()) / 45) & 0x7] = lastmillis + damageindicatortime;
+    damageindicatorplayer = p;
 }
 
-void drawdmgindicator()
+void drawdmgindicator(playerent *p)
 {
     if(!damageindicatorsize) return;
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -333,12 +335,13 @@ void drawequipicons(playerent *p)
 
     // health & armor
     if(p->armour) drawequipicon(HUDPOS_ARMOUR*2, 1650, (p->armour-1)/25, 2);
+    if(p->mag[GUN_GRENADE]) drawequipicon(oldfashionedgunstats ? (HUDPOS_GRENADE + (((float)screenw / (float)screenh > 1.5f) ? 75 : 25)) * 2 : HUDPOS_GRENADE*2, 1650, 3, 1);
     drawequipicon(HUDPOS_HEALTH*2, 1650, 2, 3);
     if(p->mag[GUN_GRENADE]) drawequipicon(oldfashionedgunstats ? (HUDPOS_GRENADE + 25)*2 : HUDPOS_GRENADE*2, 1650, 3, 1);
 
     // weapons
     int c = p->weaponsel->type != GUN_GRENADE ? p->weaponsel->type : getprevweaponsel(p), r = 0;
-    if(c==GUN_AKIMBO || c==GUN_CPISTOL) c = GUN_PISTOL; // same icon for akimb & pistol
+    if(c==GUN_AKIMBO) c = GUN_PISTOL; // same icon for akimb & pistol
     if(c>3) { c -= 4; r = 1; }
 
     if(p->weaponsel && valid_weapon(p->weaponsel->type)) drawequipicon(HUDPOS_WEAPON*2, 1650, c, r);
@@ -465,6 +468,7 @@ void drawradar_showmap(playerent *p, int w, int h)
     float iconsize = radarentsize/0.2f;
     glColor3f(1.0f, 1.0f, 1.0f);
     glPushMatrix();
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     bool spect3rd = p->spectatemode > SM_FOLLOW1ST && p->spectatemode <= SM_FOLLOW3RD_TRANSPARENT;
     playerent *d = spect3rd ? players[p->followplayercn] : p;
     int p_baseteam = p->team == TEAM_SPECT && spect3rd ? team_base(players[p->followplayercn]->team) : team_base(p->team);
@@ -540,7 +544,7 @@ void drawradar_showmap(playerent *p, int w, int h)
             }
             if(f.state == CTFF_STOLEN)
             {
-                if(m_teammode && !m_ktf && player1->team == TEAM_SPECT && p->spectatemode > SM_FOLLOW3RD_TRANSPARENT) continue;
+                if(m_teammode && !m_ktf && player1->team == TEAM_SPECT && (p->spectatemode == SM_DEATHCAM || p->spectatemode > SM_FOLLOW3RD_TRANSPARENT)) continue;
                 float d2c = 1.6f * radarentsize/16.0f;
                 vec apos(d2c, -d2c, 0);
                 if(f.actor)
@@ -590,6 +594,7 @@ void drawradar_vicinity(playerent *p, int w, int h)
     vec d4rc = vec(d->o).sub(rsd).normalize().mul(0);
     vec usecenter = vec(d->o).sub(rtr).sub(d4rc);
     glDisable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     circle(minimaptex, halfviewsize, halfviewsize, halfviewsize, usecenter.x/(float)gdim, usecenter.y/(float)gdim, scaleh, 31); //Draw mimimaptext as radar background
     glTranslatef(halfviewsize, halfviewsize, 0);
 
@@ -644,7 +649,7 @@ void drawradar_vicinity(playerent *p, int w, int h)
             }
             if(f.state == CTFF_STOLEN)
             {
-                if(m_teammode && !m_ktf && player1->team == TEAM_SPECT && p->spectatemode > SM_FOLLOW3RD_TRANSPARENT) continue;
+                if(m_teammode && !m_ktf && player1->team == TEAM_SPECT && (p->spectatemode == SM_DEATHCAM || p->spectatemode > SM_FOLLOW3RD_TRANSPARENT)) continue;
                 vec apos(d2c, -d2c, 0);
                 if(f.actor)
                 {
@@ -724,51 +729,6 @@ inline char rangecolor(int val, const char *colors, int thres1, int thres2, int 
     return colors[3];
 }
 
-void drawmedals(float x, float y, int col, int row, Texture *tex)
-{
-    if(tex)
-    {
-        glPushAttrib(GL_COLOR_BUFFER_BIT);
-        glDisable(GL_BLEND);
-        drawicon(tex, x, y, 120, col, row, 1/4.0f);
-        glPopAttrib();
-    }
-}
-const char *medal_str[] =
-{
-    "Best Fragger", "Dude that dies a lot"
-}; //just some medals string tests, nothing serious
-extern bool medals_arrived;
-extern medalsst a_medals[END_MDS];
-void drawscores()
-{
-    static float time=0;
-    if(!medals_arrived) {time=0; return;} else if(time > 5){time=0; medals_arrived=0;}
-    static Texture *tex = NULL;
-    if(!tex) tex = textureload("packages/misc/nice_medals.png", 4);
-    time+=((float)(curtime))/1000;
-    float vw=VIRTW*7/4,vh=VIRTH*7/4;
-    glPushAttrib(GL_COLOR_BUFFER_BIT);
-    glLoadIdentity();
-    glOrtho(0, vw, vh, 0, -1, 1);
-    int left = vw/4, top = vh/4;
-    blendbox(left, top, left*3, top*3, true, -1);
-    top+=10;left+=10;const float txtdx=160,txtdy=30,medalsdy=130;
-    glColor4f(1,1,1,1);
-    float desttime=0;
-    loopi(END_MDS) {
-        if(a_medals[i].assigned) {
-            desttime+=0.3;
-            if(time < desttime) continue;
-            drawmedals(left, top, 0, 0, tex);
-            playerent *mpl = getclient(a_medals[i].cn);
-            draw_textf("%s %s: %d", left+txtdx, top+txtdy, medal_str[i], mpl->name, a_medals[i].item); top+=medalsdy;
-        }
-    }
-
-    glPopAttrib();
-}
-
 string enginestateinfo = "";
 COMMANDF(getEngineState, "", () { result(enginestateinfo); });
 
@@ -786,6 +746,8 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     else blankouthud = 0;
     playerent *p = camera1->type<ENT_CAMERA ? (playerent *)camera1 : player1;
     bool spectating = player1->isspectating();
+    bool is_spect = (player1->spectatemode >= SM_FOLLOW1ST && player1->spectatemode <= SM_FOLLOW3RD_TRANSPARENT &&
+        players.inrange(player1->followplayercn) && players[player1->followplayercn]);
 
     glDisable(GL_DEPTH_TEST);
 
@@ -844,12 +806,10 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         if(!editmode && !showmap) drawktfindicator(p);
     }
 
-    drawdmgindicator();
+    // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // without below condition it was always set in drawdmgindicator()
+    if(damageindicatorplayer == p || (is_spect && getclient(player1->followplayercn) == damageindicatorplayer)) drawdmgindicator(p);
 
     if(p->state==CS_ALIVE && !hidehudequipment) drawequipicons(p);
-
-    bool is_spect = (( player1->spectatemode==SM_FOLLOW1ST || player1->spectatemode==SM_FOLLOW3RD || player1->spectatemode==SM_FOLLOW3RD_TRANSPARENT ) &&
-            players.inrange(player1->followplayercn) && players[player1->followplayercn]);
 
     if(!hideradar || showmap) drawradar(p, w, h);
     if(!editmode)
@@ -1025,7 +985,6 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         glPopMatrix();
     }
 
-    drawscores();
     if(!hidespecthud && spectating && player1->spectatemode!=SM_DEATHCAM)
     {
         glLoadIdentity();
@@ -1142,7 +1101,7 @@ void loadingscreen(const char *fmt, ...)
             draw_text(str, w>=VIRTW ? 0 : (VIRTW-w)/2, VIRTH*3/4);
             glDisable(GL_BLEND);
         }
-        SDL_GL_SwapBuffers();
+        SDL_GL_SwapWindow(screen);
     }
 
     glDisable(GL_TEXTURE_2D);
@@ -1218,6 +1177,6 @@ void show_out_of_renderloop_progress(float bar1, const char *text1, float bar2, 
     glPopMatrix();
 
     glEnable(GL_DEPTH_TEST);
-    SDL_GL_SwapBuffers();
+    SDL_GL_SwapWindow(screen);
 }
 

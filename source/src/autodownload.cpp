@@ -76,7 +76,8 @@ int pingpckserver(void *data) // fetch updates.txt from a media server, measure 
     u.set(s->host);
     s->resolved = h.set_host(u.domain) ? 1 : 0;
     SDL_mutexP(pckpinglog_lock);
-    cvecprintf(pckping_log, "lresolving hostname %s %s (%s)\n", u.domain, s->resolved ? "succeeded" : "failed", iptoa(ntohl(h.ip.host)));
+    string b;
+    cvecprintf(pckping_log, "lresolving hostname %s %s (%s)\n", u.domain, s->resolved ? "succeeded" : "failed", iptoa(ENET_NET_TO_HOST_32(h.ip.host), b));
     SDL_mutexV(pckpinglog_lock);
     if(s->resolved)
     {
@@ -140,7 +141,7 @@ int pingallpckservers(void *data)
         pckpinglog_lock = SDL_CreateMutex();
         vector<SDL_Thread *> pckthreads;
         int nop, good = 0, disabled = 0;
-        loopv(pckservers) if(pckservers[i]->priority > -1000) pckthreads.add(SDL_CreateThread(pingpckserver, pckservers[i])); // start pinging all servers at once
+        loopv(pckservers) if(pckservers[i]->priority > -1000) pckthreads.add(SDL_CreateThread(pingpckserver, "PingPackageServer", pckservers[i])); // start pinging all servers at once
         loopv(pckthreads) if(pckthreads[i]) SDL_WaitThread(pckthreads[i], &nop); // wait for all ping threads to finish
         SDL_DestroyMutex(pckpinglog_lock);
         loopv(pckservers)
@@ -165,7 +166,7 @@ void setupautodownload()
     // fetch updates from all configured servers
     // in a background thread
     // during startup
-    pingallpckthread = SDL_CreateThread(pingallpckservers, NULL);
+    pingallpckthread = SDL_CreateThread(pingallpckservers, "PingAllPackageServers", NULL);
 }
 
 void pollautodownloadresponse() // thread-safe feedback from the autodownload-updater thread

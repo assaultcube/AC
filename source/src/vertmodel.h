@@ -721,7 +721,7 @@ struct vertmodel : model
             ntags[numtags].name = newstring(name);
             loopi(numframes)
             {
-                memcpy(&ntags[(numtags + 1)*i], &tags[numtags*i], numtags*sizeof(tag));
+                memcpy((void *)&ntags[(numtags + 1)*i], (void *)&tags[numtags*i], numtags*sizeof(tag));
 
                 tag *t = &ntags[(numtags + 1)*i + numtags];
                 t->pos = m->verts[m->numverts*i + verts[0]];
@@ -1058,9 +1058,8 @@ struct vertmodel : model
             shadows = new GLuint[numframes];
             glGenTextures(numframes, shadows);
 
-            extern SDL_Surface *screen;
             int aasize = 1<<(dynshadowsize + aadynshadow);
-            while(aasize > screen->w || aasize > screen->h) aasize /= 2;
+            while(aasize > screenw || aasize > screenh) aasize /= 2;
 
             stream *f = filename ? opengzfile(filename, "wb") : NULL;
             if(f)
@@ -1095,7 +1094,7 @@ struct vertmodel : model
             endgenshadow();
 
             glEnable(GL_FOG);
-            glViewport(0, 0, screen->w, screen->h);
+            glViewport(0, 0, screenw, screenh);
 
             if(f) delete f;
         }
@@ -1256,7 +1255,6 @@ struct vertmodel : model
 
     void setskin(int tex = 0)
     {
-        //if(parts.length()!=1 || parts[0]->meshes.length()!=1) return;
         if(parts.length() < 1 || parts[0]->meshes.length() < 1) return;
         mesh &m = *parts[0]->meshes[0];
         m.tex = tex;

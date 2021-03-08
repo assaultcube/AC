@@ -97,21 +97,6 @@ struct _mapconfigdata
     }
 };
 
-struct mapstats
-{
-    struct header hdr;
-    int entcnt[MAXENTTYPES];
-    int cgzsize;
-    uchar *enttypes;
-    short *entposs;
-    int spawns[3];
-    int flags[2];
-    int flagents[2];
-    bool hasffaspawns;
-    bool hasteamspawns;
-    bool hasflags;
-};
-
 struct mapdim_s
 {   //   0   2   1   3     6         7
     int x1, x2, y1, y2, minfloor, maxceil;       // outer borders (points to last used cube)
@@ -183,10 +168,3 @@ struct entitystats_s
     short first[MAXENTTYPES], last[MAXENTTYPES]; // first and last occurence of every basic ent type
 };
 
-
-// legacy
-
-#define MAXMHEIGHT 30
-#define MAXMAREA 10000
-#define MAXHHITS 50000                  // was 6000, which denied my fav. maps - jamz, 2012-06-12; 15000 denies sane map too - lucas
-#define MINFF 2500

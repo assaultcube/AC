@@ -1,6 +1,6 @@
 /*
   SDL_image:  An example image loading library for use with SDL
-  Copyright (C) 1997-2012 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2019 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -21,8 +21,8 @@
 
 /* A simple library to load images of various formats as SDL surfaces */
 
-#ifndef _SDL_IMAGE_H
-#define _SDL_IMAGE_H
+#ifndef SDL_IMAGE_H_
+#define SDL_IMAGE_H_
 
 #include "SDL.h"
 #include "SDL_version.h"
@@ -35,19 +35,31 @@ extern "C" {
 
 /* Printable format: "%d.%d.%d", MAJOR, MINOR, PATCHLEVEL
 */
-#define SDL_IMAGE_MAJOR_VERSION	1
-#define SDL_IMAGE_MINOR_VERSION	2
-#define SDL_IMAGE_PATCHLEVEL	12
+#define SDL_IMAGE_MAJOR_VERSION 2
+#define SDL_IMAGE_MINOR_VERSION 0
+#define SDL_IMAGE_PATCHLEVEL    5
 
 /* This macro can be used to fill a version structure with the compile-time
  * version of the SDL_image library.
  */
-#define SDL_IMAGE_VERSION(X)						\
-{									\
-	(X)->major = SDL_IMAGE_MAJOR_VERSION;				\
-	(X)->minor = SDL_IMAGE_MINOR_VERSION;				\
-	(X)->patch = SDL_IMAGE_PATCHLEVEL;				\
+#define SDL_IMAGE_VERSION(X)                        \
+{                                                   \
+    (X)->major = SDL_IMAGE_MAJOR_VERSION;           \
+    (X)->minor = SDL_IMAGE_MINOR_VERSION;           \
+    (X)->patch = SDL_IMAGE_PATCHLEVEL;              \
 }
+
+/**
+ *  This is the version number macro for the current SDL_image version.
+ */
+#define SDL_IMAGE_COMPILEDVERSION \
+    SDL_VERSIONNUM(SDL_IMAGE_MAJOR_VERSION, SDL_IMAGE_MINOR_VERSION, SDL_IMAGE_PATCHLEVEL)
+
+/**
+ *  This macro will evaluate to true if compiled with SDL_image at least X.Y.Z.
+ */
+#define SDL_IMAGE_VERSION_ATLEAST(X, Y, Z) \
+    (SDL_IMAGE_COMPILEDVERSION >= SDL_VERSIONNUM(X, Y, Z))
 
 /* This function gets the version of the dynamically linked SDL_image library.
    it should NOT be used to fill a version structure, instead you should
@@ -78,17 +90,20 @@ extern DECLSPEC void SDLCALL IMG_Quit(void);
    If the image format supports a transparent pixel, SDL will set the
    colorkey for the surface.  You can enable RLE acceleration on the
    surface afterwards by calling:
-	SDL_SetColorKey(image, SDL_RLEACCEL, image->format->colorkey);
+    SDL_SetColorKey(image, SDL_RLEACCEL, image->format->colorkey);
  */
-extern DECLSPEC SDL_Surface * SDLCALL IMG_LoadTyped_RW(SDL_RWops *src, int freesrc, char *type);
+extern DECLSPEC SDL_Surface * SDLCALL IMG_LoadTyped_RW(SDL_RWops *src, int freesrc, const char *type);
 /* Convenience functions */
 extern DECLSPEC SDL_Surface * SDLCALL IMG_Load(const char *file);
 extern DECLSPEC SDL_Surface * SDLCALL IMG_Load_RW(SDL_RWops *src, int freesrc);
 
-/* Invert the alpha of a surface for use with OpenGL
-   This function is now a no-op, and only provided for backwards compatibility.
-*/
-extern DECLSPEC int SDLCALL IMG_InvertAlpha(int on);
+#if SDL_VERSION_ATLEAST(2,0,0)
+/* Load an image directly into a render texture.
+ */
+extern DECLSPEC SDL_Texture * SDLCALL IMG_LoadTexture(SDL_Renderer *renderer, const char *file);
+extern DECLSPEC SDL_Texture * SDLCALL IMG_LoadTexture_RW(SDL_Renderer *renderer, SDL_RWops *src, int freesrc);
+extern DECLSPEC SDL_Texture * SDLCALL IMG_LoadTextureTyped_RW(SDL_Renderer *renderer, SDL_RWops *src, int freesrc, const char *type);
+#endif /* SDL 2.0 */
 
 /* Functions to detect a file type, given a seekable source */
 extern DECLSPEC int SDLCALL IMG_isICO(SDL_RWops *src);
@@ -100,6 +115,7 @@ extern DECLSPEC int SDLCALL IMG_isLBM(SDL_RWops *src);
 extern DECLSPEC int SDLCALL IMG_isPCX(SDL_RWops *src);
 extern DECLSPEC int SDLCALL IMG_isPNG(SDL_RWops *src);
 extern DECLSPEC int SDLCALL IMG_isPNM(SDL_RWops *src);
+extern DECLSPEC int SDLCALL IMG_isSVG(SDL_RWops *src);
 extern DECLSPEC int SDLCALL IMG_isTIF(SDL_RWops *src);
 extern DECLSPEC int SDLCALL IMG_isXCF(SDL_RWops *src);
 extern DECLSPEC int SDLCALL IMG_isXPM(SDL_RWops *src);
@@ -116,6 +132,7 @@ extern DECLSPEC SDL_Surface * SDLCALL IMG_LoadLBM_RW(SDL_RWops *src);
 extern DECLSPEC SDL_Surface * SDLCALL IMG_LoadPCX_RW(SDL_RWops *src);
 extern DECLSPEC SDL_Surface * SDLCALL IMG_LoadPNG_RW(SDL_RWops *src);
 extern DECLSPEC SDL_Surface * SDLCALL IMG_LoadPNM_RW(SDL_RWops *src);
+extern DECLSPEC SDL_Surface * SDLCALL IMG_LoadSVG_RW(SDL_RWops *src);
 extern DECLSPEC SDL_Surface * SDLCALL IMG_LoadTGA_RW(SDL_RWops *src);
 extern DECLSPEC SDL_Surface * SDLCALL IMG_LoadTIF_RW(SDL_RWops *src);
 extern DECLSPEC SDL_Surface * SDLCALL IMG_LoadXCF_RW(SDL_RWops *src);
@@ -125,9 +142,15 @@ extern DECLSPEC SDL_Surface * SDLCALL IMG_LoadWEBP_RW(SDL_RWops *src);
 
 extern DECLSPEC SDL_Surface * SDLCALL IMG_ReadXPMFromArray(char **xpm);
 
+/* Individual saving functions */
+extern DECLSPEC int SDLCALL IMG_SavePNG(SDL_Surface *surface, const char *file);
+extern DECLSPEC int SDLCALL IMG_SavePNG_RW(SDL_Surface *surface, SDL_RWops *dst, int freedst);
+extern DECLSPEC int SDLCALL IMG_SaveJPG(SDL_Surface *surface, const char *file, int quality);
+extern DECLSPEC int SDLCALL IMG_SaveJPG_RW(SDL_Surface *surface, SDL_RWops *dst, int freedst, int quality);
+
 /* We'll use SDL for reporting errors */
-#define IMG_SetError	SDL_SetError
-#define IMG_GetError	SDL_GetError
+#define IMG_SetError    SDL_SetError
+#define IMG_GetError    SDL_GetError
 
 /* Ends C function definitions when using C++ */
 #ifdef __cplusplus
@@ -135,4 +158,4 @@ extern DECLSPEC SDL_Surface * SDLCALL IMG_ReadXPMFromArray(char **xpm);
 #endif
 #include "close_code.h"
 
-#endif /* _SDL_IMAGE_H */
+#endif /* SDL_IMAGE_H_ */

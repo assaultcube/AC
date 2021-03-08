@@ -115,7 +115,6 @@ void preload_hudguns()
 {
     loopi(NUMGUNS)
     {
-        if(i == GUN_CPISTOL) continue;
         defformatstring(path)("weapons/%s", guns[i].modelname);
         loadmodel(path);
     }

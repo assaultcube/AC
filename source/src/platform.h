@@ -12,6 +12,7 @@
 #include <time.h>
 #include <limits.h>
 #include <math.h>
+#include <locale.h>
 #include <stdint.h>
 #ifdef __GNUC__
     #include <new>
@@ -53,7 +54,7 @@
         #include "OpenAL/al.h"
         #include "OpenAL/alc.h"
         #include "Vorbis/vorbisfile.h"
-        #define MOD_KEYS_CTRL (KMOD_LMETA|KMOD_RMETA)
+        #define MOD_KEYS_CTRL (KMOD_LGUI|KMOD_RGUI)
     #else
         #include "AL/al.h"
         #include "AL/alc.h"

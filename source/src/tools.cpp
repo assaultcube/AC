@@ -2,6 +2,8 @@
 
 #include "cube.h"
 
+extern bool isdedicated;
+
 #ifdef NO_POSIX_R
 char *strtok_r(char *s, const char *delim, char **b)
 {
@@ -15,7 +17,7 @@ char *strtok_r(char *s, const char *delim, char **b)
 }
 #endif
 
-string _timestringbuffer;
+string _timestringbuffer = "";
 
 const char *timestring(time_t t, bool local, const char *fmt, char *buf)
 {
@@ -77,6 +79,20 @@ int fixmapheadersize(int version, int headersize)   // we can't trust hdr.header
     else if(version == 7 || version == 8) return sizeof(header) + sizeof(char) * 128;  // mediareq
     else if(version < 10 || headersize < int(sizeof(header))) return sizeof(header);
     return headersize;
+}
+
+header *peekmapheader(uchar *data, int len) // extract the header from an in-memory mapfile (doesn't process all values: only used to get the map revision and timestamp)
+{
+    static header h;
+    uLongf rawsize = (int)sizeof(header);
+    if(uncompress((Bytef*)&h, &rawsize, data, len) == Z_BUF_ERROR && (!strncmp(h.head, "CUBE", 4) || !strncmp(h.head, "ACMP",4)))
+    {
+        lilswap(&h.version, 4); // version, headersize, sfactor, numents
+        if(h.version < 4) memset(&h.waterlevel, 0, sizeof(int) * 16);
+        else lilswap(&h.maprevision, 4); // maprevision, ambient, flags, timestamp
+        return &h;
+    }
+    return NULL;
 }
 
 // map geometry statistics
@@ -306,6 +322,7 @@ void calcentitystats(entitystats_s &es, const persistent_entity *pents, int pent
         es.pickupdistance[r]++;
     }
     es.pickups = picks.length();
+    es.modes_possible = gmode_possible(es.hasffaspawns, es.hasteamspawns, es.hasflags);
 }
 #if 0
 const char *rateentitystats(entitystats_s &es)
@@ -316,185 +333,12 @@ const char *rateentitystats(entitystats_s &es)
 }
 #endif
 
-
-
 int cmpintasc(const int *a, const int *b) { return *a - *b; } // leads to ascending sort order
 int cmpintdesc(const int *a, const int *b) { return *b - *a; } // leads to descending sort order
 int stringsort(const char **a, const char **b) { return strcmp(*a, *b); }
 int stringsortrev(const char **a, const char **b) { return strcmp(*b, *a); }
 int stringsortignorecase(const char **a, const char **b) { return strcasecmp(*a, *b); }
 int stringsortignorecaserev(const char **a, const char **b) { return strcasecmp(*b, *a); }
-
-extern char *maplayout, *testlayout;
-extern int maplayout_factor, testlayout_factor, Mvolume, Marea, Mopen, SHhits;
-extern float Mheight;
-extern int checkarea(int, char *);
-
-mapstats *loadmapstats(const char *filename, bool getlayout)
-{
-    const int sizeof_header = sizeof(header), sizeof_baseheader = sizeof_header - sizeof(int) * 16;
-    static mapstats s;
-    static uchar *enttypes = NULL;
-    static short *entposs = NULL;
-
-    DELETEA(enttypes);
-    loopi(MAXENTTYPES) s.entcnt[i] = 0;
-    loopi(3) s.spawns[i] = 0;
-    loopi(2) s.flags[i] = 0;
-
-    stream *f = opengzfile(filename, "rb");
-    if(!f) return NULL;
-    memset(&s.hdr, 0, sizeof_header);
-    if(f->read(&s.hdr, sizeof_baseheader) != sizeof_baseheader || (strncmp(s.hdr.head, "CUBE", 4) && strncmp(s.hdr.head, "ACMP",4))) { delete f; return NULL; }
-    lilswap(&s.hdr.version, 4);
-    s.hdr.headersize = fixmapheadersize(s.hdr.version, s.hdr.headersize);
-    int restofhead = min(s.hdr.headersize, sizeof_header) - sizeof_baseheader;
-    if(s.hdr.version > MAPVERSION || s.hdr.numents > MAXENTITIES ||
-       f->read(&s.hdr.waterlevel, restofhead) != restofhead ||
-       !f->seek(clamp(s.hdr.headersize - sizeof_header, 0, MAXHEADEREXTRA), SEEK_CUR)) { delete f; return NULL; }
-    if(s.hdr.version>=4)
-    {
-        lilswap(&s.hdr.waterlevel, 1);
-        lilswap(&s.hdr.maprevision, 2);
-    }
-    else s.hdr.waterlevel = -100000;
-    entity e;
-    enttypes = new uchar[s.hdr.numents];
-    entposs = new short[s.hdr.numents * 3];
-    loopi(s.hdr.numents)
-    {
-        f->read(&e, s.hdr.version < 10 ? 12 : sizeof(persistent_entity));
-        lilswap((short *)&e, 4);
-        transformoldentitytypes(s.hdr.version, e.type);
-        if(e.type == PLAYERSTART && (e.attr2 == 0 || e.attr2 == 1 || e.attr2 == 100)) s.spawns[e.attr2 == 100 ? 2 : e.attr2]++;
-        if(e.type == CTF_FLAG && (e.attr2 == 0 || e.attr2 == 1)) { s.flags[e.attr2]++; s.flagents[e.attr2] = i; }
-        s.entcnt[e.type]++;
-        enttypes[i] = e.type;
-        entposs[i * 3] = e.x; entposs[i * 3 + 1] = e.y; entposs[i * 3 + 2] = e.z + e.attr1;
-    }
-    DELETEA(testlayout);
-    int minfloor = 0;
-    int maxceil = 0;
-    if(s.hdr.sfactor <= LARGEST_FACTOR && s.hdr.sfactor >= SMALLEST_FACTOR)
-    {
-        testlayout_factor = s.hdr.sfactor;
-        int layoutsize = 1 << (testlayout_factor * 2);
-        bool fail = false;
-        testlayout = new char[layoutsize + 256];
-        memset(testlayout, 0, layoutsize * sizeof(char));
-        char *t = NULL;
-        char floor = 0, ceil;
-        int diff = 0;
-        Mvolume = Marea = SHhits = 0;
-        loopk(layoutsize)
-        {
-            char *c = testlayout + k;
-            int type = f->getchar();
-            int n = 1;
-            switch(type)
-            {
-                case 255:
-                {
-                    if(!t || (n = f->getchar()) < 0) { fail = true; break; }
-                    memset(c, *t, n);
-                    k += n - 1;
-                    break;
-                }
-                case 254: // only in MAPVERSION<=2
-                    if(!t) { fail = true; break; }
-                    *c = *t;
-                    f->getchar(); f->getchar();
-                    break;
-                default:
-                    if(type<0 || type>=MAXTYPE)  { fail = true; break; }
-                    floor = f->getchar();
-                    ceil = f->getchar();
-                    if(floor >= ceil && ceil > -128) floor = ceil - 1;  // for pre 12_13
-                    diff = ceil - floor;
-                    if(type == FHF) floor = -128;
-                    if(floor!=-128 && floor<minfloor) minfloor = floor;
-                    if(ceil>maxceil) maxceil = ceil;
-                    f->getchar(); f->getchar();
-                    if(s.hdr.version>=2) f->getchar();
-                    if(s.hdr.version>=5) f->getchar();
-
-                case SOLID:
-                    *c = type == SOLID ? 127 : floor;
-                    f->getchar(); f->getchar();
-                    if(s.hdr.version<=2) { f->getchar(); f->getchar(); }
-                    break;
-            }
-            if ( type != SOLID && diff > 6 )
-            {
-                // Lucas (10mar2013): Removed "pow2" because it was too strict
-                if (diff > MAXMHEIGHT) SHhits += /*pow2*/(diff-MAXMHEIGHT)*n;
-                Marea += n;
-                Mvolume += diff * n;
-            }
-            if(fail) break;
-            t = c;
-        }
-        if(fail) { DELETEA(testlayout); }
-        else
-        {
-            Mheight = Marea ? (float)Mvolume/Marea : 0;
-            Mopen = checkarea(testlayout_factor, testlayout);
-        }
-    }
-    if(getlayout)
-    {
-        DELETEA(maplayout);
-        if (testlayout)
-        {
-            maplayout_factor = testlayout_factor;
-            extern int maplayoutssize;
-            maplayoutssize = 1 << testlayout_factor;
-            int layoutsize = 1 << (testlayout_factor * 2);
-            maplayout = new char[layoutsize + 256];
-            memcpy(maplayout, testlayout, layoutsize * sizeof(char));
-
-/*            memset(&mapdims, 0, sizeof(struct mapdim_s));
-            mapdims.x1 = mapdims.y1 = maplayoutssize;
-            loopk(layoutsize) if (testlayout[k] != 127)
-            {
-                int cwx = k%maplayoutssize,
-                cwy = k/maplayoutssize;
-                if(cwx < mapdims.x1) mapdims.x1 = cwx;
-                if(cwy < mapdims.y1) mapdims.y1 = cwy;
-                if(cwx > mapdims.x2) mapdims.x2 = cwx;
-                if(cwy > mapdims.y2) mapdims.y2 = cwy;
-            }
-            mapdims.xspan = mapdims.x2 - mapdims.x1;
-            mapdims.yspan = mapdims.y2 - mapdims.y1;
-            mapdims.minfloor = minfloor;
-            mapdims.maxceil = maxceil;
-*/        }
-    }
-    delete f;
-    s.hasffaspawns = s.spawns[2] > 0;
-    s.hasteamspawns = s.spawns[0] > 0 && s.spawns[1] > 0;
-    s.hasflags = s.flags[0] > 0 && s.flags[1] > 0;
-    s.enttypes = enttypes;
-    s.entposs = entposs;
-    s.cgzsize = getfilesize(filename);
-    return &s;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 ///////////////////////// debugging ///////////////////////
 
@@ -625,7 +469,12 @@ const char *atoip(const char *s, enet_uint32 *ip)
 {
     unsigned int d[4];
     int n;
-    if(!s || sscanf(s, "%u.%u.%u.%u%n", d, d + 1, d + 2, d + 3, &n) != 4) return NULL;
+    if(!s) return NULL;
+    if(sscanf(s, "%u.%u.%u.%u%n", d, d + 1, d + 2, d + 3, &n) != 4)
+    {
+        *ip = strtoul(s, (char **)&s, 0); // try single-integer IPs
+        return *ip > 0xffffff ? s : NULL; // require first octet to be non-zero to avoid misinterpreting faulty dotted IPs
+    }
     *ip = 0;
     loopi(4)
     {
@@ -656,23 +505,72 @@ const char *atoipr(const char *s, iprange *ir)
     return s;
 }
 
-const char *iptoa(const enet_uint32 ip)
+const char *iptoa(const enet_uint32 ip, char *b)
 {
-    static string s[2];
-    static int buf = 0;
-    buf = (buf + 1) % 2;
-    formatstring(s[buf])("%d.%d.%d.%d", (ip >> 24) & 255, (ip >> 16) & 255, (ip >> 8) & 255, ip & 255);
-    return s[buf];
+    formatstring(b)("%d.%d.%d.%d", (ip >> 24) & 255, (ip >> 16) & 255, (ip >> 8) & 255, ip & 255);
+    return b;
 }
 
-const char *iprtoa(const struct iprange &ipr)
+const char *iprtoa(const struct iprange &ipr, char *b)
 {
-    static string s[2];
-    static int buf = 0;
-    buf = (buf + 1) % 2;
-    if(ipr.lr == ipr.ur) copystring(s[buf], iptoa(ipr.lr));
-    else formatstring(s[buf])("%s-%s", iptoa(ipr.lr), iptoa(ipr.ur));
-    return s[buf];
+    if(ipr.lr == ipr.ur) return iptoa(ipr.lr, b);
+    else formatstring(b)("%d.%d.%d.%d-%d.%d.%d.%d", (ipr.lr >> 24) & 255, (ipr.lr >> 16) & 255, (ipr.lr >> 8) & 255, ipr.lr & 255, (ipr.ur >> 24) & 255, (ipr.ur >> 16) & 255, (ipr.ur >> 8) & 255, ipr.ur & 255);
+    return b;
+}
+
+char *formatdemofilename(const char *demoformat, const char *timestampformat, const char *map, int mode, int srvclock, int secondsplayed, int secondsremaining, enet_uint32 ip, char *buf)
+{
+    vector<char> d;
+    // we use the following internal mapping of formatchars:
+    // %g : gamemode (int)      %G : gamemode (chr)             %F : gamemode (full)
+    // %m : minutes remaining   %M : minutes played
+    // %s : seconds remaining   %S : seconds played
+    // %h : IP of server        %H : hostname of server (client only)
+    // %n : mapName
+    // %w : timestamp "when"
+    bool did_map = false, did_mode = false, did_ts = false;
+    for(const char *s = demoformat; *s; s++)
+    {
+        if(*s == '%')
+        {
+            switch(*++s)
+            {
+                case 'F': cvecconcat(d, fullmodestr(mode)); did_mode = true; break;
+                case 'g': cvecprintf(d, "%d", mode); did_mode = true; break;
+                case 'G': cvecconcat(d, acronymmodestr(mode)); did_mode = true; break;
+                case 'H':
+                    if(!isdedicated)
+                    {
+#ifndef STANDALONE
+                        ENetAddress a = { htonl(ip), 0 };
+                        cvecconcat(d, !enet_address_get_host(&a, buf, MAXSTRLEN) ? buf : "unknown");
+                        break;
+#endif
+                    } // fallthrough to "IP" on dedicated servers
+                case 'h': cvecconcat(d, ip ? iptoa(ip, buf) : "local"); break;
+                case 'm': cvecprintf(d, "%d", secondsremaining / 60); break;
+                case 'M': cvecprintf(d, "%d", secondsplayed / 60); break;
+                case 'n': cvecconcat(d, map); did_map = true; break;
+                case 's': cvecprintf(d, "%d", secondsremaining); break;
+                case 'S': cvecprintf(d, "%d", secondsplayed); break;
+                case 'w':
+                {
+                    time_t t = ((time_t) srvclock) * 60;
+                    bool utc = *timestampformat == 'U';
+                    cvecconcat(d, timestring(t, !utc, timestampformat + int(utc), buf));
+                    did_ts = true;
+                    break;
+                }
+                default:
+                    if(*s) d.add(*s);
+                    break;
+            }
+        }
+        else d.add(*s);
+    }
+    d.add('\0');
+    filtertext(buf, d.getbuf(), FTXT__DEMONAME);
+    return did_map && did_mode && did_ts ? buf : formatdemofilename("%w_%h_%n_%G", "%Y%m%d_%H%M", map, mode, srvclock, secondsplayed, secondsremaining, ip, buf);
 }
 
 int cmpiprange(const struct iprange *a, const struct iprange *b)
@@ -701,6 +599,13 @@ int cvecprintf(vector<char> &v, const char *s, ...)
     return len;
 }
 
+int cvecconcat(vector<char> &v, const char *s)
+{
+    int len = strlen(s);
+    if(len) v.put(s, len);
+    return len;
+}
+
 const char *hiddenpwd(const char *pwd, int showchars)
 {
     static int sc = 3;
@@ -714,7 +619,7 @@ const char *hiddenpwd(const char *pwd, int showchars)
 int getlistindex(const char *key, const char *list[], bool acceptnumeric, int deflt)
 {
     int max = 0;
-    while(list[max][0]) if(!strcasecmp(key, list[max])) return max; else max++;
+    while(list[max] && list[max][0]) if(!strcasecmp(key, list[max])) return max; else max++;
     if(acceptnumeric && isdigit(key[0]))
     {
         int i = (int)strtol(key, NULL, 0);
@@ -722,7 +627,7 @@ int getlistindex(const char *key, const char *list[], bool acceptnumeric, int de
     }
 #if !defined(STANDALONE) && defined(_DEBUG)
     char *opts = conc(list, -1, true);
-    if(*key) clientlogf("warning: unknown token \"%s\" (not in list [%s])", key, opts);
+    if(!isdedicated && *key) clientlogf("warning: unknown token \"%s\" (not in list [%s])", key, opts);
     delstring(opts);
 #endif
     return deflt;
@@ -909,13 +814,13 @@ static int sl_thread_indir(void *info)
     return res;
 }
 
-void *sl_createthread(int (*fn)(void *), void *data)
+void *sl_createthread(int (*fn)(void *), void *data, const char *name)
 {
     sl_threadinfo *ti = new sl_threadinfo;
     ti->data = data;
     ti->fn = fn;
     ti->done = 0;
-    ti->handle = SDL_CreateThread(sl_thread_indir, ti);
+    ti->handle = SDL_CreateThread(sl_thread_indir, name, ti);
     return (void *) ti;
 }
 
@@ -954,7 +859,7 @@ void sl_detachthread(void *ti) // SDL can't actually detach threads, so this is 
     }
 }
 
-static uint32_t mainthreadid = SDL_ThreadID();
+static SDL_threadID mainthreadid = SDL_ThreadID();
 bool ismainthread() { return mainthreadid == SDL_ThreadID(); }
 
 #else
@@ -968,13 +873,14 @@ static void *sl_thread_indir(void *info)
     return &ti->res;
 }
 
-void *sl_createthread(int (*fn)(void *), void *data)
+void *sl_createthread(int (*fn)(void *), void *data, const char *name)
 {
     sl_threadinfo *ti = new sl_threadinfo;
     ti->data = data;
     ti->fn = fn;
     ti->done = 0;
     pthread_create(&(ti->handle), NULL, sl_thread_indir, ti);
+    if(name) pthread_setname_np(ti->handle, name);
     return (void *) ti;
 }
 
