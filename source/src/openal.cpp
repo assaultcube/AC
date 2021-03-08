@@ -4,8 +4,8 @@
 
 #define DEBUGCOND (audiodebug==1)
 
-VAR(al_referencedistance, 0, 400, 1000000);
-VAR(al_rollofffactor, 0, 100, 1000000);
+int al_referencedistance = 400; // The distance from the source emitting the sound to the listener
+int al_rollofffactor = 100; // This value indicates the relative "strength" of a sound (how far away the sound can be heard)
 
 // represents an OpenAL source, an audio emitter in the 3D world
 
