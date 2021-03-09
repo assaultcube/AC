@@ -291,7 +291,7 @@ static int numberForKey(CFDictionaryRef desc, CFStringRef key)
     NSString *key;
     while ((key = [e nextObject])) 
     {
-        int pos = [key rangeOfString:@"bind."].location;
+        NSUInteger pos = [key rangeOfString:@"bind."].location;
         if(pos == NSNotFound || pos > 5) continue;
         [arr addObject:[NSDictionary dictionaryWithObjectsAndKeys: //keys used in nib
             [key substringFromIndex:pos+5], @"key",
