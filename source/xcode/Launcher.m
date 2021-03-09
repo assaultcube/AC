@@ -178,7 +178,6 @@ static int numberForKey(CFDictionaryRef desc, CFStringRef key)
     }
     NSToolbar *toolbar = [[NSToolbar alloc] initWithIdentifier:@""];
     [toolbar setDelegate:self]; 
-    [toolbar setAllowsUserCustomization:NO]; 
     [toolbar setAutosavesConfiguration:NO];  
     [window setToolbar:toolbar]; 
     [toolbar release];
