@@ -295,8 +295,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 int req_auth = getint(p);
                 if(!sk && req_auth)
                 {
-                    conoutf("\f3server requires client ID to connect");
-                    conoutf("\f3please unlock your ID (by entering the corect password) or generate a new one");
+                    conoutf("\f3server requires a valid game account to connect");
+                    conoutf("\f3please authenticate or create a new game account");
                     disconnect();
                     return;
                 }
