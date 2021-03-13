@@ -57,9 +57,16 @@ extern int hwtexsize, hwmaxaniso;
 extern int maploaded, msctrl;
 extern float waterlevel;
 
-#define AC_VERSION 1202
 #define AC_MASTER_URI "ms.cubers.net"
-#define AC_MASTER_PORT 28760
+
+// DEV
+#define AC_VERSION -(1203) 
+#define AC_MASTER_PORT 28758
+
+// PRODUCTION
+//#define AC_VERSION 1203
+//#define AC_MASTER_PORT 28760
+
 #define MAXCLIENTSONMASTER 16           // FIXME
 #define CONFIGROTATEMAX 5               // keep 5 old versions of saved.cfg and init.cfg around
 
