@@ -549,7 +549,7 @@ public:
     {
         const int maxskin[2] = { 4, 6 };
         t = team_base(t < 0 ? team : t);
-        nextskin[t] = iabs(s) % maxskin[t];
+        nextskin[t] = (s & 63) % maxskin[t];
     }
 };
 
