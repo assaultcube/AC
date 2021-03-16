@@ -3300,7 +3300,8 @@ void process(ENetPacket *packet, int sender, int chan)
                 int cfgsize = getint(p);
                 int cfgsizegz = getint(p);
                 int revision = getint(p);
-                if(p.remaining() < mapsize + cfgsizegz || MAXMAPSENDSIZE < mapsize + cfgsizegz)
+                if(!sentmap[0] || mapsize <= 0 || cfgsizegz < 0 || mapsize > MAXMAPSENDSIZE || cfgsizegz > MAXMAPSENDSIZE
+                   || mapsize + cfgsizegz > MAXMAPSENDSIZE  || mapsize + cfgsizegz > p.remaining() || cfgsize > MAXCFGFILESIZE)
                 {
                     p.forceoverread();
                     break;
