@@ -886,12 +886,14 @@ void checkinput()
 
                     case SDL_WINDOWEVENT_FOCUS_GAINED: // window has gained keyboard focus
                         EVENTDEBUG(concatstring(eb, " SDL_WINDOWEVENT_FOCUS_GAINED"));
-                        inputgrab(grabinput = true);  // click-to-grab for windowed mode
+                        inputgrab(grabinput = true);
                         break;
 
                     case SDL_WINDOWEVENT_FOCUS_LOST: // window has lost keyboard focus
                         EVENTDEBUG(concatstring(eb, " SDL_WINDOWEVENT_FOCUS_LOST"));
-                        inputgrab(grabinput = false);
+                        grabinput = false;
+                        // in fullscreen mode inputgrab(false) will cause the window to get focus again immediately (!) and so we skip it
+                        if(!fullscreen) inputgrab(grabinput); 
                         break;
                 }
                 break;
