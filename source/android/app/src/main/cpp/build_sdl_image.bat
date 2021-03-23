@@ -1,2 +1,0 @@
-cd sdl_image
-C:\Users\adria\AppData\Local\Android\sdk\ndk\22.0.7026061\ndk-build.cmd NDK_PROJECT_PATH=null NDK_OUT=output NDK_LIBS_OUT=output_libs APP_BUILD_SCRIPT=Android.mk APP_ABI="armeabi-v7a arm64-v8a x86 x86_64" APP_PLATFORM=android-16 APP_MODULES="SDL2_image"
