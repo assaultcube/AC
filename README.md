@@ -41,3 +41,37 @@ free unmodified distribution of AssaultCube's source and binaries. If you have
 any doubts, you can look at the
 [license](https://assault.cubers.net/docs/license.html).
 
+## Building from Source
+
+### Windows 10
+
+This guide assumes you are already familiar with NDK/C++ development on Android.
+
+Toolchain:
+- Install Android Studio 4.1.x 
+- Open Android Studio, navigate to Tool > SDK Manager
+- Navigate to tab SDK Platforms and install:
+   - Android 11.0 (R) SDK
+- Navigate to tab SDK Tools and install:
+   - Android SDK Build-Tools 30.0.3
+   - NDK 21.3.6528147
+   - Android SDK Platform Tools 30.0.0
+   - CMake 3.18.1
+
+Dependencies:
+- Build the following dependant libraries
+   - GL4ES
+   - SDL2
+   - SDL2_Image
+   - OpenAL Soft (with OBOE backend)
+   - Ogg
+   - Vorbis
+
+Build:
+- Checkout the source code of this branch to your working directory
+- Copy the previously built dependant libraries to .\source\android\app\src\main\cpp\lib\
+- Open a command prompt in .\source\android and execute copyassets.bat
+- Start Android Studio and open the project at .\source\android\
+- Navigate to Build > Make Project
+- Navigate to Run > Run App
+
