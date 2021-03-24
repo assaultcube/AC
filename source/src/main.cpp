@@ -112,14 +112,73 @@ VARF(vsync, -1, -1, 1, initwarning("vertical sync"));
 VAR(desktopw, 1, 0, 0); // resolution of desktop (assumed to be maximum resolution)
 VAR(desktoph, 1, 0, 0);
 
-static bool grabinput = false, minimized = false, emulaterelativemouse = false, centerwindow = true;
+#ifdef WIN32
+// SDL_WarpMouseInWindow behaves erratically on Windows, so force relative mouse instead.
+VARN(relativemouse, userelativemouse, 1, 1, 0);
+#else
+VARNP(relativemouse, userelativemouse, 0, 1, 1);
+#endif
 
-void inputgrab(bool on)
+static bool shouldgrab = false, grabinput = false, minimized = false, centerwindow = true, canrelativemouse = true, relativemouse = false;
+
+#ifdef SDL_VIDEO_DRIVER_X11
+VAR(sdl_xgrab_bug, 0, 0, 1);
+#endif
+
+void inputgrab(bool on, bool delay = false)
 {
-    bool wasemul = emulaterelativemouse;
-    emulaterelativemouse = SDL_SetRelativeMouseMode(on ? SDL_TRUE : SDL_FALSE) < 0 && on; // if SDL_SetRelativeMouseMode fails, try the old fashioned way
-    if(wasemul || emulaterelativemouse) SDL_ShowCursor(on ? SDL_DISABLE : SDL_ENABLE);
+#ifdef SDL_VIDEO_DRIVER_X11
+    bool wasrelativemouse = relativemouse;
+#endif
+    if (on)
+    {
+        SDL_ShowCursor(SDL_FALSE);
+        if (canrelativemouse && userelativemouse)
+        {
+            if (SDL_SetRelativeMouseMode(SDL_TRUE) >= 0)
+            {
+                SDL_SetWindowGrab(screen, SDL_TRUE);
+                relativemouse = true;
+            }
+            else
+            {
+                SDL_SetWindowGrab(screen, SDL_FALSE);
+                canrelativemouse = false;
+                relativemouse = false;
+            }
+        }
+    }
+    else
+    {
+        SDL_ShowCursor(SDL_TRUE);
+        if (relativemouse)
+        {
+            SDL_SetWindowGrab(screen, SDL_FALSE);
+            SDL_SetRelativeMouseMode(SDL_FALSE);
+            relativemouse = false;
+        }
+    }
+    shouldgrab = delay;
+
+#ifdef SDL_VIDEO_DRIVER_X11
+    if ((relativemouse || wasrelativemouse) && sdl_xgrab_bug)
+    {
+        // Workaround for buggy SDL X11 pointer grabbing
+        union { SDL_SysWMinfo info; uchar buf[sizeof(SDL_SysWMinfo) + 128]; };
+        SDL_GetVersion(&info.version);
+        if (SDL_GetWindowWMInfo(screen, &info) && info.subsystem == SDL_SYSWM_X11)
+        {
+            if (relativemouse)
+            {
+                uint mask = ButtonPressMask | ButtonReleaseMask | PointerMotionMask | FocusChangeMask;
+                XGrabPointer(info.info.x11.display, info.info.x11.window, True, mask, GrabModeAsync, GrabModeAsync, info.info.x11.window, None, CurrentTime);
+            }
+            else XUngrabPointer(info.info.x11.display, CurrentTime);
+        }
+    }
+#endif
 }
+
 
 void setfullscreen(bool enable)
 {
@@ -744,7 +803,7 @@ bool interceptkey(int sym)
 
 static void resetmousemotion()
 {
-    if(emulaterelativemouse && !(SDL_GetWindowFlags(screen) & SDL_WINDOW_FULLSCREEN))
+    if (grabinput && !relativemouse && !(SDL_GetWindowFlags(screen) & SDL_WINDOW_FULLSCREEN))
     {
         SDL_WarpMouseInWindow(screen, screenw / 2, screenh / 2);
     }
@@ -797,11 +856,14 @@ void checkinput()
     SDL_Event event;
     Uint32 lasttype = 0, lastbut = 0;
     int tdx=0,tdy=0;
+    int focused = 0;
     while(events.length() || SDL_PollEvent(&event))
     {
         if(events.length()) event = events.remove(0);
 
         EVENTDEBUG(int thres = 1; defformatstring(eb)("EVENT %d", event.type));
+
+        if (focused && event.type != SDL_WINDOWEVENT) { if (grabinput != (focused > 0)) inputgrab(grabinput = focused > 0, shouldgrab); focused = 0; }
 
         switch(event.type)
         {
@@ -873,27 +935,30 @@ void checkinput()
                     case SDL_WINDOWEVENT_RESTORED: // window has been restored to normal size and position
                         EVENTDEBUG(concatstring(eb, event.window.event == SDL_WINDOWEVENT_RESTORED ? "SDL_WINDOWEVENT_RESTORED" : "SDL_WINDOWEVENT_MAXIMIZED"));
                         minimized = 0;
-                        inputgrab(grabinput = true);
+                        //inputgrab(grabinput = true);
                         break;
 
                     case SDL_WINDOWEVENT_ENTER: // window has gained mouse focus
                         EVENTDEBUG(concatstring(eb, " SDL_WINDOWEVENT_ENTER"));
+                        shouldgrab = false;
+                        focused = 1;
                         break;
 
                     case SDL_WINDOWEVENT_LEAVE: // window has lost mouse focus
                         EVENTDEBUG(concatstring(eb, " SDL_WINDOWEVENT_LEAVE"));
+                        shouldgrab = false;
+                        focused = -1;
                         break;
 
                     case SDL_WINDOWEVENT_FOCUS_GAINED: // window has gained keyboard focus
                         EVENTDEBUG(concatstring(eb, " SDL_WINDOWEVENT_FOCUS_GAINED"));
-                        inputgrab(grabinput = true);
+                        shouldgrab = true;
                         break;
 
                     case SDL_WINDOWEVENT_FOCUS_LOST: // window has lost keyboard focus
                         EVENTDEBUG(concatstring(eb, " SDL_WINDOWEVENT_FOCUS_LOST"));
-                        grabinput = false;
-                        // in fullscreen mode inputgrab(false) will cause the window to get focus again immediately (!) and so we skip it
-                        if(!fullscreen) inputgrab(grabinput); 
+                        shouldgrab = false;
+                        focused = -1;
                         break;
                 }
                 break;
@@ -910,6 +975,7 @@ void checkinput()
                     resetmousemotion();
                     tdx+=dx;tdy+=dy;
                 }
+                else if (shouldgrab) inputgrab(grabinput = true);
                 break;
 
             case SDL_MOUSEBUTTONDOWN:
@@ -951,6 +1017,7 @@ void checkinput()
         entropy_add_byte(tdy + 5 * tdx);
         mousemove(tdx, tdy);
     }
+    if (focused) { if (grabinput != (focused > 0)) inputgrab(grabinput = focused > 0, shouldgrab); focused = 0; }
 }
 
 VARF(gamespeed, 10, 100, 1000, if(multiplayer()) gamespeed = 100);
