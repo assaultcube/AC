@@ -935,7 +935,6 @@ void checkinput()
                     case SDL_WINDOWEVENT_RESTORED: // window has been restored to normal size and position
                         EVENTDEBUG(concatstring(eb, event.window.event == SDL_WINDOWEVENT_RESTORED ? "SDL_WINDOWEVENT_RESTORED" : "SDL_WINDOWEVENT_MAXIMIZED"));
                         minimized = 0;
-                        //inputgrab(grabinput = true);
                         break;
 
                     case SDL_WINDOWEVENT_ENTER: // window has gained mouse focus
@@ -983,6 +982,18 @@ void checkinput()
                 {
                     EVENTDEBUG(concatformatstring(eb, "(SDL_MOUSEBUTTONDOWN) button %d, state %d, clicks %d, x %d, y %d", event.button.button, event.button.state, event.button.clicks, event.button.x, event.button.y));
                     inputgrab(grabinput = true);
+                    #ifdef WIN32
+                    if(!fullscreen)
+                    {
+                        // If AC runs in windowed mode on Windows 10 and if you press WIN+D, then move mouse on desktop, press WIN+D again, click in the AC window,
+                        // the mouse cursor remains visible and the mouse is not contrained to the AC window anymore. It is as if SDL2 does not properly give focus
+                        // to the AC window and so our workaround is to explicitly trigger the focus by hiding and showing the window. This issue exists in
+                        // SDL 2.0.12 and is fixed in 2.0.14 however we currently can not use 2.0.14 because it has problems with handling of ALT+TAB hotkey behavior.
+                        // Please re-test and remove this workaround once a fixed version of SDL is available.
+                        SDL_HideWindow(screen);
+                        SDL_ShowWindow(screen);
+                    }
+                    #endif
                     break;
                 }
 
