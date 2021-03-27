@@ -50,7 +50,7 @@ struct input
         if(event.tfinger.type == SDL_FINGERDOWN && event.tfinger.y * VIRTH < iconsize * 2 && event.tfinger.x * VIRTW < iconsize * 2)
             keys.add(keyevent(event.type, TOUCH_GAME_LEFTSIDE_TOP_CORNER));
         else
-            keys.add(keyevent(event.type, TOUCH_GAME_RIGHTSIDE_TOP_1));
+            keys.add(keyevent(event.type, TOUCH_GAME_RIGHTSIDE_DOUBLETAP));
 
     }
 
@@ -92,53 +92,50 @@ struct input
             }
             else if(event.type == SDL_FINGERDOWN || event.type == SDL_FINGERMOTION)
             {
-                if(dist > movementcontrolradius / 3)
-                {
-                    vec zero(movementcontrolcenter.x + movementcontrolradius, movementcontrolcenter.y, 0.0f);
-                    float angle = anglebetween(movementcontrolcenter, zero, finger);
-                    if(angle < 0.0f) angle = (2 * PI + angle);
-                    angle = 360.0f - (angle * 360.0f / PI2);
+                vec zero(movementcontrolcenter.x + movementcontrolradius, movementcontrolcenter.y, 0.0f);
+                float angle = anglebetween(movementcontrolcenter, zero, finger);
+                if(angle < 0.0f) angle = (2 * PI + angle);
+                angle = 360.0f - (angle * 360.0f / PI2);
 
-                    int touchkey = -1;
-                    switch(config.MOVEMENTDIRECTIONS)
+                int touchkey = -1;
+                switch(config.MOVEMENTDIRECTIONS)
+                {
+                    // variant with four sectors which does not support strafe running but is easier to control
+                    case config::FOUR_DIRECTIONS:
                     {
-                        // variant with four sectors which does not support strafe running but is easier to control
-                        case config::FOUR_DIRECTIONS:
+                        int sector = ((angle + 45.0f) / 90.0f);
+                        switch(sector)
                         {
-                            int sector = ((angle + 45.0f) / 90.0f);
-                            switch(sector)
-                            {
-                                case 0:
-                                case 4:
-                                    touchkey = TOUCH_GAME_LEFTSIDE_RIGHT;
-                                    break;
-                                case 1:
-                                    touchkey = TOUCH_GAME_LEFTSIDE_TOP;
-                                    break;
-                                case 2:
-                                    touchkey = TOUCH_GAME_LEFTSIDE_LEFT;
-                                    break;
-                                case 3:
-                                    touchkey = TOUCH_GAME_LEFTSIDE_BOTTOM;
-                                    break;
-                            }
-                            break;
+                            case 0:
+                            case 4:
+                                touchkey = TOUCH_GAME_LEFTSIDE_RIGHT;
+                                break;
+                            case 1:
+                                touchkey = TOUCH_GAME_LEFTSIDE_TOP;
+                                break;
+                            case 2:
+                                touchkey = TOUCH_GAME_LEFTSIDE_LEFT;
+                                break;
+                            case 3:
+                                touchkey = TOUCH_GAME_LEFTSIDE_BOTTOM;
+                                break;
                         }
-                        // variant with eight sectors which allows for strafe running but is difficult to master
-                        case config::EIGHT_DIRECTIONS:
-                        {
-                            const int startsectorkey = TOUCH_GAME_LEFTSIDE_TOPRIGHT;
-                            const int endsectorkey = TOUCH_GAME_LEFTSIDE_RIGHT;
-                            const int numsectors = endsectorkey - startsectorkey + 1;
-                            int sector = ((angle + (45.0f / 2.0f)) / 45.0f);
-                            touchkey = TOUCH_GAME_LEFTSIDE_TOPRIGHT + sector - 1;
-                            if(touchkey < TOUCH_GAME_LEFTSIDE_TOPRIGHT)
-                                touchkey = TOUCH_GAME_LEFTSIDE_TOPRIGHT + numsectors - 1;
-                            break;
-                        }
+                        break;
                     }
-                    if(touchkey >= 0) keys.add(keyevent(event.type, touchkey));
+                    // variant with eight sectors which allows for strafe running but is difficult to master
+                    case config::EIGHT_DIRECTIONS:
+                    {
+                        const int startsectorkey = TOUCH_GAME_LEFTSIDE_TOPRIGHT;
+                        const int endsectorkey = TOUCH_GAME_LEFTSIDE_RIGHT;
+                        const int numsectors = endsectorkey - startsectorkey + 1;
+                        int sector = ((angle + (45.0f / 2.0f)) / 45.0f);
+                        touchkey = TOUCH_GAME_LEFTSIDE_TOPRIGHT + sector - 1;
+                        if(touchkey < TOUCH_GAME_LEFTSIDE_TOPRIGHT)
+                            touchkey = TOUCH_GAME_LEFTSIDE_TOPRIGHT + numsectors - 1;
+                        break;
+                    }
                 }
+                if(touchkey >= 0) keys.add(keyevent(event.type, touchkey));
             }
         }
 
@@ -166,6 +163,12 @@ struct input
 
         if(event.tfinger.fingerId == movementdirectionfinger && movdirdoubletapandhold)
         {
+            // cancel movement when crouching and thumb is located at center of control so that we can crouch without moving
+            static vec movementcontrolcenter = config.movementcontrolcenter();
+            vec finger(event.tfinger.x * VIRTW, event.tfinger.y * VIRTH, 0.0f);
+            float dist = movementcontrolcenter.dist(finger);
+            if(dist < movementcontrolradius / 3) keys.setsize(0);
+            
             keys.add(keyevent(event.type, TOUCH_GAME_LEFTSIDE_DOUBLETAP));
         }
     }
