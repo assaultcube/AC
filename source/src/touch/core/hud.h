@@ -30,10 +30,9 @@ struct hud
 
             // icons drawn at the very top from left to right: menu | weapon | reload | crouch | zoom
             drawtouchicon(iconsize/2, iconsize/2, 3, 1, 255/2); // TOUCH_GAME_LEFTSIDE_TOP_CORNER
-            drawtouchicon(VIRTW*4/8 - iconsize/2, iconsize/2, 0, 0, 255/2); // TOUCH_GAME_RIGHTSIDE_MIDDLE_0
-            drawtouchicon(VIRTW*5/8 - iconsize/2, iconsize/2, 1, 0, 255/2); // TOUCH_GAME_RIGHTSIDE_MIDDLE_1
-            drawtouchicon(VIRTW*6/8 - iconsize/2, iconsize/2, 2, 0, 255/2); // TOUCH_GAME_RIGHTSIDE_BOTTOM_0
-            if(player1->weaponsel->type == GUN_SNIPER) drawtouchicon(VIRTW*7/8 - iconsize/2, iconsize/2, 3, 0, 255/2); // TOUCH_GAME_RIGHTSIDE_BOTTOM_1
+            drawtouchicon(VIRTW*4/8 - iconsize/2, iconsize/2, 0, 0, 255/2); // TOUCH_GAME_RIGHTSIDE_TOP_0
+            drawtouchicon(VIRTW*5/8 - iconsize/2, iconsize/2, 1, 0, 255/2); // TOUCH_GAME_RIGHTSIDE_TOP_1
+            if(player1->weaponsel->type == GUN_SNIPER) drawtouchicon(VIRTW*6/8 - iconsize/2, iconsize/2, 3, 0, 255/2); // TOUCH_GAME_RIGHTSIDE_TOP_2
 
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             glColor4f(1.0f, 1.0f, 1.0f, 1.0f);

@@ -5,15 +5,15 @@ def platformVersion = 24      // openGLES 3.2 min api level
 // def platformVersion = 12    //openGLES 2 min api level
 
 android {
-    compileSdkVersion 29
+    compileSdkVersion 30
     ndkVersion '21.3.6528147'
 
     defaultConfig {
         applicationId 'net.cubers.assaultcube'
         minSdkVersion "${platformVersion}"
-        targetSdkVersion 29
-        versionName '0.8.5'
-        versionCode 7
+        targetSdkVersion 30
+        versionName '0.8.6'
+        versionCode 8
         externalNativeBuild {
             cmake {
                 arguments '-DANDROID_STL=c++_static'

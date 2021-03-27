@@ -19,7 +19,9 @@ struct input
     int movementdirectionfinger = -1; // determines the id of the finger that controls the movement direction of the player
     int firefinger = -1; // // determines the id of the finger that is controls attacking/firing
 
-    int lastlookingdirectiontap = -1;
+    bool movdirdoubletapandhold = false; // determines if the user is currently doing a 'double tap and hold' with the movement direction finger
+
+    int lastmovementdirectiontap = -1, lastlookingdirectiontap = -1;
     hashtable<int, vector<int>*> lastpressedtouchkeys; // remember last pressed touch key indexed by finger
     vec *touch1 = new vec(0, 0, 0);
 
@@ -60,19 +62,18 @@ struct input
         static vec movementcontrolcenter = config.movementcontrolcenter();
         vec finger(event.tfinger.x * VIRTW, event.tfinger.y * VIRTH, 0.0f);
         float dist = movementcontrolcenter.dist(finger);
-
         int icon1x2 = VIRTW * 4 / 8 + iconsize / 2;
         int icon2x1 = VIRTW * 5 / 8 - iconsize / 2;
         int icondiff = (icon2x1 - icon1x2) / 2;
+
         if(event.tfinger.x * VIRTW >= VIRTW * 4 / 8 - iconsize / 2 - icondiff)
         {
             if(event.tfinger.y * VIRTH < iconsize * 2)
             {
                 int touchkey = -1;
-                if(event.tfinger.x * VIRTW < VIRTW * 4 / 8 + iconsize / 2 + icondiff) touchkey = TOUCH_GAME_RIGHTSIDE_MIDDLE_0;
-                else if(event.tfinger.x * VIRTW < VIRTW * 5 / 8 + iconsize / 2 + icondiff) touchkey = TOUCH_GAME_RIGHTSIDE_MIDDLE_1;
-                else if(event.tfinger.x * VIRTW < VIRTW * 6 / 8 + iconsize / 2 + icondiff) touchkey = TOUCH_GAME_RIGHTSIDE_BOTTOM_0;
-                else if(event.tfinger.x * VIRTW < VIRTW * 7 / 8 + iconsize / 2 + icondiff) touchkey = TOUCH_GAME_RIGHTSIDE_BOTTOM_1;
+                if(event.tfinger.x * VIRTW < VIRTW * 4 / 8 + iconsize / 2 + icondiff) touchkey = TOUCH_GAME_RIGHTSIDE_TOP_0;
+                else if(event.tfinger.x * VIRTW < VIRTW * 5 / 8 + iconsize / 2 + icondiff) touchkey = TOUCH_GAME_RIGHTSIDE_TOP_1;
+                else if(event.tfinger.x * VIRTW < VIRTW * 6 / 8 + iconsize / 2 + icondiff) touchkey = TOUCH_GAME_RIGHTSIDE_TOP_2;
 
                 if(touchkey >= 0)
                 {
@@ -91,76 +92,94 @@ struct input
             }
             else if(event.type == SDL_FINGERDOWN || event.type == SDL_FINGERMOTION)
             {
-                vec zero(movementcontrolcenter.x + movementcontrolradius, movementcontrolcenter.y, 0.0f);
-                float angle = anglebetween(movementcontrolcenter, zero, finger);
-                if(angle < 0.0f) angle = (2 * PI + angle);
-                angle = 360.0f - (angle * 360.0f / PI2);
-
-                int touchkey = -1;
-                switch(config.MOVEMENTDIRECTIONS)
+                if(dist > movementcontrolradius / 3)
                 {
-                    // variant with four sectors which does not support strafe running but is easier to control
-                    case config::FOUR_DIRECTIONS:
+                    vec zero(movementcontrolcenter.x + movementcontrolradius, movementcontrolcenter.y, 0.0f);
+                    float angle = anglebetween(movementcontrolcenter, zero, finger);
+                    if(angle < 0.0f) angle = (2 * PI + angle);
+                    angle = 360.0f - (angle * 360.0f / PI2);
+
+                    int touchkey = -1;
+                    switch(config.MOVEMENTDIRECTIONS)
                     {
-                        int sector = ((angle + 45.0f) / 90.0f);
-                        switch(sector)
+                        // variant with four sectors which does not support strafe running but is easier to control
+                        case config::FOUR_DIRECTIONS:
                         {
-                            case 0:
-                            case 4:
-                                touchkey = TOUCH_GAME_LEFTSIDE_RIGHT;
-                                break;
-                            case 1:
-                                touchkey = TOUCH_GAME_LEFTSIDE_TOP;
-                                break;
-                            case 2:
-                                touchkey = TOUCH_GAME_LEFTSIDE_LEFT;
-                                break;
-                            case 3:
-                                touchkey = TOUCH_GAME_LEFTSIDE_BOTTOM;
-                                break;
+                            int sector = ((angle + 45.0f) / 90.0f);
+                            switch(sector)
+                            {
+                                case 0:
+                                case 4:
+                                    touchkey = TOUCH_GAME_LEFTSIDE_RIGHT;
+                                    break;
+                                case 1:
+                                    touchkey = TOUCH_GAME_LEFTSIDE_TOP;
+                                    break;
+                                case 2:
+                                    touchkey = TOUCH_GAME_LEFTSIDE_LEFT;
+                                    break;
+                                case 3:
+                                    touchkey = TOUCH_GAME_LEFTSIDE_BOTTOM;
+                                    break;
+                            }
+                            break;
                         }
-                        break;
+                        // variant with eight sectors which allows for strafe running but is difficult to master
+                        case config::EIGHT_DIRECTIONS:
+                        {
+                            const int startsectorkey = TOUCH_GAME_LEFTSIDE_TOPRIGHT;
+                            const int endsectorkey = TOUCH_GAME_LEFTSIDE_RIGHT;
+                            const int numsectors = endsectorkey - startsectorkey + 1;
+                            int sector = ((angle + (45.0f / 2.0f)) / 45.0f);
+                            touchkey = TOUCH_GAME_LEFTSIDE_TOPRIGHT + sector - 1;
+                            if(touchkey < TOUCH_GAME_LEFTSIDE_TOPRIGHT)
+                                touchkey = TOUCH_GAME_LEFTSIDE_TOPRIGHT + numsectors - 1;
+                            break;
+                        }
                     }
-                    // variant with eight sectors which allows for strafe running but is difficult to master
-                    case config::EIGHT_DIRECTIONS:
-                    {
-                        const int startsectorkey = TOUCH_GAME_LEFTSIDE_TOPRIGHT;
-                        const int endsectorkey = TOUCH_GAME_LEFTSIDE_RIGHT;
-                        const int numsectors = endsectorkey - startsectorkey + 1;
-                        int sector = ((angle + (45.0f / 2.0f)) / 45.0f);
-                        touchkey = TOUCH_GAME_LEFTSIDE_TOPRIGHT + sector - 1;
-                        if(touchkey < TOUCH_GAME_LEFTSIDE_TOPRIGHT)
-                            touchkey = TOUCH_GAME_LEFTSIDE_TOPRIGHT + numsectors - 1;
-                        break;
-                    }
+                    if(touchkey >= 0) keys.add(keyevent(event.type, touchkey));
                 }
-                if(touchkey >= 0) keys.add(keyevent(event.type, touchkey));
             }
         }
 
-        if(allowjump && event.tfinger.fingerId == movementdirectionfinger &&
-           dist > movementcontrolradius) {
-            keys.add(keyevent(event.type, TOUCH_GAME_LEFTSIDE_OUTERCIRCLE)); // secondary
+        if(allowjump && event.tfinger.fingerId == movementdirectionfinger && dist > movementcontrolradius)
+        {
+            keys.add(keyevent(event.type, TOUCH_GAME_LEFTSIDE_OUTERCIRCLE));
         }
 
-        if(event.tfinger.fingerId == lookingdirectionfinger &&
-           event.type == SDL_FINGERDOWN) {
-            if(lastlookingdirectiontap >= 0 &&
-               lastmillis - lastlookingdirectiontap < config.DOUBLE_TAP_MILLIS && keys.empty()) {
-                keys.add(keyevent(event.type, TOUCH_GAME_RIGHTSIDE_TOP_1));
+        // double tap of fire finger will be bound to ATTACK
+        if(event.tfinger.fingerId == lookingdirectionfinger && event.type == SDL_FINGERDOWN)
+        {
+            if(lastlookingdirectiontap >= 0 && lastmillis - lastlookingdirectiontap < config.DOUBLE_TAP_MILLIS && keys.empty())
+            {
+                keys.add(keyevent(event.type, TOUCH_GAME_RIGHTSIDE_DOUBLETAP));
             }
             lastlookingdirectiontap = lastmillis;
+        }
+
+        // double tap of movement finger will be bound to CROUCH
+        if(event.tfinger.fingerId == movementdirectionfinger && event.type == SDL_FINGERDOWN)
+        {
+            if(lastmovementdirectiontap >= 0 && lastmillis - lastmovementdirectiontap < config.DOUBLE_TAP_MILLIS) movdirdoubletapandhold = true;
+            lastmovementdirectiontap = lastmillis;
+        }
+
+        if(event.tfinger.fingerId == movementdirectionfinger && movdirdoubletapandhold)
+        {
+            keys.add(keyevent(event.type, TOUCH_GAME_LEFTSIDE_DOUBLETAP));
         }
     }
 
     // identify which fingers are in action
     void identifyfingers(const SDL_Event &event)
     {
-        if(event.tfinger.x < 0.5f && movementdirectionfinger == -1 &&
-           event.type == SDL_FINGERDOWN)
+        if(event.tfinger.x < 0.5f && movementdirectionfinger == -1 && event.type == SDL_FINGERDOWN)
             movementdirectionfinger = event.tfinger.fingerId;
         else if(event.tfinger.fingerId == movementdirectionfinger && event.type == SDL_FINGERUP)
+        {
             movementdirectionfinger = -1;
+            movdirdoubletapandhold = false;
+        }
         else if(event.tfinger.x * VIRTW >= VIRTW / 2 + iconsize &&
                 event.tfinger.x * VIRTW <= VIRTW / 2 + 4 * iconsize
                 && event.tfinger.y * VIRTH >= VIRTH / 2 - 2 * iconsize &&
