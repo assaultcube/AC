@@ -22,12 +22,15 @@ struct settingsscene : view
         pointeracceleration = new sliderview(this, "Pointer Acceleration", 0, 100, game.settings.pointeracceleration, NULL);
         children.add(pointeracceleration);
 
+        vector<char*> keys;
+        keys.add("RIGHT DOUBLE TAP");
+        keys.add("VOLUME-UP KEY");
+        volumeup = new sliderview(this, "Attack Key", 0, 1, game.settings.volumeup, &keys);
+        children.add(volumeup);
+
         vector<char*> onoff;
         onoff.add("OFF");
         onoff.add("ON");
-        volumeup = new sliderview(this, "Volume-Up Key Attack", 0, 1, game.settings.volumeup, &onoff);
-        children.add(volumeup);
-
         devmode = new sliderview(this, "Developer Mode", 0, 1, game.settings.devmode, &onoff);
         children.add(devmode);
     };

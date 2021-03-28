@@ -144,8 +144,8 @@ struct input
             keys.add(keyevent(event.type, TOUCH_GAME_LEFTSIDE_OUTERCIRCLE));
         }
 
-        // double tap of fire finger will be bound to ATTACK
-        if(event.tfinger.fingerId == lookingdirectionfinger && event.type == SDL_FINGERDOWN)
+        // attack is either bound to VOLUME-UP key or DOUBLET TAP of fire finger
+        if(event.tfinger.fingerId == lookingdirectionfinger && event.type == SDL_FINGERDOWN && !game.settings.volumeup)
         {
             if(lastlookingdirectiontap >= 0 && lastmillis - lastlookingdirectiontap < config.DOUBLE_TAP_MILLIS && keys.empty())
             {
@@ -154,7 +154,7 @@ struct input
             lastlookingdirectiontap = lastmillis;
         }
 
-        // double tap of movement finger will be bound to CROUCH
+        // double tap of movement finger will be bound to crouch
         if(event.tfinger.fingerId == movementdirectionfinger && event.type == SDL_FINGERDOWN)
         {
             if(lastmovementdirectiontap >= 0 && lastmillis - lastmovementdirectiontap < config.DOUBLE_TAP_MILLIS) movdirdoubletapandhold = true;
