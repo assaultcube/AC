@@ -21,9 +21,9 @@ struct weaponscene : view
         menu->rows = 1, menu->cols = 5;
         menu->items.add(new imagetouchmenuitem(menu, GUN_CARBINE, "packages/misc/items.png", 1.0/4.0f,1.0/4.0f, 0, 2));
         menu->items.add(new imagetouchmenuitem(menu, GUN_SHOTGUN, "packages/misc/items.png", 1.0/4.0f, 1.0/4.0f, 0, 3));
-        menu->items.add(new imagetouchmenuitem(menu, GUN_ASSAULT, "packages/misc/items.png", 1.0/4.0f, 1.0/4.0f,1, 0));
+        menu->items.add(new imagetouchmenuitem(menu, GUN_SUBGUN, "packages/misc/items.png", 1.0/4.0f, 1.0/4.0f,1, 0));
         menu->items.add(new imagetouchmenuitem(menu, GUN_SNIPER, "packages/misc/items.png", 1.0/4.0f, 1.0/4.0f, 1, 1));
-        menu->items.add(new imagetouchmenuitem(menu, GUN_SUBGUN, "packages/misc/items.png", 1.0/4.0f, 1.0/4.0f, 1, 2));
+        menu->items.add(new imagetouchmenuitem(menu, GUN_ASSAULT, "packages/misc/items.png", 1.0/4.0f, 1.0/4.0f, 1, 2));
         menu->children.add(menu->items[0]);
         menu->children.add(menu->items[1]);
         menu->children.add(menu->items[2]);

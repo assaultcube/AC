@@ -44,9 +44,9 @@ struct equipmentscene : view
         weaponmenu->rows = 1, weaponmenu->cols = 5;
         weaponmenu->items.add(new imagetouchmenuitem(weaponmenu, GUN_CARBINE, "packages/misc/items.png", 1.0/4.0f,1.0/4.0f, 0, 2));
         weaponmenu->items.add(new imagetouchmenuitem(weaponmenu, GUN_SHOTGUN, "packages/misc/items.png", 1.0/4.0f, 1.0/4.0f, 0, 3));
-        weaponmenu->items.add(new imagetouchmenuitem(weaponmenu, GUN_ASSAULT, "packages/misc/items.png", 1.0/4.0f, 1.0/4.0f,1, 0));
+        weaponmenu->items.add(new imagetouchmenuitem(weaponmenu, GUN_SUBGUN, "packages/misc/items.png", 1.0/4.0f, 1.0/4.0f,1, 0));
         weaponmenu->items.add(new imagetouchmenuitem(weaponmenu, GUN_SNIPER, "packages/misc/items.png", 1.0/4.0f, 1.0/4.0f, 1, 1));
-        weaponmenu->items.add(new imagetouchmenuitem(weaponmenu, GUN_SUBGUN, "packages/misc/items.png", 1.0/4.0f, 1.0/4.0f, 1, 2));
+        weaponmenu->items.add(new imagetouchmenuitem(weaponmenu, GUN_ASSAULT, "packages/misc/items.png", 1.0/4.0f, 1.0/4.0f, 1, 2));
         loopv(weaponmenu->items) weaponmenu->children.add(weaponmenu->items[i]);
         children.add(weaponmenu);
     };
