@@ -22,7 +22,7 @@ extern int numgamesplayed;
 VARP(volumeupattack, 0, 0, 1); // determines if volue-up key should be bound to attack
 VARP(onboarded, 0, 0, 1); // determines if the onboarding process has been completed
 
-float movementcontrolradius = VIRTH*2/4/2;
+float movementcontrolradius = VIRTH/4;
 vec *movementcontrolcenter;
 
 struct touchui

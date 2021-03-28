@@ -12,7 +12,7 @@ struct config
     color black = color(0.0f, 0.0f, 0.0f);
     color white = color(1.0f, 1.0f, 1.0f);
     color selectedcolor = color(1.0f, 1.0f, 1.0f); // determines the border color for selected menu items
-    vec movementcontrolcenter() { return vec(VIRTW / 4, VIRTH / 2, 0.0f); }; // determines the center position of the movement control (VIRTW is not known at compile time)
+    vec movementcontrolcenter() { return vec(VIRTW/6, VIRTH/2, 0.0f); }; // determines the center position of the movement control (VIRTW is not known at compile time)
     const int HUD_ICONSIZE = 120;
     enum
     {

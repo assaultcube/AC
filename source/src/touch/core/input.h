@@ -62,18 +62,18 @@ struct input
         static vec movementcontrolcenter = config.movementcontrolcenter();
         vec finger(event.tfinger.x * VIRTW, event.tfinger.y * VIRTH, 0.0f);
         float dist = movementcontrolcenter.dist(finger);
-        int icon1x2 = VIRTW * 4 / 8 + iconsize / 2;
-        int icon2x1 = VIRTW * 5 / 8 - iconsize / 2;
+        int icon1x2 = VIRTW*4/8 + iconsize / 2;
+        int icon2x1 = VIRTW*5/8 - iconsize / 2;
         int icondiff = (icon2x1 - icon1x2) / 2;
 
-        if(event.tfinger.x * VIRTW >= VIRTW * 4 / 8 - iconsize / 2 - icondiff)
+        if(event.tfinger.x * VIRTW >= VIRTW*4/8 - iconsize / 2 - icondiff)
         {
             if(event.tfinger.y * VIRTH < iconsize * 2)
             {
                 int touchkey = -1;
-                if(event.tfinger.x * VIRTW < VIRTW * 4 / 8 + iconsize / 2 + icondiff) touchkey = TOUCH_GAME_RIGHTSIDE_TOP_0;
-                else if(event.tfinger.x * VIRTW < VIRTW * 5 / 8 + iconsize / 2 + icondiff) touchkey = TOUCH_GAME_RIGHTSIDE_TOP_1;
-                else if(event.tfinger.x * VIRTW < VIRTW * 6 / 8 + iconsize / 2 + icondiff) touchkey = TOUCH_GAME_RIGHTSIDE_TOP_2;
+                if(event.tfinger.x * VIRTW < VIRTW *5/8 + iconsize / 2 + icondiff) touchkey = TOUCH_GAME_RIGHTSIDE_TOP_0;
+                else if(event.tfinger.x * VIRTW < VIRTW*6/8 + iconsize / 2 + icondiff) touchkey = TOUCH_GAME_RIGHTSIDE_TOP_1;
+                else if(event.tfinger.x * VIRTW < VIRTW*7/8 + iconsize / 2 + icondiff) touchkey = TOUCH_GAME_RIGHTSIDE_TOP_2;
 
                 if(touchkey >= 0)
                 {
@@ -168,7 +168,7 @@ struct input
             vec finger(event.tfinger.x * VIRTW, event.tfinger.y * VIRTH, 0.0f);
             float dist = movementcontrolcenter.dist(finger);
             if(dist < movementcontrolradius / 3) keys.setsize(0);
-            
+
             keys.add(keyevent(event.type, TOUCH_GAME_LEFTSIDE_DOUBLETAP));
         }
     }

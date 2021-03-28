@@ -29,21 +29,20 @@ struct hud
             turn_on_transparency(255);
 
             // icons drawn at the very top from left to right: menu | weapon | reload | crouch | zoom
-            drawtouchicon(iconsize/2, iconsize/2, 3, 1, 255/2); // TOUCH_GAME_LEFTSIDE_TOP_CORNER
-            drawtouchicon(VIRTW*4/8 - iconsize/2, iconsize/2, 0, 0, 255/2); // TOUCH_GAME_RIGHTSIDE_TOP_0
-            drawtouchicon(VIRTW*5/8 - iconsize/2, iconsize/2, 1, 0, 255/2); // TOUCH_GAME_RIGHTSIDE_TOP_1
-            if(player1->weaponsel->type == GUN_SNIPER) drawtouchicon(VIRTW*6/8 - iconsize/2, iconsize/2, 3, 0, 255/2); // TOUCH_GAME_RIGHTSIDE_TOP_2
+            drawtouchicon(iconsize/2, iconsize/2, 3, 1, 255); // TOUCH_GAME_LEFTSIDE_TOP_CORNER
+            drawtouchicon(VIRTW*5/8 - iconsize/2, iconsize/2, 0, 0, 255/4); // TOUCH_GAME_RIGHTSIDE_TOP_0
+            drawtouchicon(VIRTW*6/8 - iconsize/2, iconsize/2, 1, 0, 255/4); // TOUCH_GAME_RIGHTSIDE_TOP_1
+            if(player1->weaponsel->type == GUN_SNIPER) drawtouchicon(VIRTW*7/8 - iconsize/2, iconsize/2, 3, 0, 255/4); // TOUCH_GAME_RIGHTSIDE_TOP_2
 
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-            turn_on_transparency(255/2);
+            turn_on_transparency(255/4);
 
             // draw movement control at the left side of the screen
             static Texture *movetex = NULL;
             if(!movetex) movetex = textureload("packages/misc/touchmove.png", 3);
             if(movetex)
             {
-                turn_on_transparency(255/2);
                 float x1 = movementcontrolcenter.x - movementcontrolradius;
                 float y1 = movementcontrolcenter.y - movementcontrolradius;
                 quad(movetex->id, x1, y1, movementcontrolradius*2.0f, 0.0f, 0.0f, 1.0f, 1.0f);
