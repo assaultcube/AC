@@ -1080,7 +1080,7 @@ int main(int argc, char **argv)
 
     if(bootclientlog) cvecprintf(*bootclientlog, "######## start logging: %s\n", timestring(true));
 
-    const char *initmap = "ac_cavern";// fixmeah rndmapname();
+    const char *initmap = "ac_desert3";// fixmeah rndmapname();
     loopi(NUMGUNS) crosshairnames[i] = gunnames[i] = guns[i].modelname;
     crosshairnames[GUN_AKIMBO] = gunnames[GUN_AKIMBO] = "akimbo";
     crosshairnames[CROSSHAIR_DEFAULT] = "default";

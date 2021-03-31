@@ -1,4 +1,4 @@
-// the skin scene allows choosing the skin
+// the name scene allows choosing a name
 struct namescene : view
 {
     textview *title;

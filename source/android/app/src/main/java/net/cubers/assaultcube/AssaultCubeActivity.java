@@ -33,15 +33,6 @@ public class AssaultCubeActivity extends SDLActivity {
         // enable full brightness to improve visual experience
         this.getWindow().getAttributes().screenBrightness = 1.0f;
 
-        // Unfortunately AssaultCube uses two different API's for file access: SDL_RW from libsdl2 and fopen from cstdio:
-        // - libsdl2 targets the app's internal storage meaning the *readonly* APK data itself and this behavior is not easy to change.
-        //   AssaultCube reads only few things using SDL_RW such as audio files and certain images. No write access is performed (!)
-        // - cstdio can target any accessible path on the device the app has permissions to
-        //   AssaultCube reads most of the things using fopen and it writes *ALL* things using fopen.
-        //   Since we cannot easily get rid of the libsdl2 behavior our approach is to extract all data from the APK to the app's external
-        //   directory which is writeable and then have all calls to stdio target this directory. We do this once on startup.
-        AssetExporter assetExporter = new AssetExporter();
-        assetExporter.copyAssets(this);
         super.onCreate(savedInstanceState);
 
         if(shouldTriggerReview()) {

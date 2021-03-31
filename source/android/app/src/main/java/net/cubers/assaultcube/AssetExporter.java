@@ -22,13 +22,15 @@ public class AssetExporter {
 
     private static String lastAssetExportFilePath = "lastAssetExport.txt";
 
-    public void copyAssets(Activity activity) {
+    public boolean isAssetExportRequired(Activity activity) {
         // Exporting assets is a heavy operation and so we skip this operation if
         // the previously exported assets are of the same version as the currently running app.
         // Essentially we export assets once each time the app has been updated to a new version.
         boolean versionsMatch = getVersionCodeOfCurrentApp().equals(getVersionCodeOfLastExportedAssets(activity));
-        if(versionsMatch) return;
+        return !versionsMatch;
+    }
 
+    public void copyAssets(Activity activity) {
         AssetManager assetManager = activity.getAssets();
         ArrayList<String> files = new ArrayList<>();
         recursiveList(assetManager, "", files);

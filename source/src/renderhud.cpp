@@ -1177,6 +1177,12 @@ void loadingscreen(const char *fmt, ...)
 
     glDisable(GL_TEXTURE_2D);
     glEnable(GL_DEPTH_TEST);
+
+    #ifdef __ANDROID__
+    // on android there is a black screen for 10 secs when launching AC and this workaround resolves that for now.
+    // it would be better if we can improve the code above to work well on platforms.
+    if(!fmt) SDL_GL_SwapWindow(screen);
+    #endif
 }
 
 static void bar(float bar, int o, float r, float g, float b)
