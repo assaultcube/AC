@@ -1207,6 +1207,10 @@ static void bar(float bar, int o, float r, float g, float b)
 
 void show_out_of_renderloop_progress(float bar1, const char *text1, float bar2, const char *text2)   // also used during loading
 {
+    #ifdef __ANDROID__
+    return;
+    #endif
+
     c2skeepalive();
 
     glDisable(GL_DEPTH_TEST);
