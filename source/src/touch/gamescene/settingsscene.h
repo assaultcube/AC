@@ -23,8 +23,8 @@ struct settingsscene : view
         children.add(pointeracceleration);
 
         vector<char*> keys;
-        keys.add("RIGHT DOUBLE TAP");
-        keys.add("VOLUME-UP KEY");
+        keys.add("DOUBLE TAP");
+        keys.add("VOLUME-UP");
         volumeup = new sliderview(this, "Attack Key", 0, 1, game.settings.volumeup, &keys);
         children.add(volumeup);
 
