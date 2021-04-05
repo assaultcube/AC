@@ -7,7 +7,8 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
 # However c++ does not specify signedness of char and leaves this up to the platform. On Android the type char is *unsigned*.
 # Therefore we need to pass param -fsigned-char to force type char to be signed.
 # See also https://stackoverflow.com/a/9518354/50430
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fno-rtti -fno-exceptions -Wall -fsigned-char -fstack-protector")
+# We pass -fexceptions so that we can can catch some SEGFAULTS caused by GL4ES library -> https://github.com/ptitSeb/gl4es/issues/283
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fno-rtti -fexceptions -Wall -fsigned-char -fstack-protector")
 
 # the assaultcube source code directory
 set(ACSRC "../../../../../")
