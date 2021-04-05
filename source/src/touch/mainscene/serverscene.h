@@ -193,8 +193,8 @@ struct serverscene : view
         view::oncreate();
 
         // initialize serverlist
-        //int force = 1;
-        //updatefrommaster(&force);
+        int force = 1;
+        updatefrommaster(&force);
         refreshservers(NULL, true);
         updateservers();
 

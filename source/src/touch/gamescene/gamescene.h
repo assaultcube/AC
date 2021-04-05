@@ -103,7 +103,7 @@ struct gamescene : view
                 }
                 else if(e.emitter == helpbutton)
                 {
-                    view *newview = new helpscene(this);
+                    view *newview = new helpscene(this, false);
                     newview->oncreate();
                     viewstack.add(newview);
                 }

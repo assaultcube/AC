@@ -149,7 +149,7 @@ struct mainscene : view
 
                         if(showhelpscene)
                         {
-                            view *help = new helpscene(this);
+                            view *help = new helpscene(this, true);
                             help->oncreate();
                             viewstack.add(help);
                         }

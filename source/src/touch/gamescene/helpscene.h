@@ -1,28 +1,26 @@
 // the settings scene allows to configure a handful of crucial things
 struct helpscene : view
 {
-    textview *title = NULL;
-    navigationbutton *prevbutton = NULL;
+    imagetouchmenuitem *okbutton = NULL;
 
-    helpscene(view *parent) : view(parent)
+    helpscene(view *parent, bool showokbutton) : view(parent)
     {
-        title = new textview(this, "Help", false);
-        children.add(title);
-
-        prevbutton = new navigationbutton(this, navigationbutton::PREV);
-        children.add(prevbutton);
+        if(showokbutton)
+        {
+            okbutton = new imagetouchmenuitem(this, 0, "packages/misc/touch.png", 1.0/4.0f,1.0/4.0f, 1, 1);
+            okbutton->circleborder = true;
+            children.add(okbutton);
+        }
     };
 
     ~helpscene()
     {
-        DELETEP(title);
-        DELETEP(prevbutton);
+        DELETEP(okbutton);
     }
 
     virtual void measure(int availablewidth, int availableheight)
     {
-        title->measure(availablewidth/4, availableheight/4);
-        prevbutton->measure(availablewidth/4, availableheight/4);
+        if(okbutton) okbutton->measure(availablewidth/4, availableheight/4);
         width = availablewidth;
         height = availableheight;
     }
@@ -39,6 +37,9 @@ struct helpscene : view
         if(!tex) tex = textureload(texname, 3);
         if(tex) rect(tex->id, x + (VIRTW-imgwidth)/2, y + (VIRTH-imgheight)/2, imgwidth, imgheight, 0.0f, 0.0f, 1.0f, 1.0f);
 
+        int itemsize = height/4;
+        if(okbutton) okbutton->render(VIRTW-okbutton->width-itemsize/2/5, VIRTH/2-itemsize/2);
+
         bbox.x1 = x;
         bbox.x2 = x + width;
         bbox.y1 = y;
@@ -47,11 +48,23 @@ struct helpscene : view
 
     virtual void captureevent(SDL_Event *event)
     {
-        if(event->type == SDL_FINGERDOWN)
+        // if there is no OK button we simply treat ever touch of the screen as a close action
+        if(!okbutton && event->type == SDL_FINGERDOWN)
         {
-            delete viewstack.pop();
+            close();
             return;
         }
         view::captureevent(event);
+    }
+
+    virtual void bubbleevent(uievent e)
+    {
+        // if there is an OK button the user is required to tap it in order to close the screen
+        if(okbutton && e.type == uievent::UIE_TAPPED && e.emitter == okbutton) close();
+    }
+
+    void close()
+    {
+        delete viewstack.pop();
     }
 };
