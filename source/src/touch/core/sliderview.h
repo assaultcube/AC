@@ -47,10 +47,11 @@ struct sliderview : view
         int sliderbuttonwidth = fh*2/6;
         float sliderperc = float(currentval)/(maxval-minval);
         int buttonx1 = x + 2*padding + tw + sliderperc * linewidth;
-        int buttonx2 = x + 2*padding + tw + sliderperc * linewidth + sliderbuttonwidth;
-        buttony1 = y + padding;
-        buttony2 = y + padding + fh;
-        blendbox(buttonx1, buttony1, buttonx2, buttony2, false, -1, &white);
+        int buttony1 = y + padding + fh/2;
+        glColor3f(0.0f, 0.0f, 0.0f);
+        circle(-1, buttonx1, buttony1, fh/2*12/10, 0, 0, 0, 32);
+        glColor3f(1.0f, 1.0f, 1.0f);
+        circle(-1, buttonx1, buttony1, fh/2, 0, 0, 0, 32);
 
         // draw label and value
         glEnable(GL_BLEND);
