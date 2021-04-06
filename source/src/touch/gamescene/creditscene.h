@@ -1,4 +1,4 @@
-// the settings scene allows to configure a handful of crucial things
+// the credit scene gives basic information and credit where credit is due
 struct creditscene : view
 {
     textview *title = NULL;
@@ -71,7 +71,7 @@ struct creditscene : view
         creationmillis = lastmillis;
     }
 
-        virtual void measure(int availablewidth, int availableheight)
+    virtual void measure(int availablewidth, int availableheight)
     {
         title->measure(availablewidth/4, availableheight/4);
         textwidth = text_width(text);

@@ -89,11 +89,11 @@ struct servermenuitem : touchmenuitem
             switch(battlegroundtype)
             {
                 case BG_TRAINING:
-                    formatstring(text1)("Training");
+                    formatstring(text1)("Solo/Training");
                     draw_text(text1, x + padding*3/2, y + padding*3/2);
                     break;
                 case BG_PLAYOFFLINE:
-                    formatstring(text1)("Play offline");
+                    formatstring(text1)("Local bots");
                     draw_text(text1, x + padding*3/2, y + padding*3/2);
                     draw_text(text, x + width/2 - text_width(text)/2, y + height/2 - FONTH/2);
                     break;
