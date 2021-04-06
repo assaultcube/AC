@@ -10,21 +10,21 @@ struct touchmenuitem : view
     virtual void ondeselected() = 0;
 };
 
-// the image touch menu item a selectable image
+// the image touch menu item is a selectable image
 struct imagetouchmenuitem : touchmenuitem
 {
     struct touchmenu *parent;
     char *texname;
     Texture *tex = NULL;
-    int row, col;
+    int col, row;
     float tsx, tsy;
     int contentsize;
     int padding;
     bool isselected = false;
     bool circleborder = false;
 
-    imagetouchmenuitem(view *parent, int key, const char *texname, float tsx, float tsy, int row, int col)
-            : touchmenuitem(parent, key), texname(newstring(texname)), row(row), col(col), tsx(tsx), tsy(tsy) {};
+    imagetouchmenuitem(view *parent, int key, const char *texname, float tsx, float tsy, int col, int row)
+            : touchmenuitem(parent, key), texname(newstring(texname)), col(col), row(row), tsx(tsx), tsy(tsy) {};
 
     ~imagetouchmenuitem()
     {

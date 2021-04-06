@@ -27,7 +27,7 @@ struct equipmentscene : view
 
         teammenu = new touchmenu(this);
         teammenu->rows = 1, teammenu->cols = 2;
-        teammenu->items.add(new imagetouchmenuitem(teammenu, game::settings::RVSF, "packages/misc/teams.png", 1.0 / 2.0f, 1.0f, 0, 1));
+        teammenu->items.add(new imagetouchmenuitem(teammenu, game::settings::RVSF, "packages/misc/teams.png", 1.0 / 2.0f, 1.0f, 1, 0));
         teammenu->items.add(new imagetouchmenuitem(teammenu, game::settings::CLA, "packages/misc/teams.png", 1.0 / 2.0f, 1.0f, 0, 0));
         loopv(teammenu->items) teammenu->children.add(teammenu->items[i]);
         children.add(teammenu);
@@ -42,11 +42,11 @@ struct equipmentscene : view
 
         weaponmenu = new touchmenu(this);
         weaponmenu->rows = 1, weaponmenu->cols = 5;
-        weaponmenu->items.add(new imagetouchmenuitem(weaponmenu, GUN_CARBINE, "packages/misc/items.png", 1.0/4.0f,1.0/4.0f, 0, 2));
-        weaponmenu->items.add(new imagetouchmenuitem(weaponmenu, GUN_SHOTGUN, "packages/misc/items.png", 1.0/4.0f, 1.0/4.0f, 0, 3));
-        weaponmenu->items.add(new imagetouchmenuitem(weaponmenu, GUN_SUBGUN, "packages/misc/items.png", 1.0/4.0f, 1.0/4.0f,1, 0));
+        weaponmenu->items.add(new imagetouchmenuitem(weaponmenu, GUN_CARBINE, "packages/misc/items.png", 1.0/4.0f,1.0/4.0f, 2, 0));
+        weaponmenu->items.add(new imagetouchmenuitem(weaponmenu, GUN_SHOTGUN, "packages/misc/items.png", 1.0/4.0f, 1.0/4.0f, 3, 0));
+        weaponmenu->items.add(new imagetouchmenuitem(weaponmenu, GUN_SUBGUN, "packages/misc/items.png", 1.0/4.0f, 1.0/4.0f, 0, 1));
         weaponmenu->items.add(new imagetouchmenuitem(weaponmenu, GUN_SNIPER, "packages/misc/items.png", 1.0/4.0f, 1.0/4.0f, 1, 1));
-        weaponmenu->items.add(new imagetouchmenuitem(weaponmenu, GUN_ASSAULT, "packages/misc/items.png", 1.0/4.0f, 1.0/4.0f, 1, 2));
+        weaponmenu->items.add(new imagetouchmenuitem(weaponmenu, GUN_ASSAULT, "packages/misc/items.png", 1.0/4.0f, 1.0/4.0f, 2, 1));
         loopv(weaponmenu->items) weaponmenu->children.add(weaponmenu->items[i]);
         children.add(weaponmenu);
     };

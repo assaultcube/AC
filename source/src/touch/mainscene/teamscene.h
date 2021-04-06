@@ -15,7 +15,7 @@ struct teamscene : view
 
         menu = new touchmenu(this);
         menu->rows = 1, menu->cols = 2;
-        menu->items.add(new imagetouchmenuitem(menu, RVSF, "packages/misc/teams.png", 1.0 / 2.0f, 1.0f, 0, 1));
+        menu->items.add(new imagetouchmenuitem(menu, RVSF, "packages/misc/teams.png", 1.0 / 2.0f, 1.0f, 1, 0));
         menu->items.add(new imagetouchmenuitem(menu, CLA, "packages/misc/teams.png", 1.0 / 2.0f, 1.0f, 0, 0));
         menu->children.add(menu->items[0]);
         menu->children.add(menu->items[1]);
