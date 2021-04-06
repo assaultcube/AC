@@ -470,7 +470,19 @@ struct vertmodel : model
             bool isstat = as.frame==0 && as.range==1;
             if(isstat && statlist && !stenciling)
             {
-                glCallList(statlist);
+                #ifdef __ANDROID__
+                // this is an attempt to mitigate this issue -> https://github.com/ptitSeb/gl4es/issues/283
+                try
+                {
+                #endif
+                    glCallList(statlist);
+                #ifdef __ANDROID__
+                }
+                catch(std::exception& e)
+                {
+                    LOGE("caught exception in glCallList: %s", e.what());
+                }
+                #endif
                 xtraverts += statlen;
                 return;
             }

@@ -22,15 +22,12 @@ struct settingsscene : view
         pointeracceleration = new sliderview(this, "Pointer Acceleration", 0, 100, game.settings.pointeracceleration, NULL);
         children.add(pointeracceleration);
 
-        vector<char*> keys;
-        keys.add("DOUBLE TAP");
-        keys.add("VOLUME-UP");
-        volumeup = new sliderview(this, "Attack Key", 0, 1, game.settings.volumeup, &keys);
-        children.add(volumeup);
-
         vector<char*> onoff;
         onoff.add("OFF");
         onoff.add("ON");
+        volumeup = new sliderview(this, "\f3Try it out!\f5 Use VOLUME-UP key to \nattack/fire instead of double-tap", 0, 1, game.settings.volumeup, &onoff);
+        children.add(volumeup);
+
         devmode = new sliderview(this, "Developer Mode", 0, 1, game.settings.devmode, &onoff);
         children.add(devmode);
     };
@@ -67,11 +64,10 @@ struct settingsscene : view
 
         int itemsize = height/4;
         prevbutton->render(itemsize/2/5, itemsize/2/5);
-
         pointerspeed->render(x + width/2 - pointerspeed->width/2, title->bbox.y2 + height/8 );
-        pointeracceleration->render(x + width/2 - pointerspeed->width/2, title->bbox.y2 + height/8 + pointerspeed->height + FONTH );
-        volumeup->render(x + width/2 - pointerspeed->width/2, title->bbox.y2 + height/8 + pointerspeed->height + FONTH + pointeracceleration->height + FONTH);
-        devmode->render(x + width/2 - pointerspeed->width/2, title->bbox.y2 + height/8 + pointerspeed->height + FONTH + pointeracceleration->height + FONTH + devmode->height + FONTH);
+        pointeracceleration->render(x + width/2 - pointerspeed->width/2, pointerspeed->bbox.y2 + FONTH );
+        devmode->render(x + width/2 - pointerspeed->width/2, pointeracceleration->bbox.y2 + FONTH);
+        volumeup->render(x + width/2 - pointerspeed->width/2, devmode->bbox.y2 + FONTH);
 
         bbox.x1 = x;
         bbox.x2 = x + width;
