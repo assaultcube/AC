@@ -1,7 +1,7 @@
 // handles the user input and manages virtual keys on the touch display
 struct input
 {
-    // represents an press, release or move event related to a virtual key that is located on the touch display
+    // represents a press, release or move event related to a virtual key that is located on the touch display
     struct keyevent
     {
         int type = 0;
@@ -44,14 +44,60 @@ struct input
         return keys;
     }
 
+    // test for tapping inside an area surrounding the boundingbox of the icon.
+    bool icontapped(int vfingerx, int vfingery, int x0, int y0 )
+    {
+        int air = iconsize / 2;
+        int ta_x0 = x0 - air;
+        int ta_x1 = x0 + iconsize + air;
+        int ta_y0 = y0 - air;
+        int ta_y1 = y0 + iconsize + air;
+        return ( ( vfingerx >= ta_x0 && vfingerx <= ta_x1 ) && ( vfingery >= ta_y0 && vfingery <= ta_y1 ) );
+    }
+
     // determines keys in dead or spectate mode
     void deadspectatekeys(SDL_Event &event, vector <keyevent> &keys)
     {
-        if(event.tfinger.type == SDL_FINGERDOWN && event.tfinger.y * VIRTH < iconsize * 2 && event.tfinger.x * VIRTW < iconsize * 2)
+        /*
+         * the default action should be to respawn - by calling physics.cpp:attack()
+         * so first check the "between respawns" opportunities given:
+         * settings, equipment left-corners top/bottom
+         * and four voicecoms left/right side of scoreboard top/bottom
+         */
+        bool deaddeed = false; // did we do something while dead or just tapped to respawn?
+        int vfingerx = event.tfinger.x * VIRTW;
+        int vfingery = event.tfinger.y * VIRTH;
+        int iconsizetwice = iconsize * 2; // a bit of air around the corner icons
+        int scoreboardEdgeLeft = VIRTW/4;
+        int scoreboardEdgeTop = VIRTH/4;
+        int scoreboardEdgeRight = scoreboardEdgeLeft*3;
+        if( vfingerx < iconsizetwice && vfingery < iconsizetwice ){
+            deaddeed = true;
             keys.add(keyevent(event.type, TOUCH_GAME_LEFTSIDE_TOP_CORNER));
-        else
-            keys.add(keyevent(event.type, TOUCH_GAME_RIGHTSIDE_DOUBLETAP));
-
+        }
+        if( vfingerx < iconsizetwice && vfingery > VIRTH-iconsizetwice ){
+            deaddeed = true;
+            keys.add(keyevent(event.type, TOUCH_GAME_LEFTSIDE_BOTTOM_CORNER));
+        }
+        // TODO: voicecom icons should be larger
+        if( icontapped( vfingerx, vfingery, scoreboardEdgeLeft - iconsize, scoreboardEdgeTop + iconsize ) ){
+            deaddeed = true;
+            keys.add(keyevent(event.type, TOUCH_GAME_VOICECOM_LEFT_1 ));
+        }
+        if( icontapped( vfingerx, vfingery, scoreboardEdgeLeft - iconsize, scoreboardEdgeTop + 5 * iconsize ) ){
+            deaddeed = true;
+            keys.add(keyevent(event.type, TOUCH_GAME_VOICECOM_LEFT_2 ));
+        }
+        if( icontapped( vfingerx, vfingery, scoreboardEdgeRight + iconsize, scoreboardEdgeTop + iconsize ) ){
+            deaddeed = true;
+            keys.add(keyevent(event.type, TOUCH_GAME_VOICECOM_RIGHT_1 ));
+        }
+        if( icontapped( vfingerx, vfingery, scoreboardEdgeRight + iconsize, scoreboardEdgeTop + 5 * iconsize ) ){
+            deaddeed = true;
+            keys.add(keyevent(event.type, TOUCH_GAME_VOICECOM_RIGHT_2 ));
+        }
+        // no dead deed done?
+        if(!deaddeed) keys.add(keyevent(event.type, TOUCH_GAME_RIGHTSIDE_DOUBLETAP));
     }
 
     // determines keys in alive and non-spectate mode
@@ -62,18 +108,20 @@ struct input
         static vec movementcontrolcenter = config.movementcontrolcenter();
         vec finger(event.tfinger.x * VIRTW, event.tfinger.y * VIRTH, 0.0f);
         float dist = movementcontrolcenter.dist(finger);
+        int vfingerx = event.tfinger.x * VIRTW;
+        int vfingery = event.tfinger.y * VIRTH;
         int icon1x2 = VIRTW*4/8 + iconsize / 2;
         int icon2x1 = VIRTW*5/8 - iconsize / 2;
         int icondiff = (icon2x1 - icon1x2) / 2;
 
-        if(event.tfinger.x * VIRTW >= VIRTW*4/8 - iconsize / 2 - icondiff)
+        if(vfingerx >= VIRTW*4/8 - iconsize / 2 - icondiff)
         {
-            if(event.tfinger.y * VIRTH < iconsize * 2)
+            if(vfingery < iconsize * 2)
             {
                 int touchkey = -1;
-                if(event.tfinger.x * VIRTW < VIRTW *5/8 + iconsize / 2 + icondiff) touchkey = TOUCH_GAME_RIGHTSIDE_TOP_0;
-                else if(event.tfinger.x * VIRTW < VIRTW*6/8 + iconsize / 2 + icondiff) touchkey = TOUCH_GAME_RIGHTSIDE_TOP_1;
-                else if(event.tfinger.x * VIRTW < VIRTW*7/8 + iconsize / 2 + icondiff) touchkey = TOUCH_GAME_RIGHTSIDE_TOP_2;
+                if(vfingerx < VIRTW *5/8 + iconsize / 2 + icondiff) touchkey = TOUCH_GAME_RIGHTSIDE_TOP_0;
+                else if(vfingerx < VIRTW*6/8 + iconsize / 2 + icondiff) touchkey = TOUCH_GAME_RIGHTSIDE_TOP_1;
+                else if(vfingerx < VIRTW*7/8 + iconsize / 2 + icondiff) touchkey = TOUCH_GAME_RIGHTSIDE_TOP_2;
 
                 if(touchkey >= 0)
                 {
@@ -81,11 +129,21 @@ struct input
                     allowjump = false;
                 }
             }
+            else if(vfingery >= VIRTH - 2*iconsize) // 3*iconsize/2 + air
+            {
+                if( vfingerx >= VIRTW - 2*iconsize){ // 3*iconsize/2 + air
+                    if( event.tfinger.type == SDL_FINGERDOWN )
+                    {
+                        keys.add(keyevent(event.type, TOUCH_GAME_RIGHTSIDE_BOTTOM_CORNER));
+                        allowjump = false; // suicide imminent: don't jump .. that's humour for you code readers with depression!
+                    }
+                }
+            }
         }
         else if(event.tfinger.x < 0.5)
         {
-            if(event.tfinger.type == SDL_FINGERDOWN && event.tfinger.y * VIRTH < iconsize * 2 &&
-               event.tfinger.x * VIRTW < iconsize * 2)
+            if(event.tfinger.type == SDL_FINGERDOWN && vfingery < iconsize * 2 &&
+               vfingerx < iconsize * 2)
             {
                 keys.add(keyevent(event.type, TOUCH_GAME_LEFTSIDE_TOP_CORNER));
                 allowjump = false;
@@ -165,7 +223,7 @@ struct input
         {
             // cancel movement when crouching and thumb is located at center of control so that we can crouch without moving
             static vec movementcontrolcenter = config.movementcontrolcenter();
-            vec finger(event.tfinger.x * VIRTW, event.tfinger.y * VIRTH, 0.0f);
+            //already declared up top:vec finger(event.tfinger.x * VIRTW, event.tfinger.y * VIRTH, 0.0f);
             float dist = movementcontrolcenter.dist(finger);
             if(dist < movementcontrolradius / 3) keys.setsize(0);
 

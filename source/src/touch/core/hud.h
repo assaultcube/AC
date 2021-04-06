@@ -7,7 +7,7 @@ struct hud
         if(!tex) tex = textureload("packages/misc/touch.png", 3);
         if(tex) {
             turn_on_transparency(alpha);
-            drawicon(tex, x, y, 120, col, row, 1 / 4.0f);
+            drawicon(tex, x, y, 120, col, row, config.TOUCHICONGRIDCELL);
             glDisable(GL_BLEND);
         }
     }
@@ -19,9 +19,22 @@ struct hud
 
         if(menuvisible())
         {
-            // if the scoreboard (classical menu) is shown then only draw the menu icon at the top left corner so that players can change weapon and team
+            // if the scoreboard (classical menu) is shown provide for "between respawns" opportunities like equipment changes and voicecom
+            int scoreboardEdgeLeft = VIRTW/4;
+            int scoreboardEdgeTop = VIRTH/4;
+            int scoreboardEdgeRight = scoreboardEdgeLeft*3;
             turn_on_transparency(255);
-            drawtouchicon(iconsize/2, iconsize/2, 3, 1, 255/2); // TOUCH_GAME_LEFTSIDE_TOP_CORNER
+
+            drawtouchicon(iconsize/2, iconsize/2, 3, 1); // TOUCH_GAME_LEFTSIDE_TOP_CORNER
+            drawtouchicon(iconsize/2, VIRTH-3*iconsize/2, 2, 2); // TOUCH_GAME_RIGHTSIDE_BOTTOM_CORNER
+            // TODO: voicecom icons should be larger
+            drawtouchicon( scoreboardEdgeLeft -  iconsize, scoreboardEdgeTop +     iconsize, 4, 2, 255); // TOUCH_GAME_VOICEOM_LEFT_1
+            drawtouchicon( scoreboardEdgeLeft -  iconsize, scoreboardEdgeTop + 3 * iconsize, 4, 4, 255); // untouchable
+            drawtouchicon( scoreboardEdgeLeft -  iconsize, scoreboardEdgeTop + 5 * iconsize, 4, 3, 255); // TOUCH_GAME_VOICEOM_LEFT_2
+            drawtouchicon( scoreboardEdgeRight + iconsize, scoreboardEdgeTop +     iconsize, 2, 4, 255); // TOUCH_GAME_VOICEOM_RIGHT_1
+            drawtouchicon( scoreboardEdgeRight + iconsize, scoreboardEdgeTop + 3 * iconsize, 4, 4, 255); // untouchable
+            drawtouchicon( scoreboardEdgeRight + iconsize, scoreboardEdgeTop + 5 * iconsize, 3, 4, 255); // TOUCH_GAME_VOICEOM_RIGHT_2
+
             glDisable(GL_BLEND);
         }
         else
@@ -30,6 +43,7 @@ struct hud
 
             // icons drawn at the very top from left to right: menu | weapon | reload | crouch | zoom
             drawtouchicon(iconsize/2, iconsize/2, 3, 1, 255); // TOUCH_GAME_LEFTSIDE_TOP_CORNER
+            drawtouchicon(VIRTW-3*iconsize/2, VIRTH-3*iconsize/2, 2, 2, 255); // TOUCH_GAME_RIGHTSIDE_BOTTOM_CORNER // TESTING: a suicide button for quick access to scoreboard in dead state
             drawtouchicon(VIRTW*5/8 - iconsize/2, iconsize/2, 0, 0, 255/4); // TOUCH_GAME_RIGHTSIDE_TOP_0
             drawtouchicon(VIRTW*6/8 - iconsize/2, iconsize/2, 1, 0, 255/4); // TOUCH_GAME_RIGHTSIDE_TOP_1
             if(player1->weaponsel->type == GUN_SNIPER) drawtouchicon(VIRTW*7/8 - iconsize/2, iconsize/2, 3, 0, 255/4); // TOUCH_GAME_RIGHTSIDE_TOP_2

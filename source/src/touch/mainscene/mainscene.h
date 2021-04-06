@@ -28,7 +28,7 @@ struct mainscene : view
         children.add(prevbutton);
         nextbutton = new navigationbutton(this, navigationbutton::NEXT);
         children.add(nextbutton);
-        okbutton = new imagetouchmenuitem(this, 0, "packages/misc/touch.png", 1.0/4.0f,1.0/4.0f, 1, 1);
+        okbutton = new imagetouchmenuitem(this, 0, "packages/misc/touch.png", config.TOUCHICONGRIDCELL, config.TOUCHICONGRIDCELL, 1, 1);
         okbutton->circleborder = true;
         children.add(okbutton);
 

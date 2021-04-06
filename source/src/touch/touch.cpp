@@ -10,6 +10,8 @@ extern void trydisconnect();
 extern void closetouchmenu();
 extern void addnbot(const char *arg1, const char *arg2, const char *arg3);
 extern void connectserv(char *servername, int *serverport, char *password);
+extern void toggleconsole();
+extern void voicecom(char *sound, char *text);
 extern float sensitivity, mouseaccel;
 extern void drawicon(Texture *tex, float x, float y, float s, int col, int row, float ts);
 extern void turn_on_transparency(int alpha = 255);
@@ -17,6 +19,7 @@ extern const char *gunnames[];
 extern vec *movementcontrolcenter;
 extern float movementcontrolradius;
 extern int hideconsole;
+extern int developermode;
 extern int numgamesplayed;
 
 VARP(volumeupattack, 0, 0, 1); // determines if volue-up key should be bound to attack
@@ -78,6 +81,13 @@ struct touchui
         viewstack.add(scene);
     }
 
+    void openequipmentscene()
+    {
+        equipmentscene *scene = new equipmentscene(NULL);
+        scene->oncreate();
+        viewstack.add(scene);
+    }
+
     bool visible()
     {
         return viewstack.length();
@@ -108,6 +118,7 @@ struct touchui::hud touchui::hud;
 bool touchenabled() { return touch.config.enabled; }
 void showtouchmenu(bool servers) { touch.openmainscene(servers); }
 void showgamemenu() { touch.opengamescene(); }
+void showequipmentmenu() { touch.openequipmentscene(); }
 void menuevent(SDL_Event *event) { touch.captureevent(event); }
 void rendertouchmenu() { touch.render(); }
 bool touchmenuvisible() { return touch.visible(); }
@@ -116,5 +127,6 @@ bool hijackvolumebuttons() { return volumeupattack && !touchmenuvisible(); }
 bool allowaskrating() { return touchmenuvisible() && numgamesplayed >= 5; }
 
 COMMAND(showgamemenu, "");
+COMMAND(showequipmentmenu, "");
 
 void checktouchinput() { touch.input.checkinput(); }

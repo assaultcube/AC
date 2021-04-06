@@ -14,6 +14,7 @@ struct config
     color selectedcolor = color(1.0f, 1.0f, 1.0f); // determines the border color for selected menu items
     vec movementcontrolcenter() { return vec(VIRTW/6, VIRTH/2, 0.0f); }; // determines the center position of the movement control (VIRTW is not known at compile time)
     const int HUD_ICONSIZE = 120;
+    const float TOUCHICONGRIDCELL = 1/5.0f; // N x N icon grid => 1/N
     enum
     {
         FOUR_DIRECTIONS = 0,

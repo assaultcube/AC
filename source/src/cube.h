@@ -46,6 +46,12 @@
    TOUCH_GAME_RIGHTSIDE_TOP_0 = 10021,
    TOUCH_GAME_RIGHTSIDE_TOP_1 = 10022,
    TOUCH_GAME_RIGHTSIDE_TOP_2 = 10023,
+   TOUCH_GAME_VOICECOM_LEFT_1 = 10024,
+   TOUCH_GAME_VOICECOM_LEFT_2 = 10025,
+   TOUCH_GAME_VOICECOM_RIGHT_1 = 10026,
+   TOUCH_GAME_VOICECOM_RIGHT_2 = 10027,
+   TOUCH_GAME_LEFTSIDE_BOTTOM_CORNER = 10028,
+   TOUCH_GAME_RIGHTSIDE_BOTTOM_CORNER = 10029,
  };
 #endif
 
@@ -82,12 +88,15 @@ extern float waterlevel;
 #define AC_VERSION 1202
 
 #ifdef __ANDROID__
+//INTERWEBS | LIVE
 #define AC_MASTER_URI "acmaster.centralus.cloudapp.azure.com"
+//LAN | WIP
+//#define AC_MASTER_URI "master.lan"
 #else
 #define AC_MASTER_URI "ms.cubers.net"
 #endif
 
-#define AC_MASTER_PORT 28760
+#define AC_MASTER_PORT 17650
 #define MAXCL 16
 #define CONFIGROTATEMAX 5               // keep 5 old versions of saved.cfg and init.cfg around
 
