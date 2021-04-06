@@ -1313,7 +1313,7 @@ int progress_callback_retrieveservers(void *data, float progress)
     return interceptkey(SDLK_ESCAPE) ? 1 : 0;
 }
 
-VARP(mastertype, 0, 1, 1); // 0: TCP direct, 1: HTTP proxy
+VARP(mastertype, 0, 0, 1); // 0: ENET, 1: HTTP
 
 void retrieveservers(vector<char> &data)
 {
