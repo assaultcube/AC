@@ -617,6 +617,7 @@ struct mitemslider : mitem
         displaycurvalue();
     }
 
+    virtual const char *gettext() { return text; }
     virtual const char *getaction() { return action; }
 };
 
@@ -775,6 +776,8 @@ struct mitemcheckbox : mitem
             line(x2, y1, x1, y2, col);
         }
     }
+
+    virtual const char* gettext() { return text; }
 
     virtual const char *getaction() { return action; }
 };
@@ -1100,6 +1103,23 @@ void menusay(const char *text)
     if(curmenu && curmenu->allowinput && curmenu->items.inrange(curmenu->menusel)) curmenu->items[curmenu->menusel]->say(text);
 }
 
+// move menu selection forward or backward and skip empty items that are not selectable
+int movemenuselection(int currentmenusel, int direction)
+{
+    direction = clamp(direction, -1, 1);
+    int newmenusel = currentmenusel;
+    bool inrange = false, selectable = false;
+    do
+    {
+        newmenusel += direction;
+        inrange = curmenu->items.inrange(newmenusel);
+        selectable = inrange && curmenu->items[newmenusel]->gettext() && curmenu->items[newmenusel]->gettext()[0] != '\0';
+    } while(inrange && !selectable);
+
+    if (inrange && selectable) return newmenusel;
+    else return currentmenusel;
+}
+
 bool menukey(int code, bool isdown, SDL_Keymod mod)
 {
     if(!curmenu) return false;
@@ -1137,19 +1157,19 @@ bool menukey(int code, bool isdown, SDL_Keymod mod)
                 if(iskeypressed(SDL_SCANCODE_LCTRL)) return menukey(SDLK_LEFT);
                 if(iskeypressed(SDL_SCANCODE_LALT)) return menukey(SDLK_RIGHTBRACKET);
                 if(!curmenu->allowinput) return false;
-                menusel--;
+                menusel = movemenuselection(menusel, -1);
                 break;
             case SDLK_DOWN:
             case SDL_AC_BUTTON_WHEELDOWN:
                 if(iskeypressed(SDL_SCANCODE_LCTRL)) return menukey(SDLK_RIGHT);
                 if(iskeypressed(SDL_SCANCODE_LALT)) return menukey(SDLK_LEFTBRACKET);
                 if(!curmenu->allowinput) return false;
-                menusel++;
+                menusel = movemenuselection(menusel, 1);
                 break;
             case SDLK_TAB:
                 if(!curmenu->allowinput) return false;
-                if(mod & KMOD_LSHIFT) menusel--;
-                else menusel++;
+                if(mod & KMOD_LSHIFT) menusel = movemenuselection(menusel, -1);
+                else menusel = movemenuselection(menusel, 1);
                 break;
 
             case SDLK_1:
