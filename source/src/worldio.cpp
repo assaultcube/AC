@@ -873,7 +873,9 @@ int load_world(char *mname)        // still supports all map formats that have e
     hdr = tmp;
     mapconfigdata.clear();
     rebuildtexlists();
-    loadingscreen("%s", hdr.maptitle);
+    extern bool initmapload;
+    if(!initmapload)loadingscreen("%s", hdr.maptitle);//loadingscreen("%s", initmapload ? "..lets play.." : hdr.maptitle);
+    initmapload = false;
     resetmap();
     int res = 0;
     if(hdr.version>=4)

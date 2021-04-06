@@ -906,6 +906,7 @@ VARF(gamespeed, 10, 100, 1000, if(multiplayer()) gamespeed = 100);
 VARF(paused, 0, 0, 1, if(multiplayer()) paused = 0);
 
 bool inmainloop = false;
+bool initmapload = true; // loading the first map? hide the map title on ANDROID due to it being confusing
 static int clockrealbase = 0, clockvirtbase = 0;
 static void clockreset() { clockrealbase = SDL_GetTicks(); clockvirtbase = totalmillis; }
 VARFP(clockerror, 990000, 1000000, 1010000, clockreset());
@@ -1080,7 +1081,7 @@ int main(int argc, char **argv)
 
     if(bootclientlog) cvecprintf(*bootclientlog, "######## start logging: %s\n", timestring(true));
 
-    const char *initmap = "ac_desert3";// fixmeah rndmapname();
+    const char *initmap = "ac_desert3";// not rndmapname() - each release has their own initmap
     loopi(NUMGUNS) crosshairnames[i] = gunnames[i] = guns[i].modelname;
     crosshairnames[GUN_AKIMBO] = gunnames[GUN_AKIMBO] = "akimbo";
     crosshairnames[CROSSHAIR_DEFAULT] = "default";
