@@ -8,6 +8,7 @@ struct gamescene : view
     imagetouchmenuitem *helpbutton = NULL;
     imagetouchmenuitem *disconnectbutton = NULL;
     imagetouchmenuitem *creditsbutton = NULL;
+    imagetouchmenuitem *consolebutton = NULL;
 
     gamescene(view *parent) : view(parent)
     {
@@ -17,25 +18,30 @@ struct gamescene : view
         prevbutton = new navigationbutton(this, navigationbutton::PREV);
         children.add(prevbutton);
 
-        profilebutton = new imagetouchmenuitem(this, 0, "packages/misc/touch.png", 1.0/4.0f,1.0/4.0f, 2, 2);
+        profilebutton = new imagetouchmenuitem(this, 0, "packages/misc/touch.png", config.TOUCHICONGRIDCELL, config.TOUCHICONGRIDCELL, 2, 2);
         profilebutton->circleborder = true;
         children.add(profilebutton);
 
-        settingsbutton = new imagetouchmenuitem(this, 0, "packages/misc/touch.png", 1.0/4.0f,1.0/4.0f, 2, 0);
+        settingsbutton = new imagetouchmenuitem(this, 0, "packages/misc/touch.png", config.TOUCHICONGRIDCELL, config.TOUCHICONGRIDCELL, 0, 2);
         settingsbutton->circleborder = true;
         children.add(settingsbutton);
 
-        helpbutton = new imagetouchmenuitem(this, 0, "packages/misc/touch.png", 1.0/4.0f,1.0/4.0f, 2, 3);
+        helpbutton = new imagetouchmenuitem(this, 0, "packages/misc/touch.png", config.TOUCHICONGRIDCELL, config.TOUCHICONGRIDCELL, 3, 2);
         helpbutton->circleborder = true;
         children.add(helpbutton);
 
-        disconnectbutton = new imagetouchmenuitem(this, 0, "packages/misc/touch.png", 1.0/4.0f,1.0/4.0f, 2, 1);
+        disconnectbutton = new imagetouchmenuitem(this, 0, "packages/misc/touch.png", config.TOUCHICONGRIDCELL, config.TOUCHICONGRIDCELL, 1, 2);
         disconnectbutton->circleborder = true;
         children.add(disconnectbutton);
 
-        creditsbutton = new imagetouchmenuitem(this, 0, "packages/misc/touch.png", 1.0/4.0f,1.0/4.0f, 3, 0);
+        creditsbutton = new imagetouchmenuitem(this, 0, "packages/misc/touch.png", config.TOUCHICONGRIDCELL, config.TOUCHICONGRIDCELL, 0, 3);
         creditsbutton->circleborder = true;
         children.add(creditsbutton);
+
+        // only in developermode: TODO: fullconsole should render larger, meaning readable
+        consolebutton = new imagetouchmenuitem(this, 0, "packages/misc/touch.png", config.TOUCHICONGRIDCELL, config.TOUCHICONGRIDCELL, 0, 1 );
+        consolebutton->circleborder = true;
+        children.add(consolebutton);
     };
 
     ~gamescene()
@@ -47,17 +53,21 @@ struct gamescene : view
         DELETEP(helpbutton);
         DELETEP(disconnectbutton);
         DELETEP(creditsbutton);
+        DELETEP(consolebutton);
     }
 
     virtual void measure(int availablewidth, int availableheight)
     {
-        title->measure(availableheight, availableheight);
-        prevbutton->measure(availableheight/4, availableheight/4);
-        profilebutton->measure(availablewidth/4, availableheight/4);
-        settingsbutton->measure(availablewidth/4, availableheight/4);
-        helpbutton->measure(availablewidth/4, availableheight/4);
-        disconnectbutton->measure(availablewidth/4, availableheight/4);
-        creditsbutton->measure(availablewidth/4, availableheight/4);
+        int quarterWidth = availablewidth/4;
+        int quarterHeight = availableheight/4;
+        title->measure(availablewidth, availableheight);
+        prevbutton->measure(quarterWidth, quarterHeight);
+        profilebutton->measure(quarterWidth, quarterHeight);
+        settingsbutton->measure(quarterWidth, quarterHeight);
+        helpbutton->measure(quarterWidth, quarterHeight);
+        disconnectbutton->measure(quarterWidth, quarterHeight);
+        creditsbutton->measure(quarterWidth, quarterHeight);
+        consolebutton->measure(quarterWidth, quarterHeight);
         width = availablewidth;
         height = availableheight;
     }
@@ -67,12 +77,19 @@ struct gamescene : view
         title->render(x + width/2 - text_width(title->text)/2, y + height/8);
 
         int itemsize = height/4;
-        prevbutton->render(itemsize/2/5, itemsize/2/5);
-        profilebutton->render(x + width - 2*profilebutton->width - itemsize/2/5, VIRTH-itemsize/2/5-itemsize-settingsbutton->height);
-        settingsbutton->render(x + width - 2*settingsbutton->width - itemsize/2/5, VIRTH-itemsize/2/5-itemsize);
-        helpbutton->render(x + width - helpbutton->width - itemsize/2/5, VIRTH-itemsize/2/5-itemsize-disconnectbutton->height);
-        disconnectbutton->render(VIRTW - disconnectbutton->width - itemsize/2/5, VIRTH-itemsize/2/5-itemsize);
-        creditsbutton->render(itemsize/2/5, VIRTH-itemsize/2/5-itemsize);
+        int tenthItemsize = itemsize/2/5;
+        int xOffset = x + width - tenthItemsize;
+        int yOffset = VIRTH - tenthItemsize - itemsize;
+        prevbutton->render(tenthItemsize, tenthItemsize);
+        profilebutton->render(xOffset - 2*profilebutton->width, yOffset - settingsbutton->height);
+        settingsbutton->render(xOffset - 2*settingsbutton->width, yOffset);
+        helpbutton->render(xOffset - helpbutton->width, yOffset-disconnectbutton->height);
+        disconnectbutton->render(VIRTW - disconnectbutton->width - tenthItemsize, yOffset);
+        creditsbutton->render(tenthItemsize, yOffset);
+        if(game.settings.devmode)
+        {
+            consolebutton->render(3 * tenthItemsize + itemsize, yOffset);
+        }
 
         bbox.x1 = x;
         bbox.x2 = x + width;
@@ -125,6 +142,11 @@ struct gamescene : view
                     view *newview = new creditscene(this);
                     newview->oncreate();
                     viewstack.add(newview);
+                }
+                else if(e.emitter == consolebutton)
+                {
+                    game.interaction.triggerToggleconsole();
+                    viewstack.deletecontents();
                 }
                 break;
             case uievent::UIE_SELECTED:

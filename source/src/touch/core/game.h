@@ -57,6 +57,7 @@ struct game
             extern int volumeupattack;
             volumeupattack = this->volumeup ? 1 : 0;
             hideconsole = (this->devmode ? 0 : 1);
+            developermode = (this->devmode ? 1 : 0 ); // may supersede hideconsole setting above
 
             writecfg();
         }
@@ -122,4 +123,12 @@ struct game
         }
 
     } newgame;
+
+    // interaction capabilities
+    struct interaction
+    {
+        void triggerToggleconsole(){
+            toggleconsole();
+        }
+    } interaction;
 };
