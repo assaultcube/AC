@@ -2,7 +2,6 @@
 *.o
 *.lo
 shadows.dat
-android/local.properties
 .idea/*
 bin_unix/native_client
 bin_unix/native_server
@@ -21,6 +20,7 @@ packages/maps/*.cgz
 !packages/maps/new_content.cgz
 !packages/maps/dev_*.cgz
 packages/misc/checksums_md5.txt
+source/android/local.properties
 source/codeblocks/AssaultCube.layout
 source/codeblocks/AssaultCube_Linux.layout
 source/enet/.deps/
