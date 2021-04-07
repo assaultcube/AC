@@ -2,6 +2,8 @@
 *.o
 *.lo
 shadows.dat
+android/local.properties
+.idea/*
 bin_unix/native_client
 bin_unix/native_server
 config/authpreprivate.cfg
