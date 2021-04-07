@@ -1,8 +1,13 @@
 #define MAXCLIENTS 256                  // in a multiplayer game, can be arbitrarily changed
 #define DEFAULTCLIENTS 6
 #define MAXTRANS 5000                   // max amount of data to swallow in 1 go
+#ifdef ANDROID
 #define CUBE_DEFAULT_SERVER_PORT 17653
 #define CUBE_SERVINFO_PORT_LAN 17652
+#else
+#define CUBE_DEFAULT_SERVER_PORT 28763
+#define CUBE_SERVINFO_PORT_LAN 28762
+#endif
 #define CUBE_SERVINFO_PORT(serverport) (serverport+1)
 #define CUBE_SERVINFO_TO_SERV_PORT(servinfoport) (servinfoport-1)
 #define PROTOCOL_VERSION 1201           // bump when protocol changes (use negative numbers for mods!)
