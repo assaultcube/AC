@@ -127,7 +127,7 @@ struct game
     // interaction capabilities
     struct interaction
     {
-        void triggerToggleconsole(){
+        void triggertoggleconsole(){
             toggleconsole();
         }
     } interaction;

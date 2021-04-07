@@ -797,7 +797,7 @@ VAR(blankouthud, 0, 0, 10000); //for "clean" screenshot
 FVARP(menuzoom, 0.0, 0.0f, 1.0f);
 string gtime;
 int dimeditinfopanel = 255;
-int gtimeMinWidth = 0; // regular default font "00:00" - on changing font this value needs to be reset to 0
+int gtimeminwidth = 0; // regular default font "00:00" - on changing font this value needs to be reset to 0
 
 void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwater, int elapsed)
 {
@@ -937,10 +937,9 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
                 formatstring(text)("%05.2f Z  ", p->o.z);     draw_text(text, VIRTW*2 - ( text_width(text) + FONTH ), VIRTH*2 - 9*FONTH/2);
                 popfont();
             }
-            if(developermode){ // TODO/FIXME? tiny fontsize - consolidate into gtimeViewWidth?
-                defformatstring(c_val)("fps %d", curfps);     draw_text(c_val, VIRTW*2 - ( text_width(c_val) + FONTH ), VIRTH*2 - 3*FONTH/2);
-            }
-
+#ifndef ANDROID
+                defformatstring(c_val)("fps %d", curfps); draw_text(c_val, VIRTW*2 - ( text_width(c_val) + FONTH ), VIRTH*2 - 3*FONTH/2);
+#endif
             if(wallclock) draw_text(ltime, VIRTW*2 - text_width(ltime) - FONTH, VIRTH*2 - 5*FONTH/2);
             if(unsavededits) draw_text("U", VIRTW*2 - text_width("U") - FONTH, VIRTH*2 - (wallclock ? 7 : 5)*FONTH/2);
         }
@@ -984,16 +983,27 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             }
         }
         formatstring(gtime)("%02d:%02d", gtmin, gtsec);
+#ifdef ANDROID
+        glPushMatrix();
+        glLoadIdentity();
+        // TODO: best scale for gametime and fps
+        int mobileviewwidth = 3 * VIRTW / 4;
+        int mobileviewheight = 3 * VIRTH / 4;
+        glOrtho(0, mobileviewwidth, mobileviewheight, 0, -1, 1);
         if(gametimedisplay){
-            glPushMatrix();
-            glLoadIdentity();
-            int gtimeViewWidth = 3 * VIRTW / 4; // TODO: maybe a bit less would be enough already?
-            glOrtho(0, gtimeViewWidth, 3 * VIRTH / 4, 0, -1, 1);
-            if( gtimeMinWidth == 0 ) gtimeMinWidth = text_width("00:00");
-            int yOffset = max( gtimeMinWidth, text_width(gtime) );// monospace font wouldn't have any text_width issues
-            draw_text(gtime, gtimeViewWidth - (yOffset + FONTH/2), 40);
-            glPopMatrix();
+            if( gtimeminwidth == 0 ) gtimeminwidth = text_width("00:00");
+            int yOffset = max( gtimeminwidth, text_width(gtime) );// monospace font wouldn't have any text_width issues
+            draw_text(gtime, mobileviewwidth - (yOffset + FONTH/2), 40);
         }
+        if(developermode){
+            defformatstring(c_val)("fps %d", curfps);
+            draw_text(c_val, mobileviewwidth - ( text_width(c_val) + FONTH ), mobileviewheight - 3*FONTH/2);
+        }
+        glPopMatrix();
+#else
+        if(gametimedisplay) draw_text(gtime, (VIRTW-225-10)*2 - (text_width(gtime)/2 + FONTH/2), 20);
+#endif
+
     }
 
     if(hidevote < 2 && multiplayer(NULL))

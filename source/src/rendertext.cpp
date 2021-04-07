@@ -65,8 +65,8 @@ bool setfont(const char *name)
     font *f = fonts.access(name);
     if(!f) return false;
     curfont = f;
-    extern int gtimeMinWidth;
-    gtimeMinWidth = 0;
+    extern int gtimeminwidth;
+    gtimeminwidth = 0;
     return true;
 }
 COMMAND(setfont, "s");

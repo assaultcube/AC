@@ -78,17 +78,17 @@ struct gamescene : view
 
         int itemsize = height/4;
         int tenthItemsize = itemsize/2/5;
-        int xOffset = x + width - tenthItemsize;
-        int yOffset = VIRTH - tenthItemsize - itemsize;
+        int xoffset = x + width - tenthItemsize;
+        int yoffset = VIRTH - tenthItemsize - itemsize;
         prevbutton->render(tenthItemsize, tenthItemsize);
-        profilebutton->render(xOffset - 2*profilebutton->width, yOffset - settingsbutton->height);
-        settingsbutton->render(xOffset - 2*settingsbutton->width, yOffset);
-        helpbutton->render(xOffset - helpbutton->width, yOffset-disconnectbutton->height);
-        disconnectbutton->render(VIRTW - disconnectbutton->width - tenthItemsize, yOffset);
-        creditsbutton->render(tenthItemsize, yOffset);
+        profilebutton->render(xoffset - 2*profilebutton->width, yoffset - settingsbutton->height);
+        settingsbutton->render(xoffset - 2*settingsbutton->width, yoffset);
+        helpbutton->render(xoffset - helpbutton->width, yoffset-disconnectbutton->height);
+        disconnectbutton->render(VIRTW - disconnectbutton->width - tenthItemsize, yoffset);
+        creditsbutton->render(tenthItemsize, yoffset);
         if(game.settings.devmode)
         {
-            consolebutton->render(3 * tenthItemsize + itemsize, yOffset);
+            consolebutton->render(3 * tenthItemsize + itemsize, yoffset);
         }
 
         bbox.x1 = x;
@@ -145,7 +145,7 @@ struct gamescene : view
                 }
                 else if(e.emitter == consolebutton)
                 {
-                    game.interaction.triggerToggleconsole();
+                    game.interaction.triggertoggleconsole();
                     viewstack.deletecontents();
                 }
                 break;
