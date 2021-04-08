@@ -718,6 +718,7 @@ struct mitemkeyinput : mitem
         }
     }
 
+    virtual const char* gettext() { return text; }
 };
 
 const char *mitemkeyinput::unknown = "?";
