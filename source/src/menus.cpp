@@ -90,13 +90,17 @@ const char *persistentmenuselectionalias(const char *name)
     return al;
 }
 
+int normalizemenuselection(int sel, int length)
+{
+    if (sel < 0) sel = length > 0 ? length - 1 : 0;
+    else if (sel >= length) sel = 0;
+    return sel;
+}
+
 void menuselect(void *menu, int sel)
 {
     gmenu &m = *(gmenu *)menu;
-
-    if(sel<0) sel = m.items.length()>0 ? m.items.length()-1 : 0;
-    else if(sel>=m.items.length()) sel = 0;
-
+    sel = normalizemenuselection(sel, m.items.length());
     if(m.items.inrange(sel))
     {
         int oldsel = m.menusel;
@@ -1108,15 +1112,16 @@ int movemenuselection(int currentmenusel, int direction)
 {
     direction = clamp(direction, -1, 1);
     int newmenusel = currentmenusel;
-    bool inrange = false, selectable = false;
-    do
+    bool selectable = false;
+    for(int i = 0; i < curmenu->items.length(); i++)
     {
         newmenusel += direction;
-        inrange = curmenu->items.inrange(newmenusel);
-        selectable = inrange && curmenu->items[newmenusel]->gettext() && curmenu->items[newmenusel]->gettext()[0] != '\0';
-    } while(inrange && !selectable);
+        newmenusel = normalizemenuselection(newmenusel, curmenu->items.length());
+        selectable = curmenu->items.inrange(newmenusel) && curmenu->items[newmenusel]->gettext() && curmenu->items[newmenusel]->gettext()[0] != '\0';
+        if(selectable) break;
+    } 
 
-    if (inrange && selectable) return newmenusel;
+    if(selectable) return newmenusel;
     else return currentmenusel;
 }
 
