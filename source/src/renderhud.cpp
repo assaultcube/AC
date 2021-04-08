@@ -983,7 +983,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             }
         }
         formatstring(gtime)("%02d:%02d", gtmin, gtsec);
-#ifdef ANDROID
+#ifdef __ANDROID__
         glPushMatrix();
         glLoadIdentity();
         // TODO: best scale for gametime and fps
