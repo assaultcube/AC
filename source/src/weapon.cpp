@@ -644,7 +644,7 @@ void radialeffect(playerent *o, vec &v, int qdam, playerent *at, int gun)
     float dist = expdist(o, dir, v);
     if(dist<EXPDAMRAD)
     {
-        if(at == player1) accuracym[gun].hits += 1.0f-(float)dist/EXPDAMRAD;
+        if(at == player1 && o != player1) accuracym[gun].hits += 1.0f-(float)dist/EXPDAMRAD;
         int damage = (int)(qdam*(1-dist/EXPDAMRAD));
         hit(damage, o, at, dir, gun, true, int(dist*DMF));
     }
