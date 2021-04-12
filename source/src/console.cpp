@@ -625,7 +625,7 @@ bool textinputbuffer::say(const char *c)
 {
     string txt;
     copystring(txt, c);
-    if(filterunrenderables(txt)) audiomgr.playsound(S_PAIN1, SP_LOW);
+    filterunrenderables(txt);
     int buflen = (int)strlen(buf), txtlen = (int)strlen(txt);
     if(txtlen && buflen < maxlen() &&  buflen + txtlen < (int)sizeof(buf))
     {
