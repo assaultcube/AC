@@ -44,7 +44,7 @@ struct input
         return keys;
     }
 
-    // test for tapping inside an area surrounding the boundingbox of the icon.
+    // test for tapping inside an area surrounding the boundingbox of the icon. (x0,y0)-(x0+w,y0+h)
     bool icontapped(int vfingerx, int vfingery, int x0, int y0 )
     {
         int air = iconsize / 2;
@@ -62,40 +62,50 @@ struct input
          * the default action should be to respawn - by calling physics.cpp:attack()
          * so first check the "between respawns" opportunities given:
          * settings, equipment left-corners top/bottom
-         * and four voicecoms left/right side of scoreboard top/bottom
+         * and voicecoms - this part of the GUI is WIP ATM
          */
         bool deaddeed = false; // did we do something while dead or just tapped to respawn?
+        // TODO: think about the redundancy between hud.h:draw() and input.h:deadspectatekeys()
         int vfingerx = event.tfinger.x * VIRTW;
         int vfingery = event.tfinger.y * VIRTH;
         int iconsizetwice = iconsize * 2; // a bit of air around the corner icons
-        int scoreboardEdgeLeft = VIRTW/4;
-        int scoreboardEdgeTop = VIRTH/4;
-        int scoreboardEdgeRight = scoreboardEdgeLeft*3;
+        int touchEdgeRight = VIRTW - iconsizetwice; // strip in which icons on the right edge reside
+        int touchEdgeBottom = VIRTH - iconsizetwice; // strip in which icons on the bottom edge reside
         if( vfingerx < iconsizetwice && vfingery < iconsizetwice ){
             deaddeed = true;
-            keys.add(keyevent(event.type, TOUCH_GAME_LEFTSIDE_TOP_CORNER));
+            keys.add(keyevent(event.type, TOUCH_GAME_CORNER_TOP_LEFT)); // open settings scene
         }
         if( vfingerx < iconsizetwice && vfingery > VIRTH-iconsizetwice ){
             deaddeed = true;
-            keys.add(keyevent(event.type, TOUCH_GAME_LEFTSIDE_BOTTOM_CORNER));
+            keys.add(keyevent(event.type, TOUCH_GAME_CORNER_BOTTOM_LEFT)); // open equipment scene
         }
-        // TODO: voicecom icons should be larger
-        if( icontapped( vfingerx, vfingery, scoreboardEdgeLeft - iconsize, scoreboardEdgeTop + iconsize ) ){
+        if( vfingerx > VIRTW - iconsizetwice && vfingery > VIRTH-iconsizetwice ){
             deaddeed = true;
-            keys.add(keyevent(event.type, TOUCH_GAME_VOICECOM_LEFT_1 ));
+            keys.add(keyevent(event.type, TOUCH_GAME_CORNER_BOTTOM_RIGHT)); // toggle voicecom touchui
         }
-        if( icontapped( vfingerx, vfingery, scoreboardEdgeLeft - iconsize, scoreboardEdgeTop + 5 * iconsize ) ){
-            deaddeed = true;
-            keys.add(keyevent(event.type, TOUCH_GAME_VOICECOM_LEFT_2 ));
+        extern int touchoptionstogglestate;
+        if( touchoptionstogglestate == 2 ){ // only if the voicecom touchui is ready for tapping
+            // icontapped wants our touch-coord and the top-left corner of each icon
+            // public voicecom : right edge
+            if( icontapped( vfingerx, vfingery, touchEdgeRight, touchEdgeBottom - iconsizetwice ) ){
+                deaddeed = true;
+                keys.add(keyevent(event.type, TOUCH_GAME_VOICECOM_PUBLIC_1 ));
+            }
+            if( icontapped( vfingerx, vfingery, touchEdgeRight, touchEdgeBottom - 2 * iconsizetwice ) ){
+                deaddeed = true;
+                keys.add(keyevent(event.type, TOUCH_GAME_VOICECOM_PUBLIC_2 ));
+            }
+            // team voicecom : bottom edge
+            if( icontapped( vfingerx, vfingery, touchEdgeRight - iconsizetwice, touchEdgeBottom ) ){
+                deaddeed = true;
+                keys.add(keyevent(event.type, TOUCH_GAME_VOICECOM_TEAM_1 ));
+            }
+            if( icontapped( vfingerx, vfingery, touchEdgeRight - 2 * iconsizetwice, touchEdgeBottom ) ){
+                deaddeed = true;
+                keys.add(keyevent(event.type, TOUCH_GAME_VOICECOM_TEAM_2 ));
+            }
         }
-        if( icontapped( vfingerx, vfingery, scoreboardEdgeRight + iconsize, scoreboardEdgeTop + iconsize ) ){
-            deaddeed = true;
-            keys.add(keyevent(event.type, TOUCH_GAME_VOICECOM_RIGHT_1 ));
-        }
-        if( icontapped( vfingerx, vfingery, scoreboardEdgeRight + iconsize, scoreboardEdgeTop + 5 * iconsize ) ){
-            deaddeed = true;
-            keys.add(keyevent(event.type, TOUCH_GAME_VOICECOM_RIGHT_2 ));
-        }
+
         // no dead deed done?
         if(!deaddeed) keys.add(keyevent(event.type, TOUCH_GAME_RIGHTSIDE_DOUBLETAP));
     }
@@ -116,27 +126,22 @@ struct input
 
         if(vfingerx >= VIRTW*4/8 - iconsize / 2 - icondiff)
         {
-            if(vfingery < iconsize * 2)
+            /*
+             * WIP touchkey "suicide" - for quick access to scoreboard & "between respawns" opportunities
+             * was CORNER BOTTOM_RIGHT now TOP_RIGHT
+             * FYI: 2*iconsize == 3 * iconsize/2 + air
+             */
+            if(vfingery < 2*iconsize) // top edge of screen
             {
                 int touchkey = -1;
                 if(vfingerx < VIRTW *5/8 + iconsize / 2 + icondiff) touchkey = TOUCH_GAME_RIGHTSIDE_TOP_0;
                 else if(vfingerx < VIRTW*6/8 + iconsize / 2 + icondiff) touchkey = TOUCH_GAME_RIGHTSIDE_TOP_1;
                 else if(vfingerx < VIRTW*7/8 + iconsize / 2 + icondiff) touchkey = TOUCH_GAME_RIGHTSIDE_TOP_2;
-
+                else if(vfingerx > VIRTW - 2*iconsize) touchkey = TOUCH_GAME_CORNER_TOP_RIGHT;
                 if(touchkey >= 0)
                 {
                     keys.add(keyevent(event.type, touchkey));
                     allowjump = false;
-                }
-            }
-            else if(vfingery >= VIRTH - 2*iconsize) // 3*iconsize/2 + air
-            {
-                if( vfingerx >= VIRTW - 2*iconsize){ // 3*iconsize/2 + air
-                    if( event.tfinger.type == SDL_FINGERDOWN )
-                    {
-                        keys.add(keyevent(event.type, TOUCH_GAME_RIGHTSIDE_BOTTOM_CORNER));
-                        allowjump = false; // suicide imminent: don't jump .. that's humour for you code readers with depression!
-                    }
                 }
             }
         }
@@ -145,7 +150,7 @@ struct input
             if(event.tfinger.type == SDL_FINGERDOWN && vfingery < iconsize * 2 &&
                vfingerx < iconsize * 2)
             {
-                keys.add(keyevent(event.type, TOUCH_GAME_LEFTSIDE_TOP_CORNER));
+                keys.add(keyevent(event.type, TOUCH_GAME_CORNER_TOP_LEFT));
                 allowjump = false;
             }
             else if(event.type == SDL_FINGERDOWN || event.type == SDL_FINGERMOTION)

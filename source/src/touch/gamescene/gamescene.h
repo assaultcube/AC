@@ -1,4 +1,4 @@
-// the game scene allows changing gameplay relevant settings while staying the game
+// the game scene allows changing gameplay relevant settings while staying in the game
 struct gamescene : view
 {
     textview *title = NULL;

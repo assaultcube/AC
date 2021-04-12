@@ -12,41 +12,127 @@ struct hud
         }
     }
 
+    const float c1 = 1.70158;
+    const float c2 = c1*1.525;
+    const float c3 = c1+1;
+    const float c4 = (2*M_PI)/3;
+
+    const float n1 = 7.5625;
+    const float d1 = 2.75;
+
+    float easeOutBack(float x)
+    {
+        return 1 + c3 * pow(x-1,3) + c1 * pow(x-1,2);
+    }
+
+    float easeOutElastic(float x)
+    {
+        return x == 0 ? 0 : (x==1? 1 : ( pow(2,-10*x) * sin( (x*10-0.75)*c4 ) + 1 ) );
+    }
+
+    float easeOutBounce(float x)
+    {
+        if(x<1/d1)
+        {
+            return n1*x*x;
+        }
+        else if(x<2/d1)
+        {
+            return n1*(x-=1.5/d1)*x+0.75;
+        }
+        else if(x<2.5/d1)
+        {
+            return n1*(x-=2.25/d1)*x+0.9375;
+        }
+        else
+        {
+            return n1*(x-=2.625/d1)*x+0.984375;
+        }
+    }
+
+    float easeInOutBack(float x){
+        return x < 0.5
+               ? ((pow(2*x, 2)*((c2+1)*2*x-c2))/2)
+               : ((pow(2*x-2, 2)*((c2+1)*(x*2-2)+c2)+2)/2);
+    }
+
     void draw(playerent *p)
     {
+        extern int touchoptionstogglestate;
+        extern int touchoptionstogglemillis;
+        extern int touchoptionsanimation;
+        extern int touchoptionsanimationduration;
         static vec movementcontrolcenter = config.movementcontrolcenter();
         const int iconsize = config.HUD_ICONSIZE;
+        const int edgeair = iconsize/2;
+        // spacious layout? int icongridstepx = VIRTW/12; int icongridstepy = VIRTH/9;
+
+        turn_on_transparency(255); // includes GL_ENABLE(GL_BLEND)
+
+        drawtouchicon(edgeair, edgeair, 3, 1); // TOUCH_GAME_CORNER_TOP_LEFT - open settings scene
 
         if(menuvisible())
         {
             // if the scoreboard (classical menu) is shown provide for "between respawns" opportunities like equipment changes and voicecom
-            int scoreboardEdgeLeft = VIRTW/4;
-            int scoreboardEdgeTop = VIRTH/4;
-            int scoreboardEdgeRight = scoreboardEdgeLeft*3;
-            turn_on_transparency(255);
-
-            drawtouchicon(iconsize/2, iconsize/2, 3, 1); // TOUCH_GAME_LEFTSIDE_TOP_CORNER
-            drawtouchicon(iconsize/2, VIRTH-3*iconsize/2, 2, 2); // TOUCH_GAME_RIGHTSIDE_BOTTOM_CORNER
-            // TODO: voicecom icons should be larger
-            drawtouchicon( scoreboardEdgeLeft -  iconsize, scoreboardEdgeTop +     iconsize, 4, 2, 255); // TOUCH_GAME_VOICEOM_LEFT_1
-            drawtouchicon( scoreboardEdgeLeft -  iconsize, scoreboardEdgeTop + 3 * iconsize, 4, 4, 255); // untouchable
-            drawtouchicon( scoreboardEdgeLeft -  iconsize, scoreboardEdgeTop + 5 * iconsize, 4, 3, 255); // TOUCH_GAME_VOICEOM_LEFT_2
-            drawtouchicon( scoreboardEdgeRight + iconsize, scoreboardEdgeTop +     iconsize, 2, 4, 255); // TOUCH_GAME_VOICEOM_RIGHT_1
-            drawtouchicon( scoreboardEdgeRight + iconsize, scoreboardEdgeTop + 3 * iconsize, 4, 4, 255); // untouchable
-            drawtouchicon( scoreboardEdgeRight + iconsize, scoreboardEdgeTop + 5 * iconsize, 3, 4, 255); // TOUCH_GAME_VOICEOM_RIGHT_2
-
-            glDisable(GL_BLEND);
+            int voicecomcornerx = VIRTW-iconsize-edgeair;
+            int voicecomcornery = VIRTH-iconsize-edgeair;
+            drawtouchicon(edgeair, voicecomcornery, 2, 2); // TOUCH_GAME_CORNER_BOTTOM_LEFT - open equipment scene
+            drawtouchicon( voicecomcornerx, voicecomcornery, 4, 4, 255); // TOUCH_GAME_CORNER_BOTTOM_RIGHT - toggle voiceom touchui
+            if( touchoptionstogglestate > 0 ){
+                // the two "public" extend vertically, the two "team" horizontally.
+                // order: pub1, pub2, team1, team2
+                /*
+                 * spacious layout:
+                 * int endposx[4] = { voicecomcornerx, voicecomcornerx, voicecomcornerx - icongridstepx * 3, voicecomcornerx - icongridstepx * 5 };
+                 * int endposy[4] = { voicecomcornery - icongridstepy * 3, voicecomcornery - icongridstepy * 5, voicecomcornery, voicecomcornery };
+                 */
+                int endposx[4] = { voicecomcornerx, voicecomcornerx, voicecomcornerx - iconsize * 2, voicecomcornerx - iconsize * 4 };
+                int endposy[4] = { voicecomcornery - iconsize * 2, voicecomcornery - iconsize * 4, voicecomcornery, voicecomcornery };
+                if( touchoptionstogglestate == 1 ){ // animating
+                    float interval = ( lastmillis - touchoptionstogglemillis ) / ( 1.0 * touchoptionsanimationduration );
+                    float midpoint = 0.0;
+                    switch( touchoptionsanimation ){
+                        case 0: midpoint = interval; break;
+                        case 1: midpoint = easeOutBack( interval ); break;
+                        case 2: midpoint = easeOutElastic( interval ); break;
+                        case 3: midpoint = easeOutBounce( interval ); break;
+                        case 4: midpoint = easeInOutBack( interval ); break;
+                        default: break;
+                    }
+                    int midposx[4] = {
+                        endposx[0]
+                        , endposx[1]
+                        , voicecomcornerx - (int)(midpoint * ( voicecomcornerx - endposx[2] ))
+                        , voicecomcornerx - (int)(midpoint * ( voicecomcornerx - endposx[3] ))
+                    };
+                    int midposy[4] = {
+                            (int)(voicecomcornery - midpoint * ( voicecomcornery - endposy[0] ))
+                            , (int)(voicecomcornery - midpoint * ( voicecomcornery - endposy[1] ))
+                            , endposy[2]
+                            , endposy[3]
+                    };
+                    drawtouchicon( midposx[0], midposy[0], 4, 2, 255); // TOUCH_GAME_VOICCEOM_PUBLIC_1
+                    drawtouchicon( midposx[1], midposy[1], 4, 2, 255); // TOUCH_GAME_VOICCEOM_PUBLIC_2
+                    drawtouchicon( midposx[2], midposy[2], 2, 4, 255); // TOUCH_GAME_VOICCEOM_TEAM_1
+                    drawtouchicon( midposx[3], midposy[3], 3, 4, 255); // TOUCH_GAME_VOICCEOM_TEAM_2
+                    if( lastmillis > touchoptionstogglemillis + touchoptionsanimationduration ){
+                        touchoptionstogglestate = 2;
+                    }
+                }else{ // >= 2 // finished
+                    drawtouchicon( endposx[0], endposy[0], 4, 2, 255); // TOUCH_GAME_VOICECOM_PUBLIC_1
+                    drawtouchicon( endposx[1], endposy[1], 4, 2, 255); // TOUCH_GAME_VOICECOM_PUBLIC_2
+                    drawtouchicon( endposx[2], endposy[2], 2, 4, 255); // TOUCH_GAME_VOICECOM_TEAM_1
+                    drawtouchicon( endposx[3], endposy[3], 3, 4, 255); // TOUCH_GAME_VOICECOM_TEAM_2
+                }
+            }
         }
         else
         {
-            turn_on_transparency(255);
-
-            // icons drawn at the very top from left to right: menu | weapon | reload | crouch | zoom
-            drawtouchicon(iconsize/2, iconsize/2, 3, 1, 255); // TOUCH_GAME_LEFTSIDE_TOP_CORNER
-            drawtouchicon(VIRTW-3*iconsize/2, VIRTH-3*iconsize/2, 2, 2, 255); // TOUCH_GAME_RIGHTSIDE_BOTTOM_CORNER // TESTING: a suicide button for quick access to scoreboard in dead state
-            drawtouchicon(VIRTW*5/8 - iconsize/2, iconsize/2, 0, 0, 255/4); // TOUCH_GAME_RIGHTSIDE_TOP_0
-            drawtouchicon(VIRTW*6/8 - iconsize/2, iconsize/2, 1, 0, 255/4); // TOUCH_GAME_RIGHTSIDE_TOP_1
-            if(player1->weaponsel->type == GUN_SNIPER) drawtouchicon(VIRTW*7/8 - iconsize/2, iconsize/2, 3, 0, 255/4); // TOUCH_GAME_RIGHTSIDE_TOP_2
+            // icons drawn at the very top from left to right: weapon | reload | zoom
+            drawtouchicon(VIRTW-3*iconsize/2, iconsize/2, 2, 2, 255); // TOUCH_GAME_CORNER_TOP_RIGHT // WIP/TESTING: a suicide button for quick access to scoreboard in dead state
+            drawtouchicon(VIRTW*5/8 - iconsize/2, iconsize/2, 0, 0, 255/4); // TOUCH_GAME_RIGHTSIDE_TOP_0 - change weapn
+            drawtouchicon(VIRTW*6/8 - iconsize/2, iconsize/2, 1, 0, 255/4); // TOUCH_GAME_RIGHTSIDE_TOP_1 - reload
+            if(player1->weaponsel->type == GUN_SNIPER) drawtouchicon(VIRTW*7/8 - iconsize/2, iconsize/2, 3, 0, 255/4); // TOUCH_GAME_RIGHTSIDE_TOP_2 - scopezoom
 
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
