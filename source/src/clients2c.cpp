@@ -814,6 +814,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
 //                         medals_arrived=1;
                         loopi(medals) {
                             int mcn=getint(p); int mtype=getint(p); int mitem=getint(p);
+                            if(mtype >= END_MDS || mtype<0){
+                                break;
+                            }
                             a_medals[mtype].assigned=1;
                             a_medals[mtype].cn=mcn;
                             a_medals[mtype].item=mitem;
