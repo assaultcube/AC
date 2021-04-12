@@ -747,6 +747,10 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
             case SV_RELOAD:
             {
                 int cn = getint(p), gun = getint(p);
+                if(!valid_weapon(gun)){
+                    break;
+                }
+
                 playerent *p = getclient(cn);
                 if(p && p!=player1) p->weapons[gun]->reload(false);
                 break;
