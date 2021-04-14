@@ -967,6 +967,17 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     extern void renderhudtexturepreviews();
     if(editmode) renderhudtexturepreviews();
 
+    if(ispaused)
+    {
+        glLoadIdentity();
+        const char* matchpaused = "MATCH PAUSED";
+        const double matchpausedfontfactor = 3 / 2.0f;
+        glOrtho(0, VIRTW * matchpausedfontfactor, VIRTH * matchpausedfontfactor, 0, -1, 1);
+        const int left = (VIRTW * matchpausedfontfactor) / 2 - text_width(matchpaused) / 2;
+        const int top = (VIRTH * matchpausedfontfactor) * 5 / 6;
+        draw_textf(matchpaused, left, top);
+    }
+
     /* * /
     glLoadIdentity();
     glOrtho(0, VIRTW*3/2, VIRTH*3/2, 0, -1, 1);
