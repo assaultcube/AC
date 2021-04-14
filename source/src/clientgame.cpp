@@ -29,6 +29,7 @@ int lasthit = 0;
 int curtime = 0;
 string clientmap = "";
 int spawnpermission = SP_WRONGMAP;
+int ispaused = 0;
 
 char *getclientmap() { return clientmap; }
 
@@ -218,6 +219,7 @@ COMMAND(curmodeattr, "s");
 COMMANDF(isclient, "i", (int *cn) { intret(getclient(*cn) != NULL ? 1 : 0); } );
 COMMANDF(curmastermode, "", (void) { intret(servstate.mastermode); });
 COMMANDF(curautoteam, "", (void) { intret(servstate.autoteam); });
+COMMANDF(curpausemode, "", (void) { intret(ispaused); });
 COMMANDF(curmap, "", (void) { result(behindpath(getclientmap())); });
 COMMANDF(curplayers, "", (void) { intret(players.length() + 1); });
 VARP(showscoresondeath, 0, 1, 1);
@@ -517,6 +519,7 @@ void zapplayer(playerent *&d)
 
 void movelocalplayer()
 {
+    if(ispaused && player1->state == CS_ALIVE) return;
     if(!player1->allowmove())
     {
         if(lastmillis-player1->lastpain<2000)
@@ -565,7 +568,7 @@ void moveotherplayers()
     {
         playerent *d = players[i];
         const int lagtime = totalmillis-d->lastupdate;
-        if(!lagtime || intermission) continue;
+        if(!lagtime || intermission || ispaused) continue;
         else if(lagtime>1000 && d->state==CS_ALIVE)
         {
             d->state = CS_LAGGED;
@@ -613,7 +616,7 @@ int lastspawnattempt = 0;
 
 void showrespawntimer()
 {
-    if(intermission || spawnpermission > SP_OK_NUM) return;
+    if(intermission || ispaused || spawnpermission > SP_OK_NUM) return;
     if(m_arena)
     {
         if(!arenaintermission) return;
@@ -902,7 +905,7 @@ COMMANDF(burstshots, "si", (char *gun, int *shots)
 
 void dodamage(int damage, playerent *pl, playerent *actor, int gun, bool gib, bool local)
 {
-    if(pl->state != CS_ALIVE || intermission) return;
+    if(pl->state != CS_ALIVE || intermission || ispaused) return;
     pl->lastpain = lastmillis;
     playerent *h = player1->isspectating() && player1->followplayercn >= 0 && (player1->spectatemode == SM_FOLLOW1ST || player1->spectatemode == SM_FOLLOW3RD || player1->spectatemode == SM_FOLLOW3RD_TRANSPARENT) ? getclient(player1->followplayercn) : NULL;
     if(!h) h = player1;
@@ -1004,6 +1007,7 @@ void silenttimeupdate(int milliscur, int millismax)
 
 void timeupdate(int milliscur, int millismax)
 {
+    if (ispaused) return;
     static int lastgametimedisplay = 0;
 
     silenttimeupdate(milliscur, millismax);
@@ -1183,6 +1187,7 @@ void startmap(const char *name, bool reset, bool norespawn)   // called just aft
     minutesremaining = -1;
     lastgametimeupdate = 0;
     arenaintermission = 0;
+    ispaused = 0;
     bool noflags = (m_ctf || m_ktf) && !clentstats.hasflags;
     if(*clientmap) conoutf("game mode is \"%s\"%s", modestr(gamemode, modeacronyms > 0), noflags ? " - \f2but there are no flag bases on this map" : "");
 
@@ -1313,7 +1318,7 @@ COMMAND(dropflag, "");
 
 char *votestring(int type, const char *arg1, const char *arg2, const char *arg3)
 {
-    const char *msgs[] = { "kick player %s, reason: %s", "ban player %s, reason: %s", "remove all bans", "set mastermode to %s", "%s autoteam", "force player %s to team %s", "give admin to player %s", "load map %s in mode %s%s%s", "%s demo recording for the next match", "stop demo recording", "clear all demos", "set server description to '%s'", "shuffle teams"};
+    const char *msgs[] = { "kick player %s, reason: %s", "ban player %s, reason: %s", "remove all bans", "set mastermode to %s", "%s autoteam", "force player %s to team %s", "give admin to player %s", "load map %s in mode %s%s%s", "%s demo recording for the next match", "stop demo recording", "clear all demos", "set server description to '%s'", "shuffle teams", "%s the game" };
     const char *msg = msgs[type];
     char *out = newstring(MAXSTRLEN);
     out[MAXSTRLEN] = '\0';
@@ -1372,6 +1377,9 @@ char *votestring(int type, const char *arg1, const char *arg2, const char *arg3)
         case SA_SERVERDESC:
             formatstring(out)(msg, arg1);
             break;
+        case SA_PAUSE:
+            formatstring(out)(msg, atoi(arg1) == 1 ? "pause" : "resume");
+            break;
         default:
             formatstring(out)(msg, arg1, arg2);
             break;
@@ -1429,11 +1437,10 @@ void callvote(int type, const char *arg1, const char *arg2, const char *arg3)
                 putint(p, atoi(arg1));
                 putint(p, atoi(arg2));
                 break;
+            case SA_PAUSE:
+                putint(p, atoi(arg1));
+                break;
             default:
-
-
-
-
                 putint(p, atoi(arg1));
                 break;
         }
@@ -1456,6 +1463,18 @@ void scallvote(int *type, const char *arg1, const char *arg2)
                 //  really be replaced with a saner method
                 defformatstring(m)("%d", nextmode);
                 callvote(t, arg1, m, arg2);
+                break;
+            }
+            case SA_PAUSE:
+            {
+                if (!arg1 || !isdigit(arg1[0]) || !multiplayer(false))
+                {
+                    if(!multiplayer(false))
+                        conoutf("\f3pause is not available in singleplayer.");
+                    else if (arg1 && !isdigit(arg1[0])) conoutf("\f3invalid vote");
+                    break;
+                }
+                callvote(t, arg1, arg2);
                 break;
             }
             case SA_KICK:
@@ -1592,6 +1611,19 @@ COMMAND(gonext, "i");
 
 COMMANDN(callvote, scallvote, "iss"); //fixme,ah
 COMMANDF(vote, "i", (int *v) { vote(*v); });
+
+void cmd_pause(int* arg1)
+{
+    if (*arg1 != 0 && *arg1 != 1) return;
+    if (servstate.mastermode != MM_MATCH)
+    {
+        conoutf("You may only pause the game in mastermode match.");
+        return;
+    }
+    defformatstring(m)("%d", *arg1);
+    callvote(SA_PAUSE, m, "-1", "0");
+}
+COMMANDN(pause, cmd_pause, "i");
 
 void cleanplayervotes(playerent *p)
 {

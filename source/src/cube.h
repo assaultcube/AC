@@ -51,6 +51,7 @@ extern int farplane;
 extern bool minimap, reflecting, refracting;
 extern int stenciling, stencilshadow, effective_stencilshadow;
 extern bool intermission;
+extern int ispaused;
 extern int arenaintermission;
 extern hashtable<char *, enet_uint32> mapinfo;
 extern int hwtexsize, hwmaxaniso;

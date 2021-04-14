@@ -902,7 +902,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         if(dimeditinfopanel > 255) dimeditinfopanel = 255;
     }
 
-    if(!intermission && lastgametimeupdate!=0)
+    if((!intermission && lastgametimeupdate!=0) || !ispaused)
     {
         int cssec = (gametimecurrent+(lastmillis-lastgametimeupdate))/1000;
         int gtsec = cssec%60;

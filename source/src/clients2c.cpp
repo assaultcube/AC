@@ -8,6 +8,7 @@ VARP(networkdebug, 0, 0, 1);
 
 extern bool watchingdemo;
 extern string clientpassword;
+extern int ispaused;
 
 void *downloaddemomenu = NULL;
 static vector<mline> demo_mlines;
@@ -1135,6 +1136,13 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 break;
             }
 
+            case SV_PAUSEMODE:
+            {
+                ispaused = getint(p);
+                if (player1->state == CS_ALIVE) player1->attacking = false;
+                break;
+            }
+
             case SV_CALLVOTE:
             {
                 int type = getint(p);
@@ -1188,6 +1196,10 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                         itoa(a1, getint(p));
                         itoa(a2, getint(p));
                         v = newvotedisplayinfo(d, type, a1, a2);
+                        break;
+                    case SA_PAUSE:
+                        itoa(a1, getint(p));
+                        v = newvotedisplayinfo(d, type, a1, NULL);
                         break;
                     default:
                         itoa(a1, getint(p));

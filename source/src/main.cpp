@@ -1498,7 +1498,11 @@ int main(int argc, char **argv)
         limitfps(millis, totalmillis);
         int elapsed = millis-totalmillis;
         entropy_add_byte(elapsed);
-        if(multiplayer(NULL)) curtime = elapsed;
+        if(multiplayer(false)) 
+        {
+            if(ispaused) curtime = 0;
+            else curtime = elapsed;
+        }
         else
         {
             static int timeerr = 0;

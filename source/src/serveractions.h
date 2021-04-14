@@ -233,6 +233,17 @@ struct removebansaction : serveraction
     }
 };
 
+struct pauseaction : serveraction
+{
+    int mode;
+    void perform() { setpausemode(mode); }
+    pauseaction(int mode) : mode(mode)
+    {
+        role = roleconf('p');
+        copystring(desc, (mode == 1) ? "pause the game" : "resume the game");
+    }
+};
+
 struct mastermodeaction : serveraction
 {
     int mode;

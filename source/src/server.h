@@ -253,6 +253,7 @@ struct client                   // server side version of "dynent" type
     bool haswelcome;
     bool isonrightmap, loggedwrongmap, freshgame;
     bool timesync;
+    bool ispaused;
     int overflow;
     int gameoffset, lastevent, lastvotecall;
     int lastprofileupdate, fastprofileupdates;
@@ -310,6 +311,7 @@ struct client                   // server side version of "dynent" type
         ldt = spj = 0;
         ffire = 0;
         f = yaw = pitch = t = 0;
+        ispaused = 0;
     }
 
     void reset()
@@ -337,6 +339,7 @@ struct client                   // server side version of "dynent" type
         freshgame = false;         // don't spawn into running games
         mute = spam = lastvc = badspeech = badmillis = nvotes = 0;
         input = inputmillis = 0;
+        ispaused = 0;
     }
 
     void zap()
@@ -438,6 +441,7 @@ const char *messagenames[SV_NUM] =
     "SV_CLIENT",
     "SV_EXTENSION",
     "SV_MAPIDENT", "SV_DEMOCHECKSUM", "SV_DEMOSIGNATURE",
+    "SV_PAUSEMODE"
 };
 
 const char *entnames[] =

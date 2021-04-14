@@ -25,6 +25,7 @@ struct servergame
     string servdesc_current;
     ENetAddress servdesc_caller;
     bool custom_servdesc;
+    int sispaused = 0;
 
     // current game
     string smapname, nextmapname;
@@ -590,6 +591,21 @@ void changemastermode(int newmode)
         else if(sg->matchteamsize) changematchteamsize(sg->matchteamsize);
     sendservermode();
     }
+}
+
+void setpausemode(int newmode)
+{
+    if (sg->sispaused != newmode) {
+        sg->sispaused = newmode;
+    }
+
+    loopv(clients) if (clients[i]->type != ST_EMPTY)
+    {
+        if (!valid_client(i)) return;
+        clients[i]->ispaused = newmode;
+    }
+
+    sendf(-1, 1, "ri2", SV_PAUSEMODE, newmode);
 }
 
 int findcnbyaddress(ENetAddress *address)
@@ -2207,6 +2223,7 @@ void resetserver(const char *newname, int newmode, int newtime)
     else savedscores.shrink(0);
     ctfreset();
 
+    sg->sispaused = false;
     sg->nextmapname[0] = '\0';
     sg->forceintermission = false;
 }
@@ -2596,6 +2613,9 @@ void callvotepacket (int cn, voteinfo *v = curvote)
             putint(q, v->num1);
             putint(q, v->num2);
             break;
+        case SA_PAUSE:
+            putint(q, v->num1);
+            break;
         default:
             putint(q, v->num1);
             break;
@@ -2834,6 +2854,8 @@ void welcomepacket(packetbuf &p, int n)
     }
     putint(p, SV_SERVERMODE);
     putint(p, sendservermode(false));
+    putint(p, SV_PAUSEMODE);
+    putint(p, sg->sispaused);
     const char *motd = scl.motd[0] ? scl.motd : serverinfomotd.getmsg();
     if(*motd)
     {
@@ -2872,7 +2894,7 @@ int checktype(int type, client *cl)
                         SV_CALLVOTESUC, SV_CALLVOTEERR, SV_VOTERESULT,
                         SV_SETTEAM, SV_TEAMDENY, SV_SERVERMODE, SV_IPLIST,
                         SV_SENDDEMOLIST, SV_SENDDEMO, SV_DEMOPLAYBACK,
-                        SV_CLIENT, SV_DEMOCHECKSUM };
+                        SV_CLIENT, SV_DEMOCHECKSUM, SV_PAUSEMODE };
     // only allow edit messages in coop-edit mode
     static int edittypes[] = { SV_EDITENT, SV_EDITXY, SV_EDITARCH, SV_EDITBLOCK, SV_EDITD, SV_EDITE, SV_NEWMAP };
     if(cl)
@@ -3870,6 +3892,9 @@ void process(ENetPacket *packet, int sender, int chan)
                     case SA_REMBANS:
                         vi->action = new removebansaction();
                         break;
+                    case SA_PAUSE:
+                        vi->action = new pauseaction(vi->num1 = getint(p));
+                        break;
                     case SA_MASTERMODE:
                         vi->action = new mastermodeaction(vi->num1 = getint(p));
                         break;
@@ -3933,6 +3958,9 @@ void process(ENetPacket *packet, int sender, int chan)
                 getip4(p);
                 p.get((uchar*)text, 64);
                 QUEUE_MSG;
+                break;
+
+            case SV_PAUSEMODE:
                 break;
 
             case SV_EXTENSION:
@@ -4119,7 +4147,7 @@ client &addclient()
 
 void checkintermission()
 {
-    if(sg->minremain>0)
+    if(sg->minremain>0 && !sg->sispaused)
     {
         sg->minremain = (sg->gamemillis >= sg->gamelimit || sg->forceintermission) ? 0 : (sg->gamelimit - sg->gamemillis + 60000 - 1) / 60000;
         sendf(-1, 1, "ri3", SV_TIMEUP, (sg->gamemillis >= sg->gamelimit || sg->forceintermission) ? sg->gamelimit : sg->gamemillis, sg->gamelimit);

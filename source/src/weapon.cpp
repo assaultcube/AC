@@ -156,7 +156,7 @@ COMMANDF(magreserve, "s", (char *ws)
 
 void tryreload(playerent *p)
 {
-    if(!p || p->state!=CS_ALIVE || p->weaponsel->reloading || p->weaponchanging) return;
+    if(!p || p->state!=CS_ALIVE || ispaused || p->weaponsel->reloading || p->weaponchanging) return;
     p->weaponsel->reload(false);
 }
 
@@ -659,6 +659,7 @@ void removebounceents(playerent *owner)
 
 void movebounceents()
 {
+    if(ispaused) return;
     loopv(bounceents) if(bounceents[i])
     {
         bounceent *p = bounceents[i];
@@ -1038,11 +1039,9 @@ void weapon::renderhudmodel(int lastaction, int index)
     unitv.div(dist);
 
     weaponmove wm;
-    if(!intermission) wm.calcmove(unitv, lastaction, p);
-//    if(!intermission) wm.calcmove(unitv, p->lastaction, p);
+    if(!intermission || !ispaused) wm.calcmove(unitv, lastaction, p);
     defformatstring(path)("weapons/%s", info.modelname);
     bool emit = (wm.anim&ANIM_INDEX)==ANIM_GUN_SHOOT && (lastmillis - lastaction) < flashtime();
-//    bool emit = (wm.anim&ANIM_INDEX)==ANIM_GUN_SHOOT && (lastmillis - p->lastaction) < flashtime();
     rendermodel(path, wm.anim|ANIM_DYNALLOC|(righthanded==index ? ANIM_MIRROR : 0)|(emit ? ANIM_PARTICLE : 0), 0, -1, wm.pos, 0, p->yaw+90, p->pitch+wm.k_rot, 40.0f, wm.basetime, NULL, NULL, 1.28f);
 }
 
