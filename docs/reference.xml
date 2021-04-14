@@ -3,21 +3,22 @@
   To turn this XML document into a "docs.cfg" that can be read by the AssaultCube engine, simply
   uncomment the below xml-stylesheet. Then comment the xml-stylesheet below that one. Save your changes.
   Then refresh this XML document in your web browser and copy/paste the output into ./config/docs.cfg
+  If you are using Firefox and you encounter any CORS-related errors try this configuration change -> https://stackoverflow.com/a/18495435
 
-  <?xml-stylesheet type="text/xsl" href="xml/cuberef2cubescript.xslt"?>
 -->
+  <?xml-stylesheet type="text/xsl" href="xml/cuberef2cubescript.xslt"?>
+
 
 <!--
   You may be able to redistribute this content under specific conditions.
   Please read the licensing information, available @ https://assault.cubers.net/docs/license.html for the
   conditions that would apply to what you may be redistributing.
--->
 
 <?xml-stylesheet type="text/xsl" href="xml/cuberef2xhtml.xslt"?>
-
+-->
 <!-- Please ensure the following when writing content for this reference.xml:
   General
-    * Do NOT use any XML editor that rapes the formatting!!!
+    * Do NOT use any XML editor that breaks the formatting!!!
        * This is a big file, please ensure it remains readable and use correct indentations.
        * Please see how the markup is currently written and write your new markup accordingly!
     * Do NOT write tutorial-like content, this is a reference.
@@ -3015,6 +3016,10 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           <description>Returns the server's current autoteam state.</description>
         </command>
 
+        <command name="curpausemode">
+          <description>Returns the server's current pause state (1=paused, 0=resumed).</description>
+        </command>
+
         <command name="currentprimary">
           <description>Returns the weapon-index the local player currently has selected as primary.</description>
           <remarks>
@@ -3853,6 +3858,20 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
             <key alias="PAUSE" name="Pause"/>
           </defaultKeys>
         </variable>
+
+        <command name="pause">
+          <description>Vote to pause or resume the match.</description>
+          <remarks>
+            <remark>This command is only supported on servers that are in 'match' mastermode.</remark>
+            <remark>You can use the alias 'togglepause' to switch between pause and resume.</remark>
+          </remarks>
+          <arguments>
+            <argument token="P" description="pause or resume" valueNotes="1 (pause) or 0 (resume)"/>
+          </arguments>
+          <references>
+            <identifierReference identifier="mastermode"/>>
+          </references>
+        </command>
 
         <variable name="autoreload">
           <description>Indicates if the weapons should be reloaded automatically.</description>
