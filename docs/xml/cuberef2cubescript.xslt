@@ -1,11 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- ZLIB licensed, (C) 2007 Adrian 'driAn' Henke, http://www.sprintf.org -->
+<!-- 
+  Transforms the ../reference.xml document into a CubeScript document.
 
-<!--
-  transforms a cuberef document to a cubescript document
+  Written by:	Adrian 'driAn' Henke (of Rabid Viper Productions).
+
+  You may be able to redistribute this content under specific
+  conditions. Please read the licensing information, available
+  at https://assault.cubers.net/docs/license.html for the
+  conditions that would apply to what you may be redistributing.
 -->
 
-<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:t="http://cubers.net/Schemas/CubeRef">
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:t="https://assault.cubers.net/docs/xml">
 
   <xsl:output method="text" encoding="ASCII"/>
   
@@ -20,9 +25,11 @@
   </xsl:variable>
 
   <xsl:template match="/t:cuberef">
-    <xsl:text>// This CubeScript has been automatically generated from AssaultCubes reference.xml file.</xsl:text>
+    <xsl:text>// This CubeScript file has been automatically generated from AssaultCube's ./docs/reference.xml</xsl:text>
     <xsl:value-of select="$newline"/>
-    <xsl:text>// To auto-generate this file yourself, please carefully read the comment at the top of reference.xml</xsl:text>
+    <xsl:text>// DO NOT MODIFY THIS FILE - Instead, modify ./docs/reference.xml and generate this file automatically.</xsl:text>
+    <xsl:value-of select="$newline"/>
+    <xsl:text>// To generate this file automatically, please carefully read the comment at the top of reference.xml</xsl:text>
     <xsl:value-of select="$newline"/>
     <xsl:value-of select="$newline"/>
 
@@ -130,14 +137,10 @@
         </xsl:for-each>
 
         <!-- references -->
-        <xsl:for-each select="t:references/t:reference">
+        <xsl:for-each select="t:references/t:identifierReference">
           <xsl:text>docref </xsl:text>
           <xsl:text>[</xsl:text>
-          <xsl:value-of select="@name"/>
-          <xsl:text>] [</xsl:text>
           <xsl:value-of select="@identifier"/>
-          <xsl:text>] [</xsl:text>
-          <xsl:value-of select="@url"/>
           <xsl:text>];</xsl:text>
           <xsl:value-of select="$newline"/>
         </xsl:for-each>

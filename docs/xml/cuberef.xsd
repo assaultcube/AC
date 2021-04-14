@@ -1,10 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <!-- 
-  XML Schema for types in a CubeScript reference document, v0.1
+  XML schema for types in the ../reference.xml document.
+
+  Written by:	Adrian 'driAn' Henke (of Rabid Viper Productions).
+
+  You may be able to redistribute this content under specific
+  conditions. Please read the licensing information, available
+  at https://assault.cubers.net/docs/license.html for the
+  conditions that would apply to what you may be redistributing.
 -->
 
-<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://cubers.net/Schemas/CubeRef" xmlns="http://cubers.net/Schemas/CubeRef">
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="https://assault.cubers.net/docs/xml" xmlns="https://assault.cubers.net/docs/xml">
 
   <!-- simple types -->
   
