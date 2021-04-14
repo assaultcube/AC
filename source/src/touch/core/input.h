@@ -87,22 +87,32 @@ struct input
         if( touchoptionstogglestate == 2 ){ // only if the voicecom touchui is ready for tapping
             // icontapped wants our touch-coord and the top-left corner of each icon
             // public voicecom : right edge
-            if( icontapped( vfingerx, vfingery, touchEdgeRight, touchEdgeBottom - iconsizetwice ) ){
-                deaddeed = true;
-                keys.add(keyevent(event.type, TOUCH_GAME_VOICECOM_PUBLIC_1 ));
-            }
-            if( icontapped( vfingerx, vfingery, touchEdgeRight, touchEdgeBottom - 2 * iconsizetwice ) ){
-                deaddeed = true;
-                keys.add(keyevent(event.type, TOUCH_GAME_VOICECOM_PUBLIC_2 ));
+            if( ! sentvoicecom_public ) // only if not tapped yet
+            {
+                if( icontapped( vfingerx, vfingery, touchEdgeRight, touchEdgeBottom - iconsizetwice ) )
+                {
+                    deaddeed = true;
+                    keys.add(keyevent(event.type, TOUCH_GAME_VOICECOM_PUBLIC_1 ));
+                }
+                if( icontapped( vfingerx, vfingery, touchEdgeRight, touchEdgeBottom - 2 * iconsizetwice ) )
+                {
+                    deaddeed = true;
+                    keys.add(keyevent(event.type, TOUCH_GAME_VOICECOM_PUBLIC_2 ));
+                }
             }
             // team voicecom : bottom edge
-            if( icontapped( vfingerx, vfingery, touchEdgeRight - iconsizetwice, touchEdgeBottom ) ){
-                deaddeed = true;
-                keys.add(keyevent(event.type, TOUCH_GAME_VOICECOM_TEAM_1 ));
-            }
-            if( icontapped( vfingerx, vfingery, touchEdgeRight - 2 * iconsizetwice, touchEdgeBottom ) ){
-                deaddeed = true;
-                keys.add(keyevent(event.type, TOUCH_GAME_VOICECOM_TEAM_2 ));
+            if( ! sentvoicecom_team ) // only if not tapped yet
+            {
+                if( icontapped( vfingerx, vfingery, touchEdgeRight - iconsizetwice, touchEdgeBottom ) )
+                {
+                    deaddeed = true;
+                    keys.add(keyevent(event.type, TOUCH_GAME_VOICECOM_TEAM_1));
+                }
+                if( icontapped( vfingerx, vfingery, touchEdgeRight - 2 * iconsizetwice, touchEdgeBottom ) )
+                {
+                    deaddeed = true;
+                    keys.add(keyevent(event.type, TOUCH_GAME_VOICECOM_TEAM_2));
+                }
             }
         }
 

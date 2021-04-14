@@ -420,29 +420,44 @@ void audiomanager::writesoundconfig(stream *f)
     }
 }
 
+#ifdef __ANDROID__
+bool sentvoicecom_public = false;
+bool sentvoicecom_team = false;
+#endif
 void voicecom(char *sound, char *text)
 {
     if(!sound || !sound[0]) return;
     if(!text || !text[0]) return;
     static int last = 0;
-    if(!last || lastmillis-last > 2000)
+    if(!last || ( touchenabled() || lastmillis-last > 2000 ) ) // __ANDROID__ quick-combo allowed
     {
         defformatstring(soundpath)("voicecom/%s", sound);
         int s = audiomgr.findsound(soundpath, 0, gamesounds);
         if(!gamesound_isvoicecom(s)) return;
-        if(voicecomsounds>0) audiomgr.playsound(s, SP_HIGH);
-        if(gamesound_ispublicvoicecom(s)) // public
-        {
-            addmsg(SV_VOICECOM, "ri", s);
-            toserver(text);
+        bool ispublic = gamesound_ispublicvoicecom(s);
+#ifdef __ANDROID__
+        if(ispublic){
+            if(sentvoicecom_public) return;
+            sentvoicecom_public = true;
+        }else{
+            if(sentvoicecom_team) return;
+            sentvoicecom_team = true;
         }
-        else // team
-        {
-            addmsg(SV_VOICECOMTEAM, "ri", s);
-            defformatstring(teamtext)("%c%s", '%', text);
-            toserver(teamtext);
-        }
-        last = lastmillis;
+#endif
+    if(voicecomsounds>0) audiomgr.playsound(s, SP_HIGH);
+    if(ispublic)
+    {
+        addmsg(SV_VOICECOM, "ri", s);
+        toserver(text);
+    }
+    else // team
+    {
+        addmsg(SV_VOICECOMTEAM, "ri", s);
+        defformatstring(teamtext)("%c%s", '%', text);
+        toserver(teamtext);
+    }
+    last = lastmillis;
+
     }
 }
 

@@ -807,6 +807,14 @@ void respawnself()
         player1->weaponswitch(player1->primweap);
         player1->weaponchanging -= player1->weapons[player1->gunselect]->weaponchangetime/2; // 2011jan16:ft: for a little no-shoot after spawn
     }
+#ifdef __ANDROID__
+    extern bool sentvoicecom_public;
+    extern bool sentvoicecom_team;
+    extern int touchoptionstogglestate;
+    sentvoicecom_public = false;
+    sentvoicecom_team = false;
+    touchoptionstogglestate = 0;
+#endif
 }
 
 extern int checkarea(int maplayout_factor, char *maplayout);

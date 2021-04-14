@@ -119,10 +119,12 @@ struct hud
                         touchoptionstogglestate = 2;
                     }
                 }else{ // >= 2 // finished
-                    drawtouchicon( endposx[0], endposy[0], 4, 2, 255); // TOUCH_GAME_VOICECOM_PUBLIC_1
-                    drawtouchicon( endposx[1], endposy[1], 4, 2, 255); // TOUCH_GAME_VOICECOM_PUBLIC_2
-                    drawtouchicon( endposx[2], endposy[2], 2, 4, 255); // TOUCH_GAME_VOICECOM_TEAM_1
-                    drawtouchicon( endposx[3], endposy[3], 3, 4, 255); // TOUCH_GAME_VOICECOM_TEAM_2
+                    int available_public = sentvoicecom_public ? 128 : 255;
+                    int available_team = sentvoicecom_team ? 128 : 255;
+                    drawtouchicon( endposx[0], endposy[0], 4, 2, available_public); // TOUCH_GAME_VOICECOM_PUBLIC_1
+                    drawtouchicon( endposx[1], endposy[1], 4, 2, available_public); // TOUCH_GAME_VOICECOM_PUBLIC_2
+                    drawtouchicon( endposx[2], endposy[2], 2, 4, available_team); // TOUCH_GAME_VOICECOM_TEAM_1
+                    drawtouchicon( endposx[3], endposy[3], 3, 4, available_team); // TOUCH_GAME_VOICECOM_TEAM_2
                 }
             }
         }

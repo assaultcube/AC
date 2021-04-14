@@ -487,8 +487,10 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 if(d->ignored) clientlogf("ignored: %s%s %s", colorname(d), type == SV_TEAMTEXT ? ":" : "", text);
                 else
                 {
-                    if(m_teammode || team_isspect(player1->team)) conoutf(type == SV_TEAMTEXTME ? "\f1%s %s" : "%s:\f1 %s", colorname(d), highlight(text));
-                    else conoutf(type == SV_TEAMTEXTME ? "\f0%s %s" : "%s:\f0 %s", colorname(d), highlight(text));
+                    void (*outf)(const char *s, ...) = touchenabled() ? hudoutf : conoutf;
+                    if(m_teammode || team_isspect(player1->team)) outf(type == SV_TEAMTEXTME ? "\f1%s %s" : "%s:\f1 %s", colorname(d), highlight(text));
+                    else outf(type == SV_TEAMTEXTME ? "\f0%s %s" : "%s:\f0 %s", colorname(d), highlight(text));
+                    if(touchenabled()) hudkeeplastline(2500);
                 }
                 break;
             }
@@ -505,8 +507,13 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 {
                     getstring(text, p);
                     filtertext(text, text, FTXT__CHAT);
+
                     if(d->ignored && d->clientrole != CR_ADMIN) clientlogf("ignored: %s%s %s", colorname(d), type == SV_TEXT ? ":" : "", text);
-                    else conoutf(type == SV_TEXTME ? "\f0%s %s" : "%s:\f0 %s", colorname(d), highlight(text));
+                    else{
+                        void (*outf)(const char *s, ...) = touchenabled() ? hudoutf : conoutf;
+                        outf(type == SV_TEXTME ? "\f0%s %s" : "%s:\f0 %s", colorname(d), highlight(text));
+                        if(touchenabled()) hudkeeplastline(2500);
+                    }
                 }
                 else return;
                 break;

@@ -21,6 +21,8 @@ extern float movementcontrolradius;
 extern int hideconsole;
 extern int developermode;
 extern int numgamesplayed;
+extern bool sentvoicecom_public;
+extern bool sentvoicecom_team;
 
 VARP(volumeupattack, 0, 0, 1); // determines if volume-up key should be bound to attack
 VARP(onboarded, 0, 0, 1); // determines if the onboarding process has been completed
