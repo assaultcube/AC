@@ -59,11 +59,10 @@
           //    c vote to clear all demos on server
           //    d vote to change server description
           //    e vote for coopedit mode
-          //    p vote for a gamemode that is not supported by the map (default: no one can)
           //    w vote to kick without clear reasons
           //    x vote to ban without clear reasons
-          //    b vote to pause or resume match
-          //    t send private text messages
+          //    p vote to pause or resume match
+          //    t send private messages to any player
           //    default: fkbpMASRCDEPtwX (lowercase: a user can perform the action; uppercase: admin role is required to perform the action)
 // -M     // sendmap permission string (read docs/commandline.html)
           //    c create new map (initial map upload)
