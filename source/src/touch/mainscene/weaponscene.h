@@ -2,12 +2,14 @@
 struct weaponscene : view
 {
     textview *title;
+    textview *pick;
     modelview *weapon;
     touchmenu *menu;
 
     weaponscene(view *parent) : view(parent)
     {
         title = new textview(this, "Preferred weapon", false);
+        pick = new textview(this, "", false );
 
         weapon = new modelview(this);
         weapon->translatey = 0.9f;
@@ -35,6 +37,7 @@ struct weaponscene : view
     ~weaponscene()
     {
         DELETEP(title);
+        DELETEP(pick);
         DELETEP(weapon);
         DELETEP(menu);
     }
@@ -47,6 +50,7 @@ struct weaponscene : view
     virtual void measure(int availablewidth, int availableheight)
     {
         title->measure(availablewidth, availableheight);
+        pick->measure(availablewidth, availableheight);
         weapon->measure(availablewidth, availableheight);
         menu->measure(availablewidth, availableheight/4);
         width = availablewidth;
@@ -56,6 +60,7 @@ struct weaponscene : view
     void render(int x, int y)
     {
         title->render(x + width/2 - text_width(title->text)/2, y + height/8);
+        pick->render(x + width/2 - text_width(pick->text)/2, y + 3*height/16);
 
         weapon->yaw = lastmillis / 20.0f;
         weapon->render(x, y);
@@ -92,5 +97,7 @@ struct weaponscene : view
     void selectweapon(int weap)
     {
         formatstring(weapon->mdl)("weapons/%s/menu", gunnames[weap]);
+        defformatstring(curweapdesc)( "%s: %s", gunnames[weap], weapstr(weap));
+        pick->settext(curweapdesc);//weapstr(weap));//gunnames[weap]
     }
 };

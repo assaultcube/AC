@@ -13,17 +13,21 @@ struct textview : view
 
     textview(view *parent, const char *text, bool editable)
             : view(parent), editable(editable) {
-
-        // default AC string length is not sufficient for this use case
-        size_t len = strlen(text) + 1;
-        this->text = new char[len];
-        strncpy(this->text, text, len);
-        this->text[len-1] = 0;
+        this->settext(text);
     };
 
     ~textview()
     {
         DELETEA(text);
+    }
+
+    void settext(const char *text)
+    {
+        // default AC string length is not sufficient for this use case
+        size_t len = strlen(text) + 1;
+        this->text = new char[len];
+        strncpy(this->text, text, len);
+        this->text[len-1] = 0;
     }
 
     void measure(int availablewidth, int availableheight)

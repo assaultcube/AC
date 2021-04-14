@@ -23,6 +23,7 @@ extern int developermode;
 extern int numgamesplayed;
 extern bool sentvoicecom_public;
 extern bool sentvoicecom_team;
+extern char *weapstr(int i);
 
 VARP(volumeupattack, 0, 0, 1); // determines if volume-up key should be bound to attack
 VARP(onboarded, 0, 0, 1); // determines if the onboarding process has been completed
