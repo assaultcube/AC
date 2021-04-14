@@ -25,6 +25,8 @@
 // -Y     // 32-byte private server key (you should maybe include that from another config file and remove it from the server after startup)
 // -m     // masterserver URL (no parameter uses default URL), if not set, the server will be LAN-only
 
+-Y AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA // this default value is a security risk so please define your own private server key (!!)
+
 // the switches o, n, n1 and n2 support coloring and character escaping; 'o' also supports escaped newlines
 // the available colors are: 0: green, 1: blue, 2: yellow, 3: red, 4: gray, 5: white, 6: dark brown, 7: dark red
 // example multiline MOTD: -o line 1\nline 2\nline 3
@@ -46,20 +48,23 @@
 // -G     // server geoip file, default config/geoip.cfg
 // -K     // server nickname blacklist file, default config/nicknameblacklist.cfg
 // -g     // server forbidden words file, default config/forbidden.cfg
-// -P     // voting permission string (read docs/commandline.html)
-          //    k kick players
-          //    b ban players (and remove bans)
-          //    m change mastermode (open/private)
-          //    f force a player to the other team
-          //    a enable/disable autoteam
-          //    s shuffle the teams
-          //    r record a demo of the next game (if autorecording is disabled)
-          //    c clear all demos on server
-          //    d change server description
+// -P     // permission string (read docs/commandline.html)
+          //    k vote to kick players
+          //    b vote to ban players (and remove bans)
+          //    m vote to change mastermode (open/private)
+          //    f vote to force a player to the other team
+          //    a vote to enable/disable autoteam
+          //    s vote to shuffle the teams
+          //    r vote to record a demo of the next game (if autorecording is disabled)
+          //    c vote to clear all demos on server
+          //    d vote to change server description
           //    e vote for coopedit mode
           //    p vote for a gamemode that is not supported by the map (default: no one can)
-          //    w vote to kick/ban without clear reasons
-          //    default: fkBMASRCDEW (lowercase: a user can vote for it; uppercase: admin role is required to vote)
+          //    w vote to kick without clear reasons
+          //    x vote to ban without clear reasons
+          //    b vote to pause or resume match
+          //    t send private text messages
+          //    default: fkbpMASRCDEPtwX (lowercase: a user can perform the action; uppercase: admin role is required to perform the action)
 // -M     // sendmap permission string (read docs/commandline.html)
           //    c create new map (initial map upload)
           //    u update existing map (same or newer revision)
