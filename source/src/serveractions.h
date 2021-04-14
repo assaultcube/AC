@@ -237,10 +237,11 @@ struct pauseaction : serveraction
 {
     int mode;
     void perform() { setpausemode(mode); }
+    virtual bool isvalid() { return sg->mastermode == MM_MATCH; }
     pauseaction(int mode) : mode(mode)
     {
         role = roleconf('p');
-        copystring(desc, (mode == 1) ? "pause the game" : "resume the game");
+        if(isvalid()) copystring(desc, (mode == 1) ? "pause the game" : "resume the game");
     }
 };
 
