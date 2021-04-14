@@ -792,7 +792,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     armour = getint(p),
                     health = getint(p);
                 playerent *target = getclient(tcn), *actor = getclient(acn);
-                if(!target || !actor || valid_weapon(gun)) break;
+                if(!target || !actor || !valid_weapon(gun)) break;
                 target->armour = armour;
                 target->health = health;
                 dodamage(damage, target, actor, -1, type==SV_GIBDAMAGE, false);
