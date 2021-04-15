@@ -569,7 +569,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 d->scopefov = (float)clamp(getint(p), 5, 60);
                 d->address = getint(p); // partial IP address
 
-                if(m_flags) loopi(2)
+                if(m_genflags) loopi(2)
                 {
                     flaginfo &f = flaginfos[i];
                     if(!f.actor) f.actor = getclient(f.actor_cn);

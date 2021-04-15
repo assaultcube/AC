@@ -210,7 +210,7 @@ void curmodeattr(char *attr)
 {
     if(!strcmp(attr, "team")) { intret(m_teammode); return; }
     else if(!strcmp(attr, "arena")) { intret(m_arena); return; }
-    else if(!strcmp(attr, "flag")) { intret(m_flags); return; }
+    else if(!strcmp(attr, "flag")) { intret(m_genflags); return; }
     else if(!strcmp(attr, "bot")) { intret(m_botmode); return; }
     intret(0);
 }
@@ -622,7 +622,7 @@ void showrespawntimer()
         if(!arenaintermission) return;
         showhudtimer(5, arenaintermission, "FIGHT!", lastspawnattempt >= arenaintermission && lastmillis < lastspawnattempt+100);
     }
-    else if(player1->state==CS_DEAD && m_flags && (!player1->isspectating() || player1->spectatemode==SM_DEATHCAM))
+    else if(player1->state==CS_DEAD && m_genflags && (!player1->isspectating() || player1->spectatemode==SM_DEATHCAM))
     {
         int secs = 5;
         showhudtimer(secs, player1->lastdeath, "READY!", lastspawnattempt >= arenaintermission && lastmillis < lastspawnattempt+100);
@@ -833,7 +833,7 @@ bool tryrespawn()
         }
         else
         {
-            int respawnmillis = player1->lastdeath + (m_arena ? 0 : (m_flags ? 5000 : 2000));
+            int respawnmillis = player1->lastdeath + (m_arena ? 0 : (m_genflags ? 5000 : 2000));
             if(lastmillis>respawnmillis)
             {
                 player1->attacking = false;
@@ -1166,7 +1166,7 @@ void startmap(const char *name, bool reset, bool norespawn)   // called just aft
     if(m_botmode) BotManager.BeginMap(name);
     else kickallbots();
     clearbounceents();
-    preparectf(!m_flags);
+    preparectf(!m_genflags);
     suicided = -1;
     spawncycle = -1;
     lasthit = 0;
