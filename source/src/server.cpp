@@ -4327,7 +4327,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
     }
 #endif
 
-    if(sg->minremain > 0)
+    if(sg->minremain > 0 && !sg->sispaused)
     {
         processevents();
         checkitemspawns(diff);
