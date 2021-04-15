@@ -1214,7 +1214,7 @@ void startmap(const char *name, bool reset, bool norespawn)   // called just aft
 
 void suicide()
 {
-    if(player1->state == CS_ALIVE && suicided!=player1->lifesequence)
+    if(player1->state == CS_ALIVE && suicided!=player1->lifesequence && !ispaused)
     {
         addmsg(SV_SUICIDE, "r");
         suicided = player1->lifesequence;
