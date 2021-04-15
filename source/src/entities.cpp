@@ -482,6 +482,7 @@ void flagpickup(int fln)
 
 void tryflagdrop(bool manual)
 {
+    if(ispaused) return;
     loopi(2)
     {
         flaginfo &f = flaginfos[i];
