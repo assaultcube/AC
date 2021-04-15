@@ -4147,7 +4147,7 @@ client &addclient()
 
 void checkintermission()
 {
-    if(sg->minremain>0 && !sg->sispaused)
+    if(sg->minremain>0)
     {
         sg->minremain = (sg->gamemillis >= sg->gamelimit || sg->forceintermission) ? 0 : (sg->gamelimit - sg->gamemillis + 60000 - 1) / 60000;
         sendf(-1, 1, "ri3", SV_TIMEUP, (sg->gamemillis >= sg->gamelimit || sg->forceintermission) ? sg->gamelimit : sg->gamemillis, sg->gamelimit);
@@ -4314,7 +4314,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
     int nextmillis = isdedicated ? (int)enet_time_get() : lastmillis;
 #endif
     int diff = nextmillis - servmillis;
-    sg->gamemillis += diff;
+    if(!sg->sispaused) sg->gamemillis += diff;
     servmillis = nextmillis;
     entropy_add_byte(diff);
 
