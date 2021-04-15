@@ -847,7 +847,7 @@ dir(right,    strafe, -1, k_right, k_left)
 
 void attack(bool on)
 {
-    if(intermission || (ispaused && player1->state == CS_ALIVE)) return;
+    if(intermission || (ispaused && player1->state == CS_ALIVE) || ispaused) return;
     if(editmode) editdrag(on);
     else if(player1->state==CS_DEAD || player1->state==CS_SPECTATE)
     {
