@@ -41,7 +41,7 @@ void checkweaponswitch()
 
 void selectweapon(weapon *w)
 {
-    if(!w || !player1->weaponsel->deselectable()) return;
+    if(!w || !player1->weaponsel->deselectable() || ispaused) return;
     if(w->selectable())
     {
         if(player1->attacking && player1->state == CS_ALIVE) attack(false);
@@ -58,7 +58,7 @@ void selectweapon(weapon *w)
 void requestweapon(char *ws)
 {
     int w = getlistindex(ws, gunnames, true, 0);
-    if(keypressed && player1->state == CS_ALIVE && w >= 0)
+    if(keypressed && player1->state == CS_ALIVE && w >= 0 && !ispaused)
     {
         if (player1->akimbo && w == GUN_PISTOL) w = GUN_AKIMBO;
         selectweapon(player1->weapons[w]);
@@ -68,7 +68,7 @@ COMMANDN(weapon, requestweapon, "s");
 
 void shiftweapon(int *s)
 {
-    if(keypressed && player1->state == CS_ALIVE)
+    if(keypressed && player1->state == CS_ALIVE && !ispaused)
     {
         if(!player1->weaponsel->deselectable()) return;
 
