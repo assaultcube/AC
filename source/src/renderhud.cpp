@@ -211,6 +211,7 @@ COMMAND(loadcrosshair, "ss");
 
 void drawcrosshair(playerent *p, int n, color *c, float size)
 {
+    if (cleanedit && editmode) return;
     Texture *crosshair = crosshairs[n];
     if(!crosshair)
     {
@@ -822,7 +823,20 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     char *infostr = editinfo();
     int commandh = HUDPOS_Y_BOTTOMLEFT + FONTH;
     if(command) commandh -= rendercommand(-1, HUDPOS_Y_BOTTOMLEFT, VIRTW - FONTH); // dryrun to get height
-    else if(infostr) draw_text(infostr, HUDPOS_X_BOTTOMLEFT, HUDPOS_Y_BOTTOMLEFT);
+    else if(infostr) 
+    {
+        if(cleanedit) // smaller text
+        {
+            glPushMatrix();
+            glLoadIdentity();
+            glOrtho(0, VIRTW * 2, VIRTH * 2, 0, -1, 1);
+            glScalef(1.0, 1.0, 1.0); //set scale
+            draw_text(infostr, 48, VIRTH * 2 - 3 * FONTH);
+            glPopMatrix();
+        }
+        else
+            draw_text(infostr, HUDPOS_X_BOTTOMLEFT, HUDPOS_Y_BOTTOMLEFT);
+    }   
     else if(targetplayer && showtargetname) draw_text(colorname(targetplayer), HUDPOS_X_BOTTOMLEFT, HUDPOS_Y_BOTTOMLEFT);
     glLoadIdentity();
     glOrtho(0, VIRTW*2, VIRTH*2, 0, -1, 1);

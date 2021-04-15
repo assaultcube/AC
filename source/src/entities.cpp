@@ -24,6 +24,7 @@ void renderent(entity &e)
 
 void renderclip(int type, int x, int y, float xs, float ys, float h, float elev, float tilt, int shape)
 {
+    if(cleanedit) return;
     if(xs < 0.05f) xs = 0.05f;
     if(ys < 0.05f) ys = 0.05f;
     if(h < 0.1f) h = 0.1f;
@@ -84,7 +85,7 @@ void rendermapmodels()
 
 void renderentarrow(const entity &e, const vec &dir, float radius)
 {
-    if(radius <= 0) return;
+    if(cleanedit || radius <= 0) return;
     float arrowsize = min(radius/8, 0.5f);
     vec epos(e.x, e.y, e.z);
     vec target = vec(dir).mul(radius).add(epos), arrowbase = vec(dir).mul(radius - arrowsize).add(epos), spoke;
@@ -115,7 +116,7 @@ void renderentarrow(const entity &e, const vec &dir, float radius)
 
 void rendereditentities()
 {
-    if(!editmode) return;
+    if(!editmode || cleanedit) return;
     int closest = closestent();
 
     static int lastsparkle = 0;
@@ -215,7 +216,7 @@ void rendereditentities()
 
 void renderentities()
 {
-    if(editmode) return;
+    if(editmode && !cleanedit) return;
     loopv(ents)
     {
         entity &e = ents[i];

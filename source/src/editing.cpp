@@ -30,6 +30,9 @@ VAR(unsavededits, 1, 0, 0);
 VAR(editmetakeydown, 1, 0, 0);
 COMMANDF(editmeta, "d", (bool on) { editmetakeydown = on ? 1 : 0; } );
 
+VAR(cleanedit, 0, 0, 1); // hides everything in edit mode you can't see in regular mode
+COMMANDF(togglecleanedit, "", () { cleanedit = !cleanedit; }); 
+
 void toggleedit(bool force)
 {
     if(player1->state==CS_DEAD) return;                   // do not allow dead players to edit to avoid state confusion
@@ -213,6 +216,7 @@ inline void forceinsideborders(int &xy)
 void cursorupdate()                                     // called every frame from hud
 {
     ASSERT(editmode);
+    if(cleanedit) return;
     flrceil = camera1->pitch >= 0 ? 2 : 0;
     editaxis = fabs(camera1->pitch) > 60 ? "\161\15\15"[flrceil] : "\160\13\14\157"[(int(camera1->yaw + 45) / 90) & 3];
 

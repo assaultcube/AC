@@ -758,6 +758,7 @@ extern void storeposition(short p[]);
 extern void restoreposition(short p[]);
 extern void restoreeditundo(ucharbuf &q);
 extern int backupeditundo(vector<uchar> &buf, int undolimit, int redolimit);
+extern int cleanedit;
 
 // renderhud
 #define HUDPOS_X_BOTTOMLEFT 20
