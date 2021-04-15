@@ -975,7 +975,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         glOrtho(0, VIRTW * matchpausedfontfactor, VIRTH * matchpausedfontfactor, 0, -1, 1);
         const int left = (VIRTW * matchpausedfontfactor) / 2 - text_width(matchpaused) / 2;
         const int top = (VIRTH * matchpausedfontfactor) * 5 / 6;
-        draw_textf(matchpaused, left, top);
+        draw_text(matchpaused, left, top);
     }
 
     /* * /

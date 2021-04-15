@@ -1467,9 +1467,9 @@ void scallvote(int *type, const char *arg1, const char *arg2)
             }
             case SA_PAUSE:
             {
-                if (!arg1 || !isdigit(arg1[0]) || !multiplayer(false))
+                if (!arg1 || !isdigit(arg1[0]) || !multiplayer(NULL))
                 {
-                    if(!multiplayer(false))
+                    if(!multiplayer(NULL))
                         conoutf("\f3pause is not available in singleplayer.");
                     else if (arg1 && !isdigit(arg1[0])) conoutf("\f3invalid vote");
                     break;
