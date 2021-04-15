@@ -676,7 +676,7 @@ bool exechook(int context, const char *ident, const char *body,...)  // execute 
     if(((context & HOOK_TEAM) && !m_teammode) ||
        ((context & HOOK_NOTEAM) && m_teammode) ||
        ((context & HOOK_BOTMODE) && !m_botmode) ||
-       ((context & HOOK_FLAGMODE) && m_genflags) ||
+       ((context & HOOK_FLAGMODE) && m_flags_) ||
        ((context & HOOK_ARENA) && m_arena)) return false; // wrong gamemode
     if(identexists(ident))
     {
