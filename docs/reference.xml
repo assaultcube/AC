@@ -5201,6 +5201,27 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           </references>
         </command>
 
+        <variable name="cleanedit">
+          <description>Turns on/off clean edit mode.</description>
+          <remarks>
+            <remark>While editing in clean edit mode, objects/guides not normally visible remain invisible.</remark>
+            <remark>i.e. The grid guidelines, selection borders, entity sparkles, clips, playerstart arrows are hidden</remark>
+          </remarks>
+          <arguments>
+            <argument token="V" description="sets cleanedit on/off" valueNotes="0 (off), 1 (on)"/>
+          </arguments>
+          <references>
+            <identifierReference identifier="togglecleanedit"/>
+          </references>
+        </variable> 
+
+        <command name="togglecleanedit">
+          <description>Inverses the on/off state of cleanedit</description>
+          <references>
+            <identifierReference identifier="cleanedit"/>
+          </references>
+        </command>       
+
         <command name="recalc">
           <description>Recomputes all there is to recompute about a map, currently only lighting.</description>
         </command>
