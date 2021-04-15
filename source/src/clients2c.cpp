@@ -1334,7 +1334,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 if(p.get(dtiger, TIGERHASHSIZE) == TIGERHASHSIZE)
                 {
                     bin2hex(text, dtiger, TIGERHASHSIZE);
-                    defformatstring(msg)("CLIENTDEMOEND<%s %s %d>", msg, iptoa(session.curpeerip, text + 100), session.curpeerport);
+                    defformatstring(msg)("CLIENTDEMOEND<%s %d>", iptoa(session.curpeerip, text + 100), session.curpeerport);
                     int msglen = (int)strlen(msg);
                     ASSERT(msglen + 64 < MAXSTRLEN);
                     if(sk) ed25519_sign((uchar*)msg, NULL, (uchar*)msg, msglen, sk);
