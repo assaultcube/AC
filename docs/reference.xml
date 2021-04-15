@@ -2944,6 +2944,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           <description>Drops the taken flag.</description>
           <defaultKeys>
             <key alias="BACKSPACE" name="Backspace"/>
+            <key alias="X"/>
           </defaultKeys>
         </command>
 
