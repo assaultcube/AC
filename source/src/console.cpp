@@ -566,7 +566,11 @@ void consolekey(int code, bool isdown, SDL_Keymod mod)
             if(h)
             {
                 h->run();
-                if(h->action && !storeinputcommand) history.drop();
+                if(h->action && !storeinputcommand) 
+                {
+                    delete h;
+                    history.drop();
+                }
             }
         }
         else if((code==SDLK_ESCAPE && !ignoreescup) || code== SDL_AC_BUTTON_RIGHT)
