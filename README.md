@@ -39,6 +39,10 @@ Most of this README was directly copied from the
 [AssaultCube Homepage](https://assault.cubers.net), which should have everything
 you need in relation to AssaultCube.
 
+## Contributing:
+
+Learn [how to become a contributor and submit your own code](CONTRIBUTING.md)
+
 ## Redistribution:
 
 You may redistribute AssaultCube in any way the license permits, such as the
