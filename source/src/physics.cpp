@@ -913,7 +913,7 @@ FVARP(mfilter, 0.0f, 0.0f, 6.0f);               // simple lowpass filtering (zer
 
 void mousemove(int idx, int idy)
 {
-    if(intermission || (ispaused && player1->state == CS_ALIVE) || (player1->isspectating() && player1->spectatemode==SM_FOLLOW1ST)) return;
+    if(intermission || ispaused || (player1->isspectating() && player1->spectatemode==SM_FOLLOW1ST)) return;
     bool zooming = player1->weaponsel->type == GUN_SNIPER && ((sniperrifle *)player1->weaponsel)->scoped;               // check if player uses scope
     float dx = idx, dy = idy;
     if(mfilter > 0.0001f)
