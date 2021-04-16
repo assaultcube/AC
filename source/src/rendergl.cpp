@@ -76,7 +76,7 @@ void gl_checkextensions()
         glMultiDrawElements_ = (PFNGLMULTIDRAWELEMENTSEXTPROC)getprocaddress("glMultiDrawElementsEXT");
         hasMDA = true;
 
-        if(strstr(vendor, "ATI")) ati_mda_bug = 1;
+        if(strstr(vendor, "ATI") || strstr(renderer, "Mesa") || strstr(version, "Mesa")) ati_mda_bug = 1;
     }
 
     if(hasext(exts, "GL_EXT_draw_range_elements"))
