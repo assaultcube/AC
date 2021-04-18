@@ -937,7 +937,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
                 formatstring(text)("%05.2f Z  ", p->o.z);     draw_text(text, VIRTW*2 - ( text_width(text) + FONTH ), VIRTH*2 - 9*FONTH/2);
                 popfont();
             }
-#ifndef ANDROID
+#ifndef __ANDROID__
                 defformatstring(c_val)("fps %d", curfps); draw_text(c_val, VIRTW*2 - ( text_width(c_val) + FONTH ), VIRTH*2 - 3*FONTH/2);
 #endif
             if(wallclock) draw_text(ltime, VIRTW*2 - text_width(ltime) - FONTH, VIRTH*2 - 5*FONTH/2);
