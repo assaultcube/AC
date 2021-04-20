@@ -60,13 +60,16 @@ extern float waterlevel;
 
 #define AC_MASTER_URI "ms.cubers.net"
 
-// DEV
-#define AC_VERSION -(1203) 
-#define AC_MASTER_PORT 28758
+// uncommend this line for production release
+//#define PRODUCTION
 
-// PRODUCTION
-//#define AC_VERSION 1203
-//#define AC_MASTER_PORT 28760
+#ifdef PRODUCTION
+	#define AC_VERSION 1203
+	#define AC_MASTER_PORT 28760
+#else
+	#define AC_VERSION -(1203) 
+	#define AC_MASTER_PORT 28758
+#endif
 
 #define MAXCLIENTSONMASTER 16           // FIXME
 #define CONFIGROTATEMAX 5               // keep 5 old versions of saved.cfg and init.cfg around
