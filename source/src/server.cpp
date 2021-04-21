@@ -2627,19 +2627,35 @@ void callvotepacket (int cn, voteinfo *v = curvote)
 void changeclientrole(int client, int role, char *pwd, bool force)
 {
     pwddetail pd;
+    bool success = false;
     if(!isdedicated || !valid_client(client)) return;
     pd.line = -1;
-    if(force || role == CR_DEFAULT || (role == CR_ADMIN && pwd && pwd[0] && passwords.check(clients[client]->name, pwd, clients[client]->salt, &pd) && !pd.denyadmin))
-    {
-        if(role == clients[client]->role) return;
+    
+    if(role == clients[client]->role) return;
+    
+    if(force) success = true;
+    
+    if(role == CR_ADMIN
+       && pwd
+       && pwd[0]
+       && passwords.check(clients[client]->name, pwd, clients[client]->salt, &pd)
+       && !pd.denyadmin) {
+        mlog(ACLOG_INFO,"[%s] player %s used admin password in line %d", clients[client]->hostname, clients[client]->name[0] ? clients[client]->name : "[unnamed]", pd.line);
+        success = true;
+    }
+    
+    if(clients[client]->checkvitadate(VS_ADMIN)) {
+        mlog(ACLOG_INFO,"[%s] player %s claimed admin through valid vita claim (pubkey: %s)", clients[client]->hostname, clients[client]->name[0] ? clients[client]->name : "[unnamed]", clients[client]->pubkeyhex);
+        success = true;
+    }
+    
+    if(success) {
         if(role > CR_DEFAULT)
         {
             loopv(clients) clients[i]->role = CR_DEFAULT;
         }
         clients[client]->role = role;
         sendserveropinfo(-1);
-        if(pd.line > -1)
-            mlog(ACLOG_INFO,"[%s] player %s used admin password in line %d", clients[client]->hostname, clients[client]->name[0] ? clients[client]->name : "[unnamed]", pd.line);
         mlog(ACLOG_INFO,"[%s] set role of player %s to %s", clients[client]->hostname, clients[client]->name[0] ? clients[client]->name : "[unnamed]", role == CR_ADMIN ? "admin" : "normal player"); // flowtron : connecting players haven't got a name yet (connectadmin)
         if(role > CR_DEFAULT) sendiplist(client);
     }

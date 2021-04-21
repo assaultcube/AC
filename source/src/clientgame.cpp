@@ -1665,6 +1665,8 @@ void setadmin(int *claim, char *password)
     }
     else if(*claim != 0 && *password)
         addmsg(SV_SETADMIN, "ris", *claim, genpwdhash(player1->name, password, sessionid));
+    else if(*claim != 0)
+        addmsg(SV_SETADMIN, "ri", *claim);
 }
 COMMAND(setadmin, "is");
 
