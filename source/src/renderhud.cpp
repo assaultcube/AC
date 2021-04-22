@@ -336,9 +336,8 @@ void drawequipicons(playerent *p)
 
     // health & armor
     if(p->armour) drawequipicon(HUDPOS_ARMOUR*2, 1650, (p->armour-1)/25, 2);
-    if(p->mag[GUN_GRENADE]) drawequipicon(oldfashionedgunstats ? (HUDPOS_GRENADE + (((float)screenw / (float)screenh > 1.5f) ? 75 : 25)) * 2 : HUDPOS_GRENADE*2, 1650, 3, 1);
     drawequipicon(HUDPOS_HEALTH*2, 1650, 2, 3);
-    if(p->mag[GUN_GRENADE]) drawequipicon(oldfashionedgunstats ? (HUDPOS_GRENADE + 25)*2 : HUDPOS_GRENADE*2, 1650, 3, 1);
+	if(p->mag[GUN_GRENADE]) drawequipicon(oldfashionedgunstats ? (HUDPOS_GRENADE + (((float)screenw / (float)screenh > 1.5f) ? 75 : 25)) * 2 : HUDPOS_GRENADE*2, 1650, 3, 1);
 
     // weapons
     int c = p->weaponsel->type != GUN_GRENADE ? p->weaponsel->type : getprevweaponsel(p), r = 0;
@@ -823,7 +822,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     char *infostr = editinfo();
     int commandh = HUDPOS_Y_BOTTOMLEFT + FONTH;
     if(command) commandh -= rendercommand(-1, HUDPOS_Y_BOTTOMLEFT, VIRTW - FONTH); // dryrun to get height
-    else if(infostr) 
+    else if(infostr)
     {
         if(cleanedit) // smaller text
         {
@@ -836,7 +835,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         }
         else
             draw_text(infostr, HUDPOS_X_BOTTOMLEFT, HUDPOS_Y_BOTTOMLEFT);
-    }   
+    }
     else if(targetplayer && showtargetname) draw_text(colorname(targetplayer), HUDPOS_X_BOTTOMLEFT, HUDPOS_Y_BOTTOMLEFT);
     glLoadIdentity();
     glOrtho(0, VIRTW*2, VIRTH*2, 0, -1, 1);
@@ -1204,4 +1203,3 @@ void show_out_of_renderloop_progress(float bar1, const char *text1, float bar2, 
     glEnable(GL_DEPTH_TEST);
     SDL_GL_SwapWindow(screen);
 }
-
