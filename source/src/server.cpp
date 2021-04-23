@@ -3096,6 +3096,9 @@ void process(ENetPacket *packet, int sender, int chan)
             bool srvfull = numnonlocalclients() > scl.maxclients;
             bool srvprivate = sg->mastermode == MM_PRIVATE || sg->mastermode == MM_MATCH;
             bool matchreconnect = sg->mastermode == MM_MATCH && findscore(*cl, false);
+            if (cl->pubkeyhex[0]) {
+                concatformatstring(tags, ", pubkey: %s", cl->pubkeyhex);
+            }
             int bl = 0, wl = nickblacklist.checkwhitelist(*cl);
             if(wl == NWL_PASS) concatstring(tags, ", nickname whitelist match");
             if(wl == NWL_UNLISTED) bl = nickblacklist.checkblacklist(cl->name);
@@ -3131,6 +3134,24 @@ void process(ENetPacket *packet, int sender, int chan)
                     }
                 }
                 mlog(ACLOG_INFO, "[%s] %s logged in using the admin password in line %d%s", cl->hostname, cl->name, pd.line, tags);
+            }
+            else if(wantrole == CR_ADMIN && cl->checkvitadate(VS_ADMIN) && bantype != BAN_MASTER) // pass admins always through
+            { // Set as admin in vita and is trying to connect as admin
+                cl->isauthed = true;
+                clientrole = CR_ADMIN;
+                if(bantype == BAN_VOTE)
+                {
+                    loopv(bans) if(bans[i].address.host == cl->peer->address.host) { bans.remove(i); concatstring(tags, ", ban removed"); break; } // remove admin bans
+                }
+                if(srvfull)
+                {
+                    loopv(clients) if(i != sender && clients[i]->type==ST_TCPIP)
+                    {
+                        disconnect_client(i, DISC_MAXCLIENTS); // disconnect someone else to fit maxclients again
+                        break;
+                    }
+                }
+                mlog(ACLOG_INFO, "[%s] %s logged in using the vita admin claim%s", cl->hostname, cl->name, tags);
             }
             else if(scl.serverpassword[0] && !(srvprivate || srvfull || banned))
             { // server password required

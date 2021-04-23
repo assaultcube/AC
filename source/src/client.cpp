@@ -115,7 +115,6 @@ COMMANDN(connect, connectserv, "sis");
 void connectadmin(char *servername, int *serverport, char *password)
 {
     modprotocol = false;
-    if(!password[0]) return;
     connectserv_(servername, *serverport, password, CR_ADMIN);
 }
 COMMAND(connectadmin, "sis");
@@ -137,7 +136,6 @@ COMMANDN(modconnect, modconnectserv, "sis");
 void modconnectadmin(char *servername, int *serverport, char *password)
 {
     modprotocol = true;
-    if(!password[0]) return;
     connectserv_(servername, *serverport, password, CR_ADMIN);
 }
 COMMAND(modconnectadmin, "sis");
