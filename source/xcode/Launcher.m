@@ -171,7 +171,7 @@ static int numberForKey(CFDictionaryRef desc, CFStringRef key)
         [toolBarItems setObject:item forKey:identifier];
         [item release];
     }
-    NSToolbar *toolbar = [[NSToolbar alloc] initWithIdentifier:@""];
+    NSToolbar *toolbar = [[NSToolbar alloc] initWithIdentifier:@"assaultcube_toolbar1"];
     [toolbar setDelegate:self]; 
     [toolbar setAllowsUserCustomization:NO]; 
     [toolbar setAutosavesConfiguration:NO];  
