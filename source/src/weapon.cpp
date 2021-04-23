@@ -430,7 +430,6 @@ void intersectgeometry(const vec &from, vec &to) // check line for contact with 
 
     float distmin = 1.0f, vdelta[4];
     sqr *r[2], *s, *nb[4];
-    if(fabs(d.x) + fabs(d.y) < 2.0f) d.mul((distmin = 32.0f));
     loop(xy, 2) // first check x == const planes and then y == const planes
     {
         float dxy = xy ? d.y : d.x, fromxy = xy ? from.y : from.x;
@@ -1050,11 +1049,11 @@ void weapon::updatetimers(int millis)
     if(gunwait) gunwait = max(gunwait - (millis-owner->lastaction), 0);
 }
 
-void weapon::onselecting()
+void weapon::onselecting(bool sound)
 {
     updatelastaction(owner);
     bool local = (owner == player1);
-    audiomgr.playsound(S_GUNCHANGE, owner, local ? SP_HIGH : SP_NORMAL);
+    if(sound) audiomgr.playsound(S_GUNCHANGE, owner, local ? SP_HIGH : SP_NORMAL);
 }
 
 void weapon::renderhudmodel() { renderhudmodel(owner->lastaction); }
@@ -1345,11 +1344,11 @@ void grenades::renderstats()
 bool grenades::selectable() { return weapon::selectable() && state != GST_INHAND && mag; }
 void grenades::reset() { throwmillis = 0; cookingmillis = 0; if(owner == player1) quicknade = false; state = GST_NONE; }
 
-void grenades::onselecting()
+void grenades::onselecting(bool sound)
 {
     reset();
     bool local = (owner == player1);
-    audiomgr.playsound(S_GUNCHANGE, owner, local ? SP_HIGH : SP_NORMAL);
+    if(sound) audiomgr.playsound(S_GUNCHANGE, owner, local ? SP_HIGH : SP_NORMAL);
 }
 
 void grenades::onownerdies()
@@ -1511,7 +1510,7 @@ int sniperrifle::dynspread()
 }
 float sniperrifle::dynrecoil() { return scoped && lastmillis - scoped_since > SCOPESETTLETIME ? info.recoil / 3 : info.recoil; }
 bool sniperrifle::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
-void sniperrifle::onselecting() { weapon::onselecting(); scoped = false; player1->scoping = false; }
+void sniperrifle::onselecting(bool sound) { weapon::onselecting(sound); scoped = false; player1->scoping = false; }
 void sniperrifle::ondeselecting() { scoped = false; player1->scoping = false; }
 void sniperrifle::onownerdies() { scoped = false; player1->scoping = false; shots = 0; }
 void sniperrifle::renderhudmodel() { if(!scoped) weapon::renderhudmodel(); }
@@ -1585,9 +1584,9 @@ void akimbo::onammopicked()
     }
 }
 
-void akimbo::onselecting()
+void akimbo::onselecting(bool sound)
 {
-    gun::onselecting();
+    gun::onselecting(sound);
     akimbolastaction[0] = akimbolastaction[1] = lastmillis;
 }
 

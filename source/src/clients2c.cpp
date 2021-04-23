@@ -643,7 +643,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     if(m_botmode) BotManager.RespawnBots();
                 }
                 addmsg(SV_SPAWN, "rii", player1->lifesequence, player1->weaponsel->type);
-                player1->weaponswitch(player1->primweap);
+                player1->weaponswitch(player1->primweap, false);
                 player1->weaponchanging -= weapon::weaponchangetime/2;
                 if(player1->lifesequence==0) player1->resetstats(); //NEW
                 break;

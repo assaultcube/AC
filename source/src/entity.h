@@ -538,14 +538,14 @@ public:
     void setprimary(int w) { primweap = weapons[(primary = w)]; }
     void setnextprimary(int w) { nextprimweap = weapons[(nextprimary = w)]; }
     bool isspectating() { return state==CS_SPECTATE || (state==CS_DEAD && spectatemode > SM_NONE); }
-    void weaponswitch(weapon *w)
+    void weaponswitch(weapon *w, bool sound = true)
     {
         if(!w) return;
         extern int lastmillis;
         weaponsel->ondeselecting();
         weaponchanging = lastmillis;
         nextweaponsel = w;
-        w->onselecting();
+        w->onselecting(sound);
     }
     int skin(int t = -1) { return nextskin[team_base(t < 0 ? team : t)]; }
     void setskin(int t, int s)

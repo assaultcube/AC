@@ -910,6 +910,7 @@ void authsetup(char **args, int numargs)  // set up private and public keys
                 DELETEA(oldfile);
             }
         }
+#ifndef PRODUCTION
         else if(!strcasecmp(args[0], "UNARMED"))  // FIXME: this is for testing purposes only - to test simultaneous logins from the same account - delete before release!
         {
             // authsetup unarmed
@@ -918,6 +919,7 @@ void authsetup(char **args, int numargs)  // set up private and public keys
             ed25519_pubkey_from_private(pub, priv);
             privpwdcfg = 0;
         }
+#endif
     }
     ed25519_pubkey_from_private(keyhash, priv);
     if(!privpwdcfg && !memcmp(pub, keyhash, 32))
