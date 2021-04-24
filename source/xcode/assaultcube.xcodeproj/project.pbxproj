@@ -37,7 +37,6 @@
 		9EB8181D11EDA56D00799589 /* assaultcube.icns in Resources */ = {isa = PBXBuildFile; fileRef = 9EB817DE11EDA3A300799589 /* assaultcube.icns */; };
 		9EB8188511EDACDB00799589 /* assaultcube.icns in Resources */ = {isa = PBXBuildFile; fileRef = 9EB817DE11EDA3A300799589 /* assaultcube.icns */; };
 		9EB8188611EDACDB00799589 /* Help.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 66899EA80C14887F00927C34 /* Help.tiff */; };
-		9EB8188711EDACDB00799589 /* Keys.gif in Resources */ = {isa = PBXBuildFile; fileRef = 66899EA90C14887F00927C34 /* Keys.gif */; };
 		9EB8188811EDACDB00799589 /* Main.gif in Resources */ = {isa = PBXBuildFile; fileRef = 66899EAA0C14887F00927C34 /* Main.gif */; };
 		9EB8188911EDACDB00799589 /* map.icns in Resources */ = {isa = PBXBuildFile; fileRef = B975E7F30EBCC3A200880D5D /* map.icns */; };
 		9EB8188A11EDACDB00799589 /* Server.gif in Resources */ = {isa = PBXBuildFile; fileRef = 66899EAB0C14887F00927C34 /* Server.gif */; };
@@ -498,7 +497,7 @@
 				B94198A709207E810029DAD1 /* Sources */,
 				B94198C209207E810029DAD1 /* Frameworks */,
 				9EB8179211ED9ED800799589 /* CopyFiles */,
-				B94199400920820E0029DAD1 /* ShellScript */,
+				B94199400920820E0029DAD1 /* Run Script */,
 			);
 			buildRules = (
 			);
@@ -571,7 +570,6 @@
 			files = (
 				9EB8188511EDACDB00799589 /* assaultcube.icns in Resources */,
 				9EB8188611EDACDB00799589 /* Help.tiff in Resources */,
-				9EB8188711EDACDB00799589 /* Keys.gif in Resources */,
 				9EB8188811EDACDB00799589 /* Main.gif in Resources */,
 				B96D0D630920971300B6C936 /* MainMenu.nib in Resources */,
 				9EB8188911EDACDB00799589 /* map.icns in Resources */,
@@ -584,18 +582,21 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		B94199400920820E0029DAD1 /* ShellScript */ = {
+		B94199400920820E0029DAD1 /* Run Script */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 8;
 			files = (
 			);
+			inputFileListPaths = (
+			);
 			inputPaths = (
 			);
+			name = "Run Script";
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 1;
 			shellPath = /bin/sh;
-			shellScript = "echo $TARGET_BUILD_DIR\ncd $TARGET_BUILD_DIR\n\n#ensure old package is gone\nrm -f assaultcube.dmg\n\n#make the directory which our disk image will be made of\n#use /tmp as a destination because copying ourself (xcode folder) whilst compiling causes the dog to chase its tail\nACPKG=`mktemp -d /tmp/acpkg.XXXXXX` || exit 1\n\n#leave indicator of where temp directory is in case things break\nln -sf $ACPKG $TARGET_BUILD_DIR/acpkg\n\n#copy launcher\n/usr/bin/CpMac -r $TARGET_BUILD_DIR/launcher.app $ACPKG/AssaultCube.app\n\nHELPDIR=$ACPKG/AssaultCube.app/Contents/Resources/help/\nGAMEDIR=$ACPKG/AssaultCube.app/Contents/gamedata\nmkdir $GAMEDIR\nmkdir $HELPDIR\n\n#copy assaultcube\n/usr/bin/CpMac -r $TARGET_BUILD_DIR/assaultcube.app $GAMEDIR/\nstrip -u -r \"$GAMEDIR/assaultcube.app/Contents/MacOS/assaultcube\"\n\n#copy readme and data and remove unneccesary stuff\n/usr/bin/CpMac -r $SRCROOT/../../README.html $HELPDIR/\n/usr/bin/CpMac -r $SRCROOT/../../changelog.txt $HELPDIR/\n/usr/bin/CpMac -r $SRCROOT/../../docs $HELPDIR/\n/usr/bin/CpMac -r $SRCROOT/../../bot $GAMEDIR/\n/usr/bin/CpMac -r $SRCROOT/../../config $GAMEDIR/\n/usr/bin/CpMac -r $SRCROOT/../../demos $GAMEDIR/\n/usr/bin/CpMac -r $SRCROOT/../../mods $GAMEDIR/\n/usr/bin/CpMac -r $SRCROOT/../../packages $GAMEDIR/\n#mkdir $GAMEDIR/screenshots\n\n#create config template\ncd $GAMEDIR/config\nzip configtemplates.zip autoexec.cfg favourites.cfg pcksources.cfg\n\n#clean up\nrm -rf $GAMEDIR/.git\nrm -f $GAMEDIR/.gitattributes\nrm -f $GAMEDIR/.travis.yml\nfind -d $ACPKG -name \".gitignore\" -exec rm -rf {} \\;\nrm -rf $HELPDIR/docs/autogen/\nfind $ACPKG -name \".DS_Store\" -exec rm -f {} \\;\n\nfind -d $ACPKG -name \"shadows.dat\" -exec rm -rf {} \\;\nrm -f autoexec.cfg favourites.cfg pcksources.cfg init*.cfg saved*.cfg servervita*.cfg servers.cfg history\nrm -f $GAMEDIR/clientlog*.txt\nrm -f $GAMEDIR/packages/maps/*.cgz\nrm -f $GAMEDIR/packages/maps/*.cfg\nrm -f $GAMEDIR/packages/maps/servermaps/incoming/*.cgz\nrm -f $GAMEDIR/packages/maps/servermaps/incoming/*.cfg\nrm -f `(find -d $GAMEDIR/demos -type f | grep -v \"tutorial_demo.dmo\")`\n                             \n#/Developer/Tools/CpMac -r $SRCROOT/../../source $ACPKG/sourcecode\n#rm -rf $ACPKG/sourcecode/xcode/build\n#rm -rf $ACPKG/sourcecode/xcode/DerivedData\n#rm -rf $ACPKG/sourcecode/xcode/Frameworks/*\n#rm -rf $ACPKG/sourcecode/vcpp\n\ncd $TARGET_BUILD_DIR\n\n#add alias to readme\n/usr/bin/osascript <<EOT\ntell application \"Finder\"\nset macSrcPath to POSIX file \"$HELPDIR/README.html\" as text\nset macDestPath to POSIX file \"$ACPKG\" as text\nmake new alias file to file macSrcPath at folder macDestPath\nend tell\nEOT\n\n#finally make a disk image out of the stuff\nhdiutil create -srcfolder $ACPKG -volname assaultcube assaultcube.dmg\nhdiutil internet-enable -yes assaultcube.dmg\n\n#cleanup\nrm -rf $ACPKG";
+			shellScript = "echo \"TargetBuildDir $TARGET_BUILD_DIR\"\ncd $TARGET_BUILD_DIR\n\n#ensure old package is gone\nrm -f assaultcube.dmg\n\n#make the directory which our disk image will be made of\n#use /tmp as a destination because copying ourself (xcode folder) whilst compiling causes the dog to chase its tail\nACPKG=`mktemp -d /tmp/acpkg.XXXXXX` || exit 1\n\necho \"TempDir: $ACPKG\"\n\n#leave indicator of where temp directory is in case things break\nln -sf $ACPKG $BUILT_PRODUCTS_DIR/acpkg\n\n#copy launcher\ncp -RL $BUILT_PRODUCTS_DIR/launcher.app $ACPKG/AssaultCube.app\n\nHELPDIR=$ACPKG/AssaultCube.app/Contents/Resources/help/\nGAMEDIR=$ACPKG/AssaultCube.app/Contents/gamedata\nmkdir -p $GAMEDIR\nmkdir -p $HELPDIR\n\n#copy assaultcube\ncp -RL $BUILT_PRODUCTS_DIR/assaultcube.app $GAMEDIR/\nstrip -u -r \"$GAMEDIR/assaultcube.app/Contents/MacOS/assaultcube\"\n\n#copy readme and data and remove unneccesary stuff\ncp -RL $SRCROOT/../../README.html $HELPDIR/\n#cp -RL $SRCROOT/../../changelog.txt $HELPDIR/\ncp -RL $SRCROOT/../../docs $HELPDIR/\ncp -RL $SRCROOT/../../bot $GAMEDIR/\ncp -RL $SRCROOT/../../config $GAMEDIR/\ncp -RL $SRCROOT/../../demos $GAMEDIR/\ncp -RL $SRCROOT/../../mods $GAMEDIR/\ncp -RL $SRCROOT/../../packages $GAMEDIR/\n#mkdir $GAMEDIR/screenshots\n\n#create config template\ncd $GAMEDIR/config\nzip configtemplates.zip autoexec.cfg favourites.cfg pcksources.cfg\n\n#clean up\nrm -rf $GAMEDIR/.git\nrm -f $GAMEDIR/.gitattributes\nrm -f $GAMEDIR/.travis.yml\nfind -d $ACPKG -name \".gitignore\" -exec rm -rf {} \\;\nrm -rf $HELPDIR/docs/autogen/\nfind $ACPKG -name \".DS_Store\" -exec rm -f {} \\;\n\nfind -d $ACPKG -name \"shadows.dat\" -exec rm -rf {} \\;\nrm -f autoexec.cfg favourites.cfg pcksources.cfg init*.cfg saved*.cfg servervita*.cfg servers.cfg history\nrm -f $GAMEDIR/clientlog*.txt\nrm -f $GAMEDIR/packages/maps/*.cgz\nrm -f $GAMEDIR/packages/maps/*.cfg\nrm -f $GAMEDIR/packages/maps/servermaps/incoming/*.cgz\nrm -f $GAMEDIR/packages/maps/servermaps/incoming/*.cfg\nrm -f `(find -d $GAMEDIR/demos -type f | grep -v \"tutorial_demo.dmo\")`\n                             \n#/Developer/Tools/CpMac -r $SRCROOT/../../source $ACPKG/sourcecode\n#rm -rf $ACPKG/sourcecode/xcode/build\n#rm -rf $ACPKG/sourcecode/xcode/DerivedData\n#rm -rf $ACPKG/sourcecode/xcode/Frameworks/*\n#rm -rf $ACPKG/sourcecode/vcpp\n\ncd $TARGET_BUILD_DIR\n\n#add alias to readme\n/usr/bin/osascript <<EOT\ntell application \"Finder\"\nset macSrcPath to POSIX file \"$HELPDIR/README.html\" as text\nset macDestPath to POSIX file \"$ACPKG\" as text\nmake new alias file to file macSrcPath at folder macDestPath\nend tell\nEOT\n\n#finally make a disk image out of the stuff\nhdiutil create -srcfolder $ACPKG -volname assaultcube assaultcube.dmg\nhdiutil internet-enable -yes assaultcube.dmg\n\n#cleanup\n#rm -rf $ACPKG\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -721,6 +722,7 @@
 		B94198C709207E810029DAD1 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_CXX_LIBRARY = "libc++";
 				COMBINE_HIDPI_IMAGES = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -750,7 +752,8 @@
 					"$(inherited)",
 					"\"$(SRCROOT)/../lib\"",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				OTHER_CODE_SIGN_FLAGS = "--deep";
 				OTHER_LDFLAGS = "-lz";
 				PRODUCT_NAME = assaultcube;
 				SDKROOT = macosx;
@@ -761,6 +764,7 @@
 		B94198C809207E810029DAD1 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_CXX_LIBRARY = "libc++";
 				COMBINE_HIDPI_IMAGES = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -790,7 +794,8 @@
 					"$(inherited)",
 					"\"$(SRCROOT)/../lib\"",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				OTHER_CODE_SIGN_FLAGS = "--deep";
 				OTHER_LDFLAGS = "-lz";
 				PRODUCT_NAME = assaultcube;
 				SDKROOT = macosx;
@@ -801,6 +806,7 @@
 		B94198EB09207F510029DAD1 /* Release-Deployment */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_CXX_LIBRARY = "libc++";
 				COMBINE_HIDPI_IMAGES = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEPLOYMENT_POSTPROCESSING = YES;
@@ -835,7 +841,8 @@
 					"$(inherited)",
 					"\"$(SRCROOT)/../lib\"",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				OTHER_CODE_SIGN_FLAGS = "--deep";
 				OTHER_LDFLAGS = "-lz";
 				PRODUCT_NAME = assaultcube;
 				SDKROOT = macosx;
@@ -891,7 +898,7 @@
 		B96D0D50092096F300B6C936 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(NATIVE_ARCH_ACTUAL)";
+				ARCHS = "$(ARCHS_STANDARD)";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
@@ -902,8 +909,9 @@
 				GCC_VERSION = "";
 				INFOPLIST_FILE = launcher.plist;
 				INSTALL_PATH = "$(USER_APPS_DIR)";
-				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				OTHER_CFLAGS = "";
+				OTHER_CODE_SIGN_FLAGS = "";
 				OTHER_LDFLAGS = (
 					"-framework",
 					Foundation,
@@ -925,7 +933,7 @@
 		B96D0D51092096F300B6C936 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				ARCHS = "$(ARCHS_STANDARD)";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = YES;
 				DEPLOYMENT_POSTPROCESSING = YES;
@@ -933,8 +941,9 @@
 				GCC_VERSION = "";
 				INFOPLIST_FILE = launcher.plist;
 				INSTALL_PATH = "$(USER_APPS_DIR)";
-				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				OTHER_CFLAGS = "";
+				OTHER_CODE_SIGN_FLAGS = "";
 				OTHER_LDFLAGS = (
 					"-framework",
 					Foundation,
@@ -957,7 +966,7 @@
 		B96D0D52092096F300B6C936 /* Release-Deployment */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				ARCHS = "$(ARCHS_STANDARD)";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = YES;
 				DEPLOYMENT_POSTPROCESSING = YES;
@@ -965,8 +974,9 @@
 				GCC_VERSION = "";
 				INFOPLIST_FILE = launcher.plist;
 				INSTALL_PATH = "$(USER_APPS_DIR)";
-				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				OTHER_CFLAGS = "";
+				OTHER_CODE_SIGN_FLAGS = "";
 				OTHER_LDFLAGS = (
 					"-framework",
 					Foundation,
