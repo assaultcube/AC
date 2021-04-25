@@ -2404,6 +2404,7 @@ int getbantype(int cn)
     if(!valid_client(cn)) return BAN_NONE;
     client &c = *clients[cn];
     if(c.type==ST_LOCAL) return BAN_NONE;
+    if(c.checkvitadate(VS_BAN)) return BAN_VITA;
     if(checkgban(c.peer->address.host)) return BAN_MASTER;
     if(ipblacklist.check(c.peer->address.host)) return BAN_BLACKLIST;
     loopv(bans)
@@ -3102,6 +3103,13 @@ void process(ENetPacket *packet, int sender, int chan)
             int bl = 0, wl = nickblacklist.checkwhitelist(*cl);
             if(wl == NWL_PASS) concatstring(tags, ", nickname whitelist match");
             if(wl == NWL_UNLISTED) bl = nickblacklist.checkblacklist(cl->name);
+            
+            bool vitawhitelist = cl->checkvitadate(VS_WHITELISTED);
+            if (vitawhitelist) {
+                concatstring(tags, ", vita whitelist match");
+                banned = false;
+            }
+            
             if(matchreconnect && !banned)
             { // former player reconnecting to a server in match mode
                 cl->isauthed = true;

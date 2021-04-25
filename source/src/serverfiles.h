@@ -1983,8 +1983,8 @@ void serverparameters_dumpdocu(char *fname)
 
 // player ID bookkeeping
 
-const char *vskeywords[VS_NUM + 1] = { "first", "last", "mute", "novote", "ban", "admin", "owner", "mapupload", "minconn", "minact", "flags", "frags", "deaths", "tks", "damage", "ff", "" };
-const char *vsnames[VS_NUM + 1] = { "first login", "last login", "muted until", "novote until", "banned until", "admin until", "owner until", "mapupload until",
+const char *vskeywords[VS_NUM + 1] = { "first", "last", "ban", "whitelist", "admin", "owner", "minconn", "minact", "flags", "frags", "deaths", "tks", "damage", "ff", "" };
+const char *vsnames[VS_NUM + 1] = { "first login", "last login", "banned until", "whitelisted untils", "admin until", "owner until",
                                     "minutes connected", "minutes active", "flags", "frags", "deaths", "teamkills", "damage dealt", "team damage dealt", "" };
 hashtable<uchar32, vita_s> vitas;
 
