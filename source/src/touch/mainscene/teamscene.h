@@ -3,7 +3,6 @@ struct teamscene : view
 {
     textview *title;
     textview *pick;
-    textview *detail;
     modelview *teammate1, *teammate2, *teammate3, *teammate4, *flag;
     touchmenu *menu;
     char weaponmdls[4][MAXSTRLEN];
@@ -15,7 +14,8 @@ struct teamscene : view
     {
         title = new textview(this, "Preferred team", false);
         pick = new textview(this, "", false);
-        detail = new textview(this, "", false);
+        children.add(title);
+        children.add(pick);
 
         menu = new touchmenu(this);
         menu->rows = 1, menu->cols = 2;
@@ -42,7 +42,6 @@ struct teamscene : view
     {
         DELETEP(title);
         DELETEP(pick);
-        DELETEP(detail);
         DELETEP(teammate1);
         DELETEP(teammate2);
         DELETEP(teammate3);
@@ -60,7 +59,6 @@ struct teamscene : view
     {
         title->measure(availablewidth, availableheight);
         pick->measure(availablewidth, availableheight);
-        detail->measure(availablewidth, availableheight);
         teammate1->measure(availablewidth, availableheight);
         teammate2->measure(availablewidth, availableheight);
         teammate3->measure(availablewidth, availableheight);
@@ -75,8 +73,7 @@ struct teamscene : view
     void render(int x, int y)
     {
         title->render(x + width/2 - text_width(title->text)/2, y + height/8);
-        pick->render(x + width/2 - text_width(pick->text)/2, y + 3*height/16);
-        detail->render(x + width/2 - text_width(detail->text)/2, y + 4*height/16);
+        pick->render(x + width/2 - text_width(pick->text)/2, y + 4*height/16);
 
         flag->render(x, y);
         teammate1->render(x, y);
@@ -139,23 +136,22 @@ struct teamscene : view
         player->modelattach[0].tag = "tag_weapon";
 
         const char *teamname = NULL;
+        const char *picktext = NULL;
         const char *skinname = NULL;
-        const char *detailtext = NULL;
         int skin = offset % 3;
         if(team == CLA)
         {
             teamname = "CLA";
-            detailtext = "Cubers Liberation Army";
+            picktext = "\f4CLA // Cubers Liberation Army";
             skinname = (skin == 0 ? "01" : skin == 1 ? "02" : "05");
         }
         else
         {
             teamname = "RVSF";
-            detailtext = "Rabid Viper Special Forces";
+            picktext = "\f4RVSF // Rabid Viper Special Forces";
             skinname = (skin == 0 ? "01" : skin == 1 ? "06" : "08");
         }
-        pick->settext(teamname);
-        detail->settext(detailtext);
+        pick->settext(picktext);
         defformatstring(mdlskin)("packages/models/playermodels/%s/%s.jpg", teamname, skinname);
         player->tex =  -(int)textureload(mdlskin)->id;
     }
