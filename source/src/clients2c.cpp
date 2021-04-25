@@ -765,6 +765,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
             case SV_RELOAD:
             {
                 int cn = getint(p), gun = getint(p);
+                if(!weapon::valid(gun)) break;
                 playerent *p = getclient(cn);
                 if(p && p!=player1) p->weapons[gun]->reload(false);
                 break;
@@ -808,7 +809,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     armour = getint(p),
                     health = getint(p);
                 playerent *target = getclient(tcn), *actor = getclient(acn);
-                if(!target || !actor) break;
+                if(!target || !actor || !weapon::valid(gun)) break;
                 target->armour = armour;
                 target->health = health;
                 dodamage(damage, target, actor, -1, type==SV_GIBDAMAGE, false);
@@ -832,6 +833,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
 //                         medals_arrived=1;
                         loopi(medals) {
                             int mcn=getint(p); int mtype=getint(p); int mitem=getint(p);
+                            if(mtype < 0 || mtype >= END_MDS) break;
                             a_medals[mtype].assigned=1;
                             a_medals[mtype].cn=mcn;
                             a_medals[mtype].item=mitem;
