@@ -224,7 +224,7 @@ void curmodeattr(char *attr)
 {
     if(!strcmp(attr, "team")) { intret(m_teammode); return; }
     else if(!strcmp(attr, "arena")) { intret(m_arena); return; }
-    else if(!strcmp(attr, "flag")) { intret(m_flags); return; }
+    else if(!strcmp(attr, "flag")) { intret(m_flagmode); return; }
     else if(!strcmp(attr, "bot")) { intret(m_botmode); return; }
     intret(0);
 }
@@ -573,7 +573,7 @@ void showrespawntimer()
         if(!arenaintermission) return;
         showhudtimer(5, arenaintermission, "FIGHT!", lastspawnattempt >= arenaintermission && lastmillis < lastspawnattempt+100);
     }
-    else if(player1->state==CS_DEAD && m_flags && (!player1->isspectating() || player1->spectatemode==SM_DEATHCAM))
+    else if(player1->state==CS_DEAD && m_flagmode && (!player1->isspectating() || player1->spectatemode==SM_DEATHCAM))
     {
         int secs = 5;
         showhudtimer(secs, player1->respawnoffset, "READY!", lastspawnattempt >= arenaintermission && lastmillis < lastspawnattempt+100);
@@ -786,7 +786,7 @@ bool tryrespawn()
         }
         else
         {
-            int respawnmillis = player1->respawnoffset+(m_arena ? 0 : (m_flags ? 5000 : 2000));
+            int respawnmillis = player1->respawnoffset+(m_arena ? 0 : (m_flagmode ? 5000 : 2000));
             if(lastmillis>respawnmillis)
             {
                 player1->attacking = false;
@@ -1110,7 +1110,7 @@ void showmapstats()
     conoutf("  The mean height is: %.2f", Mh);
     if (Hhits) conoutf("  Height check is: %d", Hhits);
     if (MA) conoutf("  The max area is: %d (of %d)", MA, Ma);
-    if (m_flags && F2F < 1000) conoutf("  Flag-to-flag distance is: %d", (int)fSqrt(F2F));
+    if (m_flagmode && F2F < 1000) conoutf("  Flag-to-flag distance is: %d", (int)fSqrt(F2F));
     if (item_fail) conoutf("  There are one or more items too close to each other in this map");
 }
 COMMAND(showmapstats, "");
@@ -1128,7 +1128,7 @@ void startmap(const char *name, bool reset)   // called just after a map load
     else kickallbots();
     // End add by Rick
     clearbounceents();
-    preparectf(!m_flags);
+    preparectf(!m_flagmode);
     suicided = -1;
     spawncycle = -1;
     lasthit = 0;
@@ -1408,9 +1408,9 @@ void callvote(int type, const char *arg1, const char *arg2, const char *arg3)
                 break;
             default:
 
-				
-				
-				
+
+
+
 				putint(p, atoi(arg1));
                 break;
         }

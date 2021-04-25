@@ -133,5 +133,5 @@ enum
 #define m_mp(mode)    (m_valid(mode) && (mode)>=0 && (mode)!=7 && (mode)!=8 && (mode)!=12 && ((mode)<18 || (mode)>21))
 #define m_demo        (gamemode==-1)
 #define m_coop        (gamemode==1)
-#define m_flags       (m_ctf || m_htf || m_ktf)
+#define m_flagmode    (m_ctf || m_htf || m_ktf)
 

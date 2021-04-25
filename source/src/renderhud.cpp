@@ -262,16 +262,16 @@ void loadcrosshair(char *c, char *name)
         }
         return;
     }
- 
+
     int n = -1;
- 
+
     for (int i = 0; i < CROSSHAIR_NUM; i++)
     {
        if(strcmp(crosshairnames[i], name) == 0) { n = i; break; }
     }
- 
+
     if (n < 0 || n >= CROSSHAIR_NUM) return;
- 
+
     crosshairs[n] = loadcrosshairtexture(c);
 }
 
@@ -553,7 +553,7 @@ void drawradar_showmap(playerent *p, int w, int h)
         vec rtmp = vec(pl->o).sub(mdd).mul(coordtrans);
         drawradarent(rtmp.x, rtmp.y, pl->yaw, pl->state==CS_ALIVE ? (isattacking(pl) ? 2 : 0) : 1, team_base(pl->team), iconsize, isattacking(pl), "%s", colorname(pl));
     }
-    if(m_flags)
+    if(m_flagmode)
     {
         glColor4f(1.0f, 1.0f, 1.0f, (sinf(lastmillis / 100.0f) + 1.0f) / 2.0f);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -646,7 +646,7 @@ void drawradar_vicinity(playerent *p, int w, int h)
             drawradarent(rtmp.x, rtmp.y, pl->yaw, pl->state==CS_ALIVE ? (isattacking(pl) ? 2 : 0) : 1, team_base(pl->team), iconsize, isattacking(pl), "%s", colorname(pl));
         }
     }
-    if(m_flags)
+    if(m_flagmode)
     {
         glColor4f(1.0f, 1.0f, 1.0f, (sinf(lastmillis / 100.0f) + 1.0f) / 2.0f);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1093,7 +1093,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             popfont();
         }
 
-        if(m_flags && !hidectfhud)
+        if(m_flagmode && !hidectfhud)
         {
             glLoadIdentity();
             glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
