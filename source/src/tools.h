@@ -106,13 +106,8 @@ inline int iabs(int n) { return labs(n); }
 typedef char string[MAXSTRLEN];
 
 inline void vformatstring(char *d, const char *fmt, va_list v, int len = MAXSTRLEN) { _vsnprintf(d, len, fmt, v); d[len-1] = 0; }
-inline char *copystring(char *d, const char *s, size_t len = MAXSTRLEN)
-{
-    size_t slen = min(strlen(s), len-1);
-    memcpy(d, s, slen);
-    d[slen] = 0;
-    return d;
-}
+//#pragma GCC diagnostic ignored "-Wstringop-truncation" // moved to makefile, because it doesn't work from precompiled header
+inline char *copystring(char *d, const char *s, size_t len = MAXSTRLEN) { strncpy(d, s, len); d[len-1] = 0; return d; }
 inline char *concatstring(char *d, const char *s, size_t len = MAXSTRLEN) { size_t used = strlen(d); return used < len ? copystring(d+used, s, len-used) : d; }
 extern char *concatformatstring(char *d, const char *s, ...);
 
@@ -170,7 +165,7 @@ inline bool issimilar (char s, char d)
 inline bool validmapname(char *s)
 {
     if(strlen(s) > MAXMAPNAMELEN) return false;
-    while(*s != '\0') 
+    while(*s != '\0')
     {
         if(!isalnum(*s) && *s != '_' && *s != '-' && *s != '.') return false;
         ++s;
@@ -816,7 +811,7 @@ struct stopwatch
 
 inline char *newstring(size_t l)                { return new char[l+1]; }
 inline char *newstring(const char *s, size_t l) { return copystring(newstring(l), s, l+1); }
-inline char *newstring(const char *s)           { return newstring(s, strlen(s)); }
+inline char *newstring(const char *s)           { size_t l = strlen(s); char *d = newstring(l); memcpy(d, s, l+1); return d; }
 inline char *newstringbuf()                     { return newstring(MAXSTRLEN-1); }
 inline char *newstringbuf(const char *s)        { return newstring(s, MAXSTRLEN-1); }
 

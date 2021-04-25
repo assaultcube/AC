@@ -123,7 +123,9 @@ bool createdir(const char *path)
     if(path[len-1]==PATHDIV)
     {
         static string strip;
-        path = copystring(strip, path, len);
+        memcpy(strip, path, len);
+        strip[len - 1] = '\0';
+        path = strip;
     }
 #ifdef WIN32
     return CreateDirectory(path, NULL)!=0;
@@ -337,7 +339,7 @@ bool preparedir(const char *destination)
         dirs.add(newstring(dir));
         copystring(dir, parentdir(dir));
     }
-    
+
     loopvrev(dirs) if(!createdir(dirs[i])) return false;
     return true;
 }

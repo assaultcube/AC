@@ -216,7 +216,7 @@ void save_world(char *mname)
     if(mapbackupsonsave) backup(cgzname, bakname);
     stream *f = opengzfile(cgzname, "wb");
     if(!f) { conoutf("could not write map to %s", cgzname); return; }
-    copystring(hdr.head, "ACMP", 4); // ensure map now declares itself as an AssaultCube map, even if imported as CUBE
+    memcpy(hdr.head, "ACMP", 4); // ensure map now declares itself as an AssaultCube map, even if imported as CUBE
     hdr.version = MAPVERSION;
     hdr.numents = 0;
     loopv(ents) if(ents[i].type!=NOTUSED) hdr.numents++;

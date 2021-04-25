@@ -698,7 +698,7 @@ struct vertmodel : model
             ntags[numtags].name = newstring(name);
             loopi(numframes)
             {
-                memcpy((void *)&ntags[(numtags + 1)*i], (void *)&tags[numtags*i], numtags*sizeof(tag));
+                memcpy((void *)&ntags[(numtags + 1)*i], &tags[numtags*i], numtags*sizeof(tag));
 
                 tag *t = &ntags[(numtags + 1)*i + numtags];
                 t->pos = m->verts[m->numverts*i + verts[0]];
