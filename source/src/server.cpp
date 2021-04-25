@@ -3581,6 +3581,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 int hits = getint(p);
                 loopk(hits)
                 {
+                    if(p.overread()) break;
                     gameevent &hit = cl->addevent();
                     hit.type = GE_HIT;
                     hit.hit.target = getint(p);
@@ -3601,6 +3602,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 int hits = getint(p);
                 loopk(hits)
                 {
+                    if(p.overread()) break;
                     gameevent &hit = cl->addevent();
                     hit.type = GE_HIT;
                     hit.hit.target = getint(p);
