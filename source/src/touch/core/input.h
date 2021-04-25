@@ -144,10 +144,14 @@ struct input
             if(vfingery < 2*iconsize) // top edge of screen
             {
                 int touchkey = -1;
+
                 if(vfingerx < VIRTW *5/8 + iconsize / 2 + icondiff) touchkey = TOUCH_GAME_RIGHTSIDE_TOP_0;
                 else if(vfingerx < VIRTW*6/8 + iconsize / 2 + icondiff) touchkey = TOUCH_GAME_RIGHTSIDE_TOP_1;
                 else if(vfingerx < VIRTW*7/8 + iconsize / 2 + icondiff) touchkey = TOUCH_GAME_RIGHTSIDE_TOP_2;
-                else if(vfingerx > VIRTW - 2*iconsize) touchkey = TOUCH_GAME_CORNER_TOP_RIGHT;
+
+                // todo: we might need an icon to show the scoreboard on demand, but currently we have too many buttons on the screen already
+                //else if(vfingerx > VIRTW - 2*iconsize) touchkey = TOUCH_GAME_CORNER_TOP_RIGHT;
+
                 if(touchkey >= 0)
                 {
                     keys.add(keyevent(event.type, touchkey));

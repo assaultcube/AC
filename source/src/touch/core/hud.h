@@ -20,17 +20,17 @@ struct hud
     const float n1 = 7.5625;
     const float d1 = 2.75;
 
-    float easeOutBack(float x)
+    float easeoutback(float x)
     {
         return 1 + c3 * pow(x-1,3) + c1 * pow(x-1,2);
     }
 
-    float easeOutElastic(float x)
+    float easeoutelastic(float x)
     {
         return x == 0 ? 0 : (x==1? 1 : ( pow(2,-10*x) * sin( (x*10-0.75)*c4 ) + 1 ) );
     }
 
-    float easeOutBounce(float x)
+    float easeoutbounce(float x)
     {
         if(x<1/d1)
         {
@@ -50,7 +50,7 @@ struct hud
         }
     }
 
-    float easeInOutBack(float x){
+    float easeinoutback(float x){
         return x < 0.5
                ? ((pow(2*x, 2)*((c2+1)*2*x-c2))/2)
                : ((pow(2*x-2, 2)*((c2+1)*(x*2-2)+c2)+2)/2);
@@ -93,10 +93,10 @@ struct hud
                     float midpoint = 0.0;
                     switch( touchoptionsanimation ){
                         case 0: midpoint = interval; break;
-                        case 1: midpoint = easeOutBack( interval ); break;
-                        case 2: midpoint = easeOutElastic( interval ); break;
-                        case 3: midpoint = easeOutBounce( interval ); break;
-                        case 4: midpoint = easeInOutBack( interval ); break;
+                        case 1: midpoint = easeoutback( interval ); break;
+                        case 2: midpoint = easeoutelastic( interval ); break;
+                        case 3: midpoint = easeoutbounce( interval ); break;
+                        case 4: midpoint = easeinoutback( interval ); break;
                         default: break;
                     }
                     int midposx[4] = {
@@ -131,7 +131,10 @@ struct hud
         else
         {
             // icons drawn at the very top from left to right: weapon | reload | zoom
-            drawtouchicon(VIRTW-3*iconsize/2, iconsize/2, 2, 2, 255); // TOUCH_GAME_CORNER_TOP_RIGHT // WIP/TESTING: a suicide button for quick access to scoreboard in dead state
+
+            // todo: we might need an icon to show the scoreboard on demand, but currently we have too many buttons on the screen already
+            //drawtouchicon(VIRTW-3*iconsize/2, iconsize/2, 2, 2, 255); // TOUCH_GAME_CORNER_TOP_RIGHT // WIP/TESTING: a suicide button for quick access to scoreboard in dead state
+
             drawtouchicon(VIRTW*5/8 - iconsize/2, iconsize/2, 0, 0, 255/4); // TOUCH_GAME_RIGHTSIDE_TOP_0 - change weapn
             drawtouchicon(VIRTW*6/8 - iconsize/2, iconsize/2, 1, 0, 255/4); // TOUCH_GAME_RIGHTSIDE_TOP_1 - reload
             if(player1->weaponsel->type == GUN_SNIPER) drawtouchicon(VIRTW*7/8 - iconsize/2, iconsize/2, 3, 0, 255/4); // TOUCH_GAME_RIGHTSIDE_TOP_2 - scopezoom
