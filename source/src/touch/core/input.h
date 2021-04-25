@@ -150,7 +150,7 @@ struct input
                 else if(vfingerx < VIRTW*7/8 + iconsize / 2 + icondiff) touchkey = TOUCH_GAME_RIGHTSIDE_TOP_2;
 
                 // todo: we might need an icon to show the scoreboard on demand, but currently we have too many buttons on the screen already
-                //else if(vfingerx > VIRTW - 2*iconsize) touchkey = TOUCH_GAME_CORNER_TOP_RIGHT;
+                else if(vfingerx > VIRTW - 2*iconsize) touchkey = TOUCH_GAME_CORNER_TOP_RIGHT;
 
                 if(touchkey >= 0)
                 {
