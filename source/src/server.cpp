@@ -1876,7 +1876,18 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
     if(damage < INT_MAX)
     {
         actor->state.damage += damage;
+        
         sendf(-1, 1, "ri7", gib ? SV_GIBDAMAGE : SV_DAMAGE, target->clientnum, actor->clientnum, gun, damage, ts.armour, ts.health);
+        
+        if (!isteam(target->team, actor->team))
+        {
+            actor->incrementvitacounter(VS_DAMAGE, damage);
+        }
+        else
+        {
+            actor->incrementvitacounter(VS_FRIENDLYDAMAGE, damage);
+        }
+        
         if(target!=actor)
         {
             if(!hitpush.iszero())
@@ -1893,19 +1904,27 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
         int targethasflag = clienthasflag(target->clientnum);
         bool tk = false, suic = false;
         target->state.deaths++;
+        target->incrementvitacounter(VS_DEATHS, 1);
+        
         if(target!=actor)
         {
-            if(!isteam(target->team, actor->team)) actor->state.frags += gib && gun != GUN_GRENADE && gun != GUN_SHOTGUN ? 2 : 1;
+            if(!isteam(target->team, actor->team))
+            {
+                actor->state.frags += gib && gun != GUN_GRENADE && gun != GUN_SHOTGUN ? 2 : 1;
+                actor->incrementvitacounter(VS_FRAGS, 1);
+            }
             else
             {
                 actor->state.frags--;
                 actor->state.teamkills++;
+                actor->incrementvitacounter(VS_TKS, 1);
                 tk = true;
             }
         }
         else
         { // suicide
             actor->state.frags--;
+            actor->incrementvitacounter(VS_TKS, 1);
             suic = true;
             mlog(ACLOG_INFO, "[%s] %s suicided", actor->hostname, actor->name);
         }
@@ -1913,7 +1932,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
         if((suic || tk) && (m_htf || m_ktf) && targethasflag >= 0)
         {
             actor->state.flagscore--;
-            actor->incrementvitacounter(VS_FLAGS, -1);
+            actor->incrementvitacounter(VS_ANTIFLAGS, 1);
             sendf(-1, 1, "riii", SV_FLAGCNT, actor->clientnum, actor->state.flagscore);
         }
         target->position.setsize(0);

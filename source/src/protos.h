@@ -1027,7 +1027,7 @@ extern const char *currentserver(int i);
 
 // server
 enum { /* timecodes */ VS_FIRSTLOGIN = 0, VS_LASTLOGIN, VS_BAN, VS_WHITELISTED, VS_ADMIN, VS_OWNER,
-       /* stats/counters */ VS_MINUTESCONNECTED, VS_MINUTESACTIVE, VS_FLAGS, VS_FRAGS, VS_DEATHS, VS_TKS, VS_DAMAGE, VS_FF,
+       /* stats/counters */ VS_MINUTESCONNECTED, VS_MINUTESACTIVE, VS_FLAGS, VS_ANTIFLAGS, VS_FRAGS, VS_DEATHS, VS_TKS, VS_SUICIDES, VS_DAMAGE, VS_FRIENDLYDAMAGE,
        /* meta */  VS_NUM, VS_NUMCOUNTERS = VS_MINUTESCONNECTED };
 extern const char *vskeywords[VS_NUM + 1], *vsnames[VS_NUM + 1];
 extern int modeacronyms;
