@@ -1437,6 +1437,7 @@ void flagaction(int flag, int action, int actor)
     {
         client *c = clients[actor];
         c->state.flagscore += score;
+        c->incrementvitacounter(VS_FLAGS, score);
         sendf(-1, 1, "riii", SV_FLAGCNT, actor, c->state.flagscore);
     }
     if(valid_client(actor))
@@ -1912,6 +1913,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
         if((suic || tk) && (m_htf || m_ktf) && targethasflag >= 0)
         {
             actor->state.flagscore--;
+            actor->incrementvitacounter(VS_FLAGS, -1);
             sendf(-1, 1, "riii", SV_FLAGCNT, actor->clientnum, actor->state.flagscore);
         }
         target->position.setsize(0);
@@ -4459,7 +4461,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
         loopv(clients) if(clients[i]->type == ST_TCPIP && clients[i]->isauthed && clients[i]->vita)
         {
             clients[i]->vita->vs[VS_MINUTESCONNECTED]++;
-            if(clients[i]->isonrightmap && team_isactive(clients[i]->team)) clients[i]->vita->vs[VS_MINUTESACTIVE]++;
+            if(clients[i]->isonrightmap && team_isactive(clients[i]->team)) clients[i]->incrementvitacounter(VS_MINUTESACTIVE, 1);
         }
     }
 

@@ -354,6 +354,13 @@ struct client                   // server side version of "dynent" type
         extern int servclock;
         return vita && (vita->vs[n] == 1 || (servclock - vita->vs[n]) < 0);
     }
+    
+    void incrementvitacounter(int vitastat, int amount)
+    {
+        if (!vita) return;
+        vita->vs[vitastat] += amount;
+        
+    }
 };
 
 struct ban
