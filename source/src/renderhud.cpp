@@ -1117,6 +1117,10 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             popfont();
         }
 
+        #ifdef __ANDROID__
+        // on android do not show team score hud if the scoreboard is up to prevent overlap with button TOUCH_GAME_CORNER_TOP_RIGHT
+        if(menu) {} else
+        #endif
         if((m_flags || m_teammode) && !hideteamscorehud)
         {
             glLoadIdentity();
