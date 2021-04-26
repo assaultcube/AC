@@ -446,7 +446,7 @@ void voicecom(char *sound, char *text)
         // on android there is no console and so if you tap the voicecom button you do not see anything happen
         // therefore we always print out our own voicecom message to the hud so that users understand what a voicecom actually is and does
         hudoutf("%s:\f0 %s", colorname(player1), highlight(text));
-        hudkeeplastline(2500);
+        hudkeeplastline(5000);
 #endif
     if(voicecomsounds>0) audiomgr.playsound(s, SP_HIGH);
     if(ispublic)
