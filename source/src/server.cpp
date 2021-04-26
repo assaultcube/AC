@@ -241,7 +241,10 @@ void poll_serverthreads()       // called once per mainloop-timeslice
                 int too_old = 0;
                 enumeratekt(vitas, uchar32, k, vita_s, v,
                 {
-                    if((servclock - v.vs[VS_LASTLOGIN]) / (60 * 24 * 31) <= vitamaxage)
+                    if((servclock - v.vs[VS_LASTLOGIN]) / (60 * 24 * 31) <= vitamaxage // Vita is within the max age (months)
+                       || (v.vs[VS_BAN] == 1 || (servclock - v.vs[VS_BAN]) < 0) // Do not remove if vita has the ban, whitelist, or admin flag set
+                       || (v.vs[VS_WHITELISTED] == 1 || (servclock - v.vs[VS_WHITELISTED]) < 0)
+                       || (v.vs[VS_ADMIN] == 1 || (servclock - v.vs[VS_ADMIN]) < 0))
                     {
                         vk.k = &k;
                         vk.v = &v;

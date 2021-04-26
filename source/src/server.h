@@ -359,7 +359,6 @@ struct client                   // server side version of "dynent" type
     {
         if (!vita) return;
         vita->vs[vitastat] += amount;
-        
     }
 };
 
