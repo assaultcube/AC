@@ -68,7 +68,6 @@ struct hud
         // spacious layout? int icongridstepx = VIRTW/12; int icongridstepy = VIRTH/9;
 
         turn_on_transparency(255); // includes GL_ENABLE(GL_BLEND)
-
         drawtouchicon(edgeair, edgeair, 3, 1); // TOUCH_GAME_CORNER_TOP_LEFT - open settings scene
 
         if(menuvisible())
@@ -77,8 +76,9 @@ struct hud
             int voicecomcornerx = VIRTW-iconsize-edgeair;
             int voicecomcornery = VIRTH-iconsize-edgeair;
             drawtouchicon(edgeair, voicecomcornery, 2, 2); // TOUCH_GAME_CORNER_BOTTOM_LEFT - open equipment scene
-            drawtouchicon( voicecomcornerx, voicecomcornery, 4, 4, 255); // TOUCH_GAME_CORNER_BOTTOM_RIGHT - toggle voiceom touchui
-            if( touchoptionstogglestate > 0 ){
+            drawtouchicon(voicecomcornerx, voicecomcornery, 4, 4, 255); // TOUCH_GAME_CORNER_BOTTOM_RIGHT - toggle voiceom touchui
+            if(touchoptionstogglestate > 0)
+            {
                 // the two "public" extend vertically, the two "team" horizontally.
                 // order: pub1, pub2, team1, team2
                 /*
@@ -88,10 +88,14 @@ struct hud
                  */
                 int endposx[4] = { voicecomcornerx, voicecomcornerx, voicecomcornerx - iconsize * 2, voicecomcornerx - iconsize * 4 };
                 int endposy[4] = { voicecomcornery - iconsize * 2, voicecomcornery - iconsize * 4, voicecomcornery, voicecomcornery };
-                if( touchoptionstogglestate == 1 ){ // animating
+                int available_public = sentvoicecom_public ? 128 : 255;
+                int available_team = sentvoicecom_team ? 128 : 255;
+                if(touchoptionstogglestate == 1)
+                { // animating
                     float interval = ( lastmillis - touchoptionstogglemillis ) / ( 1.0 * touchoptionsanimationduration );
                     float midpoint = 0.0;
-                    switch( touchoptionsanimation ){
+                    switch(touchoptionsanimation)
+                    {
                         case 0: midpoint = interval; break;
                         case 1: midpoint = easeoutback( interval ); break;
                         case 2: midpoint = easeoutelastic( interval ); break;
@@ -99,7 +103,8 @@ struct hud
                         case 4: midpoint = easeinoutback( interval ); break;
                         default: break;
                     }
-                    int midposx[4] = {
+                    int midposx[4] =
+                    {
                         endposx[0]
                         , endposx[1]
                         , voicecomcornerx - (int)(midpoint * ( voicecomcornerx - endposx[2] ))
@@ -111,16 +116,14 @@ struct hud
                             , endposy[2]
                             , endposy[3]
                     };
-                    drawtouchicon( midposx[0], midposy[0], 4, 2, 255); // TOUCH_GAME_VOICCEOM_PUBLIC_1
-                    drawtouchicon( midposx[1], midposy[1], 4, 3, 255); // TOUCH_GAME_VOICCEOM_PUBLIC_2
-                    drawtouchicon( midposx[2], midposy[2], 2, 4, 255); // TOUCH_GAME_VOICCEOM_TEAM_1
-                    drawtouchicon( midposx[3], midposy[3], 3, 4, 255); // TOUCH_GAME_VOICCEOM_TEAM_2
-                    if( lastmillis > touchoptionstogglemillis + touchoptionsanimationduration ){
-                        touchoptionstogglestate = 2;
-                    }
-                }else{ // >= 2 // finished
-                    int available_public = sentvoicecom_public ? 128 : 255;
-                    int available_team = sentvoicecom_team ? 128 : 255;
+                    drawtouchicon( midposx[0], midposy[0], 4, 2, available_public); // TOUCH_GAME_VOICCEOM_PUBLIC_1
+                    drawtouchicon( midposx[1], midposy[1], 4, 3, available_public); // TOUCH_GAME_VOICCEOM_PUBLIC_2
+                    drawtouchicon( midposx[2], midposy[2], 2, 4, available_team); // TOUCH_GAME_VOICCEOM_TEAM_1
+                    drawtouchicon( midposx[3], midposy[3], 3, 4, available_team); // TOUCH_GAME_VOICCEOM_TEAM_2
+                    if( lastmillis > touchoptionstogglemillis + touchoptionsanimationduration ) touchoptionstogglestate = 2;
+                }
+                else
+                { // >= 2 // finished
                     drawtouchicon( endposx[0], endposy[0], 4, 2, available_public); // TOUCH_GAME_VOICECOM_PUBLIC_1
                     drawtouchicon( endposx[1], endposy[1], 4, 3, available_public); // TOUCH_GAME_VOICECOM_PUBLIC_2
                     drawtouchicon( endposx[2], endposy[2], 2, 4, available_team); // TOUCH_GAME_VOICECOM_TEAM_1
