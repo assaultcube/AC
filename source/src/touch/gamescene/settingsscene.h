@@ -16,7 +16,6 @@ struct settingsscene : view
         prevbutton = new navigationbutton(this, navigationbutton::PREV);
         children.add(prevbutton);
 
-        game.settings.load();
         pointerspeed = new sliderview(this, "Pointer Speed", 0, 100, game.settings.pointerspeed, NULL);
         children.add(pointerspeed);
         pointeracceleration = new sliderview(this, "Pointer Acceleration", 0, 100, game.settings.pointeracceleration, NULL);

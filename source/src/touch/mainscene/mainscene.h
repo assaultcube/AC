@@ -24,6 +24,7 @@ struct mainscene : view
 
     mainscene(view *parent) : view(parent)
     {
+        game.settings.load(); // load saved settings as soon as possible
         prevbutton = new navigationbutton(this, navigationbutton::PREV);
         children.add(prevbutton);
         nextbutton = new navigationbutton(this, navigationbutton::NEXT);
