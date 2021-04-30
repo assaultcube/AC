@@ -192,7 +192,7 @@ enum
 #define m_mp(mode)    (m_valid(mode) && (mode)>=0 && (mode)!=7 && (mode)!=8 && (mode)!=12 && ((mode)<18 || (mode)>21))
 #define m_demo        (gamemode==-1)
 #define m_coop        (gamemode==1)
-#define m_flags_       (m_ctf || m_htf || m_ktf) // trailing underscore is required to prevent name clash on FreeBSD systems
+#define m_flags_      (m_ctf || m_htf || m_ktf) // trailing underscore is required to prevent name clash on FreeBSD systems
 #define m_isdemo(x)   ((x) == -1)
 
 // single filter modes
