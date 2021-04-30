@@ -759,7 +759,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                         deaths = getint(p),
                         health = getint(p),
                         armour = getint(p),
-                        points = getint(p),
                         teamkills = getint(p);
                     int ammo[NUMGUNS], mag[NUMGUNS];
                     loopi(NUMGUNS) ammo[i] = getint(p);
@@ -771,7 +770,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     d->flagscore = flagscore;
                     d->frags = frags;
                     d->deaths = deaths;
-                    d->points = points;
                     d->tks = teamkills;
                     if(d!=player1)
                     {
