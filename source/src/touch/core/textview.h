@@ -2,7 +2,8 @@
 struct textview : view
 {
     int padding, contentwidth, contentheight;
-    char *text;
+    char *text = 0;
+    size_t textstrlen = 0;
     bool editable = false, editing = false;
 
     enum sizespec
@@ -23,11 +24,13 @@ struct textview : view
 
     void settext(const char *text)
     {
-        // default AC string length is not sufficient for this use case
-        size_t len = strlen(text) + 1;
-        this->text = new char[len];
-        strncpy(this->text, text, len);
-        this->text[len-1] = 0;
+        DELETEA(this->text);
+        // default AC string length is not sufficient for this use case so we use a dynamic string with a minimum size of MAXSTRLEN
+        // therefore do *NOT* use string functions from tools.h in this class (!)
+        textstrlen = max((size_t)(strlen(text) + 1), (size_t) MAXSTRLEN);
+        this->text = new char[textstrlen];
+        strncpy(this->text, text, textstrlen);
+        this->text[textstrlen-1] = 0;
     }
 
     void measure(int availablewidth, int availableheight)
@@ -101,8 +104,11 @@ struct textview : view
         {
             switch(event->type) {
                 case SDL_TEXTINPUT:
-                    concatstring(text, event->text.text);
+                {
+                    size_t used = strlen(text);
+                    if(used < textstrlen) copystring(text+used, event->text.text, textstrlen-used);
                     break;
+                }
                 case SDL_KEYDOWN:
                     switch(event->key.keysym.scancode) {
                         case SDL_SCANCODE_BACKSPACE: {

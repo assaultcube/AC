@@ -44,7 +44,6 @@ struct sliderview : view
         blendbox(linex1, y + padding + fh*2/6, linex2, y + padding + fh*4/6, false, -1, &white);
 
         // draw slider button on top of line
-        int sliderbuttonwidth = fh*2/6;
         float sliderperc = float(currentval)/(maxval-minval);
         int buttonx1 = x + 2*padding + tw + sliderperc * linewidth;
         int buttony1 = y + padding + fh/2;
