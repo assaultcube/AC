@@ -15,7 +15,7 @@ ACPGM is not legally binding and does not constitute a legal entity.
 
 - The number of community members must be at lest twenty. The community decides with relative majority vote.
 - Rights
-  - The community own AssaultCube. 
+  - The community owns AssaultCube. 
   - The community elect the members of the committee. This election is held once a year in February in the AC forum.
   - If the committee excludes a community member, the community members can reject this decision.
   - The community decides on proposed changes to this governance model.
@@ -45,9 +45,9 @@ ACPGM is not legally binding and does not constitute a legal entity.
   - Establish welcoming culture and support civil/non-violent discussions
 - Rights
   - The platform team operates the infrastructure of AssaultCube and governs all administrative rights/permissions.
-  - The platform team represents the highest decision authority in terms of community moderation and game jurisdication.
+  - The platform team represents the highest decision authority in terms of community moderation and game jurisidication.
   - The platform team dedices which of the platform team member has the role of the team lead. The team lead represents the platform team towards others to simplify communication.
-- The platform team publishes its own policies regarding community moderation and game jurisication.
+- The platform team publishes its own policies regarding community moderation and game jurisidication.
 
 ## Dev Team
 
