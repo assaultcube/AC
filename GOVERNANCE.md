@@ -28,17 +28,17 @@ ACPGM is not legally binding and does not constitute a legal entity.
 - The goal of the committee is to
   -  Ensure the longevity of the project
   -  Balance tradition with innovation
-  -  Promotion of youg talents
+  -  Promotion of young talents
 - Rights
   - The committee may invite or exclude community members any time.
   - The committee may invite or exclude platform team members any time.
   - The committee may invite or exclude dev team members any time.
-  - The committee dedices which of the committee member has the role of the _Chairman_. The Chairman represents the committee towards others to simplify communication.
+  - The committee decides which of the committee member has the role of the _Chairman_. The Chairman represents the committee towards others to simplify communication.
   - The committee has full authority of the project if not stated otherwise in this governance model.
 
 ## Platform Team
 
-- The number of platform team members is at least three. The platform team is self-oranizing.
+- The number of platform team members is at least three. The platform team is self-organizing.
 - The goal of the platform team is to
   - Keep up the game infrastructure and protect the game from attacks and abuse
   - Provide the service of fair and transparent moderation and game jurisidication (e.g. bans)
