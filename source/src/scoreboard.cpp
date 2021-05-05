@@ -220,7 +220,7 @@ void renderscore(playerent *d)
 
     if(m_flags_) line.addcol(sc_flags, "%d", d->flagscore);
     line.addcol(sc_frags, "%d", d->frags);
-    line.addcol(sc_deaths, "%d", 99);
+    line.addcol(sc_deaths, "%d", d->deaths);
     line.addcol(sc_ratio, "%.2f", SCORERATIO(d->frags, d->deaths));
     if(multiplayer(NULL) || watchingdemo) line.addcol(sc_lag, "%s", lagping);
 
