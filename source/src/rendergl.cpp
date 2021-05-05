@@ -950,12 +950,13 @@ void sethudgunperspective(bool on)
 void drawhudgun()
 {
     sethudgunperspective(true);
-
-    if(!rendermenumdl() && hudgun && (specthudgun || !player1->isspectating()) && camera1->type==ENT_PLAYER)
+    
+    if(hudgun && (specthudgun || !player1->isspectating()) && camera1->type==ENT_PLAYER)
     {
         playerent *p = (playerent *)camera1;
         if(p->state==CS_ALIVE) p->weaponsel->renderhudmodel();
     }
+    rendermenumdl();
 
     sethudgunperspective(false);
 }
@@ -1127,7 +1128,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps, int elapsed)
     // Added by Rick: Need todo here because of drawing the waypoints
     WaypointClass.Think();
     // end add
-
+    
     drawhudgun();
 
     resettmu(0);
