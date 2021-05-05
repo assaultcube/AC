@@ -190,7 +190,7 @@ struct vertmodel : model
         {
             dyncacheentry *d = dyncache.start();
             int cachelen = 0;
-            for(; d != dyncache.end(); d = d->next, cachelen++)
+            for(; d && d != dyncache.end(); d = d->next, cachelen++)
             {
                 if(d->cur != cur) continue;
                 if(prev)
