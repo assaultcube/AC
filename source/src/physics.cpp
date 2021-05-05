@@ -441,7 +441,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
     else // fake physics for player ents to create _the_ cube movement (tm)
     {
         const int timeinair = pl->timeinair;
-        int move = pl->onladder && !pl->onfloor && pl->move == -1 ? 0 : pl->move; // movement on ladder
+        int move = intermission || (pl->onladder && !pl->onfloor && pl->move == -1) ? 0 : pl->move; // movement on ladder
         if(!editfly) water = waterlevel > pl->o.z - 0.5f;
 
         float chspeed = (pl->onfloor || pl->onladder || !pl->crouchedinair) ? 0.4f : 1.0f;
