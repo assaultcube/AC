@@ -1739,7 +1739,7 @@ void spectatemode(int mode)
 {
     if((player1->state != CS_DEAD && player1->state != CS_SPECTATE && !team_isspect(player1->team)) || (!m_teammode && !team_isspect(player1->team) && servstate.mastermode == MM_MATCH)) return;  // during ffa matches only SPECTATORS can spectate
     if(mode == player1->spectatemode || (m_botmode && mode != SM_FLY)) return;
-    if(mode == SM_OVERVIEW)
+    if(mode == SM_OVERVIEW || mode == SM_FLY)
     {
         // the spectate mode SM_OVERVIEW is like a radar hack and therefore is only allowed under certain conditions
         bool notmatchnotprivate = (servstate.mastermode != MM_MATCH && servstate.mastermode != MM_PRIVATE);
