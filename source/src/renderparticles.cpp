@@ -295,22 +295,7 @@ void render_particles(int time, int typemask)
         parttype &pt = parttypes[i];
         float sz = pt.sz*particlesize/100.0f;
 
-        if(pt.tex>=0)
-        {
-#ifdef __ANDROID__
-            // this is an attempt to mitigate this issue -> https://github.com/ptitSeb/gl4es/issues/283
-            try
-            {
-#endif
-            glBindTexture(GL_TEXTURE_2D, parttex[pt.tex]->id);
-#ifdef __ANDROID__
-            }
-            catch(std::exception& e)
-            {
-                LOGE("caught exception in glBindTexture: %s", e.what());
-            }
-#endif
-        }
+        if(pt.tex>=0) glBindTexture(GL_TEXTURE_2D, parttex[pt.tex]->id);
         else glDisable(GL_TEXTURE_2D);
         switch(pt.type)
         {
