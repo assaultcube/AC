@@ -171,7 +171,7 @@ struct input
                 keys.add(keyevent(event.type, TOUCH_GAME_CORNER_TOP_LEFT_1));
                 allowjump = false;
             }
-            if(event.tfinger.type == SDL_FINGERDOWN && vfingery < iconsize * 2 &&
+            else if(event.tfinger.type == SDL_FINGERDOWN && vfingery < iconsize * 2 &&
                vfingerx >= movementcontrolcenter.x - iconsize && vfingerx < movementcontrolcenter.x + iconsize)
             {
                 keys.add(keyevent(event.type, TOUCH_GAME_CORNER_TOP_LEFT_2)); // open help scene
