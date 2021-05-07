@@ -90,6 +90,13 @@ struct touchui
         viewstack.add(scene);
     }
 
+    void openhelpscene()
+    {
+        helpscene *scene = new helpscene(NULL, false);
+        scene->oncreate();
+        viewstack.add(scene);
+    }
+
     void openequipmentscene()
     {
         equipmentscene *scene = new equipmentscene(NULL);
@@ -142,6 +149,7 @@ struct touchui::hud touchui::hud;
 bool touchenabled() { return touch.config.enabled; }
 void showtouchmenu(bool servers) { touch.openmainscene(servers); }
 void showgamemenu() { touch.opengamescene(); }
+void showhelpmenu() { touch.openhelpscene(); }
 void showequipmentmenu() { touch.openequipmentscene(); }
 void togglevoicecomoptions(){ touch.togglevoicecomoptions(); }
 void menuevent(SDL_Event *event) { touch.captureevent(event); }
@@ -152,6 +160,7 @@ bool hijackvolumebuttons() { return volumeupattack && !touchmenuvisible(); }
 bool allowaskrating() { return touchmenuvisible() && numgamesplayed >= 5; }
 
 COMMAND(showgamemenu, "");
+COMMAND(showhelpmenu, "");
 COMMAND(showequipmentmenu, "");
 COMMAND(togglevoicecomoptions, "");
 

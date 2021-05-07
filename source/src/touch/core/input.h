@@ -64,6 +64,7 @@ struct input
          * settings, equipment left-corners top/bottom
          * and voicecoms - this part of the GUI is WIP ATM
          */
+        static vec movementcontrolcenter = config.movementcontrolcenter();
         bool deaddeed = false; // did we do something while dead or just tapped to respawn?
         // TODO: think about the redundancy between hud.h:draw() and input.h:deadspectatekeys()
         int vfingerx = event.tfinger.x * VIRTW;
@@ -74,7 +75,13 @@ struct input
         if(vfingerx < iconsizetwice && vfingery < iconsizetwice)
         {
             deaddeed = true;
-            keys.add(keyevent(event.type, TOUCH_GAME_CORNER_TOP_LEFT)); // open settings scene
+            keys.add(keyevent(event.type, TOUCH_GAME_CORNER_TOP_LEFT_1)); // open settings scene
+        }
+        if(vfingery < iconsize * 2 &&
+           vfingerx >= movementcontrolcenter.x - iconsize && vfingerx < movementcontrolcenter.x + iconsize)
+        {
+            deaddeed = true;
+            keys.add(keyevent(event.type, TOUCH_GAME_CORNER_TOP_LEFT_2)); // open help scene
         }
         if(vfingerx < iconsizetwice && vfingery > VIRTH-iconsizetwice)
         {
@@ -161,7 +168,13 @@ struct input
             if(event.tfinger.type == SDL_FINGERDOWN && vfingery < iconsize * 2 &&
                vfingerx < iconsize * 2)
             {
-                keys.add(keyevent(event.type, TOUCH_GAME_CORNER_TOP_LEFT));
+                keys.add(keyevent(event.type, TOUCH_GAME_CORNER_TOP_LEFT_1));
+                allowjump = false;
+            }
+            if(event.tfinger.type == SDL_FINGERDOWN && vfingery < iconsize * 2 &&
+               vfingerx >= movementcontrolcenter.x - iconsize && vfingerx < movementcontrolcenter.x + iconsize)
+            {
+                keys.add(keyevent(event.type, TOUCH_GAME_CORNER_TOP_LEFT_2)); // open help scene
                 allowjump = false;
             }
             else if(event.type == SDL_FINGERDOWN || event.type == SDL_FINGERMOTION)

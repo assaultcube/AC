@@ -68,10 +68,10 @@ struct hud
         static vec movementcontrolcenter = config.movementcontrolcenter();
         const int iconsize = config.HUD_ICONSIZE;
         const int edgeair = iconsize/2;
-        // spacious layout? int icongridstepx = VIRTW/12; int icongridstepy = VIRTH/9;
 
         turn_on_transparency(255); // includes GL_ENABLE(GL_BLEND)
-        drawtouchicon(edgeair, edgeair, 3, 1); // TOUCH_GAME_CORNER_TOP_LEFT - open settings scene
+        drawtouchicon(edgeair, edgeair, 3, 1, 255); // TOUCH_GAME_CORNER_TOP_LEFT_1 - open settings scene
+        drawtouchicon(movementcontrolcenter.x - iconsize/2, edgeair, 3, 2, 255/4); // TOUCH_GAME_CORNER_TOP_LEFT_2- open help scene
 
         if(menuvisible())
         {
