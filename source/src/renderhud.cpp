@@ -987,13 +987,14 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         glPushMatrix();
         glLoadIdentity();
         // TODO: best scale for gametime and fps
-        int mobileviewwidth = 3 * VIRTW / 4;
-        int mobileviewheight = 3 * VIRTH / 4;
+        float ratio = 3.0f/4.0f;
+        int mobileviewwidth = int(float(VIRTW) * ratio), mobileviewheight = int(float(VIRTH) * ratio);
         glOrtho(0, mobileviewwidth, mobileviewheight, 0, -1, 1);
         if(gametimedisplay){
             if( gtimeminwidth == 0 ) gtimeminwidth = text_width("00:00");
-            int yOffset = max( gtimeminwidth, text_width(gtime) );// monospace font wouldn't have any text_width issues
-            draw_text(gtime, mobileviewwidth - (yOffset + FONTH/2), 40);
+            int yoffset = max( gtimeminwidth, text_width(gtime) );// monospace font wouldn't have any text_width issues
+            int iconsize = (int)(120.0f*ratio); // move the config.HUD_ICONSIZE
+            draw_text(gtime, mobileviewwidth - (yoffset + FONTH/2), iconsize/2);
         }
         if(developermode){
             defformatstring(c_val)("fps %d", curfps);
