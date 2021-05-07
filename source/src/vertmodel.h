@@ -12,7 +12,13 @@ const int dbgvlight = 0;
 //VAR(dbgstenc, 0, 0, 2);
 //VAR(dbgvlight, 0, 0, 1);
 
+#ifdef __ANDROID__
+// we experience app crashes due to SEG_MAPERR in glCallList (GL4ES library) and disabling this feature altogether might solve the issue
+// once we validated that this fix works we can remove this #ifdef and move this android specific configuration into the .cfg files instead
+VARP(mdldlist, 0, 0, 1);
+#elif
 VARP(mdldlist, 0, 1, 1);
+#endif
 
 vec modelpos;
 float modelroll, modelyaw, modelpitch;
