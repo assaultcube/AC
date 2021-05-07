@@ -2,7 +2,7 @@
 
 #include "cube.h"
 
-#define LIGHTSCALE 4
+VAR(lightscale,1,4,100);
 
 void lightray(float bx, float by, const persistent_entity &light, float fade = 1, bool flicker = false)     // done in realtime, needs to be fast
 {
@@ -13,7 +13,7 @@ void lightray(float bx, float by, const persistent_entity &light, float fade = 1
     float dist = sqrtf(dx*dx+dy*dy);
     if(dist<1.0f) return;
     int reach = light.attr1;
-    int steps = (int)(reach*reach*1.6f/dist);
+    int steps = (int)(reach*reach*1.6f/dist); // can change this for speedup/quality?
     const int PRECBITS = 12;
     const float PRECF = 4096.0f;
     int x = (int)(lx*PRECF);
@@ -22,12 +22,12 @@ void lightray(float bx, float by, const persistent_entity &light, float fade = 1
     int l = light.attr2*fadescale;
     int stepx = (int)(dx/(float)steps*PRECF);
     int stepy = (int)(dy/(float)steps*PRECF);
-    int stepl = (int)(l/(float)steps);
+    int stepl = (int)(l/(float)steps); // incorrect: light will fade quicker if near edge of the world
 
     if(maxtmus)
     {
-        l /= LIGHTSCALE;
-        stepl /= LIGHTSCALE;
+        l /= lightscale;
+        stepl /= lightscale;
 
         if(light.attr3 || light.attr4)      // coloured light version, special case because most lights are white
         {
@@ -44,10 +44,10 @@ void lightray(float bx, float by, const persistent_entity &light, float fade = 1
             int stepg = (int)(g/(float)steps);
             int b = light.attr4*fadescale;
             int stepb = (int)(b/(float)steps);
-            g /= LIGHTSCALE;
-            stepg /= LIGHTSCALE;
-            b /= LIGHTSCALE;
-            stepb /= LIGHTSCALE;
+            g /= lightscale;
+            stepg /= lightscale;
+            b /= lightscale;
+            stepb /= lightscale;
             loopi(steps)
             {
                 sqr *s = S(x>>PRECBITS, y>>PRECBITS);
