@@ -28,13 +28,19 @@ struct helpscene : view
     void render(int x, int y)
     {
         blendbox(0, 0, VIRTW, VIRTH, false, -1, &config.white);
+        glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 
         int imgheight = VIRTH-2*FONTH;
         int imgwidth = imgheight*1024/551;
         static Texture *tex = NULL;
-        const char *texname = "packages/misc/touchexplainer.jpg";
-        glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-        if(!tex) tex = textureload(texname, 3);
+        static int lastvolumeup = game.settings.volumeup;
+        bool volumeupchanged = lastvolumeup != game.settings.volumeup;
+        if(!tex || volumeupchanged)
+        {
+            const char *texname = (game.settings.volumeup ? "packages/misc/touchexplainer_layout2.jpg" : "packages/misc/touchexplainer_layout1.jpg");
+            tex = textureload(texname, 3);
+            lastvolumeup = game.settings.volumeup;
+        }
         if(tex) rect(tex->id, x + (VIRTW-imgwidth)/2, y + (VIRTH-imgheight)/2, imgwidth, imgheight, 0.0f, 0.0f, 1.0f, 1.0f);
 
         int itemsize = height/4;
