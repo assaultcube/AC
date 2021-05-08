@@ -32,9 +32,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class LaunchActivity extends Activity {
 
-    private AtomicBoolean exportAssetsSignal = new AtomicBoolean(false);
-    private AtomicBoolean updateFromMasterserverSignal = new AtomicBoolean(false);
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -44,8 +41,12 @@ public class LaunchActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        updateFromMasterserver();
-        exportAssets();
+
+        AsyncTask.execute(() -> {
+            exportAssets();
+            updateFromMasterserver();
+            new Handler(Looper.getMainLooper()).post(this::startGame);
+        });
     }
 
     /**
@@ -59,18 +60,9 @@ public class LaunchActivity extends Activity {
      *   directory which is writeable and then have all calls to stdio target this directory. We do this once on startup.
      */
     private void exportAssets() {
-        AsyncTask.execute(() -> {
-            AssetExporter assetExporter = new AssetExporter();
-            boolean copyAssetsRequired = assetExporter.isAssetExportRequired(LaunchActivity.this);
-            long showProgressMinimumDurationMilliseconds = copyAssetsRequired ? 1000 : 0;
-
-            new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                // exports assets if needed
-                if(copyAssetsRequired) assetExporter.copyAssets(LaunchActivity.this);
-                exportAssetsSignal.set(true);
-                checkFinish();
-            }, showProgressMinimumDurationMilliseconds);
-        });
+        AssetExporter assetExporter = new AssetExporter();
+        boolean copyAssetsRequired = assetExporter.isAssetExportRequired(LaunchActivity.this);
+        if(copyAssetsRequired) assetExporter.copyAssets(LaunchActivity.this);
     }
 
     /**
@@ -82,59 +74,55 @@ public class LaunchActivity extends Activity {
      * This should be upgraded to a more robust solution.
      */
     private void updateFromMasterserver() {
-        AsyncTask.execute(() -> {
-            HttpURLConnection urlConnection = null;
-            InputStream inputStream = null;
-            FileOutputStream outputStream = null;
+        HttpURLConnection urlConnection = null;
+        InputStream inputStream = null;
+        FileOutputStream outputStream = null;
+        try {
+            File file = new File(LaunchActivity.this.getExternalFilesDir(null), Constants.SERVERLISTFILE);
+            outputStream = new FileOutputStream(file);
+
+            // write variables to the script
+            // these are useful so that the serverlist can provide conditional actions depending on app version
+            outputStream.write(("acos = \"android\"\n" ).getBytes(StandardCharsets.UTF_8));
+            outputStream.write(("acbuild = " + BuildConfig.VERSION_CODE + "\n").getBytes(StandardCharsets.UTF_8));
+
+            // write serverlist to the script
             try {
-                File file = new File(LaunchActivity.this.getExternalFilesDir(null), Constants.SERVERLISTFILE);
-                outputStream = new FileOutputStream(file);
+                URL url = new URL(Constants.SERVERLIST);
+                urlConnection = (HttpURLConnection) url.openConnection();
+                inputStream = new BufferedInputStream(urlConnection.getInputStream());
+            } catch(Exception ex) {
+                new Handler(Looper.getMainLooper()).post(this::showRetryUpdateFromMasterserver);
+                return;
+            }
 
-                // write variables to the script
-                // these are useful so that the serverlist can provide conditional actions depending on app version
-                outputStream.write(("acos = \"android\"\n" ).getBytes(StandardCharsets.UTF_8));
-                outputStream.write(("acbuild = " + BuildConfig.VERSION_CODE + "\n").getBytes(StandardCharsets.UTF_8));
+            int read = 0;
+            byte[] bytes = new byte[1024];
+            while ((read = inputStream.read(bytes)) != -1) {
+                outputStream.write(bytes, 0, read);
+            }
 
-                // write serverlist to the script
+            // clear vars
+            outputStream.write(("\ndelalias acos\n").getBytes(StandardCharsets.UTF_8));
+            outputStream.write(("delalias acbuild\n").getBytes(StandardCharsets.UTF_8));
+        }
+        catch (Exception e) {
+            // ignore other errors and let the user run the game with old/stale serverlist
+            e.printStackTrace();
+        }
+        finally {
+            if(urlConnection != null) urlConnection.disconnect();
+            if(inputStream != null) {
                 try {
-                    URL url = new URL(Constants.SERVERLIST);
-                    urlConnection = (HttpURLConnection) url.openConnection();
-                    inputStream = new BufferedInputStream(urlConnection.getInputStream());
-                } catch(Exception ex) {
-                    new Handler(Looper.getMainLooper()).post(this::showRetryUpdateFromMasterserver);
-                    return;
-                }
-
-                int read = 0;
-                byte[] bytes = new byte[1024];
-                while ((read = inputStream.read(bytes)) != -1) {
-                    outputStream.write(bytes, 0, read);
-                }
-
-                // clear vars
-                outputStream.write(("\ndelalias acos\n").getBytes(StandardCharsets.UTF_8));
-                outputStream.write(("delalias acbuild\n").getBytes(StandardCharsets.UTF_8));
+                    inputStream.close();
+                } catch (IOException ignored) { }
             }
-            catch (Exception e) {
-                // ignore other errors and let the user run the game with old/stale serverlist
-                e.printStackTrace();
+            if(outputStream != null) {
+                try {
+                    outputStream.close();
+                } catch (IOException ignored) { }
             }
-            finally {
-                if(urlConnection != null) urlConnection.disconnect();
-                if(inputStream != null) {
-                    try {
-                        inputStream.close();
-                    } catch (IOException ignored) { }
-                }
-                if(outputStream != null) {
-                    try {
-                        outputStream.close();
-                    } catch (IOException ignored) { }
-                }
-            }
-            updateFromMasterserverSignal.set(true);
-            checkFinish();
-        });
+        }
     }
 
     /**
@@ -145,24 +133,20 @@ public class LaunchActivity extends Activity {
         builder.setTitle("Something went wrong");
         builder.setMessage("Could not update the list of servers from the internet.");
         builder.setCancelable(true);
-        builder.setPositiveButton("Retry", (dialog, id) -> updateFromMasterserver());
+        builder.setPositiveButton("Retry", (dialog, id) -> {
+            AsyncTask.execute(this::updateFromMasterserver);
+        });
         builder.setNegativeButton("Ignore", (dialog, id) -> {
             dialog.cancel();
-            updateFromMasterserverSignal.set(true);
-            checkFinish();
+            startGame();
         });
         AlertDialog dialog = builder.create();
         dialog.show();
     }
 
-    /**
-     * Launch the game if all async tasks completed
-     */
-    private void checkFinish() {
-        if(exportAssetsSignal.get() && updateFromMasterserverSignal.get()) {
-            Intent intent = new Intent(LaunchActivity.this, AssaultCubeActivity.class);
-            startActivity(intent);
-            finish();
-        }
+    private void startGame() {
+        Intent intent = new Intent(LaunchActivity.this, AssaultCubeActivity.class);
+        startActivity(intent);
+        finish();
     }
 }
