@@ -86,10 +86,7 @@ struct gamescene : view
         helpbutton->render(xoffset - helpbutton->width, yoffset-disconnectbutton->height);
         disconnectbutton->render(VIRTW - disconnectbutton->width - tenthItemsize, yoffset);
         creditsbutton->render(tenthItemsize, yoffset);
-        if(game.settings.devmode)
-        {
-            consolebutton->render(3 * tenthItemsize + itemsize, yoffset);
-        }
+        if(game.settings.devmode && config.CONSOLEBUTTON) consolebutton->render(3 * tenthItemsize + itemsize, yoffset);
 
         bbox.x1 = x;
         bbox.x2 = x + width;
