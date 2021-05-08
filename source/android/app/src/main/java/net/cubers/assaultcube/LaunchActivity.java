@@ -1,15 +1,22 @@
 package net.cubers.assaultcube;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Looper;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.Html;
+import android.text.Spanned;
+import android.text.method.LinkMovementMethod;
 import android.text.style.TabStopSpan;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.BufferedInputStream;
@@ -41,7 +48,42 @@ public class LaunchActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+        showTerms();
+    }
 
+    @SuppressLint("ApplySharedPref")
+    private void showTerms() {
+        final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        boolean agreed = sharedPreferences.getBoolean(Constants.AGREEEMENTVERSION,false);
+        if(agreed) {
+            termsAccepted();
+        } else {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.AcAlertDialogTheme);
+            builder.setTitle("Agreement");
+            Spanned msg = Html.fromHtml("Do you agree to the <a href=\"" + Constants.TERMSLINK
+                    + "\">Terms and Conditions</a> and to the <a href=\"" + Constants.PRIVACYLINK + "\">Privacy Policy?</a>");
+            builder.setMessage(msg);
+            builder.setCancelable(true);
+            builder.setPositiveButton("Yes", (dialog, id) -> {
+                dialog.cancel();
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.putBoolean(Constants.AGREEEMENTVERSION, true);
+                editor.commit();
+                termsAccepted();
+            });
+            builder.setNegativeButton("No", (dialog, id) -> {
+                dialog.cancel();
+                finish();
+            });
+            AlertDialog dialog = builder.create();
+            dialog.show();
+
+            // make links clickable
+            ((TextView)dialog.findViewById(android.R.id.message)).setMovementMethod(LinkMovementMethod.getInstance());
+        }
+    }
+
+    private void termsAccepted() {
         AsyncTask.execute(() -> {
             exportAssets();
             updateFromMasterserver();
