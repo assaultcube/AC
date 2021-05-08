@@ -12,8 +12,8 @@ android {
         applicationId 'net.cubers.assaultcube'
         minSdkVersion "${platformVersion}"
         targetSdkVersion 30
-        versionName '0.8.9'
-        versionCode 11
+        versionName '1.2.02'
+        versionCode 13
         externalNativeBuild {
             cmake {
                 arguments '-DANDROID_STL=c++_static'
