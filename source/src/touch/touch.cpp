@@ -104,25 +104,21 @@ struct touchui
         viewstack.add(scene);
     }
 
-    void togglevoicecomoptions(){
-        if( touchoptionstogglestate == 0 )
+    void togglevoicecomoptions()
+    {
+        if(touchoptionstogglestate == 0)
         {
-            if(touchoptionsanimationduration==0)
+            if(touchoptionsanimationduration==0) touchoptionstogglestate = 2;
+            else
             {
-                touchoptionstogglestate = 2;
-            }else{
                 touchoptionstogglestate = 1;
                 touchoptionstogglemillis = lastmillis;
             }
-        }else{
-            touchoptionstogglestate = 0; // OFF is w/o animation
         }
+        else touchoptionstogglestate = 0; // OFF is w/o animation
     }
 
-    bool visible()
-    {
-        return viewstack.length();
-    }
+    bool visible() { return viewstack.length(); }
 
     void captureevent(SDL_Event *event)
     {
@@ -148,20 +144,22 @@ struct touchui::hud touchui::hud;
 
 bool touchenabled() { return touch.config.enabled; }
 void showtouchmenu(bool servers) { touch.openmainscene(servers); }
-void showgamemenu() { touch.opengamescene(); }
-void showhelpmenu() { touch.openhelpscene(); }
-void showequipmentmenu() { touch.openequipmentscene(); }
-void togglevoicecomoptions(){ touch.togglevoicecomoptions(); }
 void menuevent(SDL_Event *event) { touch.captureevent(event); }
 void rendertouchmenu() { touch.render(); }
 bool touchmenuvisible() { return touch.visible(); }
 void rendertouchhud(playerent *d) { touch.hud.draw(d); }
 bool hijackvolumebuttons() { return volumeupattack && !touchmenuvisible(); }
 bool allowaskrating() { return touchmenuvisible() && numgamesplayed >= 5; }
+void checktouchinput() { touch.input.checkinput(); }
+
+// cubescript interacts with the touch UI through the commands below
+
+void showgamemenu() { touch.opengamescene(); }
+void showhelpmenu() { touch.openhelpscene(); }
+void showequipmentmenu() { touch.openequipmentscene(); }
+void togglevoicecomoptions(){ touch.togglevoicecomoptions(); }
 
 COMMAND(showgamemenu, "");
 COMMAND(showhelpmenu, "");
 COMMAND(showequipmentmenu, "");
 COMMAND(togglevoicecomoptions, "");
-
-void checktouchinput() { touch.input.checkinput(); }

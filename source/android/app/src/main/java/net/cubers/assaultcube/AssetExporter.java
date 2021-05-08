@@ -8,9 +8,7 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -20,7 +18,7 @@ import java.util.ArrayList;
 
 public class AssetExporter {
 
-    private static String lastAssetExportFilePath = "lastAssetExport.txt";
+    private static String appversioncodefile = "androidappversioncode.txt"; // keep this synchronized with C++ world in serverbrowser.cpp
 
     public boolean isAssetExportRequired(Activity activity) {
         // Exporting assets is a heavy operation and so we skip this operation if
@@ -101,7 +99,7 @@ public class AssetExporter {
 
     private Integer getVersionCodeOfLastExportedAssets(Activity activity)
     {
-        File f = new File(activity.getExternalFilesDir(null), lastAssetExportFilePath);
+        File f = new File(activity.getExternalFilesDir(null), appversioncodefile);
         if(!f.exists()) return null;
 
         try {
@@ -116,7 +114,7 @@ public class AssetExporter {
     }
 
     private void trySetVersionCodeOfLastExportedAssets(Activity activity, Integer version) {
-        File f = new File(activity.getExternalFilesDir(null), lastAssetExportFilePath);
+        File f = new File(activity.getExternalFilesDir(null), appversioncodefile);
         try {
             FileOutputStream stream = new FileOutputStream(f);
             BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(stream));

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Alert Dialog -->
+    <style name="AcAlertDialogTheme" parent="Theme.AppCompat.Light.Dialog.Alert">
+    </style>
+
+</resources>

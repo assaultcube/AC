@@ -1439,6 +1439,16 @@ COMMANDF(addserver, "sii", (char *n, int *p, int *w) { addserver(n, *p, *w); });
 COMMAND(clearservers, "");
 COMMAND(updatefrommaster, "i");
 
+#ifdef __ANDROID__
+// on android provide a way to show a text to the user if the master is undergoing maintenance
+string mastermessagestr;
+void mastermessage(char *text)
+{
+    copystring(mastermessagestr, text);
+}
+COMMAND(mastermessage, "s");
+#endif
+
 void writeservercfg()
 {
     stream *f = openfile(path("config/servers.cfg", true), "w");

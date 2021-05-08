@@ -92,14 +92,7 @@ extern float waterlevel;
 
 #define AC_VERSION 1202
 
-#ifdef __ANDROID__
-//INTERWEBS | LIVE
-#define AC_MASTER_URI "acmaster.centralus.cloudapp.azure.com"
-//LAN | WIP
-//#define AC_MASTER_URI "master.lan"
-#else
 #define AC_MASTER_URI "ms.cubers.net"
-#endif
 
 #define AC_MASTER_PORT 17650
 #define MAXCL 16

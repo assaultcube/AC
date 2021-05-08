@@ -155,7 +155,7 @@ struct serverscene : view
     const int maxserverrows = 64; // determines the max number of servers
     const int creationmillis;
 
-    textview *title;
+    textview *title = NULL, *mastermessage = NULL;
     touchmenu *menu;
     color c = color(0.11f, 0.11f, 0.11f);
     const int playofflineoffset = 1;
@@ -176,25 +176,34 @@ struct serverscene : view
     serverscene(view *parent) : view(parent), creationmillis(lastmillis)
     {
         title = new textview(this, "Choose your battleground", false);
+        children.add(title);
+
         menu = new touchmenu(this);
         menu->rows = 1, menu->cols = 4;
-
         loopv(menu->items) menu->children.add(menu->items[i]);
         children.add(menu);
+
+        extern string mastermessagestr;
+        mastermessage = new textview(this, mastermessagestr, false);
+        children.add(mastermessage);
     };
 
     ~serverscene()
     {
         DELETEP(title);
+        DELETEP(mastermessage);
         DELETEP(menu);
     }
 
     virtual void oncreate() {
         view::oncreate();
 
-        // initialize serverlist
-        //int force = 1;
-        //updatefrommaster(&force);
+        if(config.UPDATEFROMMASTER)
+        {
+            int force = 1;
+            updatefrommaster(&force);
+        }
+
         refreshservers(NULL, true);
         updateservers();
 
@@ -314,6 +323,7 @@ struct serverscene : view
     {
         title->measure(availablewidth, availableheight);
         menu->measure(availablewidth, availableheight*1000); // fixme
+        mastermessage->measure(availablewidth, availableheight);
         width = availablewidth;
         height = availableheight;
     }
@@ -325,6 +335,8 @@ struct serverscene : view
         menuoffsetx = x+(width-menu->width)/2;
         menuoffsety = y+VIRTH/3; // better place for this?
         menu->render(menuoffsetx, menuoffsety + (int)yscroll);
+
+        mastermessage->render(x + width/2 - text_width(mastermessage->text)/2, title->bbox.y2 + (menu->bbox.y1 - title->bbox.y2)/2);
 
         bbox.x1 = x;
         bbox.x2 = x + width;

@@ -31,6 +31,7 @@ struct config
     const char *PLAYOFFLINE_DIFFICULTIES[PLAYOFFLINE_NUM_DIFFICULTIES] = { "EASY", "NORMAL", "HARD" }; // determines the labels for difficulty levels
     const char *PLAYOFFLINE_BOTSKILLS[PLAYOFFLINE_NUM_DIFFICULTIES] = { "bad", "medium", "good" }; // determines the bot skill for each difficulty level
     const int PLAYONLINE_MINSERVERS = 4; // determines the minimum amount of servers to show to the user
+    const bool UPDATEFROMMASTER = false; // determines if the serverlist should be update from master. please keep this disabled because this is done at app startup in Java world
 
     // supported maps for mobile must qualify as follows:
     // * the map must be an official map to ensure quality
