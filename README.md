@@ -4,7 +4,13 @@
 
 *AssaultCube Mobile* is a FREE, multiplayer, first-person shooter game for mobile devices. Taking place in realistic environments, with fast, arcade gameplay, it's addictive and fun! 
 
-The game is strictly optimized for beginners so that there is a chance of surviving in PlayStore / AppStore.
+The game is strictly optimized for beginners so that there is a chance of surviving in Google Play Store.
+
+<img src="/docs/screenshot2.jpeg" alt="alt text" width="45%"> <img src="/docs/screenshot.jpeg" alt="alt text" width="45%"> 
+
+You can download the app directly from Google Play: 
+
+<a href="https://play.google.com/store/apps/details?id=net.cubers.assaultcube"><img src="/docs/googleplay.png" alt="alt text" width="20%"></a>
 
 ## Features
 
