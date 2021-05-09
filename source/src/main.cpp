@@ -10,9 +10,6 @@ void cleanup(char *msg)         // single program exit point;
         cleanupclient();
         audiomgr.soundcleanup();
         cleanupserver();
-
-        extern void cleargamma();
-        cleargamma();
     }
     SDL_ShowCursor(SDL_TRUE);
     SDL_SetRelativeMouseMode(SDL_FALSE);
@@ -535,11 +532,6 @@ VARNFP(gamma, vgamma, 30, 100, 300,
         curgamma = vgamma;
     }
 });
-
-void cleargamma()
-{
-    if(curgamma != 100) setgamma(100);
-}
 
 void restoregamma()
 {
