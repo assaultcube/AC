@@ -1007,7 +1007,7 @@ void checkinput()
                 }
                 if(event.wheel.x)
                 {
-                    int key = event.wheel.x > 0 ? SDL_AC_BUTTON_RIGHT : SDL_AC_BUTTON_LEFT;
+                    int key = event.wheel.x > 0 ? SDL_AC_BUTTON_WHEELRIGHT : SDL_AC_BUTTON_WHEELLEFT;
                     keypress(key, 0, true);
                     keypress(key, 0, false);
                 }
