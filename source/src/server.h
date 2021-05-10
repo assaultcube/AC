@@ -139,7 +139,7 @@ struct clientstate : playerstate
         grenades.reset();
         akimbomillis = 0;
         scoped = forced = false;
-        flagscore = frags = teamkills = deaths = shotdamage = damage = points = events = lastdisc = reconnections = 0;
+        flagscore = frags = teamkills = deaths = shotdamage = damage = events = lastdisc = reconnections = 0;
         respawn();
     }
 
@@ -177,7 +177,6 @@ struct savedscore
         teamkills = cs.teamkills;
         shotdamage = cs.shotdamage;
         damage = cs.damage;
-        points = cs.points;
         forced = cs.forced;
         events = cs.events;
         lastdisc = cs.lastdisc;
