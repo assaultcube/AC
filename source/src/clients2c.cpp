@@ -181,6 +181,8 @@ void parsepositions(ucharbuf &p)
                 sniperrifle *sr = (sniperrifle *)d->weaponsel;
                 sr->scoped = d->scoping = (f & (1 << 5)) ? true : false;
             }
+            else d->scoping = false;
+
             d->roll = 0;
             d->vel = vel;
             int ft = f & 0x1f;
