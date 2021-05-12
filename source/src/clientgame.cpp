@@ -1789,8 +1789,10 @@ void togglespect() // cycle through all spectating modes
     else
     {
         int mode;
+        bool notmatchnotprivate = (servstate.mastermode != MM_MATCH && servstate.mastermode != MM_PRIVATE);
+        bool sm56forbidden = (player1->state == CS_DEAD || player1->team == TEAM_CLA_SPECT || player1->team == TEAM_RVSF_SPECT || notmatchnotprivate);
         if(player1->spectatemode==SM_NONE) mode = SM_FOLLOW1ST; // start with 1st person spect
-        else mode = SM_FOLLOW1ST + ((player1->spectatemode - SM_FOLLOW1ST + 1) % (SM_OVERVIEW-SM_FOLLOW1ST)); // replace SM_OVERVIEW by SM_NUM to enable overview mode
+        else mode = SM_FOLLOW1ST + ((player1->spectatemode - SM_FOLLOW1ST + 1) % ((sm56forbidden ? SM_FLY : SM_OVERVIEW)-SM_FOLLOW1ST)); // replace SM_OVERVIEW by SM_NUM to enable overview mode
         spectatemode(mode);
     }
 }
