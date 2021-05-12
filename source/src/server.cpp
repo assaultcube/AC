@@ -4499,7 +4499,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
         serverhost->totalSentData = serverhost->totalReceivedData = 0;
         loopv(clients) if(clients[i]->type == ST_TCPIP && clients[i]->isauthed && clients[i]->vita)
         {
-            clients[i]->vita->vs[VS_MINUTESCONNECTED]++;
+            clients[i]->incrementvitacounter(VS_MINUTESCONNECTED, 1);
             if(clients[i]->isonrightmap && team_isactive(clients[i]->team)) clients[i]->incrementvitacounter(VS_MINUTESACTIVE, 1);
         }
     }
