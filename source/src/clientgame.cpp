@@ -1734,6 +1734,11 @@ void setfollowplayer(int cn)
 }
 COMMANDF(setfollowplayer, "i", (int *cn) { setfollowplayer(*cn); });
 
+// macros to determine when SM_OVERVIEW and SM_FLY are permited
+// the spectate mode SM_OVERVIEW is like a radar hack and therefore is only allowed under certain conditions
+#define NOT_MATCH_NOT_PRIVATE (servstate.mastermode != MM_MATCH && servstate.mastermode != MM_PRIVATE)
+#define SM_56_FOBRIDDEN (player1->state == CS_DEAD || player1->team == TEAM_CLA_SPECT || player1->team == TEAM_RVSF_SPECT || NOT_MATCH_NOT_PRIVATE)
+
 // set new spect mode
 void spectatemode(int mode)
 {
@@ -1741,9 +1746,7 @@ void spectatemode(int mode)
     if(mode == player1->spectatemode || (m_botmode && mode != SM_FLY)) return;
     if(mode == SM_OVERVIEW || mode == SM_FLY)
     {
-        // the spectate mode SM_OVERVIEW is like a radar hack and therefore is only allowed under certain conditions
-        bool notmatchnotprivate = (servstate.mastermode != MM_MATCH && servstate.mastermode != MM_PRIVATE);
-        if(player1->state == CS_DEAD || player1->team == TEAM_CLA_SPECT || player1->team == TEAM_RVSF_SPECT || notmatchnotprivate) return;
+        if(SM_56_FOBRIDDEN) return;
     }
     showscores(false);
     switch(mode)
@@ -1789,10 +1792,8 @@ void togglespect() // cycle through all spectating modes
     else
     {
         int mode;
-        bool notmatchnotprivate = (servstate.mastermode != MM_MATCH && servstate.mastermode != MM_PRIVATE);
-        bool sm56forbidden = (player1->state == CS_DEAD || player1->team == TEAM_CLA_SPECT || player1->team == TEAM_RVSF_SPECT || notmatchnotprivate);
         if(player1->spectatemode==SM_NONE) mode = SM_FOLLOW1ST; // start with 1st person spect
-        else mode = SM_FOLLOW1ST + ((player1->spectatemode - SM_FOLLOW1ST + 1) % ((sm56forbidden ? SM_FLY : SM_OVERVIEW)-SM_FOLLOW1ST)); // replace SM_OVERVIEW by SM_NUM to enable overview mode
+        else mode = SM_FOLLOW1ST + ((player1->spectatemode - SM_FOLLOW1ST + 1) % ((SM_56_FOBRIDDEN ? SM_FLY : SM_OVERVIEW)-SM_FOLLOW1ST)); // replace SM_OVERVIEW by SM_NUM to enable overview mode
         spectatemode(mode);
     }
 }
