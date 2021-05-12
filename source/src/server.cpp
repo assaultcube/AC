@@ -2648,7 +2648,6 @@ void callvotepacket (int cn, voteinfo *v = curvote)
     sendpacket(cn, 1, q.finalize());
 }
 
-// TODO: use AUTH code
 void changeclientrole(int client, int role, char *pwd, bool force)
 {
     pwddetail pd;
@@ -4031,6 +4030,24 @@ void process(ENetPacket *packet, int sender, int chan)
 
             case SV_PAUSEMODE:
                 break;
+                
+            case SV_GETVITA:
+            {
+                int targetcn = getint(p);
+                
+                // If the client is admin or could be admin through vita
+                if ((cl->role >= CR_ADMIN || cl->checkvitadate(VS_ADMIN) || cl->checkvitadate(VS_OWNER)) 
+                    && valid_client(targetcn)) {
+                    client *target = clients[targetcn];
+                    
+                    if (target->vita) {
+                        sendf(sender, 1, "riimssv", SV_VITADATA, targetcn, 32, target->pubkey.u,
+                              target->vita->privatecomment, target->vita->publiccomment,
+                              VS_NUM, target->vita->vs);
+                    }
+                }
+                break;
+            }
 
             case SV_EXTENSION:
             {

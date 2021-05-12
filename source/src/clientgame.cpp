@@ -1642,6 +1642,13 @@ void whois(int *cn)
 }
 COMMAND(whois, "i");
 
+void getvita(int *cn)
+{
+    addmsg(SV_GETVITA, "ri", *cn);
+}
+COMMAND(getvita, "i");
+
+
 void findcn(char *name)
 {
     loopv(players) if(players[i] && !strcmp(name, players[i]->name))

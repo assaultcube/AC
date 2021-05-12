@@ -7,7 +7,7 @@
 #define CUBE_SERVINFO_PORT(serverport) (serverport+1)
 #define CUBE_SERVINFO_TO_SERV_PORT(servinfoport) (servinfoport-1)
 #define CLIENTIPCENSOR 12               // blank out the last 12 bits of client's IPs before telling them to others (compromise between "16" from AC 0.9x and "8" from AC 1.1)
-#define PROTOCOL_VERSION 1203           // bump when protocol changes (use negative numbers for mods!)
+#define PROTOCOL_VERSION 1204           // bump when protocol changes (use negative numbers for mods!)
 #define DEMO_VERSION 2                  // bump when demo format changes
 #define DEMO_MAGIC "ASSAULTCUBE_DEMO"
 #define DEMO_MINTIME 10000              // don't keep demo recordings with less than 10 seconds
@@ -50,6 +50,7 @@ enum
     SV_EXTENSION,
     SV_MAPIDENT, SV_DEMOCHECKSUM, SV_DEMOSIGNATURE,
     SV_PAUSEMODE,
+    SV_GETVITA, SV_VITADATA,
     SV_NUM
 };
 
