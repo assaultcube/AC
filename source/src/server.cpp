@@ -4036,8 +4036,12 @@ void process(ENetPacket *packet, int sender, int chan)
                 int targetcn = getint(p);
                 
                 // If the client is admin or could be admin through vita
-                if ((cl->role >= CR_ADMIN || cl->checkvitadate(VS_ADMIN) || cl->checkvitadate(VS_OWNER)) 
-                    && valid_client(targetcn)) {
+                if (!(cl->role >= CR_ADMIN || cl->checkvitadate(VS_ADMIN) || cl->checkvitadate(VS_OWNER))) {
+                    sendservmsg("\f3You must be admin to get vita");
+                    break;
+                }
+                
+                if (valid_client(targetcn)) {
                     client *target = clients[targetcn];
                     
                     if (target->vita) {
@@ -4045,6 +4049,8 @@ void process(ENetPacket *packet, int sender, int chan)
                               target->vita->privatecomment, target->vita->publiccomment,
                               VS_NUM, target->vita->vs);
                     }
+                } else {
+                    sendservmsg("\f3Invalid cn to retrieve vita data");
                 }
                 break;
             }
