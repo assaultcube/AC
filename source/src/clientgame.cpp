@@ -1738,7 +1738,7 @@ COMMANDF(setfollowplayer, "i", (int *cn) { setfollowplayer(*cn); });
 bool smoverviewflyforbidden()
 {
     bool notmatchnotprivate = servstate.mastermode != MM_MATCH && servstate.mastermode != MM_PRIVATE;
-    return (player1->state == CS_DEAD || player1->team == TEAM_CLA_SPECT || player1->team == TEAM_RVSF_SPECT || notmatchnotprivate);
+    return (player1->team != TEAM_SPECT || notmatchnotprivate);
 }
 
 // set new spect mode
