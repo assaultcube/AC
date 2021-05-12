@@ -1734,7 +1734,7 @@ void setfollowplayer(int cn)
 }
 COMMANDF(setfollowplayer, "i", (int *cn) { setfollowplayer(*cn); });
 
-// macros to determine when SM_OVERVIEW and SM_FLY are permited
+// macros to determine when SM_OVERVIEW and SM_FLY are permitted
 // the spectate mode SM_OVERVIEW is like a radar hack and therefore is only allowed under certain conditions
 #define NOT_MATCH_NOT_PRIVATE (servstate.mastermode != MM_MATCH && servstate.mastermode != MM_PRIVATE)
 #define SM_56_FOBRIDDEN (player1->state == CS_DEAD || player1->team == TEAM_CLA_SPECT || player1->team == TEAM_RVSF_SPECT || NOT_MATCH_NOT_PRIVATE)
@@ -1744,10 +1744,7 @@ void spectatemode(int mode)
 {
     if((player1->state != CS_DEAD && player1->state != CS_SPECTATE && !team_isspect(player1->team)) || (!m_teammode && !team_isspect(player1->team) && servstate.mastermode == MM_MATCH)) return;  // during ffa matches only SPECTATORS can spectate
     if(mode == player1->spectatemode || (m_botmode && mode != SM_FLY)) return;
-    if(mode == SM_OVERVIEW || mode == SM_FLY)
-    {
-        if(SM_56_FOBRIDDEN) return;
-    }
+    if((mode == SM_OVERVIEW || mode == SM_FLY) && SM_56_FOBRIDDEN) return;
     showscores(false);
     switch(mode)
     {
