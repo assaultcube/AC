@@ -13,11 +13,15 @@ string homedir = "";
 vector<char *> packagedirs;
 
 // Android does not play well with relative paths and so we need to make all paths absolute.
-// And since the engine does not yet offer an uniform way to manage paths we need to patch this
+// And since the engine does not yet offer a uniform way to manage paths we need to patch this
 // in different locations.
 const char *absbasedir =
 #ifdef __ANDROID__
+#ifdef STANDALONE
+    NULL;
+#else
     "/storage/emulated/0/Android/data/net.cubers.assaultcube/files/";
+#endif
 #else
     NULL;
 #endif

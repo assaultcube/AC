@@ -76,6 +76,7 @@
 #endif
 
 #ifdef __ANDROID__
+#ifndef STANDALONE
 #include <gl4eshint.h>
 #include <android/log.h>
 #define TAG "AC"
@@ -83,4 +84,5 @@
 #define LOGW(...) __android_log_print(ANDROID_LOG_WARN,     TAG, __VA_ARGS__)
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO,     TAG, __VA_ARGS__)
 #define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG,    TAG, __VA_ARGS__)
+#endif
 #endif
