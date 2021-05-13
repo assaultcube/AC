@@ -8,6 +8,7 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,25 +29,32 @@ public class AssetExporter {
         return !versionsMatch;
     }
 
-    public void copyAssets(Activity activity) {
+    public boolean copyAssets(Activity activity) {
         AssetManager assetManager = activity.getAssets();
         ArrayList<String> files = new ArrayList<>();
         recursiveList(assetManager, "", files);
-
+        boolean allWentWell = true;
         for (String filename : files) {
             InputStream in = null;
             OutputStream out = null;
             try {
-                in = assetManager.open(filename);
-                File outFile = new File(activity.getExternalFilesDir(null), filename);
-
-                File parent = outFile.getParentFile();
-                if(parent != null) parent.mkdirs();
-
-                out = new FileOutputStream(outFile);
-                copyFile(in, out);
+                // The File:API is of no use - only *existing* paths can be checked if they're directories
+                boolean isAssetContainer = false;
+                try {
+                    in = assetManager.open(filename);
+                } catch(FileNotFoundException e) { // asset directories throw this exception and there appears to be no easier way to handle this issue
+                    isAssetContainer = true;
+                }
+                if (!isAssetContainer){
+                    File outFile = new File(activity.getExternalFilesDir(null), filename);
+                    File parent = outFile.getParentFile();
+                    if(parent != null) parent.mkdirs();
+                    out = new FileOutputStream(outFile);
+                    copyFile(in, out);
+                }
             } catch(IOException e) {
-                Log.e("tag", "Failed to copy asset file: " + filename, e);
+                Log.e("assets", "Failed to copy asset file: " + filename, e);
+                allWentWell = false;
             }
             finally {
                 if (in != null) {
@@ -65,8 +73,10 @@ public class AssetExporter {
                 }
             }
         }
-
-        trySetVersionCodeOfLastExportedAssets(activity, getVersionCodeOfCurrentApp());
+        if (allWentWell) {
+            trySetVersionCodeOfLastExportedAssets(activity, getVersionCodeOfCurrentApp());
+        }
+        return allWentWell;
     }
 
     private void recursiveList(AssetManager assetManager, String path, ArrayList<String> output)
@@ -80,7 +90,7 @@ public class AssetExporter {
                 recursiveList(assetManager, childpath, output);
             }
         } catch (IOException e) {
-            Log.e("tag", "Failed to get asset file list.", e);
+            Log.e("assets", "Failed to get asset file list.", e);
         }
     }
 

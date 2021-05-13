@@ -16,6 +16,7 @@ import android.text.Html;
 import android.text.Spanned;
 import android.text.method.LinkMovementMethod;
 import android.text.style.TabStopSpan;
+import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -61,7 +62,7 @@ public class LaunchActivity extends Activity {
             AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.AcAlertDialogTheme);
             builder.setTitle("Agreement");
             Spanned msg = Html.fromHtml("Do you agree to the <a href=\"" + Constants.TERMSLINK
-                    + "\">Terms and Conditions</a> and to the <a href=\"" + Constants.PRIVACYLINK + "\">Privacy Policy?</a>");
+                    + "\">Terms and Conditions</a> and to the <a href=\"" + Constants.PRIVACYLINK + "\">Privacy Policy?</a>", Html.FROM_HTML_MODE_COMPACT );
             builder.setMessage(msg);
             builder.setCancelable(true);
             builder.setPositiveButton("Yes", (dialog, id) -> {
@@ -104,7 +105,14 @@ public class LaunchActivity extends Activity {
     private void exportAssets() {
         AssetExporter assetExporter = new AssetExporter();
         boolean copyAssetsRequired = assetExporter.isAssetExportRequired(LaunchActivity.this);
-        if(copyAssetsRequired) assetExporter.copyAssets(LaunchActivity.this);
+        if(copyAssetsRequired) {
+            boolean assetsExported = assetExporter.copyAssets(LaunchActivity.this);
+            if( !assetsExported ) {
+                // todo make user aware of the failure.
+                //  fs: AlertDialog does not work at this stage (see updateFromMasterserver() comments too)
+                Log.e("launch", "The assets were not exported completely.");
+            }
+        }
     }
 
     /**
@@ -112,8 +120,7 @@ public class LaunchActivity extends Activity {
      * AC mobile currently supports official severs only and therefore a simple serverlist file on the web suffices - no server registration capabilities currently needed.
      * We do this in Java world because currently the AC masterserver client only supports ENET or HTTP but not HTTPS -
      * and we want HTTPS so that we can host the rather static serverlist on an arbitrary webserver.
-     * Unlike AC "desktop" there is no way to register custom servers and so a static
-     * This should be upgraded to a more robust solution.
+     * todo should be upgraded to a more robust solution.
      */
     private void updateFromMasterserver() {
         HttpURLConnection urlConnection = null;
@@ -134,7 +141,11 @@ public class LaunchActivity extends Activity {
                 urlConnection = (HttpURLConnection) url.openConnection();
                 inputStream = new BufferedInputStream(urlConnection.getInputStream());
             } catch(Exception ex) {
-                new Handler(Looper.getMainLooper()).post(this::showRetryUpdateFromMasterserver);
+                // fs: I had no success creating an AlertDialog at this point (cause:switch from java to cpp/sdl?)
+                // .. on my HTC11 there's an exception caused when trying to use http not https! SG7 has no qualms with http.
+                // .. and there's a "WindowLeaked" exception too, see showRetryUpdateFromMaster()
+                Log.e( "launch", "Update from Masterserver failed.", ex);
+                //new Handler(Looper.getMainLooper()).post(this::showRetryUpdateFromMasterserver);//never seen
                 return;
             }
 
@@ -169,6 +180,9 @@ public class LaunchActivity extends Activity {
 
     /**
      * Let the user decide whether or not to retry the masterserver update
+     * fs: exception when e.g. http not https should've triggered this dialog from updateFromMasterserver()
+     * >> E/WindowManager: android.view.WindowLeaked: Activity net.cubers.assaultcube.LaunchActivity has leaked window DecorView@a58d0c1[LaunchActivity] that was originally added here
+     * >> […] pointing at line "dialog.show();"
      */
     private void showRetryUpdateFromMasterserver() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.AcAlertDialogTheme);
