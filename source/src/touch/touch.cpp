@@ -11,6 +11,8 @@ extern void closetouchmenu();
 extern void addnbot(const char *arg1, const char *arg2, const char *arg3);
 extern void connectserv(char *servername, int *serverport, char *password);
 extern void toggleconsole();
+extern int conopen;
+extern void setconskip(int *n);
 extern void voicecom(char *sound, char *text);
 extern float sensitivity, mouseaccel;
 extern void drawicon(Texture *tex, float x, float y, float s, int col, int row, float ts);

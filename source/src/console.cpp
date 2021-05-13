@@ -35,11 +35,28 @@ struct console : consolebuffer<cline>
 
     void render()
     {
+        int miny = CONSPAD+FONTH/3;
         int conwidth = (fullconsole ? VIRTW : int(floor(getradarpos().x)))*2 - 2*CONSPAD - 2*FONTH/3;
         int h = VIRTH*2 - 2*CONSPAD - 2*FONTH/3;
         int conheight = min(fullconsole ? (h*(fullconsole==1 ? altconsize : fullconsize))/100 : FONTH*consize, h);
-
+#ifdef __ANDROID__
+        if(fullconsole)
+        {
+            miny = 3*FONTH;
+            glPushMatrix();
+            glLoadIdentity();
+            conwidth = 3*VIRTW/4 - FONTH;
+            conheight = 3*VIRTH/4 - 3*FONTH;
+            glOrtho(0,3*VIRTW/4,3*VIRTH/4,0,-1,1);
+            blendbox(0, 5*FONTH/2, 3*VIRTW/4, 3*VIRTH/4, false);
+        }
+        else
+        {
+            miny = 6*FONTH;
+        }
+#else
         if(fullconsole) blendbox(CONSPAD, CONSPAD, conwidth+CONSPAD+2*FONTH/3, conheight+CONSPAD+2*FONTH/3, true);
+#endif
 
         int numl = conlines.length(), offset = min(conskip, numl);
 
@@ -52,8 +69,7 @@ struct console : consolebuffer<cline>
             }
             else offset--;
         }
-
-        int y = 0;
+        int y=0;
         loopi(numl) //determine visible height
         {
             // shuffle backwards to fill if necessary
@@ -64,7 +80,7 @@ struct console : consolebuffer<cline>
             y += height;
             if(y > conheight) { numl = i; if(offset == idx) ++offset; break; }
         }
-        y = CONSPAD+FONTH/3;
+        y = miny;
         loopi(numl)
         {
             int idx = offset + numl-i-1;
@@ -74,9 +90,12 @@ struct console : consolebuffer<cline>
             text_bounds(line, width, height, conwidth);
             y += height;
         }
+#ifdef __ANDROID__
+        if( fullconsole ) glPopMatrix();
+#endif
     }
 
-    console() : consolebuffer<cline>(200), fullconsole(false) {}
+    console() : consolebuffer<cline>(200), fullconsole(0) {}
 };
 
 console con;
@@ -322,16 +341,16 @@ void inputcommand(char *init, char *action, char *prompt, int *nopersist)
 COMMAND(inputcommand, "sssi");
 
 SVARFF(mapmsg,
-{ // read mapmsg
-    hdr.maptitle[127] = '\0';
-    mapmsg = exchangestr(mapmsg, hdr.maptitle);
-},
-{ // set new mapmsg
-    string text;
-    filtertext(text, mapmsg, FTXT__MAPMSG);
-    copystring(hdr.maptitle, text, 128);
-    if(editmode) unsavededits++;
-});
+       { // read mapmsg
+           hdr.maptitle[127] = '\0';
+           mapmsg = exchangestr(mapmsg, hdr.maptitle);
+       },
+       { // set new mapmsg
+           string text;
+           filtertext(text, mapmsg, FTXT__MAPMSG);
+           copystring(hdr.maptitle, text, 128);
+           if(editmode) unsavededits++;
+       });
 
 #if !defined(WIN32) && !defined(__APPLE__) && !defined(__ANDROID__)
 #include <X11/Xlib.h>
@@ -340,19 +359,19 @@ SVARFF(mapmsg,
 
 void pasteconsole(char *dst)
 {
-    #ifdef WIN32
+#ifdef WIN32
     if(!IsClipboardFormatAvailable(CF_TEXT)) return;
     if(!OpenClipboard(NULL)) return;
     char *cb = (char *)GlobalLock(GetClipboardData(CF_TEXT));
     concatstring(dst, cb);
     GlobalUnlock(cb);
     CloseClipboard();
-    #elif defined(__APPLE__)
+#elif defined(__APPLE__)
     extern void mac_pasteconsole(char *commandbuf);
 
     mac_pasteconsole(dst);
-    #elif defined(__ANDROID__)
-    #else
+#elif defined(__ANDROID__)
+#else
     SDL_SysWMinfo wminfo;
     SDL_VERSION(&wminfo.version);
     wminfo.subsystem = SDL_SYSWM_X11;
@@ -373,7 +392,7 @@ void pasteconsole(char *dst)
         dst[commandlen] = '\0';
     }
     XFree(cb);
-    #endif
+#endif
 }
 
 struct hline
@@ -624,7 +643,6 @@ void writebinds(stream *f)
     {
         keym *km = &keyms[i];
         loopj(3) if(*km->actions[j] && (!km->unchangeddefault[j] || omitunchangeddefaultbinds < 2))
-            f->printf("%s%s \"%s\" %s\n", km->unchangeddefault[j] && omitunchangeddefaultbinds ? "//" : "", keycmd(j), km->name, escapestring(km->actions[j]));
+                f->printf("%s%s \"%s\" %s\n", km->unchangeddefault[j] && omitunchangeddefaultbinds ? "//" : "", keycmd(j), km->name, escapestring(km->actions[j]));
     }
 }
-

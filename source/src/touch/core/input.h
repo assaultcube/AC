@@ -37,11 +37,33 @@ struct input
         }
         else
         {
-            identifyfingers(event);
-            alivekeys(event, keys);
+            if(conopen)
+            {
+                conskipkeys(event, keys);
+            }
+            else
+            {
+                identifyfingers(event);
+                alivekeys(event, keys);
+            }
         }
-
         return keys;
+    }
+
+    void conskipkeys(SDL_Event &event, vector <keyevent> &keys)
+    {
+        int vfingerx = event.tfinger.x * VIRTW;
+        int vfingery = event.tfinger.y * VIRTH;
+        int iconsizetwice = iconsize * 2; // a bit of air around the corner icons
+        if(vfingerx < iconsizetwice && vfingery < iconsizetwice)
+        {
+            keys.add(keyevent(event.type, TOUCH_GAME_CORNER_TOP_LEFT_1)); // open settings scene
+        }
+        else
+        {
+            int usedelta = -1 * ((int) (event.tfinger.y * 4) - 2);
+            setconskip(&usedelta);
+        }
     }
 
     // test for tapping inside an area surrounding the boundingbox of the icon. (x0,y0)-(x0+w,y0+h)
@@ -447,7 +469,7 @@ struct input
         if(tdx || tdy)
         {
             entropy_add_byte(tdy + 5 * tdx);
-            mousemove(tdx, tdy);
+            if(!conopen) mousemove(tdx, tdy);
         }
     }
 

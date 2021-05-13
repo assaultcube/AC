@@ -801,6 +801,9 @@ int gtimeminwidth = 0; // regular default font "00:00" - on changing font this v
 
 void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwater, int elapsed)
 {
+#ifdef __ANDROID__
+    extern int conopen;
+#endif
     bool menu = false;
     if(blankouthud > 0) { blankouthud -= elapsed; return; }
     else blankouthud = 0;
@@ -867,7 +870,11 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     }
 
     drawdmgindicator();
+#ifdef __ANDROID__
+    if(!conopen && p->state==CS_ALIVE && !menu)
+#else
     if(p->state==CS_ALIVE && !menu)
+#endif
     {
         if(!hidehudequipment) drawequipicons(p);
     }
@@ -984,23 +991,26 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         }
         formatstring(gtime)("%02d:%02d", gtmin, gtsec);
 #ifdef __ANDROID__
-        glPushMatrix();
-        glLoadIdentity();
-        // TODO: best scale for gametime and fps
-        float ratio = 3.0f/4.0f;
-        int mobileviewwidth = int(float(VIRTW) * ratio), mobileviewheight = int(float(VIRTH) * ratio);
-        glOrtho(0, mobileviewwidth, mobileviewheight, 0, -1, 1);
-        if(gametimedisplay){
-            if( gtimeminwidth == 0 ) gtimeminwidth = text_width("00:00");
-            int yoffset = max( gtimeminwidth, text_width(gtime) );// monospace font wouldn't have any text_width issues
-            int iconsize = (int)(120.0f*ratio); // move the config.HUD_ICONSIZE
-            draw_text(gtime, mobileviewwidth - (yoffset + FONTH/2), iconsize/2);
+        if(!conopen) // fullconsole now covers full screen - drop display of these while showing the console
+        {
+            glPushMatrix();
+            glLoadIdentity();
+            int mobileviewwidth = 3 * VIRTW / 4;
+            int mobileviewheight = 3 * VIRTH / 4;
+            glOrtho(0, mobileviewwidth, mobileviewheight, 0, -1, 1);
+            if(gametimedisplay)
+            {
+                if( gtimeminwidth == 0 ) gtimeminwidth = text_width("00:00");
+                int yOffset = max( gtimeminwidth, text_width(gtime) );// monospace font wouldn't have any text_width issues
+                draw_text(gtime, mobileviewwidth - (yOffset + FONTH/2), 40);
+            }
+            if(developermode && player1->state != CS_DEAD)
+            {
+                defformatstring(c_val)("fps %d", curfps);
+                draw_text(c_val, mobileviewwidth - ( text_width(c_val) + FONTH ), mobileviewheight - 3*FONTH/2);
+            }
+            glPopMatrix();
         }
-        if(developermode){
-            defformatstring(c_val)("fps %d", curfps);
-            draw_text(c_val, mobileviewwidth - ( text_width(c_val) + FONTH ), mobileviewheight - 3*FONTH/2);
-        }
-        glPopMatrix();
 #else
         if(gametimedisplay) draw_text(gtime, (VIRTW-225-10)*2 - (text_width(gtime)/2 + FONTH/2), 20);
 #endif
@@ -1095,8 +1105,11 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             draw_text(name, VIRTW/40, VIRTH/10*8);
         }
     }
-
+#ifdef __ANDROID__
+    if(!conopen && p->state == CS_ALIVE || (p->state == CS_DEAD && p->spectatemode == SM_DEATHCAM))
+#else
     if(p->state == CS_ALIVE || (p->state == CS_DEAD && p->spectatemode == SM_DEATHCAM))
+#endif
     {
         glLoadIdentity();
         glOrtho(0, VIRTW/2, VIRTH/2, 0, -1, 1);
