@@ -65,8 +65,6 @@ struct equipmentscene : view
     {
         view::oncreate();
 
-        game.settings.load();
-
         loopv(skinmenu->items)
         if(skinmenu->items[i]->key == game.settings.skin) { skinmenu->select(i); break; }
 

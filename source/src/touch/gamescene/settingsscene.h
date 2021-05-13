@@ -81,7 +81,6 @@ struct settingsscene : view
             case uievent::UIE_TAPPED:
                 if(e.emitter == prevbutton)
                 {
-                    game.settings.load();
                     game.settings.pointerspeed = pointerspeed->currentval;
                     game.settings.pointeracceleration = pointeracceleration->currentval;
                     game.settings.volumeup = volumeup->currentval;
