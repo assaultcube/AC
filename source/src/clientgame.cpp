@@ -1734,17 +1734,19 @@ void setfollowplayer(int cn)
 }
 COMMANDF(setfollowplayer, "i", (int *cn) { setfollowplayer(*cn); });
 
+// the spectate mode SM_OVERVIEW is like a radar hack and therefore is only allowed under certain conditions
+bool smoverviewflyforbidden()
+{
+    bool notmatchnotprivate = servstate.mastermode != MM_MATCH && servstate.mastermode != MM_PRIVATE;
+    return ((player1->team != TEAM_SPECT || notmatchnotprivate) && !watchingdemo);
+}
+
 // set new spect mode
 void spectatemode(int mode)
 {
     if((player1->state != CS_DEAD && player1->state != CS_SPECTATE && !team_isspect(player1->team)) || (!m_teammode && !team_isspect(player1->team) && servstate.mastermode == MM_MATCH)) return;  // during ffa matches only SPECTATORS can spectate
     if(mode == player1->spectatemode || (m_botmode && mode != SM_FLY)) return;
-    if(mode == SM_OVERVIEW || mode == SM_FLY)
-    {
-        // the spectate mode SM_OVERVIEW is like a radar hack and therefore is only allowed under certain conditions
-        bool notmatchnotprivate = (servstate.mastermode != MM_MATCH && servstate.mastermode != MM_PRIVATE);
-        if(player1->state == CS_DEAD || player1->team == TEAM_CLA_SPECT || player1->team == TEAM_RVSF_SPECT || notmatchnotprivate) return;
-    }
+    if((mode == SM_OVERVIEW || mode == SM_FLY) && smoverviewflyforbidden()) return;
     showscores(false);
     switch(mode)
     {
@@ -1754,6 +1756,7 @@ void spectatemode(int mode)
         case SM_FOLLOW3RD_TRANSPARENT:
         {
             if(players.length() && updatefollowplayer()) break;
+            else if (smoverviewflyforbidden()) mode = SM_DEATHCAM;
             else mode = SM_FLY;
         }
         case SM_FLY:
@@ -1790,7 +1793,7 @@ void togglespect() // cycle through all spectating modes
     {
         int mode;
         if(player1->spectatemode==SM_NONE) mode = SM_FOLLOW1ST; // start with 1st person spect
-        else mode = SM_FOLLOW1ST + ((player1->spectatemode - SM_FOLLOW1ST + 1) % (SM_OVERVIEW-SM_FOLLOW1ST)); // replace SM_OVERVIEW by SM_NUM to enable overview mode
+        else mode = SM_FOLLOW1ST + ((player1->spectatemode - SM_FOLLOW1ST + 1) % ((smoverviewflyforbidden() ? SM_FLY : SM_OVERVIEW)-SM_FOLLOW1ST)); // replace SM_OVERVIEW by SM_NUM to enable overview mode
         spectatemode(mode);
     }
 }
