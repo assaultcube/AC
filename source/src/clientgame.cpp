@@ -1756,6 +1756,7 @@ void spectatemode(int mode)
         case SM_FOLLOW3RD_TRANSPARENT:
         {
             if(players.length() && updatefollowplayer()) break;
+            else if (smoverviewflyforbidden()) mode = SM_DEATHCAM;
             else mode = SM_FLY;
         }
         case SM_FLY:
