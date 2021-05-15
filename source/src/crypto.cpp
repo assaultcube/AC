@@ -741,6 +741,63 @@ static int passdeferred(void *pass)   // decrypt the private key in the backgrou
     return 0;
 }
 
+void savepreprivkey(const char *filename, uchar *preprivkey, uchar preprivlen, uchar *psalt, uint preprivpwdcfg) {
+    char hextemp[128 * 2 + 1];
+    char *oldfile = loadfile(filename, NULL), *b;
+    stream *f = openfile(filename, "wb");
+    if(f)
+    {
+        if(!oldfile)
+        {
+            f->printf("\n"  "// remove this file from your computer immediately!\n"
+                    "// either print it out and delete it or move it to a thumbdrive.\n"
+                    "// YOU DO NOT NEED THIS FILE TO PLAY AC!\n" "\n");
+        }
+        else
+        {
+            for(char *l = strtok_r(oldfile, "\n\r", &b); l; l = strtok_r(NULL, "\n\r", &b))
+            {
+                if(*l && l[0] != '/')
+                    f->printf("// %s\n", l);
+                if(*l && l[0] == '/')
+                    f->printf("%s\n", l);
+            }
+        }
+
+        f->printf("authsetup pre %s", bin2hex(hextemp, preprivkey, preprivlen));
+        if(preprivpwdcfg) f->printf(" %s %u", bin2hex(hextemp, psalt, 16), preprivpwdcfg & ~1);
+        f->printf("\n\n");
+        delete f;
+    }
+    DELETEA(oldfile);
+}
+
+
+void saveprivkey(const char *filename, uchar *privkey, uchar *pubkey, uchar salt[16], uint privpwdcfg) {
+    char hextemp[65];
+    char *oldfile = loadfile(filename, NULL), *b;
+    stream *f = openfile(filename, "wb");
+    if(f)
+    {
+        if(oldfile)
+        {
+            for(char *l = strtok_r(oldfile, "\n\r", &b); l; l = strtok_r(NULL, "\n\r", &b))
+            {
+                if(*l && l[0] != '/')
+                    f->printf("// %s\n", l);
+                if(*l && l[0] == '/')
+                    f->printf("%s\n", l);
+            }
+        }
+
+        f->printf("\nauthsetup priv %s", bin2hex(hextemp, privkey, 32));
+        if(privpwdcfg) f->printf(" %s %u", bin2hex(hextemp, salt, 16), privpwdcfg);
+        f->printf("\nauthsetup pub %s\n\n", bin2hex(hextemp, pubkey, 32));
+        delete f;
+    }
+    DELETEA(oldfile);
+}
+
 void authsetup(char **args, int numargs)  // set up private and public keys
 {
     const int preprivminlen = 32, preprivmaxlen = 128;
@@ -865,21 +922,8 @@ void authsetup(char **args, int numargs)  // set up private and public keys
                     preprivpwdcfg = (iterations << 10) | authmemusage;
                     xor_block(prepriv, keyhash, preprivlen);
                 }
-                const char *fn = numargs > 2 && args[2][0] ? path(args[2]) : AUTHPREPRIVATECFGFILE;
-                char *oldfile = loadfile(fn, NULL), *b;
-                stream *f = openfile(fn, "wb");
-                if(f)
-                {
-                    f->printf("\n"  "// remove this file from your computer immediately!\n"
-                                    "// either print it out and delete it or move it to a thumbdrive.\n"
-                                    "// YOU DO NOT NEED THIS FILE TO PLAY AC!\n" "\n");
-                    if(oldfile) for(char *l = strtok_r(oldfile, "\n\r", &b); l; l = strtok_r(NULL, "\n\r", &b)) if(*l) f->printf("// %s\n", l);
-                    f->printf("authsetup pre %s", bin2hex(hextemp, prepriv, preprivlen));
-                    if(preprivpwdcfg) f->printf(" %s %u", bin2hex(hextemp, psalt, 16), preprivpwdcfg & ~1);
-                    f->printf("\n\n");
-                    delete f;
-                }
-                DELETEA(oldfile);
+                savepreprivkey(numargs > 2 && args[2][0] ? path(args[2]) : AUTHPREPRIVATECFGFILE
+                               , prepriv, preprivlen, psalt, preprivpwdcfg);
             }
         }
         else if(!strcasecmp(args[0], "NEWPASS"))
@@ -896,18 +940,8 @@ void authsetup(char **args, int numargs)  // set up private and public keys
                     privpwdcfg = (iterations << 10) | authmemusage;
                     xor_block(priv, keyhash, 32);
                 }
-                const char *fn = numargs > 2 && args[2][0] ? path(args[2]) : AUTHPRIVATECFGFILE;
-                char *oldfile = loadfile(fn, NULL), *b;
-                stream *f = openfile(fn, "wb");
-                if(f)
-                {
-                    if(oldfile) for(char *l = strtok_r(oldfile, "\n\r", &b); l; l = strtok_r(NULL, "\n\r", &b)) if(*l) f->printf("// %s\n", l);
-                    f->printf("\nauthsetup priv %s", bin2hex(hextemp, priv, 32));
-                    if(privpwdcfg) f->printf(" %s %u", bin2hex(hextemp, salt, 16), privpwdcfg);
-                    f->printf("\nauthsetup pub %s\n\n", bin2hex(hextemp, keyhash + 32, 32));
-                    delete f;
-                }
-                DELETEA(oldfile);
+                saveprivkey(numargs > 2 && args[2][0] ? path(args[2]) : AUTHPRIVATECFGFILE,
+                            priv, keyhash + 32, salt, privpwdcfg);
             }
         }
 #ifndef PRODUCTION
@@ -934,6 +968,7 @@ void authsetup(char **args, int numargs)  // set up private and public keys
     intret(res);
 }
 COMMAND(authsetup, "v");
+
 
 void mypubkey()
 {
