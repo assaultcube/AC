@@ -442,7 +442,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
     {
         const int timeinair = pl->timeinair;
         int move = intermission || (pl->onladder && !pl->onfloor && pl->move == -1) ? 0 : pl->move; // movement on ladder
-        if(!editfly) water = waterlevel > pl->o.z - 0.5f;
+        if(!editfly) water = waterlevel > pl->o.z - (m_park?4.0f:0.5f);
 
         float chspeed = (pl->onfloor || pl->onladder || !pl->crouchedinair) ? 0.4f : 1.0f;
 
@@ -748,7 +748,13 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
                 audiomgr.playsound(S_SPLASH2, &pl->o);
                 pl->lastsplash = lastmillis;
             }
-            if(pl==player1) pl->vel.z = 0;
+            if(pl==player1)
+            {
+                pl->vel.z = 0;
+                if(m_park){
+                    domelt((playerent *)pl);
+                }
+            }
         }
         else if(pl->inwater && !water)
         {

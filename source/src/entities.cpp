@@ -9,6 +9,8 @@ VARP(showplayerstarts, 0, 0, 1);
 VAR(edithideentmask, 0, 0, INT_MAX);
 
 vector<entity> ents;
+vector<bool> parkents;
+int worldtotalpoints = 0;
 
 const char *entmdlnames[] =
 {
@@ -130,7 +132,7 @@ void rendereditentities()
             if(edithideentmask & (1 << (e.type - 1))) continue;
             vec v(e.x, e.y, e.z);
             if(vec(v).sub(camera1->o).dot(camdir) < 0) continue;
-            int sc = PART_ECARROT; // use "carrot" for unknown types
+            int sc = PART_EUNKNOWN; // for unknown types (pink)
             if(i == closest)
             {
                 sc = PART_ECLOSEST; // blue
@@ -148,6 +150,7 @@ void rendereditentities()
                 case I_AKIMBO:    sc = PART_EPICKUP; break; // yellow
                 case MAPMODEL:
                 case SOUND:       sc = PART_EMODEL;  break; // magenta
+                case CARROT:      sc = PART_ECARROT; break; // orange 
                 case LADDER:
                 case CLIP:
                 case PLCLIP:      sc = PART_ELADDER; break; // grey
@@ -379,6 +382,56 @@ void trypickupflag(int flag, playerent *d)
     }
 }
 
+void textplace(playerent *d, int index, int tag)
+{
+    if(index >= 0 && index < parkents.length())
+    {
+         if(!parkents[index])
+        {
+            //FIXME: map configs may not contain ALIAS - currently a user-home script needs to hold them
+            defformatstring(textalias)("parkour_text_%d", tag);
+             conoutf("%s",getalias(textalias));
+            audiomgr.playsoundc(S_HEARTBEAT);
+            parkents[index] = true;
+        }
+    }
+}
+
+void reachplace(playerent *d, int tag)
+{
+    if(tag>d->parkplace)
+    {
+            d->parkplace = tag;
+            audiomgr.playsoundc(S_FLAGPICKUP);
+    }
+}
+
+void pointplace(playerent *d, int index, int points)
+{
+    if(index >= 0)
+    {
+        if(!parkents[index])
+        {
+              d->parkpoints += points;
+            audiomgr.playsoundc(S_KTFSCORE);
+            parkents[index] = true;
+        }
+    }
+}
+
+void finishplace(playerent *d, int index)
+{
+    if(index >= 0)
+    {
+        if(!parkents[index])
+        {
+            audiomgr.playsoundc(S_AWESOME2);
+            parkents[index] = true;
+            // TODO some more celebration or a simple switch to chasing others (the least progressed player?)
+        }
+    }
+}
+
 void checkitems(playerent *d)
 {
     if(editmode || d->state!=CS_ALIVE) return;
@@ -423,6 +476,37 @@ void checkitems(playerent *d)
             v.z = S(int(v.x), int(v.y))->floor + eyeheight;
             if(d->o.dist(v)<2.5f) trypickupflag(i, d);
         }
+    }
+    if(d==player1)
+    {
+        if(m_park)
+        {
+            loopv(ents)
+            {
+                entity &e = ents[i];
+                if(e.type==CARROT)
+                {
+                    vec v(e.x, e.y, S(e.x, e.y)->floor+eyeheight);
+                    float d2c = d->o.dist(v); // TODO some sensible fallback values - too high and points will be given even if you just barely missed the platform
+                    switch(e.attr2)
+                    {
+                        case 0: // text
+                                if(d2c<(e.attr3>0?e.attr3:12)) textplace(d,i,e.attr1);
+                                break;
+                        case 1: // safe place
+                                if(d2c<(e.attr3>0?e.attr3:8)) reachplace(d,e.attr1);
+                                break;
+                        case 2: // points
+                                if(d2c<(e.attr3>0?e.attr3:6)) pointplace(d,i,e.attr1);
+                                break;
+                        case 3: // finished
+                                if(d2c<(e.attr3>0?e.attr3:6)) finishplace(d,i);
+                                break;
+                        default: break;
+                    }
+                }
+            }
+       }
     }
 }
 
@@ -588,6 +672,21 @@ void flagidle(int flag)
     flaginbase(flag);
     flaginfos[flag].flagent->spawned = false;
 }
+
+void hastriggers_(void)
+{
+    int seen = 0;
+    loopv(ents)
+    {
+        entity &e = ents[i];
+        if(e.type == CARROT)
+        {
+            seen++;
+        }
+    }
+    intret(seen);
+}
+COMMANDN(hastriggers, hastriggers_, "");
 
 void entstats_(void)
 {

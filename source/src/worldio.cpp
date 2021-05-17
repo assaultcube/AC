@@ -1,5 +1,5 @@
 // worldio.cpp: loading & saving of maps and savegames
-
+// --- //
 #include "cube.h"
 
 #define DEBUGCOND (worldiodebug==1)
@@ -1039,6 +1039,8 @@ int load_world(char *mname)        // still supports all map formats that have e
         }
     }
     // create entities (and update some statistics)
+    parkents.shrink(0);
+    worldtotalpoints = 0;
     calcentitystats(clentstats, tempents, hdr.numents);
     ents.shrink(0);
     loopi(hdr.numents)

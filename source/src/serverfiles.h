@@ -890,7 +890,10 @@ struct servermaprot : serverconfigfile
                     filtertext(c.mapname, behindpath(l), FTXT__MAPNAME, MAXMAPNAMELEN);
                     bool haskeywords = false;
                     l = strtok_r(NULL, " ", &b);
-                    if(l) c.mmask = gmode_parse(l);
+                    if(l){ 
+                        c.mmask = gmode_parse(l);
+                        if(c.mmask & GMMASK__PARKOUR) parkouronly = true; 
+                    }
                     while((l = strtok_r(NULL, " ", &b)))
                     {
                         if(c.parse(l)) haskeywords = true;
@@ -915,7 +918,7 @@ struct servermaprot : serverconfigfile
     {
         loopi(GMODE_NUM) base[i] = prebase[i];
         loopv(preloaded) configsets.add(preloaded[i]);
-        mlog(ACLOG_INFO,"read %d map rotation entries from '%s'", configsets.length(), filename);
+        mlog(ACLOG_INFO,"read %d/%d map rotation entries from '%s'", configsets.length(), preloaded.length(), filename); // FIXME: always 0/0 - what use is this?
     }
 
     void initmap(servermap *m, stream *f)  // set maprot parameters of a servermap
@@ -938,6 +941,7 @@ struct servermaprot : serverconfigfile
             }
         }
         m->modes_allowed = m->entstats.modes_possible & (isdedicated ? GMMASK__MPNOCOOP : GMMASK__ALL);
+        //mlog(ACLOG_INFO, "the map %s has modes_allowed: %d", m->fname, m->modes_allowed );//use a bitmask output to see the modenumbers allowed
         int rm[CR_NUM] = { 0 }, man = 0;
         loopj(GMODE_NUM)
         {

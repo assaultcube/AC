@@ -296,6 +296,7 @@ struct serverinfo
     char lang[3];
     color *bgcolor;
     int favcat, msweight, weight;
+    int browsertab; // 0: default, 1: parkour
 
     int uplinkqual, uplinkqual_age;
     unsigned char uplinkstats[MAXCLIENTS + 1];
@@ -303,7 +304,7 @@ struct serverinfo
     serverinfo()
      : mode(0), numplayers(0), maxclients(0), ping(9999), protocol(0), minremain(0),
        resolved(UNRESOLVED), port(-1), lastpingmillis(0), pongflags(0), getinfo(EXTPING_NOP),
-       bgcolor(NULL), favcat(-1), msweight(0), weight(0), uplinkqual(0), uplinkqual_age(0)
+       bgcolor(NULL), favcat(-1), msweight(0), weight(0), browsertab(-1), uplinkqual(0), uplinkqual_age(0)
     {
         name[0] = full[0] = map[0] = sdesc[0] = description[0] = '\0';
         loopi(3) lang[i] = '\0';
@@ -557,6 +558,7 @@ extern void deathstate(playerent *pl);
 extern void spawnplayer(playerent *d);
 extern void dodamage(int damage, playerent *pl, playerent *actor, int gun = -1, bool gib = false, bool local = true);
 extern void dokill(playerent *pl, playerent *act, bool gib = false, int gun = 0);
+extern void domelt(playerent *pl);
 extern playerent *newplayerent();
 extern botent *newbotent();
 extern void freebotent(botent *d);
@@ -639,6 +641,7 @@ extern void addtodoentity(int n, const char *desc);
 extern int findtype(const char *what);
 extern int findentity(int type, int index = 0);
 extern int findentity(int type, int index, uchar attr2);
+extern int findparkourstart(uchar attr3);
 extern void newentity(int index, int x, int y, int z, const char *what, float v1, float v2, float v3, float v4);
 extern void mapmrproper(bool manual);
 extern void clearworldvisibility();
@@ -829,6 +832,7 @@ enum
     PART_ECARROT,
     PART_ELADDER,
     PART_EFLAG,
+    PART_EUNKNOWN,
     MAXPARTYPES
 };
 
@@ -937,6 +941,7 @@ extern void resetpickups(int type = -1);
 extern void setpickupspawn(int i, bool on);
 extern void checkitems(playerent *d);
 extern vector<int> changedents;
+extern void hastriggers_(void);
 extern void syncentchanges(bool force = false);
 extern void clampentityattributes(persistent_entity &e);
 extern const char *formatentityattributes(const persistent_entity &e, bool withcomma = false);

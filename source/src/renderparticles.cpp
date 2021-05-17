@@ -247,7 +247,7 @@ void newparticle(const vec &o, const vec &d, int fade, int type)
 }
 
 const char *particletypenames[MAXPARTYPES + 1] = { "SPARK", "SMOKE", "ECLOSEST", "BLOOD", "DEMOTRACK", "FIREBALL", "SHOTLINE", "BULLETHOLE", "BLOODSTAIN", "SCORCH",        // 0..9
-                                                   "HUDMUZZLEFLASH", "MUZZLEFLASH", "ELIGHT", "ESPAWN", "EAMMO", "EPICKUP", "EMODEL", "ECARROT", "ELADDER", "EFLAG", "" };  // 10..19
+                                                   "HUDMUZZLEFLASH", "MUZZLEFLASH", "ELIGHT", "ESPAWN", "EAMMO", "EPICKUP", "EMODEL", "ECARROT", "ELADDER", "EFLAG", "EUNKNOWN", "" };  // 10..20
 
 static struct parttype { int type; float r, g, b; int gr, tex; float sz; } parttypes[MAXPARTYPES] =
 {
@@ -264,14 +264,15 @@ static struct parttype { int type; float r, g, b; int gr, tex; float sz; } partt
     { PT_DECAL,      1.0f, 1.0f, 1.0f, 0,  5, 1.5f  }, // scorch decal
     { PT_HUDFLASH,   1.0f, 1.0f, 1.0f, 0,  6, 0.7f  }, // hudgun muzzle flash
     { PT_FLASH,      1.0f, 1.0f, 1.0f, 0,  6, 0.7f  }, // muzzle flash
-    { PT_PART,       1.0f, 1.0f, 1.0f, 20, 0, 0.08f }, // white: edit mode ent type : light
-    { PT_PART,       0.0f, 1.0f, 0.0f, 20, 0, 0.08f }, // green: edit mode ent type : spawn
-    { PT_PART,       1.0f, 0.0f, 0.0f, 20, 0, 0.08f }, // red: edit mode ent type : ammo
-    { PT_PART,       1.0f, 1.0f, 0.0f, 20, 0, 0.08f }, // yellow: edit mode ent type : pickup
-    { PT_PART,       1.0f, 0.0f, 1.0f, 20, 0, 0.08f }, // magenta: edit mode ent type : model, sound
-    { PT_PART,       1.0f, 0.5f, 0.2f, 20, 0, 0.08f }, // orange: edit mode ent type : "carrot"
-    { PT_PART,       0.5f, 0.5f, 0.5f, 20, 0, 0.08f }, // grey: edit mode ent type : ladder, (pl)clip
+    { PT_PART,       1.0f, 1.0f, 1.0f, 20, 0, 0.08f }, //     white: edit mode ent type : light
+    { PT_PART,       0.0f, 1.0f, 0.0f, 20, 0, 0.08f }, //     green: edit mode ent type : spawn
+    { PT_PART,       1.0f, 0.0f, 0.0f, 20, 0, 0.08f }, //       red: edit mode ent type : ammo
+    { PT_PART,       1.0f, 1.0f, 0.0f, 20, 0, 0.08f }, //    yellow: edit mode ent type : pickup
+    { PT_PART,       1.0f, 0.0f, 1.0f, 20, 0, 0.08f }, //   magenta: edit mode ent type : model, sound
+    { PT_PART,       1.0f, 0.5f, 0.2f, 40, 0, 0.16f }, //    orange: edit mode ent type : "carrot"/"trigger"
+    { PT_PART,       0.5f, 0.5f, 0.5f, 20, 0, 0.08f }, //      grey: edit mode ent type : ladder, (pl)clip
     { PT_PART,       0.0f, 1.0f, 1.0f, 20, 0, 0.08f }, // turquoise: edit mode ent type : CTF-flag
+    { PT_PART,       1.0f, 0.7f, 0.8f, 40, 0, 0.16f }, //      pink: edit mode ent type : UNKNOWN
 };
 
 VAR(particlesize, 20, 100, 500);

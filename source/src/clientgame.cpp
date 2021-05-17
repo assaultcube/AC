@@ -727,28 +727,36 @@ void findplayerstart(playerent *d, bool mapcenter, int arenaspawn)
     entity *e = NULL;
     if(!mapcenter)
     {
-        int type = m_teammode ? team_base(d->team) : 100;
-        if(m_arena && arenaspawn >= 0)
+        if(m_park)
         {
-            int x = -1;
-            loopi(arenaspawn + 1) x = findentity(PLAYERSTART, x+1, type);
+            int x = findparkourstart(d->parkplace);
             if(x >= 0) e = &ents[x];
-        }
-        else if((m_teammode || m_arena) && !m_ktf) // ktf uses ffa spawns
-        {
-            loopi(r) spawncycle = findentity(PLAYERSTART, spawncycle+1, type);
-            if(spawncycle >= 0) e = &ents[spawncycle];
         }
         else
         {
-            float bestdist = -1;
-
-            loopi(r)
+            int type = m_teammode ? team_base(d->team) : 100;
+            if(m_arena && arenaspawn >= 0)
             {
-                spawncycle = clentstats.hasffaspawns ? findentity(PLAYERSTART, spawncycle+1, 100) : findentity(PLAYERSTART, spawncycle+1); // if not enough ffa-spawns are available, use all
-                if(spawncycle < 0) continue;
-                float dist = nearestenemy(vec(ents[spawncycle].x, ents[spawncycle].y, ents[spawncycle].z), d->team);
-                if(!e || dist < 0 || (bestdist >= 0 && dist > bestdist)) { e = &ents[spawncycle]; bestdist = dist; }
+                int x = -1;
+                loopi(arenaspawn + 1) x = findentity(PLAYERSTART, x+1, type);
+                if(x >= 0) e = &ents[x];
+            }
+            else if((m_teammode || m_arena) && !m_ktf) // ktf uses ffa spawns
+            {
+                loopi(r) spawncycle = findentity(PLAYERSTART, spawncycle+1, type);
+                if(spawncycle >= 0) e = &ents[spawncycle];
+            }
+            else
+            {
+                float bestdist = -1;
+    
+                loopi(r)
+                {
+                    spawncycle = clentstats.hasffaspawns ? findentity(PLAYERSTART, spawncycle+1, 100) : findentity(PLAYERSTART, spawncycle+1); // if not enough ffa-spawns are available, use all
+                    if(spawncycle < 0) continue;
+                    float dist = nearestenemy(vec(ents[spawncycle].x, ents[spawncycle].y, ents[spawncycle].z), d->team);
+                    if(!e || dist < 0 || (bestdist >= 0 && dist > bestdist)) { e = &ents[spawncycle]; bestdist = dist; }
+                }
             }
         }
     }
@@ -971,6 +979,18 @@ void dokill(playerent *pl, playerent *act, bool gib, int gun)
         addgib(pl);
     }
 
+    deathstate(pl);
+    pl->deaths++;
+    audiomgr.playsound(rnd(2) ? S_DIE1 : S_DIE2, pl);
+}
+
+void domelt(playerent *pl)
+{
+    if(pl->state!=CS_ALIVE || intermission) return;
+    const char *pname = pl == player1 ? "you" : colorname(pl);
+    void (*outf)(const char *s, ...) = (pl == player1) ? hudoutf : conoutf;
+    outf( "\f2%s melted away", pname );
+    addgib(pl);
     deathstate(pl);
     pl->deaths++;
     audiomgr.playsound(rnd(2) ? S_DIE1 : S_DIE2, pl);
@@ -1204,6 +1224,7 @@ void startmap(const char *name, bool reset, bool norespawn)   // called just aft
     {
         addsleep(0, mapstartalways);
     }
+    //hastriggers_();// flowtron: INFO GATHERED: no official map has any carrot/trigger entities
 }
 
 void suicide()
@@ -1556,7 +1577,8 @@ void clearvote() { DELETEP(curvote); DELETEP(calledvote); }
 const char *modestrings[] =
 {
     "tdm", "coop", "dm", "lms", "ts", "ctf", "pf", "btdm", "bdm", "lss",
-    "osok", "tosok", "bosok", "htf", "tktf", "ktf", "tpf", "tlss", "bpf", "blss", "btsurv", "btosok"
+    "osok", "tosok", "bosok", "htf", "tktf", "ktf", "tpf", "tlss", "bpf", "blss", "btsurv", "btosok", 
+    "npark", "fpark"
 };
 
 void setnext(char *mode, char *map)
@@ -1734,19 +1756,17 @@ void setfollowplayer(int cn)
 }
 COMMANDF(setfollowplayer, "i", (int *cn) { setfollowplayer(*cn); });
 
-// the spectate mode SM_OVERVIEW is like a radar hack and therefore is only allowed under certain conditions
-bool smoverviewflyforbidden()
-{
-    bool notmatchnotprivate = servstate.mastermode != MM_MATCH && servstate.mastermode != MM_PRIVATE;
-    return ((player1->team != TEAM_SPECT || notmatchnotprivate) && !watchingdemo);
-}
-
 // set new spect mode
 void spectatemode(int mode)
 {
     if((player1->state != CS_DEAD && player1->state != CS_SPECTATE && !team_isspect(player1->team)) || (!m_teammode && !team_isspect(player1->team) && servstate.mastermode == MM_MATCH)) return;  // during ffa matches only SPECTATORS can spectate
     if(mode == player1->spectatemode || (m_botmode && mode != SM_FLY)) return;
-    if((mode == SM_OVERVIEW || mode == SM_FLY) && smoverviewflyforbidden()) return;
+    if(mode == SM_OVERVIEW || mode == SM_FLY)
+    {
+        // the spectate mode SM_OVERVIEW is like a radar hack and therefore is only allowed under certain conditions
+        bool notmatchnotprivate = (servstate.mastermode != MM_MATCH && servstate.mastermode != MM_PRIVATE);
+        if(player1->state == CS_DEAD || player1->team == TEAM_CLA_SPECT || player1->team == TEAM_RVSF_SPECT || notmatchnotprivate) return;
+    }
     showscores(false);
     switch(mode)
     {
@@ -1756,7 +1776,6 @@ void spectatemode(int mode)
         case SM_FOLLOW3RD_TRANSPARENT:
         {
             if(players.length() && updatefollowplayer()) break;
-            else if (smoverviewflyforbidden()) mode = SM_DEATHCAM;
             else mode = SM_FLY;
         }
         case SM_FLY:
@@ -1793,7 +1812,7 @@ void togglespect() // cycle through all spectating modes
     {
         int mode;
         if(player1->spectatemode==SM_NONE) mode = SM_FOLLOW1ST; // start with 1st person spect
-        else mode = SM_FOLLOW1ST + ((player1->spectatemode - SM_FOLLOW1ST + 1) % ((smoverviewflyforbidden() ? SM_FLY : SM_OVERVIEW)-SM_FOLLOW1ST)); // replace SM_OVERVIEW by SM_NUM to enable overview mode
+        else mode = SM_FOLLOW1ST + ((player1->spectatemode - SM_FOLLOW1ST + 1) % (SM_OVERVIEW-SM_FOLLOW1ST)); // replace SM_OVERVIEW by SM_NUM to enable overview mode
         spectatemode(mode);
     }
 }

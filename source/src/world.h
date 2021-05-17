@@ -163,6 +163,7 @@ struct entitystats_s
     bool hasffaspawns;                      // has enough ffa spawns
     bool hasteamspawns;                     // has enough team spawns
     bool hasflags;                          // has exactly 2 valid flags
+    int triggercount;                       // has N>0 triggers => parkour only
     int unknownspawns, unknownflags;        // attr2 is not valid
     int firstclip;                          // index of first clipped entity
     short first[MAXENTTYPES], last[MAXENTTYPES]; // first and last occurence of every basic ent type

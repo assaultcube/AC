@@ -22,6 +22,9 @@ struct resolverresult
 vector<resolverthread> resolverthreads;
 vector<const char *> resolverqueries;
 vector<resolverresult> resolverresults;
+int currentsbtab = 0;
+enum{ SBTAB_NORM = 0, SBTAB_PARK, SBTAB_NUM };
+const char *sbtabnames[] = { "regular", "parkour" };
 SDL_mutex *resolvermutex;
 SDL_cond *querycond, *resultcond;
 
@@ -1041,6 +1044,7 @@ void refreshservers(void *menu, bool init)
             serverinfo &si = *servers[i];
             si.menuline_to = si.menuline_from = ((gmenu *)menu)->items.length();
             if((!showallservers && si.lastpingmillis <= servermenumillis) || (si.maxclients > MAXCLIENTSONMASTER && searchlan<2) ) continue; // no pong yet or forbidden
+            if(si.browsertab > -1 && si.browsertab != currentsbtab) continue;
             int banned = ((si.pongflags >> PONGFLAG_BANNED) & 1) | ((si.pongflags >> (PONGFLAG_BLACKLIST - 1)) & 2);
             bool showthisone = !(banned && showonlygoodservers) && !(showonlyfavourites > 0 && si.favcat != showonlyfavourites - 1);
             bool serverfull = si.numplayers >= si.maxclients;
@@ -1089,6 +1093,13 @@ void refreshservers(void *menu, bool init)
             if(showthisone)
             {
                 cutcolorstring(si.full, 105); // cut off too long server descriptions
+                if(si.browsertab == -1)
+                {
+                    si.browsertab = 0;
+                    if(!strncmp(si.description,PARKOURPREFIX,strlen(PARKOURPREFIX))){
+                        si.browsertab = 1;
+                    }
+                }
                 cutcolorstring(si.description, 100);
                 if(sbconnectexists)
                 {
@@ -1133,19 +1144,20 @@ void refreshservers(void *menu, bool init)
             if(!(showonlyfavourites > 0 && (servers[i]->favcat != showonlyfavourites - 1))) allplayers += servers[i]->numplayers;
         }
 
+        //TODO better display of browsertab than added on with the " \f2%s" bit
         static const char *titles[NUMSERVSORT] =
         {
-            "%s\fs\f0ping\fr\t%s plr\tserver%s%s",                               // 0: ping
-            "%sping\t\fs\f0%s plr\fr\tserver%s%s",                               // 1: player number
-            "%sping\t%s plr\tserver (\fs\f0max players\fr)%s%s",                 // 2: maxplayers
-            "%sping\t%s plr\fs\f0\fr\tserver (\fs\f0minutes remaining\fr)%s%s",  // 3: minutes remaining
-            "%sping\t%s plr\tserver (\fs\f0map\fr)%s%s",                         // 4: map
-            "%sping\t%s plr\tserver (\fs\f0game mode\fr)%s%s",                   // 5: mode
-            "%sping\t%s plr\tserver (\fs\f0IP\fr)%s%s",                          // 6: IP
-            "%sping\t%s plr\tserver (\fs\f0description\fr)%s%s"                  // 7: description
+            "%s\fs\f0ping\fr\t%s plr\tserver%s%s \f2%s",                               // 0: ping
+            "%sping\t\fs\f0%s plr\fr\tserver%s%s \f2%s",                               // 1: player number
+            "%sping\t%s plr\tserver (\fs\f0max players\fr)%s%s \f2%s",                 // 2: maxplayers
+            "%sping\t%s plr\fs\f0\fr\tserver (\fs\f0minutes remaining\fr)%s%s \f2%s",  // 3: minutes remaining
+            "%sping\t%s plr\tserver (\fs\f0map\fr)%s%s \f2%s",                         // 4: map
+            "%sping\t%s plr\tserver (\fs\f0game mode\fr)%s%s \f2%s",                   // 5: mode
+            "%sping\t%s plr\tserver (\fs\f0IP\fr)%s%s \f2%s",                          // 6: IP
+            "%sping\t%s plr\tserver (\fs\f0description\fr)%s%s \f2%s"                  // 7: description
         };
         defformatstring(allplrs)("%d", allplayers);
-        formatstring(title)(titles[serversort], showfavtag ? "fav\t" : "", !issearch && showallplayersnumber ? allplrs : "", issearch ? "      search results for \f3" : "     (F1: Help/Settings)", issearch ? cursearch : "");
+        formatstring(title)(titles[serversort], showfavtag ? "fav\t" : "", !issearch && showallplayersnumber ? allplrs : "", issearch ? "      search results for \f3" : "     (F1: Help/Settings)", issearch ? cursearch : "", sbtabnames[currentsbtab] );
         menutitlemanual(menu, title);
 
         static string notfoundmsg, headermsg;
@@ -1232,6 +1244,14 @@ bool serverskey(void *menu, int code, bool isdown)
         case SDLK_F9:
             showmenu("serverinfo");
             return true;
+
+        // key(s) for switching browsertabs
+	// drian suggests using a menuitemradio - it is easier/more intuitive, but it would also take up screen real-estate; a compromise could be a toggle in the F1 "serverbrowser help" menu
+        case SDLK_g: // short for "genre"
+        case SDLK_COMMA: // alternative w/o reason
+        case SDLK_TAB: // TAB would be the BEST key, but it seems not to get passed into here
+            currentsbtab = (currentsbtab+1) % SBTAB_NUM;
+            break;
     }
     if(menu == searchmenu) return false;
     switch(code)
@@ -1259,6 +1279,7 @@ bool serverskey(void *menu, int code, bool isdown)
         case SDLK_F8:
             showminremain = showminremain ? 0 : 1;
             return true;
+
     }
     return false;
 }

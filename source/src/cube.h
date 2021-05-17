@@ -40,6 +40,9 @@ extern vector<bounceent *> bounceents;
 extern bool editmode;
 extern int unsavededits;
 extern vector<entity> ents;             // map entities
+extern vector<bool> parkents;           // parkour one-time entities 
+extern bool parkouronly;                // server is locked into parkour mode
+extern int worldtotalpoints;            // parkour points total
 extern vec worldpos, camup, camright, camdir; // current target of the crosshair in the world
 extern int lastmillis, totalmillis, skipmillis; // last time
 extern int curtime;                     // current frame time
@@ -59,6 +62,7 @@ extern int maploaded, msctrl;
 extern float waterlevel;
 
 #define AC_MASTER_URI "ms.cubers.net"
+#define PARKOURPREFIX "[PARKOUR]"
 
 // uncommend this line for production release
 //#define PRODUCTION

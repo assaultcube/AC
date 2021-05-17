@@ -98,6 +98,7 @@ serverinfofile serverinfomotd;
 
 // server state
 bool isdedicated = false;
+bool parkouronly = false;
 ENetHost *serverhost = NULL;
 
 int laststatus = 0,                 // last per-minute log status
@@ -217,6 +218,21 @@ void poll_serverthreads()       // called once per mainloop-timeslice
                 defformatstring(fname)("%sdebug/maprot_debug_verbose.txt", scl.logfilepath);
                 stream *f = debugmaprot && dumpmaprot ? openfile(path(fname), "w") : NULL;
                 loopv(servermaps) maprot.initmap(servermaps[i], f); // may stall a few msec if there are very many maps
+                if(parkouronly)
+                {
+                    defformatstring(prefixeddesc)("%s%s", PARKOURPREFIX, sg->servdesc_current);
+                    copystring(sg->servdesc_current,prefixeddesc);
+                }
+                else
+                {
+                    char *prefixfound = strstr(sg->servdesc_current,PARKOURPREFIX);
+                    if(prefixfound == sg->servdesc_current)
+                    {
+                        string d;
+                        copystring(d,sg->servdesc_current + strlen(PARKOURPREFIX));
+                        copystring(sg->servdesc_current,d);
+                    }
+                }
                 DELETEP(f);
                 debugmaprot = false; // only once during server start
             }
@@ -338,7 +354,7 @@ servermap *servermaprot::recalcgamesuggestions(int numpl) // regenerate list of 
         s.bestmode = -1;
         s.weight = INT_MIN;
         int bestpen = INT_MAX;
-        int modemask = (numpl < 0 ? s.modes_allowed : s.modes_pn[numpl]) & s.modes_auto;
+        int modemask = parkouronly ? GMMASK__PARKOUR : (numpl < 0 ? s.modes_allowed : s.modes_pn[numpl]) & s.modes_auto;
         loopi(GMODE_NUM) if(modemask & (1 << i))
         {
             if((s.penalty[i] + modepenalty[i]) < bestpen)

@@ -6,7 +6,7 @@ enum                            // static entity types
     I_CLIPS, I_AMMO, I_GRENADE, // attr1 = elevation
     I_HEALTH, I_HELMET, I_ARMOUR, I_AKIMBO,
     MAPMODEL,                   // attr1 = angle, attr2 = idx, attr3 = elevation, attr4 = texture, attr5 = pitch, attr6 = roll
-    CARROT,                     // attr1 = tag, attr2 = type
+    CARROT,                     // attr1 = type, attr2 = index, attr3 = depends on type (referred to as TRIGGER)
     LADDER,                     // attr1 = height
     CTF_FLAG,                   // attr1 = angle, attr2 = red/blue
     SOUND,                      // attr1 = idx, attr2 = radius, attr3 = size, attr4 = volume
@@ -20,6 +20,8 @@ extern short entwraparound[MAXENTTYPES][7];
 extern uchar entscale[MAXENTTYPES][7];
 #define ENTSCALE10 10
 #define ENTSCALE5 5
+// the attr2 of PLAYERSTART in parkour - just so there is NO confusing them with team-CLA playerstarts
+#define PARKOURSTART 11
 
 enum {MAP_IS_BAD, MAP_IS_EDITABLE, MAP_IS_GOOD};
 
@@ -418,6 +420,8 @@ public:
     enet_uint32 address;
     int lifesequence;                   // sequence id for each respawn, used in damage test
     int frags, flagscore, deaths, tks;
+    int parkplace; // spawn progress in parkour
+    int parkpoints; // counter progress in parkour
     int lastaction, lastmove, lastpain, lastvoicecom, lastdeath;
     int clientrole;
     bool attacking;
@@ -446,7 +450,7 @@ public:
     bool ignored, muted;
     bool nocorpse;
 
-    playerent() : curskin(0), clientnum(-1), lastupdate(0), plag(0), ping(0), address(0), lifesequence(0), frags(0), flagscore(0), deaths(0), tks(0), lastpain(0), lastvoicecom(0), lastdeath(0), clientrole(CR_DEFAULT),
+    playerent() : curskin(0), clientnum(-1), lastupdate(0), plag(0), ping(0), address(0), lifesequence(0), frags(0), flagscore(0), deaths(0), tks(0), parkplace(0), parkpoints(0), lastpain(0), lastvoicecom(0), lastdeath(0), clientrole(CR_DEFAULT),
                   team(TEAM_SPECT), spectatemode(SM_NONE), followplayercn(FPCN_VOID), eardamagemillis(0), maxroll(ROLLMOVDEF), maxrolleffect(ROLLEFFDEF), movroll(0), effroll(0), ffov(0), scopefov(0),
                   prevweaponsel(NULL), weaponsel(NULL), nextweaponsel(NULL), primweap(NULL), nextprimweap(NULL), lastattackweapon(NULL),
                   smoothmillis(-1),
@@ -556,7 +560,7 @@ public:
     }
     void startmap()
     {
-        frags = flagscore = deaths = lifesequence = tks = 0;
+        frags = flagscore = deaths = lifesequence = tks = parkplace = parkpoints = 0;
     }
 };
 

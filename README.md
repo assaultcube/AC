@@ -1,43 +1,23 @@
-## What is AssaultCube?
+## What is AssaultCube:Parkour?
 AssaultCube is a **FREE**, multiplayer, first-person shooter game, based on the
 [CUBE engine](http://cubeengine.com/cube.php).
-
-Taking place in realistic environments, with fast, arcade gameplay,
-it's addictive and fun!
-
-With efficient bandwidth usage, it's low-latency and can even run over a 56 Kbps
-connection. It's tiny too, weighing in at a lightweight about 50 MB package
-available for [Windows, Linux, Mac](https://assault.cubers.net/download.html).
-On the correct settings, it can even run on old hardware (Pentium III and above).
-
-![screenshot](https://user-images.githubusercontent.com/7680684/69888836-9a931d80-12b3-11ea-8123-bbf06908a96f.jpg)
-
-## Features in a nutshell:
-
- * It's **FREE**.
- * Source code is available under a zlib-like open source license.
- * Low latency, it can even run across a 56 Kbps connection!
- * Lightweight size, only about 50 MB to download, plus additional maps
- average 20 KB each!
- * With the correct settings, it can run on old hardware
- (Pentium III and above).
- * Officially runs on most major systems (Windows: 2000/XP/Vista/7/8/10, Linux,
- Mac OS X: 10.6+ 64-bit), and maybe even some
- [non-major ones](https://assault.cubers.net/docs/getstarted.html)?
- * Has a built in, in-game map editor to help players create their own maps and
- allows for co-operative editmode in realtime with others!
- * Features a single-player bot system.
- * Supports recording of your game by the "demo" system.
- * Contains many multiplayer game modes, including: Deathmatch, Survivor,
- Capture the Flag, Hunt the Flag, Keep the Flag, Pistol Frenzy, Last Swiss
- Standing & One-Shot One-Kill (plus team versions of these modes).
- * Comes pre-packaged with several dozen different maps!
+AssaultCube:Parkour is a branch where the popular playing variant - often called GEMA - is to become an official part of the game.
 
 ## More info:
 
-Most of this README was directly copied from the
-[AssaultCube Homepage](https://assault.cubers.net), which should have everything
-you need in relation to AssaultCube.
+The new gamemode genre comes in two flavours to start with: normpark and freepark; npark and fpark for short.
+The freepark variant may still be renamed, repurposed or removed - a flight of fancy made me at it as an option, 
+the idea would be for there to be no weapons damaged caused in this mode. Neither from yourself nor other players.
+
+The gamemode relies on the the TRIGGER entity; it provides us with the capabilities required to structure the parkour.
+Water is now deadly, so raise the waterlevel to fill a cube above the floor of your pits to make the peril real. 
+Playerstarts should have the team attribute (#2) set to 11 and if you place some with attribute #3 index-tags then you can create safe-place respawns. You first playerstart needs to have attribute #3 equal 0, then just place a playerstart at each safe-place with attribute #3 counting up: 1, 2, 3, …
+To make the engine realise the player has reached the safe-place you need to place a trigger. Triggers currently have four uses (set by attribute #2), all accept a radius in attribute #3:
+ - 0:text – this is currently not implemented in a clean fashion; map config may not include ALIAS. But ATM a trigger:0 with attribute #1=1 will try to output a **parkour_text_1** alias.
+ - 1:safe - if you reach this entity your safe-place marker will be set to whatever the attribute #1 of the entity is; unless your safe-place marker is already higher.
+ - 2:points - you get the amount of points stored in attribute #1
+ - 3:finished - marks the end of your journey
+
 
 ## Redistribution:
 
