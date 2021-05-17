@@ -6,8 +6,8 @@ AssaultCube:Parkour is a branch where the popular playing variant - often called
 ## More info:
 
 The new gamemode genre comes in two flavours to start with: normpark and freepark; npark and fpark for short.
-The freepark variant may still be renamed, repurposed or removed - a flight of fancy made me at it as an option, 
-the idea would be for there to be no weapons damaged caused in this mode. Neither from yourself nor other players.
+The freepark variant may still be renamed, repurposed or removed - a flight of fancy made me add it as an option, 
+the idea would be for there to be no weapons damage caused in this mode. Neither from yourself nor other players.
 
 The gamemode relies on the the TRIGGER entity; it provides us with the capabilities required to structure the parkour.
 Water is now deadly, so raise the waterlevel to fill a cube above the floor of your pits to make the peril real. 
