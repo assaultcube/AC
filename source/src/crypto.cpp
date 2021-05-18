@@ -377,7 +377,7 @@ void popMT()  // undo last seedMT()
 
 #define ENTCHUNKS 32                        // pool size (in 128-bytes chunks)
 #define ENTPOOLSIZE (ENTCHUNKS * 128)
-#define ENTROPYSAVEFILE "config" PATHDIVS "entropy.dat"
+#define ENTROPYSAVEFILE "private" PATHDIVS "entropy.dat"
 
 static uchar *entpool = NULL;
 
@@ -719,8 +719,8 @@ COMMAND(ed25519speedtest, "");
 // * it is used during playing to authenticate the player to the server
 // * needs special protection...
 
-#define AUTHPREPRIVATECFGFILE  "config" PATHDIVS "authpreprivate.cfg"
-#define AUTHPRIVATECFGFILE     "config" PATHDIVS "authprivate.cfg"
+#define AUTHPREPRIVATECFGFILE  "private" PATHDIVS "authpreprivate.cfg"
+#define AUTHPRIVATECFGFILE     "private" PATHDIVS "authprivate.cfg"
 
 VARP(authmemusage, 2, 24, (1<<10) - 1);     // megabytes of RAM to use for password hash (when using a new password)
 VARP(authrounds, 0, 0, INT_MAX - 1);        // create new password hashes with a fixed number of rounds (if authrounds > 0)
