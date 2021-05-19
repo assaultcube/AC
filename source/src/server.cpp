@@ -354,7 +354,7 @@ servermap *servermaprot::recalcgamesuggestions(int numpl) // regenerate list of 
         s.bestmode = -1;
         s.weight = INT_MIN;
         int bestpen = INT_MAX;
-        int modemask = parkouronly ? GMMASK__PARKOUR : (numpl < 0 ? s.modes_allowed : s.modes_pn[numpl]) & s.modes_auto;
+        int modemask = parkouronly ? GMMASK__PARKORCOOP : (numpl < 0 ? s.modes_allowed : s.modes_pn[numpl]) & s.modes_auto;
         loopi(GMODE_NUM) if(modemask & (1 << i))
         {
             if((s.penalty[i] + modepenalty[i]) < bestpen)
