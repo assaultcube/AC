@@ -15,11 +15,16 @@ const char *entmdlnames[] =
     "pickups/nades", "pickups/pistolclips", "pickups/ammobox", "pickups/nade", "pickups/health", "pickups/helmet", "pickups/kevlar", "pickups/akimbo", ""   // doublenades + I_CLIPS..I_AKIMBO
 };
 
+const char *gunmdlnames[] =
+{
+    "", "", "weapons/carbine/menu/pickup", "weapons/shotgun/menu/pickup", "weapons/subgun/menu/pickup", "weapons/sniper/menu/pickup", "weapons/assault/menu/pickup", "", "pickups/akimbo", ""
+};
+
 void renderent(entity &e)
 {
-    const char *mdlname = entmdlnames[isitem(e.type) && !(m_lss && e.type == I_GRENADE) ? e.type - I_CLIPS + 1 : 0];  // render double nades in lss
+    const char *mdlname = e.type==I_GUN ? gunmdlnames[e.attr1] : entmdlnames[isitem(e.type) && !(m_lss && e.type == I_GRENADE) ? e.type - I_CLIPS + 1 : 0];  // render double nades in lss
     float z = (float)(1+sinf(lastmillis/100.0f+e.x+e.y)/20), yaw = lastmillis/10.0f;
-    rendermodel(mdlname, ANIM_MAPMODEL|ANIM_LOOP|ANIM_DYNALLOC, 0, 0, vec(e.x, e.y, z+S(e.x, e.y)->floor + float(e.attr1) / ENTSCALE10), 0, yaw, 0);
+    rendermodel(mdlname, ANIM_MAPMODEL|ANIM_LOOP|ANIM_DYNALLOC, 0, 0, vec(e.x, e.y, z+S(e.x, e.y)->floor + (e.type==I_GUN?0:(float(e.attr1)/ENTSCALE10))), 0, yaw, 0);
 }
 
 void renderclip(int type, int x, int y, float xs, float ys, float h, float elev, float tilt, int shape)
@@ -130,7 +135,7 @@ void rendereditentities()
             if(edithideentmask & (1 << (e.type - 1))) continue;
             vec v(e.x, e.y, e.z);
             if(vec(v).sub(camera1->o).dot(camdir) < 0) continue;
-            int sc = PART_ECARROT; // use "carrot" for unknown types
+            int sc = PART_EUNKNOWN;
             if(i == closest)
             {
                 sc = PART_ECLOSEST; // blue
@@ -148,10 +153,12 @@ void rendereditentities()
                 case I_AKIMBO:    sc = PART_EPICKUP; break; // yellow
                 case MAPMODEL:
                 case SOUND:       sc = PART_EMODEL;  break; // magenta
+                case CARROT:      sc = PART_ECARROT; break; // orange 
                 case LADDER:
                 case CLIP:
                 case PLCLIP:      sc = PART_ELADDER; break; // grey
                 case CTF_FLAG:    sc = PART_EFLAG;   break; // turquoise
+                case I_GUN:       sc = PART_EGUN; break; // orange 
                 default: break;
             }
             particle_splash(sc, i == closest ? 14 : 2, i == closest ? 50 : 40, v);
@@ -267,41 +274,35 @@ void pickupeffects(int n, playerent *d)
     entity &e = ents[n];
     e.spawned = false;
     if(!d) return;
-    d->pickup(e.type);
-    if (m_lss && e.type == I_GRENADE) d->pickup(e.type); // get 2
+    d->pickup(e.type,gamemode,e.type==I_GUN?e.attr1:-1);
+    if (m_lss && e.type == I_GRENADE) d->pickup(e.type,-1,-1); // get 2
     itemstat *is = d->itemstats(e.type);
     if(d!=player1 && d->type!=ENT_BOT) return;
     if(is)
     {
         if(d==player1)
         {
-            audiomgr.playsoundc(is->sound);
-
-            /*
-                onPickup arg1 legend:
-                  0 = pistol clips
-                  1 = ammo box
-                  2 = grenade
-                  3 = health pack
-                  4 = helmet
-                  5 = armour
-                  6 = akimbo
-            */
+            if(e.type==I_GUN)
+            {
+                if(e.attr1 == GUN_AKIMBO)
+                {
+                   audiomgr.playsoundc(S_ITEMAKIMBO);
+                }
+                else{
+                    if(e.attr1>=GUN_PISTOL && e.attr1<=GUN_ASSAULT)
+                    {
+                        audiomgr.playsoundc(e.attr1*2+7);
+                    }
+                }
+            }
+            else
+            {
+                audiomgr.playsoundc(is->sound);
+            }
             if(identexists("onPickup"))
             {
-                itemstat *tmp = NULL;
-                switch(e.type)
-                {
-                    case I_CLIPS:   tmp = &ammostats[GUN_PISTOL]; break;
-                    case I_AMMO:    tmp = &ammostats[player1->primary]; break;
-                    case I_GRENADE: tmp = &ammostats[GUN_GRENADE]; break;
-                    case I_AKIMBO:  tmp = &ammostats[GUN_AKIMBO]; break;
-                    case I_HEALTH:
-                    case I_HELMET:
-                    case I_ARMOUR:  tmp = &powerupstats[e.type-I_HEALTH]; break;
-                    default: break;
-                }
-                if(tmp) exechook(HOOK_SP, "onPickup", "%d %d", e.type - 3, m_lss && e.type == I_GRENADE ? 2 : tmp->add);
+                // onPickup arg1: 0: clips, ammo box, 2: grenade, health, 4: helmet, armour, 6: akimbo
+                if(is) exechook(HOOK_SP, "onPickup", "%d %d", e.type - 3, m_lss && e.type == I_GRENADE ? 2 : is->add);
             }
         }
         else audiomgr.playsound(is->sound, d);
@@ -325,10 +326,13 @@ extern int lastspawn;
 void trypickup(int n, playerent *d)
 {
     entity &e = ents[n];
+    int gunindex = -1;
     switch(e.type)
     {
+        case I_GUN:
+            gunindex = e.attr1;
         default:
-            if( d->canpickup(e.type) && lastmillis > e.lastmillis + 250 && lastmillis > lastspawn + 500 )
+            if( d->canpickup(e.type,gamemode,gunindex) && lastmillis > e.lastmillis + 250 && lastmillis > lastspawn + 500 )
             {
                 if(d->type==ENT_PLAYER) addmsg(SV_ITEMPICKUP, "ri", n);
                 else if(d->type==ENT_BOT && serverpickup(n, -1)) pickupeffects(n, d);

@@ -536,7 +536,7 @@ void editentity(char **args, int numargs) // index x y z a1 a2 a3 a4 ...
             unsavededits++;
         }
         // give back unchanged or new entity properties
-        formatstring(res)("%s %d %d %d  %s", entnames[t], e.x, e.y, e.z, formatentityattributes(e));
+        formatstring(res)("%s %d %d %d %s", entnames[t], e.x, e.y, e.z, formatentityattributes(e));
     }
     result(res);
 }

@@ -13,6 +13,7 @@ enum                            // static entity types
     CLIP,                       // attr1 = elevation, attr2 = xradius, attr3 = yradius, attr4 = height, attr6 = slope, attr7 = shape
     PLCLIP,                     // attr1 = elevation, attr2 = xradius, attr3 = yradius, attr4 = height, attr6 = slope, attr7 = shape
     DUMMYENT,                   // temporary entity without any function - will not be saved to map files, used to mark positions and for scripting
+    I_GUN,                      // attr1 = gun
     MAXENTTYPES
 };
 
@@ -24,7 +25,7 @@ extern uchar entscale[MAXENTTYPES][7];
 enum {MAP_IS_BAD, MAP_IS_EDITABLE, MAP_IS_GOOD};
 
 extern const char *entnames[];
-#define isitem(i) ((i) >= I_CLIPS && (i) <= I_AKIMBO)
+#define isitem(i) (((i) >= I_CLIPS && (i) <= I_AKIMBO)||(i)==I_GUN)
 
 struct persistent_entity        // map entity
 {
@@ -82,6 +83,7 @@ enum { GUN_KNIFE = 0, GUN_PISTOL, GUN_CARBINE, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIP
 struct itemstat { int add, start, max, sound; };
 extern itemstat ammostats[NUMGUNS];
 extern itemstat powerupstats[I_ARMOUR-I_HEALTH+1];
+extern itemstat gunpickupstat;
 
 struct guninfo { char modelname[23], title[42]; short sound, reload, reloadtime, attackdelay, damage, piercing, projspeed, part, spread, recoil, magsize, mdl_kick_rot, mdl_kick_back, recoilincrease, recoilbase, maxrecoil, recoilbackfade, pushfactor; bool isauto; };
 extern guninfo guns[NUMGUNS];
@@ -273,22 +275,54 @@ public:
             case I_HELMET:
             case I_ARMOUR:
                 return &powerupstats[type - I_HEALTH];
+            case I_GUN:
+		return &gunpickupstat;
             default:
                 return NULL;
         }
     }
 
-    bool canpickup(int type)
+    bool canpickup(int type, int gamemode = -1, int gunindex = -1)
     {
         switch(type)
         {
-            case I_CLIPS: return ammo[akimbo ? GUN_AKIMBO : GUN_PISTOL]<ammostats[akimbo ? GUN_AKIMBO : GUN_PISTOL].max;
-            case I_AMMO: return ammo[primary]<ammostats[primary].max;
+            case I_CLIPS: 
+                if(m_pack)
+                {
+                    bool oneormore = false;
+                    loopi(NUMGUNS)if(i!=GUN_KNIFE && i!=GUN_GRENADE) if(ammo[i]<ammostats[i].max) oneormore = true;
+                    return oneormore;
+                }
+                else
+                {                    
+                     return ammo[akimbo ? GUN_AKIMBO : GUN_PISTOL]<ammostats[akimbo ? GUN_AKIMBO : GUN_PISTOL].max;
+                }
+            case I_AMMO: 
+                if(m_pack)
+                {
+                    bool oneormore = false;
+                    loopi(NUMGUNS)if(i!=GUN_KNIFE && i!=GUN_GRENADE) if(ammo[i]<ammostats[i].max) oneormore = true;
+                    return oneormore;
+                }
+                else
+                {
+                    int ammofor = m_rage ? gunselect : primary;
+                    return ammo[ammofor]<ammostats[ammofor].max;
+                }
             case I_GRENADE: return mag[GUN_GRENADE]<ammostats[GUN_GRENADE].max;
             case I_HEALTH: return health<powerupstats[type-I_HEALTH].max;
             case I_HELMET:
             case I_ARMOUR: return armour<powerupstats[type-I_HEALTH].max;
             case I_AKIMBO: return !akimbo;
+            case I_GUN: 
+                if(gunindex>=0&&gunindex<NUMGUNS)
+                {
+                    return (ammo[gunindex]==0);
+                }
+                else
+                {
+                    return false;
+                }
             default: return false;
         }
     }
@@ -299,15 +333,38 @@ public:
         if(v > is.max) v = is.max;
     }
 
-    void pickup(int type)
+    void addsmall(itemstat &is, int &v)
+    {
+        v += is.add/2;
+        if(v > is.max) v = is.max;
+    }
+
+    void pickup(int type, int gamemode = -1, int gunindex = -1)
     {
         switch(type)
         {
             case I_CLIPS:
-                additem(ammostats[GUN_PISTOL], ammo[GUN_PISTOL]);
-                additem(ammostats[GUN_AKIMBO], ammo[GUN_AKIMBO]);
+                if(m_pack)
+                {
+                    loopi(NUMGUNS) if(i!=GUN_KNIFE && i!=GUN_GRENADE) addsmall(ammostats[i], ammo[i]);
+                }
+                else
+                {
+                    additem(ammostats[GUN_PISTOL], ammo[GUN_PISTOL]);
+                    additem(ammostats[GUN_AKIMBO], ammo[GUN_AKIMBO]);
+                }
                 break;
-            case I_AMMO: additem(ammostats[primary], ammo[primary]); break;
+            case I_AMMO: 
+                if(m_pack)
+                {
+                    loopi(NUMGUNS) if(i!=GUN_KNIFE && i!=GUN_GRENADE) additem(ammostats[i], ammo[i]);
+                }
+                else
+                {
+                    int ammofor = m_rage ? gunselect : primary;
+                    additem(ammostats[ammofor], ammo[ammofor]); 
+                }
+                break;
             case I_GRENADE: additem(ammostats[GUN_GRENADE], mag[GUN_GRENADE]); break;
             case I_HEALTH: additem(powerupstats[type-I_HEALTH], health); break;
             case I_HELMET:
@@ -318,6 +375,17 @@ public:
                 mag[GUN_AKIMBO] = guns[GUN_AKIMBO].magsize;
                 additem(ammostats[GUN_AKIMBO], ammo[GUN_AKIMBO]);
                 break;
+           case I_GUN:
+                if(m_extreme)
+                {
+                    if(gunindex>=0&&gunindex<NUMGUNS)
+                    {
+                        ammo[gunindex] = ammostats[gunindex].start;
+                        mag[gunindex] = guns[gunindex].magsize;
+                    }
+                }
+                break;
+           default:break;
         }
     }
 
@@ -338,17 +406,28 @@ public:
         else if(m_lss) primary = GUN_KNIFE;
         else primary = nextprimary;
 
-        if(!m_nopistol)
-        {
-            ammo[GUN_PISTOL] = ammostats[GUN_PISTOL].start-magsize(GUN_PISTOL);//ammostats[GUN_PISTOL].max-magsize(GUN_PISTOL);
-            mag[GUN_PISTOL] = magsize(GUN_PISTOL);
+	// TODO: implement the team-limits for mode:30:battle
+        if(m_rage||m_pack){ // all guns at our disposal
+            loopi(NUMGUNS)
+            {
+                ammo[i] = ammostats[i].start-magsize(i);
+                mag[i] = magsize(i); 
+            }
         }
-
-        if(!m_noprimary)
-        {
-            ammo[primary] = ammostats[primary].start-magsize(primary);
-            mag[primary] = magsize(primary);
-        }
+	else
+	{
+            if(!m_nopistol)
+            {
+                ammo[GUN_PISTOL] = ammostats[GUN_PISTOL].start-magsize(GUN_PISTOL);//ammostats[GUN_PISTOL].max-magsize(GUN_PISTOL);
+                mag[GUN_PISTOL] = magsize(GUN_PISTOL);
+            }
+    
+            if(!m_noprimary)
+            {
+                ammo[primary] = ammostats[primary].start-magsize(primary);
+                mag[primary] = magsize(primary);
+            }
+	}
 
         gunselect = primary;
 

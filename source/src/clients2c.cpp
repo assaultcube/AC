@@ -38,6 +38,7 @@ bool localwrongmap = false;
 bool changemapserv(char *name, int mode, int download, int revision)        // forced map change from the server
 {
     gamemode = mode;
+    if(m_battle) conoutf("\f2the \f5gamemode\f4:\f1%s\f2 has \f3not\f2 been implemented.",fullmodestr(gamemode));
     if(m_demo) return true;
     if(m_coop)
     {
@@ -886,7 +887,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
 
             case SV_EDITENT:            // coop edit of ent
             {
-                if(!m_coop)
+                if(!(m_coop||m_extreme))
                 {
                     loopi(12) getint(p);
                     break;
@@ -906,6 +907,13 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 }
 
                 ents[i].type = getint(p);
+                if(m_extreme && ents[i].type != I_GUN)
+                {
+                    conoutf("\f3ERROR\f5: \f2bad entity type \f1#\f4%d\f1:\f4%d", i, ents[i].type);
+                    ents[i].type = NOTUSED;
+                    loopi(10) getint(p);
+                    break;
+                }
                 ents[i].x = getint(p);
                 ents[i].y = getint(p);
                 ents[i].z = getint(p);
@@ -916,7 +924,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 ents[i].attr5 = getint(p);
                 ents[i].attr6 = getint(p);
                 ents[i].attr7 = getint(p);
-                ents[i].spawned = false;
+                ents[i].spawned = m_extreme;// false unless it's an eXtremeDM I_GUN
                 if(ents[i].type==LIGHT || to==LIGHT) calclight();
                 if(ents[i].type==SOUND) audiomgr.preloadmapsound(ents[i]);
                 break;

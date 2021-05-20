@@ -1,43 +1,18 @@
 ## What is AssaultCube?
 AssaultCube is a **FREE**, multiplayer, first-person shooter game, based on the
 [CUBE engine](http://cubeengine.com/cube.php).
-
-Taking place in realistic environments, with fast, arcade gameplay,
-it's addictive and fun!
-
-With efficient bandwidth usage, it's low-latency and can even run over a 56 Kbps
-connection. It's tiny too, weighing in at a lightweight about 50 MB package
-available for [Windows, Linux, Mac](https://assault.cubers.net/download.html).
-On the correct settings, it can even run on old hardware (Pentium III and above).
-
-![screenshot](https://user-images.githubusercontent.com/7680684/69888836-9a931d80-12b3-11ea-8123-bbf06908a96f.jpg)
-
-## Features in a nutshell:
-
- * It's **FREE**.
- * Source code is available under a zlib-like open source license.
- * Low latency, it can even run across a 56 Kbps connection!
- * Lightweight size, only about 50 MB to download, plus additional maps
- average 20 KB each!
- * With the correct settings, it can run on old hardware
- (Pentium III and above).
- * Officially runs on most major systems (Windows: 2000/XP/Vista/7/8/10, Linux,
- Mac OS X: 10.6+ 64-bit), and maybe even some
- [non-major ones](https://assault.cubers.net/docs/getstarted.html)?
- * Has a built in, in-game map editor to help players create their own maps and
- allows for co-operative editmode in realtime with others!
- * Features a single-player bot system.
- * Supports recording of your game by the "demo" system.
- * Contains many multiplayer game modes, including: Deathmatch, Survivor,
- Capture the Flag, Hunt the Flag, Keep the Flag, Pistol Frenzy, Last Swiss
- Standing & One-Shot One-Kill (plus team versions of these modes).
- * Comes pre-packaged with several dozen different maps!
+AssaultCube:StarDM is a branch where a number of new deatchmatch gamemodes are being tried out.
 
 ## More info:
 
-Most of this README was directly copied from the
-[AssaultCube Homepage](https://assault.cubers.net), which should have everything
-you need in relation to AssaultCube.
+There are four new gamemodes being proposed, specifics and nomenclature may still undergo changes!
+
+ - RageDM (rage): you carry all weapons, ammo boxes pickups replenish your current weapon 
+ - PackDM (pack): you carry all weapons, all ammo pickups replenish all weapons (clip/box=small/large)
+ - eXtremeDM (xdm): you start with a pistol and a primary, dead players drop their primary
+ - BattleDM (battle): your primary selection is limited per team; one A-ARD/10:SMG, one AD-81:Sniper Rifle, two V-19:Shotguns, two MTP-57:Assault Rifles
+
+BattleDM is only possible as a team mode; the other three can be played in teams or as free-for-all.
 
 ## Redistribution:
 

@@ -370,9 +370,10 @@ struct worldstate
 struct server_entity            // server side version of "entity" type
 {
     int type;
-    bool spawned, legalpickup, twice;
+    bool spawned, legalpickup, twice; // twice is unused! considered deprecated
     int spawntime;
     short x, y;
+    int attr1;
 };
 
 struct sflaginfo
@@ -448,7 +449,7 @@ const char *entnames[] =
     "none?",
     "light", "playerstart", "pistol", "ammobox","grenades",
     "health", "helmet", "armour", "akimbo",
-    "mapmodel", "trigger", "ladder", "ctf-flag", "sound", "clip", "plclip", "dummy", ""
+    "mapmodel", "trigger", "ladder", "ctf-flag", "sound", "clip", "plclip", "dummy", "gun", ""
 };
 
 // entity attribute scaling and wraparound definitions for mapformat 10
@@ -493,7 +494,8 @@ uchar entscale[MAXENTTYPES][7] =
     {  1,  1,  1,  1,  1,  1,  1 },  // sound
     { 10,  5,  5,  5,  1, 10,  1 },  // clip
     { 10,  5,  5,  5,  1, 10,  1 },  // plclip
-    {  1,  1,  1,  1,  1,  1,  1 }   // dummy
+    {  1,  1,  1,  1,  1,  1,  1 },  // dummy
+    {  1,  1,  1,  1,  1,  1,  1 }   // I_GUN
 };
 
 // see entity.h:61: struct itemstat { int add, start, max, sound; };
@@ -517,6 +519,8 @@ itemstat powerupstats[I_ARMOUR-I_HEALTH+1] =
     {25, 0, 100, S_ITEMARMOUR}, // 1 helmet
     {50, 0, 100, S_ITEMARMOUR}, // 2 armour
 };
+
+itemstat gunpickupstat = {1,0,1,NULL};
 
 guninfo guns[NUMGUNS] =
 {

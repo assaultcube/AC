@@ -1283,6 +1283,17 @@ inline void send_item_list(packetbuf &p)
     if(m_flags_) loopi(2) putflaginfo(p, i);
 }
 
+inline void update_item_list(int se_index, float x, float y, float z)
+{
+    server_entity &se = sg->sents[se_index];
+    packetbuf q(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
+    putint(q, SV_EDITENT); 
+    putint(q, se_index); putint(q, I_GUN);
+    putint(q, x); putint(q, y); putint(q, z);
+    putint(q, se.attr1); putint(q, 0); putint(q, 0); putint(q, 0); putint(q, 0); putint(q, 0); putint(q, 0); 
+    sendpacket(-1, 1, q.finalize());
+}
+
 #include "serverchecks.h"
 
 bool flagdistance(sflaginfo &f, int cn)
@@ -1829,9 +1840,11 @@ bool serverpickup(int i, int sender)         // server side item pickup, acknowl
     if(sender>=0)
     {
         client *cl = clients[sender];
+	int gunindex = -1;
         if(cl->type==ST_TCPIP)
         {
-            if(cl->state.state != CS_ALIVE || !cl->state.canpickup(e.type)) return false;
+            gunindex = e.type == I_GUN ? e.attr1 : -1;
+            if(cl->state.state != CS_ALIVE || !cl->state.canpickup(e.type,gamemode,gunindex)) return false;
             vec v(e.x, e.y, cl->state.o.z);
             float dist = cl->state.o.dist(v);
             int pdist = check_pdist(cl,dist);
@@ -1844,8 +1857,8 @@ bool serverpickup(int i, int sender)         // server side item pickup, acknowl
             }
         }
         sendf(-1, 1, "ri3", SV_ITEMACC, i, sender);
-        cl->state.pickup(sg->sents[i].type);
-        if (m_lss && sg->sents[i].type == I_GRENADE) cl->state.pickup(sg->sents[i].type); // get two nades at lss
+        cl->state.pickup(sg->sents[i].type,gamemode,gunindex);
+        if (m_lss && sg->sents[i].type == I_GRENADE) cl->state.pickup(sg->sents[i].type,gamemode,gunindex); // get two nades at lss
     }
     e.spawned = false;
     if(!m_lms) e.spawntime = spawntime(e.type);
@@ -1946,7 +1959,15 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
                        actor->state.teamkills * 60 * 1000 > sg->gamemillis &&
                        actor->state.frags < 4 * actor->state.teamkills ) ) disconnect_client(actor->clientnum, DISC_AUTOKICK);
         }
+        if(m_extreme)
+        {
+                // possible TODO is to add attr2 with the mag+ammo of the actor – that may be 0 though!
+                server_entity se = { I_GUN, true, true, false, 0, (short)actor->state.o.x, (short)actor->state.o.y, actor->state.primary };
+                sg->sents.add(se);
+                update_item_list(sg->sents.length()-1,se.x,se.y,(short)actor->state.o.z+3);
+        }
     } else if ( target!=actor && isteam(target->team, actor->team) ) check_ffire (target, actor, damage); // friendly fire counter
+
 }
 
 #include "serverevents.h"
@@ -2302,7 +2323,7 @@ void startgame(const char *newname, int newmode, int newtime, bool notify)
             {
                 e.type = sg->curmap->enttypes[i];
                 e.transformtype(sg->smode);
-                server_entity se = { e.type, false, false, false, 0, sg->curmap->entpos_x[i], sg->curmap->entpos_y[i] };
+                server_entity se = { e.type, false, false, false, 0, sg->curmap->entpos_x[i], sg->curmap->entpos_y[i], e.attr1 };
                 sg->sents.add(se);
                 if(e.fitsmode(sg->smode)) sg->sents[i].spawned = sg->sents[i].legalpickup = true;
             }

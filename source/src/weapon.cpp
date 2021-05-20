@@ -31,6 +31,8 @@ void checkweaponswitch()
     {
         addmsg(SV_WEAPCHANGE, "ri", player1->weaponsel->type);
         player1->weaponchanging = 0;
+	extern int connected;
+	if(!connected)player1->selectweapon(player1->weaponsel->type);
     }
     else if(timeprogress>(weapon::weaponchangetime>>1) && player1->weaponsel != player1->nextweaponsel)
     {
@@ -1457,13 +1459,13 @@ void shotgun::attackfx(const vec &from, const vec &to, int millis)
     attacksound();
 }
 
-bool shotgun::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
+bool shotgun::selectable() { return weapon::selectable() && !m_noprimary && (m_rage || (mag && (m_extreme || m_pack)) || this == owner->primweap); }
 
 
 // subgun
 
 subgun::subgun(playerent *owner) : gun(owner, GUN_SUBGUN) {}
-bool subgun::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
+bool subgun::selectable() { return weapon::selectable() && !m_noprimary && (m_rage || (mag && (m_extreme || m_pack)) || this == owner->primweap); }
 int subgun::dynspread() { return shots > 2 ? 70 : ( info.spread + ( shots > 0 ? ( shots == 1 ? 5 : 10 ) : 0 ) ); } // CHANGED: 2010nov19 was: min(info.spread + 10 * shots, 80)
 
 
@@ -1505,7 +1507,7 @@ int sniperrifle::dynspread()
     return info.spread;
 }
 float sniperrifle::dynrecoil() { return scoped && lastmillis - scoped_since > SCOPESETTLETIME ? info.recoil / 3 : info.recoil; }
-bool sniperrifle::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
+bool sniperrifle::selectable() { return weapon::selectable() && !m_noprimary && (m_rage || (mag && (m_extreme || m_pack)) || this == owner->primweap); }
 void sniperrifle::onselecting(bool sound) { weapon::onselecting(sound); scoped = false; player1->scoping = false; }
 void sniperrifle::ondeselecting() { scoped = false; player1->scoping = false; }
 void sniperrifle::onownerdies() { scoped = false; player1->scoping = false; shots = 0; }
@@ -1535,7 +1537,7 @@ void sniperrifle::setscope(bool enable)
 
 carbine::carbine(playerent *owner) : gun(owner, GUN_CARBINE) {}
 
-bool carbine::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
+bool carbine::selectable() { return weapon::selectable() && !m_noprimary && (m_rage || (mag && (m_extreme || m_pack)) || this == owner->primweap); }
 
 
 // assaultrifle
@@ -1544,7 +1546,7 @@ assaultrifle::assaultrifle(playerent *owner) : gun(owner, GUN_ASSAULT) {}
 
 int assaultrifle::dynspread() { return shots > 2 ? 55 : ( info.spread + ( shots > 0 ? ( shots == 1 ? 5 : 15 ) : 0 ) ); }
 float assaultrifle::dynrecoil() { return info.recoil + (rnd(8)*-0.01f); }
-bool assaultrifle::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
+bool assaultrifle::selectable() { return weapon::selectable() && !m_noprimary && (m_rage || (mag && (m_extreme || m_pack)) || this == owner->primweap); }
 
 // pistol
 
