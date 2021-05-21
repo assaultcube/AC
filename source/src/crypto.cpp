@@ -922,8 +922,6 @@ void authsetup(char **args, int numargs)  // set up private and public keys
                     preprivpwdcfg = (iterations << 10) | authmemusage;
                     xor_block(prepriv, keyhash, preprivlen);
                 }
-                savepreprivkey(numargs > 2 && args[2][0] ? path(args[2]) : AUTHPREPRIVATECFGFILE
-                               , prepriv, preprivlen, psalt, preprivpwdcfg);
             }
         }
         else if(!strcasecmp(args[0], "NEWPASS"))
@@ -940,9 +938,18 @@ void authsetup(char **args, int numargs)  // set up private and public keys
                     privpwdcfg = (iterations << 10) | authmemusage;
                     xor_block(priv, keyhash, 32);
                 }
-                saveprivkey(numargs > 2 && args[2][0] ? path(args[2]) : AUTHPRIVATECFGFILE,
-                            priv, keyhash + 32, salt, privpwdcfg);
             }
+        }
+        else if(!strcasecmp(args[0], "SAVEPRIV"))
+        {
+            ed25519_pubkey_from_private(keyhash + 32, priv);
+            saveprivkey(numargs > 2 && args[2][0] ? path(args[2]) : AUTHPRIVATECFGFILE,
+                        priv, keyhash + 32, salt, privpwdcfg);
+        }
+        else if(!strcasecmp(args[0], "SAVEPRE"))
+        {
+            savepreprivkey(numargs > 2 && args[2][0] ? path(args[2]) : AUTHPREPRIVATECFGFILE,
+                           prepriv, preprivlen, psalt, preprivpwdcfg);
         }
 #ifndef PRODUCTION
         else if(!strcasecmp(args[0], "UNARMED"))  // FIXME: this is for testing purposes only - to test simultaneous logins from the same account - delete before release!
