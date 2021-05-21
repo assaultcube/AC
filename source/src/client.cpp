@@ -753,3 +753,5 @@ COMMANDF(timestring, "", ()
 });
 
 COMMANDF(millis, "", () { intret(totalmillis); });
+
+COMMANDN(setclipboardtext, SDL_SetClipboardText, "s");
