@@ -923,6 +923,9 @@ void authsetup(char **args, int numargs)  // set up private and public keys
                     xor_block(prepriv, keyhash, preprivlen);
                 }
             }
+
+            savepreprivkey(numargs > 2 && args[2][0] ? path(args[2]) : AUTHPREPRIVATECFGFILE,
+                           prepriv, preprivlen, psalt, preprivpwdcfg);
         }
         else if(!strcasecmp(args[0], "NEWPASS"))
         {
@@ -938,6 +941,8 @@ void authsetup(char **args, int numargs)  // set up private and public keys
                     privpwdcfg = (iterations << 10) | authmemusage;
                     xor_block(priv, keyhash, 32);
                 }
+                saveprivkey(numargs > 2 && args[2][0] ? path(args[2]) : AUTHPRIVATECFGFILE,
+                            priv, keyhash + 32, salt, privpwdcfg);
             }
         }
         else if(!strcasecmp(args[0], "SAVEPRIV"))
