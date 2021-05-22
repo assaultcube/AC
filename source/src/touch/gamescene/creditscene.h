@@ -9,8 +9,8 @@ struct creditscene : view
             "AssaultCube has been created and nurtured by an international\n"
             "community of artists and developers since July 2004. We are\n"
             "people who love building fun games.\n\n"
-            "\f2We are looking for lead developers to help us build the next\n"
-            "generation of AssaultCube for Windows, Mac, Linux and Mobile.\n\n"
+            "\f2We are looking for lead developers and lead artists to help us build\n"
+            " the next generation of AssaultCube for Windows, Mac, Linux and Mobile.\n\n"
             "\f5Contributors in alphabetical order:\n\n"
             "=== Artists ===\n\n"
             "Antiklimax, Archangel, BenWasHere, Brett, daMfr0, DaylixX,\n"
@@ -50,8 +50,8 @@ struct creditscene : view
             "Please find more detailed credits and licensing information at\n"
             "https://assault.cubers.net/docs/team.html\n"
             "https://assault.cubers.net/docs/license.html\n\n"
-            "\f2We are looking for lead developers to help us build the next\n"
-            "generation of AssaultCube for Windows, Mac, Linux and Mobile.\n\n\n"
+            "\f2We are looking for lead developers and lead artists to help us build\n"
+            " the next generation of AssaultCube for Windows, Mac, Linux and Mobile.\n\n\n"
             "\f5[Tap to dismiss]\n\n";
 
     creditscene(view *parent) : view(parent)

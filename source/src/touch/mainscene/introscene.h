@@ -7,8 +7,8 @@ struct introscene : view
             "AssaultCube has been created and nurtured by an international\n"
             "community of artists and developers since July 2004. We are\n"
             "people who love building fun games.\n\n"
-            "\f2We are looking for lead developers to help us build the next\n"
-            "generation of AssaultCube for Windows, Mac, Linux and Mobile.\n\n"
+            "\f2We are looking for lead developers and lead artists to help us build\n"
+            "the next generation of AssaultCube for Windows, Mac, Linux and Mobile.\n\n"
             "\f5Enjoy the game!";
     int textwidth = 0;
 
