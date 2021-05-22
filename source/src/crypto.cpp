@@ -948,12 +948,12 @@ void authsetup(char **args, int numargs)  // set up private and public keys
         else if(!strcasecmp(args[0], "SAVEPRIV"))
         {
             ed25519_pubkey_from_private(keyhash + 32, priv);
-            saveprivkey(numargs > 2 && args[2][0] ? path(args[2]) : AUTHPRIVATECFGFILE,
+            saveprivkey(numargs > 1 && args[1][0] ? path(args[1]) : AUTHPRIVATECFGFILE,
                         priv, keyhash + 32, salt, privpwdcfg);
         }
         else if(!strcasecmp(args[0], "SAVEPRE"))
         {
-            savepreprivkey(numargs > 2 && args[2][0] ? path(args[2]) : AUTHPREPRIVATECFGFILE,
+            savepreprivkey(numargs > 1 && args[1][0] ? path(args[1  ]) : AUTHPREPRIVATECFGFILE,
                            prepriv, preprivlen, psalt, preprivpwdcfg);
         }
 #ifndef PRODUCTION
