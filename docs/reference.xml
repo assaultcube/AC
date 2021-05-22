@@ -1728,7 +1728,11 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
     <section name="General" sortindex="01">
       <description>This section describes general identifiers.</description>
       <identifiers sort="true">
-
+        <command name="setclipboardtext">
+          <arguments>
+            <argument token="T" description="Text to put in the clipboard."/>
+          </arguments>
+        </command>
         <variable name="autoscreenshot">
           <description>Toggle for taking an automatic screenshot during intermission.</description>
           <value token="B" description="0=Off, 1=On" minValue="0" maxValue="1" defaultValue="1"/>
@@ -10212,7 +10216,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
             and to lock and unlock the private key with a password.
             </remark>
             <remark>
-            Private and public keys are used to authenticate the player to servers, and are loaded from config/authprivate.cfg.
+            Private and public keys are used to authenticate the player to servers, and are loaded from private/authprivate.cfg.
             Private keys can be stored in an "encrypted with password" version - in which case the player has to enter
             the password after game start. To prevent brute-force cracking of the password, the key-derivation function uses
             a constant time to encode (usually several seconds). Because of that, the decoding at game start can be done
@@ -10241,17 +10245,19 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
             <remark>"authsetup genpre [prelen]" - generates new prepriv key.</remark>
             <remark>"authsetup genpriv" - generates private key from prepriv key.</remark>
             <remark>"authsetup genpub" - generates public key from private key.</remark>
+            <remark>"authsetup savepre [preprivfilename]" - saves the prepriv key. The default filename is private/authpreprivate.cfg</remark>
+            <remark>"authsetup savepre [privatefilename]" - saves the private key. The default filename is private/authprivate.cfg</remark>
             <remark>
             "authsetup newppass preprivpass [preprivfilename]" - encrypts prepriv key with new password and saves the result to file.
-            The default filename is config/authpreprivate.cfg and an existing file gets overwritten - but the former file
+            The default filename is private/authpreprivate.cfg and an existing file gets overwritten - but the former file
             content is kept and also written, each line commented out.
             </remark>
             <remark>
             "authsetup newpass privpass [privatefilename]" - encrypts private key with new password and saves the encrypted
-            private key and the public key to file. The default filename is config/authprivate.cfg and an existing file 
+            private key and the public key to file. The default filename is private/authprivate.cfg and an existing file 
             gets overwritten - but the former file content is kept and also written, each line commented out.
             </remark>
-            <remark>"authsetup unarmed" - sets private and public keys to a fixed value. For testing only. Can be used to "log out".</remark>
+            <remark>"authsetup unarmed" - sets private and public keys to a fixed value. For testing only. Can be used to "log out". Only available in development versions of the game</remark>
             <remark>----------</remark>
             <remark>
             "authmemusage", "authrounds", "authmaxtime" are only used, when new passwords are created (authsetup new[p]pass).

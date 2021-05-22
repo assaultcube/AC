@@ -241,7 +241,10 @@ void poll_serverthreads()       // called once per mainloop-timeslice
                 int too_old = 0;
                 enumeratekt(vitas, uchar32, k, vita_s, v,
                 {
-                    if((servclock - v.vs[VS_LASTLOGIN]) / (60 * 24 * 31) <= vitamaxage)
+                    if((servclock - v.vs[VS_LASTLOGIN]) / (60 * 24 * 31) <= vitamaxage // Vita is within the max age (months)
+                       || (v.vs[VS_BAN] == 1 || (servclock - v.vs[VS_BAN]) < 0) // Do not remove if vita has the ban, whitelist, or admin flag set
+                       || (v.vs[VS_WHITELISTED] == 1 || (servclock - v.vs[VS_WHITELISTED]) < 0)
+                       || (v.vs[VS_ADMIN] == 1 || (servclock - v.vs[VS_ADMIN]) < 0))
                     {
                         vk.k = &k;
                         vk.v = &v;
@@ -1437,6 +1440,7 @@ void flagaction(int flag, int action, int actor)
     {
         client *c = clients[actor];
         c->state.flagscore += score;
+        c->incrementvitacounter(VS_FLAGS, score);
         sendf(-1, 1, "riii", SV_FLAGCNT, actor, c->state.flagscore);
     }
     if(valid_client(actor))
@@ -1875,7 +1879,18 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
     if(damage < INT_MAX)
     {
         actor->state.damage += damage;
+        
         sendf(-1, 1, "ri7", gib ? SV_GIBDAMAGE : SV_DAMAGE, target->clientnum, actor->clientnum, gun, damage, ts.armour, ts.health);
+        
+        if (!isteam(target->team, actor->team))
+        {
+            actor->incrementvitacounter(VS_DAMAGE, damage);
+        }
+        else
+        {
+            actor->incrementvitacounter(VS_FRIENDLYDAMAGE, damage);
+        }
+        
         if(target!=actor)
         {
             if(!hitpush.iszero())
@@ -1892,19 +1907,27 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
         int targethasflag = clienthasflag(target->clientnum);
         bool tk = false, suic = false;
         target->state.deaths++;
+        target->incrementvitacounter(VS_DEATHS, 1);
+        
         if(target!=actor)
         {
-            if(!isteam(target->team, actor->team)) actor->state.frags += gib && gun != GUN_GRENADE && gun != GUN_SHOTGUN ? 2 : 1;
+            if(!isteam(target->team, actor->team))
+            {
+                actor->state.frags += gib && gun != GUN_GRENADE && gun != GUN_SHOTGUN ? 2 : 1;
+                actor->incrementvitacounter(VS_FRAGS, 1);
+            }
             else
             {
                 actor->state.frags--;
                 actor->state.teamkills++;
+                actor->incrementvitacounter(VS_TKS, 1);
                 tk = true;
             }
         }
         else
         { // suicide
             actor->state.frags--;
+            actor->incrementvitacounter(VS_TKS, 1);
             suic = true;
             mlog(ACLOG_INFO, "[%s] %s suicided", actor->hostname, actor->name);
         }
@@ -1912,6 +1935,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
         if((suic || tk) && (m_htf || m_ktf) && targethasflag >= 0)
         {
             actor->state.flagscore--;
+            actor->incrementvitacounter(VS_ANTIFLAGS, 1);
             sendf(-1, 1, "riii", SV_FLAGCNT, actor->clientnum, actor->state.flagscore);
         }
         target->position.setsize(0);
@@ -2404,6 +2428,7 @@ int getbantype(int cn)
     if(!valid_client(cn)) return BAN_NONE;
     client &c = *clients[cn];
     if(c.type==ST_LOCAL) return BAN_NONE;
+    if(c.checkvitadate(VS_BAN)) return BAN_VITA;
     if(checkgban(c.peer->address.host)) return BAN_MASTER;
     if(ipblacklist.check(c.peer->address.host)) return BAN_BLACKLIST;
     loopv(bans)
@@ -2623,23 +2648,38 @@ void callvotepacket (int cn, voteinfo *v = curvote)
     sendpacket(cn, 1, q.finalize());
 }
 
-// TODO: use AUTH code
 void changeclientrole(int client, int role, char *pwd, bool force)
 {
     pwddetail pd;
+    bool success = false;
     if(!isdedicated || !valid_client(client)) return;
     pd.line = -1;
-    if(force || role == CR_DEFAULT || (role == CR_ADMIN && pwd && pwd[0] && passwords.check(clients[client]->name, pwd, clients[client]->salt, &pd) && !pd.denyadmin))
-    {
-        if(role == clients[client]->role) return;
+    
+    if(role == clients[client]->role) return;
+    
+    if(force) success = true;
+    
+    if(role == CR_ADMIN
+       && pwd
+       && pwd[0]
+       && passwords.check(clients[client]->name, pwd, clients[client]->salt, &pd)
+       && !pd.denyadmin) {
+        mlog(ACLOG_INFO,"[%s] player %s used admin password in line %d", clients[client]->hostname, clients[client]->name[0] ? clients[client]->name : "[unnamed]", pd.line);
+        success = true;
+    }
+    
+    if(clients[client]->checkvitadate(VS_ADMIN)) {
+        mlog(ACLOG_INFO,"[%s] player %s claimed admin through valid vita claim (pubkey: %s)", clients[client]->hostname, clients[client]->name[0] ? clients[client]->name : "[unnamed]", clients[client]->pubkeyhex);
+        success = true;
+    }
+    
+    if(success) {
         if(role > CR_DEFAULT)
         {
             loopv(clients) clients[i]->role = CR_DEFAULT;
         }
         clients[client]->role = role;
         sendserveropinfo(-1);
-        if(pd.line > -1)
-            mlog(ACLOG_INFO,"[%s] player %s used admin password in line %d", clients[client]->hostname, clients[client]->name[0] ? clients[client]->name : "[unnamed]", pd.line);
         mlog(ACLOG_INFO,"[%s] set role of player %s to %s", clients[client]->hostname, clients[client]->name[0] ? clients[client]->name : "[unnamed]", role == CR_ADMIN ? "admin" : "normal player"); // flowtron : connecting players haven't got a name yet (connectadmin)
         if(role > CR_DEFAULT) sendiplist(client);
     }
@@ -3078,9 +3118,19 @@ void process(ENetPacket *packet, int sender, int chan)
             bool srvfull = numnonlocalclients() > scl.maxclients;
             bool srvprivate = sg->mastermode == MM_PRIVATE || sg->mastermode == MM_MATCH;
             bool matchreconnect = sg->mastermode == MM_MATCH && findscore(*cl, false);
+            if (cl->pubkeyhex[0]) {
+                concatformatstring(tags, ", pubkey: %s", cl->pubkeyhex);
+            }
             int bl = 0, wl = nickblacklist.checkwhitelist(*cl);
             if(wl == NWL_PASS) concatstring(tags, ", nickname whitelist match");
             if(wl == NWL_UNLISTED) bl = nickblacklist.checkblacklist(cl->name);
+            
+            bool vitawhitelist = cl->checkvitadate(VS_WHITELISTED);
+            if (vitawhitelist) {
+                concatstring(tags, ", vita whitelist match");
+                banned = false;
+            }
+            
             if(matchreconnect && !banned)
             { // former player reconnecting to a server in match mode
                 cl->isauthed = true;
@@ -3113,6 +3163,24 @@ void process(ENetPacket *packet, int sender, int chan)
                     }
                 }
                 mlog(ACLOG_INFO, "[%s] %s logged in using the admin password in line %d%s", cl->hostname, cl->name, pd.line, tags);
+            }
+            else if(wantrole == CR_ADMIN && cl->checkvitadate(VS_ADMIN) && bantype != BAN_MASTER) // pass admins always through
+            { // Set as admin in vita and is trying to connect as admin
+                cl->isauthed = true;
+                clientrole = CR_ADMIN;
+                if(bantype == BAN_VOTE)
+                {
+                    loopv(bans) if(bans[i].address.host == cl->peer->address.host) { bans.remove(i); concatstring(tags, ", ban removed"); break; } // remove admin bans
+                }
+                if(srvfull)
+                {
+                    loopv(clients) if(i != sender && clients[i]->type==ST_TCPIP)
+                    {
+                        disconnect_client(i, DISC_MAXCLIENTS); // disconnect someone else to fit maxclients again
+                        break;
+                    }
+                }
+                mlog(ACLOG_INFO, "[%s] %s logged in using the vita admin claim%s", cl->hostname, cl->name, tags);
             }
             else if(scl.serverpassword[0] && !(srvprivate || srvfull || banned))
             { // server password required
@@ -3974,6 +4042,30 @@ void process(ENetPacket *packet, int sender, int chan)
 
             case SV_PAUSEMODE:
                 break;
+                
+            case SV_GETVITA:
+            {
+                int targetcn = getint(p);
+                
+                // If the client is admin or could be admin through vita
+                if (!(cl->role >= CR_ADMIN || cl->checkvitadate(VS_ADMIN) || cl->checkvitadate(VS_OWNER))) {
+                    sendservmsg("\f3You must be admin to get vita");
+                    break;
+                }
+                
+                if (valid_client(targetcn)) {
+                    client *target = clients[targetcn];
+                    
+                    if (target->vita) {
+                        sendf(sender, 1, "riimssv", SV_VITADATA, targetcn, 32, target->pubkey.u,
+                              target->vita->privatecomment, target->vita->publiccomment,
+                              VS_NUM, target->vita->vs);
+                    }
+                } else {
+                    sendservmsg("\f3Invalid cn to retrieve vita data");
+                }
+                break;
+            }
 
             case SV_EXTENSION:
             {
@@ -4425,8 +4517,8 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
         serverhost->totalSentData = serverhost->totalReceivedData = 0;
         loopv(clients) if(clients[i]->type == ST_TCPIP && clients[i]->isauthed && clients[i]->vita)
         {
-            clients[i]->vita->vs[VS_MINUTESCONNECTED]++;
-            if(clients[i]->isonrightmap && team_isactive(clients[i]->team)) clients[i]->vita->vs[VS_MINUTESACTIVE]++;
+            clients[i]->incrementvitacounter(VS_MINUTESCONNECTED, 1);
+            if(clients[i]->isonrightmap && team_isactive(clients[i]->team)) clients[i]->incrementvitacounter(VS_MINUTESACTIVE, 1);
         }
     }
 

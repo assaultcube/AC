@@ -1354,6 +1354,39 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 getip4(p);
                 p.get((uchar*)text, 64);
                 break;
+            
+            case SV_VITADATA: { // Server sending vita data of a client. Possibly expose this to cubescript in the future
+                uchar pubkey[32];
+                char pubkeyhex[68];
+                string privatecomment;
+                string publiccomment;
+                int vs[VS_NUM];
+                
+                int targetcn = getint(p);
+                playerent *target = getclient(targetcn);
+                
+                if (target && p.get(pubkey, 32) == 32) {
+                    getstring(text, p);
+                    filtertext(privatecomment, text, FTXT__VITACOMMENT);
+                    getstring(text, p);
+                    filtertext(publiccomment, text, FTXT__VITACOMMENT);
+                    
+                    loopi(VS_NUM) vs[i] = getint(p);
+                    
+                    bin2hex(pubkeyhex, pubkey, 32);
+                    
+                    conoutf("\f0Vita Info for \f5%s \f0(\f5%d\f0) \f2pubkey: \f1%s", target->name, targetcn, pubkeyhex);
+                    if(privatecomment[0]) conoutf("\f0Private Comment: \f1%s", privatecomment);
+                    if(publiccomment[0]) conoutf("\f0Public Comment: \f1%s", publiccomment);
+                    
+                    string msg = "\f0Flags:";
+                    for (int i = 0; i < VS_NUM; i++) {
+                        concatformatstring(msg, " \f2%s=\f1%d", vskeywords[i], vs[i]);
+                    }
+                    conoutf("%s", msg);
+                }
+                break;
+            }
 
             default:
                 neterr("type");

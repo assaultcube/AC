@@ -605,6 +605,7 @@ static const int msgsizes[] =               // size inclusive message token, 0 f
     SV_EXTENSION, 0,
     SV_MAPIDENT, 3, SV_DEMOCHECKSUM, 0, SV_DEMOSIGNATURE, 0,
     SV_PAUSEMODE, 1,
+    SV_GETVITA, 2, SV_VITADATA, 0,
     -1
 };
 
