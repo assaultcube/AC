@@ -173,7 +173,7 @@ extern void menuheader(void *menu, char *header, char *footer, bool heap = false
 extern void menusay(const char *text);
 extern bool menukey(int code, bool isdown = true, SDL_Keymod mod = KMOD_NONE);
 extern void *addmenu(const char *name, const char *title = NULL, bool allowinput = true, void (__cdecl *refreshfunc)(void *, bool) = NULL, bool (__cdecl *keyfunc)(void *, int, bool) = NULL, bool hotkeys = false, bool forwardkeys = false);
-extern bool rendermenumdl();
+extern void rendermenumdl();
 extern void menuset(void *m, bool save = true);
 extern void menuselect(void *menu, int sel);
 extern void showmenu(const char *name, bool top = true);

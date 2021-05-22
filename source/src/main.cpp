@@ -10,9 +10,6 @@ void cleanup(char *msg)         // single program exit point;
         cleanupclient();
         audiomgr.soundcleanup();
         cleanupserver();
-
-        extern void cleargamma();
-        cleargamma();
     }
     SDL_ShowCursor(SDL_TRUE);
     SDL_SetRelativeMouseMode(SDL_FALSE);
@@ -536,11 +533,6 @@ VARNFP(gamma, vgamma, 30, 100, 300,
     }
 });
 
-void cleargamma()
-{
-    if(curgamma != 100) setgamma(100);
-}
-
 void restoregamma()
 {
     if(curgamma != 100)
@@ -1015,7 +1007,7 @@ void checkinput()
                 }
                 if(event.wheel.x)
                 {
-                    int key = event.wheel.x > 0 ? SDL_AC_BUTTON_RIGHT : SDL_AC_BUTTON_LEFT;
+                    int key = event.wheel.x > 0 ? SDL_AC_BUTTON_WHEELRIGHT : SDL_AC_BUTTON_WHEELLEFT;
                     keypress(key, 0, true);
                     keypress(key, 0, false);
                 }

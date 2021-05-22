@@ -124,7 +124,7 @@ void quicknadethrow(bool on)
             if(player1->weaponsel->type != GUN_GRENADE) selectweapon(player1->weapons[GUN_GRENADE]);
             if(player1->weaponsel->type == GUN_GRENADE || player1->nextweaponsel->type == GUN_GRENADE)
             {
-                if(!player1->weapons[GUN_GRENADE]->busy()) attack(true);
+                if(!(player1->weaponsel->type == GUN_GRENADE && player1->nextweaponsel->type != GUN_GRENADE)) attack(true);
             }
         }
     }
@@ -1227,7 +1227,6 @@ bool grenades::attack(vec &targ)
                 attackevent(owner, type);
                 activatenade(to); // activate
             }
-            else quicknade = false;
         break;
 
         case GST_INHAND:
@@ -1241,16 +1240,12 @@ bool grenades::attack(vec &targ)
         case GST_THROWING:
             if(attackmillis >= throwwait) // throw done
             {
-                if(this == owner->weaponsel)
-                {
-                    if(quicknade || !mag)
-                    {
-                        owner->weaponchanging = lastmillis - 1 - (weaponchangetime / 2);
-                        if(quicknade) owner->nextweaponsel = owner->weaponsel = owner->prevweaponsel; // switch to previous weapon immediately
-                        else owner->nextweaponsel = owner->weaponsel = owner->primweap; // switch to primary immediately
-                    }
-                }
                 reset();
+                if(!mag && this==owner->weaponsel) // switch to primary immediately
+                {
+                    owner->weaponchanging = lastmillis-1-(weaponchangetime/2);
+                    owner->nextweaponsel = owner->weaponsel = owner->primweap;
+                }
                 return false;
             }
             break;
@@ -1326,6 +1321,7 @@ void grenades::thrownade(const vec &vel)
     updatelastaction(owner);
     state = GST_THROWING;
     if(this==owner->weaponsel) owner->attacking = false;
+    if(quicknade && owner->weaponsel->type == GUN_GRENADE) selectweapon(owner->prevweaponsel);
 }
 
 void grenades::dropnade()
@@ -1342,7 +1338,7 @@ void grenades::renderstats()
 }
 
 bool grenades::selectable() { return weapon::selectable() && state != GST_INHAND && mag; }
-void grenades::reset() { throwmillis = 0; cookingmillis = 0; if(owner == player1) quicknade = false; state = GST_NONE; }
+void grenades::reset() { throwmillis = 0; cookingmillis = 0; quicknade = false; state = GST_NONE; }
 
 void grenades::onselecting(bool sound)
 {

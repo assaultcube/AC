@@ -27,45 +27,6 @@ extern inline void addban(client *cl, int reason, int type = BAN_AUTO);
 #include "anticheat.h"
 #endif
 
-
-/** cnumber is the number of players in the game, at a max value of 12 */
-#define CTFPICKPT     cnumber                      // player picked the flag (ctf)
-#define CTFDROPPT    -cnumber                      // player dropped the flag to other player (probably)
-#define HTFLOSTPT  -2*cnumber                      // penalty
-#define CTFLOSTPT     cnumber*distance/100         // bonus: 1/4 of the flag score bonus
-#define CTFRETURNPT   cnumber                      // flag return
-#define CTFSCOREPT   (cnumber*distance/25+10)      // flag score
-#define HTFSCOREPT   (cnumber*4+10)
-#define KTFSCOREPT   (cnumber*2+10)
-#define COMBOPT       5                            // player frags with combo
-#define REPLYPT       2                            // reply success
-#define TWDONEPT      5                            // team work done
-#define CTFLDEFPT     cnumber                      // player defended the flag in the base (ctf)
-#define CTFLCOVPT     cnumber*2                    // player covered the flag stealer (ctf)
-#define HTFLDEFPT     cnumber                      // player defended a droped flag (htf)
-#define HTFLCOVPT     cnumber*3                    // player covered the flag keeper (htf)
-#define COVERPT       cnumber*2                    // player covered teammate
-#define DEATHPT      -4                            // player died
-#define BONUSPT       target->state.points/400     // bonus (for killing high level enemies :: beware with exponential behavior!)
-#define FLBONUSPT     target->state.points/300     // bonus if flag team mode
-#define TMBONUSPT     target->state.points/200     // bonus if team mode (to give some extra reward for playing tdm modes)
-#define HTFFRAGPT     cnumber/2                    // player frags while carrying the flag
-#define CTFFRAGPT   2*cnumber                      // player frags the flag stealer
-#define FRAGPT        10                           // player frags (normal)
-#define HEADSHOTPT    15                           // player gibs with head shot
-#define KNIFEPT       20                           // player gibs with the knife
-#define SHOTGPT       12                           // player gibs with the shotgun
-#define TKPT         -20                           // player tks
-#define FLAGTKPT     -2*(10+cnumber)               // player tks the flag keeper/stealer
-
-
-
-
-
-
-
-
-
 int next_afk_check = 200;
 
 /* this function is managed to the PUBS, id est, many people playing in an open server */

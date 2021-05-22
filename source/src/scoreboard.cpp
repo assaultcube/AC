@@ -18,7 +18,6 @@ VARFP(sc_flags,      0,  0, 100, needscoresreorder = true);
 VARFP(sc_frags,      0,  1, 100, needscoresreorder = true);
 VARFP(sc_deaths,    -1,  2, 100, needscoresreorder = true);
 VARFP(sc_ratio,     -1, -1, 100, needscoresreorder = true);
-VARFP(sc_score,     -1,  4, 100, needscoresreorder = true);
 VARFP(sc_lag,       -1,  5, 100, needscoresreorder = true);
 VARFP(sc_clientnum,  0,  6, 100, needscoresreorder = true);
 VARFP(sc_name,       0,  7, 100, needscoresreorder = true);
@@ -96,7 +95,6 @@ struct teamscore
         teammembers.add(d);
         frags += d->frags;
         deaths += d->deaths;
-        points += d->points;
         if(m_flags_) flagscore += d->flagscore;
     }
 
@@ -146,8 +144,6 @@ static int scorecmp(playerent **x, playerent **y)
     if((*x)->flagscore < (*y)->flagscore) return 1;
     if((*x)->frags > (*y)->frags) return -1;
     if((*x)->frags < (*y)->frags) return 1;
-    if((*x)->points > (*y)->points) return -1;
-    if((*x)->points < (*y)->points) return 1;
     if((*x)->deaths > (*y)->deaths) return 1;
     if((*x)->deaths < (*y)->deaths) return -1;
     if((*x)->lifesequence > (*y)->lifesequence) return 1;
@@ -195,7 +191,6 @@ void renderdiscscores(int team)
         line.addcol(sc_frags, "%d", d.frags);
         line.addcol(sc_deaths, "%d", d.deaths);
         line.addcol(sc_ratio, "%.2f", SCORERATIO(d.frags, d.deaths));
-        if(multiplayer(NULL) || watchingdemo) line.addcol(sc_score, "%d", max(d.points, 0));
         line.addcol(sc_lag, "%s", clag);
         line.addcol(sc_clientnum, "DISC");
         line.addcol(sc_name, "%s", d.name);
@@ -227,11 +222,8 @@ void renderscore(playerent *d)
     line.addcol(sc_frags, "%d", d->frags);
     line.addcol(sc_deaths, "%d", d->deaths);
     line.addcol(sc_ratio, "%.2f", SCORERATIO(d->frags, d->deaths));
-    if(multiplayer(NULL) || watchingdemo)
-    {
-        line.addcol(sc_score, "%d", max(d->points, 0));
-        line.addcol(sc_lag, "%s", lagping);
-    }
+    if(multiplayer(NULL) || watchingdemo) line.addcol(sc_lag, "%s", lagping);
+
     line.addcol(sc_clientnum, "\fs\f%d%d\fr", cncolumncolor, d->clientnum);
     char flagicon = '\0';
     if(m_flags_) //show flag icon at flag carrier with use radaricons font
@@ -259,11 +251,7 @@ void renderteamscore(teamscore *t)
     line.addcol(sc_frags, "%d", t->frags);
     line.addcol(sc_deaths, "%d", t->deaths);
     line.addcol(sc_ratio, "%.2f", SCORERATIO(t->frags, t->deaths));
-    if(multiplayer(NULL) || watchingdemo)
-    {
-        line.addcol(sc_score, "%d", max(t->points, 0));
-        line.addcol(sc_lag);
-    }
+    if(multiplayer(NULL) || watchingdemo) line.addcol(sc_lag);
     line.addcol(sc_clientnum, "%s", team_string(t->team));
     int n = t->teammembers.length();
     line.addcol(sc_name, "(%d %s)", n, n == 1 ? "player" : "players");
@@ -286,11 +274,7 @@ void reorderscorecolumns()
     sscore.addcol(sc_frags, "frags");
     sscore.addcol(sc_deaths, "deaths");
     sscore.addcol(sc_ratio, "ratio");
-    if(multiplayer(NULL) || watchingdemo)
-    {
-        sscore.addcol(sc_score, "score");
-        sscore.addcol(sc_lag, "pj/ping");
-    }
+    if(multiplayer(NULL) || watchingdemo) sscore.addcol(sc_lag, "pj/ping");
     sscore.addcol(sc_clientnum, "cn");
     sscore.addcol(sc_name, "name");
     copystring(scoreboardtitle, sscore.getcols());

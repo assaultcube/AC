@@ -1240,11 +1240,11 @@ bool menukey(int code, bool isdown, SDL_Keymod mod)
     }
 }
 
-bool rendermenumdl()
+void rendermenumdl()
 {
-    if(!curmenu) return false;
+    if(!curmenu) return;
     gmenu &m = *curmenu;
-    if(!m.mdl) return false;
+    if(!m.mdl) return;
 
     glPushMatrix();
     glLoadIdentity();
@@ -1256,8 +1256,8 @@ bool rendermenumdl()
     bool isweapon = !strncmp(m.mdl, "weapons", strlen("weapons"));
 
     vec pos;
-    if(!isweapon) pos = vec(2.0f, 1.2f, -0.4f);
-    else pos = vec(2.0f, 0, 1.7f);
+    if(!isweapon) pos = vec(0.5f, 0.3f, -0.1f); 
+    else pos = vec(0.50f, 0, 0.425f);
 
     float yaw = 1.0f, pitch = isplayermodel || isweapon ? 0.0f : camera1->pitch;
     if(m.rotspeed) yaw += lastmillis/5.0f/100.0f*m.rotspeed;
@@ -1276,11 +1276,11 @@ bool rendermenumdl()
         a[0].name = "weapons/subgun/world";
         a[0].tag = "tag_weapon";
     }
-    rendermodel(isplayermodel ? "playermodels" : m.mdl, m.anim|ANIM_DYNALLOC, tex, -1, pos, 0, yaw, pitch, 0, 0, NULL, a, m.scale ? m.scale/25.0f : 1.0f);
+    float scale = (m.scale ? m.scale * 0.04f: 1.0f) * 0.25f;
+    rendermodel(isplayermodel ? "playermodels" : m.mdl, m.anim|ANIM_DYNALLOC, tex, -1, pos, 0, yaw, pitch, 0, 0, NULL, a, scale);
 
     glPopMatrix();
     dimeditinfopanel = 0;
-    return !(isplayermodel || isweapon);
 }
 
 void gmenu::refresh()

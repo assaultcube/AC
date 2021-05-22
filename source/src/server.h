@@ -139,7 +139,7 @@ struct clientstate : playerstate
         grenades.reset();
         akimbomillis = 0;
         scoped = forced = false;
-        flagscore = frags = teamkills = deaths = shotdamage = damage = points = events = lastdisc = reconnections = 0;
+        flagscore = frags = teamkills = deaths = shotdamage = damage = events = lastdisc = reconnections = 0;
         respawn();
     }
 
@@ -177,7 +177,6 @@ struct savedscore
         teamkills = cs.teamkills;
         shotdamage = cs.shotdamage;
         damage = cs.damage;
-        points = cs.points;
         forced = cs.forced;
         events = cs.events;
         lastdisc = cs.lastdisc;
@@ -625,14 +624,14 @@ soundcfgitem soundcfg[S_NULL] =
     { "misc/tinnitus",          "Tinnitus",                 2, 0,  0, S_TINNITUS,               C(OWNPAIN)       }, // 62
     { "voicecom/affirmative",   "Affirmative",              0, 0,  0, S_AFFIRMATIVE,            C(VOICECOM)|C(TEAM)                                 }, // 63
     { "voicecom/allrightsir",   "All-right sir",            0, 0,  0, S_ALLRIGHTSIR,            C(VOICECOM)|C(TEAM)                                 }, // 64
-    { "voicecom/comeonmove",    "Come on, move",            0, 0,  0, S_COMEONMOVE,             C(VOICECOM)|C(TEAM)|C(PUBLIC)|C(FFA)                }, // 65
+    { "voicecom/comeonmove",    "Come on, move",            0, 0,  0, S_COMEONMOVE,             C(VOICECOM)|C(TEAM)          |C(FFA)                }, // 65
     { "voicecom/cominginwiththeflag", "Coming in with the flag", 0,0,0, S_COMINGINWITHTHEFLAG,  C(VOICECOM)|C(TEAM)                 |C(FLAGONLY)    }, // 66
     { "voicecom/coverme",       "Cover me",                 0, 0,  0, S_COVERME,                C(VOICECOM)|C(TEAM)                                 }, // 67
     { "voicecom/defendtheflag", "Defend the flag",          0, 0,  0, S_DEFENDTHEFLAG,          C(VOICECOM)|C(TEAM)                 |C(FLAGONLY)    }, // 68
-    { "voicecom/enemydown",     "Enemy down",               0, 0,  0, S_ENEMYDOWN,              C(VOICECOM)|C(TEAM)|C(PUBLIC)                       }, // 69
+    { "voicecom/enemydown",     "Enemy down",               0, 0,  0, S_ENEMYDOWN,              C(VOICECOM)|C(TEAM)          |C(FFA)                }, // 69
     { "voicecom/gogetemboys",   "Go get 'em boys!",         0, 0,  0, S_GOGETEMBOYS,            C(VOICECOM)|C(TEAM)                                 }, // 70
     { "voicecom/goodjobteam",   "Good job team",            0, 0,  0, S_GOODJOBTEAM,            C(VOICECOM)|C(TEAM)                                 }, // 71
-    { "voicecom/igotone",       "I got one!",               0, 0,  0, S_IGOTONE,                C(VOICECOM)|C(TEAM)|C(PUBLIC)                       }, // 72
+    { "voicecom/igotone",       "I got one!",               0, 0,  0, S_IGOTONE,                C(VOICECOM)|C(TEAM)          |C(FFA)                }, // 72
     { "voicecom/imadecontact",  "I made contact",           0, 0,  0, S_IMADECONTACT,           C(VOICECOM)|C(TEAM)                                 }, // 73
     { "voicecom/imattacking",   "I'm attacking",            0, 0,  0, S_IMATTACKING,            C(VOICECOM)|C(TEAM)                                 }, // 74
     { "voicecom/imondefense",   "I'm on defense",           0, 0,  0, S_IMONDEFENSE,            C(VOICECOM)|C(TEAM)                                 }, // 75
@@ -640,7 +639,7 @@ soundcfgitem soundcfg[S_NULL] =
     { "voicecom/negative",      "Negative",                 0, 0,  0, S_NEGATIVE,               C(VOICECOM)|C(TEAM)                                 }, // 77
     { "voicecom/nocando",       "No can do",                0, 0,  0, S_NOCANDO,                C(VOICECOM)|C(TEAM)                                 }, // 78
     { "voicecom/recovertheflag", "Recover the flag",        0, 0,  0, S_RECOVERTHEFLAG,         C(VOICECOM)|C(TEAM)                 |C(FLAGONLY)    }, // 79
-    { "voicecom/sorry",         "Sorry",                    0, 0,  0, S_SORRY,                  C(VOICECOM)|C(TEAM)|C(PUBLIC)|C(FFA)                }, // 80
+    { "voicecom/sorry",         "Sorry",                    0, 0,  0, S_SORRY,                  C(VOICECOM)|C(TEAM)          |C(FFA)                }, // 80
     { "voicecom/spreadout",     "Spread out",               0, 0,  0, S_SPREADOUT,              C(VOICECOM)|C(TEAM)                                 }, // 81
     { "voicecom/stayhere",      "Stay here",                0, 0,  0, S_STAYHERE,               C(VOICECOM)|C(TEAM)                                 }, // 82
     { "voicecom/staytogether",  "Stay together",            0, 0,  0, S_STAYTOGETHER,           C(VOICECOM)|C(TEAM)                                 }, // 83
@@ -654,11 +653,11 @@ soundcfgitem soundcfg[S_NULL] =
     { "voicecom/inposition_1",  "In position",              0, 0,  0, S_INPOSITION1,            C(VOICECOM)|C(TEAM)                                 }, // 91
     { "voicecom/inposition_2",  "In position now",          0, 0,  0, S_INPOSITION2,            C(VOICECOM)|C(TEAM)                                 }, // 92
     { "voicecom/reportin",      "Report in!",               0, 0,  0, S_REPORTIN,               C(VOICECOM)|C(TEAM)                                 }, // 93
-    { "voicecom/niceshot",      "Nice shot",                0, 0,  0, S_NICESHOT,               C(VOICECOM)|C(TEAM)|C(PUBLIC)|C(FFA)                }, // 94
-    { "voicecom/thanks_1",      "Thanks",                   0, 0,  0, S_THANKS1,                C(VOICECOM)|C(TEAM)|C(PUBLIC)|C(FFA)                }, // 95
-    { "voicecom/thanks_2",      "Thanks, man",              0, 0,  0, S_THANKS2,                C(VOICECOM)|C(TEAM)|C(PUBLIC)|C(FFA)                }, // 96
-    { "voicecom/awesome_1",     "Awesome (1)",              0, 0,  0, S_AWESOME1,               C(VOICECOM)|C(TEAM)|C(PUBLIC)|C(FFA)                }, // 97
-    { "voicecom/awesome_2",     "Awesome (2)",              0, 0,  0, S_AWESOME2,               C(VOICECOM)|C(TEAM)|C(PUBLIC)|C(FFA)                }, // 98
+    { "voicecom/niceshot",      "Nice shot",                0, 0,  0, S_NICESHOT,               C(VOICECOM)|C(TEAM)|C(PUBLIC)                       }, // 94
+    { "voicecom/thanks_1",      "Thanks",                   0, 0,  0, S_THANKS1,                C(VOICECOM)|C(TEAM)|C(PUBLIC)                       }, // 95
+    { "voicecom/thanks_2",      "Thanks, man",              0, 0,  0, S_THANKS2,                C(VOICECOM)|C(TEAM)|C(PUBLIC)                       }, // 96
+    { "voicecom/awesome_1",     "Awesome (1)",              0, 0,  0, S_AWESOME1,               C(VOICECOM)|C(TEAM)|C(PUBLIC)                       }, // 97
+    { "voicecom/awesome_2",     "Awesome (2)",              0, 0,  0, S_AWESOME2,               C(VOICECOM)|C(TEAM)|C(PUBLIC)                       }, // 98
     { "misc/pickup_helmet",     "Helmet pickup",            0, 0,  0, S_ITEMHELMET,             C(PICKUP)        }, // 99
     { "player/heartbeat",       "Heartbeat",                0, 0,  0, S_HEARTBEAT,              C(OWNPAIN)       }, // 100
     { "ktf/flagscore",          "KTF score",                0, 0,  0, S_KTFSCORE,               C(OTHER)         }, // 101

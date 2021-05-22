@@ -2757,7 +2757,7 @@ void sendiplist(int receiver, int cn)
 
 void sendresume(client &c, bool broadcast)
 {
-    sendf(broadcast ? -1 : c.clientnum, 1, "ri3i9ivvi", SV_RESUME,
+    sendf(broadcast ? -1 : c.clientnum, 1, "ri3i8ivvi", SV_RESUME,
             c.clientnum,
             c.state.state,
             c.state.lifesequence,
@@ -2768,7 +2768,6 @@ void sendresume(client &c, bool broadcast)
             c.state.deaths,
             c.state.health,
             c.state.armour,
-            c.state.points,
             c.state.teamkills,
             NUMGUNS, c.state.ammo,
             NUMGUNS, c.state.mag,
@@ -2884,7 +2883,6 @@ void welcomepacket(packetbuf &p, int n)
             putint(p, c.state.deaths);
             putint(p, c.state.health);
             putint(p, c.state.armour);
-            putint(p, c.state.points);
             putint(p, c.state.teamkills);
             loopi(NUMGUNS) putint(p, c.state.ammo[i]);
             loopi(NUMGUNS) putint(p, c.state.mag[i]);
@@ -3838,6 +3836,20 @@ void process(ENetPacket *packet, int sender, int chan)
                     putint(p, sg->coop_cfglen);
                     putint(p, sg->coop_cfglengz);
                     p.put(sg->coop_mapdata, sg->coop_cgzlen + sg->coop_cfglengz);
+                    sendpacket(cl->clientnum, 2, p.finalize());
+                    cl->mapchange(true);
+                    sendwelcome(cl, 2); // resend state properly
+                }
+                else
+                {
+                    packetbuf p(MAXTRANS + sg->coop_cgzlen + sg->coop_cfglengz, ENET_PACKET_FLAG_RELIABLE);
+                    putint(p, SV_RECVMAP);
+                    sendstring(sg->smapname, p);
+                    putint(p, sg->curmap->cgzlen);
+                    putint(p, sg->curmap->cfglen);
+                    putint(p, sg->curmap->cfggzlen);
+                    p.put(sg->curmap->cgzraw, sg->curmap->cgzlen);
+                    if (sg->curmap->cgzlen) p.put(sg->curmap->cfgrawgz, sg->curmap->cfggzlen);
                     sendpacket(cl->clientnum, 2, p.finalize());
                     cl->mapchange(true);
                     sendwelcome(cl, 2); // resend state properly

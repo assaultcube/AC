@@ -276,32 +276,10 @@ void pickupeffects(int n, playerent *d)
         if(d==player1)
         {
             audiomgr.playsoundc(is->sound);
-
-            /*
-                onPickup arg1 legend:
-                  0 = pistol clips
-                  1 = ammo box
-                  2 = grenade
-                  3 = health pack
-                  4 = helmet
-                  5 = armour
-                  6 = akimbo
-            */
             if(identexists("onPickup"))
             {
-                itemstat *tmp = NULL;
-                switch(e.type)
-                {
-                    case I_CLIPS:   tmp = &ammostats[GUN_PISTOL]; break;
-                    case I_AMMO:    tmp = &ammostats[player1->primary]; break;
-                    case I_GRENADE: tmp = &ammostats[GUN_GRENADE]; break;
-                    case I_AKIMBO:  tmp = &ammostats[GUN_AKIMBO]; break;
-                    case I_HEALTH:
-                    case I_HELMET:
-                    case I_ARMOUR:  tmp = &powerupstats[e.type-I_HEALTH]; break;
-                    default: break;
-                }
-                if(tmp) exechook(HOOK_SP, "onPickup", "%d %d", e.type - 3, m_lss && e.type == I_GRENADE ? 2 : tmp->add);
+                // onPickup arg1: 0: clips, ammo box, 2: grenade, health, 4: helmet, armour, 6: akimbo
+                if(is) exechook(HOOK_SP, "onPickup", "%d %d", e.type - 3, m_lss && e.type == I_GRENADE ? 2 : is->add);
             }
         }
         else audiomgr.playsound(is->sound, d);

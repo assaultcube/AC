@@ -168,7 +168,7 @@ enum
     GMMASK__FFA       = GMMASK_BOTDEATHMATCH | GMMASK_BOTLSS | GMMASK_BOTONESHOTONEKILL | GMMASK_BOTPISTOLFRENZY | GMMASK_COOPEDIT | GMMASK_DEATHMATCH | GMMASK_SURVIVOR
                       | GMMASK_PISTOLFRENZY | GMMASK_LASTSWISSSTANDING | GMMASK_ONESHOTONEKILL | GMMASK_KEEPTHEFLAG,
     GMMASK__FFASPAWN  = GMMASK_BOTDEATHMATCH | GMMASK_BOTLSS | GMMASK_BOTONESHOTONEKILL | GMMASK_BOTPISTOLFRENZY | GMMASK_COOPEDIT | GMMASK_DEATHMATCH | GMMASK_SURVIVOR
-                      | GMMASK_PISTOLFRENZY | GMMASK_LASTSWISSSTANDING | GMMASK_ONESHOTONEKILL | GMMASK_KEEPTHEFLAG | GMMASK_KEEPTHEFLAG | GMMASK_TEAMKEEPTHEFLAG
+                      | GMMASK_PISTOLFRENZY | GMMASK_LASTSWISSSTANDING | GMMASK_ONESHOTONEKILL | GMMASK_KEEPTHEFLAG | GMMASK_TEAMKEEPTHEFLAG
 };
 
 #define m_lms         (gamemode==3 || gamemode==4 || gamemode==20)
@@ -193,7 +193,7 @@ enum
 #define m_mp(mode)    (m_valid(mode) && (mode)>=0 && (mode)!=7 && (mode)!=8 && (mode)!=12 && ((mode)<18 || (mode)>21))
 #define m_demo        (gamemode==-1)
 #define m_coop        (gamemode==1)
-#define m_flags_       (m_ctf || m_htf || m_ktf) // trailing underscore is required to prevent name clash on FreeBSD systems
+#define m_flags_      (m_ctf || m_htf || m_ktf) // trailing underscore is required to prevent name clash on FreeBSD systems
 #define m_isdemo(x)   ((x) == -1)
 
 // single filter modes

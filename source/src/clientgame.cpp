@@ -280,7 +280,6 @@ void playerinfo(int *cn, const char *attr)
     ATTR_INT(role, p->clientrole);
     ATTR_INT(frags, p->frags);
     ATTR_INT(flags, p->flagscore);
-    ATTR_INT(points, p->points);
     ATTR_INT(deaths, p->deaths);
     ATTR_INT(tks, p->tks);
     ATTR_INT(alive, p->state == CS_ALIVE ? 1 : 0);
@@ -318,7 +317,6 @@ void teaminfo(const char *team, const char *attr)
     int t_flags = 0;
     int t_frags = 0;
     int t_deaths = 0;
-    int t_points = 0;
 
     string teammembers = "";
 
@@ -326,7 +324,6 @@ void teaminfo(const char *team, const char *attr)
     {
         t_frags += players[i]->frags;
         t_deaths += players[i]->deaths;
-        t_points += players[i]->points;
         t_flags += players[i]->flagscore;
         concatformatstring(teammembers, "%d ", players[i]->clientnum);
     }
@@ -335,7 +332,6 @@ void teaminfo(const char *team, const char *attr)
     {
         t_frags += discscores[i].frags;
         t_deaths += discscores[i].deaths;
-        t_points += discscores[i].points;
         t_flags += discscores[i].flags;
     }
 
@@ -343,7 +339,6 @@ void teaminfo(const char *team, const char *attr)
     {
         t_frags += player1->frags;
         t_deaths += player1->deaths;
-        t_points += player1->points;
         t_flags += player1->flagscore;
         concatformatstring(teammembers, "%d ", player1->clientnum);
     }
@@ -351,7 +346,6 @@ void teaminfo(const char *team, const char *attr)
     ATTR_INT(flags, t_flags);
     ATTR_INT(frags, t_frags);
     ATTR_INT(deaths, t_deaths);
-    ATTR_INT(points, t_points);
     ATTR_STR(name, team_string(t));
     ATTR_STR(players, teammembers);
     conoutf("invalid attribute: %s", attr);
@@ -1749,17 +1743,19 @@ void setfollowplayer(int cn)
 }
 COMMANDF(setfollowplayer, "i", (int *cn) { setfollowplayer(*cn); });
 
+// the spectate mode SM_OVERVIEW is like a radar hack and therefore is only allowed under certain conditions
+bool smoverviewflyforbidden()
+{
+    bool notmatchnotprivate = servstate.mastermode != MM_MATCH && servstate.mastermode != MM_PRIVATE;
+    return ((player1->team != TEAM_SPECT || notmatchnotprivate) && !watchingdemo);
+}
+
 // set new spect mode
 void spectatemode(int mode)
 {
     if((player1->state != CS_DEAD && player1->state != CS_SPECTATE && !team_isspect(player1->team)) || (!m_teammode && !team_isspect(player1->team) && servstate.mastermode == MM_MATCH)) return;  // during ffa matches only SPECTATORS can spectate
     if(mode == player1->spectatemode || (m_botmode && mode != SM_FLY)) return;
-    if(mode == SM_OVERVIEW)
-    {
-        // the spectate mode SM_OVERVIEW is like a radar hack and therefore is only allowed under certain conditions
-        bool notmatchnotprivate = (servstate.mastermode != MM_MATCH && servstate.mastermode != MM_PRIVATE);
-        if(player1->state == CS_DEAD || player1->team == TEAM_CLA_SPECT || player1->team == TEAM_RVSF_SPECT || notmatchnotprivate) return;
-    }
+    if((mode == SM_OVERVIEW || mode == SM_FLY) && smoverviewflyforbidden()) return;
     showscores(false);
     switch(mode)
     {
@@ -1769,6 +1765,7 @@ void spectatemode(int mode)
         case SM_FOLLOW3RD_TRANSPARENT:
         {
             if(players.length() && updatefollowplayer()) break;
+            else if (smoverviewflyforbidden()) mode = SM_DEATHCAM;
             else mode = SM_FLY;
         }
         case SM_FLY:
@@ -1805,7 +1802,7 @@ void togglespect() // cycle through all spectating modes
     {
         int mode;
         if(player1->spectatemode==SM_NONE) mode = SM_FOLLOW1ST; // start with 1st person spect
-        else mode = SM_FOLLOW1ST + ((player1->spectatemode - SM_FOLLOW1ST + 1) % (SM_OVERVIEW-SM_FOLLOW1ST)); // replace SM_OVERVIEW by SM_NUM to enable overview mode
+        else mode = SM_FOLLOW1ST + ((player1->spectatemode - SM_FOLLOW1ST + 1) % ((smoverviewflyforbidden() ? SM_FLY : SM_OVERVIEW)-SM_FOLLOW1ST)); // replace SM_OVERVIEW by SM_NUM to enable overview mode
         spectatemode(mode);
     }
 }

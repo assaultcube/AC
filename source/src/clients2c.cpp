@@ -181,6 +181,8 @@ void parsepositions(ucharbuf &p)
                 sniperrifle *sr = (sniperrifle *)d->weaponsel;
                 sr->scoped = d->scoping = (f & (1 << 5)) ? true : false;
             }
+            else d->scoping = false;
+
             d->roll = 0;
             d->vel = vel;
             int ft = f & 0x1f;
@@ -759,7 +761,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                         deaths = getint(p),
                         health = getint(p),
                         armour = getint(p),
-                        points = getint(p),
                         teamkills = getint(p);
                     int ammo[NUMGUNS], mag[NUMGUNS];
                     loopi(NUMGUNS) ammo[i] = getint(p);
@@ -771,7 +772,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     d->flagscore = flagscore;
                     d->frags = frags;
                     d->deaths = deaths;
-                    d->points = points;
                     d->tks = teamkills;
                     if(d!=player1)
                     {
