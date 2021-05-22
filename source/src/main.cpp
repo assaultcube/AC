@@ -1350,6 +1350,11 @@ int main(int argc, char **argv)
     SDL_SetWindowIcon(screen, icon);
 #endif
 
+#ifdef __APPLE__
+    // Fix https://github.com/assaultcube/AC/issues/300
+    SDL_SetHintWithPriority(SDL_HINT_MOUSE_RELATIVE_MODE_WARP, "1", SDL_HINT_OVERRIDE);
+#endif
+
     SDL_ShowCursor(0);
 
     initlog("gl");
