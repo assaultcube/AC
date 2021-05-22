@@ -40,3 +40,4 @@ packetlog.txt
 profile/*
 logs/*
 
+.DS_Store
