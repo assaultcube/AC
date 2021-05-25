@@ -615,7 +615,7 @@ extern void votecount(int v);
 extern void clearvote();
 
 // scoreboard
-struct discscore { int team, flags, frags, deaths, points; char name[MAXNAMELEN + 1]; };
+struct discscore { int team, flags, frags, deaths, points, parkpoints, parkplace; char name[MAXNAMELEN + 1]; };
 extern vector<discscore> discscores;
 extern void showscores(bool on);
 extern void renderscores(void *menu, bool init);
@@ -802,13 +802,14 @@ enum
     PT_SHOTLINE,
     PT_DECAL,
     PT_BULLETHOLE,
+    PT_CARROTRANGE,
     PT_BLOOD,
     PT_STAIN,
     PT_FLASH,
     PT_HUDFLASH
 };
 
-#define PT_DECAL_MASK ((1<<PT_DECAL)|(1<<PT_BULLETHOLE)|(1<<PT_STAIN))
+#define PT_DECAL_MASK ((1<<PT_DECAL)|(1<<PT_BULLETHOLE)|(1<<PT_CARROTRANGE)|(1<<PT_STAIN))
 
 enum
 {
@@ -819,7 +820,7 @@ enum
     PART_DEMOTRACK,
     PART_FIREBALL,
     PART_SHOTLINE,
-    PART_BULLETHOLE,
+    PART_BULLETHOLE, // 7
     PART_BLOODSTAIN,
     PART_SCORCH,
     PART_HUDMUZZLEFLASH,
@@ -830,10 +831,11 @@ enum
     PART_EPICKUP,
     PART_EMODEL,
     PART_ECARROT,
+    PART_ECARROTRANGE, // 18
     PART_ELADDER,
     PART_EFLAG,
-    PART_EUNKNOWN,
-    MAXPARTYPES
+    PART_EUNKNOWN, // 21
+    MAXPARTYPES    // 22
 };
 
 extern void particleinit();
@@ -846,6 +848,7 @@ extern void particle_emit(int type, int *args, int basetime, int seed, const vec
 extern void particle_fireball(int type, const vec &o);
 extern void addshotline(dynent *d, const vec &from, const vec &to);
 extern bool addbullethole(dynent *d, const vec &from, const vec &to, float radius = 1, bool noisy = true);
+extern bool addcarrotrange(const vec &at, float radius = 1);
 extern bool addscorchmark(vec &o, float radius = 7);
 extern void render_particles(int time, int typemask = ~0);
 extern const char *particletypenames[MAXPARTYPES + 1];

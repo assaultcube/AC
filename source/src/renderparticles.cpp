@@ -184,10 +184,10 @@ void cleanupexplosion()
     }
 }
 
-struct particle { vec o, d; int fade, type; int millis; particle *next; };
+struct particle { vec o, d; int fade, type; int millis; float size; particle *next; };
 particle *parlist[MAXPARTYPES], *parempty = NULL;
 
-static Texture *parttex[7];
+static Texture *parttex[8];
 
 void particleinit()
 {
@@ -200,6 +200,7 @@ void particleinit()
     parttex[4] = textureload("packages/misc/blood.png");
     parttex[5] = textureload("packages/misc/scorch.png");
     parttex[6] = textureload("packages/misc/muzzleflash.jpg");
+    parttex[7] = textureload("<decal>packages/misc/range.png");
 }
 
 void cleanupparticles()
@@ -221,7 +222,7 @@ void particlereset()
     }
 }
 
-void newparticle(const vec &o, const vec &d, int fade, int type)
+void newparticle(const vec &o, const vec &d, int fade, int type, float size = 0 )
 {
     if(OUTBORD((int)o.x, (int)o.y)) return;
 
@@ -242,37 +243,40 @@ void newparticle(const vec &o, const vec &d, int fade, int type)
     p->fade = fade;
     p->type = type;
     p->millis = lastmillis;
+    p->size = size;
     p->next = parlist[type];
     parlist[type] = p;
 }
 
-const char *particletypenames[MAXPARTYPES + 1] = { "SPARK", "SMOKE", "ECLOSEST", "BLOOD", "DEMOTRACK", "FIREBALL", "SHOTLINE", "BULLETHOLE", "BLOODSTAIN", "SCORCH",        // 0..9
-                                                   "HUDMUZZLEFLASH", "MUZZLEFLASH", "ELIGHT", "ESPAWN", "EAMMO", "EPICKUP", "EMODEL", "ECARROT", "ELADDER", "EFLAG", "EUNKNOWN", "" };  // 10..20
+const char *particletypenames[MAXPARTYPES + 1] = { "SPARK", "SMOKE", "ECLOSEST", "BLOOD", "DEMOTRACK", "FIREBALL", "SHOTLINE", "BULLETHOLE", // 0..7
+                                                   "BLOODSTAIN", "SCORCH", "HUDMUZZLEFLASH", "MUZZLEFLASH", "ELIGHT", "ESPAWN", "EAMMO", "EPICKUP", // 8..15
+                                                   "EMODEL", "ECARROT", "ECARROTRANGE", "ELADDER", "EFLAG", "EUNKNOWN", "" };  // 16..21
 
 static struct parttype { int type; float r, g, b; int gr, tex; float sz; } parttypes[MAXPARTYPES] =
 {
-    { PT_PART,       0.4f, 0.4f, 0.4f, 2,  0, 0.06f }, // yellow: sparks
-    { PT_PART,       1.0f, 1.0f, 1.0f, 20, 1, 0.15f }, // grey:   small smoke
-    { PT_PART,       0.0f, 0.0f, 1.0f, 20, 0, 0.08f }, // blue:   edit mode closest ent
-    { PT_BLOOD,      0.5f, 0.0f, 0.0f, 1,  4, 0.3f  }, // red:    blood spats
-    { PT_PART,       1.0f, 0.1f, 0.1f, 0,  1, 0.2f  }, // red:    demotrack
-    { PT_FIREBALL,   1.0f, 0.5f, 0.5f, 0,  2, 7.0f  }, // explosion fireball
-    { PT_SHOTLINE,   1.0f, 1.0f, 0.7f, 0, -1, 0.0f  }, // yellow: shotline
-    { PT_BULLETHOLE, 1.0f, 1.0f, 1.0f, 0,  3, 0.3f  }, // hole decal
+    { PT_PART,        0.4f, 0.4f, 0.4f, 2,  0, 0.06f }, // yellow: sparks
+    { PT_PART,        1.0f, 1.0f, 1.0f, 20, 1, 0.15f }, // grey:   small smoke
+    { PT_PART,        0.0f, 0.0f, 1.0f, 20, 0, 0.08f }, // blue:   edit mode closest ent
+    { PT_BLOOD,       0.5f, 0.0f, 0.0f, 1,  4, 0.3f  }, // red:    blood spats
+    { PT_PART,        1.0f, 0.1f, 0.1f, 0,  1, 0.2f  }, // red:    demotrack
+    { PT_FIREBALL,    1.0f, 0.5f, 0.5f, 0,  2, 7.0f  }, // explosion fireball
+    { PT_SHOTLINE,    1.0f, 1.0f, 0.7f, 0, -1, 0.0f  }, // yellow: shotline
+    { PT_BULLETHOLE,  1.0f, 1.0f, 1.0f, 0,  3, 0.3f  }, // hole decal
 
-    { PT_STAIN,      0.5f, 0.0f, 0.0f, 0,  4, 0.6f  }, // red:    blood stain
-    { PT_DECAL,      1.0f, 1.0f, 1.0f, 0,  5, 1.5f  }, // scorch decal
-    { PT_HUDFLASH,   1.0f, 1.0f, 1.0f, 0,  6, 0.7f  }, // hudgun muzzle flash
-    { PT_FLASH,      1.0f, 1.0f, 1.0f, 0,  6, 0.7f  }, // muzzle flash
-    { PT_PART,       1.0f, 1.0f, 1.0f, 20, 0, 0.08f }, //     white: edit mode ent type : light
-    { PT_PART,       0.0f, 1.0f, 0.0f, 20, 0, 0.08f }, //     green: edit mode ent type : spawn
-    { PT_PART,       1.0f, 0.0f, 0.0f, 20, 0, 0.08f }, //       red: edit mode ent type : ammo
-    { PT_PART,       1.0f, 1.0f, 0.0f, 20, 0, 0.08f }, //    yellow: edit mode ent type : pickup
-    { PT_PART,       1.0f, 0.0f, 1.0f, 20, 0, 0.08f }, //   magenta: edit mode ent type : model, sound
-    { PT_PART,       1.0f, 0.5f, 0.2f, 40, 0, 0.16f }, //    orange: edit mode ent type : "carrot"/"trigger"
-    { PT_PART,       0.5f, 0.5f, 0.5f, 20, 0, 0.08f }, //      grey: edit mode ent type : ladder, (pl)clip
-    { PT_PART,       0.0f, 1.0f, 1.0f, 20, 0, 0.08f }, // turquoise: edit mode ent type : CTF-flag
-    { PT_PART,       1.0f, 0.7f, 0.8f, 40, 0, 0.16f }, //      pink: edit mode ent type : UNKNOWN
+    { PT_STAIN,       0.5f, 0.0f, 0.0f, 0,  4, 0.6f  }, // red:    blood stain
+    { PT_DECAL,       1.0f, 1.0f, 1.0f, 0,  5, 1.5f  }, // scorch decal
+    { PT_HUDFLASH,    1.0f, 1.0f, 1.0f, 0,  6, 0.7f  }, // hudgun muzzle flash
+    { PT_FLASH,       1.0f, 1.0f, 1.0f, 0,  6, 0.7f  }, // muzzle flash
+    { PT_PART,        1.0f, 1.0f, 1.0f, 20, 0, 0.08f }, //     white: edit mode ent type : light
+    { PT_PART,        0.0f, 1.0f, 0.0f, 20, 0, 0.08f }, //     green: edit mode ent type : spawn
+    { PT_PART,        1.0f, 0.0f, 0.0f, 20, 0, 0.08f }, //       red: edit mode ent type : ammo
+    { PT_PART,        1.0f, 1.0f, 0.0f, 20, 0, 0.08f }, //    yellow: edit mode ent type : pickup
+    { PT_PART,        1.0f, 0.0f, 1.0f, 20, 0, 0.08f }, //   magenta: edit mode ent type : model, sound
+    { PT_PART,        1.0f, 0.5f, 0.2f, 40, 0, 0.16f }, //    orange: edit mode ent type : "carrot"/"trigger"
+    { PT_CARROTRANGE, 1.0f, 1.0f, 1.0f,  0, 7, 1.00f }, //                        range of "carrot"/"trigger"
+    { PT_PART,        0.5f, 0.5f, 0.5f, 20, 0, 0.08f }, //      grey: edit mode ent type : ladder, (pl)clip
+    { PT_PART,        0.0f, 1.0f, 1.0f, 20, 0, 0.08f }, // turquoise: edit mode ent type : CTF-flag
+    { PT_PART,        1.0f, 0.7f, 0.8f, 40, 0, 0.16f }, //      pink: edit mode ent type : UNKNOWN
 };
 
 VAR(particlesize, 20, 100, 500);
@@ -332,6 +336,7 @@ void render_particles(int time, int typemask)
                 break;
 
             case PT_BULLETHOLE:
+            case PT_CARROTRANGE:
                 glBlendFunc(GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA);
                 glBegin(GL_QUADS);
                 break;
@@ -424,7 +429,9 @@ void render_particles(int time, int typemask)
                 }
 
                 case PT_BULLETHOLE:
+                case PT_CARROTRANGE:
                 {
+                    float usesz = pt.type == PT_CARROTRANGE ? p->size : pt.sz;
                     float blend = max(0.0f, min((p->millis+p->fade - lastmillis)/1000.0f, 1.0f));
                     glColor4f(pt.r*blend, pt.g*blend, pt.b*blend, blend);
                     vec dx(0, 0, 0), dy(0, 0, 0);
@@ -435,10 +442,10 @@ void render_particles(int time, int typemask)
                         if(k<2) { tx = k^1; ty = 2; }
                         break;
                     }
-                    glTexCoord2f(0.5f+0.5f*(-dx[tx]+dy[tx]), 0.5f+0.5f*(-dx[ty]+dy[ty])); glVertex3f(p->o.x+(-dx.x+dy.x)*pt.sz, p->o.y+(-dx.y+dy.y)*pt.sz, p->o.z+(-dx.z+dy.z)*pt.sz);
-                    glTexCoord2f(0.5f+0.5f*( dx[tx]+dy[tx]), 0.5f+0.5f*( dx[ty]+dy[ty])); glVertex3f(p->o.x+( dx.x+dy.x)*pt.sz, p->o.y+( dx.y+dy.y)*pt.sz, p->o.z+( dx.z+dy.z)*pt.sz);
-                    glTexCoord2f(0.5f+0.5f*( dx[tx]-dy[tx]), 0.5f+0.5f*( dx[ty]-dy[ty])); glVertex3f(p->o.x+( dx.x-dy.x)*pt.sz, p->o.y+( dx.y-dy.y)*pt.sz, p->o.z+( dx.z-dy.z)*pt.sz);
-                    glTexCoord2f(0.5f+0.5f*(-dx[tx]-dy[tx]), 0.5f+0.5f*(-dx[ty]-dy[ty])); glVertex3f(p->o.x+(-dx.x-dy.x)*pt.sz, p->o.y+(-dx.y-dy.y)*pt.sz, p->o.z+(-dx.z-dy.z)*pt.sz);
+                    glTexCoord2f(0.5f+0.5f*(-dx[tx]+dy[tx]), 0.5f+0.5f*(-dx[ty]+dy[ty])); glVertex3f(p->o.x+(-dx.x+dy.x)*usesz, p->o.y+(-dx.y+dy.y)*usesz, p->o.z+(-dx.z+dy.z)*usesz);
+                    glTexCoord2f(0.5f+0.5f*( dx[tx]+dy[tx]), 0.5f+0.5f*( dx[ty]+dy[ty])); glVertex3f(p->o.x+( dx.x+dy.x)*usesz, p->o.y+( dx.y+dy.y)*usesz, p->o.z+( dx.z+dy.z)*usesz);
+                    glTexCoord2f(0.5f+0.5f*( dx[tx]-dy[tx]), 0.5f+0.5f*( dx[ty]-dy[ty])); glVertex3f(p->o.x+( dx.x-dy.x)*usesz, p->o.y+( dx.y-dy.y)*usesz, p->o.z+( dx.z-dy.z)*usesz);
+                    glTexCoord2f(0.5f+0.5f*(-dx[tx]-dy[tx]), 0.5f+0.5f*(-dx[ty]-dy[ty])); glVertex3f(p->o.x+(-dx.x-dy.x)*usesz, p->o.y+(-dx.y-dy.y)*usesz, p->o.z+(-dx.z-dy.z)*usesz);
                     xtraverts += 4;
                     break;
                 }
@@ -522,6 +529,7 @@ void render_particles(int time, int typemask)
             case PT_SHOTLINE:
             case PT_DECAL:
             case PT_BULLETHOLE:
+            case PT_CARROTRANGE:
             case PT_BLOOD:
             case PT_STAIN:
             case PT_FLASH:
@@ -641,6 +649,47 @@ bool addbullethole(dynent *d, const vec &from, const vec &to, float radius, bool
     return true;
 }
 
+VARP(singletriggerrange, 0, 1, 1); // only show the range on the level the entity is actually on - or lowest/highest inside range too?
+
+bool addcarrotrange(const vec &at, float radius)
+{
+    vec surface; 
+    int entat_x = (int)at.x;
+    int entat_y = (int)at.y;
+    sqr *loc = S(entat_x, entat_y);
+    vec to(at.x, at.y, loc->floor);
+    vec ray(to);
+    ray.sub(at);
+    ray.normalize();
+    float dist = raycube(at, ray, surface);
+    if(surface.iszero()) return false;
+    vec o(at);
+    o.add(ray.mul(dist));
+    char entfloorlevel = (char)o.z;
+    o.add(vec(surface).normalize().mul(0.01f));
+    newparticle(o, surface, 300, 18, radius);
+    if(!singletriggerrange)
+    {
+        char lowestfloor;
+        char highestfloor;
+        lowestfloor = highestfloor = entfloorlevel;
+	// pointing in direction 0° has the red corner top/left - a radius of R means [-R..0..[R floors to inspect
+	// RETHINK: not excluding the absolute corners of the square
+        for(int dx=-radius; dx<radius; dx++){
+            for(int dy=-radius; dy<radius; dy++){
+                if(true) // RETHINK: (abs(dx)!=radius || abs(dy)!=radius)
+                {
+                    char gridcellfloor = S(entat_x+dx,entat_y+dy)->floor;
+                    if(gridcellfloor>highestfloor) highestfloor = gridcellfloor;
+                    if(gridcellfloor<lowestfloor) lowestfloor = gridcellfloor;
+                }
+            }
+        }
+        if(lowestfloor!=entfloorlevel){ vec oo(o); oo.z = lowestfloor + 0.01f; newparticle(oo,surface,300,18,radius); }
+        if(highestfloor!=entfloorlevel){ vec oo(o); oo.z = highestfloor + 0.01f; newparticle(oo,surface,300,18,radius); }
+    }
+    return true;
+}
 
 VARP(scorch, 0, 1, 1);
 VARP(scorchttl, 0, 10000, 30000);
