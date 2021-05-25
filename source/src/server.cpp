@@ -4296,7 +4296,7 @@ void loggamestatus(const char *reason)
     mlog(ACLOG_INFO, "Game status: %s on %s, %s, %s, %d clients%c %s",
                       modestr(gamemode), sg->smapname, reason ? reason : text, mmfullname(sg->mastermode), totalclients, sg->custom_servdesc ? ',' : '\0', sg->servdesc_current);
     if(!scl.loggamestatus) return;
-    mlog(ACLOG_INFO, "cn name             %s%s score frag death %sping role    host", m_teammode ? "team " : "", m_flags_ ? "flag " : "", m_teammode ? "tk " : "");
+    mlog(ACLOG_INFO, "cn name             %s%s frag death %sping role    host", m_teammode ? "team " : "", m_flags_ ? "flag " : "", m_teammode ? "tk " : "");
     loopv(clients)
     {
         client &c = *clients[i];
@@ -4304,7 +4304,6 @@ void loggamestatus(const char *reason)
         formatstring(text)("%2d %-16s ", c.clientnum, c.name);                 // cn name
         if(m_teammode) concatformatstring(text, "%-4s ", team_string(c.team, true)); // teamname (abbreviated)
         if(m_flags_) concatformatstring(text, "%4d ", c.state.flagscore);             // flag
-        concatformatstring(text, "%6d ", c.state.points);                            // score
         concatformatstring(text, "%4d %5d", c.state.frags, c.state.deaths);          // frag death
         if(m_teammode) concatformatstring(text, " %2d", c.state.teamkills);          // tk
         mlog(ACLOG_INFO, "%s%5d %s  %s", text, c.ping, c.role == CR_ADMIN ? "admin " : "normal", c.hostname);
