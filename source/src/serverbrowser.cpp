@@ -488,6 +488,13 @@ void checkpings()
         filtertext(si->map, behindpath(text), FTXT__MAPNAME);
         getstring(text, p);
         filtertext(si->sdesc, text, FTXT__SERVDESC);
+        
+        if(!strncmp(si->sdesc, PARKOURPREFIX, strlen(PARKOURPREFIX))) // the prefix only serves the purpose to sort them into a separate TAB
+        {
+            copystring(si->sdesc, si->sdesc + strlen(PARKOURPREFIX));
+            si->browsertab = 1;
+        }else si->browsertab = 0;
+
         copystring(si->description, si->sdesc);
         si->maxclients = getint(p);
         if(p.remaining())
@@ -1044,7 +1051,7 @@ void refreshservers(void *menu, bool init)
             serverinfo &si = *servers[i];
             si.menuline_to = si.menuline_from = ((gmenu *)menu)->items.length();
             if((!showallservers && si.lastpingmillis <= servermenumillis) || (si.maxclients > MAXCLIENTSONMASTER && searchlan<2) ) continue; // no pong yet or forbidden
-            if(si.browsertab > -1 && si.browsertab != currentsbtab) continue;
+            if(si.browsertab > -1 && si.browsertab != currentsbtab) continue; // unpolled servers seen on all tabs
             int banned = ((si.pongflags >> PONGFLAG_BANNED) & 1) | ((si.pongflags >> (PONGFLAG_BLACKLIST - 1)) & 2);
             bool showthisone = !(banned && showonlygoodservers) && !(showonlyfavourites > 0 && si.favcat != showonlyfavourites - 1);
             bool serverfull = si.numplayers >= si.maxclients;
@@ -1093,13 +1100,6 @@ void refreshservers(void *menu, bool init)
             if(showthisone)
             {
                 cutcolorstring(si.full, 105); // cut off too long server descriptions
-                if(si.browsertab == -1)
-                {
-                    si.browsertab = 0;
-                    if(!strncmp(si.description,PARKOURPREFIX,strlen(PARKOURPREFIX))){
-                        si.browsertab = 1;
-                    }
-                }
                 cutcolorstring(si.description, 100);
                 if(sbconnectexists)
                 {
@@ -1245,11 +1245,7 @@ bool serverskey(void *menu, int code, bool isdown)
             showmenu("serverinfo");
             return true;
 
-        // key(s) for switching browsertabs
-	// drian suggests using a menuitemradio - it is easier/more intuitive, but it would also take up screen real-estate; a compromise could be a toggle in the F1 "serverbrowser help" menu
-        case SDLK_g: // short for "genre"
-        case SDLK_COMMA: // alternative w/o reason
-        case SDLK_TAB: // TAB would be the BEST key, but it seems not to get passed into here
+        case SDLK_TAB:
             currentsbtab = (currentsbtab+1) % SBTAB_NUM;
             break;
     }
