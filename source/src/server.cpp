@@ -1562,8 +1562,6 @@ void htf_forceflag(int flag)
     f.lastupdate = sg->gamemillis;
 }
 
-int cmpscore(const int *a, const int *b) { return clients[*a]->at3_score - clients[*b]->at3_score; }
-vector<int> tdistrib;
 vector<twoint> sdistrib;
 
 void distributeteam(int team)
@@ -1572,16 +1570,6 @@ void distributeteam(int team)
     if(sg->curmap) numsp = team == 100 ? sg->curmap->entstats.spawns[2] : sg->curmap->entstats.spawns[team & 1];
     if(!numsp) numsp = 30; // no spawns: try to distribute anyway
     twoint ti;
-    tdistrib.shrink(0);
-    loopv(clients) if(clients[i]->type!=ST_EMPTY)
-    {
-        if(team == 100 || team == clients[i]->team)
-        {
-            tdistrib.add(i);
-            clients[i]->at3_score = rnd(0x1000000);
-        }
-    }
-    tdistrib.sort(cmpscore); // random player order
     sdistrib.shrink(0);
     loopi(numsp)
     {
@@ -1590,11 +1578,9 @@ void distributeteam(int team)
         sdistrib.add(ti);
     }
     sdistrib.sort(cmpintasc); // random spawn order
-    int x = 0;
-    loopv(tdistrib)
+    loopv(clients)
     {
-        clients[tdistrib[i]]->spawnindex = sdistrib[x++].val;
-        x %= sdistrib.length();
+        clients[i]->spawnindex = sdistrib[i % sdistrib.length()].val;
     }
 }
 
@@ -2045,15 +2031,6 @@ bool updateclientteam(int cln, int newteam, int ftr)
         else
         {
             if(sg->autoteam && teamsizes[TEAM_CLA] != teamsizes[TEAM_RVSF]) newteam = teamsizes[TEAM_CLA] < teamsizes[TEAM_RVSF] ? TEAM_CLA : TEAM_RVSF;
-            else
-            { // join weaker team
-                int teamscore[2] = {0, 0}, sum = calcscores();
-                loopv(clients) if(clients[i]->type!=ST_EMPTY && i != cln && clients[i]->isauthed && clients[i]->team != TEAM_SPECT)
-                {
-                    teamscore[team_base(clients[i]->team)] += clients[i]->at3_score;
-                }
-                newteam = sum > 200 ? (teamscore[TEAM_CLA] < teamscore[TEAM_RVSF] ? TEAM_CLA : TEAM_RVSF) : rnd(2);
-            }
         }
     }
     if(ftr == FTR_PLAYERWISH)
@@ -2089,52 +2066,20 @@ bool updateclientteam(int cln, int newteam, int ftr)
     return true;
 }
 
-int calcscores() // skill eval
-{
-    int sum = 0;
-    loopv(clients) if(clients[i]->type!=ST_EMPTY)
-    {
-        clientstate &cs = clients[i]->state;
-        sum += clients[i]->at3_score = cs.points > 0 ? sqrtf((float)cs.points) : -sqrtf((float)-cs.points);
-    }
-    return sum;
-}
-
 vector<int> shuffle;
 
 void shuffleteams(int ftr = FTR_AUTOTEAM)
 {
     int numplayers = numclients();
-    int team, sums = calcscores();
-    if(sg->gamemillis < 2 * 60 *1000)
-    { // random
-        int teamsize[2] = {0, 0};
-        loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->isonrightmap && !team_isspect(clients[i]->team)) // only shuffle active players
-        {
-            sums += rnd(1000);
-            team = sums & 1;
-            if(teamsize[team] >= numplayers/2) team = team_opposite(team);
-            updateclientteam(i, team, ftr);
-            teamsize[team]++;
-            sums >>= 1;
-        }
-    }
-    else
-    { // skill sorted
-        shuffle.shrink(0);
-        sums /= 4 * numplayers + 2;
-        team = rnd(2);
-        loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->isonrightmap && !team_isspect(clients[i]->team))
-        {
-            clients[i]->at3_score += rnd(sums | 1);
-            shuffle.add(i);
-        }
-        shuffle.sort(cmpscore);
-        loopi(shuffle.length())
-        {
-            updateclientteam(shuffle[i], team, ftr);
-            team = !team;
-        }
+    int team = rnd(2);
+
+    // random
+    int teamsize[2] = {0, 0};
+    loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->isonrightmap && !team_isspect(clients[i]->team)) // only shuffle active players
+    {
+        if(teamsize[team] >= numplayers/2) team = team_opposite(team);
+        updateclientteam(i, team, ftr);
+        teamsize[team]++;
     }
 
     if(m_ctf || m_htf)
@@ -2151,7 +2096,6 @@ bool refillteams(bool now, int ftr)  // force only minimal amounts of players
     int teamsize[2] = {0, 0}, teamscore[2] = {0, 0}, moveable[2] = {0, 0};
     bool switched = false;
 
-    calcscores();
     loopv(clients) if(clients[i]->type!=ST_EMPTY)     // playerlist stocktaking
     {
         client *c = clients[i];
@@ -2161,7 +2105,6 @@ bool refillteams(bool now, int ftr)  // force only minimal amounts of players
             if(team_isactive(c->team)) // only active players count
             {
                 teamsize[c->team]++;
-                teamscore[c->team] += c->at3_score;
                 if(clienthasflag(i) < 0)
                 {
                     c->at3_dontmove = false;
@@ -2189,7 +2132,7 @@ bool refillteams(bool now, int ftr)  // force only minimal amounts of players
                 int targetscore = diffscore / (diffnum & ~1);
                 loopv(clients) if(clients[i]->type!=ST_EMPTY && !clients[i]->at3_dontmove) // try all still movable players
                 {
-                    int fit = targetscore - clients[i]->at3_score;
+                    int fit = targetscore;
                     if(fit < 0 ) fit = -(fit * 15) / 10;       // avoid too good players
                     int forcedelay = clients[i]->at3_lastforce ? (1000 - (sg->gamemillis - clients[i]->at3_lastforce) / (5 * 60)) : 0;
                     if(forcedelay > 0) fit += (fit * forcedelay) / 600;   // avoid lately forced players
@@ -2206,7 +2149,6 @@ bool refillteams(bool now, int ftr)  // force only minimal amounts of players
                 if(updateclientteam(pick, !bigteam, ftr))
                 {
                     diffnum -= 2;
-                    diffscore -= 2 * clients[pick]->at3_score;
                     clients[pick]->at3_lastforce = sg->gamemillis;  // try not to force this player again for the next 5 minutes
                     switched = true;
                 }
@@ -2703,7 +2645,6 @@ void senddisconnectedscores(int cn)
                 putint(p, sc.flagscore);
                 putint(p, sc.frags);
                 putint(p, sc.deaths);
-                putint(p, sc.points);
             }
         }
     }

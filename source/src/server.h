@@ -116,7 +116,7 @@ struct clientstate : playerstate
     projectilestate<8> grenades;
     int akimbomillis;
     bool scoped;
-    int flagscore, frags, teamkills, deaths, shotdamage, damage, points, events, lastdisc, reconnections;
+    int flagscore, frags, teamkills, deaths, shotdamage, damage, events, lastdisc, reconnections;
 
     clientstate() : state(CS_DEAD) {}
 
@@ -160,13 +160,13 @@ struct savedscore
 {
     string name;
     uint ip;
-    int frags, flagscore, deaths, teamkills, shotdamage, damage, team, points, events, lastdisc, reconnections;
+    int frags, flagscore, deaths, teamkills, shotdamage, damage, team, events, lastdisc, reconnections;
     bool valid, forced;
 
     void reset()
     {
         // to avoid 2 connections with the same score... this can disrupt some laggers that eventually produces 2 connections (but it is rare)
-        frags = flagscore = deaths = teamkills = shotdamage = damage = points = events = lastdisc = reconnections = 0;
+        frags = flagscore = deaths = teamkills = shotdamage = damage = events = lastdisc = reconnections = 0;
     }
 
     void save(clientstate &cs, int t)
@@ -193,7 +193,6 @@ struct savedscore
         cs.teamkills = teamkills;
         cs.shotdamage = shotdamage;
         cs.damage = damage;
-        cs.points = points;
         cs.forced = forced;
         cs.events = events;
         cs.lastdisc = lastdisc;
@@ -262,7 +261,7 @@ struct client                   // server side version of "dynent" type
     vector<uchar> position, messages;
     string lastsaytext;
     int saychars, lastsay, spamcount, badspeech, badmillis;
-    int at3_score, at3_lastforce, eff_score;
+    int at3_lastforce;
     bool at3_dontmove;
     int spawnindex;
     int spawnperm, spawnpermsent;
@@ -302,7 +301,7 @@ struct client                   // server side version of "dynent" type
             freshgame = true;         // permission to spawn at once
         }
         lastevent = 0;
-        at3_lastforce = eff_score = 0;
+        at3_lastforce = 0;
         mapcollisions = farpickups = 0;
         upspawnp = false;
         lag = 0;
@@ -404,7 +403,6 @@ int clienthasflag(int cn);
 bool refillteams(bool now = false, int ftr = FTR_AUTOTEAM);
 void changeclientrole(int client, int role, char *pwd = NULL, bool force=false);
 int findmappath(const char *mapname, char *filename = NULL);
-int calcscores();
 void recordpacket(int chan, void *data, int len);
 void senddisconnectedscores(int cn);
 void process(ENetPacket *packet, int sender, int chan);
