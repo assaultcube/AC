@@ -17,7 +17,6 @@ git archive --format zip --output source\vcpp\buildEnv\%ACDIR%\%NEWACTAG%.zip re
 cd source\vcpp\buildEnv\%ACDIR%
 7z x %NEWACTAG%.zip
 7z x %NEWACTAG%.zip -o..\%ACDIRTESTING%
-del ..\%ACDIRTESTING%\assaultcube.bat
 del %NEWACTAG%.zip
 
 rem get documentation files from latest remote release tag

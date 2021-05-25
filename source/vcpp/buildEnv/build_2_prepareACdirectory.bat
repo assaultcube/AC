@@ -2,7 +2,9 @@
 set ACDIR=AC
 set ACDIRTESTING=AC_testing
 
-echo make sure, that you compiled new binaries in %ACDIRTESTING% folder, tested them and generated fresh config\mapmodelattributes.cfg file (/loadallmapmodels)
+echo 1. copy your newly compiled binaries to %ACDIRTESTING%\bin_win32\
+echo 2. edit %ACDIRTESTING%\assaultcube.bat and change the profile path to the local directory i.e. "--home=" 
+echo 3. launch %ACDIRTESTING%\assaultcube.bat and execute /loadallmapmodels then quit AC
 pause
 
 rem copy binaries
