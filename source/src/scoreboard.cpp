@@ -85,9 +85,9 @@ vector<discscore> discscores;
 
 struct teamscore
 {
-    int team, frags, deaths, flagscore, points;
+    int team, frags, deaths, flagscore;
     vector<playerent *> teammembers;
-    teamscore(int t) : team(t), frags(0), deaths(0), flagscore(0), points(0) {}
+    teamscore(int t) : team(t), frags(0), deaths(0), flagscore(0) {}
 
     void addplayer(playerent *d)
     {
@@ -102,7 +102,6 @@ struct teamscore
     {
         frags += d.frags;
         deaths += d.deaths;
-        points += d.points;
         if(m_flags_) flagscore += d.flags;
     }
 };
@@ -132,8 +131,6 @@ static int teamscorecmp(const teamscore *x, const teamscore *y)
     if(x->flagscore < y->flagscore) return 1;
     if(x->frags > y->frags) return -1;
     if(x->frags < y->frags) return 1;
-    if(x->points > y->points) return -1;
-    if(x->points < y->points) return 1;
     if(x->deaths < y->deaths) return -1;
     return 0;
 }
