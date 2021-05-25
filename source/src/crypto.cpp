@@ -809,7 +809,9 @@ void authsetup(char **args, int numargs)  // set up private and public keys
     uint32_t offs = 7337;
     loopi(16) fnv1a_add(offs, buf[i]);
     uchar *priv = buf + 24 + (offs & 0xfc), *prepriv = priv + 112 + ((offs >> 9) & 0xfc), res = 0;
+#ifdef _DEBUG
     char hextemp[2 * preprivmaxlen + 1];
+#endif
 
     if(passdrunning)
     {
