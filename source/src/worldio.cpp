@@ -993,6 +993,8 @@ int load_world(char *mname)        // still supports all map formats that have e
         hdr.waterlevel = -100000;
         hdr.ambient = 0;
     }
+    extern int ambient;
+    ambient = hdr.ambient;
     if(hdr.version < 10) hdr.waterlevel *= WATERLEVELSCALING;
     setfvar("waterlevel", float(hdr.waterlevel) / WATERLEVELSCALING);
     mapoverride_nowaterreflect = (hdr.flags & MHF_DISABLEWATERREFLECT) ? 1 : 0;
