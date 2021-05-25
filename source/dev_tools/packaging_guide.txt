@@ -1,28 +1,72 @@
 Packaging AssaultCube:
 
-I. Part 1:
+First follow all steps in 'releasing_guide.txt'. 
+The suggested setup involves four separate paths:
+The development occured in Path-A, packaging occurs in Path-B and Path-C. The profile folder is Path-D.
+On a MacOS/Linux system we'd be somewhere in /usr/local/src/AC, on Windows D:\Development\AC. The location of the profile folders can be found in Path-A/assaultcube.[bat/sh].
+In our example in the source path location a subfolder 'git' holds the repository used in development (that's Path-A) another subfolder 'PACKAGE' has two children 'build' (Path-B) and 'pack' (Path-C).
+Example:
+  /usr/local/src/AC
+    Path-A: /usr/local/src/AC/git
+    Path-B: /usr/local/src/AC/PACKAGE/build
+    Path-C: /usr/local/src/AC/PACKAGE/pack
+Some automation is provided by scripts in source/vcpp/buildEnv/*.bat and source/dev_tools/*.sh.
 
-1. Make sure that all steps from releasing_guide.txt are done.
-2. Do "git archive" for the latest release tag (preferred) or download ZIP package of "master" branch from GitHub or do fresh "git clone" (don't start AC afterwards to avoid any changes).
-3. Extract the archive to the AssaultCube folder purposed to packaging.
-4. Extract the archive to the second folder in different location and:
-a) compile there binaries of client and server, change potential "native_*" filenames to "ac_*" filenames on Windows or to "linux_*" filenames on Linux, test binaries;
-b) generate fresh config/mapmodelattributes.cfg file: delete config/mapmodelattributes.cfg (if existent), run AC with an empty profile (important: packages/models/mapmodels in profile has to be empty) and run /loadallmapmodels command;
-c) copy freshly generated config/mapmodelattributes.cfg file to the folder purposed to packaging, also copy there binaries to the bin_*/ folder for the target platform;
-d) copy shadow files (*.dat) from another working AC installation (for example from this, which was used to compile and test binaries or from dev version of AC) to the folder purposed to packaging.
+I. a clean build
+  1. Get a package of the release tag from the git repository.
+     Preferred: "git archive". Alternatives: download ZIP github.com/assaultcube/AC or a clean "git clone"
+     Example: user@machine:/usr/local/src/AC/git$ git archive --format=tar v9.9.9 | gzip > ../PACKAGE/v9.9.9.tar.gz
+  2. Extrac the package twice
+     1. Extract the package to Path-C.
+        Example: user@machine:/usr/local/src/AC/PACKAGE/pack$ tar xzf ../PACKAGE/v9.9.9.tar.gz
+     2. Extract the package to Path-B.
+        Example: user@machine:/usr/local/src/AC/PACKAGE/build$ tar xzf ../PACKAGE/v9.9.9.tar.gz
+  3. Building
+     1. compile binaries for client & server inside Path-B
+        Example: user@machine:/usr/local/src/AC/PACKAGE/build/source/src$ make clean && colormake && make install
+     2. generate fresh config/mapmodelattributes.cfg file
+        1. delete Path-D – most importantly Path-D/config/mapmodelattributes.cfg and Path-D/packages/models/mapmodels
+        2. run AC with an empty profile
+        3. in AC run "/loadallmapmodels" command
 
-II. Part 2 - concerns AssaultCube folder purposed to packaging:
+II. fill packaging area
+  1. copy Path-D/config/mapmodelattributes.cfg to Path-C
+  2. copy the binaries for the target platform to Path-C
+     1. rename 'native_*'
+        - Windows: renamed to 'ac_*' into Path-C/bin_win32
+        - Linux: renamed to 'linux_*' into Path-C/bin_unix
+          Example: native_client would become linux_client (32bit) or linux_64_client (64bit)
+  3. copy model shadow files (shadows.dat) to Path-C - NOT the crypto:entropy.dat
+     Example: user@machine:/usr/local/src/AC/PACKAGE/pack$ while read pfad; do subpfad=$(echo "$pfad"|cut -d'/' -f6-); echo cp $pfad $subpfad; done < <(find Path-D -type f -name shadows.dat)
+  4. Copy the whole content from htdocs/docs/ folder in the latest release tag in assaultcube.github.io repository to docs/ folder.
+  5. Archive config/autoexec.cfg, config/favourites.cfg, config/pcksources.cfg into config/configtemplates.zip (see commit 41fd31d). [[ https://github.com/assaultcube/AC/commit/41fd31d ]]
+     Example: user@machine:/usr/local/src/AC/PACKAGE/pack/config$ zip configtemplates.zip autoexec.cfg favourites.cfg pcksources.cfg; for stale in autoexec favourites pcksources; do rm ${stale}.cfg; done
 
-1. Copy the whole content from htdocs/docs/ folder in the latest release tag in assaultcube.github.io repository to docs/ folder.
-2. Delete .git folder, .gitignore, .travis.yml, if existent.
-3. Archive config/autoexec.cfg, config/favourites.cfg, config/pcksources.cfg into config/configtemplates.zip (see commit 41fd31d).
-4. Delete the whole source/ folder, but only then, if you prepare .exe, .dmg etc. installer (generally at least for Windows and Mac). DON'T delete it, if compressed archive/package is prepared on Linux, instead of that delete source/doxygen/, source/vcpp/, source/xcode/, source/lib/ folders and source/codeblocks/AssaultCube.cbp file.
-5. Delete config/autoexec.cfg, config/favourites.cfg, config/pcksources.cfg, config/init*.cfg, config/saved*.cfg, config/servervita*.cfg, config/servers.cfg, config/history, clientlog*.txt, packages/maps/*.cgz and .cfg, packages/maps/servermaps/incoming/*.cgz and .cfg, if existent.
-6. Delete contents of screenshots/ folder.
-7. Delete contents of demos/ folder except tutorial_demo.dmo, if existent.
-8. Delete for Windows all remaining *.sh files, and for Linux and Mac all remaining *.bat files. Delete the bin_*/ folders that are not needed on the target platform.
-9. Generate checksum file packages/misc/checksums_md5.txt, with use source/dev_tools/generate_md5_checksums.* script (generally at least on Linux).
-10. Package AC (.exe/.tar.bz2/etc.) and name it like AssaultCube_vMAJOR.MINOR.BUILD.REVISION.EXTENSION - on Windows this could be AssaultCube_v1.0.0.0.exe
-11. Create new release on GitHub and upload there packages and sources.
+III. clean out packaging area
+  1. If you used 'git clone' in I.1: Delete .git folder, .gitignore, .travis.yml, if existent.
+  2. Should NOT be there anyway, but be sure to delete:
+     - config/init*.cfg, config/saved*.cfg, config/servervita*.cfg, config/servers.cfg, config/history
+     - clientlog*.txt
+     - packages/maps/*.cgz (and *.cfg), packages/maps/servermaps/incoming/*.cgz (and *.cfg)
+  3. Delete unwanted parts of the 'source' subfolder
+     - Windows: only after you have prepared EXE, DMG and Installer - then remove entire 'source' folder
+     - Linux: delete the following subfolders in 'source': doxygen, vcpp, xcode, lib and the source/codeblocks/AssaultCube.cbp file.
+  4. Delete contents of screenshots/ folder.
+  5. Delete contents of demos/ folder except tutorial_demo.dmo, if they exist. (tutorial_demo.dmo currently (v1.3_BETA1) does not exist anymore)
+  6. System scripts: 
+     - Windows: delete any *.sh files and the bin_unix folder
+     - Linux: delete any *.bat files and the bin_win32 folder
+       Example: find /usr/local/src/AC/PACKAGE/pack -type f -name "*.bat" -exec rm {} \;
 
-These steps can be automatized, see source/vcpp/buildEnv/*.bat and source/dev_tools/*.sh for examples.
+IV. wrap the package
+  1. generate checksum list file (packages/misc/checksums_md5.txt)
+     Example: user@machine:/usr/local/src/AC/PACKAGE/pack$ /bin/sh source/dev_tools/generate_md5_checksums.sh 
+  2. Package AC 
+     - Windows an Installer (.exe)
+     - Linux a bzip'ed tarball (.tar.bz2) /etc.) and
+       Example: user@machine:/usr/local/src/AC/PACKAGE/pack$ tar cjf ../AssaultCube_v1.2.3.0.tar.bz2 .
+     1. naming convention: AssaultCube_vMAJOR.MINOR.BUILD.REVISION.EXTENSION
+        Example: on Windows this could be AssaultCube_v1.3.10.512.exe
+  3. Create new release on GitHub and upload the packages
+
+
