@@ -16,12 +16,21 @@ enum                            // static entity types
     MAXENTTYPES
 };
 
+enum{ // parkour places – role of the trigger entity
+   PP_TEXT = 0,
+   PP_SAFE,
+   PP_POINTS,
+   PP_GOAL
+};
+
 extern short entwraparound[MAXENTTYPES][7];
 extern uchar entscale[MAXENTTYPES][7];
 #define ENTSCALE10 10
 #define ENTSCALE5 5
 // the attr2 of PLAYERSTART in parkour - just so there is NO confusing them with team-CLA playerstarts
 #define PARKOURSTART 11
+
+const float parkdistances[PP_GOAL-PP_TEXT+1] = { 2.0f, 1.0f, 0.5f, 1.0f };// fallback values (radius in cubes)
 
 enum {MAP_IS_BAD, MAP_IS_EDITABLE, MAP_IS_GOOD};
 
@@ -291,6 +300,7 @@ public:
             case I_HELMET:
             case I_ARMOUR: return armour<powerupstats[type-I_HEALTH].max;
             case I_AKIMBO: return !akimbo;
+	    case CARROT: return true; // actual canpickup() of these one-time-per-player triggers handled per item index in server.cpp:server_parkplace_*()
             default: return false;
         }
     }

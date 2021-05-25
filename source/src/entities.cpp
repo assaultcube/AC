@@ -10,7 +10,6 @@ VAR(edithideentmask, 0, 0, INT_MAX);
 
 vector<entity> ents;
 vector<bool> parkents;
-int worldtotalpoints = 0;
 
 const char *entmdlnames[] =
 {
@@ -158,9 +157,10 @@ void rendereditentities()
                 default: break;
             }
             particle_splash(sc, i == closest ? 14 : 2, i == closest ? 50 : 40, v);
+            if(e.type==CARROT) addcarrotrange(v, e.attr3>0 ? (e.attr3/10.0f) : ((e.attr2>=PP_TEXT && e.attr2<=PP_GOAL) ? parkdistances[e.attr2] : 10.0f));
         }
     }
-
+    
     loopv(ents)
     {
         entity &e = ents[i];
@@ -261,6 +261,56 @@ void renderentities()
     }
 }
 
+void parkplace_text(playerent *d, int index, int tag)
+{
+    if(index >= 0 && index < parkents.length())
+    {
+         if(!parkents[index])
+        {
+            //FIXME: map configs may not contain ALIAS - currently a user-home script needs to hold them
+            defformatstring(textalias)("parkour_text_%d", tag);
+            conoutf("%s",getalias(textalias));
+            audiomgr.playsoundc(S_MENUSELECT);//S_HEARTBEAT
+            parkents[index] = true;
+        }
+    }
+}
+
+void parkplace_safe(playerent *d, int tag)
+{
+    if(tag>d->parkplace)
+    {
+        d->parkplace = tag;
+        audiomgr.playsoundc(S_FLAGPICKUP);
+    }
+}
+
+void parkplace_points(playerent *d, int index, int points)
+{
+    if(index>=0 && index<ents.length())
+    {
+        if(!parkents[index])
+        {
+            d->parkpoints += points;
+            audiomgr.playsoundc(S_KTFSCORE);
+            parkents[index] = true;
+        }
+    }
+}
+
+void parkplace_goal(playerent *d, int index)
+{
+    if(index>=0 && index<ents.length())
+    {
+        if(!parkents[index])
+        {
+            audiomgr.playsoundc(S_AWESOME2);
+            parkents[index] = true;
+            // TODO some more celebration or a simple switch to chasing others (the least progressed player?)
+        }
+    }
+}
+
 // these two functions are called when the server acknowledges that you really
 // picked up the item (in multiplayer someone may grab it before you).
 
@@ -279,37 +329,25 @@ void pickupeffects(int n, playerent *d)
         if(d==player1)
         {
             audiomgr.playsoundc(is->sound);
-
-            /*
-                onPickup arg1 legend:
-                  0 = pistol clips
-                  1 = ammo box
-                  2 = grenade
-                  3 = health pack
-                  4 = helmet
-                  5 = armour
-                  6 = akimbo
-            */
-            if(identexists("onPickup"))
-            {
-                itemstat *tmp = NULL;
-                switch(e.type)
-                {
-                    case I_CLIPS:   tmp = &ammostats[GUN_PISTOL]; break;
-                    case I_AMMO:    tmp = &ammostats[player1->primary]; break;
-                    case I_GRENADE: tmp = &ammostats[GUN_GRENADE]; break;
-                    case I_AKIMBO:  tmp = &ammostats[GUN_AKIMBO]; break;
-                    case I_HEALTH:
-                    case I_HELMET:
-                    case I_ARMOUR:  tmp = &powerupstats[e.type-I_HEALTH]; break;
-                    default: break;
-                }
-                if(tmp) exechook(HOOK_SP, "onPickup", "%d %d", e.type - 3, m_lss && e.type == I_GRENADE ? 2 : tmp->add);
-            }
+            // onPickup arg1 legend: 0 = pistol clips, 1 = ammo box, 2 = grenade, 3 = health pack, 4 = helmet, 5 = armour, 6 = akimbo
+            if(identexists("onPickup")) exechook(HOOK_SP, "onPickup", "%d %d", e.type - 3, m_lss && e.type == I_GRENADE ? 2 : is->add);
         }
         else audiomgr.playsound(is->sound, d);
     }
-
+    else
+    {
+        if(m_park && e.type==CARROT)
+        {
+            switch(e.attr2)
+            {
+                case PP_TEXT: parkplace_text(d, n, e.attr1); break;
+                case PP_SAFE: parkplace_safe(d, e.attr1); break;
+                case PP_POINTS: parkplace_points(d, n, e.attr1); break;
+                case PP_GOAL: parkplace_goal(d, n); break;
+                default: break;
+            }
+        }
+    }
     weapon *w = NULL;
     switch(e.type)
     {
@@ -333,6 +371,16 @@ void trypickup(int n, playerent *d)
         default:
             if( d->canpickup(e.type) && lastmillis > e.lastmillis + 250 && lastmillis > lastspawn + 500 )
             {
+                if(m_park && d->type==ENT_PLAYER)
+                {
+                    if(e.type==CARROT)
+                    {
+                        if(n>=0 && n<parkents.length())
+                        {
+                            if(parkents[n]) return; // don't try picking them up /again/
+                        }
+                    }
+                }
                 if(d->type==ENT_PLAYER) addmsg(SV_ITEMPICKUP, "ri", n);
                 else if(d->type==ENT_BOT && serverpickup(n, -1)) pickupeffects(n, d);
                 e.lastmillis = lastmillis;
@@ -378,56 +426,6 @@ void trypickupflag(int flag, playerent *d)
         {
             if(f.state != CTFF_INBASE) return;
             flagpickup(flag);
-        }
-    }
-}
-
-void textplace(playerent *d, int index, int tag)
-{
-    if(index >= 0 && index < parkents.length())
-    {
-         if(!parkents[index])
-        {
-            //FIXME: map configs may not contain ALIAS - currently a user-home script needs to hold them
-            defformatstring(textalias)("parkour_text_%d", tag);
-             conoutf("%s",getalias(textalias));
-            audiomgr.playsoundc(S_HEARTBEAT);
-            parkents[index] = true;
-        }
-    }
-}
-
-void reachplace(playerent *d, int tag)
-{
-    if(tag>d->parkplace)
-    {
-            d->parkplace = tag;
-            audiomgr.playsoundc(S_FLAGPICKUP);
-    }
-}
-
-void pointplace(playerent *d, int index, int points)
-{
-    if(index >= 0)
-    {
-        if(!parkents[index])
-        {
-              d->parkpoints += points;
-            audiomgr.playsoundc(S_KTFSCORE);
-            parkents[index] = true;
-        }
-    }
-}
-
-void finishplace(playerent *d, int index)
-{
-    if(index >= 0)
-    {
-        if(!parkents[index])
-        {
-            audiomgr.playsoundc(S_AWESOME2);
-            parkents[index] = true;
-            // TODO some more celebration or a simple switch to chasing others (the least progressed player?)
         }
     }
 }
@@ -487,22 +485,10 @@ void checkitems(playerent *d)
                 if(e.type==CARROT)
                 {
                     vec v(e.x, e.y, S(e.x, e.y)->floor+eyeheight);
-                    float d2c = d->o.dist(v); // TODO some sensible fallback values - too high and points will be given even if you just barely missed the platform
-                    switch(e.attr2)
+                    float d2c = d->o.dist(v); 
+                    if(d2c < (e.attr3>0 ? (e.attr3/10.0f) : ((e.attr2>=PP_TEXT && e.attr2<=PP_GOAL) ? parkdistances[e.attr2] : 10.0f)))
                     {
-                        case 0: // text
-                                if(d2c<(e.attr3>0?e.attr3:12)) textplace(d,i,e.attr1);
-                                break;
-                        case 1: // safe place
-                                if(d2c<(e.attr3>0?e.attr3:8)) reachplace(d,e.attr1);
-                                break;
-                        case 2: // points
-                                if(d2c<(e.attr3>0?e.attr3:6)) pointplace(d,i,e.attr1);
-                                break;
-                        case 3: // finished
-                                if(d2c<(e.attr3>0?e.attr3:6)) finishplace(d,i);
-                                break;
-                        default: break;
+                        trypickup(i, d);
                     }
                 }
             }
@@ -691,6 +677,7 @@ COMMANDN(hastriggers, hastriggers_, "");
 void entstats_(void)
 {
     entitystats_s es;
+    worldtotalpoints = 0;
     calcentitystats(es, NULL, 0);
     int clipents = 0, xmodels = 0, xsounds = 0;
     loopv(ents)

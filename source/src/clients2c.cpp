@@ -451,7 +451,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 if(cn == -1)
                 {
                     getstring(text, p);
-                    conoutf("MOTD:");
+                    if(joining>1) conoutf("MOTD:");
                     conoutf("\f4%s", text);
                 }
                 else if(d)
@@ -769,10 +769,10 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     if(!d) continue;
                     if(d!=player1) d->state = state;
                     d->lifesequence = lifesequence;
-                    d->flagscore = flagscore;
+                    if(m_park){d->parkpoints = flagscore;}else{d->flagscore = flagscore;}
                     d->frags = frags;
                     d->deaths = deaths;
-                    d->tks = teamkills;
+                    if(m_park){d->parkplace = teamkills;}else{d->tks = teamkills;}
                     if(d!=player1)
                     {
                         d->setprimary(primary);
@@ -797,10 +797,10 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     ds.team = team;
                     getstring(text, p);
                     filtertext(ds.name, text, FTXT__PLAYERNAME, MAXNAMELEN);
-                    ds.flags = getint(p);
+                    if(m_park){ds.parkpoints = getint(p);}else{ds.flags = getint(p);}
                     ds.frags = getint(p);
                     ds.deaths = getint(p);
-                    ds.points = getint(p);
+                    if(m_park){ds.parkplace = getint(p);}else{ds.points = getint(p);}
                 }
                 break;
             }

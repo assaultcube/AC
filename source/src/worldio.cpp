@@ -596,6 +596,7 @@ void modeinfo(char *mode, char *info)
     for(int n; (n = findheaderextra(HX_MODEINFO)) >= 0; ) deleteheaderextra(n);
     vector<uchar> p;
     entitystats_s es;
+    worldtotalpoints = 0;
     calcentitystats(es, NULL, 0);
     int todo = es.modes_possible;
     bool have_modeinfo = false;

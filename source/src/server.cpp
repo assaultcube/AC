@@ -35,6 +35,7 @@ struct servergame
     int arenaround, arenaroundstartmillis;
     int lastfillup;
     vector<server_entity> sents;
+    vector<bool> parksents;
     sflaginfo sflaginfos[2];
 
     bool recordpackets;
@@ -62,6 +63,7 @@ struct servergame
         arenaroundstartmillis = 0;
         lastfillup = 0;
         sents.setsize(0);
+        parksents.setsize(0);
         loopi(2) sflaginfos[i].actor_cn = -1;
         recordpackets = false;
         demosequence = 0;
@@ -104,6 +106,7 @@ ENetHost *serverhost = NULL;
 int laststatus = 0,                 // last per-minute log status
     servmillis = 0,                 // millis since server start
     servclock = 0;                  // unixtime in minutes
+int worldtotalpoints = 0;           // parkour
 
 vector<client *> clients;
 vector<worldstate *> worldstates;
@@ -156,14 +159,14 @@ void poll_serverthreads()       // called once per mainloop-timeslice
                     {
                         if(!strcmp(servermaps[i]->fname, fresh->fname))   // we don't check paths here - map filenames have to be unique
                         {  // found map of same name
-                            mlog(ACLOG_INFO,"marked servermap %s%s for deletion", servermaps[i]->fpath, servermaps[i]->fname);
+                            mlog(ACLOG_VERBOSE,"marked servermap %s%s for deletion", servermaps[i]->fpath, servermaps[i]->fname);
                             servermapstodelete.add(servermaps.remove(i)); // mark old version for deletion
                         }
                     }
                     if(fresh->isok)
                     {
                         servermaps.add(fresh);
-                        mlog(ACLOG_INFO,"added servermap %s%s", fresh->fpath, fresh->fname);
+                        mlog(ACLOG_VERBOSE,"added servermap %s%s", fresh->fpath, fresh->fname);
                         maprot.initmap(fresh, NULL);
                         servermaps.sort(servermapsortname); // keep list sorted at all times
                     }
@@ -750,6 +753,7 @@ void sendspawn(client *c)
         gs.primary, gs.gunselect, m_arena ? c->spawnindex : -1,
         NUMGUNS, gs.ammo, NUMGUNS, gs.mag);
     gs.lastspawn = sg->gamemillis;
+    if(gs.firstspawntime==0) gs.firstspawntime = servmillis;
 }
 
 // simultaneous demo recording, fully buffered
@@ -1775,6 +1779,17 @@ void sendteamtext(char *text, int sender, int msgtype)
     }
 }
 
+void sendservertext(char *text)
+{
+    packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
+    putint(p, SV_TEXT);
+    putint(p, -1);
+    sendstring(text, p);
+    ENetPacket *packet = p.finalize();
+    recordpacket(1, packet);
+    sendpacket(-1, 1, packet);
+}
+
 void sendvoicecomteam(int sound, int sender)
 {
     if(!valid_client(sender) || clients[sender]->team == TEAM_VOID) return;
@@ -1788,6 +1803,54 @@ void sendvoicecomteam(int sound, int sender)
         if(clients[i]->team == clients[sender]->team || !m_teammode)
             sendpacket(i, 1, packet);
     }
+}
+
+void server_parkplace_acknowledge(client *cl, int i)
+{
+    sendf(-1, 1, "ri3", SV_ITEMACC, i, cl->clientnum);
+}
+
+void server_parkplace_text(client *cl, int i, int tag)
+{
+    if(i>=0 && i<sg->sents.length())
+    {
+        if(!cl->state.parkents[i])
+        {
+            cl->state.parkents[i] = true;
+            server_parkplace_acknowledge(cl,i);
+        }
+    }
+
+}
+
+void server_parkplace_safe(client *cl, int i, int tag)
+{
+    if(tag>cl->state.parkplace)
+    {
+        cl->state.parkplace = tag;
+        server_parkplace_acknowledge(cl,i);
+    }
+}
+
+void server_parkplace_points(client *cl,int i, int points)
+{
+    if(i>=0 && i<sg->sents.length())
+    {
+        if(!cl->state.parkents[i])
+        {
+            cl->state.parkpoints += points;
+            cl->state.parkents[i] = true;
+            server_parkplace_acknowledge(cl,i);
+        }
+    }
+}
+
+void server_parkplace_goal(client *cl, int i)
+{
+    int delta_t = servmillis - cl->state.firstspawntime;
+    defformatstring(stext)("%s reached the goal in %d milliseconds ~= %.2f seconds", cl->name, delta_t, delta_t/1000.0f);
+    sendservertext(stext);// TODO: do something /real/ with this information
+    server_parkplace_acknowledge(cl,i);
 }
 
 int numplayers()
@@ -1837,10 +1900,20 @@ bool serverpickup(int i, int sender)         // server side item pickup, acknowl
         return false;
     }
     server_entity &e = sg->sents[i];
+    bool parktrigger = (m_park && e.type==CARROT);
+    if(parktrigger)
+    {
+        e.attr1 = sg->curmap->entattr_1[i];
+        e.attr2 = sg->curmap->entattr_2[i];
+        e.attr3 = sg->curmap->entattr_3[i];
+    }
     if(!e.spawned)
     {
-        if(!e.legalpickup && hn && !m_demo) mlog(ACLOG_INFO, "[%s] tried to pick up entity #%d (%s) - can't be picked up in this gamemode or at all", hn, i, entnames[e.type]);
-        return false;
+        if(!parktrigger)
+        {
+            if(!e.legalpickup && hn && !m_demo) mlog(ACLOG_INFO, "[%s] tried to pick up entity #%d (%s) - can't be picked up in this gamemode or at all", hn, i, entnames[e.type]);
+            return false;
+        }
     }
     if(sender>=0)
     {
@@ -1850,8 +1923,13 @@ bool serverpickup(int i, int sender)         // server side item pickup, acknowl
             if(cl->state.state != CS_ALIVE || !cl->state.canpickup(e.type)) return false;
             vec v(e.x, e.y, cl->state.o.z);
             float dist = cl->state.o.dist(v);
-            int pdist = check_pdist(cl,dist);
-            if (pdist)
+            float bubble = 1.5f;
+            if(parktrigger)
+            {
+                bubble = e.attr3 > 0 ? (e.attr3/10.0f) : ((e.attr2>=PP_TEXT && e.attr2<=PP_GOAL) ? parkdistances[e.attr2] : 10.0f);
+            }
+            int pdist = check_pdist(cl,dist,bubble);
+            if(pdist)
             {
                 cl->farpickups++;
                 if (!m_demo) mlog(ACLOG_INFO, "[%s] %s %s up entity #%d (%s), distance %.2f (%d)",
@@ -1859,9 +1937,23 @@ bool serverpickup(int i, int sender)         // server side item pickup, acknowl
                 if (pdist==2) return false;
             }
         }
-        sendf(-1, 1, "ri3", SV_ITEMACC, i, sender);
-        cl->state.pickup(sg->sents[i].type);
-        if (m_lss && sg->sents[i].type == I_GRENADE) cl->state.pickup(sg->sents[i].type); // get two nades at lss
+        if(parktrigger)
+        {
+            switch(e.attr2)
+            {
+                case PP_TEXT: server_parkplace_text(cl, i, e.attr1); break;
+                case PP_SAFE: server_parkplace_safe(cl, i, e.attr1); break;
+                case PP_POINTS: server_parkplace_points(cl, i, e.attr1); break;
+                case PP_GOAL: server_parkplace_goal(cl, i); break;
+                default: break;
+            }
+        }
+        else
+        {
+            sendf(-1, 1, "ri3", SV_ITEMACC, i, sender);
+            cl->state.pickup(sg->sents[i].type);
+            if (m_lss && sg->sents[i].type == I_GRENADE) cl->state.pickup(sg->sents[i].type); // get two nades at lss
+        }
     }
     e.spawned = false;
     if(!m_lms) e.spawntime = spawntime(e.type);
@@ -2313,13 +2405,14 @@ void startgame(const char *newname, int newmode, int newtime, bool notify)
                 else f.x = f.y = -1;
                 f.actor_cn = -1;
             }
-            entity e;
+            entity e; // ONLY type attribute <==> transformtype/fitsmode methods; all other data comes from individual arrays 
             loopi(sg->curmap->numents)
             {
                 e.type = sg->curmap->enttypes[i];
                 e.transformtype(sg->smode);
-                server_entity se = { e.type, false, false, false, 0, sg->curmap->entpos_x[i], sg->curmap->entpos_y[i] };
+                server_entity se = { e.type, false, false, false, 0, sg->curmap->entpos_x[i], sg->curmap->entpos_y[i], sg->curmap->entattr_1[i], sg->curmap->entattr_2[i], sg->curmap->entattr_3[i] };
                 sg->sents.add(se);
+                sg->parksents.add(se.type!=CARROT);
                 if(e.fitsmode(sg->smode)) sg->sents[i].spawned = sg->sents[i].legalpickup = true;
             }
         }
@@ -2676,10 +2769,10 @@ void senddisconnectedscores(int cn)
             {
                 putint(p, sc.team);
                 sendstring(sc.name, p);
-                putint(p, sc.flagscore);
+                putint(p, m_park ? sc.parkpoints : sc.flagscore);
                 putint(p, sc.frags);
                 putint(p, sc.deaths);
-                putint(p, sc.points);
+                putint(p, m_park ? sc.parkplace : sc.points); // points will vanish in release_1.3 branch soon - parkplace isn't that important for the discscores on the client side
             }
         }
     }
@@ -2739,12 +2832,12 @@ void sendresume(client &c, bool broadcast)
             c.state.lifesequence,
             c.state.primary,
             c.state.gunselect,
-            c.state.flagscore,
+            m_park ? c.state.parkpoints : c.state.flagscore,
             c.state.frags,
             c.state.deaths,
             c.state.health,
             c.state.armour,
-            c.state.teamkills,
+            m_park ? c.state.parkplace : c.state.teamkills,
             NUMGUNS, c.state.ammo,
             NUMGUNS, c.state.mag,
             -1);
@@ -2854,12 +2947,12 @@ void welcomepacket(packetbuf &p, int n)
             putint(p, c.state.lifesequence);
             putint(p, c.state.primary);
             putint(p, c.state.gunselect);
-            putint(p, c.state.flagscore);
+            putint(p, m_park ? c.state.parkpoints : c.state.flagscore);
             putint(p, c.state.frags);
             putint(p, c.state.deaths);
             putint(p, c.state.health);
             putint(p, c.state.armour);
-            putint(p, c.state.teamkills);
+            putint(p, m_park ? c.state.parkplace : c.state.teamkills);
             loopi(NUMGUNS) putint(p, c.state.ammo[i]);
             loopi(NUMGUNS) putint(p, c.state.mag[i]);
         }
@@ -3163,7 +3256,11 @@ void process(ENetPacket *packet, int sender, int chan)
         if(cl->vita) cl->vita->addname(cl->name);
         sendwelcome(cl);
         if(restorescore(*cl)) { sendresume(*cl, true); senddisconnectedscores(-1); }
-        else if(cl->type==ST_TCPIP) senddisconnectedscores(sender);
+        else
+        {
+                loopi(sg->curmap->numents) cl->state.parkents.add(sg->curmap->enttypes[i]!=CARROT);
+                if(cl->type==ST_TCPIP) senddisconnectedscores(sender);
+        }
         sendinitclient(*cl);
         if(clientrole != CR_DEFAULT) changeclientrole(sender, clientrole, NULL, true);
         if( curvote && curvote->result == VOTE_NEUTRAL ) callvotepacket (cl->clientnum);
@@ -4220,17 +4317,17 @@ void loggamestatus(const char *reason)
     mlog(ACLOG_INFO, "Game status: %s on %s, %s, %s, %d clients%c %s",
                       modestr(gamemode), sg->smapname, reason ? reason : text, mmfullname(sg->mastermode), totalclients, sg->custom_servdesc ? ',' : '\0', sg->servdesc_current);
     if(!scl.loggamestatus) return;
-    mlog(ACLOG_INFO, "cn name             %s%s score frag death %sping role    host", m_teammode ? "team " : "", m_flags_ ? "flag " : "", m_teammode ? "tk " : "");
+    mlog(ACLOG_INFO, "cn name             %s%s score frag death %sping role    host", m_teammode ? "team " : "", m_flags_ ? "flag " : "", m_park ? "pp " : (m_teammode ? "tk " : ""));
     loopv(clients)
     {
         client &c = *clients[i];
         if(c.type == ST_EMPTY || !c.name[0]) continue;
         formatstring(text)("%2d %-16s ", c.clientnum, c.name);                 // cn name
         if(m_teammode) concatformatstring(text, "%-4s ", team_string(c.team, true)); // teamname (abbreviated)
-        if(m_flags_) concatformatstring(text, "%4d ", c.state.flagscore);             // flag
+        if(m_flags_) concatformatstring(text, "%4d ", m_park ? c.state.parkpoints : c.state.flagscore);             // flag
         concatformatstring(text, "%6d ", c.state.points);                            // score
         concatformatstring(text, "%4d %5d", c.state.frags, c.state.deaths);          // frag death
-        if(m_teammode) concatformatstring(text, " %2d", c.state.teamkills);          // tk
+        if(m_teammode) concatformatstring(text, " %2d", m_park ? c.state.parkplace : c.state.teamkills);          // pp || tk
         mlog(ACLOG_INFO, "%s%5d %s  %s", text, c.ping, c.role == CR_ADMIN ? "admin " : "normal", c.hostname);
         if(c.team != TEAM_SPECT)
         {
@@ -4250,6 +4347,7 @@ void loggamestatus(const char *reason)
                 if(m_teammode) formatstring(text)("%-4s ", team_string(sc.team, true));
                 else text[0] = '\0';
                 if(m_flags_) concatformatstring(text, "%4d ", sc.flagscore);
+                if(m_park) concatformatstring(text, "%4d ", sc.parkpoints);
                 mlog(ACLOG_INFO, "   %-16s %s%4d %5d%s    - disconnected", sc.name, text, sc.frags, sc.deaths, m_teammode ? "  -" : "");
                 if(sc.team != TEAM_SPECT)
                 {
@@ -4603,9 +4701,9 @@ void extinfo_statsbuf(ucharbuf &p, int pid, int bpos, ENetSocket &pongsock, ENet
         sendstring(team_string(clients[i]->team),p); //Team
         // "team_string(clients[i]->team)" sometimes return NULL according to RK, causing the server to crash. WTF ?
         putint(p,clients[i]->state.frags);      //Frags
-        putint(p,clients[i]->state.flagscore);  //Flagscore
+        putint(p,m_park?clients[i]->state.parkpoints:clients[i]->state.flagscore);  //ParkPoints||Flagscore
         putint(p,clients[i]->state.deaths);     //Death
-        putint(p,clients[i]->state.teamkills);  //Teamkills
+        putint(p,m_park?clients[i]->state.parkplace:clients[i]->state.teamkills);  //ParkPlace||Teamkills
         putint(p,ismatch ? 0 : clients[i]->state.damage*100/max(clients[i]->state.shotdamage,1)); //Accuracy
         putint(p,ismatch ? 0 : clients[i]->state.health);     //Health
         putint(p,ismatch ? 0 : clients[i]->state.armour);     //Armour

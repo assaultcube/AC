@@ -116,7 +116,8 @@ struct clientstate : playerstate
     projectilestate<8> grenades;
     int akimbomillis;
     bool scoped;
-    int flagscore, frags, teamkills, deaths, shotdamage, damage, points, events, lastdisc, reconnections;
+    int flagscore, frags, teamkills, deaths, shotdamage, damage, points, events, lastdisc, reconnections, firstspawntime, parkplace, parkpoints;
+    vector<bool> parkents;
 
     clientstate() : state(CS_DEAD) {}
 
@@ -139,7 +140,8 @@ struct clientstate : playerstate
         grenades.reset();
         akimbomillis = 0;
         scoped = forced = false;
-        flagscore = frags = teamkills = deaths = shotdamage = damage = events = lastdisc = reconnections = 0;
+        flagscore = frags = teamkills = deaths = shotdamage = damage = events = lastdisc = reconnections = firstspawntime = parkplace = parkpoints = 0;
+        parkents.shrink(0);
         respawn();
     }
 
@@ -160,13 +162,15 @@ struct savedscore
 {
     string name;
     uint ip;
-    int frags, flagscore, deaths, teamkills, shotdamage, damage, team, points, events, lastdisc, reconnections;
+    int frags, flagscore, deaths, teamkills, shotdamage, damage, team, points, events, lastdisc, reconnections, firstspawntime, parkplace, parkpoints;
+    vector<bool> parkents;
     bool valid, forced;
 
     void reset()
     {
         // to avoid 2 connections with the same score... this can disrupt some laggers that eventually produces 2 connections (but it is rare)
-        frags = flagscore = deaths = teamkills = shotdamage = damage = points = events = lastdisc = reconnections = 0;
+        frags = flagscore = deaths = teamkills = shotdamage = damage = points = events = lastdisc = reconnections = firstspawntime = parkplace = parkpoints = 0;
+        parkents.shrink(0);
     }
 
     void save(clientstate &cs, int t)
@@ -181,6 +185,11 @@ struct savedscore
         events = cs.events;
         lastdisc = cs.lastdisc;
         reconnections = cs.reconnections;
+        firstspawntime = cs.firstspawntime;
+        parkplace = cs.parkplace;
+        parkpoints = cs.parkpoints;
+        parkents.reserve(cs.parkents.length());
+        memcpy(&parkents, &cs.parkents, cs.parkents.length()*sizeof(bool));
         team = t;
         valid = true;
     }
@@ -198,6 +207,11 @@ struct savedscore
         cs.events = events;
         cs.lastdisc = lastdisc;
         cs.reconnections = reconnections;
+        cs.firstspawntime = firstspawntime;
+        cs.parkplace = parkplace;
+        cs.parkpoints = parkpoints;
+        cs.parkents.reserve(parkents.length());
+        memcpy(&cs.parkents, &parkents, parkents.length()*sizeof(bool));
         reset();
     }
 };
@@ -373,6 +387,8 @@ struct server_entity            // server side version of "entity" type
     bool spawned, legalpickup, twice;
     int spawntime;
     short x, y;
+    short attr1;
+    uchar attr2, attr3;
 };
 
 struct sflaginfo
