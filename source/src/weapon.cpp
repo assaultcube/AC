@@ -130,8 +130,11 @@ void quicknadethrow(bool on)
     }
     else
     {
-        attack(false);
-        if(player1->weaponsel->type == GUN_GRENADE) quicknade = true;
+        if(player1->weaponsel->type == GUN_GRENADE)
+        {
+            attack(false);
+            quicknade = true;
+        }
     }
 }
 COMMAND(quicknadethrow, "d");
