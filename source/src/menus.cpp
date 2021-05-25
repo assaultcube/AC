@@ -1172,11 +1172,16 @@ bool menukey(int code, bool isdown, SDL_Keymod mod)
                 if(!curmenu->allowinput) return false;
                 menusel = movemenuselection(menusel, 1);
                 break;
+/*
+ * PARKOUR wants to use this in serverbrowser
+ * we /hope/ arrow-keys and mouse-scroll are the more natural navigation through items anyway
             case SDLK_TAB:
                 if(!curmenu->allowinput) return false;
                 if(mod & KMOD_LSHIFT) menusel = movemenuselection(menusel, -1);
                 else menusel = movemenuselection(menusel, 1);
                 break;
+ *
+ * */
 
             case SDLK_1:
             case SDLK_2:
