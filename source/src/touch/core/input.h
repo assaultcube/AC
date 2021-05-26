@@ -22,6 +22,7 @@ struct input
     bool movdirdoubletapandhold = false; // determines if the user is currently doing a 'double tap and hold' with the movement direction finger
 
     int lastmovementdirectiontap = -1, lastlookingdirectiontap = -1;
+    bool wasinmovementcontrolradius = false;
     hashtable<int, vector<int>*> lastpressedtouchkeys; // remember last pressed touch key indexed by finger
     vec *touch1 = new vec(0, 0, 0);
 
@@ -149,8 +150,6 @@ struct input
     // determines keys in alive and non-spectate mode
     void alivekeys(SDL_Event &event, vector <keyevent> &keys)
     {
-        bool allowjump = !touchmenuvisible();
-
         static vec movementcontrolcenter = config.movementcontrolcenter();
         vec finger(event.tfinger.x * VIRTW, event.tfinger.y * VIRTH, 0.0f);
         float dist = movementcontrolcenter.dist(finger);
@@ -178,11 +177,7 @@ struct input
                 // todo: we might need an icon to show the scoreboard on demand, but currently we have too many buttons on the screen already
                 //else if(vfingerx > VIRTW - 2*iconsize) touchkey = TOUCH_GAME_CORNER_TOP_RIGHT;
 
-                if(touchkey >= 0)
-                {
-                    keys.add(keyevent(event.type, touchkey));
-                    allowjump = false;
-                }
+                if(touchkey >= 0) keys.add(keyevent(event.type, touchkey));
             }
         }
         else if(event.tfinger.x < 0.5)
@@ -191,13 +186,11 @@ struct input
                vfingerx < iconsize * 2)
             {
                 keys.add(keyevent(event.type, TOUCH_GAME_CORNER_TOP_LEFT_1));
-                allowjump = false;
             }
             else if(event.tfinger.type == SDL_FINGERDOWN && vfingery < iconsize * 2 &&
                vfingerx >= movementcontrolcenter.x - iconsize && vfingerx < movementcontrolcenter.x + iconsize)
             {
                 keys.add(keyevent(event.type, TOUCH_GAME_CORNER_TOP_LEFT_2)); // open help scene
-                allowjump = false;
             }
             else if(event.type == SDL_FINGERDOWN || event.type == SDL_FINGERMOTION)
             {
@@ -248,9 +241,18 @@ struct input
             }
         }
 
-        if(allowjump && event.tfinger.fingerId == movementdirectionfinger && dist > movementcontrolradius)
+        // TOUCH_GAME_LEFTSIDE_OUTERCIRCLE is triggered by swipe gesture from inside the circle to the outside
+        if(!touchmenuvisible() && event.tfinger.fingerId == movementdirectionfinger)
         {
-            keys.add(keyevent(event.type, TOUCH_GAME_LEFTSIDE_OUTERCIRCLE));
+            if(dist <= movementcontrolradius)
+            {
+                wasinmovementcontrolradius = true;
+            }
+            else
+            {
+                if(wasinmovementcontrolradius) keys.add(keyevent(event.type, TOUCH_GAME_LEFTSIDE_OUTERCIRCLE));
+                wasinmovementcontrolradius = false;
+            }
         }
 
         // attack is either bound to VOLUME-UP key or DOUBLET TAP of fire finger
@@ -291,6 +293,7 @@ struct input
         {
             movementdirectionfinger = -1;
             movdirdoubletapandhold = false;
+            wasinmovementcontrolradius = false;
         }
         else if(event.tfinger.x * VIRTW >= VIRTW / 2 + iconsize &&
                 event.tfinger.x * VIRTW <= VIRTW / 2 + 4 * iconsize
