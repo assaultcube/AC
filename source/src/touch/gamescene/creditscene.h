@@ -51,7 +51,7 @@ struct creditscene : view
             "https://assault.cubers.net/docs/team.html\n"
             "https://assault.cubers.net/docs/license.html\n\n"
             "\f2We are looking for lead developers and lead artists to help us build\n"
-            " the next generation of AssaultCube for Windows, Mac, Linux and Mobile.\n\n\n"
+            "the next generation of AssaultCube for Windows, Mac, Linux and Mobile.\n\n\n"
             "\f5[Tap to dismiss]\n\n";
 
     creditscene(view *parent) : view(parent)
