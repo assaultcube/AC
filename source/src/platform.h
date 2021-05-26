@@ -76,6 +76,7 @@
 #endif
 
 #ifdef __ANDROID__
+#define LINUXBUGISBACK
 #ifndef STANDALONE
 #include <gl4eshint.h>
 #include <android/log.h>
