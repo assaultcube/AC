@@ -1980,10 +1980,23 @@ void updatesdesc(const char *newdesc, ENetAddress *caller = NULL)
 
 int canspawn(client *c)   // beware: canspawn() doesn't check m_arena!
 {
-    if(!c || c->type == ST_EMPTY || !c->isauthed || !team_isvalid(c->team) ||
-        (c->type == ST_TCPIP && (c->state.lastdeath > 0 ? sg->gamemillis - c->state.lastdeath : servmillis - c->connectmillis) < (m_arena ? 0 : (m_flags_ ? 5000 : 2000))) ||
-        (c->type == ST_TCPIP && (servmillis - c->connectmillis < 1000 + c->state.reconnections * 2000 &&
-          sg->gamemillis > 10000 && totalclients > 3 && !team_isspect(c->team)))) return SP_OK_NUM; // equivalent to SP_DENY
+    // more readable code; TODO clear up intention of especially "failwild" here and more generally the use of TEAM_ANYACTIVE
+    bool failclientbasics = (!c || c->type == ST_EMPTY || !c->isauthed);
+    bool failteam = !(c->team == TEAM_ANYACTIVE || team_isvalid(c->team));//TEST WAS JUST:!team_isvalid(c->team);//but since the code is calling updateclientteam(BLAH, TEAM_ANYACTIVE, BLAH) all over the place..
+    bool failwait = false;
+    bool failwild = false; 
+    if( c->type == ST_TCPIP ){
+        failwait = ( c->state.lastdeath > 0 ? sg->gamemillis - c->state.lastdeath : servmillis - c->connectmillis ) < (m_arena ? 0 : m_flags_ ? 5000 : 2000);
+        // failwild: this one contains a number of aspects, it's a /wild/ conglomeration.
+        if( totalclients > 3 ){
+                bool c1 = servmillis - c->connectmillis < 1000 + c->state.reconnections * 2000; // seems to delay respawn if you've reconnected too often 
+                bool c2 = sg->gamemillis > 10000; // only allow after 10 seconds of gametime 
+                //.. c3 = totalclients > 3; // all of this only applies if there are four or more players
+                bool c4 = !team_isspect(c->team); // all of this only applies if the designated team is not a spectator team
+                failwild = c1 && c2 && c4; // && c3
+        }
+    }
+    if(failclientbasics || failteam || failwait || failwild ) return SP_OK_NUM; // equivalent to SP_DENY
     if(!c->isonrightmap) return SP_WRONGMAP;
     if(sg->mastermode == MM_MATCH && sg->matchteamsize)
     {
@@ -2020,9 +2033,8 @@ bool updateclientteam(int cln, int newteam, int ftr)
     client &cl = *clients[cln];
     if(cl.team == newteam && ftr != FTR_AUTOTEAM) return true; // no change
     int *teamsizes = numteamclients(cln);
-    if( sg->mastermode == MM_OPEN && cl.state.forced && ftr == FTR_PLAYERWISH &&
-        newteam < TEAM_SPECT && team_base(cl.team) != team_base(newteam) ) return false; // no free will changes to forced people
-    if(newteam == TEAM_ANYACTIVE) // when spawning from spect
+    if( sg->mastermode == MM_OPEN && cl.state.forced && ftr == FTR_PLAYERWISH && newteam < TEAM_SPECT && team_base(cl.team) != team_base(newteam) ) return false; // player forced to team => deny wish to change 
+    if(newteam == TEAM_ANYACTIVE) // when spawning from spect – 20210601: or just after dying in a deathmatch .. apparently.
     {
         if(sg->mastermode == MM_MATCH && cl.team < TEAM_SPECT)
         {
@@ -2507,6 +2519,7 @@ bool scallvote(voteinfo *v, ENetPacket *msg) // true if a regular vote was calle
     if ( c->nvotes > 0 && time > 4*60*1000 ) c->nvotes -= time/(4*60*1000);
     if ( c->nvotes < 0 || c->role == CR_ADMIN ) c->nvotes = 0;
     c->nvotes++;
+
 
     if( !v || !v->isvalid() || (v->boot && (!b || cn2boot == v->owner) ) ) error = VOTEE_INVALID;
     else if( v->action->role > c->role ) error = VOTEE_PERMISSION;
