@@ -122,6 +122,8 @@ SERVPARLIST(dumpparameters, 0, 0, 0, endis, "ddump server parameters when update
 SERVPAR(vitaautosave, 0, 10, 24 * 60, "sVita file autosave interval in minutes (0: only when server is empty)");
 SERVPAR(vitamaxage, 3, 12, 120, "sOmit vitas from autosave, if the last login has been more than the specified number of months ago");
 
+bool triggerpollrestart = false;
+
 void poll_serverthreads()       // called once per mainloop-timeslice
 {
     static vector<servermap *> servermapstodelete;
@@ -141,6 +143,7 @@ void poll_serverthreads()       // called once per mainloop-timeslice
             readmapsthread_sem->post();
             stage = 1;
             lastworkerthreadstart = servmillis;
+            triggerpollrestart = false;
             break;
         }
         case 1:  // readmapsthread building/updating the list of maps in memory
@@ -155,14 +158,14 @@ void poll_serverthreads()       // called once per mainloop-timeslice
                     {
                         if(!strcmp(servermaps[i]->fname, fresh->fname))   // we don't check paths here - map filenames have to be unique
                         {  // found map of same name
-                            mlog(ACLOG_INFO,"marked servermap %s%s for deletion", servermaps[i]->fpath, servermaps[i]->fname);
+                            mlog(ACLOG_VERBOSE,"marked servermap %s%s for deletion", servermaps[i]->fpath, servermaps[i]->fname);
                             servermapstodelete.add(servermaps.remove(i)); // mark old version for deletion
                         }
                     }
                     if(fresh->isok)
                     {
                         servermaps.add(fresh);
-                        mlog(ACLOG_INFO,"added servermap %s%s", fresh->fpath, fresh->fname);
+                        mlog(servmillis>1234?ACLOG_INFO:ACLOG_VERBOSE,"added servermap %s%s", fresh->fpath, fresh->fname); // 1st time only in VERBOSE
                         maprot.initmap(fresh, NULL);
                         servermaps.sort(servermapsortname); // keep list sorted at all times
                     }
@@ -174,6 +177,7 @@ void poll_serverthreads()       // called once per mainloop-timeslice
             else if(!startnewservermapsepoch)
             {
                 // readmapsthread is done
+                if(servmillis<2000)mlog(ACLOG_INFO,"added %d servermaps",servermaps.length());
                 while(!readmapsthread_sem->trywait())
                     ;
                 stage++;
@@ -264,7 +268,7 @@ void poll_serverthreads()       // called once per mainloop-timeslice
 
         case 6:  // pause worker threads for a while (restart once a minute)
         {
-            if(servmillis - lastworkerthreadstart > 60 * 1000) stage = 0;
+            if(triggerpollrestart || servmillis - lastworkerthreadstart > 60 * 1000) stage = 0;
             else if(numclients() == 0)
             {   // empty server and nothing to do:
                 loopvrev(servermapstodelete)
@@ -379,7 +383,7 @@ servermap *servermaprot::recalcgamesuggestions(int numpl) // regenerate list of 
 
 servermap *getservermap(const char *mapname) // check, if the server knows a map (by filename)
 {
-    servermap *k = (servermap *)&mapname, **res =  servermaps.search(&k, servermapsortname);
+    servermap *k = new servermap(mapname,""), **res = servermaps.search(&k, servermapsortname);
     return res ? *res : NULL;
 }
 
@@ -3714,7 +3718,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 int actualrevision = h ? h->maprevision : 0;
                 if(sm && sm->isro())
                 {
-                    reject = "map is ro";
+                    reject = "map is RO";
                     defformatstring(msg)("\f3map upload rejected: map %s is readonly", sentmap);
                     sendservmsg(msg, sender);
                 }
@@ -3723,12 +3727,12 @@ void process(ENetPacket *packet, int sender, int chan)
                     reject = "server incoming reached its limits";
                     sendservmsg("\f3server does not support more incomings: limit reached", sender);
                 }
-                else if(!sm && strchr(scl.mapperm, 'C') && cl->role < CR_ADMIN)
+                else if(!sm && strchr(scl.mapperm, 'C') && cl->role < CR_ADMIN)// COOP is considered wonderful
                 {
                     reject = "no permission for initial upload";
                     sendservmsg("\f3initial map upload rejected: you need to be admin", sender);
                 }
-                else if(sm && !sm->isro() && revision >= sm->maprevision && !strchr(scl.mapperm, 'u') && cl->role < CR_ADMIN) // default: only admins can update maps
+                else if(sm && !sm->isro() && revision >= sm->maprevision && strchr(scl.mapperm, 'U') && cl->role < CR_ADMIN) // COOP is considered wonderful
                 {
                     reject = "no permission to update";
                     sendservmsg("\f3map update rejected: you need to be admin", sender);
@@ -3737,7 +3741,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 {
                     reject = "fake revision number";
                 }
-                else if(sm && !sm->isro() && revision < sm->maprevision && !strchr(scl.mapperm, 'r') && cl->role < CR_ADMIN) // default: only admins can revert maps to older revisions
+                else if(sm && !sm->isro() && revision < sm->maprevision && strchr(scl.mapperm, 'R') && cl->role < CR_ADMIN) // COOP is considered wonderful
                 {
                     reject = "no permission to revert revision";
                     sendservmsg("\f3map revert to older revision rejected: you need to be admin to upload an older map", sender);
@@ -3818,7 +3822,9 @@ void process(ENetPacket *packet, int sender, int chan)
                 string filename;
                 const char *rmmap = behindpath(text), *reject = NULL;
                 servermap *sm = getservermap(rmmap);
-                int reqrole = strchr(scl.mapperm, 'D') ? CR_ADMIN : (strchr(scl.mapperm, 'd') ? CR_DEFAULT : CR_ADMIN + 100);
+                //WAS: To allow "delete map" you need to set an *explicit* D or d via the -M switch. Otherwise *nobody* can delete maps.
+                //WAS: int reqrole = strchr(scl.mapperm, 'D') ? CR_ADMIN : (strchr(scl.mapperm, 'd') ? CR_DEFAULT : CR_ADMIN + 100);
+                int reqrole = strchr(scl.mapperm, 'd') ? CR_DEFAULT : CR_ADMIN;//COOP is considered wonderful, but admins should be allowed to delete maps by default
                 if(cl->role < reqrole) reject = "no permission";
                 else if(sm && sm->isro()) reject = "map is readonly";
                 else if(!sm) reject = "map not found";

@@ -8,6 +8,10 @@
 // * you can separate the switch and it's argument by whitespace
 //
 // see docs/commandline.html for full parameter descriptions
+//
+// If you want to make COOP only possible for admins: you need to set (at least) -P and -M like so:
+// -P fkbpMASRCDEPtwX
+// -M CRU
 
 // example MOTD:
  -o \f3server using example cmdline file (config/servercmdline.txt)\n\f2feel free to change this :)
@@ -63,13 +67,13 @@
           //    x vote to ban without clear reasons
           //    p vote to pause or resume match
           //    t send private messages to any player
-          //    default: fkbpMASRCDEPtwX (lowercase: a user can perform the action; uppercase: admin role is required to perform the action)
+          //    default: fkbpMASRCDePtwX (lowercase: a user can perform the action; uppercase: admin role is required to perform the action)
 // -M     // sendmap permission string (read docs/commandline.html)
           //    c create new map (initial map upload)
           //    u update existing map (same or newer revision)
           //    r revert existing map to older revision
-          //    d delete map (default: no one can)
-          //    default: CRU (lowercase: any user is allowed to do it; uppercase: admin role is required)
+          //    d delete map
+          //    default: cruD (lowercase: any user is allowed to do it; uppercase: admin role is required)
 // -Z     // sendmap/incoming limit in MB (default = 10MB)
 // -I     // serverinfo text filename prefix, default config/serverinfo
 // -O     // MOTD text filename prefix, default config/motd

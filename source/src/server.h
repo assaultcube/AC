@@ -12,6 +12,7 @@ enum { GE_NONE = 0, GE_SHOT, GE_EXPLODE, GE_HIT, GE_AKIMBO, GE_RELOAD, GE_SUICID
 enum { ST_EMPTY, ST_LOCAL, ST_TCPIP };
 
 extern int servmillis;
+extern bool triggerpollrestart;
 
 struct shotevent
 {

@@ -57,6 +57,7 @@ struct mapaction : serveraction
         }
     }
     bool isvalid() { return serveraction::isvalid() && mode != GMODE_DEMO && map[0] && mapok && !(isdedicated && !m_mp(mode)); }
+
     bool isdisabled() { return false /*maprot.current() && !maprot.current()->vote*/; }
     mapaction(char *map, int mode, int time, int caller, bool q) : map(map), mode(mode), time(time), queue(q)
     {
@@ -71,20 +72,30 @@ struct mapaction : serveraction
                 if(notify)
                 {
                     if(!validname) sendservmsg("invalid map name", caller);
-                    else sendservmsg("the server does not have this map", caller);
+                    else{
+                        sendservmsg("the server does not have this map", caller);
+                        if( !strchr(scl.voteperm,'E') || ( clients[caller]->role == CR_ADMIN || clients[caller]->role == CR_OWNER ) ){ //COOP is considered wonderful
+                               defformatstring(hintsendmap)("first do a: \f1sendmap %s", map);
+                               sendservmsg(hintsendmap, caller);
+                        }
+                    }
                 }
             }
             else
             { // check, if map supports mode
-                if(mode == GMODE_COOPEDIT && !strchr(scl.voteperm, 'e')) role = CR_ADMIN;
+                if(mode == GMODE_COOPEDIT && strchr(scl.voteperm, 'E')) role = CR_ADMIN; // COOP is considered wonderful
                 bool romap = mode == GMODE_COOPEDIT && sm->isro();
                 int gmmask = 1 << mode;
                 bool spawns = mode == GMODE_COOPEDIT || ((gmmask & GMMASK__TEAMSPAWN) ? sm->entstats.hasteamspawns : sm->entstats.hasffaspawns);
                 bool flags = (gmmask & GMMASK__FLAGENTS) ? sm->entstats.hasflags : true;
                 if(!spawns || !flags || romap)
                 { // unsupported mode
+                    /*
+                     * RETHINK: voteperm 'p/P' is documented as 'vote for pause/resume' .. what is it doing here?
                     if(strchr(scl.voteperm, 'P')) role = CR_ADMIN;
                     else if(!strchr(scl.voteperm, 'p')) mapok = false; // default: no one can vote for unsupported mode/map combinations
+                     */
+                    role = CR_ADMIN; // quickfix@RETHINK: an admin can vote for unsupported mode/map combination 
                     defformatstring(msg)("\f3map \"%s\" does not support \"%s\": ", behindpath(map), modestr(mode, false));
                     if(romap) concatstring(msg, "map is readonly");
                     else
@@ -181,7 +192,7 @@ struct giveadminaction : playeraction
     giveadminaction(int cn) : playeraction(cn)
     {
         role = CR_ADMIN;
-//        role = roleconf('G');
+        //role = roleconf('G'); // RETHINK: no role toggle g/G established
     }
 };
 

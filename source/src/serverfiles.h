@@ -640,18 +640,32 @@ bool serverwritemap(const char *mapname, int mapsize, int cfgsize, int cfgsizegz
     {
         fwrite(data, 1, mapsize, fp);
         fclose(fp);
-        formatstring(name)(SERVERMAP_PATH_INCOMING "%s.cfg", mapname);
-        path(name);
-        fp = fopen(name, "wb");
-        if(fp)
-        {
-            uLongf rawsize = cfgsize;
-            uchar *gzbuf = new uchar[cfgsize];
-            if(uncompress(gzbuf, &rawsize, data + mapsize, cfgsizegz) == Z_OK && rawsize - cfgsize == 0)
-                fwrite(gzbuf, 1, cfgsize, fp);
-            fclose(fp);
-            delete[] gzbuf;
+        if(cfgsize > 0){
+            formatstring(name)(SERVERMAP_PATH_INCOMING "%s.cfg", mapname);
+            path(name);
+            fp = fopen(name, "wb");
+            if(fp)
+            {
+                uLongf rawsize = cfgsize;
+                uchar *gzbuf = new uchar[cfgsize];
+                if(uncompress(gzbuf, &rawsize, data + mapsize, cfgsizegz) == Z_OK && rawsize - cfgsize == 0)
+                    fwrite(gzbuf, 1, cfgsize, fp);
+                fclose(fp);
+                delete[] gzbuf;
+                written = true;
+            }
+        }
+        else
+        { 
             written = true;
+        }
+    }
+    if( written ){
+        servermap *sm = new servermap(mapname, SERVERMAP_PATH_INCOMING);
+        sm->load();
+        if(sm->isok){
+            servermapdropbox = sm;
+            triggerpollrestart = true;
         }
     }
     return written;
