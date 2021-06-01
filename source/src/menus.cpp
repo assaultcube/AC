@@ -886,6 +886,15 @@ void setmenublink(int *truth)
 }
 COMMANDN(menucanblink, setmenublink, "i");
 
+void menutitle(char *title)
+{
+    if(!lastmenu) return;
+    gmenu *m = lastmenu;
+    DELSTRING(m->title);
+    m->title = newstring(title);
+}
+COMMAND(menutitle, "s");
+
 void menuinit(char *initaction)
 {
     if(!lastmenu) return;
