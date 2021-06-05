@@ -2077,7 +2077,7 @@ bool updateclientteam(int cln, int newteam, int ftr)
     if (team_isspect(newteam)) {
         cl.state.state = CS_SPECTATE;
         cl.state.lastdeath = sg->gamemillis;
-        if( !m_coop ){ // punishment – compare suicide code in serverdamage()
+        if(!m_coop){ // punishment – compare suicide code in serverdamage()
             mlog(ACLOG_INFO, "[%s] %s switched to specators during a match.", cl.hostname, cl.name);
             cl.state.frags--;
             cl.incrementvitacounter(VS_TKS, 1);
