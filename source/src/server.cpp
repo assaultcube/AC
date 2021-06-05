@@ -2077,12 +2077,14 @@ bool updateclientteam(int cln, int newteam, int ftr)
     if (team_isspect(newteam)) {
         cl.state.state = CS_SPECTATE;
         cl.state.lastdeath = sg->gamemillis;
-        if(!m_coop){ // punishment – compare suicide code in serverdamage()
+        if(!m_coop) // punishment – compare suicide code in serverdamage()
+	{
             mlog(ACLOG_INFO, "[%s] %s switched to specators during a match.", cl.hostname, cl.name);
             cl.state.frags--;
             cl.incrementvitacounter(VS_TKS, 1);
             sendf(-1, 1, "ri5", SV_DIED, -1, cl.clientnum, cl.state.frags, -1); // victim:-1 => no dokill() on client side, gun is irrelevant too
-            if( (m_htf || m_ktf) && targethasflag >= 0 ){
+            if( (m_htf || m_ktf) && targethasflag >= 0 )
+	    {
                 cl.state.flagscore--;
                 cl.incrementvitacounter(VS_ANTIFLAGS, 1);
                 sendf(-1, 1, "riii", SV_FLAGCNT, cl.clientnum, cl.state.flagscore);
