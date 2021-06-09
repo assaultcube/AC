@@ -2083,7 +2083,7 @@ bool updateclientteam(int cln, int newteam, int ftr)
             cl.state.frags--;
             cl.incrementvitacounter(VS_TKS, 1);
             sendf(-1, 1, "ri5", SV_DIED, -1, cl.clientnum, cl.state.frags, -1); // victim:-1 => no dokill() on client side, gun is irrelevant too
-            if( (m_htf || m_ktf) && clienthasflag(cl.clientnum); >= 0 )
+            if( (m_htf || m_ktf) && clienthasflag(cl.clientnum) >= 0 )
             {
                 cl.state.flagscore--;
                 cl.incrementvitacounter(VS_ANTIFLAGS, 1);
