@@ -18,9 +18,9 @@ VARFP(sc_flags,      0,  0, 100, needscoresreorder = true);
 VARFP(sc_frags,      0,  1, 100, needscoresreorder = true);
 VARFP(sc_deaths,    -1,  2, 100, needscoresreorder = true);
 VARFP(sc_ratio,     -1, -1, 100, needscoresreorder = true);
-VARFP(sc_lag,       -1,  5, 100, needscoresreorder = true);
-VARFP(sc_clientnum,  0,  6, 100, needscoresreorder = true);
-VARFP(sc_name,       0,  7, 100, needscoresreorder = true);
+VARFP(sc_lag,       -1,  4, 100, needscoresreorder = true);
+VARFP(sc_clientnum,  0,  5, 100, needscoresreorder = true);
+VARFP(sc_name,       0,  6, 100, needscoresreorder = true);
 
 struct coldata
 {
