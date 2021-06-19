@@ -1510,8 +1510,8 @@ int sniperrifle::dynspread()
 float sniperrifle::dynrecoil() { return scoped && lastmillis - scoped_since > SCOPESETTLETIME ? info.recoil / 3 : info.recoil; }
 bool sniperrifle::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
 void sniperrifle::onselecting(bool sound) { weapon::onselecting(sound); scoped = false; player1->scoping = false; }
-void sniperrifle::ondeselecting() { scoped = false; player1->scoping = false; }
-void sniperrifle::onownerdies() { scoped = false; player1->scoping = false; shots = 0; }
+void sniperrifle::ondeselecting() { scoped = false; owner->scoping = false; }
+void sniperrifle::onownerdies() { shots = 0; scoped = false; owner->scoping = false; }
 void sniperrifle::renderhudmodel() { if(!scoped) weapon::renderhudmodel(); }
 
 void sniperrifle::renderaimhelp(bool teamwarning)
@@ -1577,7 +1577,7 @@ void akimbo::onammopicked()
         if(akimboautoswitch || owner->weaponsel->type==GUN_PISTOL)
         {
             if(player1->weapons[GUN_GRENADE]->busy()) player1->attacking = false;
-            owner->weaponswitch(this);
+            player1->weaponswitch(this);
         }
         addmsg(SV_AKIMBO, "ri", lastmillis);
     }
