@@ -1166,6 +1166,7 @@ void startmap(const char *name, bool reset, bool norespawn)   // called just aft
     lasthit = 0;
     if(m_valid(gamemode) && !m_mp(gamemode)) respawnself();
     else findplayerstart(player1);
+	editingsettingsshowminimal = true;
 
     if(!reset) return;
 

@@ -2,11 +2,15 @@
 
 #include "cube.h"
 
-VAR(showclips, 0, 1, 1);
+VARP(showclips, 0, 1, 1);
 VARP(showmodelclipping, 0, 0, 1);
 VARP(showladderentities, 0, 0, 1);
 VARP(showplayerstarts, 0, 0, 1);
-VAR(edithideentmask, 0, 0, INT_MAX);
+void toucheditingsettings(){
+    if(keepshowingeditingsettingsfrom == 0) keepshowingeditingsettingsfrom = lastmillis; 
+    keepshowingeditingsettingstill = lastmillis + editingsettingsvisibletime;
+}
+VARFP(edithideentmask, 0, 0, INT_MAX, toucheditingsettings());
 
 vector<entity> ents;
 

@@ -927,7 +927,8 @@ extern void tryreload(playerent *p);
 extern void checkweaponstate();
 extern int burstshotssettings[NUMGUNS];
 
-// entities
+// entities:
+extern void toucheditingsettings();
 extern int edithideentmask;
 extern void pickupeffects(int n, playerent *d);
 extern void rendereditentities();

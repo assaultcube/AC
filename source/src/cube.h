@@ -38,6 +38,10 @@ extern playerent *player1;              // special client ent that receives inpu
 extern vector<playerent *> players;     // all the other clients (in multiplayer)
 extern vector<bounceent *> bounceents;
 extern bool editmode;
+extern bool editingsettingsshowminimal;
+extern int keepshowingeditingsettingsfrom;
+extern int keepshowingeditingsettingstill;
+extern int editingsettingsvisibletime;
 extern int unsavededits;
 extern vector<entity> ents;             // map entities
 extern vec worldpos, camup, camright, camdir; // current target of the crosshair in the world

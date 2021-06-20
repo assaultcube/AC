@@ -140,9 +140,8 @@ COMMAND(closestenttype, "s");
 
 COMMANDF(toggleclosestentpin, "", () { pinnedclosestent = ents.inrange((pinnedent = pinnedclosestent ? -1 : closestent())); });
 
-void pointatent(int *_on)
+void _pointatent(bool on)
 {
-    bool on = *_on != 0;
     if(pointingatents != on)
     {
         if(on) pinnedclosestent = false;
@@ -154,8 +153,7 @@ void pointatent(int *_on)
         pointingatents = on;
     }
 }
-COMMAND(pointatent, "i");
-
+VARFP(pointatent, 0, 0, 1, _pointatent(pointatent==1));
 FVARP(pointatentmaxangle, 0.01f, 2.0f, 180.0f);
 
 bool intersectangular(const vec &from, vec ray, vec ent, float maxangle, float &dist)

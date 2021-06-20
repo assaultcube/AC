@@ -33,6 +33,12 @@ COMMANDF(editmeta, "d", (bool on) { editmetakeydown = on ? 1 : 0; } );
 VAR(cleanedit, 0, 0, 1); // hides everything in edit mode you can't see in regular mode
 COMMANDF(togglecleanedit, "", () { cleanedit = !cleanedit; }); 
 
+bool editingsettingsshowminimal = false;
+int keepshowingeditingsettingsfrom = 0;
+int keepshowingeditingsettingstill = 0;
+VARFP(editingsettingsvisibletime, 750, 7500, 75000, toucheditingsettings());
+VARFP(showeditingsettings, 0, 1, 3, toucheditingsettings()); // 0:almost entirely off, 1: all off after duration, 2: text off after duration, 3: permanent 
+
 void toggleedit(bool force)
 {
     if(player1->state==CS_DEAD) return;                   // do not allow dead players to edit to avoid state confusion
@@ -54,8 +60,9 @@ void toggleedit(bool force)
     }
     else
     {
-        //put call to clear/restart gamemode
         player1->attacking = false;
+        if(keepshowingeditingsettingsfrom==0) keepshowingeditingsettingsfrom = lastmillis;
+        keepshowingeditingsettingstill = lastmillis + editingsettingsvisibletime;
     }
     keyrepeat(editmode, KR_EDITMODE);
     editing = editmode ? 1 : 0;
@@ -113,7 +120,8 @@ char *editinfo()
     {
         entity &c = ents[e];
         int t = c.type < MAXENTTYPES ? c.type : 0;
-        formatstring(info)("%s entity: %s (%s)", pinnedclosestent ? "\fs\f3pinned\fr" : "closest", entnames[t], formatentityattributes(c, true));
+        extern int pointatent;
+        formatstring(info)("%s entity: %s (%s)", pinnedclosestent ? "\fs\f3pinned\fr" : (pointatent == 1 ? "point at" : "closest"), entnames[t], formatentityattributes(c, true));
         const char *unassigned = "unassigned slot", *slotinfo = unassigned;
         if(t == MAPMODEL)
         {
@@ -122,7 +130,7 @@ char *editinfo()
         }
         else if(t == SOUND)
         {
-            if(mapconfigdata.mapsoundlines.inrange(c.attr1))  slotinfo = mapconfigdata.mapsoundlines[c.attr1].name;
+            if(mapconfigdata.mapsoundlines.inrange(c.attr1)) slotinfo = mapconfigdata.mapsoundlines[c.attr1].name;
         }
         else slotinfo = "";
         if(*slotinfo && (hideeditslotinfo == 0 || (hideeditslotinfo == 1 && slotinfo == unassigned))) concatformatstring(info, " %s", slotinfo);
@@ -787,6 +795,7 @@ void renderhudtexturepreview(int slot, int pos, bool highlight)
     }
 }
 
+
 static int lastedittex = 0;
 VARP(hudtexttl, 0, 2500, 10000);
 
@@ -799,6 +808,101 @@ void renderhudtexturepreviews()
         if(idx < 0) idx = 0;
         int startidx = clamp(idx - 2, 0, 251);
         loopi(5) renderhudtexturepreview(hdr.texlists[atype][startidx + i], i, startidx + i == idx);
+    }
+}
+
+// the entity sparklies have RGB information in renderparticles.cpp:struct parttype .. which we keep redundantly here; consolidation may prove annoying :-/
+static struct partcolour{ float r, g, b; } partcolours[MAXENTTYPES] =
+{
+    { 0.7f, 0.2f, 0.7f }, // NOTUSED 
+    { 1.0f, 1.0f, 1.0f }, // LIGHT 
+    { 0.0f, 1.0f, 0.0f }, // PLAYERSTART
+    { 1.0f, 0.0f, 0.0f }, // I_CLIPS
+    { 1.0f, 0.0f, 0.0f }, // I_AMMO
+    { 1.0f, 0.0f, 0.0f }, // I_GRENADE
+    { 1.0f, 1.0f, 0.0f }, // I_HEALTH
+    { 1.0f, 1.0f, 0.0f }, // I_HELMET
+    { 1.0f, 1.0f, 0.0f }, // I_ARMOUR
+    { 1.0f, 1.0f, 0.0f }, // I_AKIMBO
+    { 1.0f, 0.0f, 1.0f }, // MAPMODEL
+    { 1.0f, 0.5f, 0.2f }, // CARROT
+    { 0.5f, 0.5f, 0.5f }, // LADDER
+    { 0.0f, 1.0f, 1.0f }, // CTF_FLAG
+    { 1.0f, 0.0f, 1.0f }, // SOUND
+    { 0.5f, 0.5f, 0.5f }, // CLIP
+    { 0.5f, 0.5f, 0.5f }, // PLCLIP
+    { 0.7f, 0.2f, 0.7f }  // DUMMYENT
+};
+
+void rendereditingsettings()
+{
+    if(showeditingsettings > 0 || (edithideentmask != 0 && editingsettingsshowminimal))
+    {
+        bool showing = ((showeditingsettings >= 2) || (keepshowingeditingsettingstill > 0));
+        int deltax = 0;
+        if(keepshowingeditingsettingstill > 0)
+        {
+            int deltat = keepshowingeditingsettingstill - lastmillis;
+            if(deltat < 0)
+            {
+                keepshowingeditingsettingstill = 0;
+                keepshowingeditingsettingsfrom = 0;
+                editingsettingsshowminimal = false;
+                showing = (showeditingsettings >= 2);
+            }else{
+                int pulldist = VIRTW/4;
+                float edgedist = 0.2f;
+                deltat = deltat > keepshowingeditingsettingstill/2 ? deltat : ( lastmillis - keepshowingeditingsettingsfrom ); // "from" is only set once per slide, "till" may be pushed outward …
+                // … if someone takes a long(>(1-edgedist)) time to trigger the push it out some more .. there'll be a jump in the sliding. can't be helped.
+                float elapsedfrac = deltat/(1.0f * editingsettingsvisibletime);
+                bool slideout = elapsedfrac<edgedist;
+                bool slidein = elapsedfrac>(1-edgedist);
+                if(slidein||slideout)
+                {
+                    deltax = (slideout?pulldist:0) + (slideout?-1:+1) * (elapsedfrac-(slidein?(1-edgedist):0))/edgedist * pulldist;
+                }
+            }
+        }
+        if(showing)
+        {
+            glDepthMask(GL_FALSE);
+            glDisable(GL_TEXTURE_2D);
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+            int boxsize = VIRTW/32, boxline = 3*boxsize/2, x = FONTH/2 - (showeditingsettings==1?deltax:0), y = 3 * VIRTH/8, x2 = x + boxsize, border = FONTH/8;
+            loopi(MAXENTTYPES)
+            {
+                if(i>NOTUSED && i<=DUMMYENT)
+                {
+                    y = 3 * VIRTH/8 + (i-1) * boxline;
+                    int y2 = y + boxsize;
+                    bool ishidden = (edithideentmask & (1 << (i - 1)));
+                    // text first makes it slide in/out behind the boxes
+                    if(showeditingsettings==3||keepshowingeditingsettingsfrom) // 3:all,always || ( 2:text,at first, 1:all,at first )
+                    {
+                        glEnable(GL_TEXTURE_2D);
+                        defformatstring(entlabel)("\f%d%s", ishidden?4:5, entnames[i]);
+                        draw_text(entlabel, x + boxline -(showeditingsettings==2?deltax:0), y );
+                        glDisable(GL_TEXTURE_2D);
+                    }
+                    // now the box
+                    partcolour &pc = partcolours[i];
+                    glColor4f(pc.r, pc.g, pc.b, .5);
+                    glBegin(GL_TRIANGLE_STRIP);
+                    glVertex2f(x , y );
+                    glVertex2f(x2, y );
+                    glVertex2f(x , y2);
+                    glVertex2f(x2, y2);
+                    glEnd();
+                    // and the border
+                    glDisable(GL_BLEND);
+                    box2d(x-border, y-border, x2+border, y2+border, ishidden?0:200);
+                    glEnable(GL_BLEND);
+                }
+            }
+            glEnable(GL_TEXTURE_2D);
+            glDepthMask(GL_TRUE);
+        }
     }
 }
 

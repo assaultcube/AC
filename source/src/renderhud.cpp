@@ -337,7 +337,7 @@ void drawequipicons(playerent *p)
     // health & armor
     if(p->armour) drawequipicon(HUDPOS_ARMOUR*2, 1650, (p->armour-1)/25, 2);
     drawequipicon(HUDPOS_HEALTH*2, 1650, 2, 3);
-	if(p->mag[GUN_GRENADE]) drawequipicon(oldfashionedgunstats ? (HUDPOS_GRENADE + (((float)screenw / (float)screenh > 1.5f) ? 75 : 25)) * 2 : HUDPOS_GRENADE*2, 1650, 3, 1);
+    if(p->mag[GUN_GRENADE]) drawequipicon(oldfashionedgunstats ? (HUDPOS_GRENADE + (((float)screenw / (float)screenh > 1.5f) ? 75 : 25)) * 2 : HUDPOS_GRENADE*2, 1650, 3, 1);
 
     // weapons
     int c = p->weaponsel->type != GUN_GRENADE ? p->weaponsel->type : getprevweaponsel(p), r = 0;
@@ -824,17 +824,15 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     if(command) commandh -= rendercommand(-1, HUDPOS_Y_BOTTOMLEFT, VIRTW - FONTH); // dryrun to get height
     else if(infostr)
     {
-        if(cleanedit) // smaller text
-        {
-            glPushMatrix();
-            glLoadIdentity();
-            glOrtho(0, VIRTW * 2, VIRTH * 2, 0, -1, 1);
-            glScalef(1.0, 1.0, 1.0); //set scale
-            draw_text(infostr, 48, VIRTH * 2 - 3 * FONTH);
-            glPopMatrix();
-        }
-        else
-            draw_text(infostr, HUDPOS_X_BOTTOMLEFT, HUDPOS_Y_BOTTOMLEFT);
+        // I wanted to make the very large pinned/closest/point-at entity text smaller .. now I see this .. isn't "cleanedit" supposed to *hide* everything usually seen in edit mode, not make stuff smaller?
+        // .. so .. this must be some "hide by obscurity during development" thing .. *grin*: go-go-gadgeto improvement
+        //if(cleanedit){}else draw_text(infostr, HUDPOS_X_BOTTOMLEFT, HUDPOS_Y_BOTTOMLEFT);// smaller text
+        glPushMatrix();
+        glLoadIdentity();
+        glOrtho(0, VIRTW * 2, VIRTH * 2, 0, -1, 1);
+        glScalef(1.0, 1.0, 1.0); //set scale
+        draw_text(infostr, 48, VIRTH * 2 - 3 * FONTH);
+        glPopMatrix();
     }
     else if(targetplayer && showtargetname) draw_text(colorname(targetplayer), HUDPOS_X_BOTTOMLEFT, HUDPOS_Y_BOTTOMLEFT);
     glLoadIdentity();
@@ -977,8 +975,13 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         if(multiplayer(NULL) || watchingdemo) draw_textf("SCROLL to change player", left - (text_width("SCROLL to change player") + FONTH/2), top+80);
     }
 
-    extern void renderhudtexturepreviews();
-    if(editmode) renderhudtexturepreviews();
+    if(editmode)
+    {
+        extern void renderhudtexturepreviews();
+        extern void rendereditingsettings();
+        renderhudtexturepreviews();
+        rendereditingsettings();
+    }
 
     if(ispaused)
     {
