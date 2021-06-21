@@ -518,7 +518,7 @@ int defaultgamelimit(int gamemode) { return m_teammode ? 15 : 10; }
 
 int gmode_possible(bool hasffaspawns, bool hasteamspawns, bool hasflags)  // return bitmask of playable modes, according to existing spawn and flag entities
 {
-    return ((hasffaspawns ? GMMASK__FFASPAWN : 0) | (hasteamspawns ? GMMASK__TEAMSPAWN : 0)) & ~(hasflags ? 0 : GMMASK__FLAGENTS);
+    return GMMASK_COOPEDIT | (((hasffaspawns ? GMMASK__FFASPAWN : 0) | (hasteamspawns ? GMMASK__TEAMSPAWN : 0)) & ~(hasflags ? 0 : GMMASK__FLAGENTS));
 }
 
 int gmode_parse(const char *list) // convert a list of mode acronyms to a bitmask
