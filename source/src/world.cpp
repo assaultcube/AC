@@ -324,9 +324,8 @@ void undelent(char *index)
         if(OUTBORD(e.x, e.y)) conoutf("failed to undelete %s entity (coordinates outside map borders)", entnames[t]);
         else
         {
-            newentity(-1, e.x, e.y, e.z, entnames[t], float(e.attr1) / entscale[t][0], float(e.attr2) / entscale[t][1], float(e.attr3) / entscale[t][2], float(e.attr4) / entscale[t][3]);
-            *((persistent_entity *) &ents.last()) = e;
-            if(changedents.find(ents.length() - 1) == -1) changedents.add(ents.length() - 1); // tag ent for sync because of attr5..7
+            newentity(-1, e.x, e.y, e.z, entnames[t], float(e.attr1) / entscale[t][0], float(e.attr2) / entscale[t][1], float(e.attr3) / entscale[t][2], float(e.attr4) / entscale[t][3], float(e.attr5) / entscale[t][4], float(e.attr6) / entscale[t][5], float(e.attr7) / entscale[t][6]);
+            //*((persistent_entity *) &ents.last()) = e; if(changedents.find(ents.length() - 1) == -1) changedents.add(ents.length() - 1); // tag ent for sync because of attr5..7 // simple signature change made this superfluous
             conoutf("%s entity undeleted", entnames[t]);
         }
     }
@@ -366,7 +365,7 @@ int findtype(const char *what)
     return t;
 }
 
-void newentity(int index, int x, int y, int z, const char *what, float v1f, float v2f, float v3f, float v4f) // add an entity or overwrite an existing one
+void newentity(int index, int x, int y, int z, const char *what, float v1f, float v2f, float v3f, float v4f, float v5f, float v6f, float v7f) // add an entity or overwrite an existing one
 {
     int type = findtype(what);
     if(type == NOTUSED) return;
@@ -385,8 +384,8 @@ void newentity(int index, int x, int y, int z, const char *what, float v1f, floa
             break;
     }
 
-    int v1 = v1f * entscale[type][0], v2 = v2f * entscale[type][1], v3 = v3f * entscale[type][2], v4 = v4f * entscale[type][3];
-    entity e(x, y, z, type, v1, v2, v3, v4);
+    int v1 = v1f * entscale[type][0], v2 = v2f * entscale[type][1], v3 = v3f * entscale[type][2], v4 = v4f * entscale[type][3], v5 = v5f * entscale[type][4], v6 = v6f * entscale[type][5], v7 = v7f * entscale[type][6];
+    entity e(x, y, z, type, v1, v2, v3, v4, v5, v6, v7);
 
     switch(type)
     {
@@ -419,17 +418,17 @@ void newentity(int index, int x, int y, int z, const char *what, float v1f, floa
     if(index >= 0 || type != DUMMYENT) unsavededits++;      // no need to save dummies
 }
 
-void entset(char *what, float *a1, float *a2, float *a3, float *a4)
+void entset(char *what, float *a1, float *a2, float *a3, float *a4, float *a5, float *a6, float *a7)
 {
     int n = closestent();
     if(n>=0)
     {
         entity &e = ents[n];
-        newentity(n, e.x, e.y, e.z, what, *a1, *a2, *a3, *a4);
+        newentity(n, e.x, e.y, e.z, what, *a1, *a2, *a3, *a4, *a5, *a6, *a7);
     }
 }
 
-COMMAND(entset, "sffff");
+COMMAND(entset, "sfffffff");
 
 void clearents(char *name)
 {

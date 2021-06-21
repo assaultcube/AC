@@ -1201,12 +1201,12 @@ void edittagclip(char *tag)
 }
 COMMAND(edittagclip, "s");
 
-void newent(char *what, float *a1, float *a2, float *a3, float *a4)
+void newent(char *what, float *a1, float *a2, float *a3, float *a4, float *a5, float *a6, float *a7)
 {
     EDITSEL("newent");
-    loopv(sels) newentity(-1, sels[i].x, sels[i].y, (int)camera1->o.z, what, *a1, *a2, *a3, *a4);
+    loopv(sels) newentity(-1, sels[i].x, sels[i].y, (int)camera1->o.z, what, *a1, *a2, *a3, *a4, *a5, *a6, *a7);
 }
-COMMAND(newent, "sffff");
+COMMAND(newent, "sfffffff");
 
 void movemap(int *xop, int *yop, int *zop) // move whole map
 {

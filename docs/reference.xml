@@ -4956,35 +4956,11 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
             <argument token="attr2" description="see newent 'type'"/>
             <argument token="attr3" description="see newent 'type'"/>
             <argument token="attr4" description="see newent 'type'"/>
-          </arguments>
-          <references>
-            <identifierReference identifier="newent7"/>
-          </references>
-        </command>
-
-        <scriptalias name="newent7">
-          <description>Adds a new entity, works like newent, but can set all seven attributes directly.</description>
-          <remarks>
-            <remark>It does not automatically put the camera yaw angle into mapmodel and flag entities.</remark>
-            <remark>
-            (x,y) is determined by the current selection (the red dot corner) and z by the camera height, of said type.
-            The type of entity may optionally take attributes (depending on the entity).
-            </remark>
-          </remarks>
-          <arguments>
-            <argument token="E" description="the entity type or number" valueNotes="light (1), playerstart (2), pistol (3), ammobox (4), grenades (5), health (6), helmet (7), armour (8), akimbo (9), mapmodel (10), ladder (12), ctf-flag (13), sound (14), clip (15), plclip (16)"/>
-            <argument token="attr1" description="see newent 'type'"/>
-            <argument token="attr2" description="see newent 'type'"/>
-            <argument token="attr3" description="see newent 'type'"/>
-            <argument token="attr4" description="see newent 'type'"/>
             <argument token="attr5" description="see newent 'type'"/>
             <argument token="attr6" description="see newent 'type'"/>
             <argument token="attr7" description="see newent 'type'"/>
           </arguments>
-          <references>
-            <identifierReference identifier="newent"/>
-          </references>
-        </scriptalias>
+        </command>
 
         <command name="newent light">
           <description>Adds a new light entity.</description>
@@ -5160,6 +5136,9 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
             <argument token="attr2" description="see newent 'type'"/>
             <argument token="attr3" description="see newent 'type'"/>
             <argument token="attr4" description="see newent 'type'"/>
+            <argument token="attr5" description="see newent 'type'"/>
+            <argument token="attr6" description="see newent 'type'"/>
+            <argument token="attr7" description="see newent 'type'"/>
           </arguments>
           <references>
             <identifierReference identifier="editentity"/>

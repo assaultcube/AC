@@ -35,6 +35,7 @@ struct persistent_entity        // map entity
     short attr5;
     char attr6;
     unsigned char attr7;
+    persistent_entity(short x, short y, short z, uchar type, short attr1, uchar attr2, uchar attr3, uchar attr4, short attr5, char attr6, unsigned char attr7) : x(x), y(y), z(z), attr1(attr1), type(type), attr2(attr2), attr3(attr3), attr4(attr4), attr5(attr5), attr6(attr6), attr7(attr7) {}
     persistent_entity(short x, short y, short z, uchar type, short attr1, uchar attr2, uchar attr3, uchar attr4) : x(x), y(y), z(z), attr1(attr1), type(type), attr2(attr2), attr3(attr3), attr4(attr4), attr5(0), attr6(0), attr7(0) {}
     persistent_entity() {}
 };
@@ -43,6 +44,7 @@ struct entity : persistent_entity
 {
     bool spawned;               //the dynamic states of a map entity
     int lastmillis;
+    entity(short x, short y, short z, uchar type, short attr1, uchar attr2, uchar attr3, uchar attr4, short attr5, char attr6, unsigned char attr7) : persistent_entity(x, y, z, type, attr1, attr2, attr3, attr4, attr5, attr6, attr7), spawned(false) {}
     entity(short x, short y, short z, uchar type, short attr1, uchar attr2, uchar attr3, uchar attr4) : persistent_entity(x, y, z, type, attr1, attr2, attr3, attr4), spawned(false) {}
     entity() {}
     bool fitsmode(int gamemode) { return !m_noitems && isitem(type) && !(m_noitemsnade && type!=I_GRENADE) && !(m_pistol && type==I_AMMO); }

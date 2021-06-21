@@ -639,7 +639,7 @@ extern void addtodoentity(int n, const char *desc);
 extern int findtype(const char *what);
 extern int findentity(int type, int index = 0);
 extern int findentity(int type, int index, uchar attr2);
-extern void newentity(int index, int x, int y, int z, const char *what, float v1, float v2, float v3, float v4);
+extern void newentity(int index, int x, int y, int z, const char *what, float v1, float v2, float v3, float v4, float v5 = 0, float v6 = 0, float v7 = 0);
 extern void mapmrproper(bool manual);
 extern void clearworldvisibility();
 extern void calcworldvisibility();
