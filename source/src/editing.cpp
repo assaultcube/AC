@@ -867,8 +867,8 @@ void rendereditingsettings()
         {
             glDepthMask(GL_FALSE);
             glDisable(GL_TEXTURE_2D);
-            glEnable(GL_BLEND);
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+			// BDoR: blend disabled on request
+            glDisable(GL_BLEND);//BDoR//glEnable(GL_BLEND); glBlendFunc(GL_SRC_ALPHA, GL_ONE);
             int boxsize = VIRTW/32, boxline = 3*boxsize/2, x = FONTH/2 - (showeditingsettings==1?deltax:0), y = 3 * VIRTH/8, x2 = x + boxsize, border = FONTH/8;
             loopi(MAXENTTYPES)
             {
@@ -887,7 +887,7 @@ void rendereditingsettings()
                     }
                     // now the box
                     partcolour &pc = partcolours[i];
-                    glColor4f(pc.r, pc.g, pc.b, .5);
+                    glColor3f(pc.r, pc.g, pc.b);//BDoR//glColor4f(pc.r, pc.g, pc.b, .5);
                     glBegin(GL_TRIANGLE_STRIP);
                     glVertex2f(x , y );
                     glVertex2f(x2, y );
@@ -895,9 +895,9 @@ void rendereditingsettings()
                     glVertex2f(x2, y2);
                     glEnd();
                     // and the border
-                    glDisable(GL_BLEND);
+                    //BDoR//glDisable(GL_BLEND);
                     box2d(x-border, y-border, x2+border, y2+border, ishidden?0:200);
-                    glEnable(GL_BLEND);
+                    //BDoR//glEnable(GL_BLEND);
                 }
             }
             glEnable(GL_TEXTURE_2D);
