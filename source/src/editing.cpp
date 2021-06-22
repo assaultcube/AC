@@ -867,9 +867,9 @@ void rendereditingsettings()
         {
             glDepthMask(GL_FALSE);
             glDisable(GL_TEXTURE_2D);
-			// BDoR: blend disabled on request
-            glDisable(GL_BLEND);//BDoR//glEnable(GL_BLEND); glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-            int boxsize = VIRTW/32, boxline = 3*boxsize/2, x = FONTH/2 - (showeditingsettings==1?deltax:0), y = 3 * VIRTH/8, x2 = x + boxsize, border = FONTH/8;
+            glDisable(GL_BLEND);
+            int boxsize = VIRTW/32, boxline = 3*boxsize/2, x = FONTH/2 - (showeditingsettings==1?deltax:0), y = 3 * VIRTH/8, x2 = x + boxsize, border = 2;
+            float prevlinew; glGetFloatv(GL_LINE_WIDTH, &prevlinew); glLineWidth(border);
             loopi(MAXENTTYPES)
             {
                 if(i>NOTUSED && i<=DUMMYENT)
@@ -880,14 +880,14 @@ void rendereditingsettings()
                     // text first makes it slide in/out behind the boxes
                     if(showeditingsettings==3||keepshowingeditingsettingsfrom) // 3:all,always || ( 2:text,at first, 1:all,at first )
                     {
-                        glEnable(GL_TEXTURE_2D);
+                        glEnable(GL_TEXTURE_2D); glEnable(GL_BLEND);
                         defformatstring(entlabel)("\f%d%s", ishidden?4:5, entnames[i]);
                         draw_text(entlabel, x + boxline -(showeditingsettings==2?deltax:0), y );
-                        glDisable(GL_TEXTURE_2D);
+                        glDisable(GL_TEXTURE_2D); glDisable(GL_BLEND);
                     }
                     // now the box
                     partcolour &pc = partcolours[i];
-                    glColor3f(pc.r, pc.g, pc.b);//BDoR//glColor4f(pc.r, pc.g, pc.b, .5);
+                    glColor3f(pc.r, pc.g, pc.b);
                     glBegin(GL_TRIANGLE_STRIP);
                     glVertex2f(x , y );
                     glVertex2f(x2, y );
@@ -895,15 +895,15 @@ void rendereditingsettings()
                     glVertex2f(x2, y2);
                     glEnd();
                     // and the border
-                    //BDoR//glDisable(GL_BLEND);
                     box2d(x-border, y-border, x2+border, y2+border, ishidden?0:200);
-                    //BDoR//glEnable(GL_BLEND);
                 }
             }
+            glLineWidth(prevlinew);
             glEnable(GL_TEXTURE_2D);
             glDepthMask(GL_TRUE);
         }
     }
+    glEnable(GL_BLEND);
 }
 
 void edittexxy(int type, int t, block &sel)
