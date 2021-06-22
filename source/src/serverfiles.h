@@ -493,7 +493,7 @@ int servermapsortweight(servermap **a, servermap **b) { return (*b)->weight - (*
 
 // data structures to sync data flow between main thread and readmapsthread
 volatile servermap *servermapdropbox = NULL;     // changed servermap entry back to the main thread
-volatile bool startnewservermapsepoch = false;    // signal readmapsthread to start an new full search
+volatile bool startnewservermapsepoch = false;   // signal readmapsthread to start an new full search
 sl_semaphore *readmapsthread_sem = NULL;         // sync readmapsthread with main thread
 
 // readmapsthread
@@ -553,7 +553,7 @@ void trymapfiles(const char *fpath, const char *fname, int epoch)  //check, if m
     {
         defformatstring(fcgz)("%s%s.cgz", fpath, fname);
         defformatstring(fcfg)("%s%s.cfg", fpath, fname);
-        if(mapfilenames[mapfileindex].cgzlen != getfilesize(path(fcgz)) || mapfilenames[mapfileindex].cfglen != getfilesize(path(fcfg)))
+        if(mapfilenames[mapfileindex].cgzlen != getfilesize(path(fcgz)) || (mapfilenames[mapfileindex].cfglen || fileexists(fcfg,"r")) ? (mapfilenames[mapfileindex].cfglen != getfilesize(path(fcfg))) : false)
         {
             updatethis = true;  // changed filesize detected
         }

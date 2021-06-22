@@ -165,7 +165,7 @@ void poll_serverthreads()       // called once per mainloop-timeslice
                     if(fresh->isok)
                     {
                         servermaps.add(fresh);
-                        mlog(servmillis>1234?ACLOG_INFO:ACLOG_VERBOSE,"added servermap %s%s", fresh->fpath, fresh->fname); // 1st time only in VERBOSE
+                        mlog(servmillis>2345?ACLOG_INFO:ACLOG_VERBOSE,"added servermap %s%s", fresh->fpath, fresh->fname); // 1st time only in VERBOSE
                         maprot.initmap(fresh, NULL);
                         servermaps.sort(servermapsortname); // keep list sorted at all times
                     }
