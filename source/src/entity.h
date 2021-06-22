@@ -100,14 +100,13 @@ extern const char *teamnames[];
 extern const char *teamnames_s[];
 extern const char *killmessages[2][NUMGUNS];
 
-#define TEAM_VOID TEAM_NUM
 #define isteam(a,b)   (m_teammode && (a) == (b))
 #define team_opposite(o) (team_isvalid(o) && (o) < TEAM_SPECT ? (o) ^ 1 : TEAM_SPECT)
 #define team_base(t) ((t) & 1)
 #define team_basestring(t) ((t) == 1 ? teamnames[1] : ((t) == 0 ? teamnames[0] : "SPECT"))
 #define team_isvalid(t) ((int(t)) >= 0 && (t) < TEAM_NUM)
 #define team_isactive(t) ((t) == TEAM_CLA || (t) == TEAM_RVSF)
-#define team_isspect(t) ((t) > TEAM_RVSF && (t) < TEAM_VOID)
+#define team_isspect(t) ((t) > TEAM_RVSF && (t) < TEAM_NUM)
 #define team_group(t) ((t) == TEAM_SPECT ? TEAM_SPECT : team_base(t))
 #define team_tospec(t) ((t) == TEAM_SPECT ? TEAM_SPECT : team_base(t) + TEAM_CLA_SPECT - TEAM_CLA)
 // note: team_isactive and team_base can/should be used to check the limits for arrays of size '2'

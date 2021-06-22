@@ -1734,7 +1734,7 @@ bool spamdetect(client *cl, char *text) // checks doubled lines and average typi
 
 void sendteamtext(char *text, int sender, int msgtype)
 {
-    if(!valid_client(sender) || clients[sender]->team == TEAM_VOID) return;
+    if(!valid_client(sender) || clients[sender]->team == TEAM_NUM) return;
     packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
     putint(p, msgtype);
     putint(p, sender);
@@ -1755,7 +1755,7 @@ void sendteamtext(char *text, int sender, int msgtype)
 
 void sendvoicecomteam(int sound, int sender)
 {
-    if(!valid_client(sender) || clients[sender]->team == TEAM_VOID) return;
+    if(!valid_client(sender) || clients[sender]->team == TEAM_NUM) return;
     packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
     putint(p, SV_VOICECOMTEAM);
     putint(p, sender);
@@ -2047,6 +2047,7 @@ bool updateclientteam(int cln, int newteam, int ftr)
         else
         {
             if(sg->autoteam && teamsizes[TEAM_CLA] != teamsizes[TEAM_RVSF]) newteam = teamsizes[TEAM_CLA] < teamsizes[TEAM_RVSF] ? TEAM_CLA : TEAM_RVSF;
+			if(newteam == TEAM_ANYACTIVE) newteam = rnd(2); // still undecided?
         }
     }
     if(ftr == FTR_PLAYERWISH)
