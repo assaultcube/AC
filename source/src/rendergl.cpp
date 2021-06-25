@@ -821,23 +821,19 @@ void drawminimap(int w, int h)
     camera1->o.x = clmapdims.xm;
     camera1->o.y = clmapdims.ym;
 
-    //float gdim = max(mapdims.xspan, mapdims.yspan)+2.0f; //make 1 cube smaller to give it a black edge
-    float gdim = max(clmapdims.xspan, clmapdims.yspan); //no border
+    float gdim = max(clmapdims.xspan, clmapdims.yspan);
 
     if(gdim < 1) gdim = ssize/2.0f;
     camera1->o.z = clmapdims.maxceil + 1;
     camera1->pitch = -90;
     camera1->yaw = 0;
 
-    //float orthd = 2 + gdim/2;
-    //glViewport(2, 2, size-4, size-4); // !not wsize here
-
     float orthd = gdim/2.0f;
-    glViewport(0, 0, size, size); // !not wsize here
+    glViewport(0, 0, size, size);
 
     glClearDepth(0.0);
     glClearColor(0, 0, 0, 0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT); // stencil added 2010jul22
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glOrtho(-orthd, orthd, -orthd, orthd, 0, (clmapdims.maxceil - clmapdims.minfloor) + 2); // depth of map +2 covered
@@ -987,14 +983,14 @@ void readmatrices()
     invmvpmatrix.invert(mvpmatrix);
 }
 
-// stupid function to cater for stupid ATI linux drivers that return incorrect depth values
+// stupid function to cater to stupid ATI linux drivers that return incorrect depth values
 
 float depthcorrect(float d)
 {
     return (d<=1/256.0f) ? d*256 : d;
 }
 
-// find out the 3d target of the crosshair in the world easily and very acurately.
+// find out the 3d target of the crosshair in the world easily and very accurately.
 // sadly many very old cards and drivers appear to fuck up on glReadPixels() and give false
 // coordinates, making shooting and such impossible.
 // also hits map entities which is unwanted.
@@ -1125,9 +1121,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps, int elapsed)
     renderbounceents();
     endmodelbatches();
 
-    // Added by Rick: Need todo here because of drawing the waypoints
-    WaypointClass.Think();
-    // end add
+    WaypointClass.Think();// Rick: Need to do here because of drawing the waypoints
     
     drawhudgun();
 
