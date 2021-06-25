@@ -1159,6 +1159,7 @@ void startmap(const char *name, bool reset, bool norespawn)   // called just aft
     sendmapidenttoserver = true;
     if(m_botmode) BotManager.BeginMap(name);
     else kickallbots();
+    showmipstats = false;
     clearbounceents();
     preparectf(!m_flags_);
     suicided = -1;

@@ -481,6 +481,7 @@ extern void drawcrosshair(playerent *p, int n, struct color *c = NULL, float siz
 // autodownload
 enum { PCK_TEXTURE = 0, PCK_SKYBOX, PCK_MAPMODEL, PCK_AUDIO, PCK_MAP, PCK_MOD, PCK_NUM };
 extern int autodownload;
+extern bool canceldownloads;
 extern void setupautodownload();
 extern void pollautodownloadresponse();
 extern bool requirepackage(int type, const char *name, const char *host = NULL);
@@ -491,6 +492,7 @@ extern void writepcksourcecfg();
 struct zone { int x1, x2, y1, y2, color; }; // zones (drawn on the minimap)
 
 // rendercubes
+extern bool showmipstats;
 extern void mipstats(const int a[]);
 extern const char *cubetypenames[];
 extern bool editfocusdetails(sqr *s);

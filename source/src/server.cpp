@@ -2554,6 +2554,7 @@ bool scallvote(voteinfo *v, ENetPacket *msg) // true if a regular vote was calle
         /** same team, with low tk, not lagging, and not spamming... so, why to kick? */
         else if ( isteam(c->team, b->team) && b->state.teamkills < c->state.teamkills ) error = VOTEE_WEAK;
     }
+    else if( c->role == CR_DEFAULT && servmillis - c->connectmillis < 60000 && numclients() > 1 ) error = VOTEE_PERMISSION; // after connection 60s delay before possibility of vote start
 
     if(error>=0)
     {
@@ -3378,7 +3379,7 @@ void process(ENetPacket *packet, int sender, int chan)
             {
                 int gzs = getint(p);
                 int rev = getint(p);
-                if(!isdedicated || (sg->curmap && sg->curmap->cgzlen == gzs && sg->curmap->maprevision == rev))
+				if(!isdedicated || (sg->curmap && sg->curmap->cgzlen == gzs && sg->curmap->maprevision == rev) || m_coop)
                 { // here any game really starts for a client: spawn, if it's a new game - don't spawn if the game was already running
                     cl->isonrightmap = true;
                     int sp = canspawn(cl);
