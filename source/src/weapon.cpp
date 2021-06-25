@@ -1632,6 +1632,7 @@ bool knife::attack(vec &targ)
     unitv.mul(3); // punch range
     to = from;
     to.add(unitv);
+    intersectgeometry(from,to);
     if ( owner->pitch < 0 ) to.z += 2.5 * sin( owner->pitch * 0.01745329 );
 
     attackevent(owner, type);
