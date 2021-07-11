@@ -33,11 +33,12 @@ COMMANDF(editmeta, "d", (bool on) { editmetakeydown = on ? 1 : 0; } );
 VAR(cleanedit, 0, 0, 1); // hides everything in edit mode you can't see in regular mode
 COMMANDF(togglecleanedit, "", () { cleanedit = !cleanedit; }); 
 
-bool editingsettingsshowminimal = false;
+bool editingsettingsshowminimal = false; // minimal reminder you have bits set in edithideentmask
 int keepshowingeditingsettingsfrom = 0;
 int keepshowingeditingsettingstill = 0;
-VARFP(editingsettingsvisibletime, 750, 7500, 75000, toucheditingsettings());
-VARFP(showeditingsettings, 0, 1, 3, toucheditingsettings()); // 0:almost entirely off, 1: all off after duration, 2: text off after duration, 3: permanent 
+
+VARFP(editingsettingsvisibletime, 750, 7500, 75000, toucheditingsettings(true); ); // begin anew after any changes
+VARFP(showeditingsettings, 0, 1, 3, { if(showeditingsettings){ toucheditingsettings(true); }else{ keepshowingeditingsettingsfrom = keepshowingeditingsettingstill = 0; }}); // 0:almost entirely off, 1: all off after duration, 2: text off after duration, 3: permanent 
 
 void toggleedit(bool force)
 {
@@ -61,8 +62,7 @@ void toggleedit(bool force)
     else
     {
         player1->attacking = false;
-        if(keepshowingeditingsettingsfrom==0) keepshowingeditingsettingsfrom = lastmillis;
-        keepshowingeditingsettingstill = lastmillis + editingsettingsvisibletime;
+        toucheditingsettings(true);
     }
     keyrepeat(editmode, KR_EDITMODE);
     editing = editmode ? 1 : 0;
@@ -838,14 +838,15 @@ static struct partcolour{ float r, g, b; } partcolours[MAXENTTYPES] =
 
 void rendereditingsettings()
 {
-    if(showeditingsettings > 0 || (edithideentmask != 0 && editingsettingsshowminimal))
+    if(!conopen && (showeditingsettings > 0 || (edithideentmask != 0 && editingsettingsshowminimal)))
     {
         bool showing = ((showeditingsettings >= 2) || (keepshowingeditingsettingstill > 0));
         int deltax = 0;
         if(keepshowingeditingsettingstill > 0)
         {
-            int deltat = keepshowingeditingsettingstill - lastmillis;
-            if(deltat < 0)
+            int deltat_a = keepshowingeditingsettingstill - lastmillis;
+            int deltat_b = lastmillis - keepshowingeditingsettingsfrom;
+            if(deltat_a < 0)
             {
                 keepshowingeditingsettingstill = 0;
                 keepshowingeditingsettingsfrom = 0;
@@ -853,15 +854,12 @@ void rendereditingsettings()
                 showing = (showeditingsettings >= 2);
             }else{
                 int pulldist = VIRTW/4;
-                float edgedist = 0.2f;
-                deltat = deltat > keepshowingeditingsettingstill/2 ? deltat : ( lastmillis - keepshowingeditingsettingsfrom ); // "from" is only set once per slide, "till" may be pushed outward …
-                // … if someone takes a long(>(1-edgedist)) time to trigger the push it out some more .. there'll be a jump in the sliding. can't be helped.
-                float elapsedfrac = deltat/(1.0f * editingsettingsvisibletime);
-                bool slideout = elapsedfrac<edgedist;
-                bool slidein = elapsedfrac>(1-edgedist);
+                int showfrac = editingsettingsvisibletime / 5;
+                bool slidein = (deltat_a <= showfrac);
+                bool slideout = (deltat_b <= showfrac);
                 if(slidein||slideout)
                 {
-                    deltax = (slideout?pulldist:0) + (slideout?-1:+1) * (elapsedfrac-(slidein?(1-edgedist):0))/edgedist * pulldist;
+                    deltax = (showfrac - (slidein ? deltat_a : deltat_b))/(1.0f * showfrac) * pulldist;
                 }
             }
         }
@@ -870,42 +868,62 @@ void rendereditingsettings()
             glDepthMask(GL_FALSE);
             glDisable(GL_TEXTURE_2D);
             glDisable(GL_BLEND);
-            int boxsize = VIRTW/32, boxline = 3*boxsize/2, x = FONTH/2 - (showeditingsettings==1?deltax:0), y = 3 * VIRTH/8, x2 = x + boxsize, border = 2;
+            int boxsize = VIRTW/32, boxline = 3*boxsize/2;
+            int border = 2;
+            int x1 = FONTH/2 - (showeditingsettings == 1 ? deltax : 0), y1 = 3 * VIRTH/8, x2 = x1 + boxsize;
             float prevlinew; glGetFloatv(GL_LINE_WIDTH, &prevlinew); glLineWidth(border);
             loopi(MAXENTTYPES)
             {
                 if(i>NOTUSED && i<=DUMMYENT)
                 {
-                    y = 3 * VIRTH/8 + (i-1) * boxline;
-                    int y2 = y + boxsize;
+                    y1 = 3 * VIRTH/8 + (i-1) * boxline;
+                    int y2 = y1 + boxsize;
                     bool ishidden = (edithideentmask & (1 << (i - 1)));
-                    // text first makes it slide in/out behind the boxes
+                    // render text first – makes it slide in/out behind the boxes
                     if(showeditingsettings==3||keepshowingeditingsettingsfrom) // 3:all,always || ( 2:text,at first, 1:all,at first )
                     {
                         glEnable(GL_TEXTURE_2D); glEnable(GL_BLEND);
                         defformatstring(entlabel)("\f%d%s", ishidden?4:5, entnames[i]);
-                        draw_text(entlabel, x + boxline -(showeditingsettings==2?deltax:0), y );
+                        draw_text(entlabel, x1 + boxline -(showeditingsettings == 2 ? deltax : 0), y1 );
                         glDisable(GL_TEXTURE_2D); glDisable(GL_BLEND);
                     }
                     // now the box
                     partcolour &pc = partcolours[i];
                     glColor3f(pc.r, pc.g, pc.b);
                     glBegin(GL_TRIANGLE_STRIP);
-                    glVertex2f(x , y );
-                    glVertex2f(x2, y );
-                    glVertex2f(x , y2);
-                    glVertex2f(x2, y2);
+                    glVertex2d(x1, y1);
+                    glVertex2d(x2, y1);
+                    glVertex2d(x1, y2);
+                    glVertex2d(x2, y2);
                     glEnd();
                     // and the border
-                    box2d(x-border, y-border, x2+border, y2+border, ishidden?0:200);
+                    box2d(x1-border, y1-border, x2+border, y2+border, ishidden?0:200);
+                    // crossed-out like in menu
+                    if(ishidden){
+                        glColor3d(0,0,0);
+                        glBegin(GL_LINES);
+                        glVertex2d(x1, y1);
+                        glVertex2d(x2, y2);
+                        glVertex2d(x1, y2);
+                        glVertex2d(x2, y1);
+                        glEnd();
+                    }
                 }
             }
             glLineWidth(prevlinew);
             glEnable(GL_TEXTURE_2D);
             glDepthMask(GL_TRUE);
         }
+        glEnable(GL_BLEND);
     }
-    glEnable(GL_BLEND);
+    else
+    {
+        if(conopen && edithideentmask != 0 && editingsettingsshowminimal){
+            conoutf("\f3NOTICE\f4: you have \f1edithideentmask\f4 = \f2%d", edithideentmask);
+            editingsettingsshowminimal = false;
+        }
+
+    }
 }
 
 void edittexxy(int type, int t, block &sel)
