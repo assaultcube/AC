@@ -374,8 +374,8 @@ void newentity(int index, int x, int y, int z, const char *what, float v1f, floa
     switch(type)
     { // MAPMODEL, PLAYERSTART and CTF-FLAG use the current camera direction as value for attr1, so attr23456 need to be moved
         case MAPMODEL:
-			v6f = v5f;
-			v5f = v4f;
+    		v6f = v5f;
+    		v5f = v4f;
             v4f = v3f;
             v3f = v2f;
         case PLAYERSTART:
