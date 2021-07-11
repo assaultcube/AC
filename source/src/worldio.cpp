@@ -850,7 +850,7 @@ void save_world9(char *mname)
     backup(cgzname, bakname);
     stream *f = opengzfile(cgzname, "wb");
     if(!f) { conoutf("could not write map to %s", cgzname); return; }
-    strncpy(hdr.head, "ACMP", 4); // ensure map now declares itself as an AssaultCube map, even if imported as CUBE
+    memcpy(hdr.head, "ACMP", 4); // ensure map now declares itself as an AssaultCube map, even if imported as CUBE
     hdr.version = 9;
     hdr.headersize = sizeof(header);
     hdr.timestamp = (int) time(NULL); // non-zero timestamps in format 9 can be used to identify "exported" maps
