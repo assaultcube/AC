@@ -145,7 +145,7 @@ bool mmcollide(physent *d, float &hi, float &lo)           // collide with a map
             switch(e.attr7 & 3)
             {
                 default: // classic unrotated clip, possibly tilted
-                    hitarea = (fabs(e.x - d->o.x) - (float(e.attr2) / ENTSCALE5 + useradius) < 1e-5) && (fabs(e.y - d->o.y) - (float(e.attr3) / ENTSCALE5 + useradius) < 1e-5); // fix PLCLIP-step-up bug where e.g. 2.1<=2.1 was FALSE [sic!]
+                    hitarea = (fabs(e.x - d->o.x) - (float(e.attr2) / ENTSCALE5 + d->radius) < 1e-5) && (fabs(e.y - d->o.y) - (float(e.attr3) / ENTSCALE5 + d->radius) < 1e-5); // fix PLCLIP-step-up bug where e.g. 2.1<=2.1 was FALSE [sic!]
                     break;
                 case 3: // clip rotated 45°
                 {
