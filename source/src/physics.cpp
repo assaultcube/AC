@@ -139,14 +139,13 @@ bool mmcollide(physent *d, float &hi, float &lo)           // collide with a map
     for(int i = clentstats.firstclip; i < ents.length(); i++)
     {
         entity &e = ents[i];
-        // if(e.type==CLIP || (e.type == PLCLIP && d->type == ENT_PLAYER))
-        if (e.type==CLIP || (e.type == PLCLIP && (d->type == ENT_BOT || d->type == ENT_PLAYER || (d->type == ENT_BOUNCE && ((bounceent *)d)->plclipped)))) // don't allow bots to hack themselves into plclips - Bukz 2011/04/14
+        if (e.type==CLIP || (e.type == PLCLIP && (d->type == ENT_BOT || d->type == ENT_PLAYER || (d->type == ENT_BOUNCE && ((bounceent *)d)->plclipped))))
         {
             bool hitarea = false;
             switch(e.attr7 & 3)
             {
                 default: // classic unrotated clip, possibly tilted
-                    hitarea = fabs(e.x - d->o.x) < float(e.attr2) / ENTSCALE5 + d->radius && fabs(e.y - d->o.y) < float(e.attr3) / ENTSCALE5 + d->radius;
+                    hitarea = (fabs(e.x - d->o.x) - (float(e.attr2) / ENTSCALE5 + useradius) < 1e-5) && (fabs(e.y - d->o.y) - (float(e.attr3) / ENTSCALE5 + useradius) < 1e-5); // fix PLCLIP-step-up bug where e.g. 2.1<=2.1 was FALSE [sic!]
                     break;
                 case 3: // clip rotated 45°
                 {
