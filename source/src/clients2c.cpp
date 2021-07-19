@@ -681,7 +681,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
             case SV_THROWNADE:
             {
                 vec from, vel;
-                loopk(3) from[k] = getint(p)/DMF;
+                loopk(3) from[k] = getint(p)/DNF;
                 loopk(3) vel[k] = getint(p)/DNF;
                 int nademillis = getint(p);
                 if(!d) break;
