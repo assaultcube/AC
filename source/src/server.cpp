@@ -4666,6 +4666,7 @@ void extinfo_statsbuf(ucharbuf &p, int pid, int bpos, ENetSocket &pongsock, ENet
         putint(p,clients[i]->state.state);      //State (Alive,Dead,Spawning,Lagged,Editing)
         uint ip = clients[i]->peer->address.host; // only 3 byte of the ip address (privacy protected)
         p.put((uchar*)&ip,3);
+        putint(p,clients[i]->state.damage); //Damage
 
         buf.dataLength = len + p.length();
         enet_socket_send(pongsock, &addr, &buf, 1);
