@@ -1167,7 +1167,7 @@ void startmap(const char *name, bool reset, bool norespawn)   // called just aft
     lasthit = 0;
     if(m_valid(gamemode) && !m_mp(gamemode)) respawnself();
     else findplayerstart(player1);
-	editingsettingsshowminimal = true;
+	editingsettingsshowminimal = true; // 1st edittoggle shows edithideentmask(!=0); turned off health pickups last session 2 months ago? now you remember!
 
     if(!reset) return;
 

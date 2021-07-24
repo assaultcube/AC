@@ -6,11 +6,33 @@ VARP(showclips, 0, 1, 1);
 VARP(showmodelclipping, 0, 0, 1);
 VARP(showladderentities, 0, 0, 1);
 VARP(showplayerstarts, 0, 0, 1);
-void toucheditingsettings(){
-    if(keepshowingeditingsettingsfrom == 0) keepshowingeditingsettingsfrom = lastmillis; 
-    keepshowingeditingsettingstill = lastmillis + editingsettingsvisibletime;
+
+void toucheditingsettings(bool forcerestart){
+    if(keepshowingeditingsettingsfrom == 0 || forcerestart)
+    {
+        keepshowingeditingsettingsfrom = lastmillis; 
+        keepshowingeditingsettingstill = lastmillis + editingsettingsvisibletime;
+    }
+    else
+    {
+        int deltat_a = keepshowingeditingsettingstill - lastmillis;
+        int deltat_b = lastmillis - keepshowingeditingsettingsfrom;
+        int showfrac = editingsettingsvisibletime / 5; 
+        if( deltat_b >= showfrac )// we ignore quick-changes inside the slide-in period
+        {
+            if( deltat_a <= showfrac )// changes in the slide-out period take that slide back and stay for almost the entire visibletime longer
+            {
+                keepshowingeditingsettingsfrom = lastmillis - deltat_a;
+            }
+            else // a touch during the regular showing duration
+            {
+                keepshowingeditingsettingsfrom = lastmillis - showfrac;
+            }
+            keepshowingeditingsettingstill = keepshowingeditingsettingsfrom + editingsettingsvisibletime;        	
+        }
+    }
 }
-VARFP(edithideentmask, 0, 0, INT_MAX, toucheditingsettings());
+VARFP(edithideentmask, 0, 0, INT_MAX, toucheditingsettings(false) ); // this may occur a couple of times in short order, don't retrigger the slide-in (see above)
 
 vector<entity> ents;
 

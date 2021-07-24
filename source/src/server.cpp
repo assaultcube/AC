@@ -3913,7 +3913,7 @@ void process(ENetPacket *packet, int sender, int chan)
                         }
                         else
                         {
-                            copystring(vi->text,text,MAXTRANS);
+                            copystring(vi->text, text, MAXTRANS);
                             vi->num1 = mode;
                             vi->num2 = time;
                         }
@@ -3930,7 +3930,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     {
                         vi->num1 = cn2boot = getint(p);
                         getstring(text, p);
-                        copystring(vi->text,text,128);
+                        copystring(vi->text, text, 128);
                         filtertext(text, text, FTXT__KICKBANREASON);
                         vi->action = new kickaction(cn2boot, newstring(text, 128));
                         vi->boot = 1;
@@ -3940,7 +3940,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     {
                         vi->num1 = cn2boot = getint(p);
                         getstring(text, p);
-                        copystring(vi->text,text,128);
+                        copystring(vi->text, text, 128);
                         filtertext(text, text, FTXT__KICKBANREASON);
                         vi->action = new banaction(cn2boot, newstring(text, 128));
                         vi->boot = 2;
@@ -3980,7 +3980,7 @@ void process(ENetPacket *packet, int sender, int chan)
                         break;
                     case SA_SERVERDESC:
                         getstring(text, p);
-                        copystring(vi->text,text,MAXTRANS);
+                        copystring(vi->text, text, MAXTRANS);
                         filtertext(text, text, FTXT__SERVDESC);
                         vi->action = new serverdescaction(newstring(text), sender);
                         break;

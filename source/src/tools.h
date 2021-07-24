@@ -119,13 +119,7 @@ typedef char string[MAXSTRLEN];
 
 #define vformatstring(d,last,fmt) { va_list ap; va_start(ap, last); vformatstring_(d, fmt, ap); va_end(ap); }
 inline void vformatstring_(char* d, const char* fmt, va_list v, int len = MAXSTRLEN) { _vsnprintf(d, len, fmt, v); d[len - 1] = 0; }
-inline char *copystring(char *d, const char *s, size_t len = MAXSTRLEN)
-{
-    size_t slen = min(strlen(s), len-1);
-    memcpy(d, s, slen);
-    d[slen] = 0;
-    return d;
-}
+inline char *copystring(char *d, const char *s, size_t len = MAXSTRLEN) { strncpy(d, s, len); d[len-1] = 0; return d; }
 inline char *concatstring(char *d, const char *s, size_t len = MAXSTRLEN) { size_t used = strlen(d); return used < len ? copystring(d+used, s, len-used) : d; }
 extern char *concatformatstring(char *d, const char *s, ...) PRINTFARGS(2, 3);
 
@@ -802,7 +796,7 @@ struct stopwatch
 
 inline char *newstring(size_t l)                { return new char[l+1]; }
 inline char *newstring(const char *s, size_t l) { return copystring(newstring(l), s, l+1); }
-inline char *newstring(const char *s)           { return newstring(s, strlen(s)); }
+inline char *newstring(const char *s)           { size_t l = strlen(s); char *d = newstring(l); memcpy(d, s, l+1); return d; }
 inline char *newstringbuf()                     { return newstring(MAXSTRLEN-1); }
 inline char *newstringbuf(const char *s)        { return newstring(s, MAXSTRLEN-1); }
 inline void delstring(const char *s)            { delete[] (char *)s; }

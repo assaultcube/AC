@@ -824,9 +824,6 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     if(command) commandh -= rendercommand(-1, HUDPOS_Y_BOTTOMLEFT, VIRTW - FONTH); // dryrun to get height
     else if(infostr)
     {
-        // I wanted to make the very large pinned/closest/point-at entity text smaller .. now I see this .. isn't "cleanedit" supposed to *hide* everything usually seen in edit mode, not make stuff smaller?
-        // .. so .. this must be some "hide by obscurity during development" thing .. *grin*: go-go-gadgeto improvement
-        //if(cleanedit){}else draw_text(infostr, HUDPOS_X_BOTTOMLEFT, HUDPOS_Y_BOTTOMLEFT);// smaller text
         glPushMatrix();
         glLoadIdentity();
         glOrtho(0, VIRTW * 2, VIRTH * 2, 0, -1, 1);
@@ -964,7 +961,11 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     //else draw_textf("%c%d here F1/F2 will be praised during a vote", 20*2, VIRTH+560, '\f', 0); // see position (left/top) setting in block above
 
     if(menu) rendermenu();
-    else if(command) renderdoc(40, VIRTH, max(commandh*2 - VIRTH, 0));
+    else if(command)
+	{
+		int offsetx = 40 + (editmode ? ((showeditingsettings == 3 || keepshowingeditingsettingstill) ? VIRTW/4 : (showeditingsettings == 2 ? 2*VIRTW/32 : 0)) : 0);
+		renderdoc(offsetx, VIRTH, max(commandh*2 - VIRTH, 0));
+	}
 
     if(!hidespecthud && !menu && p->state==CS_DEAD && p->spectatemode<=SM_DEATHCAM)
     {

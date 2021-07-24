@@ -1149,19 +1149,16 @@ void grenadeent::splash()
     }
 }
 
-void grenadeent::activate(const vec &from, const vec &to)
+void grenadeent::activate(const vec &from, const vec &vel)
 {
     if(nadestate!=NS_NONE) return;
     nadestate = NS_ACTIVATED;
 
     if(local)
     {
-        addmsg(SV_SHOOT, "ri2i3i", millis, owner->weaponsel->type,
-//                (int)(from.x*DMF), (int)(from.y*DMF), (int)(from.z*DMF),
-               (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF),
-               0);
+        addmsg(SV_SHOOT, "ri2i3i", millis, owner->weaponsel->type, (int)(vel.x*DMF), (int)(vel.y*DMF), (int)(vel.z*DMF), 0); // server reads all weapons with DMF precision
         audiomgr.playsound(S_GRENADEPULL, SP_HIGH);
-        player1->pstatshots[GUN_GRENADE]++; //NEW
+        player1->pstatshots[GUN_GRENADE]++;
     }
 }
 
@@ -1175,7 +1172,7 @@ void grenadeent::_throw(const vec &from, const vec &vel)
     inwater = waterlevel > o.z;
     if(local)
     {
-        addmsg(SV_THROWNADE, "ri7", int(o.x*DMF), int(o.y*DMF), int(o.z*DMF), int(vel.x*DNF), int(vel.y*DNF), int(vel.z*DNF), lastmillis-millis);
+        addmsg(SV_THROWNADE, "ri7", int(o.x*DNF), int(o.y*DNF), int(o.z*DNF), int(vel.x*DNF), int(vel.y*DNF), int(vel.z*DNF), lastmillis-millis);
         audiomgr.playsound(S_GRENADETHROW, SP_HIGH);
     }
     else audiomgr.playsound(S_GRENADETHROW, owner);
@@ -1217,7 +1214,7 @@ bool grenades::busy() { return state!=GST_NONE; }
 bool grenades::attack(vec &targ)
 {
     int attackmillis = lastmillis-owner->lastaction;
-    vec &to = targ;
+    vec &vel = targ;
 
     bool waitdone = attackmillis>=gunwait && !(m_arena && m_teammode && arenaintermission);
     if(waitdone) gunwait = reloading = 0;
@@ -1228,23 +1225,23 @@ bool grenades::attack(vec &targ)
             if(waitdone && owner->attacking && this==owner->weaponsel)
             {
                 attackevent(owner, type);
-                activatenade(to); // activate
+                activatenade(vel);
             }
         break;
 
         case GST_INHAND:
             if(waitdone)
             {
-                if(!owner->attacking || this!=owner->weaponsel) thrownade(); // throw
-                else if(!inhandnade->isalive(lastmillis)) dropnade(); // drop & have fun
+                if(!owner->attacking || this!=owner->weaponsel) thrownade();
+                else if(!inhandnade->isalive(lastmillis)) dropnade();
             }
             break;
 
         case GST_THROWING:
-            if(attackmillis >= throwwait) // throw done
+            if(attackmillis >= throwwait)
             {
                 reset();
-                if(!mag && this==owner->weaponsel) // switch to primary immediately
+                if(!mag && this==owner->weaponsel)
                 {
                     owner->weaponchanging = lastmillis-1-(weaponchangetime/2);
                     owner->nextweaponsel = owner->weaponsel = owner->primweap;
@@ -1256,21 +1253,21 @@ bool grenades::attack(vec &targ)
     return true;
 }
 
-void grenades::attackfx(const vec &from, const vec &to, int millis) // other player's grenades
+void grenades::attackfx(const vec &from, const vec &vel, int millis) // other player's grenades
 {
     throwmillis = lastmillis-millis;
     cookingmillis = millis;
     if(millis == 0 || millis == -1)
     {
         state = GST_INHAND;
-        audiomgr.playsound(S_GRENADEPULL, owner); // activate
+        audiomgr.playsound(S_GRENADEPULL, owner);
     }
     else if(millis > 0) // throw
     {
         grenadeent *g = new grenadeent(owner, millis);
         state = GST_THROWING;
         bounceents.add(g);
-        g->_throw(from, to);
+        g->_throw(from, vel);
     }
 }
 
@@ -1289,7 +1286,7 @@ int grenades::modelanim()
     return ANIM_GUN_IDLE;
 }
 
-void grenades::activatenade(const vec &to)
+void grenades::activatenade(const vec &vel)
 {
     if(!mag) return;
     throwmillis = 0;
@@ -1302,21 +1299,26 @@ void grenades::activatenade(const vec &to)
     gunwait = info.attackdelay;
     owner->lastattackweapon = this;
     state = GST_INHAND;
-    inhandnade->activate(owner->o, to);
+    inhandnade->activate(owner->o, vel);
 }
 
 void grenades::thrownade()
 {
     if(!inhandnade) return;
     const float speed = cosf(RAD*owner->pitch);
-    vec vel(sinf(RAD*owner->yaw)*speed, -cosf(RAD*owner->yaw)*speed, sinf(RAD*owner->pitch));
-    vel.mul(1.5f);
-    thrownade(vel);
+    vec lvel(sinf(RAD*owner->yaw)*speed, -cosf(RAD*owner->yaw)*speed, sinf(RAD*owner->pitch));
+    lvel.mul(1.5f);
+    vec uvel(int(lvel.x*DNF)/DNF,int(lvel.y*DNF)/DNF,int(lvel.z*DNF)/DNF); // force universal granularity 
+    thrownade(uvel);
 }
 
 void grenades::thrownade(const vec &vel)
 {
     inhandnade->moveoutsidebbox(vel, owner);
+    // sending with DNF precision fixes current "remote stuck on plateau"-bug, but "universal granularity"(TM) lessens discrepancies between worlds even more
+    inhandnade->o.x = int(inhandnade->o.x*DNF)/DNF;
+    inhandnade->o.y = int(inhandnade->o.y*DNF)/DNF;
+    inhandnade->o.z = int(inhandnade->o.z*DNF)/DNF;
     inhandnade->_throw(inhandnade->o, vel);
     inhandnade = NULL;
 

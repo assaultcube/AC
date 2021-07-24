@@ -121,6 +121,7 @@ struct color
 };
 
 // console
+extern int conopen;
 extern stream *clientlogfile;
 extern vector<char> *bootclientlog;
 
@@ -930,8 +931,9 @@ extern void checkweaponstate();
 extern int burstshotssettings[NUMGUNS];
 
 // entities:
-extern void toucheditingsettings();
+extern void toucheditingsettings(bool forcerestart = true);
 extern int edithideentmask;
+extern int showeditingsettings;
 extern void pickupeffects(int n, playerent *d);
 extern void rendereditentities();
 extern void renderentities();

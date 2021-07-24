@@ -372,8 +372,10 @@ void newentity(int index, int x, int y, int z, const char *what, float v1f, floa
     if(type == NOTUSED) return;
     if (index >= 0 && ents[index].type == SOUND) deletesoundentity(ents[index]); // overwriting sound entity
     switch(type)
-    { // MAPMODEL, PLAYERSTART and CTF-FLAG use the current camera direction as value for attr1, so attr234 need to be moved
+    { // MAPMODEL, PLAYERSTART and CTF-FLAG use the current camera direction as value for attr1, so attr23456 need to be moved
         case MAPMODEL:
+            v6f = v5f;
+            v5f = v4f;
             v4f = v3f;
             v3f = v2f;
         case PLAYERSTART:
@@ -533,8 +535,7 @@ void editentity(char **args, int numargs) // index x y z a1 a2 a3 a4 ...
             }
             unsavededits++;
         }
-        // give back unchanged or new entity properties
-        formatstring(res)("%s %d %d %d  %s", entnames[t], e.x, e.y, e.z, formatentityattributes(e));
+        formatstring(res)("%s %d %d %d  %s", entnames[t], e.x, e.y, e.z, formatentityattributes(e)); // double space is for human readability; scripts don't care.
     }
     result(res);
 }

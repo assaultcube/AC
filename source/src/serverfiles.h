@@ -1464,8 +1464,8 @@ struct serverforbiddenlist : serverconfigfile
         char *c1 = s1, *c2 = s2;
         if (num < 100 && (n = sscanf(s,"%s %s",s1,s2)) > 0 ) // no warnings
         {
-            copystring(entries[num][0],c1,FORBIDDENSIZE);
-            if ( n > 1 ) copystring(entries[num][1],c2,FORBIDDENSIZE);
+            copystring(entries[num][0], c1, FORBIDDENSIZE);
+            if ( n > 1 ) copystring(entries[num][1], c2, FORBIDDENSIZE);
             else entries[num][1][0]='\0';
             num++;
         }
