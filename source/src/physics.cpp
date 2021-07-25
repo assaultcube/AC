@@ -275,7 +275,11 @@ bool collide(physent *d, bool spawn, float drop, float rise)
                 if(match && matter)
                 {
                     if(!h) return true; // we hit a corner between solids...
-                    else if(z1 < ns->floor || z2 > ns->ceil || tagclipped) return true; // corner is not between solids, but we hit it...
+                    else if(z1 < ns->floor || z2 > ns->ceil || tagclipped) // corner is not between solids, but we hit it...
+                    {
+                        if(z2 > ns->ceil) d->vel.z = 0;                     // cancel out jumping velocity when hitting corner ceiling
+                        return true; 
+                    }
                 }
                 if(h) tagclipped = false; // for corners between non-solids, tagclips extend the corner (visualisation does not reflect that, yet)
                                           // tagclipped corners between solids are fully clipped
