@@ -155,6 +155,7 @@ struct keym
     ~keym() { DELETEA(name); loopi(NUMACTIONS) DELETEA(actions[i]); }
 };
 
+extern hashtable<int, keym> keyms;
 extern keym *keypressed;
 
 extern bool bindkey(keym *km, const char *action, int state = keym::ACTION_DEFAULT);

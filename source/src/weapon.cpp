@@ -17,6 +17,8 @@ sgray sgr[SGRAYS*3];
 
 int burstshotssettings[NUMGUNS] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, };
 
+bool quicknade = false;
+
 void updatelastaction(playerent *d, int millis = lastmillis)
 {
     loopi(NUMGUNS) d->weapons[i]->updatetimers(millis);
@@ -36,6 +38,14 @@ void checkweaponswitch()
     {
         player1->prevweaponsel = player1->weaponsel;
         player1->weaponsel = player1->nextweaponsel;
+        if(quicknade){
+            keym *key_LMB = keyms.access(-1);
+            if(key_LMB->pressed)
+            {
+                player1->attacking = true; 
+                player1->weaponsel->attack(worldpos); 
+            }
+        }
     }
 }
 
@@ -111,8 +121,6 @@ void shiftweapon(int *s)
     else if(player1->isspectating()) updatefollowplayer(*s);
 }
 COMMAND(shiftweapon, "i");
-
-bool quicknade = false;
 
 void quicknadethrow(bool on)
 {
