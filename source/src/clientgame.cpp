@@ -1745,11 +1745,10 @@ void setfollowplayer(int cn)
 }
 COMMANDF(setfollowplayer, "i", (int *cn) { setfollowplayer(*cn); });
 
-// the spectate mode SM_OVERVIEW is like a radar hack and therefore is only allowed under certain conditions
+// SM_OVERVIEW shows all players and their activity - could be used unfairly, possible TODO: allow restricting access by server config and votes 
 bool smoverviewflyforbidden()
 {
-    bool notmatchnotprivate = servstate.mastermode != MM_MATCH && servstate.mastermode != MM_PRIVATE;
-    return ((player1->team != TEAM_SPECT || notmatchnotprivate) && !watchingdemo);
+    return (player1->team != TEAM_SPECT && !watchingdemo);
 }
 
 // set new spect mode
@@ -1804,7 +1803,7 @@ void togglespect() // cycle through all spectating modes
     {
         int mode;
         if(player1->spectatemode==SM_NONE) mode = SM_FOLLOW1ST; // start with 1st person spect
-        else mode = SM_FOLLOW1ST + ((player1->spectatemode - SM_FOLLOW1ST + 1) % ((smoverviewflyforbidden() ? SM_FLY : SM_OVERVIEW)-SM_FOLLOW1ST)); // replace SM_OVERVIEW by SM_NUM to enable overview mode
+        else mode = SM_FOLLOW1ST + ((player1->spectatemode - SM_FOLLOW1ST + 1) % ((smoverviewflyforbidden() ? SM_FLY : SM_NUM/*SM_OVERVIEW*/)-SM_FOLLOW1ST)); // replace SM_OVERVIEW by SM_NUM to enable overview mode
         spectatemode(mode);
     }
 }

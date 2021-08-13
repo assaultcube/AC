@@ -740,6 +740,11 @@ VAR(blankouthud, 0, 0, 10000); //for "clean" screenshot
 string gtime;
 int dimeditinfopanel = 255;
 
+const char *ghoststrings[] =
+{
+  "none", "deathcam", "chase 1st", "chase 3rd [O]", "chase 3rd [A]", "fly", "overview", ""
+};
+
 void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwater, int elapsed)
 {
     if(blankouthud > 0) { blankouthud -= elapsed; return; }
@@ -811,7 +816,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
     if(p->state==CS_ALIVE && !hidehudequipment) drawequipicons(p);
 
-    if(!hideradar || showmap) drawradar(p, w, h);
+    if((!hideradar || showmap) && !(player1->spectatemode>=SM_FLY)) drawradar(p, w, h);
     if(!editmode)
     {
         glMatrixMode(GL_MODELVIEW);
@@ -1016,16 +1021,28 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     if(!hidespecthud && spectating && player1->spectatemode!=SM_DEATHCAM)
     {
         glLoadIdentity();
-        glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
+        glOrtho(0, VIRTW*2, VIRTH*2, 0, -1, 1);
+        int virtposx = (VIRTW*2)/40;
+        int virtposy = (VIRTH*2)/10;
         const char *specttext = "GHOST";
         if(player1->team == TEAM_SPECT) specttext = "GHOST";
         else if(player1->team == TEAM_CLA_SPECT) specttext = "[CLA]";
         else if(player1->team == TEAM_RVSF_SPECT) specttext = "[RVSF]";
-        draw_text(specttext, VIRTW/40, VIRTH/10*7);
+        draw_text(specttext, virtposx, virtposy*7);
+
+        extern bool smoverviewflyforbidden();
+        int lastvalid = smoverviewflyforbidden() ? SM_FLY : SM_OVERVIEW;
+        int smprev = player1->spectatemode > SM_FOLLOW1ST ? (player1->spectatemode - 1) : lastvalid;
+        int smnext = player1->spectatemode < lastvalid ? (player1->spectatemode + 1) : SM_FOLLOW1ST;
+        int gtoffx = 250; // static offset /hoping/ to be longer than the longest(!font?) specttext
+        draw_textf("\fZ%s", virtposx + gtoffx, virtposy*7 - FONTH, ghoststrings[smprev]);
+        draw_textf("\fY%s", virtposx + gtoffx, virtposy*7, ghoststrings[player1->spectatemode]);
+        draw_textf("\fZ%s", virtposx + gtoffx, virtposy*7 + FONTH, ghoststrings[smnext]);
+
         if(is_spect)
         {
             defformatstring(name)("Player %s", colorname(players[player1->followplayercn]));
-            draw_text(name, VIRTW/40, VIRTH/10*8);
+            draw_text(name, virtposx, virtposy*8);
         }
     }
 
