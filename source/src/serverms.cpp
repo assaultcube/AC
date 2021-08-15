@@ -361,5 +361,10 @@ void servermsinit(bool listen)
         if(lansock == ENET_SOCKET_NULL) mlog(ACLOG_WARNING, "could not create LAN server info socket");
         else enet_socket_set_option(lansock, ENET_SOCKOPT_NONBLOCK, 1);
     }
-    if(!usemaster) mlog(ACLOG_INFO, "server is LAN-only - without connection to masterserver");
+    if(!usemaster){
+        mlog(ACLOG_INFO, "server is LAN-only - without connection to masterserver");
+        if(listen){
+            if(!scl.ssk) mlog(ACLOG_INFO, "ACTION REQUIRED: you must provide a PRIVATE SERVER KEY via the '-Y' command line argument");
+        }
+    }
 }
