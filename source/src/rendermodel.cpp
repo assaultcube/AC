@@ -961,7 +961,7 @@ void renderclient(playerent *d, const char *mdlname, const char *vwepname, int t
     {
         if(d==player1 && d->allowmove()) return;
         if(d->nocorpse) return;
-        d->pitch = 0.1f;
+        d->pitch = d->spectatemode == SM_OVERVIEW ? -90 : 0.1f;
         anim = ANIM_DEATH;
         basetime = d->lastpain;
         int t = lastmillis-d->lastpain;

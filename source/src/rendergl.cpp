@@ -521,12 +521,16 @@ void recomputecamera()
                 break;
             }
             case SM_FLY:
+            {
                 resetcamera();
+                camera1->type = ENT_PLAYER;
                 camera1->eyeheight = 1.0f;
                 break;
+            }
             case SM_OVERVIEW:
             {
                 // TODO : fix water rendering
+                camera1->type = ENT_CAMERA;
                 camera1->o.x = clmapdims.xm;
                 camera1->o.y = clmapdims.ym;
                 camera1->o.z = clmapdims.maxceil + 1;
@@ -539,7 +543,8 @@ void recomputecamera()
             case SM_FOLLOW1ST:
             {
                 playerent *f = updatefollowplayer();
-                if(!f) { togglespect(); return; }
+                //if(!f) { togglespect(); return; }//why turn off spectating - better to switch to SM_FLY
+                if(!f){ player1->spectatemode = SM_FLY; recomputecamera(); return; }
                 camera1 = f;
                 break;
             }
@@ -547,7 +552,8 @@ void recomputecamera()
             case SM_FOLLOW3RD_TRANSPARENT:
             {
                 playerent *p = updatefollowplayer();
-                if(!p) { togglespect(); return; }
+                //if(!p) { togglespect(); return; }//why turn off spectating - better to switch to SM_FLY
+                if(!p){ player1->spectatemode = SM_FLY; recomputecamera(); return; }
                 static physent followcam;
                 static playerent *lastplayer;
                 if(lastplayer != p || &followcam != camera1)

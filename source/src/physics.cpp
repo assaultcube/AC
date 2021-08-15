@@ -305,7 +305,7 @@ bool collide(physent *d, bool spawn, float drop, float rise)
         loopv(players)       // collide with other players
         {
             playerent *o = players[i];
-            if(!o || o==d || (o==player1 && d->type==ENT_CAMERA)) continue;
+            if(!o || o==d) continue;
             if(plcollide(d, o, headspace, hi, lo)) return true;
         }
         if(d!=player1) if(plcollide(d, player1, headspace, hi, lo)) return true;
@@ -912,7 +912,7 @@ FVARP(mfilter, 0.0f, 0.0f, 6.0f);               // simple lowpass filtering (zer
 
 void mousemove(int idx, int idy)
 {
-    if(intermission || ispaused || (player1->isspectating() && player1->spectatemode==SM_FOLLOW1ST)) return;
+    if(intermission || ispaused || (player1->isspectating() && (player1->spectatemode==SM_FOLLOW1ST||player1->spectatemode==SM_OVERVIEW))) return;
     bool zooming = player1->weaponsel->type == GUN_SNIPER && ((sniperrifle *)player1->weaponsel)->scoped;               // check if player uses scope
     float dx = idx, dy = idy;
     if(mfilter > 0.0001f)
