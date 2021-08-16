@@ -92,10 +92,10 @@ fi
 if [ "$ANSR" = "y" ] || [ "$ANSR" = "Y" ] || [ "$ANSR" = "yes" ] || [ "$ANSR" = "YES" ] || [ "$1" = "--all" ]; then
   cd $PATHTOACDIR/config
 
-  # Replacement text for "const defaultmaps":
-  DEFLTMAPS=`echo "const defaultmaps [" $MAPSLIST "]"`
+  # Replacement text for "const defaultmaps"(now __maps_all):
+  DEFLTMAPS=`echo "const __maps_all [" $MAPSLIST "]"`
 
-  sed -i 's/const defaultmaps..*/'"$DEFLTMAPS"'/g' menus.cfg
+  sed -i 's/const __maps_all .*/'"$DEFLTMAPS"'/g' menus.cfg
   echo "The following official maps are NOT listed for CTF mode currently:"
   echo $NONCTFLIST
   echo "Add a map to this list (Y/N)?"
