@@ -523,14 +523,13 @@ void recomputecamera()
             case SM_FLY:
             {
                 resetcamera();
-                camera1->type = ENT_PLAYER;
                 camera1->eyeheight = 1.0f;
+                if(camera1->pitch==-90) camera1->pitch = 0; // from SM_OVERVIEW; location/yaw may be ugly => use a playerstart
                 break;
             }
             case SM_OVERVIEW:
             {
                 // TODO : fix water rendering
-                camera1->type = ENT_CAMERA;
                 camera1->o.x = clmapdims.xm;
                 camera1->o.y = clmapdims.ym;
                 camera1->o.z = clmapdims.maxceil + 1;
