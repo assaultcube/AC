@@ -1173,7 +1173,7 @@ struct servercommandline
 
     servercommandline() :   uprate(0), serverport(CUBE_DEFAULT_SERVER_PORT), syslogfacility(6), filethres(-1), syslogthres(-1), maxdemos(-1),
                             maxclients(DEFAULTCLIENTS), kickthreshold(-5), banthreshold(-6), verbose(0), incoming_limit(10), afk_limit(45000), ban_time(20*60*1000),
-                            ip(""), master(NULL), logident(""), serverpassword(""), adminpasswd(""), demopath(NULL),
+                            ip(""), master(NULL), logident(""), serverpassword(""), adminpasswd(""), demopath("demos/"),
                             maprotfile("config/maprot.cfg"), pwdfile("config/serverpwd.cfg"), blfile("config/serverblacklist.cfg"), geoipfile("config/geoip.cfg"), nbfile("config/nicknameblacklist.cfg"),
                             infopath("config/serverinfo"), motdpath("config/motd"), forbidden("config/forbidden.cfg"), service(NULL), logfilepath("logs/"), parfilepath("config/serverparameters.cfg"), ssk(NULL), vitabasename("config/servervita"),
                             logtimestamp(false), demo_interm(false), loggamestatus(true),
@@ -1191,7 +1191,19 @@ struct servercommandline
         // client: dtwhzbsave
         switch(arg[1])
         { // todo: gjlqEJQU
-            case 'Y': ssk = a; break; // private server key
+            case 'Y': // private server key
+            {
+                bool allas = true; // a is all A's?
+                loopi(strlen(a)){ if(a[i]!='A') allas = false; }
+                if(allas){
+                    printf("KEY FAILURE: you provided the (inacceptable) example private key.\nKEY FAILURE: generate your own - read: https://assault.cubers.net/docs/server.html\n");
+                }
+                else
+                {
+                    ssk = a; 
+                }
+            }
+            break;
             case '-':
                     if(!strncmp(arg, "--masterport=", 13))
                     {
