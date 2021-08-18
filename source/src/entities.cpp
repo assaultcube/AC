@@ -5,30 +5,33 @@
 VARP(showclips, 0, 1, 1);
 VARP(showmodelclipping, 0, 0, 1);
 VARP(showladderentities, 0, 0, 1);
-VARP(showplayerstarts, 0, 0, 1);
+VARP(showplayerstarts, 0, 0, 1); // render player models with spawn-type appropriate skins (CLA:red,RVSF:blue,FFA:green)
 
 void toucheditingsettings(bool forcerestart){
-    if(keepshowingeditingsettingsfrom == 0 || forcerestart)
+    if(showeditingsettings)
     {
-        keepshowingeditingsettingsfrom = lastmillis; 
-        keepshowingeditingsettingstill = lastmillis + editingsettingsvisibletime;
-    }
-    else
-    {
-        int deltat_a = keepshowingeditingsettingstill - lastmillis;
-        int deltat_b = lastmillis - keepshowingeditingsettingsfrom;
-        int showfrac = editingsettingsvisibletime / 5; 
-        if( deltat_b >= showfrac )// we ignore quick-changes inside the slide-in period
+        if(keepshowingeditingsettingsfrom == 0 || forcerestart)
         {
-            if( deltat_a <= showfrac )// changes in the slide-out period take that slide back and stay for almost the entire visibletime longer
+            keepshowingeditingsettingsfrom = lastmillis; 
+            keepshowingeditingsettingstill = lastmillis + editingsettingsvisibletime;
+        }
+        else
+        {
+            int deltat_a = keepshowingeditingsettingstill - lastmillis;
+            int deltat_b = lastmillis - keepshowingeditingsettingsfrom;
+            int showfrac = editingsettingsvisibletime / 5; 
+            if( deltat_b >= showfrac )// we ignore quick-changes inside the slide-in period
             {
-                keepshowingeditingsettingsfrom = lastmillis - deltat_a;
+                if( deltat_a <= showfrac )// changes in the slide-out period take that slide back and stay for almost the entire visibletime longer
+                {
+                    keepshowingeditingsettingsfrom = lastmillis - deltat_a;
+                }
+                else // a touch during the regular showing duration
+                {
+                    keepshowingeditingsettingsfrom = lastmillis - showfrac;
+                }
+                keepshowingeditingsettingstill = keepshowingeditingsettingsfrom + editingsettingsvisibletime;        	
             }
-            else // a touch during the regular showing duration
-            {
-                keepshowingeditingsettingsfrom = lastmillis - showfrac;
-            }
-            keepshowingeditingsettingstill = keepshowingeditingsettingsfrom + editingsettingsvisibletime;        	
         }
     }
 }

@@ -968,7 +968,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     if(menu) rendermenu();
     else if(command)
 	{
-		int offsetx = 40 + (editmode ? ((showeditingsettings == 3 || keepshowingeditingsettingstill) ? VIRTW/4 : (showeditingsettings == 2 ? 2*VIRTW/32 : 0)) : 0);
+		int offsetx = 40 + ((editmode && (showeditingsettings >= 2 || keepshowingeditingsettingstill)) ? ((showeditingsettings == 2 && keepshowingeditingsettingstill == 0) ? 2*VIRTW/32 : VIRTW/4) : 0);
 		renderdoc(offsetx, VIRTH, max(commandh*2 - VIRTH, 0));
 	}
 
