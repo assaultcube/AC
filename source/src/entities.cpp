@@ -5,7 +5,7 @@
 VARP(showclips, 0, 1, 1);
 VARP(showmodelclipping, 0, 0, 1);
 VARP(showladderentities, 0, 0, 1);
-VARP(showplayerstarts, 0, 0, 1); // render player models with spawn-type appropriate skins (CLA:red,RVSF:blue,FFA:green)
+VARP(showplayerstarts, 0, 1, 1); // render player models with spawn-type appropriate skins (CLA:red,RVSF:blue,FFA:green)
 
 void toucheditingsettings(bool forcerestart){
     if(showeditingsettings)

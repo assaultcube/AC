@@ -38,7 +38,7 @@ int keepshowingeditingsettingsfrom = 0;
 int keepshowingeditingsettingstill = 0;
 
 VARFP(editingsettingsvisibletime, 750, 7500, 75000, toucheditingsettings(true); ); // begin anew after any changes
-VARFP(showeditingsettings, 0, 1, 3, { if(showeditingsettings){ toucheditingsettings(true); }else{ keepshowingeditingsettingsfrom = keepshowingeditingsettingstill = 0; }}); // 0:almost entirely off, 1: all off after duration, 2: text off after duration, 3: permanent 
+VARFP(showeditingsettings, 0, 0, 3, { if(showeditingsettings){ toucheditingsettings(true); }else{ keepshowingeditingsettingsfrom = keepshowingeditingsettingstill = 0; }}); // 0:almost entirely off, 1: all off after duration, 2: text off after duration, 3: permanent 
 
 void toggleedit(bool force)
 {
@@ -840,7 +840,7 @@ void rendereditingsettings()
 {
     if(!conopen && (showeditingsettings > 0 || (edithideentmask != 0 && editingsettingsshowminimal)))
     {
-        bool showing = ((showeditingsettings >= 2) || (keepshowingeditingsettingstill > 0));
+        bool showing = (showeditingsettings >= 2 || keepshowingeditingsettingstill);
         int deltax = 0;
         if(keepshowingeditingsettingstill > 0)
         {
