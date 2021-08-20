@@ -4,9 +4,13 @@
   uncomment the below xml-stylesheet. Then comment the xml-stylesheet below that one. Save your changes.
   Then refresh this XML document in your web browser and copy/paste the output into ./config/docs.cfg
   If you are using Firefox and you encounter any CORS-related errors try this configuration change -> https://stackoverflow.com/a/18495435
-
--->
+  
+  Security concerns have made accessing XSLT locally illegal, even w/ "allow-file-access-from-files" (for Google-Chrome). 
+  If you have python3 use https://stackoverflow.com/a/33814529/3022387 solution:
+     Go to this docs directory and call: python3 -m http.server
+     Then browse to http://localhost:8000/reference.xml
   <?xml-stylesheet type="text/xsl" href="xml/cuberef2cubescript.xslt"?>
+-->
 
 
 <!--
@@ -14,8 +18,8 @@
   Please read the licensing information, available @ https://assault.cubers.net/docs/license.html for the
   conditions that would apply to what you may be redistributing.
 
-<?xml-stylesheet type="text/xsl" href="xml/cuberef2xhtml.xslt"?>
 -->
+<?xml-stylesheet type="text/xsl" href="xml/cuberef2xhtml.xslt"?>
 <!-- Please ensure the following when writing content for this reference.xml:
   General
     * Do NOT use any XML editor that breaks the formatting!!!
@@ -2149,7 +2153,20 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           <remarks>
             <remark>As example, version 1.2.0.2 is represented as value 1202.</remark>
           </remarks>
+          <references>
+            <identifierReference identifier="current_version"/>
+          </references>
         </variable>
+
+        <command name="current_version">
+          <description>Compare given version to current version.</description>
+          <remarks>
+            <remark>Will show update notifications if the given version is higher than the running one.</remark>
+          </remarks>
+          <arguments>
+            <argument token="s" description="newest available version"/>
+          </arguments>
+        </command>
 
         <variable name="protocol">
           <description>Gets an integer representing the game protocol. READ ONLY</description>
@@ -2528,6 +2545,35 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           </arguments>
         </command>
 
+        <variable name="dbgzip">
+          <description>Output statistics and errors when handling zip compressed data.</description>
+          <value token="B" description="boolean" minValue="0" maxValue="1" valueNotes="1:yes" defaultValue="0"/>
+          <remarks>
+            <remark>Advanced usage: may be helpful in debugging map files not loading.</remark>
+          </remarks>
+        </variable>
+
+        <variable name="debugevents">
+          <description>Whether or not to output input events.</description>
+          <value token="T" description="threshhold" minValue="0" maxValue="2" valueNotes="0:off,1/2:on" defaultValue="0"/>
+          <remarks>
+            <remark>If set to at least 1 all events will output their type number. Window events and mouse button/wheel events will output status information.</remark>
+            <remark>If set to 2 the KEYUP, TEXTINPUT and MOUSEMOVE events will trigger status output too.</remark>
+          </remarks>
+          <references>
+            <identifierReference identifier=""/>
+          </references>
+        </variable>
+
+        <variable name="disconnectonmaperror">
+          <description>Disconnect from a server making us load an incompatible map.</description>
+          <value token="B" description="boolean" minValue="0" maxValue="1" valueNotes="1:yes" defaultValue="1"/>
+          <remarks>
+            <remark>Maps that have not been converted to the new entity attribute scaling map format can cause this.</remark>
+            <remark>Edit it offline and make use of the config/opt/convmap.cfg.</remark>
+          </remarks>
+        </variable>
+
       </identifiers>
     </section>
     <!-- General Section Ends -->
@@ -2863,6 +2909,27 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
             <key alias="F1" description="votes YES"/>
             <key alias="F2" description="votes NO"/>
           </defaultKeys>
+        </command>
+
+        <command name="gonext">
+          <description>Go to the next match in the servers rotation for the desired gamemode.</description>
+          <arguments>
+            <argument token="M" description="gamemode" valueNotes="0:TDM,5:CTF,10:OSOK"/>
+          </arguments>
+          <remarks>
+            <remark>TODO: elaborate</remark>
+          </remarks>
+        </command>
+
+        <command name="setnext">
+          <description>Call a vote for mode and map.</description>
+          <arguments>
+            <argument token="G" description="gamemode" valueNotes="0:TDM,5:CTF,10:OSOK"/>
+            <argument token="M" description="map" valueNotes="ac_mines,ac_douze,megamap"/>
+          </arguments>
+          <remarks>
+            <remark>TODO: elaborate</remark>
+          </remarks>
         </command>
 
         <command name="voicecom">
@@ -3519,6 +3586,14 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           </remarks>
         </command>
 
+        <variable name="akimboautoswitch">
+          <description>Whether or not to automatically switch to akimbo upon pickup.</description>
+          <value token="B" description="boolean" minValue="0" maxValue="1" valueNotes="1:yes" defaultValue="1"/>
+          <remarks>
+            <remark>If you are brandishing your pistol while walking over the pickup you will switch to akimbo every time.</remark>
+          </remarks>
+        </variable>
+
         <command name="weapon">
           <description>Changes the weapon (must be bound to a key).</description>
           <arguments>
@@ -4098,6 +4173,34 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           </references>
         </command>
 
+        <command name="player">
+          <description>Retrieve an attribute of a player identified by clientnum.</description>
+          <arguments>
+            <argument token="C" description="clientnum" valueNotes="1,2,3,.."/>
+            <argument token="A" description="attribute" valueNotes="magcontent, ammo, primary, .."/>
+          </arguments>
+          <remarks>
+            <remark>If the clientnum does not match a valid player the result will be empty, just as without an attribute passed.</remark>
+            <remark>The following attributes can be retrieved: magcontent, ammo, primary, curweapon, nextprimary, health, armour, attacking, scoping, x, y, z, name, team, ping, pj, state, role, frags, flags, deaths, tks, alive, spect, cn, skin_cla, skin_rvsf, skin, ip</remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="player1"/>
+          </references>
+        </command>
+
+        <command name="player1">
+          <description>Retrieve an attribute of yourself.</description>
+          <arguments>
+            <argument token="A" description="attribute" valueNotes="magcontent, ammo, primary, .."/>
+          </arguments>
+          <remarks>
+            <remark>See player for all retrievable attributes.</remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="player"/>
+          </references>
+        </command>
+
       </identifiers>
     </section>
     <!-- Gameplay Section Ends -->
@@ -4368,8 +4471,20 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           </remarks>
           <references>
             <identifierReference identifier="resetbinds"/>
+            <identifierReference identifier="_defaultbinds"/>
           </references>
         </command>
+
+        <variable name="_defaultbinds">
+          <description>Whether or not the next call to _resetallbinds will remove any and all binds; cleaning up before setting the default bindings.</description>
+          <value token="B" description="boolean" minValue="0" maxValue="1" valueNotes="1:yes" defaultValue="0"/>
+          <remarks>
+            <remark>Internal – used in config/resetbinds.cfg</remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="_resetallbinds"/>
+          </references>
+        </variable>
 
         <command name="keymap">
           <description>Sets up the keymap for the specified key.</description>
@@ -4418,18 +4533,16 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           </references>
         </scriptalias>
 
-        <command name="sensitivity">
+        <variable name="sensitivity">
           <description>Sets the mouse sensitivity.</description>
-          <arguments>
-            <argument token="S" description="the sensitivity" valueNotes="floating-point"/>
-          </arguments>
+          <value token="S" description="the sensitivity" minValue="0.001" maxValue="1000" valueNotes="floating-point" defaultValue="3.0"/>
           <references>
             <identifierReference identifier="sensitivityscale"/>
             <identifierReference identifier="scopesens"/>
             <identifierReference identifier="autoscopesens"/>
             <identifierReference identifier="scopesensscale"/>
           </references>
-        </command>
+        </variable>
 
         <variable name="sensitivityscale">
           <description>Scales all mouse sensitivity values.</description>
@@ -4487,15 +4600,37 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           </references>
         </variable>
 
-        <command name="invmouse">
+        <variable name="invmouse">
           <description>Sets mouse to "flight sim" mode.</description>
+          <value token="B" description="sets invmouse" minValue="0" maxValue="1" valueNotes="1:inverted Y-axis" defaultValue="0"/>
           <remarks>
             <remark>Inverts movement on the y-axis.</remark>
           </remarks>
-          <arguments>
-            <argument token="B" description="sets invmouse" valueNotes="0 (off), else (on)"/>
-          </arguments>
-        </command>
+        </variable>
+
+        <variable name="relativemouse">
+          <description>The way the mouse movement is handled.</description>
+          <value token="B" description="boolean" minValue="0" maxValue="1" valueNotes="0:warped, 1:relative" defaultValue="1"/>
+          <remarks>
+            <remark>On Windows this is forced to 1 due to erratic behaviour of SDL_WarpMouseInWindow.</remark>
+            <remark>If set to 0 the mouse will be warped to center of the screen if appropriate.</remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="sdl_xgrab_bug"/>
+          </references>
+        </variable>
+
+        <variable name="sdl_xgrab_bug">
+          <description>Enable a workaround for buggy SDL X11 pointer grabbing.</description>
+          <value token="B" description="boolean" minValue="0" maxValue="1" valueNotes="1:use workaround" defaultValue="0"/>
+          <remarks>
+            <remark>On Windows this is variable is not available. X11 is a *nix windowing system.</remark>
+            <remark>If set to 1 and relativemouse is on too, the workaround using XGrabPointer will be used.</remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="relativemouse"/>
+          </references>
+        </variable>
 
         <variable name="mfilter">
           <description>Sets the degree of mouse filtering (0.0 being no filtering).</description>
@@ -4524,6 +4659,16 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           <description>Indicates if a CTRL key is pressed.</description>
           <value description="state of the CTRL key" minValue="0" maxValue="1" defaultValue="0" readOnly="true" valueNotes="0: unpressed, 1: pressed"/>
         </variable>
+
+        <command name="modkeypressed">
+          <description>Is the CTRL currently key pressed?</description>
+          <remarks>
+            <remark>Can be used to change the behaviour of keybinds, like the F12 keybind in spectator mode uses it.</remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="screenshot"/>
+          </references>
+        </command>
 
       </identifiers>
     </section>
@@ -5501,6 +5646,50 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
         <variable name="showtagclips">
           <description>Show tagclips/tagplclips in edit mode.</description>
           <value token="N" description="-" minValue="0" maxValue="1" defaultValue="1"/>
+          <references>
+            <identifierReference identifier="showtagclipfocus"/>
+            <identifierReference identifier="taglife"/>
+            <identifierReference identifier="tagnum"/>
+            <identifierReference identifier="tagnumfull"/>
+          </references>
+        </variable>
+
+        <variable name="tagnum">
+          <description>Number of particles in the focused on tagclip volume.</description>
+          <value token="C" description="count" minValue="1" maxValue="100" valueNotes="particle count" defaultValue="14"/>
+          <remarks>
+            <remark>source comments suggest this may become hardwired in the future</remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="showtagclips"/>
+            <identifierReference identifier="tagnum"/>
+            <identifierReference identifier="tagnumfull"/>
+          </references>
+        </variable>
+
+        <variable name="tagnumfull">
+          <description>Number of particles in any tagclip volume - if showtagclipfocus is not 1.</description>
+          <value token="C" description="count" minValue="1" maxValue="100" valueNotes="particle count" defaultValue="0"/>
+          <remarks>
+            <remark>source comments suggest this may become hardwired in the future</remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="showtagclips"/>
+            <identifierReference identifier="showtagclipfocus"/>
+          </references>
+        </variable>
+
+        <variable name="taglife">
+          <description>Fading time of sparklies in focused on tagclip volume</description>
+          <value token="T" description="time" minValue="1" maxValue="1000" valueNotes="milliseconds" defaultValue="30"/>
+          <remarks>
+            <remark>source comments suggest this may become hardwired in the future</remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="showtagclips"/>
+            <identifierReference identifier="showtagclipfocus"/>
+            <identifierReference identifier="tagnum"/>
+          </references>
         </variable>
 
         <variable name="showladderentities">
@@ -5579,18 +5768,16 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           <value token="N" description="the ambient color" minValue="0x000000" maxValue="0xFFFFFF" defaultValue="0"/>
         </variable>
 
-        <command name="fullbright">
+        <variable name="fullbright">
           <description>Sets all light values to fullbright.</description>
+          <value token="B" description="sets fullbright on or off" valueNotes="0 (off), 1 (on)"/>
           <remarks>
             <remark>Will be reset when you issue a 'recalc'. Only works in edit mode.</remark>
           </remarks>
-          <arguments>
-            <argument token="B" description="sets fullbright on or off" valueNotes="0 (off), 1 (on)"/>
-          </arguments>
           <defaultKeys>
             <key alias="F7" description="toggles fullbright"/>
           </defaultKeys>
-        </command>
+        </variable>
 
         <variable name="fullbrightlevel">
           <description>Sets the level of brightness to use when using the command "/fullbright 1".</description>
@@ -6937,19 +7124,17 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           </references>
         </command>
 
-        <command name="pointatent">
+        <variable name="pointatent">
           <description>Enables or disables pointing at entity sparklies.</description>
+          <value token="B" description="boolean" minValue="0" maxValue="1" valueNotes="0: nearest, 1: pointed at" defaultValue="0"/>
           <remarks>
             <remark>If an entity is pointed at during disabling, it is pinned.</remark>
           </remarks>
-          <arguments>
-            <argument token="V" description="value" valueNotes="0: disable pointing, 1: enable pointing"/>
-          </arguments>
           <references>
             <identifierReference identifier="pointatentmaxangle"/>
             <identifierReference identifier="toggleclosestentpin"/>
           </references>
-        </command>
+        </variable>
 
         <variable name="pointatentmaxangle">
           <description>Specifies the required precision for pointing at entities sparklies.</description>
@@ -7299,117 +7484,17 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           </arguments>
         </command>
 
-        <command name="mapoverride_nowaterreflect">
-          <description>Per-map override to disable water reflection on the client.</description>
+        <variable name="_ignoreillegalpaths">
+          <description>Whether or not texture paths are scrutinized.</description>
+          <value token="B" description="boolean" minValue="0" maxValue="1" valueNotes="1:yes=>ignore" defaultValue="0"/>
           <remarks>
-            <remark>Set by the mapper, for his map only. The overrides are stored in the map header.</remark>
-            <remark>
-            If "1", water reflection is disabled. Useful, when odd water colours are used to emulate other liquids
-            that are not supposed to be that reflective.
-            </remark>
+            <remark>If during mapload textureslots can't be filled and this is not set to 1 a "missing media" error is raised.</remark>
+            <remark>It is used in the optional cubescript config/opt/convmap.cfg</remark>
           </remarks>
-          <arguments>
-            <argument token="N" description="0: off, 1: disable water reflection" valueNotes="0..1"/>
-          </arguments>
           <references>
-            <identifierReference identifier="mapoverride_limitwaveheight"/>
-            <identifierReference identifier="mapoverride_nostencilshadows"/>
-            <identifierReference identifier="ignoreoverride_nowaterreflect"/>
+            <identifierReference identifier="loadnotexture"/>
           </references>
-        </command>
-
-        <command name="mapoverride_limitwaveheight">
-          <description>Per-map override to limit waveheight on the client.</description>
-          <remarks>
-            <remark>Set by the mapper, for his map only. The overrides are stored in the map header.</remark>
-            <remark>
-            If "1", waveheight is capped at 0.1 max. Useful for small water areas (like puddles),
-            where higher waves would look weird.
-            </remark>
-          </remarks>
-          <arguments>
-            <argument token="N" description="0: off, 1: limit waveheight" valueNotes="0..1"/>
-          </arguments>
-          <references>
-            <identifierReference identifier="mapoverride_nowaterreflect"/>
-            <identifierReference identifier="mapoverride_nostencilshadows"/>
-            <identifierReference identifier="ignoreoverride_limitwaveheight"/>
-          </references>
-        </command>
-
-        <command name="mapoverride_nostencilshadows">
-          <description>Per-map override to disable stencil shadows on the client.</description>
-          <remarks>
-            <remark>Set by the mapper, for his map only. The overrides are stored in the map header.</remark>
-            <remark>
-            If "1", stencil shadows are disabled. On clients, where stencil shadows are otherwise enabled,
-            blob shadows are used instead. If shadows are disabled anyway, they stay disabled.
-            Useful for dim maps, where hard shadows make no sense.
-            </remark>
-          </remarks>
-          <arguments>
-            <argument token="N" description="0: off, 1: disable stencil shadows" valueNotes="0..1"/>
-          </arguments>
-          <references>
-            <identifierReference identifier="mapoverride_nowaterreflect"/>
-            <identifierReference identifier="mapoverride_limitwaveheight"/>
-            <identifierReference identifier="ignoreoverride_nostencilshadows"/>
-          </references>
-        </command>
-
-        <command name="ignoreoverride_nowaterreflect">
-          <description>Ignores per-map overrides to disable water reflection on the client.</description>
-          <remarks>
-            <remark>
-            Ignores the overrides set by the mappers (for their maps only).
-            If "1", mapoverride_nowaterreflect is ignored and regular client settings are used.
-            </remark>
-          </remarks>
-          <arguments>
-            <argument token="N" description="0: off, 1: ignore" valueNotes="0..1"/>
-          </arguments>
-          <references>
-            <identifierReference identifier="mapoverride_nowaterreflect"/>
-            <identifierReference identifier="ignoreoverride_limitwaveheight"/>
-            <identifierReference identifier="ignoreoverride_nostencilshadows"/>
-          </references>
-        </command>
-
-        <command name="ignoreoverride_limitwaveheight">
-          <description>Ignores per-map overrides to limit waveheight on the client.</description>
-          <remarks>
-            <remark>
-            Ignores the overrides set by the mappers (for their maps only).
-            If "1", mapoverride_limitwaveheight is ignored, and "waveheight" is used unchanged.
-            </remark>
-          </remarks>
-          <arguments>
-            <argument token="N" description="0: off, 1: ignore" valueNotes="0..1"/>
-          </arguments>
-          <references>
-            <identifierReference identifier="mapoverride_limitwaveheight"/>
-            <identifierReference identifier="ignoreoverride_nowaterreflect"/>
-            <identifierReference identifier="ignoreoverride_nostencilshadows"/>
-          </references>
-        </command>
-
-        <command name="ignoreoverride_nostencilshadows">
-          <description>Ignores per-map overrides to disable stencil shadows on the client.</description>
-          <remarks>
-            <remark>
-            Ignores the overrides set by the mappers (for their maps only).
-            If "1", mapoverride_nostencilshadows is ignored.
-            </remark>
-          </remarks>
-          <arguments>
-            <argument token="N" description="0: off, 1: ignore" valueNotes="0..1"/>
-          </arguments>
-          <references>
-            <identifierReference identifier="mapoverride_nostencilshadows"/>
-            <identifierReference identifier="ignoreoverride_nowaterreflect"/>
-            <identifierReference identifier="ignoreoverride_limitwaveheight"/>
-          </references>
-        </command>
+        </variable>
 
         <command name="stairs">
           <description>Places stairs in all selections.</description>
@@ -7492,6 +7577,78 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
             <identifierReference identifier="mapartist"/>
           </references>
         </command>
+
+        <command name="showtagclipfocus">
+          <description>Show the volume of a focused clip entity as a cloud of sparklies.</description>
+          <arguments>
+            <argument token="B" description="on/off" valueNotes="0:off,1:on" defaultValue="0"/>
+          </arguments>
+          <defaultKeys>
+            <key alias="B" name="B" description="while pressed clips are clouds of sparklies"/>
+          </defaultKeys>
+          <remarks>
+            <remark>To see the volume rather than the boundaries of a clip entity you can hold the B key in editing mode while pointing at it.</remark>
+          </remarks>
+        </command>
+
+        <command name="updatemapmodeldependencies">
+          <description>Update map config with any mapmodels required by those in use.</description>
+        </command>
+
+        <variable name="editingsettingsvisibletime">
+          <description>How long the temporary bits of showeditingsettings are displayed.</description>
+          <value token="T" description="time" minValue="750" maxValue="75000" valueNotes="time in milliseconds" defaultValue="7500"/>
+          <remarks>
+            <remark>Slide in/out the boxes and/or text of the showeditingsettings display.</remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="showeditingsettings"/>
+          </references>
+        </variable>
+
+        <variable name="showeditingsettings">
+          <description>A visual representation of hidden/shown entities. (may be used for more editing ephemerals later)</description>
+          <value token="P" description="persistence" minValue="0" maxValue="3" valueNotes="0:off(*),1:short,2:text-short,3:permanent" defaultValue="0"/>
+          <remarks>
+            <remark>If the value of edithideentmask is not 0 (meaning all entities shown) then even if showeditingsettings is 0 the display will show up on the first toggle into editmode.</remark>
+            <remark>The values 1, 2 and 3 will make the display show up for every time you start editing. With 3 it will stay for ever.</remark>
+            <remark>For 2 the text will disappear after a time but the boxes will stay for ever. For 1 everything is hidden after the duration of editingsettingsvisibletime.</remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="edithideentmask"/>
+            <identifierReference identifier="editingsettingsvisibletime"/>
+          </references>
+        </variable>
+
+        <variable name="shadowyaw">
+          <description>Shadow yaw specifies the angle at which shadow stencils are drawn on a map.</description>
+          <value token="D" description="degrees" minValue="0" maxValue="360" valueNotes="The angle in degrees to rotate the stencil shadows" defaultValue="45"/>
+          <examples>
+            <example>
+              <code><![CDATA[shadowyaw 90]]></code>
+            </example>
+          </examples>
+          <remarks>
+            <remark>
+            When specifying shadowyaw, remember that the default angle is 45 degrees. The example below
+            would make the shadows appear at 90 degrees (45 degrees more to the left).
+            </remark>
+          </remarks>
+        </variable>
+
+        <variable name="tagcliplinewidth">
+          <description>The width of the tagclip lines.</description>
+          <value token="W" description="width" minValue="0.2" maxValue="3" defaultValue="1"/>
+          <references>
+            <identifierReference identifier="showtagclips"/>
+            <identifierReference identifier="showtagclipfocus"/>
+          </references>
+        </variable>
+
+        <variable name="worldiodebug">
+          <description>Whether or not to output debugging information while loading/saving maps.</description>
+          <value token="B" description="boolean" minValue="0" maxValue="1" valueNotes="1:debug output" defaultValue="0"/>
+        </variable>
 
         </identifiers>
     </section>
@@ -8027,6 +8184,20 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           </arguments>
         </command>
 
+        <command name="menutitle">
+          <description>Make a different title show up than the menu's internal name.</description>
+          <arguments>
+            <argument token="N" description="name" valueNotes="human friendly title"/>
+          </arguments>
+          <remarks>
+            <remark>Intended to pretty up the menus with more readable titles than the sometimes short but technical values that make the scripting easier!</remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="newmenu"/>
+            <identifierReference identifier="curmenu"/>
+          </references>
+        </command>
+
       </identifiers>
     </section>
     <!-- Menus Section Ends -->
@@ -8440,7 +8611,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
 
       </identifiers>
     </section>
-    <!-- Heads-Up Display Section ends -->
+    <!-- Heads-Up Display Section Ends -->
     <!-- Visuals Section Starts -->
     <section name="Visuals" sortindex="05">
       <description>This section describes identifiers to configure the visuals.</description>
@@ -8634,14 +8805,14 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           </references>
         </command>
 
-        <variable name="curfont">
+        <command name="curfont">
           <description>Returns a name of the current font.</description>
-          <value token="N" description="name of font" valueNotes="default, mono, serif" defaultValue="default"/>
+          <value token="S" description="name of font" valueNotes="&lt;empty&gt;, default, mono, serif" defaultValue=""/>
           <references>
             <identifierReference identifier="font"/>
             <identifierReference identifier="setfont"/>
           </references>
-        </variable>
+        </command>
 
         <variable name="fov">
           <description>Sets the field of view (fov).</description>
@@ -9098,13 +9269,13 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           <value token="N" description="0: lefty, 1: righty" minValue="0" maxValue="1" defaultValue="1"/>
         </variable>
 
-        <command name="allowblinkingtext">
+        <variable name="allowblinkingtext">
           <description>For toggling on the ability for any text to have the blinking bit set.</description>
           <value token="T" description="0 = Off, 1 = On" minValue="0" maxValue="1" defaultValue="0"/>
           <references>
             <identifierReference identifier="menucanblink"/>
           </references>
-        </command>
+        </variable>
 
         <variable name="mdldlist">
           <value token="N" description="" minValue="0" maxValue="1" defaultValue="1"/>
@@ -9252,6 +9423,114 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           <references>
             <identifierReference identifier="getigraph"/>
           </references>
+        </variable>
+
+        <variable name="mapoverride_nowaterreflect">
+          <description>Per-map override to disable water reflection on the client.</description>
+          <value token="B" description="boolean" valueMin="0" valueMax="1" valueNotes="1:ignore" defaultValue="0"/>
+          <remarks>
+            <remark>Set by the mapper, for his map only. The overrides are stored in the map header.</remark>
+            <remark>
+            If "1", water reflection is disabled. Useful, when odd water colours are used to emulate other liquids
+            that are not supposed to be that reflective.
+            </remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="mapoverride_limitwaveheight"/>
+            <identifierReference identifier="mapoverride_nostencilshadows"/>
+            <identifierReference identifier="ignoreoverride_nowaterreflect"/>
+          </references>
+        </variable>
+
+        <variable name="mapoverride_limitwaveheight">
+          <description>Per-map override to limit waveheight on the client.</description>
+          <value token="B" description="boolean" valueMin="0" valueMax="1" valueNotes="1:ignore" defaultValue="0"/>
+          <remarks>
+            <remark>Set by the mapper, for his map only. The overrides are stored in the map header.</remark>
+            <remark>
+            If "1", waveheight is capped at 0.1 max. Useful for small water areas (like puddles),
+            where higher waves would look weird.
+            </remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="mapoverride_nowaterreflect"/>
+            <identifierReference identifier="mapoverride_nostencilshadows"/>
+            <identifierReference identifier="ignoreoverride_limitwaveheight"/>
+          </references>
+        </variable>
+
+        <variable name="mapoverride_nostencilshadows">
+          <description>Per-map override to disable stencil shadows on the client.</description>
+          <value token="B" description="boolean" valueMin="0" valueMax="1" valueNotes="1:ignore" defaultValue="0"/>
+          <remarks>
+            <remark>Set by the mapper, for his map only. The overrides are stored in the map header.</remark>
+            <remark>
+            If "1", stencil shadows are disabled. On clients, where stencil shadows are otherwise enabled,
+            blob shadows are used instead. If shadows are disabled anyway, they stay disabled.
+            Useful for dim maps, where hard shadows make no sense.
+            </remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="mapoverride_nowaterreflect"/>
+            <identifierReference identifier="mapoverride_limitwaveheight"/>
+            <identifierReference identifier="ignoreoverride_nostencilshadows"/>
+          </references>
+        </variable>
+
+        <variable name="ignoreoverride_nowaterreflect">
+          <description>Ignores per-map overrides to disable water reflection on the client.</description>
+          <value token="B" description="boolean" valueMin="0" valueMax="1" valueNotes="1:ignore" defaultValue="0"/>
+          <remarks>
+            <remark>
+            Ignores the overrides set by the mappers (for their maps only).
+            If "1", mapoverride_nowaterreflect is ignored and regular client settings are used.
+            </remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="mapoverride_nowaterreflect"/>
+            <identifierReference identifier="ignoreoverride_limitwaveheight"/>
+            <identifierReference identifier="ignoreoverride_nostencilshadows"/>
+          </references>
+        </variable>
+
+        <variable name="ignoreoverride_limitwaveheight">
+          <description>Ignores per-map overrides to limit waveheight on the client.</description>
+          <value token="B" description="boolean" valueMin="0" valueMax="1" valueNotes="1:ignore" defaultValue="0"/>
+          <remarks>
+            <remark>
+            Ignores the overrides set by the mappers (for their maps only).
+            If "1", mapoverride_limitwaveheight is ignored, and "waveheight" is used unchanged.
+            </remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="mapoverride_limitwaveheight"/>
+            <identifierReference identifier="ignoreoverride_nowaterreflect"/>
+            <identifierReference identifier="ignoreoverride_nostencilshadows"/>
+          </references>
+        </variable>
+
+        <variable name="ignoreoverride_nostencilshadows">
+          <description>Ignores per-map overrides to disable stencil shadows on the client.</description>
+          <value token="B" description="boolean" valueMin="0" valueMax="1" valueNotes="1:ignore" defaultValue="0"/>
+          <remarks>
+            <remark>
+            Ignores the overrides set by the mappers (for their maps only).
+            If "1", mapoverride_nostencilshadows is ignored.
+            </remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="mapoverride_nostencilshadows"/>
+            <identifierReference identifier="ignoreoverride_nowaterreflect"/>
+            <identifierReference identifier="ignoreoverride_limitwaveheight"/>
+          </references>
+        </variable>
+
+        <variable name="lightscale">
+          <description>Scaling factor for all light in the game.</description>
+          <value token="D" description="divisor" minValue="1" maxValue="100" valueNotes="values will be divided by this" defaultValue="4"/>
+          <remarks>
+            <remark>Any change will not take effect until a new world is loaded.</remark>
+          </remarks>
         </variable>
 
       </identifiers>
@@ -9788,7 +10067,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
 
       </identifiers>
     </section>
-    <!-- Ingame reference Section ends -->
+    <!-- Ingame reference Section Ends -->
     <!-- Serverbrowser Section Starts -->
     <section name="Serverbrowser" sortindex="08">
       <description>This section describes all identifiers related to the serverbrowser.</description>
@@ -9940,7 +10219,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
 
       </identifiers>
     </section>
-    <!-- Serverbrowser Section ends -->
+    <!-- Serverbrowser Section Ends -->
     <!-- Server Commands Section Starts -->
     <section name="Server commands" sortindex="09">
       <description>
@@ -9991,6 +10270,10 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
 
         <command name="ban">
           <description>Temporary ban of the specified player from the server.</description>
+          <arguments>
+            <argument token="C" description="The player to ban" valueNotes="client number"/>
+            <argument token="R" description="The reason" valueNotes="at least 4 characters"/>
+          </arguments>
           <remarks>
             <remark>Temporary ban duration is fixed at 20 minutes.  </remark>
           </remarks>
@@ -9998,25 +10281,21 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
             <identifierReference identifier="removebans"/>
             <identifierReference identifier="setadmin"/>
           </references>
-          <arguments>
-            <argument token="C" description="The player to ban" valueNotes="client number"/>
-            <argument token="R" description="The reason" valueNotes="at least 4 characters"/>
-          </arguments>
         </command>
 
         <command name="callvote">
           <description>Calls a vote on the server.</description>
+          <arguments>
+            <argument token="T" description="Vote type" valueNotes="value"/>
+            <argument token="A" description="First argument" valueNotes=""/>
+            <argument token="B" description="Second argument" valueNotes=""/>
+          </arguments>
           <remarks>
             <remark>
             This command is wrapped by aliases for better usability and is used to action votes such as ban, kick, etc.
             See config/admin.cfg for actual uses.
             </remark>
           </remarks>
-          <arguments>
-            <argument token="T" description="Vote type" valueNotes="value"/>
-            <argument token="A" description="First argument" valueNotes=""/>
-            <argument token="B" description="Second argument" valueNotes=""/>
-          </arguments>
         </command>
 
         <command name="forceteam">
@@ -10070,13 +10349,13 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
 
         <command name="kick">
           <description>Kicks the specified player from the server.</description>
-          <references>
-            <identifierReference identifier="setadmin"/>
-          </references>
           <arguments>
             <argument token="C" description="The player to kick" valueNotes="client number"/>
             <argument token="R" description="The reason" valueNotes="at least 4 characters"/>
           </arguments>
+          <references>
+            <identifierReference identifier="setadmin"/>
+          </references>
         </command>
 
         <command name="mastermode">
@@ -10136,13 +10415,13 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
             the next game on that map starts on the server.
             </remark>
           </remarks>
+          <arguments>
+            <argument token="M" description="map to send" optional="true"/>
+          </arguments>
           <references>
             <identifierReference identifier="getmap"/>
             <identifierReference identifier="dlmap"/>
           </references>
-          <arguments>
-            <argument token="M" description="map to send" optional="true"/>
-          </arguments>
         </command>
 
         <command name="deleteservermap">
@@ -10177,9 +10456,27 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           </arguments>
         </command>
 
+        <command name="getvita">
+          <description>Get vita for a client.</description>
+          <arguments>
+            <argument token="C" description="client number"/>
+          </arguments>
+          <remarks>
+            <remark>TODO: elaborate</remark>
+          </remarks>
+        </command>
+
+        <variable name="serverdebug">
+          <description>Whether or not to output debugging information.</description>
+          <value token="B" description="boolean" minValue="0" maxValue="1" valueNotes="1:debug output" defaultValue="0"/>
+          <remarks>
+            <remark>Only applies if you're running a client, the standalone server has DEBUGCOND(true) already set.</remark>
+          </remarks>
+        </variable>
+
       </identifiers>
     </section>
-    <!-- Server commands Section ends -->
+    <!-- Server Commands Section Ends -->
     <!-- Authentication Section Starts -->
     <section name="Authentication" sortindex="10">
       <description>
@@ -10342,9 +10639,29 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           </references>
         </variable>
 
+        <command name="listcerts">
+          <description>List all certificates.</description>
+          <remarks>
+            <remark>TODO: elaborate</remark>
+          </remarks>
+        </command>
+
+        <command name="newcert">
+          <description>Create and sign certificates from Cubescript.</description>
+          <arguments>
+            <argument token="X" description="command" valueNotes="clear, start, line, sign"/>
+            <argument token="A" description="linename or pubkey" valueNotes="X:line => pubkey or name; X:sign => actual privkey"/>
+            <argument token="B" description="value or comment" valueNotes="X:line => actual pubkey, actual privkey or actual name, X:sign => a descriptive comment"/>
+            <argument token="C" description="comment" valueNotes="newcert line name KEY => a descriptive comment"/>
+          </arguments>
+          <remarks>
+            <remark>TODO: elaborate</remark>
+          </remarks>
+        </command>
+
       </identifiers>
     </section>
-    <!-- Authentication Section ends -->
+    <!-- Authentication Section Ends -->
     <!-- Game Modes Section Starts -->
     <section name="Game modes" sortindex="03">
       <identifiers sort="true">
@@ -11009,8 +11326,9 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           </references>
         </command>
 
-        <command name="fog">
+        <variable name="fog">
           <description>Sets the fog distance.</description>
+          <value token="N" description="The fog distance" minValue="64" maxValue="1024" valueNotes="distance in cubes" defaultValue="180"/>
           <remarks>
             <remark>
             You can do this for tweaking the visual effect of the fog, or if you are on a slow machine,
@@ -11022,20 +11340,15 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           <references>
             <identifierReference identifier="fogcolour"/>
           </references>
-          <arguments>
-            <argument token="N" description="The fog distance" valueNotes="64...1024, default is 180"/>
-          </arguments>
-        </command>
+        </variable>
 
-        <command name="fogcolour">
+        <variable name="fogcolour">
           <description>Sets the fog and clearing colour.</description>
+          <value token="C" description="The colour" minValue="0" maxValue="16777215" valueNotes="Hexadecimal colour" defaultValue="0x8099B3"/>
           <references>
             <identifierReference identifier="fog"/>
           </references>
-          <arguments>
-            <argument token="C" description="The colour" valueNotes="Hexadecimal colour, default is 0x8099B3"/>
-          </arguments>
-        </command>
+        </variable>
 
         <command name="loadnotexture">
           <description>Binds a texture to be used if a slot couldn't be loaded with a given textures path.</description>
@@ -11064,7 +11377,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           </arguments>
         </command>
 
-        <variable name="getnotexture">
+        <command name="getnotexture">
           <description>Returns the current "notexture" path (set by loadnotexture).</description>
           <references>
             <identifierReference identifier="loadnotexture"/>
@@ -11074,7 +11387,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
               <code><![CDATA[echo (getnotexture)]]></code>
             </example>
           </examples>
-        </variable>
+        </command>
 
         <variable name="loadsky">
           <description>Loads a skymap for a map.</description>
@@ -11185,24 +11498,6 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           </references>
         </command>
 
-        <command name="shadowyaw">
-          <description>Shadow yaw specifies the angle at which shadow stencils are drawn on a map.</description>
-          <examples>
-            <example>
-              <code><![CDATA[shadowyaw 90]]></code>
-            </example>
-          </examples>
-          <remarks>
-            <remark>
-            When specifying shadowyaw, remember that the default angle is 45 degrees. The example below
-            would make the shadows appear at 90 degrees (45 degrees more to the left).
-            </remark>
-          </remarks>
-          <arguments>
-            <argument token="D" description="The angle in degrees to rotate the stencil shadows" valueNotes="0...360, default is 45"/>
-          </arguments>
-        </command>
-
         <command name="texture">
           <description>Binds a texture to the current texture slot.</description>
           <remarks>
@@ -11260,6 +11555,44 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
             <identifierReference identifier="waterlevel"/>
           </references>
         </command>
+
+        <command name="hexbinchunk">
+          <description>Part of a map file</description>
+          <arguments>
+            <argument token="C" description="chunk of mapdata" valueNotes="up to 24 bytes in hex"/>
+          </arguments>
+          <remarks>
+            <remark>Internal – for XMAP – not intended for manual use</remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="restorexmap"/>
+          </references>
+        </command>
+
+        <command name="restorexmap">
+          <description>Declaration of map parts.</description>
+          <arguments>
+            <argument token="*" description="many combinations" valueNotes="read the source"/>
+          </arguments>
+          <remarks>
+            <remark>Internal – for XMAP – not intended for manual use</remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="hexbinchunk"/>
+          </references>
+        </command>
+
+        <variable name="persistentxmaps">
+          <description>Whether or not to save all xmaps on exist and restore them at game start.</description>
+          <value token="B" description="boolean" minValue="0" maxValue="1" valueNotes="1:persistent" defaultValue="1"/>
+          <remarks>
+            <remark>XMAP allows for visual comparison between maps.</remark>
+            <remark>TODO: elaborate</remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="xmap_list"/>
+          </references>
+        </variable>
 
       </identifiers>
     </section>
