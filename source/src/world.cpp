@@ -366,25 +366,33 @@ int findtype(const char *what)
     return t;
 }
 
+VAR(_nextentityispasted,0,0,1);// so copyent/pasteent can keep all attributes
 void newentity(int index, int x, int y, int z, const char *what, float v1f, float v2f, float v3f, float v4f, float v5f, float v6f, float v7f) // add an entity or overwrite an existing one
 {
     int type = findtype(what);
     if(type == NOTUSED) return;
     if (index >= 0 && ents[index].type == SOUND) deletesoundentity(ents[index]); // overwriting sound entity
-    switch(type)
-    { // MAPMODEL, PLAYERSTART and CTF-FLAG use the current camera direction as value for attr1, so attr23456 need to be moved
-        case MAPMODEL:
-            v6f = v5f;
-            v5f = v4f;
-            v4f = v3f;
-            v3f = v2f;
-        case PLAYERSTART:
-        case CTF_FLAG:
-            v2f = v1f;
-            int y = camera1->yaw;
-            if(type != PLAYERSTART) y = y + 7 - (y + 7) % 15;
-            v1f = y;
-            break;
+    if(_nextentityispasted)
+    {
+        _nextentityispasted = 0;
+    }
+    else
+    {
+        switch(type)
+        { // MAPMODEL, PLAYERSTART and CTF-FLAG use the current camera direction as value for attr1, so attr23456 need to be moved
+            case MAPMODEL:
+                v6f = v5f;
+                v5f = v4f;
+                v4f = v3f;
+                v3f = v2f;
+            case PLAYERSTART:
+            case CTF_FLAG:
+                v2f = v1f;
+                int y = camera1->yaw;
+                if(type != PLAYERSTART) y = y + 7 - (y + 7) % 15;
+                v1f = y;
+                break;
+        }
     }
 
     int v1 = v1f * entscale[type][0], v2 = v2f * entscale[type][1], v3 = v3f * entscale[type][2], v4 = v4f * entscale[type][3], v5 = v5f * entscale[type][4], v6 = v6f * entscale[type][5], v7 = v7f * entscale[type][6];

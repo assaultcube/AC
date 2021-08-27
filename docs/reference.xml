@@ -7650,6 +7650,18 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           <value token="B" description="boolean" minValue="0" maxValue="1" valueNotes="1:debug output" defaultValue="0"/>
         </variable>
 
+        <variable name="_nextentityispasted">
+          <description>Set to 1 just before calling a newent command where all attributes are meant to be kept.</description>
+          <value token="B" description="boolean" minValue="0" maxValue="1" valueNotes="1:yes=>keep attribute values" defaultValue="0"/>
+          <remarks>
+            <remark>It is used in the pasteent scripting.</remark>
+            <remark>When creating a new entity of type mapmodel, playerstart or CTF flag the orientation is taken from your current viewing angle. To disable this behaviour for one call only you set the value to of this to 1 and then issue your newentity call with all attributes given.</remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="loadnotexture"/>
+          </references>
+        </variable>
+
         </identifiers>
     </section>
 
