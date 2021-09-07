@@ -1917,7 +1917,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
         else
         { // suicide
             actor->state.frags--;
-            actor->incrementvitacounter(VS_TKS, 1);
+            actor->incrementvitacounter(VS_SUICIDES, 1);
             suic = true;
             mlog(ACLOG_INFO, "[%s] %s suicided", actor->hostname, actor->name);
         }
