@@ -179,7 +179,7 @@ void deletemapmodelslot(int *n, char *opt) // delete mapmodel slot - only if unu
         if(e.attr2 == *n)
         { // delete entity
             deleted_ents.add(e);
-            memset(&e, 0, sizeof(persistent_entity));
+            memset((void *)&e, 0, sizeof(persistent_entity));
             e.type = NOTUSED;
             deld++;
         }

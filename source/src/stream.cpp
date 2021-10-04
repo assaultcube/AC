@@ -272,6 +272,20 @@ const char *stream_capabilities()
     #endif
 }
 
+#if !defined(WIN32)
+int readdir_r_(DIR *d, struct dirent *b, struct dirent **de)
+{
+    #ifdef __USE_POSIX
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+    #endif
+    return readdir_r(d, b, de);
+    #ifdef __USE_POSIX
+    #pragma GCC diagnostic pop
+    #endif
+}
+#endif
+
 bool listsubdir(const char *dir, vector<char *> &subdirs)
 {
     #if defined(WIN32)
@@ -293,7 +307,7 @@ bool listsubdir(const char *dir, vector<char *> &subdirs)
     if(d)
     {
         struct dirent *de, b;
-        while(!readdir_r(d, &b, &de) && de != NULL)
+        while(!readdir_r_(d, &b, &de) && de != NULL)
         {
         #ifdef _DIRENT_HAVE_D_TYPE
             if(de->d_type == DT_DIR && de->d_name[0] != '.') subdirs.add(newstring(de->d_name));
@@ -361,7 +375,7 @@ bool listdir(const char *dir, const char *ext, vector<char *> &files)
     if(d)
     {
         struct dirent *de, b;
-        while(!readdir_r(d, &b, &de) && de != NULL)
+        while(!readdir_r_(d, &b, &de) && de != NULL)
         {
             bool isreg = false;
         #ifdef _DIRENT_HAVE_D_TYPE

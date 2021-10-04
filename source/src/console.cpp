@@ -633,7 +633,7 @@ bool textinputbuffer::say(const char *c)
     int buflen = (int)strlen(buf), txtlen = (int)strlen(txt);
     if(txtlen && buflen < maxlen() &&  buflen + txtlen < (int)sizeof(buf))
     {
-        if(pos < 0) strncpy(buf + buflen, txt, txtlen);
+        if(pos < 0) memcpy(buf + buflen, txt, txtlen);
         else
         {
             memmove(&buf[pos + txtlen], &buf[pos], buflen - pos);

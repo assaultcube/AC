@@ -929,7 +929,7 @@ void deletemapsoundslot(int *n, char *opt) // delete mapsound slot - only if unu
         { // delete entity
             deleted_ents.add(e);
             deletesoundentity(e);
-            memset(&e, 0, sizeof(persistent_entity));
+            memset((void *)&e, 0, sizeof(persistent_entity));
             e.type = NOTUSED;
             deld++;
         }

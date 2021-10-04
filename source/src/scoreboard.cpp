@@ -420,7 +420,7 @@ void renderscores(void *menu, bool init)
 
 #define MAXJPGCOM 65533  // maximum JPEG comment length
 
-static void addstr(char *&dest, const char *end, const char *src) { size_t l = strlen(src); if(dest + l < end) copystring(dest, src, l + 1), dest += l; }
+static void addstr(char *&dest, const char *end, const char *src) { size_t l = strlen(src); if(dest + l < end) memcpy(dest, src, l + 1), dest += l; }
 
 const char *asciiscores(bool destjpg)
 {

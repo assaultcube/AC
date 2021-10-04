@@ -741,6 +741,7 @@ void save_world(char *mname, bool skipoptimise, bool addcomfort)
     }
 
     // update (and fix) map header
+    memcpy(hdr.head, "ACMP", 4); // ensure map now declares itself as an AssaultCube map, even if imported as CUBE
     hdr.version = MAPVERSION;
     hdr.headersize = sizeof(header);
     hdr.timestamp = (int) time(NULL);
@@ -1046,7 +1047,7 @@ int load_world(char *mname)        // still supports all map formats that have e
     loopi(hdr.numents)
     {
         entity &e = ents.add();
-        memcpy(&e, &tempents[i], sizeof(persistent_entity));
+        memcpy((void *)&e, &tempents[i], sizeof(persistent_entity));
         e.spawned = false;
     }
     delete[] tempents;
@@ -1327,7 +1328,7 @@ struct xmap
     void restoreent(int i)
     {
         entity &e = ::ents.add();
-        memcpy(&e, &ents[i], sizeof(persistent_entity));
+        memcpy((void *)&e, &ents[i], sizeof(persistent_entity));
         e.spawned = true;
     }
 

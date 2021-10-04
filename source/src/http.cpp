@@ -328,7 +328,7 @@ int httpget::get(const char *url1, uint timeout, uint totaltimeout, int range, b
     if(gzipped)
     {
         z_stream zs;
-        memset(&zs, 0, sizeof(zs));
+        memset((void *)&zs, 0, sizeof(zs));
         if(inflateInit2(&zs, 15 + 32) == Z_OK)
         {
             zs.next_in = (Bytef*)content->getbuf();
