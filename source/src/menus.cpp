@@ -479,6 +479,7 @@ struct mitemtextinput : mitemtext
             text = input.buf;
             result = mitemmanual::select();
             text = tmp;
+            textinput(result, TI_MENU);
         }
         return result;
     }
