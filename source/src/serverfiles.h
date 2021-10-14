@@ -1630,6 +1630,7 @@ struct serverinfofile : serverconfigfile  // plaintext info file, used for serve
         {
             l = p; p += strlen(p) + 1;
             ASSERT(MAXINFOLINELEN < MAXSTRLEN);
+            filterrichtext(l, l);
             filtertext(s, l, FTXT__SERVERINFOLINE, MAXINFOLINELEN);
             if(*s) cvecprintf(msg, "%s\n", s);
         }
