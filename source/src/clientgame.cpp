@@ -55,11 +55,14 @@ bool duplicatename(playerent *d, char *name = NULL)
 char *colorname(playerent *d, char *name, const char *prefix)
 {
     if(!name) name = d->name;
-    if(name[0] && !duplicatename(d, name)) return name;
+    bool isdname = duplicatename(d, name);
+    if(name[0] && !isdname && !getigraph(name + 1)) return name;
     static string cname[4];
+    string cnum = "";
     static int num = 0;
     num = (num + 1) % 4;
-    formatstring(cname[num])("%s%s \fs\f6(%d)\fr", prefix, name, d->clientnum);
+    if(!name[0] || isdname) formatstring(cnum)(" \f6(%d)", d->clientnum);
+    formatstring(cname[num])("%s%s\fs%s\fr", prefix, name, cnum);
     return cname[num];
 }
 
