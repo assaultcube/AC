@@ -1080,7 +1080,7 @@ void renderclientp(playerent *d)
         }
     }
     string vwep;
-    if(d->weaponsel) formatstring(vwep)("weapons/%s/world", d->weaponsel->info.modelname);
+    if(d->weaponsel && !(d->weaponsel->type == GUN_GRENADE && !d->mag[GUN_GRENADE])) formatstring(vwep)("weapons/%s/world", d->weaponsel->info.modelname);
     else vwep[0] = 0;
     renderclient(d, "playermodels", vwep[0] ? vwep : NULL, -(int)textureload(skin)->id);
 }
