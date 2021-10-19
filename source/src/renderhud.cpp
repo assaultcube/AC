@@ -1085,7 +1085,8 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
                 if(m_teammode)
                 {
                     defformatstring(count)("\f%c%d", cc[i], scores[i + offs]);
-                    draw_text(count, i * 120 + VIRTW / 4.0f * 3.0f + 60 - text_width(count) / 2, 1590);
+                    int countwidth = text_width(count);
+                    draw_text(count, i * 120 + VIRTW / 4.0f * 3.0f + (countwidth > 114 ? (i ? 3 : (120 - countwidth - 3)) : (60 - countwidth / 2)), 1590);
                 }
             }
             if(!offs)
