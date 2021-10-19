@@ -879,11 +879,11 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             if(dbgpos)
             {
                 pushfont("mono");
-                formatstring(text)("%05.2f YAW", p->yaw);     draw_text(text, VIRTW*2 - ( text_width(text) + FONTH ), VIRTH*2 - 17*FONTH/2);
-                formatstring(text)("%05.2f PIT", p->pitch);   draw_text(text, VIRTW*2 - ( text_width(text) + FONTH ), VIRTH*2 - 15*FONTH/2);
-                formatstring(text)("%05.2f X  ", p->o.x);     draw_text(text, VIRTW*2 - ( text_width(text) + FONTH ), VIRTH*2 - 13*FONTH/2);
-                formatstring(text)("%05.2f Y  ", p->o.y);     draw_text(text, VIRTW*2 - ( text_width(text) + FONTH ), VIRTH*2 - 11*FONTH/2);
-                formatstring(text)("%05.2f Z  ", p->o.z);     draw_text(text, VIRTW*2 - ( text_width(text) + FONTH ), VIRTH*2 - 9*FONTH/2);
+                formatstring(text)("%05.2f YAW", camera1->yaw);     draw_text(text, VIRTW*2 - ( text_width(text) + FONTH ), VIRTH*2 - 17*FONTH/2);
+                formatstring(text)("%05.2f PIT", camera1->pitch);   draw_text(text, VIRTW*2 - ( text_width(text) + FONTH ), VIRTH*2 - 15*FONTH/2);
+                formatstring(text)("%05.2f X  ", camera1->o.x);     draw_text(text, VIRTW*2 - ( text_width(text) + FONTH ), VIRTH*2 - 13*FONTH/2);
+                formatstring(text)("%05.2f Y  ", camera1->o.y);     draw_text(text, VIRTW*2 - ( text_width(text) + FONTH ), VIRTH*2 - 11*FONTH/2);
+                formatstring(text)("%05.2f Z  ", camera1->o.z);     draw_text(text, VIRTW*2 - ( text_width(text) + FONTH ), VIRTH*2 - 9*FONTH/2);
                 popfont();
             }
             defformatstring(c_val)("fps %d", curfps);         draw_text(c_val, VIRTW*2 - ( text_width(c_val) + FONTH ), VIRTH*2 - 3*FONTH/2);
