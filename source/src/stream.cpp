@@ -217,6 +217,12 @@ void addpackagedir(const char *dir)
     copystring(pdir, dir);
     if(fixpackagedir(pdir) > 0)
     {
+        if(homedir[0]) // at first search in package directory in profile
+        {
+            string phdir;
+            formatstring(phdir)("%s%s", homedir, pdir);
+            packagedirs.add(newstring(phdir));
+        }
 #ifndef STANDALONE
         clientlogf("Adding package directory: %s", pdir);
 #endif
