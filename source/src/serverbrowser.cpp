@@ -1104,9 +1104,10 @@ void refreshservers(void *menu, bool init)
                 {
                     ((gmenu *)menu)->menusel = ((gmenu *)menu)->items.length() - 1;
                     usedselect = true;
-                    if(shownamesinbrowser) si.getinfo = EXTPING_NAMELIST;
                 }
-                if((shownamesinbrowser && servers[i] == oldsel && si.playernames.length()) || issearch)
+                bool showplayernames = shownamesinbrowser && !issearch && (servers[i] == oldsel || (((gmenu *)menu)->menusel == 0 && servers[i] == lastselectedserver));
+                if(showplayernames) si.getinfo = EXTPING_NAMELIST;
+                if((showplayernames && si.playernames.length()) || issearch)
                 {
                     int cur = 0;
                     char *t = NULL;
