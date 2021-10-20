@@ -15,6 +15,21 @@ Texture was also modified to fit these changes.
 The full set of models share the same license.
 
 
+- "fence_rusty" alternative texture for the following "fence_chainlink" mapmodels set:
+
+In makke folder:
+* "fence_chainlink"
+* "fence_chainlink_closed_gate"
+* "fence_chainlink_no_gate"
+* "fence_chainlink_post"
+In boeufmironton folder:
+* "fence_chainlink_hor_post"
+* "fence_chainlink_open_gate"
+In cleaner folder:
+* "fence_chainlink_down"
+* "fence_chainlink_gate_down"
+
+
 Creative Commons Deed / Attribution Non-commercial Share-Alike (AT-NC-SA):
 =====================================================================
 
