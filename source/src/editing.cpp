@@ -70,7 +70,7 @@ void toggleedit(bool force)
     player1->state = editing ? CS_EDITING : (watchingdemo ? CS_SPECTATE : CS_ALIVE);
     if(editing && player1->onladder) player1->onladder = false;
     if(editing && (player1->weaponsel->type == GUN_SNIPER && ((sniperrifle *)player1->weaponsel)->scoped)) ((sniperrifle *)player1->weaponsel)->onownerdies(); // or ondeselecting()
-    if(editing && (player1->weaponsel->type == GUN_GRENADE)) ((grenades *)player1->weaponsel)->onownerdies();
+    if(editing && (player1->weaponsel->type == GUN_GRENADE) && ((grenades *)player1->weaponsel)->state < GST_THROWING) ((grenades *)player1->weaponsel)->onownerdies();
     if(!force) addmsg(SV_EDITMODE, "ri", editing);
 }
 
