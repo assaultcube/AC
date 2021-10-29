@@ -32,7 +32,7 @@ I. a clean build
         3. in AC run "/loadallmapmodels" command
 
 II. fill packaging area
-  1. copy Path-D:profile/config/mapmodelattributes.cfg to the Path-C:pack config directory
+  1. copy Path-D:profile/config/mapmodelattributes.cfg to the Path-C:pack "config" directory
      Example: cp /home/user/.assaultcube/v9.9.9/config/mapmodelattributes.cfg /usr/local/src/AC/PACKAGE/pack/config/ 
   2. copy the binaries for the target platform to Path-C:pack
      1. rename 'native_*'
