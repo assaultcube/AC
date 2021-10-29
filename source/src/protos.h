@@ -1195,7 +1195,8 @@ struct servercommandline
             {
                 bool allas = true; // a is all A's?
                 loopi(strlen(a)){ if(a[i]!='A') allas = false; }
-                if(allas){
+                if(allas)
+                {
                     printf("KEY FAILURE: you provided the (inacceptable) example private key.\nKEY FAILURE: generate your own - read: https://assault.cubers.net/docs/server.html\n");
                 }
                 else
