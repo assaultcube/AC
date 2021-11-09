@@ -67,7 +67,16 @@ struct servermap  // in-memory version of a map file on a server
         if(cfgraw)
         {
             tigerhash(cfghash, cfgraw, cfglen);
-            loopk(cfglen) if(cfgraw[k] > 0x7f || (cfgraw[k] < 0x20 && !isspace(cfgraw[k]))) err = "illegal chars in cfg file";
+            bool incomment = false;
+            loopk(cfglen) if(cfgraw[k] > 0x7f || (cfgraw[k] < 0x20 && !isspace(cfgraw[k])))
+            {
+                if(cfgraw[k] == '/' && cfgraw[k + 1] == '/') // Note(EveryRelease): Don't report illegal characters in comments.
+                    incomment = true;
+                else if(cfgraw[k] == '\n')
+                    incomment = false;
+
+                if (!incomment) err = "illegal chars in cfg file";
+            }
         }
         formatstring(filename)("%s%s.cgz", fpath, fname);
         path(filename);
