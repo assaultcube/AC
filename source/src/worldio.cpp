@@ -91,7 +91,7 @@ uchar *readmcfggz(const char *name, int *size, int *sizegz)
 {
     setnames(name);
     uchar *gzbuf = new uchar[GZBUFSIZE];
-    uchar *data = (uchar*)loadfile(mcfname, size, "r");
+    uchar *data = (uchar*)loadfile(mcfname, size, "rb");
     if(data && *size < MAXCFGFILESIZE)
     {
         uLongf gzbufsize = GZBUFSIZE;
