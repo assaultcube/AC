@@ -1308,8 +1308,6 @@ int main(int argc, char **argv)
 
     initing = NOT_INITING;
 
-    #define STRINGIFY_(x) #x
-    #define STRINGIFY(x) STRINGIFY_(x)
     #define SDLVERSIONSTRING  STRINGIFY(SDL_MAJOR_VERSION) "." STRINGIFY(SDL_MINOR_VERSION) "." STRINGIFY(SDL_PATCHLEVEL)
     initlog("sdl (" SDLVERSIONSTRING ")");
     int par = 0;

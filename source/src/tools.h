@@ -138,6 +138,9 @@ struct stringformatter
 #define defformatstring(d) string d; formatstring(d)
 #define defvformatstring(d,last,fmt) string d; vformatstring(d,last,fmt)
 
+#define STRINGIFY_(x) #x
+#define STRINGIFY(x) STRINGIFY_(x)
+
 #define loopv(v)    for(int i = 0; i<(v).length(); i++)
 #define loopvj(v)   for(int j = 0; j<(v).length(); j++)
 #define loopvk(v)   for(int k = 0; k<(v).length(); k++)

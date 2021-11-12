@@ -100,7 +100,7 @@ struct mapaction : serveraction
                     if(romap) concatstring(msg, "map is readonly");
                     else
                     {
-                        if(!spawns) concatstring(msg, "player spawns");
+                        if(!spawns) concatstring(msg, "player spawns (minimum:" STRINGIFY(MINSPAWNS) ")");
                         if(!spawns && !flags) concatstring(msg, " and ");
                         if(!flags) concatstring(msg, "flag bases");
                         concatstring(msg, " missing");
