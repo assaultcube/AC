@@ -1418,7 +1418,7 @@ void transformclipentities()  // transforms all clip entities to tag clips, if t
                     int vdeltamax = 0;
                     loopj(4) if(s[j]->vdelta > vdeltamax) vdeltamax = s[j]->vdelta;
                     int floor = s[0]->floor - (s[0]->type == FHF ? (vdeltamax + 3) / 4 : 0),
-                        ceil = s[0]->ceil - (s[0]->type == CHF ? (vdeltamax + 3) / 4 : 0);
+                        ceil = s[0]->ceil + (s[0]->type == CHF ? (vdeltamax + 3) / 4 : 0);
                     bool alreadytagged = (s[0]->tag & (TAGCLIP | clipmask)) != 0;
                     if((z1 - floor > allowedspace || ceil - z2 > allowedspace) && !alreadytagged) bigenough = false;
                     if(!inner && !alreadytagged) nodelete = true; // fractional part of the clip would not be covered: entity can not be deleted
