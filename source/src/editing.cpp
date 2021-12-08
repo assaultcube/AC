@@ -30,6 +30,16 @@ VAR(unsavededits, 1, 0, 0);
 VAR(editmetakeydown, 1, 0, 0);
 COMMANDF(editmeta, "d", (bool on) { editmetakeydown = on ? 1 : 0; } );
 
+VAR(cleanedit, 0, 0, 1); // hides everything in edit mode you can't see in regular mode
+COMMANDF(togglecleanedit, "", () { cleanedit = !cleanedit; }); 
+
+bool editingsettingsshowminimal = false; // minimal reminder you have bits set in edithideentmask
+int keepshowingeditingsettingsfrom = 0;
+int keepshowingeditingsettingstill = 0;
+
+VARFP(editingsettingsvisibletime, 750, 7500, 75000, toucheditingsettings(true); ); // begin anew after any changes
+VARFP(showeditingsettings, 0, 0, 3, { if(showeditingsettings){ toucheditingsettings(true); }else{ keepshowingeditingsettingsfrom = keepshowingeditingsettingstill = 0; }}); // 0:almost entirely off, 1: all off after duration, 2: text off after duration, 3: permanent 
+
 void toggleedit(bool force)
 {
     if(player1->state==CS_DEAD) return;                   // do not allow dead players to edit to avoid state confusion
@@ -51,16 +61,16 @@ void toggleedit(bool force)
     }
     else
     {
-        //put call to clear/restart gamemode
         player1->attacking = false;
+        toucheditingsettings(true);
     }
-    keyrepeat(editmode);
+    keyrepeat(editmode, KR_EDITMODE);
     editing = editmode ? 1 : 0;
     editing_sp = editmode && !multiplayer(NULL) ? 1 : 0;
     player1->state = editing ? CS_EDITING : (watchingdemo ? CS_SPECTATE : CS_ALIVE);
     if(editing && player1->onladder) player1->onladder = false;
     if(editing && (player1->weaponsel->type == GUN_SNIPER && ((sniperrifle *)player1->weaponsel)->scoped)) ((sniperrifle *)player1->weaponsel)->onownerdies(); // or ondeselecting()
-    if(editing && (player1->weaponsel->type == GUN_GRENADE)) ((grenades *)player1->weaponsel)->onownerdies();
+    if(editing && (player1->weaponsel->type == GUN_GRENADE) && ((grenades *)player1->weaponsel)->state < GST_THROWING) ((grenades *)player1->weaponsel)->onownerdies();
     if(!force) addmsg(SV_EDITMODE, "ri", editing);
 }
 
@@ -110,7 +120,8 @@ char *editinfo()
     {
         entity &c = ents[e];
         int t = c.type < MAXENTTYPES ? c.type : 0;
-        formatstring(info)("%s entity: %s (%s)", pinnedclosestent ? "\fs\f3pinned\fr" : "closest", entnames[t], formatentityattributes(c, true));
+        extern int pointatent;
+        formatstring(info)("%s entity: %s (%s)", pinnedclosestent ? "\fs\f3pinned\fr" : (pointatent == 1 ? "point at" : "closest"), entnames[t], formatentityattributes(c, true));
         const char *unassigned = "unassigned slot", *slotinfo = unassigned;
         if(t == MAPMODEL)
         {
@@ -119,7 +130,7 @@ char *editinfo()
         }
         else if(t == SOUND)
         {
-            if(mapconfigdata.mapsoundlines.inrange(c.attr1))  slotinfo = mapconfigdata.mapsoundlines[c.attr1].name;
+            if(mapconfigdata.mapsoundlines.inrange(c.attr1)) slotinfo = mapconfigdata.mapsoundlines[c.attr1].name;
         }
         else slotinfo = "";
         if(*slotinfo && (hideeditslotinfo == 0 || (hideeditslotinfo == 1 && slotinfo == unassigned))) concatformatstring(info, " %s", slotinfo);
@@ -213,6 +224,7 @@ inline void forceinsideborders(int &xy)
 void cursorupdate()                                     // called every frame from hud
 {
     ASSERT(editmode);
+    if(cleanedit) return;
     flrceil = camera1->pitch >= 0 ? 2 : 0;
     editaxis = fabs(camera1->pitch) > 60 ? "\161\15\15"[flrceil] : "\160\13\14\157"[(int(camera1->yaw + 45) / 90) & 3];
 
@@ -772,6 +784,8 @@ void renderhudtexturepreview(int slot, int pos, bool highlight)
         color c(0, 0, 0.6f, 1);
         blendbox(x, y, x + bs, y + bs, false, -1, &c);
     }
+    defformatstring(texslotnumber)("#%d", slot);
+    draw_text(texslotnumber, x + bs / 2 - text_width(texslotnumber) / 2, y + bs + border + FONTH / 8);
     if(highlight)
     {
         glDisable(GL_BLEND);
@@ -782,6 +796,7 @@ void renderhudtexturepreview(int slot, int pos, bool highlight)
         glEnable(GL_TEXTURE_2D);
     }
 }
+
 
 static int lastedittex = 0;
 VARP(hudtexttl, 0, 2500, 10000);
@@ -795,6 +810,119 @@ void renderhudtexturepreviews()
         if(idx < 0) idx = 0;
         int startidx = clamp(idx - 2, 0, 251);
         loopi(5) renderhudtexturepreview(hdr.texlists[atype][startidx + i], i, startidx + i == idx);
+    }
+}
+
+// the entity sparklies have RGB information in renderparticles.cpp:struct parttype .. which we keep redundantly here; consolidation may prove annoying :-/
+static struct partcolour{ float r, g, b; } partcolours[MAXENTTYPES] =
+{
+    { 0.7f, 0.2f, 0.7f }, // NOTUSED 
+    { 1.0f, 1.0f, 1.0f }, // LIGHT 
+    { 0.0f, 1.0f, 0.0f }, // PLAYERSTART
+    { 1.0f, 0.0f, 0.0f }, // I_CLIPS
+    { 1.0f, 0.0f, 0.0f }, // I_AMMO
+    { 1.0f, 0.0f, 0.0f }, // I_GRENADE
+    { 1.0f, 1.0f, 0.0f }, // I_HEALTH
+    { 1.0f, 1.0f, 0.0f }, // I_HELMET
+    { 1.0f, 1.0f, 0.0f }, // I_ARMOUR
+    { 1.0f, 1.0f, 0.0f }, // I_AKIMBO
+    { 1.0f, 0.0f, 1.0f }, // MAPMODEL
+    { 1.0f, 0.5f, 0.2f }, // CARROT
+    { 0.5f, 0.5f, 0.5f }, // LADDER
+    { 0.0f, 1.0f, 1.0f }, // CTF_FLAG
+    { 1.0f, 0.0f, 1.0f }, // SOUND
+    { 0.5f, 0.5f, 0.5f }, // CLIP
+    { 0.5f, 0.5f, 0.5f }, // PLCLIP
+    { 0.7f, 0.2f, 0.7f }  // DUMMYENT
+};
+
+void rendereditingsettings()
+{
+    if(!conopen && (showeditingsettings > 0 || (edithideentmask != 0 && editingsettingsshowminimal)))
+    {
+        bool showing = (showeditingsettings >= 2 || keepshowingeditingsettingstill);
+        int deltax = 0;
+        if(keepshowingeditingsettingstill > 0)
+        {
+            int deltat_a = keepshowingeditingsettingstill - lastmillis;
+            int deltat_b = lastmillis - keepshowingeditingsettingsfrom;
+            if(deltat_a < 0)
+            {
+                keepshowingeditingsettingstill = 0;
+                keepshowingeditingsettingsfrom = 0;
+                editingsettingsshowminimal = false;
+                showing = (showeditingsettings >= 2);
+            }else{
+                int pulldist = VIRTW/4;
+                int showfrac = editingsettingsvisibletime / 5;
+                bool slidein = (deltat_a <= showfrac);
+                bool slideout = (deltat_b <= showfrac);
+                if(slidein||slideout)
+                {
+                    deltax = (showfrac - (slidein ? deltat_a : deltat_b))/(1.0f * showfrac) * pulldist;
+                }
+            }
+        }
+        if(showing)
+        {
+            glDepthMask(GL_FALSE);
+            glDisable(GL_TEXTURE_2D);
+            glDisable(GL_BLEND);
+            int boxsize = VIRTW/32, boxline = 3*boxsize/2;
+            int border = 2;
+            int x1 = FONTH/2 - (showeditingsettings == 1 ? deltax : 0), y1 = 3 * VIRTH/8, x2 = x1 + boxsize;
+            float prevlinew; glGetFloatv(GL_LINE_WIDTH, &prevlinew); glLineWidth(border);
+            loopi(MAXENTTYPES)
+            {
+                if(i>NOTUSED && i<=DUMMYENT)
+                {
+                    y1 = 3 * VIRTH/8 + (i-1) * boxline;
+                    int y2 = y1 + boxsize;
+                    bool ishidden = (edithideentmask & (1 << (i - 1)));
+                    // render text first – makes it slide in/out behind the boxes
+                    if(showeditingsettings==3||keepshowingeditingsettingsfrom) // 3:all,always || ( 2:text,at first, 1:all,at first )
+                    {
+                        glEnable(GL_TEXTURE_2D); glEnable(GL_BLEND);
+                        defformatstring(entlabel)("\f%d%s", ishidden?4:5, entnames[i]);
+                        draw_text(entlabel, x1 + boxline -(showeditingsettings == 2 ? deltax : 0), y1 );
+                        glDisable(GL_TEXTURE_2D); glDisable(GL_BLEND);
+                    }
+                    // now the box
+                    partcolour &pc = partcolours[i];
+                    glColor3f(pc.r, pc.g, pc.b);
+                    glBegin(GL_TRIANGLE_STRIP);
+                    glVertex2d(x1, y1);
+                    glVertex2d(x2, y1);
+                    glVertex2d(x1, y2);
+                    glVertex2d(x2, y2);
+                    glEnd();
+                    // and the border
+                    box2d(x1-border, y1-border, x2+border, y2+border, ishidden?0:200);
+                    // crossed-out like in menu
+                    if(ishidden){
+                        glColor3d(0,0,0);
+                        glBegin(GL_LINES);
+                        glVertex2d(x1, y1);
+                        glVertex2d(x2, y2);
+                        glVertex2d(x1, y2);
+                        glVertex2d(x2, y1);
+                        glEnd();
+                    }
+                }
+            }
+            glLineWidth(prevlinew);
+            glEnable(GL_TEXTURE_2D);
+            glDepthMask(GL_TRUE);
+        }
+        glEnable(GL_BLEND);
+    }
+    else
+    {
+        if(conopen && edithideentmask != 0 && editingsettingsshowminimal){
+            conoutf("\f3NOTICE\f4: you have \f1edithideentmask\f4 = \f2%d", edithideentmask);
+            editingsettingsshowminimal = false;
+        }
+
     }
 }
 
@@ -1093,12 +1221,12 @@ void edittagclip(char *tag)
 }
 COMMAND(edittagclip, "s");
 
-void newent(char *what, float *a1, float *a2, float *a3, float *a4)
+void newent(char *what, float *a1, float *a2, float *a3, float *a4, float *a5, float *a6, float *a7)
 {
     EDITSEL("newent");
-    loopv(sels) newentity(-1, sels[i].x, sels[i].y, (int)camera1->o.z, what, *a1, *a2, *a3, *a4);
+    loopv(sels) newentity(-1, sels[i].x, sels[i].y, (int)camera1->o.z, what, *a1, *a2, *a3, *a4, *a5, *a6, *a7);
 }
-COMMAND(newent, "sffff");
+COMMAND(newent, "sfffffff");
 
 void movemap(int *xop, int *yop, int *zop) // move whole map
 {
@@ -1290,7 +1418,7 @@ void transformclipentities()  // transforms all clip entities to tag clips, if t
                     int vdeltamax = 0;
                     loopj(4) if(s[j]->vdelta > vdeltamax) vdeltamax = s[j]->vdelta;
                     int floor = s[0]->floor - (s[0]->type == FHF ? (vdeltamax + 3) / 4 : 0),
-                        ceil = s[0]->ceil - (s[0]->type == CHF ? (vdeltamax + 3) / 4 : 0);
+                        ceil = s[0]->ceil + (s[0]->type == CHF ? (vdeltamax + 3) / 4 : 0);
                     bool alreadytagged = (s[0]->tag & (TAGCLIP | clipmask)) != 0;
                     if((z1 - floor > allowedspace || ceil - z2 > allowedspace) && !alreadytagged) bigenough = false;
                     if(!inner && !alreadytagged) nodelete = true; // fractional part of the clip would not be covered: entity can not be deleted

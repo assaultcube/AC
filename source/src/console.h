@@ -41,7 +41,16 @@ struct textinputbuffer
         buf[0] = '\0';
     }
 
-    bool key(int code, bool isdown, int unicode)    // returns true if buffer was modified
+    int maxlen() const
+    {
+        return max ? max : sizeof(buf);
+    }
+
+    bool say(const char *c);    // returns true if buffer was modified
+
+    void pasteclipboard();
+
+    bool key(int code)          // returns true if buffer was modified
     {
         switch(code)
         {
@@ -86,36 +95,15 @@ struct textinputbuffer
                 break;
 
             case SDLK_v:
-                extern void pasteconsole(char *dst);
                 if(SDL_GetModState() & MOD_KEYS_CTRL)
                 {
-                    pasteconsole(buf);
+                    pasteclipboard();
                     return true;
                 }
-                // fall through
+                break;
 
             default:
-            {
-                extern bool filterunrenderables(char *s);
-                char tmp[2] = { (char)unicode, 0 };
-                if(unicode && !filterunrenderables(tmp))
-                {
-                    size_t len = strlen(buf);
-                    if(max && (int)len>=max) break;
-                    if(len+1 < sizeof(buf))
-                    {
-                        if(pos < 0) buf[len] = unicode;
-                        else
-                        {
-                            memmove(&buf[pos+1], &buf[pos], len - pos);
-                            buf[pos++] = unicode;
-                        }
-                        buf[len+1] = '\0';
-                        return true;
-                    }
-                }
                 break;
-            }
         }
         return false;
     }

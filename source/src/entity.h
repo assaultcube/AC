@@ -35,6 +35,7 @@ struct persistent_entity        // map entity
     short attr5;
     char attr6;
     unsigned char attr7;
+    persistent_entity(short x, short y, short z, uchar type, short attr1, uchar attr2, uchar attr3, uchar attr4, short attr5, char attr6, unsigned char attr7) : x(x), y(y), z(z), attr1(attr1), type(type), attr2(attr2), attr3(attr3), attr4(attr4), attr5(attr5), attr6(attr6), attr7(attr7) {}
     persistent_entity(short x, short y, short z, uchar type, short attr1, uchar attr2, uchar attr3, uchar attr4) : x(x), y(y), z(z), attr1(attr1), type(type), attr2(attr2), attr3(attr3), attr4(attr4), attr5(0), attr6(0), attr7(0) {}
     persistent_entity() {}
 };
@@ -43,6 +44,7 @@ struct entity : persistent_entity
 {
     bool spawned;               //the dynamic states of a map entity
     int lastmillis;
+    entity(short x, short y, short z, uchar type, short attr1, uchar attr2, uchar attr3, uchar attr4, short attr5, char attr6, unsigned char attr7) : persistent_entity(x, y, z, type, attr1, attr2, attr3, attr4, attr5, attr6, attr7), spawned(false) {}
     entity(short x, short y, short z, uchar type, short attr1, uchar attr2, uchar attr3, uchar attr4) : persistent_entity(x, y, z, type, attr1, attr2, attr3, attr4), spawned(false) {}
     entity() {}
     bool fitsmode(int gamemode) { return !m_noitems && isitem(type) && !(m_noitemsnade && type!=I_GRENADE) && !(m_pistol && type==I_AMMO); }
@@ -53,7 +55,7 @@ struct entity : persistent_entity
     }
 };
 
-enum { GUN_KNIFE = 0, GUN_PISTOL, GUN_CARBINE, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIPER, GUN_ASSAULT, GUN_CPISTOL, GUN_GRENADE, GUN_AKIMBO, NUMGUNS };
+enum { GUN_KNIFE = 0, GUN_PISTOL, GUN_CARBINE, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIPER, GUN_ASSAULT, GUN_GRENADE, GUN_AKIMBO, NUMGUNS };
 #define valid_weapon(g) ((g) >= GUN_KNIFE && (g) < NUMGUNS)
 #define reloadable_gun(g) ((g) != GUN_KNIFE && (g) != GUN_GRENADE)
 
@@ -98,14 +100,13 @@ extern const char *teamnames[];
 extern const char *teamnames_s[];
 extern const char *killmessages[2][NUMGUNS];
 
-#define TEAM_VOID TEAM_NUM
 #define isteam(a,b)   (m_teammode && (a) == (b))
 #define team_opposite(o) (team_isvalid(o) && (o) < TEAM_SPECT ? (o) ^ 1 : TEAM_SPECT)
 #define team_base(t) ((t) & 1)
 #define team_basestring(t) ((t) == 1 ? teamnames[1] : ((t) == 0 ? teamnames[0] : "SPECT"))
 #define team_isvalid(t) ((int(t)) >= 0 && (t) < TEAM_NUM)
 #define team_isactive(t) ((t) == TEAM_CLA || (t) == TEAM_RVSF)
-#define team_isspect(t) ((t) > TEAM_RVSF && (t) < TEAM_VOID)
+#define team_isspect(t) ((t) > TEAM_RVSF && (t) < TEAM_NUM)
 #define team_group(t) ((t) == TEAM_SPECT ? TEAM_SPECT : team_base(t))
 #define team_tospec(t) ((t) == TEAM_SPECT ? TEAM_SPECT : team_base(t) + TEAM_CLA_SPECT - TEAM_CLA)
 // note: team_isactive and team_base can/should be used to check the limits for arrays of size '2'
@@ -113,19 +114,14 @@ static inline const char *team_string(int t, bool abbr = false) { const char **n
 
 enum { ENT_PLAYER = 0, ENT_BOT, ENT_CAMERA, ENT_BOUNCE };
 enum { CS_ALIVE = 0, CS_DEAD, CS_SPAWNING, CS_LAGGED, CS_EDITING, CS_SPECTATE };
-enum { CR_DEFAULT = 0, CR_ADMIN };
+enum { CR_DEFAULT = 0, CR_MASTER, CR_ADMIN, CR_OWNER, CR_NUM };
 enum { SM_NONE = 0, SM_DEATHCAM, SM_FOLLOW1ST, SM_FOLLOW3RD, SM_FOLLOW3RD_TRANSPARENT, SM_FLY, SM_OVERVIEW, SM_NUM };
+enum { FPCN_VOID = -4, FPCN_DEATHCAM = -2, FPCN_FLY = -2, FPCN_OVERVIEW = -1 };
 
-class worldobject
+class physent
 {
 public:
-    virtual ~worldobject() {};
-};
-
-class physent : public worldobject
-{
-public:
-    vec o, vel, vel_t;                         // origin, velocity
+    vec o, vel;                         // origin, velocity
     vec deltapos, newpos;                       // movement interpolation
     float yaw, pitch, roll;             // used as vec in one place
     float pitchvel;
@@ -133,7 +129,7 @@ public:
     int timeinair;                      // used for fake gravity
     float radius, eyeheight, maxeyeheight, aboveeye;  // bounding box size
     bool inwater;
-    bool onfloor, onladder, jumpnext, crouching, crouchedinair, trycrouch, cancollide, stuck, scoping, shoot;
+    bool onfloor, onladder, jumpnext, jumpd, crouching, crouchedinair, trycrouch, cancollide, stuck, scoping;
     int lastjump;
     float lastjumpheight;
     int lastsplash;
@@ -143,7 +139,7 @@ public:
     int last_pos;
 
     physent() : o(0, 0, 0), deltapos(0, 0, 0), newpos(0, 0, 0), yaw(270), pitch(0), roll(0), pitchvel(0),
-            crouching(false), crouchedinair(false), trycrouch(false), cancollide(true), stuck(false), scoping(false), shoot(false), lastjump(0), lastjumpheight(200), lastsplash(0), state(CS_ALIVE), last_pos(0)
+            crouching(false), crouchedinair(false), trycrouch(false), cancollide(true), stuck(false), scoping(false), lastjump(0), lastjumpheight(200), lastsplash(0), state(CS_ALIVE), last_pos(0)
     {
         reset();
     }
@@ -158,10 +154,10 @@ public:
 
     void reset()
     {
-        vel.x = vel.y = vel.z = eyeheightvel = vel_t.x = vel_t.y = vel_t.z = 0.0f;
+        vel.x = vel.y = vel.z = eyeheightvel = 0.0f;
         move = strafe = 0;
         timeinair = lastjump = lastsplash = 0;
-        onfloor = onladder = inwater = jumpnext = crouching = crouchedinair = trycrouch = stuck = false;
+        onfloor = onladder = inwater = jumpnext = jumpd = crouching = crouchedinair = trycrouch = stuck = false;
         last_pos = 0;
     }
 
@@ -287,7 +283,7 @@ public:
     {
         switch(type)
         {
-            case I_CLIPS: return ammo[akimbo ? GUN_AKIMBO : GUN_PISTOL]<ammostats[akimbo ? GUN_AKIMBO : GUN_PISTOL].max;
+            case I_CLIPS: return ammo[akimbo && ammo[GUN_AKIMBO]<ammostats[GUN_AKIMBO].max ? GUN_AKIMBO : GUN_PISTOL]<ammostats[akimbo && ammo[GUN_AKIMBO]<ammostats[GUN_AKIMBO].max ? GUN_AKIMBO : GUN_PISTOL].max;
             case I_AMMO: return ammo[primary]<ammostats[primary].max;
             case I_GRENADE: return mag[GUN_GRENADE]<ammostats[GUN_GRENADE].max;
             case I_HEALTH: return health<powerupstats[type-I_HEALTH].max;
@@ -412,7 +408,7 @@ public:
 #define ROLLMOVMAX 20
 #define ROLLMOVDEF 0
 #define ROLLEFFMAX 30
-#define ROLLEFFDEF 10
+#define ROLLEFFDEF 0
 
 class playerent : public dynent, public playerstate
 {
@@ -422,7 +418,7 @@ public:
     int clientnum, lastupdate, plag, ping;
     enet_uint32 address;
     int lifesequence;                   // sequence id for each respawn, used in damage test
-    int frags, flagscore, deaths, points, tks;
+    int frags, flagscore, deaths, tks;
     int lastaction, lastmove, lastpain, lastvoicecom, lastdeath;
     int clientrole;
     bool attacking;
@@ -433,7 +429,8 @@ public:
     int spectatemode, followplayercn;
     int eardamagemillis;
     float maxroll, maxrolleffect, movroll, effroll;  // roll added by movement and damage
-    bool allowmove() { return state!=CS_DEAD || spectatemode==SM_FLY; }
+    int ffov, scopefov;
+    bool allowmove() { return (state!=CS_DEAD && state!=CS_SPECTATE) || spectatemode==SM_FLY; }
 
     weapon *weapons[NUMGUNS];
     weapon *prevweaponsel, *weaponsel, *nextweaponsel, *primweap, *nextprimweap, *lastattackweapon;
@@ -450,8 +447,8 @@ public:
     bool ignored, muted;
     bool nocorpse;
 
-    playerent() : curskin(0), clientnum(-1), lastupdate(0), plag(0), ping(0), address(0), lifesequence(0), frags(0), flagscore(0), deaths(0), points(0), tks(0), lastpain(0), lastvoicecom(0), lastdeath(0), clientrole(CR_DEFAULT),
-                  team(TEAM_SPECT), spectatemode(SM_NONE), eardamagemillis(0), maxroll(ROLLMOVDEF), maxrolleffect(ROLLEFFDEF), movroll(0), effroll(0),
+    playerent() : curskin(0), clientnum(-1), lastupdate(0), plag(0), ping(0), address(0), lifesequence(0), frags(0), flagscore(0), deaths(0), tks(0), lastpain(0), lastvoicecom(0), lastdeath(0), clientrole(CR_DEFAULT),
+                  team(TEAM_SPECT), spectatemode(SM_NONE), followplayercn(FPCN_VOID), eardamagemillis(0), maxroll(ROLLMOVDEF), maxrolleffect(ROLLEFFDEF), movroll(0), effroll(0), ffov(0), scopefov(0),
                   prevweaponsel(NULL), weaponsel(NULL), nextweaponsel(NULL), primweap(NULL), nextprimweap(NULL), lastattackweapon(NULL),
                   smoothmillis(-1),
                   head(-1, -1, -1), ignored(false), muted(false), nocorpse(false)
@@ -502,6 +499,7 @@ public:
     void resetspec()
     {
         spectatemode = SM_NONE;
+        followplayercn = FPCN_VOID;
     }
 
     void respawn()
@@ -520,6 +518,12 @@ public:
         eyeheight = maxeyeheight;
         curskin = nextskin[team_base(team)];
         nocorpse = false;
+        extern void *damageindicatorplayer;
+        if(damageindicatorplayer == this)
+        {
+            extern int damagedirections[8];
+            loopi(8) damagedirections[i] = lastmillis;
+        }
     }
 
     void spawnstate(int gamemode)
@@ -531,18 +535,25 @@ public:
         curskin = nextskin[team_base(team)];
     }
 
-    void selectweapon(int w) { if (weaponsel) prevweaponsel = weaponsel; weaponsel = weapons[(gunselect = w)]; if (!prevweaponsel) prevweaponsel = weaponsel; }
+    void selectweapon(int w, bool other = false)
+    {
+        if(weaponsel) prevweaponsel = weaponsel; 
+        weaponsel = weapons[(gunselect = w)]; 
+        if(!prevweaponsel) prevweaponsel = weaponsel; 
+        if(other && (prevweaponsel != weaponsel)) weaponswitch(weaponsel, true); 
+    }
+
     void setprimary(int w) { primweap = weapons[(primary = w)]; }
     void setnextprimary(int w) { nextprimweap = weapons[(nextprimary = w)]; }
     bool isspectating() { return state==CS_SPECTATE || (state==CS_DEAD && spectatemode > SM_NONE); }
-    void weaponswitch(weapon *w)
+    void weaponswitch(weapon *w, bool sound = true)
     {
         if(!w) return;
         extern int lastmillis;
         weaponsel->ondeselecting();
         weaponchanging = lastmillis;
         nextweaponsel = w;
-        w->onselecting();
+        w->onselecting(sound);
     }
     int skin(int t = -1) { return nextskin[team_base(t < 0 ? team : t)]; }
     void setskin(int t, int s)
@@ -550,6 +561,10 @@ public:
         const int maxskin[2] = { 4, 6 };
         t = team_base(t < 0 ? team : t);
         nextskin[t] = (s & 63) % maxskin[t];
+    }
+    void startmap()
+    {
+        frags = flagscore = deaths = lifesequence = tks = 0;
     }
 };
 
@@ -646,7 +661,4 @@ public:
     void oncollision();
     void onmoved(const vec &dist);
 };
-
-enum {MD_FRAGS = 0, MD_DEATHS, END_MDS};
-struct medalsst {bool assigned; int cn; int item;};
 

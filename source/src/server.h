@@ -1,6 +1,6 @@
 // server.h
 
-#define gamemode smode   // allows the gamemode macros to work with the server mode
+#define gamemode sg->smode   // allows the gamemode macros to work with the server mode
 
 #define SERVER_PROTOCOL_VERSION    (PROTOCOL_VERSION)    // server without any gameplay modification
 //#define SERVER_PROTOCOL_VERSION   (-PROTOCOL_VERSION)  // server with gameplay modification but compatible to vanilla client (using /modconnect)
@@ -11,7 +11,8 @@
 enum { GE_NONE = 0, GE_SHOT, GE_EXPLODE, GE_HIT, GE_AKIMBO, GE_RELOAD, GE_SUICIDE, GE_PICKUP };
 enum { ST_EMPTY, ST_LOCAL, ST_TCPIP };
 
-extern int smode, servmillis;
+extern int servmillis;
+extern bool triggerpollrestart;
 
 struct shotevent
 {
@@ -116,7 +117,7 @@ struct clientstate : playerstate
     projectilestate<8> grenades;
     int akimbomillis;
     bool scoped;
-    int flagscore, frags, teamkills, deaths, shotdamage, damage, points, events, lastdisc, reconnections;
+    int flagscore, frags, teamkills, deaths, shotdamage, damage, events, lastdisc, reconnections;
 
     clientstate() : state(CS_DEAD) {}
 
@@ -139,7 +140,7 @@ struct clientstate : playerstate
         grenades.reset();
         akimbomillis = 0;
         scoped = forced = false;
-        flagscore = frags = teamkills = deaths = shotdamage = damage = points = events = lastdisc = reconnections = 0;
+        flagscore = frags = teamkills = deaths = shotdamage = damage = events = lastdisc = reconnections = 0;
         respawn();
     }
 
@@ -160,13 +161,13 @@ struct savedscore
 {
     string name;
     uint ip;
-    int frags, flagscore, deaths, teamkills, shotdamage, damage, team, points, events, lastdisc, reconnections;
+    int frags, flagscore, deaths, teamkills, shotdamage, damage, team, events, lastdisc, reconnections;
     bool valid, forced;
 
     void reset()
     {
         // to avoid 2 connections with the same score... this can disrupt some laggers that eventually produces 2 connections (but it is rare)
-        frags = flagscore = deaths = teamkills = shotdamage = damage = points = events = lastdisc = reconnections = 0;
+        frags = flagscore = deaths = teamkills = shotdamage = damage = events = lastdisc = reconnections = 0;
     }
 
     void save(clientstate &cs, int t)
@@ -177,7 +178,6 @@ struct savedscore
         teamkills = cs.teamkills;
         shotdamage = cs.shotdamage;
         damage = cs.damage;
-        points = cs.points;
         forced = cs.forced;
         events = cs.events;
         lastdisc = cs.lastdisc;
@@ -194,7 +194,6 @@ struct savedscore
         cs.teamkills = teamkills;
         cs.shotdamage = shotdamage;
         cs.damage = damage;
-        cs.points = points;
         cs.forced = forced;
         cs.events = events;
         cs.lastdisc = lastdisc;
@@ -203,46 +202,57 @@ struct savedscore
     }
 };
 
-struct medals
+#define VITANAMEHISTLEN 4
+#define VITAIPHISTLEN 4
+#define VITACCHISTLEN 4
+#define VITACOMMENTLEN 31
+#define VITACLANLEN 7
+
+struct vita_s
 {
-    int dpt, lasthit, lastgun, ncovers, nhs;
-    int combohits, combo, combofrags, combotime, combodamage, ncombos;
-    int ask, askmillis, linked, linkmillis, linkreason, upmillis, flagmillis;
-    int totalhits, totalshots;
-    bool updated, combosend;
-    vec pos, flagpos;
-    void reset()
-    {
-        dpt = lasthit = lastgun = ncovers = nhs = 0;
-        combohits = combo = combofrags = combotime = combodamage = ncombos = 0;
-        askmillis = linkmillis = upmillis = flagmillis = 0;
-        linkreason = linked = ask = -1;
-        totalhits = totalshots = 0;
-        updated = combosend = false;
-        pos = flagpos = vec(-1e10f, -1e10f, -1e10f);
-    }
+    char namehist[VITANAMEHISTLEN][MAXNAMELEN + 1];
+    enet_uint32 iphist[VITAIPHISTLEN];
+    char privatecomment[VITACOMMENTLEN + 1], publiccomment[VITACOMMENTLEN + 1]; // private comments can be seen by admins and owners only, public comments can be seen by everyone
+    char clan[VITACLANLEN + 1];
+    char cchist[VITACCHISTLEN * 2];
+    int vs[VS_NUM];
+    void addname(const char *name);
+    void addip(enet_uint32 ip);
+    void addcc(const char *cc);
 };
+
+struct vitakey_s { const vita_s *v; const uchar32 *k; };
 
 struct client                   // server side version of "dynent" type
 {
     int type;
-    int clientnum;
+    int clientnum, clientsequence;
     ENetPeer *peer;
     string hostname;
+    enet_uint32 ip, ip_censored;
+    int connectclock;
+    char country[4];
+    uchar32 pubkey;
+    char pubkeyhex[68];
+    vita_s *vita;
+    string servinforesponse;
     string name;
     int team;
+    int maxroll, maxrolleffect, ffov, scopefov;
     char lang[3];
     int ping;
     int skin[2];
     int vote;
     int role;
-    int connectmillis, lmillis, ldt, spj;
+    int connectmillis, ldt, spj;
     int mute, spam, lastvc; // server side voice comm spam control
     int acversion, acbuildtype;
     bool isauthed; // for passworded servers
+    bool needsauth;
     bool haswelcome;
     bool isonrightmap, loggedwrongmap, freshgame;
     bool timesync;
+    bool ispaused;
     int overflow;
     int gameoffset, lastevent, lastvotecall;
     int lastprofileupdate, fastprofileupdates;
@@ -252,32 +262,22 @@ struct client                   // server side version of "dynent" type
     vector<uchar> position, messages;
     string lastsaytext;
     int saychars, lastsay, spamcount, badspeech, badmillis;
-    int at3_score, at3_lastforce, eff_score;
+    int at3_lastforce;
     bool at3_dontmove;
     int spawnindex;
     int spawnperm, spawnpermsent;
     bool autospawn;
     int salt;
     string pwd;
-    uint authreq; // for AUTH
-    string authname; // for AUTH
+    int spectcn;
     int mapcollisions, farpickups;
     enet_uint32 bottomRTT;
-    medals md;
     bool upspawnp;
     int lag;
     vec spawnp;
     int nvotes;
     int input, inputmillis;
-    int ffire, wn, f, g, t, y, p;
-    int yb, pb, oy, op, lda, ldda, fam;
-    int nt[10], np, lp, ls, lsm, ld, nd, nlt, lem, led;
-    vec cp[10], dp[10], d0, lv, lt, le;
-    float dda, tr, sda;
-    int ps, ph, tcn, bdt, pws;
-    float pr;
-    int yls, pls, tls;
-    int bs, bt, blg, bp;
+    int ffire, wn, f, t, yaw, pitch;
 
     gameevent &addevent()
     {
@@ -292,7 +292,7 @@ struct client                   // server side version of "dynent" type
         events.setsize(0);
         overflow = 0;
         timesync = false;
-        isonrightmap = m_coop;
+        isonrightmap = false;
         spawnperm = SP_WRONGMAP;
         spawnpermsent = servmillis;
         autospawn = false;
@@ -302,31 +302,26 @@ struct client                   // server side version of "dynent" type
             freshgame = true;         // permission to spawn at once
         }
         lastevent = 0;
-        at3_lastforce = eff_score = 0;
+        at3_lastforce = 0;
         mapcollisions = farpickups = 0;
-        md.reset();
         upspawnp = false;
         lag = 0;
         spawnp = vec(-1e10f, -1e10f, -1e10f);
-        lmillis = ldt = spj = 0;
+        ldt = spj = 0;
         ffire = 0;
-        f = g = y = p = t = 0;
-        yb = pb = oy = op = lda = ldda = fam = 0;
-        np = lp = ls = lsm = ld = nd = nlt = lem = led = 0;
-        d0 = lv = lt = le = vec(0,0,0);
-        loopi(10) { cp[i] = dp[i] = vec(0,0,0); nt[i] = 0; }
-        dda = tr = sda = 0;
-        ps = ph = bdt = pws = 0;
-        tcn = -1;
-        pr = 0.0f;
-        yls = pls = tls = 0;
+        f = yaw = pitch = t = 0;
+        ispaused = 0;
     }
 
     void reset()
     {
         name[0] = pwd[0] = demoflags = 0;
+        ip = ip_censored = 0;
+        pubkeyhex[0] = '\0';
+        vita = NULL;
         bottomRTT = ping = 9999;
         team = TEAM_SPECT;
+        maxroll = maxrolleffect = ffov = scopefov = 0;
         state.state = CS_SPECTATE;
         loopi(2) skin[i] = 0;
         position.setsize(0);
@@ -339,13 +334,11 @@ struct client                   // server side version of "dynent" type
         lastsaytext[0] = '\0';
         saychars = 0;
         spawnindex = -1;
-        authreq = 0; // for AUTH
         mapchange();
         freshgame = false;         // don't spawn into running games
         mute = spam = lastvc = badspeech = badmillis = nvotes = 0;
         input = inputmillis = 0;
-        wn = -1;
-        bs = bt = blg = bp = 0;
+        ispaused = 0;
     }
 
     void zap()
@@ -353,6 +346,18 @@ struct client                   // server side version of "dynent" type
         type = ST_EMPTY;
         role = CR_DEFAULT;
         isauthed = haswelcome = false;
+    }
+
+    bool checkvitadate(int n)
+    {
+        extern int servclock;
+        return vita && (vita->vs[n] == 1 || (servclock - vita->vs[n]) < 0);
+    }
+    
+    void incrementvitacounter(int vitastat, int amount)
+    {
+        if (!vita) return;
+        vita->vs[vitastat] += amount;
     }
 };
 
@@ -376,19 +381,20 @@ struct server_entity            // server side version of "entity" type
     short x, y;
 };
 
+struct sflaginfo
+{
+    int state;
+    int actor_cn;
+    float pos[3];
+    int lastupdate;
+    int stolentime;
+    short x, y;          // flag entity location
+};
+
 struct clientidentity
 {
     uint ip;
     int clientnum;
-};
-
-struct demofile
-{
-    string info;
-    string file;
-    uchar *data;
-    int len;
-    vector<clientidentity> clientssent;
 };
 
 void startgame(const char *newname, int newmode, int newtime = -1, bool notify = true);
@@ -397,9 +403,7 @@ void sendiplist(int receiver, int cn = -1);
 int clienthasflag(int cn);
 bool refillteams(bool now = false, int ftr = FTR_AUTOTEAM);
 void changeclientrole(int client, int role, char *pwd = NULL, bool force=false);
-mapstats *getservermapstats(const char *mapname, bool getlayout = false, int *maploc = NULL);
 int findmappath(const char *mapname, char *filename = NULL);
-int calcscores();
 void recordpacket(int chan, void *data, int len);
 void senddisconnectedscores(int cn);
 void process(ENetPacket *packet, int sender, int chan);
@@ -412,35 +416,36 @@ void forcedeath(client *cl);
 void sendf(int cn, int chan, const char *format, ...);
 
 extern bool isdedicated;
-extern string smapname;
-extern mapstats smapstats;
-extern char *maplayout;
+
+const char *modeinfologfilename = NULL;
 
 const char *messagenames[SV_NUM] =
 {
-    "SV_SERVINFO", "SV_WELCOME", "SV_INITCLIENT", "SV_POS", "SV_POSC", "SV_POSN", "SV_TEXT", "SV_TEAMTEXT", "SV_TEXTME", "SV_TEAMTEXTME", "SV_TEXTPRIVATE",
+    "SV_SERVINFO", "SV_SERVINFO_RESPONSE", "SV_SERVINFO_CONTD", "SV_WELCOME", "SV_INITCLIENT", "SV_POS", "SV_POSC", "SV_POSC2", "SV_POSC3", "SV_POSC4", "SV_POSN",
+    "SV_TEXT", "SV_TEAMTEXT", "SV_TEXTME", "SV_TEAMTEXTME", "SV_TEXTPRIVATE",
     "SV_SOUND", "SV_VOICECOM", "SV_VOICECOMTEAM", "SV_CDIS",
-    "SV_SHOOT", "SV_EXPLODE", "SV_SUICIDE", "SV_AKIMBO", "SV_RELOAD", "SV_AUTHT", "SV_AUTHREQ", "SV_AUTHTRY", "SV_AUTHANS", "SV_AUTHCHAL",
+    "SV_SHOOT", "SV_EXPLODE", "SV_SUICIDE", "SV_AKIMBO", "SV_RELOAD",
     "SV_GIBDIED", "SV_DIED", "SV_GIBDAMAGE", "SV_DAMAGE", "SV_HITPUSH", "SV_SHOTFX", "SV_THROWNADE",
     "SV_TRYSPAWN", "SV_SPAWNSTATE", "SV_SPAWN", "SV_SPAWNDENY", "SV_FORCEDEATH", "SV_RESUME",
     "SV_DISCSCORES", "SV_TIMEUP", "SV_EDITENT", "SV_ITEMACC",
     "SV_MAPCHANGE", "SV_ITEMSPAWN", "SV_ITEMPICKUP",
-    "SV_PING", "SV_PONG", "SV_CLIENTPING", "SV_GAMEMODE",
+    "SV_PING", "SV_PONG", "SV_CLIENTPING",
     "SV_EDITMODE", "SV_EDITXY", "SV_EDITARCH", "SV_EDITBLOCK", "SV_EDITD", "SV_EDITE", "SV_NEWMAP",
     "SV_SENDMAP", "SV_RECVMAP", "SV_REMOVEMAP",
-    "SV_SERVMSG", "SV_ITEMLIST", "SV_WEAPCHANGE", "SV_PRIMARYWEAP",
+    "SV_SERVMSG", "SV_SERVMSGVERB", "SV_ITEMLIST", "SV_WEAPCHANGE", "SV_PRIMARYWEAP",
     "SV_FLAGACTION", "SV_FLAGINFO", "SV_FLAGMSG", "SV_FLAGCNT",
     "SV_ARENAWIN",
     "SV_SETADMIN", "SV_SERVOPINFO",
     "SV_CALLVOTE", "SV_CALLVOTESUC", "SV_CALLVOTEERR", "SV_VOTE", "SV_VOTERESULT",
     "SV_SETTEAM", "SV_TEAMDENY", "SV_SERVERMODE",
-    "SV_IPLIST",
+    "SV_IPLIST", "SV_SPECTCN",
     "SV_LISTDEMOS", "SV_SENDDEMOLIST", "SV_GETDEMO", "SV_SENDDEMO", "SV_DEMOPLAYBACK",
     "SV_CONNECT",
     "SV_SWITCHNAME", "SV_SWITCHSKIN", "SV_SWITCHTEAM",
     "SV_CLIENT",
     "SV_EXTENSION",
-    "SV_MAPIDENT", "SV_HUDEXTRAS", "SV_POINTS"
+    "SV_MAPIDENT", "SV_DEMOCHECKSUM", "SV_DEMOSIGNATURE",
+    "SV_PAUSEMODE"
 };
 
 const char *entnames[] =
@@ -507,7 +512,6 @@ itemstat ammostats[NUMGUNS] =
     { 60, 90,  90,  S_ITEMAMMO  },   // subgun
     { 10, 20,  15,  S_ITEMAMMO  },   // sniper
     { 40, 60,  60,  S_ITEMAMMO  },   // assault
-    { 30, 45,  75,  S_ITEMAMMO  },   // cpistol
     {  1,  0,   3,  S_ITEMAMMO  },   // grenade
     {100,  0, 100,  S_ITEMAKIMBO}    // akimbo
 };
@@ -515,7 +519,7 @@ itemstat ammostats[NUMGUNS] =
 itemstat powerupstats[I_ARMOUR-I_HEALTH+1] =
 {
     {33, 0, 100, S_ITEMHEALTH}, // 0 health
-    {25, 0, 100, S_ITEMARMOUR}, // 1 helmet
+    {25, 0, 100, S_ITEMHELMET}, // 1 helmet
     {50, 0, 100, S_ITEMARMOUR}, // 2 armour
 };
 
@@ -534,9 +538,8 @@ guninfo guns[NUMGUNS] =
     { "subgun",  "A-ARD/10 SMG", S_SUBGUN,  S_RSUBGUN,  1650,   80,     16,   0,     0,   0, 45,   15,   30,   1,  2,   5,  25,   50,   188,  1,   true  },
     { "sniper",  "AD-81 SR",     S_SNIPER,  S_RSNIPER,  1950,   1500,   82,  25,     0,   0, 50,   50,    5,   4,  4,  10,  85,   85,   100,  1,   false },
     { "assault", "MTP-57 AR",    S_ASSAULT, S_RASSAULT, 2000,   120,    22,   0,     0,   0, 18,   30,   20,   0,  2,   3,  25,   50,   115,  1,   true  },
-    { "cpistol", "nop",          S_PISTOL,  S_RPISTOL,  1400,   120,    19,   0,     0,   0, 35,   10,   15,   6,  5,   6,  35,   50,   125,  1,   false },   // temporary
     { "grenade", "Grenades",     S_NULL,    S_NULL,     1000,   650,    200,  0,    20,   6,  1,    1,   1,    3,  1,   0,   0,    0,    0,   3,   false },
-    { "pistol",  "Akimbo",       S_PISTOL,  S_RAKIMBO,  1400,   80,     19,   0,     0,   0, 50,   10,   20,   6,  5,   4,  15,   25,   115,  1,   true  },
+    { "pistol",  "Akimbo",       S_PISTOL,  S_RAKIMBO,  1400,   80,     18,   0,     0,   0, 50,   10,   20,   6,  5,   4,  15,   25,   115,  1,   true  },
 };
 
 const char *gunnames[NUMGUNS + 1];
@@ -544,10 +547,12 @@ const char *gunnames[NUMGUNS + 1];
 const char *teamnames[] = {"CLA", "RVSF", "CLA-SPECT", "RVSF-SPECT", "SPECTATOR", "", "void"};
 const char *teamnames_s[] = {"CLA", "RVSF", "CSPC", "RSPC", "SPEC", "", "void"};
 
+const char *rolenames[CR_NUM + 1] = { "unarmed", "master", "admin", "owner", "" };
+
 const char *killmessages[2][NUMGUNS] =
 {
-    { "",        "busted", "picked off", "peppered",   "sprayed", "punctured", "shredded", "busted", "",       "busted" },
-    { "slashed", "",       "",           "splattered", "",        "headshot",  "",         "",       "gibbed", ""       }
+    { "",        "busted", "picked off", "peppered",   "sprayed", "punctured", "shredded", "",       "busted" },
+    { "slashed", "",       "",           "splattered", "",        "headshot",  "",         "gibbed", ""       }
 };
 
 #define C(x) (1<<(SC_##x))
@@ -618,14 +623,14 @@ soundcfgitem soundcfg[S_NULL] =
     { "misc/tinnitus",          "Tinnitus",                 2, 0,  0, S_TINNITUS,               C(OWNPAIN)       }, // 62
     { "voicecom/affirmative",   "Affirmative",              0, 0,  0, S_AFFIRMATIVE,            C(VOICECOM)|C(TEAM)                                 }, // 63
     { "voicecom/allrightsir",   "All-right sir",            0, 0,  0, S_ALLRIGHTSIR,            C(VOICECOM)|C(TEAM)                                 }, // 64
-    { "voicecom/comeonmove",    "Come on, move",            0, 0,  0, S_COMEONMOVE,             C(VOICECOM)|C(TEAM)|C(PUBLIC)|C(FFA)                }, // 65
+    { "voicecom/comeonmove",    "Come on, move",            0, 0,  0, S_COMEONMOVE,             C(VOICECOM)|C(TEAM)          |C(FFA)                }, // 65
     { "voicecom/cominginwiththeflag", "Coming in with the flag", 0,0,0, S_COMINGINWITHTHEFLAG,  C(VOICECOM)|C(TEAM)                 |C(FLAGONLY)    }, // 66
     { "voicecom/coverme",       "Cover me",                 0, 0,  0, S_COVERME,                C(VOICECOM)|C(TEAM)                                 }, // 67
     { "voicecom/defendtheflag", "Defend the flag",          0, 0,  0, S_DEFENDTHEFLAG,          C(VOICECOM)|C(TEAM)                 |C(FLAGONLY)    }, // 68
-    { "voicecom/enemydown",     "Enemy down",               0, 0,  0, S_ENEMYDOWN,              C(VOICECOM)|C(TEAM)|C(PUBLIC)                       }, // 69
+    { "voicecom/enemydown",     "Enemy down",               0, 0,  0, S_ENEMYDOWN,              C(VOICECOM)|C(TEAM)          |C(FFA)                }, // 69
     { "voicecom/gogetemboys",   "Go get 'em boys!",         0, 0,  0, S_GOGETEMBOYS,            C(VOICECOM)|C(TEAM)                                 }, // 70
     { "voicecom/goodjobteam",   "Good job team",            0, 0,  0, S_GOODJOBTEAM,            C(VOICECOM)|C(TEAM)                                 }, // 71
-    { "voicecom/igotone",       "I got one!",               0, 0,  0, S_IGOTONE,                C(VOICECOM)|C(TEAM)|C(PUBLIC)                       }, // 72
+    { "voicecom/igotone",       "I got one!",               0, 0,  0, S_IGOTONE,                C(VOICECOM)|C(TEAM)          |C(FFA)                }, // 72
     { "voicecom/imadecontact",  "I made contact",           0, 0,  0, S_IMADECONTACT,           C(VOICECOM)|C(TEAM)                                 }, // 73
     { "voicecom/imattacking",   "I'm attacking",            0, 0,  0, S_IMATTACKING,            C(VOICECOM)|C(TEAM)                                 }, // 74
     { "voicecom/imondefense",   "I'm on defense",           0, 0,  0, S_IMONDEFENSE,            C(VOICECOM)|C(TEAM)                                 }, // 75
@@ -633,7 +638,7 @@ soundcfgitem soundcfg[S_NULL] =
     { "voicecom/negative",      "Negative",                 0, 0,  0, S_NEGATIVE,               C(VOICECOM)|C(TEAM)                                 }, // 77
     { "voicecom/nocando",       "No can do",                0, 0,  0, S_NOCANDO,                C(VOICECOM)|C(TEAM)                                 }, // 78
     { "voicecom/recovertheflag", "Recover the flag",        0, 0,  0, S_RECOVERTHEFLAG,         C(VOICECOM)|C(TEAM)                 |C(FLAGONLY)    }, // 79
-    { "voicecom/sorry",         "Sorry",                    0, 0,  0, S_SORRY,                  C(VOICECOM)|C(TEAM)|C(PUBLIC)|C(FFA)                }, // 80
+    { "voicecom/sorry",         "Sorry",                    0, 0,  0, S_SORRY,                  C(VOICECOM)|C(TEAM)          |C(FFA)                }, // 80
     { "voicecom/spreadout",     "Spread out",               0, 0,  0, S_SPREADOUT,              C(VOICECOM)|C(TEAM)                                 }, // 81
     { "voicecom/stayhere",      "Stay here",                0, 0,  0, S_STAYHERE,               C(VOICECOM)|C(TEAM)                                 }, // 82
     { "voicecom/staytogether",  "Stay together",            0, 0,  0, S_STAYTOGETHER,           C(VOICECOM)|C(TEAM)                                 }, // 83
@@ -647,11 +652,11 @@ soundcfgitem soundcfg[S_NULL] =
     { "voicecom/inposition_1",  "In position",              0, 0,  0, S_INPOSITION1,            C(VOICECOM)|C(TEAM)                                 }, // 91
     { "voicecom/inposition_2",  "In position now",          0, 0,  0, S_INPOSITION2,            C(VOICECOM)|C(TEAM)                                 }, // 92
     { "voicecom/reportin",      "Report in!",               0, 0,  0, S_REPORTIN,               C(VOICECOM)|C(TEAM)                                 }, // 93
-    { "voicecom/niceshot",      "Nice shot",                0, 0,  0, S_NICESHOT,               C(VOICECOM)|C(TEAM)|C(PUBLIC)|C(FFA)                }, // 94
-    { "voicecom/thanks_1",      "Thanks",                   0, 0,  0, S_THANKS1,                C(VOICECOM)|C(TEAM)|C(PUBLIC)|C(FFA)                }, // 95
-    { "voicecom/thanks_2",      "Thanks, man",              0, 0,  0, S_THANKS2,                C(VOICECOM)|C(TEAM)|C(PUBLIC)|C(FFA)                }, // 96
-    { "voicecom/awesome_1",     "Awesome (1)",              0, 0,  0, S_AWESOME1,               C(VOICECOM)|C(TEAM)|C(PUBLIC)|C(FFA)                }, // 97
-    { "voicecom/awesome_2",     "Awesome (2)",              0, 0,  0, S_AWESOME2,               C(VOICECOM)|C(TEAM)|C(PUBLIC)|C(FFA)                }, // 98
+    { "voicecom/niceshot",      "Nice shot",                0, 0,  0, S_NICESHOT,               C(VOICECOM)|C(TEAM)|C(PUBLIC)                       }, // 94
+    { "voicecom/thanks_1",      "Thanks",                   0, 0,  0, S_THANKS1,                C(VOICECOM)|C(TEAM)|C(PUBLIC)                       }, // 95
+    { "voicecom/thanks_2",      "Thanks, man",              0, 0,  0, S_THANKS2,                C(VOICECOM)|C(TEAM)|C(PUBLIC)                       }, // 96
+    { "voicecom/awesome_1",     "Awesome (1)",              0, 0,  0, S_AWESOME1,               C(VOICECOM)|C(TEAM)|C(PUBLIC)                       }, // 97
+    { "voicecom/awesome_2",     "Awesome (2)",              0, 0,  0, S_AWESOME2,               C(VOICECOM)|C(TEAM)|C(PUBLIC)                       }, // 98
     { "misc/pickup_helmet",     "Helmet pickup",            0, 0,  0, S_ITEMHELMET,             C(PICKUP)        }, // 99
     { "player/heartbeat",       "Heartbeat",                0, 0,  0, S_HEARTBEAT,              C(OWNPAIN)       }, // 100
     { "ktf/flagscore",          "KTF score",                0, 0,  0, S_KTFSCORE,               C(OTHER)         }, // 101

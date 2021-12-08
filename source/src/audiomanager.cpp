@@ -310,7 +310,7 @@ VARP(localfootsteps, 0, 1, 1);
 
 void audiomanager::updateplayerfootsteps(playerent *p)
 {
-    if(!p) return;
+    if(!p || ispaused) return;
 
     const int footstepradius = 20;
 
@@ -431,16 +431,19 @@ void voicecom(char *sound, char *text)
         int s = audiomgr.findsound(soundpath, 0, gamesounds);
         if(!gamesound_isvoicecom(s)) return;
         if(voicecomsounds>0) audiomgr.playsound(s, SP_HIGH);
-        if(gamesound_ispublicvoicecom(s)) // public
+        if(gamesound_ispublicvoicecom(s)||(!m_teammode&&gamesound_ispublicwhenffa(s))) // public 
         {
             addmsg(SV_VOICECOM, "ri", s);
             toserver(text);
         }
         else // team
         {
-            addmsg(SV_VOICECOMTEAM, "ri", s);
-            defformatstring(teamtext)("%c%s", '%', text);
-            toserver(teamtext);
+            if(gamesound_isflagvoicecom(s)?!m_flags_:true)
+            {
+                addmsg(SV_VOICECOMTEAM, "ri", s);
+                defformatstring(teamtext)("%c%s", '%', text);
+                toserver(teamtext);
+            }
         }
         last = lastmillis;
     }
@@ -926,7 +929,7 @@ void deletemapsoundslot(int *n, char *opt) // delete mapsound slot - only if unu
         { // delete entity
             deleted_ents.add(e);
             deletesoundentity(e);
-            memset(&e, 0, sizeof(persistent_entity));
+            memset((void *)&e, 0, sizeof(persistent_entity));
             e.type = NOTUSED;
             deld++;
         }

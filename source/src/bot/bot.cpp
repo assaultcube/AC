@@ -17,7 +17,6 @@ vector<botent *> bots;
 
 extern int triggertime;
 extern itemstat itemstats[];
-extern ENetHost *clienthost;
 
 const vec g_vecZero(0, 0, 0);
 

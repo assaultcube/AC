@@ -35,7 +35,7 @@ struct weapon
     virtual void renderhudmodel();
     virtual void renderaimhelp(bool teamwarning);
 
-    virtual void onselecting();
+    virtual void onselecting(bool sound);
     virtual void ondeselecting() {}
     virtual void onammopicked() {}
     virtual void onownerdies() {}
@@ -72,7 +72,7 @@ struct grenades : weapon
     bool selectable();
     void reset();
     bool busy();
-    void onselecting();
+    void onselecting(bool sound);
     void onownerdies();
     void removebounceent(bounceent *b);
     int flashtime() const;
@@ -110,7 +110,7 @@ struct sniperrifle : gun
     int dynspread();
     float dynrecoil();
     bool selectable();
-    void onselecting();
+    void onselecting(bool sound);
     void ondeselecting();
     void onownerdies();
     void renderhudmodel();
@@ -143,18 +143,6 @@ struct assaultrifle : gun
     bool selectable();
 };
 
-struct cpistol : gun
-{
-    bool bursting;
-    cpistol(playerent *owner);
-    bool reload(bool autoreloaded);
-    bool selectable();
-    void onselecting();
-    void ondeselecting();
-    bool attack(vec &targ);
-    void setburst(bool enable);
-};
-
 struct pistol : gun
 {
     pistol(playerent *owner);
@@ -172,7 +160,7 @@ struct akimbo : gun
 
     void attackfx(const vec &from, const vec &to, int millis);
     void onammopicked();
-    void onselecting();
+    void onselecting(bool sound);
     bool selectable();
     void updatetimers(int millis);
     void reset();

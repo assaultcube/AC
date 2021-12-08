@@ -133,19 +133,19 @@ int ol1r, ol1g, ol1b, ol2r, ol2g, ol2b;
 float ofloor, oceil;
 bool ohf;
 int firstindex;
-bool showm = false, showef = false;
+bool showmipstats = false, showeditfocus = false;
 
-COMMANDF(showmip, "",() { showm = !showm; });
-COMMANDF(showfocuscubedetails, "",() { showef = !showef; });
+COMMANDF(showmip, "",() { showmipstats = !showmipstats; });
+COMMANDF(showfocuscubedetails, "",() { showeditfocus = !showeditfocus; });
 
 const char *cubetypenames[] = {"SOLID", "CORNER", "FHF", "CHF", "SPACE", ""};
 const char *cubetypename(int t) { return t >= 0 && t < SEMISOLID ? cubetypenames[t] : "unknown"; }
 
-void mipstats(const int a[]) { if(showm && !showef) hudeditf(HUDMSG_MIPSTATS, "1x1/2x2/4x4/8x8: %d / %d / %d / %d", a[0], a[1], a[2], a[3]); }
+void mipstats(const int a[]) { if(showmipstats && !showeditfocus) hudeditf(HUDMSG_MIPSTATS, "1x1/2x2/4x4/8x8: %d / %d / %d / %d", a[0], a[1], a[2], a[3]); }
 
 bool editfocusdetails(sqr *s)
 {
-    if(showef)
+    if(showeditfocus)
     {
         const char *g = SOLID(s) ? "\f4" : "";
         hudeditf(HUDMSG_EDITFOCUS, "%s: \fs%s%d..%d\fr W:%d \fs%sU:%d F:%d C:%d v:%d t:0x%X (%02X%02X%02X)\fr", cubetypename(s->type), g, s->floor, s->ceil, s->wtex, g, s->utex, s->ftex, s->ctex, s->vdelta, s->tag, s->r, s->g, s->b);
@@ -176,7 +176,7 @@ VARP(lighterror, 1, 4, 100);
 
 void render_flat(int wtex, int x, int y, int size, int h, sqr *l1, sqr *l4, sqr *l3, sqr *l2, bool isceil)  // floor/ceil quads
 {
-    if(showm) { l3 = l1 = &sbright; l4 = l2 = &sdark; }
+    if(showmipstats) { l3 = l1 = &sbright; l4 = l2 = &sdark; }
 
     Texture *t = lookupworldtexture(wtex);
     float xf = TEXTURESCALE/t->xs;
@@ -253,7 +253,7 @@ void render_flat(int wtex, int x, int y, int size, int h, sqr *l1, sqr *l4, sqr 
 
 void render_flatdelta(int wtex, int x, int y, int size, float h1, float h4, float h3, float h2, sqr *l1, sqr *l4, sqr *l3, sqr *l2, bool isceil)  // floor/ceil quads on a slope
 {
-    if(showm) { l3 = l1 = &sbright; l4 = l2 = &sdark; }
+    if(showmipstats) { l3 = l1 = &sbright; l4 = l2 = &sdark; }
 
     Texture *t = lookupworldtexture(wtex);
     float xf = TEXTURESCALE/t->xs;
@@ -339,7 +339,7 @@ void render_tris(int x, int y, int size, bool topleft,
 
 void render_square(int wtex, float floor1, float floor2, float ceil1, float ceil2, int x1, int y1, int x2, int y2, int size, sqr *l1, sqr *l2, bool flip, int dir)   // wall quads
 {
-    if(showm) { l1 = &sbright; l2 = &sdark; }
+    if(showmipstats) { l1 = &sbright; l2 = &sdark; }
 
     Texture *t = lookupworldtexture(wtex);
     float xf = TEXTURESCALE/t->xs;

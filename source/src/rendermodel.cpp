@@ -179,7 +179,7 @@ void deletemapmodelslot(int *n, char *opt) // delete mapmodel slot - only if unu
         if(e.attr2 == *n)
         { // delete entity
             deleted_ents.add(e);
-            memset(&e, 0, sizeof(persistent_entity));
+            memset((void *)&e, 0, sizeof(persistent_entity));
             e.type = NOTUSED;
             deld++;
         }
@@ -751,9 +751,6 @@ void endmodelbatches(bool flush)
     if(flush) clearmodelbatches();
 }
 
-const int dbgmbatch = 0;
-//VAR(dbgmbatch, 0, 0, 1);
-
 VARP(popdeadplayers, 0, 0, 1);
 void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, float roll, float yaw, float pitch, float speed, int basetime, playerent *d, modelattach *a, float scale)
 {
@@ -797,7 +794,7 @@ void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, fl
         //if(a[i].m && a[i].m->type()!=m->type()) a[i].m = NULL;
     }
 
-    if(numbatches>=0 && !dbgmbatch)
+    if(numbatches>=0)
     {
         batchedmodel &b = addbatchedmodel(m);
         b.o = o;
@@ -819,7 +816,7 @@ void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, fl
     if(stenciling)
     {
         m->startrender();
-        m->render(anim|ANIM_NOSKIN, varseed, speed, basetime, o, 0, yaw, pitch, d, a, scale);
+        m->render(anim|ANIM_NOSKIN, varseed, speed, basetime, o, roll, yaw, pitch, d, a, scale);
         m->endrender();
         return;
     }
@@ -870,7 +867,7 @@ void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, fl
         glColor4f(color[0], color[1], color[2], m->translucency);
     }
 
-    m->render(anim, varseed, speed, basetime, o, 0, yaw, pitch, d, a, scale);
+    m->render(anim, varseed, speed, basetime, o, roll, yaw, pitch, d, a, scale);
 
     if(anim&ANIM_TRANSLUCENT)
     {
@@ -916,7 +913,6 @@ void preload_playermodels()
     if(dynshadow && playermdl) playermdl->genshadows(8.0f, 4.0f);
     loopi(NUMGUNS)
     {
-        if(i == GUN_CPISTOL) continue;
         defformatstring(vwep)("weapons/%s/world", guns[i].modelname);
         model *vwepmdl = loadmodel(vwep);
         if(dynshadow && vwepmdl) vwepmdl->genshadows(8.0f, 4.0f);
@@ -965,7 +961,7 @@ void renderclient(playerent *d, const char *mdlname, const char *vwepname, int t
     {
         if(d==player1 && d->allowmove()) return;
         if(d->nocorpse) return;
-        d->pitch = 0.1f;
+        d->pitch = d->spectatemode == SM_OVERVIEW ? -90 : 0.1f;
         anim = ANIM_DEATH;
         basetime = d->lastpain;
         int t = lastmillis-d->lastpain;
@@ -981,7 +977,8 @@ void renderclient(playerent *d, const char *mdlname, const char *vwepname, int t
     else if(d->state==CS_EDITING)                   { anim = ANIM_JUMP|ANIM_END; }
     else if(d->state==CS_LAGGED)                    { anim = ANIM_SALUTE|ANIM_LOOP|ANIM_TRANSLUCENT; }
     else if(lastmillis-d->lastpain<300)             { anim = d->crouching ? ANIM_CROUCH_PAIN : ANIM_PAIN; speed = 300.0f/4; basetime = d->lastpain; }
-    else if(d->weaponsel==d->lastattackweapon && lastmillis-d->lastaction<300 && d->lastpain<d->lastaction && !d->weaponsel->reloading && (d->weaponsel->type!=GUN_GRENADE || ((grenades *)d->weaponsel)->cookingmillis>0))
+    else if(d->weaponsel == d->lastattackweapon && lastmillis-d->lastaction < 300 && d->lastpain < d->lastaction && !d->weaponsel->reloading && !d->weaponchanging
+        && (d->weaponsel->type != GUN_GRENADE || (d == player1 ? ((grenades *)player1->weapons[GUN_GRENADE])->throwmillis : ((grenades *)d->weapons[GUN_GRENADE])->cookingmillis > 0)))
                                                     { anim = d->crouching ? ANIM_CROUCH_ATTACK : ANIM_ATTACK; speed = 300.0f/8; basetime = d->lastaction; }
     else if(!d->onfloor && d->timeinair>50)         { anim = (d->crouching ? ANIM_CROUCH_WALK : ANIM_JUMP)|ANIM_END; }
     else if(!d->move && !d->strafe)                 { anim = (d->crouching ? ANIM_CROUCH_IDLE : ANIM_IDLE)|ANIM_LOOP; }
@@ -1084,7 +1081,7 @@ void renderclientp(playerent *d)
         }
     }
     string vwep;
-    if(d->weaponsel) formatstring(vwep)("weapons/%s/world", d->weaponsel->info.modelname);
+    if(d->weaponsel && !(d->weaponsel->type == GUN_GRENADE && !d->mag[GUN_GRENADE])) formatstring(vwep)("weapons/%s/world", d->weaponsel->info.modelname);
     else vwep[0] = 0;
     renderclient(d, "playermodels", vwep[0] ? vwep : NULL, -(int)textureload(skin)->id);
 }
@@ -1093,7 +1090,7 @@ void renderclients()
 {
     playerent *d;
     loopv(players) if((d = players[i]) && d->state!=CS_SPAWNING && d->state!=CS_SPECTATE && (!player1->isspectating() || player1->spectatemode != SM_FOLLOW1ST || player1->followplayercn != i)) renderclientp(d);
-    if(player1->state==CS_DEAD || (reflecting && !refracting)) renderclientp(player1);
+    if(player1->state==CS_DEAD || ((reflecting && !refracting) && (player1->state!=CS_SPECTATE || player1->spectatemode==SM_FLY))) renderclientp(player1);
 }
 
 void loadallmapmodels()  // try to find all mapmodels in packages/models/mapmodels

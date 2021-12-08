@@ -76,7 +76,7 @@ void gl_checkextensions()
         glMultiDrawElements_ = (PFNGLMULTIDRAWELEMENTSEXTPROC)getprocaddress("glMultiDrawElementsEXT");
         hasMDA = true;
 
-        if(strstr(vendor, "ATI")) ati_mda_bug = 1;
+        if(strstr(vendor, "ATI") || strstr(renderer, "Mesa") || strstr(version, "Mesa")) ati_mda_bug = 1;
     }
 
     if(hasext(exts, "GL_EXT_draw_range_elements"))
@@ -125,7 +125,7 @@ void gl_checkextensions()
 #endif
 }
 
-void gl_init(int w, int h, int bpp, int depth, int fsaa)
+void gl_init(int w, int h, int depth, int fsaa)
 {
     //#define fogvalues 0.5f, 0.6f, 0.7f, 1.0f
 
@@ -469,16 +469,22 @@ void fovchanged();
 FVARFP(fov, 75, 90, 120, fovchanged());
 VARFP(scopefov, 5, 50, 60, fovchanged());
 VARP(spectfov, 5, 110, 120);
+VARP(spectfovremote, 0, 0, 1); // use spectfov or remote player's fov when spectating
 void fovchanged()
 {
     extern float autoscopesensscale;
     autoscopesensscale = tan(((float)scopefov)*0.5f*RAD)/tan(fov*0.5f*RAD);
+    player1->ffov = (int)fov;
+    player1->scopefov = scopefov;
 }
 
 float dynfov()
 {
-    if(player1->weaponsel->type == GUN_SNIPER && ((sniperrifle *)player1->weaponsel)->scoped) return (float)scopefov;
-    else if(player1->isspectating()) return (float)spectfov;
+    bool isscoped = player1->weaponsel->type == GUN_SNIPER && ((sniperrifle *)player1->weaponsel)->scoped;
+    bool useremote = spectfovremote && camera1 != player1 && camera1->type == ENT_PLAYER && ((playerent *)camera1)->ffov && ((playerent *)camera1)->scopefov;
+    if(camera1 != player1 && camera1->type < ENT_CAMERA) isscoped = ((playerent *)camera1)->scoping;
+    if(isscoped) return (float) (useremote ? ((playerent *)camera1)->scopefov : scopefov);
+    else if(player1->isspectating()) return (float)(useremote ? ((playerent *)camera1)->ffov : spectfov);
     else return (float)fov;
 }
 
@@ -515,9 +521,12 @@ void recomputecamera()
                 break;
             }
             case SM_FLY:
+            {
                 resetcamera();
                 camera1->eyeheight = 1.0f;
+                if(camera1->pitch==-90) camera1->pitch = 0; // from SM_OVERVIEW; location/yaw may be ugly => use a playerstart
                 break;
+            }
             case SM_OVERVIEW:
             {
                 // TODO : fix water rendering
@@ -533,7 +542,8 @@ void recomputecamera()
             case SM_FOLLOW1ST:
             {
                 playerent *f = updatefollowplayer();
-                if(!f) { togglespect(); return; }
+                //if(!f) { togglespect(); return; }//why turn off spectating - better to switch to SM_FLY
+                if(!f){ player1->spectatemode = SM_FLY; recomputecamera(); return; }
                 camera1 = f;
                 break;
             }
@@ -541,7 +551,8 @@ void recomputecamera()
             case SM_FOLLOW3RD_TRANSPARENT:
             {
                 playerent *p = updatefollowplayer();
-                if(!p) { togglespect(); return; }
+                //if(!p) { togglespect(); return; }//why turn off spectating - better to switch to SM_FLY
+                if(!p){ player1->spectatemode = SM_FLY; recomputecamera(); return; }
                 static physent followcam;
                 static playerent *lastplayer;
                 if(lastplayer != p || &followcam != camera1)
@@ -815,23 +826,19 @@ void drawminimap(int w, int h)
     camera1->o.x = clmapdims.xm;
     camera1->o.y = clmapdims.ym;
 
-    //float gdim = max(mapdims.xspan, mapdims.yspan)+2.0f; //make 1 cube smaller to give it a black edge
-    float gdim = max(clmapdims.xspan, clmapdims.yspan); //no border
+    float gdim = max(clmapdims.xspan, clmapdims.yspan);
 
     if(gdim < 1) gdim = ssize/2.0f;
     camera1->o.z = clmapdims.maxceil + 1;
     camera1->pitch = -90;
     camera1->yaw = 0;
 
-    //float orthd = 2 + gdim/2;
-    //glViewport(2, 2, size-4, size-4); // !not wsize here
-
     float orthd = gdim/2.0f;
-    glViewport(0, 0, size, size); // !not wsize here
+    glViewport(0, 0, size, size);
 
     glClearDepth(0.0);
     glClearColor(0, 0, 0, 0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT); // stencil added 2010jul22
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glOrtho(-orthd, orthd, -orthd, orthd, 0, (clmapdims.maxceil - clmapdims.minfloor) + 2); // depth of map +2 covered
@@ -851,7 +858,6 @@ void drawminimap(int w, int h)
     glDepthFunc(GL_LESS);
     rendermapmodels();
     renderzones(clmapdims.maxceil);
-    //renderentities();// IMHO better done by radar itself, if at all
     resettmu(0);
     float hf = waterlevel - 0.3f;
     renderwater(hf, 0, 0);
@@ -945,12 +951,13 @@ void sethudgunperspective(bool on)
 void drawhudgun()
 {
     sethudgunperspective(true);
-
-    if(!rendermenumdl() && hudgun && (specthudgun || !player1->isspectating()) && camera1->type==ENT_PLAYER)
+    
+    if(hudgun && (specthudgun || !player1->isspectating()) && camera1->type==ENT_PLAYER)
     {
         playerent *p = (playerent *)camera1;
         if(p->state==CS_ALIVE) p->weaponsel->renderhudmodel();
     }
+    rendermenumdl();
 
     sethudgunperspective(false);
 }
@@ -981,14 +988,14 @@ void readmatrices()
     invmvpmatrix.invert(mvpmatrix);
 }
 
-// stupid function to cater for stupid ATI linux drivers that return incorrect depth values
+// stupid function to cater to stupid ATI linux drivers that return incorrect depth values
 
 float depthcorrect(float d)
 {
     return (d<=1/256.0f) ? d*256 : d;
 }
 
-// find out the 3d target of the crosshair in the world easily and very acurately.
+// find out the 3d target of the crosshair in the world easily and very accurately.
 // sadly many very old cards and drivers appear to fuck up on glReadPixels() and give false
 // coordinates, making shooting and such impossible.
 // also hits map entities which is unwanted.
@@ -1105,7 +1112,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps, int elapsed)
     if(effective_stencilshadow && hasstencil && stencilbits >= 8) drawstencilshadows();
 
     startmodelbatches();
-    renderentities();
+    rendereditentities();
     endmodelbatches();
 
     readdepth(w, h, worldpos);
@@ -1115,13 +1122,12 @@ void gl_drawframe(int w, int h, float changelod, float curfps, int elapsed)
     endmodelbatches();
 
     startmodelbatches();
+    renderentities();
     renderbounceents();
     endmodelbatches();
 
-    // Added by Rick: Need todo here because of drawing the waypoints
-    WaypointClass.Think();
-    // end add
-
+    WaypointClass.Think();// Rick: Need to do here because of drawing the waypoints
+    
     drawhudgun();
 
     resettmu(0);

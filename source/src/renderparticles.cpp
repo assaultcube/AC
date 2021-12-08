@@ -274,7 +274,7 @@ static struct parttype { int type; float r, g, b; int gr, tex; float sz; } partt
     { PT_PART,       0.0f, 1.0f, 1.0f, 20, 0, 0.08f }, // turquoise: edit mode ent type : CTF-flag
 };
 
-VAR(particlesize, 20, 100, 500);
+VARP(particlesize, 20, 100, 500);
 
 VARP(blood, 0, 1, 1);
 VARP(bloodttl, 0, 10000, 30000);

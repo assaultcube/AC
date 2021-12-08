@@ -140,9 +140,8 @@ COMMAND(closestenttype, "s");
 
 COMMANDF(toggleclosestentpin, "", () { pinnedclosestent = ents.inrange((pinnedent = pinnedclosestent ? -1 : closestent())); });
 
-void pointatent(int *_on)
+void _pointatent(bool on)
 {
-    bool on = *_on != 0;
     if(pointingatents != on)
     {
         if(on) pinnedclosestent = false;
@@ -154,8 +153,7 @@ void pointatent(int *_on)
         pointingatents = on;
     }
 }
-COMMAND(pointatent, "i");
-
+VARFP(pointatent, 0, 0, 1, _pointatent(pointatent==1));
 FVARP(pointatentmaxangle, 0.01f, 2.0f, 180.0f);
 
 bool intersectangular(const vec &from, vec ray, vec ent, float maxangle, float &dist)
@@ -190,17 +188,18 @@ int closestent()        // used for delent and edit mode ent display
                 bdist = dist;
             }
         }
-    }
-    if(best >= 0)
-    { // if closest ent shares location with other ents, pick one with clentsel
-        vector<int> bs;
-        loopv(ents)
-        {
-            entity &e = ents[i];
-            if(!(enttypemask & (1 << e.type))) continue;
-            if(ents[best].x == e.x && ents[best].y == e.y && ents[best].z == e.z) bs.add(i);
+
+        if(best >= 0)
+        { // if closest ent shares location with other ents, pick one with clentsel
+            vector<int> bs;
+            loopv(ents)
+            {
+                entity &e = ents[i];
+                if(!(enttypemask & (1 << e.type))) continue;
+                if(ents[best].x == e.x && ents[best].y == e.y && ents[best].z == e.z) bs.add(i);
+            }
+            best = bs[(clentsel %= bs.length())];
         }
-        best = bs[(clentsel %= bs.length())];
     }
     return best;
 }
@@ -326,9 +325,8 @@ void undelent(char *index)
         if(OUTBORD(e.x, e.y)) conoutf("failed to undelete %s entity (coordinates outside map borders)", entnames[t]);
         else
         {
-            newentity(-1, e.x, e.y, e.z, entnames[t], float(e.attr1) / entscale[t][0], float(e.attr2) / entscale[t][1], float(e.attr3) / entscale[t][2], float(e.attr4) / entscale[t][3]);
-            *((persistent_entity *) &ents.last()) = e;
-            if(changedents.find(ents.length() - 1) == -1) changedents.add(ents.length() - 1); // tag ent for sync because of attr5..7
+            newentity(-1, e.x, e.y, e.z, entnames[t], float(e.attr1) / entscale[t][0], float(e.attr2) / entscale[t][1], float(e.attr3) / entscale[t][2], float(e.attr4) / entscale[t][3], float(e.attr5) / entscale[t][4], float(e.attr6) / entscale[t][5], float(e.attr7) / entscale[t][6]);
+            //*((persistent_entity *) &ents.last()) = e; if(changedents.find(ents.length() - 1) == -1) changedents.add(ents.length() - 1); // tag ent for sync because of attr5..7 // simple signature change made this superfluous
             conoutf("%s entity undeleted", entnames[t]);
         }
     }
@@ -368,27 +366,37 @@ int findtype(const char *what)
     return t;
 }
 
-void newentity(int index, int x, int y, int z, const char *what, float v1f, float v2f, float v3f, float v4f) // add an entity or overwrite an existing one
+VAR(_nextentityispasted,0,0,1);// so copyent/pasteent can keep all attributes
+void newentity(int index, int x, int y, int z, const char *what, float v1f, float v2f, float v3f, float v4f, float v5f, float v6f, float v7f) // add an entity or overwrite an existing one
 {
     int type = findtype(what);
     if(type == NOTUSED) return;
     if (index >= 0 && ents[index].type == SOUND) deletesoundentity(ents[index]); // overwriting sound entity
-    switch(type)
-    { // MAPMODEL, PLAYERSTART and CTF-FLAG use the current camera direction as value for attr1, so attr234 need to be moved
-        case MAPMODEL:
-            v4f = v3f;
-            v3f = v2f;
-        case PLAYERSTART:
-        case CTF_FLAG:
-            v2f = v1f;
-            int y = camera1->yaw;
-            if(type != PLAYERSTART) y = y + 7 - (y + 7) % 15;
-            v1f = y;
-            break;
+    if(_nextentityispasted)
+    {
+        _nextentityispasted = 0;
+    }
+    else
+    {
+        switch(type)
+        { // MAPMODEL, PLAYERSTART and CTF-FLAG use the current camera direction as value for attr1, so attr23456 need to be moved
+            case MAPMODEL:
+                v6f = v5f;
+                v5f = v4f;
+                v4f = v3f;
+                v3f = v2f;
+            case PLAYERSTART:
+            case CTF_FLAG:
+                v2f = v1f;
+                int y = camera1->yaw;
+                if(type != PLAYERSTART) y = y + 7 - (y + 7) % 15;
+                v1f = y;
+                break;
+        }
     }
 
-    int v1 = v1f * entscale[type][0], v2 = v2f * entscale[type][1], v3 = v3f * entscale[type][2], v4 = v4f * entscale[type][3];
-    entity e(x, y, z, type, v1, v2, v3, v4);
+    int v1 = v1f * entscale[type][0], v2 = v2f * entscale[type][1], v3 = v3f * entscale[type][2], v4 = v4f * entscale[type][3], v5 = v5f * entscale[type][4], v6 = v6f * entscale[type][5], v7 = v7f * entscale[type][6];
+    entity e(x, y, z, type, v1, v2, v3, v4, v5, v6, v7);
 
     switch(type)
     {
@@ -421,17 +429,17 @@ void newentity(int index, int x, int y, int z, const char *what, float v1f, floa
     if(index >= 0 || type != DUMMYENT) unsavededits++;      // no need to save dummies
 }
 
-void entset(char *what, float *a1, float *a2, float *a3, float *a4)
+void entset(char *what, float *a1, float *a2, float *a3, float *a4, float *a5, float *a6, float *a7)
 {
     int n = closestent();
     if(n>=0)
     {
         entity &e = ents[n];
-        newentity(n, e.x, e.y, e.z, what, *a1, *a2, *a3, *a4);
+        newentity(n, e.x, e.y, e.z, what, *a1, *a2, *a3, *a4, *a5, *a6, *a7);
     }
 }
 
-COMMAND(entset, "sffff");
+COMMAND(entset, "sfffffff");
 
 void clearents(char *name)
 {
@@ -470,7 +478,7 @@ void deleteentity(char *ns)
     if(t == SOUND) deletesoundentity(e);
     conoutf("deleted entity #%d (%s)", n, entnames[e.type]);
     deleted_ents.add(e);
-    memset(&e, 0, sizeof(persistent_entity));
+    memset((void *)&e, 0, sizeof(persistent_entity));
     e.type = NOTUSED;
     if(t == LIGHT) calclight();
     unsavededits++;
@@ -535,8 +543,7 @@ void editentity(char **args, int numargs) // index x y z a1 a2 a3 a4 ...
             }
             unsavededits++;
         }
-        // give back unchanged or new entity properties
-        formatstring(res)("%s %d %d %d  %s", entnames[t], e.x, e.y, e.z, formatentityattributes(e));
+        formatstring(res)("%s %d %d %d  %s", entnames[t], e.x, e.y, e.z, formatentityattributes(e)); // double space is for human readability; scripts don't care.
     }
     result(res);
 }
@@ -703,9 +710,7 @@ bool empty_world(int factor, bool force)    // main empty world creation routine
     if(clearmap && unsavededits) { xmapbackup("newmap", ""); unsavededits = 0; }
     if(copy) ow = blockcopy(shrink ? bs : be);
 
-    extern char *mlayout;
     DELETEA(world);
-    DELETEA(mlayout);
 
     setupworld(factor);
     loop(x,ssize) loop(y,ssize)
@@ -746,7 +751,7 @@ bool empty_world(int factor, bool force)    // main empty world creation routine
         clearheaderextras();
         unsavededits = oldunsavededits;
     }
-    strncpy(hdr.head, "ACMP", 4);
+    memcpy(hdr.head, "ACMP", 4);
     hdr.version = MAPVERSION;
     hdr.headersize = sizeof(header);
     hdr.sfactor = sfactor;
@@ -1049,4 +1054,11 @@ void mapareacheck(char *what) // "vdelta" | "steepest" | "total" | "pprest" | "p
 }
 
 COMMAND(mapareacheck, "s");
+
+void showmapstats()
+{
+    conoutf("\f2Map quality stats");
+    conoutf("this map %s", rnd(3) ? "is great" : "sucks");
+}
+COMMAND(showmapstats, "");
 

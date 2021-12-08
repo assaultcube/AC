@@ -3,9 +3,9 @@
 #include "cube.h"
 
 #ifdef _DEBUG
-bool protocoldbg = false;
+bool protocoldbg = false, debugmute = false;
 void protocoldebug(bool enable) { protocoldbg = enable; }
-#define DEBUGCOND (protocoldbg)
+#define DEBUGCOND (protocoldbg && !debugmute)
 #endif
 
 // all network traffic is in 32bit ints, which are then compressed using the following simple scheme (assumes that most values are small).
@@ -123,9 +123,11 @@ float getfloat(ucharbuf &p)
 template<class T>
 static inline void sendstring_(const char *text, T &p)
 {
+    DEBUGCODE(debugmute = true);
     const char *t = text;
     if(t) { while(*t) putint(p, *t++); }
     putint(p, 0);
+    DEBUGCODE(debugmute = false);
     DEBUGVAR(text);
 }
 void sendstring(const char *t, ucharbuf &p) { sendstring_(t, p); }
@@ -134,6 +136,7 @@ void sendstring(const char *t, vector<uchar> &p) { sendstring_(t, p); }
 
 void getstring(char *text, ucharbuf &p, int len)
 {
+    DEBUGCODE(debugmute = true);
     char *t = text;
     do
     {
@@ -142,7 +145,45 @@ void getstring(char *text, ucharbuf &p, int len)
         *t = getint(p);
     }
     while(*t++);
+    DEBUGCODE(debugmute = false);
     DEBUGVAR(text);
+}
+
+template<class T>
+static inline void putip4_(T &p, enet_uint32 ip)
+{
+    DEBUGCODE(string IP; iptoa(ip, IP));
+    DEBUGVAR(IP);
+    p.put(ip); p.put(ip>>8); p.put(ip>>16); p.put(ip>>24);
+}
+void putip4(ucharbuf &p, enet_uint32 ip) { putip4_(p, ip); }
+void putip4(packetbuf &p, enet_uint32 ip) { putip4_(p, ip); }
+void putip4(vector<uchar> &p, enet_uint32 ip) { putip4_(p, ip); }
+
+enet_uint32 getip4(ucharbuf &p)
+{
+    enet_uint32 ip = p.get() | (p.get()<<8) | (p.get()<<16) | (p.get()<<24);
+    DEBUGCODE(string IP; iptoa(ip, IP));
+    DEBUGVAR(IP);
+    return ip;
+}
+
+template<class T>
+static inline void putuintn_(T &p, uint64_t val, int n)
+{
+    DEBUGVAR(val);
+    loopi(n) p.put(val >> (8 * i));
+}
+void putuintn(ucharbuf &p, uint64_t val, int n) { putuintn_(p, val, n); }
+void putuintn(packetbuf &p, uint64_t val, int n) { putuintn_(p, val, n); }
+void putuintn(vector<uchar> &p, uint64_t val, int n) { putuintn_(p, val, n); }
+
+uint64_t getuintn(ucharbuf &p, int n)
+{
+    uint64_t val = 0;
+    loopi(n) val |= p.get() << (8 * i);
+    DEBUGVAR(val);
+    return val;
 }
 
 #define GZMSGBUFSIZE ((MAXGZMSGSIZE * 11) / 10)
@@ -207,11 +248,44 @@ void freegzbuf(ucharbuf *p)  // free a ucharbuf created by getgzbuf()
     }
 }
 
+//#define FILENAMESALLLOWERCASE
+
+bool validmapname(const char *s) // checks for length, allowed chars and special DOS filenames
+{
+    int len = strlen(s);
+    if(len > MAXMAPNAMELEN) return false;
+    if(len == 3 || len == 4)
+    {
+        char uc[4];
+        loopi(3) uc[i] = toupper(s[i]);
+        uc[3] = '\0';
+        const char *resd = "COMLPTCONPRNAUXNUL", *fnd = strstr(resd, uc);
+        if(fnd)
+        {
+            int pos = (int) (fnd - resd);
+            if(pos == 0 || pos == 3)
+            {
+                if(isdigit(s[3])) return false; // COMx, LPTx
+            }
+            else if(pos % 3 == 0) return false; // CON, PRN, AUX, NUL
+        }
+    }
+    while(*s != '\0')
+    {
+#ifdef FILENAMESALLLOWERCASE
+        if(!islower(*s) && !isdigit(*s) && *s != '_' && *s != '-' && *s != '.') return false;
+#else
+        if(!isalnum(*s) && *s != '_' && *s != '-' && *s != '.') return false;
+#endif
+        ++s;
+    }
+    return true;
+}
+
+
 // filter text according to rules
 // dst can be identical to src; dst needs to be of size "min(len, strlen(s)) + 1"
 // returns dst
-
-//#define FILENAMESALLLOWERCASE
 
 char *filtertext(char *dst, const char *src, int flags, int len)
 {
@@ -228,16 +302,16 @@ char *filtertext(char *dst, const char *src, int flags, int len)
          toupp = (flags & FTXT_TOUPPER) != 0,               // translates to all-uppercase
          tolow = (flags & FTXT_TOLOWER) != 0,               // translates to all-lowercase
          filename = (flags & FTXT_FILENAME) != 0,           // strict a-z, 0-9 and "-_.()" (also translates "[]" and "{}" to "()"), removes everything between '<' and '>'
-         allowslash = (flags & FTXT_ALLOWSLASH) != 0,       // only in combination with FTXT_FILENAME
+         allowslash = (flags & FTXT_ALLOWSLASH) != 0,       // only in combination with FTXT_FILENAME or FTXT_MAPNAME
          mapname = (flags & FTXT_MAPNAME) != 0,             // only allows lowercase chars, digits, '_', '-' and '.'; probably should be used in combination with TOLOWER
-         cropwhite = (flags & FTXT_CROPWHITE) != 0,         // removes leading and trailing whitespace
+         cropwhitelead = (flags & FTXT_CROPWHITE_LEAD) != 0,    // removes leading whitespace
+         cropwhitetrail = (flags & FTXT_CROPWHITE_TRAIL) != 0,  // removes trailing whitespace
          pass = false;
     if(leet || mapname) nocolor = true;
 #ifdef FILENAMESALLLOWERCASE
     if(filename) tolow = true;
 #endif
     bool trans = toupp || tolow || leet || filename || fillblanks;
-    bool leadingwhite = cropwhite;
     char *lastwhite = NULL;
     bool insidepointybrackets = false;
     for(int c = *src; c; c = *++src)
@@ -292,10 +366,10 @@ char *filtertext(char *dst, const char *src, int flags, int len)
             if(src[1]) ++src;
             continue;
         }
-        if(mapname && !isalnum(c) && !strchr("_-./\\", c)) continue;
+        if(mapname && !isalnum(c) && !strchr("_-.", c) && !(allowslash && strchr("/\\", c))) continue;
         if(isspace(c))
         {
-            if(leadingwhite) continue;
+            if(cropwhitelead) continue;
             if(nowhite && !((c == ' ' && allowblanks) || (c == '\n' && allownl)) && !pass) continue;
             if(!lastwhite) lastwhite = dst;
         }
@@ -304,11 +378,11 @@ char *filtertext(char *dst, const char *src, int flags, int len)
             lastwhite = NULL;
             if(!pass && !isprint(c)) continue;
         }
-        leadingwhite = false;
+        cropwhitelead = false;
         *dst++ = c;
         if(!--len || !*src) break;
     }
-    if(cropwhite && lastwhite) *lastwhite = '\0';
+    if(cropwhitetrail && lastwhite) *lastwhite = '\0';
     *dst = '\0';
     return res;
 }
@@ -335,6 +409,7 @@ void filterrichtext(char *dst, const char *src, int len)
                 case 'a': c = '\a'; break;
                 case 't': c = '\t'; break;
                 case 'n': c = '\n'; break;
+                case '_': c = ' '; break;
                 case 'x':
                     b = 16;
                     c = *++src;
@@ -354,6 +429,37 @@ void filterrichtext(char *dst, const char *src, int len)
     *dst = '\0';
 }
 
+// counterpart of filterrichtext
+
+const char *escapestring(const char *s, bool force, bool noquotes, vector<char> *buf)
+{
+    static vector<char> strbuf[3];
+    static int stridx = 0;
+    extern bool isdedicated;
+    if(noquotes) force = false;
+    if(!s) return force ? "\"\"" : "";
+    if(!force && !*(s + strcspn(s, "\"/\\;()[] \f\t\a\n\r$"))) return s;
+    if(!buf) buf = &strbuf[stridx++];
+    stridx %= 3;
+    buf->setsize(0);
+    if(!noquotes) buf->add('"');
+    for(; *s; s++) switch(*s)
+    {
+        case '\n': buf->put("\\n", 2); break;
+        case '\r': buf->put("\\n", 2); break;
+        case '\t': buf->put("\\t", 2); break;
+        case '\a': buf->put("\\a", 2); break;
+        case '\f': buf->put("\\f", 2); break;
+        case '"': buf->put("\\\"", 2); break;
+        case '\\': buf->put("\\\\", 2); break;
+        case ' ': if(isdedicated) { buf->put("\\_", 2); break; }
+        default: buf->add(*s); break;
+    }
+    if(!noquotes) buf->add('"');
+    buf->add(0);
+    return buf->getbuf();
+}
+
 // ensures, that d is either two lowercase chars or ""
 
 void filterlang(char *d, const char *s)
@@ -364,6 +470,17 @@ void filterlang(char *d, const char *s)
         if(islower(d[0]) && islower(d[1])) return;
     }
     *d = '\0';
+}
+
+void filtercountrycode(char *d, const char *s) // returns exactly two uppercase chars or "--"
+{
+    d[0] = d[1] = '-';
+    d[2] = '\0';
+    if(isalpha(s[0]) && isalpha(s[1]) && !s[2])
+    {
+        d[0] = toupper(s[0]);
+        d[1] = toupper(s[1]);
+    }
 }
 
 void trimtrailingwhitespace(char *s)
@@ -399,31 +516,96 @@ const char *mmfullname(int n) { return (n>=0 && n < MM_NUM) ? mmfullnames[n] : "
 
 int defaultgamelimit(int gamemode) { return m_teammode ? 15 : 10; }
 
+int gmode_possible(bool hasffaspawns, bool hasteamspawns, bool hasflags)  // return bitmask of playable modes, according to existing spawn and flag entities
+{
+    return GMMASK_COOPEDIT | (((hasffaspawns ? GMMASK__FFASPAWN : 0) | (hasteamspawns ? GMMASK__TEAMSPAWN : 0)) & ~(hasflags ? 0 : GMMASK__FLAGENTS));
+}
+
+int gmode_parse(const char *list) // convert a list of mode acronyms to a bitmask
+{
+    char *buf = newstring(list), *b;
+    int res = 0;
+    for(char *p = strtok_r(buf, "|", &b); p; p = strtok_r(NULL, "|", &b))
+    {
+        loopi(GMODE_NUM) if(!strcasecmp(p, modeacronymnames[i + 1])) res |= 1 << i;
+    }
+    delete buf;
+    return res;
+}
+
+char *gmode_enum(int gm, char *buf) // convert mode bitmask to string with sorted list of mode acronyms
+{
+    vector<const char *> mas;
+    loopi(GMODE_NUM) if(gm & (1 << i)) mas.add(modeacronymnames[i + 1]);
+    mas.sort(stringsortignorecase);
+    buf[0] = '\0';
+    loopv(mas) concatformatstring(buf, "%s%s", i ? "|" : "", mas[i]);
+    filtertext(buf, buf, FTXT_TOLOWER);
+    return buf;
+}
+
+int encodepitch(float p) // pitch value quantisation: use double resolution for -30°..30° and half resolution for -90°..-30° and 30°..90°
+{
+    const int thres = (1 << 24) / 3;
+    int r = (int)(p * (1 << 24)) / MAXPITCH;
+    if(r > thres) r = r / 4 + (1 << 22);
+    else if(r < -thres) r = r / 4 - (1 << 22);
+    r += (1 << 23) + (1 << (23 - PITCHBITS));
+    if(r < 0) r = 0;
+    else if(r >= (1 << 24)) r = (1 << 24) - 1;
+    return r >> (24 - PITCHBITS);
+}
+
+float decodepitch(int r)
+{
+    const int thres = (1 << 22) + (1 << 22) / 3;
+    r = (r << (24 - PITCHBITS)) - (1 << 23);
+    if(r > thres) r = r * 4 - thres * 3;
+    else if(r < -thres) r = r * 4 + thres * 3;
+    float p = float(r) * MAXPITCH / (1 << 24);
+    return clamp(p, -MAXPITCH, MAXPITCH);
+}
+
+int encodeyaw(float y) // yaw value quantisation: simple rounded integer
+{
+    int r = (int)floorf(y * (1 << YAWBITS) / 360.0f + 0.5f);
+    return r & ((1 << YAWBITS) - 1); // modulo 360 degrees
+}
+
+float decodeyaw(int r)
+{
+    r &= (1 << YAWBITS) - 1;
+    return float(r) / (1 << YAWBITS) * 360.0f;
+}
+
 static const int msgsizes[] =               // size inclusive message token, 0 for variable or not-checked sizes
 {
-    SV_SERVINFO, 5, SV_WELCOME, 2, SV_INITCLIENT, 0, SV_POS, 0, SV_POSC, 0, SV_POSN, 0, SV_TEXT, 0, SV_TEAMTEXT, 0, SV_TEXTME, 0, SV_TEAMTEXTME, 0, SV_TEXTPRIVATE, 0,
+    SV_SERVINFO, 1, SV_SERVINFO_RESPONSE, 0, SV_SERVINFO_CONTD, 0, SV_WELCOME, 2, SV_INITCLIENT, 0, SV_POS, 0, SV_POSC, 0, SV_POSC2, 0, SV_POSC3, 0, SV_POSC4, 0, SV_POSN, 0,
+    SV_TEXT, 0, SV_TEAMTEXT, 0, SV_TEXTME, 0, SV_TEAMTEXTME, 0, SV_TEXTPRIVATE, 0,
     SV_SOUND, 2, SV_VOICECOM, 2, SV_VOICECOMTEAM, 2, SV_CDIS, 2,
-    SV_SHOOT, 0, SV_EXPLODE, 0, SV_SUICIDE, 1, SV_AKIMBO, 2, SV_RELOAD, 3, SV_AUTHT, 0, SV_AUTHREQ, 0, SV_AUTHTRY, 0, SV_AUTHANS, 0, SV_AUTHCHAL, 0,
+    SV_SHOOT, 0, SV_EXPLODE, 0, SV_SUICIDE, 1, SV_AKIMBO, 2, SV_RELOAD, 3,
     SV_GIBDIED, 5, SV_DIED, 5, SV_GIBDAMAGE, 7, SV_DAMAGE, 7, SV_HITPUSH, 6, SV_SHOTFX, 6, SV_THROWNADE, 8,
     SV_TRYSPAWN, 1, SV_SPAWNSTATE, 23, SV_SPAWN, 3, SV_SPAWNDENY, 2, SV_FORCEDEATH, 2, SV_RESUME, 0,
     SV_DISCSCORES, 0, SV_TIMEUP, 3, SV_EDITENT, 13, SV_ITEMACC, 2,
     SV_MAPCHANGE, 0, SV_ITEMSPAWN, 2, SV_ITEMPICKUP, 2,
-    SV_PING, 2, SV_PONG, 2, SV_CLIENTPING, 2, SV_GAMEMODE, 2,
+    SV_PING, 2, SV_PONG, 2, SV_CLIENTPING, 2,
     SV_EDITMODE, 2, SV_EDITXY, 8, SV_EDITARCH, 56, SV_EDITBLOCK, 0, SV_EDITD, 6, SV_EDITE, 6, SV_NEWMAP, 2,
     SV_SENDMAP, 0, SV_RECVMAP, 1, SV_REMOVEMAP, 0,
-    SV_SERVMSG, 0, SV_ITEMLIST, 0, SV_WEAPCHANGE, 2, SV_PRIMARYWEAP, 2,
+    SV_SERVMSG, 0, SV_SERVMSGVERB, 0, SV_ITEMLIST, 0, SV_WEAPCHANGE, 2, SV_PRIMARYWEAP, 2,
     SV_FLAGACTION, 3, SV_FLAGINFO, 0, SV_FLAGMSG, 0, SV_FLAGCNT, 3,
     SV_ARENAWIN, 2,
     SV_SETADMIN, 0, SV_SERVOPINFO, 3,
     SV_CALLVOTE, 0, SV_CALLVOTESUC, 1, SV_CALLVOTEERR, 2, SV_VOTE, 2, SV_VOTERESULT, 2,
     SV_SETTEAM, 3, SV_TEAMDENY, 2, SV_SERVERMODE, 2,
-    SV_IPLIST, 0,
+    SV_IPLIST, 0, SV_SPECTCN, 2,
     SV_LISTDEMOS, 1, SV_SENDDEMOLIST, 0, SV_GETDEMO, 2, SV_SENDDEMO, 0, SV_DEMOPLAYBACK, 3,
     SV_CONNECT, 0,
     SV_SWITCHNAME, 0, SV_SWITCHSKIN, 0, SV_SWITCHTEAM, 0,
     SV_CLIENT, 0,
     SV_EXTENSION, 0,
-    SV_MAPIDENT, 3, SV_HUDEXTRAS, 2, SV_POINTS, 0,
+    SV_MAPIDENT, 3, SV_DEMOCHECKSUM, 0, SV_DEMOSIGNATURE, 0,
+    SV_PAUSEMODE, 1,
+    SV_GETVITA, 2, SV_VITADATA, 0,
     -1
 };
 
@@ -436,5 +618,42 @@ int msgsizelookup(int msg)
         for(const int *p = msgsizes; *p >= 0; p += 2) sizetable[p[0]] = p[1];
     }
     return msg >= 0 && msg < SV_NUM ? sizetable[msg] : -1;
+}
+
+const char *disc_reason(int reason)
+{
+    static const char *prot[] = { "terminated by enet", "end of packet", "client num", "tag type", "duplicate connection", "overflow", "random", "voodoo", "sync", "auth failed" },
+        *refused[] = { "connection refused", "due to ban", "due to blacklisting", "wrong password", "server FULL", "server mastermode is \"private\"", "server overloaded" },
+        *removed[] = { "removed from server", "failed admin login", "inappropriate nickname", "annoyance limit exceeded", "SPAM", "DOS", "ludicrous speed", "fishslapped", "afk" },
+        *kick[] = { "kicked", "banned", "kicked by vote", "banned by vote", "kicked by server operator", "banned by server operator",
+                    "auto kicked - teamkilling", "auto banned - teamkilling", "auto kicked - friendly fire", "auto banned - friendly fire", "auto kick", "auto ban" };
+    static string res;
+    const int prot_n = constarraysize(prot), ref_n = constarraysize(refused), rem_n = constarraysize(removed), kick_n = constarraysize(kick);
+    if(reason >= DISC_PROTOCOL && reason < DISC_REFUSED)
+    { // protocol related errors
+        if(reason < DISC_PROTOCOL + prot_n) return prot[reason];
+        else formatstring(res)("network protocol error '%d'", reason);
+    }
+    else if(reason >= DISC_REFUSED && reason < DISC_REMOVED)
+    { // connection refused
+        if(reason < DISC_REFUSED + ref_n) return refused[reason - DISC_REFUSED];
+        else formatstring(res)("connection refused '%d'", reason);
+    }
+    else if(reason >= DISC_REMOVED && reason < DISC_KICK)
+    { // player removed from server
+        if(reason < DISC_REMOVED + rem_n) return removed[reason - DISC_REMOVED];
+        else formatstring(res)("removed from server '%d'", reason);
+    }
+    else if(reason >= DISC_KICK && reason < DISC_UNKNOWN)
+    { // kicks & bans
+        reason -= DISC_KICK;
+        if(reason < kick_n) return kick[reason];
+        else formatstring(res)("%s '%d'", reason & 1 ? "banned" : "kicked", reason + DISC_KICK);
+    }
+    else
+    { // unknown reasons
+        formatstring(res)("unknown '%d'", reason);
+    }
+    return res;
 }
 

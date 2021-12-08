@@ -24,10 +24,26 @@ of an UNMODIFIED AssaultCube package(s).
 
 Some of the sources would have included:
 ================================================================================
+These four texture files:
+  * box_2.jpg
+  * box_2_1.jpg
+  * box_3.jpg
+  * box_4.jpg
+
+Are from "max_payne_official_texturepack1.zip" found at
+	https://legacy.3drealms.com/max/index.html
+
+Originally available under the following license:
+	The textures in this file are property of Remedy Entertainment Ltd., and
+	can be used only as long as the work is recognized as original artwork
+	by Remedy, and no financial profit is made in the process.
+	(C) 1998-2001 Remedy Entertainment Ltd. 
+================================================================================
 http://www.mayang.com/textures
 	William Smith & Mayang Murni Adnin (will@willsmith.org)
 
-Available under the following license:
+Originally available under the following license:
+
 These textures are Copyright © Mayang Murni Adnin, 2001-2012. They have all been
 taken by our own cameras or created by ourselves.
 

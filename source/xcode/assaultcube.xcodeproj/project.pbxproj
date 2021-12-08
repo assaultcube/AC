@@ -7,10 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		4F93906E1A1598140049877C /* SDL_image.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9EB8171611ED9AEF00799589 /* SDL_image.framework */; };
-		4F9390711A15985A0049877C /* SDL_image.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9EB8171611ED9AEF00799589 /* SDL_image.framework */; };
-		4FEAF3381A147F9F00B42D47 /* SDL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9EB8171511ED9AEF00799589 /* SDL.framework */; };
-		4FEAF3391A147FAE00B42D47 /* SDL.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9EB8171511ED9AEF00799589 /* SDL.framework */; };
+		4F93906E1A1598140049877C /* SDL2_image.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9EB8171611ED9AEF00799589 /* SDL2_image.framework */; };
+		4F9390711A15985A0049877C /* SDL2_image.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9EB8171611ED9AEF00799589 /* SDL2_image.framework */; };
+		4FEAF3381A147F9F00B42D47 /* SDL2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9EB8171511ED9AEF00799589 /* SDL2.framework */; };
+		4FEAF3391A147FAE00B42D47 /* SDL2.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9EB8171511ED9AEF00799589 /* SDL2.framework */; };
 		665CDCA60AFE7ECD0030D605 /* callbacks.c in Sources */ = {isa = PBXBuildFile; fileRef = 665CDC6B0AFE7ECC0030D605 /* callbacks.c */; };
 		665CDCB80AFE7ECD0030D605 /* host.c in Sources */ = {isa = PBXBuildFile; fileRef = 665CDC7E0AFE7ECD0030D605 /* host.c */; };
 		665CDCCB0AFE7ECD0030D605 /* list.c in Sources */ = {isa = PBXBuildFile; fileRef = 665CDC930AFE7ECD0030D605 /* list.c */; };
@@ -37,7 +37,6 @@
 		9EB8181D11EDA56D00799589 /* assaultcube.icns in Resources */ = {isa = PBXBuildFile; fileRef = 9EB817DE11EDA3A300799589 /* assaultcube.icns */; };
 		9EB8188511EDACDB00799589 /* assaultcube.icns in Resources */ = {isa = PBXBuildFile; fileRef = 9EB817DE11EDA3A300799589 /* assaultcube.icns */; };
 		9EB8188611EDACDB00799589 /* Help.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 66899EA80C14887F00927C34 /* Help.tiff */; };
-		9EB8188711EDACDB00799589 /* Keys.gif in Resources */ = {isa = PBXBuildFile; fileRef = 66899EA90C14887F00927C34 /* Keys.gif */; };
 		9EB8188811EDACDB00799589 /* Main.gif in Resources */ = {isa = PBXBuildFile; fileRef = 66899EAA0C14887F00927C34 /* Main.gif */; };
 		9EB8188911EDACDB00799589 /* map.icns in Resources */ = {isa = PBXBuildFile; fileRef = B975E7F30EBCC3A200880D5D /* map.icns */; };
 		9EB8188A11EDACDB00799589 /* Server.gif in Resources */ = {isa = PBXBuildFile; fileRef = 66899EAB0C14887F00927C34 /* Server.gif */; };
@@ -65,7 +64,7 @@
 		B914CEB311CAC42F009BA307 /* rendercubes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B914CE6411CAC42F009BA307 /* rendercubes.cpp */; };
 		B914CEB411CAC42F009BA307 /* rendergl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B914CE6511CAC42F009BA307 /* rendergl.cpp */; };
 		B914CEB511CAC42F009BA307 /* renderhud.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B914CE6611CAC42F009BA307 /* renderhud.cpp */; };
-		B914CEB611CAC42F009BA307 /* rendermodel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B914CE6711CAC42F009BA307 /* rendermodel.cpp */; };
+		B914CEB611CAC42F009BA307 /* rendermodel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B914CE6711CAC42F009BA307 /* rendermodel.cpp */; settings = {COMPILER_FLAGS = "-fno-strict-aliasing"; }; };
 		B914CEB711CAC42F009BA307 /* renderparticles.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B914CE6811CAC42F009BA307 /* renderparticles.cpp */; };
 		B914CEB811CAC42F009BA307 /* rendertext.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B914CE6911CAC42F009BA307 /* rendertext.cpp */; };
 		B914CEB911CAC42F009BA307 /* rndmap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B914CE6A11CAC42F009BA307 /* rndmap.cpp */; };
@@ -88,7 +87,6 @@
 		B914CEDA11CAC42F009BA307 /* worldocull.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B914CE8B11CAC42F009BA307 /* worldocull.cpp */; };
 		B914CEDB11CAC42F009BA307 /* worldrender.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B914CE8C11CAC42F009BA307 /* worldrender.cpp */; };
 		B914CEDC11CAC42F009BA307 /* zip.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B914CE8D11CAC42F009BA307 /* zip.cpp */; };
-		B94198A809207E810029DAD1 /* SDLMain.m in Sources */ = {isa = PBXBuildFile; fileRef = F5A47A9E01A0483001D3D55B /* SDLMain.m */; };
 		B94198C309207E810029DAD1 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
 		B94198C409207E810029DAD1 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B2F67ED704C74A3F00A80002 /* OpenGL.framework */; };
 		B96D0D590920970C00B6C936 /* Launcher.m in Sources */ = {isa = PBXBuildFile; fileRef = B96D0D580920970C00B6C936 /* Launcher.m */; };
@@ -114,8 +112,8 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				4F9390711A15985A0049877C /* SDL_image.framework in CopyFiles */,
-				4FEAF3391A147FAE00B42D47 /* SDL.framework in CopyFiles */,
+				4F9390711A15985A0049877C /* SDL2_image.framework in CopyFiles */,
+				4FEAF3391A147FAE00B42D47 /* SDL2.framework in CopyFiles */,
 				9EB8179511ED9EDF00799589 /* Ogg.framework in CopyFiles */,
 				9EB8179A11ED9EDF00799589 /* Vorbis.framework in CopyFiles */,
 			);
@@ -158,8 +156,8 @@
 		9E595538121EA8E9005ED5F7 /* crypto_tools.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = crypto_tools.h; sourceTree = "<group>"; };
 		9EAE4BD9120F2D0A0041E6E4 /* English */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/Localizable.strings; sourceTree = "<group>"; };
 		9EB8171411ED9AEF00799589 /* Ogg.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Ogg.framework; path = Frameworks/Ogg.framework; sourceTree = "<group>"; };
-		9EB8171511ED9AEF00799589 /* SDL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL.framework; path = Frameworks/SDL.framework; sourceTree = "<group>"; };
-		9EB8171611ED9AEF00799589 /* SDL_image.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL_image.framework; path = Frameworks/SDL_image.framework; sourceTree = "<group>"; };
+		9EB8171511ED9AEF00799589 /* SDL2.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL2.framework; path = Frameworks/SDL2.framework; sourceTree = "<group>"; };
+		9EB8171611ED9AEF00799589 /* SDL2_image.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL2_image.framework; path = Frameworks/SDL2_image.framework; sourceTree = "<group>"; };
 		9EB8171911ED9AEF00799589 /* Vorbis.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Vorbis.framework; path = Frameworks/Vorbis.framework; sourceTree = "<group>"; };
 		9EB817DE11EDA3A300799589 /* assaultcube.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = assaultcube.icns; sourceTree = "<group>"; };
 		9EB8183711EDA6EE00799589 /* assaultcube.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = assaultcube.plist; sourceTree = "<group>"; };
@@ -248,8 +246,6 @@
 		B96D0D6C0920976E00B6C936 /* main.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		B975E7F30EBCC3A200880D5D /* map.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = map.icns; sourceTree = "<group>"; };
 		B9FA3B7C0DD9E6E400581F8D /* OpenAL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenAL.framework; path = /System/Library/Frameworks/OpenAL.framework; sourceTree = "<absolute>"; };
-		F5A47A9D01A0482F01D3D55B /* SDLMain.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = SDLMain.h; sourceTree = SOURCE_ROOT; };
-		F5A47A9E01A0483001D3D55B /* SDLMain.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = SDLMain.m; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -257,9 +253,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4F93906E1A1598140049877C /* SDL_image.framework in Frameworks */,
+				4F93906E1A1598140049877C /* SDL2_image.framework in Frameworks */,
 				B94198C309207E810029DAD1 /* Cocoa.framework in Frameworks */,
-				4FEAF3381A147F9F00B42D47 /* SDL.framework in Frameworks */,
+				4FEAF3381A147F9F00B42D47 /* SDL2.framework in Frameworks */,
 				B9FA3B7D0DD9E6E400581F8D /* OpenAL.framework in Frameworks */,
 				B94198C409207E810029DAD1 /* OpenGL.framework in Frameworks */,
 				9EB8171C11ED9AEF00799589 /* Ogg.framework in Frameworks */,
@@ -286,8 +282,6 @@
 				66899E6E0C1485E200927C34 /* ConsoleView.m */,
 				B96D0D570920970C00B6C936 /* Launcher.h */,
 				B96D0D580920970C00B6C936 /* Launcher.m */,
-				F5A47A9D01A0482F01D3D55B /* SDLMain.h */,
-				F5A47A9E01A0483001D3D55B /* SDLMain.m */,
 			);
 			name = Classes;
 			sourceTree = "<group>";
@@ -297,8 +291,8 @@
 			children = (
 				9EB8171411ED9AEF00799589 /* Ogg.framework */,
 				9EB8171911ED9AEF00799589 /* Vorbis.framework */,
-				9EB8171511ED9AEF00799589 /* SDL.framework */,
-				9EB8171611ED9AEF00799589 /* SDL_image.framework */,
+				9EB8171511ED9AEF00799589 /* SDL2.framework */,
+				9EB8171611ED9AEF00799589 /* SDL2_image.framework */,
 				1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */,
 				B9FA3B7C0DD9E6E400581F8D /* OpenAL.framework */,
 				B2F67ED704C74A3F00A80002 /* OpenGL.framework */,
@@ -324,7 +318,7 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		29B97314FDCFA39411CA2CEA /* sauerbraten */ = {
+		29B97314FDCFA39411CA2CEA /* assaultcube */ = {
 			isa = PBXGroup;
 			children = (
 				080E96DDFE201D6D7F000001 /* Classes */,
@@ -333,7 +327,7 @@
 				29B97323FDCFA39411CA2CEA /* Frameworks */,
 				19C28FACFE9D520D11CA2CBB /* Products */,
 			);
-			name = sauerbraten;
+			name = assaultcube;
 			sourceTree = "<group>";
 		};
 		29B97315FDCFA39411CA2CEA /* Other Sources */ = {
@@ -503,7 +497,7 @@
 				B94198A709207E810029DAD1 /* Sources */,
 				B94198C209207E810029DAD1 /* Frameworks */,
 				9EB8179211ED9ED800799589 /* CopyFiles */,
-				B94199400920820E0029DAD1 /* ShellScript */,
+				B94199400920820E0029DAD1 /* Run Script */,
 			);
 			buildRules = (
 			);
@@ -512,7 +506,7 @@
 			);
 			name = assaultcube;
 			productInstallPath = "$(HOME)/Applications";
-			productName = sauerbraten;
+			productName = assaultcube;
 			productReference = B94198CB09207E810029DAD1 /* assaultcube.app */;
 			productType = "com.apple.product-type.application";
 		};
@@ -539,7 +533,7 @@
 		29B97313FDCFA39411CA2CEA /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0410;
+				LastUpgradeCheck = 0420;
 			};
 			buildConfigurationList = B960CF35085F3CC7004FB142 /* Build configuration list for PBXProject "assaultcube" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -551,7 +545,7 @@
 				French,
 				German,
 			);
-			mainGroup = 29B97314FDCFA39411CA2CEA /* sauerbraten */;
+			mainGroup = 29B97314FDCFA39411CA2CEA /* assaultcube */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -576,7 +570,6 @@
 			files = (
 				9EB8188511EDACDB00799589 /* assaultcube.icns in Resources */,
 				9EB8188611EDACDB00799589 /* Help.tiff in Resources */,
-				9EB8188711EDACDB00799589 /* Keys.gif in Resources */,
 				9EB8188811EDACDB00799589 /* Main.gif in Resources */,
 				B96D0D630920971300B6C936 /* MainMenu.nib in Resources */,
 				9EB8188911EDACDB00799589 /* map.icns in Resources */,
@@ -589,18 +582,21 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		B94199400920820E0029DAD1 /* ShellScript */ = {
+		B94199400920820E0029DAD1 /* Run Script */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 8;
 			files = (
 			);
+			inputFileListPaths = (
+			);
 			inputPaths = (
 			);
+			name = "Run Script";
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 1;
 			shellPath = /bin/sh;
-			shellScript = "echo $TARGET_BUILD_DIR\ncd $TARGET_BUILD_DIR\n\n#ensure old package is gone\nrm -f assaultcube.dmg\n\n#make the directory which our disk image will be made of\n#use /tmp as a destination because copying ourself (xcode folder) whilst compiling causes the dog to chase its tail\nACPKG=`mktemp -d /tmp/acpkg.XXXXXX` || exit 1\n\n#leave indicator of where temp directory is in case things break\nln -sf $ACPKG $TARGET_BUILD_DIR/acpkg\n\n#copy launcher\n/usr/bin/CpMac -r $TARGET_BUILD_DIR/launcher.app $ACPKG/AssaultCube.app\n\nHELPDIR=$ACPKG/AssaultCube.app/Contents/Resources/help/\nGAMEDIR=$ACPKG/AssaultCube.app/Contents/gamedata\nmkdir $GAMEDIR\nmkdir $HELPDIR\n\n#copy assaultcube\n/usr/bin/CpMac -r $TARGET_BUILD_DIR/assaultcube.app $GAMEDIR/\nstrip -u -r \"$GAMEDIR/assaultcube.app/Contents/MacOS/assaultcube\"\n\n#copy readme and data and remove unneccesary stuff\n/usr/bin/CpMac -r $SRCROOT/../../README.html $HELPDIR/\n/usr/bin/CpMac -r $SRCROOT/../../changelog.txt $HELPDIR/\n/usr/bin/CpMac -r $SRCROOT/../../docs $HELPDIR/\n/usr/bin/CpMac -r $SRCROOT/../../bot $GAMEDIR/\n/usr/bin/CpMac -r $SRCROOT/../../config $GAMEDIR/\n/usr/bin/CpMac -r $SRCROOT/../../demos $GAMEDIR/\n/usr/bin/CpMac -r $SRCROOT/../../mods $GAMEDIR/\n/usr/bin/CpMac -r $SRCROOT/../../packages $GAMEDIR/\n#mkdir $GAMEDIR/screenshots\n\n#create config template\ncd $GAMEDIR/config\nzip configtemplates.zip autoexec.cfg favourites.cfg pcksources.cfg\n\n#clean up\nrm -rf $GAMEDIR/.git\nrm -f $GAMEDIR/.gitattributes\nrm -f $GAMEDIR/.travis.yml\nfind -d $ACPKG -name \".gitignore\" -exec rm -rf {} \\;\nrm -rf $HELPDIR/docs/autogen/\nfind $ACPKG -name \".DS_Store\" -exec rm -f {} \\;\n\nfind -d $ACPKG -name \"shadows.dat\" -exec rm -rf {} \\;\nrm -f autoexec.cfg favourites.cfg pcksources.cfg init*.cfg saved*.cfg servervita*.cfg servers.cfg history\nrm -f $GAMEDIR/clientlog*.txt\nrm -f $GAMEDIR/packages/maps/*.cgz\nrm -f $GAMEDIR/packages/maps/*.cfg\nrm -f $GAMEDIR/packages/maps/servermaps/incoming/*.cgz\nrm -f $GAMEDIR/packages/maps/servermaps/incoming/*.cfg\nrm -f `(find -d $GAMEDIR/demos -type f | grep -v \"tutorial_demo.dmo\")`\n                             \n#/Developer/Tools/CpMac -r $SRCROOT/../../source $ACPKG/sourcecode\n#rm -rf $ACPKG/sourcecode/xcode/build\n#rm -rf $ACPKG/sourcecode/xcode/DerivedData\n#rm -rf $ACPKG/sourcecode/xcode/Frameworks/*\n#rm -rf $ACPKG/sourcecode/vcpp\n\ncd $TARGET_BUILD_DIR\n\n#add alias to readme\n/usr/bin/osascript <<EOT\ntell application \"Finder\"\nset macSrcPath to POSIX file \"$HELPDIR/README.html\" as text\nset macDestPath to POSIX file \"$ACPKG\" as text\nmake new alias file to file macSrcPath at folder macDestPath\nend tell\nEOT\n\n#finally make a disk image out of the stuff\nhdiutil create -srcfolder $ACPKG -volname assaultcube assaultcube.dmg\nhdiutil internet-enable -yes assaultcube.dmg\n\n#cleanup\nrm -rf $ACPKG";
+			shellScript = "echo \"TargetBuildDir $TARGET_BUILD_DIR\"\ncd $TARGET_BUILD_DIR\n\n#ensure old package is gone\nrm -f assaultcube.dmg\n\n#make the directory which our disk image will be made of\n#use /tmp as a destination because copying ourself (xcode folder) whilst compiling causes the dog to chase its tail\nACPKG=`mktemp -d /tmp/acpkg.XXXXXX` || exit 1\n\necho \"TempDir: $ACPKG\"\n\n#leave indicator of where temp directory is in case things break\nln -sf $ACPKG $BUILT_PRODUCTS_DIR/acpkg\n\n#copy launcher\ncp -RL $BUILT_PRODUCTS_DIR/launcher.app $ACPKG/AssaultCube.app\n\nHELPDIR=$ACPKG/AssaultCube.app/Contents/Resources/help/\nGAMEDIR=$ACPKG/AssaultCube.app/Contents/gamedata\nmkdir -p $GAMEDIR\nmkdir -p $HELPDIR\n\n#copy assaultcube\ncp -RL $BUILT_PRODUCTS_DIR/assaultcube.app $GAMEDIR/\nstrip -u -r \"$GAMEDIR/assaultcube.app/Contents/MacOS/assaultcube\"\n\n#copy readme and data and remove unneccesary stuff\ncp -RL $SRCROOT/../../README.html $HELPDIR/\n#cp -RL $SRCROOT/../../changelog.txt $HELPDIR/\ncp -RL $SRCROOT/../../docs $HELPDIR/\ncp -RL $SRCROOT/../../bot $GAMEDIR/\ncp -RL $SRCROOT/../../config $GAMEDIR/\ncp -RL $SRCROOT/../../demos $GAMEDIR/\ncp -RL $SRCROOT/../../mods $GAMEDIR/\ncp -RL $SRCROOT/../../packages $GAMEDIR/\n#mkdir $GAMEDIR/screenshots\n\n#create config template\ncd $GAMEDIR/config\nzip configtemplates.zip autoexec.cfg favourites.cfg pcksources.cfg\n\n#clean up\nrm -rf $GAMEDIR/.git\nrm -f $GAMEDIR/.gitattributes\nrm -f $GAMEDIR/.travis.yml\nfind -d $ACPKG -name \".gitignore\" -exec rm -rf {} \\;\nrm -rf $HELPDIR/docs/autogen/\nfind $ACPKG -name \".DS_Store\" -exec rm -f {} \\;\n\nfind -d $ACPKG -name \"shadows.dat\" -exec rm -rf {} \\;\nrm -f autoexec.cfg favourites.cfg pcksources.cfg init*.cfg saved*.cfg servervita*.cfg servers.cfg history\nrm -f $GAMEDIR/clientlog*.txt\nrm -f $GAMEDIR/packages/maps/*.cgz\nrm -f $GAMEDIR/packages/maps/*.cfg\nrm -f $GAMEDIR/packages/maps/servermaps/incoming/*.cgz\nrm -f $GAMEDIR/packages/maps/servermaps/incoming/*.cfg\nrm -f `(find -d $GAMEDIR/demos -type f | grep -v \"tutorial_demo.dmo\")`\n                             \n#/Developer/Tools/CpMac -r $SRCROOT/../../source $ACPKG/sourcecode\n#rm -rf $ACPKG/sourcecode/xcode/build\n#rm -rf $ACPKG/sourcecode/xcode/DerivedData\n#rm -rf $ACPKG/sourcecode/xcode/Frameworks/*\n#rm -rf $ACPKG/sourcecode/vcpp\n\ncd $TARGET_BUILD_DIR\n\n#add alias to readme\n/usr/bin/osascript <<EOT\ntell application \"Finder\"\nset macSrcPath to POSIX file \"$HELPDIR/README.html\" as text\nset macDestPath to POSIX file \"$ACPKG\" as text\nmake new alias file to file macSrcPath at folder macDestPath\nend tell\nEOT\n\n#finally make a disk image out of the stuff\nhdiutil create -srcfolder $ACPKG -volname assaultcube assaultcube.dmg\nhdiutil internet-enable -yes assaultcube.dmg\n\n#cleanup\n#rm -rf $ACPKG\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -609,7 +605,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B94198A809207E810029DAD1 /* SDLMain.m in Sources */,
 				665CDCA60AFE7ECD0030D605 /* callbacks.c in Sources */,
 				665CDCB80AFE7ECD0030D605 /* host.c in Sources */,
 				665CDCCB0AFE7ECD0030D605 /* list.c in Sources */,
@@ -727,7 +722,11 @@
 		B94198C709207E810029DAD1 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_CXX_LIBRARY = "libc++";
+				CODE_SIGN_IDENTITY = "";
+				COMBINE_HIDPI_IMAGES = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_HARDENED_RUNTIME = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_TARGET_1)",
 					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_TARGET_2)",
@@ -755,8 +754,8 @@
 					"$(inherited)",
 					"\"$(SRCROOT)/../lib\"",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.5;
-				MACOSX_DEPLOYMENT_TARGET_i386 = 10.5;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				OTHER_CODE_SIGN_FLAGS = "--deep";
 				OTHER_LDFLAGS = "-lz";
 				PRODUCT_NAME = assaultcube;
 				SDKROOT = macosx;
@@ -767,7 +766,11 @@
 		B94198C809207E810029DAD1 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_CXX_LIBRARY = "libc++";
+				CODE_SIGN_IDENTITY = "";
+				COMBINE_HIDPI_IMAGES = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_HARDENED_RUNTIME = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_TARGET_1)",
 					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_TARGET_2)",
@@ -795,8 +798,8 @@
 					"$(inherited)",
 					"\"$(SRCROOT)/../lib\"",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.5;
-				MACOSX_DEPLOYMENT_TARGET_i386 = 10.5;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				OTHER_CODE_SIGN_FLAGS = "--deep";
 				OTHER_LDFLAGS = "-lz";
 				PRODUCT_NAME = assaultcube;
 				SDKROOT = macosx;
@@ -807,9 +810,12 @@
 		B94198EB09207F510029DAD1 /* Release-Deployment */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				CLANG_CXX_LIBRARY = "libc++";
+				CODE_SIGN_IDENTITY = "";
+				COMBINE_HIDPI_IMAGES = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEPLOYMENT_POSTPROCESSING = YES;
+				ENABLE_HARDENED_RUNTIME = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_TARGET_1)",
 					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_TARGET_2)",
@@ -841,8 +847,8 @@
 					"$(inherited)",
 					"\"$(SRCROOT)/../lib\"",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.5;
-				MACOSX_DEPLOYMENT_TARGET_i386 = 10.5;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				OTHER_CODE_SIGN_FLAGS = "--deep";
 				OTHER_LDFLAGS = "-lz";
 				PRODUCT_NAME = assaultcube;
 				SDKROOT = macosx;
@@ -853,14 +859,14 @@
 		B94198EC09207F510029DAD1 /* Release-Deployment */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				COPY_PHASE_STRIP = YES;
 				DEPLOYMENT_POSTPROCESSING = YES;
 				FRAMEWORK_SEARCH_PATHS = "";
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_VERSION = "";
-				MACOSX_DEPLOYMENT_TARGET_i386 = 10.4;
-				MACOSX_DEPLOYMENT_TARGET_ppc = 10.3;
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				OTHER_CFLAGS = "";
 				SDKROOT = macosx;
 				STRIP_INSTALLED_PRODUCT = YES;
 			};
@@ -869,14 +875,14 @@
 		B960CF36085F3CC7004FB142 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				ARCHS = "$(NATIVE_ARCH_ACTUAL)";
 				COPY_PHASE_STRIP = NO;
 				FRAMEWORK_SEARCH_PATHS = "";
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_VERSION = "";
-				MACOSX_DEPLOYMENT_TARGET_i386 = 10.4;
-				MACOSX_DEPLOYMENT_TARGET_ppc = 10.3;
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				ONLY_ACTIVE_ARCH = YES;
+				OTHER_CFLAGS = "";
 				SDKROOT = macosx;
 				STRIP_INSTALLED_PRODUCT = NO;
 			};
@@ -885,14 +891,14 @@
 		B960CF37085F3CC7004FB142 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				COPY_PHASE_STRIP = YES;
 				DEPLOYMENT_POSTPROCESSING = YES;
 				FRAMEWORK_SEARCH_PATHS = "";
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_VERSION = "";
-				MACOSX_DEPLOYMENT_TARGET_i386 = 10.4;
-				MACOSX_DEPLOYMENT_TARGET_ppc = 10.3;
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				OTHER_CFLAGS = "";
 				SDKROOT = macosx;
 				STRIP_INSTALLED_PRODUCT = YES;
 			};
@@ -901,7 +907,11 @@
 		B96D0D50092096F300B6C936 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD)";
+				CODE_SIGN_IDENTITY = "";
+				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
+				ENABLE_HARDENED_RUNTIME = NO;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_MODEL_TUNING = G5;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -910,7 +920,9 @@
 				GCC_VERSION = "";
 				INFOPLIST_FILE = launcher.plist;
 				INSTALL_PATH = "$(USER_APPS_DIR)";
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				OTHER_CFLAGS = "";
+				OTHER_CODE_SIGN_FLAGS = "";
 				OTHER_LDFLAGS = (
 					"-framework",
 					Foundation,
@@ -932,13 +944,19 @@
 		B96D0D51092096F300B6C936 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD)";
+				CODE_SIGN_IDENTITY = "";
+				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = YES;
 				DEPLOYMENT_POSTPROCESSING = YES;
+				ENABLE_HARDENED_RUNTIME = NO;
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_VERSION = "";
 				INFOPLIST_FILE = launcher.plist;
 				INSTALL_PATH = "$(USER_APPS_DIR)";
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				OTHER_CFLAGS = "";
+				OTHER_CODE_SIGN_FLAGS = "";
 				OTHER_LDFLAGS = (
 					"-framework",
 					Foundation,
@@ -961,13 +979,19 @@
 		B96D0D52092096F300B6C936 /* Release-Deployment */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD)";
+				CODE_SIGN_IDENTITY = "";
+				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = YES;
 				DEPLOYMENT_POSTPROCESSING = YES;
+				ENABLE_HARDENED_RUNTIME = NO;
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_VERSION = "";
 				INFOPLIST_FILE = launcher.plist;
 				INSTALL_PATH = "$(USER_APPS_DIR)";
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				OTHER_CFLAGS = "";
+				OTHER_CODE_SIGN_FLAGS = "";
 				OTHER_LDFLAGS = (
 					"-framework",
 					Foundation,

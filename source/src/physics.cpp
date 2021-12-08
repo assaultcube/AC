@@ -82,7 +82,7 @@ bool plcollide(physent *d, physent *o, float &headspace, float &hi, float &lo)  
     if((d->type==ENT_PLAYER && o->type==ENT_PLAYER ? dr.sqrxy() < r*r : fabs(dr.x)<r && fabs(dr.y)<r) && dr.dotxy(d->vel) >= 0.0f)
     {
         if(d->o.z-deyeheight<o->o.z-oeyeheight) { if(o->o.z-oeyeheight<hi) hi = o->o.z-oeyeheight-1; }
-        else if(o->o.z+o->aboveeye>lo) lo = o->o.z+o->aboveeye+1;
+        else if(o->o.z+o->aboveeye>lo) lo = o->o.z+o->aboveeye;
 
         if(fabs(o->o.z-d->o.z)<o->aboveeye+deyeheight) { hitplayer = o; return true; }
         headspace = d->o.z-o->o.z-o->aboveeye-deyeheight;
@@ -139,14 +139,13 @@ bool mmcollide(physent *d, float &hi, float &lo)           // collide with a map
     for(int i = clentstats.firstclip; i < ents.length(); i++)
     {
         entity &e = ents[i];
-        // if(e.type==CLIP || (e.type == PLCLIP && d->type == ENT_PLAYER))
-        if (e.type==CLIP || (e.type == PLCLIP && (d->type == ENT_BOT || d->type == ENT_PLAYER || (d->type == ENT_BOUNCE && ((bounceent *)d)->plclipped)))) // don't allow bots to hack themselves into plclips - Bukz 2011/04/14
+        if (e.type==CLIP || (e.type == PLCLIP && (d->type == ENT_BOT || d->type == ENT_PLAYER || (d->type == ENT_BOUNCE && ((bounceent *)d)->plclipped))))
         {
             bool hitarea = false;
             switch(e.attr7 & 3)
             {
                 default: // classic unrotated clip, possibly tilted
-                    hitarea = fabs(e.x - d->o.x) < float(e.attr2) / ENTSCALE5 + d->radius && fabs(e.y - d->o.y) < float(e.attr3) / ENTSCALE5 + d->radius;
+                    hitarea = (fabs(e.x - d->o.x) - (float(e.attr2) / ENTSCALE5 + d->radius) < 1e-5) && (fabs(e.y - d->o.y) - (float(e.attr3) / ENTSCALE5 + d->radius) < 1e-5); // fix PLCLIP-step-up bug where e.g. 2.1<=2.1 was FALSE [sic!]
                     break;
                 case 3: // clip rotated 45°
                 {
@@ -306,7 +305,7 @@ bool collide(physent *d, bool spawn, float drop, float rise)
         loopv(players)       // collide with other players
         {
             playerent *o = players[i];
-            if(!o || o==d || (o==player1 && d->type==ENT_CAMERA)) continue;
+            if(!o || o==d) continue;
             if(plcollide(d, o, headspace, hi, lo)) return true;
         }
         if(d!=player1) if(plcollide(d, player1, headspace, hi, lo)) return true;
@@ -354,7 +353,6 @@ bool collide(physent *d, bool spawn, float drop, float rise)
 VARFP(maxroll, 0, ROLLMOVDEF, ROLLMOVMAX, player1->maxroll = maxroll);
 VARFP(maxrolleffect, 0, ROLLEFFDEF, ROLLEFFMAX, player1->maxrolleffect = maxrolleffect);
 VARP(maxrollremote, 0, ROLLMOVDEF + ROLLEFFDEF, ROLLMOVMAX + ROLLEFFMAX);
-//VAR(recoilbackfade, 0, 100, 1000);
 
 void resizephysent(physent *pl, int moveres, int curtime, float min, float max)
 {
@@ -368,7 +366,7 @@ void resizephysent(physent *pl, int moveres, int curtime, float min, float max)
     {
         pl->eyeheight += h;
         pl->o.z += h;
-        if(collide(pl) && !(pl != player1 && player1->isspectating() && player1->spectatemode==SM_FOLLOW1ST)) // don't check collision during spectating in 1st person view
+        if(collide(pl) && !(pl != player1 && player1->isspectating() && player1->spectatemode < SM_FLY))
         {
             pl->eyeheight -= h; // collided, revert mini-step
             pl->o.z -= h;
@@ -442,7 +440,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
     else // fake physics for player ents to create _the_ cube movement (tm)
     {
         const int timeinair = pl->timeinair;
-        int move = pl->onladder && !pl->onfloor && pl->move == -1 ? 0 : pl->move; // movement on ladder
+        int move = intermission || (pl->onladder && !pl->onfloor && pl->move == -1) ? 0 : pl->move; // movement on ladder
         if(!editfly) water = waterlevel > pl->o.z - 0.5f;
 
         float chspeed = (pl->onfloor || pl->onladder || !pl->crouchedinair) ? 0.4f : 1.0f;
@@ -517,6 +515,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
                     {
                         if(pl->jumpnext)
                         {
+                            pl->jumpd = true;
                             pl->jumpnext = false;
                             bool doublejump = pl->lastjump && lastmillis - pl->lastjump < 250 && pl->strafe != 0 && pl->o.z - pl->eyeheight - pl->lastjumpheight > 0.2f;
                             pl->lastjumpheight = pl->o.z - pl->eyeheight;
@@ -734,12 +733,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         pl->pitch += pl->pitchvel*(curtime/1000.0f)*pl->maxspeed*(pl->crouching ? 0.75f : 1.0f);
         pl->pitchvel *= fric-3;
         pl->pitchvel /= fric;
-        /*extern int recoiltest;
-        if(recoiltest)
-        {
-            if(pl->pitchvel < 0.05f && pl->pitchvel > 0.001f) pl->pitchvel -= recoilbackfade/100.0f; // slide back
-        }
-        else*/ if(pl->pitchvel < 0.05f && pl->pitchvel > 0.001f) pl->pitchvel -= ((playerent *)pl)->weaponsel->info.recoilbackfade/100.0f; // slide back
+        if(pl->pitchvel < 0.05f && pl->pitchvel > 0.001f) pl->pitchvel -= ((playerent *)pl)->weaponsel->info.recoilbackfade/100.0f; // slide back
         if(pl->pitchvel) fixcamerarange(pl); // fix pitch if necessary
     }
 
@@ -772,8 +766,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
     // apply volume-resize when crouching
     if(pl->type==ENT_PLAYER || pl->type==ENT_BOT)
     {
-//         if(pl==player1 && !(intermission || player1->onladder || (pl->trycrouch && !player1->onfloor && player1->timeinair > 50))) updatecrouch(player1, player1->trycrouch);
-        if(!intermission && (pl == player1 || pl->type == ENT_BOT)) updatecrouch((playerent *)pl, pl->trycrouch);
+        if(!intermission && !ispaused && (pl == player1 || pl->type == ENT_BOT)) updatecrouch((playerent *)pl, pl->trycrouch);
         const float croucheyeheight = pl->maxeyeheight*3.0f/4.0f;
         resizephysent(pl, moveres, curtime, croucheyeheight, pl->maxeyeheight);
     }
@@ -853,7 +846,7 @@ dir(right,    strafe, -1, k_right, k_left)
 
 void attack(bool on)
 {
-    if(intermission) return;
+    if(intermission || (ispaused && player1->state == CS_ALIVE) || ispaused) return;
     if(editmode) editdrag(on);
     else if(player1->state==CS_DEAD || player1->state==CS_SPECTATE)
     {
@@ -865,7 +858,7 @@ void attack(bool on)
 void jumpn(bool on)
 {
     static bool wason = false;
-    player1->jumpnext = on && !wason && !player1->crouching && !intermission && !player1->isspectating();
+    player1->jumpnext = on && !wason && !player1->crouching && !intermission && !player1->isspectating() && !ispaused;
     wason = on;
     if(player1->isspectating())
     {
@@ -899,7 +892,6 @@ COMMAND(crouch, "d");
 
 void fixcamerarange(physent *cam)
 {
-    const float MAXPITCH = 90.0f;
     if(cam->pitch>MAXPITCH) cam->pitch = MAXPITCH;
     if(cam->pitch<-MAXPITCH) cam->pitch = -MAXPITCH;
     while(cam->yaw<0.0f) cam->yaw += 360.0f;
@@ -920,7 +912,7 @@ FVARP(mfilter, 0.0f, 0.0f, 6.0f);               // simple lowpass filtering (zer
 
 void mousemove(int idx, int idy)
 {
-    if(intermission || (player1->isspectating() && player1->spectatemode==SM_FOLLOW1ST)) return;
+    if(intermission || ispaused || (player1->isspectating() && (player1->spectatemode==SM_FOLLOW1ST||player1->spectatemode==SM_OVERVIEW))) return;
     bool zooming = player1->weaponsel->type == GUN_SNIPER && ((sniperrifle *)player1->weaponsel)->scoped;               // check if player uses scope
     float dx = idx, dy = idy;
     if(mfilter > 0.0001f)

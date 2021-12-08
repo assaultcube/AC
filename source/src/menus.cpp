@@ -14,8 +14,7 @@ COMMANDF(curmenu, "", () {result(curmenu ? curmenu->name : "");} );
 inline gmenu *setcurmenu(gmenu *newcurmenu)      // only change curmenu through here!
 {
     curmenu = newcurmenu;
-    extern bool saycommandon;
-    if(!editmode && !saycommandon) keyrepeat(curmenu && curmenu->allowinput && !curmenu->hotkeys);
+    keyrepeat(curmenu && curmenu->allowinput && !curmenu->hotkeys, KR_MENU);
     return curmenu;
 }
 
@@ -91,13 +90,17 @@ const char *persistentmenuselectionalias(const char *name)
     return al;
 }
 
+int normalizemenuselection(int sel, int length)
+{
+    if (sel < 0) sel = length > 0 ? length - 1 : 0;
+    else if (sel >= length) sel = 0;
+    return sel;
+}
+
 void menuselect(void *menu, int sel)
 {
     gmenu &m = *(gmenu *)menu;
-
-    if(sel<0) sel = m.items.length()>0 ? m.items.length()-1 : 0;
-    else if(sel>=m.items.length()) sel = 0;
-
+    sel = normalizemenuselection(sel, m.items.length());
     if(m.items.inrange(sel))
     {
         int oldsel = m.menusel;
@@ -337,7 +340,7 @@ struct mitemmapload : mitemmanual
         DELETEA(desc);
     }
 
-    virtual void key(int code, bool isdown, int unicode)
+    virtual void key(int code, bool isdown)
     {
         if(code == SDLK_LEFT && parent->xoffs > -50) parent->xoffs -= 2;
         else if(code == SDLK_RIGHT && parent->xoffs < 50) parent->xoffs += 2;
@@ -438,7 +441,7 @@ struct mitemtextinput : mitemtext
     {
         if(on && hoveraction) execute(hoveraction);
 
-        SDL_EnableUNICODE(on);
+        textinput(on, TI_MENU);
         if(action && !on && modified && parent->items.find(this) != parent->items.length() - 1)
         {
             modified = false;
@@ -446,14 +449,19 @@ struct mitemtextinput : mitemtext
         }
     }
 
-    virtual void key(int code, bool isdown, int unicode)
+    virtual void key(int code, bool isdown)
     {
-        if(input.key(code, isdown, unicode)) modified = true;
+        if(input.key(code)) modified = true;
         if(action && code == SDLK_RETURN && modified && parent->items.find(this) != parent->items.length() - 1)
         {
             modified = false;
             execaction(input.buf);
         }
+    }
+
+    void say(const char *text)
+    {
+        if(input.say(text)) modified = true;
     }
 
     virtual void init()
@@ -471,6 +479,7 @@ struct mitemtextinput : mitemtext
             text = input.buf;
             result = mitemmanual::select();
             text = tmp;
+            textinput(result, TI_MENU);
         }
         return result;
     }
@@ -548,7 +557,7 @@ struct mitemslider : mitem
         }
     }
 
-    virtual void key(int code, bool isdown, int unicode)
+    virtual void key(int code, bool isdown)
     {
         if(code == SDLK_LEFT) slide(false);
         else if(code == SDLK_RIGHT) slide(true);
@@ -613,6 +622,7 @@ struct mitemslider : mitem
         displaycurvalue();
     }
 
+    virtual const char *gettext() { return text; }
     virtual const char *getaction() { return action; }
 };
 
@@ -671,10 +681,10 @@ struct mitemkeyinput : mitem
         return 0;
     }
 
-    virtual void key(int code, bool isdown, int unicode)
+    virtual void key(int code, bool isdown)
     {
         keym *km;
-        if(!capture || code < -5 || code > SDLK_MENU || !((km = findbindc(code)))) return;
+        if(!capture || !((km = findbindc(code)))) return;
         if(code == SDLK_ESCAPE)
         {
             capture = false;
@@ -709,6 +719,7 @@ struct mitemkeyinput : mitem
         }
     }
 
+    virtual const char* gettext() { return text; }
 };
 
 const char *mitemkeyinput::unknown = "?";
@@ -772,13 +783,15 @@ struct mitemcheckbox : mitem
         }
     }
 
+    virtual const char* gettext() { return text; }
+
     virtual const char *getaction() { return action; }
 };
 
 
 // console iface
 
-void *addmenu(const char *name, const char *title, bool allowinput, void (__cdecl *refreshfunc)(void *, bool), bool (__cdecl *keyfunc)(void *, int, bool, int), bool hotkeys, bool forwardkeys)
+void *addmenu(const char *name, const char *title, bool allowinput, void (__cdecl *refreshfunc)(void *, bool), bool (__cdecl *keyfunc)(void *, int, bool), bool hotkeys, bool forwardkeys)
 {
     gmenu *m = menus.access(name);
     if(!m)
@@ -869,10 +882,19 @@ COMMAND(menufont, "ss");
 void setmenublink(int *truth)
 {
     if(!lastmenu) return;
-    gmenu &m = *(gmenu *)lastmenu;
-    m.allowblink = *truth != 0;
+    gmenu *m = lastmenu;
+    m->allowblink = *truth != 0;
 }
 COMMANDN(menucanblink, setmenublink, "i");
+
+void menutitle(char *title)
+{
+    if(!lastmenu) return;
+    gmenu *m = lastmenu;
+    DELSTRING(m->title);
+    m->title = newstring(title);
+}
+COMMAND(menutitle, "s");
 
 void menuinit(char *initaction)
 {
@@ -1087,11 +1109,34 @@ COMMAND(menuselectiondescbgcolor, "ssss");
 static bool iskeypressed(int key)
 {
     int numkeys = 0;
-    Uint8* state = SDL_GetKeyState(&numkeys);
+    Uint8 const* state = SDL_GetKeyboardState(&numkeys);
     return key < numkeys && state[key] != 0;
 }
 
-bool menukey(int code, bool isdown, int unicode, SDLMod mod)
+void menusay(const char *text)
+{
+    if(curmenu && curmenu->allowinput && curmenu->items.inrange(curmenu->menusel)) curmenu->items[curmenu->menusel]->say(text);
+}
+
+// move menu selection forward or backward and skip empty items that are not selectable
+int movemenuselection(int currentmenusel, int direction)
+{
+    direction = clamp(direction, -1, 1);
+    int newmenusel = currentmenusel;
+    bool selectable = false;
+    for(int i = 0; i < curmenu->items.length(); i++)
+    {
+        newmenusel += direction;
+        newmenusel = normalizemenuselection(newmenusel, curmenu->items.length());
+        selectable = curmenu->items.inrange(newmenusel) && curmenu->items[newmenusel]->gettext() && curmenu->items[newmenusel]->gettext()[0] != '\0';
+        if(selectable) break;
+    } 
+
+    if(selectable) return newmenusel;
+    else return currentmenusel;
+}
+
+bool menukey(int code, bool isdown, SDL_Keymod mod)
 {
     if(!curmenu) return false;
     int n = curmenu->items.length(), menusel = curmenu->menusel;
@@ -1101,7 +1146,7 @@ bool menukey(int code, bool isdown, int unicode, SDLMod mod)
         mitem *m = curmenu->items[menusel];
         if(m->mitemtype == mitem::TYPE_KEYINPUT && ((mitemkeyinput *)m)->capture)
         {
-            m->key(code, isdown, unicode);
+            m->key(code, isdown);
             return true;
         }
     }
@@ -1125,22 +1170,22 @@ bool menukey(int code, bool isdown, int unicode, SDLMod mod)
                 break;
             case SDLK_UP:
             case SDL_AC_BUTTON_WHEELUP:
-                if(iskeypressed(SDLK_LCTRL)) return menukey(SDLK_LEFT, isdown, 0);
-                if(iskeypressed(SDLK_LALT)) return menukey(SDLK_RIGHTBRACKET, isdown, 0);
+                if(iskeypressed(SDL_SCANCODE_LCTRL)) return menukey(SDLK_LEFT);
+                if(iskeypressed(SDL_SCANCODE_LALT)) return menukey(SDLK_RIGHTBRACKET);
                 if(!curmenu->allowinput) return false;
-                menusel--;
+                menusel = movemenuselection(menusel, -1);
                 break;
             case SDLK_DOWN:
             case SDL_AC_BUTTON_WHEELDOWN:
-                if(iskeypressed(SDLK_LCTRL)) return menukey(SDLK_RIGHT, isdown, 0);
-                if(iskeypressed(SDLK_LALT)) return menukey(SDLK_LEFTBRACKET, isdown, 0);
+                if(iskeypressed(SDL_SCANCODE_LCTRL)) return menukey(SDLK_RIGHT);
+                if(iskeypressed(SDL_SCANCODE_LALT)) return menukey(SDLK_LEFTBRACKET);
                 if(!curmenu->allowinput) return false;
-                menusel++;
+                menusel = movemenuselection(menusel, 1);
                 break;
             case SDLK_TAB:
                 if(!curmenu->allowinput) return false;
-                if(mod & KMOD_LSHIFT) menusel--;
-                else menusel++;
+                if(mod & KMOD_LSHIFT) menusel = movemenuselection(menusel, -1);
+                else menusel = movemenuselection(menusel, 1);
                 break;
 
             case SDLK_1:
@@ -1166,10 +1211,10 @@ bool menukey(int code, bool isdown, int unicode, SDLMod mod)
             default:
             {
                 if(!curmenu->allowinput) return false;
-                if(curmenu->keyfunc && (*curmenu->keyfunc)(curmenu, code, isdown, unicode)) return true;
+                if(curmenu->keyfunc && (*curmenu->keyfunc)(curmenu, code, isdown)) return true;
                 if(!curmenu->items.inrange(menusel)) return false;
                 mitem &m = *curmenu->items[menusel];
-                if(!m.greyedout) m.key(code, isdown, unicode);
+                if(!m.greyedout) m.key(code, isdown);
                 if(code == SDLK_HOME && m.mitemtype != mitem::TYPE_TEXTINPUT) menuselect(curmenu, (menusel = 0));
                 return !curmenu->forwardkeys;
             }
@@ -1182,7 +1227,7 @@ bool menukey(int code, bool isdown, int unicode, SDLMod mod)
     {
         switch(code)   // action on keyup to avoid repeats
         {
-            case SDLK_PRINT:
+            case SDLK_PRINTSCREEN:
                 curmenu->conprintmenu();
                 return true;
 
@@ -1196,7 +1241,7 @@ bool menukey(int code, bool isdown, int unicode, SDLMod mod)
         }
         if(!curmenu->allowinput || !curmenu->items.inrange(menusel)) return false;
         mitem &m = *curmenu->items[menusel];
-        if(code==SDLK_RETURN || code==SDLK_SPACE || code==SDL_AC_BUTTON_LEFT || code==SDL_AC_BUTTON_MIDDLE)
+        if(code==SDLK_RETURN || code==SDLK_KP_ENTER || code==SDLK_SPACE || code==SDL_AC_BUTTON_LEFT || code==SDL_AC_BUTTON_MIDDLE)
         {
             if(!m.greyedout && m.select() != -1) audiomgr.playsound(S_MENUENTER, SP_HIGHEST);
             return true;
@@ -1205,11 +1250,11 @@ bool menukey(int code, bool isdown, int unicode, SDLMod mod)
     }
 }
 
-bool rendermenumdl()
+void rendermenumdl()
 {
-    if(!curmenu) return false;
+    if(!curmenu) return;
     gmenu &m = *curmenu;
-    if(!m.mdl) return false;
+    if(!m.mdl) return;
 
     glPushMatrix();
     glLoadIdentity();
@@ -1221,8 +1266,8 @@ bool rendermenumdl()
     bool isweapon = !strncmp(m.mdl, "weapons", strlen("weapons"));
 
     vec pos;
-    if(!isweapon) pos = vec(2.0f, 1.2f, -0.4f);
-    else pos = vec(2.0f, 0, 1.7f);
+    if(!isweapon) pos = vec(0.5f, 0.3f, -0.1f); 
+    else pos = vec(0.50f, 0, 0.425f);
 
     float yaw = 1.0f, pitch = isplayermodel || isweapon ? 0.0f : camera1->pitch;
     if(m.rotspeed) yaw += lastmillis/5.0f/100.0f*m.rotspeed;
@@ -1241,11 +1286,11 @@ bool rendermenumdl()
         a[0].name = "weapons/subgun/world";
         a[0].tag = "tag_weapon";
     }
-    rendermodel(isplayermodel ? "playermodels" : m.mdl, m.anim|ANIM_DYNALLOC, tex, -1, pos, 0, yaw, pitch, 0, 0, NULL, a, m.scale ? m.scale/25.0f : 1.0f);
+    float scale = (m.scale ? m.scale * 0.04f: 1.0f) * 0.25f;
+    rendermodel(isplayermodel ? "playermodels" : m.mdl, m.anim|ANIM_DYNALLOC, tex, -1, pos, 0, yaw, pitch, 0, 0, NULL, a, scale);
 
     glPopMatrix();
     dimeditinfopanel = 0;
-    return !(isplayermodel || isweapon);
 }
 
 void gmenu::refresh()
@@ -1409,7 +1454,6 @@ void rendermenutexturepreview(char *previewtexture, int w, const char *title)
 
 void gmenu::render()
 {
-    extern bool ignoreblinkingbit;
     if(usefont) pushfont(usefont);
     if(!allowblink) ignoreblinkingbit = true;
     bool synctabs = title != NULL || synctabstops;

@@ -12,6 +12,7 @@
 #include <time.h>
 #include <limits.h>
 #include <math.h>
+#include <locale.h>
 #include <stdint.h>
 #ifdef __GNUC__
     #include <new>
@@ -41,6 +42,11 @@
     #include <SDL.h>
     #include <SDL_image.h>
 
+    #ifdef __APPLE__
+        #undef SDL_VIDEO_DRIVER_WINDOWS
+    #endif
+	#include <SDL_syswm.h>
+
     #define GL_GLEXT_LEGACY
     #define __glext_h__
     #define NO_SDL_GLEXT
@@ -53,7 +59,7 @@
         #include "OpenAL/al.h"
         #include "OpenAL/alc.h"
         #include "Vorbis/vorbisfile.h"
-        #define MOD_KEYS_CTRL (KMOD_LMETA|KMOD_RMETA)
+        #define MOD_KEYS_CTRL (KMOD_LGUI|KMOD_RGUI)
     #else
         #include "AL/al.h"
         #include "AL/alc.h"

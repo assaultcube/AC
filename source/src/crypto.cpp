@@ -327,22 +327,6 @@ int __hashtest() // crash, if hash functions don't work properly - no one ever t
 static int __ht = __hashtest();
 #endif
 
-/////////////////////////////////////////////////////////  FNV-1a  ///////////////////////////////////////////////////////////////////
-// Fowler–Noll–Vo is a non-cryptographic hash function created by Glenn Fowler, Landon Curt Noll, and Phong Vo. It is public domain.
-// We use the 32-bit-version here.
-
-inline void fnv1a_init(uint32_t &hash)
-{
-    hash = 2166136261UL;
-}
-
-inline void fnv1a_add(uint32_t &hash, uchar byte)
-{
-    hash ^= byte;
-    hash *= 16777619;
-}
-
-
 ////////////////////////// crypto rand (Mersenne twister) ////////////////////////////////////////
 
 #define MT_N (624)
@@ -369,13 +353,10 @@ void seedMT(uint seed)
 
 uint randomMT()
 {
-    int cur = mt_next;
-    if(++mt_next >= MT_N)
-    {
-        if(mt_next > MT_N) { seedMT(5489U + time(NULL)); cur = mt_next++; }
-        else mt_next = 0;
-    }
-    uint y = (mt_state[cur] & 0x80000000U) | (mt_state[mt_next] & 0x7FFFFFFFU);
+    int nxt = (mt_next + 1) % MT_N, cur = (nxt + MT_N -1) % MT_N;
+    if(mt_next >= MT_N) seedMT(5489U + time(NULL));
+    mt_next = nxt;
+    uint y = (mt_state[cur] & 0x80000000U) | (mt_state[nxt] & 0x7FFFFFFFU);
     mt_state[cur] = y = mt_state[cur < MT_N - MT_M ? cur + MT_M : cur + MT_M - MT_N] ^ (y >> 1) ^ (-int(y & 1U) & MT_K);
     y ^= (y >> 11);
     y ^= (y <<  7) & 0x9D2C5680U;
@@ -396,7 +377,7 @@ void popMT()  // undo last seedMT()
 
 #define ENTCHUNKS 32                        // pool size (in 128-bytes chunks)
 #define ENTPOOLSIZE (ENTCHUNKS * 128)
-#define ENTROPYSAVEFILE "config" PATHDIVS "entropy.dat"
+#define ENTROPYSAVEFILE "private" PATHDIVS "entropy.dat"
 
 static uchar *entpool = NULL;
 
@@ -669,12 +650,12 @@ void ed25519test(char *vectorfilename)  // check ed25519 functions with test vec
     path(vectorfilename);
     stopwatch watch;
     int vectorfilesize = 0;
-    char *vectorfile = loadfile(vectorfilename, &vectorfilesize);
+    char *vectorfile = loadfile(vectorfilename, &vectorfilesize), *b;
     if(!vectorfile) { conoutf("could not read test vector file %s", vectorfilename); return; }
     conoutf("loaded %d bytes from %s", vectorfilesize, vectorfilename);
     watch.start();
     int lines = 0, inputerrors = 0, pubfail = 0, signfail = 0, verifyfail = 0, verifyfail2 = 0;
-    for(char *l = strtok(vectorfile, "\n"); l; l = strtok(NULL, "\n"))
+    for(char *l = strtok_r(vectorfile, "\n", &b); l; l = strtok_r(NULL, "\n", &b))
     { // a line consists of 32 bytes private key, 32 byte public key, ":", 32 byte public key (again), ":", message, ":", signed message, ":"
         char *vprivpub = l, *vpub = strchr(l, ':'), *vmsg, *vsmsg, hextemp[65];
         int linelen = strlen(l), msglen = 0;
@@ -738,14 +719,14 @@ COMMAND(ed25519speedtest, "");
 // * it is used during playing to authenticate the player to the server
 // * needs special protection...
 
-#define AUTHPREPRIVATECFGFILE  "config" PATHDIVS "authpreprivate.cfg"
-#define AUTHPRIVATECFGFILE     "config" PATHDIVS "authprivate.cfg"
+#define AUTHPREPRIVATECFGFILE  "private" PATHDIVS "authpreprivate.cfg"
+#define AUTHPRIVATECFGFILE     "private" PATHDIVS "authprivate.cfg"
 
 VARP(authmemusage, 2, 24, (1<<10) - 1);     // megabytes of RAM to use for password hash (when using a new password)
 VARP(authrounds, 0, 0, INT_MAX - 1);        // create new password hashes with a fixed number of rounds (if authrounds > 0)
 VARP(authmaxtime, 1<<9, 1<<12, 1<<16);      // create new password hashes with a fixed amount of time (in ms)
 
-static uchar *sk = NULL;                    // game key
+uchar *sk = NULL;                     // game key
 static struct { uchar *salt, *priv; uint pwdcfg; } passdargs;
 
 static int passdeferred(void *pass)   // decrypt the private key in the background
@@ -760,6 +741,63 @@ static int passdeferred(void *pass)   // decrypt the private key in the backgrou
     return 0;
 }
 
+void savepreprivkey(const char *filename, uchar *preprivkey, uchar preprivlen, uchar *psalt, uint preprivpwdcfg) {
+    char hextemp[128 * 2 + 1];
+    char *oldfile = loadfile(filename, NULL), *b;
+    stream *f = openfile(filename, "wb");
+    if(f)
+    {
+        if(!oldfile)
+        {
+            f->printf("\n"  "// remove this file from your computer immediately!\n"
+                    "// either print it out and delete it or move it to a thumbdrive.\n"
+                    "// YOU DO NOT NEED THIS FILE TO PLAY AC!\n" "\n");
+        }
+        else
+        {
+            for(char *l = strtok_r(oldfile, "\n\r", &b); l; l = strtok_r(NULL, "\n\r", &b))
+            {
+                if(*l && l[0] != '/')
+                    f->printf("// %s\n", l);
+                if(*l && l[0] == '/')
+                    f->printf("%s\n", l);
+            }
+        }
+
+        f->printf("authsetup pre %s", bin2hex(hextemp, preprivkey, preprivlen));
+        if(preprivpwdcfg) f->printf(" %s %u", bin2hex(hextemp, psalt, 16), preprivpwdcfg & ~1);
+        f->printf("\n\n");
+        delete f;
+    }
+    DELETEA(oldfile);
+}
+
+
+void saveprivkey(const char *filename, uchar *privkey, uchar *pubkey, uchar salt[16], uint privpwdcfg) {
+    char hextemp[65];
+    char *oldfile = loadfile(filename, NULL), *b;
+    stream *f = openfile(filename, "wb");
+    if(f)
+    {
+        if(oldfile)
+        {
+            for(char *l = strtok_r(oldfile, "\n\r", &b); l; l = strtok_r(NULL, "\n\r", &b))
+            {
+                if(*l && l[0] != '/')
+                    f->printf("// %s\n", l);
+                if(*l && l[0] == '/')
+                    f->printf("%s\n", l);
+            }
+        }
+
+        f->printf("\nauthsetup priv %s", bin2hex(hextemp, privkey, 32));
+        if(privpwdcfg) f->printf(" %s %u", bin2hex(hextemp, salt, 16), privpwdcfg);
+        f->printf("\nauthsetup pub %s\n\n", bin2hex(hextemp, pubkey, 32));
+        delete f;
+    }
+    DELETEA(oldfile);
+}
+
 void authsetup(char **args, int numargs)  // set up private and public keys
 {
     const int preprivminlen = 32, preprivmaxlen = 128;
@@ -771,7 +809,9 @@ void authsetup(char **args, int numargs)  // set up private and public keys
     uint32_t offs = 7337;
     loopi(16) fnv1a_add(offs, buf[i]);
     uchar *priv = buf + 24 + (offs & 0xfc), *prepriv = priv + 112 + ((offs >> 9) & 0xfc), res = 0;
+#ifdef _DEBUG
     char hextemp[2 * preprivmaxlen + 1];
+#endif
 
     if(passdrunning)
     {
@@ -884,22 +924,10 @@ void authsetup(char **args, int numargs)  // set up private and public keys
                     preprivpwdcfg = (iterations << 10) | authmemusage;
                     xor_block(prepriv, keyhash, preprivlen);
                 }
-                const char *fn = numargs > 2 && args[2][0] ? path(args[2]) : AUTHPREPRIVATECFGFILE;
-                char *oldfile = loadfile(fn, NULL);
-                stream *f = openfile(fn, "wb");
-                if(f)
-                {
-                    f->printf("\n"  "// remove this file from your computer immediately!\n"
-                                    "// either print it out and delete it or move it to a thumbdrive.\n"
-                                    "// YOU DO NOT NEED THIS FILE TO PLAY AC!\n" "\n");
-                    if(oldfile) for(char *l = strtok(oldfile, "\n\r"); l; l = strtok(NULL, "\n\r")) if(*l) f->printf("// %s\n", l);
-                    f->printf("authsetup pre %s", bin2hex(hextemp, prepriv, preprivlen));
-                    if(preprivpwdcfg) f->printf(" %s %u", bin2hex(hextemp, psalt, 16), preprivpwdcfg & ~1);
-                    f->printf("\n\n");
-                    delete f;
-                }
-                DELETEA(oldfile);
             }
+
+            savepreprivkey(numargs > 2 && args[2][0] ? path(args[2]) : AUTHPREPRIVATECFGFILE,
+                           prepriv, preprivlen, psalt, preprivpwdcfg);
         }
         else if(!strcasecmp(args[0], "NEWPASS"))
         {
@@ -915,20 +943,22 @@ void authsetup(char **args, int numargs)  // set up private and public keys
                     privpwdcfg = (iterations << 10) | authmemusage;
                     xor_block(priv, keyhash, 32);
                 }
-                const char *fn = numargs > 2 && args[2][0] ? path(args[2]) : AUTHPRIVATECFGFILE;
-                char *oldfile = loadfile(fn, NULL);
-                stream *f = openfile(fn, "wb");
-                if(f)
-                {
-                    if(oldfile) for(char *l = strtok(oldfile, "\n\r"); l; l = strtok(NULL, "\n\r")) if(*l) f->printf("// %s\n", l);
-                    f->printf("\nauthsetup priv %s", bin2hex(hextemp, priv, 32));
-                    if(privpwdcfg) f->printf(" %s %u", bin2hex(hextemp, salt, 16), privpwdcfg);
-                    f->printf("\nauthsetup pub %s\n\n", bin2hex(hextemp, keyhash + 32, 32));
-                    delete f;
-                }
-                DELETEA(oldfile);
+                saveprivkey(numargs > 2 && args[2][0] ? path(args[2]) : AUTHPRIVATECFGFILE,
+                            priv, keyhash + 32, salt, privpwdcfg);
             }
         }
+        else if(!strcasecmp(args[0], "SAVEPRIV"))
+        {
+            ed25519_pubkey_from_private(keyhash + 32, priv);
+            saveprivkey(numargs > 1 && args[1][0] ? path(args[1]) : AUTHPRIVATECFGFILE,
+                        priv, keyhash + 32, salt, privpwdcfg);
+        }
+        else if(!strcasecmp(args[0], "SAVEPRE"))
+        {
+            savepreprivkey(numargs > 1 && args[1][0] ? path(args[1  ]) : AUTHPREPRIVATECFGFILE,
+                           prepriv, preprivlen, psalt, preprivpwdcfg);
+        }
+#ifndef PRODUCTION
         else if(!strcasecmp(args[0], "UNARMED"))  // FIXME: this is for testing purposes only - to test simultaneous logins from the same account - delete before release!
         {
             // authsetup unarmed
@@ -937,6 +967,7 @@ void authsetup(char **args, int numargs)  // set up private and public keys
             ed25519_pubkey_from_private(pub, priv);
             privpwdcfg = 0;
         }
+#endif
     }
     ed25519_pubkey_from_private(keyhash, priv);
     if(!privpwdcfg && !memcmp(pub, keyhash, 32))
@@ -951,6 +982,7 @@ void authsetup(char **args, int numargs)  // set up private and public keys
     intret(res);
 }
 COMMAND(authsetup, "v");
+
 
 void mypubkey()
 {
@@ -1008,7 +1040,7 @@ void authkey_(char **args, int numargs)  // set up misc keys
                     stream *f = openfile(AUTHKEYSCFGFILE, "wb");
                     if(f)
                     { // don't really delete the old keys, just comment them out
-                        for(char *l = strtok(oldfile, "\n\r"); l; l = strtok(NULL, "\n\r")) if(*l) f->printf("// %s\n", l);
+                        for(char *b, *l = strtok_r(oldfile, "\n\r", &b); l; l = strtok_r(NULL, "\n\r", &b)) if(*l) f->printf("// %s\n", l);
                         delete f;
                     }
                     delete[] oldfile;
@@ -1111,7 +1143,7 @@ static int certtypemaxrank[] = { 0, 1, 2, 3, 3, 3, 0 };  // max allowed rank of 
 static int certtypeexpiration[] = { 0, 0, 0, 2 * CERTTIMEMONTH, CERTTIMEMONTH, 3 * CERTTIMEMONTH, CERTTIMEMONTH }; // time after which certs are usually re-signed, after 3x the time they expire
 
 vector<cert *> certs;
-hashtable<const uchar *, char> certblacklist;
+hashtable<const uchar32, char> certblacklist;
 
 static inline int aktcerttime() { return time(NULL) / (time_t) 60; }      // use minutes instead of seconds as timebase, so int will be more than enough
 
@@ -1130,7 +1162,7 @@ bool cert::parse()  // parse orgmsg[] and check the signature
         if(hex2bin(signature, workmsg + certheaderlen, 64) == 64)
         { // parse all lines
             certline line;
-            for(char *l = strtok(workmsg + certheaderlenfull, "\n\r"); l; l = strtok(NULL, "\n\r"))
+            for(char *b, *l = strtok_r(workmsg + certheaderlenfull, "\n\r", &b); l; l = strtok_r(NULL, "\n\r", &b))
             {
                 // get comment
                 line.comment = strstr(l, "//");
@@ -1364,7 +1396,7 @@ void rebuildcerttree()       // determines the rank of all certs; ages them; rem
             if(c->days2renew < 0) c->needsrenewal = true;
             if(c->days2expire < 0) { c->expired = true; c->isvalid = false; }
         }
-        if(c->pubkey && certblacklist.access(c->pubkey))
+        if(c->pubkey && certblacklist.access(*((uchar32*)c->pubkey)))
         {
             c->blacklisted = true;
             c->isvalid = false;

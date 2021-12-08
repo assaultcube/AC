@@ -14,7 +14,7 @@
 #define AC_BOT_H
 
 //#define BOTDEBUG
-#define MAX_WEAPONS      10
+#define MAX_WEAPONS      9 // NUM_GUNS
 
 class CACBot: public CBot
 {

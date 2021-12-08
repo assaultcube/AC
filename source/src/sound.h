@@ -81,6 +81,9 @@ enum { SC_PAIN = 0, SC_OWNPAIN, SC_WEAPON, SC_PICKUP, SC_MOVEMENT, SC_BULLET, SC
 #define gamesound_hasflag(x, mask) (gamesound_isvalid(x) && (soundcfg[x].flags & mask) != 0)
 #define gamesound_isvoicecom(x)       gamesound_hasflag(x, 1 << SC_VOICECOM)      // all voicecoms
 #define gamesound_ispublicvoicecom(x) gamesound_hasflag(x, 1 << SC_PUBLIC)        // voicecoms always sent to all players
+#define gamesound_ispublicwhenffa(x) gamesound_hasflag(x, 1 << SC_FFA)            // voicecoms sent to all only in FFA modes 
+#define gamesound_isflagvoicecom(x) gamesound_hasflag(x, 1 << SC_FLAGONLY)        // voicecoms pertaining to flag tactics 
+
 
 struct soundcfgitem {
     const char *name, *desc;

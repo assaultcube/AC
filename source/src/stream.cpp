@@ -125,7 +125,9 @@ bool createdir(const char *path)
     if(path[len-1]==PATHDIV)
     {
         static string strip;
-        path = copystring(strip, path, len);
+		memcpy(strip, path, len);
+		strip[len - 1] = '\0';
+		path = strip;
     }
 #ifdef WIN32
     return CreateDirectory(path, NULL)!=0;
@@ -215,6 +217,12 @@ void addpackagedir(const char *dir)
     copystring(pdir, dir);
     if(fixpackagedir(pdir) > 0)
     {
+        if(homedir[0]) // at first search in package directory in profile
+        {
+            string phdir;
+            formatstring(phdir)("%s%s", homedir, pdir);
+            packagedirs.add(newstring(phdir));
+        }
 #ifndef STANDALONE
         clientlogf("Adding package directory: %s", pdir);
 #endif
@@ -270,6 +278,20 @@ const char *stream_capabilities()
     #endif
 }
 
+#if !defined(WIN32)
+int readdir_r_(DIR *d, struct dirent *b, struct dirent **de)
+{
+    #ifdef __USE_POSIX
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+    #endif
+    return readdir_r(d, b, de);
+    #ifdef __USE_POSIX
+    #pragma GCC diagnostic pop
+    #endif
+}
+#endif
+
 bool listsubdir(const char *dir, vector<char *> &subdirs)
 {
     #if defined(WIN32)
@@ -291,7 +313,7 @@ bool listsubdir(const char *dir, vector<char *> &subdirs)
     if(d)
     {
         struct dirent *de, b;
-        while(!readdir_r(d, &b, &de) && de != NULL)
+        while(!readdir_r_(d, &b, &de) && de != NULL)
         {
         #ifdef _DIRENT_HAVE_D_TYPE
             if(de->d_type == DT_DIR && de->d_name[0] != '.') subdirs.add(newstring(de->d_name));
@@ -359,7 +381,7 @@ bool listdir(const char *dir, const char *ext, vector<char *> &files)
     if(d)
     {
         struct dirent *de, b;
-        while(!readdir_r(d, &b, &de) && de != NULL)
+        while(!readdir_r_(d, &b, &de) && de != NULL)
         {
             bool isreg = false;
         #ifdef _DIRENT_HAVE_D_TYPE
@@ -474,20 +496,20 @@ void backup(char *name, char *backupname)
 }
 
 #ifndef STANDALONE
-static int rwopsseek(SDL_RWops *rw, int offset, int whence)
+static Sint64 rwopsseek(SDL_RWops *rw, Sint64 offset, int whence)
 {
     stream *f = (stream *)rw->hidden.unknown.data1;
     if((!offset && whence==SEEK_CUR) || f->seek(offset, whence)) return f->tell();
     return -1;
 }
 
-static int rwopsread(SDL_RWops *rw, void *buf, int size, int nmemb)
+static size_t rwopsread(SDL_RWops *rw, void *buf, size_t size, size_t nmemb)
 {
     stream *f = (stream *)rw->hidden.unknown.data1;
     return f->read(buf, size*nmemb)/size;
 }
 
-static int rwopswrite(SDL_RWops *rw, const void *buf, int size, int nmemb)
+static size_t rwopswrite(SDL_RWops *rw, const void *buf, size_t size, size_t nmemb)
 {
     stream *f = (stream *)rw->hidden.unknown.data1;
     return f->write(buf, size*nmemb)/size;

@@ -53,13 +53,13 @@
 SetCompressor /SOLID lzma
 
 !define CURPATH ".\" ; must include the installer graphics and the AC_NEWVERSIONDIR directory
-!define AC_FULLVERSIONINT "1.2.0.2"
+!define AC_FULLVERSIONINT "1.3.0.0"
 !define AC_FULLVERSION "v${AC_FULLVERSIONINT}"
-!define AC_SHORTNAME "AssaultCube"
+!define AC_SHORTNAME "AssaultCube ${AC_FULLVERSIONINT}"
 !define AC_FULLNAME "AssaultCube ${AC_FULLVERSIONINT}"
 !define AC_URLPROTOCOL "assaultcube"
 !define AC_MAJORVERSIONINT 1
-!define AC_MINORVERSIONINT 2
+!define AC_MINORVERSIONINT 3
 !define AC_NEWVERSIONDIR "AC" ; directory with prepared new AC version
 ; path to profile folder in "MYDOCUMENTS" directory, should be the same as in assaultcube.bat
 !define AC_PROFILEPATH "My Games\AssaultCube\v${AC_MAJORVERSIONINT}.${AC_MINORVERSIONINT}"
@@ -67,7 +67,7 @@ SetCompressor /SOLID lzma
 Name "${AC_SHORTNAME}"
 VAR StartMenuFolder
 !define AC_STARTMENUFOLDER "$SMPROGRAMS\$StartMenuFolder"
-OutFile "AssaultCube_${AC_FULLVERSION}.exe"
+OutFile "AssaultCube_v1.3.0.0_LockdownEdition.exe"
 InstallDir "$PROGRAMFILES\${AC_SHORTNAME}"
 InstallDirRegKey HKLM "Software\${AC_SHORTNAME}" ""
 !define ARP "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}"

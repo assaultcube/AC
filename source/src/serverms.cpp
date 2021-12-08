@@ -16,6 +16,8 @@ int connectwithtimeout(ENetSocket sock, const char *hostname, ENetAddress &remot
 }
 #endif
 
+extern struct servercommandline scl;
+bool usemaster = false;
 ENetSocket mastersock = ENET_SOCKET_NULL;
 ENetAddress masteraddress = { ENET_HOST_ANY, ENET_PORT_ANY }, serveraddress = { ENET_HOST_ANY, ENET_PORT_ANY };
 string mastername = AC_MASTER_URI;
@@ -43,13 +45,11 @@ void disconnectmaster()
 
 ENetSocket connectmaster()
 {
-    if(!mastername[0]) return ENET_SOCKET_NULL;
-    extern servercommandline scl;
-    if(scl.maxclients>MAXCL) { logline(ACLOG_WARNING, "maxclient exceeded: cannot register"); return ENET_SOCKET_NULL; }
+    if(!mastername[0] || !usemaster) return ENET_SOCKET_NULL;
 
     if(masteraddress.host == ENET_HOST_ANY)
     {
-        logline(ACLOG_INFO, "looking up %s:%d...", mastername, masterport);
+        xlog(ACLOG_INFO, "looking up %s:%d...", mastername, masterport);
         masteraddress.port = masterport;
         if(!resolverwait(mastername, &masteraddress)) return ENET_SOCKET_NULL;
     }
@@ -61,7 +61,7 @@ ENetSocket connectmaster()
     }
     if(sock == ENET_SOCKET_NULL || connectwithtimeout(sock, mastername, masteraddress) < 0)
     {
-        logline(ACLOG_WARNING, sock==ENET_SOCKET_NULL ? "could not open socket" : "could not connect");
+        xlog(ACLOG_WARNING, sock==ENET_SOCKET_NULL ? "could not open socket" : "could not connect");
         return ENET_SOCKET_NULL;
     }
 
@@ -104,10 +104,10 @@ void processmasterinput()
         while(args < end && isspace(*args)) args++;
 
         if(!strncmp(input, "failreg", cmdlen))
-            logline(ACLOG_WARNING, "master server registration failed: %s", args);
+            xlog(ACLOG_WARNING, "master server registration failed: %s", args);
         else if(!strncmp(input, "succreg", cmdlen))
         {
-            logline(ACLOG_INFO, "master server registration succeeded");
+            xlog(ACLOG_INFO, "master server registration succeeded");
         }
         else processmasterinput(input, cmdlen, args);
 
@@ -160,17 +160,17 @@ void flushmasterinput()
     else disconnectmaster();
 }
 
-extern char *global_name;
 extern int totalclients;
 
 // send alive signal to masterserver after 40 minutes of uptime and if currently in intermission (so theoretically <= 1 hour)
 // TODO?: implement a thread to drop this "only in intermission" business, we'll need it once AUTH gets active!
-static inline void updatemasterserver(int millis, int port)
+static inline void updatemasterserver(int millis, int port, int _interm)
 {
-    if(!lastupdatemaster || ((millis-lastupdatemaster)>40*60*1000 && (interm || !totalclients)))
+    if(!lastupdatemaster || ((millis-lastupdatemaster)>40*60*1000 && (_interm || !totalclients)))
     {
-        char servername[30]; memset(servername,'\0',30); filtertext(servername, global_name, FTXT__GLOBALNAME, 20);
-        if(mastername[0]) requestmasterf("regserv %d %s %d\n", port, servername[0] ? servername : "noname", AC_VERSION);
+        string servdesc; extern string servpubkey;
+        filtertext(servdesc, scl.servdesc_full[0] ? scl.servdesc_full : "noname", FTXT__GLOBALNAME, 20);
+        if(mastername[0]) requestmasterf("regserv %d %s-%s %d\n", port, servdesc, scl.ssk ? servpubkey : "nokey", AC_VERSION);
         lastupdatemaster = millis + 1;
     }
 }
@@ -178,10 +178,10 @@ static inline void updatemasterserver(int millis, int port)
 ENetSocket pongsock = ENET_SOCKET_NULL, lansock = ENET_SOCKET_NULL;
 extern int getpongflags(enet_uint32 ip);
 
-void serverms(int mode, int numplayers, int minremain, char *smapname, int millis, const ENetAddress &localaddr, int *mnum, int *msend, int *mrec, int *cnum, int *csend, int *crec, int protocol_version)
+void serverms(int mode, int numplayers, int minremain, char *smapname, int millis, const ENetAddress &localaddr, int *mnum, int *msend, int *mrec, int *cnum, int *csend, int *crec, int protocol_version, const char *servdesccur, int _interm)
 {
     flushmasteroutput();
-    updatemasterserver(millis, localaddr.port);
+    updatemasterserver(millis, localaddr.port, _interm);
 
     static ENetSocketSet sockset;
     ENET_SOCKETSET_EMPTY(sockset);
@@ -221,14 +221,13 @@ void serverms(int mode, int numplayers, int minremain, char *smapname, int milli
         if(getint(pi) != 0) // std pong
         {
             extern struct servercommandline scl;
-            extern string servdesc_current;
             (*mnum)++; *mrec += len; std = true;
             putint(po, protocol_version);
             putint(po, mode);
             putint(po, numplayers);
             putint(po, minremain);
             sendstring(smapname, po);
-            sendstring(servdesc_current, po);
+            sendstring(servdesccur, po);
             putint(po, scl.maxclients);
             putint(po, getpongflags(addr.host));
             if(pi.remaining())
@@ -318,6 +317,7 @@ void serverms(int mode, int numplayers, int minremain, char *smapname, int milli
         }
 
         buf.dataLength = len + po.length();
+        entropy_add_byte(addr.host ^ (addr.host >> 24));
         enet_socket_send(pongsock, &addr, &buf, 1);
         if(std) *msend += (int)buf.dataLength;
         else *csend += (int)buf.dataLength;
@@ -326,20 +326,22 @@ void serverms(int mode, int numplayers, int minremain, char *smapname, int milli
     if(mastersock != ENET_SOCKET_NULL && ENET_SOCKETSET_CHECK(sockset, mastersock)) flushmasterinput();
 }
 
-// this function should be made better, because it is used just ONCE (no need of so much parameters)
-void servermsinit(const char *master, const char *ip, int infoport, bool listen)
+void servermsinit(bool listen)
 {
-    copystring(mastername, master);
+    if(scl.master && *scl.master) copystring(mastername, scl.master);
+    usemaster = !listen || (listen && scl.master && scl.ssk && scl.maxclients <= MAXCLIENTSONMASTER);  // true: connect to master, false: LAN-only server
+    if(scl.maxclients > MAXCLIENTSONMASTER) mlog(ACLOG_WARNING, "maxclient exceeded: cannot register");
     disconnectmaster();
 
     if(listen)
     {
-        ENetAddress address = { ENET_HOST_ANY, (enet_uint16)infoport };
-        if(*ip)
+        ENetAddress address = { ENET_HOST_ANY, (enet_uint16) CUBE_SERVINFO_PORT(scl.serverport) };
+        if(*scl.ip)
         {
-            if(enet_address_set_host(&address, ip)<0) logline(ACLOG_WARNING, "server ip not resolved");
+            if(enet_address_set_host(&address, scl.ip) < 0) mlog(ACLOG_WARNING, "server ip \"%s\" not resolved", scl.ip);
             else serveraddress.host = address.host;
         }
+
         pongsock = enet_socket_create(ENET_SOCKET_TYPE_DATAGRAM);
         if(pongsock != ENET_SOCKET_NULL && enet_socket_bind(pongsock, &address) < 0)
         {
@@ -348,6 +350,7 @@ void servermsinit(const char *master, const char *ip, int infoport, bool listen)
         }
         if(pongsock == ENET_SOCKET_NULL) fatal("could not create server info socket");
         else enet_socket_set_option(pongsock, ENET_SOCKOPT_NONBLOCK, 1);
+
         address.port = CUBE_SERVINFO_PORT_LAN;
         lansock = enet_socket_create(ENET_SOCKET_TYPE_DATAGRAM);
         if(lansock != ENET_SOCKET_NULL && (enet_socket_set_option(lansock, ENET_SOCKOPT_REUSEADDR, 1) < 0 || enet_socket_bind(lansock, &address) < 0))
@@ -355,7 +358,13 @@ void servermsinit(const char *master, const char *ip, int infoport, bool listen)
             enet_socket_destroy(lansock);
             lansock = ENET_SOCKET_NULL;
         }
-        if(lansock == ENET_SOCKET_NULL) logline(ACLOG_WARNING, "could not create LAN server info socket");
+        if(lansock == ENET_SOCKET_NULL) mlog(ACLOG_WARNING, "could not create LAN server info socket");
         else enet_socket_set_option(lansock, ENET_SOCKOPT_NONBLOCK, 1);
+    }
+    if(!usemaster){
+        mlog(ACLOG_INFO, "server is LAN-only - without connection to masterserver");
+        if(listen){
+            if(!scl.ssk) mlog(ACLOG_INFO, "ACTION REQUIRED: you must provide a PRIVATE SERVER KEY via the '-Y' command line argument");
+        }
     }
 }

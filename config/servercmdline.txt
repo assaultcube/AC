@@ -1,4 +1,4 @@
-// example servercmdline.txt file (1.2)
+// example servercmdline.txt file (1.3)
 // to use this file, add -Cconfig/servercmdline.txt to your servers commandline
 //
 // * you can't use cubescript here!
@@ -8,6 +8,10 @@
 // * you can separate the switch and it's argument by whitespace
 //
 // see docs/commandline.html for full parameter descriptions
+//
+// If you want to make COOP only possible for admins: you need to set (at least) -P and -M like so:
+// -P fkbpMASRCDEPtwX
+// -M CRU
 
 // example MOTD:
  -o \f3server using example cmdline file (config/servercmdline.txt)\n\f2feel free to change this :)
@@ -22,6 +26,10 @@
 // -f     // port, 1..65534, default 28763
 // -c     // max client number, 1..16, default 6
 // -D     // number of demos to keep in RAM, default 5
+// -Y     // 32-byte private server key (you should maybe include that from another config file and remove it from the server after startup)
+// -m     // masterserver URL (no parameter uses default URL), if not set, the server will be LAN-only
+
+-Y AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA // this default value is a security risk so please define your own private server key (!!)
 
 // the switches o, n, n1 and n2 support coloring and character escaping; 'o' also supports escaped newlines
 // the available colors are: 0: green, 1: blue, 2: yellow, 3: red, 4: gray, 5: white, 6: dark brown, 7: dark red
@@ -35,31 +43,37 @@
 // -kA    // kickthreshold (in seconds) for being AFK, > 30, default 45
 // -kB    // time in minutes a banned player will stay banned, default 20
 // -y     // banthreshold, -1..-100, default -6
+// -H     // server logfile path, default logs/
 // -r     // server maprot file, default config/maprot.cfg
+// -A     // server parameter file, default config/serverparameters.cfg
+// -U     // vitapath, path & filename prefix to store the server vita database at, default: config/servervita
 // -X     // server passwords file, default config/serverpwd.cfg
 // -B     // server IP blacklist file, default config/serverblacklist.cfg
+// -G     // server geoip file, default config/geoip.cfg
 // -K     // server nickname blacklist file, default config/nicknameblacklist.cfg
 // -g     // server forbidden words file, default config/forbidden.cfg
-// -P     // voting permission string (read docs/commandline.html)
-          //    k kick players
-          //    b ban players (and remove bans)
-          //    m change mastermode (open/private)
-          //    f force a player to the other team
-          //    a enable/disable autoteam
-          //    s shuffle the teams
-          //    r record a demo of the next game (if autorecording is disabled)
-          //    c clear all demos on server
-          //    d change server description
+// -P     // permission string (read docs/commandline.html)
+          //    k vote to kick players
+          //    b vote to ban players (and remove bans)
+          //    m vote to change mastermode (open/private)
+          //    f vote to force a player to the other team
+          //    a vote to enable/disable autoteam
+          //    s vote to shuffle the teams
+          //    r vote to record a demo of the next game (if autorecording is disabled)
+          //    c vote to clear all demos on server
+          //    d vote to change server description
           //    e vote for coopedit mode
-          //    p vote for a gamemode that is not supported by the map (default: no one can)
-          //    w vote to kick/ban without clear reasons
-          //    default: fkBMASRCDEW (lowercase: a user can vote for it; uppercase: admin role is required to vote)
+          //    w vote to kick without clear reasons
+          //    x vote to ban without clear reasons
+          //    p vote to pause or resume match
+          //    t send private messages to any player
+          //    default: fkbpMASRCDePtwX (lowercase: a user can perform the action; uppercase: admin role is required to perform the action)
 // -M     // sendmap permission string (read docs/commandline.html)
           //    c create new map (initial map upload)
           //    u update existing map (same or newer revision)
           //    r revert existing map to older revision
-          //    d delete map (default: no one can)
-          //    default: CRU (lowercase: any user is allowed to do it; uppercase: admin role is required)
+          //    d delete map
+          //    default: cruD (lowercase: any user is allowed to do it; uppercase: admin role is required)
 // -Z     // sendmap/incoming limit in MB (default = 10MB)
 // -I     // serverinfo text filename prefix, default config/serverinfo
 // -O     // MOTD text filename prefix, default config/motd
@@ -84,16 +98,9 @@
           //    3  WARNING: log only messages of level WARNING and above
           //    4  ERROR: log only messages of level ERROR
           //    5  do not write to the log
-// -A     // Restricts voting for a map/mode to admins. This switch can be used several times.
-
-// these switches control the naming of demos (see -W)
-// --demofilenameformat="%Mmin_%G_%w_%H_%n" // default: "%w_%h_%n_%Mmin_%G"
-// --demotimestampformat="%H%M_%Y%m%d"      // default: "%Y%m%d_%H%M"
-// --demotimelocal=1                        // default: 0
 
 // don't use these switches, unless you really know what you're doing:
 
 // -u     // uprate
 // -i     // ip, only for machines with multiple network interfaces
-// -m     // masterserver URL (exception: use "-m localhost", if you don't want AC to register at a masterserver at all)
 

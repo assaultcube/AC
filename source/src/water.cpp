@@ -92,7 +92,7 @@ VERTW(vertw, {}, {})
 VERTWC(vertwc, {
     varray::defattrib(varray::ATTRIB_COLOR, 4, GL_UNSIGNED_BYTE);
 }, {
-    varray::attrib<uchar>(hdr.watercolor[0], hdr.watercolor[1], hdr.watercolor[2], (uchar)(hdr.watercolor[3] + (max(v, 0.0f) - 0.5f)*51.0f));
+    varray::attrib<uchar>(hdr.watercolor[0], hdr.watercolor[1], hdr.watercolor[2], clamp(int(hdr.watercolor[3] + fabs(s)*0x18), 0, 255));
 })
 VERTWT(vertwt, {
     varray::defattrib(varray::ATTRIB_TEXCOORD0, 3, GL_FLOAT);
@@ -103,7 +103,7 @@ VERTWT(vertwtc, {
     varray::defattrib(varray::ATTRIB_COLOR, 4, GL_UNSIGNED_BYTE);
     varray::defattrib(varray::ATTRIB_TEXCOORD0, 3, GL_FLOAT);
 }, {
-    varray::attrib<uchar>(255, 255, 255, uchar(38 + max(v, 0.0f)*38));
+    varray::attrib<uchar>(255, 255, 255, int(0x33 + fabs(s)*0x18));
     varray::attrib<float>(v1+duv, v2+duv, v3+h);
 })
 VERTWT(vertwmtc, {
@@ -111,7 +111,7 @@ VERTWT(vertwmtc, {
     varray::defattrib(varray::ATTRIB_TEXCOORD0, 3, GL_FLOAT);
     varray::defattrib(varray::ATTRIB_TEXCOORD1, 3, GL_FLOAT);
 }, {
-    varray::attrib<uchar>(255, 255, 255, uchar(38 + max(v, 0.0f)*38));
+    varray::attrib<uchar>(255, 255, 255, int(0x33 + fabs(s)*0x18));
     varray::attrib<float>(v1-duv, v2+duv, v3+h);
     varray::attrib<float>(v1+duv, v2+duv, v3+h);
 })

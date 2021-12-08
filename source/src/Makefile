@@ -31,6 +31,9 @@ ifneq (,$(findstring clang,$(CXX)))
 else
 	CXXFLAGS= -O3 -fomit-frame-pointer
 	override CXXFLAGS+= -Wall -fsigned-char -ffast-math -rdynamic -Wno-format-zero-length
+	ifeq "$(shell expr 'gcc -dumpversion' \>= 8)" "1"
+		override CXXFLAGS+= -Wno-stringop-truncation
+	endif
 endif
 
 INCLUDES= -I. -Ibot -I../enet/include
@@ -46,11 +49,11 @@ MV=mv
 ifneq (,$(findstring MINGW,$(PLATFORM)))
 WINDRES= windres
 CLIENT_INCLUDES= $(INCLUDES) -I../include
-CLIENT_LIBS= -mwindows -L../lib -lSDL -lSDL_image -lzdll -lopengl32 -lenet -lOpenAL32 -llibvorbisfile -lws2_32 -lwinmm
+CLIENT_LIBS= -mwindows -L../lib -lSDL2 -lSDL2_image -lzdll -lopengl32 -lenet -lOpenAL32 -llibvorbisfile -lws2_32 -lwinmm
 else
 USRLIB=$(shell if [ -e /usr/lib64 ]; then echo "/usr/lib64"; else echo "/usr/lib"; fi)
-CLIENT_INCLUDES= $(INCLUDES) -I/usr/include `sdl-config --cflags` -idirafter ../include
-CLIENT_LIBS= -L../enet/.libs -lenet -L$(USRLIB) -lX11 `sdl-config --libs` -lSDL_image -lz -lGL -lopenal -lvorbisfile
+CLIENT_INCLUDES= $(INCLUDES) -I/usr/include `sdl2-config --cflags` -idirafter ../include
+CLIENT_LIBS= -L../enet/.libs -lenet -L$(USRLIB) -lX11 `sdl2-config --libs` -lSDL2_image -lz -lGL -lopenal -lvorbisfile
 endif
 
 CLIENT_OBJS= \
@@ -131,7 +134,6 @@ SERVER_OBJS= \
 	tools-standalone.o \
 	wizard-standalone.o
 MASTER_OBJS= \
-	crypto-standalone.o \
 	stream-standalone.o \
 	command-standalone.o \
 	master-standalone.o

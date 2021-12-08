@@ -10,10 +10,8 @@ and other sources.
 AssaultCube Authors
 ==================
 
-Adrian 'driAn' Henke			drian at sprintf.org
-Andrew 'Arghvark' Davis			arghvark at gmail.com
-Lee 'Eihrul' Salzman			
-stef
+Please see the the credits in the in-game "about" menu.
+Please see the AssaultCube history here https://assault.cubers.net/docs/history.html
 
 
 Cube Engine Authors

@@ -5,7 +5,6 @@
 
 int nextmode = 0;   // nextmode becomes gamemode after next map load
 VAR(gamemode, 1, 0, 0);
-VAR(nextGameMode, 1, 0, 0);
 VARP(modeacronyms, 0, 1, 1);
 
 flaginfo flaginfos[2];
@@ -15,8 +14,6 @@ mapdim_s clmapdims;     // min/max X/Y and delta X/Y and min/max Z
 void mode(int *n)
 {
     nextmode = *n;
-    nextGameMode = nextmode;
-    if(m_mp(*n) || !multiplayer()) addmsg(SV_GAMEMODE, "ri", *n);
 }
 COMMAND(mode, "i");
 
@@ -32,6 +29,7 @@ int lasthit = 0;
 int curtime = 0;
 string clientmap = "";
 int spawnpermission = SP_WRONGMAP;
+int ispaused = 0;
 
 char *getclientmap() { return clientmap; }
 
@@ -45,26 +43,26 @@ void setskin(playerent *pl, int skin, int team)
     pl->setskin(team, skin);
 }
 
-extern char *global_name;
-
 bool duplicatename(playerent *d, char *name = NULL)
 {
     if(!name) name = d->name;
     if(d!=player1 && !strcmp(name, player1->name) && !watchingdemo) return true;
     if(!strcmp(name, "you")) return true;
     loopv(players) if(players[i] && d!=players[i] && !strcmp(name, players[i]->name)) return true;
-    global_name = player1->name; // this certainly is not the best place to put this
     return false;
 }
 
 char *colorname(playerent *d, char *name, const char *prefix)
 {
     if(!name) name = d->name;
-    if(name[0] && !duplicatename(d, name)) return name;
+    bool isdname = duplicatename(d, name);
+    if(name[0] && !isdname && !getigraph(name + 1)) return name;
     static string cname[4];
+    string cnum = "";
     static int num = 0;
     num = (num + 1) % 4;
-    formatstring(cname[num])("%s%s \fs\f6(%d)\fr", prefix, name, d->clientnum);
+    if(!name[0] || isdname) formatstring(cnum)(" \f6(%d)", d->clientnum);
+    formatstring(cname[num])("%s%s\fs%s\fr", prefix, name, cnum);
     return cname[num];
 }
 
@@ -115,6 +113,7 @@ void ignore(int *cn)
     playerent *d = getclient(*cn);
     if(d && d != player1) d->ignored = true;
 }
+COMMAND(ignore, "i");
 
 void listignored()
 {
@@ -124,17 +123,20 @@ void listignored()
     if(*pl) conoutf("ignored players: %s", pl + 2);
     else conoutf("no players are ignored");
 }
+COMMAND(listignored, "");
 
 void clearignored(int *cn)
 {
     loopv(players) if(players[i] && (*cn < 0 || *cn == i)) players[i]->ignored = false;
 }
+COMMAND(clearignored, "i");
 
 void muteplayer(int *cn)
 {
     playerent *d = getclient(*cn);
     if(d && d != player1) d->muted = true;
 }
+COMMAND(muteplayer, "i");
 
 void listmuted()
 {
@@ -144,17 +146,12 @@ void listmuted()
     if(*pl) conoutf("muted players: %s", pl + 2);
     else conoutf("no players are muted");
 }
+COMMAND(listmuted, "");
 
 void clearmuted(char *cn)
 {
     loopv(players) if(players[i] && (*cn < 0 || *cn == i)) players[i]->muted = false;
 }
-
-COMMAND(ignore, "i");
-COMMAND(listignored, "");
-COMMAND(clearignored, "i");
-COMMAND(muteplayer, "i");
-COMMAND(listmuted, "");
 COMMAND(clearmuted, "i");
 
 void newname(const char *name)
@@ -171,6 +168,7 @@ void newname(const char *name)
     }
     else conoutf("your name is: %s", player1->name);
 }
+COMMANDN(name, newname, "s");
 
 SVARFF(curname, { curname = exchangestr(curname, player1->name); }, {} );
 
@@ -191,12 +189,14 @@ void newteam(char *name)
     }
     else conoutf("your team is: %s", team_string(player1->team));
 }
+COMMANDN(team, newteam, "s");
 
 void benchme()
 {
     if(team_isactive(player1->team) && servstate.mastermode == MM_MATCH)
         addmsg(SV_SWITCHTEAM, "ri", team_tospec(player1->team));
 }
+COMMAND(benchme, "");
 
 int _setskin(int s, int t)
 {
@@ -213,18 +213,16 @@ void curmodeattr(char *attr)
 {
     if(!strcmp(attr, "team")) { intret(m_teammode); return; }
     else if(!strcmp(attr, "arena")) { intret(m_arena); return; }
-    else if(!strcmp(attr, "flag")) { intret(m_flags); return; }
+    else if(!strcmp(attr, "flag")) { intret(m_flags_); return; }
     else if(!strcmp(attr, "bot")) { intret(m_botmode); return; }
     intret(0);
 }
+COMMAND(curmodeattr, "s");
 
-COMMANDN(team, newteam, "s");
-COMMANDN(name, newname, "s");
-COMMAND(benchme, "");
 COMMANDF(isclient, "i", (int *cn) { intret(getclient(*cn) != NULL ? 1 : 0); } );
 COMMANDF(curmastermode, "", (void) { intret(servstate.mastermode); });
 COMMANDF(curautoteam, "", (void) { intret(servstate.autoteam); });
-COMMAND(curmodeattr, "s");
+COMMANDF(curpausemode, "", (void) { intret(ispaused); });
 COMMANDF(curmap, "", (void) { result(behindpath(getclientmap())); });
 COMMANDF(curplayers, "", (void) { intret(players.length() + 1); });
 VARP(showscoresondeath, 0, 1, 1);
@@ -285,7 +283,6 @@ void playerinfo(int *cn, const char *attr)
     ATTR_INT(role, p->clientrole);
     ATTR_INT(frags, p->frags);
     ATTR_INT(flags, p->flagscore);
-    ATTR_INT(points, p->points);
     ATTR_INT(deaths, p->deaths);
     ATTR_INT(tks, p->tks);
     ATTR_INT(alive, p->state == CS_ALIVE ? 1 : 0);
@@ -295,11 +292,8 @@ void playerinfo(int *cn, const char *attr)
     ATTR_INT(skin_rvsf, p->skin(TEAM_RVSF));
     ATTR_INT(skin, p->skin(player1->team));
 
-    string addrstr = "";
-    uint2ip(p->address, addr);
-    if(addr[3] != 0 || player1->clientrole==CR_ADMIN)
-        formatstring(addrstr)("%d.%d.%d.%d", addr[0], addr[1], addr[2], addr[3]); // full IP
-    else formatstring(addrstr)("%d.%d.%d.x", addr[0], addr[1], addr[2]); // censored IP
+    string addrstr;
+    iptoa(p->address, addrstr);
     ATTR_STR(ip, addrstr);
 
     conoutf("invalid attribute: %s", attr);
@@ -326,7 +320,6 @@ void teaminfo(const char *team, const char *attr)
     int t_flags = 0;
     int t_frags = 0;
     int t_deaths = 0;
-    int t_points = 0;
 
     string teammembers = "";
 
@@ -334,7 +327,6 @@ void teaminfo(const char *team, const char *attr)
     {
         t_frags += players[i]->frags;
         t_deaths += players[i]->deaths;
-        t_points += players[i]->points;
         t_flags += players[i]->flagscore;
         concatformatstring(teammembers, "%d ", players[i]->clientnum);
     }
@@ -343,7 +335,6 @@ void teaminfo(const char *team, const char *attr)
     {
         t_frags += discscores[i].frags;
         t_deaths += discscores[i].deaths;
-        t_points += discscores[i].points;
         t_flags += discscores[i].flags;
     }
 
@@ -351,7 +342,6 @@ void teaminfo(const char *team, const char *attr)
     {
         t_frags += player1->frags;
         t_deaths += player1->deaths;
-        t_points += player1->points;
         t_flags += player1->flagscore;
         concatformatstring(teammembers, "%d ", player1->clientnum);
     }
@@ -359,7 +349,6 @@ void teaminfo(const char *team, const char *attr)
     ATTR_INT(flags, t_flags);
     ATTR_INT(frags, t_frags);
     ATTR_INT(deaths, t_deaths);
-    ATTR_INT(points, t_points);
     ATTR_STR(name, team_string(t));
     ATTR_STR(players, teammembers);
     conoutf("invalid attribute: %s", attr);
@@ -373,7 +362,6 @@ const char *currentserver(int i) // [client version]
     // using the curpeer directly we can get the info of our currently connected server
     string r;
     r[0] = '\0';
-    extern ENetPeer *curpeer;
     if(curpeer)
     {
         switch(i)
@@ -453,10 +441,10 @@ void deathstate(playerent *pl)
     {
         if(showscoresondeath) showscores(true);
         setscope(false);
-        setburst(false);
         if(editmode) toggleedit(true);
         if(pl->team == TEAM_SPECT) spectatemode(SM_FLY);
         else if(team_isspect(pl->team)) spectatemode(SM_FOLLOW1ST);
+        if(pl->spectatemode == SM_DEATHCAM) addmsg(SV_SPECTCN, "ri", (player1->followplayercn = FPCN_DEATHCAM));
     }
     else pl->resetinterp();
 }
@@ -468,7 +456,6 @@ void spawnstate(playerent *d)              // reset player state not persistent 
     if(d==player1)
     {
         setscope(false);
-        setburst(false);
     }
     if(d->deaths==0) d->resetstats();
 }
@@ -529,7 +516,8 @@ void zapplayer(playerent *&d)
 
 void movelocalplayer()
 {
-    if(player1->state==CS_DEAD && !player1->allowmove())
+    if(ispaused && player1->state == CS_ALIVE) return;
+    if(!player1->allowmove())
     {
         if(lastmillis-player1->lastpain<2000)
         {
@@ -577,7 +565,7 @@ void moveotherplayers()
     {
         playerent *d = players[i];
         const int lagtime = totalmillis-d->lastupdate;
-        if(!lagtime || intermission) continue;
+        if(!lagtime || intermission || ispaused) continue;
         else if(lagtime>1000 && d->state==CS_ALIVE)
         {
             d->state = CS_LAGGED;
@@ -625,13 +613,13 @@ int lastspawnattempt = 0;
 
 void showrespawntimer()
 {
-    if(intermission || spawnpermission > SP_OK_NUM) return;
+    if(intermission || ispaused || spawnpermission > SP_OK_NUM) return;
     if(m_arena)
     {
         if(!arenaintermission) return;
         showhudtimer(5, arenaintermission, "FIGHT!", lastspawnattempt >= arenaintermission && lastmillis < lastspawnattempt+100);
     }
-    else if(player1->state==CS_DEAD && m_flags && (!player1->isspectating() || player1->spectatemode==SM_DEATHCAM))
+    else if(player1->state==CS_DEAD && m_flags_ && (!player1->isspectating() || player1->spectatemode==SM_DEATHCAM))
     {
         int secs = 5;
         showhudtimer(secs, player1->lastdeath, "READY!", lastspawnattempt >= arenaintermission && lastmillis < lastspawnattempt+100);
@@ -657,6 +645,7 @@ void addsleep_(int *msec, char *cmd, int *persist)
 {
     addsleep(*msec, cmd, *persist != 0);
 }
+COMMANDN(sleep, addsleep_, "isi");
 
 void resetsleep(bool force)
 {
@@ -669,7 +658,6 @@ void resetsleep(bool force)
     sleepssemaphore->post();
 }
 
-COMMANDN(sleep, addsleep_, "isi");
 COMMANDF(resetsleeps, "", (void) { resetsleep(true); });
 
 void updateworld(int curtime, int lastmillis)        // main game update loop
@@ -800,22 +788,12 @@ void respawnself()
         }
         showscores(false);
         setscope(false);
-        setburst(false);
         lasthit = 0;
         spawnplayer(player1);
         player1->lifesequence++;
         player1->weaponswitch(player1->primweap);
         player1->weaponchanging -= player1->weapons[player1->gunselect]->weaponchangetime/2; // 2011jan16:ft: for a little no-shoot after spawn
     }
-}
-
-extern int checkarea(int maplayout_factor, char *maplayout);
-extern int MA;
-extern float Mh;
-
-bool bad_map() // this function makes a pair with good_map from clients2c
-{
-    return (gamemode != GMODE_COOPEDIT && ( Mh >= MAXMHEIGHT || MA >= MAXMAREA ));
 }
 
 inline const char * spawn_message()
@@ -839,11 +817,7 @@ int waiting_permission = 0;
 
 bool tryrespawn()
 {
-    if(m_mp(gamemode) && multiplayer(NULL) && bad_map())
-    {
-        hudoutf("This map is not supported in multiplayer. Read the docs about map quality/dimensions.");
-    }
-    else if(spawnpermission > SP_OK_NUM)
+    if(spawnpermission > SP_OK_NUM)
     {
         hudeditf(HUDMSG_TIMER, "\f%s", spawn_message());
     }
@@ -856,7 +830,7 @@ bool tryrespawn()
         }
         else
         {
-            int respawnmillis = player1->lastdeath + (m_arena ? 0 : (m_flags ? 5000 : 2000));
+            int respawnmillis = player1->lastdeath + (m_arena ? 0 : (m_flags_ ? 5000 : 2000));
             if(lastmillis>respawnmillis)
             {
                 player1->attacking = false;
@@ -928,10 +902,8 @@ COMMANDF(burstshots, "si", (char *gun, int *shots)
 
 void dodamage(int damage, playerent *pl, playerent *actor, int gun, bool gib, bool local)
 {
-    if(pl->state != CS_ALIVE || intermission) return;
+    if(pl->state != CS_ALIVE || intermission || ispaused) return;
     pl->lastpain = lastmillis;
-    // could the author of the FIXME below please elaborate what's to fix?! (ft:2011mar28)
-    // I suppose someone wanted to play the hitsound for player1 or spectated player (lucas:2011may22)
     playerent *h = player1->isspectating() && player1->followplayercn >= 0 && (player1->spectatemode == SM_FOLLOW1ST || player1->spectatemode == SM_FOLLOW3RD || player1->spectatemode == SM_FOLLOW3RD_TRANSPARENT) ? getclient(player1->followplayercn) : NULL;
     if(!h) h = player1;
     exechook(HOOK_SP, "onHit", "%d %d %d %d %d", actor->clientnum, pl->clientnum, damage, gun, gib ? 1 : 0);
@@ -969,10 +941,9 @@ void dokill(playerent *pl, playerent *act, bool gib, int gun)
 
     exechook(HOOK_SP, "onKill", "%d %d %d %d", act->clientnum, pl->clientnum, gun, gib ? 1 : 0);
 
-    string pname, aname, death;
-    copystring(pname, pl==player1 ? "you" : colorname(pl));
-    copystring(aname, act==player1 ? "you" : colorname(act));
-    copystring(death, killmessage(gun, gib));
+    const char *pname = pl == player1 ? "you" : colorname(pl);
+    const char *aname = act == player1 ? "you" : colorname(act);
+    const char *death = killmessage(gun, gib);
     void (*outf)(const char *s, ...) = (pl == player1 || act == player1) ? hudoutf : conoutf;
 
     if(pl==act)
@@ -1033,6 +1004,7 @@ void silenttimeupdate(int milliscur, int millismax)
 
 void timeupdate(int milliscur, int millismax)
 {
+    if (ispaused) return;
     static int lastgametimedisplay = 0;
 
     silenttimeupdate(milliscur, millismax);
@@ -1176,29 +1148,12 @@ void resetmap(bool mrproper)
 }
 
 int suicided = -1;
-extern bool good_map();
-extern bool item_fail;
-extern int MA, F2F, Ma, Hhits;
-extern float Mh;
-
-VARP(mapstats_hud, 0, 0, 1);
-
-void showmapstats()
-{
-    conoutf("\f2Map Quality Stats");
-    conoutf("  The mean height is: %.2f", Mh);
-    if (Hhits) conoutf("  Height check is: %d", Hhits);
-    if (MA) conoutf("  The max area is: %d (of %d)", MA, Ma);
-    if (m_flags && F2F < 1000) conoutf("  Flag-to-flag distance is: %d", (int)sqrtf(F2F));
-    if (item_fail) conoutf("  There are one or more items too close to each other in this map");
-}
-COMMAND(showmapstats, "");
 
 VARP(showmodedescriptions, 0, 1, 1);
-extern bool canceldownloads;
 
 void startmap(const char *name, bool reset, bool norespawn)   // called just after a map load
 {
+    extern bool canceldownloads;
     canceldownloads = false;
     copystring(clientmap, name);
 
@@ -1207,21 +1162,20 @@ void startmap(const char *name, bool reset, bool norespawn)   // called just aft
     sendmapidenttoserver = true;
     if(m_botmode) BotManager.BeginMap(name);
     else kickallbots();
+    showmipstats = false;
     clearbounceents();
-    preparectf(!m_flags);
+    preparectf(!m_flags_);
     suicided = -1;
     spawncycle = -1;
     lasthit = 0;
-    player1->followplayercn = -1;
     if(m_valid(gamemode) && !m_mp(gamemode)) respawnself();
     else findplayerstart(player1);
-    if(good_map()==MAP_IS_BAD) conoutf("You cannot play in this map due to quality requisites. Please, report this incident.");
-    if (mapstats_hud) showmapstats();
+	editingsettingsshowminimal = true; // 1st edittoggle shows edithideentmask(!=0); turned off health pickups last session 2 months ago? now you remember!
 
     if(!reset) return;
 
-    player1->frags = player1->flagscore = player1->deaths = player1->lifesequence = player1->points = player1->tks = 0;
-    loopv(players) if(players[i]) players[i]->frags = players[i]->flagscore = players[i]->deaths = players[i]->lifesequence = players[i]->points = players[i]->tks = 0;
+    player1->startmap();
+    loopv(players) if(players[i]) players[i]->startmap();
     if(editmode) toggleedit(true);
     intermission = false;
     showscores(false);
@@ -1232,6 +1186,7 @@ void startmap(const char *name, bool reset, bool norespawn)   // called just aft
     minutesremaining = -1;
     lastgametimeupdate = 0;
     arenaintermission = 0;
+    ispaused = 0;
     bool noflags = (m_ctf || m_ktf) && !clentstats.hasflags;
     if(*clientmap) conoutf("game mode is \"%s\"%s", modestr(gamemode, modeacronyms > 0), noflags ? " - \f2but there are no flag bases on this map" : "");
 
@@ -1258,7 +1213,7 @@ void startmap(const char *name, bool reset, bool norespawn)   // called just aft
 
 void suicide()
 {
-    if(player1->state == CS_ALIVE && suicided!=player1->lifesequence)
+    if(player1->state == CS_ALIVE && suicided!=player1->lifesequence && !ispaused)
     {
         addmsg(SV_SUICIDE, "r");
         suicided = player1->lifesequence;
@@ -1297,6 +1252,7 @@ void flagmsg(int flag, int message, int actor, int flagtime)
             }
             else hudoutf("\f2%s%s has %s flag", flagteam, colorname(act), teamstr);
             break;
+
         case FM_LOST:
         case FM_DROP:
         {
@@ -1315,6 +1271,7 @@ void flagmsg(int flag, int message, int actor, int flagtime)
             if(firstperson) hudoutf("\f2you returned your flag");
             else hudoutf("\f2%s returned %s flag", colorname(act), teamstr);
             break;
+
         case FM_SCORE:
             audiomgr.playsound(S_FLAGSCORE, SP_HIGHEST);
             if(firstperson)
@@ -1324,6 +1281,7 @@ void flagmsg(int flag, int message, int actor, int flagtime)
             }
             else hudoutf("\f2%s scored for %s", colorname(act), neutral ? teamnames[act->team] : teammate ? "your team" : "the enemy team");
             break;
+
         case FM_KTFSCORE:
         {
             audiomgr.playsound(S_KTFSCORE, SP_HIGHEST);
@@ -1340,6 +1298,7 @@ void flagmsg(int flag, int message, int actor, int flagtime)
         case FM_SCOREFAIL: // sound?
             hudoutf("\f2%s failed to score (own team flag not taken)", firstperson ? "you" : colorname(act));
             break;
+
         case FM_RESET:
             audiomgr.playsound(S_FLAGRETURN, SP_HIGHEST);
             hudoutf("the server reset the flag");
@@ -1358,7 +1317,7 @@ COMMAND(dropflag, "");
 
 char *votestring(int type, const char *arg1, const char *arg2, const char *arg3)
 {
-    const char *msgs[] = { "kick player %s, reason: %s", "ban player %s, reason: %s", "remove all bans", "set mastermode to %s", "%s autoteam", "force player %s to team %s", "give admin to player %s", "load map %s in mode %s%s%s", "%s demo recording for the next match", "stop demo recording", "clear all demos", "set server description to '%s'", "shuffle teams"};
+    const char *msgs[] = { "kick player %s, reason: %s", "ban player %s, reason: %s", "remove all bans", "set mastermode to %s", "%s autoteam", "force player %s to team %s", "give admin to player %s", "load map %s in mode %s%s%s", "%s demo recording for the next match", "stop demo recording", "clear all demos", "set server description to '%s'", "shuffle teams", "%s the game" };
     const char *msg = msgs[type];
     char *out = newstring(MAXSTRLEN);
     out[MAXSTRLEN] = '\0';
@@ -1417,6 +1376,9 @@ char *votestring(int type, const char *arg1, const char *arg2, const char *arg3)
         case SA_SERVERDESC:
             formatstring(out)(msg, arg1);
             break;
+        case SA_PAUSE:
+            formatstring(out)(msg, atoi(arg1) == 1 ? "pause" : "resume");
+            break;
         default:
             formatstring(out)(msg, arg1, arg2);
             break;
@@ -1474,11 +1436,10 @@ void callvote(int type, const char *arg1, const char *arg2, const char *arg3)
                 putint(p, atoi(arg1));
                 putint(p, atoi(arg2));
                 break;
+            case SA_PAUSE:
+                putint(p, atoi(arg1));
+                break;
             default:
-
-
-
-
                 putint(p, atoi(arg1));
                 break;
         }
@@ -1501,6 +1462,18 @@ void scallvote(int *type, const char *arg1, const char *arg2)
                 //  really be replaced with a saner method
                 defformatstring(m)("%d", nextmode);
                 callvote(t, arg1, m, arg2);
+                break;
+            }
+            case SA_PAUSE:
+            {
+                if (!arg1 || !isdigit(arg1[0]) || !multiplayer(NULL))
+                {
+                    if(!multiplayer(NULL))
+                        conoutf("\f3pause is not available in singleplayer.");
+                    else if (arg1 && !isdigit(arg1[0])) conoutf("\f3invalid vote");
+                    break;
+                }
+                callvote(t, arg1, arg2);
                 break;
             }
             case SA_KICK:
@@ -1638,6 +1611,19 @@ COMMAND(gonext, "i");
 COMMANDN(callvote, scallvote, "iss"); //fixme,ah
 COMMANDF(vote, "i", (int *v) { vote(*v); });
 
+void cmd_pause(int* arg1)
+{
+    if(*arg1 != 0 && *arg1 != 1) return;
+    if(servstate.mastermode != MM_MATCH && servstate.mastermode != MM_PRIVATE)
+    {
+        conoutf("You may only pause the game in mastermode private or match.");
+        return;
+    }
+    defformatstring(m)("%d", *arg1);
+    callvote(SA_PAUSE, m, "-1", "0");
+}
+COMMANDN(pause, cmd_pause, "i");
+
 void cleanplayervotes(playerent *p)
 {
     if(calledvote && calledvote->owner==p) calledvote->owner = NULL;
@@ -1646,16 +1632,21 @@ void cleanplayervotes(playerent *p)
 
 void whois(int *cn)
 {
+    string tmp;
     loopv(players) if(players[i] && players[i]->type == ENT_PLAYER && (*cn == -1 || players[i]->clientnum == *cn))
     {
         playerent *p = players[i];
-        uint2ip(p->address, ip);
-        if(ip[3] != 0 || player1->clientrole==CR_ADMIN)
-            conoutf("WHOIS client %d:\tname %s , IP %d.%d.%d.%d , %d teamkill%s", p->clientnum, colorname(p), ip[0], ip[1], ip[2], ip[3], p->tks, p->tks == 1 ? "" : "s"); // full IP
-        else conoutf("WHOIS client %d:\tname %s , IP %d.%d.%d.x , %d teamkill%s", p->clientnum, colorname(p), ip[0], ip[1], ip[2], p->tks, p->tks == 1 ? "" : "s"); // censored IP
+        conoutf("WHOIS client %d:\tname %s , IP %s , %d teamkill%s", p->clientnum, colorname(p), iptoa(p->address, tmp), p->tks, p->tks == 1 ? "" : "s"); // full IP
     }
 }
 COMMAND(whois, "i");
+
+void getvita(int *cn)
+{
+    addmsg(SV_GETVITA, "ri", *cn);
+}
+COMMAND(getvita, "i");
+
 
 void findcn(char *name)
 {
@@ -1680,8 +1671,9 @@ void setadmin(int *claim, char *password)
     }
     else if(*claim != 0 && *password)
         addmsg(SV_SETADMIN, "ris", *claim, genpwdhash(player1->name, password, sessionid));
+    else if(*claim != 0)
+        addmsg(SV_SETADMIN, "ri", *claim);
 }
-
 COMMAND(setadmin, "is");
 
 static vector<mline> mlines;
@@ -1729,6 +1721,7 @@ playerent *updatefollowplayer(int shiftdirection)
     if(oldidx < 0) oldidx = 0;
     int idx = ((oldidx + shiftdirection) % available.length() + available.length()) % available.length();
 
+    if(player1->followplayercn != available[idx]->clientnum) addmsg(SV_SPECTCN, "ri", available[idx]->clientnum);
     player1->followplayercn = available[idx]->clientnum;
     return players[player1->followplayercn];
 }
@@ -1739,7 +1732,6 @@ void spectate()
     if(!team_isspect(player1->team)) addmsg(SV_SWITCHTEAM, "ri", TEAM_SPECT);
     else tryrespawn();
 }
-
 COMMAND(spectate, "");
 
 void setfollowplayer(int cn)
@@ -1749,27 +1741,35 @@ void setfollowplayer(int cn)
     {
         if(!(m_teammode && player1->team != TEAM_SPECT && !watchingdemo && team_base(players[cn]->team) != team_base(player1->team)))
         {
-            player1->followplayercn = cn;
+            if(player1->followplayercn != cn) addmsg(SV_SPECTCN, "ri", (player1->followplayercn = cn));
             if(player1->spectatemode == SM_FLY) player1->spectatemode = SM_FOLLOW1ST;
         }
     }
 }
-
 COMMANDF(setfollowplayer, "i", (int *cn) { setfollowplayer(*cn); });
+
+// SM_OVERVIEW shows all players and their activity - could be used unfairly, possible TODO: allow restricting access by server config and votes 
+bool smoverviewflyforbidden()
+{
+    return (player1->team != TEAM_SPECT && !watchingdemo);
+}
 
 // set new spect mode
 void spectatemode(int mode)
 {
     if((player1->state != CS_DEAD && player1->state != CS_SPECTATE && !team_isspect(player1->team)) || (!m_teammode && !team_isspect(player1->team) && servstate.mastermode == MM_MATCH)) return;  // during ffa matches only SPECTATORS can spectate
     if(mode == player1->spectatemode || (m_botmode && mode != SM_FLY)) return;
+    if((mode == SM_OVERVIEW || mode == SM_FLY) && smoverviewflyforbidden()) return;
     showscores(false);
     switch(mode)
     {
+        case SM_DEATHCAM:
         case SM_FOLLOW1ST:
         case SM_FOLLOW3RD:
         case SM_FOLLOW3RD_TRANSPARENT:
         {
             if(players.length() && updatefollowplayer()) break;
+            else if (smoverviewflyforbidden()) mode = SM_DEATHCAM;
             else mode = SM_FLY;
         }
         case SM_FLY:
@@ -1785,16 +1785,17 @@ void spectatemode(int mode)
                     player1->resetinterp();
                 }
                 else entinmap(player1); // or drop 'em at a random place
+                addmsg(SV_SPECTCN, "ri", (player1->followplayercn = FPCN_FLY));
             }
             break;
         }
         case SM_OVERVIEW:
+            addmsg(SV_SPECTCN, "ri", (player1->followplayercn = FPCN_OVERVIEW));
             break;
         default: break;
     }
     player1->spectatemode = mode;
 }
-
 COMMANDF(spectatemode, "i", (int *mode) { spectatemode(*mode); });
 
 void togglespect() // cycle through all spectating modes
@@ -1805,19 +1806,17 @@ void togglespect() // cycle through all spectating modes
     {
         int mode;
         if(player1->spectatemode==SM_NONE) mode = SM_FOLLOW1ST; // start with 1st person spect
-        else mode = SM_FOLLOW1ST + ((player1->spectatemode - SM_FOLLOW1ST + 1) % (SM_OVERVIEW-SM_FOLLOW1ST)); // replace SM_OVERVIEW by SM_NUM to enable overview mode
+        else mode = SM_FOLLOW1ST + ((player1->spectatemode - SM_FOLLOW1ST + 1) % ((smoverviewflyforbidden() ? SM_FLY : SM_NUM/*SM_OVERVIEW*/)-SM_FOLLOW1ST)); // replace SM_OVERVIEW by SM_NUM to enable overview mode
         spectatemode(mode);
     }
 }
-
 COMMAND(togglespect, "");
 
-void changefollowplayer(int shift)
+void changefollowplayer(int *shift)
 {
-    if(!m_botmode) updatefollowplayer(shift);
+    if(!m_botmode) updatefollowplayer(*shift);
 }
-
-COMMANDF(changefollowplayer, "i", (int *dir) { changefollowplayer(*dir); });
+COMMAND(changefollowplayer, "i");
 
 void spectatecn()
 {
@@ -1826,7 +1825,6 @@ void spectatecn()
         spectcn = player1->followplayercn;
     intret(spectcn);
 }
-
 COMMAND(spectatecn, "");
 
 void serverextension(char *ext, char *args)
@@ -1836,5 +1834,4 @@ void serverextension(char *ext, char *args)
     if(n>0) addmsg(SV_EXTENSION, "rsis", ext, n, args);
     else addmsg(SV_EXTENSION, "rsi", ext, n);
 }
-
 COMMAND(serverextension, "ss");

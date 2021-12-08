@@ -11,7 +11,7 @@ See also https://github.com/assaultcube/assaultcube.github.io/blob/master/README
 
 II. AssaultCube ("AC" repository - "master" branch):
 
-1. Transform docs/reference.xml in assaultcube.github.io repository into docs.cfg, copy it to config/ folder in AC repository.
+1. Transform docs/reference.xml in assaultcube.github.io repository into docs.cfg, copy it to config/ folder in AC repository. See reference.xml source for how to transform it.
 2. Make sure that config/pcksources.cfg contains only trusted package source servers, if not, update them.
 3. Replace maps in packages/maps/official folder by newer dev_* maps from packages/maps/ folder.
 4. Check, whether in packages/maps/official/preview/ folder there are preview .jpg files for new official maps, if missing, add them.

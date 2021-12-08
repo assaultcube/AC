@@ -187,7 +187,7 @@ void loadcrosshair(const char *type, const char *filename)
     }
     else if(strchr(type, '.'))
     {   // old syntax "loadcrosshair filename type", remove this in 2020
-        const char *oldcrosshairnames[CROSSHAIR_NUM + 1] = { "default", "teammate", "scope", "knife", "pistol", "carbine", "shotgun", "smg", "sniper", "ar", "cpistol", "grenades", "akimbo", "" };
+        const char *oldcrosshairnames[CROSSHAIR_NUM + 1] = { "default", "teammate", "scope", "knife", "pistol", "carbine", "shotgun", "smg", "sniper", "ar", "grenades", "akimbo", "" };
         index = getlistindex(filename, oldcrosshairnames, false, 0);
         if(index > 2) index -= 3;
         else index += NUMGUNS;
@@ -211,6 +211,7 @@ COMMAND(loadcrosshair, "ss");
 
 void drawcrosshair(playerent *p, int n, color *c, float size)
 {
+    if (cleanedit && editmode) return;
     Texture *crosshair = crosshairs[n];
     if(!crosshair)
     {
@@ -248,6 +249,7 @@ VARP(damageindicatordist, 0, 500, 10000);
 VARP(damageindicatortime, 1, 1000, 10000);
 VARP(damageindicatoralpha, 1, 50, 100);
 int damagedirections[8] = {0};
+void *damageindicatorplayer = NULL;
 
 void updatedmgindicator(playerent *p, vec &attack)
 {
@@ -255,9 +257,10 @@ void updatedmgindicator(playerent *p, vec &attack)
     vec base_d = p->o;
     base_d.sub(attack);
     damagedirections[(int(742.5f - p->yaw - base_d.anglexy()) / 45) & 0x7] = lastmillis + damageindicatortime;
+    damageindicatorplayer = p;
 }
 
-void drawdmgindicator()
+void drawdmgindicator(playerent *p)
 {
     if(!damageindicatorsize) return;
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -334,11 +337,11 @@ void drawequipicons(playerent *p)
     // health & armor
     if(p->armour) drawequipicon(HUDPOS_ARMOUR*2, 1650, (p->armour-1)/25, 2);
     drawequipicon(HUDPOS_HEALTH*2, 1650, 2, 3);
-    if(p->mag[GUN_GRENADE]) drawequipicon(oldfashionedgunstats ? (HUDPOS_GRENADE + 25)*2 : HUDPOS_GRENADE*2, 1650, 3, 1);
+    if(p->mag[GUN_GRENADE]) drawequipicon(oldfashionedgunstats ? (HUDPOS_GRENADE + (((float)screenw / (float)screenh > 1.5f) ? 75 : 25)) * 2 : HUDPOS_GRENADE*2, 1650, 3, 1);
 
     // weapons
     int c = p->weaponsel->type != GUN_GRENADE ? p->weaponsel->type : getprevweaponsel(p), r = 0;
-    if(c==GUN_AKIMBO || c==GUN_CPISTOL) c = GUN_PISTOL; // same icon for akimb & pistol
+    if(c==GUN_AKIMBO) c = GUN_PISTOL; // same icon for akimb & pistol
     if(c>3) { c -= 4; r = 1; }
 
     if(p->weaponsel && valid_weapon(p->weaponsel->type)) drawequipicon(HUDPOS_WEAPON*2, 1650, c, r);
@@ -465,6 +468,7 @@ void drawradar_showmap(playerent *p, int w, int h)
     float iconsize = radarentsize/0.2f;
     glColor3f(1.0f, 1.0f, 1.0f);
     glPushMatrix();
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     bool spect3rd = p->spectatemode > SM_FOLLOW1ST && p->spectatemode <= SM_FOLLOW3RD_TRANSPARENT;
     playerent *d = spect3rd ? players[p->followplayercn] : p;
     int p_baseteam = p->team == TEAM_SPECT && spect3rd ? team_base(players[p->followplayercn]->team) : team_base(p->team);
@@ -517,7 +521,7 @@ void drawradar_showmap(playerent *p, int w, int h)
         vec rtmp = vec(pl->o).sub(mdd).mul(coordtrans);
         drawradarent(rtmp.x, rtmp.y, pl->yaw, pl->state==CS_ALIVE ? (isattacking(pl) ? 2 : 0) : 1, spect3rd && d == pl ? 2 : pl_baseteam, iconsize, isattacking(pl), "%s", colorname(pl));
     }
-    if(m_flags)
+    if(m_flags_)
     {
         glColor4f(1.0f, 1.0f, 1.0f, (sinf(lastmillis / 100.0f) + 1.0f) / 2.0f);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -540,7 +544,7 @@ void drawradar_showmap(playerent *p, int w, int h)
             }
             if(f.state == CTFF_STOLEN)
             {
-                if(m_teammode && !m_ktf && player1->team == TEAM_SPECT && p->spectatemode > SM_FOLLOW3RD_TRANSPARENT) continue;
+                if(m_teammode && !m_ktf && player1->team == TEAM_SPECT && (p->spectatemode == SM_DEATHCAM || p->spectatemode > SM_FOLLOW3RD_TRANSPARENT)) continue;
                 float d2c = 1.6f * radarentsize/16.0f;
                 vec apos(d2c, -d2c, 0);
                 if(f.actor)
@@ -590,6 +594,7 @@ void drawradar_vicinity(playerent *p, int w, int h)
     vec d4rc = vec(d->o).sub(rsd).normalize().mul(0);
     vec usecenter = vec(d->o).sub(rtr).sub(d4rc);
     glDisable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     circle(minimaptex, halfviewsize, halfviewsize, halfviewsize, usecenter.x/(float)gdim, usecenter.y/(float)gdim, scaleh, 31); //Draw mimimaptext as radar background
     glTranslatef(halfviewsize, halfviewsize, 0);
 
@@ -610,7 +615,7 @@ void drawradar_vicinity(playerent *p, int w, int h)
             drawradarent(rtmp.x, rtmp.y, pl->yaw, pl->state==CS_ALIVE ? (isattacking(pl) ? 2 : 0) : 1, spect3rd && d == pl ? 2 : pl_baseteam, iconsize, isattacking(pl), "%s", colorname(pl));
         }
     }
-    if(m_flags)
+    if(m_flags_)
     {
         glColor4f(1.0f, 1.0f, 1.0f, (sinf(lastmillis / 100.0f) + 1.0f) / 2.0f);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -644,7 +649,7 @@ void drawradar_vicinity(playerent *p, int w, int h)
             }
             if(f.state == CTFF_STOLEN)
             {
-                if(m_teammode && !m_ktf && player1->team == TEAM_SPECT && p->spectatemode > SM_FOLLOW3RD_TRANSPARENT) continue;
+                if(m_teammode && !m_ktf && player1->team == TEAM_SPECT && (p->spectatemode == SM_DEATHCAM || p->spectatemode > SM_FOLLOW3RD_TRANSPARENT)) continue;
                 vec apos(d2c, -d2c, 0);
                 if(f.actor)
                 {
@@ -724,51 +729,6 @@ inline char rangecolor(int val, const char *colors, int thres1, int thres2, int 
     return colors[3];
 }
 
-void drawmedals(float x, float y, int col, int row, Texture *tex)
-{
-    if(tex)
-    {
-        glPushAttrib(GL_COLOR_BUFFER_BIT);
-        glDisable(GL_BLEND);
-        drawicon(tex, x, y, 120, col, row, 1/4.0f);
-        glPopAttrib();
-    }
-}
-const char *medal_str[] =
-{
-    "Best Fragger", "Dude that dies a lot"
-}; //just some medals string tests, nothing serious
-extern bool medals_arrived;
-extern medalsst a_medals[END_MDS];
-void drawscores()
-{
-    static float time=0;
-    if(!medals_arrived) {time=0; return;} else if(time > 5){time=0; medals_arrived=0;}
-    static Texture *tex = NULL;
-    if(!tex) tex = textureload("packages/misc/nice_medals.png", 4);
-    time+=((float)(curtime))/1000;
-    float vw=VIRTW*7/4,vh=VIRTH*7/4;
-    glPushAttrib(GL_COLOR_BUFFER_BIT);
-    glLoadIdentity();
-    glOrtho(0, vw, vh, 0, -1, 1);
-    int left = vw/4, top = vh/4;
-    blendbox(left, top, left*3, top*3, true, -1);
-    top+=10;left+=10;const float txtdx=160,txtdy=30,medalsdy=130;
-    glColor4f(1,1,1,1);
-    float desttime=0;
-    loopi(END_MDS) {
-        if(a_medals[i].assigned) {
-            desttime+=0.3;
-            if(time < desttime) continue;
-            drawmedals(left, top, 0, 0, tex);
-            playerent *mpl = getclient(a_medals[i].cn);
-            draw_textf("%s %s: %d", left+txtdx, top+txtdy, medal_str[i], mpl->name, a_medals[i].item); top+=medalsdy;
-        }
-    }
-
-    glPopAttrib();
-}
-
 string enginestateinfo = "";
 COMMANDF(getEngineState, "", () { result(enginestateinfo); });
 
@@ -780,12 +740,19 @@ VAR(blankouthud, 0, 0, 10000); //for "clean" screenshot
 string gtime;
 int dimeditinfopanel = 255;
 
+const char *ghoststrings[] =
+{
+  "none", "deathcam", "chase 1st", "chase 3rd [O]", "chase 3rd [A]", "fly", "overview", ""
+};
+
 void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwater, int elapsed)
 {
     if(blankouthud > 0) { blankouthud -= elapsed; return; }
     else blankouthud = 0;
     playerent *p = camera1->type<ENT_CAMERA ? (playerent *)camera1 : player1;
     bool spectating = player1->isspectating();
+    bool is_spect = (player1->spectatemode >= SM_FOLLOW1ST && player1->spectatemode <= SM_FOLLOW3RD_TRANSPARENT &&
+        players.inrange(player1->followplayercn) && players[player1->followplayercn]);
 
     glDisable(GL_DEPTH_TEST);
 
@@ -844,14 +811,12 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         if(!editmode && !showmap) drawktfindicator(p);
     }
 
-    drawdmgindicator();
+    // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // without below condition it was always set in drawdmgindicator()
+    if(damageindicatorplayer == p || (is_spect && getclient(player1->followplayercn) == damageindicatorplayer)) drawdmgindicator(p);
 
     if(p->state==CS_ALIVE && !hidehudequipment) drawequipicons(p);
 
-    bool is_spect = (( player1->spectatemode==SM_FOLLOW1ST || player1->spectatemode==SM_FOLLOW3RD || player1->spectatemode==SM_FOLLOW3RD_TRANSPARENT ) &&
-            players.inrange(player1->followplayercn) && players[player1->followplayercn]);
-
-    if(!hideradar || showmap) drawradar(p, w, h);
+    if((!hideradar || showmap) && player1->spectatemode <= SM_FLY) drawradar(p, w, h);
     if(!editmode)
     {
         glMatrixMode(GL_MODELVIEW);
@@ -862,7 +827,15 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     char *infostr = editinfo();
     int commandh = HUDPOS_Y_BOTTOMLEFT + FONTH;
     if(command) commandh -= rendercommand(-1, HUDPOS_Y_BOTTOMLEFT, VIRTW - FONTH); // dryrun to get height
-    else if(infostr) draw_text(infostr, HUDPOS_X_BOTTOMLEFT, HUDPOS_Y_BOTTOMLEFT);
+    else if(infostr)
+    {
+        glPushMatrix();
+        glLoadIdentity();
+        glOrtho(0, VIRTW * 2, VIRTH * 2, 0, -1, 1);
+        glScalef(1.0, 1.0, 1.0); //set scale
+        draw_text(infostr, 48, VIRTH * 2 - 3 * FONTH);
+        glPopMatrix();
+    }
     else if(targetplayer && showtargetname) draw_text(colorname(targetplayer), HUDPOS_X_BOTTOMLEFT, HUDPOS_Y_BOTTOMLEFT);
     glLoadIdentity();
     glOrtho(0, VIRTW*2, VIRTH*2, 0, -1, 1);
@@ -906,11 +879,11 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             if(dbgpos)
             {
                 pushfont("mono");
-                formatstring(text)("%05.2f YAW", p->yaw);     draw_text(text, VIRTW*2 - ( text_width(text) + FONTH ), VIRTH*2 - 17*FONTH/2);
-                formatstring(text)("%05.2f PIT", p->pitch);   draw_text(text, VIRTW*2 - ( text_width(text) + FONTH ), VIRTH*2 - 15*FONTH/2);
-                formatstring(text)("%05.2f X  ", p->o.x);     draw_text(text, VIRTW*2 - ( text_width(text) + FONTH ), VIRTH*2 - 13*FONTH/2);
-                formatstring(text)("%05.2f Y  ", p->o.y);     draw_text(text, VIRTW*2 - ( text_width(text) + FONTH ), VIRTH*2 - 11*FONTH/2);
-                formatstring(text)("%05.2f Z  ", p->o.z);     draw_text(text, VIRTW*2 - ( text_width(text) + FONTH ), VIRTH*2 - 9*FONTH/2);
+                formatstring(text)("%05.2f YAW", camera1->yaw);     draw_text(text, VIRTW*2 - ( text_width(text) + FONTH ), VIRTH*2 - 17*FONTH/2);
+                formatstring(text)("%05.2f PIT", camera1->pitch);   draw_text(text, VIRTW*2 - ( text_width(text) + FONTH ), VIRTH*2 - 15*FONTH/2);
+                formatstring(text)("%05.2f X  ", camera1->o.x);     draw_text(text, VIRTW*2 - ( text_width(text) + FONTH ), VIRTH*2 - 13*FONTH/2);
+                formatstring(text)("%05.2f Y  ", camera1->o.y);     draw_text(text, VIRTW*2 - ( text_width(text) + FONTH ), VIRTH*2 - 11*FONTH/2);
+                formatstring(text)("%05.2f Z  ", camera1->o.z);     draw_text(text, VIRTW*2 - ( text_width(text) + FONTH ), VIRTH*2 - 9*FONTH/2);
                 popfont();
             }
             defformatstring(c_val)("fps %d", curfps);         draw_text(c_val, VIRTW*2 - ( text_width(c_val) + FONTH ), VIRTH*2 - 3*FONTH/2);
@@ -993,7 +966,11 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     //else draw_textf("%c%d here F1/F2 will be praised during a vote", 20*2, VIRTH+560, '\f', 0); // see position (left/top) setting in block above
 
     if(menu) rendermenu();
-    else if(command) renderdoc(40, VIRTH, max(commandh*2 - VIRTH, 0));
+    else if(command)
+	{
+		int offsetx = 40 + ((editmode && (showeditingsettings >= 2 || keepshowingeditingsettingstill)) ? ((showeditingsettings == 2 && keepshowingeditingsettingstill == 0) ? 2*VIRTW/32 : VIRTW/4) : 0);
+		renderdoc(offsetx, VIRTH, max(commandh*2 - VIRTH, 0));
+	}
 
     if(!hidespecthud && !menu && p->state==CS_DEAD && p->spectatemode<=SM_DEATHCAM)
     {
@@ -1004,8 +981,24 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         if(multiplayer(NULL) || watchingdemo) draw_textf("SCROLL to change player", left - (text_width("SCROLL to change player") + FONTH/2), top+80);
     }
 
-    extern void renderhudtexturepreviews();
-    if(editmode) renderhudtexturepreviews();
+    if(editmode)
+    {
+        extern void renderhudtexturepreviews();
+        extern void rendereditingsettings();
+        renderhudtexturepreviews();
+        rendereditingsettings();
+    }
+
+    if(ispaused)
+    {
+        glLoadIdentity();
+        const char* matchpaused = "MATCH PAUSED";
+        const double matchpausedfontfactor = 3 / 2.0f;
+        glOrtho(0, VIRTW * matchpausedfontfactor, VIRTH * matchpausedfontfactor, 0, -1, 1);
+        const int left = (VIRTW * matchpausedfontfactor) / 2 - text_width(matchpaused) / 2;
+        const int top = (VIRTH * matchpausedfontfactor) * 5 / 6;
+        draw_text(matchpaused, left, top);
+    }
 
     /* * /
     glLoadIdentity();
@@ -1025,20 +1018,31 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         glPopMatrix();
     }
 
-    drawscores();
     if(!hidespecthud && spectating && player1->spectatemode!=SM_DEATHCAM)
     {
         glLoadIdentity();
-        glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
+        glOrtho(0, VIRTW*2, VIRTH*2, 0, -1, 1);
+        int virtposx = (VIRTW*2)/40;
+        int virtposy = (VIRTH*2)/10;
         const char *specttext = "GHOST";
         if(player1->team == TEAM_SPECT) specttext = "GHOST";
         else if(player1->team == TEAM_CLA_SPECT) specttext = "[CLA]";
         else if(player1->team == TEAM_RVSF_SPECT) specttext = "[RVSF]";
-        draw_text(specttext, VIRTW/40, VIRTH/10*7);
+        draw_text(specttext, virtposx, virtposy*7);
+
+        extern bool smoverviewflyforbidden();
+        int lastvalid = smoverviewflyforbidden() ? SM_FLY : SM_OVERVIEW;
+        int smprev = player1->spectatemode > SM_FOLLOW1ST ? (player1->spectatemode - 1) : lastvalid;
+        int smnext = player1->spectatemode < lastvalid ? (player1->spectatemode + 1) : SM_FOLLOW1ST;
+        int gtoffx = 250; // static offset /hoping/ to be longer than the longest(!font?) specttext
+        draw_textf("\fZ%s", virtposx + gtoffx, virtposy*7 - FONTH, ghoststrings[smprev]);
+        draw_textf("\fY%s", virtposx + gtoffx, virtposy*7, ghoststrings[player1->spectatemode]);
+        draw_textf("\fZ%s", virtposx + gtoffx, virtposy*7 + FONTH, ghoststrings[smnext]);
+
         if(is_spect)
         {
             defformatstring(name)("Player %s", colorname(players[player1->followplayercn]));
-            draw_text(name, VIRTW/40, VIRTH/10*8);
+            draw_text(name, virtposx, virtposy*8);
         }
     }
 
@@ -1064,13 +1068,13 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             popfont();
         }
 
-        if((m_flags || m_teammode) && !hideteamscorehud)
+        if((m_flags_ || m_teammode) && !hideteamscorehud)
         {
             glLoadIdentity();
             glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
             glColor4f(1.0f, 1.0f, 1.0f, 0.2f);
             turn_on_transparency(255);
-            int scores[4], offs = m_flags ? 0 : 2;
+            int scores[4], offs = m_flags_ ? 0 : 2;
             calcteamscores(scores);
             const char *cc = scores[offs] > 99 || scores[offs + 1] > 99 ? "31" : "55";
 
@@ -1081,7 +1085,8 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
                 if(m_teammode)
                 {
                     defformatstring(count)("\f%c%d", cc[i], scores[i + offs]);
-                    draw_text(count, i * 120 + VIRTW / 4.0f * 3.0f + 60 - text_width(count) / 2, 1590);
+                    int countwidth = text_width(count);
+                    draw_text(count, i * 120 + VIRTW / 4.0f * 3.0f + (countwidth > 114 ? (i ? 3 : (120 - countwidth - 3)) : (60 - countwidth / 2)), 1590);
                 }
             }
             if(!offs)
@@ -1142,7 +1147,7 @@ void loadingscreen(const char *fmt, ...)
             draw_text(str, w>=VIRTW ? 0 : (VIRTW-w)/2, VIRTH*3/4);
             glDisable(GL_BLEND);
         }
-        SDL_GL_SwapBuffers();
+        SDL_GL_SwapWindow(screen);
     }
 
     glDisable(GL_TEXTURE_2D);
@@ -1218,6 +1223,5 @@ void show_out_of_renderloop_progress(float bar1, const char *text1, float bar2, 
     glPopMatrix();
 
     glEnable(GL_DEPTH_TEST);
-    SDL_GL_SwapBuffers();
+    SDL_GL_SwapWindow(screen);
 }
-

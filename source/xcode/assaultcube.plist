@@ -17,13 +17,9 @@
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>1.2.x.x</string>
+	<string>1.3.x.x</string>
 	<key>LSMinimumSystemVersionByArchitecture</key>
 	<dict>
-		<key>i386</key>
-		<string>10.4.0</string>
-		<key>ppc</key>
-		<string>10.4.0</string>
 		<key>x86_64</key>
 		<string>10.6.0</string>
 	</dict>

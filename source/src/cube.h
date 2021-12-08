@@ -18,6 +18,8 @@
  #include "console.h"
  enum
  {
+   SDL_AC_BUTTON_WHEELLEFT = -7,
+   SDL_AC_BUTTON_WHEELRIGHT = -6,
    SDL_AC_BUTTON_WHEELDOWN = -5,
    SDL_AC_BUTTON_WHEELUP = -4,
    SDL_AC_BUTTON_RIGHT = -3,
@@ -36,13 +38,16 @@ extern playerent *player1;              // special client ent that receives inpu
 extern vector<playerent *> players;     // all the other clients (in multiplayer)
 extern vector<bounceent *> bounceents;
 extern bool editmode;
+extern bool editingsettingsshowminimal;
+extern int keepshowingeditingsettingsfrom;
+extern int keepshowingeditingsettingstill;
+extern int editingsettingsvisibletime;
 extern int unsavededits;
 extern vector<entity> ents;             // map entities
 extern vec worldpos, camup, camright, camdir; // current target of the crosshair in the world
 extern int lastmillis, totalmillis, skipmillis; // last time
 extern int curtime;                     // current frame time
-extern int interm;
-extern int gamemode, nextmode;
+extern int gamemode;
 extern int gamespeed;
 extern int xtraverts;
 extern float fovy, aspect;
@@ -50,16 +55,27 @@ extern int farplane;
 extern bool minimap, reflecting, refracting;
 extern int stenciling, stencilshadow, effective_stencilshadow;
 extern bool intermission;
+extern int ispaused;
 extern int arenaintermission;
 extern hashtable<char *, enet_uint32> mapinfo;
 extern int hwtexsize, hwmaxaniso;
 extern int maploaded, msctrl;
 extern float waterlevel;
 
-#define AC_VERSION 1202
 #define AC_MASTER_URI "ms.cubers.net"
-#define AC_MASTER_PORT 28760
-#define MAXCL 16
+
+// uncomment this line for production release
+//#define PRODUCTION
+
+#ifdef PRODUCTION
+	#define AC_VERSION 1300
+	#define AC_MASTER_PORT 28760
+#else
+	#define AC_VERSION -(1300) 
+	#define AC_MASTER_PORT 28758
+#endif
+
+#define MAXCLIENTSONMASTER 16           // FIXME
 #define CONFIGROTATEMAX 5               // keep 5 old versions of saved.cfg and init.cfg around
 
 #define DEFAULT_FOG 180
