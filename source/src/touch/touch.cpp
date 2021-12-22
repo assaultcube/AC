@@ -27,10 +27,11 @@ extern bool sentvoicecom_public;
 extern bool sentvoicecom_team;
 extern char *weapstr(int i);
 
-VARP(volumeupattack, 0, 0, 1); // determines if volume-up key should be bound to attack
 VARP(onboarded, 0, 0, 1); // determines if the onboarding process has been completed
-VARP(touchoptionsanimation, 0, 1, 4 ); // show touchui options 0:linear, ease1-4 // TODO: settings slider
-VARP(touchoptionsanimationduration, 0, 500, 5000 ); // 0:off | TODO: settings slider - TODO @ RELEASE values more like: (0, 250, 750)
+VARP(touchoptionsanimation, 0, 1, 4 ); // show touchui options 0:linear, ease1-4
+VARP(touchoptionsanimationduration, 0, 500, 5000 ); // 0:off
+VARP(touchattackcontrol, 0, 0, 2); // determines the attack control, 0:double tap, 1:volume-up key, 2:button
+VARP(touchjumpcontrol, 0, 0, 1); // determines the jump control, 0:swipe, 1:button
 
 // ATM we only have voicecom options toggled in game@scoreboard scene
 int touchoptionstogglemillis = 0; // one timer for all, toggling a second ON after a first will jump-start that one.
@@ -150,7 +151,7 @@ void menuevent(SDL_Event *event) { touch.captureevent(event); }
 void rendertouchmenu() { touch.render(); }
 bool touchmenuvisible() { return touch.visible(); }
 void rendertouchhud(playerent *d) { touch.hud.draw(d); }
-bool hijackvolumebuttons() { return volumeupattack && !touchmenuvisible(); }
+bool hijackvolumebuttons() { return touchui::game.settings.attackcontrol == touchui::game::settings::attackcontroltype::VOLUMEUP && !touchmenuvisible(); }
 bool allowaskrating() { return touchmenuvisible() && numgamesplayed >= 5; }
 void checktouchinput() { touch.input.checkinput(); }
 

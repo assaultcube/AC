@@ -22,7 +22,6 @@ struct config
     } const MOVEMENTDIRECTIONS = FOUR_DIRECTIONS; // determines how many directions the movement control supports, 8 directions means you can strafe-run
     const int DOUBLE_TAP_MILLIS = 200; // determines the maximal amount of millis between two taps to identify the action as double-tap
     const char *DEFAULT_MAP = "ac_complex"; // determines the map to load when disconnecting
-    bool volumeupattack = false; // determines if the volume-up key binds to attack
     const char *TRAINING_MAP = "ac_desert"; // determines the map that is used for training
     const int PLAYOFFLINE_GAMEMODE = GMODE_BOTTEAMDEATHMATCH; // determines the game mode when playing offline
     const int PLAYOFFLINE_TIMELIMIT = -1; // determines the time limit when playing offline where -1 means default time limit

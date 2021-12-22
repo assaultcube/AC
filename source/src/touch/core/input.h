@@ -117,7 +117,9 @@ struct input
             keys.add(keyevent(event.type, TOUCH_GAME_CORNER_BOTTOM_RIGHT)); // toggle voicecom touchui
         }
         extern int touchoptionstogglestate;
-        if(touchoptionstogglestate == 2 ){ // only if the voicecom touchui is ready for tapping
+        if(touchoptionstogglestate == 2 )
+        {
+            // only if the voicecom touchui is ready for tapping
             // icontapped wants our touch-coord and the top-left corner of each icon
             // public voicecom : right edge
             if(icontapped( vfingerx, vfingery, touchEdgeRight, touchEdgeBottom - iconsizetwice))
@@ -161,24 +163,32 @@ struct input
 
         if(vfingerx >= VIRTW*4/8 - iconsize / 2 - icondiff)
         {
-            /*
-             * WIP touchkey "suicide" - for quick access to scoreboard & "between respawns" opportunities
-             * was CORNER BOTTOM_RIGHT now TOP_RIGHT
-             * FYI: 2*iconsize == 3 * iconsize/2 + air
-             */
-            if(vfingery < 2*iconsize) // top edge of screen
+            int touchkey = -1;
+
+            if(vfingery < 2*iconsize && vfingerx < VIRTW *5/8 + iconsize / 2 + icondiff)
+                touchkey = TOUCH_GAME_RIGHTSIDE_0;
+            else if(vfingery < 2*iconsize && vfingerx < VIRTW*6/8 + iconsize / 2 + icondiff )
+                touchkey = TOUCH_GAME_RIGHTSIDE_1;
+
+            if(vfingerx > VIRTW*15/16 - iconsize / 2 - icondiff && vfingerx < VIRTW*15/16 + iconsize / 2 + icondiff
+            && vfingery > VIRTH/2 - iconsize / 2 - icondiff && vfingery < VIRTH/2 + iconsize / 2 + icondiff)
+                touchkey = TOUCH_GAME_RIGHTSIDE_2;
+
+            if(game.settings.attackcontrol == game::settings::attackcontroltype::ATTACKBUTTON)
             {
-                int touchkey = -1;
-
-                if(vfingerx < VIRTW *5/8 + iconsize / 2 + icondiff) touchkey = TOUCH_GAME_RIGHTSIDE_TOP_0;
-                else if(vfingerx < VIRTW*6/8 + iconsize / 2 + icondiff) touchkey = TOUCH_GAME_RIGHTSIDE_TOP_1;
-                else if(vfingerx < VIRTW*7/8 + iconsize / 2 + icondiff) touchkey = TOUCH_GAME_RIGHTSIDE_TOP_2;
-
-                // todo: we might need an icon to show the scoreboard on demand, but currently we have too many buttons on the screen already
-                //else if(vfingerx > VIRTW - 2*iconsize) touchkey = TOUCH_GAME_CORNER_TOP_RIGHT;
-
-                if(touchkey >= 0) keys.add(keyevent(event.type, touchkey));
+                if(vfingerx > VIRTW*3/4 && vfingerx < VIRTW*3/4 + iconsize*3
+                   && vfingery > VIRTH*3/5 && vfingery < VIRTH*3/5 + iconsize*3)
+                    touchkey = TOUCH_GAME_RIGHTSIDE_3;
             }
+
+            if(game.settings.jumpcontrol == game::settings::jumpcontroltype::JUMPBUTTON)
+            {
+                if(vfingerx > VIRTW*6/8 - iconsize / 2 - icondiff && vfingerx < VIRTW*6/8 + iconsize / 2 + icondiff
+                   && vfingery > VIRTH - 2 * iconsize - icondiff && vfingery < VIRTH - iconsize + icondiff)
+                    touchkey = TOUCH_GAME_RIGHTSIDE_4;
+            }
+
+            if(touchkey >= 0) keys.add(keyevent(event.type, touchkey));
         }
         else if(event.tfinger.x < 0.5)
         {
@@ -242,21 +252,25 @@ struct input
         }
 
         // TOUCH_GAME_LEFTSIDE_OUTERCIRCLE is triggered by swipe gesture from inside the circle to the outside
-        if(!touchmenuvisible() && event.tfinger.fingerId == movementdirectionfinger)
+        // this will be bound to Jump
+        if(game.settings.jumpcontrol == game::settings::jumpcontroltype::SWIPE)
         {
-            if(dist <= movementcontrolradius)
+            if(!touchmenuvisible() && event.tfinger.fingerId == movementdirectionfinger)
             {
-                wasinmovementcontrolradius = true;
-            }
-            else
-            {
-                if(wasinmovementcontrolradius) keys.add(keyevent(event.type, TOUCH_GAME_LEFTSIDE_OUTERCIRCLE));
-                wasinmovementcontrolradius = false;
+                if(dist <= movementcontrolradius)
+                {
+                    wasinmovementcontrolradius = true;
+                }
+                else
+                {
+                    if(wasinmovementcontrolradius) keys.add(keyevent(event.type, TOUCH_GAME_LEFTSIDE_OUTERCIRCLE));
+                    wasinmovementcontrolradius = false;
+                }
             }
         }
 
-        // attack is either bound to VOLUME-UP key or DOUBLET TAP of fire finger
-        if(event.tfinger.fingerId == lookingdirectionfinger && event.type == SDL_FINGERDOWN && !game.settings.volumeup)
+        // attack is either bound to VOLUME-UP key or DOUBLET TAP of fire finger or attack button
+        if(event.tfinger.fingerId == lookingdirectionfinger && event.type == SDL_FINGERDOWN && game.settings.attackcontrol == game::settings::attackcontroltype::DOUBLETAP)
         {
             if(lastlookingdirectiontap >= 0 && lastmillis - lastlookingdirectiontap < config.DOUBLE_TAP_MILLIS && keys.empty())
             {
@@ -332,7 +346,7 @@ struct input
                 case SDL_KEYUP:
                     // the volume-up key is currently the only physical key that can (optionally) be used on Android and so we only process keys if that's the case
 
-                    if(volumeupattack)
+                    if(game.settings.attackcontrol == game::settings::attackcontroltype::VOLUMEUP)
                         keypress((int) event.key.keysym.sym, event.key.state==SDL_PRESSED, (int) event.key.keysym.sym, (SDL_Keymod) event.key.keysym.mod);
 
                     break;

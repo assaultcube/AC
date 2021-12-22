@@ -1,13 +1,16 @@
 // draws the portion of head-up-display (HUD) that is specific to touch devices
 struct hud
 {
-    void drawtouchicon(float x, float y, int col, int row, int alpha = 255 / 2)
+    void drawtouchicon(float x, float y, int col, int row, int alpha = 255 / 2, int size = 120)
     {
+        int scrw, scrh;
+        SDL_GetWindowSize(screen, &scrw, &scrh);
+
         static Texture *tex = NULL;
         if(!tex) tex = textureload("packages/misc/touch.png", 3);
         if(tex) {
             turn_on_transparency(alpha);
-            drawicon(tex, x, y, 120, col, row, config.TOUCHICONGRIDCELL);
+            if(tex && tex->xs == tex->ys) rect(tex->id, x, y, size, size, config.TOUCHICONGRIDCELL*col, config.TOUCHICONGRIDCELL*row, config.TOUCHICONGRIDCELL, config.TOUCHICONGRIDCELL);
             glDisable(GL_BLEND);
         }
     }
@@ -68,6 +71,10 @@ struct hud
         static vec movementcontrolcenter = config.movementcontrolcenter();
         const int iconsize = config.HUD_ICONSIZE;
         const int edgeair = iconsize/2;
+
+        int scrw, scrh;
+        SDL_GetWindowSize(screen, &scrw, &scrh);
+        float width_to_height_ratio = ((scrw/(float)scrh) / (VIRTW/(float)VIRTH));
 
         turn_on_transparency(255); // includes GL_ENABLE(GL_BLEND)
         drawtouchicon(edgeair, edgeair, 3, 1, 255); // TOUCH_GAME_CORNER_TOP_LEFT_1 - open settings scene
@@ -138,13 +145,18 @@ struct hud
         else
         {
             // icons drawn at the very top from left to right: weapon | reload | zoom
+            drawtouchicon(VIRTW*5/8 - iconsize/2, iconsize/2, 0, 0, 255/4); // TOUCH_GAME_RIGHTSIDE_0 - change weapon
+            drawtouchicon(VIRTW*6/8 - iconsize/2, iconsize/2, 1, 0, 255/4); // TOUCH_GAME_RIGHTSIDE_1 - reload
+            if(player1->weaponsel->type == GUN_SNIPER) drawtouchicon(VIRTW*15/16 - iconsize/2, VIRTH/2 - iconsize/2, 3, 0, 255/4); // TOUCH_GAME_RIGHTSIDE_2 - scopezoom
 
-            // todo: we might need an icon to show the scoreboard on demand, but currently we have too many buttons on the screen already
-            //drawtouchicon(VIRTW-3*iconsize/2, iconsize/2, 2, 2, 255); // TOUCH_GAME_CORNER_TOP_RIGHT // WIP/TESTING: a suicide button for quick access to scoreboard in dead state
-
-            drawtouchicon(VIRTW*5/8 - iconsize/2, iconsize/2, 0, 0, 255/4); // TOUCH_GAME_RIGHTSIDE_TOP_0 - change weapn
-            drawtouchicon(VIRTW*6/8 - iconsize/2, iconsize/2, 1, 0, 255/4); // TOUCH_GAME_RIGHTSIDE_TOP_1 - reload
-            if(player1->weaponsel->type == GUN_SNIPER) drawtouchicon(VIRTW*7/8 - iconsize/2, iconsize/2, 3, 0, 255/4); // TOUCH_GAME_RIGHTSIDE_TOP_2 - scopezoom
+            if(game.settings.attackcontrol == game::settings::attackcontroltype::ATTACKBUTTON)
+            {
+                drawtouchicon(VIRTW*3/4, VIRTH*3/5, 2, 1, 255/4, 360); // TOUCH_GAME_RIGHTSIDE_3 - shoot
+            }
+            if(game.settings.jumpcontrol == game::settings::jumpcontroltype::JUMPBUTTON)
+            {
+                drawtouchicon(VIRTW*6/8 - iconsize/2, VIRTH - 2*iconsize, 1, 3, 255/4); // TOUCH_GAME_RIGHTSIDE_4 - jump
+            }
 
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             glColor4f(1.0f, 1.0f, 1.0f, 1.0f);

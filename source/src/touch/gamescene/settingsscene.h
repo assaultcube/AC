@@ -5,7 +5,8 @@ struct settingsscene : view
     navigationbutton *prevbutton = NULL;
     sliderview *pointerspeed = NULL;
     sliderview *pointeracceleration = NULL;
-    sliderview *volumeup = NULL;
+    sliderview *attackcontrol = NULL;
+    sliderview *jumpcontrol = NULL;
     sliderview *devmode = NULL;
 
     settingsscene(view *parent) : view(parent)
@@ -24,11 +25,21 @@ struct settingsscene : view
         vector<char*> onoff;
         onoff.add("OFF");
         onoff.add("ON");
-        volumeup = new sliderview(this, "\f3Try it out!\f5 Use VOLUME-UP key to \nattack/fire instead of double-tap", 0, 1, game.settings.volumeup, &onoff);
-        children.add(volumeup);
-
         devmode = new sliderview(this, "Developer Mode", 0, 1, game.settings.devmode, &onoff);
         children.add(devmode);
+
+        vector<char*> jumpcontrols;
+        jumpcontrols.add("SWIPE");
+        jumpcontrols.add("JUMP BUTTON");
+        jumpcontrol = new sliderview(this, "Jump Control", 0, 1, game.settings.jumpcontrol, &jumpcontrols);
+        children.add(jumpcontrol);
+
+        vector<char*> attackcontrols;
+        attackcontrols.add("DOUBLE TAP");
+        attackcontrols.add("VOLUME-UP KEY");
+        attackcontrols.add("ATTACK BUTTON");
+        attackcontrol = new sliderview(this, "\f3Try it out! \f5Attack/fire Control", 0, 2, game.settings.attackcontrol, &attackcontrols);
+        children.add(attackcontrol);
     };
 
     ~settingsscene()
@@ -37,8 +48,9 @@ struct settingsscene : view
         DELETEP(prevbutton);
         DELETEP(pointerspeed);
         DELETEP(pointeracceleration);
-        DELETEP(volumeup);
         DELETEP(devmode);
+        DELETEP(jumpcontrol);
+        DELETEP(attackcontrol);
     }
 
     virtual void measure(int availablewidth, int availableheight)
@@ -47,11 +59,13 @@ struct settingsscene : view
         prevbutton->measure(availablewidth/4, availableheight/4);
         pointerspeed->measure(availablewidth/2, availableheight/4);
         pointeracceleration->measure(availablewidth/2, availableheight/4);
-        volumeup->measure(availablewidth/2, availableheight/4);
         devmode->measure(availablewidth/2, availableheight/4);
+        jumpcontrol->measure(availablewidth / 2, availableheight / 4);
+        attackcontrol->measure(availablewidth / 2, availableheight / 4);
 
         pointerspeed->mintextwidth = pointeracceleration->mintextwidth = text_width(pointeracceleration->text);
-        volumeup->mintextwidth = devmode->mintextwidth = volumeup->width * 0.8;
+        devmode->mintextwidth = jumpcontrol->mintextwidth = attackcontrol->width * 0.85;
+        attackcontrol->mintextwidth = attackcontrol->width * 0.75;
 
         width = availablewidth;
         height = availableheight;
@@ -66,7 +80,8 @@ struct settingsscene : view
         pointerspeed->render(x + width/2 - pointerspeed->width/2, title->bbox.y2 + height/8 );
         pointeracceleration->render(x + width/2 - pointerspeed->width/2, pointerspeed->bbox.y2 + FONTH );
         devmode->render(x + width/2 - pointerspeed->width/2, pointeracceleration->bbox.y2 + FONTH);
-        volumeup->render(x + width/2 - pointerspeed->width/2, devmode->bbox.y2 + FONTH);
+        jumpcontrol->render(x + width / 2 - pointerspeed->width / 2, devmode->bbox.y2 + FONTH);
+        attackcontrol->render(x + width / 2 - pointerspeed->width / 2, jumpcontrol->bbox.y2 + FONTH);
 
         bbox.x1 = x;
         bbox.x2 = x + width;
@@ -83,8 +98,9 @@ struct settingsscene : view
                 {
                     game.settings.pointerspeed = pointerspeed->currentval;
                     game.settings.pointeracceleration = pointeracceleration->currentval;
-                    game.settings.volumeup = volumeup->currentval;
                     game.settings.devmode = devmode->currentval;
+                    game.settings.jumpcontrol = game::settings::jumpcontroltype(jumpcontrol->currentval);
+                    game.settings.attackcontrol = game::settings::attackcontroltype(attackcontrol->currentval);
                     game.settings.save();
                     delete viewstack.pop();
                 }

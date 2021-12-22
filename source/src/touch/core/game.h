@@ -14,7 +14,13 @@ struct game
 
         int pointerspeed = 0; // values 0-100, default 30
         int pointeracceleration = 0; // values 0-100, default 0
-        bool volumeup = false;
+
+        enum attackcontroltype : int { DOUBLETAP = 0, VOLUMEUP, ATTACKBUTTON };
+        attackcontroltype attackcontrol;
+
+        enum jumpcontroltype : int { SWIPE = 0, JUMPBUTTON };
+        jumpcontroltype jumpcontrol;
+
         bool devmode = false;
 
         void load()
@@ -27,17 +33,20 @@ struct game
 
             pointerspeed = clamp(int((sensitivity + 1.0f) * 10.0f), 0, 100);
             pointeracceleration = mouseaccel;
+            devmode = !hideconsole;
 
-            extern int volumeupattack;
-            this->volumeup = volumeupattack;
-            this->devmode = !hideconsole;
+            extern int touchattackcontrol;
+            this->attackcontrol = attackcontroltype(touchattackcontrol);
+
+            extern int touchjumpcontrol;
+            this->jumpcontrol = jumpcontroltype(touchjumpcontrol);
         }
 
         void save()
         {
             newteam((char*)(team == CLA ?  "CLA" : "RVSF"));
 
-            int skinid = -1;
+            int skinid;
             if(team == CLA) skinid = skin == FIRST ? 0 : skin == SECOND ? 1 : 5;
             else skinid = skin == FIRST ? 0 : skin == SECOND ? 5 : 7;
 
@@ -54,10 +63,14 @@ struct game
             sensitivity = int(pointerspeed / 10.0f) - 1.0f;
             mouseaccel = pointeracceleration;
 
-            extern int volumeupattack;
-            volumeupattack = this->volumeup ? 1 : 0;
             hideconsole = (this->devmode ? 0 : 1);
             developermode = (this->devmode ? 1 : 0 ); // may supersede hideconsole setting above
+
+            extern int touchattackcontrol;
+            touchattackcontrol = this->attackcontrol;
+
+            extern int touchjumpcontrol;
+            touchjumpcontrol = this->jumpcontrol;
 
             writecfg();
         }

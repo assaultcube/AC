@@ -525,7 +525,12 @@ void setupscreen(int &usedcolorbits, int &useddepthbits, int &usedfsaa)
     {
         if(SDL_GetDisplayMode(primaryScreen, modeIdx, &mode)==0)
         {
-            if(scr_w <= mode.w && scr_h <= mode.h) { hasmode = true; break; }
+            #ifndef __ANDROID__
+            if(scr_w <= mode.w && scr_h <= mode.h)
+            #endif
+            {
+                hasmode = true; break;
+            }
         }
     }
     if(!hasmode) { scr_w = mode.w; scr_h = mode.h; }
