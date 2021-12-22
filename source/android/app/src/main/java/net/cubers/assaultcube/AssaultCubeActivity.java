@@ -30,9 +30,6 @@ public class AssaultCubeActivity extends SDLActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        // enable full brightness to improve visual experience
-        this.getWindow().getAttributes().screenBrightness = 1.0f;
-
         super.onCreate(savedInstanceState);
 
         if(shouldTriggerReview()) {
