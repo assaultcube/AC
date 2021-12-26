@@ -2880,6 +2880,7 @@ void forcedeath(client *cl)
 {
     sdropflag(cl->clientnum);
     cl->state.state = CS_DEAD;
+    cl->state.lastdeath = sg->gamemillis;
     cl->state.respawn();
     sendf(-1, 1, "rii", SV_FORCEDEATH, cl->clientnum);
 }
@@ -3233,6 +3234,8 @@ void process(ENetPacket *packet, int sender, int chan)
         else protocoldebug(false);
         #endif
 
+        if(lastclactionslookup(type)) cl->state.lastclaction = sg->gamemillis;
+
         switch(type)
         {
             case SV_TEAMTEXTME:
@@ -3524,7 +3527,6 @@ void process(ENetPacket *packet, int sender, int chan)
                 cl->state.lastspawn = -1;
                 cl->state.spawn = sg->gamemillis;
                 cl->autospawn = false;
-                cl->upspawnp = false;
                 cl->state.state = CS_ALIVE;
                 cl->state.gunselect = gunselect;
                 QUEUE_BUF(
@@ -3655,7 +3657,12 @@ void process(ENetPacket *packet, int sender, int chan)
                 cl->f = ff & ((1 << FLAGBITS) - 1);
                 if(cl->f & (1 << 10)) z = -z;
                 cl->state.o.z = z/DMF;
-                if(cl->f & (1 << 9)) loopi(3) getint(p);
+                if(cl->f & (1 << 9))
+                {
+                    loopi(3) getint(p);
+                    cl->state.lastclaction = sg->gamemillis;
+                }
+                if(((cl->f & 0x1f) / 9) == 2) cl->state.lastclaction = sg->gamemillis; // crouching
 
                 if(!cl->isonrightmap) break;
                 if(cl->type==ST_TCPIP && (cl->state.state==CS_ALIVE || cl->state.state==CS_EDITING))
@@ -3687,7 +3694,13 @@ void process(ENetPacket *packet, int sender, int chan)
                 cl->yaw = (int)decodeyaw(q.getbits(YAWBITS));
                 cl->pitch = (int)decodepitch(q.getbits(PITCHBITS));
                 cl->f = q.getbits(FLAGBITS);
-                if(cl->f & (1 << 9)) q.getbits(4 + 4 + 4);
+                if(cl->f & (1 << 9))
+                {
+                    q.getbits(4 + 4 + 4);
+                    cl->state.lastclaction = sg->gamemillis;
+                }
+                if(((cl->f & 0x1f) / 9) == 2) cl->state.lastclaction = sg->gamemillis; // crouching
+
                 int zfull = q.getbits(1);
                 int s = q.rembits();
                 if(s < 3) s += 8;

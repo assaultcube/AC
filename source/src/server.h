@@ -111,7 +111,7 @@ struct clientstate : playerstate
 {
     vec o;
     int state;
-    int lastdeath, lastspawn, spawn, lifesequence;
+    int lastdeath, lastspawn, spawn, lifesequence, lastclaction;
     bool forced;
     int lastshot;
     projectilestate<8> grenades;
@@ -141,6 +141,7 @@ struct clientstate : playerstate
         akimbomillis = 0;
         scoped = forced = false;
         flagscore = frags = teamkills = deaths = shotdamage = damage = events = lastdisc = reconnections = 0;
+        lastdeath = lastclaction = 0;
         respawn();
     }
 
@@ -148,7 +149,6 @@ struct clientstate : playerstate
     {
         playerstate::respawn();
         o = vec(-1e10f, -1e10f, -1e10f);
-        lastdeath = 0;
         lastspawn = -1;
         spawn = 0;
         lastshot = 0;
@@ -272,11 +272,8 @@ struct client                   // server side version of "dynent" type
     int spectcn;
     int mapcollisions, farpickups;
     enet_uint32 bottomRTT;
-    bool upspawnp;
     int lag;
-    vec spawnp;
     int nvotes;
-    int input, inputmillis;
     int ffire, wn, f, t, yaw, pitch;
 
     gameevent &addevent()
@@ -304,9 +301,7 @@ struct client                   // server side version of "dynent" type
         lastevent = 0;
         at3_lastforce = 0;
         mapcollisions = farpickups = 0;
-        upspawnp = false;
         lag = 0;
-        spawnp = vec(-1e10f, -1e10f, -1e10f);
         ldt = spj = 0;
         ffire = 0;
         f = yaw = pitch = t = 0;
@@ -337,7 +332,6 @@ struct client                   // server side version of "dynent" type
         mapchange();
         freshgame = false;         // don't spawn into running games
         mute = spam = lastvc = badspeech = badmillis = nvotes = 0;
-        input = inputmillis = 0;
         ispaused = 0;
     }
 

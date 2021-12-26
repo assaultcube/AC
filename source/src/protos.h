@@ -1089,6 +1089,7 @@ extern void filterlang(char *d, const char *s);
 extern void filtercountrycode(char *d, const char *s); // returns exactly two uppercase chars or "--"
 extern void trimtrailingwhitespace(char *s);
 extern int msgsizelookup(int msg);
+extern int lastclactionslookup(int msg);
 extern const char *disc_reason(int reason);
 extern string mastername;
 extern int masterport;
