@@ -483,9 +483,15 @@ float dynfov()
     bool isscoped = player1->weaponsel->type == GUN_SNIPER && ((sniperrifle *)player1->weaponsel)->scoped;
     bool useremote = spectfovremote && camera1 != player1 && camera1->type == ENT_PLAYER && ((playerent *)camera1)->ffov && ((playerent *)camera1)->scopefov;
     if(camera1 != player1 && camera1->type < ENT_CAMERA) isscoped = ((playerent *)camera1)->scoping;
-    if(isscoped) return (float) (useremote ? ((playerent *)camera1)->scopefov : scopefov);
-    else if(player1->isspectating()) return (float)(useremote ? ((playerent *)camera1)->ffov : spectfov);
-    else return (float)fov;
+
+    float resultfov = 90.0f;
+    if(isscoped) resultfov = (float) (useremote ? ((playerent *)camera1)->scopefov : scopefov);
+    else if(player1->isspectating()) resultfov = (float)(useremote ? ((playerent *)camera1)->ffov : spectfov);
+    else resultfov = (float)fov;
+
+    // automatic FOV adjustment for wide screens
+    // (horizontal FOV value is always specified for 4:3, but scaled for different aspect ratios)
+    return atan(tan(resultfov * M_PI / 360.0f) * 0.75f * aspect) * 360.0f / M_PI;
 }
 
 VARF(fog, 64, DEFAULT_FOG, 1024, flagmapconfigchange());
