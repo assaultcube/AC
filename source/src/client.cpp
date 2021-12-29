@@ -648,7 +648,7 @@ COMMAND(sendmap, "s");
 void getmap(char *name, char *callback)
 {
     if((!name || !*name)
-        || (curpeer && !strcmp(name, getclientmap())) )
+        && (curpeer && !strcmp(name, getclientmap())) )
     {
         conoutf("requesting map from server...");
         packetbuf p(10, ENET_PACKET_FLAG_RELIABLE);
