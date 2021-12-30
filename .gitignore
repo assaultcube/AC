@@ -24,6 +24,7 @@ source/codeblocks/AssaultCube.layout
 source/codeblocks/AssaultCube_Linux.layout
 source/enet/.deps/
 source/enet/.libs/
+source/enet/autom4te.cache/
 source/enet/Makefile
 source/enet/config.log
 source/enet/config.status
