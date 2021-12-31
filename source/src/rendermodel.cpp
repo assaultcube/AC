@@ -1,6 +1,7 @@
 #include "cube.h"
 
-VARP(animationinterpolationtime, 0, 150, 1000);
+// 165 is the highest value that does not break player animations when firing the SMG
+VARP(animationinterpolationtime, 0, 165, 1000);
 
 model *loadingmodel = NULL;
 mapmodelattributes loadingattributes;
