@@ -240,6 +240,143 @@ void setprocesspriority(bool high)
 
 VARP(pngcompress, 0, 9, 9);
 
+/* It is assumed that the background is {0,0,0}. */
+/* This needs some optimization especially wrt the alpha multiplication. */
+static inline void pix_to_rgb(SDL_PixelFormat *pf,   
+                              unsigned long    pixel, /* up to 32 bits */
+                              unsigned char   *r,     /* 8 bits  */
+                              unsigned char   *g,
+                              unsigned char   *b) {
+        /* palette lookup */
+        if(pf->BytesPerPixel == 1) {
+            SDL_Color *color;
+            color = pf->palette->colors + pixel;
+            *r = color->r * ((float)color->a/255); /* convert alpha to a value ranged 0..1 */
+            *g = color->g * ((float)color->a/255);
+            *b = color->b * ((float)color->a/255);
+            return;
+        }
+        /* color values */
+        else {
+            /* no alpha */
+            if(pf->Amask == 0) {            
+                *r = ((pixel & pf->Rmask) >> pf->Rshift) << pf->Rloss;
+                *g = ((pixel & pf->Gmask) >> pf->Gshift) << pf->Gloss;
+                *b = ((pixel & pf->Bmask) >> pf->Bshift) << pf->Bloss;
+                return;
+            }
+            /* has alpha */
+            else {
+                #ifdef _DEBUG
+                    conoutf("has alpha");
+                #endif
+                unsigned char a = ((pixel & pf->Amask) >> pf->Ashift) << pf->Aloss;
+                *r = (((pixel & pf->Rmask) >> pf->Rshift) << pf->Rloss) * ((float)a/255);
+                *g = (((pixel & pf->Gmask) >> pf->Gshift) << pf->Gloss) * ((float)a/255);
+                *b = (((pixel & pf->Bmask) >> pf->Bshift) << pf->Bloss) * ((float)a/255);
+                return;                
+            }
+        }
+}
+
+/* PPM is a simple uncompressed RGB image format. See http://netpbm.sourceforge.net */
+
+/* currently only rgb888 */
+int save_ppm(const char *filename, SDL_Surface *image) {
+
+    unsigned in_row  = image->w,
+             in_col  = image->h,
+             maxval  = 255;
+                 
+    stream *f = openfile(filename, "wb");
+    if(!f) {
+        conoutf("save_ppm: could not open %s", filename);
+    }
+
+    /* write magic number and indication this is an AC screenshot */
+    f->printf("P6\n# AssaultCube screenshot\n# Scores:\n");
+
+    /* write ascii scores into ppm as comments */
+    const char *scores = asciiscores(false);
+
+    char *m_scores = strdup(scores);
+
+    if(!m_scores) return -1; /* epic malloc fail :c */
+
+    char *tmp = strtok(m_scores, "\n");
+
+    do {
+        f->printf("# %s\n", tmp);
+    } while((tmp = strtok(NULL, "\n")));
+
+    free(m_scores);
+
+    f->printf("%u %u\n%u\n", in_row, in_col, maxval);
+
+    /* Now, we need to output the pixel values.
+     * Luckily, we don't need to care about endianness right now,
+     * since we only need to output single bytes. */
+
+    
+    SDL_LockSurface(image);
+
+    /* this should be fine since every pointer type can alias to char * */
+    unsigned char *data = (unsigned char *)image->pixels;
+
+    /* Sadly, type punning with unions is undefined behavior in C++.
+     * This means we need to use memcpy, but we can still use a
+     * union to save stack space since we'll only be using one at a time. */
+
+    union {
+        unsigned int  two;
+        unsigned long four;
+    } t;
+
+    unsigned char rgb[3];
+    
+    switch(image->format->BytesPerPixel) {
+        case 1:
+        for(unsigned i = 0; i < in_row * in_col; i++) {
+            pix_to_rgb(image->format, data[i], rgb, rgb + 1, rgb + 2);
+            f->write(rgb, 3);
+        }
+        break;
+
+        case 2:
+        for(unsigned i = 0; i < in_row * in_col * 2; i += 2) {
+            memcpy(&t.two, data + i, 2);
+            pix_to_rgb(image->format, t.two, rgb, rgb + 1, rgb + 2);
+            f->write(rgb, 3);
+        }
+        break;
+
+        case 3:
+        for(unsigned i = 0; i < in_row * in_col * 3; i += 3) {
+            memcpy(&t.four, data + i, 3);
+            pix_to_rgb(image->format, t.four, rgb, rgb + 1, rgb + 2);
+            f->write(rgb, 3);
+        }
+        break;
+
+        case 4:
+        for(unsigned i = 0; i < in_row * in_col * 4; i += 4) {
+            memcpy(&t.four, data + i, 3);
+            pix_to_rgb(image->format, t.four, rgb, rgb + 1, rgb + 2);
+            f->write(rgb, 3);
+        }
+        break;
+
+        default: /* can't happen */
+        break;
+    }
+
+    SDL_UnlockSurface(image);
+    
+    delete f;
+    return 0;
+
+}
+
 void writepngchunk(stream *f, const char *type, const void *data = NULL, uint len = 0)
 {
     f->putbig<uint>(len);
@@ -441,6 +578,8 @@ void mapscreenshot(const char *imagepath, bool mapshot, int fileformat, float sc
         case 2: // png
             if(save_png(imagepath, image) < 0) conoutf("\f3Error saving png file");
             break;
+        case 3: // ppm
+            if(save_ppm(imagepath, image) < 0) conoutf("\f3Error saving ppm file");
     }
 
     SDL_FreeSurface(image);
@@ -448,12 +587,12 @@ void mapscreenshot(const char *imagepath, bool mapshot, int fileformat, float sc
 
 FVARP(screenshotscale, 0.1f, 1.0f, 1.0f);
 VARP(jpegquality, 10, 85, 100);  // best: 100 - good: 85 [default] - bad: 70 - terrible: 50
-VARP(screenshottype, 0, 1, 2);
+VARP(screenshottype, 0, 1, 3);
 
 const char *getscrext()
 {
-    const char *screxts[] = { ".bmp", ".jpg", ".png" };
-    return screxts[screenshottype % 3];
+     const char *screxts[] = { ".bmp", ".jpg", ".png", ".ppm"};
+     return screxts[screenshottype % 4];
 }
 COMMANDF(getscrext, "", () { result(getscrext()); });
 
