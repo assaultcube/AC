@@ -387,15 +387,13 @@ struct signalbinder
         const int BTSIZE = 25;
         void *array[BTSIZE];
         int n = backtrace(array, BTSIZE);
-        char **symbols = backtrace_symbols(array, n);
         for(int i = 0; i < n; i++)
         {
-            printf("%s\n", symbols[i]);
+            backtrace_symbols_fd(array, n, 1);
 #if !defined(STANDALONE)
-            if(clientlogfile) clientlogfile->printf("%s\n", symbols[i]);
+            if(clientlogfile) backtrace_symbols_fd(array, n, 1);
 #endif
         }
-        free(symbols);
 
         fatal("AssaultCube error (%d)", sig);
 
