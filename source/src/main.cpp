@@ -246,9 +246,11 @@ static inline void pix_to_rgb(SDL_PixelFormat *pf,
                               unsigned long    pixel, /* up to 32 bits */
                               unsigned char   *r,     /* 8 bits  */
                               unsigned char   *g,
-                              unsigned char   *b) {
+                              unsigned char   *b)
+{
         /* palette lookup */
-        if(pf->BytesPerPixel == 1) {
+        if(pf->BytesPerPixel == 1)
+        {
             SDL_Color *color;
             color = pf->palette->colors + pixel;
             *r = color->r * ((float)color->a/255); /* convert alpha to a value ranged 0..1 */
@@ -279,14 +281,16 @@ static inline void pix_to_rgb(SDL_PixelFormat *pf,
 /* PPM is a simple uncompressed RGB image format. See http://netpbm.sourceforge.net */
 
 /* currently only rgb888 */
-int save_ppm(const char *filename, SDL_Surface *image) {
+int save_ppm(const char *filename, SDL_Surface *image)
+{
 
     unsigned in_row  = image->w,
              in_col  = image->h,
              maxval  = 255;
                  
     stream *f = openfile(filename, "wb");
-    if(!f) {
+    if(!f)
+    {
         conoutf("save_ppm: could not open %s", filename);
         return -1;
     }
@@ -299,11 +303,13 @@ int save_ppm(const char *filename, SDL_Surface *image) {
 
     char *m_scores = strdup(scores);
 
-    if(!m_scores) return -1; /* epic malloc fail :c */
+    if(!m_scores)
+        return -1; /* epic malloc fail :c */
 
     char *tmp = strtok(m_scores, "\n");
 
-    do {
+    do
+    {
         f->printf("# %s\n", tmp);
     } while((tmp = strtok(NULL, "\n")));
 
@@ -325,23 +331,27 @@ int save_ppm(const char *filename, SDL_Surface *image) {
      * This means we need to use memcpy, but we can still use a
      * union to save stack space since we'll only be using one at a time. */
 
-    union {
+    union
+    {
         unsigned int  two;
         unsigned long four;
     } t;
 
     unsigned char rgb[3];
     
-    switch(image->format->BytesPerPixel) {
+    switch(image->format->BytesPerPixel)
+    {
         case 1:
-        for(unsigned i = 0; i < in_row * in_col; i++) {
+        for(unsigned i = 0; i < in_row * in_col; i++)
+        {
             pix_to_rgb(image->format, data[i], rgb, rgb + 1, rgb + 2);
             f->write(rgb, 3);
         }
         break;
 
         case 2:
-        for(unsigned i = 0; i < in_row * in_col * 2; i += 2) {
+        for(unsigned i = 0; i < in_row * in_col * 2; i += 2)
+        {
             memcpy(&t.two, data + i, 2);
             pix_to_rgb(image->format, t.two, rgb, rgb + 1, rgb + 2);
             f->write(rgb, 3);
@@ -349,7 +359,8 @@ int save_ppm(const char *filename, SDL_Surface *image) {
         break;
 
         case 3:
-        for(unsigned i = 0; i < in_row * in_col * 3; i += 3) {
+        for(unsigned i = 0; i < in_row * in_col * 3; i += 3)
+        {
             memcpy(&t.four, data + i, 3);
             pix_to_rgb(image->format, t.four, rgb, rgb + 1, rgb + 2);
             f->write(rgb, 3);
@@ -357,7 +368,8 @@ int save_ppm(const char *filename, SDL_Surface *image) {
         break;
 
         case 4:
-        for(unsigned i = 0; i < in_row * in_col * 4; i += 4) {
+        for(unsigned i = 0; i < in_row * in_col * 4; i += 4)
+        {
             memcpy(&t.four, data + i, 3);
             pix_to_rgb(image->format, t.four, rgb, rgb + 1, rgb + 2);
             f->write(rgb, 3);
