@@ -293,9 +293,10 @@ int save_ppm(const char *filename, SDL_Surface *image)
 {
 
     unsigned in_row  = image->w,
-             in_col  = image->h,
+             in_col  = image->h;
+    const unsigned 
              maxval  = 255; /* SDL_Surface seems to only support a maximum of
-                                   * 8 Bits per component, which should make this fine. */
+                             * 8 Bits per component, which should make this fine. */
                  
     stream *f = openfile(filename, "wb");
     if(!f)
@@ -323,7 +324,8 @@ int save_ppm(const char *filename, SDL_Surface *image)
 
     do
     {
-        f->printf("# %s\n", tmp);
+        f->write("# ", 2);
+        f->write(tmp, strlen(tmp));
     } while((tmp = strtok(NULL, "\n")));
 
     free(m_scores);
