@@ -240,7 +240,12 @@ void setprocesspriority(bool high)
 
 VARP(pngcompress, 0, 9, 9);
 
-/* It is assumed that the background is {0,0,0}. */
+/* Convert pixel in pixel format pf to RGB values, storing 
+ * them in r, g, and b.
+ * If the pixel has an alpha channel, it is blended with
+ * the background color, which is assumed to be {0, 0, 0}. 
+ * This function does not check the arguments passed to it.
+ * Be cautious when using it. */
 /* This needs some optimization especially wrt the alpha multiplication. */
 static inline void pix_to_rgb(SDL_PixelFormat *pf,   
                               unsigned long    pixel, /* up to 32 bits */
@@ -280,13 +285,17 @@ static inline void pix_to_rgb(SDL_PixelFormat *pf,
 
 /* PPM is a simple uncompressed RGB image format. See http://netpbm.sourceforge.net */
 
-/* currently only rgb888 */
+/* Saves image in PPM format to the file filename. 
+ * The scores are saved to the file as comments. 
+ * This function does not check the arguments passed to it.
+ * Be cautious when using it.*/
 int save_ppm(const char *filename, SDL_Surface *image)
 {
 
     unsigned in_row  = image->w,
              in_col  = image->h,
-             maxval  = 255;
+             maxval  = 255; /* SDL_Surface seems to only support a maximum of
+                                   * 8 Bits per component, which should make this fine. */
                  
     stream *f = openfile(filename, "wb");
     if(!f)
@@ -306,7 +315,11 @@ int save_ppm(const char *filename, SDL_Surface *image)
     if(!m_scores)
         return -1; /* epic malloc fail :c */
 
-    char *tmp = strtok(m_scores, "\n");
+
+    /* Tokenize the string with strtok because once we write a
+     * newline, we end the comment. This would spill into the data. */
+    /* FIXME: find a better solution */
+    char *tmp = strtok(m_scores, "\n\r");
 
     do
     {
@@ -337,6 +350,8 @@ int save_ppm(const char *filename, SDL_Surface *image)
         unsigned long four;
     } t;
 
+    /* R, G, B, in exactly that order. */
+    /* To ease writing, this is an array. */
     unsigned char rgb[3];
     
     switch(image->format->BytesPerPixel)
@@ -344,7 +359,10 @@ int save_ppm(const char *filename, SDL_Surface *image)
         case 1:
         for(unsigned i = 0; i < in_row * in_col; i++)
         {
+            /* woohoo, strict aliasing rules working in our favor */
             pix_to_rgb(image->format, data[i], rgb, rgb + 1, rgb + 2);
+            
+            /* write the RGB values to the file */
             f->write(rgb, 3);
         }
         break;
@@ -352,6 +370,9 @@ int save_ppm(const char *filename, SDL_Surface *image)
         case 2:
         for(unsigned i = 0; i < in_row * in_col * 2; i += 2)
         {
+            /* we need to type pun here. if int is 4 bytes,
+             * this is still fine because the shift amounts 
+             * should still be correct */
             memcpy(&t.two, data + i, 2);
             pix_to_rgb(image->format, t.two, rgb, rgb + 1, rgb + 2);
             f->write(rgb, 3);
