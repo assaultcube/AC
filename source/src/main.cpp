@@ -267,9 +267,6 @@ static inline void pix_to_rgb(SDL_PixelFormat *pf,
             }
             /* has alpha */
             else {
-                #ifdef _DEBUG
-                    conoutf("has alpha");
-                #endif
                 unsigned char a = ((pixel & pf->Amask) >> pf->Ashift) << pf->Aloss;
                 *r = (((pixel & pf->Rmask) >> pf->Rshift) << pf->Rloss) * ((float)a/255);
                 *g = (((pixel & pf->Gmask) >> pf->Gshift) << pf->Gloss) * ((float)a/255);
