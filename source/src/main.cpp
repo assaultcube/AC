@@ -393,7 +393,7 @@ int save_ppm(const char *filename, SDL_Surface *image)
         case 4:
         for(unsigned i = 0; i < in_row * in_col * 4; i += 4)
         {
-            memcpy(&t.four, data + i, 3);
+            memcpy(&t.four, data + i, 4);
             pix_to_rgb(image->format, t.four, rgb, rgb + 1, rgb + 2);
             f->write(rgb, 3);
         }
