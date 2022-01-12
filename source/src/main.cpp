@@ -291,6 +291,7 @@ int save_ppm(const char *filename, SDL_Surface *image) {
     stream *f = openfile(filename, "wb");
     if(!f) {
         conoutf("save_ppm: could not open %s", filename);
+        return -1;
     }
 
     /* write magic number and indication this is an AC screenshot */
