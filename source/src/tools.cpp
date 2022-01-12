@@ -391,7 +391,7 @@ struct signalbinder
         {
             backtrace_symbols_fd(array, n, 1);
 #if !defined(STANDALONE)
-            if(clientlogfile) backtrace_symbols_fd(array, n, 1);
+            if(clientlogfile) backtrace_symbols_fd(array, n, fileno(clientlogfile->file));
 #endif
         }
 
