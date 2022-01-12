@@ -387,10 +387,7 @@ struct signalbinder
         const int BTSIZE = 25;
         void *array[BTSIZE];
         int n = backtrace(array, BTSIZE);
-        for(int i = 0; i < n; i++)
-        {
-            backtrace_symbols_fd(array, n, 1);
-        }
+        backtrace_symbols_fd(array, n, 1);
 
         fatal("AssaultCube error (%d)", sig);
 
