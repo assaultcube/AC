@@ -1566,6 +1566,8 @@ void htf_forceflag(int flag)
     f.lastupdate = sg->gamemillis;
 }
 
+int cmpscore(const int *a, const int *b) { return clients[*a]->at3_score - clients[*b]->at3_score; }
+
 vector<twoint> sdistrib;
 
 void distributeteam(int team)
@@ -1869,9 +1871,9 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
     if(damage < INT_MAX)
     {
         actor->state.damage += damage;
-        
+
         sendf(-1, 1, "ri7", gib ? SV_GIBDAMAGE : SV_DAMAGE, target->clientnum, actor->clientnum, gun, damage, ts.armour, ts.health);
-        
+
         if (!isteam(target->team, actor->team))
         {
             actor->incrementvitacounter(VS_DAMAGE, damage);
@@ -1880,7 +1882,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
         {
             actor->incrementvitacounter(VS_FRIENDLYDAMAGE, damage);
         }
-        
+
         if(target!=actor)
         {
             if(!hitpush.iszero())
@@ -1898,7 +1900,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
         bool tk = false, suic = false;
         target->state.deaths++;
         target->incrementvitacounter(VS_DEATHS, 1);
-        
+
         if(target!=actor)
         {
             if(!isteam(target->team, actor->team))
@@ -1988,13 +1990,13 @@ int canspawn(client *c)   // beware: canspawn() doesn't check m_arena!
     bool failclientbasics = (!c || c->type == ST_EMPTY || !c->isauthed);
     bool failteam = !(c->team == TEAM_ANYACTIVE || team_isvalid(c->team));//TEST WAS JUST:!team_isvalid(c->team);//but since the code is calling updateclientteam(BLAH, TEAM_ANYACTIVE, BLAH) all over the place..
     bool failwait = false;
-    bool failwild = false; 
+    bool failwild = false;
     if( c->type == ST_TCPIP ){
         failwait = ( c->state.lastdeath > 0 ? sg->gamemillis - c->state.lastdeath : servmillis - c->connectmillis ) < (m_arena ? 0 : m_flags_ ? 5000 : 2000);
         // failwild: this one contains a number of aspects, it's a /wild/ conglomeration.
         if( totalclients > 3 ){
-                bool c1 = servmillis - c->connectmillis < 1000 + c->state.reconnections * 2000; // seems to delay respawn if you've reconnected too often 
-                bool c2 = sg->gamemillis > 10000; // only allow after 10 seconds of gametime 
+                bool c1 = servmillis - c->connectmillis < 1000 + c->state.reconnections * 2000; // seems to delay respawn if you've reconnected too often
+                bool c2 = sg->gamemillis > 10000; // only allow after 10 seconds of gametime
                 //.. c3 = totalclients > 3; // all of this only applies if there are four or more players
                 bool c4 = !team_isspect(c->team); // all of this only applies if the designated team is not a spectator team
                 failwild = c1 && c2 && c4; // && c3
@@ -2037,7 +2039,7 @@ bool updateclientteam(int cln, int newteam, int ftr)
     client &cl = *clients[cln];
     if(cl.team == newteam && ftr != FTR_AUTOTEAM) return true; // no change
     int *teamsizes = numteamclients(cln);
-    if( sg->mastermode == MM_OPEN && cl.state.forced && ftr == FTR_PLAYERWISH && newteam < TEAM_SPECT && team_base(cl.team) != team_base(newteam) ) return false; // player forced to team => deny wish to change 
+    if( sg->mastermode == MM_OPEN && cl.state.forced && ftr == FTR_PLAYERWISH && newteam < TEAM_SPECT && team_base(cl.team) != team_base(newteam) ) return false; // player forced to team => deny wish to change
     if(newteam == TEAM_ANYACTIVE) // when spawning from spect – 20210601: or just after dying in a deathmatch .. apparently.
     {
         if(sg->mastermode == MM_MATCH && cl.team < TEAM_SPECT)
@@ -2046,8 +2048,19 @@ bool updateclientteam(int cln, int newteam, int ftr)
         }
         else
         {
+            // if autoteam join smaller team, if balanced or not autoteam join the weaker team if the all the points count more than CUTOFF points - fallback to random
             if(sg->autoteam && teamsizes[TEAM_CLA] != teamsizes[TEAM_RVSF]) newteam = teamsizes[TEAM_CLA] < teamsizes[TEAM_RVSF] ? TEAM_CLA : TEAM_RVSF;
-			if(newteam == TEAM_ANYACTIVE) newteam = rnd(2); // still undecided?
+            else
+            {
+                int teamscore[2] = {0, 0}, sum = calcscores();
+                loopv(clients) if(clients[i]->type!=ST_EMPTY && i != cln && clients[i]->isauthed && clients[i]->team != TEAM_SPECT)
+                {
+                    teamscore[team_base(clients[i]->team)] += clients[i]->at3_score;
+                }
+                // 20220109: sum > 200 was CUTOFF when sum was of sqrt(cs.points) now it is of VITA:STATS:skillvalues which tend to be ~=1000 for competitive players against equally skilled ..
+                // .. so something like "sum/numplayers > 200" may be more appropriate, but at first we can live with it acting sooner rather than later .. either TODO or just leave it and remove these two comment lines!
+                newteam = sum > 200 ? (teamscore[TEAM_CLA] < teamscore[TEAM_RVSF] ? TEAM_CLA : TEAM_RVSF) : rnd(2);
+            }
         }
     }
     if(ftr == FTR_PLAYERWISH)
@@ -2096,20 +2109,70 @@ bool updateclientteam(int cln, int newteam, int ftr)
     return true;
 }
 
+int calcscores() // skill eval
+{
+    int sum = 0;
+    loopv(clients) if(clients[i]->type!=ST_EMPTY)
+    {
+        if(clients[i]->vita && clients[i]->vita->vs[VS_MINUTESACTIVE] > 0)
+        {
+            int *vs = clients[i]->vita->vs;
+            int cskill = ((vs[VS_FRAGS]*100+vs[VS_DAMAGE]*2+vs[VS_FLAGS]*10) - (vs[VS_DEATHS]*50+vs[VS_FRIENDLYDAMAGE]*3+vs[VS_ANTIFLAGS]*15+vs[VS_TKS]*100+vs[VS_SUICIDES]*100))/vs[VS_MINUTESACTIVE];
+            clients[i]->at3_score = cskill;
+            sum += cskill;
+        }
+    }
+    return sum;
+}
+
 vector<int> shuffle;
 
 void shuffleteams(int ftr = FTR_AUTOTEAM)
 {
     int numplayers = numclients();
-    int team = rnd(2);
+    int team = rnd(2); // if skill based the top ranked player will be randomly in CLA or RVSF
+    int sum = calcscores();
 
-    // random
-    int teamsize[2] = {0, 0};
-    loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->isonrightmap && !team_isspect(clients[i]->team)) // only shuffle active players
+    // 20220109 only try skill based if each player has more than 200 on average. competitive players against each other currently have ~=1000.
+    if(sum/numplayers>200)
     {
-        if(teamsize[team] >= numplayers/2) team = team_opposite(team);
-        updateclientteam(i, team, ftr);
-        teamsize[team]++;
+        // skill based
+        shuffle.shrink(0);
+        loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->isonrightmap && !team_isspect(clients[i]->team))
+        {
+            shuffle.add(i);
+        }
+        shuffle.sort(cmpscore);
+        loopi(shuffle.length())
+        {
+            updateclientteam(shuffle[i], team, ftr);
+            team = !team;
+        }
+    }
+    else
+    {
+        // random
+        int teamsize[2] = {0, 0};
+        int half = numplayers/2;
+        int lastrun = 9; // try to avoid alternating teams based on clientnum
+        vector<int> done;
+        loopv(clients){
+            done.add(!(clients[i]->type!=ST_EMPTY && clients[i]->isonrightmap && !team_isspect(clients[i]->team))); // only shuffle active players
+        }
+        loopk(lastrun+1)
+        {
+            loopv(clients) if(!done[i])
+            {
+                if(k==lastrun || rnd(lastrun+1)==lastrun)
+                {
+                    done[i] = true;
+                    team = rnd(2);
+                    if(teamsize[team]>=half) team = team_opposite(team);
+                    updateclientteam(i, team, ftr);
+                    teamsize[team]++;
+                }
+            }
+        }
     }
 
     if(m_ctf || m_htf)
@@ -2126,6 +2189,7 @@ bool refillteams(bool now, int ftr)  // force only minimal amounts of players
     int teamsize[2] = {0, 0}, teamscore[2] = {0, 0}, moveable[2] = {0, 0};
     bool switched = false;
 
+    calcscores();
     loopv(clients) if(clients[i]->type!=ST_EMPTY)     // playerlist stocktaking
     {
         client *c = clients[i];
@@ -2135,6 +2199,7 @@ bool refillteams(bool now, int ftr)  // force only minimal amounts of players
             if(team_isactive(c->team)) // only active players count
             {
                 teamsize[c->team]++;
+                teamscore[c->team] += c->at3_score;
                 if(clienthasflag(i) < 0)
                 {
                     c->at3_dontmove = false;
@@ -2179,6 +2244,7 @@ bool refillteams(bool now, int ftr)  // force only minimal amounts of players
                 if(updateclientteam(pick, !bigteam, ftr))
                 {
                     diffnum -= 2;
+                    diffscore -= 2 * clients[pick]->at3_score;
                     clients[pick]->at3_lastforce = sg->gamemillis;  // try not to force this player again for the next 5 minutes
                     switched = true;
                 }
@@ -3090,13 +3156,13 @@ void process(ENetPacket *packet, int sender, int chan)
             int bl = 0, wl = nickblacklist.checkwhitelist(*cl);
             if(wl == NWL_PASS) concatstring(tags, ", nickname whitelist match");
             if(wl == NWL_UNLISTED) bl = nickblacklist.checkblacklist(cl->name);
-            
+
             bool vitawhitelist = cl->checkvitadate(VS_WHITELISTED);
             if (vitawhitelist) {
                 concatstring(tags, ", vita whitelist match");
                 banned = false;
             }
-            
+
             if(matchreconnect && !banned)
             { // former player reconnecting to a server in match mode
                 cl->isauthed = true;
@@ -3372,7 +3438,7 @@ void process(ENetPacket *packet, int sender, int chan)
             {
                 int gzs = getint(p);
                 int rev = getint(p);
-				if(!isdedicated || (sg->curmap && sg->curmap->cgzlen == gzs && sg->curmap->maprevision == rev) || m_coop)
+                if(!isdedicated || (sg->curmap && sg->curmap->cgzlen == gzs && sg->curmap->maprevision == rev) || m_coop)
                 { // here any game really starts for a client: spawn, if it's a new game - don't spawn if the game was already running
                     cl->isonrightmap = true;
                     int sp = canspawn(cl);
@@ -4013,20 +4079,20 @@ void process(ENetPacket *packet, int sender, int chan)
 
             case SV_PAUSEMODE:
                 break;
-                
+
             case SV_GETVITA:
             {
                 int targetcn = getint(p);
-                
+
                 // If the client is admin or could be admin through vita
                 if (!(cl->role >= CR_ADMIN || cl->checkvitadate(VS_ADMIN) || cl->checkvitadate(VS_OWNER))) {
                     sendservmsg("\f3You must be admin to get vita");
                     break;
                 }
-                
+
                 if (valid_client(targetcn)) {
                     client *target = clients[targetcn];
-                    
+
                     if (target->vita) {
                         sendf(sender, 1, "riimssv", SV_VITADATA, targetcn, 32, target->pubkey.u,
                               target->vita->privatecomment, target->vita->publiccomment,

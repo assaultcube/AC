@@ -262,7 +262,7 @@ struct client                   // server side version of "dynent" type
     vector<uchar> position, messages;
     string lastsaytext;
     int saychars, lastsay, spamcount, badspeech, badmillis;
-    int at3_lastforce;
+    int at3_score, at3_lastforce;
     bool at3_dontmove;
     int spawnindex;
     int spawnperm, spawnpermsent;
@@ -353,7 +353,7 @@ struct client                   // server side version of "dynent" type
         extern int servclock;
         return vita && (vita->vs[n] == 1 || (servclock - vita->vs[n]) < 0);
     }
-    
+
     void incrementvitacounter(int vitastat, int amount)
     {
         if (!vita) return;
@@ -404,6 +404,7 @@ int clienthasflag(int cn);
 bool refillteams(bool now = false, int ftr = FTR_AUTOTEAM);
 void changeclientrole(int client, int role, char *pwd = NULL, bool force=false);
 int findmappath(const char *mapname, char *filename = NULL);
+int calcscores();
 void recordpacket(int chan, void *data, int len);
 void senddisconnectedscores(int cn);
 void process(ENetPacket *packet, int sender, int chan);
