@@ -8,13 +8,21 @@
 # continue using clang++ (just in case), you can use g++ if you prefer.
 CXX=clang++
 
-# Changing this to ACDEBUG=yes will compile a debug version of AssaultCube.
-ACDEBUG=no
+# call like 'DEBUGBUILD=1 make' to compile a debug version of AssaultCube.
+ifdef DEBUGBUILD
+    ACDEBUG=yes
+else
+    ACDEBUG=no
+endif
 
 PLATFORM=$(shell uname -s)
 
 # This prefix is only used to name the installed executables.
-PLATFORM_PREFIX=native
+ifdef DEBUGBUILD
+    PLATFORM_PREFIX=debug
+else
+    PLATFORM_PREFIX=native
+endif
 
 # As above, this file is optional only.
 -include Makefile_local
