@@ -4086,7 +4086,7 @@ void process(ENetPacket *packet, int sender, int chan)
 
                 // If the client is admin or could be admin through vita
                 if (!(cl->role >= CR_ADMIN || cl->checkvitadate(VS_ADMIN) || cl->checkvitadate(VS_OWNER))) {
-                    sendservmsg("\f3You must be admin to get vita");
+                    sendservmsg("\f3You must be admin to get vita", sender);
                     break;
                 }
 
@@ -4099,7 +4099,7 @@ void process(ENetPacket *packet, int sender, int chan)
                               VS_NUM, target->vita->vs);
                     }
                 } else {
-                    sendservmsg("\f3Invalid cn to retrieve vita data");
+                    sendservmsg("\f3Invalid cn to retrieve vita data", sender);
                 }
                 break;
             }
