@@ -320,13 +320,13 @@ int save_ppm(const char *filename, SDL_Surface *image)
 
     /* Tokenize the string with strtok_r because once we write a
      * newline, we end the comment. This would spill into the data. */
-    char *tmp = strtok(m_scores, "\n\r", &saveptr);
+    char *tmp = strtok_r(m_scores, "\n\r", &saveptr);
 
     do
     {
         f->write("# ", 2);
         f->write(tmp, strlen(tmp));
-    } while((tmp = strtok(NULL, "\n", &saveptr)));
+    } while((tmp = strtok_r(NULL, "\n", &saveptr)));
 
     free(m_scores);
 
