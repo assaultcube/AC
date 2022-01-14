@@ -311,22 +311,22 @@ int save_ppm(const char *filename, SDL_Surface *image)
     /* write ascii scores into ppm as comments */
     const char *scores = asciiscores(false);
 
+    char *saveptr;
     char *m_scores = strdup(scores);
 
     if(!m_scores)
         return -1; /* epic malloc fail :c */
 
 
-    /* Tokenize the string with strtok because once we write a
+    /* Tokenize the string with strtok_r because once we write a
      * newline, we end the comment. This would spill into the data. */
-    /* FIXME: find a better solution */
-    char *tmp = strtok(m_scores, "\n\r");
+    char *tmp = strtok(m_scores, "\n\r", &saveptr);
 
     do
     {
         f->write("# ", 2);
         f->write(tmp, strlen(tmp));
-    } while((tmp = strtok(NULL, "\n")));
+    } while((tmp = strtok(NULL, "\n", &saveptr)));
 
     free(m_scores);
 
