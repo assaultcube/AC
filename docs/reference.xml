@@ -1744,7 +1744,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
 
         <variable name="screenshottype">
           <description>Toggle format of screenshot image. Your choice is for BMP (0), JPEG (1), PNG (2), or PPM (3).</description>
-          <value token="T" description="0=BMP, 1=JPEG, 2=PNG 3=PPM" minValue="0" maxValue="2" defaultValue="1"/>
+          <value token="T" description="0=BMP, 1=JPEG, 2=PNG 3=PPM" minValue="0" maxValue="3" defaultValue="1"/>
           <references>
             <identifierReference identifier="getscrext"/>
           </references>
