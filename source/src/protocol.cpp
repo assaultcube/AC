@@ -620,6 +620,28 @@ int msgsizelookup(int msg)
     return msg >= 0 && msg < SV_NUM ? sizetable[msg] : -1;
 }
 
+static const int lastclactions[] =               // actions for afk checking
+{
+    SV_TEXT, SV_TEAMTEXT, SV_TEXTME, SV_TEAMTEXTME, SV_TEXTPRIVATE,
+    SV_VOICECOM, SV_VOICECOMTEAM,
+    SV_SHOOT, SV_EXPLODE, SV_SUICIDE, SV_RELOAD,
+    SV_SPAWN,
+    SV_SENDMAP, SV_RECVMAP, SV_REMOVEMAP,
+    SV_WEAPCHANGE, SV_PRIMARYWEAP,
+    SV_SETADMIN,
+    SV_CALLVOTE, SV_VOTE,
+    SV_LISTDEMOS, SV_GETDEMO,
+    SV_SWITCHNAME, SV_SWITCHSKIN, SV_SWITCHTEAM,
+    SV_GETVITA
+};
+
+int lastclactionslookup(int msg)
+{
+    const int lastclactions_n = constarraysize(lastclactions);
+    loopi(lastclactions_n) if(lastclactions[i] == msg) return true;
+    return false;
+}
+
 const char *disc_reason(int reason)
 {
     static const char *prot[] = { "terminated by enet", "end of packet", "client num", "tag type", "duplicate connection", "overflow", "random", "voodoo", "sync", "auth failed" },
