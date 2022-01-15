@@ -3,7 +3,7 @@
 enum { EE_LOCAL_SERV = 1, EE_DED_SERV = 1<<1 }; // execution environment
 
 int roleconf(int key)
-{ // current defaults: "fkbpMASRCDEPtwX"
+{ // current defaults: "fkbpMAsRCDEPtwX"//was:"fkbpMASRCDEPtwX"
     if(strchr(scl.voteperm, tolower(key))) return CR_DEFAULT;
     if(strchr(scl.voteperm, toupper(key))) return CR_ADMIN;
     return (key) == tolower(key) ? CR_DEFAULT : CR_ADMIN;
@@ -299,7 +299,7 @@ struct shuffleteamaction : serveraction
     bool isvalid() { return serveraction::isvalid() && m_teammode; }
     shuffleteamaction()
     {
-        role = roleconf('S');
+        role = roleconf('s');
         if(isvalid()) copystring(desc, "shuffle teams");
     }
 };
