@@ -3877,17 +3877,25 @@ void process(ENetPacket *packet, int sender, int chan)
                 }
                 else
                 {
-                    packetbuf p(MAXTRANS + sg->coop_cgzlen + sg->coop_cfglengz, ENET_PACKET_FLAG_RELIABLE);
-                    putint(p, SV_RECVMAP);
-                    sendstring(sg->smapname, p);
-                    putint(p, sg->curmap->cgzlen);
-                    putint(p, sg->curmap->cfglen);
-                    putint(p, sg->curmap->cfggzlen);
-                    p.put(sg->curmap->cgzraw, sg->curmap->cgzlen);
-                    if (sg->curmap->cgzlen) p.put(sg->curmap->cfgrawgz, sg->curmap->cfggzlen);
-                    sendpacket(cl->clientnum, 2, p.finalize());
-                    cl->mapchange(true);
-                    sendwelcome(cl, 2); // resend state properly
+                    if(cl->isonrightmap)
+                    {
+                        mlog(ACLOG_VERBOSE,"%d:%s GETMAP while on right map already.", cl->clientnum, cl->name);
+                        sendservmsg("you're already on this map", cl->clientnum);
+                    }
+                    else
+                    {
+                        packetbuf p(MAXTRANS + sg->coop_cgzlen + sg->coop_cfglengz, ENET_PACKET_FLAG_RELIABLE);
+                        putint(p, SV_RECVMAP);
+                        sendstring(sg->smapname, p);
+                        putint(p, sg->curmap->cgzlen);
+                        putint(p, sg->curmap->cfglen);
+                        putint(p, sg->curmap->cfggzlen);
+                        p.put(sg->curmap->cgzraw, sg->curmap->cgzlen);
+                        if (sg->curmap->cgzlen) p.put(sg->curmap->cfgrawgz, sg->curmap->cfggzlen);
+                        sendpacket(cl->clientnum, 2, p.finalize());
+                        cl->mapchange(true);
+                        sendwelcome(cl, 2); // resend state properly
+                    }
                 }
                 break;
             }
