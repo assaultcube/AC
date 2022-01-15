@@ -119,15 +119,47 @@ int cn2boot;
 const char *endis[] = { "disabled", "enabled", "" };
 SERVPARLIST(dumpmaprot, 0, 1, 0, endis, "ddump maprot parameters for all maps (once, to logs/debug/maprot_debug_verbose.txt)");
 SERVPARLIST(dumpparameters, 0, 0, 0, endis, "ddump server parameters when updated");
-SERVPAR(vitaautosave, 0, 10, 24 * 60, "sVita file autosave interval in minutes (0: only when server is empty)");
+//SERVPAR(vitaautosave, 0, 10, 24 * 60, "sVita file autosave interval in minutes (0: only when server is empty)"); // deprecated
 SERVPAR(vitamaxage, 3, 12, 120, "sOmit vitas from autosave, if the last login has been more than the specified number of months ago");
+
+//int lastvitasave = 0; // deprecated
+bool pushvitasforsaving(bool forceupdate = false)
+{
+    if(vitastosave) // only if the last push has been processed
+    {
+        return false;
+    }
+    else
+    {
+        //lastvitasave = servmillis;
+        vitastosave = new vector<vitakey_s>;
+        vitakey_s vk;
+        int too_old = 0;
+        enumeratekt(vitas, uchar32, k, vita_s, v,
+        {
+            if((servclock - v.vs[VS_LASTLOGIN]) / (60 * 24 * 31) <= vitamaxage // Vita is within the max age (months)
+               || (v.vs[VS_BAN] == 1 || (servclock - v.vs[VS_BAN]) < 0) // Do not remove if vita has the ban, whitelist, or admin flag set
+               || (v.vs[VS_WHITELISTED] == 1 || (servclock - v.vs[VS_WHITELISTED]) < 0)
+               || (v.vs[VS_ADMIN] == 1 || (servclock - v.vs[VS_ADMIN]) < 0))
+            {
+                vk.k = &k;
+                vk.v = &v;
+                vitastosave->add(vk);
+            }
+            else too_old++;
+        });
+        if(too_old) mlog(ACLOG_VERBOSE, "omitted %d vitas from autosave (exceeding maxage of %d months)", too_old, vitamaxage);
+        if(forceupdate) readserverconfigsthread_sem->post();
+    }
+    return true;
+}
 
 bool triggerpollrestart = false;
 
 void poll_serverthreads()       // called once per mainloop-timeslice
 {
     static vector<servermap *> servermapstodelete;
-    static int stage = 0, lastworkerthreadstart = 0, nextserverconfig = 0, lastvitasave = 0;
+    static int stage = 0, lastworkerthreadstart = 0, nextserverconfig = 0;
     static bool debugmaprot = true, serverwasnotempty = false;
 
     switch(stage) // cycle through some tasks once per minute (mostly file polling)
@@ -236,27 +268,9 @@ void poll_serverthreads()       // called once per mainloop-timeslice
                     delete f;
                 }
             }
-            else if(!vitastosave && serverwasnotempty && (numclients() == 0 || (vitaautosave && (servmillis - lastvitasave) > 1000 * 60 * vitaautosave)))
+            else if(!vitastosave && serverwasnotempty && numclients() == 0)
             {
-                serverwasnotempty = false;
-                lastvitasave = servmillis;
-                vitastosave = new vector<vitakey_s>;
-                vitakey_s vk;
-                int too_old = 0;
-                enumeratekt(vitas, uchar32, k, vita_s, v,
-                {
-                    if((servclock - v.vs[VS_LASTLOGIN]) / (60 * 24 * 31) <= vitamaxage // Vita is within the max age (months)
-                       || (v.vs[VS_BAN] == 1 || (servclock - v.vs[VS_BAN]) < 0) // Do not remove if vita has the ban, whitelist, or admin flag set
-                       || (v.vs[VS_WHITELISTED] == 1 || (servclock - v.vs[VS_WHITELISTED]) < 0)
-                       || (v.vs[VS_ADMIN] == 1 || (servclock - v.vs[VS_ADMIN]) < 0))
-                    {
-                        vk.k = &k;
-                        vk.v = &v;
-                        vitastosave->add(vk);
-                    }
-                    else too_old++;
-                });
-                if(too_old) mlog(ACLOG_VERBOSE, "omitted %d vitas from autosave (exceeding maxage of %d months)", too_old, vitamaxage);
+                serverwasnotempty = !pushvitasforsaving(false);
             }
             else stage++;
             break;
@@ -4027,6 +4041,7 @@ void process(ENetPacket *packet, int sender, int chan)
                         vi->action = new autoteamaction((vi->num1 = getint(p)) > 0);
                         break;
                     case SA_SHUFFLETEAMS:
+                        pushvitasforsaving(true);
                         vi->action = new shuffleteamaction();
                         break;
                     case SA_FORCETEAM:
@@ -4306,6 +4321,7 @@ void checkintermission()
     { // intermission starting here
         sg->interm = sg->gamemillis + 10000;
         demorecord_beginintermission();
+        pushvitasforsaving(true);
     }
     sg->forceintermission = false;
 }

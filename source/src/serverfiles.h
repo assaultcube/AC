@@ -656,7 +656,7 @@ bool serverwritemap(const char *mapname, int mapsize, int cfgsize, int cfgsizegz
             }
         }
         else
-        { 
+        {
             written = true;
         }
     }
@@ -762,9 +762,9 @@ int readserverconfigsthread(void *data)
 {
     while(1)
     {
-        while(!recheckallserverconfigs) readserverconfigsthread_sem->wait();  // wait without using the cpu
+        while(!recheckallserverconfigs&&!vitastosave) readserverconfigsthread_sem->wait();  // wait without using the cpu
 
-        loopv(serverconfigs) serverconfigs[i]->trypreload();
+        if(recheckallserverconfigs) loopv(serverconfigs) serverconfigs[i]->trypreload();
 
         // special treatment for vita updates: read once and move out of the way
         if(!vitaupdatebuf && getfilesize(vitafilename_update) > 0)
