@@ -1748,7 +1748,7 @@ void setfollowplayer(int cn)
 }
 COMMANDF(setfollowplayer, "i", (int *cn) { setfollowplayer(*cn); });
 
-// SM_OVERVIEW shows all players and their activity - could be used unfairly, possible TODO: allow restricting access by server config and votes 
+// SM_OVERVIEW shows all players and their activity - could be used unfairly, possible TODO: allow restricting access by server config and votes
 bool smoverviewflyforbidden()
 {
     return (player1->team != TEAM_SPECT && !watchingdemo);
@@ -1783,6 +1783,22 @@ void spectatemode(int mode)
                     player1->yaw = f->yaw;
                     player1->pitch = 0.0f;
                     player1->resetinterp();
+                    physent d = *player1;
+                    d.radius = d.eyeheight = d.maxeyeheight = d.aboveeye = 0.1;
+                    if(collide(&d, false)) // need air around
+                    {
+                        int x = findentity(PLAYERSTART,rnd(ents.length()));
+                        if(x>=0)
+                        {
+                            gotoplayerstart(player1, &ents[x]);
+                            player1->o.z = S((int)player1->o.x, (int)player1->o.y)->floor + player1->maxeyeheight;
+                            entinmap(player1);
+                        }
+                        else
+                        {
+                            spectatemode(SM_OVERVIEW); // fail-safe
+                        }
+                    }
                 }
                 else entinmap(player1); // or drop 'em at a random place
                 addmsg(SV_SPECTCN, "ri", (player1->followplayercn = FPCN_FLY));
