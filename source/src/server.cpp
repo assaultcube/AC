@@ -125,33 +125,37 @@ SERVPAR(vitamaxage, 3, 12, 120, "sOmit vitas from autosave, if the last login ha
 //int lastvitasave = 0; // deprecated
 bool pushvitasforsaving(bool forceupdate = false)
 {
-    if(vitastosave) // only if the last push has been processed
+    if(isdedicated)
     {
-        return false;
-    }
-    else
-    {
-        //lastvitasave = servmillis;
-        vitastosave = new vector<vitakey_s>;
-        vitakey_s vk;
-        int too_old = 0;
-        enumeratekt(vitas, uchar32, k, vita_s, v,
+        if(vitastosave) // only if the last push has been processed
         {
-            if((servclock - v.vs[VS_LASTLOGIN]) / (60 * 24 * 31) <= vitamaxage // Vita is within the max age (months)
-               || (v.vs[VS_BAN] == 1 || (servclock - v.vs[VS_BAN]) < 0) // Do not remove if vita has the ban, whitelist, or admin flag set
-               || (v.vs[VS_WHITELISTED] == 1 || (servclock - v.vs[VS_WHITELISTED]) < 0)
-               || (v.vs[VS_ADMIN] == 1 || (servclock - v.vs[VS_ADMIN]) < 0))
+            return false;
+        }
+        else
+        {
+            //lastvitasave = servmillis;
+            vitastosave = new vector<vitakey_s>;
+            vitakey_s vk;
+            int too_old = 0;
+            enumeratekt(vitas, uchar32, k, vita_s, v,
             {
-                vk.k = &k;
-                vk.v = &v;
-                vitastosave->add(vk);
-            }
-            else too_old++;
-        });
-        if(too_old) mlog(ACLOG_VERBOSE, "omitted %d vitas from autosave (exceeding maxage of %d months)", too_old, vitamaxage);
-        if(forceupdate) readserverconfigsthread_sem->post();
+                if((servclock - v.vs[VS_LASTLOGIN]) / (60 * 24 * 31) <= vitamaxage // Vita is within the max age (months)
+                   || (v.vs[VS_BAN] == 1 || (servclock - v.vs[VS_BAN]) < 0) // Do not remove if vita has the ban, whitelist, or admin flag set
+                   || (v.vs[VS_WHITELISTED] == 1 || (servclock - v.vs[VS_WHITELISTED]) < 0)
+                   || (v.vs[VS_ADMIN] == 1 || (servclock - v.vs[VS_ADMIN]) < 0))
+                {
+                    vk.k = &k;
+                    vk.v = &v;
+                    vitastosave->add(vk);
+                }
+                else too_old++;
+            });
+            if(too_old) mlog(ACLOG_VERBOSE, "omitted %d vitas from autosave (exceeding maxage of %d months)", too_old, vitamaxage);
+            if(forceupdate && readserverconfigsthread_sem) readserverconfigsthread_sem->post();
+        }
+        return true;
     }
-    return true;
+    return false;
 }
 
 bool triggerpollrestart = false;

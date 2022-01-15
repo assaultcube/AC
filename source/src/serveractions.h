@@ -301,6 +301,11 @@ struct shuffleteamaction : serveraction
     {
         role = roleconf('s');
         if(isvalid()) copystring(desc, "shuffle teams");
+        else
+        {
+            if(!m_teammode) copystring(desc, "shuffle teams requires teammode");
+            else copystring(desc, "invalid shuffle action");
+        }
     }
 };
 
