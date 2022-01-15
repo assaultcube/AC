@@ -65,7 +65,7 @@ extern float waterlevel;
 #define AC_MASTER_URI "ms.cubers.net"
 
 // uncomment this line for production release
-#define PRODUCTION
+//#define PRODUCTION
 
 #ifdef PRODUCTION
 	#define AC_VERSION 1300
