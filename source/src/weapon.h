@@ -18,19 +18,20 @@ struct weapon
     virtual int dynspread();
     virtual float dynrecoil();
     int reloading, lastaction;
+    int reloadbullets = 0;
 
     virtual bool attack(vec &targ) = 0;
     virtual void attackfx(const vec &from, const vec &to, int millis) = 0;
     virtual void attackphysics(vec &from, vec &to);
     virtual void attacksound();
     virtual bool reload(bool autoreloaded);
+    virtual void cancelreload();
     virtual void reset() {}
     virtual bool busy() { return false; }
 
     virtual int modelanim() = 0;
     virtual void updatetimers(int millis);
     virtual bool selectable();
-    virtual bool deselectable();
     virtual void renderstats();
     virtual void renderhudmodel();
     virtual void renderaimhelp(bool teamwarning);

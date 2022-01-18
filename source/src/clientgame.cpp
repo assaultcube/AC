@@ -617,6 +617,7 @@ void showrespawntimer()
     if(m_arena)
     {
         if(!arenaintermission) return;
+        if (player1->weaponsel) player1->weaponsel->cancelreload();
         showhudtimer(5, arenaintermission, "FIGHT!", lastspawnattempt >= arenaintermission && lastmillis < lastspawnattempt+100);
     }
     else if(player1->state==CS_DEAD && m_flags_ && (!player1->isspectating() || player1->spectatemode==SM_DEATHCAM))

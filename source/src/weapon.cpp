@@ -51,7 +51,10 @@ void checkweaponswitch()
 
 void selectweapon(weapon *w)
 {
-    if(!w || !player1->weaponsel->deselectable() || ispaused) return;
+    if(!w || ispaused) return;
+
+    if (player1->weaponsel) player1->weaponsel->cancelreload();
+
     if(w->selectable())
     {
         if(player1->attacking && player1->state == CS_ALIVE) attack(false);
@@ -80,7 +83,7 @@ void shiftweapon(int *s)
 {
     if(keypressed && player1->state == CS_ALIVE && !ispaused)
     {
-        if(!player1->weaponsel->deselectable()) return;
+        if (player1->weaponsel) player1->weaponsel->cancelreload();
 
         weapon *curweapon = player1->weaponsel;
         weapon *akimbo = player1->weapons[GUN_AKIMBO];
@@ -967,14 +970,12 @@ void weapon::attacksound()
 
 bool weapon::reload(bool autoreloaded)
 {
-    if(mag>=info.magsize || ammo<=0) return false;
+    if(arenaintermission || mag>=info.magsize || ammo<=0) return false;
     updatelastaction(owner);
     reloading = lastmillis;
     gunwait += info.reloadtime;
 
-    int numbullets = min(info.magsize - mag, ammo);
-    mag += numbullets;
-    ammo -= numbullets;
+    reloadbullets = min(info.magsize - mag, ammo);
 
     bool local = (player1 == owner);
     if(info.reload != S_NULL) audiomgr.playsound(info.reload, owner, local ? SP_HIGH : SP_NORMAL);
@@ -984,6 +985,11 @@ bool weapon::reload(bool autoreloaded)
         exechook(HOOK_SP, "onReload", "%d", (int)autoreloaded);
     }
     return true;
+}
+
+void weapon::cancelreload()
+{
+    gunwait = reloading = reloadbullets = 0;
 }
 
 VARP(oldfashionedgunstats, 0, 0, 1);
@@ -1076,7 +1082,6 @@ void weapon::renderaimhelp(bool teamwarning)
 int weapon::dynspread() { return info.spread; }
 float weapon::dynrecoil() { return info.recoil; }
 bool weapon::selectable() { return this != owner->weaponsel && owner->state == CS_ALIVE && !owner->weaponchanging; }
-bool weapon::deselectable() { return !reloading; }
 
 void weapon::equipplayer(playerent *pl)
 {
@@ -1377,7 +1382,14 @@ bool gun::attack(vec &targ)
 {
     int attackmillis = lastmillis-owner->lastaction - gunwait;
     if(attackmillis<0) return false;
-    gunwait = reloading = 0;
+
+    if (reloadbullets > 0)
+    {
+        mag += reloadbullets;
+        ammo -= reloadbullets;
+    }
+
+    gunwait = reloading = reloadbullets = 0;
 
     if(!owner->attacking)
     {
@@ -1440,8 +1452,7 @@ void gun::attackfx(const vec &from, const vec &to, int millis)
 
 int gun::modelanim() { return modelattacking() ? ANIM_GUN_SHOOT|ANIM_LOOP : ANIM_GUN_IDLE; }
 void gun::checkautoreload() { if(autoreload && owner==player1 && !mag) reload(true); }
-void gun::onownerdies() { shots = 0; }
-
+void gun::onownerdies() { shots = 0; cancelreload(); }
 
 // shotgun
 
@@ -1519,7 +1530,7 @@ float sniperrifle::dynrecoil() { return scoped && lastmillis - scoped_since > SC
 bool sniperrifle::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
 void sniperrifle::onselecting(bool sound) { weapon::onselecting(sound); scoped = false; player1->scoping = false; }
 void sniperrifle::ondeselecting() { scoped = false; owner->scoping = false; }
-void sniperrifle::onownerdies() { shots = 0; scoped = false; owner->scoping = false; }
+void sniperrifle::onownerdies() { shots = 0; scoped = false; owner->scoping = false; cancelreload(); }
 void sniperrifle::renderhudmodel() { if(!scoped) weapon::renderhudmodel(); }
 
 void sniperrifle::renderaimhelp(bool teamwarning)
