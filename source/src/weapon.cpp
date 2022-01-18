@@ -989,7 +989,7 @@ bool weapon::reload(bool autoreloaded)
 
 void weapon::cancelreload()
 {
-    gunwait = reloading = reloadbullets = 0;
+    reloading = reloadbullets = 0;
 }
 
 VARP(oldfashionedgunstats, 0, 0, 1);
