@@ -18,7 +18,7 @@ void httpget::reset(int keep) // keep == 0: delete all, keep == 1: keep connecti
         ip.host = ENET_HOST_ANY;
         ip.port = 80;         // change manually, if needed
         maxredirects = 3;
-        maxtransfer = maxsize = 1<<20; // 1 MB (caps transfer size and unzipped size)
+        maxtransfer = maxsize = 2<<20; // 2 MB (caps transfer size and unzipped size)
         connecttimeout = 6000;
         disconnect();
     }
