@@ -4,43 +4,45 @@ First follow all steps in 'releasing_guide.txt'.
 The suggested setup involves four separate paths:
 The development occured in Path-A:repo, packaging occurs in Path-B:build and Path-C:pack. The profile folder is Path-D:profile.
 On a MacOS/Linux system we'd be somewhere in /usr/local/src/AC, on Windows D:\Development\AC. The location of the profile folders can be found in Path-A:repo/assaultcube.[bat/sh].
-In our example in the source path location a subfolder 'git' holds the repository used in development (that's Path-A:repo) another subfolder 'PACKAGE' has two children 'build' (Path-B:build) and 'pack' (Path-C:pack). We are using v9.9.9 as stand-in for your current version number and also the repository tag, but that can be a long or short commit identifier too (e.g. for 'git archive' in I.1.)
+In our example in the source path location a subfolder 'git' holds the repository used in development (that's Path-A:repo) another subfolder 'PACKAGE' has two children 'build' (Path-B:build) and 'pack' (Path-C:pack). We are using v9.9.9.0 as stand-in for your current version number and also the repository tag, but that can be a long or short commit identifier too (e.g. for 'git archive' in I.1.)
 Example:
   /usr/local/src/AC
     Path-A:repo: /usr/local/src/AC/git
     Path-B:build: /usr/local/src/AC/PACKAGE/build
     Path-C:pack: /usr/local/src/AC/PACKAGE/pack
-    Path-D:profile: /home/user/.assaultcube/v9.9.9
+    Path-D:profile: /home/user/.assaultcube/v9.9.9.0
 Some automation is provided by scripts in source/vcpp/buildEnv/*.bat and source/dev_tools/*.sh.
 
 I. a clean build
   1. Get a package of the release tag from the git repository.
-     Preferred: "git archive", assuming a tag has been created (v9.9.9) or you're using a commit identifier (short possible) and local repository is up-to-date ("git pull")
+     Preferred: "git archive", assuming a tag has been created (v9.9.9.0) or you're using a commit identifier (short possible) and local repository is up-to-date ("git pull")
      Alternatives: download ZIP github.com/assaultcube/AC or a clean "git clone"
-     Example: user@machine:/usr/local/src/AC/git$ git archive --format=tar.gz -o ../PACKAGE/v9.9.9.tar.gz v9.9.9
+     Example: user@machine:/usr/local/src/AC/git$ git archive --format=tar.gz -o ../PACKAGE/v9.9.9.0.tar.gz v9.9.9.0
+              user@machine:/usr/local/src/AC/git$ git archive --format=tar.gz -o ../PACKAGE/v1.3.0.1.tar.gz dd164437a
   2. Extract the package twice
      1. Extract the package to Path-C:pack.
-        Example: user@machine:/usr/local/src/AC/PACKAGE/pack$ tar xzf ../v9.9.9.tar.gz
+        Example: user@machine:/usr/local/src/AC/PACKAGE/pack$ tar xzf ../v9.9.9.0.tar.gz
      2. Extract the package to Path-B:build.
-        Example: user@machine:/usr/local/src/AC/PACKAGE/build$ tar xzf ../v9.9.9.tar.gz
+        Example: user@machine:/usr/local/src/AC/PACKAGE/build$ tar xzf ../v9.9.9.0.tar.gz
   3. Building
-     1. compile binaries for client & server inside Path-B:build
+     1. Make a PRODUCTION build. In the file /usr/local/src/AC/PACKAGE/build/source/src/cube.h find the commented line "//#define PRODUCTION" and remove the "//".
+     2. compile binaries for client & server inside Path-B:build
         Example: user@machine:/usr/local/src/AC/PACKAGE/build/source/src$ make clean && colormake && make install
-     2. generate fresh config/mapmodelattributes.cfg file
+     3. generate fresh config/mapmodelattributes.cfg file
         1. delete Path-D:profile – most importantly Path-D:profile/config/mapmodelattributes.cfg and Path-D:profile/packages/models/mapmodels
         2. run AC with an empty profile
         3. in AC run "/loadallmapmodels" command
 
 II. fill packaging area
   1. copy Path-D:profile/config/mapmodelattributes.cfg to the Path-C:pack "config" directory
-     Example: cp /home/user/.assaultcube/v9.9.9/config/mapmodelattributes.cfg /usr/local/src/AC/PACKAGE/pack/config/ 
+     Example: cp /home/user/.assaultcube/v9.9.9.0/config/mapmodelattributes.cfg /usr/local/src/AC/PACKAGE/pack/config/ 
   2. copy the binaries for the target platform to Path-C:pack
      1. rename 'native_*'
         - Windows: renamed to 'ac_*' into Path-C:pack/bin_win32
         - Linux: renamed to 'linux_*' into Path-C:pack/bin_unix
           Example: native_client would become linux_client (32bit) or linux_64_client (64bit)
   3. copy model shadow files (shadows.dat) to Path-C:pack - NOT the crypto:entropy.dat
-     Example: user@machine:/usr/local/src/AC/PACKAGE/pack$ ACPROFILE=~/.assaultcube/v9.9.9; while read pfad; do subpfad=$(echo "$pfad"|cut -d'/' -f6-); cp $pfad $subpfad; done < <(find $ACPROFILE -type f -name shadows.dat)
+     Example: user@machine:/usr/local/src/AC/PACKAGE/pack$ ACPROFILE=~/.assaultcube/v9.9.9.0; while read pfad; do subpfad=$(echo "$pfad"|cut -d'/' -f6-); cp $pfad $subpfad; done < <(find $ACPROFILE -type f -name shadows.dat)
               CAUTION: you need to fix the ACPROFILE value to match Path-D:profile
   4. Copy the whole content from htdocs/docs/ folder in the latest release tag in assaultcube.github.io repository to docs/ folder. If the Path-B:build has newer content update both website and Path-C:pack.
   5. Archive config/autoexec.cfg, config/favourites.cfg, config/pcksources.cfg into config/configtemplates.zip (see commit 41fd31d). [[ https://github.com/assaultcube/AC/commit/41fd31d ]]
