@@ -306,7 +306,7 @@ int save_ppm(const char *filename, SDL_Surface *image)
     }
 
     /* write magic number and indication this is an AC screenshot */
-    f->printf("P6\n# AssaultCube screenshot\n# Scores:\n");
+    f->printf("P6\n# AssaultCube screenshot\n# Scores:");
 
     /* write ascii scores into ppm as comments */
     const char *scores = asciiscores(false);
@@ -324,13 +324,13 @@ int save_ppm(const char *filename, SDL_Surface *image)
 
     do
     {
-        f->write("# ", 2);
+        f->write("\n# ", 3);
         f->write(tmp, strlen(tmp));
     } while((tmp = strtok_r(NULL, "\n", &saveptr)));
 
     free(m_scores);
 
-    f->printf("%u %u\n%u\n", in_row, in_col, maxval);
+    f->printf("\n%u %u\n%u\n", in_row, in_col, maxval);
 
     /* Now, we need to output the pixel values.
      * Luckily, we don't need to care about endianness right now,
