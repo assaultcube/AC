@@ -68,10 +68,10 @@ extern float waterlevel;
 //#define PRODUCTION
 
 #ifdef PRODUCTION
-	#define AC_VERSION 1300
+	#define AC_VERSION 1301
 	#define AC_MASTER_PORT 28760
 #else
-	#define AC_VERSION -(1300)
+	#define AC_VERSION -(1301)
 	#define AC_MASTER_PORT 28758
 #endif
 
