@@ -314,8 +314,11 @@ int save_ppm(const char *filename, SDL_Surface *image)
     char *saveptr;
     char *m_scores = strdup(scores);
 
-    if(!m_scores)
-        return -1; /* epic malloc fail :c */
+    if(!m_scores) /* malloc failed */
+    {
+        delete f;
+        return -1;
+    }
 
 
     /* Tokenize the string with strtok_r because once we write a
