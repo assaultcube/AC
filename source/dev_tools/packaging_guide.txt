@@ -47,6 +47,8 @@ II. fill packaging area
   4. Copy the whole content from htdocs/docs/ folder in the latest release tag in assaultcube.github.io repository to docs/ folder. If the Path-B:build has newer content update both website and Path-C:pack.
   5. Archive config/autoexec.cfg, config/favourites.cfg, config/pcksources.cfg into config/configtemplates.zip (see commit 41fd31d). [[ https://github.com/assaultcube/AC/commit/41fd31d ]]
      Example: user@machine:/usr/local/src/AC/PACKAGE/pack/config$ zip configtemplates.zip autoexec.cfg favourites.cfg pcksources.cfg; for stale in autoexec favourites pcksources; do rm ${stale}.cfg; done
+  6. fix the install_or_remove_menuitem.sh
+     The values for LAUNCHERFILE and LAUNCHERTITLE should have the "(_)dev" parts removed (at least).
 
 III. clean out packaging area
   1. If you used 'git clone' in I.1: Delete .git folder, .gitignore, .travis.yml, if existent.

@@ -1127,6 +1127,26 @@ void connectprotocol(char *protocolstring) // assaultcube://example.org[:28763][
     DELSTRING(passwd);
 }
 
+int bakshowmenuonstartup = -1;
+static char *aaconnect = NULL;
+void afterauth()
+{
+    // currently only for delayed connectprotocol
+    if(aaconnect)
+    {
+        conoutf("\fUAfter Auth");
+        if(bakshowmenuonstartup > -1)
+        {
+            alias("showmenuonstartup",bakshowmenuonstartup==1?"1":"0",false,false);
+        }
+    }
+    if(aaconnect)
+    {
+        connectprotocol(aaconnect);
+        DELSTRING(aaconnect);
+    }
+}
+
 #ifdef THISISNOTDEFINED //WIN32
 static char *parsecommandline(const char *src, vector<char *> &args)
 {
@@ -1226,6 +1246,7 @@ int main(int argc, char **argv)
 
     if(*stream_capabilities()) clientlogf("info: %s", stream_capabilities());
 
+    bool waitforauth = false;
     initing = INIT_RESET;
     for(int i = 1; i<argc; i++)
     {
@@ -1294,7 +1315,9 @@ int main(int argc, char **argv)
             }
             else if(!strncmp(argv[i], "assaultcube://", 14)) // browser direct connection
             {
-                connectprotocol(argv[i]);
+                waitforauth = true;
+                conoutf("\fUwill \f2connect\fU when authenticated."); // individual notification - usually first in console, so off screen when menu pops up
+                aaconnect = newstring(argv[i]);//triggers connectprotocol(argv[i]); during afterauth()
             }
             else conoutf("\f3unknown commandline argument: %c", argv[i][0]);
         }
@@ -1303,6 +1326,10 @@ int main(int argc, char **argv)
     entropy_init(time(NULL) + (uint)(size_t)&initscript + (uint)(size_t)entropy_init);
     initclientlog();
     if(quitdirectly) return EXIT_SUCCESS;
+    if(waitforauth)
+    {
+        hudoutf("\f5.. \f2waiting \f4for \fUauth\f5entication .."); // general notification - more prominent to show things are about to happen
+    }
 
     createconfigtemplates("config" PATHDIVS "configtemplates.zip");
 
@@ -1437,9 +1464,18 @@ int main(int argc, char **argv)
     }
     autostartscripts("_aftersaved_");
     exechook(HOOK_SP_MP, "afterinit", "");
+    if(waitforauth)
+    {
+        bakshowmenuonstartup = !strcmp(getalias("showmenuonstartup"),"1")?1:0;
+        alias("showmenuonstartup","0");
+    }
     autostartscripts("");    // all remaining scripts
     execfile("config/autoexec.cfg");
     exechook(HOOK_SP_MP, "autoexec", "");
+
+
+
+
     initing = NOT_INITING;
     uniformtexres = !hirestextures;
 
@@ -1474,6 +1510,7 @@ int main(int argc, char **argv)
     inputgrab(grabinput = true);
 
     inmainloop = true;
+    static bool onceauthed = true;
 #ifdef _DEBUG
     int lastflush = 0;
 #endif
@@ -1493,7 +1530,7 @@ int main(int argc, char **argv)
         limitfps(millis, totalmillis);
         int elapsed = millis-totalmillis;
         entropy_add_byte(elapsed);
-        if(multiplayer(NULL)) 
+        if(multiplayer(NULL))
         {
             if(ispaused) curtime = 0;
             else curtime = elapsed;
@@ -1552,6 +1589,11 @@ int main(int argc, char **argv)
         if(millis>lastflush+60000) { fflush(stdout); lastflush = millis; }
 #endif
         pollautodownloadresponse();
+        if(onceauthed && sk)
+        {
+            onceauthed = false;
+            afterauth();
+        }
     }
 
     quit();
