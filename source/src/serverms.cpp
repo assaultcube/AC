@@ -365,6 +365,8 @@ void servermsinit(bool listen)
         mlog(ACLOG_INFO, "server is LAN-only - without connection to masterserver");
         if(listen){
             if(!scl.ssk) mlog(ACLOG_INFO, "ACTION REQUIRED: you must provide a PRIVATE SERVER KEY via the '-Y' command line argument");
+            if(!scl.master) mlog(ACLOG_INFO, "LAN-only because no master is given");
+            if(scl.maxclients>MAXCLIENTSONMASTER) mlog(ACLOG_INFO, "LAN-only because too many clients for master");
         }
     }
 }
