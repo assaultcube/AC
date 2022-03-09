@@ -261,6 +261,7 @@ int calcmapareastats(mapareastats_s &ms, servsqr *_servworld, int _ssize, const 
     return 0;
 }
 
+int lastflagdistancewarning = 0;
 void calcentitystats(entitystats_s &es, const persistent_entity *pents, int pentsize)
 {
 #ifndef STANDALONE
@@ -310,6 +311,14 @@ void calcentitystats(entitystats_s &es, const persistent_entity *pents, int pent
     {
         vec fd(pents[es.flagents[0]].x - pents[es.flagents[1]].x, pents[es.flagents[0]].y - pents[es.flagents[1]].y, 0);
         es.flagentdistance = fd.magnitude();
+        #ifndef STANDALONE
+        // the clientgame:server calls this too, so we need to check we didn't just warn already.
+        if(es.flagentdistance < MINFLAGDISTANCE && (lastflagdistancewarning==0 || (lastmillis - lastflagdistancewarning) > 1000))
+        {
+            hudoutf("\f2flags \f3too close\f5! \f4[%d<%d]", es.flagentdistance, MINFLAGDISTANCE);
+            lastflagdistancewarning = lastmillis;
+        }
+        #endif // STANDALONE
         es.hasflags = es.flagentdistance >= MINFLAGDISTANCE;
     }
     int r = 0;

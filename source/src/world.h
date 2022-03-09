@@ -148,7 +148,7 @@ struct vertex { float u, v, x, y, z; uchar r, g, b, a; };
 // map statistics
 
 #define MINSPAWNS 5 // minimum number of spawns per team
-#define MINFLAGDISTANCE 42 // minimum flag entity distance (2D)
+#define MINFLAGDISTANCE 24 // w/o checking for walls between them // minimum flag entity distance (2D)
 
 struct entitystats_s
 {
