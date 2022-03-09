@@ -1758,7 +1758,7 @@ bool smoverviewflyforbidden()
 void spectatemode(int mode)
 {
     if((player1->state != CS_DEAD && player1->state != CS_SPECTATE && !team_isspect(player1->team)) || (!m_teammode && !team_isspect(player1->team) && servstate.mastermode == MM_MATCH)) return;  // during ffa matches only SPECTATORS can spectate
-    if(mode == player1->spectatemode || (m_botmode && mode != SM_FLY)) return;
+    if(mode == player1->spectatemode) return;
     if((mode == SM_OVERVIEW || mode == SM_FLY) && smoverviewflyforbidden()) return;
     showscores(false);
     switch(mode)
@@ -1816,21 +1816,16 @@ COMMANDF(spectatemode, "i", (int *mode) { spectatemode(*mode); });
 
 void togglespect() // cycle through all spectating modes
 {
-    if(m_botmode)
-        spectatemode(SM_FLY);
-    else
-    {
-        int mode;
-        if(player1->spectatemode==SM_NONE) mode = SM_FOLLOW1ST; // start with 1st person spect
-        else mode = SM_FOLLOW1ST + ((player1->spectatemode - SM_FOLLOW1ST + 1) % ((smoverviewflyforbidden() ? SM_FLY : SM_NUM/*SM_OVERVIEW*/)-SM_FOLLOW1ST)); // replace SM_OVERVIEW by SM_NUM to enable overview mode
-        spectatemode(mode);
-    }
+    int mode;
+    if(player1->spectatemode==SM_NONE) mode = SM_FOLLOW1ST; // start with 1st person spect
+    else mode = SM_FOLLOW1ST + ((player1->spectatemode - SM_FOLLOW1ST + 1) % ((smoverviewflyforbidden() ? SM_FLY : SM_NUM/*SM_OVERVIEW*/)-SM_FOLLOW1ST)); // replace SM_OVERVIEW by SM_NUM to enable overview mode
+    spectatemode(mode);
 }
 COMMAND(togglespect, "");
 
 void changefollowplayer(int *shift)
 {
-    if(!m_botmode) updatefollowplayer(*shift);
+    updatefollowplayer(*shift);
 }
 COMMAND(changefollowplayer, "i");
 
