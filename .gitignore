@@ -25,6 +25,7 @@ source/codeblocks/AssaultCube_Linux.layout
 source/enet/.deps/
 source/enet/.libs/
 source/enet/Makefile
+source/enet/autom4te.cache
 source/enet/config.log
 source/enet/config.status
 source/enet/libenet.la
@@ -39,5 +40,4 @@ dumpmapconfig.txt
 packetlog.txt
 profile/*
 logs/*
-
 .DS_Store

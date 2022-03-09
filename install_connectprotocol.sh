@@ -1,5 +1,5 @@
 #!/bin/bash
-# Adds a custom menuitem for AssaultCube to your Desktop's launcher.
+# Adds the handler for the connect protocol for AssaultCube to your system.
 
 CUBE_DIR=$(dirname "$(readlink -f "${0}")")
 CUBE_EXEC=assaultcube.sh
