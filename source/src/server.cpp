@@ -110,6 +110,8 @@ vector<savedscore> savedscores;
 vector<ban> bans;
 
 long int incoming_size = 0;
+int shuffleskillthreshold = 200; 
+//int connectskillthreshold = 0;
 
 // cmod
 int totalclients = 0;
@@ -1895,10 +1897,12 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
         if (!isteam(target->team, actor->team))
         {
             actor->incrementvitacounter(VS_DAMAGE, damage);
+            actor->state.enemyfire += damage;
         }
         else
         {
             actor->incrementvitacounter(VS_FRIENDLYDAMAGE, damage);
+            actor->state.friendlyfire += damage;
         }
 
         if(target!=actor)
@@ -1937,6 +1941,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
         else
         { // suicide
             actor->state.frags--;
+            actor->state.suicides++;
             actor->incrementvitacounter(VS_SUICIDES, 1);
             suic = true;
             mlog(ACLOG_INFO, "[%s] %s suicided", actor->hostname, actor->name);
@@ -1945,6 +1950,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
         if((suic || tk) && (m_htf || m_ktf) && targethasflag >= 0)
         {
             actor->state.flagscore--;
+            actor->state.antiflags++;
             actor->incrementvitacounter(VS_ANTIFLAGS, 1);
             sendf(-1, 1, "riii", SV_FLAGCNT, actor->clientnum, actor->state.flagscore);
         }
@@ -2066,18 +2072,16 @@ bool updateclientteam(int cln, int newteam, int ftr)
         }
         else
         {
-            // if autoteam join smaller team, if balanced or not autoteam join the weaker team if the all the points count more than CUTOFF points - fallback to random
+            // join (autoteam => smaller || balanced => weaker(*)) team. (*): if theres enough data to establish strength, otherwise fallback to random
             if(sg->autoteam && teamsizes[TEAM_CLA] != teamsizes[TEAM_RVSF]) newteam = teamsizes[TEAM_CLA] < teamsizes[TEAM_RVSF] ? TEAM_CLA : TEAM_RVSF;
             else
             {
-                int teamscore[2] = {0, 0}, sum = calcscores();
+                int teamscore[2] = {0, 0}, sum = calcscores(); // sum != 0 is either <0 if match data based or >0 vita based and exceeded shuffleteamthreshold
                 loopv(clients) if(clients[i]->type!=ST_EMPTY && i != cln && clients[i]->isauthed && clients[i]->team != TEAM_SPECT)
                 {
                     teamscore[team_base(clients[i]->team)] += clients[i]->at3_score;
                 }
-                // 20220109: sum > 200 was CUTOFF when sum was of sqrt(cs.points) now it is of VITA:STATS:skillvalues which tend to be ~=1000 for competitive players against equally skilled ..
-                // .. so something like "sum/numplayers > 200" may be more appropriate, but at first we can live with it acting sooner rather than later .. either TODO or just leave it and remove these two comment lines!
-                newteam = sum > 200 ? (teamscore[TEAM_CLA] < teamscore[TEAM_RVSF] ? TEAM_CLA : TEAM_RVSF) : rnd(2);
+                newteam = sum==0 ? rnd(2) : (teamscore[TEAM_CLA] < teamscore[TEAM_RVSF] ? TEAM_CLA : TEAM_RVSF);
             }
         }
     }
@@ -2113,11 +2117,13 @@ bool updateclientteam(int cln, int newteam, int ftr)
         {
             mlog(ACLOG_INFO, "[%s] %s switched to specators during a match.", cl.hostname, cl.name);
             cl.state.frags--;
+            cl.state.teamkills++;
             cl.incrementvitacounter(VS_TKS, 1);
             sendf(-1, 1, "ri5", SV_DIED, -1, cl.clientnum, cl.state.frags, -1); // victim:-1 => no dokill() on client side, gun is irrelevant too
             if( (m_htf || m_ktf) && clienthasflag(cl.clientnum) >= 0 )
             {
                 cl.state.flagscore--;
+                cl.state.antiflags++;
                 cl.incrementvitacounter(VS_ANTIFLAGS, 1);
                 sendf(-1, 1, "riii", SV_FLAGCNT, cl.clientnum, cl.state.flagscore);
             }
@@ -2127,7 +2133,7 @@ bool updateclientteam(int cln, int newteam, int ftr)
     return true;
 }
 
-int calcscores() // skill eval
+int calcscoresvita() // vita skill eval
 {
     int sum = 0;
     loopv(clients) if(clients[i]->type!=ST_EMPTY)
@@ -2137,8 +2143,42 @@ int calcscores() // skill eval
             int *vs = clients[i]->vita->vs;
             int cskill = ((vs[VS_FRAGS]*100+vs[VS_DAMAGE]*2+vs[VS_FLAGS]*10) - (vs[VS_DEATHS]*50+vs[VS_FRIENDLYDAMAGE]*3+vs[VS_ANTIFLAGS]*15+vs[VS_TKS]*100+vs[VS_SUICIDES]*100))/vs[VS_MINUTESACTIVE];
             clients[i]->at3_score = cskill;
-            sum += cskill;
+            sum += cskill; // vita skill sum will be >=0
         }
+    }
+    return sum;
+}
+
+int calcscoresmatch() // match skill eval
+{
+    int sum = 0;
+    int nsp = 0; // no score players
+    loopv(clients) if(clients[i]->type!=ST_EMPTY)
+    {
+        if(clients[i]->team < TEAM_CLA_SPECT)
+        {
+            clientstate &cs = clients[i]->state;
+            int cskill = (cs.frags*100 + cs.enemyfire*2 + cs.goodflags*10) - (cs.deaths*50 + cs.friendlyfire*3 + cs.antiflags*15 + cs.teamkills*100 + cs.suicides*100);
+            clients[i]->at3_score = cskill;
+            sum -= cskill; // match skill sum will be <=0
+            if(cskill < 100) nsp++;
+        }
+    }
+    if(sum > -100 * numplayers() || nsp >= numplayers()/2) return 0; // if at least half have tiny scores or the total isn't enough: indicate random seems best
+    return sum;
+}
+
+int calcscores()
+{
+    int sum = 0;
+    int vitasum = calcscoresvita();
+    if((vitasum / numplayers()) > shuffleskillthreshold)
+    {
+        sum = vitasum;
+    }
+    else
+    {
+        sum = calcscoresmatch(); // indicate match skill used by sum<=0
     }
     return sum;
 }
@@ -2147,35 +2187,20 @@ vector<int> shuffle;
 
 void shuffleteams(int ftr = FTR_AUTOTEAM)
 {
-    int numplayers = numclients();
-    int team = rnd(2); // if skill based the top ranked player will be randomly in CLA or RVSF
+    int team; // top ranked player will stay on same team
     int sum = calcscores();
 
     // 20220109 only try skill based if each player has more than 200 on average. competitive players against each other currently have ~=1000.
-    if(sum/numplayers>200)
+    if(sum==0)
     {
-        // skill based
-        shuffle.shrink(0);
-        loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->isonrightmap && !team_isspect(clients[i]->team))
-        {
-            shuffle.add(i);
-        }
-        shuffle.sort(cmpscore);
-        loopi(shuffle.length())
-        {
-            updateclientteam(shuffle[i], team, ftr);
-            team = !team;
-        }
-    }
-    else
-    {
+        sendservmsg("using randomness to shuffle teams");
         // random
         int teamsize[2] = {0, 0};
-        int half = numplayers/2;
+        int half = numplayers()/2;
         int lastrun = 9; // try to avoid alternating teams based on clientnum
         vector<int> done;
         loopv(clients){
-            done.add(!(clients[i]->type!=ST_EMPTY && clients[i]->isonrightmap && !team_isspect(clients[i]->team))); // only shuffle active players
+            done.add(!(clients[i]->type!=ST_EMPTY && clients[i]->isonrightmap && !team_isspect(clients[i]->team))); // only shuffle active players - team_isactive() does not include TEAM_ANYACTIVE
         }
         loopk(lastrun+1)
         {
@@ -2190,6 +2215,26 @@ void shuffleteams(int ftr = FTR_AUTOTEAM)
                     teamsize[team]++;
                 }
             }
+        }
+    }
+    else
+    {
+        defformatstring(skillused)("using %s skill data to shuffle teams", sum<0?"match":"vita"); sendservmsg(skillused);
+        // skill based
+        shuffle.shrink(0);
+        loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->isonrightmap && !team_isspect(clients[i]->team))
+        {
+            shuffle.add(i);
+        }else{
+            clients[i]->at3_score = 0; 
+        }
+        shuffle.sort(cmpscore);
+        team = !clients[shuffle[0]]->team; // top player will stay on same team
+        int weakest2weakest = -1 + ((shuffle.length()%2) ? shuffle.length(): 0);
+        loopi(shuffle.length())
+        {
+            if(i!=weakest2weakest) team = !team; // weakest player will be on "weaker" team if uneven player count
+            updateclientteam(shuffle[i], team, ftr);
         }
     }
 

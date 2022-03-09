@@ -118,6 +118,7 @@ struct clientstate : playerstate
     int akimbomillis;
     bool scoped;
     int flagscore, frags, teamkills, deaths, shotdamage, damage, events, lastdisc, reconnections;
+    int suicides, friendlyfire, enemyfire, goodflags, antiflags; // match only vita replacement
 
     clientstate() : state(CS_DEAD) {}
 
@@ -142,6 +143,7 @@ struct clientstate : playerstate
         scoped = forced = false;
         flagscore = frags = teamkills = deaths = shotdamage = damage = events = lastdisc = reconnections = 0;
         lastdeath = lastclaction = 0;
+        suicides = friendlyfire = enemyfire = goodflags = antiflags = 0;
         respawn();
     }
 
