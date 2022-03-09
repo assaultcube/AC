@@ -139,7 +139,7 @@ struct mapaction : serveraction
             if(!mapok) conoutf("\f3map '%s' not found", map);
 #endif
         }
-        area |= EE_LOCAL_SERV; // local too
+        area |= EE_LOCAL_SERV;
         formatstring(desc)("load map '%s' in mode '%s'", map, modestr(mode));
         if(q) concatstring(desc, " (in the next game)");
     }
@@ -252,6 +252,7 @@ struct pauseaction : serveraction
     pauseaction(int mode) : mode(mode)
     {
         role = roleconf('p');
+        area |= EE_LOCAL_SERV;
         if(isvalid()) copystring(desc, (mode == 1) ? "pause the game" : "resume the game");
     }
 };
@@ -286,6 +287,7 @@ struct autoteamaction : enableaction
     {
         role = roleconf('A');
         if(isvalid()) formatstring(desc)("%s autoteam", enable ? "enable" : "disable");
+        area |= EE_LOCAL_SERV;
     }
 };
 
@@ -306,6 +308,7 @@ struct shuffleteamaction : serveraction
             if(!m_teammode) copystring(desc, "shuffle teams requires teammode");
             else copystring(desc, "invalid shuffle action");
         }
+        area |= EE_LOCAL_SERV;
     }
 };
 
