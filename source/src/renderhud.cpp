@@ -737,8 +737,10 @@ VARP(dbgpos,0,0,1);
 VARP(showtargetname,0,1,1);
 VARP(showspeed, 0, 0, 1);
 VAR(blankouthud, 0, 0, 10000); //for "clean" screenshot
+VARP(overviewflags, 0, 1, 2); // SM_OVERVIEW flag rendering: 0:regular, 1:model-askew 2:radarents
 string gtime;
 int dimeditinfopanel = 255;
+
 
 const char *ghoststrings[] =
 {
@@ -1106,7 +1108,62 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
     glLoadIdentity();
     glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
-    if(command) rendercommand(HUDPOS_X_BOTTOMLEFT, HUDPOS_Y_BOTTOMLEFT, VIRTW - FONTH);
+    if(m_flags_ && player1->spectatemode==SM_OVERVIEW && overviewflags==2)
+    {
+        float iconsize = radarentsize/0.2f;
+        vec coordtrans = vec(VIRTW/(1.0f*clmapdims.xspan+4), VIRTH/(1.0f*clmapdims.yspan+4), 1); // compare orthd for SM_OVERVIEW in setperspective()
+        vec coordcenter = vec(clmapdims.x1+clmapdims.xspan/2,clmapdims.y1+clmapdims.yspan/2,0);
+        bool axisxoff = clmapdims.xspan < clmapdims.yspan; // the axis of the not-gdim coordspan needs fixing
+        float axisscale = (1000.0f / (axisxoff ? (clmapdims.yspan/(1.0f*clmapdims.xspan)) : (clmapdims.xspan/(1.0f*clmapdims.yspan))))/1000.0f; // not used if !axisdiff
+        if(axisxoff)
+        {
+            coordtrans.x *= axisscale;
+        }else{
+            coordtrans.y *= axisscale;
+        }
+        glColor4f(1.0f, 1.0f, 1.0f, (sinf(lastmillis / 100.0f) + 1.0f) / 2.0f);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        loopi(2) // flag items
+        {
+            flaginfo &f = flaginfos[i];
+            entity *e = f.flagent;
+            bool hasflagent = e && e->x != -1 && e->y != -1; // no base for flagentitydummies (HTF on maps without bases)
+            if(hasflagent)
+            {
+                vec pos = vec((e->x-coordcenter.x)*coordtrans.x, (e->y-coordcenter.y)*coordtrans.y, 0);
+                drawradarent(pos.x+VIRTW/2, pos.y+VIRTH/2, 0, m_ktf ? 2 : f.team, 3, iconsize, false); // draw bases
+            }
+            if((f.state == CTFF_INBASE && hasflagent) || f.state == CTFF_DROPPED)
+            {
+                vec cpos = vec((f.pos.x-coordcenter.x)*coordtrans.x, (f.pos.y-coordcenter.y)*coordtrans.y, f.pos.z);
+                float flgoff=fabs(radarentsize*2.1f);
+                drawradarent(cpos.x+flgoff+VIRTW/2, cpos.y-flgoff+VIRTH/2, 0, 3, m_ktf ? 2 : f.team, iconsize, false); // draw on entity pos or whereever dropped
+            }
+            if(f.state == CTFF_STOLEN)
+            {
+                float d2c = 1.6f * radarentsize/16.0f;
+                vec apos(d2c, -d2c, 0);
+                if(f.actor)
+                {
+                    apos.add(f.actor->o).sub(coordcenter);
+                    bool tm = i != team_base(player1->team);
+                    if(m_htf) tm = !tm;
+                    else if(m_ktf) tm = true;
+                    if(tm)
+                    {
+                        apos.x *= coordtrans.x;
+                        apos.y *= coordtrans.y;
+                        drawradarent(apos.x+VIRTW/2, apos.y+VIRTH/2, 0, 3, m_ktf ? 2 : f.team, iconsize, true); // draw near flag thief
+                    }
+                }
+            }
+        }
+    }
+    if(command)
+    {
+        glEnable(GL_BLEND);
+        rendercommand(HUDPOS_X_BOTTOMLEFT, HUDPOS_Y_BOTTOMLEFT, VIRTW - FONTH);
+    }
 
     glDisable(GL_BLEND);
     glDisable(GL_TEXTURE_2D);

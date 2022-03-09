@@ -259,6 +259,8 @@ void renderentities()
     }
     if(m_flags_) loopi(2)
     {
+        extern int overviewflags;
+        bool overviewroll = player1->spectatemode==SM_OVERVIEW && overviewflags==1;
         flaginfo &f = flaginfos[i];
         switch(f.state)
         {
@@ -267,7 +269,7 @@ void renderentities()
                 {
                     if(OUTBORD(f.actor->o.x, f.actor->o.y)) break;
                     defformatstring(path)("pickups/flags/small_%s%s", m_ktf ? "" : team_basestring(i), m_htf ? "_htf" : m_ktf ? "ktf" : "");
-                    rendermodel(path, ANIM_FLAG|ANIM_START|ANIM_DYNALLOC, 0, 0, vec(f.actor->o).add(vec(0, 0, 0.3f+(sinf(lastmillis/100.0f)+1)/10)), 0, lastmillis/2.5f, 0, 120.0f);
+                    rendermodel(path, ANIM_FLAG|ANIM_START|ANIM_DYNALLOC, 0, 0, vec(f.actor->o).add(overviewroll?vec(0,0,0):vec(0, 0, 0.3f+(sinf(lastmillis/100.0f)+1)/10)), overviewroll?45:0, overviewroll?0:lastmillis/2.5f, overviewroll?45:0, 120.0f);
                 }
                 break;
 
@@ -278,7 +280,7 @@ void renderentities()
                 if(OUTBORD(f.pos.x, f.pos.y)) break;
                 entity &e = *f.flagent;
                 defformatstring(path)("pickups/flags/%s%s", m_ktf ? "" : team_basestring(i),  m_htf ? "_htf" : m_ktf ? "ktf" : "");
-                if(f.flagent->spawned) rendermodel(path, ANIM_FLAG|ANIM_LOOP, 0, 0, vec(f.pos.x, f.pos.y, f.state==CTFF_INBASE ? (float)S(int(f.pos.x), int(f.pos.y))->floor : f.pos.z), 0, float(e.attr1) / ENTSCALE10, 0, 120.0f);
+                if(f.flagent->spawned) rendermodel(path, ANIM_FLAG|ANIM_LOOP, 0, 0, vec(f.pos.x, f.pos.y, f.state==CTFF_INBASE ? (float)S(int(f.pos.x), int(f.pos.y))->floor : f.pos.z), overviewroll?15:0, float(e.attr1) / ENTSCALE10, overviewroll?15:0, 120.0f);
                 break;
             }
             case CTFF_IDLE:
