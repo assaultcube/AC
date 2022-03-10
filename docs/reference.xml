@@ -3986,10 +3986,10 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           <description>Sets the behavior of weapon switching upon akimbo expiration.</description>
           <value token="N" description="akimbo end action" minValue="0" maxValue="3" defaultValue="3"/>
           <arguments>
-            <argument valueNotes="0 (switch to knife)"/>
-            <argument valueNotes="1 (stay with pistol)"/>
-            <argument valueNotes="2 (switch to grenades)"/>
-            <argument valueNotes="3 (switch to primary)"/>
+            <argument description="switch to knife" valueNotes="0"/>
+            <argument description="stay with pistol" valueNotes="1"/>
+            <argument description="switch to grenades" valueNotes="2"/>
+            <argument description="switch to primary" valueNotes="3"/>
           </arguments>
           <remarks>
             <remark>If no ammunition is detected for the target weapon, it will fallback to the previous weapon until it finds a weapon with ammunition to use.</remark>
@@ -8279,6 +8279,23 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
         <variable name="hidecompass">
           <description>Turns on/off the radar compass.</description>
           <value token="V" description="enable/disable radar compass" minValue="0" maxValue="1" defaultValue="0"/>
+        </variable>
+
+        <variable name="overviewflags">
+          <description>Rendering options for the flags in the overview spectator mode.</description>
+          <remarks>
+            <remark>
+            Viewed from directly above the pole is barely visible and the undulating canvas never comes out of perfect alignment so is invisible. 
+            To compensate for the realistic rendering there are two variations on rendering flags when in the overview - 
+            either we rotate the models a bit so they become visible or we use the radar display of bases and flags instead.
+            </remark>
+          </remarks>
+          <value token="V" description="viewing variant" minValue="0" maxValue="2" defaultValue="1"/>
+          <arguments>
+            <argument description="real" valueNotes="0"/>
+            <argument description="askew" valueNotes="1"/>
+            <argument description="radar" valueNotes="2"/>
+          </arguments>
         </variable>
 
         <variable name="hidedamageindicator">
