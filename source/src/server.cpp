@@ -2684,7 +2684,7 @@ bool scallvote(voteinfo *v, ENetPacket *msg) // true if a regular vote was calle
         /** same team, with low tk, not lagging, and not spamming... so, why to kick? */
         else if ( isteam(c->team, b->team) && b->state.teamkills < c->state.teamkills ) error = VOTEE_WEAK;
     }
-    else if( c->role == CR_DEFAULT && servmillis - c->connectmillis < 60000 && numclients() > 1 ) error = VOTEE_PERMISSION; // after connection 60s delay before possibility of vote start
+    //else if( c->role == CR_DEFAULT && servmillis - c->connectmillis < 60000 && numclients() > 1 ) error = VOTEE_PERMISSION; // after connection 60s delay before possibility of vote start // VOTE_PERMISSION is misleading but reenable modified if misuse occurs
 
     if(error>=0)
     {
