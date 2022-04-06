@@ -1106,6 +1106,20 @@ int load_world(char *mname)        // still supports all map formats that have e
     parseheaderextra();
     popscontext();
 
+    short p[5];
+    if(getvantagepoint(p))
+    {
+        entity &e = ents.add();
+        e.type = DUMMYENT;
+        e.x = float(p[0])/DMF;
+        e.y = float(p[1])/DMF;
+        e.z = float(p[2])/DMF;
+        e.attr1 = p[3];
+        e.attr2 = VANTAGEDUMMY2;
+        e.attr5 = p[4];
+        e.spawned = false;
+    }
+
     c2skeepalive();
 
     watch.start();

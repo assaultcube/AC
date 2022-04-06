@@ -20,6 +20,7 @@ extern short entwraparound[MAXENTTYPES][7];
 extern uchar entscale[MAXENTTYPES][7];
 #define ENTSCALE10 10
 #define ENTSCALE5 5
+#define VANTAGEDUMMY2 222
 
 enum {MAP_IS_BAD, MAP_IS_EDITABLE, MAP_IS_GOOD};
 
@@ -537,10 +538,10 @@ public:
 
     void selectweapon(int w, bool other = false)
     {
-        if(weaponsel) prevweaponsel = weaponsel; 
-        weaponsel = weapons[(gunselect = w)]; 
-        if(!prevweaponsel) prevweaponsel = weaponsel; 
-        if(other && (prevweaponsel != weaponsel)) weaponswitch(weaponsel, true); 
+        if(weaponsel) prevweaponsel = weaponsel;
+        weaponsel = weapons[(gunselect = w)];
+        if(!prevweaponsel) prevweaponsel = weaponsel;
+        if(other && (prevweaponsel != weaponsel)) weaponswitch(weaponsel, true);
     }
 
     void setprimary(int w) { primweap = weapons[(primary = w)]; }
