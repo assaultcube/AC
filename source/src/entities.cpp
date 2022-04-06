@@ -12,14 +12,14 @@ void toucheditingsettings(bool forcerestart){
     {
         if(keepshowingeditingsettingsfrom == 0 || forcerestart)
         {
-            keepshowingeditingsettingsfrom = lastmillis; 
+            keepshowingeditingsettingsfrom = lastmillis;
             keepshowingeditingsettingstill = lastmillis + editingsettingsvisibletime;
         }
         else
         {
             int deltat_a = keepshowingeditingsettingstill - lastmillis;
             int deltat_b = lastmillis - keepshowingeditingsettingsfrom;
-            int showfrac = editingsettingsvisibletime / 5; 
+            int showfrac = editingsettingsvisibletime / 5;
             if( deltat_b >= showfrac )// we ignore quick-changes inside the slide-in period
             {
                 if( deltat_a <= showfrac )// changes in the slide-out period take that slide back and stay for almost the entire visibletime longer
@@ -30,7 +30,7 @@ void toucheditingsettings(bool forcerestart){
                 {
                     keepshowingeditingsettingsfrom = lastmillis - showfrac;
                 }
-                keepshowingeditingsettingstill = keepshowingeditingsettingsfrom + editingsettingsvisibletime;        	
+                keepshowingeditingsettingstill = keepshowingeditingsettingsfrom + editingsettingsvisibletime;
             }
         }
     }
@@ -112,15 +112,20 @@ void rendermapmodels()
     }
 }
 
-void renderentarrow(const entity &e, const vec &dir, float radius)
+VARP(entarrowstyle,0,1,1);
+
+void renderentarrow(const entity &e, const vec &dir, float radius, GLfloat color[4])
 {
     if(cleanedit || radius <= 0) return;
+    glColor4f(color[0],color[1],color[2],color[3]);
     float arrowsize = min(radius/8, 0.5f);
-    vec epos(e.x, e.y, e.z);
-    vec target = vec(dir).mul(radius).add(epos), arrowbase = vec(dir).mul(radius - arrowsize).add(epos), spoke;
+    vec spoke;
     spoke.orthogonal(dir);
     spoke.normalize();
-    spoke.mul(arrowsize);
+    spoke.mul(3*arrowsize/4);
+    arrowsize += arrowsize/2.0f;
+    vec epos(e.x, e.y, e.z);
+    vec target = vec(dir).mul(radius).add(epos), arrowbase = vec(dir).mul(radius - arrowsize).add(epos);
     glDisable(GL_TEXTURE_2D); // this disables reaction to light, but also emphasizes shadows .. a nice effect, but should be independent
     glDisable(GL_CULL_FACE);
     glLineWidth(3);
@@ -128,19 +133,56 @@ void renderentarrow(const entity &e, const vec &dir, float radius)
     glVertex3fv(epos.v);
     glVertex3fv(target.v);
     glEnd();
-    glBegin(GL_TRIANGLE_FAN);
-    glVertex3fv(target.v);
-    loopi(5)
+    switch(entarrowstyle)
     {
-        vec p(spoke);
-        p.rotate(PI2 * i / 4.0f, dir);
-        p.add(arrowbase);
-        glVertex3fv(p.v);
+        case 0: // 4seg cone at tip
+            glBegin(GL_TRIANGLE_FAN);
+            glVertex3fv(target.v);
+            loopi(5)
+            {
+                vec p(spoke);
+                p.rotate(PI2 * i / 4.0f, dir);
+                p.add(arrowbase);
+                glVertex3fv(p.v);
+            }
+            glEnd();
+        break;
+        case 1: // 4 rotated & tinted tips
+            float rothead[] = {0,PI/2,PI/4,3*PI/4};
+            glBegin(GL_TRIANGLES);
+            loopi(4)
+            {
+                glVertex3fv(target.v);
+                vec p1(spoke);
+                vec p2(spoke.mul(-1));
+                if(i>0)
+                {
+                    p1.rotate(rothead[i],dir);
+                    p2.rotate(rothead[i],dir);
+                }
+                if(i==2)
+                {
+                    float csf = (((color[1]+color[2]+color[3])/3.0f)>0.5f)?.75f:1.25f;
+                    glColor4f( csf*color[0], csf*color[1], csf*color[2], color[3]>0.5f?(color[3]/2.0f):(color[3]*2.0f) );
+                }
+                p1.add(arrowbase);
+                glVertex3fv(p1.v);
+                p2.add(arrowbase);
+                glVertex3fv(p2.v);
+            }
+            glEnd();
+        break;
+        default: break;
     }
-    glEnd();
     glLineWidth(1);
     glEnable(GL_CULL_FACE);
     glEnable(GL_TEXTURE_2D);
+}
+
+void renderentarrow(const entity &e, const vec &dir, float radius)
+{
+    GLfloat color[4] = {0,1.0f,1.0f,1.0f}; // usual call from rendereditentites:PLAYERSTART
+    renderentarrow(e,dir,radius,color);
 }
 
 void rendereditentities()
@@ -232,10 +274,23 @@ void rendereditentities()
                 }
                 if(i == closest)
                 {
-                    glColor3f(0, 1, 1);
+                    //glColor3f(0, 1, 1);//default for 3arg renderentarrow now
                     vec dir(0, -1, 0);
                     dir.rotate_around_z(float(e.attr1) / ENTSCALE10 * RAD);
                     renderentarrow(e, dir, 4);
+                    glColor3f(1, 1, 1);
+                }
+                break;
+            case DUMMYENT: // sparkly will be golden unless closestent
+                // why is VANTAGEPOINT stored in header instead of as an entity type? too easy? would come with multiples, viewing and editing instead of .. this:
+                if(e.attr2==VANTAGEDUMMY2){ // attr2 used as dummyent type indicator
+                    int worldyaw = iabs(e.attr1+180) % 360;
+                    vec dir( -sinf(RAD*worldyaw), cosf(RAD*worldyaw), sinf(RAD*e.attr5));
+                    float cos4pitch = cosf(RAD*e.attr5);
+                    dir.x *= cos4pitch;
+                    dir.y *= cos4pitch;
+                    GLfloat color[4] = {0.5f,0.5f,0.5f,1.0f};
+                    renderentarrow(e, dir, 4, color);
                     glColor3f(1, 1, 1);
                 }
                 break;

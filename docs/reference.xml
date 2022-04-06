@@ -3985,10 +3985,10 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           <description>Sets the behavior of weapon switching upon akimbo expiration.</description>
           <value token="N" description="akimbo end action" minValue="0" maxValue="3" defaultValue="3"/>
           <arguments>
-            <argument description="switch to knife" valueNotes="0"/>
-            <argument description="stay with pistol" valueNotes="1"/>
-            <argument description="switch to grenades" valueNotes="2"/>
-            <argument description="switch to primary" valueNotes="3"/>
+            <argument token="N" description="switch to knife" valueNotes="0"/>
+            <argument token="N" description="stay with pistol" valueNotes="1"/>
+            <argument token="N" description="switch to grenades" valueNotes="2"/>
+            <argument token="N" description="switch to primary" valueNotes="3"/>
           </arguments>
           <remarks>
             <remark>If no ammunition is detected for the target weapon, it will fallback to the previous weapon until it finds a weapon with ammunition to use.</remark>
@@ -7137,7 +7137,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
 
         <variable name="pointatentmaxangle">
           <description>Specifies the required precision for pointing at entities sparklies.</description>
-          <value token="N" description="0: not changed, 1: changed" minValue="0.01" maxValue="180.0" defaultValue="2.0" valueNotes="float"/>
+          <value token="N" description="float" minValue="0.01" maxValue="180.0" defaultValue="2.0"/>
           <references>
             <identifierReference identifier="pointatent"/>
           </references>
@@ -7145,6 +7145,15 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
 
         <variable name="edithideentmask">
           <description>Integer variable containing a bitmask of hidden entity types.</description>
+        </variable>
+
+        <variable name="entarrowstyle">
+          <description>Which way the arrow is drawn for playerstarts and vantage points.</description>
+          <value token="S" description="style" minValue="0" maxValue="1" defaultValue="1" valueNotes="0: cone, 1: multihead"/>
+          <remarks>
+            <remark>The cone style draws 4 triangles approximating the cone of the arrowhead.</remark>
+            <remark>The multihead style draws 4 triangles rotated around the shaft, two of which are coloured slightly differently.</remark>
+          </remarks>
         </variable>
 
         <command name="getdeletedentities">
