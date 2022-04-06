@@ -40,4 +40,5 @@ dumpmapconfig.txt
 packetlog.txt
 profile/*
 logs/*
+private/*
 .DS_Store
