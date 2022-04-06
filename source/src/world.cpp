@@ -794,6 +794,17 @@ void newmap(int *i)
     if(empty_world(*i, false))
     {
         addmsg(SV_NEWMAP, "ri", max(*i, 0));
+        // relying on default_map_settings texture indeces 27, 4, 51 for floor, wall, ceil
+        extern void resetselections();
+        extern void addselection(int x, int y, int xs, int ys, int h);
+        extern void edittex(int* type, int* dir);
+        extern int curedittex[];
+        int prettycet[] = {27,4,51}; // our preferred floor,wall,ceil
+        resetselections();
+        addselection(4,4,ssize-4,ssize-4,0);
+        loopi(3) curedittex[i] = prettycet[i];
+        int dir = 0;
+        loopi(3) edittex(&i,&dir); // includes network message
         exechook(HOOK_SP_MP, "onNewMap", "");
     }
     defformatstring(startmillis)("%d", totalmillis);
