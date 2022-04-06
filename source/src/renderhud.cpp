@@ -818,9 +818,9 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
     if(p->state==CS_ALIVE && !hidehudequipment) drawequipicons(p);
 
-    if((!hideradar || showmap) && player1->spectatemode <= SM_FLY) drawradar(p, w, h);
     if(!editmode)
     {
+        if((!hideradar || showmap) && player1->spectatemode <= SM_FLY) drawradar(p, w, h); // EDITMINIMAP: radar/showmap in editmode will be out-of-date
         glMatrixMode(GL_MODELVIEW);
         if(!hideteam && m_teammode) drawteamicons(w, h, is_spect);
         glMatrixMode(GL_PROJECTION);
