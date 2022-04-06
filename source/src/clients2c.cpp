@@ -317,7 +317,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 int clockoffset = s->serverclock - s->clientclock;
                 if(curpeer && iabs(clockoffset) > 60 * 24) conoutf("\f3warning: server and client clock are offset more than one day (%d minutes)", clockoffset);
 
-                clientlogf("own IP: %s, censored own IP: %s, %s, clock offset %d hours %d minutes", iptoa(s->clientip, tmp1), iptoa(s->clientipcensored, tmp2), cc, clockoffset / 60, clockoffset % 60);
+                if(s->clientip>0) clientlogf("own IP: %s, censored own IP: %s, %s, clock offset %d hours %d minutes", iptoa(s->clientip, tmp1), iptoa(s->clientipcensored, tmp2), cc, clockoffset / 60, clockoffset % 60);
                 if(curpeer && s->serverip)
                 {
                     s->curpeerip = ENET_NET_TO_HOST_32(curpeer->address.host);
@@ -327,7 +327,10 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
 
                 defformatstring(challenge)("SERVINFOCHALLENGE<(%d) cn: %d c: %s (%s) s: %s:%d", sessionid, s->cn, iptoa(s->clientipcensored, tmp1), cc, iptoa(s->serverip, tmp2), s->curpeerport);
                 concatformatstring(challenge, " %s st: %d ct: %d (%d)>", bin2hex(tmp1, s->serverpubkey, 32), s->serverclock, s->clientclock, s->clientsalt);
-                clientlogf("auth challenge: %s", challenge);
+                if(s->serverip>0)
+                {
+                    clientlogf("auth challenge: %s", challenge);
+                }
                 int chlen = (int)strlen(challenge);
                 if(chlen >= MAXSTRLEN - 65)
                 {
