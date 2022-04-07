@@ -136,41 +136,46 @@ void renderentarrow(const entity &e, const vec &dir, float radius, GLfloat color
     switch(entarrowstyle)
     {
         case 0: // 4seg cone at tip
-            glBegin(GL_TRIANGLE_FAN);
-            glVertex3fv(target.v);
-            loopi(5)
             {
-                vec p(spoke);
-                p.rotate(PI2 * i / 4.0f, dir);
-                p.add(arrowbase);
-                glVertex3fv(p.v);
+                glBegin(GL_TRIANGLE_FAN);
+                glVertex3fv(target.v);
+                loopi(5)
+                {
+                    vec p(spoke);
+                    p.rotate(PI2 * i / 4.0f, dir);
+                    p.add(arrowbase);
+                    glVertex3fv(p.v);
+                }
+                glEnd();
+
             }
-            glEnd();
         break;
         case 1: // 4 rotated & tinted tips
-            float rothead[] = {0,PI/2,PI/4,3*PI/4};
-            glBegin(GL_TRIANGLES);
-            loopi(4)
             {
-                glVertex3fv(target.v);
-                vec p1(spoke);
-                vec p2(spoke.mul(-1));
-                if(i>0)
+                float rothead[] = {0,PI/2,PI/4,3*PI/4};
+                glBegin(GL_TRIANGLES);
+                loopi(4)
                 {
-                    p1.rotate(rothead[i],dir);
-                    p2.rotate(rothead[i],dir);
+                    glVertex3fv(target.v);
+                    vec p1(spoke);
+                    vec p2(spoke.mul(-1));
+                    if(i>0)
+                    {
+                        p1.rotate(rothead[i],dir);
+                        p2.rotate(rothead[i],dir);
+                    }
+                    if(i==2)
+                    {
+                        float csf = (((color[1]+color[2]+color[3])/3.0f)>0.5f)?.75f:1.25f;
+                        glColor4f( csf*color[0], csf*color[1], csf*color[2], color[3]>0.5f?(color[3]/2.0f):(color[3]*2.0f) );
+                    }
+                    p1.add(arrowbase);
+                    glVertex3fv(p1.v);
+                    p2.add(arrowbase);
+                    glVertex3fv(p2.v);
                 }
-                if(i==2)
-                {
-                    float csf = (((color[1]+color[2]+color[3])/3.0f)>0.5f)?.75f:1.25f;
-                    glColor4f( csf*color[0], csf*color[1], csf*color[2], color[3]>0.5f?(color[3]/2.0f):(color[3]*2.0f) );
-                }
-                p1.add(arrowbase);
-                glVertex3fv(p1.v);
-                p2.add(arrowbase);
-                glVertex3fv(p2.v);
+                glEnd();
             }
-            glEnd();
         break;
         default: break;
     }

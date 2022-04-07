@@ -1022,6 +1022,8 @@ void timeupdate(int milliscur, int millismax)
         conoutf("game has ended!");
         consolescores();
         showscores(true);
+        player1->type = ENT_CAMERA; // for intermission VP - reset to ENT_PLAYER in startmap
+        gotovantagepoint();
         exechook(HOOK_SP_MP, "start_intermission", "");
     }
     else
@@ -1153,6 +1155,7 @@ VARP(showmodedescriptions, 0, 1, 1);
 
 void startmap(const char *name, bool reset, bool norespawn)   // called just after a map load
 {
+    player1->type = ENT_PLAYER; // intermission VP requires ENT_CAMERA
     extern bool canceldownloads;
     canceldownloads = false;
     copystring(clientmap, name);
