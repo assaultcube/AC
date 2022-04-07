@@ -107,8 +107,20 @@ void connectserv_(const char *servername, int serverport = 0, const char *passwo
 
 void connectserv(char *servername, int *serverport, char *password)
 {
-    modprotocol = false;
-    connectserv_(servername, *serverport, password);
+    if(sk)
+    {
+        modprotocol = false;
+        connectserv_(servername, *serverport, password);
+    }else{
+        extern char *aaconnect;// assaultcube://example.org[:28763][/][?[port=28763][&password=secret]]
+        string cp1, cp2, cp3, cpc;
+        formatstring(cp1)("assaultcube://%s",servername);
+        if(serverport)formatstring(cp2)(":%d",*serverport);
+        if(password)formatstring(cp3)("/?password=%s",password);
+        formatstring(cpc)("%s%s%s", cp1, cp2, cp3);
+        aaconnect = newstring(cpc);
+        hudoutf("\f5.. \f2waiting \f4for \fUauth\f5entication ..");
+    }
 }
 COMMANDN(connect, connectserv, "sis");
 
@@ -340,8 +352,8 @@ void addmsg(int type, const char *fmt, ...)
             case 's':
             {
                 const char *t = va_arg(args, const char *);
-                sendstring(t, p); 
-                nums++; 
+                sendstring(t, p);
+                nums++;
                 break;
             }
         }
