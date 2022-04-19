@@ -735,10 +735,10 @@ extern void cutcolorstring(char *text, int len);
 extern bool filterunrenderables(char *s);
 
 // editing
-#define EDITSEL(x)   if(noteditmode(x) || noselection()) return
-#define EDITSELMP(x) if(noteditmode(x) || noselection() || multiplayer(x)) return
-#define EDITMP(x)    if(noteditmode(x) || multiplayer(x)) return
-#define EDIT(x)      if(noteditmode(x)) return
+#define EDITSEL(x)   if(noteditmode(x) || noselection() || whilepaused()) return
+#define EDITSELMP(x) if(noteditmode(x) || noselection() || whilepaused() || multiplayer(x)) return
+#define EDITMP(x)    if(noteditmode(x) || whilepaused() || multiplayer(x)) return
+#define EDIT(x)      if(noteditmode(x) || whilepaused()) return
 extern void cursorupdate();
 extern void toggleedit(bool force = false);
 extern void reseteditor();
@@ -757,6 +757,7 @@ extern void slopexy(int xd, int yd, block &sel);
 extern void stairsxy(int xd, int yd, block &sel);
 extern void edittagxy(int orv, int andv, block &sel);
 extern void selfliprotate(block &sel, int dir);
+extern bool whilepaused();
 extern bool noteditmode(const char* func = NULL);
 extern void storeposition(short p[]);
 extern void restoreposition(short p[]);
@@ -932,7 +933,7 @@ extern void tryreload(playerent *p);
 extern void checkweaponstate();
 extern int burstshotssettings[NUMGUNS];
 
-// entities:
+// entities
 extern void toucheditingsettings(bool forcerestart = true);
 extern int edithideentmask;
 extern int showeditingsettings;
@@ -1106,6 +1107,7 @@ extern void extinfo_statsbuf(ucharbuf &p, int pid, int bpos, ENetSocket &pongsoc
 extern void extinfo_teamscorebuf(ucharbuf &p);
 extern char *votestring(int type, char *arg1, char *arg2, char *arg3);
 extern int wizardmain(int argc, char **argv);
+extern void setpausemode(int newmode, int exclude = -1);
 
 // some tools
 extern header *peekmapheader(uchar *data, int len);

@@ -293,6 +293,7 @@ vector<persistent_entity> deleted_ents;
 
 void delent()
 {
+    if(whilepaused()) return;
     int n = closestent();
     if(n<0) { conoutf("no more entities"); return; }
     syncentchanges(true);
@@ -316,6 +317,7 @@ COMMAND(delent, "");
 void undelent(char *index)
 {
     if(noteditmode("undelent")) return;
+    if(whilepaused()) return;
     if(!deleted_ents.length()) { conoutf("no more entities to undelete"); return; }
     int n = isdigit(*index) ? strtol(index, NULL, 0) : deleted_ents.length() - 1;
     if(deleted_ents.inrange(n))
@@ -369,6 +371,7 @@ int findtype(const char *what)
 VAR(_nextentityispasted,0,0,1);// so copyent/pasteent can keep all attributes
 void newentity(int index, int x, int y, int z, const char *what, float v1f, float v2f, float v3f, float v4f, float v5f, float v6f, float v7f) // add an entity or overwrite an existing one
 {
+    // whilepaused() checked in callers here and in editing.cpp
     int type = findtype(what);
     if(type == NOTUSED) return;
     if (index >= 0 && ents[index].type == SOUND) deletesoundentity(ents[index]); // overwriting sound entity
@@ -431,6 +434,7 @@ void newentity(int index, int x, int y, int z, const char *what, float v1f, floa
 
 void entset(char *what, float *a1, float *a2, float *a3, float *a4, float *a5, float *a6, float *a7)
 {
+    if(whilepaused()) return;
     int n = closestent();
     if(n>=0)
     {

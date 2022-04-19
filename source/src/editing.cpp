@@ -86,6 +86,20 @@ void edittoggle() { toggleedit(false); }
 
 COMMAND(edittoggle, "");
 
+bool whilepaused()
+{
+    static int lastplayedbeep = 0;
+    if(ispaused)
+    {
+        if(lastplayedbeep==0||(lastmillis-lastplayedbeep)>1000)
+        {
+            lastplayedbeep = lastmillis;
+            audiomgr.playsound(S_FAILBEEP);
+        }
+    }
+    return ispaused;
+}
+
 bool correctsel(block &s)                                       // ensures above invariant
 {
     int bsize = ssize - MINBORD;

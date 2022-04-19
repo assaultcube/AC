@@ -248,7 +248,7 @@ struct pauseaction : serveraction
 {
     int mode;
     void perform() { setpausemode(mode); }
-    virtual bool isvalid() { return sg->mastermode == MM_MATCH || sg->mastermode == MM_PRIVATE; }
+    virtual bool isvalid() { return sg->mastermode == MM_MATCH || sg->mastermode == MM_PRIVATE || sg->smode == GMODE_COOPEDIT; }
     pauseaction(int mode) : mode(mode)
     {
         role = roleconf('p');

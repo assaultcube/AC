@@ -30,8 +30,7 @@ enum
     S_MENUSELECT, S_MENUENTER,
     S_UNDERWATER,
     S_TINNITUS,
-// begin: voicecoms
-    S_AFFIRMATIVE,
+S_AFFIRMATIVE, // begin: voicecoms
     S_ALLRIGHTSIR,
     S_COMEONMOVE,
     S_COMINGINWITHTHEFLAG,
@@ -62,16 +61,16 @@ enum
     S_INPOSITION1,
     S_INPOSITION2,
     S_REPORTIN,
-    S_NICESHOT, // begin: public
+    S_NICESHOT, // begin: public voice
     S_THANKS1,
     S_THANKS2,
     S_AWESOME1,
-    S_AWESOME2,
-// end: voicecoms
-    S_ITEMHELMET, // begin: Sounds for AssaultCube v1.1.0.4 onwards
+    S_AWESOME2, // end: voicecoms
+    S_ITEMHELMET, // AC >= v1.1.0.4
     S_HEARTBEAT,
     S_KTFSCORE,
     S_CAMERA,
+    S_FAILBEEP, // AC > 1.3.0.2 (cooprec-for-newcomer branch)
     S_NULL
 };
 
@@ -81,8 +80,8 @@ enum { SC_PAIN = 0, SC_OWNPAIN, SC_WEAPON, SC_PICKUP, SC_MOVEMENT, SC_BULLET, SC
 #define gamesound_hasflag(x, mask) (gamesound_isvalid(x) && (soundcfg[x].flags & mask) != 0)
 #define gamesound_isvoicecom(x)       gamesound_hasflag(x, 1 << SC_VOICECOM)      // all voicecoms
 #define gamesound_ispublicvoicecom(x) gamesound_hasflag(x, 1 << SC_PUBLIC)        // voicecoms always sent to all players
-#define gamesound_ispublicwhenffa(x) gamesound_hasflag(x, 1 << SC_FFA)            // voicecoms sent to all only in FFA modes 
-#define gamesound_isflagvoicecom(x) gamesound_hasflag(x, 1 << SC_FLAGONLY)        // voicecoms pertaining to flag tactics 
+#define gamesound_ispublicwhenffa(x) gamesound_hasflag(x, 1 << SC_FFA)            // voicecoms sent to all only in FFA modes
+#define gamesound_isflagvoicecom(x) gamesound_hasflag(x, 1 << SC_FLAGONLY)        // voicecoms pertaining to flag tactics
 
 
 struct soundcfgitem {

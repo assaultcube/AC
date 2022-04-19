@@ -255,6 +255,7 @@ struct client                   // server side version of "dynent" type
     bool isonrightmap, loggedwrongmap, freshgame;
     bool timesync;
     bool ispaused;
+    int whathappened; // tiny delay after initclient before pause-catchup-unpause
     int overflow;
     int gameoffset, lastevent, lastvotecall;
     int lastprofileupdate, fastprofileupdates;
@@ -308,6 +309,7 @@ struct client                   // server side version of "dynent" type
         ffire = 0;
         f = yaw = pitch = t = 0;
         ispaused = 0;
+        whathappened = 0;
     }
 
     void reset()
@@ -335,6 +337,7 @@ struct client                   // server side version of "dynent" type
         freshgame = false;         // don't spawn into running games
         mute = spam = lastvc = badspeech = badmillis = nvotes = 0;
         ispaused = 0;
+        whathappened = 0;
     }
 
     void zap()
@@ -657,6 +660,7 @@ soundcfgitem soundcfg[S_NULL] =
     { "misc/pickup_helmet",     "Helmet pickup",            0, 0,  0, S_ITEMHELMET,             C(PICKUP)        }, // 99
     { "player/heartbeat",       "Heartbeat",                0, 0,  0, S_HEARTBEAT,              C(OWNPAIN)       }, // 100
     { "ktf/flagscore",          "KTF score",                0, 0,  0, S_KTFSCORE,               C(OTHER)         }, // 101
-    { "misc/camera",            "Screenshot",               0, 0,  0, S_CAMERA,                 C(OTHER)         }  // 102
+    { "misc/camera",              "Screenshot",             0, 0,  0, S_CAMERA,                 C(OTHER)         }, // 102
+    { "misc/fail-beep",           "Edit-In-Pause",          0, 0,  0, S_FAILBEEP,               C(OTHER)         }  // 103
 };
 #undef C

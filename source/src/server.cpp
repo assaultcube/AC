@@ -428,6 +428,86 @@ void cleanworldstate(ENetPacket *packet)
    }
 }
 
+// coop newcomer fix
+const char *cooptempfile = SERVERMAP_PATH_INCOMING "cooprecord";
+stream *cooptmp = NULL;
+bool recordcoop = false;
+void sendservmsg(const char *msg, int cn); // needed already
+
+void writecoop(void *data, int len)
+{
+    const int maxrecsize = 10485760;// 1024 * 1024 * 10 = 10485760 ^= 10 MiB – if your HDD is 10 MiB before the limit AC is /not/ your problem.
+    if(cooptmp->size()<maxrecsize)
+    {
+        static int edittypes[] = { SV_EDITENT, SV_EDITXY, SV_EDITARCH, SV_EDITBLOCK, SV_EDITD, SV_EDITE, SV_NEWMAP };
+        if(!cooptmp) return;
+        ucharbuf p((uchar *)data, len);
+        while(p.remaining())
+        {
+            int type = getint(p);
+            bool iseditmsg = false;
+            loopi(sizeof(edittypes)/sizeof(int)) if(type == edittypes[i]) iseditmsg = true;
+            if(iseditmsg)
+            {
+                int size = msgsizelookup(type);
+                cooptmp->putlil<int>(size);
+                cooptmp->putlil<int>(type);
+                loopi(size-1){
+                    cooptmp->putlil<int>(getint(p));
+                }
+            }
+        }
+    }
+    if(cooptmp->size()>maxrecsize)
+    {
+        sendservmsg("The coop record exceeds the size limit. SAVE your MAP and RELOAD.",-1);
+        setpausemode(1); // force everybody into PAUSE until coop resumes with next map revision
+    }
+}
+
+void recordcooppacket(ENetPacket *packet)
+{
+	if(recordcoop) writecoop(packet->data,(int)packet->dataLength);
+}
+
+void endcooprecord()
+{
+
+	recordcoop = false;
+	if(cooptmp)
+	{
+		delete cooptmp;
+		cooptmp = NULL;
+		remove(cooptempfile);
+	}
+}
+
+void sendcooprecord(int coopnewcomer)
+{
+	if(!cooptmp||coopnewcomer<0) return;
+	setpausemode(1,coopnewcomer); // we block edits for all other clients until the newcomer has caught up
+	cooptmp->seek(0,SEEK_SET);
+	int rlen = cooptmp->getlil<int>();
+	while(rlen > 0)
+	{
+        packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
+        loopi(rlen) putint(p, cooptmp->getlil<int>());
+        ENetPacket *packet = p.finalize();
+        sendpacket(coopnewcomer, 1, packet);
+        rlen = cooptmp->getlil<int>();
+	}
+    cooptmp->seek(0,SEEK_END);
+    setpausemode(0);
+}
+
+void setupcooprecord()
+{
+	if(gamemode != GMODE_COOPEDIT) return;
+	cooptmp = opentempfile(cooptempfile, "w+b"); // the physical file will not be kept after use
+	if(!cooptmp) return;
+	recordcoop = true;
+}
+
 void sendpacket(int n, int chan, ENetPacket *packet, int exclude, bool demopacket)
 {
     if(n<0)
@@ -620,19 +700,15 @@ void changemastermode(int newmode)
     }
 }
 
-void setpausemode(int newmode)
+void setpausemode(int newmode, int exclude)
 {
-    if (sg->sispaused != newmode) {
-        sg->sispaused = newmode;
-    }
-
+    if(sg->sispaused != newmode) sg->sispaused = newmode;
     loopv(clients) if (clients[i]->type != ST_EMPTY)
     {
         if (!valid_client(i)) return;
         clients[i]->ispaused = newmode;
     }
-
-    sendf(-1, 1, "ri2", SV_PAUSEMODE, newmode);
+    sendf(-1, 1, "ri2x", SV_PAUSEMODE, newmode, exclude);
 }
 
 int findcnbyaddress(ENetAddress *address)
@@ -2319,6 +2395,7 @@ void resetserver(const char *newname, int newmode, int newtime)
 {
     if(m_demo) enddemoplayback();
     else enddemorecord();
+    endcooprecord();
 
     sg->free(); // for now: clean out old servergame states
     sg->curmap = NULL;
@@ -2460,7 +2537,11 @@ void startgame(const char *newname, int newmode, int newtime, bool notify)
                 forcedeath(c);
             }
         }
-        if(numnonlocalclients() > 0) setupdemorecord();
+        if(numnonlocalclients() > 0)
+        {
+            setupdemorecord();
+            setupcooprecord();
+        }
         if(notify && m_ktf) sendflaginfo();
         if(notify) senddisconnectedscores(-1);
     }
@@ -2905,6 +2986,7 @@ void sendinitclient(client &c)
     packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
     putinitclient(c, p);
     sendpacket(-1, 1, p.finalize(), c.clientnum);
+    if(gamemode == GMODE_COOPEDIT) c.whathappened = servmillis + 1234; // delaying sendcooprecord(c.clientnum)
 }
 
 void welcomeinitclient(packetbuf &p, int exclude = -1)
@@ -3316,6 +3398,15 @@ void process(ENetPacket *packet, int sender, int chan)
         {
             if(clients[i] && clients[i]->clientnum != cl->clientnum && (clients[i]->role == CR_ADMIN || clients[i]->type == ST_LOCAL))
                 sendiplist(clients[i]->clientnum, cl->clientnum);
+        }
+    }
+
+    loopv(clients)
+    {
+        if(clients[i] && clients[i]->whathappened > servmillis)
+        {
+            clients[i]->whathappened = 0;
+            sendcooprecord(clients[i]->clientnum);
         }
     }
 
@@ -4315,6 +4406,20 @@ void process(ENetPacket *packet, int sender, int chan)
             {
                 loopi(5) getuint(p);
                 freegzbuf(getgzbuf(p));
+                recordcooppacket(packet);
+                QUEUE_MSG;
+                break;
+            }
+            case SV_EDITENT:
+            case SV_EDITXY:
+            case SV_EDITARCH:
+            case SV_EDITD:
+            case SV_EDITE:
+            case SV_NEWMAP:
+            {
+                recordcooppacket(packet);
+                int size = msgsizelookup(type);
+                loopi(size-1) getint(p);
                 QUEUE_MSG;
                 break;
             }
