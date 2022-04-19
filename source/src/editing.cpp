@@ -69,6 +69,13 @@ void toggleedit(bool force)
     editing = editmode ? 1 : 0;
     editing_sp = editmode && !multiplayer(NULL) ? 1 : 0;
     player1->state = editing ? CS_EDITING : (watchingdemo ? CS_SPECTATE : CS_ALIVE);
+    if(editing && player1->crouching){ // updatecrouch & resizephysent for changed keybind group re:LSHIFT
+        player1->crouching = false;
+        player1->trycrouch = false;
+        player1->eyeheightvel = 0.6f;
+        extern void resizephysent(physent *pl, int moveres, int curtime, float min, float max);
+        resizephysent((physent *)player1, 10, 50, player1->eyeheight, player1->maxeyeheight);
+    }
     if(editing && player1->onladder) player1->onladder = false;
     if(editing && (player1->weaponsel->type == GUN_SNIPER && ((sniperrifle *)player1->weaponsel)->scoped)) ((sniperrifle *)player1->weaponsel)->onownerdies(); // or ondeselecting()
     if(editing && (player1->weaponsel->type == GUN_GRENADE) && ((grenades *)player1->weaponsel)->state < GST_THROWING) ((grenades *)player1->weaponsel)->onownerdies();
@@ -153,6 +160,7 @@ char *editinfo()
 // add a selection to the list
 void addselection(int x, int y, int xs, int ys, int h)
 {
+    EDIT("addselection");
     block &s = sels.add();
     if(h == -999 && !OUTBORD(x + xs / 2, y + ys / 2)) h = S(x + xs / 2, y + ys / 2)->floor;
     s.x = x; s.y = y; s.xs = xs; s.ys = ys; s.h = h;
