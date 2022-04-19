@@ -52,7 +52,7 @@ struct servergame
         matchteamsize = 0;
         forceintermission = false;
         custom_servdesc = false;
-        smode = 0;
+        smode = GMODE_TEAMDEATHMATCH;
         interm = 0;
         minremain = 0;
         gamemillis = 0;
@@ -110,7 +110,7 @@ vector<savedscore> savedscores;
 vector<ban> bans;
 
 long int incoming_size = 0;
-int shuffleskillthreshold = 200; 
+int shuffleskillthreshold = 200;
 //int connectskillthreshold = 0;
 
 // cmod
@@ -2220,7 +2220,7 @@ void shuffleteams(int ftr = FTR_AUTOTEAM)
         {
             shuffle.add(i);
         }else{
-            clients[i]->at3_score = 0; 
+            clients[i]->at3_score = 0;
         }
         shuffle.sort(cmpscore);
         team = !clients[shuffle[0]]->team; // top player will stay on same team
@@ -2426,12 +2426,12 @@ void startgame(const char *newname, int newmode, int newtime, bool notify)
                 if(e.fitsmode(sg->smode)) sg->sents[i].spawned = sg->sents[i].legalpickup = true;
             }
         }
-        else if(isdedicated && sg->smode != GMODE_COOPEDIT) fatal("servermap not found");       // FIXME: coop should also start with a map
+        else if(isdedicated && sg->smode != GMODE_COOPEDIT) fatal("servermap not found"); // coop requires 'sendmap' if not available
         if(notify)
         {
             // change map
             sendf(-1, 1, "risiiii", SV_MAPCHANGE, sg->smapname, sg->smode, sm && sm->isdistributable() ? sm->cgzlen : 0, sm && sm->isdistributable() ? sm->maprevision : 0, sg->srvgamesalt);
-            if(sg->smode > 1 || (sg->smode == 0 && numnonlocalclients() > 0)) sendf(-1, 1, "ri3", SV_TIMEUP, sg->gamemillis, sg->gamelimit);
+            if((sg->smode >= GMODE_TEAMDEATHMATCH && sg->smode != GMODE_COOPEDIT) && numnonlocalclients() > 0) sendf(-1, 1, "ri3", SV_TIMEUP, sg->gamemillis, sg->gamelimit);
         }
         packetbuf q(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
         send_item_list(q); // always send the item list when a game starts
@@ -2934,7 +2934,7 @@ void welcomepacket(packetbuf &p, int n)
         putint(p, sg->curmap && sg->curmap->isdistributable() ? sg->curmap->cgzlen : 0);
         putint(p, sg->curmap && sg->curmap->isdistributable() ? sg->curmap->maprevision : 0);
         putint(p, sg->srvgamesalt);
-        if(sg->smode>1 || (sg->smode==0 && numnonlocalclients()>0))
+        if((sg->smode>=GMODE_TEAMDEATHMATCH && sg->smode!=GMODE_COOPEDIT) && numnonlocalclients()>0)
         {
             putint(p, SV_TIMEUP);
             putint(p, (sg->gamemillis>=sg->gamelimit || sg->forceintermission) ? sg->gamelimit : sg->gamemillis);
@@ -4581,7 +4581,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 
     int nonlocalclients = numnonlocalclients();
 
-    if(sg->forceintermission || ((sg->smode > 1 || (gamemode == 0 && nonlocalclients)) && sg->gamemillis-diff > 0 && sg->gamemillis / 60000 != (sg->gamemillis - diff) / 60000))
+    if(sg->forceintermission || (((sg->smode>=GMODE_TEAMDEATHMATCH && sg->smode!=GMODE_COOPEDIT) && nonlocalclients) && sg->gamemillis-diff > 0 && sg->gamemillis / 60000 != (sg->gamemillis - diff) / 60000))
         checkintermission();
     if(m_demo && !demoplayback) maprot.restart();
     else if(sg->interm && ( (scl.demo_interm) ? sg->gamemillis > (sg->interm<<1) : sg->gamemillis > sg->interm ) )

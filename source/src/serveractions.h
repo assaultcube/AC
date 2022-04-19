@@ -45,7 +45,7 @@ struct mapaction : serveraction
             sg->nextgamemode = mode;
             copystring(sg->nextmapname, map);
         }
-        else if(isdedicated && numclients() > 2 && sg->smode >= 0 && sg->smode != 1 && ( sg->gamemillis > sg->gamelimit/4 || scl.demo_interm ))
+        else if(isdedicated && numclients() > 2 && sg->smode >= GMODE_TEAMDEATHMATCH && sg->smode != GMODE_COOPEDIT && ( sg->gamemillis > sg->gamelimit/4 || scl.demo_interm ))
         {
             sg->forceintermission = true;
             sg->nextgamemode = mode;
@@ -95,7 +95,7 @@ struct mapaction : serveraction
                     if(strchr(scl.voteperm, 'P')) role = CR_ADMIN;
                     else if(!strchr(scl.voteperm, 'p')) mapok = false; // default: no one can vote for unsupported mode/map combinations
                      */
-                    role = CR_ADMIN; // quickfix@RETHINK: an admin can vote for unsupported mode/map combination 
+                    role = CR_ADMIN; // quickfix@RETHINK: an admin can vote for unsupported mode/map combination
                     defformatstring(msg)("\f3map \"%s\" does not support \"%s\": ", behindpath(map), modestr(mode, false));
                     if(romap) concatstring(msg, "map is readonly");
                     else
