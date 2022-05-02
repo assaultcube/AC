@@ -4128,7 +4128,11 @@ void process(ENetPacket *packet, int sender, int chan)
                 vi->owner = sender;
                 vi->callmillis = servmillis;
                 MSG_PACKET(msg);
-                if(!scallvote(vi, msg)) delete vi;
+                if(!scallvote(vi, msg))
+                {
+                    delete vi->action;
+                    delete vi;
+                }
                 break;
             }
 
