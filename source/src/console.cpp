@@ -792,7 +792,7 @@ void writekeymap() // create keymap.cfg with proper constants from SDL2 header f
         { SDLK_F15, "F15" },
         { SDLK_NUMLOCKCLEAR, "NUMLOCK" },
         { SDLK_CAPSLOCK, "CAPSLOCK" },
-        { SDLK_SCROLLLOCK, "SCROLLOCK" },
+        { SDLK_SCROLLLOCK, "SCROLLOCK" }, // fixing historic typo could break too much
         { SDLK_RSHIFT, "RSHIFT" },
         { SDLK_LSHIFT, "LSHIFT" },
         { SDLK_RCTRL, "RCTRL" },

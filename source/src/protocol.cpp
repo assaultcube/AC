@@ -474,7 +474,7 @@ void filterlang(char *d, const char *s)
 
 void filtercountrycode(char *d, const char *s) // returns exactly two uppercase chars or "--"
 {
-    if(isalpha(s[0]) && isalpha(s[1]) && !s[2])
+    if(strlen(s) == 2 && isalpha(s[0]) && isalpha(s[1]))
     {
         d[0] = toupper(s[0]);
         d[1] = toupper(s[1]);

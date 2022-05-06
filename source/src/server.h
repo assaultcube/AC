@@ -312,7 +312,7 @@ struct client                   // server side version of "dynent" type
 
     void reset()
     {
-        name[0] = pwd[0] = demoflags = 0;
+        name[0] = pwd[0] = country[0] = lang[0] = demoflags = 0;
         ip = ip_censored = 0;
         pubkeyhex[0] = '\0';
         vita = NULL;
