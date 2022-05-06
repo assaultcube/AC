@@ -2431,7 +2431,7 @@ void startgame(const char *newname, int newmode, int newtime, bool notify)
         {
             // change map
             sendf(-1, 1, "risiiii", SV_MAPCHANGE, sg->smapname, sg->smode, sm && sm->isdistributable() ? sm->cgzlen : 0, sm && sm->isdistributable() ? sm->maprevision : 0, sg->srvgamesalt);
-            if((sg->smode >= GMODE_TEAMDEATHMATCH && sg->smode != GMODE_COOPEDIT) && numnonlocalclients() > 0) sendf(-1, 1, "ri3", SV_TIMEUP, sg->gamemillis, sg->gamelimit);
+            if(sg->smode != GMODE_DEMO && sg->smode != GMODE_COOPEDIT) sendf(-1, 1, "ri3", SV_TIMEUP, sg->gamemillis, sg->gamelimit);
         }
         packetbuf q(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
         send_item_list(q); // always send the item list when a game starts
@@ -2934,7 +2934,7 @@ void welcomepacket(packetbuf &p, int n)
         putint(p, sg->curmap && sg->curmap->isdistributable() ? sg->curmap->cgzlen : 0);
         putint(p, sg->curmap && sg->curmap->isdistributable() ? sg->curmap->maprevision : 0);
         putint(p, sg->srvgamesalt);
-        if((sg->smode>=GMODE_TEAMDEATHMATCH && sg->smode!=GMODE_COOPEDIT) && numnonlocalclients()>0)
+        if(sg->smode != GMODE_DEMO && sg->smode != GMODE_COOPEDIT)
         {
             putint(p, SV_TIMEUP);
             putint(p, (sg->gamemillis>=sg->gamelimit || sg->forceintermission) ? sg->gamelimit : sg->gamemillis);
@@ -4580,8 +4580,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
     }
 
     int nonlocalclients = numnonlocalclients();
-
-    if(sg->forceintermission || (((sg->smode>=GMODE_TEAMDEATHMATCH && sg->smode!=GMODE_COOPEDIT) && nonlocalclients) && sg->gamemillis-diff > 0 && sg->gamemillis / 60000 != (sg->gamemillis - diff) / 60000))
+    if(sg->forceintermission || (sg->smode != GMODE_DEMO && sg->smode != GMODE_COOPEDIT) && sg->gamemillis-diff > 0 && sg->gamemillis / 60000 != (sg->gamemillis - diff) / 60000))
         checkintermission();
     if(m_demo && !demoplayback) maprot.restart();
     else if(sg->interm && ( (scl.demo_interm) ? sg->gamemillis > (sg->interm<<1) : sg->gamemillis > sg->interm ) )
