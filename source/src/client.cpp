@@ -120,6 +120,8 @@ void connectserv(char *servername, int *serverport, char *password)
         formatstring(cpc)("%s%s%s", cp1, cp2, cp3);
         aaconnect = newstring(cpc);
         hudoutf("\f5.. \f2waiting \f4for \fUauth\f5entication ..");
+        extern gmenu *curmenu;
+        if(!curmenu) showmenu("enter password");
     }
 }
 COMMANDN(connect, connectserv, "sis");

@@ -961,6 +961,12 @@ void refreshservers(void *menu, bool init)
     bool isinfo = menu == serverinfomenu;
     bool isscoreboard = menu == NULL;
 
+    if(!sk)
+    {
+        closemenu("serverbrowser");
+        showmenu("enter password");
+    }
+
     serverinfo *curserver = getconnectedserverinfo(), *oldsel = NULL;
     if(init)
     {

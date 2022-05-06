@@ -411,7 +411,7 @@ void renderscores(void *menu, bool init)
 
     // update server stats
     static int lastrefresh = 0;
-    if(!lastrefresh || lastrefresh+5000<lastmillis)
+    if(multiplayer(NULL) && (!lastrefresh || lastrefresh + 5000 < lastmillis))
     {
         refreshservers(NULL, init);
         lastrefresh = lastmillis;
