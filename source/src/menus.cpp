@@ -952,7 +952,7 @@ COMMAND(menuitemgreyedout, "i");
 void menuitem(char *text, char *action, char *hoveraction, char *desc)
 {
     if(!lastmenu) return;
-    lastmenu->items.add(new mitemtext(lastmenu, newstring(text), newstring(action[0] ? action : text), hoveraction[0] ? newstring(hoveraction) : NULL, NULL, *desc ? newstring(desc) : NULL));
+    lastmenu->items.add(new mitemtext(lastmenu, newstring(text), (action[0] && !strcmp(action,"-1")) ? NULL : newstring(action[0] ? action : text), hoveraction[0] ? newstring(hoveraction) : NULL, NULL, *desc ? newstring(desc) : NULL));
 }
 COMMAND(menuitem, "ssss");
 
@@ -1128,7 +1128,7 @@ int movemenuselection(int currentmenusel, int direction)
     {
         newmenusel += direction;
         newmenusel = normalizemenuselection(newmenusel, curmenu->items.length());
-        selectable = curmenu->items.inrange(newmenusel) && curmenu->items[newmenusel]->gettext() && curmenu->items[newmenusel]->gettext()[0] != '\0';
+        selectable = curmenu->items.inrange(newmenusel) && curmenu->items[newmenusel]->gettext() && curmenu->items[newmenusel]->gettext()[0] != '\0' && curmenu->items[newmenusel]->getaction();
         if(selectable) break;
     } 
 
