@@ -310,7 +310,7 @@ VARP(localfootsteps, 0, 1, 1);
 
 void audiomanager::updateplayerfootsteps(playerent *p)
 {
-    if(!p || ispaused) return;
+    if(!p || ispaused || intermission) return;
 
     const int footstepradius = 20;
 

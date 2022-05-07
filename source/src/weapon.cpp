@@ -51,7 +51,7 @@ void checkweaponswitch()
 
 void selectweapon(weapon *w)
 {
-    if(!w || !player1->weaponsel->deselectable() || ispaused) return;
+    if(!w || !player1->weaponsel->deselectable() || ispaused || intermission) return;
     if(w->selectable())
     {
         if(player1->attacking && player1->state == CS_ALIVE) attack(false);
