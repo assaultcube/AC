@@ -4580,7 +4580,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
     }
 
     int nonlocalclients = numnonlocalclients();
-    if(sg->forceintermission || (sg->smode != GMODE_DEMO && sg->smode != GMODE_COOPEDIT) && sg->gamemillis-diff > 0 && sg->gamemillis / 60000 != (sg->gamemillis - diff) / 60000))
+    if(sg->forceintermission || ((sg->smode != GMODE_DEMO && sg->smode != GMODE_COOPEDIT) && sg->gamemillis-diff > 0 && sg->gamemillis / 60000 != (sg->gamemillis - diff) / 60000))
         checkintermission();
     if(m_demo && !demoplayback) maprot.restart();
     else if(sg->interm && ( (scl.demo_interm) ? sg->gamemillis > (sg->interm<<1) : sg->gamemillis > sg->interm ) )

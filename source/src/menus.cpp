@@ -1128,7 +1128,11 @@ int movemenuselection(int currentmenusel, int direction)
     {
         newmenusel += direction;
         newmenusel = normalizemenuselection(newmenusel, curmenu->items.length());
-        selectable = curmenu->items.inrange(newmenusel) && curmenu->items[newmenusel]->gettext() && curmenu->items[newmenusel]->gettext()[0] != '\0' && curmenu->items[newmenusel]->getaction();
+        if(curmenu->items.inrange(newmenusel))
+        {
+            mitem *newitem = curmenu->items[newmenusel];
+            selectable = newitem->gettext() && newitem->gettext()[0] != '\0' && (newitem->mitemtype!=mitem::TYPE_MANUAL||newitem->getaction());
+        }
         if(selectable) break;
     } 
 
@@ -1396,7 +1400,7 @@ void gmenu::init()
                     concatstring(fullname, ".");
                     concatstring(fullname, dirlist->ext);
                 }
-                items.add(new mitemimage  (this, newstring(fullname), f, newstring(dirlist->action), NULL, NULL, d));
+                items.add(new mitemimage(this, newstring(fullname), f, newstring(dirlist->action), NULL, NULL, d));
             }
             else if(!strcmp(dirlist->ext, "cgz"))
             {
