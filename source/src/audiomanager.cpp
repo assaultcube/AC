@@ -430,7 +430,7 @@ void voicecom(char *sound, char *text)
         defformatstring(soundpath)("voicecom/%s", sound);
         int s = audiomgr.findsound(soundpath, 0, gamesounds);
         if(!gamesound_isvoicecom(s)) return;
-        if(voicecomsounds>0) audiomgr.playsound(s, SP_HIGH);
+        bool playvc = true;
         if(gamesound_ispublicvoicecom(s)||(!m_teammode&&gamesound_ispublicwhenffa(s))) // public 
         {
             addmsg(SV_VOICECOM, "ri", s);
@@ -438,13 +438,18 @@ void voicecom(char *sound, char *text)
         }
         else // team
         {
-            if(gamesound_isflagvoicecom(s)?!m_flags_:true)
+            if(gamesound_isflagvoicecom(s)?m_flags_:true)
             {
                 addmsg(SV_VOICECOMTEAM, "ri", s);
                 defformatstring(teamtext)("%c%s", '%', text);
                 toserver(teamtext);
             }
+            else
+            {
+                playvc = false;
+            }
         }
+        if(voicecomsounds > 0 && playvc) audiomgr.playsound(s, SP_HIGH);
         last = lastmillis;
     }
 }
