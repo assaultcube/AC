@@ -310,7 +310,7 @@ VARP(localfootsteps, 0, 1, 1);
 
 void audiomanager::updateplayerfootsteps(playerent *p)
 {
-    if(!p || ispaused || intermission) return;
+    if(!p || ispaused) return;
 
     const int footstepradius = 20;
 
@@ -323,6 +323,17 @@ void audiomanager::updateplayerfootsteps(playerent *p)
         locations.find(S_WATERFOOTSTEPS, &ref, gamesounds),
         locations.find(S_WATERFOOTSTEPSCROUCH, &ref, gamesounds)
     };
+
+    if(intermission)
+    {
+        loopi(sizeof(locs)/sizeof(locs[0]))
+        {
+            location *l = locs[i];
+            if(!l) continue;
+            l->drop();
+        }
+        return;
+    }
 
     bool local = (p == camera1);
     bool inrange = footsteps && (local || (camera1->o.dist(p->o) < footstepradius));
