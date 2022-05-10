@@ -1131,7 +1131,7 @@ int movemenuselection(int currentmenusel, int direction)
         if(curmenu->items.inrange(newmenusel))
         {
             mitem *newitem = curmenu->items[newmenusel];
-            selectable = newitem->gettext() && newitem->gettext()[0] != '\0' && (newitem->mitemtype!=mitem::TYPE_MANUAL||newitem->getaction());
+            selectable = !newitem->greyedout && newitem->gettext() && newitem->gettext()[0] != '\0' && (newitem->mitemtype!=mitem::TYPE_MANUAL||newitem->getaction());
         }
         if(selectable) break;
     } 
