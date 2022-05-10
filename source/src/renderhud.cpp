@@ -838,7 +838,11 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         draw_text(infostr, 48, VIRTH * 2 - 3 * FONTH);
         glPopMatrix();
     }
-    else if(targetplayer && showtargetname) draw_text(colorname(targetplayer), HUDPOS_X_BOTTOMLEFT, HUDPOS_Y_BOTTOMLEFT);
+    else if(targetplayer && showtargetname) 
+    {
+        defformatstring(tpinfo)("%s [cn:%d]", colorname(targetplayer), targetplayer->clientnum);
+        draw_text(tpinfo, HUDPOS_X_BOTTOMLEFT, HUDPOS_Y_BOTTOMLEFT);
+    }
     glLoadIdentity();
     glOrtho(0, VIRTW*2, VIRTH*2, 0, -1, 1);
     extern void r_accuracy(int h);
@@ -1043,7 +1047,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
         if(is_spect)
         {
-            defformatstring(name)("Player %s", colorname(players[player1->followplayercn]));
+            defformatstring(name)("Player %s [cn:%d]", colorname(players[player1->followplayercn]), player1->followplayercn);
             draw_text(name, virtposx, virtposy*8);
         }
     }
