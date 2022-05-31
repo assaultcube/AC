@@ -730,7 +730,7 @@ void findplayerstart(playerent *d, bool mapcenter, int arenaspawn)
     entity *e = NULL;
     if(!mapcenter)
     {
-        if(m_karp)
+        if(m_park)
         {
             int x = findparkourstart(d->parkplace);
             if(x >= 0) e = &ents[x];

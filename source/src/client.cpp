@@ -389,7 +389,7 @@ bool sv_pos = true;
 void c2sinfo(playerent *d)                   // send update to the server
 {
     if(d->clientnum<0) return;               // we haven't had a welcome message from the server yet
-    if(totalmillis - lastupdate < 8) return; // don't update faster than 125 FPS
+    if(totalmillis - lastupdate < 8) return; // don't update faster than 125 FPS // Calinou increase-tickrate commit @ https://github.com/redeclipse/base/pull/982/commits/56a47b6f9055c8eb94827c317cab02f67d8d154a
 
     if(d->state==CS_ALIVE || d->state==CS_EDITING)
     {

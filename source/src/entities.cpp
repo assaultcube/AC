@@ -435,7 +435,7 @@ void pickupeffects(int n, playerent *d)
         }
         else audiomgr.playsound(is->sound, d);
     }else{
-        if(m_karp && e.type==CARROT)
+        if(m_park && e.type==CARROT)
         {
             switch(e.attr2)
             {
@@ -471,7 +471,7 @@ void trypickup(int n, playerent *d)
         default:
             if( d->canpickup(e.type) && lastmillis > e.lastmillis + 250 && lastmillis > lastspawn + 500 )
             {
-                if(m_karp && d->type==ENT_PLAYER)
+                if(m_park && d->type==ENT_PLAYER)
                 {
                     if(e.type==CARROT)
                     {
@@ -577,7 +577,7 @@ void checkitems(playerent *d)
     }
     if(d==player1)
     {
-        if(m_karp)
+        if(m_park)
         {
             loopv(ents)
             {

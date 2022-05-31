@@ -809,20 +809,15 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     ds.team = team;
                     getstring(text, p);
                     filtertext(ds.name, text, FTXT__PLAYERNAME, MAXNAMELEN);
-                    if(m_karp){
-                        ds.parkpoints = getint(p);
-                        ds.flags = 0;
-                    }else{
-                        ds.parkpoints = 0;
-                        ds.flags = getint(p);
-                    }
                     ds.flags = getint(p);
                     ds.frags = getint(p);
                     ds.deaths = getint(p);
-                    if(m_karp){
+                    if(m_park){
                         ds.parkplace = getint(p);
+                        ds.parkpoints = getint(p);
                     }else{
-                        getint(p);
+                        ds.parkplace = 0;
+                        ds.parkpoints = 0;
                     }
                 }
                 break;

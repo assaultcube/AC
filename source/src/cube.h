@@ -66,8 +66,6 @@ extern int maploaded, msctrl;
 extern float waterlevel;
 
 #define AC_MASTER_URI "ms.cubers.net"
-// FIXME:REMOVE – this PARKOURPREFIX was just to avoid MS protocol change in the git-branch testing source
-//#define PARKOURPREFIX "[PARKOUR]"
 
 // uncomment this line for production release
 //#define PRODUCTION
