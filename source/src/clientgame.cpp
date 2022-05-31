@@ -730,30 +730,39 @@ void findplayerstart(playerent *d, bool mapcenter, int arenaspawn)
     entity *e = NULL;
     if(!mapcenter)
     {
-        int type = m_teammode ? team_base(d->team) : 100;
-        if(m_arena && arenaspawn >= 0)
+        if(m_karp)
         {
-            int x = -1;
-            loopi(arenaspawn + 1) x = findentity(PLAYERSTART, x+1, type);
+            int x = findparkourstart(d->parkplace);
             if(x >= 0) e = &ents[x];
-        }
-        else if((m_teammode || m_arena) && !m_ktf) // ktf uses ffa spawns
-        {
-            loopi(r) spawncycle = findentity(PLAYERSTART, spawncycle+1, type);
-            if(spawncycle >= 0) e = &ents[spawncycle];
         }
         else
         {
-            float bestdist = -1;
-
-            loopi(r)
+            int type = m_teammode ? team_base(d->team) : 100;
+            if(m_arena && arenaspawn >= 0)
             {
-                spawncycle = clentstats.hasffaspawns ? findentity(PLAYERSTART, spawncycle+1, 100) : findentity(PLAYERSTART, spawncycle+1); // if not enough ffa-spawns are available, use all
-                if(spawncycle < 0) continue;
-                float dist = nearestenemy(vec(ents[spawncycle].x, ents[spawncycle].y, ents[spawncycle].z), d->team);
-                if(!e || dist < 0 || (bestdist >= 0 && dist > bestdist)) { e = &ents[spawncycle]; bestdist = dist; }
+                int x = -1;
+                loopi(arenaspawn + 1) x = findentity(PLAYERSTART, x+1, type);
+                if(x >= 0) e = &ents[x];
+            }
+            else if((m_teammode || m_arena) && !m_ktf) // ktf uses ffa spawns
+            {
+                loopi(r) spawncycle = findentity(PLAYERSTART, spawncycle+1, type);
+                if(spawncycle >= 0) e = &ents[spawncycle];
+            }
+            else
+            {
+                float bestdist = -1;
+
+                loopi(r)
+                {
+                    spawncycle = clentstats.hasffaspawns ? findentity(PLAYERSTART, spawncycle+1, 100) : findentity(PLAYERSTART, spawncycle+1); // if not enough ffa-spawns are available, use all
+                    if(spawncycle < 0) continue;
+                    float dist = nearestenemy(vec(ents[spawncycle].x, ents[spawncycle].y, ents[spawncycle].z), d->team);
+                    if(!e || dist < 0 || (bestdist >= 0 && dist > bestdist)) { e = &ents[spawncycle]; bestdist = dist; }
+                }
             }
         }
+
     }
 
     if(e)
@@ -978,6 +987,19 @@ void dokill(playerent *pl, playerent *act, bool gib, int gun)
     pl->deaths++;
     audiomgr.playsound(rnd(2) ? S_DIE1 : S_DIE2, pl);
 }
+
+void domelt(playerent *pl)
+{
+    if(pl->state!=CS_ALIVE || intermission) return;
+    const char *pname = pl == player1 ? "you" : colorname(pl);
+    void (*outf)(const char *s, ...) = (pl == player1) ? hudoutf : conoutf;
+    outf( "\f2%s melted away", pname );
+    addgib(pl);
+    deathstate(pl);
+    pl->deaths++;
+    audiomgr.playsound(rnd(2) ? S_DIE1 : S_DIE2, pl);
+}
+
 
 void pstat_weap(int *cn)
 {
@@ -1564,7 +1586,8 @@ void clearvote() { DELETEP(curvote); DELETEP(calledvote); }
 const char *modestrings[] =
 {
     "tdm", "coop", "dm", "lms", "ts", "ctf", "pf", "btdm", "bdm", "lss",
-    "osok", "tosok", "bosok", "htf", "tktf", "ktf", "tpf", "tlss", "bpf", "blss", "btsurv", "btosok"
+    "osok", "tosok", "bosok", "htf", "tktf", "ktf", "tpf", "tlss", "bpf", "blss", "btsurv", "btosok",
+    "parkour", "gema"
 };
 
 void setnext(char *mode, char *map)

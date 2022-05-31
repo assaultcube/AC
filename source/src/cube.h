@@ -44,6 +44,9 @@ extern int keepshowingeditingsettingstill;
 extern int editingsettingsvisibletime;
 extern int unsavededits;
 extern vector<entity> ents;             // map entities
+extern vector<bool> parkents;           // parkour one-time entities
+extern int serverstyle;                 // server is locked into a style of play: game, parkour, gema
+extern int worldtotalpoints;            // parkour points total
 extern vec worldpos, camup, camright, camdir; // current target of the crosshair in the world
 extern int lastmillis, totalmillis, skipmillis; // last time
 extern int curtime;                     // current frame time
@@ -63,15 +66,17 @@ extern int maploaded, msctrl;
 extern float waterlevel;
 
 #define AC_MASTER_URI "ms.cubers.net"
+// FIXME:REMOVE – this PARKOURPREFIX was just to avoid MS protocol change in the git-branch testing source
+//#define PARKOURPREFIX "[PARKOUR]"
 
 // uncomment this line for production release
 //#define PRODUCTION
 
 #ifdef PRODUCTION
-	#define AC_VERSION 1302
+	#define AC_VERSION 1400
 	#define AC_MASTER_PORT 28760
 #else
-	#define AC_VERSION -(1302)
+	#define AC_VERSION -(1400)
 	#define AC_MASTER_PORT 28758
 #endif
 

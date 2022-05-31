@@ -302,6 +302,15 @@ void calcentitystats(entitystats_s &es, const persistent_entity *pents, int pent
                     es.unknownflags++;
                     break;
             }
+            #ifndef STANDALONE
+            extern int connected;
+            parkents.add(e.type!=CARROT);
+            if(connected)
+            {
+                if(e.type==CARROT && e.attr2==PP_POINTS) worldtotalpoints += e.attr1;
+            }
+            #endif // STANDALONE
+            if(e.type==CARROT) es.triggercount++;
             if(isitem(e.type)) picks.add(i);
         }
     }
@@ -331,7 +340,7 @@ void calcentitystats(entitystats_s &es, const persistent_entity *pents, int pent
         es.pickupdistance[r]++;
     }
     es.pickups = picks.length();
-    es.modes_possible = gmode_possible(es.hasffaspawns, es.hasteamspawns, es.hasflags);
+    es.modes_possible = (es.triggercount>0) ? GMMASK__PARKORCOOP : gmode_possible(es.hasffaspawns, es.hasteamspawns, es.hasflags);
 }
 #if 0
 const char *rateentitystats(entitystats_s &es)

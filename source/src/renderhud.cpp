@@ -838,7 +838,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         draw_text(infostr, 48, VIRTH * 2 - 3 * FONTH);
         glPopMatrix();
     }
-    else if(targetplayer && showtargetname) 
+    else if(targetplayer && showtargetname)
     {
         defformatstring(tpinfo)("%s [cn:%d]", colorname(targetplayer), targetplayer->clientnum);
         draw_text(tpinfo, HUDPOS_X_BOTTOMLEFT, HUDPOS_Y_BOTTOMLEFT);
@@ -1062,6 +1062,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             pushfont("huddigits");
             draw_textf("%d", HUDPOS_HEALTH + HUDPOS_NUMBERSPACING, 823, p->health);
             if(p->armour) draw_textf("%d", HUDPOS_ARMOUR + HUDPOS_NUMBERSPACING, 823, p->armour);
+            if(m_park) draw_textf("%d/%d", HUDPOS_GRENADE + HUDPOS_ICONSPACING, 823, p->parkpoints, worldtotalpoints);
             if(p->weaponsel && valid_weapon(p->weaponsel->type))
             {
                 glMatrixMode(GL_MODELVIEW);

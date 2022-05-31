@@ -1,5 +1,7 @@
 // protos for ALL external functions in cube...
 
+enum { SS_GAME, SS_PARKOUR, SS_GEMA, MAXSSTYPES }; // server style
+
 struct authkey
 {
     const char *name;
@@ -289,7 +291,7 @@ struct serverinfo
     string sdesc;
     string description;
     string cmd;
-    int mode, numplayers, maxclients, ping, protocol, minremain, resolved, port, lastpingmillis, pongflags, getinfo, menuline_from, menuline_to;
+    int serverstyle, mode, numplayers, maxclients, ping, protocol, minremain, resolved, port, lastpingmillis, pongflags, getinfo, menuline_from, menuline_to;
     ENetAddress address;
     vector<const char *> playernames;
     uchar namedata[MAXTRANS];
@@ -303,7 +305,7 @@ struct serverinfo
     unsigned char uplinkstats[MAXCLIENTS + 1];
 
     serverinfo()
-     : mode(0), numplayers(0), maxclients(0), ping(9999), protocol(0), minremain(0),
+     : serverstyle(-1), mode(0), numplayers(0), maxclients(0), ping(9999), protocol(0), minremain(0),
        resolved(UNRESOLVED), port(-1), lastpingmillis(0), pongflags(0), getinfo(EXTPING_NOP),
        bgcolor(NULL), favcat(-1), msweight(0), weight(0), uplinkqual(0), uplinkqual_age(0)
     {
@@ -561,6 +563,7 @@ extern void deathstate(playerent *pl);
 extern void spawnplayer(playerent *d);
 extern void dodamage(int damage, playerent *pl, playerent *actor, int gun = -1, bool gib = false, bool local = true);
 extern void dokill(playerent *pl, playerent *act, bool gib = false, int gun = 0);
+extern void domelt(playerent *pl);
 extern playerent *newplayerent();
 extern botent *newbotent();
 extern void freebotent(botent *d);
@@ -617,7 +620,7 @@ extern void votecount(int v);
 extern void clearvote();
 
 // scoreboard
-struct discscore { int team, flags, frags, deaths; char name[MAXNAMELEN + 1]; };
+struct discscore { int team, flags, frags, deaths, points, parkpoints, parkplace; char name[MAXNAMELEN + 1]; };
 extern vector<discscore> discscores;
 extern void showscores(bool on);
 extern void renderscores(void *menu, bool init);
@@ -643,6 +646,7 @@ extern void addtodoentity(int n, const char *desc);
 extern int findtype(const char *what);
 extern int findentity(int type, int index = 0);
 extern int findentity(int type, int index, uchar attr2);
+extern int findparkourstart(uchar attr3);
 extern void newentity(int index, int x, int y, int z, const char *what, float v1, float v2, float v3, float v4, float v5 = 0, float v6 = 0, float v7 = 0);
 extern void mapmrproper(bool manual);
 extern void clearworldvisibility();
@@ -803,37 +807,40 @@ enum
     PT_SHOTLINE,
     PT_DECAL,
     PT_BULLETHOLE,
+    PT_CARROTRANGE,
     PT_BLOOD,
     PT_STAIN,
     PT_FLASH,
     PT_HUDFLASH
 };
 
-#define PT_DECAL_MASK ((1<<PT_DECAL)|(1<<PT_BULLETHOLE)|(1<<PT_STAIN))
+#define PT_DECAL_MASK ((1<<PT_DECAL)|(1<<PT_BULLETHOLE)|(1<<PT_CARROTRANGE)|(1<<PT_STAIN))
 
 enum
 {
-    PART_SPARK = 0,
+    PART_SPARK = 0,      // 0
     PART_SMOKE,
     PART_ECLOSEST,
     PART_BLOOD,
     PART_DEMOTRACK,
-    PART_FIREBALL,
+    PART_FIREBALL,       // 5
     PART_SHOTLINE,
     PART_BULLETHOLE,
     PART_BLOODSTAIN,
     PART_SCORCH,
-    PART_HUDMUZZLEFLASH,
+    PART_HUDMUZZLEFLASH, // 10
     PART_MUZZLEFLASH,
     PART_ELIGHT,
     PART_ESPAWN,
     PART_EAMMO,
-    PART_EPICKUP,
+    PART_EPICKUP,        // 15
     PART_EMODEL,
     PART_ECARROT,
+    PART_ECARROTRANGE,
     PART_ELADDER,
-    PART_EFLAG,
-    MAXPARTYPES
+    PART_EFLAG,          // 20
+    PART_EUNKNOWN,       // 21
+    MAXPARTYPES          // 22
 };
 
 extern void particleinit();
@@ -846,6 +853,7 @@ extern void particle_emit(int type, int *args, int basetime, int seed, const vec
 extern void particle_fireball(int type, const vec &o);
 extern void addshotline(dynent *d, const vec &from, const vec &to);
 extern bool addbullethole(dynent *d, const vec &from, const vec &to, float radius = 1, bool noisy = true);
+extern bool addcarrotrange(const vec &at, float radius = 1);
 extern bool addscorchmark(vec &o, float radius = 7);
 extern void render_particles(int time, int typemask = ~0);
 extern const char *particletypenames[MAXPARTYPES + 1];

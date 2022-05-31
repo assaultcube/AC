@@ -86,27 +86,30 @@ struct mapaction : serveraction
                 if(mode == GMODE_COOPEDIT && strchr(scl.voteperm, 'E')) role = CR_ADMIN; // COOP is considered wonderful
                 bool romap = mode == GMODE_COOPEDIT && sm->isro();
                 int gmmask = 1 << mode;
-                bool spawns = mode == GMODE_COOPEDIT || ((gmmask & GMMASK__TEAMSPAWN) ? sm->entstats.hasteamspawns : sm->entstats.hasffaspawns);
-                bool flags = (gmmask & GMMASK__FLAGENTS) ? sm->entstats.hasflags : true;
-                if(!spawns || !flags || romap)
-                { // unsupported mode
-                    /*
-                     * RETHINK: voteperm 'p/P' is documented as 'vote for pause/resume' .. what is it doing here?
-                    if(strchr(scl.voteperm, 'P')) role = CR_ADMIN;
-                    else if(!strchr(scl.voteperm, 'p')) mapok = false; // default: no one can vote for unsupported mode/map combinations
-                     */
-                    role = CR_ADMIN; // quickfix@RETHINK: an admin can vote for unsupported mode/map combination
-                    defformatstring(msg)("\f3map \"%s\" does not support \"%s\": ", behindpath(map), modestr(mode, false));
-                    if(romap) concatstring(msg, "map is readonly");
-                    else
-                    {
-                        if(!spawns) concatstring(msg, "player spawns (minimum:" STRINGIFY(MINSPAWNS) ")");
-                        if(!spawns && !flags) concatstring(msg, " and ");
-                        if(!flags) concatstring(msg, "flag bases");
-                        concatstring(msg, " missing");
+                if(!(gmmask & GMMASK_PARKOUR)) // parkour has no /real/ minimum requirements – maybe a CARROT:GOAL /should/ exist
+                {
+                    bool spawns = mode == GMODE_COOPEDIT || ((gmmask & GMMASK__TEAMSPAWN) ? sm->entstats.hasteamspawns : sm->entstats.hasffaspawns);
+                    bool flags = (gmmask & GMMASK__FLAGENTS) ? sm->entstats.hasflags : true;
+                    if(!spawns || !flags || romap)
+                    { // unsupported mode
+                        /*
+                         * RETHINK: voteperm 'p/P' is documented as 'vote for pause/resume' .. what is it doing here?
+                        if(strchr(scl.voteperm, 'P')) role = CR_ADMIN;
+                        else if(!strchr(scl.voteperm, 'p')) mapok = false; // default: no one can vote for unsupported mode/map combinations
+                         */
+                        role = CR_ADMIN; // quickfix@RETHINK: an admin can vote for unsupported mode/map combination
+                        defformatstring(msg)("\f3map \"%s\" does not support \"%s\": ", behindpath(map), modestr(mode, false));
+                        if(romap) concatstring(msg, "map is readonly");
+                        else
+                        {
+                            if(!spawns) concatstring(msg, "player spawns (minimum:" STRINGIFY(MINSPAWNS) ")");
+                            if(!spawns && !flags) concatstring(msg, " and ");
+                            if(!flags) concatstring(msg, "flag bases");
+                            concatstring(msg, " missing");
+                        }
+                        if(notify) sendservmsg(msg, caller);
+                        xlog(ACLOG_INFO, "%s", msg);
                     }
-                    if(notify) sendservmsg(msg, caller);
-                    xlog(ACLOG_INFO, "%s", msg);
                 }
             }
             loopv(scl.adminonlymaps)

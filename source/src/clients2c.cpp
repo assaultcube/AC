@@ -764,7 +764,14 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                         deaths = getint(p),
                         health = getint(p),
                         armour = getint(p),
-                        teamkills = getint(p);
+                        teamkills = getint(p),
+                        parkplace = 0,
+                        parkpoints = 0;
+                    if(m_park)
+                    {
+                        parkplace = getint(p);
+                        parkpoints = getint(p);
+                    }
                     int ammo[NUMGUNS], mag[NUMGUNS];
                     loopi(NUMGUNS) ammo[i] = getint(p);
                     loopi(NUMGUNS) mag[i] = getint(p);
@@ -776,6 +783,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     d->frags = frags;
                     d->deaths = deaths;
                     d->tks = teamkills;
+                    d->parkplace = parkplace;
+                    d->parkpoints = parkpoints;
                     if(d!=player1)
                     {
                         d->setprimary(primary);
@@ -784,7 +793,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                         d->armour = armour;
                         memcpy(d->ammo, ammo, sizeof(ammo));
                         memcpy(d->mag, mag, sizeof(mag));
-                        if(d->lifesequence==0) d->resetstats(); //NEW
+                        if(d->lifesequence==0) d->resetstats();
                     }
                 }
                 break;
@@ -800,9 +809,21 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     ds.team = team;
                     getstring(text, p);
                     filtertext(ds.name, text, FTXT__PLAYERNAME, MAXNAMELEN);
+                    if(m_karp){
+                        ds.parkpoints = getint(p);
+                        ds.flags = 0;
+                    }else{
+                        ds.parkpoints = 0;
+                        ds.flags = getint(p);
+                    }
                     ds.flags = getint(p);
                     ds.frags = getint(p);
                     ds.deaths = getint(p);
+                    if(m_karp){
+                        ds.parkplace = getint(p);
+                    }else{
+                        getint(p);
+                    }
                 }
                 break;
             }
@@ -1356,31 +1377,31 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 getip4(p);
                 p.get((uchar*)text, 64);
                 break;
-            
+
             case SV_VITADATA: { // Server sending vita data of a client. Possibly expose this to cubescript in the future
                 uchar pubkey[32];
                 char pubkeyhex[68];
                 string privatecomment;
                 string publiccomment;
                 int vs[VS_NUM];
-                
+
                 int targetcn = getint(p);
                 playerent *target = getclient(targetcn);
-                
+
                 if (target && p.get(pubkey, 32) == 32) {
                     getstring(text, p);
                     filtertext(privatecomment, text, FTXT__VITACOMMENT);
                     getstring(text, p);
                     filtertext(publiccomment, text, FTXT__VITACOMMENT);
-                    
+
                     loopi(VS_NUM) vs[i] = getint(p);
-                    
+
                     bin2hex(pubkeyhex, pubkey, 32);
-                    
+
                     conoutf("\f0Vita Info for \f5%s \f0(\f5%d\f0) \f2pubkey: \f1%s", target->name, targetcn, pubkeyhex);
                     if(privatecomment[0]) conoutf("\f0Private Comment: \f1%s", privatecomment);
                     if(publiccomment[0]) conoutf("\f0Public Comment: \f1%s", publiccomment);
-                    
+
                     string msg = "\f0Flags:";
                     for (int i = 0; i < VS_NUM; i++) {
                         concatformatstring(msg, " \f2%s=\f1%d", vskeywords[i], vs[i]);

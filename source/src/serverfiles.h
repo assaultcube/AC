@@ -80,7 +80,8 @@ struct servermap  // in-memory version of a map file on a server
     int x1, x2, y1, y2, zmin, zmax; // bounding box for player-reachable areas
 
     uchar *enttypes;                //             table of entity types
-    short *entpos_x, *entpos_y;
+    short *entpos_x, *entpos_y, *entattr_1;
+    uchar *entattr_2, *entattr_3;
 
     configsetvalues *hx_modeinfo;   // maprot parameters from map author
     uchar *hx_mapartist;            // pubkey of map artist
@@ -103,7 +104,7 @@ struct servermap  // in-memory version of a map file on a server
     #endif
 
     servermap(const char *mname, const char *mpath) { memset(&fname, 0, sizeof(struct servermap)); fname = newstring(mname); fpath = mpath; }
-    ~servermap() { delstring(fname); DELETEA(cgzraw); DELETEA(cfgrawgz); DELETEA(enttypes); DELETEA(entpos_x); DELETEA(entpos_y); DELETEA(layoutgz); DELETEA(hx_modeinfo); DELETEA(hx_mapartist); }
+    ~servermap() { delstring(fname); DELETEA(cgzraw); DELETEA(cfgrawgz); DELETEA(enttypes); DELETEA(entpos_x); DELETEA(entpos_y); DELETEA(entattr_1); DELETEA(entattr_2); DELETEA(entattr_3); DELETEA(layoutgz); DELETEA(hx_modeinfo); DELETEA(hx_mapartist); }
 
     bool isro() { return fpath == servermappath_off || fpath == servermappath_serv; }
     bool isofficial() { return fpath == servermappath_off; }
@@ -298,16 +299,24 @@ struct servermap  // in-memory version of a map file on a server
         // convert and count entities for server use
         {
             persistent_entity *es = (persistent_entity *) staticbuffer;
+            worldtotalpoints = 0;
             calcentitystats(entstats, es, numents);
-            enttypes = new uchar[numents];  // FIXME: cut this down to useful entities
+            // since the server is doing more & more with entities now these array should be consolidated
+            enttypes = new uchar[numents];
             entpos_x = new short[numents];
             entpos_y = new short[numents];
+            entattr_1 = new short[numents];
+            entattr_2 = new uchar[numents];
+            entattr_3 = new uchar[numents];
             loopi(numents)
             {
                 persistent_entity &e = es[i];
                 enttypes[i] = e.type >= MAXENTTYPES ? NOTUSED : e.type;
                 entpos_x[i] = e.x;
                 entpos_y[i] = e.y;
+                entattr_1[i] = e.attr1;
+                entattr_2[i] = e.attr2;
+                entattr_3[i] = e.attr3;
             }
             // respect map author wishes about disallowed modes
             if(hx_modeinfo) loopi(GMODE_NUM) if(hx_modeinfo[i].restrict == 81) entstats.modes_possible &= ~(1 << i); // disallowed by elvis^2
@@ -904,7 +913,13 @@ struct servermaprot : serverconfigfile
                     filtertext(c.mapname, behindpath(l), FTXT__MAPNAME, MAXMAPNAMELEN);
                     bool haskeywords = false;
                     l = strtok_r(NULL, " ", &b);
-                    if(l) c.mmask = gmode_parse(l);
+                    if(l)
+                    {
+                        c.mmask = gmode_parse(l);
+                        // if any map is made for parkour or gema the serverstyle will be upped
+                        if(serverstyle <= SS_GAME && c.mmask & GMMASK_PARKOUR) serverstyle = SS_PARKOUR; // B4:game now:parkour
+                        if(serverstyle <= SS_PARKOUR && c.mmask & GMMASK_GEMA) serverstyle = SS_GEMA;    // B4:game||parkour now:gema
+                    }
                     while((l = strtok_r(NULL, " ", &b)))
                     {
                         if(c.parse(l)) haskeywords = true;

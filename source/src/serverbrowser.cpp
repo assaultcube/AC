@@ -22,6 +22,8 @@ struct resolverresult
 vector<resolverthread> resolverthreads;
 vector<const char *> resolverqueries;
 vector<resolverresult> resolverresults;
+int curstyletab = 0; // which TAB is showing
+const char *styletabnames[] = { "regular", "parkour", "gema" }; // [0…[MAXSSTYPES
 SDL_mutex *resolvermutex;
 SDL_cond *querycond, *resultcond;
 
@@ -478,6 +480,7 @@ void checkpings()
         }
         si->protocol = getint(p);
         if(si->protocol!=PROTOCOL_VERSION) si->ping = 9998;
+        if(si->protocol>=1301) si->serverstyle = getint(p);
         si->mode = getint(p);
         si->numplayers = getint(p);
         si->minremain = getint(p);
@@ -1047,6 +1050,7 @@ void refreshservers(void *menu, bool init)
             serverinfo &si = *servers[i];
             si.menuline_to = si.menuline_from = ((gmenu *)menu)->items.length();
             if((!showallservers && si.lastpingmillis <= servermenumillis) || (si.maxclients > MAXCLIENTSONMASTER && searchlan<2) ) continue; // no pong yet or forbidden
+            if(si.serverstyle > -1 && si.serverstyle != curstyletab) continue; // unpolled servers seen on all tabs
             int banned = ((si.pongflags >> PONGFLAG_BANNED) & 1) | ((si.pongflags >> (PONGFLAG_BLACKLIST - 1)) & 2);
             bool showthisone = !(banned && showonlygoodservers) && !(showonlyfavourites > 0 && si.favcat != showonlyfavourites - 1);
             bool serverfull = si.numplayers >= si.maxclients;
@@ -1140,6 +1144,7 @@ void refreshservers(void *menu, bool init)
             if(!(showonlyfavourites > 0 && (servers[i]->favcat != showonlyfavourites - 1))) allplayers += servers[i]->numplayers;
         }
 
+        /*
         static const char *titles[NUMSERVSORT] =
         {
             "%s\fs\f0ping\fr\t%s plr\tserver%s%s",                               // 0: ping
@@ -1153,6 +1158,22 @@ void refreshservers(void *menu, bool init)
         };
         defformatstring(allplrs)("%d", allplayers);
         formatstring(title)(titles[serversort], showfavtag ? "fav\t" : "", !issearch && showallplayersnumber ? allplrs : "", issearch ? "      search results for \f3" : "     (F1: Help/Settings)", issearch ? cursearch : "");
+        */
+        //TODO better display of browsertab than added on with the " \f2%s" bit
+        static const char *titles[NUMSERVSORT] =
+        {
+            "%s\fs\f0ping\fr\t%s plr\tserver%s%s \f2%s",                               // 0: ping
+            "%sping\t\fs\f0%s plr\fr\tserver%s%s \f2%s",                               // 1: player number
+            "%sping\t%s plr\tserver (\fs\f0max players\fr)%s%s \f2%s",                 // 2: maxplayers
+            "%sping\t%s plr\fs\f0\fr\tserver (\fs\f0minutes remaining\fr)%s%s \f2%s",  // 3: minutes remaining
+            "%sping\t%s plr\tserver (\fs\f0map\fr)%s%s \f2%s",                         // 4: map
+            "%sping\t%s plr\tserver (\fs\f0game mode\fr)%s%s \f2%s",                   // 5: mode
+            "%sping\t%s plr\tserver (\fs\f0IP\fr)%s%s \f2%s",                          // 6: IP
+            "%sping\t%s plr\tserver (\fs\f0description\fr)%s%s \f2%s"                  // 7: description
+        };
+        defformatstring(allplrs)("%d", allplayers);
+        formatstring(title)(titles[serversort], showfavtag ? "fav\t" : "", !issearch && showallplayersnumber ? allplrs : "", issearch ? "      search results for \f3" : "     (F1: Help/Settings)", issearch ? cursearch : "", styletabnames[curstyletab] );
+        //::TODO
         menutitlemanual(menu, title);
 
         static string notfoundmsg, headermsg;
@@ -1238,6 +1259,10 @@ bool serverskey(void *menu, int code, bool isdown)
 
         case SDLK_F9:
             showmenu("serverinfo");
+            return true;
+
+        case SDLK_TAB:
+            curstyletab = (curstyletab + 1) % MAXSSTYPES;
             return true;
     }
     if(menu == searchmenu) return false;

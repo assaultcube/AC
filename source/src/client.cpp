@@ -386,10 +386,10 @@ void c2skeepalive()
 extern string masterpwd;
 bool sv_pos = true;
 
-void c2sinfo(playerent *d)                  // send update to the server
+void c2sinfo(playerent *d)                   // send update to the server
 {
-    if(d->clientnum<0) return;              // we haven't had a welcome message from the server yet
-    if(totalmillis-lastupdate<40) return;    // don't update faster than 25fps
+    if(d->clientnum<0) return;               // we haven't had a welcome message from the server yet
+    if(totalmillis - lastupdate < 8) return; // don't update faster than 125 FPS
 
     if(d->state==CS_ALIVE || d->state==CS_EDITING)
     {

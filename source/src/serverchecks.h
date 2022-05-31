@@ -69,13 +69,13 @@ void check_ffire(client *target, client *actor, int damage)
     }
 }
 
-inline int check_pdist(client *c, float & dist) // pick up distance
+inline int check_pdist(client *c, float & dist, float bubble = 1.5f) // pick up distance
 {
     // ping 1000ms at max velocity can produce an error of 20 cubes
     float delay = 9.0f + (float)c->ping * 0.02f + (float)c->spj * 0.025f; // at pj/ping 40/100, delay = 12
-    if ( dist > delay )
+    if(dist > delay)
     {
-        if ( dist < 1.5f * delay ) return 1;
+        if(dist < bubble * delay ) return 1;
 #ifdef ACAC
         pickup_checks(c,dist-delay);
 #endif

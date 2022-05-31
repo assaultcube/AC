@@ -636,6 +636,12 @@ int findentity(int type, int index, uchar attr2)
     return -1;
 }
 
+int findparkourstart(uchar attr3)
+{
+    loopi(ents.length()) if(ents[i].type==PLAYERSTART && ents[i].attr2==PARKOURSTART && ents[i].attr3==attr3) return i;
+    return -1;
+}
+
 void nextplayerstart(int *type)
 {
     static int cycle = -1;

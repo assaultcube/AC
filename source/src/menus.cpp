@@ -1134,7 +1134,7 @@ int movemenuselection(int currentmenusel, int direction)
             selectable = !newitem->greyedout && newitem->gettext() && newitem->gettext()[0] != '\0' && (newitem->mitemtype!=mitem::TYPE_MANUAL||newitem->getaction());
         }
         if(selectable) break;
-    } 
+    }
 
     if(selectable) return newmenusel;
     else return currentmenusel;
@@ -1186,12 +1186,16 @@ bool menukey(int code, bool isdown, SDL_Keymod mod)
                 if(!curmenu->allowinput) return false;
                 menusel = movemenuselection(menusel, 1);
                 break;
+            /*
+             * we now use this to switch serverbrowser TABs
+             * we /hope/ arrow-keys and mouse-scroll are the more natural navigation through items anyway
             case SDLK_TAB:
                 if(!curmenu->allowinput) return false;
                 if(mod & KMOD_LSHIFT) menusel = movemenuselection(menusel, -1);
                 else menusel = movemenuselection(menusel, 1);
                 break;
-
+             *
+             * */
             case SDLK_1:
             case SDLK_2:
             case SDLK_3:
@@ -1270,7 +1274,7 @@ void rendermenumdl()
     bool isweapon = !strncmp(m.mdl, "weapons", strlen("weapons"));
 
     vec pos;
-    if(!isweapon) pos = vec(0.5f, 0.3f, -0.1f); 
+    if(!isweapon) pos = vec(0.5f, 0.3f, -0.1f);
     else pos = vec(0.50f, 0, 0.425f);
 
     float yaw = 1.0f, pitch = isplayermodel || isweapon ? 0.0f : camera1->pitch;

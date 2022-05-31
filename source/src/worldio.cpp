@@ -597,6 +597,7 @@ void modeinfo(char *mode, char *info)
     vector<uchar> p;
     entitystats_s es;
     calcentitystats(es, NULL, 0);
+    worldtotalpoints = 0;
     int todo = es.modes_possible;
     bool have_modeinfo = false;
     loopk(GMODE_NUM) if(modeinfolines[k] && modeinfolines[k][0] && (todo & (1 << k)))
@@ -1042,6 +1043,8 @@ int load_world(char *mname)        // still supports all map formats that have e
         }
     }
     // create entities (and update some statistics)
+    parkents.shrink(0);
+    worldtotalpoints = 0;
     calcentitystats(clentstats, tempents, hdr.numents);
     ents.shrink(0);
     loopi(hdr.numents)

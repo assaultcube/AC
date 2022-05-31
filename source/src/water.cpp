@@ -25,10 +25,20 @@ void setwatercolor(const char *r, const char *g, const char *b, const char *a)
     }
     else
     {
-        hdr.watercolor[0] = 20;
-        hdr.watercolor[1] = 25;
-        hdr.watercolor[2] = 20;
-        hdr.watercolor[3] = 178;
+        if(m_park)
+        {
+            hdr.watercolor[0] = 242;
+            hdr.watercolor[1] = 84;
+            hdr.watercolor[2] = 42;
+            hdr.watercolor[3] = 172;
+        }
+        else
+        {
+            hdr.watercolor[0] = 20;
+            hdr.watercolor[1] = 25;
+            hdr.watercolor[2] = 20;
+            hdr.watercolor[3] = 178;
+        }
     }
     if(editmode) unsavededits++;
 }
