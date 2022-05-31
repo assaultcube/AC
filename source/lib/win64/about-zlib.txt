@@ -1,0 +1,1 @@
+There's currently an incompatibility between the zdll.lib, zlib1.dll and zlibwapi.dll files; zdll.lib from Tesseract fails to compile for us, the zlibwapi.lib (renamed to zdll.lib) compiles but the ogg/png dlls are still reliant on the zlib1.dll. 

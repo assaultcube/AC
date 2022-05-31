@@ -1,0 +1,5 @@
+Porting the project to WIN64 required download of newest versions of the required libraries.
+There were conflicts - mainly with zlib/zlibwapi and SDL2_image - where LIB and DLL were mismatched. 
+Also project specific ENET.LIB build required for ENET_CRC32_INC().
+OpenAL-SOFT was not tested.
+Suggestion: inspect e.g. Cube2:Tesseract and the WIN64 setup there.

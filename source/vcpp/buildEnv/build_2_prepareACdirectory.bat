@@ -8,14 +8,21 @@ echo 3. launch %ACDIRTESTING%\assaultcube.bat and execute /loadallmapmodels then
 pause
 
 rem copy binaries
+echo copy binaries
 copy /Y %ACDIRTESTING%\bin_win32\ac_client.exe %ACDIR%\bin_win32\
 copy /Y %ACDIRTESTING%\bin_win32\ac_server.exe %ACDIR%\bin_win32\
 
 rem copy mapmodelattributes.cfg
+rem if we did "--home="
+echo copy mapmodelattributes
 copy /Y %ACDIRTESTING%\profile\config\mapmodelattributes.cfg %ACDIR%\config\
+rem copy /Y %ACDIRTESTING%\config\mapmodelattributes.cfg %ACDIR%\config\
 
 rem copy shadow files
+rem if we did "--home="
 set ACDIRMODELS_SHADOWS=%ACDIRTESTING%\profile\packages\models
+rem set ACDIRMODELS_SHADOWS=%ACDIRTESTING%\packages\models
+echo copy shadows from %ACDIRMODELS_SHADOWS%
 copy /Y %ACDIRMODELS_SHADOWS%\misc\gib01\shadows.dat %ACDIR%\packages\models\misc\gib01\shadows.dat
 copy /Y %ACDIRMODELS_SHADOWS%\misc\gib02\shadows.dat %ACDIR%\packages\models\misc\gib02\shadows.dat
 copy /Y %ACDIRMODELS_SHADOWS%\misc\gib03\shadows.dat %ACDIR%\packages\models\misc\gib03\shadows.dat
@@ -38,16 +45,21 @@ copy /Y %ACDIRMODELS_SHADOWS%\weapons\sniper\world\shadows.dat %ACDIR%\packages\
 copy /Y %ACDIRMODELS_SHADOWS%\weapons\subgun\world\shadows.dat %ACDIR%\packages\models\weapons\subgun\world\shadows.dat
 
 rem delete stuff related to git and GitHub
+echo removing GIT traces from filesystem in %ACDIR% folder
 rmdir /S /Q %ACDIR%\.git
 del %ACDIR%\.gitattributes
 del %ACDIR%\.travis.yml
 for /r %ACDIR% %%i in (*) do if "%%~nxi"==".gitignore" del "%%i"
 
 rem create config template
+echo creating config template
 7z a -tzip -aoa %ACDIR%\config\configtemplates.zip %ACDIR%\config\autoexec.cfg %ACDIR%\config\favourites.cfg %ACDIR%\config\pcksources.cfg
 
 rem remove source files (those are available in the source pkg)
+echo removing source files
 rmdir /S /Q %ACDIR%\source
+
+echo cleaning up logs, configs, maps, screenshots and demos
 
 rem delete config and logs
 del %ACDIR%\config\autoexec.cfg
@@ -73,6 +85,7 @@ rem purge demo directory, but leave tutorial demo, just in case of future use
 for %%i in (%ACDIR%\demos\*) do if not "%%~nxi"=="tutorial_demo.dmo" del /Q "%%i"
 
 rem remove linux stuff
+echo removing linux files
 for /r %ACDIR% %%i in (*.sh) do del "%%i"
 rmdir /S /Q %ACDIR%\bin_unix
 

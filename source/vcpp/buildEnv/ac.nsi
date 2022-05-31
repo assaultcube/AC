@@ -5,46 +5,13 @@
 ## TOOLS
 
 # Open Browser Window
-
-!macro openLink un
-    # Uses $0
-    Function ${un}openLinkNewWindow
-        Push $3
-        Push $2
-        Push $1
-        Push $0
-        ReadRegStr $0 HKCR "http\shell\open\command" ""
-        # Get browser path
-        DetailPrint $0
-        StrCpy $2 '"'
-        StrCpy $1 $0 1
-        StrCmp $1 $2 +2 # if path is not enclosed in " look for space as final char
-        StrCpy $2 ' '
-        StrCpy $3 1
-        loop:
-            StrCpy $1 $0 1 $3
-            DetailPrint $1
-            StrCmp $1 $2 found
-            StrCmp $1 "" found
-            IntOp $3 $3 + 1
-            Goto loop
-
-        found:
-            StrCpy $1 $0 $3
-            StrCmp $2 " " +2
-            StrCpy $1 '$1"'
-
-        Pop $0
-        Exec '$1 $0'
-        Pop $1
-        Pop $2
-        Pop $3
-    FunctionEnd
+!macro openUrl un
+	Function ${un}openUrl
+		ExecShell "open" "$0"
+	FunctionEnd
 !macroend
-
-!insertmacro openLink ""
-!insertmacro openLink "un."
-
+!insertmacro openUrl ""
+!insertmacro openUrl "un."
 
 ; CONFIGURATION
 
@@ -53,7 +20,7 @@
 SetCompressor /SOLID lzma
 
 !define CURPATH ".\" ; must include the installer graphics and the AC_NEWVERSIONDIR directory
-!define AC_FULLVERSIONINT "1.3.0.0"
+!define AC_FULLVERSIONINT "1.3.0.2"
 !define AC_FULLVERSION "v${AC_FULLVERSIONINT}"
 !define AC_SHORTNAME "AssaultCube ${AC_FULLVERSIONINT}"
 !define AC_FULLNAME "AssaultCube ${AC_FULLVERSIONINT}"
@@ -67,7 +34,7 @@ SetCompressor /SOLID lzma
 Name "${AC_SHORTNAME}"
 VAR StartMenuFolder
 !define AC_STARTMENUFOLDER "$SMPROGRAMS\$StartMenuFolder"
-OutFile "AssaultCube_v1.3.0.0_LockdownEdition.exe"
+OutFile "AssaultCube_v1.3.0.2_LockdownEdition.exe"
 InstallDir "$PROGRAMFILES\${AC_SHORTNAME}"
 InstallDirRegKey HKLM "Software\${AC_SHORTNAME}" ""
 !define ARP "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}"
@@ -268,7 +235,7 @@ Function .onInstSuccess
 
     IfSilent skipopenlink
     StrCpy $0 "http://assault.cubers.net/releasenotes/v${AC_MAJORVERSIONINT}.${AC_MINORVERSIONINT}/"
-    Call openLinkNewWindow
+    Call openUrl
     skipopenlink:
 
 FunctionEnd
@@ -277,7 +244,7 @@ Function un.onUninstSuccess
 
     IfSilent skipopenlink
     StrCpy $0 "http://assault.cubers.net/uninstallnotes/v${AC_MAJORVERSIONINT}.${AC_MINORVERSIONINT}/"
-    Call un.openLinkNewWindow  
+    Call un.openUrl
     skipopenlink:
 
 FunctionEnd

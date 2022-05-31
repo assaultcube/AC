@@ -352,22 +352,42 @@ int stringsortignorecaserev(const char **a, const char **b) { return strcasecmp(
 ///////////////////////// debugging ///////////////////////
 
 #if defined(WIN32) && !defined(_DEBUG) && !defined(__GNUC__)
+
+
 void stackdumper(unsigned int type, EXCEPTION_POINTERS *ep)
 {
     if(!ep) fatal("unknown type");
     EXCEPTION_RECORD *er = ep->ExceptionRecord;
     CONTEXT *context = ep->ContextRecord;
+    DWORD machineType;
     string out, t;
-    formatstring(out)("Win32 Exception: 0x%x [0x%x]\n\n", er->ExceptionCode, er->ExceptionCode==EXCEPTION_ACCESS_VIOLATION ? er->ExceptionInformation[1] : -1);
-    STACKFRAME sf = {{context->Eip, 0, AddrModeFlat}, {}, {context->Ebp, 0, AddrModeFlat}, {context->Esp, 0, AddrModeFlat}, 0};
+#  if defined(WIN64)
+    machineType = IMAGE_FILE_MACHINE_IA64;
+    formatstring(out)("Win64 Exception: 0x%x [0x%x]\n\n", er->ExceptionCode, er->ExceptionCode == EXCEPTION_ACCESS_VIOLATION ? er->ExceptionInformation[1] : -1);
+    STACKFRAME sf = { {context->Rip, 0, AddrModeFlat}, {}, {context->Rbp, 0, AddrModeFlat}, {context->Rsp, 0, AddrModeFlat}, 0 };
+#  else
+    machineType = IMAGE_FILE_MACHINE_I386;
+    formatstring(out)("Win32 Exception: 0x%x [0x%x]\n\n", er->ExceptionCode, er->ExceptionCode == EXCEPTION_ACCESS_VIOLATION ? er->ExceptionInformation[1] : -1);
+    STACKFRAME sf = { {context->Eip, 0, AddrModeFlat}, {}, {context->Ebp, 0, AddrModeFlat}, {context->Esp, 0, AddrModeFlat}, 0 };
+#  endif
     SymInitialize(GetCurrentProcess(), NULL, TRUE);
 
-    while(::StackWalk(IMAGE_FILE_MACHINE_I386, GetCurrentProcess(), GetCurrentThread(), &sf, context, NULL, ::SymFunctionTableAccess, ::SymGetModuleBase, NULL))
+    while(::StackWalk(machineType, GetCurrentProcess(), GetCurrentThread(), &sf, context, NULL, ::SymFunctionTableAccess, ::SymGetModuleBase, NULL))
     {
         struct { IMAGEHLP_SYMBOL sym; string n; } si = { { sizeof( IMAGEHLP_SYMBOL ), 0, 0, 0, sizeof(string) } };
         IMAGEHLP_LINE li = { sizeof( IMAGEHLP_LINE ) };
+        #if defined(WIN64)
+        DWORD64 offA;
+        DWORD offL;
+        if (SymGetSymFromAddr64(GetCurrentProcess(), (DWORD64)sf.AddrPC.Offset, &offA, &si.sym) && 
+            SymGetLineFromAddr64(GetCurrentProcess(), (DWORD64)sf.AddrPC.Offset, &offL, &li))
+
+        #else
         DWORD off;
-        if(SymGetSymFromAddr(GetCurrentProcess(), (DWORD)sf.AddrPC.Offset, &off, &si.sym) && SymGetLineFromAddr(GetCurrentProcess(), (DWORD)sf.AddrPC.Offset, &off, &li))
+        if (SymGetSymFromAddr(GetCurrentProcess(), (DWORD)sf.AddrPC.Offset, &off, &si.sym) && 
+            SymGetLineFromAddr(GetCurrentProcess(), (DWORD)sf.AddrPC.Offset, &off, &li))
+
+        #endif
         {
             char *del = strrchr(li.FileName, '\\');
             formatstring(t)("%s - %s [%d]\n", si.sym.Name, del ? del + 1 : li.FileName, li.LineNumber);

@@ -178,6 +178,9 @@
 #  ifndef WIN32
 #    define WIN32
 #  endif
+#  if defined(_WIN64)
+#    define WIN64
+#  endif
 #endif
 #if (defined(MSDOS) || defined(OS2) || defined(WINDOWS)) && !defined(WIN32)
 #  if !defined(__GNUC__) && !defined(__FLAT__) && !defined(__386__)
