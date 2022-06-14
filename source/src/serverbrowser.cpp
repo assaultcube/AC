@@ -1044,13 +1044,20 @@ void refreshservers(void *menu, bool init)
         string text;
         int curnl = 0;
         int allplayers = 0;
+        int tabcount = 0;
+        int pollcount = 0;
         bool sbconnectexists = identexists("sbconnect");
         loopv(servers)
         {
             serverinfo &si = *servers[i];
             si.menuline_to = si.menuline_from = ((gmenu *)menu)->items.length();
             if((!showallservers && si.lastpingmillis <= servermenumillis) || (si.maxclients > MAXCLIENTSONMASTER && searchlan<2) ) continue; // no pong yet or forbidden
-            if(si.serverstyle > -1 && si.serverstyle != curstyletab) continue; // unpolled servers seen on all tabs
+
+            if(si.serverstyle==-1) pollcount++;
+
+            //if(si.serverstyle > -1 && si.serverstyle != curstyletab) continue; // unpolled servers seen on all tabs
+            if(si.serverstyle != curstyletab) continue; // only show servers matching serverstyle
+
             int banned = ((si.pongflags >> PONGFLAG_BANNED) & 1) | ((si.pongflags >> (PONGFLAG_BLACKLIST - 1)) & 2);
             bool showthisone = !(banned && showonlygoodservers) && !(showonlyfavourites > 0 && si.favcat != showonlyfavourites - 1);
             bool serverfull = si.numplayers >= si.maxclients;
@@ -1098,6 +1105,7 @@ void refreshservers(void *menu, bool init)
             }
             if(showthisone)
             {
+                tabcount++;
                 cutcolorstring(si.full, 105); // cut off too long server descriptions
                 cutcolorstring(si.description, 100);
                 if(sbconnectexists)
@@ -1144,7 +1152,6 @@ void refreshservers(void *menu, bool init)
             if(!(showonlyfavourites > 0 && (servers[i]->favcat != showonlyfavourites - 1))) allplayers += servers[i]->numplayers;
         }
 
-        /*
         static const char *titles[NUMSERVSORT] =
         {
             "%s\fs\f0ping\fr\t%s plr\tserver%s%s",                               // 0: ping
@@ -1158,23 +1165,10 @@ void refreshservers(void *menu, bool init)
         };
         defformatstring(allplrs)("%d", allplayers);
         formatstring(title)(titles[serversort], showfavtag ? "fav\t" : "", !issearch && showallplayersnumber ? allplrs : "", issearch ? "      search results for \f3" : "     (F1: Help/Settings)", issearch ? cursearch : "");
-        */
-        //TODO better display of browsertab than added on with the " \f2%s" bit
-        static const char *titles[NUMSERVSORT] =
-        {
-            "%s\fs\f0ping\fr\t%s plr\tserver%s%s \f2%s",                               // 0: ping
-            "%sping\t\fs\f0%s plr\fr\tserver%s%s \f2%s",                               // 1: player number
-            "%sping\t%s plr\tserver (\fs\f0max players\fr)%s%s \f2%s",                 // 2: maxplayers
-            "%sping\t%s plr\fs\f0\fr\tserver (\fs\f0minutes remaining\fr)%s%s \f2%s",  // 3: minutes remaining
-            "%sping\t%s plr\tserver (\fs\f0map\fr)%s%s \f2%s",                         // 4: map
-            "%sping\t%s plr\tserver (\fs\f0game mode\fr)%s%s \f2%s",                   // 5: mode
-            "%sping\t%s plr\tserver (\fs\f0IP\fr)%s%s \f2%s",                          // 6: IP
-            "%sping\t%s plr\tserver (\fs\f0description\fr)%s%s \f2%s"                  // 7: description
-        };
-        defformatstring(allplrs)("%d", allplayers);
-        formatstring(title)(titles[serversort], showfavtag ? "fav\t" : "", !issearch && showallplayersnumber ? allplrs : "", issearch ? "      search results for \f3" : "     (F1: Help/Settings)", issearch ? cursearch : "", styletabnames[curstyletab] );
-        //::TODO
+
         menutitlemanual(menu, title);
+        const char *polltab = "...polling";
+        menusettabname((char*)(curstyletab<0?polltab:styletabnames[curstyletab]));
 
         static string notfoundmsg, headermsg;
         notfoundmsg[0] = '\0';
@@ -1190,6 +1184,20 @@ void refreshservers(void *menu, bool init)
             if(!((gmenu *)menu)->items.length() && !issearch) formatstring(notfoundmsg)("\t(no servers in this category)");
         }
         if(*notfoundmsg) menuitemmanual(menu, notfoundmsg, NULL, NULL, NULL);
+        static string emptylist;
+        emptylist[0] = '\0';
+        if(tabcount==0){
+            if(pollcount>0){
+                formatstring(emptylist)("\f5.. \f4polling \f1%d\f4 servers \f5..", pollcount);
+            }else{
+                if(curstyletab<0){
+                    curstyletab = 0; // jump out of empty "only temporary tab"
+                }else{
+                    formatstring(emptylist)("\f4no servers for \f2%s\f4 game", styletabnames[curstyletab]);
+                }
+            }
+            menuitemmanual(menu,emptylist,NULL,NULL,NULL);
+        }
     }
 }
 
@@ -1262,7 +1270,8 @@ bool serverskey(void *menu, int code, bool isdown)
             return true;
 
         case SDLK_TAB:
-            curstyletab = (curstyletab + 1) % MAXSSTYPES;
+            curstyletab = (max(0,curstyletab) + 1) % MAXSSTYPES;
+            if(curstyletab==0) curstyletab = -1;
             return true;
     }
     if(menu == searchmenu) return false;

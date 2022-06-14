@@ -927,6 +927,16 @@ void menusynctabstops(int *onoff)
 }
 COMMAND(menusynctabstops, "i");
 
+void menusettabname(char *tabname)
+{
+    if(curmenu && (curmenu->tabname == NULL || strcmp(curmenu->tabname, tabname)))
+    {
+        if(curmenu->tabname) DELSTRING(curmenu->tabname);
+        defformatstring(ctabname)("\fN%s", tabname);
+        curmenu->tabname = newstring(ctabname);
+    }
+}
+
 void menurenderoffset(int *xoff, int *yoff)
 {
     if(!lastmenu) return;
@@ -1501,6 +1511,13 @@ void gmenu::render()
     y = clamp(y + (VIRTH * yoffs) / 100, 3 * FONTH, 2 * VIRTH - h - 3 * FONTH);
 
     if(!hotkeys) renderbg(x - FONTH*3/2, y - FONTH, x + w + FONTH*3/2, y + h + FONTH, true);
+    if(tabname)
+    {
+        int tabnamewidth = text_width(tabname);
+        int baseline = y - FONTH;
+        renderbg( x + w - tabnamewidth - FONTH*3/2, baseline - FONTH*3/2, x + w + FONTH*3/2, baseline, true);
+        draw_text(tabname, x + w - tabnamewidth, baseline - FONTH - FONTH/6);
+    }
     if(pages)
     {
         if(offset > 0) drawarrow(1, x + w + FONTH*3/2 - FONTH*5/6, y - FONTH*5/6, FONTH*2/3);
