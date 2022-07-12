@@ -1,0 +1,49 @@
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ ━━━━━━━ ━━━━━━━ ━━━━━━━ ━━━━━━━ ━━━━━━━ ━━━━━━━ ━━━━━━━ ━━━━━━━
+
+Any notes or extended source snippets that would bloat the actual source files.
+Maybe change this to a Markdown file, if it becomes unwieldly otherwise.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ ━━━━━━━ ━━━━━━━ ━━━━━━━ ━━━━━━━ ━━━━━━━ ━━━━━━━ ━━━━━━━ ━━━━━━━
+
+= IdentIcon =
+flowtron started implementing an IdentIcon rendering for the pubkey (actually: pubkeyhex). 
+Since the original 9block algorithm – see: https://en.wikipedia.org/wiki/Identicon – 
+has a tendency to look like a swastika it was felt to be better to go more in the direction of the github avatar icons.
+Several implementations in the direction of this propietary solution exist as OpenSource, they usually deal with 32bytes.
+Since the pubkeyhex is always 64 bytes (only hexadecimal subset), our implementation needs to be different.
+Folding down too much of the key into the central pattern is not desirable, but having unused characters even more so.
+The implementation is trying to keep the visual cue as sharp as possible w/o too much chances of collision. 
+A number of decisions may be revisited; as long as any change of visualisation triggers a minor version bump (A.B.C => A.(B+1).0).
+The underlying pubkey is, of course, the relevant information but humans will likely be showing the image, they need to use matching algorithms.
+
+Technical issues:
+ - after experiences (beta?) have been gathered some ordering and restraints may want to be implemented
+   Like: limit the size of the folder, currently 10K icons take up 41 MB, so not critical.
+   Marking people as friends and clanmates should make them exempt from cleaning, possibly observe "last seen"(TODO) for others.
+ - The blockiness of the image should suit JPEG, but in tests at 50% quality the PNG was still 6× smaller. GIF could improve on it, but needs implementing. 
+
+Algorithm description:
+IdentIcon For 64 byte AC:pubkey hex representation:
+ - we use bytes 0…44 for the inner pattern.
+   three bytes inform each of the cells, three cells for each of the five rows (ABCBA).
+ - inner RGB from byte 45 (hueblock)
+ - border & blocks RGB from byte pairs 46–57
+ - corners from 58+59+60 (hueblock)
+ - edges from 61+62+63 (hueblock)
+To create our icon we have two parts working differently; one way to create a github style IdentIcon as central pattern and
+another to pad the pattern so all the bytes are used but the visual simplicity still allows for quick recognition *and* rejection.
+For the padding area we use the padhues array of clearly different shades of gray. 
+Adding colours is possible but visual accessibility should be considered.
+There are 2 shades used, one for the corners and one for the edges between them.
+The establishing of which hue to use is either based on one byte or a sum of three bytes. The middle is least likely. 
+The whole image gets a border of the same colour as the blocks in the pattern, 
+this pattern is backdropped in white and the colour is forced to have a minimal distance from white, for contrast.
+The pattern itself is established row by row, each row has three cell values, so groups of three bytes inform a 5 cell row.
+The first cell matches the last and the second the fourth (like ABCBA). Each cell is ON if the byte is odd, OFF if even.
+
+Relic of the time JPEG was tried:
+// jpegenc jpegencoder; jpegencoder.encode(imagepath, image, 50, uhash); // IDEA: have player name in jpeg comment instead of uhash 
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ ━━━━━━━ ━━━━━━━ ━━━━━━━ ━━━━━━━ ━━━━━━━ ━━━━━━━ ━━━━━━━ ━━━━━━━
+

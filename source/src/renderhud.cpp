@@ -75,6 +75,113 @@ void drawvoteicon(float x, float y, int col, int row, bool noblend)
     }
 }
 
+VARP(showidentitymillis, 0, 5000, 15000);
+
+joinedidentity myidentity;
+
+void drawmyidenticon()
+{
+    if(myidentity.joined > 0)
+    {
+        int deltat = lastmillis - myidentity.joined;
+        if(deltat < showidentitymillis)
+        {
+            int movetime = showidentitymillis / 5;
+            if(myidentity.tex->id)
+            {
+                glPushMatrix();
+                glDisable(GL_BLEND);
+                glEnable(GL_TEXTURE_2D);
+                glLoadIdentity();
+                const int vw = VIRTW/4;
+                const int vh = VIRTH/4;
+                int offx = 72;
+                int offy = 96;
+                float movy = 0;
+                if(deltat<movetime)
+                {
+                    movy = deltat / (1.0f * movetime);
+                }else{
+                    if(deltat>4*movetime)
+                    {
+                        movy = (showidentitymillis - deltat) / (1.0f * movetime);
+                    }
+                }
+                if(movy) offy = -64 + 150 * movy;
+                glOrtho(0, vw, vh, 0, -1, 1);
+                quad(myidentity.tex->id, vw-offx, vh-offy, 64, 0, 0, 1);
+                glEnable(GL_BLEND);
+                glPopMatrix();
+            }
+        }else{
+            myidentity.joined = 0;
+        }
+    }
+}
+
+vector<joinedidentity> joinednow;
+
+void drawotheridenticons()
+{
+    // similar to drawmyidenticon but smaller and stacked horizontally at the top-right of the HUD
+    // FIXME: multiple rows or other way to not overflow into negative X
+    bool needrender = false;
+    const int slotwidth = 96; // 64 + 32 <==> iconwidth + air
+    loopv(joinednow)
+    {
+        joinedidentity &other = joinednow[i];
+        if(other.joined > 0)
+        {
+            int deltat = lastmillis - other.joined;
+            if(deltat < showidentitymillis)
+            {
+                int movetime = showidentitymillis / 5;
+                if(other.tex->id)
+                {
+                    float movx = -1;
+                    if(deltat<movetime)
+                    {
+                        movx = deltat / (1.0f * movetime);
+                    }else{
+                        if(deltat>4*movetime)
+                        {
+                            movx = (showidentitymillis - deltat) / (1.0f * movetime);
+                        }
+                    }
+                    other.movedto = movx != -1 ? (VIRTW + slotwidth - movx * slotwidth * (i+2)) : 0;
+                    needrender = true;
+                }
+            }else{
+                other.joined = 0;
+            }
+        }
+    }
+    if(needrender)
+    {
+        glPushMatrix();
+        glDisable(GL_BLEND);
+        glEnable(GL_TEXTURE_2D);
+        glLoadIdentity();
+        glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
+        int toffy = 448; // below radar and so shouldn't overlap (m)any console messages either
+        loopv(joinednow)
+        {
+            int toffx = VIRTW - (i+1) * slotwidth;
+            joinedidentity other = joinednow[i];
+            if(other.joined > 0)
+            {
+                if(other.tex->id)
+                {
+                    quad(other.tex->id, other.movedto > 0 ? other.movedto : toffx, toffy, 64, 0, 0, 1);
+                }
+            }
+        }
+        glEnable(GL_BLEND);
+        glPopMatrix();
+    }
+
+}
+
 VARP(crosshairsize, 0, 15, 50);
 VARP(showstats, 0, 1, 2);
 VARP(crosshairfx, 0, 1, 3);
@@ -766,6 +873,9 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
     glEnable(GL_BLEND);
 
+    /*drawmyidenticon();
+    drawotheridenticons();*/
+
     if(underwater)
     {
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1006,13 +1116,25 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         draw_text(matchpaused, left, top);
     }
 
-    /* * /
-    glLoadIdentity();
-    glOrtho(0, VIRTW*3/2, VIRTH*3/2, 0, -1, 1);
+    /*
     const int tbMSGleft = (VIRTW*3/2)*5/6;
     const int tbMSGtop = (VIRTH*3/2)*7/8;
+    glLoadIdentity();
+    glOrtho(0, VIRTW*3/2, VIRTH*3/2, 0, -1, 1);
     draw_textf("!TEST BUILD!", tbMSGleft, tbMSGtop);
-    / * */
+    */
+    /*
+    const int tbMSGleft = (VIRTW*3/2)*5/6;
+    const int tbMSGtop = (VIRTH*3/2)*7/8;
+    glLoadIdentity();
+    glOrtho(0, VIRTW*3/2, VIRTH*3/2, 0, -1, 1);
+    glPushMatrix();
+    glScaled(-1,1,1);
+    int tw_tb = text_width("!TEST BUILD!");
+    glTranslated(-VIRTW*3/2,0,0);//glTranslated(-VIRTW*3/2,0,0);
+    draw_textf("!TEST BUILD!", tbMSGleft-tw_tb, tbMSGtop);
+    glPopMatrix();
+    */
 
     if(showspeed && !menu)
     {
@@ -1169,6 +1291,9 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         glEnable(GL_BLEND);
         rendercommand(HUDPOS_X_BOTTOMLEFT, HUDPOS_Y_BOTTOMLEFT, VIRTW - FONTH);
     }
+
+    drawmyidenticon();
+    drawotheridenticons();
 
     glDisable(GL_BLEND);
     glDisable(GL_TEXTURE_2D);

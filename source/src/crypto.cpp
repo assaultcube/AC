@@ -973,16 +973,27 @@ void authsetup(char **args, int numargs)  // set up private and public keys
     if(!privpwdcfg && !memcmp(pub, keyhash, 32))
     {
         // priv matches pub: yay
+        char bufhex[PUBKEYSAFE];
+        if(player1->identified) memcpy(bufhex, player1->pubkeyhex, PUBKEYSAFE);
         memcpy(priv + 32, pub, 32);
         sk = priv;
-        if(!numargs) res = 1;  // "authsetup" with no arguments just checks the status
+        bin2hex(player1->pubkeyhex, pub, 32);
+        if( player1->identified && strcmp(bufhex, player1->pubkeyhex) ) player1->identified = false; // identity changed - TODO?: hook/action
+        if(!player1->identified)
+        {
+            player1->identified = true;
+            myidentity.joined = lastmillis; // trigger display of own identicon - for recognition of your own visual and the fact auth happened
+            memcpy(myidentity.pubkeyhex, player1->pubkeyhex, PUBKEYSAFE);
+            myidentity.tex = getidenticon(player1->pubkeyhex);
+            exechook(HOOK_SP_MP, "onAuth", "");
+        }
         DEBUG("successfully found keypair for pub " << bin2hex(hextemp, pub, 32));
+        if(!numargs) res = 1; // "authsetup" with no arguments just checks the status
     }
     else sk = NULL;
     intret(res);
 }
 COMMAND(authsetup, "v");
-
 
 void mypubkey()
 {
@@ -991,7 +1002,6 @@ void mypubkey()
     result(res);
 }
 COMMAND(mypubkey, "");
-
 
 /////////////////////////////////////////////////  misc key management  //////////////////////////////////////////////////////
 // * used to sign certs or other stuff
@@ -1023,6 +1033,16 @@ const uchar *getauthkey(const char *name)
 {
     loopvrev(authkeys) if(!strcmp(authkeys[i]->name, name)) return authkeys[i]->sk;
     return NULL;
+}
+
+void fakekey(uchar target[PUBKEYBINLEN])
+{
+    const int deepthought = 42;
+    uchar prepriv[deepthought], priv[PUBKEYBINLEN], pub[PUBKEYBINLEN];
+    entropy_get(prepriv, deepthought);
+    privkey_from_prepriv(priv, prepriv, deepthought);
+    ed25519_pubkey_from_private(pub, priv);
+    memcpy(target,pub,PUBKEYBINLEN);
 }
 
 void authkey_(char **args, int numargs)  // set up misc keys

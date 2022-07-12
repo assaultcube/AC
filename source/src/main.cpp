@@ -486,6 +486,148 @@ COMMAND(screenshotpreview, "i");
 
 bool needsautoscreenshot = false;
 
+int hextodec(uchar a){ return (a >= 48 && a <= 57) ? ( a - 48) : (a >= 97 && a <= 102) ? ( a - 87 ) : 0; }
+int twohextodec(uchar a, uchar b){ return hextodec(a) * 16 + hextodec(b); }
+
+Texture *getidenticon(char uhash[PUBKEYSAFE])
+{
+    prepidenticon(uhash);
+    defformatstring(imagepath)("identicons/%s.png", uhash);
+    return textureload(imagepath);
+}
+
+int huecharindex(int byte)
+{
+    // 0–3 | 4–6 | 7–8 | 9–11 | 12–15 <==> [0–4]
+    //  ∆4 |  ∆3 |  ∆2 |  ∆3  |   ∆4
+    static int grouping[16] = {0,0,0,0,1,1,1,2,2,3,3,3,4,4,4,4};
+    if(byte >= 0 && byte <= 15) return grouping[byte];
+    return 0; // first hueblockindex is fallback
+}
+
+int hueblockindex(int sum)
+{
+    // 0–9 | 10–19 | 20–25 | 26–35 | 36–45 <==> [0–4]
+    // ∆10 |  ∆10  |   ∆6  |  ∆10  |  ∆10
+    if(sum > 35)
+    {
+        return 4;
+    }else{
+        if(sum > 25)
+        {
+            return 3;
+        }else{
+            if(sum > 19)
+            {
+                return 2;
+            }else{
+                if(sum > 9) return 1;
+            }
+        }
+    }
+    return 0; // first hueblockindex is fallback
+}
+
+int hueblocksum(char uhash[PUBKEYSAFE], int offset)
+{
+    if(offset>=0 && offset<=PUBKEYSAFE-4)
+    {
+        return hextodec(uhash[offset]) + hextodec(uhash[offset+1]) + hextodec(uhash[offset+2]);
+    }
+    return 0; // no use indicating failure
+}
+
+int hexfromhash3c(char uhash[PUBKEYSAFE], int offset){
+    if(offset>=0 && offset<=PUBKEYSAFE-4)
+    {
+        return 256 * hextodec(uhash[offset]) + 16 * hextodec(uhash[offset+1]) + hextodec(uhash[offset+2]);
+    }
+    return 0; // no use indicating failure
+}
+
+void prepidenticon(char uhash[PUBKEYSAFE])
+{
+    // see source/DEVELOPMENT.txt for more than the comments here
+    static int imagesize = 128;
+    static int blocksize = 16;
+    static int padding = 8;
+    static int padhues[5] = {0x00,0x40,0x80,0xC0,0xFF};
+    extern string homedir; // leaving it out saves properly but fileexists would fail
+    defformatstring(imagepath_read)("%sidenticons/%s.png", homedir, uhash);
+    defformatstring(imagepath_save)("identicons/%s.png", uhash);
+    if( fileexists(imagepath_read, "r") ) return;
+    SDL_Surface *image = creatergbsurface(imagesize, imagesize);
+    if(!image) return;
+    SDL_Rect useRect;
+    int CC[6];
+    int ccidx = 0;
+    for(int charidx=45; charidx<57; charidx+=2) CC[ccidx++] = twohextodec(uhash[charidx],uhash[charidx+1]);
+    int sum4blocks = CC[0]+CC[1]+CC[2];
+    if(sum4blocks>3*128){ loopi(3) CC[i] /= 2; } // if the colour is too bright we halve each channel, so it has contrast to the white backdrop
+    SDL_FillRect(image, NULL, SDL_MapRGB(image->format, CC[3], CC[4], CC[5])); // border
+    Uint32 iiFG = SDL_MapRGB(image->format, CC[0], CC[1], CC[2]); // blocks
+    int curhue = padhues[hueblockindex(hueblocksum(uhash, 58))];
+    Uint32 iiCC = SDL_MapRGB(image->format, curhue, curhue, curhue); // corners
+    curhue = padhues[hueblockindex(hueblocksum(uhash, 61))];
+    Uint32 iiEC = SDL_MapRGB(image->format, curhue, curhue, curhue); // edges
+
+    // now we fill the padding blocks with their respective hues by 3-tuple of bytes
+    // first the corners with their squares ..
+    useRect.w = useRect.h = 2 * blocksize;
+    useRect.x = useRect.y = padding;
+    SDL_FillRect(image, &useRect, iiCC);
+    useRect.x += 5 * blocksize;
+    SDL_FillRect(image, &useRect, iiCC);
+    useRect.y += 5 * blocksize;
+    SDL_FillRect(image, &useRect, iiCC);
+    useRect.x -= 5 * blocksize;
+    SDL_FillRect(image, &useRect, iiCC);
+    // .. now the horizontal edges ..
+    useRect.y -= 3 * blocksize;
+    useRect.h = 3 * blocksize;
+    SDL_FillRect(image, &useRect, iiEC);
+    useRect.x += 5 * blocksize;
+    SDL_FillRect(image, &useRect, iiEC);
+    // .. now the vertical edges ..
+    useRect.x = padding + 2 * blocksize;
+    useRect.y = padding;
+    useRect.w = 3 * blocksize;
+    useRect.h = 2 * blocksize;
+    SDL_FillRect(image, &useRect, iiEC);
+    useRect.y += 5 * blocksize;
+    SDL_FillRect(image, &useRect, iiEC);
+
+    // white backdrop for the inner pattern .. leaving it out changes optics considerably .. but otherwise the sum4blocks hack becomes more involved.
+    useRect.w = useRect.h = 5 * blocksize;
+    useRect.x = useRect.y = padding + blocksize;
+    SDL_FillRect(image, &useRect, SDL_MapRGB(image->format, 255, 255, 255));
+
+    // the central pattern
+    useRect.w = blocksize;
+    useRect.h = blocksize;
+    loopi(5) // rows
+    {
+        int coff = i * 9; // char offset
+        int dots[3] = { hexfromhash3c(uhash, coff) % 2, hexfromhash3c(uhash, coff+3) % 2, hexfromhash3c(uhash, coff+6) % 2 };
+        useRect.y = padding + (i+1) * blocksize;
+        loopk(3)
+        {
+            if(dots[k])
+            {
+                useRect.x = padding + (k+1) * blocksize; // 0 | 1 | 2
+                SDL_FillRect(image, &useRect, iiFG);
+                if(k<2)
+                {
+                    useRect.x += (k==0?4:2) * blocksize; // 0&4 | 1&3
+                    SDL_FillRect(image, &useRect, iiFG);
+                }
+            }
+        }
+    }
+    if(save_png(imagepath_save, image) < 0) conoutf("\f3Error saving identicon [%s]", uhash);
+}
+COMMAND(prepidenticon, "s");
+
 void updatescreensize()
 {
     SDL_GetWindowSize(screen, &screenw, &screenh);
@@ -1045,6 +1187,12 @@ const char *rndmapname()
     else return "";
 }
 
+const int rndgamemode()
+{
+    static int potmodes[] = { 2, 5, 6, 9, 10, 13, 15 }; // DM CTF PF LSS OSOK HTF KTF | PARKOUR GEMA
+    return potmodes[rnd(sizeof(potmodes)/sizeof(potmodes[0]))];
+}
+
 #define AUTOSTARTPATH "config" PATHDIVS "autostart" PATHDIVS
 
 void autostartscripts(const char *prefix)
@@ -1231,6 +1379,7 @@ int main(int argc, char **argv)
     if(bootclientlog) cvecprintf(*bootclientlog, "######## start logging: %s\n", timestring(true));
 
     const char *initmap = rndmapname();
+    int initmode = rndgamemode();
     loopi(NUMGUNS) crosshairnames[i] = gunnames[i] = guns[i].modelname;
     crosshairnames[GUN_AKIMBO] = gunnames[GUN_AKIMBO] = "akimbo";
     crosshairnames[CROSSHAIR_DEFAULT] = "default";
@@ -1295,6 +1444,10 @@ int main(int argc, char **argv)
                     else if(!strncmp(argv[i], "--loadmap=", 10))
                     {
                         initmap = &argv[i][10];
+                    }
+                    else if(!strncmp(argv[i], "--loadmode=", 11))
+                    {
+                        initmode = atoi(&argv[i][11]);
                     }
                     else if(!strncmp(argv[i], "--loaddemo=", 11))
                     {
@@ -1380,7 +1533,7 @@ int main(int argc, char **argv)
     SDL_SetHintWithPriority(SDL_HINT_MOUSE_RELATIVE_MODE_WARP, "1", SDL_HINT_OVERRIDE);
 #endif
 
-    SDL_ShowCursor(0);
+    SDL_ShowCursor(SDL_FALSE);
 
     initlog("gl");
     gl_checkextensions();
@@ -1491,15 +1644,16 @@ int main(int argc, char **argv)
 
     initlog("localconnect");
     extern string clientmap;
+    extern int gamemode;
 
     if(initdemo)
     {
-        extern int gamemode;
         gamemode = -1;
         copystring(clientmap, initdemo);
+    }else{
+        gamemode = initmode;
+        copystring(clientmap, initmap); // ac_complex for 1.0, ac_shine for 1.1, .. rndmap for 1.2+
     }
-    else
-    copystring(clientmap, initmap); // ac_complex for 1.0, ac_shine for 1.1, ..
 
     localconnect();
 
