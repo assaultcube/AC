@@ -48,8 +48,20 @@ const char *entmdlnames[] =
 void renderent(entity &e)
 {
     const char *mdlname = entmdlnames[isitem(e.type) && !(m_lss && e.type == I_GRENADE) ? e.type - I_CLIPS + 1 : 0];  // render double nades in lss
-    float z = (float)(1+sinf(lastmillis/100.0f+e.x+e.y)/20), yaw = lastmillis/10.0f;
+    float z = 1 + sinf(lastmillis/100.0f+e.x+e.y)/20.0f, yaw = lastmillis/10.0f;
     rendermodel(mdlname, ANIM_MAPMODEL|ANIM_LOOP|ANIM_DYNALLOC, 0, 0, vec(e.x, e.y, z+S(e.x, e.y)->floor + float(e.attr1) / ENTSCALE10), 0, yaw, 0);
+}
+
+void renderparkpoint(entity &e)
+{
+    // TODO: have a nice model, e.g. a golden star … or a skull … or …
+    // FIXME: we may not actually want to display anything for the text/safe-types .. but during development it helps
+    static int trigtypeflash[4] = { 2, 20, 17, 13 }; // attr2 : 0:text 1:safe/save 2:points 3:finish // type 2:ECLOSEST,13:SPAWN,17:ECARROT,20:EFLAG,21:UNKNOWN .. or come up with a new set
+    int tt = e.attr2 >= 0 && e.attr2 < 4 ? trigtypeflash[e.attr2] : 21; // 21:UNKOWN
+    float abovefloor = e.attr2 == 2 ? 1.75f : 1.1f;
+    float wobble = sinf( lastmillis / 100.0f );
+    float z = true/*e.attr2 == 2*/ ? wobble/10.0f : 0; // only points should wobble
+    particle_flash( tt, 1.0f, rnd(0x1000000), vec(e.x, e.y, S(e.x,e.y)->floor + abovefloor + z) ); // particle_flash(type, scale, angle, p)
 }
 
 void renderclip(int type, int x, int y, float xs, float ys, float h, float elev, float tilt, int shape)
@@ -319,6 +331,13 @@ void renderentities()
                 renderent(e);
             }
         }
+        if(m_park)
+        {
+            if(e.type==CARROT && i < parkents.length() && !parkents[i])
+            {
+                renderparkpoint(e);
+            }
+        }
     }
     if(m_flags_) loopi(2)
     {
@@ -352,34 +371,45 @@ void renderentities()
     }
 }
 
-VARP(parkourprintemptyplacetext,0,0,1);
+VARP(parkourprintemptyplacetext,0,1,1); // TODO: decide if this may be better OFF in production/release; during development we want it ON
+
 void parkplace_text(playerent *d, int index, int tag)
 {
     if(index >= 0 && index < parkents.length())
     {
-         if(!parkents[index])
+        if(!parkents[index])
         {
-            //FIXME: map configs may not contain ALIAS - currently a user-home script needs to hold them
-            defformatstring(textalias)("parkour_text_%d", tag);
-            const char *parktxt = getalias(textalias);
-            if(parktxt)
-            {
-                conoutf("%s",parktxt);
-            }else{
-                if(parkourprintemptyplacetext) conoutf("you have reached place #%d", tag);
-            }
-            audiomgr.playsoundc(S_MENUSELECT);//S_HEARTBEAT//FIXME: have a proper parkour "goal reached" sound
+            bool emptymessage = true;
             parkents[index] = true;
+            extern vector<char *> parkourtexts;
+            if(parkourtexts.inrange(tag))
+            {
+                if(strlen(parkourtexts[tag])) emptymessage = false;
+            }
+            if(emptymessage)
+            {
+                if(parkourprintemptyplacetext) conoutf("you have reached place #%d", tag);
+            }else{
+                conoutf("%s", parkourtexts[tag]);
+            }
+            audiomgr.playsoundc(S_MENUSELECT); // S_HEARTBEAT // FIXME: have a proper parkour "goal reached" sound
         }
     }
 }
 
-void parkplace_safe(playerent *d, int tag)
+void parkplace_safe(playerent *d, int index, int tag)
 {
-    if(tag>d->parkplace)
+    if(index>=0 && index<ents.length())
     {
-        d->parkplace = tag;
-        audiomgr.playsoundc(S_FLAGPICKUP);
+        if(!parkents[index])
+        {
+            if(tag>d->parkplace)
+            {
+                d->parkplace = tag;
+                audiomgr.playsoundc(S_FLAGPICKUP); // FIXME: have a proper parkour "progress saved"/"respawn set" sound
+            }
+            parkents[index] = true;
+        }
     }
 }
 
@@ -416,7 +446,7 @@ void pickupeffects(int n, playerent *d)
 {
     if(!ents.inrange(n)) return;
     entity &e = ents[n];
-    e.spawned = false;
+    if(!m_gema) e.spawned = false; // items are permanent in GEMA
     if(!d) return;
     d->pickup(e.type);
     if (m_lss && e.type == I_GRENADE) d->pickup(e.type); // get 2
@@ -439,10 +469,10 @@ void pickupeffects(int n, playerent *d)
         {
             switch(e.attr2)
             {
-                case PP_TEXT: parkplace_text(d, n, e.attr1); break;
-                case PP_SAFE: parkplace_safe(d, e.attr1); break;
+                case PP_TEXT:   parkplace_text(  d, n, e.attr1); break;
+                case PP_SAFE:   parkplace_safe(  d, n, e.attr1); break;
                 case PP_POINTS: parkplace_points(d, n, e.attr1); break;
-                case PP_GOAL: parkplace_goal(d, n); break;
+                case PP_GOAL:   parkplace_goal(  d, n         ); break;
                 default: break;
             }
         }
@@ -502,7 +532,7 @@ void trypickupflag(int flag, playerent *d)
         if(f.state == CTFF_STOLEN) return;
         bool own = flag == team_base(d->team);
 
-        if(m_ctf)
+        if(m_ctf||m_gema)
         {
             if(own) // it's the own flag
             {
@@ -643,7 +673,7 @@ void flagpickup(int fln)
     if(flagdropmillis && flagdropmillis>lastmillis) return;
     flaginfo &f = flaginfos[fln];
     int action = f.state == CTFF_INBASE ? FA_STEAL : FA_PICKUP;
-    f.flagent->spawned = false;
+    f.flagent->spawned = false; // even in GEMA, unless we start having a client flag indicator .. but then we start changing GEMA into PARKOUR .. GEMA *needs* to be GEMA
     f.state = CTFF_STOLEN;
     f.actor = player1; // do this although we don't know if we picked the flag to avoid getting it after a possible respawn
     f.actor_cn = getclientnum();

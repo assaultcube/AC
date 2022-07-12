@@ -592,6 +592,25 @@ void enumtodoentities()
 }
 COMMAND(enumtodoentities, "");
 
+vector<char *> parkourtexts;
+
+void clearparkourtexts()
+{
+    parkourtexts.setsize(0);
+    parkourtexts.deletearrays();
+}
+void addparkourtext(int n, const char *msg)
+{
+    if(n>=0 && n<100)
+    {
+        if(n>1) while(!parkourtexts.inrange(n-1)) parkourtexts.add(newstring("")); // 0 – (n-1)
+        parkourtexts.add(newstring(msg));
+    }else{
+        conoutf("parkourtext index out of bounds [1-99].");
+    }
+}
+COMMANDF(parkourtext, "is", (int *n, const char *msg){ addparkourtext(*n,msg); });
+
 void scalecomp(uchar &c, int intens)
 {
     int n = c*intens/100;

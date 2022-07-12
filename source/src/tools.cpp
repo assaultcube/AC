@@ -265,6 +265,7 @@ int lastflagdistancewarning = 0;
 void calcentitystats(entitystats_s &es, const persistent_entity *pents, int pentsize)
 {
 #ifndef STANDALONE
+    bool noWTPyet = worldtotalpoints == 0; // do not count them again
     vector<persistent_entity> _pents;
     if(!pents)
     { // use regular ents list
@@ -303,10 +304,8 @@ void calcentitystats(entitystats_s &es, const persistent_entity *pents, int pent
                     break;
             }
             #ifndef STANDALONE
-            extern int connected;
-            parkents.add(e.type!=CARROT);
-            if(connected)
-            {
+            if(noWTPyet){
+                parkents.add(e.type!=CARROT);
                 if(e.type==CARROT && e.attr2==PP_POINTS) worldtotalpoints += e.attr1;
             }
             #endif // STANDALONE
