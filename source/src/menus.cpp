@@ -197,7 +197,7 @@ struct mitemmanual : mitem
 {
     const char *text, *action, *hoveraction, *desc;
 
-    mitemmanual(gmenu *parent, char *text, char *action, char *hoveraction, color *bgcolor, const char *desc) : mitem(parent, bgcolor, mitem::TYPE_MANUAL), text(text), action(action), hoveraction(hoveraction), desc(desc) {}
+    mitemmanual(gmenu *parent, char *text, char *action, char *hoveraction, color *bgcolor, const char *desc, bool isimage = false) : mitem(parent, bgcolor, mitem::TYPE_MANUAL, isimage), text(text), action(action), hoveraction(hoveraction), desc(desc) {}
 
     virtual int width() { return text_width(text) + (strchr(text, '\n') ? menurighttabwidth : 0); }
 
@@ -253,6 +253,20 @@ struct mitemtext : mitemmanual
     }
 };
 
+bool lglass = false;
+
+void trippyth()
+{
+    bool buf = false;
+    extern int do_roth_x, do_roth_y, do_roth_z;
+    int sqval[3] = { do_roth_x*do_roth_x, do_roth_y*do_roth_y, do_roth_z*do_roth_z };
+    loopi(3){ if(sqval[i] + sqval[(i + 1) % 3] == sqval[(i + 2) % 3]) buf = true; }
+    lglass = buf;
+}
+VARF(do_roth_x, 1, 1, 10000, trippyth());
+VARF(do_roth_y, 1, 1, 10000, trippyth());
+VARF(do_roth_z, 1, 1, 10000, trippyth());
+
 VARP(hidebigmenuimages, 0, 0, 1);
 
 struct mitemimagemanual : mitemmanual
@@ -260,7 +274,7 @@ struct mitemimagemanual : mitemmanual
     Texture *image;
     font *altfont;
 
-    mitemimagemanual(gmenu *parent, const char *filename, const char *altfontname, char *text, char *action, char *hoveraction, color *bgcolor, const char *desc = NULL) : mitemmanual(parent, text, action, hoveraction, bgcolor, desc)
+    mitemimagemanual(gmenu *parent, const char *filename, const char *altfontname, char *text, char *action, char *hoveraction, color *bgcolor, const char *desc = NULL) : mitemmanual(parent, text, action, hoveraction, bgcolor, desc, true)
     {
         image = filename ? textureload(filename, 3) : NULL;
         altfont = altfontname ? getfont(altfontname) : NULL;
@@ -1141,7 +1155,8 @@ int movemenuselection(int currentmenusel, int direction)
         if(curmenu->items.inrange(newmenusel))
         {
             mitem *newitem = curmenu->items[newmenusel];
-            selectable = !newitem->greyedout && newitem->gettext() && newitem->gettext()[0] != '\0' && (newitem->mitemtype!=mitem::TYPE_MANUAL||newitem->getaction());
+            selectable = !newitem->greyedout && newitem->gettext() && newitem->gettext()[0] != '\0' && (newitem->mitemtype!=mitem::TYPE_MANUAL||newitem->getaction()); // TODO: is TYPE_MANUAL really a good toggle?
+            if(newitem->isimage) selectable = true; // also allow navigation over itemimage - see above re:TYPE_MANUAL
         }
         if(selectable) break;
     }
@@ -1171,6 +1186,9 @@ bool menukey(int code, bool isdown, SDL_Keymod mod)
 
         switch(code)
         {
+            case SDLK_F1:
+                if(curmenu==scoremenu) showmenu("player identities");
+                break;
             case SDLK_PAGEUP: menusel -= pagesize; break;
             case SDLK_PAGEDOWN:
                 if(menusel+pagesize>=n && menusel/pagesize!=(n-1)/pagesize) menusel = n-1;
@@ -1502,7 +1520,7 @@ void gmenu::render()
     int menupageswidth = pages ? text_width(menupages) : 0; // adds to topmost line, either menu title or header
     w = max(w, text_width(t) + (header ? 0 : menupageswidth));
     if(header) w = max(w, text_width(header) + menupageswidth);
-
+    if(lglass){ glScaled(-1,1,1); glTranslated(-2*VIRTW,0,0); }
     int step = (FONTH*5)/4;
     int h = (mdisp+hitems+2)*step;
     int y = (2*VIRTH-h)/2;

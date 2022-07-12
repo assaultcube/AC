@@ -192,9 +192,11 @@ struct mitem
     struct gmenu *parent;
     color *bgcolor;
     bool greyedout;
+    bool isimage;
     static bool menugreyedout;
 
-    mitem(gmenu *parent, color *bgcolor, int type) : parent(parent), bgcolor(bgcolor), greyedout(menugreyedout), mitemtype(type) {}
+    mitem(gmenu *parent, color *bgcolor, int type) : parent(parent), bgcolor(bgcolor), greyedout(menugreyedout), isimage(false), mitemtype(type) {}
+    mitem(gmenu *parent, color *bgcolor, int type, bool animage) : parent(parent), bgcolor(bgcolor), greyedout(menugreyedout), isimage(animage), mitemtype(type) {}
     virtual ~mitem() {}
 
     virtual void render(int x, int y, int w);
@@ -479,6 +481,16 @@ enum
     CROSSHAIR_NUM
 };
 
+struct joinedidentity
+{
+    char pubkeyhex[PUBKEYSAFE];
+    Texture *tex;
+    int joined;
+    float movedto;
+};
+extern joinedidentity myidentity;
+extern vector<joinedidentity> joinednow;
+
 extern const char *crosshairnames[];
 extern Texture *crosshairs[];
 extern void drawcrosshair(playerent *p, int n, struct color *c = NULL, float size = -1.0f);
@@ -698,6 +710,9 @@ extern bool inmainloop;
 enum { NOT_INITING = 0, INIT_LOAD, INIT_RESET };
 enum { CHANGE_GFX = 1<<0, CHANGE_SOUND = 1<<1 };
 extern bool initwarning(const char *desc, int level = INIT_RESET, int type = CHANGE_GFX);
+
+extern Texture *getidenticon(char uhash[PUBKEYSAFE]);
+extern void prepidenticon(char uhash[PUBKEYSAFE]);
 
 // rendertext
 struct font
