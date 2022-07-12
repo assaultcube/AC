@@ -949,6 +949,7 @@ extern void entropy_save();
 extern void entropy_add_byte(uchar b);
 extern void entropy_add_block(const uchar *s, int len);
 extern void entropy_get(uchar *buf, int len);
+extern void fakekey(uchar target[32]); // PUBKEYBINLEN
 
 struct iprange { enet_uint32 lr, ur; };
 struct iprangecc : iprange { union { int ci; char cc[4]; enet_uint32 cu; };  };

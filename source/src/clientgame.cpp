@@ -296,6 +296,18 @@ void playerinfo(int *cn, const char *attr)
     iptoa(p->address, addrstr);
     ATTR_STR(ip, addrstr);
 
+    ATTR_INT(identified, p->identified);
+    if(!strcmp(attr, "pubkeyhex")) // player1 'mypubkey' w/o finished authentication
+    {
+        if(p->identified)
+        {
+            ATTR_STR(pubkeyhex, p->pubkeyhex);
+        }else{
+            result("..not authenticated yet..");
+            return;
+        }
+    }
+
     conoutf("invalid attribute: %s", attr);
 }
 

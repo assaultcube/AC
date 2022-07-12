@@ -449,13 +449,18 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 break;
             }
 
+            case SV_MOTD:
+                getstring(text, p);
+                conoutf("MOTD:");
+                conoutf("\f4%s", text);
+            break;
+
             case SV_TEXTME:
             case SV_TEXT:
                 if(cn == -1)
                 {
                     getstring(text, p);
-                    conoutf("MOTD:");
-                    conoutf("\f4%s", text);
+                    conoutf("\fE%s", text);
                 }
                 else if(d)
                 {
@@ -549,6 +554,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     getint(p);
                     loopi(4) getint(p);
                     getint(p);
+                    uchar devnull[PUBKEYBINLEN];
+                    p.get(devnull,PUBKEYBINLEN);
                     break;
                 }
                 getstring(text, p);
@@ -573,7 +580,17 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 d->ffov = (float)clamp(getint(p), 75, 120);
                 d->scopefov = (float)clamp(getint(p), 5, 60);
                 d->address = getint(p); // partial IP address
-
+                int gotkeybin = p.get(d->pubkey, PUBKEYBINLEN); // clientside pubkey for identicon
+                if( gotkeybin == PUBKEYBINLEN )
+                {
+                    bin2hex(d->pubkeyhex, d->pubkey, PUBKEYBINLEN);
+                    d->identified = true;
+                    joinedidentity j;
+                    memcpy(j.pubkeyhex, d->pubkeyhex, PUBKEYSAFE);
+                    j.tex = getidenticon(j.pubkeyhex);
+                    j.joined = lastmillis;
+                    joinednow.add(j);
+                }
                 if(m_flags_) loopi(2)
                 {
                     flaginfo &f = flaginfos[i];
@@ -1374,8 +1391,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 break;
 
             case SV_VITADATA: { // Server sending vita data of a client. Possibly expose this to cubescript in the future
-                uchar pubkey[32];
-                char pubkeyhex[68];
+                uchar pubkey[PUBKEYBINLEN];
+                char pubkeyhex[PUBKEYSAFE];
                 string privatecomment;
                 string publiccomment;
                 int vs[VS_NUM];
