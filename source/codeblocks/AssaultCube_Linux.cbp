@@ -1,287 +1,285 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <CodeBlocks_project_file>
-    <FileVersion major="1" minor="6" />
-    <Project>
-        <Option title="AssaultCube" />
-        <Option makefile_is_custom="1" />
-        <Option execution_dir="../src" />
-        <Option working_dir="../.." />
-        <Option object_output="src/" />
-        <Option pch_mode="2" />
-        <Option compiler="clang" />
-        <Build>
-            <Target title="Debug">
-                <Option platforms="Unix;" />
-                <Option output="../../bin_unix/debug_client" prefix_auto="1" extension_auto="1" />
-                <Option type="1" />
-                <Option compiler="clang" />
-                <Compiler>
-                    <Add option="-g" />
-                    <Add option="-O0" />
-                    <Add option="-D_DEBUG" />
-                </Compiler>
-                <MakeCommands>
-                    <Build command="DEBUGBUILD=1 $make -f $makefile &amp;&amp; DEBUGBUILD=1 $make -f $makefile install" />
-                    <CompileFile command="$make -f $makefile $file" />
-                    <Clean command="$make -f $makefile clean" />
-                    <DistClean command="$make -f $makefile distclean$target" />
-                    <AskRebuildNeeded command="$make -q -f $makefile" />
-                    <SilentBuild command="DEBUGBUILD=1 $make -f $makefile &amp;&amp; DEBUGBUILD=1 $make -f $makefile install &gt; $(CMD_NULL)" />
-                </MakeCommands>
-            </Target>
-            <Target title="Release">
-                <Option platforms="Unix;" />
-                <Option output="../../bin_unix/native_client" prefix_auto="1" extension_auto="1" />
-                <Option type="1" />
-                <Option compiler="clang" />
-                <Compiler>
-                    <Add option="-O3" />
-                    <Add option="-fomit-frame-pointer" />
-                    <Add option="-Wall" />
-                    <Add option="-fsigned-char" />
-                </Compiler>
-                <Linker>
-                    <Add option="-s" />
-                </Linker>
-                <MakeCommands>
-                    <Build command="$make -f $makefile &amp;&amp; $make -f $makefile install" />
-                    <CompileFile command="$make -f $makefile $file" />
-                    <Clean command="$make -f $makefile clean" />
-                    <DistClean command="$make -f $makefile distclean$target" />
-                    <AskRebuildNeeded command="$make -q -f $makefile" />
-                    <SilentBuild command="$make -f $makefile &amp;&amp; $make -f $makefile install &gt; $(CMD_NULL)" />
-                </MakeCommands>
-            </Target>
-        </Build>
-        <Compiler>
-            <!--
-            <Add option="-Weverything" />
-            <Add option="-fexceptions" />
-            -->
-            <Add directory="source/src" />
-            <Add directory="source/enet/include" />
-            <Add directory="source/include" />
-            <Add directory="source/src/bot" />
-        </Compiler>
-        <Linker>
-            <Add library="source/enet/.libs" />
-            <Add library="enet" />
-            <Add library="/usr/lib64" />
-        </Linker>
-        <Unit filename="../enet/compress.c">
-            <Option compilerVar="CC" />
-        </Unit>
-        <Unit filename="../enet/win32.c">
-            <Option compilerVar="CC" />
-        </Unit>
-        <Unit filename="../enet/host.c">
-            <Option compilerVar="CC" />
-        </Unit>
-        <Unit filename="../enet/protocol.c">
-            <Option compilerVar="CC" />
-        </Unit>
-        <Unit filename="../enet/packet.c">
-            <Option compilerVar="CC" />
-        </Unit>
-        <Unit filename="../enet/peer.c">
-            <Option compilerVar="CC" />
-        </Unit>
-        <Unit filename="../enet/include/enet/list.h" />
-        <Unit filename="../enet/include/enet/enet.h" />
-        <Unit filename="../enet/include/enet/protocol.h" />
-        <Unit filename="../enet/include/enet/unix.h" />
-        <Unit filename="../enet/include/enet/callbacks.h" />
-        <Unit filename="../enet/include/enet/types.h" />
-        <Unit filename="../enet/include/enet/utility.h" />
-        <Unit filename="../enet/include/enet/win32.h" />
-        <Unit filename="../enet/include/enet/time.h" />
-        <Unit filename="../enet/unix.c">
-            <Option compilerVar="CC" />
-        </Unit>
-        <Unit filename="../enet/list.c">
-            <Option compilerVar="CC" />
-        </Unit>
-        <Unit filename="../enet/callbacks.c">
-            <Option compilerVar="CC" />
-        </Unit>
-        <Unit filename="../include/SDL_rwops.h" />
-        <Unit filename="../include/SDL_thread.h" />
-        <Unit filename="../include/SDL_endian.h" />
-        <Unit filename="../include/SDL_atomic.h" />
-        <Unit filename="../include/SDL_render.h" />
-        <Unit filename="../include/SDL_stdinc.h" />
-        <Unit filename="../include/SDL_filesystem.h" />
-        <Unit filename="../include/SDL_haptic.h" />
-        <Unit filename="../include/SDL_config.h" />
-        <Unit filename="../include/SDL_keycode.h" />
-        <Unit filename="../include/SDL_system.h" />
-        <Unit filename="../include/SDL_image.h" />
-        <Unit filename="../include/zconf.h" />
-        <Unit filename="../include/SDL_events.h" />
-        <Unit filename="../include/SDL_version.h" />
-        <Unit filename="../include/SDL_vulkan.h" />
-        <Unit filename="../include/SDL_touch.h" />
-        <Unit filename="../include/SDL_syswm.h" />
-        <Unit filename="../include/SDL_joystick.h" />
-        <Unit filename="../include/begin_code.h" />
-        <Unit filename="../include/SDL_platform.h" />
-        <Unit filename="../include/SDL_locale.h" />
-        <Unit filename="../include/SDL_types.h" />
-        <Unit filename="../include/SDL_config_macosx.h" />
-        <Unit filename="../include/SDL_hints.h" />
-        <Unit filename="../include/SDL_power.h" />
-        <Unit filename="../include/SDL_misc.h" />
-        <Unit filename="../include/ogg/os_types.h" />
-        <Unit filename="../include/ogg/ogg.h" />
-        <Unit filename="../include/SDL_copying.h" />
-        <Unit filename="../include/SDL_video.h" />
-        <Unit filename="../include/AL/EFX-Util.h" />
-        <Unit filename="../include/AL/efx.h" />
-        <Unit filename="../include/AL/al.h" />
-        <Unit filename="../include/AL/alc.h" />
-        <Unit filename="../include/AL/xram.h" />
-        <Unit filename="../include/AL/efx-creative.h" />
-        <Unit filename="../include/jerror.h" />
-        <Unit filename="../include/SDL_audio.h" />
-        <Unit filename="../include/SDL_metal.h" />
-        <Unit filename="../include/GL/glext.h" />
-        <Unit filename="../include/SDL_pixels.h" />
-        <Unit filename="../include/zlib.h" />
-        <Unit filename="../include/SDL_scancode.h" />
-        <Unit filename="../include/SDL_gesture.h" />
-        <Unit filename="../include/SDL_timer.h" />
-        <Unit filename="../include/jconfig.h" />
-        <Unit filename="../include/SDL_name.h" />
-        <Unit filename="../include/SDL_keyboard.h" />
-        <Unit filename="../include/SDL_bits.h" />
-        <Unit filename="../include/jmorecfg.h" />
-        <Unit filename="../include/SDL_surface.h" />
-        <Unit filename="../include/SDL_mouse.h" />
-        <Unit filename="../include/SDL_blendmode.h" />
-        <Unit filename="../include/SDL_error.h" />
-        <Unit filename="../include/SDL_gamecontroller.h" />
-        <Unit filename="../include/SDL_quit.h" />
-        <Unit filename="../include/SDL_opengl_glext.h" />
-        <Unit filename="../include/SDL_messagebox.h" />
-        <Unit filename="../include/SDL_log.h" />
-        <Unit filename="../include/SDL_config_windows.h" />
-        <Unit filename="../include/close_code.h" />
-        <Unit filename="../include/SDL_shape.h" />
-        <Unit filename="../include/jpeglib.h" />
-        <Unit filename="../include/SDL_sensor.h" />
-        <Unit filename="../include/vorbis/vorbisenc.h" />
-        <Unit filename="../include/vorbis/vorbisfile.h" />
-        <Unit filename="../include/vorbis/codec.h" />
-        <Unit filename="../include/SDL_loadso.h" />
-        <Unit filename="../include/SDL_opengl.h" />
-        <Unit filename="../include/SDL_rect.h" />
-        <Unit filename="../include/SDL_revision.h" />
-        <Unit filename="../include/SDL_mutex.h" />
-        <Unit filename="../include/SDL_assert.h" />
-        <Unit filename="../include/SDL_main.h" />
-        <Unit filename="../include/SDL_cpuinfo.h" />
-        <Unit filename="../include/SDL_clipboard.h" />
-        <Unit filename="../include/SDL.h" />
-        <Unit filename="../src/md2.h" />
-        <Unit filename="../src/jpegenc.h" />
-        <Unit filename="../src/hudgun.h" />
-        <Unit filename="../src/winserviceinstaller.h" />
-        <Unit filename="../src/world.h" />
-        <Unit filename="../src/varray.h" />
-        <Unit filename="../src/protocol.h" />
-        <Unit filename="../src/crypto_tools.h" />
-        <Unit filename="../src/serverchecks.h" />
-        <Unit filename="../src/vertmodel.h" />
-        <Unit filename="../src/geom.h" />
-        <Unit filename="../src/serveractions.h" />
-        <Unit filename="../src/server.h" />
-        <Unit filename="../src/tristrip.h" />
-        <Unit filename="../src/serverevents.h" />
-        <Unit filename="../src/scale.h" />
-        <Unit filename="../src/md3.h" />
-        <Unit filename="../src/servercontroller.h" />
-        <Unit filename="../src/vote.h" />
-        <Unit filename="../src/weapon.h" />
-        <Unit filename="../src/model.h" />
-        <Unit filename="../src/cube.h" />
-        <Unit filename="../src/modelcache.h" />
-        <Unit filename="../src/protos.h" />
-        <Unit filename="../src/platform.h" />
-        <Unit filename="../src/sound.h" />
-        <Unit filename="../src/tools.h" />
-        <Unit filename="../src/serverfiles.h" />
-        <Unit filename="../src/entity.h" />
-        <Unit filename="../src/bot/ac_bot.h" />
-        <Unit filename="../src/bot/bot_waypoint.h" />
-        <Unit filename="../src/bot/bot_util.h" />
-        <Unit filename="../src/bot/bot.h" />
-        <Unit filename="../src/command.h" />
-        <Unit filename="../src/console.h" />
-        <Unit filename="../src/serverms.cpp" />
-		<Unit filename="../src/rendermodel.cpp" />
-		<Unit filename="../src/rendergl.cpp" />
-		<Unit filename="../src/worldlight.cpp" />
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="AssaultCube" />
+		<Option makefile_is_custom="1" />
+		<Option execution_dir="../src" />
+		<Option pch_mode="2" />
+		<Option compiler="clang" />
+		<Build>
+			<Target title="Debug">
+				<Option platforms="Unix;" />
+				<Option output="../../bin_unix/debug_client" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="../.." />
+				<Option type="1" />
+				<Option compiler="clang" />
+				<Option parameters="-t -w1024 -h768" />
+				<Compiler>
+					<Add option="-g" />
+					<Add option="-O0" />
+					<Add option="-D_DEBUG" />
+				</Compiler>
+				<MakeCommands>
+					<Build command="DEBUGBUILD=1 $make -f $makefile &amp;&amp; DEBUGBUILD=1 $make -f $makefile install" />
+					<CompileFile command="$make -f $makefile $file" />
+					<Clean command="$make -f $makefile clean" />
+					<DistClean command="$make -f $makefile distclean$target" />
+					<AskRebuildNeeded command="$make -q -f $makefile" />
+					<SilentBuild command="DEBUGBUILD=1 $make -f $makefile &amp;&amp; DEBUGBUILD=1 $make -f $makefile install &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+			<Target title="Release">
+				<Option platforms="Unix;" />
+				<Option output="../../bin_unix/native_client" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="../.." />
+				<Option type="1" />
+				<Option compiler="clang" />
+				<Option parameters="-t -w1024 -h768" />
+				<Compiler>
+					<Add option="-O3" />
+					<Add option="-fomit-frame-pointer" />
+					<Add option="-Wall" />
+					<Add option="-fsigned-char" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+				<MakeCommands>
+					<Build command="$make -f $makefile &amp;&amp; $make -f $makefile install" />
+					<CompileFile command="$make -f $makefile $file" />
+					<Clean command="$make -f $makefile clean" />
+					<DistClean command="$make -f $makefile distclean$target" />
+					<AskRebuildNeeded command="$make -q -f $makefile" />
+					<SilentBuild command="$make -f $makefile &amp;&amp; $make -f $makefile install &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add directory="source/src" />
+			<Add directory="source/enet/include" />
+			<Add directory="source/include" />
+			<Add directory="source/src/bot" />
+		</Compiler>
+		<Linker>
+			<Add library="source/enet/.libs" />
+			<Add library="enet" />
+			<Add library="/usr/lib64" />
+		</Linker>
+		<Unit filename="../enet/callbacks.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../enet/compress.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../enet/host.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../enet/include/enet/callbacks.h" />
+		<Unit filename="../enet/include/enet/enet.h" />
+		<Unit filename="../enet/include/enet/list.h" />
+		<Unit filename="../enet/include/enet/protocol.h" />
+		<Unit filename="../enet/include/enet/time.h" />
+		<Unit filename="../enet/include/enet/types.h" />
+		<Unit filename="../enet/include/enet/unix.h" />
+		<Unit filename="../enet/include/enet/utility.h" />
+		<Unit filename="../enet/include/enet/win32.h" />
+		<Unit filename="../enet/list.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../enet/packet.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../enet/peer.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../enet/protocol.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../enet/unix.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../enet/win32.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../include/AL/EFX-Util.h" />
+		<Unit filename="../include/AL/al.h" />
+		<Unit filename="../include/AL/alc.h" />
+		<Unit filename="../include/AL/efx-creative.h" />
+		<Unit filename="../include/AL/efx.h" />
+		<Unit filename="../include/AL/xram.h" />
+		<Unit filename="../include/GL/glext.h" />
+		<Unit filename="../include/SDL.h" />
+		<Unit filename="../include/SDL_assert.h" />
+		<Unit filename="../include/SDL_atomic.h" />
+		<Unit filename="../include/SDL_audio.h" />
+		<Unit filename="../include/SDL_bits.h" />
+		<Unit filename="../include/SDL_blendmode.h" />
+		<Unit filename="../include/SDL_clipboard.h" />
+		<Unit filename="../include/SDL_config.h" />
+		<Unit filename="../include/SDL_config_macosx.h" />
+		<Unit filename="../include/SDL_config_windows.h" />
+		<Unit filename="../include/SDL_copying.h" />
+		<Unit filename="../include/SDL_cpuinfo.h" />
+		<Unit filename="../include/SDL_endian.h" />
+		<Unit filename="../include/SDL_error.h" />
+		<Unit filename="../include/SDL_events.h" />
+		<Unit filename="../include/SDL_filesystem.h" />
+		<Unit filename="../include/SDL_gamecontroller.h" />
+		<Unit filename="../include/SDL_gesture.h" />
+		<Unit filename="../include/SDL_haptic.h" />
+		<Unit filename="../include/SDL_hints.h" />
+		<Unit filename="../include/SDL_image.h" />
+		<Unit filename="../include/SDL_joystick.h" />
+		<Unit filename="../include/SDL_keyboard.h" />
+		<Unit filename="../include/SDL_keycode.h" />
+		<Unit filename="../include/SDL_loadso.h" />
+		<Unit filename="../include/SDL_locale.h" />
+		<Unit filename="../include/SDL_log.h" />
+		<Unit filename="../include/SDL_main.h" />
+		<Unit filename="../include/SDL_messagebox.h" />
+		<Unit filename="../include/SDL_metal.h" />
+		<Unit filename="../include/SDL_misc.h" />
+		<Unit filename="../include/SDL_mouse.h" />
+		<Unit filename="../include/SDL_mutex.h" />
+		<Unit filename="../include/SDL_name.h" />
+		<Unit filename="../include/SDL_opengl.h" />
+		<Unit filename="../include/SDL_opengl_glext.h" />
+		<Unit filename="../include/SDL_pixels.h" />
+		<Unit filename="../include/SDL_platform.h" />
+		<Unit filename="../include/SDL_power.h" />
+		<Unit filename="../include/SDL_quit.h" />
+		<Unit filename="../include/SDL_rect.h" />
+		<Unit filename="../include/SDL_render.h" />
+		<Unit filename="../include/SDL_revision.h" />
+		<Unit filename="../include/SDL_rwops.h" />
+		<Unit filename="../include/SDL_scancode.h" />
+		<Unit filename="../include/SDL_sensor.h" />
+		<Unit filename="../include/SDL_shape.h" />
+		<Unit filename="../include/SDL_stdinc.h" />
+		<Unit filename="../include/SDL_surface.h" />
+		<Unit filename="../include/SDL_system.h" />
+		<Unit filename="../include/SDL_syswm.h" />
+		<Unit filename="../include/SDL_thread.h" />
+		<Unit filename="../include/SDL_timer.h" />
+		<Unit filename="../include/SDL_touch.h" />
+		<Unit filename="../include/SDL_types.h" />
+		<Unit filename="../include/SDL_version.h" />
+		<Unit filename="../include/SDL_video.h" />
+		<Unit filename="../include/SDL_vulkan.h" />
+		<Unit filename="../include/begin_code.h" />
+		<Unit filename="../include/close_code.h" />
+		<Unit filename="../include/jconfig.h" />
+		<Unit filename="../include/jerror.h" />
+		<Unit filename="../include/jmorecfg.h" />
+		<Unit filename="../include/jpeglib.h" />
+		<Unit filename="../include/ogg/ogg.h" />
+		<Unit filename="../include/ogg/os_types.h" />
+		<Unit filename="../include/vorbis/codec.h" />
+		<Unit filename="../include/vorbis/vorbisenc.h" />
+		<Unit filename="../include/vorbis/vorbisfile.h" />
+		<Unit filename="../include/zconf.h" />
+		<Unit filename="../include/zlib.h" />
 		<Unit filename="../src/audiomanager.cpp" />
-		<Unit filename="../src/rendercubes.cpp" />
-		<Unit filename="../src/zip.cpp" />
-		<Unit filename="../src/tools.cpp" />
-		<Unit filename="../src/http.cpp" />
-		<Unit filename="../src/worldrender.cpp" />
-		<Unit filename="../src/soundlocation.cpp" />
 		<Unit filename="../src/autodownload.cpp" />
-		<Unit filename="../src/main.cpp" />
-		<Unit filename="../src/stream.cpp" />
-		<Unit filename="../src/crypto.cpp" />
-		<Unit filename="../src/water.cpp" />
-		<Unit filename="../src/worldocull.cpp" />
-		<Unit filename="../src/clients2c.cpp" />
-		<Unit filename="../src/pch.cpp" />
-		<Unit filename="../src/openal.cpp" />
-		<Unit filename="../src/wizard.cpp" />
-		<Unit filename="../src/command.cpp" />
-		<Unit filename="../src/packetqueue.cpp" />
-		<Unit filename="../src/menus.cpp" />
+		<Unit filename="../src/bot/ac_bot.cpp" />
+		<Unit filename="../src/bot/ac_bot.h" />
+		<Unit filename="../src/bot/ac_bot_ai.cpp" />
+		<Unit filename="../src/bot/bot.cpp" />
+		<Unit filename="../src/bot/bot.h" />
+		<Unit filename="../src/bot/bot_ai.cpp" />
+		<Unit filename="../src/bot/bot_util.cpp" />
+		<Unit filename="../src/bot/bot_util.h" />
+		<Unit filename="../src/bot/bot_waypoint.cpp" />
+		<Unit filename="../src/bot/bot_waypoint.h" />
+		<Unit filename="../src/bot/botmanager.cpp" />
 		<Unit filename="../src/client.cpp" />
-		<Unit filename="../src/weapon.cpp" />
+		<Unit filename="../src/clientgame.cpp" />
+		<Unit filename="../src/clients2c.cpp" />
+		<Unit filename="../src/command.cpp" />
+		<Unit filename="../src/command.h" />
+		<Unit filename="../src/console.cpp" />
+		<Unit filename="../src/console.h" />
+		<Unit filename="../src/crypto.cpp" />
+		<Unit filename="../src/crypto_tools.h" />
+		<Unit filename="../src/cube.h" />
+		<Unit filename="../src/docs.cpp" />
+		<Unit filename="../src/editing.cpp" />
+		<Unit filename="../src/entities.cpp" />
+		<Unit filename="../src/entity.h" />
+		<Unit filename="../src/geom.h" />
+		<Unit filename="../src/http.cpp" />
+		<Unit filename="../src/hudgun.h" />
+		<Unit filename="../src/jpegenc.h" />
+		<Unit filename="../src/log.cpp" />
+		<Unit filename="../src/main.cpp" />
+		<Unit filename="../src/master.cpp" />
+		<Unit filename="../src/md2.h" />
+		<Unit filename="../src/md3.h" />
+		<Unit filename="../src/menus.cpp" />
+		<Unit filename="../src/model.h" />
+		<Unit filename="../src/modelcache.h" />
+		<Unit filename="../src/oggstream.cpp" />
+		<Unit filename="../src/openal.cpp" />
+		<Unit filename="../src/packetqueue.cpp" />
+		<Unit filename="../src/pch.cpp" />
+		<Unit filename="../src/physics.cpp" />
+		<Unit filename="../src/platform.h" />
+		<Unit filename="../src/protocol.cpp" />
+		<Unit filename="../src/protocol.h" />
+		<Unit filename="../src/protos.h" />
+		<Unit filename="../src/rendercubes.cpp" />
+		<Unit filename="../src/rendergl.cpp" />
+		<Unit filename="../src/renderhud.cpp" />
+		<Unit filename="../src/rendermodel.cpp" />
+		<Unit filename="../src/renderparticles.cpp" />
 		<Unit filename="../src/rendertext.cpp" />
 		<Unit filename="../src/rndmap.cpp" />
-		<Unit filename="../src/renderparticles.cpp" />
-		<Unit filename="../src/oggstream.cpp" />
-		<Unit filename="../src/clientgame.cpp" />
-		<Unit filename="../src/shadow.cpp" />
+		<Unit filename="../src/scale.h" />
 		<Unit filename="../src/scoreboard.cpp" />
-		<Unit filename="../src/protocol.cpp" />
-		<Unit filename="../src/log.cpp" />
-		<Unit filename="../src/worldio.cpp" />
 		<Unit filename="../src/server.cpp" />
+		<Unit filename="../src/server.h" />
+		<Unit filename="../src/serveractions.h" />
 		<Unit filename="../src/serverbrowser.cpp" />
-		<Unit filename="../src/physics.cpp" />
+		<Unit filename="../src/serverchecks.h" />
+		<Unit filename="../src/servercontroller.h" />
+		<Unit filename="../src/serverevents.h" />
+		<Unit filename="../src/serverfiles.h" />
+		<Unit filename="../src/serverms.cpp" />
+		<Unit filename="../src/shadow.cpp" />
+		<Unit filename="../src/sound.h" />
+		<Unit filename="../src/soundlocation.cpp" />
 		<Unit filename="../src/soundscheduler.cpp" />
-		<Unit filename="../src/renderhud.cpp" />
-		<Unit filename="../src/console.cpp" />
-		<Unit filename="../src/editing.cpp" />
-		<Unit filename="../src/bot/ac_bot_ai.cpp" />
-		<Unit filename="../src/bot/ac_bot.cpp" />
-		<Unit filename="../src/bot/botmanager.cpp" />
-		<Unit filename="../src/bot/bot_util.cpp" />
-		<Unit filename="../src/bot/bot_waypoint.cpp" />
-		<Unit filename="../src/bot/bot.cpp" />
-		<Unit filename="../src/bot/bot_ai.cpp" />
-		<Unit filename="../src/master.cpp" />
-		<Unit filename="../src/world.cpp" />
-		<Unit filename="../src/entities.cpp" />
+		<Unit filename="../src/stream.cpp" />
 		<Unit filename="../src/texture.cpp" />
-		<Unit filename="../src/docs.cpp" />
-        <Extensions>
-            <lib_finder>
-                <lib name="x11" />
-                <lib name="sdl2" />
-                <lib name="SDL2_image" />
-                <lib name="zlib" />
-                <lib name="gl" />
-                <lib name="openal" />
-                <lib name="vorbisfile" />
-            </lib_finder>
-        </Extensions>
-    </Project>
+		<Unit filename="../src/tools.cpp" />
+		<Unit filename="../src/tools.h" />
+		<Unit filename="../src/tristrip.h" />
+		<Unit filename="../src/varray.h" />
+		<Unit filename="../src/vertmodel.h" />
+		<Unit filename="../src/vote.h" />
+		<Unit filename="../src/water.cpp" />
+		<Unit filename="../src/weapon.cpp" />
+		<Unit filename="../src/weapon.h" />
+		<Unit filename="../src/winserviceinstaller.h" />
+		<Unit filename="../src/wizard.cpp" />
+		<Unit filename="../src/world.cpp" />
+		<Unit filename="../src/world.h" />
+		<Unit filename="../src/worldio.cpp" />
+		<Unit filename="../src/worldlight.cpp" />
+		<Unit filename="../src/worldocull.cpp" />
+		<Unit filename="../src/worldrender.cpp" />
+		<Unit filename="../src/zip.cpp" />
+		<Extensions>
+			<lib_finder>
+				<lib name="x11" />
+				<lib name="sdl2" />
+				<lib name="SDL2_image" />
+				<lib name="zlib" />
+				<lib name="gl" />
+				<lib name="openal" />
+				<lib name="vorbisfile" />
+			</lib_finder>
+		</Extensions>
+	</Project>
 </CodeBlocks_project_file>

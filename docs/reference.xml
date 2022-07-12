@@ -2751,6 +2751,10 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           </remarks>
         </scriptalias>
 
+        <scriptalias name="onAuth">
+          <description>This will be executed once your identity has been established.</description>
+        </scriptalias>
+
         <scriptalias name="onHit">
           <arguments>
             <argument token="actor" description="The client number of the actor" valueNotes="integer"/>
@@ -4180,7 +4184,8 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           </arguments>
           <remarks>
             <remark>If the clientnum does not match a valid player the result will be empty, just as without an attribute passed.</remark>
-            <remark>The following attributes can be retrieved: magcontent, ammo, primary, curweapon, nextprimary, health, armour, attacking, scoping, x, y, z, name, team, ping, pj, state, role, frags, flags, deaths, tks, alive, spect, cn, skin_cla, skin_rvsf, skin, ip</remark>
+            <remark>The following attributes can be retrieved: magcontent, ammo, primary, curweapon, nextprimary, health, armour, attacking, scoping, x, y, z, name, team, ping, pj, state, role, frags, flags, deaths, tks, alive, spect, cn, skin_cla, skin_rvsf, skin, ip, identified, pubkeyhex</remark>
+            <remark>As long as the identified attribute is 0/false the pubkeyhex value will default to '..not authenticated yet..'.</remark>
           </remarks>
           <references>
             <identifierReference identifier="player1"/>
@@ -6268,6 +6273,18 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
             <identifierReference identifier="getvantagepoint"/>
             <identifierReference identifier="gotovantagepoint"/>
           </references>
+        </command>
+
+        <command name="parkourtext">
+          <description>Sets the text for a trigger in parkour mode.</description>
+          <remarks>
+            <remark>The tag used must also be set on a trigger entity (attribute #1).</remark>
+            <remark>Tag can be 0, but starting at 1 is recommended; to see a value is actually set and for a more natural count.</remark>
+          </remarks>
+          <arguments>
+            <argument token="T" description="trigger tag"/>
+            <argument token="S" description="text"/>
+          </arguments>
         </command>
 
         <command name="showmapstats">

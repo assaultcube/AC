@@ -200,7 +200,7 @@ void particleinit()
     parttex[4] = textureload("packages/misc/blood.png");
     parttex[5] = textureload("packages/misc/scorch.png");
     parttex[6] = textureload("packages/misc/muzzleflash.jpg");
-    parttex[7] = textureload("packages/misc/range.png");
+    parttex[7] = textureload("<decal>packages/misc/range.png");
 }
 
 void cleanupparticles()
