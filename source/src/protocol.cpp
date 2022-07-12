@@ -522,7 +522,7 @@ int defaultgamelimit(int gamemode) { return m_teammode ? 15 : 10; }
 
 int gmode_possible(bool hasffaspawns, bool hasteamspawns, bool hasflags)  // return bitmask of playable modes, according to existing spawn and flag entities
 {
-    return GMMASK_COOPEDIT | (((hasffaspawns ? GMMASK__FFASPAWN : 0) | (hasteamspawns ? GMMASK__TEAMSPAWN : 0)) & ~(hasflags ? 0 : GMMASK__FLAGENTS));
+    return GMMASK_COOPEDIT | GMMASK__KARP | (((hasffaspawns ? GMMASK__FFASPAWN : 0) | (hasteamspawns ? GMMASK__TEAMSPAWN : 0)) & ~(hasflags ? 0 : GMMASK__FLAGENTS));
 }
 
 int gmode_parse(const char *list) // convert a list of mode acronyms to a bitmask
@@ -585,7 +585,7 @@ float decodeyaw(int r)
 static const int msgsizes[] =               // size inclusive message token, 0 for variable or not-checked sizes
 {
     SV_SERVINFO, 1, SV_SERVINFO_RESPONSE, 0, SV_SERVINFO_CONTD, 0, SV_WELCOME, 2, SV_INITCLIENT, 0, SV_POS, 0, SV_POSC, 0, SV_POSC2, 0, SV_POSC3, 0, SV_POSC4, 0, SV_POSN, 0,
-    SV_TEXT, 0, SV_TEAMTEXT, 0, SV_TEXTME, 0, SV_TEAMTEXTME, 0, SV_TEXTPRIVATE, 0,
+    SV_MOTD, 0, SV_TEXT, 0, SV_TEAMTEXT, 0, SV_TEXTME, 0, SV_TEAMTEXTME, 0, SV_TEXTPRIVATE, 0,
     SV_SOUND, 2, SV_VOICECOM, 2, SV_VOICECOMTEAM, 2, SV_CDIS, 2,
     SV_SHOOT, 0, SV_EXPLODE, 0, SV_SUICIDE, 1, SV_AKIMBO, 2, SV_RELOAD, 3,
     SV_GIBDIED, 5, SV_DIED, 5, SV_GIBDAMAGE, 7, SV_DAMAGE, 7, SV_HITPUSH, 6, SV_SHOTFX, 6, SV_THROWNADE, 8,
