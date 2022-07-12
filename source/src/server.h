@@ -249,7 +249,7 @@ struct client                   // server side version of "dynent" type
     int connectclock;
     char country[4];
     uchar32 pubkey;
-    char pubkeyhex[68];
+    char pubkeyhex[PUBKEYSAFE];
     vita_s *vita;
     string servinforesponse;
     string name;
@@ -328,7 +328,7 @@ struct client                   // server side version of "dynent" type
     {
         name[0] = pwd[0] = country[0] = lang[0] = demoflags = 0;
         ip = ip_censored = 0;
-        pubkeyhex[0] = '\0';
+        pubkeyhex[0] = 0;
         vita = NULL;
         bottomRTT = ping = 9999;
         team = TEAM_SPECT;
@@ -375,6 +375,11 @@ struct ban
 {
     ENetAddress address;
     int millis, type;
+};
+
+struct returntime
+{
+    int clientnum, millis;
 };
 
 struct worldstate

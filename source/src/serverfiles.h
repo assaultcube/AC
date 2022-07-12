@@ -301,7 +301,7 @@ struct servermap  // in-memory version of a map file on a server
             persistent_entity *es = (persistent_entity *) staticbuffer;
             worldtotalpoints = 0;
             calcentitystats(entstats, es, numents);
-            // since the server is doing more & more with entities now these array should be consolidated
+            // since the server is doing more & more with entities now these arrays should be consolidated
             enttypes = new uchar[numents];
             entpos_x = new short[numents];
             entpos_y = new short[numents];
@@ -409,7 +409,6 @@ struct servermap  // in-memory version of a map file on a server
 
         // run mipmapper (to get corners right)
         // TODO :)
-
 
         // calculate area statistics from type & vdelta values (destroys vdelta!)
         {
@@ -2155,8 +2154,21 @@ void writevitas(stream *f, vector<vitakey_s> &vs)
     }
 }
 
+// m_gema mapbest
+/*
+ *
+int readmapbest(const char *fname)
+{
 
+}
 
+int writemapbest(stream *f, vector<toptimes> &mtop)
+{
+
+}
+
+ *
+ */
 
 
 

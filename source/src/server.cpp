@@ -114,6 +114,7 @@ vector<client *> clients;
 vector<worldstate *> worldstates;
 vector<savedscore> savedscores;
 vector<ban> bans;
+vector<returntime> returntimes;
 
 long int incoming_size = 0;
 int shuffleskillthreshold = 200;
@@ -779,6 +780,21 @@ void sendspawn(client *c)
     gs.lastspawn = sg->gamemillis;
 }
 
+void gemareturn(int cn)
+{
+    // a lot could happen during the delay
+    if(!valid_client(cn)) return;
+    client *c = clients[cn];
+    if(team_isspect(c->team)) return;
+
+    clientstate &gs = c->state;
+    sendf(c->clientnum, 1, "ri7vv", SV_SPAWNSTATE, gs.lifesequence,
+        gs.health, gs.armour,
+        gs.primary, gs.gunselect, -1,
+        NUMGUNS, gs.ammo, NUMGUNS, gs.mag);
+    gs.lastspawn = sg->gamemillis;
+}
+
 // simultaneous demo recording, fully buffered
 
 #define DEMORINGBUFSIZE (1<<18) // 256KB
@@ -1175,7 +1191,6 @@ void checkdemotransmissions()
         loopi(MAXDEMOS) if(demos[i].sequence == curdemoseq && demos[i].done) d = demos + i;
         if(d && cl->clientsequence == curclseq)
         { // demo and client still exist: continue transmission
-
             // FIXME....
             packetbuf p(MAXTRANS + d->len, ENET_PACKET_FLAG_RELIABLE);
             putint(p, SV_SENDDEMO);
@@ -1188,7 +1203,6 @@ void checkdemotransmissions()
             putint(p, d->len);
             p.put(d->data, d->len);
             sendpacket(cl->clientnum, 2, p.finalize());
-
         }
         curcl = -1; // done
     }
@@ -1378,11 +1392,15 @@ void flagaction(int flag, int action, int actor)
     sflaginfo &f = sg->sflaginfos[flag];
     sflaginfo &of = sg->sflaginfos[team_opposite(flag)];
     bool deadactor = valid_client(actor) ? clients[actor]->state.state != CS_ALIVE || team_isspect(clients[actor]->team): true;
+    loopv(returntimes)
+    {
+        returntime &rt = returntimes[i];
+        if(rt.clientnum == actor) deadactor = true;
+    }
     int abort = 0;
     int score = 0;
     int message = -1;
-
-    if(m_ctf || m_htf)
+    if(m_ctf || m_htf || m_gema)
     {
         switch(action)
         {
@@ -1391,7 +1409,7 @@ void flagaction(int flag, int action, int actor)
             {
                 if(deadactor || f.state != (action == FA_STEAL ? CTFF_INBASE : CTFF_DROPPED) || !flagdistance(f, actor)) { abort = 10; break; }
                 int team = team_base(clients[actor]->team);
-                if(m_ctf) team = team_opposite(team);
+                if(m_ctf||m_gema) team = team_opposite(team);
                 if(team != flag) { abort = 11; break; }
                 f.state = CTFF_STOLEN;
                 f.actor_cn = actor;
@@ -1412,7 +1430,7 @@ void flagaction(int flag, int action, int actor)
                 message = FM_RETURN;
                 break;
             case FA_SCORE:  // ctf: f = carried by actor flag,  htf: f = hunted flag (run over by actor)
-                if(m_ctf)
+                if(m_ctf||m_gema)
                 {
                     if(f.state != CTFF_STOLEN || f.actor_cn != actor || of.state != CTFF_INBASE || !flagdistance(of, actor)) { abort = 14; break; }
                     score = 1;
@@ -1499,10 +1517,21 @@ void flagaction(int flag, int action, int actor)
                 mlog(ACLOG_INFO,"[%s] %s returned the flag", c.hostname, c.name);
                 break;
             case FM_SCORE:
-                if(m_htf)
-                    mlog(ACLOG_INFO, "[%s] %s hunted the flag for %s, new score %d", c.hostname, c.name, team_string(c.team), c.state.flagscore);
-                else
-                   mlog(ACLOG_INFO, "[%s] %s scored with the flag for %s, new score %d", c.hostname, c.name, team_string(c.team), c.state.flagscore);
+                if(m_gema)
+                {
+                    int deltat = sg->gamemillis - c.state.lastspawn;
+                    defformatstring(gemascored)("%s made it in %d ms ~= %.2f s", c.name, deltat, deltat/1000.0f);
+                    mlog(ACLOG_INFO, "[%s] %s", c.hostname, gemascored);
+                    sendservmsg(gemascored,-1);
+                    //TODO:mapbest(actor,deltat);
+                    returntime rt = { actor, sg->gamemillis + 5000 };
+                    returntimes.add(rt);
+                }else{
+                    if(m_htf)
+                        mlog(ACLOG_INFO, "[%s] %s hunted the flag for %s, new score %d", c.hostname, c.name, team_string(c.team), c.state.flagscore);
+                    else
+                        mlog(ACLOG_INFO, "[%s] %s scored with the flag for %s, new score %d", c.hostname, c.name, team_string(c.team), c.state.flagscore);
+                }
                 break;
             case FM_KTFSCORE:
                 mlog(ACLOG_INFO, "[%s] %s scored, carrying for %d seconds, new score %d", c.hostname, c.name, (sg->gamemillis - f.stolentime) / 1000, c.state.flagscore);
@@ -1832,7 +1861,6 @@ void server_parkplace_text(client *cl, int i, int tag)
             server_parkplace_acknowledge(cl,i);
         }
     }
-
 }
 
 void server_parkplace_safe(client *cl, int i, int tag)
@@ -1964,9 +1992,8 @@ bool serverpickup(int i, int sender)         // server side item pickup, acknowl
             cl->state.pickup(sg->sents[i].type);
             if (m_lss && sg->sents[i].type == I_GRENADE) cl->state.pickup(sg->sents[i].type); // get two nades at lss
         }
-
     }
-    e.spawned = false;
+    if(!m_gema) e.spawned = false; // items are permanent in GEMA
     if(!m_lms) e.spawntime = spawntime(e.type);
     return true;
 }
@@ -2067,7 +2094,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
                 flagaction(targethasflag, tk ? FA_RESET : FA_LOST, -1);
             else if(m_htf)
                 flagaction(targethasflag, FA_LOST, -1);
-            else // ktf || tktf
+            else // m_ktf || m_tktf || m_gema
                 flagaction(targethasflag, FA_RESET, -1);
         }
         // don't issue respawn yet until DEATHMILLIS has elapsed
@@ -2335,7 +2362,7 @@ void shuffleteams(int ftr = FTR_AUTOTEAM)
         }
     }
 
-    if(m_ctf || m_htf)
+    if(m_ctf || m_htf || m_gema)
     {
         ctfreset();
         sendflaginfo();
@@ -2500,6 +2527,19 @@ void startgame(const char *newname, int newmode, int newtime, bool notify)
                     if(!(sm->entstats.modes_possible & 1 << sg->smode)) conoutf("\f3map %s does not support game mode %s", sm->fname, fullmodestr(sg->smode));
                 }
                 else conoutf("\f3local server failed to load map \"%s%s\", error: %s", lpath, sg->smapname, localmap->err);
+
+                if(clients.length())
+                {
+                    int untt = 0;
+                    client *cl = clients[0];
+                    cl->state.parkents.shrink(0);
+                    loopi(sm->numents)// only becomes sg->curmap->numents below the #endif
+                    {
+                        bool iscarrot = sm->enttypes[i]==CARROT;
+                        cl->state.parkents.add(!iscarrot);
+                        untt += iscarrot ? 1 : 0;
+                    }
+                }
             }
         }
 #endif
@@ -3028,6 +3068,7 @@ void putinitclient(client &c, packetbuf &p)
     putint(p, c.ffov);
     putint(p, c.scopefov);
     putint(p, c.ip_censored);
+    p.put(c.pubkey.u, 32);
 }
 
 void sendinitclient(client &c)
@@ -3122,7 +3163,7 @@ void welcomepacket(packetbuf &p, int n)
     const char *motd = scl.motd[0] ? scl.motd : serverinfomotd.getmsg();
     if(*motd)
     {
-        putint(p, SV_TEXT);
+        putint(p, SV_MOTD); // no longer SV_TEXT!
         sendstring(motd, p);
     }
 }
@@ -4706,7 +4747,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
         if(m_flags_) loopi(2)
         {
             sflaginfo &f = sg->sflaginfos[i];
-            if(f.state == CTFF_DROPPED && sg->gamemillis-f.lastupdate > (m_ctf ? 30000 : 10000)) flagaction(i, FA_RESET, -1);
+            if(f.state == CTFF_DROPPED && sg->gamemillis-f.lastupdate > (m_gema ? 250 : (m_ctf ? 30000 : 10000))) flagaction(i, FA_RESET, -1);
             if(m_htf && f.state == CTFF_INBASE && sg->gamemillis-f.lastupdate > (sg->curmap && sg->curmap->entstats.hasflags ? 10000 : 1000))
             {
                 htf_forceflag(i);
@@ -4749,6 +4790,17 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
     resetserverifempty();
     polldeferredprocessing();
     checkdemotransmissions();
+
+    loopv(returntimes)
+    {
+        returntime &rt = returntimes[i];
+        if(sg->gamemillis > rt.millis)
+        {
+            int cn2return = rt.clientnum;
+            returntimes.remove(i);
+            gemareturn(cn2return);
+        }
+    }
 
     if(!isdedicated) return;     // below is network only
 
