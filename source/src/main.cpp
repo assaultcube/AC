@@ -486,13 +486,13 @@ COMMAND(screenshotpreview, "i");
 
 bool needsautoscreenshot = false;
 
-int hextodec(uchar a){ return (a >= 48 && a <= 57) ? ( a - 48) : (a >= 97 && a <= 102) ? ( a - 87 ) : 0; }
+int hextodec(uchar a){ return (a >= 48 && a <= 57) ? (a - 48) : (a >= 97 && a <= 102) ? (a - 87) : 0; }
 int twohextodec(uchar a, uchar b){ return hextodec(a) * 16 + hextodec(b); }
 
 Texture *getidenticon(char uhash[PUBKEYSAFE])
 {
     prepidenticon(uhash);
-    defformatstring(imagepath)("identicons/%s.png", uhash);
+    defformatstring(imagepath)("packages/identicons/%s.png", uhash);
     return textureload(imagepath);
 }
 
@@ -552,10 +552,10 @@ void prepidenticon(char uhash[PUBKEYSAFE])
     static int blocksize = 16;
     static int padding = 8;
     static int padhues[5] = {0x00,0x40,0x80,0xC0,0xFF};
-    extern string homedir; // leaving it out saves properly but fileexists would fail
-    defformatstring(imagepath_read)("%sidenticons/%s.png", homedir, uhash);
-    defformatstring(imagepath_save)("identicons/%s.png", uhash);
-    if( fileexists(imagepath_read, "r") ) return;
+    extern string homedir; // we need to fileexists check profile explicitly, but installation has some prerendered too
+    defformatstring(imagepath_read)("%spackages/identicons/%s.png", homedir, uhash);
+    defformatstring(imagepath_save)("packages/identicons/%s.png", uhash);
+    if( fileexists(imagepath_read, "r") || fileexists(imagepath_save, "r") ){ return; } // both paths may have files to load
     SDL_Surface *image = creatergbsurface(imagesize, imagesize);
     if(!image) return;
     SDL_Rect useRect;

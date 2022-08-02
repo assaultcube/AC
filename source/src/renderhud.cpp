@@ -120,13 +120,13 @@ void drawmyidenticon()
 }
 
 vector<joinedidentity> joinednow;
-
 void drawotheridenticons()
 {
     // similar to drawmyidenticon but smaller and stacked horizontally at the top-right of the HUD
     // FIXME: multiple rows or other way to not overflow into negative X
     bool needrender = false;
     const int slotwidth = 96; // 64 + 32 <==> iconwidth + air
+    int maxperrow = (3*VIRTW/4) / slotwidth; // always leave some air on the side of the console lines
     loopv(joinednow)
     {
         joinedidentity &other = joinednow[i];
@@ -148,11 +148,11 @@ void drawotheridenticons()
                             movx = (showidentitymillis - deltat) / (1.0f * movetime);
                         }
                     }
-                    other.movedto = movx != -1 ? (VIRTW + slotwidth - movx * slotwidth * (i+2)) : 0;
+                    other.movedto = movx != -1 ? (VIRTW + slotwidth - movx * slotwidth * ((i%maxperrow)+2)) : 0;
                     needrender = true;
                 }
             }else{
-                other.joined = 0;
+                joinednow.remove(i--); continue;
             }
         }
     }
@@ -164,9 +164,16 @@ void drawotheridenticons()
         glLoadIdentity();
         glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
         int toffy = 448; // below radar and so shouldn't overlap (m)any console messages either
+        int rowdi = 0; // offset i by this for additional rows
+
         loopv(joinednow)
         {
-            int toffx = VIRTW - (i+1) * slotwidth;
+            if(i && i%maxperrow==0)
+            {
+                toffy += slotwidth; // make air between rows same as between columns
+                rowdi += maxperrow;
+            }
+            int toffx = VIRTW - (i+1-rowdi) * slotwidth;
             joinedidentity other = joinednow[i];
             if(other.joined > 0)
             {
@@ -872,9 +879,6 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     glLoadIdentity();
     glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
     glEnable(GL_BLEND);
-
-    /*drawmyidenticon();
-    drawotheridenticons();*/
 
     if(underwater)
     {

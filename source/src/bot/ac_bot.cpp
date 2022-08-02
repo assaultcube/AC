@@ -29,8 +29,12 @@ void CACBot::Spawn()
     if(!m_pMyEnt->identified)
     {
         m_pMyEnt->identified = true;
-        fakekey(m_pMyEnt->pubkey);
-        bin2hex(m_pMyEnt->pubkeyhex, m_pMyEnt->pubkey, PUBKEYBINLEN);
+        if(!strlen(m_pMyEnt->pubkeyhex))
+        {
+            printf("need to generate a key for bot [%s]\n", m_pMyEnt->name);
+            fakekey(m_pMyEnt->pubkey);
+            bin2hex(m_pMyEnt->pubkeyhex, m_pMyEnt->pubkey, PUBKEYBINLEN);
+        }
         joinedidentity j;
         memcpy(j.pubkeyhex, m_pMyEnt->pubkeyhex, PUBKEYSAFE);
         j.tex = getidenticon(j.pubkeyhex);

@@ -324,7 +324,9 @@ extern vector<botent *> bots;
 class CBotManager
 {
      char m_szBotNames[150][16]; // Max 150 bot names with a length of 16 characters
+     char m_szBotIdentities[150][PUBKEYSAFE]; // Max 150 bot identities
      short m_sBotNameCount;
+     short m_sBotIdentitiesCount;
      char m_szBotTeams[20][5]; // Max 100 bot teams co a length of 5 characters
      short m_sBotTeamCount;
      bool m_bInit;
@@ -341,6 +343,7 @@ class CBotManager
      float m_fReAddBotDelay;
 
      void LoadBotNamesFile(void);
+     void LoadBotIdentitiesFile(void);
      const char *GetBotName(void);
      void LoadBotTeamsFile(void);
      void CreateSkillData(void);

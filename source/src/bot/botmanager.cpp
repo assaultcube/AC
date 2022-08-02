@@ -35,6 +35,7 @@ void CBotManager::Init()
 
     CreateSkillData();
     LoadBotNamesFile();
+    LoadBotIdentitiesFile();
     LoadBotTeamsFile();
     //WaypointClass.Init();
     lsrand(time(NULL));
@@ -75,7 +76,7 @@ void CBotManager::Think()
        if (!bots[i]) continue;
        if (bots[i]->pBot)
        {
-          bots[i]->pBot->CheckWeaponSwitch(); // 2011jan17:ft: fix non-shooting bots
+          bots[i]->pBot->CheckWeaponSwitch();
           bots[i]->pBot->Think();
        }
        else condebug("Error: pBot == NULL in bot ent\n");
@@ -92,8 +93,11 @@ void CBotManager::LoadBotNamesFile()
 
     // Load bot file
     char szNameFileName[256];
+
     MakeBotFileName("bot_names.txt", NULL, NULL, szNameFileName);
+
     FILE *fp = fopen(szNameFileName, "r");
+
     char szNameBuffer[256];
     int iIndex, iStrIndex;
 
@@ -102,6 +106,7 @@ void CBotManager::LoadBotNamesFile()
         conoutf("Warning: Couldn't load bot names file");
         return;
     }
+
 
     while (fgets(szNameBuffer, 80, fp) != NULL)
     {
@@ -144,6 +149,59 @@ void CBotManager::LoadBotNamesFile()
         }
     }
     fclose(fp);
+
+}
+
+void CBotManager::LoadBotIdentitiesFile()
+{
+    m_sBotIdentitiesCount = 0;
+    char szIdentityFileName[256];
+    MakeBotFileName("bot_identities.txt", NULL, NULL, szIdentityFileName);
+    FILE *fp = fopen(szIdentityFileName, "r");
+    char szIdentityBuffer[PUBKEYSAFE];
+    int iIndex, iStrIndex;
+    if(!fp)
+    {
+        conoutf("Warning: Couldn't load bot identities file");
+        return;
+    }
+    while(fgets(szIdentityBuffer, PUBKEYSAFE+1, fp) != NULL)
+    {
+        if(m_sBotIdentitiesCount >= 150)
+        {
+            conoutf("Warning: Max bot identites reached(150), ignoring the rest of the identities.");
+            break;
+        }
+        short length = (short)strlen(szIdentityBuffer);
+        if(szIdentityBuffer[length-1] == '\n')
+        {
+            szIdentityBuffer[length-1] = 0;  // remove '\n'
+            length--;
+        }
+        iStrIndex = 0;
+        while(iStrIndex < length)
+        {
+            if((szIdentityBuffer[iStrIndex] < '0') || (szIdentityBuffer[iStrIndex] > 'f') ||
+               ((szIdentityBuffer[iStrIndex] > '9') && (szIdentityBuffer[iStrIndex] < 'a')))
+            {
+                for(iIndex = iStrIndex; iIndex < length; iIndex++)
+                    szIdentityBuffer[iIndex] = szIdentityBuffer[iIndex+1];
+            }
+            iStrIndex++;
+        }
+        if(szIdentityBuffer[0] != 0)
+        {
+            if(strlen(szIdentityBuffer) == (PUBKEYSAFE-1))
+            {
+                copystring(m_szBotIdentities[m_sBotIdentitiesCount], szIdentityBuffer, PUBKEYSAFE);
+                m_sBotIdentitiesCount++;
+            }else{
+                conoutf("Warning: bot identity \"%s\" has %ld not %d characters.", szIdentityBuffer, strlen(szIdentityBuffer), PUBKEYSAFE-1);
+            }
+        }
+    }
+    fclose(fp);
+    if(m_sBotIdentitiesCount != m_sBotNameCount) conoutf("\f3Count discrepancy\f4: \f1%d\f5 names VS \f1%d\f5 identities.", m_sBotNameCount, m_sBotIdentitiesCount);
 }
 
 const char *CBotManager::GetBotName()
@@ -871,6 +929,7 @@ void CBotManager::PickNextTrigger()
 
 botent *CBotManager::CreateBot(const char *team, const char *skill, const char *name)
 {
+    //bool wasFirst = m_bInit;
     if (m_bInit)
     {
        Init();
@@ -889,6 +948,32 @@ botent *CBotManager::CreateBot(const char *team, const char *skill, const char *
 
     if (name && *name) copystring(m->name, name, 16);
     else copystring(m->name, BotManager.GetBotName(), 16);
+
+    // this is a nasty "added feature not anticipated"-hack
+    bool foundIdentity = false;
+    loopi(m_sBotNameCount)
+    {
+        //if(wasFirst) printf("CMP [%s] [%s] = %d\n", m->name, m_szBotNames[i], strcmp(m->name, m_szBotNames[i]));
+        if(!strcmp(m->name, m_szBotNames[i]))
+        {
+            if(i < m_sBotIdentitiesCount)
+            {
+                if(m_szBotIdentities[i])
+                {
+                    memcpy(m->pBot->m_pMyEnt->pubkeyhex, m_szBotIdentities[i], PUBKEYSAFE);
+                    hex2bin(m->pBot->m_pMyEnt->pubkey, m->pBot->m_pMyEnt->pubkeyhex, PUBKEYBINLEN);
+                    //printf("BOT [%s] has old ID[%s]\n", m->name, m->pBot->m_pMyEnt->pubkeyhex);
+                    foundIdentity = true;
+                }//else{if(wasFirst) printf("Bot-ID[%d] failed\n", i);}
+            }//else{if(wasFirst) printf("%d < %d failed\n", i, m_sBotIdentitiesCount);}
+        }
+    }
+    if(!foundIdentity)
+    {
+        fakekey(m->pBot->m_pMyEnt->pubkey);
+        bin2hex(m->pBot->m_pMyEnt->pubkeyhex, m->pBot->m_pMyEnt->pubkey, PUBKEYBINLEN);
+        printf("BOT [%s] has new ID[%s]\n", m->name, m->pBot->m_pMyEnt->pubkeyhex);
+    }
 
     updateclientname((playerent *)m);
 
