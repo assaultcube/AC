@@ -184,10 +184,69 @@ void cleanupexplosion()
     }
 }
 
+void setuporb()
+{
+    if(!hemiindices) inithemisphere(5, 2);
+
+    if(!expverts)
+    {
+        vec center = vec(0.5f, 0.5f, 0.5f);
+        expverts = new expvert[heminumverts];
+        loopi(heminumverts)
+        {
+            expvert &e = expverts[i];
+            vec &v = hemiverts[i];
+            e.u = v.x*0.5f;
+            e.v = v.y*0.5f;
+            e.s = v.x*0.5f + 0.5f;
+            e.t = v.y*0.5f + 0.5f;
+            float wobble = v.dot(center);
+            e.pos = vec(v).mul(wobble);
+        }
+    }
+
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glVertexPointer(3, GL_FLOAT, sizeof(expvert), &expverts->pos);
+    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+    glTexCoordPointer(2, GL_FLOAT, sizeof(expvert), &expverts->u);
+
+}
+
+void draworb(bool inside, float r, float g, float b, float a)
+{
+    loopi(!reflecting && inside ? 2 : 1)
+    {
+        glColor4f(r, g, b, i ? a/2 : a);
+        if(i)
+        {
+            glScalef(1, 1, -1);
+            glDepthFunc(GL_GEQUAL);
+        }
+        if(inside)
+        {
+            if(!reflecting)
+            {
+                glCullFace(GL_BACK);
+                glDrawElements(GL_TRIANGLES, heminumindices, GL_UNSIGNED_SHORT, hemiindices);
+                glCullFace(GL_FRONT);
+            }
+            glScalef(1, 1, -1);
+        }
+        glDrawElements(GL_TRIANGLES, heminumindices, GL_UNSIGNED_SHORT, hemiindices);
+        if(i) glDepthFunc(GL_LESS);
+    }
+}
+
+void cleanuporb()
+{
+    glDisableClientState(GL_VERTEX_ARRAY);
+    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+}
+
 struct particle { vec o, d; int fade, type; int millis; float size; particle *next; };
 particle *parlist[MAXPARTYPES], *parempty = NULL;
 
-static Texture *parttex[8];
+static Texture *parttex[10];
 
 void particleinit()
 {
@@ -201,6 +260,8 @@ void particleinit()
     parttex[5] = textureload("packages/misc/scorch.png");
     parttex[6] = textureload("packages/misc/muzzleflash.jpg");
     parttex[7] = textureload("<decal>packages/misc/range.png");
+    parttex[8] = textureload("packages/misc/parkour-safe.png");
+    parttex[9] = textureload("packages/misc/parkour-points.png");
 }
 
 void cleanupparticles()
@@ -250,7 +311,8 @@ void newparticle(const vec &o, const vec &d, int fade, int type, float size = 0)
 
 const char *particletypenames[MAXPARTYPES + 1] = {  "SPARK", "SMOKE", "ECLOSEST", "BLOOD", "DEMOTRACK", "FIREBALL", "SHOTLINE", "BULLETHOLE",         //  0.. 7
                                                     "BLOODSTAIN", "SCORCH", "HUDMUZZLEFLASH", "MUZZLEFLASH", "ELIGHT", "ESPAWN", "EAMMO", "EPICKUP",  //  8..15
-                                                    "EMODEL", "ECARROT", "ECARROTRANGE", "ELADDER", "EFLAG", "EUNKNOWN", "" };                        // 16..21
+                                                    "EMODEL", "ECARROT", "ECARROTRANGE", "ELADDER", "EFLAG", "PPSAFE", "PPPOINTS", "EUNKNOWN",        // 16..23
+                                                    "" }; // MAXPARTTYPES + 1
 
 static struct parttype { int type; float r, g, b; int gr, tex; float sz; } parttypes[MAXPARTYPES] =
 {
@@ -276,6 +338,8 @@ static struct parttype { int type; float r, g, b; int gr, tex; float sz; } partt
     { PT_CARROTRANGE, 1.0f, 1.0f, 1.0f,  0,  7, 1.00f }, // edit mode ent range of carrot/trigger : white circle texture
     { PT_PART,        0.5f, 0.5f, 0.5f, 20,  0, 0.08f }, // edit mode ent type : ladder, (pl)clip : grey
     { PT_PART,        0.0f, 1.0f, 1.0f, 20,  0, 0.08f }, // edit mode ent type :         CTF-flag : turquoise
+    { PT_ORB,         0.5f, 1.0f, 0.5f,  0,  8, 1.10f }, // parkour place type :          PP_SAFE : blue fireball
+    { PT_ORB,         0.8f, 0.8f, 0.2f,  0,  9, 1.10f }, // parkour place type :        PP_POINTS : green fireball
     { PT_PART,        1.0f, 0.7f, 0.8f, 40,  0, 0.16f }, // edit mode ent type :          UNKNOWN : pink
 };
 
@@ -317,6 +381,11 @@ void render_particles(int time, int typemask)
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE);
                 glColor3f(pt.r, pt.g, pt.b);
                 glBegin(GL_QUADS);
+                break;
+
+            case PT_ORB:
+                setuporb();
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE);
                 break;
 
             case PT_FIREBALL:
@@ -385,6 +454,22 @@ void render_particles(int time, int typemask)
                     glTexCoord2i(0, 0); glVertex3f(p->o.x+(-camright.x-camup.x)*sz, p->o.y+(-camright.y-camup.y)*sz, p->o.z+(-camright.z-camup.z)*sz);
                     xtraverts += 4;
                     break;
+
+                case PT_ORB:
+                {
+                    sz = 1.0f + (pt.sz-1.0f)*min(p->fade, lastmillis-p->millis)/p->fade;
+                    glPushMatrix();
+                    glTranslatef(p->o.x, p->o.y, p->o.z);
+                    bool inside = p->o.dist(camera1->o) <= sz*1.25f; //1.25 is max wobble scale
+                    vec oc(p->o);
+                    oc.sub(camera1->o);
+                    if(reflecting && !refracting) oc.z = p->o.z - (waterlevel - 0.3f);
+                    glScalef(-sz, sz, -sz);
+                    draworb(inside, pt.r, pt.g, pt.b, 1.0f-sz/pt.sz);
+                    glPopMatrix();
+                    xtraverts += heminumverts;
+                    break;
+                }
 
                 case PT_FIREBALL:
                 {
@@ -534,6 +619,10 @@ void render_particles(int time, int typemask)
             case PT_STAIN:
             case PT_FLASH:
                 glEnd();
+                break;
+
+            case PT_ORB:
+                cleanuporb();
                 break;
 
             case PT_FIREBALL:

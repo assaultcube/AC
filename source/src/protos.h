@@ -819,6 +819,7 @@ extern vec getradarpos();
 enum
 {
     PT_PART = 0,
+    PT_ORB,
     PT_FIREBALL,
     PT_SHOTLINE,
     PT_DECAL,
@@ -855,8 +856,10 @@ enum
     PART_ECARROTRANGE,
     PART_ELADDER,
     PART_EFLAG,          // 20
-    PART_EUNKNOWN,       // 21
-    MAXPARTYPES          // 22
+    PART_PPSAFE,
+    PART_PPPOINTS,
+    PART_EUNKNOWN,       // 23
+    MAXPARTYPES          // 24
 };
 
 extern void particleinit();
