@@ -26,24 +26,52 @@ Algorithm description:
 IdentIcon For 64 byte AC:pubkey hex representation:
  - we use bytes 0…44 for the inner pattern.
    three bytes inform each of the cells, three cells for each of the five rows (ABCBA).
- - inner RGB from byte 45 (hueblock)
+ - byte 45 is currently unused 
  - border & blocks RGB from byte pairs 46–57
  - corners from 58+59+60 (hueblock)
  - edges from 61+62+63 (hueblock)
 To create our icon we have two parts working differently; one way to create a github style IdentIcon as central pattern and
 another to pad the pattern so all the bytes are used but the visual simplicity still allows for quick recognition *and* rejection.
 For the padding area we use the padhues array of clearly different shades of gray. 
-Adding colours is possible but visual accessibility should be considered.
+Adding colours to corners and edges is possible but visual accessibility should be considered.
 There are 2 shades used, one for the corners and one for the edges between them.
-The establishing of which hue to use is either based on one byte or a sum of three bytes. The middle is least likely. 
-The whole image gets a border of the same colour as the blocks in the pattern, 
-this pattern is backdropped in white and the colour is forced to have a minimal distance from white, for contrast.
+The establishing of which hue to use is based on the sum of three bytes. The middle hue is least likely.
+The whole image gets a border whose colour is decided on as RGB channel values of 6 bytes (so:0x000000 – 0xFFFFFF); the blocks in the pattern too.
+This pattern is backdropped in white and the block colour is forced to have a minimal distance from white, for contrast.
 The pattern itself is established row by row, each row has three cell values, so groups of three bytes inform a 5 cell row.
 The first cell matches the last and the second the fourth (like ABCBA). Each cell is ON if the byte is odd, OFF if even.
+This may lead to quite a few collisions; but attempts to mitigate this have not rendered as pleasingly.
 
 Relic of the time JPEG was tried:
 // jpegenc jpegencoder; jpegencoder.encode(imagepath, image, 50, uhash); // IDEA: have player name in jpeg comment instead of uhash 
 
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ ━━━━━━━ ━━━━━━━ ━━━━━━━ ━━━━━━━ ━━━━━━━ ━━━━━━━ ━━━━━━━ ━━━━━━━
+
+= VITA =
+The concept of a players vita was introduced during the long dark tea time of the game; 
+all of the intended and/or required mechanisms have not been realized or implemented - our mileage *will* vary.
+What the best outcomes of using this new feature can be will definitely include:
+  A) establishing properly reliable ranking data
+     A.1) for assembling well balanced teams on the fly
+     A.2) for leaderboards
+  B) making cheating a much more socially costly act
+
+If we can establish a way to send vita data upstream to the MS, combine it and send it back downstream then all servers
+will be aware of the current ranking across the network of any player that connects – which already highlights one issue when
+attempting to implement this: the entire database is going to have a tendency to explode in size, some form of "chunks" need
+to be separated but there shouldn't need to be a back-n-forth between every server and the MS whenever someone joins.
+Also, of course, the question of reliability of server provided data must be addressed; a naive approach would keep the 
+backlog of each server submission for a *long* time so that once a bad apple turns up those submissions can be discarded and
+a new value calculated based on the remaining data.
+
+As a temporary solution there could be a group of clan server admins that trust each other and share their local files with
+a person that has some python script or other small program capable of merging the data. It would need to be a little more 
+than plain "add & divide by N" (for N servers) though, since otherwise the amount of one-time-identities will explode the size.
+So keeping track of when last any given PUBKEY was seen would be a requirement even for this simple tool.
+
+This way your vita will become an important social aspect of the game, even allowing for things like servers filtering players. 
+For example: "need to have played X hours before joining", "need a skill value above X to join" or combinations … or …
+So losing your established vita because your PUBKEY was banned for cheating could become painful.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ ━━━━━━━ ━━━━━━━ ━━━━━━━ ━━━━━━━ ━━━━━━━ ━━━━━━━ ━━━━━━━ ━━━━━━━
 
