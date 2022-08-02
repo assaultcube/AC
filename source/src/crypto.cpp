@@ -772,7 +772,6 @@ void savepreprivkey(const char *filename, uchar *preprivkey, uchar preprivlen, u
     DELETEA(oldfile);
 }
 
-
 void saveprivkey(const char *filename, uchar *privkey, uchar *pubkey, uchar salt[16], uint privpwdcfg) {
     char hextemp[65];
     char *oldfile = loadfile(filename, NULL), *b;
@@ -796,6 +795,44 @@ void saveprivkey(const char *filename, uchar *privkey, uchar *pubkey, uchar salt
         delete f;
     }
     DELETEA(oldfile);
+}
+
+/*
+ * the bot pattern is:
+ * 111000111000111000111000111000111000111000111f************acbacb
+ * 0123456789012345678901234567890123456789012345678901234567890123456789
+ * 0         1         2         3         4         5         6
+ * but ANY pattern which has triplets of alternating odd/even in [0…44] needs to be blocked with current flattening of values in prepidenticon()
+ * the suffix of ACB stands for AssaultCubeBot
+ * the index 45 is hardcoded to 'f'
+ */
+extern int hextodec(uchar a);
+bool sanitycheckagainstbotpattern(char uhash[PUBKEYSAFE])
+{
+    bool failed = false;
+    if(!strncmp(uhash+58, "acbacb", 6)) failed = true;
+    if(!failed)
+    {
+        if(uhash[45]=='f') failed = true;
+        if(!failed)
+        {
+            int bc = 0;
+            bool oddness = true;
+            bool matches = true;
+            while(bc < 45)
+            {
+                if(matches)
+                {
+                    if(bc > 0 && ((bc % 3) == 0)) oddness = !oddness;
+                    bool isodd = hextodec(uhash[bc]) % 2;
+                    if(isodd != oddness) matches = false;
+                }
+                bc++;
+            }
+            if(matches) failed = true;
+        }
+    }
+    return failed;
 }
 
 void authsetup(char **args, int numargs)  // set up private and public keys
@@ -972,22 +1009,27 @@ void authsetup(char **args, int numargs)  // set up private and public keys
     ed25519_pubkey_from_private(keyhash, priv);
     if(!privpwdcfg && !memcmp(pub, keyhash, 32))
     {
-        // priv matches pub: yay
+        // pub belongs to priv : yay
         char bufhex[PUBKEYSAFE];
         if(player1->identified) memcpy(bufhex, player1->pubkeyhex, PUBKEYSAFE);
         memcpy(priv + 32, pub, 32);
         sk = priv;
         bin2hex(player1->pubkeyhex, pub, 32);
-        if( player1->identified && strcmp(bufhex, player1->pubkeyhex) ) player1->identified = false; // identity changed - TODO?: hook/action
-        if(!player1->identified)
+        if(sanitycheckagainstbotpattern(player1->pubkeyhex))
         {
-            player1->identified = true;
-            myidentity.joined = lastmillis; // trigger display of own identicon - for recognition of your own visual and the fact auth happened
-            memcpy(myidentity.pubkeyhex, player1->pubkeyhex, PUBKEYSAFE);
-            myidentity.tex = getidenticon(player1->pubkeyhex);
-            exechook(HOOK_SP_MP, "onAuth", "");
+            conoutf("you can NOT use a BOT identity pattern.");
+        }else{
+            if( player1->identified && strcmp(bufhex, player1->pubkeyhex) ) player1->identified = false; // identity changed - TODO?: hook/action
+            if(!player1->identified)
+            {
+                player1->identified = true;
+                myidentity.joined = lastmillis; // trigger display of own identicon - for recognition of your own visual and the fact auth happened
+                memcpy(myidentity.pubkeyhex, player1->pubkeyhex, PUBKEYSAFE);
+                myidentity.tex = getidenticon(player1->pubkeyhex);
+                exechook(HOOK_SP_MP, "onAuth", "");
+            }
+            DEBUG("successfully found keypair for pub " << bin2hex(hextemp, pub, 32));
         }
-        DEBUG("successfully found keypair for pub " << bin2hex(hextemp, pub, 32));
         if(!numargs) res = 1; // "authsetup" with no arguments just checks the status
     }
     else sk = NULL;
@@ -1139,10 +1181,7 @@ void authkey_(char **args, int numargs)  // set up misc keys
 }
 COMMANDN(authkey,authkey_, "v");
 
-
-
 #endif
-
 
 ///////////////////////// manage tree of certificates ///////////////////////////////////////////////////
 
@@ -1151,10 +1190,8 @@ COMMANDN(authkey,authkey_, "v");
 #define CERTTIMEDAY (24 * 60)
 #define CERTTIMEMONTH (30 * 24 * 60)
 
-// FIXME: replace this for release
-// pub aa558eb043105536d72a433d8fa121797f134805c526727c43f57cefdaec289b  priv aa55aa55aa55aa55aa55aa55aa55aac97034aa55aa55aa55aa55aa55aa55aa55
-uchar rootcert[] = { 0xaa, 0x55, 0x8e, 0xb0, 0x43, 0x10, 0x55, 0x36, 0xd7, 0x2a, 0x43, 0x3d, 0x8f, 0xa1, 0x21, 0x79,
-                     0x7f, 0x13, 0x48, 0x05, 0xc5, 0x26, 0x72, 0x7c, 0x43, 0xf5, 0x7c, 0xef, 0xda, 0xec, 0x28, 0x9b };
+uchar rootcert[] = { 0xfb, 0xe9, 0xd1, 0x25, 0x38, 0xf7, 0x88, 0xd0, 0x19, 0x41, 0xcb, 0x5a, 0x79, 0x9d, 0x6b, 0xb1,
+                     0x86, 0xcb, 0xe5, 0x20, 0x61, 0xaf, 0xd7, 0xdb, 0xfc, 0x75, 0xcd, 0xbd, 0x48, 0x59, 0x05, 0x71 };
 
 static const char *certheader = "AC-CERT v1 ";
 static const int certheaderlen = strlen(certheader), certheaderlenfull = certheaderlen + 128 + 1;
@@ -1525,18 +1562,6 @@ void listcerts()
 COMMAND(listcerts, "");
 #endif
 
-
-
-
-
-
-
-
-
-
-
-
-
 /////////////////// misc helper functions ////////////////////////////////////////////////////////////////
 
 static const char *hashchunktoa(tiger::chunk h)   // portable solution instead of printf("%llx")
@@ -1563,7 +1588,4 @@ const char *genpwdhash(const char *name, const char *pwd, int salt)
     formatstring(temp)("%s %s %s", hashchunktoa(hash.chunks[0]), hashchunktoa(hash.chunks[1]), hashchunktoa(hash.chunks[2]));
     return temp;
 }
-
-
-
 
