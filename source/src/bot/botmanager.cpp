@@ -113,7 +113,7 @@ void CBotManager::LoadBotNamesFile()
         if (m_sBotNameCount >= 150)
         {
             conoutf("Warning: Max bot names reached(150), ignoring the rest of the"
-                   "names");
+                   " names");
             break;
         }
 
