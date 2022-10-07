@@ -654,6 +654,9 @@ soundcfgitem soundcfg[S_NULL] =
     { "voicecom/thanks_2",      "Thanks, man",              0, 0,  0, S_THANKS2,                C(VOICECOM)|C(TEAM)|C(PUBLIC)                       }, // 96
     { "voicecom/awesome_1",     "Awesome (1)",              0, 0,  0, S_AWESOME1,               C(VOICECOM)|C(TEAM)|C(PUBLIC)                       }, // 97
     { "voicecom/awesome_2",     "Awesome (2)",              0, 0,  0, S_AWESOME2,               C(VOICECOM)|C(TEAM)|C(PUBLIC)                       }, // 98
+    { "voicecom/sburro",     	  "Sburro",                  0, 0,  0, S_SBURRO,                 C(VOICECOM)|C(TEAM)|C(PUBLIC)                       }, // 99
+    { "voicecom/pd_1",     	  "Dio Porco!",              0, 0,  0, S_GERMANO1,               C(VOICECOM)|C(TEAM)|C(PUBLIC)                       }, // 100
+    { "voicecom/splash_gabibbo", "SPLASH",                  0, 0,  0, S_SPLASHGABIBBO,          C(VOICECOM)|C(TEAM)|C(PUBLIC)                       }, // 101
     { "misc/pickup_helmet",     "Helmet pickup",            0, 0,  0, S_ITEMHELMET,             C(PICKUP)        }, // 99
     { "player/heartbeat",       "Heartbeat",                0, 0,  0, S_HEARTBEAT,              C(OWNPAIN)       }, // 100
     { "ktf/flagscore",          "KTF score",                0, 0,  0, S_KTFSCORE,               C(OTHER)         }, // 101

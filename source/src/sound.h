@@ -67,6 +67,9 @@ enum
     S_THANKS2,
     S_AWESOME1,
     S_AWESOME2,
+    S_SBURRO,
+    S_GERMANO1,
+    S_SPLASHGABIBBO,
 // end: voicecoms
     S_ITEMHELMET, // begin: Sounds for AssaultCube v1.1.0.4 onwards
     S_HEARTBEAT,
