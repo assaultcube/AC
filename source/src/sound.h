@@ -70,6 +70,10 @@ enum
     S_SBURRO,
     S_GERMANO1,
     S_SPLASHGABIBBO,
+    S_GROTTO1,
+    S_GROTTO2,
+    S_GROTTO3,
+    S_MOANING1,
 // end: voicecoms
     S_ITEMHELMET, // begin: Sounds for AssaultCube v1.1.0.4 onwards
     S_HEARTBEAT,
@@ -84,8 +88,8 @@ enum { SC_PAIN = 0, SC_OWNPAIN, SC_WEAPON, SC_PICKUP, SC_MOVEMENT, SC_BULLET, SC
 #define gamesound_hasflag(x, mask) (gamesound_isvalid(x) && (soundcfg[x].flags & mask) != 0)
 #define gamesound_isvoicecom(x)       gamesound_hasflag(x, 1 << SC_VOICECOM)      // all voicecoms
 #define gamesound_ispublicvoicecom(x) gamesound_hasflag(x, 1 << SC_PUBLIC)        // voicecoms always sent to all players
-#define gamesound_ispublicwhenffa(x) gamesound_hasflag(x, 1 << SC_FFA)            // voicecoms sent to all only in FFA modes 
-#define gamesound_isflagvoicecom(x) gamesound_hasflag(x, 1 << SC_FLAGONLY)        // voicecoms pertaining to flag tactics 
+#define gamesound_ispublicwhenffa(x) gamesound_hasflag(x, 1 << SC_FFA)            // voicecoms sent to all only in FFA modes
+#define gamesound_isflagvoicecom(x) gamesound_hasflag(x, 1 << SC_FLAGONLY)        // voicecoms pertaining to flag tactics
 
 
 struct soundcfgitem {
