@@ -52,21 +52,11 @@ void renderent(entity &e)
     rendermodel(mdlname, ANIM_MAPMODEL|ANIM_LOOP|ANIM_DYNALLOC, 0, 0, vec(e.x, e.y, z+S(e.x, e.y)->floor + float(e.attr1) / ENTSCALE10), 0, yaw, 0);
 }
 
-VARP(parkourparticles, 0, 0, 2); // plain, simple, flamboyant
-
-void renderparkpoint_debug(entity &e)
-{
-    static int trigtypeflash[4] = { PART_ECLOSEST, PART_EFLAG, PART_ECARROT, PART_BLOOD }; // depending on attr2 0:text,1:safe,2:points,3:goal
-    int tt = e.attr2 >= 0 && e.attr2 < 4 ? trigtypeflash[e.attr2] : PART_EUNKNOWN;
-    float abovefloor = e.attr2 == 2 ? 1.25f : 1.5f;
-    float wobble = sinf( lastmillis / 100.0f );
-    float z = wobble/10.0f; // everything should wobble
-    particle_flash( tt, 1.0f, rnd(0x1000000), vec(e.x, e.y, S(e.x,e.y)->floor + abovefloor + z) );
-}
+VARP(parkourparticles, 0, 3, 3); // plain, simple, flamboyant, model
 
 void renderparkpoint_plain(entity &e)
 {
-    if(e.attr2<2||e.attr2>3) return; // PP_POINTS || PP_GOAL
+    if(e.attr2<2||e.attr2>3) return; // render only for 2:PP_POINTS || 3:PP_GOAL
     int tt = e.attr2 == 2 ? PART_ECARROT : PART_BLOOD;
     float z = sinf( lastmillis / 100.0f ) / 10.0f;
     particle_flash( tt, 1.0f, rnd(0x1000000), vec(e.x, e.y, S(e.x,e.y)->floor + 1.5f + z) );
@@ -74,7 +64,7 @@ void renderparkpoint_plain(entity &e)
 
 void renderparkpoint_simple(entity &e)
 {
-    if(e.attr2==0) return; // skip PP_TEXT entirely
+    if(e.attr2==0) return; // nothing for 0:PP_TEXT
     static int trigtypeflash[4] = { PART_ECLOSEST, PART_EFLAG, PART_ECARROT, PART_BLOOD }; // depending on attr2 0:text,1:safe,2:points,3:goal
     int tt = e.attr2 >= 0 && e.attr2 < 4 ? trigtypeflash[e.attr2] : PART_EUNKNOWN;
     float abovefloor = e.attr2 == 2 ? 1.25f : 1.5f;
@@ -85,7 +75,7 @@ void renderparkpoint_simple(entity &e)
 
 void renderparkpoint_flamboyant(entity &e)
 {
-    if(e.attr2==0) return; // skip PP_TEXT entirely
+    if(e.attr2==0) return; // nothing for 0:PP_TEXT
     static int trigtypeflash[4] = { PART_ECLOSEST, PART_PPSAFE, PART_PPPOINTS, PART_BLOOD }; // depending on attr2 0:text,1:safe,2:points,3:goal
     int tt = e.attr2 >= 0 && e.attr2 < 4 ? trigtypeflash[e.attr2] : PART_EUNKNOWN;
     float abovefloor = e.attr2 == 2 ? 1.25f : 1.5f;
@@ -100,17 +90,31 @@ void renderparkpoint_flamboyant(entity &e)
     }
 }
 
+void renderparkpoint_model(entity &e)
+{
+    if(e.attr2==0) return; // nothing for 0:PP_TEXT
+    bool getpoints = e.attr2 == 2;
+    float z = (getpoints ? 1.25f : 3.14f) + sinf(lastmillis/100.0f+e.x+e.y)/20.0f;
+    float yaw = lastmillis/10.0f;
+    string model;
+    switch(e.attr2)
+    {
+        case 1: copystring(model, "pickups/star/safe"); break;
+        case 2: copystring(model, e.attr1 < 10 ? "pickups/star/tiny" : "pickups/star"); break;
+        case 3: copystring(model, "pickups/star/goal"); break;
+        default:copystring(model, "pickups/star"); break;
+    }
+    rendermodel(model, ANIM_MAPMODEL|ANIM_LOOP|ANIM_DYNALLOC, 0, 0, vec(e.x, e.y, S(e.x, e.y)->floor + float(e.attr5)/ENTSCALE10 + z), 0, yaw, 0);
+}
+
 void renderparkpoint(entity &e)
 {
-    // TODO: have a nice model, e.g. a golden star … or a skull … or …
-    // FIXME: we may not actually want to display anything for the text/safe-types .. but during development it helps
-    //static int trigtypeflash[4] = { 2, 20, 17, 13 }; // attr2 : 0:text 1:safe/save 2:points 3:finish // type 2:ECLOSEST,13:SPAWN,17:ECARROT,20:EFLAG,21:UNKNOWN .. or come up with a new set
     switch(parkourparticles)
     {
+        case 3: renderparkpoint_model(e); break;
         case 2: renderparkpoint_flamboyant(e); break;
         case 1: renderparkpoint_simple(e); break;
         default:
-            //renderparkpoint_debug(e);
             renderparkpoint_plain(e);
         break;
     }

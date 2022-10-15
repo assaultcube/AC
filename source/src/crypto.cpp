@@ -813,7 +813,7 @@ bool sanitycheckagainstbotpattern(char uhash[PUBKEYSAFE])
     if(!strncmp(uhash+58, "acbacb", 6)) failed = true;
     if(!failed)
     {
-        if(uhash[45]=='f') failed = true;
+        //if(uhash[45]=='f') failed = true;// ignore value of unused byte
         if(!failed)
         {
             int bc = 0;

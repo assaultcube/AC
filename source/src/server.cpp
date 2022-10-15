@@ -1968,7 +1968,7 @@ bool serverpickup(int i, int sender)         // server side item pickup, acknowl
             {
                 bubble = e.attr3 > 0 ? (e.attr3/10.0f) : ((e.attr2>=PP_TEXT && e.attr2<=PP_GOAL)) ? parkdistances[e.attr2] : 10.0f; // [0…[MAXPPTYPES
             }
-            int pdist = check_pdist(cl,dist);
+            int pdist = check_pdist(cl,dist,bubble);
             if (pdist)
             {
                 cl->farpickups++;
@@ -2530,14 +2530,12 @@ void startgame(const char *newname, int newmode, int newtime, bool notify)
 
                 if(clients.length())
                 {
-                    int untt = 0;
                     client *cl = clients[0];
                     cl->state.parkents.shrink(0);
                     loopi(sm->numents)// only becomes sg->curmap->numents below the #endif
                     {
                         bool iscarrot = sm->enttypes[i]==CARROT;
                         cl->state.parkents.add(!iscarrot);
-                        untt += iscarrot ? 1 : 0;
                     }
                 }
             }
