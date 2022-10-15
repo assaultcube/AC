@@ -126,7 +126,10 @@ SERVER_INCLUDES= -DSTANDALONE $(INCLUDES) -I../include
 SERVER_LIBS= -L../lib -lzdll -lenet -lws2_32 -lwinmm
 else
 SERVER_INCLUDES= -DSTANDALONE $(INCLUDES)
-SERVER_LIBS= -L../enet/.libs -lenet -lz -lpthread
+# use with clang:v10.x
+#SERVER_LIBS= -L../enet/.libs -lenet -lz -lpthread
+# use with clang:v14.x
+SERVER_LIBS= -L../enet/.libs -lenet -lz -lpthread -fPIE
 ifeq (,$(findstring OpenBSD,$(PLATFORM)))
 SERVER_LIBS+= -lrt
 endif
