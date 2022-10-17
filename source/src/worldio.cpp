@@ -6,6 +6,7 @@
 VARP(worldiodebug, 0, 0, 1);
 
 static string cgzname, ocgzname, bakname, cbakname, mcfname, omcfname;
+bool maploading = false; // special unscripted scontext
 
 const char **setnames(const char *name)
 {
@@ -898,6 +899,7 @@ COMMANDN(savemap9, save_world9, "s");
 
 void showmapdims()
 {
+    // NICE2HAVE: both output to log and force use of monospace font
     conoutf("  min X|Y|Z: %3d : %3d : %3d", clmapdims.x1, clmapdims.y1, clmapdims.minfloor);
     conoutf("  max X|Y|Z: %3d : %3d : %3d", clmapdims.x2, clmapdims.y2, clmapdims.maxceil);
     conoutf("delta X|Y|Z: %3d : %3d : %3d", clmapdims.xspan, clmapdims.yspan, clmapdims.maxceil - clmapdims.minfloor);
@@ -927,6 +929,7 @@ bool incompatiblemap = false;
 
 int load_world(char *mname)        // still supports all map formats that have existed since the earliest cube betas!
 {
+    maploading = true;
     incompatiblemap = false;
     const int sizeof_header = sizeof(header), sizeof_baseheader = sizeof_header - sizeof(int) * 16;
     stopwatch watch;
@@ -1177,7 +1180,7 @@ int load_world(char *mname)        // still supports all map formats that have e
             break;
         }
     }
-
+    maploading = false;
     defformatstring(startmillis)("%d", totalmillis);
     alias("gametimestart", startmillis, true);
     startmap(mname);

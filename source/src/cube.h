@@ -37,6 +37,7 @@ extern physent *camera1;                // camera representing perspective of pl
 extern playerent *player1;              // special client ent that receives input and acts as camera
 extern vector<playerent *> players;     // all the other clients (in multiplayer)
 extern vector<bounceent *> bounceents;
+extern bool maploading;
 extern bool editmode;
 extern bool editingsettingsshowminimal;
 extern int keepshowingeditingsettingsfrom;

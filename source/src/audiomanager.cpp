@@ -442,7 +442,7 @@ void voicecom(char *sound, char *text)
         int s = audiomgr.findsound(soundpath, 0, gamesounds);
         if(!gamesound_isvoicecom(s)) return;
         bool playvc = true;
-        if(gamesound_ispublicvoicecom(s)||(!m_teammode&&gamesound_ispublicwhenffa(s))) // public 
+        if(gamesound_ispublicvoicecom(s)||(!m_teammode&&gamesound_ispublicwhenffa(s))) // public
         {
             addmsg(SV_VOICECOM, "ri", s);
             toserver(text);
@@ -823,10 +823,13 @@ VAR(mapsoundchanged, 0, 0, 1);
 
 COMMANDF(mapsoundreset, "", ()
 {
-    audiomgr.mapsoundreset();
-    mapconfigdata.mapsoundlines.shrink(0);
-    mapsoundchanged = 1;
-    flagmapconfigchange();
+    if(m_coop || maploading)
+    {
+        audiomgr.mapsoundreset();
+        mapconfigdata.mapsoundlines.shrink(0);
+        mapsoundchanged = 1;
+        flagmapconfigchange();
+    }
 });
 
 VARF(soundchannels, 4, 128, 1024, audiomgr.setchannels(soundchannels));
