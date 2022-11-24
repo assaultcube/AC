@@ -128,6 +128,7 @@ int cn2boot;
 const char *offoron[] = { "disabled", "enabled", "" };
 SERVPARLIST(dumpmaprot, 0, 1, 0, offoron, "ddump maprot parameters for all maps (once, to logs/debug/maprot_debug_verbose.txt)");
 SERVPARLIST(dumpparameters, 0, 0, 0, offoron, "ddump server parameters when updated");
+SERVPARLIST(usevita, 0, 0, 1, offoron, "duse vita instead of at3 in shuffle/balance functions");
 //SERVPAR(vitaautosave, 0, 10, 24 * 60, "sVita file autosave interval in minutes (0: only when server is empty)"); // deprecated
 SERVPAR(vitamaxage, 3, 12, 120, "sOmit vitas from autosave, if the last login has been more than the specified number of months ago");
 
@@ -2239,7 +2240,7 @@ bool updateclientteam(int cln, int newteam, int ftr)
                 int teamscore[2] = {0, 0}, sum = calcscores(); // sum != 0 is either <0 if match data based or >0 vita based and exceeded shuffleteamthreshold
                 loopv(clients) if(clients[i]->type!=ST_EMPTY && i != cln && clients[i]->isauthed && clients[i]->team != TEAM_SPECT)
                 {
-                    teamscore[team_base(clients[i]->team)] += clients[i]->at3_score;
+                    teamscore[team_base(clients[i]->team)] += usevita ? clients[i]->vita_score : clients[i]->at3_score;
                 }
                 newteam = sum==0 ? rnd(2) : (teamscore[TEAM_CLA] < teamscore[TEAM_RVSF] ? TEAM_CLA : TEAM_RVSF);
             }
@@ -2361,7 +2362,7 @@ int calcscores_at3()
 
 int calcscores()
 {
-    return calcscores_at3();
+    return usevita ? calcscores_vita() : calcscores_at3();
 }
 
 vector<int> shuffle;
@@ -2733,13 +2734,23 @@ bool refillteams_at3(bool now, int ftr)  // force only minimal amounts of player
 bool refillteams(bool now, int ftr)
 {
     //mlog(ACLOG_DEBUG, "refillteams(%s:%d)", now?"now":"whenever", ftr);
-    return refillteams_at3(now,ftr);
+    if(usevita)
+    {
+        return refillteams_vita(now,ftr);
+    }else{
+        return refillteams_at3(now,ftr);
+    }
 }
 
 void shuffleteams(int ftr = FTR_AUTOTEAM)
 {
     //mlog(ACLOG_DEBUG, "shuffleteams(%d)", ftr);
-    shuffleteams_at3(ftr);
+    if(usevita)
+    {
+        shuffleteams_vita(ftr);
+    }else{
+        shuffleteams_at3(ftr);
+    }
 }
 
 void resetserver(const char *newname, int newmode, int newtime)
