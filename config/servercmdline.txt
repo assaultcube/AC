@@ -29,7 +29,7 @@
 // -Y     // 32-byte private server key (you should maybe include that from another config file and remove it from the server after startup)
 // -m     // masterserver URL (no parameter uses default URL), if not set, the server will be LAN-only
 
--Y AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA // this default value is a security risk so please define your own private server key (!!)
+-Y AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA // replace default value !! – see https://assault.cubers.net/docs/server.html – execute 'authkey new MY_KEY' in client and look in authkeys.cfg
 
 // the switches o, n, n1 and n2 support coloring and character escaping; 'o' also supports escaped newlines
 // the available colors are: 0: green, 1: blue, 2: yellow, 3: red, 4: gray, 5: white, 6: dark brown, 7: dark red

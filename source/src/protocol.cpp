@@ -472,7 +472,7 @@ void filterlang(char *d, const char *s)
     *d = '\0';
 }
 
-void filtercountrycode(char *d, const char *s) // returns exactly two uppercase chars or "--"
+void filtercountrycode(char *d, const char *s) // tries to return two uppercase chars or "--"
 {
     if(strlen(s) == 2 && isalpha(s[0]) && isalpha(s[1]))
     {
@@ -480,7 +480,7 @@ void filtercountrycode(char *d, const char *s) // returns exactly two uppercase 
         d[1] = toupper(s[1]);
     }
     else d[0] = d[1] = '-';
-    d[2] = '\0';
+    d[max(0,min((int)strlen(s),2))] = '\0';
 }
 
 void trimtrailingwhitespace(char *s)

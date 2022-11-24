@@ -492,7 +492,7 @@ int twohextodec(uchar a, uchar b){ return hextodec(a) * 16 + hextodec(b); }
 Texture *getidenticon(char uhash[PUBKEYSAFE])
 {
     prepidenticon(uhash);
-    defformatstring(imagepath)("packages/identicons/%s.png", uhash);
+    defformatstring(imagepath)("packages" PATHDIVS "identicons" PATHDIVS "%s.png", uhash);
     return textureload(imagepath);
 }
 
@@ -553,9 +553,9 @@ void prepidenticon(char uhash[PUBKEYSAFE])
     static int padding = 8;
     static int padhues[5] = {0x00,0x40,0x80,0xC0,0xFF};
     extern string homedir; // we need to fileexists check profile explicitly, but installation has some prerendered too
-    defformatstring(imagepath_read)("%spackages/identicons/%s.png", homedir, uhash);
-    defformatstring(imagepath_save)("packages/identicons/%s.png", uhash);
-    if( fileexists(imagepath_read, "r") || fileexists(imagepath_save, "r") ){ return; } // both paths may have files to load
+    defformatstring(imagepath_read)("%spackages" PATHDIVS "identicons" PATHDIVS "%s.png", homedir, uhash);
+    defformatstring(imagepath_save)("packages" PATHDIVS "identicons" PATHDIVS "%s.png", uhash);
+    if( fileexists(imagepath_read, "r") || fileexists(imagepath_save, "r") ){ return; } // both paths may have files to *load*, textureload will find them but this is faster
     SDL_Surface *image = creatergbsurface(imagesize, imagesize);
     if(!image) return;
     SDL_Rect useRect;
@@ -1344,7 +1344,7 @@ void initclientlog()  // rotate old logfiles and create new one
 #ifdef _DEBUG
 void sanitychecks()
 {
-    ASSERT((GMMASK__BOT ^ GMMASK__MP ^ GMMASK__TEAM ^ GMMASK__FFA ^ GMMASK__TEAMSPAWN ^ GMMASK__FFASPAWN) == GMMASK__ALL);
+    ASSERT((GMMASK__BOT ^ GMMASK__MP ^ GMMASK__TEAM ^ GMMASK__FFA ^ GMMASK__TEAMSPAWN ^ GMMASK__FFASPAWN ^ GMMASK__KARP) == GMMASK__ALL);
     float fa = 1 << LARGEST_FACTOR, fb = fa;
     while(fa != fa + fb) fb /= 2;
     ASSERT(2 * fb < NEARZERO);

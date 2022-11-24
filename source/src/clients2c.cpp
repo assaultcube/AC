@@ -451,8 +451,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
 
             case SV_MOTD:
                 getstring(text, p);
-                conoutf("MOTD:");
-                conoutf("\f4%s", text);
+                conoutf("MOTD: \f4%s", text);
             break;
 
             case SV_TEXTME:
@@ -839,6 +838,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 }
                 break;
             }
+
             case SV_ITEMSPAWN:
             {
                 int i = getint(p);
@@ -984,7 +984,15 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 break;
             }
 
-            case SV_SERVMSGVERB:  // FIXME
+            case SV_SERVMSGVERB:
+            /*
+             * FIXME – in what way? …
+             * … intended handling of verbose/server-"spam" (see comment server.cpp:sendsrvmsgverbose()) was never communicated;
+             * currently only demo related messages use this message type
+             *
+             * a more robust system would use state-change/details messaging
+             *
+             * */
             case SV_SERVMSG:
                 getstring(text, p);
                 conoutf("%s", text);

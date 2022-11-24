@@ -967,7 +967,14 @@ void refreshservers(void *menu, bool init)
     if(!sk)
     {
         closemenu("serverbrowser");
-        showmenu("enter password");
+        if(identexists("savedpass"))
+        {
+            conoutf("wait for auth");
+            showmenu("wait4auth");
+        }else{
+            conoutf("showing menu enter password");
+            showmenu("enter password");
+        }
     }
 
     serverinfo *curserver = getconnectedserverinfo(), *oldsel = NULL;

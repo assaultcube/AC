@@ -125,13 +125,12 @@ int totalclients = 0;
 int cn2boot;
 
 // synchronising the worker threads...
-const char *endis[] = { "disabled", "enabled", "" };
-SERVPARLIST(dumpmaprot, 0, 1, 0, endis, "ddump maprot parameters for all maps (once, to logs/debug/maprot_debug_verbose.txt)");
-SERVPARLIST(dumpparameters, 0, 0, 0, endis, "ddump server parameters when updated");
+const char *offoron[] = { "disabled", "enabled", "" };
+SERVPARLIST(dumpmaprot, 0, 1, 0, offoron, "ddump maprot parameters for all maps (once, to logs/debug/maprot_debug_verbose.txt)");
+SERVPARLIST(dumpparameters, 0, 0, 0, offoron, "ddump server parameters when updated");
 //SERVPAR(vitaautosave, 0, 10, 24 * 60, "sVita file autosave interval in minutes (0: only when server is empty)"); // deprecated
 SERVPAR(vitamaxage, 3, 12, 120, "sOmit vitas from autosave, if the last login has been more than the specified number of months ago");
 
-//int lastvitasave = 0; // deprecated
 bool pushvitasforsaving(bool forceupdate = false)
 {
     if(isdedicated)
@@ -142,7 +141,6 @@ bool pushvitasforsaving(bool forceupdate = false)
         }
         else
         {
-            //lastvitasave = servmillis;
             vitastosave = new vector<vitakey_s>;
             vitakey_s vk;
             int too_old = 0;
@@ -360,7 +358,7 @@ servermap *randommap()
     return s;
 }
 
-SERVPARLIST(dumpsuggestions, 0, 1, 0, endis, "ddump maprot suggestions whenever recalculated");
+SERVPARLIST(dumpsuggestions, 0, 1, 0, offoron, "ddump maprot suggestions whenever recalculated");
 
 servermap *servermaprot::recalcgamesuggestions(int numpl) // regenerate list of playable games (map+mode)
 {
@@ -801,11 +799,11 @@ void gemareturn(int cn)
 #define MAXDEMOS 24
 
 SERVPAR(demo_max_number, 5, 7, MAXDEMOS - 1, "DMaximum number of demo files in RAM");
-SERVPARLIST(demo_save, 0, 1, 0, endis, "DWrite demos to file");
+SERVPARLIST(demo_save, 0, 1, 0, offoron, "DWrite demos to file");
 SERVSTR(demo_path, "", 0, 63, FTXT__DEMONAME, "DDemo path (and filename) prefix");
 SERVSTR(demo_filenameformat, "%w_%h_%n_%Mmin_%G", 0, 63, FTXT__FORMATSTRING, "DDemo file format string");
 SERVSTR(demo_timestampformat, "%Y%m%d_%H%M", 0, 23, FTXT__FORMATSTRING, "DDemo timestamp format string");
-SERVPARLIST(demo_debug, 0, 1, 0, endis, "DExcessive logging during demo recording (FIXME)");
+SERVPARLIST(demo_debug, 0, 1, 0, offoron, "DExcessive logging during demo recording (FIXME)");
 
 typedef ringbuf<uchar, DEMORINGBUFSIZE> demoringbuf;
 typedef vector<uchar> demobuf;
@@ -2414,7 +2412,7 @@ bool refillteams(bool now, int ftr)  // force only minimal amounts of players
                 int targetscore = diffscore / (diffnum & ~1);
                 loopv(clients) if(clients[i]->type!=ST_EMPTY && !clients[i]->at3_dontmove) // try all still movable players
                 {
-                    int fit = targetscore;
+                    int fit = targetscore - clients[i]->at3_score;
                     if(fit < 0 ) fit = -(fit * 15) / 10;       // avoid too good players
                     int forcedelay = clients[i]->at3_lastforce ? (1000 - (sg->gamemillis - clients[i]->at3_lastforce) / (5 * 60)) : 0;
                     if(forcedelay > 0) fit += (fit * forcedelay) / 600;   // avoid lately forced players
@@ -2763,7 +2761,7 @@ bool svote(int sender, int vote, ENetPacket *msg) // true if the vote was placed
         sendpacket(-1, 1, msg, sender);
 
         clients[sender]->vote = vote;
-        mlog(ACLOG_DEBUG,"[%s] client %s voted %s", clients[sender]->hostname, clients[sender]->name, vote == VOTE_NO ? "no" : "yes");
+        mlog(ACLOG_DEBUG, "[%s] client %s voted %s", clients[sender]->hostname, clients[sender]->name, vote == VOTE_NO ? "no" : "yes");
         curvote->evaluate();
         return true;
     }
@@ -3307,7 +3305,7 @@ void polldeferredprocessing()
 // server side processing of updates: does very little and most state is tracked client only
 // could be extended to move more gameplay to server (at expense of lag)
 
-SERVPARLIST(auth_verify_ip, 0, 0, 0, endis, "sVerify server IP reported by the client during auth");
+SERVPARLIST(auth_verify_ip, 0, 0, 0, offoron, "sVerify server IP reported by the client during auth");
 
 void process(ENetPacket *packet, int sender, int chan)
 {
@@ -3660,15 +3658,15 @@ void process(ENetPacket *packet, int sender, int chan)
             {
                 int s = getint(p);
                 /* spam filter */
-                if ( servmillis > cl->mute ) // client is not muted
+                if(servmillis > cl->mute) // client is not muted
                 {
                     if(!gamesound_isvoicecom(s)) cl->mute = servmillis + 10000; // vc is invalid
-                    else if ( cl->lastvc + 4000 < servmillis ) { if ( cl->spam > 0 ) cl->spam -= (servmillis - cl->lastvc) / 4000; } // no vc in the last 4 seconds
+                    else if(cl->lastvc + 4000 < servmillis){ if(cl->spam > 0) cl->spam -= (servmillis - cl->lastvc) / 4000; } // no vc in the last 4 seconds
                     else cl->spam++; // the guy is spamming
-                    if ( cl->spam < 0 ) cl->spam = 0;
+                    if(cl->spam < 0) cl->spam = 0;
                     cl->lastvc = servmillis; // register
-                    if ( cl->spam > 4 ) { cl->mute = servmillis + 10000; break; } // 5 vcs in less than 20 seconds... shut up please
-                    if ( type == SV_VOICECOM ) { QUEUE_MSG; }
+                    if(cl->spam > 4){ cl->mute = servmillis + 10000; break; } // 5 vcs in less than 20 seconds... shut up please
+                    if(type == SV_VOICECOM){ QUEUE_MSG; }
                     else sendvoicecomteam(s, sender);
                 }
             }
@@ -4608,7 +4606,7 @@ void loggamestatus(const char *reason)
         if(m_park)                                                                   // place points (PARKOUR)
         {
             concatformatstring(text, " %2d %4d", c.state.parkplace, c.state.parkpoints );
-        }
+        }// possibly ELSE the flag to tk values away ?! going with full set now instead of reduced
         if(m_flags_) concatformatstring(text, "%4d ", c.state.flagscore);            // flag
         concatformatstring(text, "%4d %5d", c.state.frags, c.state.deaths);          // frag death
         if(m_teammode) concatformatstring(text, " %2d", c.state.teamkills);          // tk
@@ -4712,7 +4710,7 @@ void linequalitystats(int elapsed)
     }
 }
 
-SERVPARLIST(mandatory_auth, 0, 1, 0, endis, "sEnforce IDs for all clients even on unlisted server/LAN game");
+SERVPARLIST(mandatory_auth, 0, 1, 0, offoron, "sEnforce IDs for all clients even on unlisted server/LAN game");
 
 void serverslice(uint timeout)   // main server update, called from cube main loop in sp, or dedicated server loop
 {
@@ -5145,7 +5143,7 @@ void initserver(bool dedicated)
         formatstring(vitafilename_update_backup_base)("%s_update_", scl.vitabasename);
         path(vitafilename); path(vitafilename_backup); path(vitafilename_update); path(vitafilename_update_backup_base);
         char *vn;
-        int gotvitas = readvitas((vn = vitafilename));
+        int gotvitas = readvitas((vn = vitafilename)); // FIXME: broken characters (from countrycodes) can lead to crashes
         if(gotvitas < 0) gotvitas = readvitas((vn = vitafilename_backup));
         if(gotvitas >= 0) mlog(ACLOG_INFO, "read %d player vitas from %s", gotvitas, vn);
         maprot.init(scl.maprotfile);
@@ -5165,11 +5163,13 @@ void initserver(bool dedicated)
         mlog(ACLOG_VERBOSE,"maxclients: %d, kick threshold: %d, ban threshold: %d", scl.maxclients, scl.kickthreshold, scl.banthreshold);
         if(scl.master) mlog(ACLOG_VERBOSE,"master server URL: \"%s\"", scl.master);
         if(scl.serverpassword[0]) mlog(ACLOG_VERBOSE,"server password: \"%s\"", hiddenpwd(scl.serverpassword));
+/*
 #ifdef ACAC
         mlog(ACLOG_INFO, "anticheat: enabled");
 #else
         mlog(ACLOG_INFO, "anticheat: disabled");
 #endif
+*/
     }
 
     resetserverifempty();

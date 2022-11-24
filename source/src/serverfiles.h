@@ -1161,7 +1161,8 @@ struct serveripcclist : serverconfigfile
                 ipranges.remove(i--); continue;
             }
         }
-        if(logcheck(ACLOG_VERBOSE)) loopv(ipranges) mlog(ACLOG_VERBOSE," %s %s", iprtoa(ipranges[i], b1), printcomment(ipranges[i]));
+        // CAVEAT EMPTOR: the following output of (currently ~= 240 000 lines of) ipranges will overflow the log ringbuffer!
+        //if(logcheck(ACLOG_VERBOSE)) loopv(ipranges) mlog(ACLOG_VERBOSE," %s %s", iprtoa(ipranges[i], b1), printcomment(ipranges[i]));
         mlog(ACLOG_INFO,"read %d (%d) IP list entries from '%s', %d errors, %d concatenated", ipranges.length(), orglength, filename, errors, concatd);
     }
 
