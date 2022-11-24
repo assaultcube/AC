@@ -1219,6 +1219,7 @@ void checkdemotransmissions()
         loopi(MAXDEMOS) if(demos[i].sequence == curdemoseq && demos[i].done) d = demos + i;
         if(d && cl->clientsequence == curclseq)
         { // demo and client still exist: continue transmission
+            sendf(curcl, 1, "ri4", SV_DETAILS, DC_DEMO, DT_INIT, d->len);
             // FIXME....
             packetbuf p(MAXTRANS + d->len, ENET_PACKET_FLAG_RELIABLE);
             putint(p, SV_SENDDEMO);
@@ -1231,6 +1232,8 @@ void checkdemotransmissions()
             putint(p, d->len);
             p.put(d->data, d->len);
             sendpacket(cl->clientnum, 2, p.finalize());
+        }else{
+            sendf(curcl, 1, "ri4", SV_DETAILS, DC_DEMO, DT_ERROR, 0);
         }
         curcl = -1; // done
     }
@@ -3507,7 +3510,7 @@ int checktype(int type, client *cl)
                         SV_SERVMSG, SV_SERVMSGVERB, SV_ITEMLIST, SV_FLAGINFO, SV_FLAGMSG, SV_FLAGCNT,
                         SV_ARENAWIN, SV_SERVOPINFO,
                         SV_CALLVOTESUC, SV_CALLVOTEERR, SV_VOTERESULT,
-                        SV_SETTEAM, SV_TEAMDENY, SV_SERVERMODE, SV_IPLIST,
+                        SV_SETTEAM, SV_TEAMDENY, SV_SERVERMODE, SV_IPLIST, SV_DETAILS,
                         SV_SENDDEMOLIST, SV_SENDDEMO, SV_DEMOPLAYBACK,
                         SV_CLIENT, SV_DEMOCHECKSUM, SV_PAUSEMODE };
     // only allow edit messages in coop-edit mode

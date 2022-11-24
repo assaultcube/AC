@@ -674,6 +674,27 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 getint(p);
                 break;
 
+            case SV_DETAILS:
+            {
+                int detailscategory = getint(p);
+                int detailstype = getint(p);
+                int detailsvalue = getint(p);
+                switch(detailscategory)
+                {
+                    case DC_DEMO:
+                        switch(detailstype)
+                        {
+                            case DT_INIT: conoutf("\f2DEMO DOWNLOAD\fY: \f0expecting \f1%d \f0bytes", detailsvalue); break; // value ^= bytes to expect
+                            case DT_ERROR: conoutf("\f2DEMO DOWNLOAD\fY: \f3failed"); break; // TODO: clean D/L GUI
+                            // UNUSED DTs: DT_PROGRESS DT_FINISH DT_QUIRK
+                            default: break;
+                        }
+                    break;
+                    default: break;
+                }
+                break;
+            }
+
             case SV_SHOTFX:
             {
                 int scn = getint(p), gun = getint(p);
