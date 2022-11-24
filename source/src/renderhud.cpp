@@ -83,35 +83,48 @@ void drawmyidenticon()
 {
     if(myidentity.joined > 0)
     {
-        int deltat = lastmillis - myidentity.joined;
+        int deltat = totalmillis - myidentity.joined;
         if(deltat < showidentitymillis)
         {
             int movetime = showidentitymillis / 5;
-            if(myidentity.tex->id)
+            if(myidentity.tex == NULL)
             {
-                glPushMatrix();
-                glDisable(GL_BLEND);
-                glEnable(GL_TEXTURE_2D);
-                glLoadIdentity();
-                const int vw = VIRTW/4;
-                const int vh = VIRTH/4;
-                int offx = 72;
-                int offy = 96;
-                float movy = 0;
-                if(deltat<movetime)
+                myidentity.tex = getidenticon(player1->pubkeyhex);
+            }
+            if(myidentity.tex != NULL)
+            {
+                if(myidentity.tex->id)
                 {
-                    movy = deltat / (1.0f * movetime);
-                }else{
-                    if(deltat>4*movetime)
+                    glPushMatrix();
+                    glDisable(GL_BLEND);
+                    glEnable(GL_TEXTURE_2D);
+                    glLoadIdentity();
+                    const int vw = VIRTW/4;
+                    const int vh = VIRTH/4;
+                    int offx = 72;
+                    int offy = 86;//96
+                    float movy = 0;
+                    if(deltat<movetime)
                     {
-                        movy = (showidentitymillis - deltat) / (1.0f * movetime);
+                        movy = deltat / (1.0f * movetime);
+                    }else{
+                        if(deltat>4*movetime)
+                        {
+                            movy = (showidentitymillis - deltat) / (1.0f * movetime);
+                        }else{
+                            movy = 1;
+                        }
                     }
+                    offy = -64 + 150 * movy;
+                    glOrtho(0, vw, vh, 0, -1, 1);
+                    quad(myidentity.tex->id, vw-offx, vh-offy, 64, 0, 0, 1);
+                    glEnable(GL_BLEND);
+                    glPopMatrix();
+                }else{
+                    myidentity.joined = 0;
                 }
-                if(movy) offy = -64 + 150 * movy;
-                glOrtho(0, vw, vh, 0, -1, 1);
-                quad(myidentity.tex->id, vw-offx, vh-offy, 64, 0, 0, 1);
-                glEnable(GL_BLEND);
-                glPopMatrix();
+            }else{
+                myidentity.joined = 0;
             }
         }else{
             myidentity.joined = 0;
@@ -133,7 +146,7 @@ void drawotheridenticons()
         if(other.joined > 0)
         {
             int deltat = lastmillis - other.joined;
-            if(deltat < showidentitymillis)
+            if(deltat >= 0 && deltat < showidentitymillis)
             {
                 int movetime = showidentitymillis / 5;
                 if(other.tex->id)

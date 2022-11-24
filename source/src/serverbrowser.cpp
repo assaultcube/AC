@@ -1458,6 +1458,7 @@ void updatefrommaster(int *force)
 {
     static int lastupdate = 0;
     if(!*force && lastupdate && totalmillis-lastupdate<masterupdatefrequency*1000) return;
+    int ufm_starttime = SDL_GetTicks();
     vector<char> data;
     bool contact = retrieveservers(data);
     if(contact)
@@ -1474,6 +1475,7 @@ void updatefrommaster(int *force)
             if(curserver) addserver(curname, curserver->port, curserver->msweight);
         }
         lastupdate = totalmillis;
+        if(myidentity.joined>0) myidentity.joined = totalmillis + (SDL_GetTicks() - ufm_starttime); // simply retrigger showing the identicon, even if it's not the first updatefrommaster
     }else{
         conoutf("Master server is not replying. \f1Get more information at http://masterserver.cubers.net/");
     }

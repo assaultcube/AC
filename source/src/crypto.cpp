@@ -1022,10 +1022,9 @@ void authsetup(char **args, int numargs)  // set up private and public keys
             if( player1->identified && strcmp(bufhex, player1->pubkeyhex) ) player1->identified = false; // identity changed - TODO?: hook/action
             if(!player1->identified)
             {
-                player1->identified = true;
-                myidentity.joined = lastmillis; // trigger display of own identicon - for recognition of your own visual and the fact auth happened
                 memcpy(myidentity.pubkeyhex, player1->pubkeyhex, PUBKEYSAFE);
-                myidentity.tex = getidenticon(player1->pubkeyhex);
+                myidentity.joined = totalmillis; // trigger display of own identicon - for recognition of your own visual and the fact auth happened
+                player1->identified = true;
                 exechook(HOOK_SP_MP, "onAuth", "");
             }
             DEBUG("successfully found keypair for pub " << bin2hex(hextemp, pub, 32));
@@ -1190,6 +1189,7 @@ COMMANDN(authkey,authkey_, "v");
 #define CERTTIMEDAY (24 * 60)
 #define CERTTIMEMONTH (30 * 24 * 60)
 
+// root certificate (public)
 uchar rootcert[] = { 0xfb, 0xe9, 0xd1, 0x25, 0x38, 0xf7, 0x88, 0xd0, 0x19, 0x41, 0xcb, 0x5a, 0x79, 0x9d, 0x6b, 0xb1,
                      0x86, 0xcb, 0xe5, 0x20, 0x61, 0xaf, 0xd7, 0xdb, 0xfc, 0x75, 0xcd, 0xbd, 0x48, 0x59, 0x05, 0x71 };
 
