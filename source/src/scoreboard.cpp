@@ -18,9 +18,10 @@ VARFP(sc_flags,      0,  0, 100, needscoresreorder = true);
 VARFP(sc_frags,      0,  1, 100, needscoresreorder = true);
 VARFP(sc_deaths,    -1,  2, 100, needscoresreorder = true);
 VARFP(sc_ratio,     -1, -1, 100, needscoresreorder = true);
-VARFP(sc_lag,       -1,  4, 100, needscoresreorder = true);
-VARFP(sc_clientnum,  0,  5, 100, needscoresreorder = true);
-VARFP(sc_name,       0,  6, 100, needscoresreorder = true);
+VARFP(sc_score,     -1,  4, 100, needscoresreorder = true);
+VARFP(sc_lag,       -1,  5, 100, needscoresreorder = true);
+VARFP(sc_clientnum,  0,  6, 100, needscoresreorder = true);
+VARFP(sc_name,       0,  7, 100, needscoresreorder = true);
 
 struct coldata
 {
@@ -34,8 +35,7 @@ struct coldata
     }
 };
 
-// FIXME ? if two columns share teh same priority
-// they will be sorted by the order they were added with addcol
+// if two columns share the same priority they will be sorted by the order they were added with addcol()
 int sortcolumns(coldata *col_a, coldata *col_b)
 {
     if(col_a->priority > col_b->priority) return 1;
@@ -85,9 +85,9 @@ vector<discscore> discscores;
 
 struct teamscore
 {
-    int team, frags, deaths, flagscore;
+    int team, frags, deaths, flagscore, at3_points;
     vector<playerent *> teammembers;
-    teamscore(int t) : team(t), frags(0), deaths(0), flagscore(0) {}
+    teamscore(int t) : team(t), frags(0), deaths(0), flagscore(0), at3_points(0) {}
 
     void addplayer(playerent *d)
     {
@@ -95,6 +95,7 @@ struct teamscore
         teammembers.add(d);
         frags += d->frags;
         deaths += d->deaths;
+        at3_points += d->at3_points;
         if(m_flags_) flagscore += d->flagscore;
     }
 
@@ -102,6 +103,7 @@ struct teamscore
     {
         frags += d.frags;
         deaths += d.deaths;
+        at3_points += d.at3_points;
         if(m_flags_) flagscore += d.flags;
     }
 };
@@ -131,6 +133,9 @@ static int teamscorecmp(const teamscore *x, const teamscore *y)
     if(x->flagscore < y->flagscore) return 1;
     if(x->frags > y->frags) return -1;
     if(x->frags < y->frags) return 1;
+    if(x->at3_points > y->at3_points) return -1;
+    if(x->at3_points < y->at3_points) return 1;
+    if(x->deaths > y->deaths) return 1;
     if(x->deaths < y->deaths) return -1;
     return 0;
 }
@@ -141,6 +146,8 @@ static int scorecmp(playerent **x, playerent **y)
     if((*x)->flagscore < (*y)->flagscore) return 1;
     if((*x)->frags > (*y)->frags) return -1;
     if((*x)->frags < (*y)->frags) return 1;
+    if((*x)->at3_points > (*y)->at3_points) return -1;
+    if((*x)->at3_points < (*y)->at3_points) return 1;
     if((*x)->deaths > (*y)->deaths) return 1;
     if((*x)->deaths < (*y)->deaths) return -1;
     if((*x)->lifesequence > (*y)->lifesequence) return 1;
@@ -161,19 +168,21 @@ static int discscorecmp(const discscore *x, const discscore *y)
     return strcmp(x->name, y->name);
 }
 
-// const char *scoreratio(int frags, int deaths, int precis = 0)
-// {
-//     static string res;
-//     float ratio = SCORERATIO(frags, deaths);
-//     int precision = precis;
-//     if(!precision)
-//     {
-//         if(ratio<10.0f) precision = 2;
-//         else if(ratio<100.0f) precision = 1;
-//     }
-//     formatstring(res)("%.*f", precision, ratio);
-//     return res;
-// }
+/*
+const char *scoreratio(int frags, int deaths, int precis = 0)
+{
+    static string res;
+    float ratio = SCORERATIO(frags, deaths);
+     int precision = precis;
+    if(!precision)
+    {
+        if(ratio<10.0f) precision = 2;
+        else if(ratio<100.0f) precision = 1;
+    }
+    formatstring(res)("%.*f", precision, ratio);
+    return res;
+}
+ */
 
 void renderdiscscores(int team)
 {
@@ -188,6 +197,7 @@ void renderdiscscores(int team)
         line.addcol(sc_frags, "%d", d.frags);
         line.addcol(sc_deaths, "%d", d.deaths);
         line.addcol(sc_ratio, "%.2f", SCORERATIO(d.frags, d.deaths));
+        if(multiplayer(NULL)||watchingdemo) line.addcol(sc_score, "%d", max(d.at3_points, 0));
         line.addcol(sc_lag, "%s", clag);
         line.addcol(sc_clientnum, "DISC");
         line.addcol(sc_name, "%s", d.name);
@@ -219,8 +229,12 @@ void renderscore(playerent *d)
     line.addcol(sc_frags, "%d", d->frags);
     line.addcol(sc_deaths, "%d", d->deaths);
     line.addcol(sc_ratio, "%.2f", SCORERATIO(d->frags, d->deaths));
-    if(multiplayer(NULL) || watchingdemo) line.addcol(sc_lag, "%s", lagping);
+    if(multiplayer(NULL) || watchingdemo)
+    {
+        line.addcol(sc_score, "%d", max(d->at3_points, 0));
+        line.addcol(sc_lag, "%s", lagping);
 
+    }
     line.addcol(sc_clientnum, "\fs\f%d%d\fr", cncolumncolor, d->clientnum);
     char flagicon = '\0';
     if(m_flags_) //show flag icon at flag carrier with use radaricons font
@@ -248,7 +262,11 @@ void renderteamscore(teamscore *t)
     line.addcol(sc_frags, "%d", t->frags);
     line.addcol(sc_deaths, "%d", t->deaths);
     line.addcol(sc_ratio, "%.2f", SCORERATIO(t->frags, t->deaths));
-    if(multiplayer(NULL) || watchingdemo) line.addcol(sc_lag);
+    if(multiplayer(NULL) || watchingdemo)
+    {
+      line.addcol(sc_score, "%d", max(t->at3_points, 0));
+      line.addcol(sc_lag);
+    }
     line.addcol(sc_clientnum, "%s", team_string(t->team));
     int n = t->teammembers.length();
     line.addcol(sc_name, "(%d %s)", n, n == 1 ? "player" : "players");
@@ -271,6 +289,7 @@ void reorderscorecolumns()
     sscore.addcol(sc_frags, "frags");
     sscore.addcol(sc_deaths, "deaths");
     sscore.addcol(sc_ratio, "ratio");
+    sscore.addcol(sc_score, "score");
     if(multiplayer(NULL) || watchingdemo) sscore.addcol(sc_lag, "pj/ping");
     sscore.addcol(sc_clientnum, "cn");
     sscore.addcol(sc_name, "name");
@@ -469,7 +488,7 @@ const char *asciiscores(bool destjpg)
     loopv(scores)
     {
         d = scores[i];
-//         const char *sr = scoreratio(d->frags, d->deaths);
+        // const char *sr = scoreratio(d->frags, d->deaths);
         formatstring(team)(destjpg ? ", %s" : " %-4s", team_string(d->team, true));
         formatstring(flags)(destjpg ? "%d/" : " %4d ", d->flagscore);
         if(destjpg)
@@ -483,7 +502,7 @@ const char *asciiscores(bool destjpg)
     loopv(discscores)
     {
         discscore &d = discscores[i];
-//         const char *sr = scoreratio(d.frags, d.deaths);
+        // const char *sr = scoreratio(d.frags, d.deaths);
         formatstring(team)(destjpg ? ", %s" : " %-4s", team_string(d.team, true));
         formatstring(flags)(destjpg ? "%d/" : " %4d ", d.flags);
         if(destjpg)

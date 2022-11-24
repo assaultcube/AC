@@ -438,7 +438,7 @@ public:
     uchar pubkey[PUBKEYBINLEN];
     char pubkeyhex[PUBKEYSAFE];
     int lifesequence;                   // sequence id for each respawn, used in damage test
-    int frags, flagscore, deaths, tks;
+    int frags, flagscore, deaths, at3_points, tks;
     int parkplace; // spawn progress in parkour
     int parkpoints; // counter progress in parkour
     int lastaction, lastmove, lastpain, lastvoicecom, lastdeath;
@@ -469,7 +469,7 @@ public:
     bool ignored, muted;
     bool nocorpse;
 
-    playerent() : curskin(0), clientnum(-1), lastupdate(0), plag(0), ping(0), address(0), identified(false), lifesequence(0), frags(0), flagscore(0), deaths(0), tks(0), parkplace(0), parkpoints(0), lastpain(0), lastvoicecom(0), lastdeath(0), clientrole(CR_DEFAULT),
+    playerent() : curskin(0), clientnum(-1), lastupdate(0), plag(0), ping(0), address(0), identified(false), lifesequence(0), frags(0), flagscore(0), deaths(0), at3_points(0), tks(0), parkplace(0), parkpoints(0), lastpain(0), lastvoicecom(0), lastdeath(0), clientrole(CR_DEFAULT),
                   team(TEAM_SPECT), spectatemode(SM_NONE), followplayercn(FPCN_VOID), eardamagemillis(0), maxroll(ROLLMOVDEF), maxrolleffect(ROLLEFFDEF), movroll(0), effroll(0), ffov(0), scopefov(0),
                   prevweaponsel(NULL), weaponsel(NULL), nextweaponsel(NULL), primweap(NULL), nextprimweap(NULL), lastattackweapon(NULL),
                   smoothmillis(-1),
@@ -589,7 +589,7 @@ public:
     }
     void startmap()
     {
-        frags = flagscore = deaths = lifesequence = tks = parkplace = parkpoints = 0;
+        frags = flagscore = deaths = at3_points = lifesequence = tks = parkplace = parkpoints = 0;
     }
 };
 

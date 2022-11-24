@@ -754,6 +754,35 @@ void sendf(int cn, int chan, const char *format, ...)
     sendpacket(cn, chan, p.finalize(), exclude);
 }
 
+void sendpoints() // only at3_points
+{
+    if( sg->gamemillis < sg->nextsendscore ) return;
+
+    int doers = 0, achievers[MAXCLIENTS];
+    loopv(clients)
+    {
+        client &c = *clients[i];
+        if(c.type!=ST_TCPIP || !c.isauthed || !(0 < c.effort.updatemillis < sg->gamemillis)) continue;
+        if(c.effort.deltapoints) achievers[doers++] = i;
+    }
+    sg->nextsendscore = sg->gamemillis + 160; // about 4 cycles
+    if(!doers) return;
+
+    packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
+    putint(p, SV_POINTS);
+    putint(p, doers);
+    int *v = achievers;
+    loopi(doers)
+    {
+        client &c = *clients[*v];
+        putint(p, c.clientnum);
+        putint(p, c.effort.deltapoints);
+        c.effort.updatemillis = c.effort.deltapoints = 0;
+        v++;
+    }
+    sendpacket(-1, 1, p.finalize());
+}
+
 void sendservmsg(const char *msg, int cn = -1)
 {
     sendf(cn, 1, "ris", SV_SERVMSG, msg);
@@ -1629,7 +1658,8 @@ void htf_forceflag(int flag)
     f.lastupdate = sg->gamemillis;
 }
 
-int cmpscore(const int *a, const int *b) { return clients[*a]->at3_score - clients[*b]->at3_score; }
+int cmpscore_at3(const int *a, const int *b) { return clients[*a]->at3_score - clients[*b]->at3_score; }
+int cmpscore_vita(const int *a, const int *b) { return clients[*a]->vita_score - clients[*b]->vita_score; }
 
 vector<twoint> sdistrib;
 
@@ -2035,6 +2065,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
 
         if(target!=actor)
         {
+            checkcombo(target, actor, damage, gun);
             if(!hitpush.iszero())
             {
                 vec v(hitpush);
@@ -2049,6 +2080,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
         int targethasflag = clienthasflag(target->clientnum);
         bool tk = false, suic = false;
         target->state.deaths++;
+        checkfrag(target, actor, gun, gib);
         target->incrementvitacounter(VS_DEATHS, 1);
 
         if(target!=actor)
@@ -2257,6 +2289,7 @@ bool updateclientteam(int cln, int newteam, int ftr)
 
 int calcscoresvita() // vita skill eval
 {
+    mlog(ACLOG_DEBUG, "VITA CALCULATION – CN : SCORE : frags, damage, flags, deaths, friendlydamage, antiflags, tks, suicides, minutes active");
     int sum = 0;
     loopv(clients) if(clients[i]->type!=ST_EMPTY)
     {
@@ -2264,15 +2297,18 @@ int calcscoresvita() // vita skill eval
         {
             int *vs = clients[i]->vita->vs;
             int cskill = ((vs[VS_FRAGS]*100+vs[VS_DAMAGE]*2+vs[VS_FLAGS]*10) - (vs[VS_DEATHS]*50+vs[VS_FRIENDLYDAMAGE]*3+vs[VS_ANTIFLAGS]*15+vs[VS_TKS]*100+vs[VS_SUICIDES]*100))/vs[VS_MINUTESACTIVE];
-            clients[i]->at3_score = cskill;
+            clients[i]->vita_score = cskill;
+            mlog(ACLOG_DEBUG, "VITA CN-%02d : %d : %d %d %d %d %d %d %d %d %d", clients[i]->clientnum, cskill, vs[VS_FRAGS], vs[VS_DAMAGE], vs[VS_FLAGS], vs[VS_DEATHS], vs[VS_FRIENDLYDAMAGE], vs[VS_ANTIFLAGS], vs[VS_TKS], vs[VS_SUICIDES], vs[VS_MINUTESACTIVE]);
             sum += cskill; // vita skill sum will be >=0
         }
     }
+    mlog(ACLOG_DEBUG, "VITA SUM = %d", sum);
     return sum;
 }
 
 int calcscoresmatch() // match skill eval
 {
+    mlog(ACLOG_DEBUG, "MATCH CALCULATION – CN : SCORE : frags, enemyfire, goodflags, deaths, friendlyfire, antiflags, teamkills, suicides");
     int sum = 0;
     int nsp = 0; // no score players
     loopv(clients) if(clients[i]->type!=ST_EMPTY)
@@ -2281,16 +2317,19 @@ int calcscoresmatch() // match skill eval
         {
             clientstate &cs = clients[i]->state;
             int cskill = (cs.frags*100 + cs.enemyfire*2 + cs.goodflags*10) - (cs.deaths*50 + cs.friendlyfire*3 + cs.antiflags*15 + cs.teamkills*100 + cs.suicides*100);
-            clients[i]->at3_score = cskill;
+            clients[i]->vita_score = cskill;
+            //                    CN   : CS : F  EF GF D  FF AF TK SC
+            mlog(ACLOG_DEBUG, "MATCH CN-%02d : %d : %d %d %d %d %d %d %d %d", clients[i]->clientnum, cskill, cs.frags, cs.enemyfire, cs.goodflags, cs.deaths, cs.friendlyfire, cs.antiflags, cs.teamkills, cs.suicides);
             sum -= cskill; // match skill sum will be <=0
             if(cskill < 100) nsp++;
         }
     }
     if(sum > -100 * numplayers() || nsp >= numplayers()/2) return 0; // if at least half have tiny scores or the total isn't enough: indicate random seems best
+    mlog(ACLOG_DEBUG, "MATCH SUM = %d", -sum);
     return sum;
 }
 
-int calcscores()
+int calcscores_vita()
 {
     int sum = 0;
     int vitasum = calcscoresvita();
@@ -2300,17 +2339,37 @@ int calcscores()
     }
     else
     {
+        mlog(ACLOG_DEBUG, "VITA THRESHOLD FAIL %d / %d <= %d", vitasum, numplayers(), shuffleskillthreshold);
         sum = calcscoresmatch(); // indicate match skill used by sum<=0
     }
     return sum;
 }
 
+int calcscores_at3()
+{
+    mlog(ACLOG_DEBUG, "AT3 CALCULATIONS");
+    int sum = 0;
+    loopv(clients) if(clients[i]->type!=ST_EMPTY)
+    {
+        clientstate &cs = clients[i]->state;
+        mlog(ACLOG_DEBUG, "AT3 CN-%02d : %d", clients[i]->clientnum, clients[i]->at3_score);
+        sum += clients[i]->at3_score = cs.at3_points > 0 ? sqrt(cs.at3_points) : -sqrt(-cs.at3_points);
+    }
+    mlog(ACLOG_DEBUG, "AT3 SUM = %d", sum);
+    return sum;
+}
+
+int calcscores()
+{
+    return calcscores_at3();
+}
+
 vector<int> shuffle;
 
-void shuffleteams(int ftr = FTR_AUTOTEAM)
+void shuffleteams_vita(int ftr = FTR_AUTOTEAM)
 {
     int team; // top ranked player will stay on same team
-    int sum = calcscores();
+    int sum = calcscores_vita();
 
     // 20220109 only try skill based if each player has more than 200 on average. competitive players against each other currently have ~=1000.
     if(sum==0)
@@ -2348,9 +2407,9 @@ void shuffleteams(int ftr = FTR_AUTOTEAM)
         {
             shuffle.add(i);
         }else{
-            clients[i]->at3_score = 0;
+            clients[i]->vita_score = 0;
         }
-        shuffle.sort(cmpscore);
+        shuffle.sort(cmpscore_vita);
         team = !clients[shuffle[0]]->team; // top player will stay on same team
         int weakest2weakest = -1 + ((shuffle.length()%2) ? shuffle.length(): 0);
         loopi(shuffle.length())
@@ -2367,7 +2426,7 @@ void shuffleteams(int ftr = FTR_AUTOTEAM)
     }
 }
 
-bool refillteams(bool now, int ftr)  // force only minimal amounts of players
+bool refillteams_vita(bool now, int ftr)  // force only minimal amounts of players
 {
     if(sg->mastermode == MM_MATCH) return false;
     static int lasttime_eventeams = 0;
@@ -2375,6 +2434,218 @@ bool refillteams(bool now, int ftr)  // force only minimal amounts of players
     bool switched = false;
 
     calcscores();
+    loopv(clients) if(clients[i]->type!=ST_EMPTY)     // playerlist stocktaking
+    {
+        client *c = clients[i];
+        c->vita_dontmove = true;
+        if(c->isauthed)
+        {
+            if(team_isactive(c->team)) // only active players count
+            {
+                teamsize[c->team]++;
+                teamscore[c->team] += c->vita_score;
+                if(clienthasflag(i) < 0)
+                {
+                    c->vita_dontmove = false;
+                    moveable[c->team]++;
+                }
+            }
+        }
+    }
+    int bigteam = teamsize[1] > teamsize[0];
+    int allplayers = teamsize[0] + teamsize[1];
+    int diffnum = teamsize[bigteam] - teamsize[!bigteam];
+    int diffscore = teamscore[bigteam] - teamscore[!bigteam];
+    if(lasttime_eventeams > sg->gamemillis) lasttime_eventeams = 0;
+    if(diffnum > 1)
+    {
+        if(now || sg->gamemillis - lasttime_eventeams > 8000 + allplayers * 1000 || diffnum > 2 + allplayers / 10)
+        {
+            // time to even out teams
+            loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->team != bigteam) clients[i]->vita_dontmove = true;  // dont move small team players
+            while(diffnum > 1 && moveable[bigteam] > 0)
+            {
+                // pick best fitting cn
+                int pick = -1;
+                int bestfit = 1000000000;
+                int targetscore = diffscore / (diffnum & ~1);
+                loopv(clients) if(clients[i]->type!=ST_EMPTY && !clients[i]->vita_dontmove) // try all still movable players
+                {
+                    int fit = targetscore;
+                    if(fit < 0 ) fit = -(fit * 15) / 10;       // avoid too good players
+                    int forcedelay = clients[i]->vita_lastforce ? (1000 - (sg->gamemillis - clients[i]->vita_lastforce) / (5 * 60)) : 0;
+                    if(forcedelay > 0) fit += (fit * forcedelay) / 600;   // avoid lately forced players
+                    if(fit < bestfit + fit * rnd(100) / 400)   // search 'almost' best fit
+                    {
+                        bestfit = fit;
+                        pick = i;
+                    }
+                }
+                if(pick < 0) break; // should really never happen
+                // move picked player
+                clients[pick]->vita_dontmove = true;
+                moveable[bigteam]--;
+                if(updateclientteam(pick, !bigteam, ftr))
+                {
+                    diffnum -= 2;
+                    diffscore -= 2 * clients[pick]->vita_score;
+                    clients[pick]->vita_lastforce = sg->gamemillis;  // try not to force this player again for the next 5 minutes
+                    switched = true;
+                }
+            }
+        }
+    }
+    if(diffnum < 2)
+    {
+        lasttime_eventeams = sg->gamemillis;
+    }
+    return switched;
+}
+
+// AC1.2 code::
+void shuffleteams_at3(int ftr = FTR_AUTOTEAM)
+{
+    mlog(ACLOG_DEBUG, "AT3 shuffleteams");
+    int numplayers = numclients();
+    int team, sums = calcscores_at3();
+    if(sg->gamemillis < 2 * 60 *1000)
+    { // random
+        int teamsize[2] = {0, 0};
+        loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->isonrightmap && !team_isspect(clients[i]->team)) // only shuffle active players
+        {
+            sums += rnd(1000);
+            team = sums & 1;
+            if(teamsize[team] >= numplayers/2) team = team_opposite(team);
+            updateclientteam(i, team, ftr);
+            teamsize[team]++;
+            sums >>= 1;
+        }
+    }
+    else
+    { // skill sorted
+        shuffle.shrink(0);
+        sums /= 4 * numplayers + 2;
+        team = rnd(2);
+        loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->isonrightmap && !team_isspect(clients[i]->team))
+        {
+            clients[i]->at3_score += rnd(sums | 1);
+            shuffle.add(i);
+        }
+        shuffle.sort(cmpscore_at3);
+        loopi(shuffle.length())
+        {
+            updateclientteam(shuffle[i], team, ftr);
+            team = !team;
+        }
+    }
+}
+
+bool balanceteams_at3(int ftr)  // pro vs noobs never more
+{
+    if(sg->mastermode != MM_OPEN || totalclients < 3 ) return true;
+    mlog(ACLOG_DEBUG, "AT3 balanceteams");
+    int tsize[2] = {0, 0}, tscore[2] = {0, 0};
+    int totalscore = 0, nplayers = 0;
+    int flagmult = (m_ctf ? 50 : (m_htf ? 25 : 12));
+
+    loopv(clients) if(clients[i]->type!=ST_EMPTY)
+    {
+        client *c = clients[i];
+        if(c->isauthed && team_isactive(c->team))
+        {
+            int time = servmillis - c->connectmillis + 5000;
+            if ( time > sg->gamemillis ) time = sg->gamemillis + 5000;
+            tsize[c->team]++;
+            // effective score per minute, thanks to wtfthisgame for the nice idea
+            // in a normal game, normal players will do 500 points in 10 minutes
+            c->at3_eff_score = c->state.at3_points * 60 * 1000 / time + c->state.at3_points / 6 + c->state.flagscore * flagmult;
+            tscore[c->team] += c->at3_eff_score;
+            nplayers++;
+            totalscore += c->state.at3_points;
+        }
+    }
+
+    int h = 0, l = 1;
+    if ( tscore[1] > tscore[0] ) { h = 1; l = 0; }
+    if ( 2 * tscore[h] < 3 * tscore[l] || totalscore < nplayers * 100 ) return true;
+    if ( tscore[h] > 3 * tscore[l] && tscore[h] > 150 * nplayers )
+    {
+        shuffleteams_at3();
+        return true;
+    }
+
+    float diffscore = tscore[h] - tscore[l];
+
+    int besth = 0, hid = -1;
+    int bestdiff = 0, bestpair[2] = {-1, -1};
+    if ( tsize[h] - tsize[l] > 0 ) // the h team has more players, so we will force only one player
+    {
+        loopv(clients) if( clients[i]->type!=ST_EMPTY )
+        {
+            client *c = clients[i]; // loop for h
+            // client from the h team, not forced in this game, and without the flag
+            if( c->isauthed && c->team == h && !c->state.forced && clienthasflag(i) < 0 )
+            {
+                // do not exchange in the way that weaker team becomes the stronger or the change is less than 20% effective
+                if ( 2 * c->at3_eff_score <= diffscore && 10 * c->at3_eff_score >= diffscore && c->at3_eff_score > besth )
+                {
+                    besth = c->at3_eff_score;
+                    hid = i;
+                }
+            }
+        }
+        if ( hid >= 0 )
+        {
+            updateclientteam(hid, l, ftr);
+            clients[hid]->at3_lastforce = sg->gamemillis;
+            clients[hid]->state.forced = true;
+            return true;
+        }
+    }else{ // the h score team has less or the same player number, so, lets exchange
+        loopv(clients) if(clients[i]->type!=ST_EMPTY)
+        {
+            client *c = clients[i]; // loop for h
+            if( c->isauthed && c->team == h && !c->state.forced && clienthasflag(i) < 0 )
+            {
+                loopvj(clients) if(clients[j]->type!=ST_EMPTY && j != i )
+                {
+                    client *cj = clients[j]; // loop for l
+                    if( cj->isauthed && cj->team == l && !cj->state.forced && clienthasflag(j) < 0 )
+                    {
+                        int pairdiff = 2 * (c->at3_eff_score - cj->at3_eff_score);
+                        if ( pairdiff <= diffscore && 5 * pairdiff >= diffscore && pairdiff > bestdiff )
+                        {
+                            bestdiff = pairdiff;
+                            bestpair[h] = i;
+                            bestpair[l] = j;
+                        }
+                    }
+                }
+            }
+        }
+        if ( bestpair[h] >= 0 && bestpair[l] >= 0 )
+        {
+            updateclientteam(bestpair[h], l, ftr);
+            updateclientteam(bestpair[l], h, ftr);
+            clients[bestpair[h]]->at3_lastforce = clients[bestpair[l]]->at3_lastforce = sg->gamemillis;
+            clients[bestpair[h]]->state.forced = clients[bestpair[l]]->state.forced = true;
+            return true;
+        }
+    }
+    return false;
+}
+
+int lastbalance = 0, waitbalance = 2 * 60 * 1000;
+
+bool refillteams_at3(bool now, int ftr)  // force only minimal amounts of players
+{
+    if(sg->mastermode == MM_MATCH) return false;
+    mlog(ACLOG_DEBUG, "AT3 refillteams");
+    static int lasttime_eventeams = 0;
+    int teamsize[2] = {0, 0}, teamscore[2] = {0, 0}, moveable[2] = {0, 0};
+    bool switched = false;
+
+    calcscores_at3();
     loopv(clients) if(clients[i]->type!=ST_EMPTY)     // playerlist stocktaking
     {
         client *c = clients[i];
@@ -2438,9 +2709,37 @@ bool refillteams(bool now, int ftr)  // force only minimal amounts of players
     }
     if(diffnum < 2)
     {
+        if ( ( sg->gamemillis - lastbalance ) > waitbalance && ( sg->gamelimit - sg->gamemillis ) > 4*60*1000 )
+        {
+            if ( balanceteams_at3(ftr) )
+            {
+                waitbalance = 2 * 60 * 1000 + sg->gamemillis / 3;
+                switched = true;
+            }
+            else waitbalance = 20 * 1000;
+            lastbalance = sg->gamemillis;
+        }
+        else if ( lastbalance > sg->gamemillis )
+        {
+            lastbalance = 0;
+            waitbalance = 2 * 60 * 1000;
+        }
         lasttime_eventeams = sg->gamemillis;
     }
     return switched;
+}
+// ::AC1.2 code
+
+bool refillteams(bool now, int ftr)
+{
+    //mlog(ACLOG_DEBUG, "refillteams(%s:%d)", now?"now":"whenever", ftr);
+    return refillteams_at3(now,ftr);
+}
+
+void shuffleteams(int ftr = FTR_AUTOTEAM)
+{
+    //mlog(ACLOG_DEBUG, "shuffleteams(%d)", ftr);
+    shuffleteams_at3(ftr);
 }
 
 void resetserver(const char *newname, int newmode, int newtime)
@@ -2934,6 +3233,7 @@ void senddisconnectedscores(int cn)
                 putint(p, sc.flagscore);
                 putint(p, sc.frags);
                 putint(p, sc.deaths);
+                putint(p, sc.at3_points);
                 if(m_park)
                 {
                     putint(p, sc.parkplace);
@@ -2994,7 +3294,7 @@ void sendresume(client &c, bool broadcast)
 {
     if(m_park)
     {
-        sendf(broadcast ? -1 : c.clientnum, 1, "ri5i5i3ivvi", SV_RESUME,
+        sendf(broadcast ? -1 : c.clientnum, 1, "ri9i5ivvi", SV_RESUME,
             c.clientnum,
             c.state.state,
             c.state.lifesequence,
@@ -3005,6 +3305,7 @@ void sendresume(client &c, bool broadcast)
             c.state.deaths,
             c.state.health,
             c.state.armour,
+            c.state.at3_points,
             c.state.teamkills,
             c.state.parkplace,
             c.state.parkpoints,
@@ -3012,7 +3313,7 @@ void sendresume(client &c, bool broadcast)
             NUMGUNS, c.state.mag,
             -1);
     }else{
-        sendf(broadcast ? -1 : c.clientnum, 1, "ri3i8ivvi", SV_RESUME,
+        sendf(broadcast ? -1 : c.clientnum, 1, "ri9i3ivvi", SV_RESUME,
             c.clientnum,
             c.state.state,
             c.state.lifesequence,
@@ -3023,6 +3324,7 @@ void sendresume(client &c, bool broadcast)
             c.state.deaths,
             c.state.health,
             c.state.armour,
+            c.state.at3_points,
             c.state.teamkills,
             NUMGUNS, c.state.ammo,
             NUMGUNS, c.state.mag,
@@ -3140,6 +3442,7 @@ void welcomepacket(packetbuf &p, int n)
             putint(p, c.state.deaths);
             putint(p, c.state.health);
             putint(p, c.state.armour);
+            putint(p, c.state.at3_points);
             putint(p, c.state.teamkills);
             if(m_park)
             {
@@ -3189,7 +3492,7 @@ int checktype(int type, client *cl)
     static int servtypes[] = { SV_SERVINFO, SV_WELCOME, SV_INITCLIENT, SV_POSN, SV_CDIS, SV_GIBDIED, SV_DIED,
                         SV_GIBDAMAGE, SV_DAMAGE, SV_HITPUSH, SV_SHOTFX,
                         SV_SPAWNSTATE, SV_SPAWNDENY, SV_FORCEDEATH, SV_RESUME,
-                        SV_DISCSCORES, SV_TIMEUP, SV_ITEMACC, SV_MAPCHANGE, SV_ITEMSPAWN, SV_PONG,
+                        SV_DISCSCORES, SV_POINTS, SV_TIMEUP, SV_ITEMACC, SV_MAPCHANGE, SV_ITEMSPAWN, SV_PONG,
                         SV_SERVMSG, SV_SERVMSGVERB, SV_ITEMLIST, SV_FLAGINFO, SV_FLAGMSG, SV_FLAGCNT,
                         SV_ARENAWIN, SV_SERVOPINFO,
                         SV_CALLVOTESUC, SV_CALLVOTEERR, SV_VOTERESULT,
@@ -3666,6 +3969,9 @@ void process(ENetPacket *packet, int sender, int chan)
                     if(cl->spam < 0) cl->spam = 0;
                     cl->lastvc = servmillis; // register
                     if(cl->spam > 4){ cl->mute = servmillis + 10000; break; } // 5 vcs in less than 20 seconds... shut up please
+                    if(m_teammode){
+                        checkteamplay(s, sender);
+                    }
                     if(type == SV_VOICECOM){ QUEUE_MSG; }
                     else sendvoicecomteam(s, sender);
                 }
@@ -3827,6 +4133,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     ls!=cl->state.lifesequence || cl->state.lastspawn<0 || !valid_weapon(gunselect)) break;
                 cl->state.lastspawn = -1;
                 cl->state.spawn = sg->gamemillis;
+                cl->keptspawnpos = false;
                 cl->autospawn = false;
                 cl->state.state = CS_ALIVE;
                 cl->state.gunselect = gunselect;
@@ -3971,6 +4278,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     cl->position.setsize(0);
                     while(curmsg<p.length()) cl->position.add(p.buf[curmsg++]);
                 }
+                if(!m_demo && !m_coop) keepspawnpos(cl);
                 break;
             }
 
@@ -4020,6 +4328,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     cl->position.setsize(0);
                     while(curmsg<p.length()) cl->position.add(p.buf[curmsg++]);
                 }
+                if(!m_demo && !m_coop) keepspawnpos(cl);
                 break;
             }
 
@@ -4596,7 +4905,7 @@ void loggamestatus(const char *reason)
     mlog(ACLOG_INFO, "Game status: %s on %s, %s, %s, %d clients%c %s",
                       modestr(gamemode), sg->smapname, reason ? reason : text, mmfullname(sg->mastermode), totalclients, sg->custom_servdesc ? ',' : '\0', sg->servdesc_current);
     if(!scl.loggamestatus) return;
-    mlog(ACLOG_INFO, "cn name             %s%s%s%s frag death %sping role    host", m_teammode ? "team " : "", m_park ? "P@ " : "", m_park ? "#PP# " : "", m_flags_ ? "flag " : "", m_teammode ? "tk " : "");
+    mlog(ACLOG_INFO, "cn name             %s%s%s%s points frag death %sping role    host", m_teammode ? "team " : "", m_park ? "P@ " : "", m_park ? "#PP# " : "", m_flags_ ? "flag " : "", m_teammode ? "tk " : "");
     loopv(clients)
     {
         client &c = *clients[i];
@@ -4608,6 +4917,7 @@ void loggamestatus(const char *reason)
             concatformatstring(text, " %2d %4d", c.state.parkplace, c.state.parkpoints );
         }// possibly ELSE the flag to tk values away ?! going with full set now instead of reduced
         if(m_flags_) concatformatstring(text, "%4d ", c.state.flagscore);            // flag
+        concatformatstring(text, "%6d ", c.state.at3_points);                        // score
         concatformatstring(text, "%4d %5d", c.state.frags, c.state.deaths);          // frag death
         if(m_teammode) concatformatstring(text, " %2d", c.state.teamkills);          // tk
 
@@ -4757,6 +5067,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
         if(m_ktf && !ktfflagingame) flagaction(rnd(2), FA_RESET, -1); // ktf flag watchdog
         if(m_arena) arenacheck();
         else if(m_autospawn) autospawncheck();
+        sendpoints();
         if(scl.afk_limit && sg->mastermode == MM_OPEN && next_afk_check < servmillis && sg->gamemillis > 20 * 1000) check_afk();
     }
 

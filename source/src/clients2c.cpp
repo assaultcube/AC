@@ -780,6 +780,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                         deaths = getint(p),
                         health = getint(p),
                         armour = getint(p),
+                        at3_points = getint(p),
                         teamkills = getint(p),
                         parkplace = 0,
                         parkpoints = 0;
@@ -807,6 +808,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                         d->selectweapon(gunselect);
                         d->health = health;
                         d->armour = armour;
+                        d->at3_points = at3_points;
                         memcpy(d->ammo, ammo, sizeof(ammo));
                         memcpy(d->mag, mag, sizeof(mag));
                         if(d->lifesequence==0) d->resetstats();
@@ -828,12 +830,30 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     ds.flags = getint(p);
                     ds.frags = getint(p);
                     ds.deaths = getint(p);
+                    ds.at3_points = getint(p);
                     if(m_park){
                         ds.parkplace = getint(p);
                         ds.parkpoints = getint(p);
                     }else{
                         ds.parkplace = 0;
                         ds.parkpoints = 0;
+                    }
+                }
+                break;
+            }
+
+            case SV_POINTS:
+            {
+                int doers = getint(p);
+                if(doers > 0)
+                {
+                    loopi(doers)
+                    {
+                        int doercn = getint(p);
+                        int points = getint(p);
+                        playerent *doer = getclient(doercn);
+                        if(!doer) break;
+                        doer->at3_points += points;
                     }
                 }
                 break;

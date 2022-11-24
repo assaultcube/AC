@@ -117,7 +117,7 @@ struct clientstate : playerstate
     projectilestate<8> grenades;
     int akimbomillis;
     bool scoped;
-    int flagscore, frags, teamkills, deaths, shotdamage, damage, events, lastdisc, reconnections, firstspawntime, parkplace, parkpoints;
+    int flagscore, frags, teamkills, deaths, shotdamage, damage, at3_points, events, lastdisc, reconnections, firstspawntime, parkplace, parkpoints;
     int suicides, friendlyfire, enemyfire, goodflags, antiflags; // match only vita replacement
     vector <bool> parkents;
 
@@ -142,7 +142,7 @@ struct clientstate : playerstate
         grenades.reset();
         akimbomillis = 0;
         scoped = forced = false;
-        flagscore = frags = teamkills = deaths = shotdamage = damage = events = lastdisc = reconnections = firstspawntime = parkplace = parkpoints = 0;
+        flagscore = frags = teamkills = deaths = shotdamage = damage = at3_points = events = lastdisc = reconnections = firstspawntime = parkplace = parkpoints = 0;
         lastdeath = lastclaction = 0;
         suicides = friendlyfire = enemyfire = goodflags = antiflags = 0;
         parkents.shrink(0);
@@ -165,14 +165,14 @@ struct savedscore
 {
     string name;
     uint ip;
-    int frags, flagscore, deaths, teamkills, shotdamage, damage, team, events, lastdisc, reconnections, firstspawntime, parkplace, parkpoints;
+    int frags, flagscore, deaths, teamkills, shotdamage, damage, team, at3_points, events, lastdisc, reconnections, firstspawntime, parkplace, parkpoints;
     vector <bool> parkents;
     bool valid, forced;
 
     void reset()
     {
         // to avoid 2 connections with the same score... this can disrupt some laggers that eventually produces 2 connections (but it is rare)
-        frags = flagscore = deaths = teamkills = shotdamage = damage = events = lastdisc = reconnections = firstspawntime = parkplace = parkpoints = 0;
+        frags = flagscore = deaths = teamkills = shotdamage = damage = at3_points = events = lastdisc = reconnections = firstspawntime = parkplace = parkpoints = 0;
         parkents.shrink(0);
     }
 
@@ -184,6 +184,7 @@ struct savedscore
         teamkills = cs.teamkills;
         shotdamage = cs.shotdamage;
         damage = cs.damage;
+        at3_points = cs.at3_points;
         forced = cs.forced;
         events = cs.events;
         lastdisc = cs.lastdisc;
@@ -205,6 +206,7 @@ struct savedscore
         cs.teamkills = teamkills;
         cs.shotdamage = shotdamage;
         cs.damage = damage;
+        cs.at3_points = at3_points;
         cs.forced = forced;
         cs.events = events;
         cs.lastdisc = lastdisc;
@@ -215,6 +217,23 @@ struct savedscore
         cs.parkents.reserve(parkents.length());
         memcpy(&cs.parkents, &parkents, parkents.length()*sizeof(bool));
         reset();
+    }
+};
+
+// bringing back the parts of medals required for the points system to be useful for teambalance
+struct efforts
+{
+    int deltapoints, lasthit, lastgun;
+    int combohits, combocount;
+    int asktask, askmillis, linked, linkmillis, linkreason, updatemillis;
+    vec taskpos, flagpos;
+    void reset()
+    {
+        deltapoints = lasthit = lastgun = 0;
+        combohits = combocount = 0;
+        askmillis = linkmillis = updatemillis = 0;
+        linkreason = linked = asktask = -1;
+        taskpos = flagpos = vec(-1e10f, -1e10f, -1e10f);
     }
 };
 
@@ -278,8 +297,10 @@ struct client                   // server side version of "dynent" type
     vector<uchar> position, messages;
     string lastsaytext;
     int saychars, lastsay, spamcount, badspeech, badmillis;
-    int at3_score, at3_lastforce;
+    int at3_score, at3_lastforce, at3_eff_score;
+    int vita_score, vita_lastforce;
     bool at3_dontmove;
+    bool vita_dontmove;
     int spawnindex;
     int spawnperm, spawnpermsent;
     bool autospawn;
@@ -288,6 +309,9 @@ struct client                   // server side version of "dynent" type
     int spectcn;
     int mapcollisions, farpickups;
     enet_uint32 bottomRTT;
+    efforts effort;
+    vec spawnpos;
+    bool keptspawnpos;
     int lag;
     int nvotes;
     int ffire, wn, f, t, yaw, pitch;
@@ -315,7 +339,12 @@ struct client                   // server side version of "dynent" type
             freshgame = true;         // permission to spawn at once
         }
         lastevent = 0;
-        at3_lastforce = 0;
+        at3_lastforce = at3_eff_score = 0;
+        vita_lastforce = 0;
+        at3_score = vita_score = 0;
+        effort.reset();
+        keptspawnpos = false;
+        spawnpos = vec(-1e10f, -1e10f, -1e10f);
         mapcollisions = farpickups = 0;
         lag = 0;
         ldt = spj = 0;
@@ -445,7 +474,7 @@ const char *messagenames[SV_NUM] =
     "SV_SHOOT", "SV_EXPLODE", "SV_SUICIDE", "SV_AKIMBO", "SV_RELOAD",
     "SV_GIBDIED", "SV_DIED", "SV_GIBDAMAGE", "SV_DAMAGE", "SV_HITPUSH", "SV_SHOTFX", "SV_THROWNADE",
     "SV_TRYSPAWN", "SV_SPAWNSTATE", "SV_SPAWN", "SV_SPAWNDENY", "SV_FORCEDEATH", "SV_RESUME",
-    "SV_DISCSCORES", "SV_TIMEUP", "SV_EDITENT", "SV_ITEMACC",
+    "SV_DISCSCORES", "SV_POINTS", "SV_TIMEUP", "SV_EDITENT", "SV_ITEMACC",
     "SV_MAPCHANGE", "SV_ITEMSPAWN", "SV_ITEMPICKUP",
     "SV_PING", "SV_PONG", "SV_CLIENTPING",
     "SV_EDITMODE", "SV_EDITXY", "SV_EDITARCH", "SV_EDITBLOCK", "SV_EDITD", "SV_EDITE", "SV_NEWMAP",

@@ -633,7 +633,7 @@ extern void votecount(int v);
 extern void clearvote();
 
 // scoreboard
-struct discscore { int team, flags, frags, deaths, points, parkpoints, parkplace; char name[MAXNAMELEN + 1]; };
+struct discscore { int team, flags, frags, deaths, at3_points, parkpoints, parkplace; char name[MAXNAMELEN + 1]; };
 extern vector<discscore> discscores;
 extern void showscores(bool on);
 extern void renderscores(void *menu, bool init);
