@@ -763,7 +763,7 @@ void sendpoints() // only at3_points
     loopv(clients)
     {
         client &c = *clients[i];
-        if(c.type!=ST_TCPIP || !c.isauthed || !(0 < c.effort.updatemillis < sg->gamemillis)) continue;
+        if(c.type!=ST_TCPIP || !c.isauthed || !(c.effort.updatemillis > 0 && c.effort.updatemillis < sg->gamemillis)) continue;
         if(c.effort.deltapoints) achievers[doers++] = i;
     }
     sg->nextsendscore = sg->gamemillis + 160; // about 4 cycles
