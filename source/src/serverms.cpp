@@ -161,6 +161,7 @@ void flushmasterinput()
 }
 
 extern int totalclients;
+extern int serverstyle;
 
 // send alive signal to masterserver after 40 minutes of uptime and if currently in intermission (so theoretically <= 1 hour)
 // TODO?: implement a thread to drop this "only in intermission" business, we'll need it once AUTH gets active!
@@ -223,6 +224,7 @@ void serverms(int mode, int numplayers, int minremain, char *smapname, int milli
             extern struct servercommandline scl;
             (*mnum)++; *mrec += len; std = true;
             putint(po, protocol_version);
+            if(protocol_version>=1301) putint(po, serverstyle);
             putint(po, mode);
             putint(po, numplayers);
             putint(po, minremain);

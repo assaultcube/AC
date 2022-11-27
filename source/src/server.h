@@ -496,6 +496,8 @@ const char *messagenames[SV_NUM] =
     "SV_GETVITA", "SV_VITADATA"
 };
 
+const char *ssnames[MAXSSTYPES] = { "GAME", "PARKOUR", "GEMA" }; // server style names
+
 const char *entnames[] =
 {
     "none?",

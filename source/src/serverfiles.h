@@ -916,8 +916,10 @@ struct servermaprot : serverconfigfile
                     {
                         c.mmask = gmode_parse(l);
                         // if any map is made for parkour or gema the serverstyle will be upped
+                        int prevss = serverstyle;
                         if(serverstyle <= SS_GAME && c.mmask & GMMASK_PARKOUR) serverstyle = SS_PARKOUR; // B4:game now:parkour
                         if(serverstyle <= SS_PARKOUR && c.mmask & GMMASK_GEMA) serverstyle = SS_GEMA;    // B4:game||parkour now:gema
+                        if(prevss == SS_GAME && serverstyle > SS_GAME) mlog(ACLOG_WARNING, "SERVER STYLE now %d : %s due to %s", serverstyle, ssnames[serverstyle], c.mapname);
                     }
                     while((l = strtok_r(NULL, " ", &b)))
                     {

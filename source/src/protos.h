@@ -1,6 +1,7 @@
 // protos for ALL external functions in cube...
 
 enum { SS_GAME, SS_PARKOUR, SS_GEMA, MAXSSTYPES }; // server style
+extern const char *ssnames[MAXSSTYPES]; // server style names
 
 struct authkey
 {
