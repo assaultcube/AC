@@ -1,0 +1,42 @@
+name: build linux64 binaries
+
+on:
+  workflow_dispatch:
+  
+jobs:
+  linux64:
+    name: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: setup libraries
+        run: sudo apt install libsdl2-dev libsdl2-image-dev zlib1g-dev libogg-dev libvorbis-dev libopenal-dev libcurl4
+        shell: bash
+
+      - name: prepare production build
+        run: sed 's@//#define PRODUCTION@#define PRODUCTION@' source/src/cube.h
+        shell: bash
+        
+      - name: make
+        run: |
+          cd source/src
+          make clean
+          make
+          make install
+          cd ../..
+        shell: bash
+        
+      - name: prepare artifact
+        run: |
+          mkdir dist
+          cp bin_unix/native_client dist/linux_64_client
+          cp bin_unix/native_server dist/linux_64_server
+          echo "you need to chmod 750 linux_64_*" > dist/info-make-executable.txt
+        shell: bash
+        
+      - name: upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: linux64-binaries
+          path: dist
