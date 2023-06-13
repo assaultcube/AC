@@ -1,0 +1,57 @@
+﻿  rendercubes.cpp
+  rendergl.cpp
+  renderhud.cpp
+  rendermodel.cpp
+  renderparticles.cpp
+  rendertext.cpp
+  shadow.cpp
+  texture.cpp
+  client.cpp
+  clientgame.cpp
+  clients2c.cpp
+  packetqueue.cpp
+  server.cpp
+  serverbrowser.cpp
+  serverms.cpp
+  editing.cpp
+  rndmap.cpp
+  world.cpp
+  worldio.cpp
+  worldlight.cpp
+  Compiling...
+  worldocull.cpp
+  worldrender.cpp
+  entities.cpp
+  scoreboard.cpp
+  weapon.cpp
+  command.cpp
+  autodownload.cpp
+  console.cpp
+  crypto.cpp
+  docs.cpp
+  http.cpp
+  log.cpp
+  main.cpp
+  menus.cpp
+  stream.cpp
+  tools.cpp
+  water.cpp
+  zip.cpp
+  ac_bot.cpp
+  ac_bot_ai.cpp
+  Compiling...
+  bot.cpp
+  bot_ai.cpp
+  bot_util.cpp
+  bot_waypoint.cpp
+  botmanager.cpp
+  audiomanager.cpp
+  oggstream.cpp
+  openal.cpp
+  soundlocation.cpp
+  soundscheduler.cpp
+  protocol.cpp
+  Generating code
+  Not all modules are compiled with -Gy (function comdat), build without incremental LTCG.
+  Finished generating code
+  assaultcube.vcxproj -> C:\Users\Administrator\Documents\GitHub\AC\bin_win32\ac_client.exe
