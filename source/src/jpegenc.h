@@ -775,7 +775,7 @@ void jpegenc::process_DU(SBYTE *ComponentDU,float *fdtbl,SWORD *DC, bitstring *H
     while (i <= end0pos)
     {
         startpos = i;
-        for (; (DU[i]==0) && (i<=end0pos); i++) ;
+        for (; (i<=end0pos) && (DU[i]==0); i++) ;
         nrzeroes = i - startpos;
         if (nrzeroes >= 16)
         {
