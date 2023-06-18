@@ -242,7 +242,7 @@ COMMAND(stopdemo, "");
 
 void playerinfo(int *cn, const char *attr)
 {
-    if(!*attr || !attr) return;
+    if(!attr || !*attr) return;
 
     int clientnum = *cn; // get player clientnum
     playerent *p = clientnum < 0 ? player1 : getclient(clientnum);
