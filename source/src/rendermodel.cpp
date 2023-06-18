@@ -1088,9 +1088,24 @@ void renderclientp(playerent *d)
 
 void renderclients()
 {
-    playerent *d;
-    loopv(players) if((d = players[i]) && d->state!=CS_SPAWNING && d->state!=CS_SPECTATE && (!player1->isspectating() || player1->spectatemode != SM_FOLLOW1ST || player1->followplayercn != i)) renderclientp(d);
-    if(player1->state==CS_DEAD || ((reflecting && !refracting) && (player1->state!=CS_SPECTATE || player1->spectatemode==SM_FLY))) renderclientp(player1);
+    playerent* d;
+    loopv(players)
+    {
+        if ((d = players[i]) && d->state != CS_SPAWNING && d->state != CS_SPECTATE && (!player1->isspectating() || player1->spectatemode != SM_FOLLOW1ST || player1->followplayercn != i))
+        {
+            if (!d->isspectating())
+            {
+                renderclientp(d);
+            }
+        }
+    }
+    if (player1->state == CS_DEAD || ((reflecting && !refracting) && (player1->state != CS_SPECTATE || player1->spectatemode == SM_FLY)))
+    {
+        if (!player1->isspectating())
+        {
+            renderclientp(player1);
+        }
+    }
 }
 
 void loadallmapmodels()  // try to find all mapmodels in packages/models/mapmodels
