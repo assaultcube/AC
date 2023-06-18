@@ -124,6 +124,7 @@ COMMAND(shiftweapon, "i");
 
 void quicknadethrow(bool on)
 {
+    if (!player1->weapons || !player1->weaponsel || !player1->nextweaponsel) return;
     if(player1->state != CS_ALIVE) return;
     if(on)
     {
@@ -138,7 +139,7 @@ void quicknadethrow(bool on)
     }
     else
     {
-        if(player1->weaponsel->type == GUN_GRENADE || (player1->nextweaponsel && player1->nextweaponsel->type == GUN_GRENADE))
+        if(player1->weaponsel->type == GUN_GRENADE || player1->nextweaponsel->type == GUN_GRENADE)
         {
             attack(false);
             quicknade = true;
