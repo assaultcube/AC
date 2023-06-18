@@ -168,7 +168,7 @@ Texture *loadcrosshairtexture(const char *c)
 {
     defformatstring(p)("packages/crosshairs/%s", behindpath(c));
     Texture *crosshair = textureload(p, 3);
-    if(crosshair==notexture) crosshair = textureload("packages/crosshairs/default.png", 3);
+    if(crosshair==notexture) crosshair = textureload("packages/crosshairs/default_outline.png", 3);
     return crosshair;
 }
 
@@ -181,8 +181,8 @@ void loadcrosshair(const char *type, const char *filename)
         else
         { // "loadcrosshair reset" does exactly that
             filename = "default.png";
-            crosshairs[CROSSHAIR_TEAMMATE] = loadcrosshairtexture("teammate.png");
-            crosshairs[CROSSHAIR_SCOPE] = loadcrosshairtexture("red_dot.png");
+            crosshairs[CROSSHAIR_TEAMMATE] = loadcrosshairtexture("teammate_outline.png");
+            crosshairs[CROSSHAIR_SCOPE] = loadcrosshairtexture("red_dot_outline.png");
         }
     }
     else if(strchr(type, '.'))
@@ -216,7 +216,7 @@ void drawcrosshair(playerent *p, int n, color *c, float size)
     if(!crosshair)
     {
         crosshair = crosshairs[CROSSHAIR_DEFAULT];
-        if(!crosshair) crosshair = crosshairs[CROSSHAIR_DEFAULT] = loadcrosshairtexture("default.png");
+        if(!crosshair) crosshair = crosshairs[CROSSHAIR_DEFAULT] = loadcrosshairtexture("default_outline.png");
     }
 
     if(crosshair->bpp==32) glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
