@@ -138,7 +138,7 @@ void quicknadethrow(bool on)
     }
     else
     {
-        if(player1->weaponsel->type == GUN_GRENADE || player1->nextweaponsel->type == GUN_GRENADE)
+        if(player1->weaponsel->type == GUN_GRENADE || (player1->nextweaponsel && player1->nextweaponsel->type == GUN_GRENADE))
         {
             attack(false);
             quicknade = true;
