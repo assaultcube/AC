@@ -2689,7 +2689,10 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
 
         <scriptalias name="onVoteEnd">
           <description>If this alias exists it will be run every time a vote passes or fails.</description>
-          <references>
+          <arguments>
+            <argument token="R" description="vote result (integer)" valueNotes="0 = vote failed, 1 = vote passed"/>
+          </arguments>
+		  <references>
             <identifierReference identifier="onCallVote"/>
             <identifierReference identifier="onChangeVote"/>
           </references>

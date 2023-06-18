@@ -1594,7 +1594,7 @@ void voteresult(int v)
         curvote->millis = totalmillis + 5000;
         conoutf("vote %s", v == VOTE_YES ? "passed" : "failed");
         if(multiplayer(NULL)) audiomgr.playsound(v == VOTE_YES ? S_VOTEPASS : S_VOTEFAIL, SP_HIGH);
-        exechook(HOOK_SP_MP, "onVoteEnd", "");
+        exechook(HOOK_SP_MP, "onVoteEnd", "%d", (v == VOTE_YES ? 1 : 0));
         votepending = 0;
     }
 }
