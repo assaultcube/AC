@@ -1290,7 +1290,7 @@ void sorttextureslots(char **args, int numargs)
         loopi(256)
         {
             x = newslot[*ps++];
-            if(d[x] && x < tempslots.length())
+            if(x < tempslots.length() && d[x])
             {
                 d[x] = 0;
                 *pd++ = x;
