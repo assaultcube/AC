@@ -270,6 +270,7 @@ void playerinfo(int *cn, const char *attr)
         ATTR_INT(health, p->health);
         ATTR_INT(armour, p->armour);
         ATTR_INT(attacking, p->attacking);
+        ATTR_INT(hasakimbo, p->hasakimbo);
         ATTR_INT(scoping, p->scoping);
         ATTR_FLOAT(x, p->o.x);
         ATTR_FLOAT(y, p->o.y);

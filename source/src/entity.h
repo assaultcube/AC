@@ -443,7 +443,7 @@ public:
     int parkpoints; // counter progress in parkour
     int lastaction, lastmove, lastpain, lastvoicecom, lastdeath;
     int clientrole;
-    bool attacking;
+    bool attacking, hasakimbo;
     string name;
     int team;
     int weaponchanging;
@@ -534,7 +534,7 @@ public:
         if(weaponsel) weaponsel->reset();
         lastaction = 0;
         lastattackweapon = NULL;
-        attacking = false;
+        attacking = hasakimbo = false;
         extern int lastmillis;
         weaponchanging = lastmillis - weapons[gunselect]->weaponchangetime/2; // 2011jan16:ft: for a little no-shoot after spawn
         resetspec();

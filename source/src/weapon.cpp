@@ -1684,6 +1684,10 @@ void checkakimbo()
 {
     if(player1->akimbo)
     {
+        if (!player1->hasakimbo) {
+			player1->hasakimbo = true;
+			exechook(HOOK_SP_MP, "onAkimboStart", "");
+		}
         akimbo &a = *((akimbo *)player1->weapons[GUN_AKIMBO]);
         bool isdeadorspect = player1->state == CS_DEAD || player1->state == CS_SPECTATE;
         if(a.timerout() || isdeadorspect)
@@ -1748,6 +1752,8 @@ void checkakimbo()
                 }
             }
             if(!isdeadorspect) audiomgr.playsoundc(S_AKIMBOOUT);
+            player1->hasakimbo = false;
+			exechook(HOOK_SP_MP, "onAkimboEnd", "");
         }
     }
 }
