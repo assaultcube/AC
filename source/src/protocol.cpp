@@ -529,7 +529,7 @@ int gmode_parse(const char *list) // convert a list of mode acronyms to a bitmas
     {
         loopi(GMODE_NUM) if(!strcasecmp(p, modeacronymnames[i + 1])) res |= 1 << i;
     }
-    delete buf;
+    delete [] buf;
     return res;
 }
 
