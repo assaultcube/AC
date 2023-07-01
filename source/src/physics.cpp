@@ -475,12 +475,11 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         if(editfly)                // just apply velocity
         {
             pl->o.add(d);
-			Uint8 const* state = SDL_GetKeyboardState(0);
-            if(pl->jumpnext)
+            if(pl->jumpnext && !pl->trycrouch)
             {
                 pl->vel.z = 0.5f; // fly directly upwards while holding jump keybinds
             }
-            else if (state[SDL_SCANCODE_LSHIFT] != 0 || state[SDL_SCANCODE_RSHIFT] != 0) // TODO check crouch keybind instead of LSHIFT/RSHIFT
+            else if (pl->trycrouch && !pl->jumpnext)
             {
                 pl->vel.z = -0.5f; // fly directly down while holding crouch keybinds
             }
