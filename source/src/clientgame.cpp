@@ -940,7 +940,7 @@ void dodamage(int damage, playerent *pl, playerent *actor, int gun, bool gib, bo
     {
         if( (hitsound == 1 || (hitsound && h != player1) ) && lasthit != lastmillis) audiomgr.playsound(S_HITSOUND, SP_HIGHEST);
         lasthit = lastmillis;
-        if (!multiplayer()) {
+        if (!multiplayer(NULL)) {
             actor->pstatdamage[gun] += damage;
         }
     }
