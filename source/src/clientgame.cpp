@@ -272,6 +272,14 @@ void playerinfo(int *cn, const char *attr)
         ATTR_INT(attacking, p->attacking);
         ATTR_INT(hasakimbo, p->hasakimbo);
         ATTR_INT(scoping, p->scoping);
+        ATTR_INT(onfloor, p->onfloor);
+        ATTR_INT(onladder, p->onladder);
+        ATTR_INT(inwater, waterlevel > p->o.z - p->maxeyeheight);
+        ATTR_INT(submergedinwater, waterlevel > p->o.z);
+        ATTR_INT(crouching, p->crouching);
+        ATTR_INT(crouchedinair, p->crouchedinair);
+        ATTR_INT(moving, p->move != 0 || p->strafe != 0 || !p->onfloor);
+        ATTR_INT(strafing, p->move != 0 && p->strafe != 0);
         ATTR_FLOAT(x, p->o.x);
         ATTR_FLOAT(y, p->o.y);
         ATTR_FLOAT(z, p->o.z);
