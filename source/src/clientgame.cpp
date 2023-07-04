@@ -948,8 +948,14 @@ void dodamage(int damage, playerent *pl, playerent *actor, int gun, bool gib, bo
     {
         if( (hitsound == 1 || (hitsound && h != player1) ) && lasthit != lastmillis) audiomgr.playsound(S_HITSOUND, SP_HIGHEST);
         lasthit = lastmillis;
+        // pstat_weap did not report damage stats in singleplayer in previous versions of the game, this adds support for it
         if (!multiplayer(NULL)) {
-            actor->pstatdamage[gun] += damage;
+            if (m_teammode && team_base(pl->team) == team_base(actor->team)) {
+                actor->pstatdamage_team[gun] += damage;
+            }
+            else {
+                actor->pstatdamage[gun] += damage;
+            }
         }
     }
 
@@ -1031,15 +1037,15 @@ void domelt(playerent *pl)
 }
 
 
-void pstat_weap(int *cn)
+void pstat_weap(int *cn, int *type)
 {
     string weapstring = "";
     playerent *pl = getclient(*cn);
-    if(pl) loopi(NUMGUNS) concatformatstring(weapstring, "%s%d %d", strlen(weapstring) ? " " : "", pl->pstatshots[i], pl->pstatdamage[i]);
+    if(pl) loopi(NUMGUNS) concatformatstring(weapstring, "%s%d %d", strlen(weapstring) ? " " : "", pl->pstatshots[i], *type != 0 ? pl->pstatdamage_team[i] : pl->pstatdamage[i]);
     result(weapstring);
 }
 
-COMMAND(pstat_weap, "i");
+COMMAND(pstat_weap, "ii");
 
 VAR(minutesremaining, 1, 0, 0);
 VAR(gametimecurrent, 1, 0, 0);

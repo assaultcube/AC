@@ -761,7 +761,14 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 target->armour = armour;
                 target->health = health;
                 dodamage(damage, target, actor, -1, type==SV_GIBDAMAGE, false);
-                actor->pstatdamage[gun]+=damage; //NEW
+                
+                if (m_teammode && team_base(actor->team) == team_base(target->team)) {
+                    actor->pstatdamage_team[gun] += damage;
+                }
+                else {
+                    actor->pstatdamage[gun] += damage;
+                }
+
                 break;
             }
 

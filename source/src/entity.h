@@ -269,11 +269,12 @@ public:
     bool akimbo;
     int ammo[NUMGUNS], mag[NUMGUNS], gunwait[NUMGUNS];
     int pstatshots[NUMGUNS], pstatdamage[NUMGUNS];
+    int pstatdamage_team[NUMGUNS];
 
     playerstate() : armour(0), primary(GUN_ASSAULT), nextprimary(GUN_ASSAULT), akimbo(false) {}
     virtual ~playerstate() {}
 
-    void resetstats() { loopi(NUMGUNS) pstatshots[i] = pstatdamage[i] = 0; }
+    void resetstats() { loopi(NUMGUNS) pstatshots[i] = pstatdamage[i] = pstatdamage_team[i] = 0; }
 
     itemstat *itemstats(int type)
     {
