@@ -524,7 +524,8 @@ void recomputecamera()
             {
                 resetcamera();
                 camera1->eyeheight = 1.0f;
-                if(camera1->pitch==-90) camera1->pitch = 0; // from SM_OVERVIEW; location/yaw may be ugly => use a playerstart
+                //if(camera1->pitch==-90) camera1->pitch = 0; // from SM_OVERVIEW; location/yaw may be ugly => use a playerstart
+                // not 100% sure what the intention is here, but this line is causing more problems than it is fixing -Bukz 2023july
                 break;
             }
             case SM_OVERVIEW:
