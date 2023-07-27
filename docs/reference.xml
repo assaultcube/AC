@@ -4652,16 +4652,6 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           </references>
         </variable>
 
-        <command name="togglegrab">
-          <description>Toggles grabbing of mouse and keyboard input in a game.</description>
-          <remarks>
-            <remark>
-            Grabbing means that the mouse is confined to the AC, and nearly all keyboard input is passed directly to AC,
-            and not interpreted by a window manager, if any. This is only useful when you run AC windowed.
-            </remark>
-          </remarks>
-        </command>
-
         <variable name="modkeypressed">
           <description>Indicates if a CTRL key is pressed.</description>
           <value description="state of the CTRL key" minValue="0" maxValue="1" defaultValue="0" readOnly="true" valueNotes="0: unpressed, 1: pressed"/>
