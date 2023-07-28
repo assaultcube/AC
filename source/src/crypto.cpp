@@ -537,7 +537,7 @@ int hex2bin(uchar *d, const char *s, int maxlen)
 {
     memset(d, 0, maxlen);
     int len;
-    for(len = 0; s[len] && len < maxlen * 2; len++)
+    for(len = 0; (len < maxlen * 2) && s[len]; len++)
     {
         const char *hd = strchr(hexdigits, tolower(s[len]));
         if(!hd) break; // -> not a hex digit
