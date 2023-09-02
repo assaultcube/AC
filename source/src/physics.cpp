@@ -445,7 +445,8 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 
         float chspeed = (pl->onfloor || pl->onladder || !pl->crouchedinair) ? 0.4f : 1.0f;
 
-        const bool crouching = pl->crouching || (pl->eyeheight < pl->maxeyeheight && pl->eyeheight > 1.1f);
+        // crouch transition is asymptotic, so allow jumping as soon as the player is *mostly* uncrouched
+        const bool crouching = pl->crouching || (pl->eyeheight < pl->maxeyeheight - 0.5f && pl->eyeheight > 1.1f);
         const float speed = curtime/(water ? 2000.0f : 1000.0f)*pl->maxspeed*(crouching && pl->state != CS_EDITING ? chspeed : 1.0f)*(pl==player1 && isfly ? flyspeed : 1.0f);
         const float friction = water ? 20.0f : (pl->onfloor || isfly ? 6.0f : (pl->onladder ? 1.5f : 30.0f));
         const float fpsfric = max(friction/curtime*20.0f, 1.0f);
@@ -868,11 +869,20 @@ void jumpn(bool on)
 
 void updatecrouch(playerent *p, bool on)
 {
-    if(p->crouching == on) return;
     if(p->state == CS_EDITING) return; // don't apply regular crouch physics in editfly
-    const float crouchspeed = 0.6f;
+
+    // asymptoptic smoothing of crouch view height (smoother than linear interpolation)
+    const float crouchanimspeedscale = 0.9f;
+    if (on) {
+        const float croucheyeheight = p->maxeyeheight*3.0f/4.0f;
+        p->eyeheightvel = -abs(p->eyeheight - croucheyeheight) * crouchanimspeedscale;
+    } else {
+        p->eyeheightvel = abs(p->eyeheight - p->maxeyeheight) * crouchanimspeedscale;
+    }
+
+    if(p->crouching == on) return;
+    // only play a sound on crouching state change
     p->crouching = on;
-    p->eyeheightvel = on ? -crouchspeed : crouchspeed;
     if(p==player1) audiomgr.playsoundc(on ? S_CROUCH : S_UNCROUCH);
 }
 
@@ -962,4 +972,3 @@ void entinmap(physent *d)    // brute force but effective way to find a free spa
     d->resetinterp();
     conoutf("can't find entity spawn spot! (%d, %d)", int(d->o.x), int(d->o.y));
 }
-
