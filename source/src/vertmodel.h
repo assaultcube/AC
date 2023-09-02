@@ -887,7 +887,9 @@ struct vertmodel : model
             if(doai)
             {
                 prev.setframes(d->prev[index]);
-                ai_t = (lastmillis-d->lastanimswitchtime[index])/(float)animationinterpolationtime;
+                // use easeInOutSine easing for smoother appearance
+                // https://easings.net/#easeInOutSine
+                ai_t = -(cos(M_PI * (lastmillis-d->lastanimswitchtime[index])/(float)animationinterpolationtime) - 1) / 2;
             }
 
             glPushMatrix();
