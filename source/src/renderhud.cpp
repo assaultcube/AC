@@ -229,8 +229,11 @@ void drawcrosshair(playerent *p, int n, color *c, float size)
         if(n==CROSSHAIR_TEAMMATE) glColor3ub(255, 0, 0);
         else if(!m_osok)
         {
-            if(p->health<=25) glColor3ub(255,0,0);
-            else if(p->health<=50) glColor3ub(255,128,0);
+            // color crosshair depending on health
+            if(p->health<=25) glColor3ub(255, 0, 0);
+            else if(p->health<=75) glColor3ub(255, (p->health-25)/50.0f * 255, 0);
+            else if(p->health<=99) glColor3ub(255, 255, (p->health-75)/25.0f * 255);
+            else glColor3ub(255, 255, 255);
         }
     }
     float s = size>0 ? size : (float)crosshairsize;
