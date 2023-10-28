@@ -496,7 +496,7 @@ int farplane;
 
 physent *camera1 = NULL;
 
-void resetcamera()
+inline void resetcamera()
 {
     camera1 = player1;
 }
