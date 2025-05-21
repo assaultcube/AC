@@ -2,19 +2,21 @@
 AssaultCube is a **FREE**, multiplayer, first-person shooter game, based on the
 [CUBE engine](http://cubeengine.com/cube.php).
 
-Taking place in realistic environments, with fast, arcade gameplay,
+Taking place in realistic environments, with fast and intense gameplay,
 it's addictive and fun!
 
 With efficient bandwidth usage, it's low-latency and can even run over a 56 Kbps
 connection. It's tiny too, weighing in at a lightweight about 50 MB package
 available for [Windows, Linux, Mac](https://assault.cubers.net/download.html).
 On the correct settings, it can even run on old hardware (Pentium III and above).
+Recommended to run the insane graphics settings for modern machines.
 
 ![screenshot](https://user-images.githubusercontent.com/7680684/69888836-9a931d80-12b3-11ea-8123-bbf06908a96f.jpg)
 
 ## Features in a nutshell:
 
  * It's **FREE**.
+ * Basically CS 1.6 but open-source and moderately updated
  * Source code is available under a zlib-like open source license.
  * Low latency, it can even run across a 56 Kbps connection!
  * Lightweight size, only about 50 MB to download, plus additional maps
@@ -32,8 +34,9 @@ On the correct settings, it can even run on old hardware (Pentium III and above)
  Capture the Flag, Hunt the Flag, Keep the Flag, Pistol Frenzy, Last Swiss
  Standing & One-Shot One-Kill (plus team versions of these modes).
  * Comes pre-packaged with several dozen different maps!
+ * Several weapon classes for unique gameplay or hardcore strategy!
 
-## More info:
+## Documentation:
 
 Most of this README was directly copied from the
 [AssaultCube Homepage](https://assault.cubers.net), which should have everything
@@ -42,6 +45,7 @@ you need in relation to AssaultCube.
 ## Contributing:
 
 Learn [how to become a contributor and submit your own code](CONTRIBUTING.md)
+ * Submit any issues, suggestions, bugs or vulnerabilities you might have!
 
 ## Redistribution:
 

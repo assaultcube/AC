@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# CUBE_DIR should refer to the directory in which AssaultCube is placed.
+# CUBE_DIR refers to the AssaultCube directory path.
 #CUBE_DIR=~/assaultcube
 #CUBE_DIR=/usr/local/assaultcube
 CUBE_DIR=.
@@ -12,11 +12,11 @@ CUBE_OPTIONS=""
 # If enabled, any options under CUBE_OPTIONS are superseded by options in servercmdline.txt
 CUBE_OPTIONFILE=-Cconfig/servercmdline.txt
 
-# SYSTEM_NAME should be set to the name of your operating system.
+# SYSTEM_NAME should be set to the name of your OS.
 #SYSTEM_NAME=Linux
 SYSTEM_NAME=`uname -s`
 
-# MACHINE_NAME should be set to the architecture of your processor.
+# MACHINE_NAME should be your processor architecture.
 #MACHINE_NAME=i686
 MACHINE_NAME=`uname -m`
 
