@@ -50,3 +50,12 @@ free unmodified distribution of AssaultCube's source and binaries. If you have
 any doubts, you can look at the
 [license](https://assault.cubers.net/docs/license.html).
 
+## Help Keep this Project alive!
+ This game repository hasn't been active in 1-3 years!
+**how you can help:** Spread the word!
+* tell your friends on discord, reddit, or any other social media
+* Word of mouth
+* Make videos supporting/covering AC
+**The more people who know, the more who care.**
+  Entire servers are empty, waiting for you and your friends.
+### Join now!
