@@ -3955,7 +3955,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     }
                     else
                     {
-                        packetbuf p(MAXTRANS + sg->coop_cgzlen + sg->coop_cfglengz, ENET_PACKET_FLAG_RELIABLE);
+                        packetbuf p(MAXTRANS + sg->curmap->cgzlen + sg->curmap->cfggzlen, ENET_PACKET_FLAG_RELIABLE);
                         putint(p, SV_RECVMAP);
                         sendstring(sg->smapname, p);
                         putint(p, sg->curmap->cgzlen);
