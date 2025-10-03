@@ -1,9 +1,13 @@
 .travis.yml
 *.o
 *.lo
+*.vs
 shadows.dat
 bin_unix/native_client
 bin_unix/native_server
+bin_win32/ac_*
+bin_win32/private/*
+bin_win/logs/*
 config/authpreprivate.cfg
 config/authprivate.cfg
 config/history
@@ -35,6 +39,12 @@ source/src/ac_client
 source/src/ac_server
 source/src/cube.h.gch
 source/src/Makefile_local
+source/vcpp/.vs
+source/vcpp/Debug
+source/vcpp/Profile
+source/vcpp/Release
+source/vcpp/Standalone
+source/vcpp/Standalone Debug
 clientlog*.txt
 dumpmapconfig.txt
 packetlog.txt
