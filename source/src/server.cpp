@@ -3514,7 +3514,7 @@ int checktype(int type, client *cl)
                         SV_SENDDEMOLIST, SV_SENDDEMO, SV_DEMOPLAYBACK,
                         SV_CLIENT, SV_DEMOCHECKSUM, SV_PAUSEMODE };
     // only allow edit messages in coop-edit mode
-    static int edittypes[] = { SV_EDITENT, SV_EDITXY, SV_EDITARCH, SV_EDITBLOCK, SV_EDITD, SV_EDITE, SV_NEWMAP };
+    static int edittypes[] = { SV_EDITENT, SV_EDITXY, SV_EDITARCH, SV_EDITBLOCK, SV_EDITD, SV_EDITE, SV_NEWMAP, SV_EDITMODE };
     if(cl)
     {
         loopi(sizeof(servtypes)/sizeof(int)) if(type == servtypes[i]) return -1;
@@ -4500,6 +4500,22 @@ void process(ENetPacket *packet, int sender, int chan)
                     defformatstring(msg)("\f3can't delete map '%s', %s", rmmap, reject);
                     sendservmsg(msg, sender);
                 }
+                break;
+            }
+
+            case SV_EDITMODE:
+            {
+                int val = getint(p);
+                if(sg->smode != GMODE_COOPEDIT) break;
+                clientstate &cs = cl->state;
+                if(val ? (cs.state != CS_ALIVE && cs.state != CS_DEAD) : (cs.state != CS_EDITING)) break;
+                if(val)
+                {
+                    cs.editstate = cs.state;
+                    cs.state = CS_EDITING;
+                }
+                else cs.state = cs.editstate;
+                QUEUE_MSG;
                 break;
             }
 

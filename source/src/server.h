@@ -110,7 +110,7 @@ static const int DEATHMILLIS = 300;
 struct clientstate : playerstate
 {
     vec o;
-    int state;
+    int state, editstate;
     int lastdeath, lastspawn, spawn, lifesequence, lastclaction;
     bool forced;
     int lastshot;
@@ -121,7 +121,7 @@ struct clientstate : playerstate
     int suicides, friendlyfire, enemyfire, goodflags, antiflags; // match only vita replacement
     vector <bool> parkents;
 
-    clientstate() : state(CS_DEAD) {}
+    clientstate() : state(CS_DEAD), editstate(CS_DEAD) {}
 
     bool isalive(int gamemillis)
     {
@@ -137,7 +137,7 @@ struct clientstate : playerstate
 
     void reset()
     {
-        state = CS_DEAD;
+        if(state != CS_SPECTATE) state = editstate = CS_DEAD;
         lifesequence = -1;
         grenades.reset();
         akimbomillis = 0;
