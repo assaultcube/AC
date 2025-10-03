@@ -4503,6 +4503,19 @@ void process(ENetPacket *packet, int sender, int chan)
                 break;
             }
 
+            case SV_NEWMAP:
+            {
+                int size = getint(p);
+                if(sg->smode != GMODE_COOPEDIT) break;
+                if(size >= 0)
+                {
+                    size = clamp(size, 7, 10); // FIXME, there is a lot of misinformation about the maximum map size in multiplayer. Should support mapenlarge/mapshrink?
+                    sg->curmap->sfactor = size;
+                }
+                QUEUE_MSG;
+                break;
+            }
+
             case SV_EDITMODE:
             {
                 int val = getint(p);
