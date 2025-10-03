@@ -474,13 +474,13 @@ void filterlang(char *d, const char *s)
 
 void filtercountrycode(char *d, const char *s) // tries to return two uppercase chars or "--"
 {
-    if(strlen(s) == 2 && isalpha(s[0]) && isalpha(s[1]))
+    if(isalpha(s[0]) && isalpha(s[1]) && !s[2])
     {
         d[0] = toupper(s[0]);
         d[1] = toupper(s[1]);
     }
     else d[0] = d[1] = '-';
-    d[max(0,min((int)strlen(s),2))] = '\0';
+    d[2] = '\0';
 }
 
 void trimtrailingwhitespace(char *s)
