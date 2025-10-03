@@ -30,7 +30,7 @@ struct servergame
 
     // current game
     string smapname, nextmapname;
-    int smode, nextgamemode, srvgamesalt;
+    int smode, nextgamemode, nextgametime, srvgamesalt;
     int interm;
     int minremain, gamemillis, gamelimit, nextsendscore;
     int arenaround, arenaroundstartmillis;
@@ -5102,9 +5102,16 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
         sg->interm = sg->nextsendscore = 0;
 
         //start next game
-        if(sg->nextmapname[0]) startgame(sg->nextmapname, sg->nextgamemode);
-        else maprot.next();
-        sg->nextmapname[0] = '\0';
+        if(sg->nextmapname[0])
+        {
+            startgame(sg->nextmapname, sg->nextgamemode, sg->nextgametime, true);
+            sg->nextmapname[0] = '\0';
+        }
+        else
+        {
+            maprot.next();
+            sg->nextmapname[0] = '\0';
+        }
         map_queued = false;
     }
 

@@ -43,12 +43,14 @@ struct mapaction : serveraction
         if(queue)
         {
             sg->nextgamemode = mode;
+            sg->nextgametime = time;
             copystring(sg->nextmapname, map);
         }
         else if(isdedicated && numclients() > 2 && sg->smode >= GMODE_TEAMDEATHMATCH && sg->smode != GMODE_COOPEDIT && ( sg->gamemillis > sg->gamelimit/4 || scl.demo_interm ))
         {
             sg->forceintermission = true;
             sg->nextgamemode = mode;
+            sg->nextgametime = time;
             copystring(sg->nextmapname, map);
         }
         else
