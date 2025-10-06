@@ -42,6 +42,7 @@ VARFP(showeditingsettings, 0, 0, 3, { if(showeditingsettings){ toucheditingsetti
 
 void toggleedit(bool force)
 {
+    if(watchingdemo) return;                              // do not allow editing while watching a demo. * add message that editing is not allowed while watching demo?? *
     if(player1->state==CS_DEAD) return;                   // do not allow dead players to edit to avoid state confusion
     if(!force && !editmode && !allowedittoggle()) return; // not in most multiplayer modes
     if(player1->state == CS_SPECTATE)
