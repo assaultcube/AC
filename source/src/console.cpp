@@ -502,6 +502,10 @@ void consolekey(int code, bool isdown, SDL_Keymod mod)
                 scrolldoc(4);
                 break;
 
+            case SDLK_F12:
+                screenshot(NULL);
+                break;
+
             case SDL_AC_BUTTON_WHEELUP:
             case SDLK_UP:
                 if(histpos > history.length()) histpos = history.length();
