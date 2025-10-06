@@ -31,8 +31,11 @@ void cleanup(char *msg)         // single program exit point;
 
 VAR(resetcfg, 0, 0, 1);
 
+int lastsoundvol = 0;
+
 void quit()                     // normal exit
 {
+    if(lastsoundvol > 0) soundvol = lastsoundvol;
     if(clientlogfile) clientlogfile->fflush();
     const char *onquit = getalias("onQuit");
     setcontext("hook", "onQuit");
@@ -1086,12 +1089,20 @@ void checkinput()
                     case SDL_WINDOWEVENT_FOCUS_GAINED: // window has gained keyboard focus
                         EVENTDEBUG(concatstring(eb, " SDL_WINDOWEVENT_FOCUS_GAINED"));
                         shouldgrab = true;
+                        if(lastsoundvol > 0)
+                        {
+                            soundvol = lastsoundvol;
+                            audiomgr.setlistenervol(soundvol);
+                        }
                         break;
 
                     case SDL_WINDOWEVENT_FOCUS_LOST: // window has lost keyboard focus
                         EVENTDEBUG(concatstring(eb, " SDL_WINDOWEVENT_FOCUS_LOST"));
                         shouldgrab = false;
                         focused = -1;
+                        lastsoundvol = soundvol;
+                        soundvol = 0;
+                        audiomgr.setlistenervol(soundvol);
                         break;
                 }
                 break;
