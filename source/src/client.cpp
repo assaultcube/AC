@@ -284,7 +284,7 @@ COMMAND(hudecho, "c");
 
 void whereami()
 {
-    conoutf("you are at (%.2f,%.2f)", player1->o.x, player1->o.y);
+    conoutf("you are at (%.2f, %.2f)", player1->o.x, player1->o.y);
 }
 COMMAND(whereami, "");
 

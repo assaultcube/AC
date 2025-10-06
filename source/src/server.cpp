@@ -2889,7 +2889,7 @@ void startgame(const char *newname, int newmode, int newtime, bool notify)
         packetbuf q(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
         send_item_list(q); // always send the item list when a game starts
         sendpacket(-1, 1, q.finalize());
-        defformatstring(gsmsg)("Game start: %s on %s, %d players, %d minutes, mastermode %d, ", modestr(sg->smode), sg->smapname, numclients(), sg->minremain, sg->mastermode);
+        defformatstring(gsmsg)("Game start: %s on %s, %d minutes, mastermode %s, %d players ", modestr(sg->smode), sg->smapname, sg->minremain, mmfullname(sg->mastermode), numclients());
         if(sg->mastermode == MM_MATCH) concatformatstring(gsmsg, "teamsize %d, ", sg->matchteamsize);
         if(sm) concatformatstring(gsmsg, "(map rev %d/%d, %s, 'getmap' %sprepared)", sm->maprevision, sm->cgzlen, sm->getpathdesc(), sm->isdistributable() ? "" : "not ");
         else concatformatstring(gsmsg, "error: failed to preload map");
@@ -4945,7 +4945,7 @@ void loggamestatus(const char *reason)
     string text;
     formatstring(text)("%d minutes remaining", sg->minremain);
     mlog(ACLOG_INFO, "");
-    mlog(ACLOG_INFO, "Game status: %s on %s, %s, %s, %d clients%c %s",
+    mlog(ACLOG_INFO, "Game status: %s on %s, %s, mastermode %s, %d clients%c %s",
                       modestr(gamemode), sg->smapname, reason ? reason : text, mmfullname(sg->mastermode), totalclients, sg->custom_servdesc ? ',' : '\0', sg->servdesc_current);
     if(!scl.loggamestatus) return;
     mlog(ACLOG_INFO, "cn name             %s%s%s%s points frag death %sping role    host", m_teammode ? "team " : "", m_park ? "P@ " : "", m_park ? "#PP# " : "", m_flags_ ? "flag " : "", m_teammode ? "tk " : "");
@@ -5504,7 +5504,7 @@ void initserver(bool dedicated)
         formatstring(vitafilename_update_backup_base)("%s_update_", scl.vitabasename);
         path(vitafilename); path(vitafilename_backup); path(vitafilename_update); path(vitafilename_update_backup_base);
         char *vn;
-        int gotvitas = readvitas((vn = vitafilename)); // FIXME: broken characters (from countrycodes) can lead to crashes
+        int gotvitas = readvitas((vn = vitafilename));
         if(gotvitas < 0) gotvitas = readvitas((vn = vitafilename_backup));
         if(gotvitas >= 0) mlog(ACLOG_INFO, "read %d player vitas from %s", gotvitas, vn);
         maprot.init(scl.maprotfile);
