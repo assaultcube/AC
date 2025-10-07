@@ -865,7 +865,7 @@ void attack(bool on)
 void jumpn(bool on)
 {
     static bool wason = false;
-    player1->jumpnext = on && !wason && !player1->crouching && !intermission && !player1->isspectating() && !ispaused;
+    player1->jumpnext = on && (player1->state == CS_EDITING || (!wason && !player1->crouching)) && !intermission && !player1->isspectating() && !ispaused;
     wason = on;
     if(player1->isspectating())
     {
