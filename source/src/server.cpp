@@ -3095,7 +3095,6 @@ void scallvoteerr(voteinfo *v, int error)
 {
     if(!valid_client(v->owner)) return;
     sendf(v->owner, 1, "ri2", SV_CALLVOTEERR, error);
-    if(v->type == SA_SHUFFLETEAMS && !m_teammode) sendservmsg("\f3shuffle teams requires teammode", v->owner); // 20220119: w/o changing protocol easiest feedback about why the "invalid vote" error was raised.
     mlog(ACLOG_INFO, "[%s] client %s failed to call a vote: %s (%s)", clients[v->owner]->hostname, clients[v->owner]->name, v->action && *v->action->desc ? v->action->desc : "[unknown]", voteerrorstr(error));
 }
 
@@ -3116,7 +3115,9 @@ bool scallvote(voteinfo *v, ENetPacket *msg) // true if a regular vote was calle
     c->nvotes++;
 
 
-    if( !v || !v->isvalid() || (v->boot && (!b || cn2boot == v->owner) ) ) error = VOTEE_INVALID;
+    if( !v || (v->boot && (!b || cn2boot == v->owner) ) ) error = VOTEE_INVALID;
+    else if( v->type == SA_SHUFFLETEAMS && !m_teammode ) error = VOTEE_SHUFFLETEAMS;
+    else if( !v->isvalid() ) error = VOTEE_INVALID;
     else if( v->action->role > c->role ) error = VOTEE_PERMISSION;
     else if( !(area & v->action->area) ) error = VOTEE_AREA;
     else if( curvote && curvote->result==VOTE_NEUTRAL ) error = VOTEE_CUR;
