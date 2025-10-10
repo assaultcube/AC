@@ -1673,14 +1673,9 @@ COMMAND(gonext, "i");
 COMMANDN(callvote, scallvote, "iss"); //fixme,ah
 COMMANDF(vote, "i", (int *v) { vote(*v); });
 
-void cmd_pause(int* arg1)
+void cmd_pause(int *arg1)
 {
     if(*arg1 != 0 && *arg1 != 1) return;
-    if(servstate.mastermode != MM_MATCH && servstate.mastermode != MM_PRIVATE)
-    {
-        conoutf("You may only pause the game in mastermode private or match.");
-        return;
-    }
     defformatstring(m)("%d", *arg1);
     callvote(SA_PAUSE, m, "-1", "0");
 }

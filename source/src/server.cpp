@@ -3117,6 +3117,7 @@ bool scallvote(voteinfo *v, ENetPacket *msg) // true if a regular vote was calle
 
     if( !v || (v->boot && (!b || cn2boot == v->owner) ) ) error = VOTEE_INVALID;
     else if( v->type == SA_SHUFFLETEAMS && !m_teammode ) error = VOTEE_SHUFFLETEAMS;
+    else if( v->type == SA_PAUSE && !v->isvalid() ) error = VOTEE_PAUSE;
     else if( !v->isvalid() ) error = VOTEE_INVALID;
     else if( v->action->role > c->role ) error = VOTEE_PERMISSION;
     else if( !(area & v->action->area) ) error = VOTEE_AREA;

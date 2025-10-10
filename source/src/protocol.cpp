@@ -513,7 +513,8 @@ const char *voteerrors[] =
 {
     "voting is currently disabled", "there is already a vote pending", "already voted", "can't vote that often",
     "this vote is not allowed in the current environment (singleplayer/multiplayer)","no permission", "invalid vote",
-    "server denied your call", "the next map/mode is already set", "shuffle teams requires teammode"
+    "server denied your call", "the next map/mode is already set", "shuffle teams requires teammode",
+    "pause is only allowed in mastermode private or match"
 };
 const char *mmfullnames[] = { "open", "private", "match" };
 
