@@ -176,7 +176,13 @@ void rendermapmodels()
         {
             mapmodelinfo *mmi = getmminfo(e.attr2);
             if(!mmi) continue;
-            rendermodel(mmi->name, ANIM_MAPMODEL|ANIM_LOOP, e.attr4, 0, vec(e.x, e.y, S(e.x, e.y)->floor + mmi->zoff + float(e.attr3) / ENTSCALE5), e.attr6, float(e.attr1) / ENTSCALE10, float(e.attr5) / ENTSCALE10, 10.0f, 0, NULL, NULL, mmi->scale);
+            float model_z = S(e.x, e.y)->floor + mmi->zoff + float(e.attr3) / ENTSCALE5;
+            if(player1->spectatemode == SM_OVERVIEW)
+            {
+                float model_top_z = model_z + mmi->h;
+                if(model_top_z > clmapdims.maxceil - 10) continue;
+            }
+            rendermodel(mmi->name, ANIM_MAPMODEL|ANIM_LOOP, e.attr4, 0, vec(e.x, e.y, model_z), e.attr6, float(e.attr1) / ENTSCALE10, float(e.attr5) / ENTSCALE10, 10.0f, 0, NULL, NULL, mmi->scale);
         }
     }
 }
