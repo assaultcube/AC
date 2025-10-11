@@ -139,7 +139,8 @@ bool mmcollide(physent *d, float &hi, float &lo)           // collide with a map
     for(int i = clentstats.firstclip; i < ents.length(); i++)
     {
         entity &e = ents[i];
-        if (e.type==CLIP || (e.type == PLCLIP && (d->type == ENT_BOT || d->type == ENT_PLAYER || (d->type == ENT_BOUNCE && ((bounceent *)d)->plclipped))))
+        const bool specfly = d->type == ENT_PLAYER && ((playerent *)d)->spectatemode == SM_FLY;
+        if (e.type==CLIP || (e.type == PLCLIP && !specfly && (d->type == ENT_BOT || d->type == ENT_PLAYER || (d->type == ENT_BOUNCE && ((bounceent *)d)->plclipped))))
         {
             bool hitarea = false;
             switch(e.attr7 & 3)
@@ -226,7 +227,8 @@ bool collide(physent *d, bool spawn, float drop, float rise)
     const float playerheight = eyeheight + d->aboveeye;
     float z1 = d->o.z-eyeheight, z2 = z1 + playerheight;
     if(d->type != ENT_BOUNCE) z1 += 1.26;
-    const int applyclip = d->type == ENT_BOT || d->type == ENT_PLAYER || (d->type == ENT_BOUNCE && ((bounceent *)d)->plclipped) ? TAGANYCLIP : TAGCLIP;
+    const bool specfly = d->type == ENT_PLAYER && ((playerent *)d)->spectatemode == SM_FLY;
+    const int applyclip = (d->type == ENT_BOT || (d->type == ENT_PLAYER && !specfly) || (d->type == ENT_BOUNCE && ((bounceent *)d)->plclipped)) ? TAGANYCLIP : TAGCLIP;
 
     for(int y = y1; y<=y2; y++) for(int x = x1; x<=x2; x++)     // collide with map
     {
@@ -291,7 +293,7 @@ bool collide(physent *d, bool spawn, float drop, float rise)
                 ceil += (s->vdelta+S(x+1,y)->vdelta+S(x,y+1)->vdelta+S(x+1,y+1)->vdelta)/16.0f;
 
         }
-        if(tagclipped) return true; // tagged clips feel like solids
+        if(tagclipped && !specfly) return true; // tagged clips feel like solids
         if(ceil<hi) hi = ceil;
         if(floor>lo) lo = floor;
     }
@@ -302,13 +304,16 @@ bool collide(physent *d, bool spawn, float drop, float rise)
 
     if(d->type!=ENT_CAMERA)
     {
-        loopv(players)       // collide with other players
+        if(!specfly)
         {
-            playerent *o = players[i];
-            if(!o || o==d) continue;
-            if(plcollide(d, o, headspace, hi, lo)) return true;
+            loopv(players)       // collide with other players
+            {
+                playerent *o = players[i];
+                if(!o || o==d) continue;
+                if(plcollide(d, o, headspace, hi, lo)) return true;
+            }
+            if(d!=player1) if(plcollide(d, player1, headspace, hi, lo)) return true;
         }
-        if(d!=player1) if(plcollide(d, player1, headspace, hi, lo)) return true;
     }
 
     headspace -= 0.01f;
