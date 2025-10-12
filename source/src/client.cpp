@@ -194,6 +194,7 @@ void disconnect(int onlyclean, int async)
         loopv(players) zapplayer(players[i]);
         clearvote();
         audiomgr.clearworldsounds(false);
+        discscores.shrink(0);
         localdisconnect();
     }
     if(!onlyclean) localconnect();
