@@ -26,7 +26,7 @@ struct servergame
     ENetAddress servdesc_caller;
     bool custom_servdesc;
     int serverstyle;
-    int sispaused = 0;
+    int sispaused;
 
     // current game
     string smapname, nextmapname;
@@ -55,6 +55,7 @@ struct servergame
         forceintermission = false;
         custom_servdesc = false;
         serverstyle = SS_GAME;
+        sispaused = 0;
         smode = GMODE_TEAMDEATHMATCH;
         interm = 0;
         minremain = 0;
@@ -221,9 +222,8 @@ void poll_serverthreads()       // called once per mainloop-timeslice
             else if(!startnewservermapsepoch)
             {
                 // readmapsthread is done
-                if(servmillis<2000)mlog(ACLOG_INFO,"added %d servermaps",servermaps.length());
-                while(!readmapsthread_sem->trywait())
-                    ;
+                if(servmillis<2000)mlog(ACLOG_INFO,"added %d servermaps", servermaps.length());
+                while(!readmapsthread_sem->trywait());
                 stage++;
             }
             break;
@@ -312,8 +312,6 @@ void poll_serverthreads()       // called once per mainloop-timeslice
 
     // update thread-safe data structures (vectors and hashtables can be read concurrently - but to be updated, they need to be locked)
     poll_logbuffers();
-
-
 }
 
 SERVPAR(gamepenalty_cutoff, 30, 60, 120, "gNumber of minutes to remember that a map+mode combination has been played");
@@ -632,13 +630,14 @@ void changemastermode(int newmode)
             }
         }
         else if(sg->matchteamsize) changematchteamsize(sg->matchteamsize);
-    sendservermode();
+        sendservermode();
     }
 }
 
 void setpausemode(int newmode)
 {
-    if (sg->sispaused != newmode) {
+    if(sg->sispaused != newmode)
+    {
         sg->sispaused = newmode;
     }
 
@@ -757,7 +756,7 @@ void sendf(int cn, int chan, const char *format, ...)
 
 void sendpoints() // only at3_points
 {
-    if( sg->gamemillis < sg->nextsendscore ) return;
+    if(sg->gamemillis < sg->nextsendscore) return;
 
     int doers = 0, achievers[MAXCLIENTS];
     loopv(clients)
@@ -2047,7 +2046,7 @@ void checkitemspawns(int diff)
 
 void serverdamage(client *target, client *actor, int damage, int gun, bool gib, const vec &hitpush = vec(0, 0, 0))
 {
-    if ( m_arena && gun == GUN_GRENADE && sg->arenaroundstartmillis + 2000 > sg->gamemillis && target != actor ) return;
+    if(m_arena && gun == GUN_GRENADE && sg->arenaroundstartmillis + 2000 > sg->gamemillis && target != actor) return;
     clientstate &ts = target->state;
     ts.dodamage(damage, gun);
     if(damage < INT_MAX)
@@ -2150,7 +2149,8 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
                        actor->state.teamkills * 60 * 1000 > sg->gamemillis &&
                        actor->state.frags < 4 * actor->state.teamkills ) ) disconnect_client(actor->clientnum, DISC_AUTOKICK);
         }
-    } else if ( target!=actor && isteam(target->team, actor->team) ) check_ffire (target, actor, damage); // friendly fire counter
+    }
+    else if ( target!=actor && isteam(target->team, actor->team) ) check_ffire (target, actor, damage); // friendly fire counter
 }
 
 #include "serverevents.h"
@@ -2783,7 +2783,6 @@ void resetserver(const char *newname, int newmode, int newtime)
     else savedscores.shrink(0);
     ctfreset();
 
-    sg->sispaused = false;
     sg->nextmapname[0] = '\0';
     sg->forceintermission = false;
 }
@@ -4920,6 +4919,7 @@ void resetserverifempty()
     resetserver("", 0, 10);
     sg->matchteamsize = 0;
     sg->autoteam = true;
+    sg->sispaused = 0;
     changemastermode(MM_OPEN);
     sg->nextmapname[0] = '\0';
 }
