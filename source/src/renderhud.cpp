@@ -952,6 +952,10 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         if(!hideteam && m_teammode) drawteamicons(w, h, is_spect);
         glMatrixMode(GL_PROJECTION);
     }
+    else if(showmap)
+    {
+        drawradar(p, w, h);
+    }
 
     char *infostr = editinfo();
     int commandh = HUDPOS_Y_BOTTOMLEFT + FONTH;
