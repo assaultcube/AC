@@ -1418,6 +1418,11 @@ bool CWaypointClass::CanPlaceNodeHere(const vec &from)
           return false;
      }
 
+     if (s->tag & TAGANYCLIP)
+     {
+          return false;
+     }
+
      if (fabs((float)(s->ceil - s->floor)) < player1->radius)
      {
           return false;
