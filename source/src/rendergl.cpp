@@ -1146,7 +1146,74 @@ void gl_drawframe(int w, int h, float changelod, float curfps, int elapsed)
 
     if(editmode)
     {
-        if(cursordepth==1.0f) worldpos = camera1->o;
+        // in editmode, always use raycube for precise selection
+        vec start = camera1->o;
+        int x = int(start.x), y = int(start.y);
+
+        // if we are inside the world and inside the wall, move forward until we exit
+        if(!OUTBORD(x, y))
+        {
+            sqr *s = S(x, y);
+            float floor = s->floor, ceil = s->ceil;
+            if(s->type==FHF) floor -= s->vdelta/4.0f;
+            if(s->type==CHF) ceil += s->vdelta/4.0f;
+            
+            if(SOLID(s) || start.z < floor || start.z > ceil)
+            {
+                // we are within a solid geometry, moving forward
+                vec step = camdir;
+                step.mul(0.5f);
+                for(int i = 0; i < 20; i++)
+                {
+                    start.add(step);
+                    x = int(start.x); y = int(start.y);
+                    if(OUTBORD(x, y)) break;
+                    s = S(x, y);
+                    floor = s->floor; ceil = s->ceil;
+                    if(s->type==FHF) floor -= s->vdelta/4.0f;
+                    if(s->type==CHF) ceil += s->vdelta/4.0f;
+                    if(!SOLID(s) && start.z >= floor && start.z <= ceil) break;
+                }
+            }
+        }
+        else
+        {
+            // we are out of the world, move towards the camera until we enter
+            vec step = camdir;
+            step.mul(1.0f);
+            for(int i = 0; i < 100; i++)
+            {
+                start.add(step);
+                x = int(start.x); y = int(start.y);
+                if(!OUTBORD(x, y))
+                {
+                    // we're entering the world! Check if the position is valid
+                    sqr *s = S(x, y);
+                    float floor = s->floor, ceil = s->ceil;
+                    if(s->type==FHF) floor -= s->vdelta/4.0f;
+                    if(s->type==CHF) ceil += s->vdelta/4.0f;
+                    if(!SOLID(s) && start.z >= floor && start.z <= ceil) break;
+                }
+            }
+        }
+
+        vec surface;
+        float dist = raycube(start, camdir, surface);
+        if(dist >= 0)
+        {
+            worldpos = start;
+            vec dir = camdir;
+            dir.mul(dist);
+            worldpos.add(dir);
+        }
+        else
+        {
+            // if raycube fails, use a simple projection
+            worldpos = camera1->o;
+            vec dir = camdir;
+            dir.mul(50);
+            worldpos.add(dir);
+        }
         enablepolygonoffset(GL_POLYGON_OFFSET_LINE);
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         glDepthMask(GL_FALSE);
