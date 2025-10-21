@@ -206,7 +206,7 @@ VARP(crosshairsize, 0, 15, 50);
 VARP(showstats, 0, 1, 2);
 VARP(crosshairfx, 0, 1, 3);
 VARP(crosshairteamsign, 0, 1, 1);
-VARP(hideradar, 0, 0, 1);
+VARP(hideradar, 0, 0, 2);
 VARP(hidecompass, 0, 0, 1);
 VARP(hideteam, 0, 0, 1);
 VARP(hideteamscorehud, 0, 0, 1);
@@ -947,7 +947,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
     if(!editmode)
     {
-        if((!hideradar || showmap) && player1->spectatemode <= SM_FLY) drawradar(p, w, h); // EDITMINIMAP: radar/showmap in editmode will be out-of-date
+        if((hideradar == 0 || (hideradar == 2 && m_teammode) || showmap) && player1->spectatemode <= SM_FLY) drawradar(p, w, h); // EDITMINIMAP: radar/showmap in editmode will be out-of-date
         glMatrixMode(GL_MODELVIEW);
         if(!hideteam && m_teammode) drawteamicons(w, h, is_spect);
         glMatrixMode(GL_PROJECTION);
