@@ -251,6 +251,16 @@ void poll_serverthreads()       // called once per mainloop-timeslice
                     {
                         mlog(ACLOG_INFO, "read/updated %d vitas from %s", parsevitas(vitaupdatebuf, vitaupdatebuflen), vitafilename_update_backup);;
                         DELETEA(vitaupdatebuf);
+                        loopvrev(clients)
+                        {
+                            client &c = *clients[i];
+                            if(c.type != ST_TCPIP) continue;
+                            if(c.checkvitadate(VS_BAN))
+                            {
+                                mlog(ACLOG_INFO, "[%s] %s disconnected (vita ban update)", c.hostname, c.name);
+                                disconnect_client(c.clientnum, DISC_BANNED);
+                            }
+                        }
                     }
                     stage++;
                 }
