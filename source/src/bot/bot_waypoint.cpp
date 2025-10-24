@@ -1701,12 +1701,20 @@ void wpvisible(int *on)
 
 COMMAND(wpvisible, "i");
 
-void wpsave(void)
+void wpsave(char *name)
 {
-     WaypointClass.SaveWaypoints();
+    if(name && name[0])
+    {
+        WaypointClass.SetMapName(name);
+    }
+    else
+    {
+        WaypointClass.SetMapName(getclientmap());
+    }
+    WaypointClass.SaveWaypoints();
 }
 
-COMMAND(wpsave, "");
+COMMAND(wpsave, "s");
 
 void wpload(void)
 {
