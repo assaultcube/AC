@@ -466,7 +466,7 @@ struct mitemtextinput : mitemtext
     virtual void key(int code, bool isdown)
     {
         if(input.key(code)) modified = true;
-        if(action && code == SDLK_RETURN && modified && parent->items.find(this) != parent->items.length() - 1)
+        if(action && (code == SDLK_RETURN || code == SDLK_KP_ENTER) && modified && parent->items.find(this) != parent->items.length() - 1)
         {
             modified = false;
             execaction(input.buf);
