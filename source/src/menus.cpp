@@ -577,6 +577,8 @@ struct mitemslider : mitem
         else if(code == SDLK_RIGHT) slide(true);
     }
 
+    virtual int select() { return -1; }
+
     virtual void init()
     {
         const char *p = valueexp;
