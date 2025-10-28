@@ -445,6 +445,7 @@ public:
     void sound(int n);
     int findsound(const char *name, int vol, vector<soundconfig> &sounds);
     void detachsounds(class playerent *owner);
+    void stopplayersounds(class playerent *owner);
 
     // update
     void updateplayerfootsteps(class playerent *p);

@@ -507,6 +507,18 @@ void audiomanager::detachsounds(playerent *owner)
     locations.replaceworldobjreference(physentreference(owner), staticreference(owner->o));
 }
 
+void audiomanager::stopplayersounds(playerent *owner)
+{
+    if(nosound) return;
+    // stop and drop all sounds from this player
+    physentreference ref(owner);
+    loopv(locations)
+    {
+        location *l = locations[i];
+        if(!l || !l->ref || l->stale) continue;
+        if(*l->ref == ref) l->drop();
+    }
+}
 
 VARP(maxsoundsatonce, 0, 32, 100);
 

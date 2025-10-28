@@ -464,6 +464,8 @@ void deathstate(playerent *pl)
     pl->attacking = false;
     pl->weaponsel->onownerdies();
 
+    audiomgr.stopplayersounds(pl); // stop all sounds from this player when they die
+
     if(pl==player1)
     {
         if(showscoresondeath) showscores(true);
