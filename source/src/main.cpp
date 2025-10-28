@@ -31,6 +31,8 @@ void cleanup(char *msg)         // single program exit point;
 
 VAR(resetcfg, 0, 0, 1);
 
+VARP(soundfocus, 0, 0, 1);
+
 int lastsoundvol = 0;
 
 void quit()                     // normal exit
@@ -1089,7 +1091,7 @@ void checkinput()
                     case SDL_WINDOWEVENT_FOCUS_GAINED: // window has gained keyboard focus
                         EVENTDEBUG(concatstring(eb, " SDL_WINDOWEVENT_FOCUS_GAINED"));
                         shouldgrab = true;
-                        if(lastsoundvol > 0)
+                        if(!soundfocus && lastsoundvol > 0)
                         {
                             soundvol = lastsoundvol;
                             audiomgr.setlistenervol(soundvol);
@@ -1100,9 +1102,12 @@ void checkinput()
                         EVENTDEBUG(concatstring(eb, " SDL_WINDOWEVENT_FOCUS_LOST"));
                         shouldgrab = false;
                         focused = -1;
-                        lastsoundvol = soundvol;
-                        soundvol = 0;
-                        audiomgr.setlistenervol(soundvol);
+                        if(!soundfocus)
+                        {
+                            lastsoundvol = soundvol;
+                            soundvol = 0;
+                            audiomgr.setlistenervol(soundvol);
+                        }
                         break;
                 }
                 break;
