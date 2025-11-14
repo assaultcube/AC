@@ -658,13 +658,13 @@ void checkitems(playerent *d)
         if(OUTBORD(f.pos.x, f.pos.y)) continue;
         if(f.state==CTFF_DROPPED) // 3d collision for dropped ctf flags
         {
-            if(objcollide(d, f.pos, 2.5f, 8.0f)) trypickupflag(i, d);
+            if(objcollide(d, f.pos, 2.5f, 6.5f)) trypickupflag(i, d);
         }
-        else // simple 2d collision
+        else // 3d collision for flag in base
         {
-            vec v = f.pos;
-            v.z = S(int(v.x), int(v.y))->floor + eyeheight;
-            if(d->o.dist(v)<2.5f) trypickupflag(i, d);
+            vec flagpos = f.pos;
+            flagpos.z = S(int(f.pos.x), int(f.pos.y))->floor;
+            if(objcollide(d, flagpos, 2.5f, 6.5f)) trypickupflag(i, d);
         }
     }
     if(d==player1)
