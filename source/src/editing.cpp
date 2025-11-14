@@ -80,7 +80,8 @@ void toggleedit(bool force)
     if(editing && player1->onladder) player1->onladder = false;
     if(editing && (player1->weaponsel->type == GUN_SNIPER && ((sniperrifle *)player1->weaponsel)->scoped)) ((sniperrifle *)player1->weaponsel)->onownerdies(); // or ondeselecting()
     if(editing && (player1->weaponsel->type == GUN_GRENADE) && ((grenades *)player1->weaponsel)->state < GST_THROWING) ((grenades *)player1->weaponsel)->onownerdies();
-    if(editing && m_flags_) tryflagdrop(false);
+    /*prevents flag from being dropped when entering edit mode, allowing flag movement to another position when testing with the flag is needed
+    if(editing && m_flags_) tryflagdrop(false);*/
     if(!force) addmsg(SV_EDITMODE, "ri", editing);
 }
 
