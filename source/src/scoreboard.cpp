@@ -289,7 +289,7 @@ void reorderscorecolumns()
     sscore.addcol(sc_frags, "frags");
     sscore.addcol(sc_deaths, "deaths");
     sscore.addcol(sc_ratio, "ratio");
-    sscore.addcol(sc_score, "score");
+    if(multiplayer(NULL) || watchingdemo) sscore.addcol(sc_score, "score");
     if(multiplayer(NULL) || watchingdemo) sscore.addcol(sc_lag, "pj/ping");
     sscore.addcol(sc_clientnum, "cn");
     sscore.addcol(sc_name, "name");
