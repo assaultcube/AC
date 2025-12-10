@@ -42,3 +42,4 @@ profile/*
 logs/*
 private/*
 .DS_Store
+*.exe
