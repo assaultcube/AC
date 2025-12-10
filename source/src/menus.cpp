@@ -20,6 +20,7 @@ inline gmenu *setcurmenu(gmenu *newcurmenu)      // only change curmenu through 
 
 void menuset(void *m, bool save)
 {
+    if (m == NULL) inputgrab(grabinput = true);
     if(curmenu==m) return;
     if(curmenu)
     {
@@ -31,6 +32,8 @@ void menuset(void *m, bool save)
 
 void showmenu(const char *name, bool top)
 {
+    // enable cursor
+    inputgrab(grabinput = false);
     menurighttabwidth = max(VIRTW/4, 15 * text_width("w")); // adapt to screen and font size every time a menu opens
     if(!name)
     {

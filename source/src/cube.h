@@ -62,6 +62,10 @@ extern int hwtexsize, hwmaxaniso;
 extern int maploaded, msctrl;
 extern float waterlevel;
 
+// global mouse pointer handling
+extern bool grabinput;
+void inputgrab(bool on, bool delay = false);
+
 #define AC_MASTER_URI "ms.cubers.net"
 
 // uncomment this line for production release

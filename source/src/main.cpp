@@ -116,13 +116,14 @@ VARN(relativemouse, userelativemouse, 1, 1, 0);
 VARNP(relativemouse, userelativemouse, 0, 1, 1);
 #endif
 
-static bool shouldgrab = false, grabinput = false, minimized = false, centerwindow = true, canrelativemouse = true, relativemouse = false;
+static bool shouldgrab = false, minimized = false, centerwindow = true, canrelativemouse = true, relativemouse = false;
+bool grabinput = false;
 
 #ifdef SDL_VIDEO_DRIVER_X11
 VAR(sdl_xgrab_bug, 0, 0, 1);
 #endif
 
-void inputgrab(bool on, bool delay = false)
+void inputgrab(bool on, bool delay)
 {
 #ifdef SDL_VIDEO_DRIVER_X11
     bool wasrelativemouse = relativemouse;
