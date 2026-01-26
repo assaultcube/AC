@@ -628,6 +628,7 @@ void renderbatchedmodel(model *m, batchedmodel &b)
 
     if(b.anim&ANIM_TRANSLUCENT)
     {
+        glDepthMask(GL_FALSE);
         glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
         m->render(b.anim|ANIM_NOSKIN, b.varseed, b.speed, b.basetime, b.o, b.roll, b.yaw, b.pitch, b.d, a, b.scale);
         glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
@@ -647,6 +648,7 @@ void renderbatchedmodel(model *m, batchedmodel &b)
     {
         glDepthFunc(GL_LESS);
         glDisable(GL_BLEND);
+        glDepthMask(GL_TRUE);
     }
 }
 
@@ -854,6 +856,7 @@ void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, fl
 
     if(anim&ANIM_TRANSLUCENT)
     {
+        glDepthMask(GL_FALSE);
         glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
         m->render(anim|ANIM_NOSKIN, varseed, speed, basetime, o, 0, yaw, pitch, d, a, scale);
         glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
@@ -873,6 +876,7 @@ void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, fl
     {
         glDepthFunc(GL_LESS);
         glDisable(GL_BLEND);
+        glDepthMask(GL_TRUE);
     }
 
     m->endrender();
