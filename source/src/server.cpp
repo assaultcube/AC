@@ -5468,7 +5468,7 @@ void initserver(bool dedicated)
         formatstring(vitafilename_update_backup_base)("%s_update_", scl.vitabasename);
         path(vitafilename); path(vitafilename_backup); path(vitafilename_update); path(vitafilename_update_backup_base);
         char *vn;
-        int gotvitas = readvitas((vn = vitafilename)); // FIXME: broken characters (from countrycodes) can lead to crashes
+        int gotvitas = readvitas((vn = vitafilename));
         if(gotvitas < 0) gotvitas = readvitas((vn = vitafilename_backup));
         if(gotvitas >= 0) mlog(ACLOG_INFO, "read %d player vitas from %s", gotvitas, vn);
         maprot.init(scl.maprotfile);

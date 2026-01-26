@@ -2040,7 +2040,7 @@ void vita_s::addcc(const char *cc)
 {
     int rem = 0;
     for(; rem < VITACCHISTLEN - 1; rem++) if(cchist[rem * 2] == cc[0] && cchist[rem * 2 + 1] == cc[1]) break;
-    if(rem) memmove(cchist + 2, iphist, rem * 2);
+    if(rem) memmove(cchist + 2, cchist, rem * 2);
     loopi(2) cchist[i] = cc[i];
 }
 
