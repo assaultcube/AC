@@ -698,6 +698,7 @@ extern char *lang;
 extern SDL_Window *screen;
 extern int screenw, screenh;
 extern int stencilbits;
+extern void screenshot(const char *filename);
 
 enum { KR_CONSOLE = 1<<0, KR_MENU = 1<<1, KR_EDITMODE = 1<<2 };
 extern void keyrepeat(bool on, int mask = ~0);
