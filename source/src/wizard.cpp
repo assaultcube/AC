@@ -62,7 +62,7 @@ int wizardmain(int argc, char **argv)
 
     printf("The AssaultCube Server Wizard\n\n");
     printf("Before setting up a new server, please ensure you've read the rules at:\n"
-           "\thttp://masterserver.cubers.net/rules.html\n\n");
+           "\thttp://ms.cubers.net/rules.html\n\n");
     printf("You will also need to ensure that the UDP port you choose is open.\n"
            "Whatever port you choose, you will need to forward that port, plus one port after that.\n"
            "If you're having issues, use and forward the default ports 28763 and 28764\n"
