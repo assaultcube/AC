@@ -1033,6 +1033,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps, int elapsed)
 
     float hf = waterlevel - 0.3f;
     bool underwater = camera1->o.z<hf;
+    bool isoverview = player1->isspectating() && player1->spectatemode == SM_OVERVIEW;
 
     glFogi(GL_FOG_START, (fog+64)/8);
     glFogi(GL_FOG_END, fog);
@@ -1040,6 +1041,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps, int elapsed)
           wfogc[4] = { hdr.watercolor[0]/255.0f, hdr.watercolor[1]/255.0f, hdr.watercolor[2]/255.0f, 1.0f };
     glFogfv(GL_FOG_COLOR, fogc);
     glClearColor(fogc[0], fogc[1], fogc[2], 1.0f);
+    if(isoverview) glDisable(GL_FOG);
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -1095,7 +1097,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps, int elapsed)
     draw_envbox(fog*4/3);
     glDepthFunc(GL_LESS);
     fixresizedscreen();
-    glEnable(GL_FOG);
+    if(!isoverview) glEnable(GL_FOG);
 
     transplayer();
 
@@ -1162,7 +1164,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps, int elapsed)
     gl_drawhud(w, h, int(curfps + 0.5f), nquads, verts.length(), underwater, elapsed);
 
     glEnable(GL_CULL_FACE);
-    glEnable(GL_FOG);
+    if(!isoverview) glEnable(GL_FOG);
 
     undodynlights();
 }
