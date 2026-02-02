@@ -1819,6 +1819,7 @@ bool smoverviewflyforbidden()
 // set new spect mode
 void spectatemode(int mode)
 {
+    if(mode < SM_NONE || mode >= SM_NUM) return;
     if((player1->state != CS_DEAD && player1->state != CS_SPECTATE && !team_isspect(player1->team)) || (!m_teammode && !team_isspect(player1->team) && servstate.mastermode == MM_MATCH)) return;  // during ffa matches only SPECTATORS can spectate
     if(mode == player1->spectatemode) return;
     if((mode == SM_OVERVIEW || mode == SM_FLY) && smoverviewflyforbidden()) return;
