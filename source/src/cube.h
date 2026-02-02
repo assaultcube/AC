@@ -57,6 +57,7 @@ extern int xtraverts;
 extern float fovy, aspect;
 extern int farplane;
 extern bool minimap, reflecting, refracting;
+extern bool isoverview;
 extern int stenciling, stencilshadow, effective_stencilshadow;
 extern bool intermission;
 extern int ispaused;

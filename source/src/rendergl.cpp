@@ -1017,6 +1017,8 @@ VARP(ignoreoverride_nostencilshadows, 0, 0, 1);
 
 int effective_stencilshadow = 0;
 
+bool isoverview = false;
+
 void gl_drawframe(int w, int h, float changelod, float curfps, int elapsed)
 {
     extern int mapoverride_nostencilshadows, mapoverride_nowaterreflect;
@@ -1033,7 +1035,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps, int elapsed)
 
     float hf = waterlevel - 0.3f;
     bool underwater = camera1->o.z<hf;
-    bool isoverview = player1->isspectating() && player1->spectatemode == SM_OVERVIEW;
+    isoverview = player1->isspectating() && player1->spectatemode == SM_OVERVIEW;
 
     glFogi(GL_FOG_START, (fog+64)/8);
     glFogi(GL_FOG_END, fog);
@@ -1062,7 +1064,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps, int elapsed)
     transplayer();
     readmatrices();
 
-    if(!underwater && effective_waterreflect)
+    if(!underwater && effective_waterreflect && !isoverview)
     {
         extern int wx1;
         if(wx1>=0)
@@ -1112,7 +1114,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps, int elapsed)
     rendermapmodels();
     endmodelbatches();
 
-    if(effective_stencilshadow && hasstencil && stencilbits >= 8) drawstencilshadows();
+    if(effective_stencilshadow && hasstencil && stencilbits >= 8 && !isoverview) drawstencilshadows();
 
     startmodelbatches();
     rendereditentities();
@@ -1139,7 +1141,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps, int elapsed)
 
     render_particles(curtime, PT_DECAL_MASK);
 
-    int nquads = renderwater(hf, !effective_waterreflect || underwater ? 0 : reflecttex, !effective_waterreflect || !waterrefract || underwater ? 0 : refracttex);
+    int nquads = renderwater(hf, !effective_waterreflect || underwater || isoverview ? 0 : reflecttex, !effective_waterreflect || !waterrefract || underwater || isoverview ? 0 : refracttex);
 
     render_particles(curtime, ~PT_DECAL_MASK);
 

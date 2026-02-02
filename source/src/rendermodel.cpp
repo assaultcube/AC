@@ -723,7 +723,7 @@ void endmodelbatches(bool flush)
             }
             renderbatchedmodel(b.m, bm);
         }
-        if(dynshadow && b.m->hasshadows() && (!reflecting || refracting) && (!effective_stencilshadow || !hasstencil || stencilbits < 8))
+        if(dynshadow && b.m->hasshadows() && (!reflecting || refracting) && (!effective_stencilshadow || !hasstencil || stencilbits < 8) && !isoverview)
         {
             loopvj(b.batched)
             {
