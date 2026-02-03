@@ -531,12 +531,18 @@ void recomputecamera()
             case SM_OVERVIEW:
             {
                 // TODO : fix water rendering
-                camera1->o.x = clmapdims.xm;
-                camera1->o.y = clmapdims.ym;
-                camera1->o.z = clmapdims.maxceil + 1;
-                camera1->pitch = -90;
-                camera1->yaw = 0;
-
+                static physent overviewcam;
+                overviewcam = *(physent *)player1;
+                overviewcam.reset();
+                overviewcam.type = ENT_CAMERA;
+                overviewcam.roll = 0;
+                overviewcam.move = -1;
+                overviewcam.o.x = clmapdims.xm;
+                overviewcam.o.y = clmapdims.ym;
+                overviewcam.o.z = clmapdims.maxceil + 1;
+                overviewcam.pitch = -90;
+                overviewcam.yaw = 0;
+                camera1 = &overviewcam;
                 disableraytable();
                 break;
             }
