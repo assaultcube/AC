@@ -192,8 +192,7 @@ struct savedscore
         firstspawntime = cs.firstspawntime;
         parkplace = cs.parkplace;
         parkpoints = cs.parkpoints;
-        parkents.reserve(cs.parkents.length());
-        memcpy(&parkents, &cs.parkents, cs.parkents.length()*sizeof(bool));
+        parkents = cs.parkents;
         team = t;
         valid = true;
     }
@@ -214,8 +213,7 @@ struct savedscore
         cs.firstspawntime = firstspawntime;
         cs.parkplace = parkplace;
         cs.parkpoints = parkpoints;
-        cs.parkents.reserve(parkents.length());
-        memcpy(&cs.parkents, &parkents, parkents.length()*sizeof(bool));
+        cs.parkents = parkents;
         reset();
     }
 };
