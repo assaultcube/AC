@@ -2836,19 +2836,19 @@ void startgame(const char *newname, int newmode, int newtime, bool notify)
                 {
                     sm = localmap;
                     if(!(sm->entstats.modes_possible & 1 << sg->smode)) conoutf("\f3map %s does not support game mode %s", sm->fname, fullmodestr(sg->smode));
-                }
-                else conoutf("\f3local server failed to load map \"%s%s\", error: %s", lpath, sg->smapname, localmap->err);
 
-                if(clients.length())
-                {
-                    client *cl = clients[0];
-                    cl->state.parkents.shrink(0);
-                    loopi(sm->numents)// only becomes sg->curmap->numents below the #endif
+                    if(clients.length())
                     {
-                        bool iscarrot = sm->enttypes[i]==CARROT;
-                        cl->state.parkents.add(!iscarrot);
+                        client *cl = clients[0];
+                        cl->state.parkents.shrink(0);
+                        loopi(sm->numents)// only becomes sg->curmap->numents below the #endif
+                        {
+                            bool iscarrot = sm->enttypes[i]==CARROT;
+                            cl->state.parkents.add(!iscarrot);
+                        }
                     }
                 }
+                else conoutf("\f3local server failed to load map \"%s%s\", error: %s", lpath, sg->smapname, localmap->err);
             }
         }
 #endif
