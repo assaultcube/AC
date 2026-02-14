@@ -3996,7 +3996,7 @@ void process(ENetPacket *packet, int sender, int chan)
             {
                 int gzs = getint(p);
                 int rev = getint(p);
-                if(!isdedicated || (sg->curmap && sg->curmap->cgzlen == gzs && sg->curmap->maprevision == rev) || m_coop)
+                if(!isdedicated || (sg->curmap && sg->curmap->cgzlen == gzs && sg->curmap->maprevision == rev))
                 { // here any game really starts for a client: spawn, if it's a new game - don't spawn if the game was already running
                     cl->isonrightmap = true;
                     int sp = canspawn(cl);
