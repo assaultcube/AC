@@ -391,20 +391,12 @@ struct signalbinder
     {
         printf("stacktrace:\n");
 #if !defined(STANDALONE)
-        if(clientlogfile) clientlogfile->printf("stacktrace\n");
+        if(clientlogfile) clientlogfile->printf("no stacktrace\n");
 #endif
         const int BTSIZE = 25;
         void *array[BTSIZE];
         int n = backtrace(array, BTSIZE);
-        char **symbols = backtrace_symbols(array, n);
-        for(int i = 0; i < n; i++)
-        {
-            printf("%s\n", symbols[i]);
-#if !defined(STANDALONE)
-            if(clientlogfile) clientlogfile->printf("%s\n", symbols[i]);
-#endif
-        }
-        free(symbols);
+        backtrace_symbols_fd(array, n, 1);
 
         fatal("AssaultCube error (%d)", sig);
 
