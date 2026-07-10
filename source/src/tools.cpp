@@ -381,7 +381,10 @@ void stackdumper(unsigned int type, EXCEPTION_POINTERS *ep)
 }
 #elif defined(linux) || defined(__linux) || defined(__linux__)
 
+// Add support for musl systems (eg., alpine, void)
+#if defined(HAS_EXECINFO)
 #include <execinfo.h>
+#endif
 
 // stack dumping on linux, inspired by Sachin Agrawal's sample code
 
@@ -389,6 +392,7 @@ struct signalbinder
 {
     static void stackdumper(int sig)
     {
+#if defined(HAS_EXECINFO)
         printf("stacktrace:\n");
 #if !defined(STANDALONE)
         if(clientlogfile) clientlogfile->printf("stacktrace\n");
@@ -397,6 +401,7 @@ struct signalbinder
         void *array[BTSIZE];
         int n = backtrace(array, BTSIZE);
         char **symbols = backtrace_symbols(array, n);
+
         for(int i = 0; i < n; i++)
         {
             printf("%s\n", symbols[i]);
@@ -404,10 +409,12 @@ struct signalbinder
             if(clientlogfile) clientlogfile->printf("%s\n", symbols[i]);
 #endif
         }
+
         free(symbols);
-
+#else
+        printf("Stacktrace not available!\n");
+#endif
         fatal("AssaultCube error (%d)", sig);
-
     }
 
     signalbinder()
