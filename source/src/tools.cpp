@@ -381,7 +381,29 @@ void stackdumper(unsigned int type, EXCEPTION_POINTERS *ep)
 }
 #elif defined(linux) || defined(__linux) || defined(__linux__)
 
+/*
+ * Add support for musl systems
+ * musl does not have execinfo.h
+ * as they consider it "bloat"
+ * so stub stuff out.
+ */
+#if __has_include(<execinfo.h>)
 #include <execinfo.h>
+#else
+
+int backtrace(void **buffer, int size) {
+    (void)buffer;
+    (void)size;
+    return 0;
+}
+
+char **backtrace_symbols(void *const *buffer, int size) {
+    (void)buffer;
+    (void)size;
+    return 0;
+}
+
+#endif
 
 // stack dumping on linux, inspired by Sachin Agrawal's sample code
 
