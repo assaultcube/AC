@@ -189,6 +189,7 @@ bool rldecodecubes(ucharbuf &f, sqr *s, int len, int version, bool silent) // ru
             {
                 if(!t) { f.forceoverread(); continue; }
                 int n = f.get();
+                if(s + n > e) n = e - s;
                 loopi(n) memcpy(s++, t, sizeof(sqr));
                 s--;
                 break;
