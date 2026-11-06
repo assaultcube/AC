@@ -58,7 +58,7 @@ echo ""
 LAUNCHERPATH="${HOME}/.local/share/applications/"
 EXISTINGEXEC=`find "${LAUNCHERPATH}" -name "assaultcube*" | xargs`
 if [ "$EXISTINGEXEC" != "" ]; then
-  echo "the following menuitem(s) wer found:"
+  echo "the following menuitem(s) were found:"
   echo " $EXISTINGEXEC"
 else
   echo "no desktop launcher items were found - run install_or_remove_menuitem.sh to create one"
